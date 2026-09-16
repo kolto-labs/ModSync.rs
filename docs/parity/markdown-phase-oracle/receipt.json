@@ -1,0 +1,17 @@
+{
+  "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+  "reference_dll_sha256": "8f3b1e3f8fe47b2cc6f8e3f281912506721c7367218381bb2a35cf86dc5768f0",
+  "runtime": "Microsoft.NETCore.App 10.0.11",
+  "isolation": "bubblewrap: read-only /, private /tmp and user config/data, network unshared; only oracle scratch writable",
+  "checks": [
+    "component names and widescreen flags before, within and after widescreen section",
+    "warning and epilogue boundaries"
+  ],
+  "files": {
+    "Program.cs": "44e6ecb014d865879a31e1477e7c7638958f88d569c7ca085175a6d01521aa32",
+    "probe.csproj": "35f334ace768b4aba6eedee309e5434d205d433230530a4a63a9f437cada22bd",
+    "guide.md": "57065c696be8a0a9a64c8069c38c3e0a823d92120951ac4ac843e257f599f7fc",
+    "result.json": "9f64d340414a2d5502b2d9becec8e3ff1c80e4c4854e89fa46c8080d1c13028c"
+  },
+  "scope": "Parser service fixture only; not desktop or full-build proof."
+}

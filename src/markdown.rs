@@ -66,7 +66,7 @@ pub(crate) fn parse(text: &str) -> Result<Guide> {
             }
             if line.starts_with("### ") || line.starts_with("## ") || trimmed == "___" {
                 if let Some(begin) = start.take() {
-                    sections.push(&text[begin..offset]);
+                    sections.push((begin, &text[begin..offset]));
                 }
                 if line.starts_with("### ") && mod_list.is_none_or(|i| offset >= i) {
                     start = Some(offset);
@@ -94,7 +94,7 @@ pub(crate) fn parse(text: &str) -> Result<Guide> {
         offset += line.len();
     }
     if let Some(begin) = start {
-        sections.push(&text[begin..end]);
+        sections.push((begin, &text[begin..end]));
     }
     ensure!(
         !sections.is_empty(),
@@ -102,8 +102,11 @@ pub(crate) fn parse(text: &str) -> Result<Guide> {
     );
     let mut guide = Guide::default();
     let mut masters = Vec::new();
-    for (index, section) in sections.iter().enumerate() {
-        let (component, dependencies) = component(section, index)?;
+    for (index, (_, section)) in sections.iter().enumerate() {
+        let (mut component, dependencies) = component(section, index)?;
+        component
+            .metadata
+            .insert("WidescreenOnly".into(), false.into());
         guide.components.push(component);
         masters.push(dependencies);
     }
@@ -166,6 +169,13 @@ pub(crate) fn parse(text: &str) -> Result<Guide> {
             position += line.len();
         }
         if let Some(first_mod) = first_mod {
+            for (component, (position, _)) in guide.components.iter_mut().zip(&sections) {
+                component.metadata.insert(
+                    "WidescreenOnly".into(),
+                    (*position >= first_mod && next_section.is_none_or(|end| *position < end))
+                        .into(),
+                );
+            }
             guide.metadata.insert(
                 "widescreenWarningContent".into(),
                 text[header..first_mod].trim().into(),

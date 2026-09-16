@@ -476,3 +476,49 @@ fn markdown_widescreen_warning_and_epilogue_follow_reference_boundaries() {
         notice.trim()
     );
 }
+
+#[test]
+fn markdown_widescreen_flags_match_reference_section_positions() {
+    let text = include_str!("../docs/parity/markdown-phase-oracle/guide.md");
+    let expected: serde_json::Value = serde_json::from_str(include_str!(
+        "../docs/parity/markdown-phase-oracle/result.json"
+    ))
+    .unwrap();
+    for input in [text.to_owned(), text.replace('\n', "\r\n")] {
+        let guide = Guide::parse(&input, "md").unwrap();
+        let actual: Vec<_> = guide
+            .components
+            .iter()
+            .map(|c| {
+                serde_json::json!({
+                    "Name": c.name, "WidescreenOnly": c.metadata["WidescreenOnly"]
+                })
+            })
+            .collect();
+        assert_eq!(serde_json::json!(actual), expected["Components"]);
+        assert_eq!(
+            guide.metadata["widescreenWarningContent"],
+            expected["WidescreenWarningContent"]
+        );
+        assert_eq!(
+            guide.metadata["epilogueContent"],
+            expected["EpilogueContent"]
+        );
+    }
+    let no_header = Guide::parse(
+        &text.replace("## Optional Widescreen Support", "## Other"),
+        "md",
+    )
+    .unwrap();
+    assert!(
+        no_header
+            .components
+            .iter()
+            .all(|c| c.metadata["WidescreenOnly"] == false)
+    );
+    let no_end = Guide::parse(text.split("## Misc.").next().unwrap(), "md").unwrap();
+    assert_eq!(
+        no_end.components.last().unwrap().metadata["WidescreenOnly"],
+        true
+    );
+}

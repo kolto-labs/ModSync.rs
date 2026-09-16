@@ -1,0 +1,22 @@
+{
+  "WidescreenWarningContent": "## Optional Widescreen Support\n\nInstall before the 4GB patch.",
+  "EpilogueContent": "## Misc.\n\n### Later\n**Name:** Later\n**Author:** Example\n**Description:** Later component.\n\n___\n",
+  "Components": [
+    {
+      "Name": "Base textures",
+      "WidescreenOnly": false
+    },
+    {
+      "Name": "Extra textures",
+      "WidescreenOnly": false
+    },
+    {
+      "Name": "Wide",
+      "WidescreenOnly": true
+    },
+    {
+      "Name": "Later",
+      "WidescreenOnly": false
+    }
+  ]
+}
