@@ -989,6 +989,9 @@ impl eframe::App for App {
                         if self.job == Job::NxmDownload {
                             ui.label("Downloading linked Nexus file…");
                         }
+                        if self.job == Job::ProtocolOpen {
+                            ui.label("Downloading ModSync build link…");
+                        }
                         if ui.button("Stop").clicked() {
                             self.cancelled.store(true, Ordering::Relaxed);
                         }
