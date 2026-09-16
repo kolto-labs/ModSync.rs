@@ -363,3 +363,7 @@ TOML and YAML export now place extracted Markdown wizard-content fields in the r
 ### C# re-import of wizard content exports
 
 At Rust be7052a, a fresh CLI build exported the saved Markdown warning fixture to TOML and YAML. The pinned C# deserializer imported both in an isolated process and recovered exact preamble, epilogue and widescreen-warning text plus both components. `docs/parity/content-export-oracle/` contains exports, probe, result, hashes and a runnable verifier. This supersedes the unverified cross-language re-import note above for this fixture only; full corpus and native UI proof remain open.
+
+### YAML metadata comment recognition
+
+YAML documents beginning with the reference case-insensitive `# Metadata` marker now load as metadata even without fileFormatVersion. Document separators must be unindented; separator-like text in block scalars remains data. Regression covers marker-only metadata, CRLF, a leading YAML directive, descriptions containing marker text, re-export and invalid non-mapping metadata. Exotic YAML directive/tag combinations and live C# differential coverage for these cases remain open.

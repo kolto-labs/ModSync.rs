@@ -123,19 +123,41 @@ impl Guide {
             "xml" => Self::from_value(crate::xml::parse(text)?)?,
             "yaml" => {
                 let mut guide = Self::default();
-                for document in serde_yaml_ng::Deserializer::from_str(text) {
-                    let value = serde_json::Value::deserialize(document)?;
-                    if value.is_null() {
+                let separators = regex::Regex::new(r"(?m)^---[ \t]*(?:#[^\r\n]*)?\r?$")?;
+                let mut directives = String::new();
+                for source in separators.split(text) {
+                    if source.lines().any(|line| line.starts_with('%'))
+                        && source.lines().all(|line| {
+                            line.trim().is_empty()
+                                || line.starts_with('%')
+                                || line.trim_start().starts_with('#')
+                        })
+                    {
+                        directives.push_str(source);
+                        directives.push_str("\n---\n");
                         continue;
                     }
-                    if value.get("fileFormatVersion").is_some() {
-                        guide.metadata.insert("metadata".into(), value);
-                    } else {
-                        let parsed = Self::from_value(value)?;
-                        guide.components.extend(parsed.components);
-                        guide.metadata.extend(parsed.metadata);
+                    let marked_metadata = source
+                        .trim_start()
+                        .get(..10)
+                        .is_some_and(|prefix| prefix.eq_ignore_ascii_case("# Metadata"));
+                    let document_source = format!("{}{}", std::mem::take(&mut directives), source);
+                    for document in serde_yaml_ng::Deserializer::from_str(&document_source) {
+                        let value = serde_json::Value::deserialize(document)?;
+                        if value.is_null() {
+                            continue;
+                        }
+                        if marked_metadata || value.get("fileFormatVersion").is_some() {
+                            ensure!(value.is_object(), "YAML metadata must be a mapping");
+                            guide.metadata.insert("metadata".into(), value);
+                        } else {
+                            let parsed = Self::from_value(value)?;
+                            guide.components.extend(parsed.components);
+                            guide.metadata.extend(parsed.metadata);
+                        }
                     }
                 }
+                ensure!(directives.is_empty(), "YAML directives require a document");
                 guide
             }
             "md" => crate::markdown::parse(text)?,

@@ -556,3 +556,35 @@ fn markdown_wizard_content_survives_reference_metadata_exports() {
     assert_eq!(loaded.metadata["metadata"]["widescreenWarningContent"], "");
     assert_eq!(loaded.metadata["metadata"]["buildName"], "Demo");
 }
+
+#[test]
+fn yaml_metadata_comment_without_version_is_not_a_component() {
+    let text = "---\n# mEtAdAtA\nwidescreenWarningContent: Authored warning\nepilogueContent: |\n  Keep these notes.\n  ---\n  This separator is text.\n--- # Component\nGuid: 11111111-1111-1111-1111-111111111111\nName: First\nDescription: |\n  # Metadata inside a description\n  ---\n  More text.\n";
+    for source in [
+        text.to_owned(),
+        text.replace('\n', "\r\n"),
+        format!("%YAML 1.1\n{text}"),
+    ] {
+        let guide = Guide::parse(&source, "yaml").unwrap();
+        assert_eq!(guide.components.len(), 1);
+        assert_eq!(
+            guide.metadata["metadata"]["widescreenWarningContent"],
+            "Authored warning"
+        );
+        assert!(
+            guide.metadata["metadata"]["epilogueContent"]
+                .as_str()
+                .unwrap()
+                .contains("---\n")
+        );
+        assert!(guide.components[0].description.contains("# Metadata"));
+        assert_eq!(
+            Guide::parse(&guide.render("yaml").unwrap(), "yaml")
+                .unwrap()
+                .components
+                .len(),
+            1
+        );
+    }
+    assert!(Guide::parse("---\n# Metadata\n- invalid mapping\n", "yaml").is_err());
+}
