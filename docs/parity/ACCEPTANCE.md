@@ -257,3 +257,5 @@ F24 Finish checkpoint: successful completion can return to setup without an app 
 F08/F24 validation lifecycle correction: early job-setup failures now invalidate prior validation/confirmation. Regression covers all job types and removed directories without launching workers. Native failure-state proof remains open.
 
 F01/F02/F24 metadata export correction: extracted Markdown wizard text survives TOML/YAML save/reload in the reference metadata layout, with default format-version marker and existing overrides preserved. Regression covers content and stable re-export; live cross-language re-import remains open.
+
+F01/F02/F24 cross-language export checkpoint: pinned C# deserialization of Rust TOML/YAML exports preserves exact wizard content and component count for the saved Markdown fixture. Evidence and verifier: `content-export-oracle/`. Full corpus/native proof remains open.

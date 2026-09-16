@@ -1,0 +1,80 @@
+[[thisMod]]
+Guid = "11111111-1111-1111-1111-111111111111"
+Name = "Base textures"
+Author = "Author One"
+Description = """
+First line.
+
+Second line."""
+Directions = "Copy the chosen textures."
+Tier = "1 - Essential"
+Category = [
+    "Textures",
+    "Models",
+]
+IsSelected = true
+Dependencies = []
+Restrictions = []
+InstallBefore = []
+InstallAfter = []
+Options = []
+Heading = "Display title"
+Language = ["All"]
+NameFieldContent = "[Base textures](https://example.com/base.zip)"
+WidescreenOnly = false
+
+[[thisMod.Instructions]]
+Action = "Copy"
+Source = ["<<modDirectory>>/sample.tga"]
+Destination = "<<kotorDirectory>>/Override"
+Arguments = ""
+Overwrite = true
+Dependencies = []
+Restrictions = []
+
+[thisMod.ResourceRegistry."https://example.com/base.zip".Files]
+
+[thisMod.ResourceRegistry."https://example.com/base.zip".HandlerMetadata]
+
+[[thisMod]]
+Guid = "22222222-2222-2222-2222-222222222222"
+Name = "Extra textures"
+Author = "Author Two"
+Description = "Additional files."
+Directions = "Copy the second texture."
+Tier = "4 - Optional"
+Category = ["Textures"]
+IsSelected = true
+Dependencies = ["11111111-1111-1111-1111-111111111111"]
+Restrictions = []
+InstallBefore = []
+InstallAfter = []
+Options = []
+NameFieldContent = "Extra textures"
+WidescreenOnly = false
+
+[[thisMod.Instructions]]
+Action = "Copy"
+Source = ["<<modDirectory>>/extra.tga"]
+Destination = "<<kotorDirectory>>/Override"
+Arguments = ""
+Overwrite = true
+Dependencies = []
+Restrictions = []
+
+[thisMod.ResourceRegistry]
+
+[metadata]
+preambleContent = """
+# Example build
+
+Read before installing."""
+epilogueContent = """
+## Misc.
+Final guidance.
+"""
+widescreenWarningContent = """
+## oPtIoNaL WiDeScReEn Support
+
+Apply résumé textures before the 4GB patch."""
+fileFormatVersion = "2.0"

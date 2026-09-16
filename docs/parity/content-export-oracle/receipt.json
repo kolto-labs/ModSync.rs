@@ -1,0 +1,22 @@
+{
+  "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+  "reference_dll_sha256": "8f3b1e3f8fe47b2cc6f8e3f281912506721c7367218381bb2a35cf86dc5768f0",
+  "runtime": "Microsoft.NETCore.App 10.0.11",
+  "isolation": "bubblewrap: read-only /, private /tmp and user config/data, network unshared; only oracle scratch writable",
+  "checks": [
+    "C# import of Rust-generated TOML and YAML",
+    "exact preamble, epilogue and widescreen warning",
+    "component count retained"
+  ],
+  "files": {
+    "Program.cs": "78c320c2534ca5c2d27a62476c6731e51b3304e093c84998912ded38cccc730b",
+    "guide.toml": "584c89374e80714dbd1f9efa0f66108f37ce350a277b1a8f52f42ea82b5bbcfc",
+    "guide.yaml": "2161cae49fb7c74cee7ebc9d49d8242db010e4878b11fe3c6fbe5fb514d94931",
+    "probe.csproj": "35f334ace768b4aba6eedee309e5434d205d433230530a4a63a9f437cada22bd",
+    "verify.py": "15eff0dbd11f159a9778998c4ce2930b0d7619cd8ae6ee765d24944f7b88303f",
+    "result.json": "e8929fb29f642f0baba94b4265660395eb8b9c9c2a0e53dfc5cf1d5c2582b5a7"
+  },
+  "scope": "Export/import service fixture only; not native UI or full corpus proof.",
+  "rust_commit": "be7052a15bd972df045f0f54821b2bb81eb5a75e",
+  "rust_binary_sha256": "baac5caa294461e44740929d4f1bac20b486131a80eb8a6b954d6f0d4a74c58c"
+}

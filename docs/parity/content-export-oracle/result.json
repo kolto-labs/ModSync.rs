@@ -1,0 +1,16 @@
+[
+  {
+    "Format": "toml",
+    "Count": 2,
+    "PreambleContent": "# Example build\n\nRead before installing.",
+    "EpilogueContent": "## Misc.\nFinal guidance.\n",
+    "WidescreenWarningContent": "## oPtIoNaL WiDeScReEn Support\n\nApply r\u00E9sum\u00E9 textures before the 4GB patch."
+  },
+  {
+    "Format": "yaml",
+    "Count": 2,
+    "PreambleContent": "# Example build\n\nRead before installing.",
+    "EpilogueContent": "## Misc.\nFinal guidance.\n",
+    "WidescreenWarningContent": "## oPtIoNaL WiDeScReEn Support\n\nApply r\u00E9sum\u00E9 textures before the 4GB patch."
+  }
+]

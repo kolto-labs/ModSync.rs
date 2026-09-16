@@ -359,3 +359,7 @@ Starting any desktop job now clears prior validation and install confirmation be
 ### Wizard content export preservation
 
 TOML and YAML export now place extracted Markdown wizard-content fields in the reference metadata object, supplying fileFormatVersion 2.0 when absent. Existing nested metadata overrides root content, including explicit blanks and PascalCase aliases. A Markdown-to-TOML/YAML regression verifies content retention and stable re-export; JSON/XML remain component-only exports. Live C# re-import of this new export path remains unverified.
+
+### C# re-import of wizard content exports
+
+At Rust be7052a, a fresh CLI build exported the saved Markdown warning fixture to TOML and YAML. The pinned C# deserializer imported both in an isolated process and recovered exact preamble, epilogue and widescreen-warning text plus both components. `docs/parity/content-export-oracle/` contains exports, probe, result, hashes and a runnable verifier. This supersedes the unverified cross-language re-import note above for this fixture only; full corpus and native UI proof remain open.
