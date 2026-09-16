@@ -14,6 +14,22 @@ pub fn fetch(
     sha256: Option<&str>,
     cancelled: &AtomicBool,
 ) -> Result<()> {
+    fetch_with_options(
+        url,
+        destination,
+        sha256,
+        cancelled,
+        &crate::archive::Options::default(),
+    )
+}
+
+pub fn fetch_with_options(
+    url: &str,
+    destination: &Path,
+    sha256: Option<&str>,
+    cancelled: &AtomicBool,
+    options: &crate::archive::Options,
+) -> Result<()> {
     let url = reqwest::Url::parse(url)?;
     ensure!(url.scheme() == "https", "Downloads require HTTPS");
     ensure!(!destination.exists(), "Download destination already exists");
@@ -36,7 +52,6 @@ pub fn fetch(
             .parent()
             .ok_or_else(|| anyhow::anyhow!("Choose a destination folder"))?,
     )?;
-    let mut total = 0;
     let mut hash = Sha256::new();
     let mut buffer = [0u8; 64 * 1024];
     loop {
@@ -45,11 +60,6 @@ pub fn fetch(
         if n == 0 {
             break;
         }
-        total += n as u64;
-        ensure!(
-            total <= crate::archive::MAX_ARCHIVE_BYTES,
-            "Download exceeds the 512 MiB safety limit"
-        );
         hash.update(&buffer[..n]);
         temp.write_all(&buffer[..n])?;
     }
@@ -59,7 +69,7 @@ pub fn fetch(
             "SHA-256 mismatch; download discarded"
         );
     }
-    crate::archive::unpack(&std::fs::read(temp.path())?)?;
+    crate::archive::verify(temp.path(), destination, options, cancelled)?;
     temp.as_file().sync_all()?;
     temp.persist_noclobber(destination).map_err(|e| e.error)?;
     Ok(())

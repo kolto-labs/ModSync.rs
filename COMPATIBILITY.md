@@ -12,14 +12,14 @@ Reference: the local ModSync C# source at `d31ccbd3bfcddb4705917eafa6483715c166d
 | Ordering | Stable dependency sort, restrictions, InstallBefore/After, instruction conditions | Missing references and cycles fail |
 | Options | Choose resolves selected option GUIDs in declared option order | No automatic choice inference |
 | File operations | Copy, Move, Rename, Delete, Extract, DelDuplicate, CleanList | Copy/Move flatten matched files into the target, as the C# instruction engine does |
-| Archives | ZIP, 7z, RAR, integrity checks, isolated default extraction root | No encrypted/multipart archives or self-extracting executables; 512 MiB per file/archive expansion limit |
-| CleanList | CSV, mandatory rows, selected mod names | Exact names only; C# fuzzy name matching is not reproduced |
+| Archives | Streaming ZIP, 7z, RAR, TAR, GZip and 7z SFX; integrity checks; isolated extraction root | No encrypted/multipart archives; SFX support is limited to embedded 7z payloads; empty directories are not materialized |
+| CleanList | C# comma-separated rows, mandatory prefix, substring and token matching | Source matching and final file sets still need full-build differential acceptance |
 | Texture cleanup | Removes requested extension when another compatible extension shares its basename | This is not content-hash deduplication |
 | Paths | Mod/game placeholders, legacy aliases, case-insensitive matching, wildcard sources | Rejects symlinks, device names, traversal, case collisions, overlapping roots, and special files |
-| Validation | In-memory file index tracks changes across instruction boundaries | RAR decoding uses a private temporary input file; external program effects cannot be simulated |
+| Validation | In-memory file index tracks changes across instruction boundaries | Extracted content uses private temporary files outside game/mod trees; external program effects cannot be simulated |
 | Patching | OdyPatcher subprocess, namespace index or named INI, exit-status checking, output capture | Requires separately installed OdyPatcher; no embedded patcher, HoloPatcher, Wine, or patch-byte equivalence claim |
 | Recovery | Snapshot both roots, stop on first failure, block retry until verified restore | Full copies; restart whole guide after restore; not per-component resume or a power-loss atomic filesystem transaction |
-| Downloads | HTTPS, bounded streaming, archive integrity, optional SHA-256, no-clobber publish | No host scraping, account management, CAPTCHA interaction, MEGA decryption, automatic resource acquisition, or update checks |
+| Downloads | HTTPS, streamed transfer and integrity checks, optional SHA-256, no-clobber publish | No host scraping, account management, CAPTCHA interaction, MEGA decryption, automatic resource acquisition, or update checks |
 | Profiles | Save and reload guide selections | No separate profile manager |
 | FOMOD, managed deployment | Not implemented | Do not use guides requiring these features |
 | Widescreen, Aspyr, game-specific notices | Retained as metadata | No dynamic wizard stages or automatic game/version detection |
@@ -27,7 +27,9 @@ Reference: the local ModSync C# source at `d31ccbd3bfcddb4705917eafa6483715c166d
 
 Unknown instruction fields and actions fail rather than being ignored. Components with no executable instructions cannot be installed. External program permission is off by default.
 
-The archive expansion cap is a deliberate initial ceiling. Large texture packs above 512 MiB need streaming extraction before this port can handle them. FOMOD archives are detected and rejected before extraction because the port cannot apply their choices.
+Archive contents and copies are streamed. Set `--scratch-dir` to an existing folder outside both install trees and optionally set `--max-expanded-bytes` per archive; the desktop exposes the same settings. Extraction also checks available scratch space. A 513 MiB regression passed locally. RAR cancellation is checked between entries; other formats poll during streamed output. FOMOD archives are rejected before their content is published to the install tree because choice handling is still missing.
+
+The full feature inventory and acceptance requirements are tracked in [docs/parity/ACCEPTANCE.md](docs/parity/ACCEPTANCE.md). Full C# parity remains incomplete.
 
 ## Validation evidence
 
@@ -49,3 +51,7 @@ Those counts establish parsing only. No full K1/K2 build, comparison against a m
 Local Linux checks also exercised the native GUI in an isolated X11 session: load the sample guide, choose mods, validate, confirm installation, and verify the resulting TGA and removed TPC. Separate native OdyPatcher invocations through the Rust CLI installed `hello.txt` into isolated game folders using both a namespace index and a named INI, with zero patcher errors. The named-INI run preserved the original `changes.ini`. The test suite separately checks failure recovery using a controlled subprocess.
 
 A direct HTTPS download of the RAR test fixture matched its expected SHA-256 and bytes. A second request with an incorrect hash failed without publishing the destination file.
+
+### Streaming milestone
+
+Local checks: 21 regular integration tests pass; the explicit 513 MiB GZip extraction and atomic-copy regression passes separately (18.23 seconds test time; 110,384 KiB maximum resident set for the measured cargo command). The temporary filesystem was tmpfs, so this measures process memory, not physical disk throughput or total system memory. New checks cover TAR/GZip CRC failures and links, expansion budgets, cleanup on cancellation, nested archive validation without install-tree writes, 7z SFX signatures crossing buffer boundaries, and C# CleanList matching. These fixtures do not establish full archive-corpus or full-build equivalence.

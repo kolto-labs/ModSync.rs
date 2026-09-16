@@ -221,3 +221,28 @@ pub fn atomic_write(path: &Path, data: &[u8]) -> Result<()> {
     temp.persist(path).map_err(|e| e.error)?;
     Ok(())
 }
+
+pub fn atomic_copy(
+    path: &Path,
+    mut reader: impl std::io::Read,
+    cancelled: &std::sync::atomic::AtomicBool,
+) -> Result<()> {
+    use std::io::Write;
+    fs::create_dir_all(path.parent().context("Path needs a parent")?)?;
+    let mut temp = tempfile::NamedTempFile::new_in(path.parent().unwrap())?;
+    let mut buffer = [0u8; 64 * 1024];
+    loop {
+        ensure!(
+            !cancelled.load(std::sync::atomic::Ordering::Relaxed),
+            "Copy cancelled"
+        );
+        let n = reader.read(&mut buffer)?;
+        if n == 0 {
+            break;
+        }
+        temp.write_all(&buffer[..n])?;
+    }
+    temp.as_file().sync_all()?;
+    temp.persist(path).map_err(|e| e.error)?;
+    Ok(())
+}

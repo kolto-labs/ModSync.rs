@@ -79,7 +79,7 @@ Validation checks process inputs but does not execute programs or predict their 
 modsync download https://example.org/mod.zip /path/to/mods/mod.zip --sha256 EXPECTED_HASH
 ```
 
-Direct HTTPS ZIP, 7z, and RAR downloads are checked before being saved. HTML responses, archive corruption, unsafe names, and checksum mismatches fail. Existing downloads are never overwritten. Nexus/DeadlyStream landing pages and MEGA links remain browser workflows; the desktop exposes guide links for that purpose. Files and expanded archives currently have a 512 MiB limit.
+Direct HTTPS ZIP, 7z, RAR, TAR, and GZip downloads are checked before being saved. HTML responses, archive corruption, unsafe names, and checksum mismatches fail. Existing downloads are never overwritten. Nexus/DeadlyStream landing pages and MEGA links remain browser workflows; the desktop exposes guide links for that purpose. Archive expansion and file copies stream through temporary storage. Use `--scratch-dir <existing-folder>` for validate/install to choose storage outside the game and mod trees, and `--max-expanded-bytes <bytes>` to set an optional per-archive expansion budget. Both controls are available under Archive storage in the desktop. Download integrity checks accept the same byte budget.
 
 ## Recover a failed install
 

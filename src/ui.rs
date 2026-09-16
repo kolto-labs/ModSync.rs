@@ -28,6 +28,8 @@ pub struct App {
     game: String,
     mods: String,
     patcher: String,
+    scratch: String,
+    expanded_budget: String,
     allow_processes: bool,
     guide: Option<Guide>,
     page: usize,
@@ -55,6 +57,8 @@ impl App {
             game: string(game),
             mods: string(mods),
             patcher: String::new(),
+            scratch: String::new(),
+            expanded_budget: String::new(),
             allow_processes: false,
             guide: None,
             page: 0,
@@ -107,6 +111,23 @@ impl App {
         } else {
             Some(PathBuf::from(&self.patcher))
         };
+        settings.archive.scratch_dir = if self.scratch.is_empty() {
+            None
+        } else {
+            Some(PathBuf::from(&self.scratch))
+        };
+        settings.archive.max_expanded_bytes = if self.expanded_budget.trim().is_empty() {
+            None
+        } else {
+            match self.expanded_budget.trim().parse() {
+                Ok(value) => Some(value),
+                Err(_) => {
+                    self.logs
+                        .push("Expanded-byte budget must be a nonnegative integer.".into());
+                    return;
+                }
+            }
+        };
         self.cancelled = settings.cancelled.clone();
         let guide = self.guide.clone();
         let url = self.download_url.clone();
@@ -139,11 +160,12 @@ impl App {
                             name.components().count() == 1,
                             "Enter one archive filename"
                         );
-                        return download::fetch(
+                        return download::fetch_with_options(
                             &url,
                             &settings.roots.mods.join(name),
                             if hash.is_empty() { None } else { Some(&hash) },
                             &settings.cancelled,
+                            &settings.archive,
                         );
                     }
                     let guide = guide.ok_or_else(|| anyhow::anyhow!("Load a guide first"))?;
@@ -349,6 +371,14 @@ impl eframe::App for App {
                     ui.label(format!("Game: {}", self.game));
                     ui.label(format!("Mods: {}", self.mods));
                     if ui.checkbox(&mut self.allow_processes, "Trust this guide to run external programs").changed() { self.validated = false; }
+                    ui.collapsing("Archive storage", |ui| {
+                        if Self::path_row(ui, "Scratch folder (optional)", &mut self.scratch, true) { self.validated = false; }
+                        ui.label("Use an existing folder outside the game and mod folders. Blank uses system temp.");
+                        ui.horizontal(|ui| {
+                            ui.label("Maximum expanded bytes per archive (optional)");
+                            if ui.text_edit_singleline(&mut self.expanded_budget).changed() { self.validated = false; }
+                        });
+                    });
                     if self.allow_processes && Self::path_row(ui, "OdyPatcher", &mut self.patcher, false) { self.validated = false; }
                     ui.horizontal(|ui| {
                         if ui.button("Run validation").clicked() { self.start(Job::Validate, ctx); }

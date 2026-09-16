@@ -1,4 +1,4 @@
-use anyhow::{Context, Result, ensure};
+use anyhow::{Result, ensure};
 use clap::{Args, Parser, Subcommand};
 use modsync::{Engine, Guide, Settings, download, paths::Roots, recovery};
 use std::{path::PathBuf, sync::atomic::AtomicBool};
@@ -41,12 +41,15 @@ enum Action {
     },
     /// Convert between TOML, JSON, YAML, or structured Markdown input.
     Convert { input: PathBuf, output: PathBuf },
-    /// Fetch and verify a direct HTTPS ZIP/7z archive URL.
+    /// Fetch and verify a direct HTTPS archive URL.
     Download {
         url: String,
         output: PathBuf,
         #[arg(long)]
         sha256: Option<String>,
+        /// Optional expanded-byte budget for the integrity check.
+        #[arg(long)]
+        max_expanded_bytes: Option<u64>,
     },
 }
 #[derive(Args)]
@@ -72,6 +75,12 @@ struct InstallArgs {
     /// OdyPatcher executable for Patcher instructions.
     #[arg(long)]
     patcher: Option<PathBuf>,
+    /// Existing scratch folder outside the game and mod trees (defaults to system temp).
+    #[arg(long)]
+    scratch_dir: Option<PathBuf>,
+    /// Optional expanded-byte budget per archive; extraction also checks free scratch space.
+    #[arg(long)]
+    max_expanded_bytes: Option<u64>,
     /// Emit newline-delimited JSON events.
     #[arg(long)]
     json: bool,
@@ -98,7 +107,17 @@ fn run() -> Result<()> {
             url,
             output,
             sha256,
-        }) => download::fetch(&url, &output, sha256.as_deref(), &AtomicBool::new(false)),
+            max_expanded_bytes,
+        }) => download::fetch_with_options(
+            &url,
+            &output,
+            sha256.as_deref(),
+            &AtomicBool::new(false),
+            &modsync::archive::Options {
+                max_expanded_bytes,
+                ..Default::default()
+            },
+        ),
         Some(action @ (Action::Install(_) | Action::Validate(_))) => {
             let install = matches!(action, Action::Install(_));
             let (Action::Install(args) | Action::Validate(args)) = action else {
@@ -145,11 +164,9 @@ fn run() -> Result<()> {
             }
             let mut settings = Settings::new(&args.source_dir, &args.game_dir)?;
             settings.allow_processes = args.allow_processes;
-            settings.patcher = args
-                .patcher
-                .map(|p| p.canonicalize())
-                .transpose()
-                .context("Resolve patcher path")?;
+            settings.patcher = args.patcher;
+            settings.archive.scratch_dir = args.scratch_dir;
+            settings.archive.max_expanded_bytes = args.max_expanded_bytes;
             let engine = Engine::new(settings)?;
             let emit = |event: modsync::Event| {
                 if args.json {

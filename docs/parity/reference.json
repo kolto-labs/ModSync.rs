@@ -1,0 +1,4171 @@
+{
+  "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+  "scope": "All C# ModSync features, desktop and CLI behavior, persistent data contracts, and external integrations. Files are an inventory, not proof of parity.",
+  "files": [
+    {
+      "path": "docs/knowledgebase/README.md",
+      "git_object": "5a271f3a77ccdf6044b269bd9fe55b5f83818bfc",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/agent-action-parity.md",
+      "git_object": "587150ad299084f5adbadb38c7f3b8ac7f1d9517",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/agent-native-audit.md",
+      "git_object": "14ac2596a5a67aaf58c1b266877cb10eb8691082",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/ci-test-matrix.md",
+      "git_object": "16b65359caf032227b27ecaaeb999a6691999613",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/cli-selection-semantics.md",
+      "git_object": "f6b801524653485c5e6d2b2754eb89eced365855",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/core-cli-reference.md",
+      "git_object": "1d40b7713fc7e45a38fcdda88f4258061f699988",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/doc-hierarchy.md",
+      "git_object": "dc81fb7265016d21294cca541b93cf51306d4c6f",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/download-system.md",
+      "git_object": "080fab0055cdeca085c8133b9b2a97618aafa88e",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/drift-audit-2026-05-24.md",
+      "git_object": "fa63eb41860b7fe65a65f37028d1da30e563c777",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/file-conflicts.md",
+      "git_object": "e75c9d8d87a442dd1fac05c739dd1fefd61b9cb8",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/fomod-support.md",
+      "git_object": "63c742524acb9958d6aadfff4bbabfb3f3dbf98d",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/gui-architecture-deferred.md",
+      "git_object": "80cfc56919e0a96b229c8ba868b1918ef09dd999",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/gui-validation-surfaces.md",
+      "git_object": "acdc03db9805e3ed41510f8c6f1214691c0e59ca",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/guide-ingestion.md",
+      "git_object": "f2a551eccca6aa303a8f00c7dc80829f75c3dd09",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/holopatcher-resources.md",
+      "git_object": "15b5998e3e1be9d51b6cb94601b7c1c25ab5eec3",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/install-lifecycle.md",
+      "git_object": "4433e30d1dc7fddc46bfb8002aeee7e121e2d501",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/install-profiles.md",
+      "git_object": "91d2373dddc49b12a631a7fbe55873f7beedf595",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/instruction-format.md",
+      "git_object": "8a4d838b60879d3068c25998c037e223c673ca6b",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/kotor1-full-build-canonical-guide.md",
+      "git_object": "5c50bd56f042cd999887f92a9e92bda604f04bb5",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/kotor1-full-toml-drift-investigation.md",
+      "git_object": "779e930309bedcab1932f2dd4353f932448fdfe6",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/kotor2-full-build-canonical-guide.md",
+      "git_object": "284e237f931562936bae19f80087012dc28d510e",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/managed-deployment.md",
+      "git_object": "e9bd47f9aec9d641adfbed9b8d3ba7875ea13b3e",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/manual-parity-testing-methodology.md",
+      "git_object": "dfe2fc20b2df2b6078e642047332faea0ddc5f34",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/mod-builds-sources.md",
+      "git_object": "702c4a0e3756e046eef01d5aae1fc220c0bbda04",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/mod-component-model.md",
+      "git_object": "91775042c17bd37a79f73cdc8f86cc53bc7d0415",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/mod-download-playbook.md",
+      "git_object": "b60628a55f1a4fc85e51c3415e548e0a9b18b4b4",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/modbuild-paranoia-doctrine.md",
+      "git_object": "7693254008499c476868a66a994e7ab737fd9cdc",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/modsync-protocol-handler.md",
+      "git_object": "0b35b22faf0388aa0ee4e8c163e8948e5064081c",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/nexus-flow-screenshots/01-headless-turnstile-captcha-blocked.png",
+      "git_object": "5103f330c81bc594ddccedd70613ea5ef2b8aff4",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/nexus-flow-screenshots/02-headed-patchright-no-captcha-login-wall.png",
+      "git_object": "265a5c3c5bde46d5c8e50257093e7b6a98158777",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/nexus-flow-screenshots/03-logged-in-files-page.png",
+      "git_object": "9e2aa76c12660bc73f6b9dfbe4163b40350ec2cd",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/nexus-flow-screenshots/04-manual-download-modal-shadow-dom.png",
+      "git_object": "7e495f678b3c041338bfa11d182cb9be3f63aff1",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/nexus-flow-screenshots/05-modal-open-two-file-buttons-trap.png",
+      "git_object": "ffe5e5e859d89393168dcbdd6013bc0f753acc94",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/nexus-flow-screenshots/06-modal-reopened-bbox-mismatch.png",
+      "git_object": "ffe5e5e859d89393168dcbdd6013bc0f753acc94",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/nexus-flow-screenshots/07-coordinate-click-worked-slow-fast-choice.png",
+      "git_object": "ffdd8e77cb0eebf89f329be5bff1ccc9eb310db9",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/nexus-flow-screenshots/08-standard-vs-resumable-download-dialog.png",
+      "git_object": "54c5da9b6ce6aeeb17e3ec15a0f667bcf17df65a",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/nexus-flow-screenshots/09-download-starting-5s-delay-fallback-link.png",
+      "git_object": "80c0e77e357b729baa5a9c88f39b1ef62b1d0d1b",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/nxm-protocol-handler.md",
+      "git_object": "04fa2c47462a9079d7a06e7503d2f46a587bdf75",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/product-overview.md",
+      "git_object": "fbab176faccc1d04177e9d3438082784f01e515e",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/product-vision.md",
+      "git_object": "272051600fb0343e6e561245017a3bdff8930416",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/rebrand-legacy-strings.md",
+      "git_object": "022289c9159956dc838e66c3e2db4a3f160985bf",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/removed-features.md",
+      "git_object": "d90ff339ec432100c207a5e650bfc27f6e3b1d7a",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/telemetry-auth-routing.md",
+      "git_object": "66372e118b6572b7807afa1c47f98c33208a224f",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/update-checking.md",
+      "git_object": "210f50ecad69c99228507ea3f397048d358b3c6d",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/validation-pipeline.md",
+      "git_object": "4bdb9b1829046895c76075128df34730cb0f36bd",
+      "kind": "blob"
+    },
+    {
+      "path": "docs/knowledgebase/vfs-vs-real-fs.md",
+      "git_object": "6af5d78aa96261176c4467c462c7a7bf4ec2fbc7",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/CLI/ConsoleInteractionCapabilities.cs",
+      "git_object": "c182772ef14826aebd2c2430838212441de0b06b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/CLI/ConsoleProgressDisplay.cs",
+      "git_object": "3d6a9a17e2772ff3d3fcc0446b3576b19570acff",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/CLI/FomodCliPostDownloadHosts.cs",
+      "git_object": "116df2ed34fae27b38f32d9ea67739817f4e6d48",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/CLI/FomodConsoleWizard.cs",
+      "git_object": "2f6630ffe2e7173d1d6ae6ebdfa5ddaf32ece067",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/CLI/ModBuildConverter.cs",
+      "git_object": "e930a54977093e00a968fcda6667da37fc4efe60",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/ComponentValidation.cs",
+      "git_object": "b6bf31ccfd476c24011c420b096029d1109bf6c1",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/ConfigFiles/mods.json",
+      "git_object": "b51e3df9a78ca51a4c64e6ca888fbcb65e25ae7f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/ConsoleConfig.cs",
+      "git_object": "11987f7390c11b25167eec8a1af53ae1c9364354",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Data/Game.cs",
+      "git_object": "98a4e90f32b5337ad7d10d2640b987512762c3f0",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Exceptions/WildcardPatternNotFoundException.cs",
+      "git_object": "aa8eecf8e092234b482fd8a8da6e9f2fbb161155",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/FileSystemPathing/CaseAwarePath.cs",
+      "git_object": "a73404af28630b40bbfba276926b1ff315b4bd47",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/FileSystemPathing/DirectoryInfoExtensions.cs",
+      "git_object": "0e0443bc2dc8bd99f46697eded94269ac8b7a803",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/FileSystemUtils/CrossPlatformFileWatcher.cs",
+      "git_object": "a555a2b485fbc7887f247fc3d159345b59f61bbd",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/FileSystemUtils/FilePermissionHelper.cs",
+      "git_object": "2fb8efb1e28bd6b45195e5419404abe95c84db8d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/FileSystemUtils/PathHelper.ArchiveExtraction.cs",
+      "git_object": "4af2f3846922608cc7efe703a6fd90fdc3404ae3",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/FileSystemUtils/PathHelper.cs",
+      "git_object": "d91ba128cf297990911574f1e591a8eef3e99f55",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/FileSystemUtils/PathValidator.cs",
+      "git_object": "83cb34a6ac5cedc7bad7498163f834b3d8505e16",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/GlobalSuppressions.cs",
+      "git_object": "be264b260d67e425e650d56de2e1ce799ce0dc35",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Installation/InstallCoordinator.cs",
+      "git_object": "51785ce4b91a3acfa7eb5b632460da587630508d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Installation/InstallSessionState.cs",
+      "git_object": "e19fe48420d2653c132ee0a21db60f39d1b79f13",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Installation/ResumeResult.cs",
+      "git_object": "fcd040b1b94d3179cec7f11e808f4334f29024d0",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Instruction.cs",
+      "git_object": "41cccd8e9140866a69f1fed35de5309b4b051019",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Logger.cs",
+      "git_object": "cb3bfb65fa1654eaff04d8daaec05216c0d52401",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/MainConfig.cs",
+      "git_object": "4423c80b55861e2503e8a3c4eed086f14a44fb70",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/ModComponent.cs",
+      "git_object": "54755f29f468771a1d958e61e4a2396a1938d115",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/ModDirectory.cs",
+      "git_object": "43bd2a2064c4b171135666f9d62a440f4f80a7af",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/ModSync.Core.csproj",
+      "git_object": "333425d8968dc9ef16f671e55fb3a0d142e2786f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/NLog.config",
+      "git_object": "7fe538e0090de3d2024f086f24a1a06e5e3990f5",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Option.cs",
+      "git_object": "29d5cddf1a34c6fe412386a1b85d711510dc46d7",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Parsing/DraftInstructionService.cs",
+      "git_object": "75edeeefc4c93adedc0d2e361848c8993b67d7f0",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Parsing/MarkdownImportProfile.cs",
+      "git_object": "fcbc0d9da306a95c22fb9158b96137bd42aafef1",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Parsing/MarkdownParser.cs",
+      "git_object": "6f959bc0cea8fa4b08a0cfaa87ec0b7825409f51",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Parsing/MarkdownParserResult.cs",
+      "git_object": "257bf0b225352f9f3ee71c7d75787ca35b4b87c6",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Parsing/MarkdownUtilities.cs",
+      "git_object": "7cff9b5396e306a1eb0350c06a1199deee7a7f69",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Parsing/NaturalLanguageInstructionParser.cs",
+      "git_object": "83be2db0e6d9bd7f21b4ace650f2ca92e4737038",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Parsing/ParsingTraceInfo.cs",
+      "git_object": "df3a20e3c478c035d4dddf5f7bf42ad5fe4637ed",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/PatcherEngines.cs",
+      "git_object": "f09a532f9a4636c71aa3c543313e5de815f1a664",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Ports/Conflicts/IConflictAnalyzer.cs",
+      "git_object": "bd53a78d9901a09ecb0157ca624f80a13a20a50d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Ports/Download/IDownloadProviderRegistry.cs",
+      "git_object": "0df263c065e40772908c3aa2da3b760e53509f05",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Ports/Guides/GuideServices.cs",
+      "git_object": "383e7d89bf9a9066214d1d8f53c187e13a45e674",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Ports/Guides/IGuideServices.cs",
+      "git_object": "b2226e9a364d1d4296fca4ed10a5192af5aeb048",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Ports/Installation/IInstallBackend.cs",
+      "git_object": "dc24780f8574b59029faf374aa785c9ce0e27be3",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Ports/Installation/InstallBackends.cs",
+      "git_object": "6b6c5f6ed17464325c870e3272c4f70957d6e5d9",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Ports/Profiles/IProfileStore.cs",
+      "git_object": "7345bdf557833d1107ae07315b1d1c92cc1aba57",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Ports/Protocol/IProtocolHandler.cs",
+      "git_object": "40228f144d6259c5c5a9a37abcb6a6a486d2ba40",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Ports/Protocol/ProtocolHandlers.cs",
+      "git_object": "dc0359789994f280eb1c9d3eb04a0091c2e1014a",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Ports/Updates/IUpdateCheckResultStore.cs",
+      "git_object": "08061a05c29062d3cd86abb84d845ffe51f01671",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Program.cs",
+      "git_object": "2e1bcc8276e0653adcd076f87cb2b6e87866750e",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Properties/AssemblyInfo.cs",
+      "git_object": "59b01188782ffcf0f12008dc9bf3cbc82cc12aaf",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/AutoInstructionGenerator.cs",
+      "git_object": "fa7a17ec716cb8eac73b5ebee52f1746c645027e",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Checkpoints/CheckpointPaths.cs",
+      "git_object": "5e976c9e9347d8bfdc4450891b8736c2ee4cd8e2",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/CircularDependencyDetector.cs",
+      "git_object": "28bd6c1dfbcedec1324d1d4651c86330c622d072",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/ComponentEditorService.cs",
+      "git_object": "611900398ff254e9354ee9fbe6c40e6d2ddba271",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/ComponentManagerService.cs",
+      "git_object": "e135ddaab85a96b85087487a52bb76b152880e2b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/ComponentMergeService.cs",
+      "git_object": "02662df25090b044659ed96a5bc0845502533c6b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/ComponentProcessingService.cs",
+      "git_object": "d50564f92987e844a45a8fcd109c5c18d4140e80",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/ComponentValidationService.cs",
+      "git_object": "9dfb983c7b638b6d97d87a969ef4594196751d98",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Conflicts/ConflictAnalysisResult.cs",
+      "git_object": "5f4fff9b3e22466b5170eef96a5a9bfe9a491613",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Conflicts/FileConflict.cs",
+      "git_object": "a56743e0d7892ce129a82d9e3c74c9c94b00f0d7",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Conflicts/FileConflictAnalyzer.cs",
+      "git_object": "c5a1ff62d003d05e8bc7a3b6f2dc6e77dad48602",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/DependencyResolverService.cs",
+      "git_object": "4e85adcca5c3e461dbb80ce3faf88b1217d3e761",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Deployment/DeploymentManifest.cs",
+      "git_object": "876ec35bcd1dc2fb0c169930f2fe9038be0c295b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Deployment/DeploymentService.cs",
+      "git_object": "0f8c0077108a203739b38f9212386127803f05c8",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Deployment/HardLinkHelper.cs",
+      "git_object": "11fd784caaa485d037bf0fcd02bfa8289b193675",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Deployment/ManagedDeploymentLifecycle.cs",
+      "git_object": "763218b6aa77cee065f954bdaa17421a87fd3377",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/DirectMarkdownInstallPreflight.cs",
+      "git_object": "f4c289dbd964df2d0bec5cc3acaaa7ddb0b72453",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Download/DeadlyStreamDownloadHandler.cs",
+      "git_object": "7a1419dbc3b12f6a77320033763b5d29f2c598fe",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Download/DirectDownloadHandler.cs",
+      "git_object": "ebadeb7350f412c88b5e70e51d15df59abc6ac8f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Download/DownloadHandlerFactory.cs",
+      "git_object": "1566d6ea3ad355b8b4600fdc3f69ddba406e9e02",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Download/DownloadHelper.cs",
+      "git_object": "4709decf4973d162399b8691f813e4701cfece4d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Download/DownloadLogCaptureManager.cs",
+      "git_object": "5cf7ba5363718d69f1927abb40c1fe0563ea2a29",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Download/DownloadManager.cs",
+      "git_object": "77efca2097e6ebe4aaac059105de90269af47773",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Download/DownloadProgress.cs",
+      "git_object": "6a11d3b9717adcdf4f19127e7067319398645e0b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Download/DownloadResult.cs",
+      "git_object": "5e8008fd723d88f597e83491db115441d8f1c0c3",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Download/GameFrontDownloadHandler.cs",
+      "git_object": "290d796122a45128512370cb8844998e38652db3",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Download/IDownloadHandler.cs",
+      "git_object": "d81db6f1fba859d6e6d411d2caa63c7514cb9e0f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Download/MegaDownloadHandler.cs",
+      "git_object": "d8785b7f4df538ce4efe9167f0a422ea8902556b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Download/NexusApiClient.cs",
+      "git_object": "0b66504753d1878216aa1d32ff0eb7333682d350",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Download/NexusModsDownloadHandler.cs",
+      "git_object": "fdf27eade541c679a3b82d7cf6b0341ded78885a",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Download/NxmComponentResolver.cs",
+      "git_object": "ed1eca71bdc837f749c1afdc90f5359dea7a5ce7",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Download/NxmUrl.cs",
+      "git_object": "aab5aba8708b790d61c1f57b2b7b457fd05cddf9",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Download/ThrottledStream.cs",
+      "git_object": "2428424cdcade815fb399e928d2100b0e8c8f65a",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/DownloadCacheService.cs",
+      "git_object": "3246020589364b91ea757f38256c7f53b965e26b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/DownloadManagementService.cs",
+      "git_object": "7484782c84605fedc2c1581009ee3ad8045714c7",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/EmbeddedSecrets.cs.example",
+      "git_object": "7c7a840913512bad63a309ffc9347e23c2390ce2",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/FileLoadingService.cs",
+      "git_object": "5c9fd2c433d1a481d1dece86cd647b325fe2b26d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/FileOperationService.cs",
+      "git_object": "d4b530604873809df46c7e25576852df26d819ef",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/FileSystem/IFileSystemProvider.cs",
+      "git_object": "e16f5916f56e169fda029a93a3dee1df0be1c4a2",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/FileSystem/RealFileSystemProvider.cs",
+      "git_object": "1b40e08f8287399830304ca541177a9367fb0e07",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/FileSystem/VirtualFileSystemProvider.cs",
+      "git_object": "404a3813681c02386f2521c093eddd473ab0481c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Fomod/FomodArchiveDiscovery.cs",
+      "git_object": "dedfdaad7dff5ad12fdccb3e61427cbd76c7538b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Fomod/FomodArchiveExtractService.cs",
+      "git_object": "ca5940f5d799586f043efafde68a5d3a5cfcbc45",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Fomod/FomodArchiveProbe.cs",
+      "git_object": "e3a7012b57481a3471d442ca42118edfae1df7d6",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Fomod/FomodChoicesApplier.cs",
+      "git_object": "f1289bde9de2492044231b80e1ba7a50b5a234ee",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Fomod/FomodChoicesFile.cs",
+      "git_object": "7ad7d499396909f163c7644d2d17dd08805b49ec",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Fomod/FomodChoicesFileHost.cs",
+      "git_object": "8de34aafe1a047890c2441e571597db2a8c8aa60",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Fomod/FomodConfigurationGate.cs",
+      "git_object": "0a56f4be80938ad88c9659915cd446937ab5fdbf",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Fomod/FomodConfiguredComponentMerger.cs",
+      "git_object": "dfb86eedbde44355dfe02497d9fd103421aa4d11",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Fomod/FomodDetector.cs",
+      "git_object": "eed1043cb8b355a839f8929d97f00926898a7275",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Fomod/FomodDownloadPromptState.cs",
+      "git_object": "58d579c811619651e5f4f5225d0ef140ec317fc7",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Fomod/FomodDownloadedArchivePaths.cs",
+      "git_object": "0cbd78a0c0747eaf71faa490443a338930e4cbc2",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Fomod/FomodInfo.cs",
+      "git_object": "3098f165458fe0124495ad3d9b98049c1a0263f3",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Fomod/FomodInstallerPresenter.cs",
+      "git_object": "6c921dac6ec7c1e79732b53cdde24a50e3f619b6",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Fomod/FomodModuleConfig.cs",
+      "git_object": "08d3ca0de4d6109d80d550bcaf8bcdcf55ed83d2",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Fomod/FomodParser.cs",
+      "git_object": "7a586a74dcaa4edef1d268facad4c3b3f108cf1c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Fomod/FomodPostDownloadOptions.cs",
+      "git_object": "d80ab274a730dfab7e0f03742232c0fcd0a8465b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Fomod/FomodPostDownloadOptionsResolver.cs",
+      "git_object": "28ced5c979f31866efe5e6549a7630f16420e614",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Fomod/FomodPostDownloadOrchestrator.cs",
+      "git_object": "300e1cb4732239869fecb75817e694e962336b63",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Fomod/FomodPromptContext.cs",
+      "git_object": "2ce0d7f08aa34e321b92ad15ede11bfc419f6837",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Fomod/FomodToComponentMapper.cs",
+      "git_object": "bd93676ab4cf566a1ecd80841babd335cbbdeca2",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Fomod/IFomodPostDownloadHost.cs",
+      "git_object": "92dd02781836abf5fa7c84725564a05660694321",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/GitCheckpointService.cs",
+      "git_object": "4589770688454f4a517207e6c62413e9c7532649",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/ImmutableCheckpoint/BinaryDiffService.cs",
+      "git_object": "cdd16f8069d5e99a72b7822bae8069df4a9dc560",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/ImmutableCheckpoint/CheckpointService.cs",
+      "git_object": "28d11c2e2524b3afda411ab3676904cca50eb7bf",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/ImmutableCheckpoint/ContentAddressableStore.cs",
+      "git_object": "feb7e61f3b75a60bb58fd679aeeb12397aa94f2a",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/ImmutableCheckpoint/FileProvenance.cs",
+      "git_object": "a87cdb7463924ebcd79a4314fbabf1545ceb6910",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Installation/ManagedInstallCliOverrides.cs",
+      "git_object": "a56e7ef77737c18037d96481d1cd993d72deabf7",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Installation/ManagedInstallResult.cs",
+      "git_object": "0b5dd8fcb74b01bfc69de27c83c9181920843a8e",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Installation/ManagedInstallSession.cs",
+      "git_object": "2848ab3064c1f8f124f7e038ca4bb94c038aa6c0",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Installation/ManagedInstallSummaryFormatter.cs",
+      "git_object": "2beec047667ee692fc55559d4efc2afa5cd32590",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/InstallationCoordinatorService.cs",
+      "git_object": "f87c60f5cb9d45e0d3398e6d2f41bb4561506a4b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/InstallationService.cs",
+      "git_object": "fed803b4670504b090399c03100843c7fef97afa",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/MergeHeuristicsOptions.cs",
+      "git_object": "72a6600cf60fde9ac7e18545b3dfd2b967fb323d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/ModComponentSerializationService.cs",
+      "git_object": "c0d7934d2df5bad0ce26720d6221750c6602ad82",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/ModLinkProcessingService.cs",
+      "git_object": "f6d8c355e88f74488bad66258a7ba1e19924dbea",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/ModManagementService.cs",
+      "git_object": "40e0aaaef0a493cdf6ce8b7370619451a0192f18",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/ModUpdateCheckService.cs",
+      "git_object": "2b00b361d4128db9af19ad2520bf2b3682ded1c3",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Profiles/Profile.cs",
+      "git_object": "75281c25d5aa7e7da91d9a7c72cff2fe1183b70f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Profiles/ProfileService.cs",
+      "git_object": "541ba022ececabc2ba67edbba601b3aacd7cce64",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Protocol/InstructionUrlSafety.cs",
+      "git_object": "86c9e3d23c7fe7ddd5a81c8818d70c8bf3cea580",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Protocol/ModSyncInstructionFetcher.cs",
+      "git_object": "576187c0ef5980250dcb6d12c120e38bddbaf6cd",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Protocol/ModSyncUrl.cs",
+      "git_object": "15450a47fc2a647faae7ca06bfcf71e6b4178753",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/ResolutionFilterService.cs",
+      "git_object": "1dbd1291b2e30e37baa3bf877500dbc72ff943bb",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Settings/ModSyncSettings.cs",
+      "git_object": "62882f75dea391a662aab5c6ad055f130699b636",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Settings/SettingsFileStore.cs",
+      "git_object": "00ec400e43f8d07be763fcf0409ce145d3ed2901",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/TelemetryAuthenticator.cs",
+      "git_object": "26bb037a9e8e30ad77505a97da84b1885bb06838",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/TelemetryConfiguration.cs",
+      "git_object": "b99a91cd3971bc64bb8986f3c8fc33b172afab9b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/TelemetryService.cs",
+      "git_object": "18325047dec0cf9d06485f67c797f80885a4cead",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Validation/DryRunValidationResult.cs",
+      "git_object": "cdf80122934eaea375f07c91324dd333ef54621e",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Validation/DryRunValidator.cs",
+      "git_object": "a596421db70659e69a2870a7b3e09c952d6a2521",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Validation/InstallationValidationPipeline.cs",
+      "git_object": "ad706cf13974107ee77102cfa8568ce7e4df3337",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Validation/PathValidationCache.cs",
+      "git_object": "e8ae0bd6a835f15e4767919801607aded97d1165",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Validation/PathValidationResult.cs",
+      "git_object": "358a7fe25a26a6f751c772c1ffa5f29d0524b137",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Validation/ValidationPipelineJsonFormatter.cs",
+      "git_object": "6044d09f0ea81a2e8db20ff4e48ebf6596342c82",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Validation/ValidationPipelineOptions.cs",
+      "git_object": "abe17f6c3f9d306b595b8aa76a97d2baf7c1e86b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Validation/ValidationPipelineResult.cs",
+      "git_object": "e85bb21c7939544d94688e4948c2b0352ae2b0f0",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Services/Validation/ValidationResultPresenter.cs",
+      "git_object": "5175928630e4c7e99101fa42cebf9e3b4dcdb2c8",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/TSLPatcher/IniHelper.cs",
+      "git_object": "2247bfffe72aee3da1ea470ede0cfd4ed32482bd",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/TSLPatcher/TslPatcherVfsSimulator.cs",
+      "git_object": "23a52a8ec0f19407e28898bb7ce2b630cb7d198e",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Utility/ArchiveHelper.cs",
+      "git_object": "bc5c5c730286fb72e97ce719960d546859c2ce10",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Utility/AsyncWaitHelper.cs",
+      "git_object": "185c78c8454fa581b7e2fa3f66319a8923e92a2f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Utility/CallbackObjects.cs",
+      "git_object": "eb285ac96737ff80ad840d80b397783fa9e0dee3",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Utility/CanonicalJson.cs",
+      "git_object": "5fcb36b3e9a08a56e391fa8b5d444aab5dbb6a8d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Utility/CategoryTierDefinitions.cs",
+      "git_object": "7bda1699a9baa64a45dfb7eb1dd6b824b8471db4",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Utility/CollectionUtils.cs",
+      "git_object": "d41eb86379020fe78e969a2a88a874eee60409b6",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Utility/FileChecksumValidator.cs",
+      "git_object": "672d4c39b5c8fcd6e894323ea446c0e02b134abc",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Utility/FileUtilities.cs",
+      "git_object": "c111837616de888f7587cadeee5279a10418d5f6",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Utility/IEnumerableExtensions.cs",
+      "git_object": "3c90bb57f484984e5ec3335a3062822892ff39d3",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Utility/IniFileMerger.cs",
+      "git_object": "22420201ba62c2e3997f11039a25dc1171470d74",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Utility/InstanceCreator.cs",
+      "git_object": "8369d2466f5097336d3ae3e8adc15edf575259e0",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Utility/NetFrameworkCompatibility.cs",
+      "git_object": "f0a122f97430f1bd8b13df6b8072dfbce5e3c0ac",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Utility/PathFixer.cs",
+      "git_object": "134e6be6638f424cb54dd808dfb76a92b672d06d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Utility/PathUtilities.cs",
+      "git_object": "68aad5492255f218523078a74b23e4febd324946",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Utility/PlatformAgnosticMethods.cs",
+      "git_object": "6a046273cd5253a3f090fc6ae1df47b927766e01",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Utility/RelayCommand.cs",
+      "git_object": "7b4d18b1e836d8ac8526b9473e66a8fc5c8912f5",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Utility/SearchUtilities.cs",
+      "git_object": "0a40b1d9d17ee440e885ebd080eb4ed258cc7257",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Utility/Serializer.cs",
+      "git_object": "b055bf05e5d0156cd61d26e73068a4dc5a6c1bdd",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Utility/TomlWriter.cs",
+      "git_object": "41bd2a9af8ffe59bc070809b3c25c4d7ada7db98",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Utility/UIUtilities.cs",
+      "git_object": "746c6bfc681c7da62a7351d0663e80c51dd95f39",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Utility/UrlNormalizer.cs",
+      "git_object": "d726e6598dbb7fd902306abc7304693a251601cc",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Utility/UrlUtilities.cs",
+      "git_object": "bdf56b3edd32c4d4b56a9ef893aeac18f253c5ff",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/Utility/Utility.cs",
+      "git_object": "4328ce2e860c2670906878ab2b88a69bc62328cc",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Core/ValidationResult.cs",
+      "git_object": "d5401b551300b827dc7b93ec944d0e2bb5528f78",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/App.axaml",
+      "git_object": "034456a4258173b2b640f2a36ae40ab841d452dd",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/App.axaml.cs",
+      "git_object": "08f46719a1f2db4fa32c8af4b6ec6460ca542e66",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/CLIArguments.cs",
+      "git_object": "996e0a4d344c9b37ab2ff17b9b55127d14f18e7c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/CallbackDialogs/ConfirmationDialogCallback.cs",
+      "git_object": "97d20fd3dd85e0324690b3df79e3cfce4d012258",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/CallbackDialogs/InformationDialogCallback.cs",
+      "git_object": "25d8f756e3df80ee6860dd0d7a7b785021e56959",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/CallbackDialogs/OptionsDialogCallback.cs",
+      "git_object": "8afab3f455c4ed489e330b622cfa699bddec74a3",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/ActionButtonsControl.axaml",
+      "git_object": "6bb2589e2d45c860ad659cb666f15dc9de11f5a7",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/ActionButtonsControl.axaml.cs",
+      "git_object": "76b40c267d825b785c52d3d59761dec0cfc305c2",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/BrowseButtonsControl.axaml",
+      "git_object": "348fb5d583c02a2e9b37f1c210e94f86d9693f1f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/BrowseButtonsControl.axaml.cs",
+      "git_object": "d5ea4e236cced632f9fc640d240dcba6b4921885",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/CategorySelectionControl.axaml",
+      "git_object": "9c882015680c49babce7c138da14a2361e9f8a82",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/CategorySelectionControl.axaml.cs",
+      "git_object": "1d22beaed6a4680a88ffba3a6364ef3363f6649d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/DependencyControl.axaml",
+      "git_object": "d7bb37bce3ea1983f1114f191f5bde922902d64a",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/DependencyControl.axaml.cs",
+      "git_object": "c091d630a564a4fb0d3f2ee67f4b13eabb09ba4d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/DirectoryPickerControl.axaml",
+      "git_object": "718bc9c10fe92f4c0141ab62a3cc32d1af7db8c2",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/DirectoryPickerControl.axaml.cs",
+      "git_object": "9b5c2dfda8f2b2f484d596e9ce21b48d4e804cc0",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/DownloadLinksControl.axaml",
+      "git_object": "afa449ad3fc79e683c367daae0e210ae954f4171",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/DownloadLinksControl.axaml.cs",
+      "git_object": "ef75ba131589379d963c128b04f8f8fa2fc68fd5",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/EditorTab.axaml",
+      "git_object": "215c1a1ab22f87689e61e8d6b60d6057ed8a5077",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/EditorTab.axaml.cs",
+      "git_object": "1563b99edb798771a0413f808116afa4bc717721",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/EmbeddedLogPanel.axaml",
+      "git_object": "9927fc987592f934c361d0fe2be0f7978aeefecf",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/EmbeddedLogPanel.axaml.cs",
+      "git_object": "7587b3829fd8f722b83fc62befe86fe0a92e098b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/ExpandableTextBox.axaml",
+      "git_object": "55c92c7b77796d0f9df718d77fdeddba95ccd437",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/ExpandableTextBox.axaml.cs",
+      "git_object": "3ced8383a3c0b7318ed79f32d2fee6155f7183bb",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/FileExtensionsControl.axaml",
+      "git_object": "3a301c436e9a0a0a98b8c5831d9117a38671066d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/FileExtensionsControl.axaml.cs",
+      "git_object": "a40d9124c8b506e56e1e73790375ca4435028a4c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/GettingStartedTab.axaml",
+      "git_object": "7d5a0fc04db1f0176984d63008190f2941ee8d11",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/GettingStartedTab.axaml.cs",
+      "git_object": "3e7832d3c316cf9a9618faf74db092e3a435e423",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/InstructionEditorControl.axaml",
+      "git_object": "2e15594453c3d16f3073cf83929572d0673a491c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/InstructionEditorControl.axaml.cs",
+      "git_object": "8ebc3fb3186b8d0607aeeb175f77e35d42693b54",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/LandingPageView.axaml",
+      "git_object": "40880f619694dc878725341ad2ea7192e9a3d6cc",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/LandingPageView.axaml.cs",
+      "git_object": "3e87363f046ae43e9cf05a40a3b3096e00af41fa",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/ModListItem.axaml",
+      "git_object": "3009357de79508274f637fc3f8dea89092b5f22f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/ModListItem.axaml.cs",
+      "git_object": "8065ec4b87cba1eb112074167fb82d770bcc8173",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/ModListSidebar.axaml",
+      "git_object": "90fabbf0153104c4706b0bb0180d787dfc9f8e81",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/ModListSidebar.axaml.cs",
+      "git_object": "226d76760ea23b3cc35a17256e7016c53325582d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/OptionEditorControl.axaml",
+      "git_object": "611e7bb11996a6be469d9e7c6179f7e8ca35e15d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/OptionEditorControl.axaml.cs",
+      "git_object": "085b5170dde5a13803ae5e27a8c5c227bc2e9c9f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/RawTab.axaml",
+      "git_object": "3e7aa1176fa5d0e52ab9c089773038350edca77a",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/RawTab.axaml.cs",
+      "git_object": "1ed642b27d317722a38799d12c5499af06118b77",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/ScreenshotDisplayControl.axaml",
+      "git_object": "28ba9b72ac76abfb4dbc805e136f520b404bbc6b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/ScreenshotDisplayControl.axaml.cs",
+      "git_object": "f56c69e168101affef787c566de213d48cd80c71",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/SearchBox.axaml",
+      "git_object": "7d43984066d54a024f068153126b4380b45500fe",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/SearchBox.axaml.cs",
+      "git_object": "e18f08a6d72a73f229c0f882b6b16c062ffa11bb",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/SummaryTab.axaml",
+      "git_object": "344e0d81f1b2c125ee1c0205c4b2f8f8df36e956",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/SummaryTab.axaml.cs",
+      "git_object": "e28e0570fd7cf0267e18ff8abeeb4c05ab588303",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/WizardHostControl.axaml",
+      "git_object": "f661f20d6a78a7d06433e65075969227d657af80",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Controls/WizardHostControl.axaml.cs",
+      "git_object": "aa1d7f05ce906be87a9aa5cba3a520cbd545227c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ActionConverter.axaml",
+      "git_object": "376e4e96107bca3d92db7070d694d2dfe9095c4a",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ActionConverter.axaml.cs",
+      "git_object": "fdeea781d12543e771384f598d56160f9a653a72",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ArgumentsDescriptionConverter.axaml",
+      "git_object": "206d72f9313a46aa7c63b687411eb4b07d0c4663",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ArgumentsDescriptionConverter.axaml.cs",
+      "git_object": "617d82a6369680c427b1143b0573a800d45e249d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ArgumentsTextConverter.axaml",
+      "git_object": "f5f218b81112c1a4cafa56644ea65a07af31d25f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ArgumentsTextConverter.axaml.cs",
+      "git_object": "3da3b986e1c391edd2e25e86dae649a4711c0802",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ArgumentsVisibilityConverter.axaml",
+      "git_object": "1101546f5df03de1fe3299adcfb649ad73ba0f67",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ArgumentsVisibilityConverter.axaml.cs",
+      "git_object": "f0f1dab3e6dac991cee4b63752e6f228b4430dd8",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/BoolToFontWeightConverter.cs",
+      "git_object": "a3e775bf47aac210f577be05f5820484f669f65a",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/BooleanAndConverter.axaml",
+      "git_object": "0994d7c2b0a5818754f098f04743301fcb4ff601",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/BooleanAndConverter.axaml.cs",
+      "git_object": "789fcd38eb8dd11344abd94fc5648a6399b53842",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/BooleanNotConverter.axaml.cs",
+      "git_object": "6ff2b6b527925405363931c3b0187e2bc42ff174",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/CategoryListDisplayConverter.axaml",
+      "git_object": "558fadf8f78eea97ebf72c21d2d69b66c87563a3",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/CategoryListDisplayConverter.axaml.cs",
+      "git_object": "c041e279a5c926158db655cef5227d67936fdbac",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/CategoryTooltipConverter.axaml",
+      "git_object": "ebf8e5dd54ea72800fbe2098743de9e018983ae6",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/CategoryTooltipConverter.axaml.cs",
+      "git_object": "d418e1b9fd9699984e19fe279b5e7698ef82dca0",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ChooseActionDisplayConverter.axaml",
+      "git_object": "284ec1593f2d31e0b6d98f4e24cbd255811c92dc",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ChooseActionDisplayConverter.axaml.cs",
+      "git_object": "73798b35d37c5e660c37ee4ad8022364f6c84456",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ChooseActionVisibility.axaml",
+      "git_object": "5de3f14495b2a842d93e752a5741d14484b862f5",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ChooseActionVisibility.axaml.cs",
+      "git_object": "c831dd5544cd3e7e069dc293feafba552d91fa40",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ChooseInstructionDisplayConverter.axaml",
+      "git_object": "e9b8d24b5524413a16ba564549d6ce47e5007ce1",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ChooseInstructionDisplayConverter.axaml.cs",
+      "git_object": "3425c9825e2fbc702b63daf971c5afce8970b936",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ComponentToGuidConverter.axaml",
+      "git_object": "04af66873bf73ae60c821d7d34f8209d912edbe3",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ComponentToGuidConverter.axaml.cs",
+      "git_object": "8eabb0f5fa76c7a22363368f74db820394ab7814",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ComponentsListConverter.axaml",
+      "git_object": "347358c61468eee71f9865d948f7877421fda09f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ComponentsListConverter.axaml.cs",
+      "git_object": "66fe84f2c5931545c77da4ff4d35a054307d8992",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ConditionalGuidListConverter.axaml",
+      "git_object": "8e52ac8365cd4a91995644a3ca47b6a1982d0c45",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ConditionalGuidListConverter.axaml.cs",
+      "git_object": "1e11b7d00371c80225cf1cb2b5dfa576d2833efe",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/DictionaryToVisibilityConverter.axaml",
+      "git_object": "c8b5214360a14491eff4a67573ca547b8c5271a2",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/DictionaryToVisibilityConverter.axaml.cs",
+      "git_object": "704f3fb708595fb01d8c8b960b5bab2deb62c7ac",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/EnumToBooleanConverter.axaml",
+      "git_object": "c7d1897e5526a170c62e28574da5f8a5c3b4c555",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/EnumToBooleanConverter.axaml.cs",
+      "git_object": "ededae581a22825318ba1d460cc991fc9d435c10",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ExecuteActionVisibilityConverter.axaml",
+      "git_object": "8ef65a71f58b4daf1626f0a159552b3d57c014ca",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ExecuteActionVisibilityConverter.axaml.cs",
+      "git_object": "e1c5da9bebce4818e35afe4eb7d9f8a624364f55",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ExecuteDelDuplicateVisibilityConverter.axaml",
+      "git_object": "ae6b5eeb1655e9cc9bd008fcc8eba10a224ef864",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ExecuteDelDuplicateVisibilityConverter.axaml.cs",
+      "git_object": "8d0592b0fc522d6e6cad7b194f41aa2d24e89ca6",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/FirstSourcePathConverter.axaml",
+      "git_object": "5309020ca6b416c191382940a6cab43a28c932e5",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/FirstSourcePathConverter.axaml.cs",
+      "git_object": "0b7ef88d8d061dd2566d9c49cc83f182918dcc07",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/GuidListConverter.axaml",
+      "git_object": "ea9e3719a5431a5af0c8f0e13132eee5b20a35ca",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/GuidListConverter.axaml.cs",
+      "git_object": "86a05b24eb3dd5f15d2c5e9e812e4007eb96102d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/GuidListToComponentNames.axaml",
+      "git_object": "06d49b36f58c88279627caed910de6f6c35ccc25",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/GuidListToComponentNames.axaml.cs",
+      "git_object": "262aea21b768396c41c80194eec5ef87c334268e",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/GuidToComponentConverter.axaml",
+      "git_object": "95e53b38ebd17ead39b1433ef20580be17851dce",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/GuidToComponentConverter.axaml.cs",
+      "git_object": "df12b1feafd918cb2b6f7248dd8abb04526c9547",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/IndexConverter.axaml",
+      "git_object": "87e6a0a93a443dc250c9d18758d4d17191bfdad3",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/IndexConverter.axaml.cs",
+      "git_object": "9ded778be3617a5ee6dac4df9753c6b1a83e5f94",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/InstructionDestinationConverter.axaml",
+      "git_object": "366c5dc8f747f2d1f849113b1839582fa99e8398",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/InstructionDestinationConverter.axaml.cs",
+      "git_object": "17b8d7664b59cc3422ea0d6ea1a3cb98c0519124",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/InvalidUrlVisibilityConverter.axaml",
+      "git_object": "981bbf7db7b05dc84c78d9769dc823d046fdd554",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/InvalidUrlVisibilityConverter.axaml.cs",
+      "git_object": "2cf09de84efc0a9a48472be025fb97398d1c36e0",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/IsK2GameConverter.axaml",
+      "git_object": "75d4a2062a76c17b57d39d18de44be70f0a2fe27",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/IsK2GameConverter.axaml.cs",
+      "git_object": "d0ff19fa044dd449f55a1284e918f87394013554",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/IsUnixConverter.axaml",
+      "git_object": "2bb693e005c0de96c742046e5697ee15f704f0ad",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/IsUnixConverter.axaml.cs",
+      "git_object": "08abbffc885b27adf42d4b7f00a8232538a95c6e",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/IsWindowsConverter.axaml",
+      "git_object": "7e9fcae2df0ecf1f1d137075152cad6d655009ce",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/IsWindowsConverter.axaml.cs",
+      "git_object": "3f44797872c11056a584bee0d2783097f72ec13d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ListToStringConverter.axaml",
+      "git_object": "d0e9d15b667681090d4788dcd3fdd61d7b7e29c0",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ListToStringConverter.axaml.cs",
+      "git_object": "af65fa4bce04bef6e85b42e23455f3030eb60ba5",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ListToVisibilityConverter.axaml",
+      "git_object": "e23f51533816b5d21ed606ce09449fbb53485493",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ListToVisibilityConverter.axaml.cs",
+      "git_object": "338e3e51ede194e823a2201d3b38c3daf8f42c57",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/MarkdownRenderer.cs",
+      "git_object": "40afc5d52ae7a666a5afc9f88d5a2b79f4605029",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ModLinkFilenamesToUrlListConverter.axaml",
+      "git_object": "5da81e9d7373557924f20316ecd5e3b852bb9b31",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ModLinkFilenamesToUrlListConverter.axaml.cs",
+      "git_object": "5fb9b96b287ac90cbe96a8d367798285693e369c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/NamespacesIniOptionConverter.axaml",
+      "git_object": "8c214183a5e3d578ec57744512cab4adcfecaec5",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/NamespacesIniOptionConverter.axaml.cs",
+      "git_object": "65fc9b640db9f3d64d66b74257433860754afee6",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/NotChooseActionVisibility.axaml",
+      "git_object": "6c8d50f567a3c7c0a58322204f745ba81a9981ef",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/NotChooseActionVisibility.axaml.cs",
+      "git_object": "4f0f5527b735ee26877cfb0ecfbc12e88e8150e7",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/NotChooseActionVisibilityConverter.axaml",
+      "git_object": "85cf28d4b82de318e52971501b7e8dcd237a554a",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/NotChooseActionVisibilityConverter.axaml.cs",
+      "git_object": "d5a573deb1d272d23a757955cc6ba3b9a811aca3",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/NotPatcherActionVisibility.axaml",
+      "git_object": "fa0440774e0f58d95daefd26d582300a8b87195b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/NotPatcherActionVisibility.axaml.cs",
+      "git_object": "6e3ce34899edbc5e202fc7e270b26abf4602781d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/OpenLinkConverter.axaml",
+      "git_object": "65b4fd3b34a70aabccb4615379fc957caf6465e5",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/OpenLinkConverter.axaml.cs",
+      "git_object": "9f2fd11249950a816ec9b9716a53948ee1c7215a",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/OptionSelectionBackgroundConverter.axaml",
+      "git_object": "d9b96384f6a99779cefc7f67fd26855bac37c5ca",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/OptionSelectionBackgroundConverter.axaml.cs",
+      "git_object": "9ddd459e6160af71c578b872490f82003b2ee201",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/PatcherActionVisibility.axaml",
+      "git_object": "dc4f727ecec3df49441795824dfe88840306f077",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/PatcherActionVisibility.axaml.cs",
+      "git_object": "90acdc2dc2ee70322ff2a7b7c37ee1ed7fbed405",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/PatcherWithNamespacesVisibilityConverter.axaml",
+      "git_object": "77f4755c242927f7af2fff2522d0c5916c5f7468",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/PatcherWithNamespacesVisibilityConverter.axaml.cs",
+      "git_object": "a24b3750fd3acd5f5e9d7931aea4a2f2fee6b5df",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/PathResolverConverter.axaml",
+      "git_object": "c847cdbd70cc4b453aab9936130798141bd05fd6",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/PathResolverConverter.axaml.cs",
+      "git_object": "1a2a296c53d250fe3290eea0a01d78040117295f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/PathStatusConverter.axaml",
+      "git_object": "c5aeafff4ee398cc0b39b9d8f58bd318d4ce3d79",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/PathStatusConverter.axaml.cs",
+      "git_object": "c123d8b8eb846c060b83fae0807c74df9a4e08ea",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/PathStatusDetailedConverter.axaml",
+      "git_object": "0442e4dbf310b77556215531347cfd82eb0a118d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/PathStatusDetailedConverter.axaml.cs",
+      "git_object": "51add1da5261b2c1c265e9846ac812fa87e00535",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/PathValidationConverter.cs",
+      "git_object": "1aff90a97010bd3382f82d055ff760f2147962cb",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/SourceFilesVisibilityConverter.axaml",
+      "git_object": "402d3f44786fc2cce7378d9dcf58f1f16b938da3",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/SourceFilesVisibilityConverter.axaml.cs",
+      "git_object": "9ee5003b96f99bc4bcec4b5c83e46c5b65a9f388",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/SpoilerFreeContentConverter.axaml",
+      "git_object": "8fd80970c12f907c3710a2937e5d4eb629baa1a4",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/SpoilerFreeContentConverter.axaml.cs",
+      "git_object": "227ccf80f4652a1e77ec669c66130ea13518533c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/StringGuidListConverter.axaml",
+      "git_object": "5f14b140c57cb6519cbaedeee0019193930ed70f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/StringGuidListConverter.axaml.cs",
+      "git_object": "3a119e7ed2bcf4f9c44da1f70120ffb83cc8cc7b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/StringNotEmptyConverter.axaml",
+      "git_object": "f4277875e655fad1df5439eff0e2f5954161dbdf",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/StringNotEmptyConverter.axaml.cs",
+      "git_object": "7a138e340dd224e60e90b832d1088bf1348b425f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/StringToIntConverter.axaml",
+      "git_object": "af56f87f346e323bc0cfdb316b90393980c8e2e7",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/StringToIntConverter.axaml.cs",
+      "git_object": "f3b5a67f1455adb9dd4eee29c4d4ea5b96dd617b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/StringToVisibilityConverter.axaml",
+      "git_object": "9ac7f101f4170901c9f1ece33dbc0ff2b4ed922f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/StringToVisibilityConverter.axaml.cs",
+      "git_object": "aa2989238caa1fd31ca12516b80b5be2d518c0fc",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/TierTooltipConverter.axaml",
+      "git_object": "f68f14f88b7fa322d1b66b1daccb106ca2fceb73",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/TierTooltipConverter.axaml.cs",
+      "git_object": "0c08479ef21ebcbaedbd1a7d3e90fa855b8be517",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/UnresolvedPathTooltipConverter.axaml.cs",
+      "git_object": "438fff0221c4c99e2e68a854d0a894326da769fc",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ValidationBlockingInstructionTextConverter.axaml",
+      "git_object": "4b08ce29145c84aaf11d7f93c8c45e827fe378c0",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ValidationBlockingInstructionTextConverter.axaml.cs",
+      "git_object": "1ebdd9e96d18489a44b6115b1fd49451fa2fe464",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ValidationDetailedMessageConverter.axaml",
+      "git_object": "38468f80467f55f10f1d912647a9719695171e5c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ValidationDetailedMessageConverter.axaml.cs",
+      "git_object": "4e26889babb1b295adff81468a1d380afe6649af",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ValidationHasBlockingInstructionConverter.axaml",
+      "git_object": "12fe7d10d31ec351058a6bd0de56d5dfce921f93",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ValidationHasBlockingInstructionConverter.axaml.cs",
+      "git_object": "6d6222a43bd1d2b9e912f8fa616fd500d4fdaa92",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ValidationStatusMessageConverter.axaml",
+      "git_object": "f6ffed1d7a43577c893116f89f66954e95298e50",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Converters/ValidationStatusMessageConverter.axaml.cs",
+      "git_object": "e7f89845986104b5e7c899756f7b4484167b8588",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/AutoGenerationResultsDialog.axaml",
+      "git_object": "10a6f7903ee777c27bf4cb40e79c1bea45e7d387",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/AutoGenerationResultsDialog.axaml.cs",
+      "git_object": "e51bd6f51dbb2de0ab810d9b494f3352b61a9685",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/CheckpointManagementDialog.axaml",
+      "git_object": "f37b32fa1d399b66a5421e72da6a28ac92bf304c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/CheckpointManagementDialog.axaml.cs",
+      "git_object": "212b554d0b322918a2161c74b688b0dcb91397b1",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/CircularDependencyResolutionDialog.axaml",
+      "git_object": "91a8646df536f649babdf43345099422c381db2c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/CircularDependencyResolutionDialog.axaml.cs",
+      "git_object": "6a07d667c6aacb9d527de9733318efc9385858a1",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/CircularDependencyResolutionViewModel.cs",
+      "git_object": "458f9a43e9b64b1409491f43ff995926d892d15f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/ComponentMergeConflictDialog.axaml",
+      "git_object": "c648a2bcdc41dbdc2b0fe4d65ee31e44d0e860b7",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/ComponentMergeConflictDialog.axaml.cs",
+      "git_object": "28d63f4a3bc0926c2a7723a27cc0c6563e8c03a1",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/ComponentMergeConflictViewModel.cs",
+      "git_object": "c2e85c7b63f015b2e618e23934597baf7f7136a7",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/ConfirmationDialog.axaml",
+      "git_object": "187a41c07a011b8a1a6380b69ee5931ad991b484",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/ConfirmationDialog.axaml.cs",
+      "git_object": "2a1b8e23d1e90a8ed03adc829b4cde13245132dc",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/ConflictsDialog.axaml",
+      "git_object": "7058736f018db633a1fa46e75e526e7625ce538d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/ConflictsDialog.axaml.cs",
+      "git_object": "392b39228a0f2b92655be0653d87f2d842abd378",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/DependencyResolutionErrorDialog.axaml",
+      "git_object": "1da773fe851adba59d3af1a58eb1be7b6d6b732a",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/DependencyResolutionErrorDialog.axaml.cs",
+      "git_object": "23ed179532e34951cc6720be66599bb6a005c030",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/DependencyUnlinkDialog.axaml",
+      "git_object": "5b671c5b697bbb2d1321df4874040f6aefda5dc6",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/DependencyUnlinkDialog.axaml.cs",
+      "git_object": "b73e4818e563c35a3aa3161f25e3bd5f4115f299",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/DependencyUnlinkViewModel.cs",
+      "git_object": "b7f5dbf373c57e01fb98377956f1c5467fc323ed",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/FomodInstallerDialog.axaml",
+      "git_object": "c167b850c2b79853caef3ff219140edef5c65117",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/FomodInstallerDialog.axaml.cs",
+      "git_object": "b8eeb5252da95b9ab86b66d4310f02d2f9cbccd1",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/GitCheckpointBrowserDialog.axaml",
+      "git_object": "3084dee3d2c5b82e6621ec80d0cfff9c38df031f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/GitCheckpointBrowserDialog.axaml.cs",
+      "git_object": "16e9b3e738f533f40968d0240143c62b64516cfe",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/IWizardPage.cs",
+      "git_object": "a018c9b62b3d8094096d53005aaf460e6c0a2775",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/InformationDialog.axaml",
+      "git_object": "a7aa730c2f44e331b22a6e68364ce6ec716bac9e",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/InformationDialog.axaml.cs",
+      "git_object": "14a4dd946beb764c552493cb88047db5d2c041e7",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/InstallWizardDialog.axaml",
+      "git_object": "ed93315df2d602abb4f7eb9a92dcaef4932cbb7e",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/InstallWizardDialog.axaml.cs",
+      "git_object": "13d1111280c4760f49f41bfd6fcc0fe94b6e3c84",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/InstallationErrorDialog.axaml",
+      "git_object": "fa931c789a46732b9ecc5b8f4aabe5a259949781",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/InstallationErrorDialog.axaml.cs",
+      "git_object": "dd1f9c34f00489c8ee6581132c95259fa0838683",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/ModDownloadDetailsDialog.axaml",
+      "git_object": "3446db8941fa2838dc28844d7adea8041eb85301",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/ModDownloadDetailsDialog.axaml.cs",
+      "git_object": "c32a06d226c094948be8a558cf339222cc0c0068",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/ModFilesBrowserDialog.axaml",
+      "git_object": "de6dc94ab88af52d33d2176d74a4be962247b5f9",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/ModFilesBrowserDialog.axaml.cs",
+      "git_object": "59f0141c6b8de3136ef178314d8fafb91849a928",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/ModManagementDialog.axaml",
+      "git_object": "c86ae28905021e7a801eae5488d9ad9ae75c28f5",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/ModManagementDialog.axaml.cs",
+      "git_object": "17d8f8a23893e363fd48dc47a640b43ae23b308a",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/OptionsDialog.axaml",
+      "git_object": "097c6ed66c6f7a917d9c5c82b20cf778f02fdde0",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/OptionsDialog.axaml.cs",
+      "git_object": "0d1a59b39c90a1eeb9afea20efde72d4bad0f16e",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/ProfileManagerDialog.axaml",
+      "git_object": "a2dd47a2c02a8f46fc681c3f459cb7d1ae3e8c5c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/ProfileManagerDialog.axaml.cs",
+      "git_object": "ce5c3e70429ad9fa2366aeab2e7329fe0634eab4",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/ProgressDialog.axaml",
+      "git_object": "3b25ef088f6cd9d43eee9c0355ee1ad0524241b1",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/ProgressDialog.axaml.cs",
+      "git_object": "15b665f68a3c5527d31ffecae5e61fcfbc09a4ca",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/RegexImportDialog.axaml",
+      "git_object": "446b412fcb2c661b2fef76ed70340f500c363960",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/RegexImportDialog.axaml.cs",
+      "git_object": "db004283ee1ac2b30480db7e6fb8db6f2900c4e6",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/RegexImportDialogViewModel.cs",
+      "git_object": "270703ee205a06ff9d7898f43036c97b4930ba09",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/SettingsDialog.axaml",
+      "git_object": "f622063e901d1b4defa8d2db23e911fc6005604c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/SettingsDialog.cs",
+      "git_object": "e56d5e32dfec7b1068e2dbb49727fd355505bf7c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/SingleModDownloadDialog.axaml",
+      "git_object": "a28eba8713b09a871ba7653afbe3fe64790a4823",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/SingleModDownloadDialog.axaml.cs",
+      "git_object": "7597c16c5168414cb2198028dca2e6469eb1f2cc",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/SingleUrlDownloadDialog.axaml",
+      "git_object": "f4b5a0ce09fceefb8be61df197a3fff86591b985",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/SingleUrlDownloadDialog.axaml.cs",
+      "git_object": "0367830ddf083f3bd6b81475100366d4eddfd98d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/TelemetryConsentDialog.axaml",
+      "git_object": "c54b1e8f84f9bc4a8a8de23a85fc907266e99e63",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/TelemetryConsentDialog.axaml.cs",
+      "git_object": "1108b3b5df181b6fc77dd00c20720b8d175ac09c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/TextInputDialog.axaml",
+      "git_object": "81d449961098917b5720eada3c29a715d9392cb7",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/TextInputDialog.axaml.cs",
+      "git_object": "e6c3238d37ba2d7c52792b108a2df7415106b669",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/ValidationDialog.axaml",
+      "git_object": "9aef7a486ab7e0537401f7a2174dc42285f66d5b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/ValidationDialog.axaml.cs",
+      "git_object": "ff5cb9509d3556e33121baba35f74212d8265b0a",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/ValidationIssueDetailsDialog.axaml",
+      "git_object": "f1cc31ff75ccf26d456b853df40d3b5ffeeaac82",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/ValidationIssueDetailsDialog.axaml.cs",
+      "git_object": "c98f0c4b88fee99f36cb4f02596ad8b72c75a5ae",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/ValidationProgressDialog.axaml",
+      "git_object": "c88ba048ef7449585dbdf5e1e3420bd06992f336",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/ValidationProgressDialog.axaml.cs",
+      "git_object": "98afc3c635147d6a57789595f422f8d6d29483e4",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WidescreenNotificationDialog.axaml",
+      "git_object": "09bde0f12251d9aa2e3d661e6b26fa194c9d0c60",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WidescreenNotificationDialog.axaml.cs",
+      "git_object": "041d6eff44f4237684254329d0cc34b86b53bf29",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPageInfo.cs",
+      "git_object": "887db1824400123c3e7ce2722732b56338d238d2",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/AspyrNoticePage.axaml",
+      "git_object": "655208c577f87937d0fd7e6823e7d5d471b57ae2",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/AspyrNoticePage.axaml.cs",
+      "git_object": "314a688b700da8de95b20d2b6379dd4e8dc43114",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/BaseInstallCompletePage.axaml",
+      "git_object": "28ee4bfb5be621282e5a7c877ebeb4c92c133cd7",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/BaseInstallCompletePage.axaml.cs",
+      "git_object": "27e3d09feb1a9562cc777b3638512b5b2e84824e",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/DownloadsExplainPage.axaml",
+      "git_object": "acc3f33859312c18c376cba9b11565f231e8b8d3",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/DownloadsExplainPage.axaml.cs",
+      "git_object": "3a0c13b34403da9505277b329463919fd1662a3c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/FinishedPage.axaml",
+      "git_object": "2380011e8d13875eb41d6fe580aad0d511fbf9b9",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/FinishedPage.axaml.cs",
+      "git_object": "15598cc3ef8ea2a6cf7d7f0ef01beef74801d650",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/GameDirectoryPage.axaml",
+      "git_object": "6b8f9288c2b2b9e5576d7d8e2e947380d7168a5d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/GameDirectoryPage.axaml.cs",
+      "git_object": "186561ff3f92a757d75fb1b5e3678c6e6cd04870",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/InstallStartPage.axaml",
+      "git_object": "73d9ee8ec93b3e410dc537e6ee9618aa21847453",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/InstallStartPage.axaml.cs",
+      "git_object": "f438ed8b4f60e3553ee8026708d4e508f99a5a19",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/InstallingPage.axaml",
+      "git_object": "f89073e5fe743a0f04eb3f2d83b046625bb7f1f9",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/InstallingPage.axaml.cs",
+      "git_object": "0e2babdcef036e4447ef8734b395dfe0e3918796",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/LoadInstructionPage.axaml",
+      "git_object": "5bccdc674451f6a7f06f410100ea1805a2df2b20",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/LoadInstructionPage.axaml.cs",
+      "git_object": "08c4184fecac3f749436d58cc8cc194b1b918c67",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/ModDirectoryPage.axaml",
+      "git_object": "d7935e6077801a38003ce29b1b87282bd4df8c40",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/ModDirectoryPage.axaml.cs",
+      "git_object": "0314fe0187452a883c10c7290381504d6ffe85ad",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/ModSelectionPage.axaml",
+      "git_object": "69522238e6f453da0730d2d23ec7e651ab4705be",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/ModSelectionPage.axaml.cs",
+      "git_object": "e9b0f7d31aab12b60631dbead1812dad6da51dd6",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/PreamblePage.axaml",
+      "git_object": "28c3cc83b3ae0ccb9c7d96735a4d87efee6ef3aa",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/PreamblePage.axaml.cs",
+      "git_object": "b3cdc29790b4d35882cec144620e7c5692e34f57",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/ValidatePage.axaml",
+      "git_object": "748445f498280b7d85d21c8f8211d5961b90c37c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/ValidatePage.axaml.cs",
+      "git_object": "837bb135b981707f98df0dacca1e88bdd2484f33",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/WelcomePage.axaml",
+      "git_object": "806b9e97edf3dd4a3ec4d12cd785ef398e71fdcb",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/WelcomePage.axaml.cs",
+      "git_object": "187a0e563315da47bf0d4ecd9e32a2b8b63cb85f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/WidescreenCompletePage.axaml",
+      "git_object": "8e69d170c91eff8b77ab4361965faf323144ba06",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/WidescreenCompletePage.axaml.cs",
+      "git_object": "8305fff52df13992e79b73af20887bc4b14a82a8",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/WidescreenInstallingPage.axaml",
+      "git_object": "3abd8f2d925455f4b6e663f6e6e16205ece41dba",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/WidescreenInstallingPage.axaml.cs",
+      "git_object": "75b5e6b67e537e7bbc2c2c7f8906f698093f43c6",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/WidescreenModSelectionPage.axaml",
+      "git_object": "4a8c187279f02673ce4bb63efb33de85466f2606",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/WidescreenModSelectionPage.axaml.cs",
+      "git_object": "731de0f2a5f11cfe1814d37fbce401a75e15018e",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/WidescreenNoticePage.axaml",
+      "git_object": "ca55e0292c88c797988abc678648d7e8d0ca789b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/WidescreenNoticePage.axaml.cs",
+      "git_object": "3ff1d470d4579b5f1944beabb336f05604745f96",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Dialogs/WizardPages/WizardPageBase.cs",
+      "git_object": "0cbc1f5a65f2d92248396028d25697321667c1db",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/DownloadProgressWindow.axaml",
+      "git_object": "68dbb96eaedde6bf1949ccd03c943b09340982b5",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/DownloadProgressWindow.axaml.cs",
+      "git_object": "b293ea598ad2f7740e4decad2c75e64de3022f72",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/FuzzyMatcher.cs",
+      "git_object": "ed73ff39c955b6d9cbfc6c621be3126484b68135",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/GlobalSuppressions.cs",
+      "git_object": "34c45e0d6b65290a13f6427cc42cc24b9fa84c11",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/GuidConflictResolver.cs",
+      "git_object": "230c4a86b283babe64864bd471b07fc3d83ba852",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Helpers/PropertyNames.cs",
+      "git_object": "6d7a12c71634f15d625616f4cfc05ba5f8d14e3f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/IModManagementDialogService.cs",
+      "git_object": "a3689d1bbee16cc23f3bbae5d64ce79fd51900e3",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Info.plist",
+      "git_object": "4d9212365ad5da889befe2d0ffe2e44d144ecf79",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/MainWindow.axaml",
+      "git_object": "2e22366b8277ec63c6f0220dfbdd2cfcccfb75a5",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/MainWindow.axaml.cs",
+      "git_object": "e18f6d4778354a740f2d01b9328f9d27a78c0789",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/MainWindowWizardExtensions.cs",
+      "git_object": "eb3c55ac26c88597d5e575f74c108d93d67357e1",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/ModSync.csproj",
+      "git_object": "49305edd4e343ebd29d9b144a088efdb6970d59d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/ModSync.csproj.DotSettings",
+      "git_object": "bd52053481e94b42b07fd5d49c3b31a70ed4b3d9",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Models/AppSettings.cs",
+      "git_object": "90b8c91fdea0b17d6dbdff5c7419a229117e1eec",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Models/FileTreeNode.cs",
+      "git_object": "9d54771fc78c68ac6ba984370787d10ab5153612",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Models/InstructionViewModel.cs",
+      "git_object": "6ed97c18559a0b45a4574b27eb9dffb5de8157bf",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Models/SelectionFilterItem.cs",
+      "git_object": "cc63caa4037145c3d7529cd4eea2b2421d0f2a0b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Models/TierFilterItem.cs",
+      "git_object": "20e565914694a09008217bf7fb0c16b81386befd",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/OutputLogViewModel.cs",
+      "git_object": "c2f861832f7e8893d8f859b34930ca9649311c58",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Program.cs",
+      "git_object": "e3a345ff9ba9fef62801073ce51071016e59bbbb",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/ProgressWindow.axaml",
+      "git_object": "871e4dc607a11a1bf0a14c3088cc70c86fb6cb29",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/ProgressWindow.axaml.cs",
+      "git_object": "05f5c7f8c57e84108c88fc0c9fe82a9802711b05",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Properties/PublishProfiles/net48_win7-x64.pubxml",
+      "git_object": "a2098b9a7843d8fba0464c89f5b07fa62c8f6ff9",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Properties/PublishProfiles/net48_win7-x86.pubxml",
+      "git_object": "dea7dd0a38fda567f090dcf814e224fb5e324718",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Properties/PublishProfiles/net8.0_linux-x64_selfcontained.pubxml",
+      "git_object": "b8718e6aa87d1121d419f411a3a3723b1aa1c4db",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Properties/PublishProfiles/net8.0_osx-arm64_selfcontained.pubxml",
+      "git_object": "4a867e3275dbe2664cfc658a798c357f85725503",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Properties/PublishProfiles/net8.0_osx-x64_selfcontained.pubxml",
+      "git_object": "8ceb8d59312189afb65de210f121dd9784488102",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Properties/PublishProfiles/net8.0_win-x64_selfcontained.pubxml",
+      "git_object": "2840b9f1262ef0ee092eb4cb3927a021eca5ff2c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Properties/PublishProfiles/net8.0_win-x86_selfcontained.pubxml",
+      "git_object": "cc94fd0c9f278bd6d8f0bea8516fda312db2b577",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Properties/launchSettings.json",
+      "git_object": "f53e21dec65e21df4b29203b041a5f72179abe93",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/RelayCommand.cs",
+      "git_object": "fd91055a64616de755dbbceda71d49f5de6a9fd6",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/ApplicationLaunchCoordinator.cs",
+      "git_object": "8991c793666e3d288d85ba4f5a64c738b9be52cb",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/ApplicationSingleInstanceContext.cs",
+      "git_object": "00b3834fb00bb0d301bdc309ae8b57f9e551094b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/ArchiveEnumerationService.cs",
+      "git_object": "8bbf02edcc51d05df3abfcddb15dbcafe891aa7a",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/AutoUpdateClient.cs",
+      "git_object": "322a1dee882073a8e5ef91ab58c033e9f45013bc",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/AutoUpdateCoordinator.cs",
+      "git_object": "822f7b5fcbf6aeff9d2c8771d67ee5065d64293f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/AutoUpdateService.cs",
+      "git_object": "2c27e44d842be812dfbc24617ffa4bc8a2ae2292",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/ComponentEditorService.cs",
+      "git_object": "522385151b0af1789705e035103489067e6792f8",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/ComponentSelectionService.cs",
+      "git_object": "ad5f08191cb13373158feed8d4aba14256851d7f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/ComponentValidationWatcherService.cs",
+      "git_object": "84096e7fc8620a6fb119fb5afd496a1f34a821ce",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/ConflictsDialogPresenter.cs",
+      "git_object": "1dc350348ebd2685ad3baf949f70b559d2c35a63",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/DialogService.cs",
+      "git_object": "55e226dc02d29ddcd9afbbc3cf8f4fd603d84443",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/DownloadIndicatorUiHelper.cs",
+      "git_object": "0e5f456c524cadaef3e618cb99e80acd9262caea",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/DownloadOrchestrationService.cs",
+      "git_object": "e1e80c5abf68647e7330e2029a5a12903622bdf6",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/DragDropService.cs",
+      "git_object": "a6c4502e0be916a16a3aff0ee279603e44547a52",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/FileLoadingService.cs",
+      "git_object": "9e5b2cc6f596828cb50cd16623e2c22728f6b921",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/FileSystemService.cs",
+      "git_object": "b39132a38fc7ba5fe4c8d1441ffa424fe586e8c7",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/FilterUIService.cs",
+      "git_object": "0c79cf325477203417f0d582b09e89cff8affdf0",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/FomodGuiPostDownloadHost.cs",
+      "git_object": "7c3017b5ed083fe2d66af14306dca0c68e531d9d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/FomodPostDownloadPromptService.cs",
+      "git_object": "33054d3e73ba26b59e291b568503ef57a76ebbcd",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/GuiPathService.cs",
+      "git_object": "ccd46095eddc0152596fa2bf217cd3f894997f15",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/InstructionBrowsingService.cs",
+      "git_object": "faba81f1e72d36c32ae66ca3c8f0be94a83342c0",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/InstructionGenerationService.cs",
+      "git_object": "e7fe449ae302d0bd9f0144c434052c53b8e7ee54",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/InstructionManagementService.cs",
+      "git_object": "38d2d13dc1af61fcfb55120400067fb734527257",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/LegacyValidationRunner.cs",
+      "git_object": "dd8572a42ebc98c19ebc7a94a93a65cdedd0bc53",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/ManagedDeploymentActions.cs",
+      "git_object": "b2fafd7228f310e3102e31a8354316f1ad825354",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/ManagedDeploymentUiHelper.cs",
+      "git_object": "3b617596ae0ebd422c08fe178096853c445b0f2b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/MarkdownRenderingService.cs",
+      "git_object": "99f5701a1a2dd1a5c270697efa7d543916f43844",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/MenuBuilderService.cs",
+      "git_object": "a412811204b5edf97376323424f884a187642c69",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/ModListService.cs",
+      "git_object": "1b7b4aaeae24ce30d3f0e24ec7826193785f0e54",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/ModManagementDialogService.cs",
+      "git_object": "1cf8da95aa73e8223940cbd869d0e820fec17b52",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/ModSyncHandoffQueue.cs",
+      "git_object": "ae474c0f7ca5ee92ba49ca3d71c175fdbe4827e0",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/ModSyncHandoffService.cs",
+      "git_object": "79570ed6d3cdc1d48f44118b2cfd0e10c06373a4",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/ModSyncProtocolRegistrationService.cs",
+      "git_object": "db919a12ba3353ee9253db1718a05bf9202b6ea3",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/NxmHandlerProbe.cs",
+      "git_object": "74d2a09bcb2551d92ab3afb827422e8fcd20e810",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/NxmHandoffQueue.cs",
+      "git_object": "82d6350d31ef9eb0a1807f08564ca5155ff2e197",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/NxmHandoffService.cs",
+      "git_object": "cedb871f2c12d4188c32a39c06ba697cd402865e",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/NxmProtocolRegistrationService.cs",
+      "git_object": "545eeb20a9bc740cb12b5e76e8527ba368741211",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/ScrollNavigationService.cs",
+      "git_object": "812d5a421aa94ed5646a2245ce326d262de15d20",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/SelectionService.cs",
+      "git_object": "256af03db2babb4bd5d3e654882762d569cb9e60",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/SettingsService.cs",
+      "git_object": "c700c7a88825882e38c1ab2e55d1c86b7a3ac009",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/SingleInstanceService.cs",
+      "git_object": "0c75ad11a5388ad39e1d991a5813801605a22307",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/StepNavigationService.cs",
+      "git_object": "f987e419a57de0b17e4cb0617368fadbdc592d72",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/StepProgressUiHelper.cs",
+      "git_object": "f74189cad17fc7dd4443f1ecbb35a930964c3fa9",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/ThemeService.cs",
+      "git_object": "32c8b267f20f05843e7f1064c76375e4d3d73c91",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/UIStateService.cs",
+      "git_object": "28c8603e88c9608ea95c2bb861a69d64323cda16",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/ValidationDisplayService.cs",
+      "git_object": "ad6e4b3d77b43e7ad35a88320c0c5a53d87f0784",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/ValidationDisplayUiHelper.cs",
+      "git_object": "ef2f5760603600c5b65b019807cf0f30999f7faf",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/ValidationPipelineDialogMapper.cs",
+      "git_object": "5f2e628e7c787e46b6405c70b469bbb7c13b9299",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/ValidationService.cs",
+      "git_object": "86a4d0e99841ab77ae7baed8698eede1916219c7",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Services/WizardValidationStagePresenter.cs",
+      "git_object": "ffa32556344fb893f4131a06c8bd13902eb618b5",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Styles/Kotor2Style.axaml",
+      "git_object": "930b7518a907346f89484ab96fb994ac1f125f58",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Styles/KotorStyle.axaml",
+      "git_object": "bba51b0c24fe935ec749bd222ecf3a02f8e21e59",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/Styles/LightStyle.axaml",
+      "git_object": "7ade4055452aeda3e1953e06f68309fcc9082738",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/ThemeManager.cs",
+      "git_object": "0f92d686bc1240c8713feee406bfa99474ae5306",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/ThemeResourceHelper.cs",
+      "git_object": "a419e187a3ae05c0894535e3f300633b604ceb26",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/app.manifest",
+      "git_object": "e0ce8d0ef83ae4e5bb868fc38260fe6a2e1641a9",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/icon53.icns",
+      "git_object": "e549aab74cfcc0207cef108aad05fe577681fdd2",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.GUI/icon53.ico",
+      "git_object": "46411f09d3b2b52a7f7cb757cf201269c43ac108",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/AdditionalEdgeCasesAndScenariosTests.cs",
+      "git_object": "a52be98ec032b62575da86277f93427e06083692",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/AdvancedInstructionEdgeCasesTests.cs",
+      "git_object": "2fdd548afc933b3bc41ef9b819a75111bd134d7c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/AdvancedInstructionExecutionTests.cs",
+      "git_object": "df699394f8cc4545782a1167b5d96279497cda05",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/AdvancedWildcardAndPathTests.cs",
+      "git_object": "19a1d8c67d68565d6924a53fe2d0e5bc3dcc85ef",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/AppSettingsFomodTests.cs",
+      "git_object": "24a2d83be5823ed354dcd96ceca76c3d633fb39a",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/AppSettingsNxmTests.cs",
+      "git_object": "67e97696897eb8e71305d804d712dbfe9418d8d2",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ApplicationLaunchCoordinatorTests.cs",
+      "git_object": "84d1d510ee674be0aadc225c17df814a402f256c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ArchiveEnumerationServiceTests.cs",
+      "git_object": "2db834aec9f6f055bba552c2a344b503a7b752d9",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ArchiveFormatCombinationTests.cs",
+      "git_object": "13cae1c3203c4abbe2b9a6487c1800c747e5214c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/AutoExtractionAndCleanListTests.cs",
+      "git_object": "22bf64bacf9b163638c2ab42baf3838de0cb623a",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/AutoGenerateLocalCliIntegrationTests.cs",
+      "git_object": "ae27a529ae307aa9779351b182557e3fd360cffe",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/AutoInstructionGeneratorTests.cs",
+      "git_object": "469786d847819bbf94c35d4592032e0b4e827ff8",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/AutoUpdateClientHeadlessTests.cs",
+      "git_object": "2133321a3ec6f9255a36a5a03f0a8a3d15fa9c75",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/AutoUpdateServiceHeadlessTests.cs",
+      "git_object": "e877becb190aebfa66cb1ed72947063b7d22298c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/AutoUpdateServiceTests.cs",
+      "git_object": "3ed66d5cc050f0007dae377be09f8d2b859b8d0f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/BaseParameterizedTest.cs",
+      "git_object": "9fedf027b0fd54f465a5b839476e146e4e2c169d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/BoundaryConditionsAndEdgeCasesTests.cs",
+      "git_object": "092bb9fa1e1115d6d97c917718cced2ee8e0c311",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/BoundaryConditionsAndLimitsTests.cs",
+      "git_object": "be313c917a87a757cd58750706932c1f922a2e6d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/C2RoundtripInvariantTests.cs",
+      "git_object": "a78ccd5780e825515c40ccef9d14716c99b56281",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/CLIArgumentsModSyncTests.cs",
+      "git_object": "bfbec866fb00221553326470cf52fcfd361ff170",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/CanonicalJsonTests.cs",
+      "git_object": "5f78aec90547d22779ffbcb1b9d39b2f09871fb5",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/CategoryParsingTests.cs",
+      "git_object": "d2d80c50b7dfd9f3de94f0ae355475850b94a230",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/CheckpointAndResumeComprehensiveTests.cs",
+      "git_object": "577a06c7e14c4361052ae373f913ef31cc52476a",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/CheckpointAndResumeEdgeCasesTests.cs",
+      "git_object": "8d482dcb396b4c644a1474a4cffe45d2f4921394",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/CheckpointSystemIntegrationTests.cs",
+      "git_object": "3636d22c1b5fcede7c185b8a327c1e3013e21d49",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ChooseInstructionComprehensiveTests.cs",
+      "git_object": "28450996d3eaef95df00066f08fb8277e8863e92",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/CleanListFuzzyMatchingTests.cs",
+      "git_object": "72caa8768a5dd3f12dd1b21d844b48205af48397",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/CleanListTests.cs",
+      "git_object": "aea71b992dd50ea7a3eb904f3aab06c046b65b72",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/CliInstallIntegrationTests.cs",
+      "git_object": "b9b385e21c220a453531cd4d4ab0a6de08bf4112",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/CommandExecutorTests.cs",
+      "git_object": "7220086e520556352020a5f863374ed2b7aec6b6",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ComplexConditionalExecutionScenariosTests.cs",
+      "git_object": "0646c8d8c1953a97a7ba42d454ac5473747b6e06",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ComplexDependencyChainTests.cs",
+      "git_object": "9cc1725eee2e6a382ae7ea4cb8c70d86c83955f4",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ComplexDependencyResolutionTests.cs",
+      "git_object": "b274eb5d4b3783b28cdb3e202728eefe830ec617",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ComplexInstructionCombinationTests.cs",
+      "git_object": "0f497e49ab463d862c31e26ebcb7eb32684f9be4",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ComplexIntegrationScenariosTests.cs",
+      "git_object": "1d65e96e47fe3c457d561cdc3150e8a5a2abd2ab",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ComplexInteractionScenariosTests.cs",
+      "git_object": "80b1fc4c7b948dd34241561fea93be4a5eaac586",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ComplexRealWorldScenariosTests.cs",
+      "git_object": "d836931b00a5cd86c7e8d75a2abf2b1a3124e3cd",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ComponentEditorServiceTests.cs",
+      "git_object": "858c1debfe970d7c7a54aff291265c2d7dfae178",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ComponentInteractionScenariosTests.cs",
+      "git_object": "9fdce5ad50eb6114222e53be36d09fe58590f772",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ComponentOrderTests.cs",
+      "git_object": "631e5d82fa13372daf770d5b3b3b4dc3b9f17d86",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ComponentStateAndTransitionTests.cs",
+      "git_object": "5c1605f494e47ede4a96aa5aa45715e435948a21",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ComponentStateTransitionTests.cs",
+      "git_object": "4ac2aa7d8474d13acbcdc46f24cbd52756734356",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ComponentValidationComplexTests.cs",
+      "git_object": "99a1a7ea37219a21633b196c7fbef7f12d25217f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ComponentValidationComprehensiveTests.cs",
+      "git_object": "70cbfcbd125e944d7e0789bc9b3af6eecb83e188",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ComponentValidationServiceTests.cs",
+      "git_object": "ec84ce8e0f2a264533aaee26021e8c796759a9ce",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ComponentValidationTests.cs",
+      "git_object": "c6d93ae0a6583ad46f324211fcb7f7fe13e3c902",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ComprehensiveInstructionCombinationTests.cs",
+      "git_object": "2f3fcbfc2f5832292914cccf8349c63ab96500ff",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ComprehensiveIntegrationScenariosTests.cs",
+      "git_object": "119e8a23d5a9579df94fa321a3f86170cfb047b7",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ConfirmMessageTestReplace.cs",
+      "git_object": "01fef82bb90fb644db1619d6b2b2d9deaaacee29",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ConflictsDialogPresenterTests.cs",
+      "git_object": "b9a94592c7a9da1cb3c3ab45a18bc84bae6c45e2",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ControlsHeadlessTests.cs",
+      "git_object": "4d653c96e264c8c8f6e4c9feee3aead1fa2aaade",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/CrossPlatformFileWatcherIntegrationTests.cs",
+      "git_object": "5661cd652cf8c7a5aa73e2ed1ebef5251df4a28e",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/CrossPlatformFileWatcherTests.cs",
+      "git_object": "4b2d07a8c951fa412c3d885ce0e6f16d1e918100",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/DelDuplicateInstructionComprehensiveTests.cs",
+      "git_object": "b451a0e22f345e796ce2662f5145ca1f57f2b58e",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/DependencyResolutionComplexTests.cs",
+      "git_object": "c68ad041342bcf6d3a4304aa5fce5a9d0811f585",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/DependencyResolutionTests.cs",
+      "git_object": "b7638aecff587c9c002adbec3cc4799245302219",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/DeploymentServiceTests.cs",
+      "git_object": "a3e8ffd4c4bf1474db3335259b9703c66da05aa7",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/DialogServiceTests.cs",
+      "git_object": "7437ba8dbbda6f0551e513b32caedff913ff755e",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/DirectMarkdownInstallPreflightTests.cs",
+      "git_object": "ffcc97fd7bff1ca3d29515b807ac479b86f36b24",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/DocumentationRoundTripTests.cs",
+      "git_object": "be91b0250f89384946b9f84aca9fb648036c07e0",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/DownloadCacheResolutionFilterTests.cs",
+      "git_object": "92138d885f5c162279aa6716547d96fc09522e17",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/DownloadIndicatorUiHelperHeadlessTests.cs",
+      "git_object": "c39dee293a7602e45def01c2ddb7a6b2a250d5ec",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/DownloadIndicatorUiHelperTests.cs",
+      "git_object": "fd1c69b66f0d062a892f928e228ed1df5f6a331f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/DownloadOrchestrationServiceTests.cs",
+      "git_object": "c216af6f2b57798caa68d70ee0c19bb58f543f9e",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/DownloadOrchestrationSingleDownloadTests.cs",
+      "git_object": "4602dfe85da34a1b049ea2ce596ed69b4bdf0f5b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ErrorHandlingAndValidationTests.cs",
+      "git_object": "208f5010df7b0b17eae3eb6121fa167f002c7110",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ExhaustiveInstructionCombinationTests.cs",
+      "git_object": "e95641510b3545b3598bc11047f84e86cf297ab6",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ExhaustiveInstructionTypeCombinationsTests.cs",
+      "git_object": "71d04036b3cf1273b94a1914e6a597a473e5ff53",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ExitCodeAndErrorHandlingTests.cs",
+      "git_object": "3d06ff03218a332457960f29866b90994303bafc",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/FileConflictAnalyzerTests.cs",
+      "git_object": "e66dd466922c8320f9d0412ff6b1ad25f4de3efd",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/FileDeletionTests.cs",
+      "git_object": "49e1f7e08f059ba1400e404a56a5b82de6abc770",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/FileExtractorTests.cs",
+      "git_object": "9ae7deea41cfbdf9a20d3d6d45555382931a8d6f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/FileSystemOperationEdgeCasesAdvancedTests.cs",
+      "git_object": "6336e7727b8d632365d6946eefdb132f8e928aa2",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/FileSystemOperationEdgeCasesTests.cs",
+      "git_object": "65cc865d6b47f9c81e317eabd7cd3588201153d2",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/FileSystemServiceTests.cs",
+      "git_object": "2cf07d43735277580ca0d41e0002159b4ac452ed",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/FileTreeNodeTests.cs",
+      "git_object": "b5e4c5f09b7eab2df346faee51507e9af1969654",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/FilterItemModelTests.cs",
+      "git_object": "d7b50629323e34b204129ae6dd55da920752143a",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/FilterUIServiceHeadlessTests.cs",
+      "git_object": "728c8bfc10094e9d18f7bd8ec345aa8096ef0e20",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/Fixtures/k2_full_guide.html",
+      "git_object": "822473d739ab3a640c3ea1bd6db8adb9049d5975",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/Fixtures/k2_full_guide.md",
+      "git_object": "1b74bbe7ad5fb8b0b8d76382969579b3498042d0",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/Fixtures/kotor/sample.2da",
+      "git_object": "4f141ae93f1649e350b910d137142ab60d29351a",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/Fixtures/kotor/sample.ssf",
+      "git_object": "19d0800ff2770adc32588f6d1d4827ebb9247229",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/Fixtures/kotor/sample.tlk",
+      "git_object": "6868f3bdb9811eb23abc1cf4d402660b41337002",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/FomodArchiveDiscoveryTests.cs",
+      "git_object": "8c6d0da470a877a83386592e5c44affaed178984",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/FomodArchiveProbeTests.cs",
+      "git_object": "5aed1532c99c253f540514e04143db067f8282e3",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/FomodCliPostDownloadIntegrationTests.cs",
+      "git_object": "bbef7e6c04d8da61040741e3ec4d96e43ddfda7f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/FomodConfigurationGateTests.cs",
+      "git_object": "2d086f1aa652a86fd95e4aea10a0647ce1188470",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/FomodConfiguredComponentMergerTests.cs",
+      "git_object": "25b8e15e089ba552f62e85278e75b20e98d71a1d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/FomodInstallerPresenterTests.cs",
+      "git_object": "1f91233daf3791de9ce37fb51897d0ed8239f590",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/FomodParserTests.cs",
+      "git_object": "9b7a88ab6b92092f7c9315ff6cdda25e18956ea1",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/FomodPostDownloadOptionsResolverTests.cs",
+      "git_object": "aad7daca541982728abf4d80e715d476a5418454",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/FomodPostDownloadOrchestratorTests.cs",
+      "git_object": "f8031af28d98e65dd7c7d6bbdb926ca953fd8a07",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/FomodToComponentMapperTests.cs",
+      "git_object": "79584be527b9cc60e55b058beb5d65e29246f39f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/FullBuildCliPipelineTests.cs",
+      "git_object": "1c174d094f99f0533716b170ab0b57a28bac7e6b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/FullBuildInstallLongRunningTests.cs",
+      "git_object": "c5b840233ec1a22882cc6361bf8da6a62b0f2d57",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/FullBuildMarkdownMergeRoundTripTests.cs",
+      "git_object": "faf7ae1dbdaa81d77acea7267c89b62524deeffa",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/FullBuildMergedDryRunTests.cs",
+      "git_object": "aee2247c5f29361ce3cdccb4951ece3648e48552",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/FullBuildSerializationRoundTripTests.cs",
+      "git_object": "735d259aab253df40af01a2a22823f41dba3f947",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/GitCheckpointCleanupTests.cs",
+      "git_object": "3339010d43b9befabbd44809c04685df157283d2",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/GlobalSuppressions.cs",
+      "git_object": "72adadc815922c5c110a81926583d92afc92b576",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/GlobalUsings.cs",
+      "git_object": "63eaf6c55d07c92f1cfc3b1f1a3a678551696efe",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/GuiPathServiceTests.cs",
+      "git_object": "8dcb35469cc81228b51221a5952846f1da2a6f37",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/GuideIngestionTests.cs",
+      "git_object": "5fb03cf79759fc376dd73c146f363f8de1630900",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/HeadingPreservationTests.cs",
+      "git_object": "51be5e529a044f44ea88b6f3d6f2c762a28c380e",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/HeadlessBootstrapTests.cs",
+      "git_object": "c764aeae2ac8386e5f9615b943f034063f1d18fc",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/HeadlessTestApp.cs",
+      "git_object": "4a1185a8ac70916ab71b987af287964ae1ca1375",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/HeadlessUITests/ComponentSelectionConditionalLogicTests.cs",
+      "git_object": "cef3c37c370eaa85c093eb1519b50ae6484d0124",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/HeadlessUITests/DownloadQueueHeadlessTests.cs",
+      "git_object": "7e2c8416f0c73f17f9c6718ad9a2f840bc282f6d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/HeadlessUITests/EmbeddedLogPanelHeadlessTests.cs",
+      "git_object": "679a7829eeac5469a9f24fb6e14543cfbff9303c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/HeadlessUITests/FomodGateHeadlessTests.cs",
+      "git_object": "6f01a9c27c4b38ec418bdcfac89d168581add46c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/HeadlessUITests/GuiSmokeHeadlessTests.cs",
+      "git_object": "c8bdc1cc298827b9dfc39d78c44c387ce8b6ee7c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/HeadlessUITests/InstallingPageHeadlessTests.cs",
+      "git_object": "08790aaf07085c0dee26661556486cd4cd1d0523",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/HeadlessUITests/InstructionEditorVisibilityTests.cs",
+      "git_object": "e163830b1a4bb4aad24f105b7a893a74119e2c17",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/HeadlessUITests/InstructionViewModelVisibilityTests.cs",
+      "git_object": "b78c857fc0fbe7f51569d1c69d05f7e5e921e486",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/HeadlessUITests/LogicalDescendantExtensions.cs",
+      "git_object": "ae817f773daabba495aaf4bc271dc14299f43a47",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/HeadlessUITests/MainWindowVisibilityTests.cs",
+      "git_object": "a012ba5f75d05c12d4e7d9100eeb80c5c8680eb5",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/HeadlessUITests/UIEventHandlerTests.cs",
+      "git_object": "22785230bc6a9571c20d49156ad166b699a4594b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/HeadlessUITests/UIStateAndProgressTests.cs",
+      "git_object": "1fecefa2275bf00361436e790f5d54ccbdd8f1be",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/HeadlessUITests/WizardFlowHeadlessTests.cs",
+      "git_object": "b6b486188458f4395e4aed9b0ee0c47b0ccd176a",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/InstallCoordinatorComplexTests.cs",
+      "git_object": "f39c35b824021774bb6950ce5c0706484e1e2a4f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/InstallCoordinatorTests.cs",
+      "git_object": "4504c1c425ba88f7d4a8883f7b6f665e10797c6d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/InstallCoordinatorTestsHelper.cs",
+      "git_object": "7fc7c50a9277e0f023b7b110c1f7b7faa92180ec",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/InstructionConditionalExecutionTests.cs",
+      "git_object": "7c9209e065aca508d76191265baeb67c6fa66efa",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/InstructionDependencyRestrictionCombinationsTests.cs",
+      "git_object": "ddcc7bd77718a661146f725f3e8f8a93b236d8a8",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/InstructionEdgeCaseTests.cs",
+      "git_object": "789102fe8c4df4ea87e87470f9c15dd5a344c80b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/InstructionErrorHandlingTests.cs",
+      "git_object": "7e45b56c55a66e09c4445eda642caac4202067b3",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/InstructionExecutionComprehensiveEdgeCasesTests.cs",
+      "git_object": "45f350709c14440bd080d26319fde6545868c288",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/InstructionExecutionConfigurationTests.cs",
+      "git_object": "d2d8e702fba9aba833ea10325e583d48f3f792b6",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/InstructionExecutionErrorRecoveryTests.cs",
+      "git_object": "8b77047d4068f623332f0a202ca84f3fde8a0d91",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/InstructionExecutionOrderAndSequenceTests.cs",
+      "git_object": "8afb71ceb02cf472c672dadc9ea43153e0f061c1",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/InstructionExecutionOrderAndValidationTests.cs",
+      "git_object": "d3d320eca9b1140438897cec5f4f8d2e34121ff1",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/InstructionExecutionOverwriteCombinationsTests.cs",
+      "git_object": "f64451f9e11d5021c0864820c59351acc9860a14",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/InstructionExecutionProviderTests.cs",
+      "git_object": "051feaf286be8c993ae945eae9c31b095fce756b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/InstructionExecutionRealWorldScenariosTests.cs",
+      "git_object": "46be1c1eab83ea86bd269c38ff918de76c3593ce",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/InstructionExecutionStateTests.cs",
+      "git_object": "235238450d270eb9075dcf80ffaac5d62cf2d30d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/InstructionExecutionStressTests.cs",
+      "git_object": "9d4d0f42b5051cb0c07783f542b27228bd0aa80f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/InstructionExecutionTests.cs",
+      "git_object": "af88e9ac0d67122f7b869be08b97fb0eed57269f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/InstructionExecutionWildcardAdvancedTests.cs",
+      "git_object": "4aaf4125ca223ee3492b89fd9c68982d2c702c00",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/InstructionManagementServiceTests.cs",
+      "git_object": "5bc7a98cab3b85848599c61f510203a45e6af86d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/InstructionValidationAndErrorCodesTests.cs",
+      "git_object": "451e7f388b2db12fb4998a5b7a4951ba2d7e24a1",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/JSONFileTests.cs",
+      "git_object": "172de761152d7aa7ca8f09eef2e7bba427ff0eeb",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/LegacyValidationRunnerTests.cs",
+      "git_object": "585c4d3e662bd25f58defa3f4c10237ad8f443da",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/MacOsReleaseBundleTests.cs",
+      "git_object": "fe8c93923f037fa3ccd34d6e47ee95b55487abd1",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/MainConfigStaticState.cs",
+      "git_object": "4edd4c9cfcae272e8826e36fa331a8a1bae62b9b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/MainWindowHeadlessTests.cs",
+      "git_object": "f9a1c380092b0b7ff049d0c7db509380ad5a9848",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/MainWindowUITests.cs",
+      "git_object": "544453d594d2ca07f8913bb0464d648403f1e272",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ManagedDeploymentLifecycleTests.cs",
+      "git_object": "0cd6c8a69b1ab485a2744a0ea23416188b0b26da",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ManagedInstallCliOverridesTests.cs",
+      "git_object": "fb8bb5edb1727ab666f0e5bb5757ef9b72d57d65",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ManagedInstallSessionTests.cs",
+      "git_object": "e65dc841f75860ab2a73e41b056bd60e984373fb",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/MarkdownAdmonitionFenceTests.cs",
+      "git_object": "5dc81da5a98d9c75f8db985c92ecd15f47e9061b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/MarkdownFileTests.cs",
+      "git_object": "f1e5b26ba3259a9ef68915107dbebde73d00d9c2",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/MarkdownImportTests.cs",
+      "git_object": "258f00d596a9ef1314622a272a394c7492f02e50",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/MarkdownRendererPlainTextTests.cs",
+      "git_object": "496c22072a61a7a6b0c23ffbfa5aab6dd40def7e",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/MarkdownRenderingServiceTests.cs",
+      "git_object": "84e4814ca4290130369e46e68bae04e5e25ba32f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/MarkdownTomlParityTests.cs",
+      "git_object": "bee87ba12c7c4c4cc94aa7e3c0f44140e48bf14f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/MegaDownloadHandlerTests.cs",
+      "git_object": "64e12d20f92c3652cc63a1d65551da33120bbdd0",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/MenuBuilderServiceTests.cs",
+      "git_object": "d9c9734809856e3c3676c77216121e4d9385af49",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/MergeDirectionsPriorityTest.cs",
+      "git_object": "04e7fb8adfceaeb81e7056c85ba2c1af2b427108",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ModBuildConverterCliIntegrationTests.cs",
+      "git_object": "754759a9820fd5c140bec4cb734f5410f6c9989c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ModComponentInstructionGenerationTests.cs",
+      "git_object": "f86c980643405a394e2c5a7b07cf20318b99ee12",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ModComponentSerializationLegacyRootTests.cs",
+      "git_object": "674e293e3e005c094325588ff3f8b88e988821b4",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ModLinkFilenamesEmptyTableMigrationTests.cs",
+      "git_object": "8f9deb08c04c13a6d7c519c942a7c949a2318427",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ModListServiceTests.cs",
+      "git_object": "a5a8c983e24e7f56a3562965d7d3ff98587f610c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ModSync.Tests.csproj",
+      "git_object": "985973a65129653649f5bd6af601c36deda96c8f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ModSync.Tests.runsettings",
+      "git_object": "262ca1c5a0f6b9872d17be9fdd72a12684d3d4bb",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ModSyncMetadataTests.cs",
+      "git_object": "de482e4e064ce47aa77cae6f70df26308bb78f25",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ModSyncProtocolConsumeTests.cs",
+      "git_object": "0993bb0c70b0f64ba22bf0eba6429d3f80e39ac8",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ModSyncSettingsTests.cs",
+      "git_object": "e0dfeca3e3c44677b4b6fc90e199c9d9b3d6adbf",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ModSyncUrlTests.cs",
+      "git_object": "7daa5734cf40118f2854c6fe0bdfb1d2e0471634",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ModUpdateCheckServiceTests.cs",
+      "git_object": "5efc9f619344a3d8b1d06718cf95e24b5968bd70",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/MultiComponentInstallationTests.cs",
+      "git_object": "afd9598592c3c0f593ce73a2d268e4ebac27f918",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/NamespacesIniReaderTests.cs",
+      "git_object": "74995e2e5725f618088c600d2884178f23005ae2",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/NexusApiClientTests.cs",
+      "git_object": "01429cea5058dd4755094676277a5fe1cbbb9fec",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/NexusModsDownloadHandlerTests.cs",
+      "git_object": "55fb345f373150e209193048922cfa2fcfd90484",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/NxmComponentResolverTests.cs",
+      "git_object": "445520d8b796548ed92c9f36d06ec470e9c4d040",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/NxmHandlerProbeTests.cs",
+      "git_object": "3b57f55f985d283aefaeda64289f5c27009cfa85",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/NxmInfoPlistTests.cs",
+      "git_object": "0ca27845906bc515efef5ab8eaba1f121820b01e",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/NxmProtocolRegistrationServiceTests.cs",
+      "git_object": "216af36f6125dd1e4f118f61ee3de8c044de2e94",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/NxmUrlTests.cs",
+      "git_object": "165a6b24fb3aa1608f92677f9dadccfa7b56f137",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ParameterizedAutoInstructionTests.cs",
+      "git_object": "966f7667dab3300eaae5f91f3a409cb841d97bf0",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ParameterizedDocumentationTests.cs",
+      "git_object": "6e65400006265bdedf93125f0468f3beab9fbd68",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ParameterizedInstructionCombinationTests.cs",
+      "git_object": "352d881df9ea667cba7a0344e320b7998f3e72eb",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ParameterizedInstructionExecutionTests.cs",
+      "git_object": "0b6483f7a93386ccb1226b60cec7b4964131d3df",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ParameterizedMarkdownImportTests.cs",
+      "git_object": "fd55dcceb3c303fd0a98c7b2241170d199c971fd",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ParameterizedModSyncMetadataTests.cs",
+      "git_object": "22f27843952b3e7f739adb7abd15c848f048f950",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ParameterizedRoundTripTests.cs",
+      "git_object": "ed0848b0b0285446d9e2d9f770e067cdadd496a5",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ParityPortsTests.cs",
+      "git_object": "992b0e306c88c4ee8d2f3af7ea0359bf78e59a1a",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/PatcherAndExecuteInstructionTests.cs",
+      "git_object": "6463b24969d3eebd4503f7c3caa1e651ac1cc975",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/PatcherEngineSettingsTests.cs",
+      "git_object": "a360915b51977bf56e0f869d22b93c2769ff1d2f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/PathCaseSensitivityComprehensiveTests.cs",
+      "git_object": "370e4724409c8a7fe1d278b397ea86859af51abd",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/PathCaseSensitivityTests.cs",
+      "git_object": "261e85b86c4fb71e397c95760b0b40a8d12c1539",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/PathHelperArchiveExtractionTests.cs",
+      "git_object": "3179b5e9c0ad8f19c237b2479d1406983e1dbb42",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/PathResolutionAndSandboxingTests.cs",
+      "git_object": "a8abb8598c2815e96d2ec2e64e479e1cd3766b50",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/PathResolutionComprehensiveTests.cs",
+      "git_object": "4926ae5bcbd59e3e510b1306bc8d7dae9ffa4618",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/PathSandboxingSecurityTests.cs",
+      "git_object": "ee312b5f6e78710d00b8f78d62321f09bc70099f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/PathValidationAndResolutionTests.cs",
+      "git_object": "30bcf29fcac8a5789f4570567575162ece040947",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ProfileCliTests.cs",
+      "git_object": "0bed73d81cb8a98730735d8fad3b2505de5860ad",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ProfileServiceTests.cs",
+      "git_object": "a4b983e8ddf30499afdec1a96a1fb821fdee1b66",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/Program.cs",
+      "git_object": "1e3403daf77e2030aabcacf635ac0cc68f0e79c4",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/RealWorldInstallationScenariosTests.cs",
+      "git_object": "35484418df8998699dbb7e45cce02342989beb5d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/RealWorldIntegrationScenariosTests.cs",
+      "git_object": "954f14f2ecc4dda4f1f82561c8a2165e45ad6558",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/RealWorldModInstallationScenariosAdvancedTests.cs",
+      "git_object": "5dbef44bb07dd9b52bc1c66d6681246fdd7ba446",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/RegexPreviewHighlightingTests.cs",
+      "git_object": "97da0d954d4549ce6c5a8660f3dd4ef90b7f24c7",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ReleaseVersionAlignmentTests.cs",
+      "git_object": "1f88d56fd79ca6957a6efb1ad1b6f72c37ce2953",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ResolutionFilterServiceTests.cs",
+      "git_object": "d5999538ec086c449c2e7912b25a07de8eefd136",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ResolveInstallGameDirectoryTests.cs",
+      "git_object": "a56d17ce05d232148bb78896d08a20ef772a0ea7",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ResourceMetadataSerializationTests.cs",
+      "git_object": "6fafd5fb43459e8bf134bc258c4db268821186b5",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ResourceRegistryAdvancedTests.cs",
+      "git_object": "de8b10b56da1de27222c92aab10458e2720b09cf",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ScrollNavigationServiceHeadlessTests.cs",
+      "git_object": "05049e91f324d96fcd942f8365c7a0a7eddb0029",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/SelectionServiceTests.cs",
+      "git_object": "9b876f25b1ba65bf7c233f4e8924cbfdd8eb232e",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/SelfUpdateIntegrationTests.cs",
+      "git_object": "44189a5cd21ac8424bd77f112634d93aaa6a0992",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/SerializationAndValidationEdgeCasesTests.cs",
+      "git_object": "67def705e9351ebb948380c5258def88ebe49a3b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/SerializationTests.cs",
+      "git_object": "92f418fe1d35424aa6c13c64e35ff5aafbf25dba",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/SettingsCliTests.cs",
+      "git_object": "a17ae1f7e0d08d0f6a54536355581fd488cb694a",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/SettingsManagerLegacyPathTests.cs",
+      "git_object": "9a8e3fe3a3ecb5b239f4342652c89783a79d847c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/SettingsServiceTests.cs",
+      "git_object": "6135c2b39fe0f53c12719ce2f1def2675456b36d",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/SimpleVirtualFileSystemTest.cs",
+      "git_object": "9fa81678bc3e7cfda1d5c4eb65630246dde17cff",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/SingleInstanceServiceTests.cs",
+      "git_object": "bcef5f6e7b60cfed97592b92cdab09d86b69417c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/StepNavigationServiceTests.cs",
+      "git_object": "91aca865c06e86743564216b9ac3d97251d06504",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/StepProgressUiHelperTests.cs",
+      "git_object": "c76d36518e33f2deea66f4e421e2a93ce79a088c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/SystematicCombinationMatrixTests.cs",
+      "git_object": "baa9e48115648235abe752d98af34c88696ba486",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/SystematicInstructionSequenceTests.cs",
+      "git_object": "dd53fca2a0c8955e1aa3061e03b8de3b4105c72b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/TOMLFileTests.cs",
+      "git_object": "5bd4c916f9ff7f3077a4e55bbf71f25a9755c2a3",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/TelemetryAuthenticatorTests.cs",
+      "git_object": "5a2f6d752f0c2638a28f86c4912b01f60b5d075f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/TelemetryConfigurationTests.cs",
+      "git_object": "b5858c46e11c4822c5efa95062b2a586c8f3915a",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/TelemetryServiceTests.cs",
+      "git_object": "1abdcdbf7d5604987e9103f3f3d7256b854b1447",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/TestHelpers/TestComponentFactory.cs",
+      "git_object": "c2faeac758b741080ecd241fc9a4ef9acf5efc4e",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/TestOutputHelper.cs",
+      "git_object": "bb6f204b7cb5a19f3b8a479b6de007a67c74813b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/TestSerialization.cs",
+      "git_object": "2abc29fc9de90f6948c781e581a34426a2cdf725",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ThemeServiceTests.cs",
+      "git_object": "cc2ff2c7a3b54bcbbf4464e3a04e481ba28e08b8",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/TierNormalizationTests.cs",
+      "git_object": "f52088e8322c9585ba137e167468d385c1d2385e",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/TslPatcherVfsSimulatorTests.cs",
+      "git_object": "e9433b3a40aa1b0da62565e52785225140fb4d0e",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/UnifiedPipelineIntegrationTests.cs",
+      "git_object": "7ed35cc8623f0f1e6744bae89cbd29e54289abd4",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/UrlNormalizerTests.cs",
+      "git_object": "a6bdaaa3ad0c226f94b50a8dd44c79bd26301ed5",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/UrlUtilitiesSecurityTests.cs",
+      "git_object": "cd49985e7c613625562c6b5f84a995909b97913b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/Usings.cs",
+      "git_object": "bb66e659f29bd4f288de096b83431b3cf235b7ae",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ValidateCliJsonTests.cs",
+      "git_object": "ae978b5699c5c622dc28254718813ed433e0f584",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ValidationAndErrorRecoveryTests.cs",
+      "git_object": "2ddbb7178c90949d91cd704f07a94dc62695adab",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ValidationCommentsTests.cs",
+      "git_object": "4cfe64c7a8c04f127da86644acc69a30c2b8ede6",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ValidationDisplayUiHelperTests.cs",
+      "git_object": "d8e2a1cd4d28820f56610efb31d312a830199a43",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ValidationEdgeCasesAndErrorScenariosTests.cs",
+      "git_object": "2c22dfb32adaa0b1adb0a00e7d53bfa75baabe32",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ValidationPipelineDialogMapperTests.cs",
+      "git_object": "1957e6c3e7925fdd64dbba76c8a9dba18ebde01b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ValidationPipelineJsonFormatterTests.cs",
+      "git_object": "920481611cad2fbcb63819a318c47e159921b99b",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ValidationPipelineParityTests.cs",
+      "git_object": "665ec946fd982009d3be7feadd378eae6f4c865c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/ValidationServiceTests.cs",
+      "git_object": "0a75d71ef9b64c92ba76acf208775dda1fd3a39c",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/VirtualFileSystemComplexTests.cs",
+      "git_object": "43d86071c2744232db007a95fdddd520d9a5e5ca",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/VirtualFileSystemDryRunValidationTests.cs",
+      "git_object": "a7ce49a55a948df61a15e7ebed970567b2fae043",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/VirtualFileSystemTests.cs",
+      "git_object": "009078e9eab00bdf7708e563802bd24c3dc071dc",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/VirtualFileSystemWildcardTests.cs",
+      "git_object": "e59f2718179b6ec9b1617b129e507518259a9f17",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/WildcardEnumerationTests.cs",
+      "git_object": "c06c2f58c14eb2a2e7ba20af0ac9886f707bd2e5",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/WizardValidationStagePresenterTests.cs",
+      "git_object": "b380e898cc697702d6911ac4da886815e3dc4e7f",
+      "kind": "blob"
+    },
+    {
+      "path": "src/ModSync.Tests/YAMLFileTests.cs",
+      "git_object": "87108ef6b88e8bc89a9fa80eda3c7d2dd7df8404",
+      "kind": "blob"
+    },
+    {
+      "path": "telemetry-auth/.github/workflows/docker-build.yml",
+      "git_object": "7214410f656621d11d994252bb4a741c841b3686",
+      "kind": "blob"
+    },
+    {
+      "path": "telemetry-auth/.github/workflows/test.yml",
+      "git_object": "60b8834904fe6137b48106efa6798a3c89c88144",
+      "kind": "blob"
+    },
+    {
+      "path": "telemetry-auth/.gitignore",
+      "git_object": "3866d830199662f47c2b28822c9d52f15df1d9af",
+      "kind": "blob"
+    },
+    {
+      "path": "telemetry-auth/CONTRIBUTING.md",
+      "git_object": "d12429b89944da0c400347ec9a4a678a570d7f54",
+      "kind": "blob"
+    },
+    {
+      "path": "telemetry-auth/DEPLOYMENT.md",
+      "git_object": "762e4f16f5cd423dac083baa5dffa8a4763e2fed",
+      "kind": "blob"
+    },
+    {
+      "path": "telemetry-auth/Dockerfile",
+      "git_object": "c9cffff0c4c20e94c5bd731d5010c9b8bda116e6",
+      "kind": "blob"
+    },
+    {
+      "path": "telemetry-auth/LICENSE",
+      "git_object": "3792273b75755af4184070613062019b34128299",
+      "kind": "blob"
+    },
+    {
+      "path": "telemetry-auth/README.md",
+      "git_object": "75667a233a1e0c74c4f3e27b81c0ad9c6f998e1f",
+      "kind": "blob"
+    },
+    {
+      "path": "telemetry-auth/auth_service.py",
+      "git_object": "3a87f1ea26c46da820bb9a28705847777e431184",
+      "kind": "blob"
+    },
+    {
+      "path": "telemetry-auth/docker-compose.yml",
+      "git_object": "deed4036cc5f3276268379865fa253c078a10cfe",
+      "kind": "blob"
+    },
+    {
+      "path": "telemetry-auth/scripts/README.md",
+      "git_object": "5e89480496b0762b6079221d5afe33534715e671",
+      "kind": "blob"
+    },
+    {
+      "path": "telemetry-auth/scripts/generate-secret.sh",
+      "git_object": "b7d892284de4d1f06a7893e74df409b11bfedaa5",
+      "kind": "blob"
+    },
+    {
+      "path": "telemetry-auth/scripts/rotate-secret.sh",
+      "git_object": "3e51eae8b72cc0b7422e26843e4eaad3d501caa0",
+      "kind": "blob"
+    },
+    {
+      "path": "telemetry-auth/scripts/setup.sh",
+      "git_object": "312ca635a255687b7491d4f2dccb2f58d9998594",
+      "kind": "blob"
+    },
+    {
+      "path": "telemetry-auth/scripts/test-auth.sh",
+      "git_object": "37b3b38441123feb6ecac134cd747eef074a4e82",
+      "kind": "blob"
+    },
+    {
+      "path": "telemetry-auth/scripts/verify-deployment.sh",
+      "git_object": "eca983c25232d5d24a8fc543288a0fdbbaad0a4b",
+      "kind": "blob"
+    },
+    {
+      "path": "telemetry-auth/signing_secret.txt.example",
+      "git_object": "0471e23f0dfa09da586e4b1cda4ae05f856f22d0",
+      "kind": "blob"
+    }
+  ]
+}

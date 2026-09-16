@@ -9,7 +9,7 @@ use serde::Serialize;
 use std::{
     collections::{BTreeMap, BTreeSet},
     fs,
-    io::Read,
+    io::{BufRead, BufReader, Read},
     path::{Path, PathBuf},
     process::Command,
     sync::{
@@ -23,6 +23,7 @@ pub struct Settings {
     pub roots: Roots,
     pub allow_processes: bool,
     pub patcher: Option<PathBuf>,
+    pub archive: archive::Options,
     pub cancelled: Arc<AtomicBool>,
 }
 impl Settings {
@@ -31,6 +32,7 @@ impl Settings {
             roots: Roots::new(mods, game)?,
             allow_processes: false,
             patcher: None,
+            archive: archive::Options::default(),
             cancelled: Arc::new(AtomicBool::new(false)),
         })
     }
@@ -46,25 +48,17 @@ pub struct Event {
 #[derive(Clone)]
 enum Content {
     Disk(PathBuf),
-    Memory(Arc<Vec<u8>>),
+    Scratch(Arc<tempfile::NamedTempFile>, Option<u32>),
 }
 impl Content {
-    fn read(&self) -> Result<Vec<u8>> {
+    fn path(&self) -> &Path {
         match self {
-            Self::Disk(path) => {
-                let mut data = Vec::new();
-                fs::File::open(path)?
-                    .take(archive::MAX_ARCHIVE_BYTES + 1)
-                    .read_to_end(&mut data)?;
-                ensure!(
-                    data.len() as u64 <= archive::MAX_ARCHIVE_BYTES,
-                    "File exceeds 512 MiB in-memory operation limit: {}",
-                    path.display()
-                );
-                Ok(data)
-            }
-            Self::Memory(data) => Ok(data.as_ref().clone()),
+            Self::Disk(path) => path,
+            Self::Scratch(file, _) => file.path(),
         }
+    }
+    fn open(&self) -> Result<fs::File> {
+        Ok(fs::File::open(self.path())?)
     }
 }
 
@@ -82,7 +76,24 @@ pub struct Engine {
 }
 
 impl Engine {
-    pub fn new(settings: Settings) -> Result<Self> {
+    pub fn new(mut settings: Settings) -> Result<Self> {
+        let scratch = fs::canonicalize(
+            settings
+                .archive
+                .scratch_dir
+                .clone()
+                .unwrap_or_else(std::env::temp_dir),
+        )?;
+        ensure!(scratch.is_dir(), "Archive scratch path must be a directory");
+        ensure!(
+            !scratch.starts_with(&settings.roots.game)
+                && !scratch.starts_with(&settings.roots.mods),
+            "Archive scratch directory must be outside game and mod trees"
+        );
+        settings.archive.scratch_dir = Some(scratch);
+        if let Some(path) = &settings.patcher {
+            settings.patcher = Some(fs::canonicalize(path).context("Patcher path is unavailable")?);
+        }
         let mut engine = Self {
             settings,
             files: BTreeMap::new(),
@@ -326,9 +337,20 @@ impl Engine {
         let content = if self.install {
             let permissions = match &content {
                 Content::Disk(source) => Some(fs::metadata(source)?.permissions()),
-                Content::Memory(_) => None,
+                Content::Scratch(_, mode) => {
+                    #[cfg(unix)]
+                    {
+                        use std::os::unix::fs::PermissionsExt;
+                        mode.map(|mode| fs::Permissions::from_mode(mode & 0o777))
+                    }
+                    #[cfg(not(unix))]
+                    {
+                        let _ = mode;
+                        None
+                    }
+                }
             };
-            recovery::atomic_write(&path, &content.read()?)?;
+            recovery::atomic_copy(&path, content.open()?, &self.settings.cancelled)?;
             if let Some(permissions) = permissions {
                 fs::set_permissions(&path, permissions)?;
             }
@@ -378,7 +400,7 @@ impl Engine {
             }
             "Extract" => {
                 for source in self.matches(&i.source, false)? {
-                    let data = self.files[&key(&source)].1.read()?;
+                    let content = self.files[&key(&source)].1.clone();
                     let default = source.parent().unwrap().join(source.file_stem().unwrap());
                     let dest = if i.destination.is_empty() {
                         default
@@ -390,18 +412,23 @@ impl Engine {
                             p
                         }
                     };
-                    let entries = archive::unpack(&data)?;
+                    let entries = archive::unpack(
+                        content.path(),
+                        &source,
+                        &self.settings.archive,
+                        &self.settings.cancelled,
+                    )?;
                     ensure!(
                         !entries
                             .iter()
-                            .any(|(path, _)| key(path).ends_with("fomod/moduleconfig.xml")),
+                            .any(|entry| key(&entry.path).ends_with("fomod/moduleconfig.xml")),
                         "FOMOD choices are unsupported; refusing to install unconfigured archive content"
                     );
-                    for (entry, bytes) in entries {
+                    for entry in entries {
                         self.check_cancelled()?;
                         self.put(
-                            &dest.join(entry),
-                            Content::Memory(Arc::new(bytes)),
+                            &dest.join(entry.path),
+                            Content::Scratch(entry.file, entry.mode),
                             i.overwrite,
                         )?;
                     }
@@ -493,22 +520,17 @@ impl Engine {
             }
             "CleanList" => {
                 let dir = self.path(&i.destination, false)?;
-                for source in self.matches(&i.source, false)? {
-                    let data = self.files[&key(&source)].1.read()?;
-                    let mut csv = csv::ReaderBuilder::new()
-                        .has_headers(false)
-                        .flexible(true)
-                        .comment(Some(b'#'))
-                        .trim(csv::Trim::All)
-                        .from_reader(data.as_slice());
-                    for row in csv.records() {
-                        let row = row?;
-                        let name = row.get(0).unwrap_or("").to_lowercase();
-                        if name.starts_with("mandatory deletions")
-                            || matches!(name.as_str(), "mandatory" | "all" | "*")
-                            || self.selected_names.contains(&name)
-                        {
-                            for raw in row.iter().skip(1).filter(|s| !s.is_empty()) {
+                let sources = self.matches(&i.source, false)?;
+                let source = sources.first().context("CleanList needs a source file")?;
+                let data = self.files[&key(source)].1.open()?;
+                for line in BufReader::new(data).lines() {
+                    for line in line?.split('\r') {
+                        self.check_cancelled()?;
+                        let Some((name, files)) = line.split_once(',') else {
+                            continue;
+                        };
+                        if cleanlist_selected(name.trim(), &self.selected_names) {
+                            for raw in files.split(',').map(str::trim).filter(|s| !s.is_empty()) {
                                 let p = self.actual(&dir.join(relative(raw, false)?));
                                 if self.files.contains_key(&key(&p)) {
                                     self.delete(&p)?;
@@ -597,9 +619,10 @@ impl Engine {
                         let stage = tempfile::tempdir()?;
                         let target = stage.path().join("tslpatchdata");
                         recovery::copy_tree(&self.actual(&data), &target)?;
-                        recovery::atomic_write(
+                        recovery::atomic_copy(
                             &target.join("changes.ini"),
-                            &self.files[&key(&ini)].1.read()?,
+                            self.files[&key(&ini)].1.open()?,
+                            &self.settings.cancelled,
                         )?;
                         for entry in fs::read_dir(&target)? {
                             let entry = entry?;
@@ -666,4 +689,60 @@ impl Engine {
         drop(staged_patcher);
         Ok(())
     }
+}
+
+// Match ModComponent.ExecuteSingleInstructionAsync's CleanList selection rules.
+fn cleanlist_selected(name: &str, selected: &BTreeSet<String>) -> bool {
+    let name = name.to_lowercase();
+    if name.trim().is_empty() {
+        return false;
+    }
+    if name.starts_with("mandatory deletions") {
+        return true;
+    }
+    fn tokens(name: &str) -> BTreeSet<String> {
+        const STOP: &[&str] = &[
+            "by",
+            "for",
+            "the",
+            "and",
+            "of",
+            "mod",
+            "pack",
+            "k1",
+            "k2",
+            "hd",
+            "kotor",
+            "kotorn",
+            "version",
+            "recolored",
+            "reskin",
+            "retexture",
+            "fix",
+            "fixes",
+        ];
+        name.split(|c: char| !c.is_ascii_lowercase() && !c.is_ascii_digit())
+            .filter(|word| !word.is_empty() && !STOP.contains(word))
+            .map(|word| {
+                if word.len() > 3 {
+                    word.strip_suffix('s').unwrap_or(word)
+                } else {
+                    word
+                }
+            })
+            .map(str::to_owned)
+            .collect()
+    }
+    let target = tokens(&name);
+    if target.is_empty() {
+        return false;
+    }
+    selected.iter().any(|candidate| {
+        if name.contains(candidate) || candidate.contains(&name) {
+            return true;
+        }
+        let other = tokens(candidate);
+        let shared = target.intersection(&other).count();
+        shared >= 2 && shared * 5 >= target.len().min(other.len()) * 3
+    })
 }

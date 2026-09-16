@@ -200,7 +200,7 @@ fn symlinks_cannot_escape_or_hide_inside_install_trees() {
 #[test]
 fn archive_checks_integrity_names_collisions_and_links() {
     assert_eq!(
-        archive::unpack(&zip(&[("folder/a.txt", b"ok")])).unwrap()[0].1,
+        unpack(&zip(&[("folder/a.txt", b"ok")])).unwrap()[0].1,
         b"ok"
     );
     for name in [
@@ -210,13 +210,13 @@ fn archive_checks_integrity_names_collisions_and_links() {
         "..\\escape",
         "foo/../../escape",
     ] {
-        assert!(archive::unpack(&zip(&[(name, b"bad")])).is_err(), "{name}");
+        assert!(unpack(&zip(&[(name, b"bad")])).is_err(), "{name}");
     }
-    assert!(archive::unpack(&zip(&[("a", b"a"), ("A", b"b")])).is_err());
-    assert!(archive::unpack(b"<html>Access denied</html>").is_err());
+    assert!(unpack(&zip(&[("a", b"a"), ("A", b"b")])).is_err());
+    assert!(unpack(b"<html>Access denied</html>").is_err());
     let mut corrupt = zip(&[("test.txt", b"check crc")]);
     corrupt[38] ^= 1;
-    assert!(archive::unpack(&corrupt).is_err());
+    assert!(unpack(&corrupt).is_err());
     let mut z = zip::ZipWriter::new(Cursor::new(Vec::new()));
     z.add_symlink(
         "link",
@@ -224,7 +224,7 @@ fn archive_checks_integrity_names_collisions_and_links() {
         zip::write::SimpleFileOptions::default(),
     )
     .unwrap();
-    assert!(archive::unpack(&z.finish().unwrap().into_inner()).is_err());
+    assert!(unpack(&z.finish().unwrap().into_inner()).is_err());
 }
 
 #[test]
@@ -233,14 +233,20 @@ fn seven_zip_roundtrip() {
     fs::write(dir.path().join("source.txt"), b"seven zip").unwrap();
     sevenz_rust2::compress_to_path(dir.path().join("source.txt"), dir.path().join("archive.7z"))
         .unwrap();
-    let files = archive::unpack(&fs::read(dir.path().join("archive.7z")).unwrap()).unwrap();
+    let files = unpack(&fs::read(dir.path().join("archive.7z")).unwrap()).unwrap();
     assert_eq!(files.len(), 1);
     assert_eq!(files[0].1, b"seven zip");
+    let mut sfx = vec![0u8; 65533]; // Signature straddles the scanner's buffer boundary.
+    sfx[..2].copy_from_slice(b"MZ");
+    sfx.extend(fs::read(dir.path().join("archive.7z")).unwrap());
+    let embedded = unpack(&sfx).unwrap();
+    assert_eq!(embedded, files);
+    assert!(unpack(b"MZnot an archive").is_err());
 }
 
 #[test]
 fn rar_reads_and_checks_crc_without_extracting_paths() {
-    let files = archive::unpack(include_bytes!("fixtures/version.rar")).unwrap();
+    let files = unpack(include_bytes!("fixtures/version.rar")).unwrap();
     assert_eq!(files.len(), 1);
     assert_eq!(files[0].0, Path::new("VERSION"));
     assert_eq!(files[0].1, b"unrar-0.4.0");
@@ -415,4 +421,203 @@ fn external_failure_halts_and_named_ini_staging_keeps_original_config() {
     assert!(patch.join("namespaces.ini").exists());
     recovery::restore(&settings.roots).unwrap();
     assert!(!settings.roots.game.join("patched.txt").exists());
+}
+
+fn unpack(bytes: &[u8]) -> anyhow::Result<Vec<(std::path::PathBuf, Vec<u8>)>> {
+    let mut file = tempfile::NamedTempFile::new()?;
+    std::io::Write::write_all(&mut file, bytes)?;
+    archive::unpack(
+        file.path(),
+        std::path::Path::new("archive.zip"),
+        &archive::Options::default(),
+        &std::sync::atomic::AtomicBool::new(false),
+    )?
+    .into_iter()
+    .map(|entry| Ok((entry.path, fs::read(entry.file.path())?)))
+    .collect()
+}
+
+#[test]
+fn tar_gzip_streaming_rejects_links_corruption_and_budget_overruns() {
+    use std::sync::atomic::AtomicBool;
+    let dir = tempfile::tempdir().unwrap();
+    let scratch = dir.path().join("scratch");
+    fs::create_dir(&scratch).unwrap();
+    let options = archive::Options {
+        scratch_dir: Some(scratch.clone()),
+        max_expanded_bytes: Some(10),
+    };
+    let cancel = AtomicBool::new(false);
+    let path = dir.path().join("data.tar.gz");
+    let file = fs::File::create(&path).unwrap();
+    let gzip = flate2::write::GzEncoder::new(file, flate2::Compression::fast());
+    let mut tar = tar::Builder::new(gzip);
+    let mut root = tar::Header::new_gnu();
+    root.set_size(0);
+    root.set_mode(0o755);
+    root.set_entry_type(tar::EntryType::Directory);
+    root.set_cksum();
+    tar.append_data(&mut root, "./", std::io::empty()).unwrap();
+    let mut header = tar::Header::new_gnu();
+    header.set_size(7);
+    header.set_mode(0o755);
+    header.set_cksum();
+    tar.append_data(&mut header, "nested/run.sh", &b"content"[..])
+        .unwrap();
+    tar.into_inner().unwrap().finish().unwrap();
+    let entries = archive::unpack(&path, &path, &options, &cancel).unwrap();
+    assert_eq!(entries[0].path, Path::new("nested/run.sh"));
+    assert_eq!(entries[0].mode, Some(0o755));
+    assert_eq!(fs::read(entries[0].file.path()).unwrap(), b"content");
+    drop(entries);
+    assert_eq!(fs::read_dir(&scratch).unwrap().count(), 0);
+    archive::verify(&path, &path, &options, &cancel).unwrap();
+    let small = archive::Options {
+        max_expanded_bytes: Some(6),
+        ..options.clone()
+    };
+    assert!(archive::unpack(&path, &path, &small, &cancel).is_err());
+    assert_eq!(fs::read_dir(&scratch).unwrap().count(), 0);
+    cancel.store(true, Ordering::Relaxed);
+    assert!(archive::unpack(&path, &path, &options, &cancel).is_err());
+    cancel.store(false, Ordering::Relaxed);
+    let mut corrupt = fs::read(&path).unwrap();
+    let end = corrupt.len();
+    corrupt[end - 8] ^= 0xff;
+    fs::write(&path, corrupt).unwrap();
+    assert!(archive::verify(&path, &path, &options, &cancel).is_err());
+    let path = dir.path().join("link.tar");
+    let mut tar = tar::Builder::new(fs::File::create(&path).unwrap());
+    let mut header = tar::Header::new_gnu();
+    header.set_size(0);
+    header.set_mode(0o777);
+    header.set_entry_type(tar::EntryType::Symlink);
+    tar.append_link(&mut header, "evil", "../../outside")
+        .unwrap();
+    tar.finish().unwrap();
+    assert!(archive::unpack(&path, &path, &options, &cancel).is_err());
+    assert_eq!(fs::read_dir(&scratch).unwrap().count(), 0);
+    let path = dir.path().join("file.txt.gz");
+    let mut gzip = flate2::write::GzEncoder::new(
+        fs::File::create(&path).unwrap(),
+        flate2::Compression::fast(),
+    );
+    gzip.write_all(b"plain").unwrap();
+    gzip.finish().unwrap();
+    let entries = archive::unpack(&path, &path, &options, &cancel).unwrap();
+    assert_eq!(entries[0].path, Path::new("file.txt"));
+    assert_eq!(fs::read(entries[0].file.path()).unwrap(), b"plain");
+}
+
+#[test]
+fn nested_archive_validation_cleans_scratch_without_mutating_install_trees() {
+    let (dir, mut settings) = setup();
+    let scratch = dir.path().join("scratch");
+    fs::create_dir(&scratch).unwrap();
+    settings.archive.scratch_dir = Some(scratch.clone());
+    fs::write(
+        settings.roots.mods.join("outer.zip"),
+        zip(&[("inner.zip", &zip(&[("file.txt", b"nested")]))]),
+    )
+    .unwrap();
+    let g = guide(serde_json::json!([
+        {"Action":"Extract", "Source":"<<modDirectory>>/outer.zip"},
+        {"Action":"Extract", "Source":"<<modDirectory>>/outer/inner.zip"},
+        {"Action":"Copy", "Source":"<<modDirectory>>/outer/inner/file.txt", "Destination":"<<kotorDirectory>>/Override"}
+    ]));
+    Engine::new(settings.clone())
+        .unwrap()
+        .validate(&g, |_| {})
+        .unwrap();
+    assert_eq!(fs::read_dir(&scratch).unwrap().count(), 0);
+    assert_eq!(fs::read_dir(&settings.roots.mods).unwrap().count(), 1);
+    assert_eq!(fs::read_dir(&settings.roots.game).unwrap().count(), 0);
+    settings.archive.scratch_dir = Some(settings.roots.mods.clone());
+    assert!(Engine::new(settings).is_err());
+}
+
+#[test]
+fn cancelled_stream_copy_keeps_existing_destination() {
+    use std::sync::atomic::AtomicBool;
+    let dir = tempfile::tempdir().unwrap();
+    let dest = dir.path().join("old");
+    fs::write(&dest, b"original").unwrap();
+    let cancelled = AtomicBool::new(false);
+    struct CancelReader<'a>(&'a AtomicBool);
+    impl std::io::Read for CancelReader<'_> {
+        fn read(&mut self, buffer: &mut [u8]) -> std::io::Result<usize> {
+            buffer[0] = 42;
+            self.0.store(true, Ordering::Relaxed);
+            Ok(1)
+        }
+    }
+    assert!(recovery::atomic_copy(&dest, CancelReader(&cancelled), &cancelled).is_err());
+    assert_eq!(fs::read(&dest).unwrap(), b"original");
+    assert_eq!(fs::read_dir(dir.path()).unwrap().count(), 1);
+}
+
+#[test]
+#[ignore = "Explicit streaming regression writes a 513 MiB file; run with --ignored"]
+fn archive_and_copy_above_512_mib() {
+    use std::{io::Read, sync::atomic::AtomicBool};
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("large.gz");
+    let size = 513 * 1024 * 1024;
+    let mut gzip = flate2::write::GzEncoder::new(
+        fs::File::create(&path).unwrap(),
+        flate2::Compression::fast(),
+    );
+    std::io::copy(&mut std::io::repeat(0x5a).take(size), &mut gzip).unwrap();
+    gzip.finish().unwrap();
+    let cancelled = AtomicBool::new(false);
+    let entries = archive::unpack(&path, &path, &archive::Options::default(), &cancelled).unwrap();
+    assert_eq!(entries[0].file.as_file().metadata().unwrap().len(), size);
+    let dest = dir.path().join("copy.bin");
+    recovery::atomic_copy(
+        &dest,
+        fs::File::open(entries[0].file.path()).unwrap(),
+        &cancelled,
+    )
+    .unwrap();
+    assert_eq!(fs::metadata(&dest).unwrap().len(), size);
+    let mut reader = fs::File::open(dest).unwrap();
+    let mut buffer = [0u8; 64 * 1024];
+    loop {
+        let n = reader.read(&mut buffer).unwrap();
+        if n == 0 {
+            break;
+        }
+        assert!(buffer[..n].iter().all(|byte| *byte == 0x5a));
+    }
+}
+
+#[test]
+fn cleanlist_matches_reference_substrings_tokens_and_stopwords() {
+    let (_dir, settings) = setup();
+    let rows = [
+        ("Jedi Robes", "substring", true),
+        ("\"Robes, Jedi\"", "unmatched", false),
+        ("Robes Jedi Recolored HD", "tokens", true),
+        ("Jedi Battle Armour", "one_shared", false),
+        ("kotor mod pack", "stopwords", false),
+        ("Mandatory Deletions - always", "mandatory", true),
+        ("all", "not_a_magic_name", false),
+    ];
+    let mut csv = String::new();
+    for (name, file, _) in rows {
+        fs::write(settings.roots.game.join(file), b"keep unless selected").unwrap();
+        csv.push_str(&format!("{name},{file}\n"));
+    }
+    fs::write(settings.roots.mods.join("clean.csv"), csv).unwrap();
+    let mut g = guide(
+        serde_json::json!([{"Action":"CleanList", "Source":"<<modDirectory>>/clean.csv", "Destination":"<<gameDirectory>>"}]),
+    );
+    g.components[0].name = "K1 Jedi Robes by Author".into();
+    Engine::new(settings.clone())
+        .unwrap()
+        .install(&g, |_| {})
+        .unwrap();
+    for (_, file, deleted) in rows {
+        assert_eq!(!settings.roots.game.join(file).exists(), deleted, "{file}");
+    }
 }
