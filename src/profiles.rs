@@ -304,3 +304,30 @@ impl Store {
         Ok(profile)
     }
 }
+
+/// Resolve explicit CLI paths over stored profile defaults without changing storage.
+pub struct InstallPaths {
+    pub input: PathBuf,
+    pub game: PathBuf,
+    pub source: PathBuf,
+}
+impl Profile {
+    pub fn install_paths(
+        &self,
+        input: Option<&Path>,
+        game: Option<&Path>,
+        source: Option<&Path>,
+    ) -> Result<InstallPaths> {
+        fn resolve(explicit: Option<&Path>, stored: Option<&str>, flag: &str) -> Result<PathBuf> {
+            explicit
+                .map(Path::to_owned)
+                .or_else(|| stored.filter(|s| !s.is_empty()).map(PathBuf::from))
+                .with_context(|| format!("Profile has no {flag}; supply --{flag}"))
+        }
+        Ok(InstallPaths {
+            input: resolve(input, self.instruction_file_path.as_deref(), "input")?,
+            game: resolve(game, self.kotor_directory.as_deref(), "game-dir")?,
+            source: resolve(source, self.mod_directory.as_deref(), "source-dir")?,
+        })
+    }
+}

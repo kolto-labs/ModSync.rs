@@ -92,12 +92,20 @@ enum Action {
 }
 #[derive(Args)]
 struct InstallArgs {
-    #[arg(long, short)]
-    input: PathBuf,
+    #[arg(long, short, required_unless_present_any = ["profile", "active_profile"])]
+    input: Option<PathBuf>,
+    #[arg(long, required_unless_present_any = ["profile", "active_profile"])]
+    game_dir: Option<PathBuf>,
+    #[arg(long, required_unless_present_any = ["profile", "active_profile"])]
+    source_dir: Option<PathBuf>,
+    /// Apply this stored profile before explicit selection overrides.
+    #[arg(long, requires = "settings_dir", conflicts_with = "active_profile")]
+    profile: Option<String>,
+    /// Use activeProfileName from the specified settings directory.
+    #[arg(long, requires = "settings_dir")]
+    active_profile: bool,
     #[arg(long)]
-    game_dir: PathBuf,
-    #[arg(long)]
-    source_dir: PathBuf,
+    settings_dir: Option<PathBuf>,
     /// Honor IsSelected flags; by default select all top-level components.
     #[arg(long)]
     use_file_selection: bool,
@@ -245,7 +253,40 @@ fn run() -> Result<()> {
             let (Action::Install(args) | Action::Validate(args)) = action else {
                 unreachable!()
             };
-            let mut guide = Guide::load_for_install(&args.input)?;
+            ensure!(
+                args.settings_dir.is_none() || args.profile.is_some() || args.active_profile,
+                "--settings-dir requires --profile or --active-profile"
+            );
+            let profile = if let Some(directory) = &args.settings_dir {
+                let store = modsync::profiles::Store::new(directory)?;
+                let name = if args.active_profile {
+                    store
+                        .active_name()?
+                        .context("No active profile is configured")?
+                } else {
+                    args.profile.clone().unwrap()
+                };
+                Some(store.require(&name)?)
+            } else {
+                None
+            };
+            let paths = if let Some(profile) = &profile {
+                profile.install_paths(
+                    args.input.as_deref(),
+                    args.game_dir.as_deref(),
+                    args.source_dir.as_deref(),
+                )?
+            } else {
+                modsync::profiles::InstallPaths {
+                    input: args.input.clone().context("Supply --input")?,
+                    game: args.game_dir.clone().context("Supply --game-dir")?,
+                    source: args.source_dir.clone().context("Supply --source-dir")?,
+                }
+            };
+            let mut guide = Guide::load_for_install(&paths.input)?;
+            if let Some(profile) = &profile {
+                profile.apply(&mut guide);
+            }
             for requested in &args.select {
                 ensure!(
                     guide
@@ -262,7 +303,7 @@ fn run() -> Result<()> {
                         .select
                         .iter()
                         .any(|s| c.guid.eq_ignore_ascii_case(s) || c.name.eq_ignore_ascii_case(s));
-                } else if !args.use_file_selection {
+                } else if !args.use_file_selection && profile.is_none() {
                     c.is_selected = true;
                 }
             }
@@ -284,7 +325,7 @@ fn run() -> Result<()> {
                     "Unknown option: {id}"
                 );
             }
-            let mut settings = Settings::new(&args.source_dir, &args.game_dir)?;
+            let mut settings = Settings::new(&paths.source, &paths.game)?;
             settings.allow_processes = args.allow_processes;
             settings.patcher = args.patcher;
             settings.archive.scratch_dir = args.scratch_dir;

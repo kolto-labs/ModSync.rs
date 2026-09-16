@@ -160,4 +160,13 @@ modsync profile --settings-dir /path/to/settings --action apply --name "Full Bui
 modsync profile --settings-dir /path/to/settings --action activate --name "Full Build"
 ```
 
-`show` and `delete` use `--name`; `clone` and `rename` use `--from` and `--to`. Commands output JSON. Capture updates an existing profile while retaining its creation time. Apply changes selections in the output guide; components absent from the profile retain their current selections. Activate saves `activeProfileName` in settings while preserving unrelated settings. Automatic install/desktop activation and platform-default settings discovery remain unfinished; these commands require an explicit settings directory. Applying a profile does not itself install anything. The guide loader's existing all-unselected fallback still applies when an exported guide is subsequently reloaded.
+`show` and `delete` use `--name`; `clone` and `rename` use `--from` and `--to`. Commands output JSON. Capture updates an existing profile while retaining its creation time. Apply changes selections in the output guide; components absent from the profile retain their current selections. Activate saves `activeProfileName` in settings while preserving unrelated settings. Desktop activation and platform-default settings discovery remain unfinished; these commands require an explicit settings directory. Applying a profile does not itself install anything. The guide loader's existing all-unselected fallback still applies when an exported guide is subsequently reloaded.
+
+Use a stored profile directly for validation or installation:
+
+```sh
+modsync validate --settings-dir /path/to/settings --profile "Full Build"
+modsync install --settings-dir /path/to/settings --active-profile
+```
+
+The profile supplies the guide path, game directory, mod directory, and selection state. Explicit `--input`, `--game-dir`, `--source-dir`, `--select`, and `--option` flags override those defaults. Profile selections are applied after loading, so an all-unselected profile stops with “Select at least one component” instead of installing everything. Validation and installation read the profile and settings without changing their activation timestamps. `--active-profile` requires an existing `activeProfileName`; it never silently falls back to another profile.

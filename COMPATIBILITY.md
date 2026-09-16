@@ -20,7 +20,7 @@ Reference: the local ModSync C# source at `d31ccbd3bfcddb4705917eafa6483715c166d
 | Patching | OdyPatcher subprocess, namespace index or named INI, exit-status checking, output capture | Requires separately installed OdyPatcher; no embedded patcher, HoloPatcher, Wine, or patch-byte equivalence claim |
 | Recovery | Snapshot both roots, stop on first failure, block retry until verified restore | Full copies; restart whole guide after restore; not per-component resume or a power-loss atomic filesystem transaction |
 | Downloads | HTTPS, streamed transfer and integrity checks, optional SHA-256, no-clobber publish | No host scraping, account management, CAPTCHA interaction, MEGA decryption, automatic resource acquisition, or update checks |
-| Profiles | Save and reload guide selections | No separate profile manager |
+| Profiles | Persistent profile store and CLI CRUD/capture/apply/activation; profile-backed CLI validation/install | Desktop manager, default storage discovery and full schema/platform parity remain incomplete |
 | FOMOD, managed deployment | Not implemented | Do not use guides requiring these features |
 | Widescreen, Aspyr, game-specific notices | Retained as metadata | No dynamic wizard stages or automatic game/version detection |
 | Editor, telemetry | Not implemented | Edit instruction files externally |
@@ -169,3 +169,11 @@ Seven CLI operations per implementation, including duplicate-create and missing-
 F16 is now partial, with desktop profile controls, platform-default storage, automatic active-profile install integration, directory activation through the engine, malformed GUID/date/null-schema parity and all Unicode/platform name rules still open. CLI apply exports selection flags but does not change the loader's existing all-unselected fallback on reload. No profile-controlled full installation is claimed by this checkpoint.
 
 This checkpoint passed formatting, clippy with warnings denied, and 50 regular integration tests in both configurations. The explicit large-archive test was not rerun locally for profile persistence. Preceding commit `86675ce9650244891a4f8098f9671ac564a6423c` passed native CI run 35060722127.
+
+## Profile-backed installation checkpoint
+
+Validate/install now accept `--profile NAME` or `--active-profile` with an explicit settings directory. Stored paths fill missing guide/game/mod arguments; supplied arguments take precedence. Profile component and immediate option selections apply after guide loading, before explicit selection overrides. An all-unselected profile fails preflight without an installation snapshot or game-file mutation. This bypasses the exported-guide all-unselected fallback for direct profile-backed runs. These commands do not change profile/settings files or last-used timestamps; explicit profile activation remains a separate action.
+
+Isolated CLI tests verify validation without game writes, actual selected option bytes, disabled components with missing inputs, explicit game-directory/option/component overrides, unchanged profile/settings/input files, missing defaults, and the all-unselected failure boundary. This is Rust integration evidence, not a full C# installer differential or desktop activation proof. Default settings discovery, automatic desktop profile application and remaining schema/platform cases keep F16 partial.
+
+This checkpoint passed formatting, clippy with warnings denied, the desktop build, and 52 regular integration tests in both default and no-default-features configurations. The explicit 513 MiB archive regression was not rerun locally for this integration. Preceding commit `39a9775cb637c2aed72247ae3f70ea4e184d166c` passed native CI run 35061995790.

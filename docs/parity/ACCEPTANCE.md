@@ -157,3 +157,9 @@ The C# best-effort install flags must be reconciled with the user's explicit rul
 - Added shared profile schema/store with CRUD, capture/apply and CLI profile actions. Activation merges the active name into settings. Atomic profile replacement and cooperating-writer serialization are exercised locally.
 - Live C# comparison covers seven CLI operations per implementation and cross-reading profile files in both directions; `profile-check.json` excludes runtime timestamp equality, defaults, GUI and install integration.
 - F16 remains partial: automatic profile-backed install/directories, desktop CRUD/activation, platform-default storage, complete malformed-schema and Unicode/platform behavior remain open. Exported all-unselected guides still encounter the existing loader fallback on reload.
+
+### Profile-backed validation and installation
+
+- Connected stored profile paths and selections to CLI validation/install through the existing shared engine. Explicit arguments override defaults; named and active-profile modes are mutually exclusive and require a settings directory.
+- Isolated installs prove selected option file bytes, disabled-component exclusion, explicit overrides and preservation of profile/settings/input files. All-unselected profiles stop before snapshot creation and game mutation; missing profile defaults produce explicit errors.
+- F16 remains partial: these are Rust CLI integration tests, not C# full-install or desktop proof. Settings defaults, automatic desktop activation, malformed schema and all platform/Unicode cases remain outstanding.

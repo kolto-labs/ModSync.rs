@@ -185,3 +185,151 @@ fn concurrent_creates_do_not_replace_an_existing_profile() {
     assert_eq!(successes, 1);
     assert_eq!(Store::new(dir.path()).unwrap().list().unwrap().len(), 1);
 }
+
+#[test]
+fn stored_profile_controls_validation_install_paths_and_option_files() {
+    let dir = tempfile::tempdir().unwrap();
+    let mods = dir.path().join("mods");
+    let game = dir.path().join("game");
+    fs::create_dir(&mods).unwrap();
+    fs::create_dir(&game).unwrap();
+    fs::write(mods.join("a.txt"), "chosen").unwrap();
+    fs::write(mods.join("b.txt"), "unchosen").unwrap();
+    let input = dir.path().join("guide.json");
+    let guide_json = json!([
+        {"Guid":"11111111-1111-4111-8111-111111111111","Name":"Choices","IsSelected":true,
+         "Instructions":[{"Action":"Choose","Source":["22222222-2222-4222-8222-222222222222","33333333-3333-4333-8333-333333333333"]}],
+         "Options":[
+            {"Guid":"22222222-2222-4222-8222-222222222222","Name":"A","IsSelected":false,"Instructions":[{"Action":"Copy","Source":["<<modDirectory>>/a.txt"],"Destination":"<<gameDirectory>>/Override"}]},
+            {"Guid":"33333333-3333-4333-8333-333333333333","Name":"B","IsSelected":true,"Instructions":[{"Action":"Copy","Source":["<<modDirectory>>/b.txt"],"Destination":"<<gameDirectory>>/Override"}]}
+         ]},
+        {"Guid":"44444444-4444-4444-8444-444444444444","Name":"Disabled missing file","IsSelected":true,
+         "Instructions":[{"Action":"Copy","Source":["<<modDirectory>>/missing.txt"],"Destination":"<<gameDirectory>>/Override"}]}
+    ]);
+    fs::write(&input, serde_json::to_vec(&guide_json).unwrap()).unwrap();
+    let storage = dir.path().join("settings");
+    let store = Store::new(&storage).unwrap();
+    let mut profile = fixture();
+    profile.instruction_file_path = Some(input.to_string_lossy().into_owned());
+    profile.mod_directory = Some(mods.to_string_lossy().into_owned());
+    profile.kotor_directory = Some(game.to_string_lossy().into_owned());
+    profile
+        .component_selections
+        .get_mut("11111111-1111-4111-8111-111111111111")
+        .unwrap()
+        .is_selected = true;
+    profile.component_selections.insert(
+        "44444444-4444-4444-8444-444444444444".into(),
+        Selection::default(),
+    );
+    store.save(&profile).unwrap();
+    store.activate("Loadout").unwrap();
+    let before_profile = fs::read(store.directory().join("Loadout.json")).unwrap();
+    let before_settings = fs::read(storage.join("settings.json")).unwrap();
+    let run = |action: &str, extra: &[&str]| {
+        std::process::Command::new(env!("CARGO_BIN_EXE_modsync"))
+            .arg(action)
+            .arg("--settings-dir")
+            .arg(&storage)
+            .args(extra)
+            .output()
+            .unwrap()
+    };
+    let validation = run("validate", &["--active-profile"]);
+    assert!(
+        validation.status.success(),
+        "{}",
+        String::from_utf8_lossy(&validation.stderr)
+    );
+    assert_eq!(fs::read_dir(&game).unwrap().count(), 0);
+    let installed = run("install", &["--profile", "Loadout"]);
+    assert!(
+        installed.status.success(),
+        "{}",
+        String::from_utf8_lossy(&installed.stderr)
+    );
+    assert_eq!(
+        fs::read_to_string(game.join("Override/a.txt")).unwrap(),
+        "chosen"
+    );
+    assert!(!game.join("Override/b.txt").exists());
+    assert_eq!(
+        fs::read(store.directory().join("Loadout.json")).unwrap(),
+        before_profile
+    );
+    assert_eq!(
+        fs::read(storage.join("settings.json")).unwrap(),
+        before_settings
+    );
+    let other_game = dir.path().join("override-game");
+    fs::create_dir(&other_game).unwrap();
+    let overridden = run(
+        "install",
+        &[
+            "--active-profile",
+            "--game-dir",
+            other_game.to_str().unwrap(),
+            "--option",
+            "33333333-3333-4333-8333-333333333333",
+        ],
+    );
+    assert!(
+        overridden.status.success(),
+        "{}",
+        String::from_utf8_lossy(&overridden.stderr)
+    );
+    assert_eq!(
+        fs::read_to_string(other_game.join("Override/b.txt")).unwrap(),
+        "unchosen"
+    );
+    let failed = run(
+        "validate",
+        &["--profile", "Loadout", "--select", "Disabled missing file"],
+    );
+    assert!(!failed.status.success());
+    assert_eq!(
+        serde_json::from_slice::<Value>(&fs::read(&input).unwrap()).unwrap(),
+        guide_json
+    );
+}
+
+#[test]
+fn profile_all_unselected_and_missing_defaults_fail_without_installing() {
+    let dir = tempfile::tempdir().unwrap();
+    let storage = dir.path().join("settings");
+    let store = Store::new(&storage).unwrap();
+    let mut profile = fixture();
+    let game = dir.path().join("game");
+    let mods = dir.path().join("mods");
+    fs::create_dir(&game).unwrap();
+    fs::create_dir(&mods).unwrap();
+    let input = dir.path().join("guide.json");
+    fs::write(&input,r#"[{"Guid":"11111111-1111-4111-8111-111111111111","Name":"Do not install","IsSelected":true,"Instructions":[{"Action":"Delete","Source":["<<gameDirectory>>/important.txt"]}]}]"#).unwrap();
+    fs::write(game.join("important.txt"), "keep").unwrap();
+    profile.instruction_file_path = Some(input.to_string_lossy().into_owned());
+    profile.kotor_directory = Some(game.to_string_lossy().into_owned());
+    profile.mod_directory = Some(mods.to_string_lossy().into_owned());
+    store.save(&profile).unwrap();
+    let run = |name: &str| {
+        std::process::Command::new(env!("CARGO_BIN_EXE_modsync"))
+            .args(["install", "--settings-dir"])
+            .arg(&storage)
+            .args(["--profile", name])
+            .output()
+            .unwrap()
+    };
+    let result = run("Loadout");
+    assert!(!result.status.success());
+    assert!(String::from_utf8_lossy(&result.stderr).contains("Select at least one component"));
+    assert_eq!(
+        fs::read_to_string(game.join("important.txt")).unwrap(),
+        "keep"
+    );
+    let state = modsync::recovery::state_dir(&modsync::paths::Roots::new(&mods, &game).unwrap());
+    assert!(!state.join("snapshot.json").exists());
+    assert!(!state.join("pending").exists());
+    store.create("Empty").unwrap();
+    let result = run("Empty");
+    assert!(!result.status.success());
+    assert!(String::from_utf8_lossy(&result.stderr).contains("Profile has no input"));
+}
