@@ -57,6 +57,8 @@ enum Action {
     },
     /// List components and their download links as JSON.
     List { input: PathBuf },
+    /// Parse an nxm:// or modsync:// handoff URL without fetching it.
+    ProtocolParse { url: String },
     /// Merge two guides, matching GUIDs then normalized names/authors.
     Merge {
         existing: PathBuf,
@@ -398,6 +400,13 @@ fn run() -> Result<()> {
         }
         Some(Action::List { input }) => {
             println!("{}", serde_json::to_string_pretty(&Guide::load(&input)?)?);
+            Ok(())
+        }
+        Some(Action::ProtocolParse { url }) => {
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&modsync::protocol::parse(&url)?)?
+            );
             Ok(())
         }
         Some(Action::Merge {
