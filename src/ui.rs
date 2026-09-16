@@ -76,7 +76,7 @@ pub struct App {
     download_name: String,
     download_hash: String,
     pending_protocol: Option<String>,
-    pending_nxm: Option<String>,
+    pending_nxm: std::collections::VecDeque<String>,
     nxm_record_error: Option<String>,
 }
 
@@ -134,7 +134,7 @@ impl App {
             download_name: String::new(),
             download_hash: String::new(),
             pending_protocol: None,
-            pending_nxm: None,
+            pending_nxm: Default::default(),
             nxm_record_error: None,
         };
         if !app.input.is_empty() {
@@ -208,7 +208,7 @@ impl App {
         match modsync::protocol::parse(&url) {
             Ok(modsync::protocol::Link::Modsync { .. }) => self.pending_protocol = Some(url),
             Ok(modsync::protocol::Link::Nxm { .. }) => {
-                self.pending_nxm = Some(url);
+                self.pending_nxm.push_back(url);
                 self.start_pending_nxm_if_ready();
             }
             Err(error) => self.logs.push(format!("Protocol link rejected: {error:#}")),
@@ -216,13 +216,17 @@ impl App {
     }
 
     fn start_pending_nxm_if_ready(&mut self) {
-        if self.guide.is_some() && !self.mods.trim().is_empty() && self.receiver.is_none() {
+        if self.guide.is_some()
+            && !self.mods.trim().is_empty()
+            && self.receiver.is_none()
+            && !self.pending_nxm.is_empty()
+        {
             self.download_pending_nxm();
         }
     }
 
     fn download_pending_nxm(&mut self) {
-        let Some(raw) = self.pending_nxm.take() else {
+        let Some(raw) = self.pending_nxm.pop_front() else {
             return;
         };
         let result = (|| -> Result<_> {
@@ -1011,12 +1015,12 @@ impl eframe::App for App {
                             if ui.button("Cancel").clicked() { self.pending_protocol = None; self.logs.push("Declined ModSync build link.".into()); }
                         });
                     }
-                    if let Some(url) = self.pending_nxm.clone() {
+                    if let Some(url) = self.pending_nxm.front() {
                         ui.separator();
                         ui.strong("Nexus Mod Manager link received");
-                        ui.label(&url);
+                        ui.label(url);
                         if ui.add_enabled(self.guide.is_some() && !self.mods.trim().is_empty(), egui::Button::new("Download linked Nexus file")).clicked() { self.download_pending_nxm(); }
-                        if ui.button("Dismiss Nexus link").clicked() { self.pending_nxm = None; }
+                        if ui.button("Dismiss Nexus link").clicked() { self.pending_nxm.pop_front(); }
                     }
                     if ui.add_enabled(self.guide.is_some(), egui::Button::new("Draft instructions from prose")).clicked()
                         && let Some(guide) = &mut self.guide {
