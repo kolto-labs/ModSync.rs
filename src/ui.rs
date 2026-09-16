@@ -83,6 +83,7 @@ pub struct App {
     pending_protocol: Option<String>,
     pending_nxm: std::collections::VecDeque<String>,
     nxm_record_error: Option<String>,
+    telemetry: modsync::telemetry::Config,
 }
 
 impl App {
@@ -143,12 +144,19 @@ impl App {
             pending_protocol: None,
             pending_nxm: Default::default(),
             nxm_record_error: None,
+            telemetry: Default::default(),
         };
         if !app.input.is_empty() {
             app.load();
         }
         if let Ok(store) = modsync::profiles::Store::new(Path::new(&app.profile_directory)) {
             app.nexus_api_key = store.nexus_api_key().ok().flatten().unwrap_or_default();
+        }
+        match modsync::telemetry::Config::load(Path::new(&app.profile_directory)) {
+            Ok(config) => app.telemetry = config,
+            Err(error) => app
+                .logs
+                .push(format!("Telemetry configuration unavailable: {error:#}")),
         }
         app
     }
@@ -1351,6 +1359,28 @@ impl eframe::App for App {
                             })();
                             self.logs.push(match result { Ok(()) => "Nexus API key saved.".into(), Err(e) => format!("Nexus key save failed: {e:#}") });
                         }
+                    });
+                    ui.collapsing("Telemetry", |ui| {
+                        ui.label("Optional anonymous usage telemetry. It never includes mod names, file contents, or credentials.");
+                        let mut consent = self.telemetry.user_consented;
+                        if ui.checkbox(&mut consent, "Share anonymous telemetry").changed() {
+                            self.telemetry.set_consent(consent);
+                            match self.telemetry.save(Path::new(&self.profile_directory)) {
+                                Ok(()) => self.logs.push(if consent { "Telemetry enabled by consent." } else { "Telemetry disabled." }.into()),
+                                Err(error) => self.logs.push(format!("Telemetry preference save failed: {error:#}")),
+                            }
+                        }
+                        ui.horizontal(|ui| {
+                            ui.label("Endpoint");
+                            ui.add(egui::TextEdit::singleline(&mut self.telemetry.endpoint).hint_text("https://…").desired_width(260.0));
+                            if ui.button("Save telemetry settings").clicked() {
+                                match self.telemetry.save(Path::new(&self.profile_directory)) {
+                                    Ok(()) => self.logs.push("Telemetry settings saved.".into()),
+                                    Err(error) => self.logs.push(format!("Telemetry settings save failed: {error:#}")),
+                                }
+                            }
+                        });
+                        ui.label(if self.telemetry.active() { "Authenticated export is ready." } else { "Telemetry stays inactive until consent, endpoint, and a local signing secret are present." });
                     });
                     if let Some(g) = &self.guide { ui.label(format!("{} components loaded", g.components.len())); }
                     if ui.add_enabled(self.guide.is_some(), egui::Button::new("Choose mods →")).clicked() { self.page = 1; }
