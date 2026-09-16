@@ -20,6 +20,8 @@ struct Cli {
 }
 #[derive(Subcommand)]
 enum Action {
+    /// Manage non-destructive staged deployments and their manifests.
+    Deployment(DeploymentArgs),
     /// Manage stored install profiles.
     Profile(profile_cli::ProfileArgs),
     /// Open the desktop installer (also the default with no command).
@@ -117,6 +119,56 @@ enum Action {
     },
 }
 #[derive(Args)]
+struct DeploymentArgs {
+    #[command(subcommand)]
+    action: DeploymentAction,
+}
+#[derive(Subcommand)]
+enum DeploymentAction {
+    /// List deployed component manifests, oldest first.
+    Status {
+        #[arg(long)]
+        game_dir: PathBuf,
+        #[arg(long)]
+        staging_dir: PathBuf,
+        #[arg(long)]
+        manifest_dir: PathBuf,
+    },
+    /// Deploy staging-dir/<component> into the game directory.
+    Deploy {
+        #[arg(long)]
+        game_dir: PathBuf,
+        #[arg(long)]
+        staging_dir: PathBuf,
+        #[arg(long)]
+        manifest_dir: PathBuf,
+        #[arg(long)]
+        component: String,
+        #[arg(long)]
+        name: Option<String>,
+    },
+    /// Remove files owned by one manifest and restore its displaced files.
+    Uninstall {
+        #[arg(long)]
+        game_dir: PathBuf,
+        #[arg(long)]
+        staging_dir: PathBuf,
+        #[arg(long)]
+        manifest_dir: PathBuf,
+        #[arg(long)]
+        component: String,
+    },
+    /// Uninstall all manifests newest first.
+    Purge {
+        #[arg(long)]
+        game_dir: PathBuf,
+        #[arg(long)]
+        staging_dir: PathBuf,
+        #[arg(long)]
+        manifest_dir: PathBuf,
+    },
+}
+#[derive(Args)]
 struct InstallArgs {
     /// Version-1 FOMOD choices JSON; overrides embedded choices for this run.
     #[arg(long)]
@@ -170,6 +222,55 @@ fn run() -> Result<()> {
             game_dir,
             source_dir,
         }) => gui(input, game_dir, source_dir, settings_dir),
+        Some(Action::Deployment(args)) => {
+            let (game, staging, manifests) = match &args.action {
+                DeploymentAction::Status {
+                    game_dir,
+                    staging_dir,
+                    manifest_dir,
+                }
+                | DeploymentAction::Deploy {
+                    game_dir,
+                    staging_dir,
+                    manifest_dir,
+                    ..
+                }
+                | DeploymentAction::Uninstall {
+                    game_dir,
+                    staging_dir,
+                    manifest_dir,
+                    ..
+                }
+                | DeploymentAction::Purge {
+                    game_dir,
+                    staging_dir,
+                    manifest_dir,
+                } => (game_dir, staging_dir, manifest_dir),
+            };
+            let service = modsync::deployment::Service::new(game, staging, manifests)?;
+            match args.action {
+                DeploymentAction::Status { .. } => {
+                    println!("{}", serde_json::to_string_pretty(&service.deployed()?)?)
+                }
+                DeploymentAction::Deploy {
+                    component, name, ..
+                } => println!(
+                    "{}",
+                    serde_json::to_string_pretty(&service.deploy(&component, name)?)?
+                ),
+                DeploymentAction::Uninstall { component, .. } => println!(
+                    "{}",
+                    serde_json::to_string_pretty(
+                        &serde_json::json!({"removed": service.uninstall(&component)?})
+                    )?
+                ),
+                DeploymentAction::Purge { .. } => println!(
+                    "{}",
+                    serde_json::to_string_pretty(&serde_json::json!({"purged": service.purge()?}))?
+                ),
+            }
+            Ok(())
+        }
         Some(Action::FomodInspect {
             archive,
             choices,

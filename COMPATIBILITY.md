@@ -545,3 +545,7 @@ The pinned C# mapper logs fileDependency and gameDependency as unmodeled, then t
 ### FOMOD file rename mapping
 
 The C# mapper cannot express a rename through its Copy action. For a file destination containing a filename, it logs the requested rename, drops that filename, and copies the source filename into the destination directory. Rust now does the same. An isolated install regression verifies that `textures/a.tga` requested as `Override/b.tga` installs `Override/a.tga`; a network-disabled C# mapper probe records the same generated source and destination in `docs/parity/fomod-rename-oracle/`. Archive extraction, full FOMOD corpus behavior, and native desktop parity remain outside this proof.
+
+### Managed deployment manifests
+
+The shared deployment service stages `staging/<component-guid>` trees into the game directory using hardlinks with a copy fallback, writes C#-shaped per-component JSON manifests, backs up overwritten files, and exposes status, deploy, uninstall, and newest-first purge through the CLI. Uninstall removes only files whose current SHA-256 matches the manifest and restores a displaced file only after that removal; user-modified deployed files and their backups remain intact. Isolated filesystem tests cover deploy/uninstall restoration, hash-mismatch preservation, purge ordering, unsafe manifest paths, and numeric deployment-method serialization. Engine staging, managed profile switching, patcher provenance, GUI controls, multi-platform filesystem behavior, and C# differential execution remain open.
