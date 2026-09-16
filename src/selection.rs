@@ -1,5 +1,301 @@
 //! Additive base-build selection rules from the reference wizard.
 use crate::Component;
+use std::collections::BTreeSet;
+
+fn component_index(components: &[Component], guid: &str) -> Option<usize> {
+    components
+        .iter()
+        .position(|component| component.guid.eq_ignore_ascii_case(guid))
+}
+
+fn option_index(components: &[Component], guid: &str) -> Option<(usize, usize)> {
+    components
+        .iter()
+        .enumerate()
+        .find_map(|(component, parent)| {
+            parent
+                .options
+                .iter()
+                .position(|option| option.guid.eq_ignore_ascii_case(guid))
+                .map(|option| (component, option))
+        })
+}
+
+fn component_checked(
+    components: &mut [Component],
+    index: usize,
+    visited_components: &mut BTreeSet<String>,
+    visited_options: &mut BTreeSet<String>,
+) {
+    let guid = components[index].guid.to_ascii_lowercase();
+    if !visited_components.insert(guid.clone()) {
+        return;
+    }
+    components[index].is_selected = true;
+    let dependencies = components[index].dependencies.clone();
+    let restrictions = components[index].restrictions.clone();
+    for dependency in dependencies {
+        if let Some(required) = component_index(components, &dependency) {
+            component_checked(components, required, visited_components, visited_options);
+        } else if let Some((parent, option)) = option_index(components, &dependency) {
+            components[parent].options[option].is_selected = true;
+            option_checked(
+                components,
+                parent,
+                option,
+                visited_components,
+                visited_options,
+            );
+        }
+    }
+    for restriction in restrictions {
+        if let Some(conflict) = component_index(components, &restriction) {
+            component_unchecked(components, conflict, visited_components);
+        } else if let Some((parent, option)) = option_index(components, &restriction) {
+            option_unchecked(
+                components,
+                parent,
+                option,
+                visited_components,
+                visited_options,
+            );
+        }
+    }
+    let reverse: Vec<_> = components
+        .iter()
+        .enumerate()
+        .filter(|(_, component)| {
+            component.is_selected
+                && component
+                    .restrictions
+                    .iter()
+                    .any(|restriction| restriction.eq_ignore_ascii_case(&guid))
+        })
+        .map(|(index, _)| index)
+        .collect();
+    for conflict in reverse {
+        component_unchecked(components, conflict, visited_components);
+    }
+}
+
+fn component_unchecked(components: &mut [Component], index: usize, visited: &mut BTreeSet<String>) {
+    let guid = components[index].guid.to_ascii_lowercase();
+    components[index].is_selected = false;
+    if !visited.insert(format!("-{guid}")) {
+        return;
+    }
+    let dependents: Vec<_> = components
+        .iter()
+        .enumerate()
+        .filter(|(_, component)| {
+            component.is_selected
+                && component
+                    .dependencies
+                    .iter()
+                    .any(|dependency| dependency.eq_ignore_ascii_case(&guid))
+        })
+        .map(|(index, _)| index)
+        .collect();
+    for dependent in dependents {
+        component_unchecked(components, dependent, visited);
+    }
+}
+
+fn option_checked(
+    components: &mut [Component],
+    parent: usize,
+    option: usize,
+    visited_components: &mut BTreeSet<String>,
+    visited_options: &mut BTreeSet<String>,
+) {
+    let guid = components[parent].options[option].guid.to_ascii_lowercase();
+    if !visited_options.insert(guid.clone()) {
+        return;
+    }
+    components[parent].options[option].is_selected = true;
+    let dependencies = components[parent].options[option].dependencies.clone();
+    let restrictions = components[parent].options[option].restrictions.clone();
+    for dependency in dependencies {
+        if let Some(required) = component_index(components, &dependency) {
+            component_checked(components, required, visited_components, visited_options);
+        } else if let Some((required_parent, required)) = option_index(components, &dependency) {
+            option_checked(
+                components,
+                required_parent,
+                required,
+                visited_components,
+                visited_options,
+            );
+        }
+    }
+    for restriction in restrictions {
+        if let Some(conflict) = component_index(components, &restriction) {
+            component_unchecked(components, conflict, visited_components);
+        } else if let Some((conflict_parent, conflict)) = option_index(components, &restriction) {
+            option_unchecked(
+                components,
+                conflict_parent,
+                conflict,
+                visited_components,
+                visited_options,
+            );
+        }
+    }
+    let dependent_components: Vec<_> = components
+        .iter()
+        .enumerate()
+        .filter(|(_, component)| {
+            !component.is_selected
+                && component
+                    .dependencies
+                    .iter()
+                    .any(|dependency| dependency.eq_ignore_ascii_case(&guid))
+        })
+        .map(|(index, _)| index)
+        .collect();
+    for dependent in dependent_components {
+        component_checked(components, dependent, visited_components, visited_options);
+    }
+    let conflicting_components: Vec<_> = components
+        .iter()
+        .enumerate()
+        .filter(|(_, component)| {
+            component.is_selected
+                && component
+                    .restrictions
+                    .iter()
+                    .any(|restriction| restriction.eq_ignore_ascii_case(&guid))
+        })
+        .map(|(index, _)| index)
+        .collect();
+    for conflict in conflicting_components {
+        component_unchecked(components, conflict, visited_components);
+    }
+}
+
+fn option_unchecked(
+    components: &mut [Component],
+    parent: usize,
+    option: usize,
+    visited_components: &mut BTreeSet<String>,
+    visited_options: &mut BTreeSet<String>,
+) {
+    let guid = components[parent].options[option].guid.to_ascii_lowercase();
+    components[parent].options[option].is_selected = false;
+    if !visited_options.insert(format!("-{guid}")) {
+        return;
+    }
+    let option_dependents: Vec<_> = components
+        .iter()
+        .enumerate()
+        .flat_map(|(component, parent)| {
+            parent
+                .options
+                .iter()
+                .enumerate()
+                .filter(|(_, option)| {
+                    option.is_selected
+                        && option
+                            .dependencies
+                            .iter()
+                            .any(|dependency| dependency.eq_ignore_ascii_case(&guid))
+                })
+                .map(move |(option, _)| (component, option))
+        })
+        .collect();
+    for (dependent_parent, dependent) in option_dependents {
+        option_unchecked(
+            components,
+            dependent_parent,
+            dependent,
+            visited_components,
+            visited_options,
+        );
+    }
+    let component_dependents: Vec<_> = components
+        .iter()
+        .enumerate()
+        .filter(|(_, component)| {
+            component.is_selected
+                && component
+                    .dependencies
+                    .iter()
+                    .any(|dependency| dependency.eq_ignore_ascii_case(&guid))
+        })
+        .map(|(index, _)| index)
+        .collect();
+    for dependent in component_dependents {
+        component_unchecked(components, dependent, visited_components);
+    }
+    if components[parent]
+        .options
+        .iter()
+        .all(|option| !option.is_selected)
+    {
+        component_unchecked(components, parent, visited_components);
+    }
+}
+
+pub fn set_component_selected(components: &mut [Component], index: usize, selected: bool) {
+    let mut visited_components = BTreeSet::new();
+    if selected {
+        component_checked(
+            components,
+            index,
+            &mut visited_components,
+            &mut BTreeSet::new(),
+        );
+    } else {
+        component_unchecked(components, index, &mut visited_components);
+    }
+}
+
+pub fn set_option_selected(
+    components: &mut [Component],
+    parent: usize,
+    option: usize,
+    selected: bool,
+) {
+    let mut visited_components = BTreeSet::new();
+    let mut visited_options = BTreeSet::new();
+    if selected {
+        if !components[parent].is_selected {
+            component_checked(
+                components,
+                parent,
+                &mut visited_components,
+                &mut visited_options,
+            );
+        }
+        option_checked(
+            components,
+            parent,
+            option,
+            &mut visited_components,
+            &mut visited_options,
+        );
+    } else {
+        option_unchecked(
+            components,
+            parent,
+            option,
+            &mut visited_components,
+            &mut visited_options,
+        );
+    }
+}
+
+pub fn resolve_selected(components: &mut [Component]) {
+    let selected: Vec<_> = components
+        .iter()
+        .enumerate()
+        .filter(|(_, component)| component.is_selected)
+        .map(|(index, _)| index)
+        .collect();
+    for index in selected {
+        set_component_selected(components, index, true);
+    }
+}
 
 fn base(component: &Component) -> bool {
     !component
@@ -305,8 +601,14 @@ pub fn select_visible(
 }
 
 pub fn deselect_base(components: &mut [Component]) {
-    for c in components.iter_mut().filter(|c| base(c)) {
-        c.is_selected = false;
+    let selected: Vec<_> = components
+        .iter()
+        .enumerate()
+        .filter(|(_, component)| base(component) && component.is_selected)
+        .map(|(index, _)| index)
+        .collect();
+    for index in selected {
+        set_component_selected(components, index, false);
     }
 }
 

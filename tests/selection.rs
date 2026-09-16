@@ -1,6 +1,55 @@
 use modsync::{Component, selection};
 
 #[test]
+fn interactive_selection_resolves_component_and_option_relationships() {
+    let mut components: Vec<Component> = serde_json::from_value(serde_json::json!([
+        {"Guid":"base","Name":"Base"},
+        {"Guid":"middle","Name":"Middle","Dependencies":["base"]},
+        {"Guid":"tail","Name":"Tail","Dependencies":["middle"],"Restrictions":["conflict"]},
+        {"Guid":"conflict","Name":"Conflict","IsSelected":true},
+        {"Guid":"choices","Name":"Choices","Options":[
+            {"Guid":"feature","Name":"Feature","Dependencies":["base"]},
+            {"Guid":"addon","Name":"Addon","Dependencies":["feature"]}
+        ]},
+        {"Guid":"needs-feature","Name":"Needs feature","Dependencies":["feature"]},
+        {"Guid":"blocks-feature","Name":"Blocks feature","Restrictions":["feature"],"IsSelected":true}
+    ])).unwrap();
+
+    selection::set_component_selected(&mut components, 2, true);
+    assert_eq!(
+        components
+            .iter()
+            .take(4)
+            .map(|c| c.is_selected)
+            .collect::<Vec<_>>(),
+        [true, true, true, false]
+    );
+    selection::set_component_selected(&mut components, 0, false);
+    assert_eq!(
+        components
+            .iter()
+            .take(3)
+            .map(|c| c.is_selected)
+            .collect::<Vec<_>>(),
+        [false, false, false]
+    );
+
+    selection::set_option_selected(&mut components, 4, 1, true);
+    assert!(components[0].is_selected);
+    assert!(components[4].is_selected);
+    assert!(components[4].options[0].is_selected);
+    assert!(components[4].options[1].is_selected);
+    assert!(components[5].is_selected);
+    assert!(!components[6].is_selected);
+
+    selection::set_option_selected(&mut components, 4, 0, false);
+    assert!(!components[4].options[0].is_selected);
+    assert!(!components[4].options[1].is_selected);
+    assert!(!components[4].is_selected);
+    assert!(!components[5].is_selected);
+}
+
+#[test]
 fn tier_and_category_selection_are_additive_and_exclude_widescreen_components() {
     let make = |tier: &str, category: &str| Component {
         tier: tier.into(),

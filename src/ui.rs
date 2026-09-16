@@ -326,6 +326,7 @@ impl App {
         }
         if let Some(guide) = &mut self.guide {
             modsync::selection::select_categories(&mut guide.components, &selected);
+            modsync::selection::resolve_selected(&mut guide.components);
             self.validated = false;
             self.conflicts = None;
             self.validation_report = None;
@@ -857,22 +858,29 @@ impl App {
         changed
     }
 
-    fn options(ui: &mut egui::Ui, component: &mut Component, spoiler_free: bool) -> bool {
-        let mut changed = false;
-        for option in &mut component.options {
+    fn options(
+        ui: &mut egui::Ui,
+        component: &mut Component,
+        spoiler_free: bool,
+    ) -> Option<(usize, bool)> {
+        let mut changed = None;
+        for (index, option) in component.options.iter_mut().enumerate() {
             let name = modsync::selection::display_name(option, spoiler_free);
             let tooltip = modsync::selection::tooltip(option, spoiler_free);
-            changed |= ui
+            if ui
                 .checkbox(&mut option.is_selected, name)
                 .on_hover_text(tooltip)
-                .changed();
+                .changed()
+            {
+                changed = Some((index, option.is_selected));
+            }
             let description = modsync::selection::display_description(option, spoiler_free);
             if !description.trim().is_empty() {
                 ui.label(description)
                     .on_hover_text(modsync::selection::tooltip(option, spoiler_free));
             }
             if option.is_selected {
-                changed |= Self::options(ui, option, spoiler_free);
+                let _ = Self::options(ui, option, spoiler_free);
             }
         }
         changed
@@ -1151,7 +1159,7 @@ impl eframe::App for App {
                     }
                     let Some(g) = &mut self.guide else { ui.label("Load a guide first."); return; };
                     ui.horizontal(|ui| {
-                        if ui.button("Select all").clicked() { modsync::selection::select_visible(&mut g.components, &self.search, &self.tier_filter, &self.category_filter, self.spoiler_free); self.validated = false; self.conflicts = None; self.validation_report = None; self.confirm_install = false; }
+                        if ui.button("Select all").clicked() { modsync::selection::select_visible(&mut g.components, &self.search, &self.tier_filter, &self.category_filter, self.spoiler_free); modsync::selection::resolve_selected(&mut g.components); self.validated = false; self.conflicts = None; self.validation_report = None; self.confirm_install = false; }
                         if ui.button("Deselect all").clicked() { modsync::selection::deselect_base(&mut g.components); self.validated = false; self.conflicts = None; self.validation_report = None; self.confirm_install = false; }
                         ui.add(egui::TextEdit::singleline(&mut self.search).hint_text("Search displayed name or description"));
                         if ui.add_enabled(!self.search.is_empty() || !self.tier_filter.is_empty() || !self.category_filter.is_empty(), egui::Button::new("Clear filters")).clicked() {
@@ -1178,6 +1186,7 @@ impl eframe::App for App {
                         });
                         if ui.add_enabled(!self.tier_filter.is_empty(), egui::Button::new("Select through tier")).clicked() {
                             modsync::selection::select_tier(&mut g.components, &self.tier_filter);
+                            modsync::selection::resolve_selected(&mut g.components);
                             self.validated = false; self.conflicts = None; self.validation_report = None; self.confirm_install = false;
                         }
                         egui::ComboBox::from_id_salt("category_filter").selected_text(if self.category_filter.is_empty() { "All categories" } else { &self.category_filter }).show_ui(ui, |ui| {
@@ -1186,6 +1195,7 @@ impl eframe::App for App {
                         });
                         if ui.add_enabled(!self.category_filter.is_empty(), egui::Button::new("Select category")).clicked() {
                             modsync::selection::select_categories(&mut g.components, std::slice::from_ref(&self.category_filter));
+                            modsync::selection::resolve_selected(&mut g.components);
                             self.validated = false; self.conflicts = None; self.validation_report = None; self.confirm_install = false;
                         }
                     });
@@ -1219,7 +1229,8 @@ impl eframe::App for App {
                                 let selected_count = indices.iter().filter(|i| g.components[**i].is_selected).count();
                                 ui.horizontal(|ui| {
                                     if ui.small_button(if selected_count == indices.len() { "Deselect group" } else { "Select group" }).clicked() {
-                                        for index in indices { g.components[*index].is_selected = selected_count < indices.len(); }
+                                        let selected = selected_count < indices.len();
+                                        for index in indices { modsync::selection::set_component_selected(&mut g.components, *index, selected); }
                                         self.validated = false; self.conflicts = None; self.validation_report = None; self.confirm_install = false;
                                     }
                                     ui.label(format!("{selected_count} / {} selected", indices.len()));
@@ -1229,22 +1240,26 @@ impl eframe::App for App {
                                     .show(ui, |ui| {
                                         for index in indices {
                                             let c = &mut g.components[*index];
+                                            let mut toggled = None;
                                             ui.horizontal(|ui| {
-                                                if ui.checkbox(&mut c.is_selected, "").on_hover_text("Select component").changed() { self.validated = false; self.conflicts = None; self.validation_report = None; }
+                                                if ui.checkbox(&mut c.is_selected, "").on_hover_text("Select component").changed() { toggled = Some(c.is_selected); self.validated = false; self.conflicts = None; self.validation_report = None; }
                                                 if ui.selectable_label(self.selected == *index, modsync::selection::display_name(c, self.spoiler_free)).on_hover_text(modsync::selection::tooltip(c, self.spoiler_free)).clicked() { self.selected = *index; }
                                                 if modsync::updates::component_update_available(c) { ui.label("Update").on_hover_text("A newer version is available on Nexus Mods"); }
                                             });
+                                            if let Some(selected) = toggled { modsync::selection::set_component_selected(&mut g.components, *index, selected); }
                                         }
                                     });
                             }
                         });
                         egui::ScrollArea::vertical().id_salt("details").show(&mut columns[1], |ui| {
+                            let mut option_change = None;
                             if let Some(c) = g.components.get_mut(self.selected).filter(|c| c.metadata.get("WidescreenOnly").and_then(serde_json::Value::as_bool) != Some(true)).filter(|c| modsync::selection::matches_filters(c, &self.search, &self.tier_filter, &self.category_filter, self.spoiler_free)) {
                                 ui.heading(modsync::selection::display_name(c, self.spoiler_free));
                                 ui.label(format!("{}  ·  {}", c.author, c.tier));
                                 ui.label(modsync::selection::display_description(c, self.spoiler_free)).on_hover_text(modsync::selection::tooltip(c, self.spoiler_free));
                                 if !c.directions.is_empty() && !self.spoiler_free { ui.separator(); ui.label(&c.directions); }
-                                if Self::options(ui, c, self.spoiler_free) { self.validated = false; self.conflicts = None; self.validation_report = None; }
+                                option_change = Self::options(ui, c, self.spoiler_free);
+                                if option_change.is_some() { self.validated = false; self.conflicts = None; self.validation_report = None; }
                                 ui.separator();
                                 ui.strong("Download links");
                                 for url in c.resource_registry.keys() { ui.hyperlink(url); }
@@ -1266,6 +1281,7 @@ impl eframe::App for App {
                                     }
                                 }
                             }
+                            if let Some((option, selected)) = option_change { modsync::selection::set_option_selected(&mut g.components, self.selected, option, selected); }
                         });
                     });
                 }
