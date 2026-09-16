@@ -37,6 +37,7 @@ pub struct App {
     patcher: String,
     scratch: String,
     fomod_choices: String,
+    fomod_archive: String,
     fomod_editor: crate::fomod_ui::Editor,
     expanded_budget: String,
     allow_processes: bool,
@@ -87,6 +88,7 @@ impl App {
             patcher: String::new(),
             scratch: String::new(),
             fomod_choices: String::new(),
+            fomod_archive: String::new(),
             fomod_editor: Default::default(),
             expanded_budget: String::new(),
             allow_processes: false,
@@ -893,8 +895,10 @@ impl eframe::App for App {
                     ui.label(format!("Game: {}", self.game));
                     ui.label(format!("Mods: {}", self.mods));
                     if ui.checkbox(&mut self.allow_processes, "Trust this guide to run external programs").changed() { self.validated = false; }
-                    if self.completed_base.is_none() && ui.button("Configure FOMOD archive…").clicked()
-                        && let Some(path) = rfd::FileDialog::new().set_directory(&self.mods).pick_file() {
+                    Self::path_row(ui, "FOMOD archive", &mut self.fomod_archive, false);
+                    if self.completed_base.is_none() && ui.add_enabled(!self.fomod_archive.trim().is_empty(),
+                        egui::Button::new("Configure FOMOD archive…")).clicked() {
+                        let path = PathBuf::from(&self.fomod_archive);
                         let budget = if self.expanded_budget.trim().is_empty() { Ok(None) }
                             else { self.expanded_budget.trim().parse::<u64>().map(Some) };
                         match budget {

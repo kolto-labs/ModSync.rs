@@ -489,3 +489,7 @@ The desktop editor now reapplies saved archive choices after inspection, using t
 ### Desktop configured-guide persistence
 
 The existing Save selection action now embeds the selected external FOMOD choices file into its saved guide, as installation does. Accepted editor choices were already embedded in the loaded guide and use the same save path. A desktop regression saves TOML, reloads component selections and named archive choices, verifies the in-memory guide remains unchanged, and proves invalid choices leave an existing output untouched. Native save-dialog acceptance remains pending.
+
+### Desktop archive path entry
+
+An isolated Linux X11 run rendered the validation page, but the system archive picker did not appear on that display. FOMOD configuration now accepts a typed archive path with optional Browse, matching the existing path-field pattern. This removes the picker as a prerequisite for opening the editor; full native editor/install acceptance is still pending.
