@@ -183,6 +183,23 @@ impl Engine {
         completed: &[String],
         emit: impl FnMut(Event),
     ) -> Result<()> {
+        self.set_completed_prefix(guide, completed)?;
+        self.install(guide, emit)
+    }
+
+    /// Simulate only the suffix, with the same caller-verified completion contract
+    /// as install_remaining. Does not write install trees or run external programs.
+    pub fn validate_remaining(
+        mut self,
+        guide: &Guide,
+        completed: &[String],
+        emit: impl FnMut(Event),
+    ) -> Result<()> {
+        self.set_completed_prefix(guide, completed)?;
+        self.validate(guide, emit)
+    }
+
+    fn set_completed_prefix(&mut self, guide: &Guide, completed: &[String]) -> Result<()> {
         let ordered = guide.ordered()?;
         let ids: BTreeSet<_> = completed.iter().map(|id| id.to_ascii_lowercase()).collect();
         ensure!(
@@ -203,7 +220,7 @@ impl Engine {
             "Completed components must form the selected installation prefix"
         );
         self.completed = ids;
-        self.install(guide, emit)
+        Ok(())
     }
 
     fn check_cancelled(&self) -> Result<()> {

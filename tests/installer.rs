@@ -742,3 +742,55 @@ fn remaining_phase_failure_restores_completed_base_before_ordered_retry() {
             .exists()
     );
 }
+
+#[test]
+fn remaining_validation_skips_consumed_base_sources_and_does_not_write() {
+    let (_dir, settings) = setup();
+    fs::write(settings.roots.mods.join("base.txt"), b"base").unwrap();
+    let mut g = Guide::parse(&serde_json::json!({"thisMod":[
+        {"Guid":"base","Name":"Base","IsSelected":true,"Instructions":[{"Action":"Move","Source":["<<modDirectory>>/base.txt"],"Destination":"<<gameDirectory>>/Override"}]},
+        {"Guid":"wide","Name":"Wide","IsSelected":false,"Dependencies":["base"],"Instructions":[{"Action":"Copy","Source":["<<gameDirectory>>/Override/base.txt"],"Destination":"<<gameDirectory>>/wide"}]}
+    ]}).to_string(), "json").unwrap();
+    Engine::new(settings.clone())
+        .unwrap()
+        .install(&g, |_| {})
+        .unwrap();
+    assert!(!settings.roots.mods.join("base.txt").exists());
+    let snapshot_before =
+        fs::read(recovery::state_dir(&settings.roots).join("snapshot.json")).unwrap();
+    g.components[1].is_selected = true;
+    assert!(
+        Engine::new(settings.clone())
+            .unwrap()
+            .validate(&g, |_| {})
+            .is_err()
+    );
+    let mut events = Vec::new();
+    Engine::new(settings.clone())
+        .unwrap()
+        .validate_remaining(&g, &["base".into()], |e| events.push(e))
+        .unwrap();
+    assert_eq!(events.len(), 1);
+    assert_eq!(events[0].component, "Wide");
+    assert!(!settings.roots.game.join("wide").exists());
+    assert!(!settings.roots.mods.join("base.txt").exists());
+    assert_eq!(
+        fs::read(settings.roots.game.join("Override/base.txt")).unwrap(),
+        b"base"
+    );
+    assert_eq!(
+        fs::read(recovery::state_dir(&settings.roots).join("snapshot.json")).unwrap(),
+        snapshot_before
+    );
+    assert!(
+        !recovery::state_dir(&settings.roots)
+            .join("pending")
+            .exists()
+    );
+    assert!(
+        Engine::new(settings)
+            .unwrap()
+            .validate_remaining(&g, &["wide".into()], |_| {})
+            .is_err()
+    );
+}

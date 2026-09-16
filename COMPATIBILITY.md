@@ -319,3 +319,7 @@ Engine.install_remaining now accepts a caller-verified completed prefix, retains
 ### Remaining-phase recovery verification
 
 An isolated two-stage regression now cancels the remaining suffix after its first write overwrites a completed-base file. It verifies no later step runs, retry is blocked while recovery is pending, verified restoration recovers the completed base (not the original empty game), source files return to their phase-entry bytes, and retry runs only suffix steps in order. The pending marker clears only after success. This supersedes the earlier unverified cancellation/recovery path for install_remaining; external patcher failure, process crash, durable completion identity and GUI phase wiring remain open.
+
+### Remaining-suffix validation
+
+Engine.validate_remaining shares completed-prefix checks with install_remaining and simulates only the suffix using full selected dependency context. A regression first executes a base Move that consumes its source: ordinary whole-guide validation fails on the consumed source, while suffix validation succeeds using the installed base output. The check verifies no suffix output, source mutation, recovery-manifest replacement or pending marker is produced. Caller-verified completion remains required; no durable resume or wizard wiring is implied.

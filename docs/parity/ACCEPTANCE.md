@@ -237,3 +237,5 @@ F10/F24 dependency oracle: initial wide deselection deferred installation; wide-
 F10/F24 execution primitive: install_remaining preserves dependency context while skipping a verified completed prefix, covered by no-replay/invalid-prefix regression. Caller completion verification, phase UI, persisted identity and failure recovery proof remain open.
 
 F10/F24 remaining-phase recovery checkpoint: cancellation after a suffix write, blocked retry, restoration of completed-base bytes and ordered suffix-only replay are covered by an executable integration regression. Durable completion identity and phase UI remain unfinished.
+
+F08/F10/F24 suffix validation: shared prefix validation now serves dry-run and installation; consumed-base-source regression demonstrates no replay and no filesystem/recovery mutation. Durable completion identity and UI integration remain open.
