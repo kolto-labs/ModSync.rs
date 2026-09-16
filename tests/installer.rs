@@ -664,3 +664,81 @@ fn remaining_install_retains_base_dependencies_without_replaying_base() {
         );
     }
 }
+
+#[test]
+fn remaining_phase_failure_restores_completed_base_before_ordered_retry() {
+    let (_dir, settings) = setup();
+    fs::create_dir(settings.roots.mods.join("wide")).unwrap();
+    fs::write(settings.roots.mods.join("base.txt"), b"installed base").unwrap();
+    fs::write(settings.roots.mods.join("wide/base.txt"), b"wide overwrite").unwrap();
+    fs::write(settings.roots.mods.join("later.txt"), b"later").unwrap();
+    let mut g = Guide::parse(&serde_json::json!({"thisMod":[
+        {"Guid":"base","Name":"Base","IsSelected":true,"Instructions":[{"Action":"Copy","Source":["<<modDirectory>>/base.txt"],"Destination":"<<gameDirectory>>/Override","Overwrite":true}]},
+        {"Guid":"wide","Name":"Wide","IsSelected":false,"Dependencies":["base"],"Instructions":[
+            {"Action":"Copy","Source":["<<modDirectory>>/wide/base.txt"],"Destination":"<<gameDirectory>>/Override","Overwrite":true},
+            {"Action":"Copy","Source":["<<modDirectory>>/later.txt"],"Destination":"<<gameDirectory>>/Override"}
+        ]}
+    ]}).to_string(), "json").unwrap();
+    Engine::new(settings.clone())
+        .unwrap()
+        .install(&g, |_| {})
+        .unwrap();
+    fs::write(settings.roots.mods.join("base.txt"), b"do not replay").unwrap();
+    g.components[1].is_selected = true;
+    let completed = vec!["base".to_owned()];
+    let cancelled = settings.cancelled.clone();
+    let error = Engine::new(settings.clone())
+        .unwrap()
+        .install_remaining(&g, &completed, |e| {
+            if e.component == "Wide" && e.step == 1 {
+                cancelled.store(true, Ordering::Relaxed);
+            }
+        })
+        .unwrap_err();
+    assert!(format!("{error:#}").contains("Cancelled"));
+    assert_eq!(
+        fs::read(settings.roots.game.join("Override/base.txt")).unwrap(),
+        b"wide overwrite"
+    );
+    assert!(!settings.roots.game.join("Override/later.txt").exists());
+    settings.cancelled.store(false, Ordering::Relaxed);
+    assert!(
+        Engine::new(settings.clone())
+            .unwrap()
+            .install_remaining(&g, &completed, |_| {})
+            .is_err()
+    );
+    recovery::restore(&settings.roots).unwrap();
+    assert_eq!(
+        fs::read(settings.roots.game.join("Override/base.txt")).unwrap(),
+        b"installed base"
+    );
+    assert_eq!(
+        fs::read(settings.roots.mods.join("base.txt")).unwrap(),
+        b"do not replay"
+    );
+    assert!(!settings.roots.game.join("Override/later.txt").exists());
+    let mut steps = Vec::new();
+    Engine::new(settings.clone())
+        .unwrap()
+        .install_remaining(&g, &completed, |e| {
+            if !e.component.is_empty() {
+                steps.push((e.component, e.step));
+            }
+        })
+        .unwrap();
+    assert_eq!(steps, vec![("Wide".into(), 1), ("Wide".into(), 2)]);
+    assert_eq!(
+        fs::read(settings.roots.game.join("Override/base.txt")).unwrap(),
+        b"wide overwrite"
+    );
+    assert_eq!(
+        fs::read(settings.roots.game.join("Override/later.txt")).unwrap(),
+        b"later"
+    );
+    assert!(
+        !recovery::state_dir(&settings.roots)
+            .join("pending")
+            .exists()
+    );
+}

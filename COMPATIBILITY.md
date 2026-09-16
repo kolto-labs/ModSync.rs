@@ -315,3 +315,7 @@ An isolated cross-phase dependency fixture now reproduces DependencyViolation wi
 ### Remaining-prefix engine execution
 
 Engine.install_remaining now accepts a caller-verified completed prefix, retains the full selected guide for dependency/condition context, and runs only the remaining suffix through existing preflight, snapshot and stop-on-failure paths. Unknown, duplicate or non-prefix completed IDs are rejected before install writes. A two-stage fixture modifies the base source after installing it, then verifies the dependent widescreen component installs without replaying base bytes or events. This is a library primitive, not persisted resume: callers must verify guide/root/completion identity. CLI and GUI do not expose it yet. Recovery after a remaining-phase failure and durable completion receipts remain unverified/unimplemented.
+
+### Remaining-phase recovery verification
+
+An isolated two-stage regression now cancels the remaining suffix after its first write overwrites a completed-base file. It verifies no later step runs, retry is blocked while recovery is pending, verified restoration recovers the completed base (not the original empty game), source files return to their phase-entry bytes, and retry runs only suffix steps in order. The pending marker clears only after success. This supersedes the earlier unverified cancellation/recovery path for install_remaining; external patcher failure, process crash, durable completion identity and GUI phase wiring remain open.
