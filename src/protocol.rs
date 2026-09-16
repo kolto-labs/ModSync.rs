@@ -97,6 +97,13 @@ pub fn fetch_instruction(raw: &str, destination: &Path) -> Result<()> {
     }
     let client = reqwest::blocking::Client::builder()
         .timeout(Duration::from_secs(60))
+        .redirect(reqwest::redirect::Policy::custom(|attempt| {
+            if safe_instruction_url(attempt.url().as_str()).is_ok() {
+                attempt.follow()
+            } else {
+                attempt.error("Instruction redirect target is unsafe")
+            }
+        }))
         .build()?;
     let mut response = client.get(url).send()?.error_for_status()?;
     safe_instruction_url(response.url().as_str())?;
