@@ -64,6 +64,37 @@ fn dry_run_tracks_extract_move_rename_delete_without_writing() {
 }
 
 #[test]
+fn cli_validation_report_is_one_json_document_with_dry_run() {
+    let (dir, settings) = setup();
+    fs::write(settings.roots.mods.join("sample.tga"), b"source").unwrap();
+    let input = dir.path().join("guide.json");
+    guide(serde_json::json!([copy()])).save(&input).unwrap();
+    let output = std::process::Command::new(env!("CARGO_BIN_EXE_modsync"))
+        .arg("validate")
+        .arg("--input")
+        .arg(&input)
+        .arg("--game-dir")
+        .arg(&settings.roots.game)
+        .arg("--source-dir")
+        .arg(&settings.roots.mods)
+        .args(["--use-file-selection", "--validation-report", "--dry-run"])
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(
+        report["stages"].as_array().unwrap().last().unwrap()["stage"],
+        "DryRun"
+    );
+    assert_eq!(report["dryRun"]["isValid"], true);
+    assert!(!settings.roots.game.join("Override/sample.tga").exists());
+}
+
+#[test]
 fn real_install_uses_case_insensitive_paths_and_texture_priority() {
     let (_dir, settings) = setup();
     fs::write(settings.roots.mods.join("sample.tga"), b"new texture").unwrap();
