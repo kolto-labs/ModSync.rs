@@ -133,3 +133,44 @@ fn complete_tooltip_preserves_reference_sections_and_spoiler_boundary() {
     assert!(selection::tier_description("Optional").starts_with("Mods that are nice"));
     assert!(selection::tier_description("Essential 1").starts_with("Critical mods"));
 }
+
+#[test]
+fn visible_selection_combines_filters_and_deselect_preserves_widescreen() {
+    let mut components: Vec<Component> = serde_json::from_value(serde_json::json!([
+        {"Name":"Hidden name", "NameSpoilerFree":"Safe", "Tier":"2", "Category":["Fix"]},
+        {"Name":"Safe", "Tier":"1", "Category":["Fix"]},
+        {"Name":"Safe", "Tier":"2", "Category":["Other"], "IsSelected":true},
+        {"Name":"Safe", "Tier":"2", "Category":["Fix"], "WidescreenOnly":true},
+        {"Name":"Safe", "Tier":"2", "Category":["Fix"], "WidescreenOnly":true,"IsSelected":true}
+    ]))
+    .unwrap();
+    selection::select_visible(&mut components, "Safe", "2", "fix", true);
+    assert_eq!(
+        components.iter().map(|c| c.is_selected).collect::<Vec<_>>(),
+        [true, false, true, false, true]
+    );
+    assert!(!selection::matches_filters(
+        &components[0],
+        "Hidden",
+        "",
+        "",
+        true
+    ));
+    assert!(selection::matches_filters(
+        &components[0],
+        "Hidden",
+        "",
+        "",
+        false
+    ));
+    selection::deselect_base(&mut components);
+    assert_eq!(
+        components.iter().map(|c| c.is_selected).collect::<Vec<_>>(),
+        [false, false, false, false, true]
+    );
+    selection::select_visible(&mut components, "", "", "", false);
+    assert_eq!(
+        components.iter().map(|c| c.is_selected).collect::<Vec<_>>(),
+        [true, true, true, false, true]
+    );
+}

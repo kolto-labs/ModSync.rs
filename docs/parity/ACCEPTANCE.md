@@ -213,3 +213,5 @@ F04/F24 modal checkpoint: category selection and install confirmation now block 
 F04/F24 option-description checkpoint: the visibility guard now follows displayed text, so options with empty raw descriptions still show authored or generated spoiler-free descriptions. An egui text-shape regression exercises the actual option renderer. Full option-card tooltips, accessibility and wizard parity remain open.
 
 F04/F24 tooltip checkpoint: shared comprehensive tooltip content now reaches component names, options and descriptions. Source-grounded regression covers all content sections and spoiler handling. Native hover/accessibility behavior remains unverified; neither domain is complete.
+
+F04/F24 filtered bulk-selection checkpoint: row rendering and Select all share the search/tier/category predicate; bulk selection excludes widescreen and Deselect all preserves it. Clear filters is available. Shared-rule regression passes; separate widescreen UI and native interaction verification remain open.

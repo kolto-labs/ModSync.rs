@@ -272,3 +272,40 @@ pub fn tooltip(c: &Component, spoiler_free: bool) -> String {
     }
     parts.join("\n\n")
 }
+
+/// The same predicate drives visible rows and filtered bulk selection.
+pub fn matches_filters(
+    c: &Component,
+    search: &str,
+    tier: &str,
+    category: &str,
+    spoiler_free: bool,
+) -> bool {
+    matches_search(c, search, spoiler_free)
+        && (tier.is_empty() || c.tier.eq_ignore_ascii_case(tier))
+        && (category.is_empty()
+            || c.category
+                .iter()
+                .any(|cat| cat.eq_ignore_ascii_case(category)))
+}
+
+pub fn select_visible(
+    components: &mut [Component],
+    search: &str,
+    tier: &str,
+    category: &str,
+    spoiler_free: bool,
+) {
+    for c in components
+        .iter_mut()
+        .filter(|c| base(c) && matches_filters(c, search, tier, category, spoiler_free))
+    {
+        c.is_selected = true;
+    }
+}
+
+pub fn deselect_base(components: &mut [Component]) {
+    for c in components.iter_mut().filter(|c| base(c)) {
+        c.is_selected = false;
+    }
+}

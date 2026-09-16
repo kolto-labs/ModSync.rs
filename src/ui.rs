@@ -581,10 +581,13 @@ impl eframe::App for App {
                 1 => {
                     let Some(g) = &mut self.guide else { ui.label("Load a guide first."); return; };
                     ui.horizontal(|ui| {
-                        if ui.button("Select all").clicked() { for c in &mut g.components { c.is_selected = true; } self.validated = false; }
-                        if ui.button("Deselect all").clicked() { for c in &mut g.components { c.is_selected = false; } self.validated = false; }
+                        if ui.button("Select all").clicked() { modsync::selection::select_visible(&mut g.components, &self.search, &self.tier_filter, &self.category_filter, self.spoiler_free); self.validated = false; self.confirm_install = false; }
+                        if ui.button("Deselect all").clicked() { modsync::selection::deselect_base(&mut g.components); self.validated = false; self.confirm_install = false; }
                         ui.label(format!("{} / {} selected", g.components.iter().filter(|c| c.is_selected).count(), g.components.len()));
                         ui.add(egui::TextEdit::singleline(&mut self.search).hint_text("Search displayed name or description"));
+                        if ui.add_enabled(!self.search.is_empty() || !self.tier_filter.is_empty() || !self.category_filter.is_empty(), egui::Button::new("Clear filters")).clicked() {
+                            self.search.clear(); self.tier_filter.clear(); self.category_filter.clear();
+                        }
                     });
                     let mut spoiler_free = self.spoiler_free;
                     if ui.checkbox(&mut spoiler_free, "Spoiler-free names and descriptions").changed() {
@@ -626,9 +629,7 @@ impl eframe::App for App {
                     ui.columns(2, |columns| {
                         egui::ScrollArea::vertical().id_salt("mods").show(&mut columns[0], |ui| {
                             for (index, c) in g.components.iter_mut().enumerate() {
-                                if !modsync::selection::matches_search(c, &self.search, self.spoiler_free) { continue; }
-                                if !self.tier_filter.is_empty() && !c.tier.eq_ignore_ascii_case(&self.tier_filter) { continue; }
-                                if !self.category_filter.is_empty() && !c.category.iter().any(|cat| cat.eq_ignore_ascii_case(&self.category_filter)) { continue; }
+                                if !modsync::selection::matches_filters(c, &self.search, &self.tier_filter, &self.category_filter, self.spoiler_free) { continue; }
                                 ui.horizontal(|ui| {
                                     if ui.checkbox(&mut c.is_selected, "").on_hover_text("Select component").changed() { self.validated = false; }
                                     if ui.selectable_label(self.selected == index, modsync::selection::display_name(c, self.spoiler_free)).on_hover_text(modsync::selection::tooltip(c, self.spoiler_free)).clicked() { self.selected = index; }
