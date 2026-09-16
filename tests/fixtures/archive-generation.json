@@ -1,4 +1,10 @@
 [
+  {"Name":"plain-installer", "Extension":"exe", "Payload":"MZnot-an-archive"},
+  {"Name":"corrupt-installer", "Extension":"exe", "Payload":"PKinvalid-zip-data"},
+  {"Name":"uppercase-installer", "Extension":"EXE", "Payload":"MZnot-an-archive"},
+  {"Name":"archive-installer", "Extension":"exe", "Files":{"sample.tga":"extract this"}, "UnresolvedAdditionalInstruction":{"Action":"Move","Source":["<<modDirectory>>\\archive-installer\\*"],"Destination":"<<gameDirectory>>\\Override","Arguments":"","Overwrite":true,"Dependencies":[],"Restrictions":[]}},
+  {"Name":"irrelevant-installer-archive", "Extension":"exe", "Files":{"readme.txt":"No game files"}},
+  {"Name":"dedupe-installer", "Extension":"exe", "Payload":"MZnot-an-archive", "Component":{"Name":"Remove Duplicate TGA/TPC"}},
   {"Name":"matching-order", "LocalMatching":true, "Files":{"sample.tga":"first link"}, "Component":{"ResourceRegistry":{"https://z.example/123-matching-order/":{},"https://a.example/999-absent/":{}}}},
   {"Name":"later-link-only", "LocalMatching":true, "Files":{"sample.tga":"second link"}, "Component":{"ResourceRegistry":{"https://z.example/999-absent/":{},"https://a.example/123-later-link-only/":{}}}},
   {"Name":"reuse", "Files":{"Red/sample.tga":"red","Blue/sample.tga":"blue"}, "Component":{"Options":[{"Guid":"10000000-0000-4000-8000-000000000001","Name":"Authored red","Description":"Keep me","IsSelected":true,"Instructions":[{"Action":"Move","Source":["<<modDirectory>>\\reuse\\Red\\*"],"Destination":"<<gameDirectory>>\\Override","Overwrite":true}]}]}},

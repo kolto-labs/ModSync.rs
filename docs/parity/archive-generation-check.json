@@ -1,8 +1,63 @@
 {
   "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
   "reference_dll_sha256": "8f3b1e3f8fe47b2cc6f8e3f281912506721c7367218381bb2a35cf86dc5768f0",
-  "fixture_sha256": "1c562df5300a0da273f77a801503194f07b39e2e00010af5e61bfb0ffc6ee99a",
-  "cases": 22,
-  "differences": [],
-  "scope": "Instruction-free component generation including authored-option merging and two insertion-first local-matching cases. Original authored Source strings assigned directly after C# loading; Choose GUIDs normalized to option names. Not full JSON ingestion, all archive-matching cases, existing top-level instruction merging, EXE fallback, or installation proof."
+  "fixture_sha256": "b3bb640b1b87db9087302b6b6fde715404c0dd722631b8d21de1d17168c23d13",
+  "cases": 28,
+  "matching_cases": 27,
+  "differences": [
+    {
+      "case": "archive-installer",
+      "csharp": {
+        "Name": "archive-installer",
+        "Success": true,
+        "InstallationMethod": "Loose-File Mod",
+        "Instructions": [
+          {
+            "Action": "Extract",
+            "Source": [
+              "<<modDirectory>>\\archive-installer.exe"
+            ],
+            "Destination": "",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": []
+      },
+      "rust": {
+        "Name": "archive-installer",
+        "Success": true,
+        "InstallationMethod": "Loose-File Mod",
+        "Instructions": [
+          {
+            "Action": "Extract",
+            "Source": [
+              "<<modDirectory>>\\archive-installer.exe"
+            ],
+            "Destination": "",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          },
+          {
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>\\archive-installer\\*"
+            ],
+            "Destination": "<<gameDirectory>>\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": []
+      },
+      "known_unresolved": true
+    }
+  ],
+  "scope": "Instruction-free component generation including authored-option merging, insertion-first local matching and EXE fallback. Original authored Source strings assigned directly after C# loading; Choose GUIDs normalized to option names. Not full JSON ingestion, all archive-matching cases, existing top-level instruction merging, real installer execution or full-build proof."
 }

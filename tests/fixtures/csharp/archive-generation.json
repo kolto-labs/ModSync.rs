@@ -1,5 +1,105 @@
 [
   {
+    "Name": "plain-installer",
+    "Success": true,
+    "InstallationMethod": "Executable Installer",
+    "Instructions": [
+      {
+        "Action": "Execute",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\plain-installer.exe"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": []
+  },
+  {
+    "Name": "corrupt-installer",
+    "Success": true,
+    "InstallationMethod": "Executable Installer",
+    "Instructions": [
+      {
+        "Action": "Execute",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\corrupt-installer.exe"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": []
+  },
+  {
+    "Name": "uppercase-installer",
+    "Success": true,
+    "InstallationMethod": "Executable Installer",
+    "Instructions": [
+      {
+        "Action": "Execute",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\uppercase-installer.EXE"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": []
+  },
+  {
+    "Name": "archive-installer",
+    "Success": true,
+    "InstallationMethod": "Loose-File Mod",
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\archive-installer.exe"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": []
+  },
+  {
+    "Name": "irrelevant-installer-archive",
+    "Success": false,
+    "InstallationMethod": "",
+    "Instructions": [],
+    "Options": []
+  },
+  {
+    "Name": "Remove Duplicate TGA/TPC",
+    "Success": true,
+    "InstallationMethod": "",
+    "Instructions": [
+      {
+        "Action": "DelDuplicate",
+        "Source": [],
+        "Destination": "",
+        "Arguments": ".tpc",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": []
+  },
+  {
     "Name": "matching-order",
     "Success": true,
     "InstallationMethod": "Loose-File Mod",

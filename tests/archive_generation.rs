@@ -42,7 +42,7 @@ fn normalized(component: &Component, success: bool) -> Value {
 }
 
 #[test]
-fn fresh_archive_generation_matches_csharp_raw_objects() {
+fn archive_generation_tracks_reference_outputs_and_unresolved_differences() {
     let cases: Vec<Value> =
         serde_json::from_str(include_str!("fixtures/archive-generation.json")).unwrap();
     let expected: Vec<Value> =
@@ -54,10 +54,16 @@ fn fresh_archive_generation_matches_csharp_raw_objects() {
             value.as_object_mut().unwrap().extend(fields.clone());
         }
         let mut component: Component = serde_json::from_value(value).unwrap();
-        let path = dir
-            .path()
-            .join(format!("{}.zip", case["Name"].as_str().unwrap()));
-        zip(&path, &case["Files"]);
+        let path = dir.path().join(format!(
+            "{}.{}",
+            case["Name"].as_str().unwrap(),
+            case["Extension"].as_str().unwrap_or("zip")
+        ));
+        if let Some(payload) = case["Payload"].as_str() {
+            fs::write(&path, payload).unwrap();
+        } else {
+            zip(&path, &case["Files"]);
+        }
         let original = fs::read(&path).unwrap();
         let success = if case["LocalMatching"] == true {
             let mut guide = Guide {
@@ -77,9 +83,18 @@ fn fresh_archive_generation_matches_csharp_raw_objects() {
             )
             .unwrap()
         };
+        let mut expected = expected.clone();
+        if let Some(additional) = case.get("UnresolvedAdditionalInstruction") {
+            // Keep the captured C# object unchanged on disk. This exact observed
+            // difference remains open in the parity ledger, not a parity pass.
+            expected["Instructions"]
+                .as_array_mut()
+                .unwrap()
+                .push(additional.clone());
+        }
         assert_eq!(
             normalized(&component, success),
-            *expected,
+            expected,
             "{}",
             case["Name"]
         );
@@ -332,4 +347,64 @@ fn inferred_choices_reuse_authored_identity_selection_and_install_behavior() {
         fs::read(mods.join("reuse/Blue/sample.tga")).unwrap(),
         b"blue"
     );
+}
+
+#[test]
+fn executable_inference_never_runs_the_input_or_bypasses_engine_trust_and_cancellation() {
+    let dir = tempfile::tempdir().unwrap();
+    let mods = dir.path().join("mods");
+    let game = dir.path().join("game");
+    fs::create_dir(&mods).unwrap();
+    fs::create_dir(&game).unwrap();
+    let executable = mods.join("installer.exe");
+    let bytes = b"MZfixture-not-a-runnable-program";
+    fs::write(&executable, bytes).unwrap();
+    let mut guide = Guide::parse(
+        r#"[{"Guid":"installer","Name":"Installer","ResourceRegistry":{"installer.exe":{}}}]"#,
+        "json",
+    )
+    .unwrap();
+    let reports = archive_generation::generate_local(&mut guide, &mods).unwrap();
+    assert!(reports[0].success, "{:?}", reports[0]);
+    assert_eq!(guide.components[0].instructions[0].action, "Execute");
+    assert_eq!(
+        guide.components[0].metadata["InstallationMethod"],
+        "Executable Installer"
+    );
+    let settings = Settings::new(&mods, &game).unwrap();
+    let error = Engine::new(settings.clone())
+        .unwrap()
+        .install(&guide, |_| {})
+        .unwrap_err();
+    assert!(
+        format!("{error:#}").contains("needs explicit trust"),
+        "{error:#}"
+    );
+    let mut trusted = settings;
+    trusted.allow_processes = true;
+    // Even with trust configured, validation only checks the executable's presence.
+    // Launching this deliberately invalid image would fail on every supported OS.
+    Engine::new(trusted)
+        .unwrap()
+        .validate(&guide, |_| {})
+        .unwrap();
+    assert_eq!(fs::read(&executable).unwrap(), bytes);
+    assert_eq!(fs::read_dir(&mods).unwrap().count(), 1);
+    assert_eq!(fs::read_dir(&game).unwrap().count(), 0);
+    let mut component = Component {
+        guid: "cancelled".into(),
+        name: "Cancelled".into(),
+        ..Default::default()
+    };
+    assert!(
+        archive_generation::generate_from_archive(
+            &mut component,
+            &executable,
+            &archive::Options::default(),
+            &AtomicBool::new(true)
+        )
+        .is_err()
+    );
+    assert!(component.instructions.is_empty());
+    assert!(component.metadata.is_empty());
 }

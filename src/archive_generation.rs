@@ -199,7 +199,25 @@ pub fn generate_from_archive(
             .push(instruction("DelDuplicate", vec![], "", ".tpc"));
         return Ok(true);
     }
-    let entries = archive::unpack(path, path, options, cancelled)?;
+    let entries = match archive::unpack(path, path, options, cancelled) {
+        Ok(entries) => entries,
+        Err(_) if extension.eq_ignore_ascii_case("exe") && !cancelled.load(Ordering::Relaxed) => {
+            // C# treats an EXE that cannot be opened as an archive as an
+            // executable installer. Inference only records the step; the shared
+            // engine still requires explicit external-program trust to run it.
+            component.instructions.push(instruction(
+                "Execute",
+                vec![format!("<<modDirectory>>\\{filename}")],
+                "",
+                "",
+            ));
+            component
+                .metadata
+                .insert("InstallationMethod".into(), "Executable Installer".into());
+            return Ok(true);
+        }
+        Err(error) => return Err(error),
+    };
     let paths: Vec<_> = entries
         .iter()
         .map(|e| e.path.to_string_lossy().replace('\\', "/"))
