@@ -124,6 +124,7 @@ impl Guide {
             "yaml" => {
                 let mut guide = Self::default();
                 let separators = regex::Regex::new(r"(?m)^---[ \t]*(?:#[^\r\n]*)?\r?$")?;
+                let directive_start = regex::Regex::new(r"(?m)^%")?;
                 let mut directives = String::new();
                 for source in separators.split(text) {
                     if source.lines().any(|line| line.starts_with('%'))
@@ -137,6 +138,13 @@ impl Guide {
                         directives.push_str("\n---\n");
                         continue;
                     }
+                    // A directive after an explicit document end belongs to the next
+                    // document, whose start marker was removed by the split above.
+                    let next_directive = directive_start
+                        .find(source)
+                        .filter(|m| source[..m.start()].trim_end().ends_with("..."));
+                    let (source, next_directives) =
+                        next_directive.map_or((source, ""), |m| source.split_at(m.start()));
                     let marked_metadata = source
                         .trim_start()
                         .get(..10)
@@ -155,6 +163,10 @@ impl Guide {
                             guide.components.extend(parsed.components);
                             guide.metadata.extend(parsed.metadata);
                         }
+                    }
+                    if !next_directives.is_empty() {
+                        directives.push_str(next_directives);
+                        directives.push_str("\n---\n");
                     }
                 }
                 ensure!(directives.is_empty(), "YAML directives require a document");

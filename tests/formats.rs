@@ -588,3 +588,18 @@ fn yaml_metadata_comment_without_version_is_not_a_component() {
     }
     assert!(Guide::parse("---\n# Metadata\n- invalid mapping\n", "yaml").is_err());
 }
+
+#[test]
+fn yaml_successive_directives_keep_native_parser_document_boundaries() {
+    let text = "%YAML 1.1\n---\n# Metadata\nwidescreenWarningContent: Keep this\n...\n%YAML 1.1\n---\nGuid: 11111111-1111-1111-1111-111111111111\nName: First\n...\n%YAML 1.1\n---\nGuid: 22222222-2222-2222-2222-222222222222\nName: Second\n";
+    let values: Result<Vec<serde_json::Value>, _> = serde_yaml_ng::Deserializer::from_str(text)
+        .map(serde::Deserialize::deserialize)
+        .collect();
+    assert_eq!(values.unwrap().len(), 3);
+    let guide = Guide::parse(text, "yaml").unwrap();
+    assert_eq!(guide.components.len(), 2);
+    assert_eq!(
+        guide.metadata["metadata"]["widescreenWarningContent"],
+        "Keep this"
+    );
+}

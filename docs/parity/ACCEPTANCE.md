@@ -261,3 +261,5 @@ F01/F02/F24 metadata export correction: extracted Markdown wizard text survives 
 F01/F02/F24 cross-language export checkpoint: pinned C# deserialization of Rust TOML/YAML exports preserves exact wizard content and component count for the saved Markdown fixture. Evidence and verifier: `content-export-oracle/`. Full corpus/native proof remains open.
 
 F01 YAML marker checkpoint: metadata comments without format-version fields are recognized with mapping validation. Regression covers scalar separator text, CRLF and a leading directive; broader YAML grammar and live differential proof remain open.
+
+F01 YAML regression correction: successive directive-bearing documents preserve their boundaries, verified against native parser acceptance and guide results. This repairs a regression introduced by metadata-comment support.
