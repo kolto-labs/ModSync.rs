@@ -1,4 +1,4 @@
-use anyhow::{Result, ensure};
+use anyhow::{Context, Result, ensure};
 use clap::{Args, Parser, Subcommand};
 use modsync::{Engine, Guide, Settings, download, paths::Roots, recovery};
 use std::{path::PathBuf, sync::atomic::AtomicBool};
@@ -39,8 +39,20 @@ enum Action {
         #[arg(long)]
         source_dir: PathBuf,
     },
-    /// Convert between TOML, JSON, YAML, or structured Markdown input.
-    Convert { input: PathBuf, output: PathBuf },
+    /// Convert TOML, JSON, YAML, XML, or structured Markdown input.
+    Convert {
+        input: Option<PathBuf>,
+        output: Option<PathBuf>,
+        #[arg(short = 'i', long = "input", conflicts_with_all = ["input", "stdin"])]
+        input_path: Option<PathBuf>,
+        #[arg(short = 'o', long = "output", conflicts_with = "output")]
+        output_path: Option<PathBuf>,
+        #[arg(long, conflicts_with = "input")]
+        stdin: bool,
+        /// Output format; defaults to TOML, or the positional output extension.
+        #[arg(short, long)]
+        format: Option<String>,
+    },
     /// Fetch and verify a direct HTTPS archive URL.
     Download {
         url: String,
@@ -98,7 +110,41 @@ fn run() -> Result<()> {
             println!("{}", serde_json::to_string_pretty(&Guide::load(&input)?)?);
             Ok(())
         }
-        Some(Action::Convert { input, output }) => Guide::load(&input)?.save(&output),
+        Some(Action::Convert {
+            input,
+            output,
+            input_path,
+            output_path,
+            stdin,
+            format,
+        }) => {
+            let guide = if stdin {
+                use std::io::Read;
+                let mut text = String::new();
+                std::io::stdin().read_to_string(&mut text)?;
+                Guide::parse(&text, "auto")?
+            } else {
+                Guide::load(
+                    &input_path
+                        .or(input)
+                        .context("Use --input <file> or --stdin")?,
+                )?
+            };
+            let format = format.as_deref().unwrap_or_else(|| {
+                output
+                    .as_ref()
+                    .and_then(|p| p.extension())
+                    .and_then(|s| s.to_str())
+                    .unwrap_or("toml")
+            });
+            let text = guide.render(format)?;
+            if let Some(path) = output_path.as_ref().or(output.as_ref()) {
+                recovery::atomic_write(&std::path::absolute(path)?, text.as_bytes())?;
+            } else {
+                println!("{text}");
+            }
+            Ok(())
+        }
         Some(Action::Restore {
             game_dir,
             source_dir,

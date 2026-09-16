@@ -1,0 +1,168 @@
+[
+  {
+    "Guid": "11111111-1111-1111-1111-111111111111",
+    "Name": "Robes & Lights <HD>",
+    "NameSpoilerFree": "",
+    "Heading": "",
+    "Author": "Example",
+    "Category": [
+      "Textures",
+      "Models"
+    ],
+    "Tier": "",
+    "Language": [
+      "English",
+      "French"
+    ],
+    "ResourceRegistry": {
+      "https://example.invalid/mod?id=1&file=2": {
+        "ContentKey": "sample",
+        "HandlerMetadata": {},
+        "Files": {},
+        "FileSize": 123,
+        "UpdateAvailable": false
+      },
+      "https://example.invalid/legacy": {
+        "ContentKey": "3e0dabb51b930a2da293a3c3f0291d0d6969ae3e",
+        "MetadataHash": "3e0dabb51b930a2da293a3c3f0291d0d6969ae3e",
+        "HandlerMetadata": {},
+        "Files": {
+          "Old.zip": true
+        },
+        "FileSize": 0,
+        "UpdateAvailable": false
+      }
+    },
+    "ExcludedDownloads": [],
+    "Description": "Line one\r\nLine two & café",
+    "DescriptionSpoilerFree": "",
+    "InstallationMethod": "",
+    "Directions": "",
+    "DirectionsSpoilerFree": "",
+    "DownloadInstructions": "",
+    "DownloadInstructionsSpoilerFree": "",
+    "UsageWarning": "",
+    "UsageWarningSpoilerFree": "",
+    "Screenshots": "",
+    "ScreenshotsSpoilerFree": "",
+    "KnownBugs": "",
+    "InstallationWarning": "",
+    "CompatibilityWarning": "",
+    "SteamNotes": "",
+    "Dependencies": [],
+    "DependencyNames": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "IsSelected": true,
+    "Instructions": [
+      {
+        "Action": "Copy",
+        "Source": [
+          "<<modDirectory>>/sample.tga"
+        ],
+        "Destination": "<<kotorDirectory>>\\Override",
+        "Overwrite": false,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Delete",
+        "Source": [
+          "<<kotorDirectory>>/old.tga"
+        ],
+        "Destination": "",
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [
+      {
+        "Guid": "22222222-2222-2222-2222-222222222222",
+        "Name": "Alternate",
+        "NameSpoilerFree": "",
+        "Heading": "",
+        "Author": "",
+        "Category": [],
+        "Tier": "",
+        "Language": [],
+        "ResourceRegistry": {},
+        "ExcludedDownloads": [],
+        "Description": "",
+        "DescriptionSpoilerFree": "",
+        "InstallationMethod": "",
+        "Directions": "",
+        "DirectionsSpoilerFree": "",
+        "DownloadInstructions": "",
+        "DownloadInstructionsSpoilerFree": "",
+        "UsageWarning": "",
+        "UsageWarningSpoilerFree": "",
+        "Screenshots": "",
+        "ScreenshotsSpoilerFree": "",
+        "KnownBugs": "",
+        "InstallationWarning": "",
+        "CompatibilityWarning": "",
+        "SteamNotes": "",
+        "Dependencies": [],
+        "DependencyNames": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "IsSelected": true,
+        "Instructions": [
+          {
+            "Action": "Patcher",
+            "Source": [
+              "<<modDirectory>>/setup.exe"
+            ],
+            "Destination": "",
+            "Arguments": "alternate.ini",
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "WidescreenOnly": false
+      }
+    ],
+    "WidescreenOnly": false
+  },
+  {
+    "Guid": "33333333-3333-3333-3333-333333333333",
+    "Name": "Later",
+    "NameSpoilerFree": "",
+    "Heading": "",
+    "Author": "",
+    "Category": [],
+    "Tier": "",
+    "Language": [],
+    "ResourceRegistry": {},
+    "ExcludedDownloads": [],
+    "Description": "",
+    "DescriptionSpoilerFree": "",
+    "InstallationMethod": "",
+    "Directions": "",
+    "DirectionsSpoilerFree": "",
+    "DownloadInstructions": "",
+    "DownloadInstructionsSpoilerFree": "",
+    "UsageWarning": "",
+    "UsageWarningSpoilerFree": "",
+    "Screenshots": "",
+    "ScreenshotsSpoilerFree": "",
+    "KnownBugs": "",
+    "InstallationWarning": "",
+    "CompatibilityWarning": "",
+    "SteamNotes": "",
+    "Dependencies": [
+      "11111111-1111-1111-1111-111111111111"
+    ],
+    "DependencyNames": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "IsSelected": true,
+    "Instructions": [],
+    "Options": [],
+    "WidescreenOnly": false
+  }
+]

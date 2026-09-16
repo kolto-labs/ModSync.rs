@@ -1,0 +1,68 @@
+---
+# Metadata
+fileFormatVersion: "2.0"
+preambleContent: "# Installation Guide\n\nWelcome to the KOTOR Mod Installation Guide. This guide will help you install this mod build for Knights of the Old Republic.\n\n:::warning\nImportant\n:   Please read through these instructions carefully before beginning the installation process.\n:::\n\n### Prerequisites\n\n- A fresh installation of Knights of the Old Republic\n- ModSync - an automated installer that handles TSLPatcher and HoloPatcher installations\n- Approximately 7GB free disk space for mod archives (before extraction)\n\n### Installation Process\n\nModSync will automatically handle extraction and installation of mods. You just need to:\n\n1. Ensure your game directory is not read-only\n2. Configure your source (mod archives) and destination (game directory) paths\n3. Select the mods you want to install\n4. Let the installer handle the rest\n\n:::warning\nZeroing Step\n:   If you have previously installed mods, it's recommended to perform a fresh install. Uninstall the game, delete all remaining files in the game directory, and reinstall before proceeding.\n:::\n\n### Known Issues\n\n- Some users may experience rare crashes when entering new areas. If this occurs, temporarily disable 'Frame Buffer Effects' and 'Soft Shadows' in Advanced Graphics Options."
+epilogueContent: "## Post-Installation Notes\n\n### Launch Options\n\nAfter installation, launch the game directly from the executable, not through the Steam interface (if using widescreen support).\n\n### Troubleshooting\n\nIf you encounter issues:\n\n- **Crash on load**: Try disabling 'Frame Buffer Effects' in Advanced Graphics Options\n- **Character stuck after combat**: Enable v-sync or set your monitor to 60hz\n- **Rare crashes**: Update your graphics drivers\n\nFor additional support, please consult the troubleshooting section in the main documentation."
+widescreenWarningContent: ":::note\nWidescreen Support\n:   This build includes optional widescreen support. Widescreen mods must be installed before applying the 4GB patcher. Please see the widescreen section below for details.\n:::"
+aspyrExclusiveWarningContent: ":::warning\nAspyr Version Required\n:   The following mods require the Aspyr patch version of KOTOR 2. If you are using the legacy version, these mods should be skipped.\n:::"
+installationWarningContent: ":::warning\nInstallation Warning\n:   This mod build is intended for use with the Aspyr patch version of KOTOR 2. If you are using the legacy version, some mods may not work correctly.\n:::"
+
+---
+Guid: 11111111-1111-1111-1111-111111111111
+Name: Robes & Lights <HD>
+Author: Example
+Description: >-
+  Line one
+
+  Line two & café
+IsSelected: true
+Category:
+- Textures
+- Models
+Language:
+- English
+- French
+ResourceRegistry:
+  https://example.invalid/mod?id=1&file=2:
+    ContentKey: sample
+    MetadataHash: 
+    HandlerMetadata: {}
+    Files: {}
+    FileSize: 123
+  https://example.invalid/legacy:
+    ContentKey: 3e0dabb51b930a2da293a3c3f0291d0d6969ae3e
+    MetadataHash: 3e0dabb51b930a2da293a3c3f0291d0d6969ae3e
+    HandlerMetadata: {}
+    Files:
+      Old.zip: true
+    FileSize: 0
+ModLinkFilenames:
+  https://example.invalid/mod?id=1&file=2: {}
+  https://example.invalid/legacy:
+    Old.zip: true
+Instructions:
+- Action: copy
+  Source:
+  - <<modDirectory>>/sample.tga
+  Destination: <<kotorDirectory>>\Override
+  Overwrite: false
+- Action: delete
+  Source:
+  - <<kotorDirectory>>/old.tga
+Options:
+- Guid: 22222222-2222-2222-2222-222222222222
+  Name: Alternate
+  IsSelected: true
+  Instructions:
+  - Action: patcher
+    Source:
+    - <<modDirectory>>/setup.exe
+    Arguments: alternate.ini
+
+---
+Guid: 33333333-3333-3333-3333-333333333333
+Name: Later
+IsSelected: true
+Dependencies:
+- 11111111-1111-1111-1111-111111111111
+

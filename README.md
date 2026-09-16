@@ -107,3 +107,14 @@ The test suite covers simulated and real file changes, ZIP/7z/RAR, path and syml
 ## Attribution
 
 Instruction behavior is based on [ModSync](https://github.com/th3w1zard1/ModSync). Its BSL 1.1 license and notices are retained in [LICENSE.txt](LICENSE.txt). Third-party Rust crates retain their respective licenses. `tests/fixtures/version.rar` comes from unrar 0.5.8; its MIT license is included beside the fixture.
+
+## Structured guide conversion
+
+```sh
+modsync convert --input guide.toml --output guide.xml --format xml
+modsync convert --stdin --format yaml < guide.json
+```
+
+TOML, JSON, YAML and XML conversion uses formats readable by the C# application. JSON writes a component array; YAML writes a metadata document followed by component documents. Keep build-level metadata in TOML or YAML. File extensions are case insensitive, and unknown extensions trigger content detection. Prose Markdown ingestion remains in progress.
+
+The pinned C# fixtures in `tests/fixtures/csharp` run in normal Cargo tests. On Linux, `tools/check_formats.py --reference-dll <built-ModSync.Core.dll> --rust <modsync-binary> --output <scratch-folder>` reruns the bidirectional checks with bubblewrap isolating C# settings/cache and network access. The check compares install-relevant fields and records its scope in `receipt.json`.

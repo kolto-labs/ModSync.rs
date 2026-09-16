@@ -5,10 +5,10 @@ Reference: the local ModSync C# source at `d31ccbd3bfcddb4705917eafa6483715c166d
 | Area | Implemented behavior | Limits |
 |---|---|---|
 | Desktop | Native egui wizard, file/folder pickers, selection, options, search, validation, install, recovery, logs, report export | No visual or accessibility equivalence claim to Avalonia |
-| CLI | List, convert, validate, install, restore, download; JSON progress | No MCP server or protocol registration |
-| Formats | Existing `thisMod` TOML, JSON, YAML; fenced structured Markdown | XML and natural-language guide interpretation are not implemented |
-| Metadata | Preserves additional component and guide fields during conversion | Preserving a field does not implement its feature |
-| Selection | GUI file flags; CLI select-all or file flags, explicit components/options | No automatic dependency selection |
+| CLI | List, convert (including stdin/stdout), validate, install, restore, download; JSON progress | No MCP server or protocol registration |
+| Formats | Existing `thisMod` TOML; JSON arrays; YAML document streams; XML; format aliases/autodetection; fenced structured Markdown | Prose Markdown import/export and complete parser error-recovery parity remain open |
+| Metadata | Preserves additional component fields; TOML/YAML retain build metadata | Preserving a field does not implement its feature; XML typing of arbitrary metadata remains unverified |
+| Selection | File selections, select-all when all components are unselected; explicit CLI components/options | No automatic dependency selection |
 | Ordering | Stable dependency sort, restrictions, InstallBefore/After, instruction conditions | Missing references and cycles fail |
 | Options | Choose resolves selected option GUIDs in declared option order | No automatic choice inference |
 | File operations | Copy, Move, Rename, Delete, Extract, DelDuplicate, CleanList | Copy/Move flatten matched files into the target, as the C# instruction engine does |
@@ -55,3 +55,7 @@ A direct HTTPS download of the RAR test fixture matched its expected SHA-256 and
 ### Streaming milestone
 
 Local checks: 21 regular integration tests pass; the explicit 513 MiB GZip extraction and atomic-copy regression passes separately (18.23 seconds test time; 110,384 KiB maximum resident set for the measured cargo command). The temporary filesystem was tmpfs, so this measures process memory, not physical disk throughput or total system memory. New checks cover TAR/GZip CRC failures and links, expansion budgets, cleanup on cancellation, nested archive validation without install-tree writes, 7z SFX signatures crossing buffer boundaries, and C# CleanList matching. These fixtures do not establish full archive-corpus or full-build equivalence.
+
+### Structured-format evidence
+
+The five format tests exercise XML legacy roots/entities/collections, YAML documents and metadata, aliases/autodetection, CLI stdin/named paths, and saved C# exports. `tools/check_formats.py` also verified live C#↔Rust conversion for TOML/JSON/YAML/XML, including options and ordering constraints; see `docs/parity/format-check.json` for its exact scope. K1/K2 full guide component models survived JSON/YAML/XML round trips. These checks do not prove natural-language ingestion, complete resource migration, unknown metadata typing, or complete C# CLI parity. JSON/XML follow the C# formats' omission of root build metadata.

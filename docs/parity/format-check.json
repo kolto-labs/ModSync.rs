@@ -1,0 +1,84 @@
+{
+  "reference_dll_sha256": "8f3b1e3f8fe47b2cc6f8e3f281912506721c7367218381bb2a35cf86dc5768f0",
+  "fixture_sha256": "17843feeac5622b193fa571868ce79d0c858d729c4c83fb9f8b5d0ffc8578a1d",
+  "checks": [
+    {
+      "format": "toml",
+      "csharp_reads_rust": true,
+      "rust_reads_csharp": true
+    },
+    {
+      "format": "json",
+      "csharp_reads_rust": true,
+      "rust_reads_csharp": true
+    },
+    {
+      "format": "yaml",
+      "csharp_reads_rust": true,
+      "rust_reads_csharp": true
+    },
+    {
+      "format": "xml",
+      "csharp_reads_rust": true,
+      "rust_reads_csharp": true
+    }
+  ],
+  "scope": "Component identity, category, selection, ordering constraints, instructions, options. Resource metadata and build metadata are not certified.",
+  "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+  "source_files_sha256": {
+    "src/model.rs": "7cacb4755a3e6b1ca9615a51d6f89d9179bdff5d6defebb1c71a8e17863cc66e",
+    "src/xml.rs": "d15737f2909f85a969c098843e93fd57b607b84228c46018c8e12aaa7f6e4000",
+    "src/main.rs": "34925a94e1a710ffe5c33adc3aae304105d6702d4ce63dd7bf9a22d391a20928",
+    "Cargo.toml": "21a7f8d2a54632f7e2f5de13eef17756135ecc950e21ca46bf2a6f2fe4a95c5d"
+  },
+  "full_guide_component_roundtrips": [
+    {
+      "guide": "KOTOR1_Full",
+      "input_sha256": "7a4417963c62ec8205b1d219ecad10ea6cd3419897face92df04ea1aa8aecd3d",
+      "format": "json",
+      "components": 189,
+      "component_models_equal": true
+    },
+    {
+      "guide": "KOTOR1_Full",
+      "input_sha256": "7a4417963c62ec8205b1d219ecad10ea6cd3419897face92df04ea1aa8aecd3d",
+      "format": "yaml",
+      "components": 189,
+      "component_models_equal": true
+    },
+    {
+      "guide": "KOTOR1_Full",
+      "input_sha256": "7a4417963c62ec8205b1d219ecad10ea6cd3419897face92df04ea1aa8aecd3d",
+      "format": "xml",
+      "components": 189,
+      "component_models_equal": true
+    },
+    {
+      "guide": "KOTOR2_Full",
+      "input_sha256": "24fb779ac7f2941d0e6243584ebbb4d31d9025a0ddb45e2f64b94e4071df29c8",
+      "format": "json",
+      "components": 145,
+      "component_models_equal": true
+    },
+    {
+      "guide": "KOTOR2_Full",
+      "input_sha256": "24fb779ac7f2941d0e6243584ebbb4d31d9025a0ddb45e2f64b94e4071df29c8",
+      "format": "yaml",
+      "components": 145,
+      "component_models_equal": true
+    },
+    {
+      "guide": "KOTOR2_Full",
+      "input_sha256": "24fb779ac7f2941d0e6243584ebbb4d31d9025a0ddb45e2f64b94e4071df29c8",
+      "format": "xml",
+      "components": 145,
+      "component_models_equal": true
+    }
+  ],
+  "csharp_fixtures_sha256": {
+    "tests/fixtures/csharp/csharp.toml": "7812432325d4b3dfae0cf7300faa3c7b06b7d340d6919e36a034616a3f7146b9",
+    "tests/fixtures/csharp/csharp.json": "9a5bd96d6291bcca2b9da8cfda98e5b283adb3f966e0f3247f76801a17dad33e",
+    "tests/fixtures/csharp/csharp.yaml": "9cabc9fe431eacdcd91c92370a002052122dc8629cf5a4af70f06afd98e8ac12",
+    "tests/fixtures/csharp/csharp.xml": "53d134b0e7a0018bed66f13ccc0b5cb72da7ddc6ea5155e641e93759da5150f6"
+  }
+}
