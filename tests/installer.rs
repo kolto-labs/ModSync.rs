@@ -396,6 +396,7 @@ fn external_failure_halts_and_named_ini_staging_keeps_original_config() {
     fs::write(&stub, "#!/bin/sh\n[ \"$1\" = --install ] && [ \"$2\" = --game-dir ] && [ \"$4\" = --tslpatchdata ] || exit 2\n[ \"$(cat \"$5/tslpatchdata/changes.ini\")\" = alternate ] || exit 3\n[ ! -f \"$5/tslpatchdata/namespaces.ini\" ] || exit 4\n[ \"$6\" = --cli ] && [ \"$7\" = -y ] || exit 5\nprintf patched > \"$3/patched.txt\"\nexit 7\n").unwrap();
     fs::set_permissions(&stub, fs::Permissions::from_mode(0o755)).unwrap();
     settings.patcher = Some(stub);
+    settings.patcher_engine = PatcherEngine::OdyPatcher;
     settings.allow_processes = true;
     fs::write(settings.roots.mods.join("sample.tga"), b"later step").unwrap();
     let g = guide(serde_json::json!([

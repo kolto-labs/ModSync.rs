@@ -20,9 +20,9 @@ use std::{
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum PatcherEngine {
-    #[default]
     OdyPatcher,
     KPatcher,
+    #[default]
     HoloPatcher,
 }
 

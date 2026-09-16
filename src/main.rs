@@ -283,7 +283,7 @@ struct InstallArgs {
     #[arg(long)]
     patcher: Option<PathBuf>,
     /// CLI patcher backend for Patcher instructions.
-    #[arg(long, value_enum, default_value_t = PatcherEngineArg::Ody)]
+    #[arg(long, value_enum, default_value_t = PatcherEngineArg::Holo)]
     patcher_engine: PatcherEngineArg,
     /// Existing scratch folder outside the game and mod trees (defaults to system temp).
     #[arg(long)]
@@ -864,6 +864,10 @@ fn run() -> Result<()> {
                 );
             }
             if args.direct_markdown {
+                ensure!(
+                    PatcherEngine::from(args.patcher_engine) == PatcherEngine::OdyPatcher,
+                    "Direct Markdown mode requires --patcher-engine ody-patcher"
+                );
                 let result = modsync::direct_markdown::apply(&mut guide.components);
                 eprintln!(
                     "Direct Markdown NLP: draftedFromProse={}, 4GB Patcher skipped={}, widescreen skipped={}",

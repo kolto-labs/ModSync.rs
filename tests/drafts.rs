@@ -222,7 +222,13 @@ fn direct_markdown_rejects_unreviewed_drafts_before_game_writes() {
     .unwrap();
 
     let result = Command::new(env!("CARGO_BIN_EXE_modsync"))
-        .args(["install", "--direct-markdown", "--input"])
+        .args([
+            "install",
+            "--direct-markdown",
+            "--patcher-engine",
+            "ody-patcher",
+            "--input",
+        ])
         .arg(&markdown)
         .arg("--game-dir")
         .arg(&game)
@@ -263,7 +269,13 @@ fn direct_markdown_installs_reviewed_actions_and_skips_special_components() {
     .unwrap();
 
     let result = Command::new(env!("CARGO_BIN_EXE_modsync"))
-        .args(["install", "--direct-markdown", "--input"])
+        .args([
+            "install",
+            "--direct-markdown",
+            "--patcher-engine",
+            "ody-patcher",
+            "--input",
+        ])
         .arg(&markdown)
         .arg("--game-dir")
         .arg(&game)
@@ -283,4 +295,33 @@ fn direct_markdown_installs_reviewed_actions_and_skips_special_components() {
     );
     assert!(!game.join("Override/wide.txt").exists());
     assert!(String::from_utf8_lossy(&result.stderr).contains("4GB Patcher skipped=1"));
+}
+
+#[test]
+fn direct_markdown_requires_odypatcher_before_game_writes() {
+    use std::process::Command;
+    let dir = tempfile::tempdir().unwrap();
+    let markdown = dir.path().join("input.md");
+    let game = dir.path().join("game");
+    let mods = dir.path().join("mods");
+    fs::create_dir(&game).unwrap();
+    fs::create_dir(&mods).unwrap();
+    fs::write(&markdown, "### Test\n").unwrap();
+
+    let result = Command::new(env!("CARGO_BIN_EXE_modsync"))
+        .args(["install", "--direct-markdown", "--input"])
+        .arg(&markdown)
+        .arg("--game-dir")
+        .arg(&game)
+        .arg("--source-dir")
+        .arg(&mods)
+        .output()
+        .unwrap();
+
+    assert!(!result.status.success());
+    assert!(
+        String::from_utf8_lossy(&result.stderr)
+            .contains("Direct Markdown mode requires --patcher-engine ody-patcher")
+    );
+    assert_eq!(fs::read_dir(&game).unwrap().count(), 0);
 }
