@@ -13,11 +13,13 @@ use std::{
 
 enum Message {
     Downloaded(PathBuf, modsync::archive::Options),
+    Conflicts(modsync::conflicts::Report),
     Log(String),
     Done(Result<()>),
 }
 #[derive(Clone, Copy, PartialEq)]
 enum Job {
+    Conflicts,
     Validate,
     Install,
     Restore,
@@ -56,6 +58,7 @@ pub struct App {
     cancelled: Arc<AtomicBool>,
     job: Job,
     validated: bool,
+    conflicts: Option<modsync::conflicts::Report>,
     confirm_install: bool,
     completed_base: Option<Vec<String>>,
     widescreen_notice_seen: bool,
@@ -107,6 +110,7 @@ impl App {
             cancelled: Arc::new(AtomicBool::new(false)),
             job: Job::Validate,
             validated: false,
+            conflicts: None,
             confirm_install: false,
             completed_base: None,
             widescreen_notice_seen: false,
@@ -131,6 +135,7 @@ impl App {
         self.finished = false;
         self.phase_failed = false;
         self.validated = false;
+        self.conflicts = None;
     }
 
     fn finish_wizard(&mut self) {
@@ -173,6 +178,7 @@ impl App {
         if let Some(guide) = &mut self.guide {
             modsync::selection::select_categories(&mut guide.components, &selected);
             self.validated = false;
+            self.conflicts = None;
             self.confirm_install = false;
         }
     }
@@ -221,6 +227,7 @@ impl App {
             self.game = destination.unwrap_or_default();
         }
         self.validated = false;
+        self.conflicts = None;
         self.confirm_install = false;
         Ok(())
     }
@@ -248,6 +255,7 @@ impl App {
             }
             self.guide = Some(guide);
             self.validated = false;
+            self.conflicts = None;
             self.confirm_install = false;
         } else {
             store.capture(
@@ -423,6 +431,7 @@ impl App {
         self.guide = Some(guide);
         self.fomod_choices.clear();
         self.validated = false;
+        self.conflicts = None;
         self.confirm_install = false;
         self.logs
             .push("FOMOD choices applied. Run validation before installing.".into());
@@ -443,6 +452,7 @@ impl App {
 
     fn start(&mut self, job: Job, ctx: &egui::Context) {
         self.validated = false;
+        self.conflicts = None;
         self.confirm_install = false;
         let settings = Settings::new(Path::new(&self.mods), Path::new(&self.game));
         let mut settings = match settings {
@@ -477,7 +487,9 @@ impl App {
         };
         self.cancelled = settings.cancelled.clone();
         let mut guide = self.phase_guide();
-        if matches!(job, Job::Validate | Job::Install) && !self.fomod_choices.trim().is_empty() {
+        if matches!(job, Job::Validate | Job::Install | Job::Conflicts)
+            && !self.fomod_choices.trim().is_empty()
+        {
             let result = (|| -> anyhow::Result<()> {
                 let choices = modsync::fomod::ChoicesFile::parse(&std::fs::read_to_string(
                     &self.fomod_choices,
@@ -510,6 +522,7 @@ impl App {
         self.job = job;
         self.logs.push(
             match job {
+                Job::Conflicts => "Analyzing file conflicts…",
                 Job::Validate => "Validating…",
                 Job::Install => "Installing…",
                 Job::Restore => "Restoring snapshot…",
@@ -550,6 +563,15 @@ impl App {
                         ctx.request_repaint();
                     };
                     let engine = Engine::new(settings)?;
+                    if job == Job::Conflicts {
+                        anyhow::ensure!(
+                            completed.is_none(),
+                            "Analyze conflicts before base installation"
+                        );
+                        let report = engine.analyze_conflicts(&guide)?;
+                        let _ = tx.send(Message::Conflicts(report));
+                        return Ok(());
+                    }
                     match (job, completed) {
                         (Job::Install, Some(ids)) => engine.install_remaining(&guide, &ids, emit),
                         (Job::Install, None) => engine.install(&guide, emit),
@@ -633,6 +655,7 @@ impl eframe::App for App {
                         }
                     }
                 }
+                Message::Conflicts(report) => self.conflicts = Some(report),
                 Message::Log(line) => self.logs.push(line),
                 Message::Done(result) => {
                     self.receiver = None;
@@ -650,7 +673,7 @@ impl eframe::App for App {
                         self.installed_phase();
                     }
                     self.validated = result.is_ok() && self.job == Job::Validate;
-                    self.logs.push(match result { Ok(()) => match self.job { Job::Validate => "Validation passed. External program effects, if any, remain unverified.", Job::Install => "Installation complete.", Job::Restore => "Snapshot restored and file hashes verified.", Job::Download => "Archive downloaded and integrity checked." }.into(), Err(e) => format!("Stopped: {e:#}") });
+                    self.logs.push(match result { Ok(()) => match self.job { Job::Conflicts => "Conflict analysis complete. Review the report and its limitations.", Job::Validate => "Validation passed. External program effects, if any, remain unverified.", Job::Install => "Installation complete.", Job::Restore => "Snapshot restored and file hashes verified.", Job::Download => "Archive downloaded and integrity checked." }.into(), Err(e) => format!("Stopped: {e:#}") });
                 }
             }
         }
@@ -749,16 +772,16 @@ impl eframe::App for App {
                 0 => {
                     ui.heading("Load an instruction file");
                     ui.label("Read ModSync TOML, JSON, YAML, XML, or Markdown. Review generated instructions before installing.");
-                    if Self::path_row(ui, "Guide", &mut self.input, false) { self.validated = false; }
+                    if Self::path_row(ui, "Guide", &mut self.input, false) { self.validated = false; self.conflicts = None; }
                     if ui.button("Load guide").clicked() { self.load(); }
                     if ui.add_enabled(self.guide.is_some(), egui::Button::new("Draft instructions from prose")).clicked()
                         && let Some(guide) = &mut self.guide {
                         let results = modsync::draft::generate(guide);
                         self.logs.push(format!("Drafted {} instructions; inspect each component before accepting its draft.", results.iter().map(|r| r.draft_instruction_count).sum::<usize>()));
-                        self.validated = false;
+                        self.validated = false; self.conflicts = None;
                     }
                     ui.separator();
-                    if Self::path_row(ui, "Game directory", &mut self.game, true) | Self::path_row(ui, "Mod directory", &mut self.mods, true) { self.validated = false; }
+                    if Self::path_row(ui, "Game directory", &mut self.game, true) | Self::path_row(ui, "Mod directory", &mut self.mods, true) { self.validated = false; self.conflicts = None; }
                     ui.label("Use separate folders. Put downloaded archives in the mod directory.");
                     if ui.button("Save directories for next launch").clicked() {
                         let result = (|| -> Result<()> {
@@ -774,8 +797,8 @@ impl eframe::App for App {
                 1 => {
                     let Some(g) = &mut self.guide else { ui.label("Load a guide first."); return; };
                     ui.horizontal(|ui| {
-                        if ui.button("Select all").clicked() { modsync::selection::select_visible(&mut g.components, &self.search, &self.tier_filter, &self.category_filter, self.spoiler_free); self.validated = false; self.confirm_install = false; }
-                        if ui.button("Deselect all").clicked() { modsync::selection::deselect_base(&mut g.components); self.validated = false; self.confirm_install = false; }
+                        if ui.button("Select all").clicked() { modsync::selection::select_visible(&mut g.components, &self.search, &self.tier_filter, &self.category_filter, self.spoiler_free); self.validated = false; self.conflicts = None; self.confirm_install = false; }
+                        if ui.button("Deselect all").clicked() { modsync::selection::deselect_base(&mut g.components); self.validated = false; self.conflicts = None; self.confirm_install = false; }
                         ui.add(egui::TextEdit::singleline(&mut self.search).hint_text("Search displayed name or description"));
                         if ui.add_enabled(!self.search.is_empty() || !self.tier_filter.is_empty() || !self.category_filter.is_empty(), egui::Button::new("Clear filters")).clicked() {
                             self.search.clear(); self.tier_filter.clear(); self.category_filter.clear();
@@ -801,7 +824,7 @@ impl eframe::App for App {
                         });
                         if ui.add_enabled(!self.tier_filter.is_empty(), egui::Button::new("Select through tier")).clicked() {
                             modsync::selection::select_tier(&mut g.components, &self.tier_filter);
-                            self.validated = false; self.confirm_install = false;
+                            self.validated = false; self.conflicts = None; self.confirm_install = false;
                         }
                         egui::ComboBox::from_id_salt("category_filter").selected_text(if self.category_filter.is_empty() { "All categories" } else { &self.category_filter }).show_ui(ui, |ui| {
                             ui.selectable_value(&mut self.category_filter, String::new(), "All categories");
@@ -809,7 +832,7 @@ impl eframe::App for App {
                         });
                         if ui.add_enabled(!self.category_filter.is_empty(), egui::Button::new("Select category")).clicked() {
                             modsync::selection::select_categories(&mut g.components, std::slice::from_ref(&self.category_filter));
-                            self.validated = false; self.confirm_install = false;
+                            self.validated = false; self.conflicts = None; self.confirm_install = false;
                         }
                     });
                     ui.label(format!("Base build: {}", modsync::selection::selection_summary(&g.components)));
@@ -843,7 +866,7 @@ impl eframe::App for App {
                                 ui.horizontal(|ui| {
                                     if ui.small_button(if selected_count == indices.len() { "Deselect group" } else { "Select group" }).clicked() {
                                         for index in indices { g.components[*index].is_selected = selected_count < indices.len(); }
-                                        self.validated = false; self.confirm_install = false;
+                                        self.validated = false; self.conflicts = None; self.confirm_install = false;
                                     }
                                     ui.label(format!("{selected_count} / {} selected", indices.len()));
                                 });
@@ -853,7 +876,7 @@ impl eframe::App for App {
                                         for index in indices {
                                             let c = &mut g.components[*index];
                                             ui.horizontal(|ui| {
-                                                if ui.checkbox(&mut c.is_selected, "").on_hover_text("Select component").changed() { self.validated = false; }
+                                                if ui.checkbox(&mut c.is_selected, "").on_hover_text("Select component").changed() { self.validated = false; self.conflicts = None; }
                                                 if ui.selectable_label(self.selected == *index, modsync::selection::display_name(c, self.spoiler_free)).on_hover_text(modsync::selection::tooltip(c, self.spoiler_free)).clicked() { self.selected = *index; }
                                             });
                                         }
@@ -866,7 +889,7 @@ impl eframe::App for App {
                                 ui.label(format!("{}  ·  {}", c.author, c.tier));
                                 ui.label(modsync::selection::display_description(c, self.spoiler_free)).on_hover_text(modsync::selection::tooltip(c, self.spoiler_free));
                                 if !c.directions.is_empty() && !self.spoiler_free { ui.separator(); ui.label(&c.directions); }
-                                if Self::options(ui, c, self.spoiler_free) { self.validated = false; }
+                                if Self::options(ui, c, self.spoiler_free) { self.validated = false; self.conflicts = None; }
                                 ui.separator();
                                 ui.strong("Download links");
                                 for url in c.resource_registry.keys() { ui.hyperlink(url); }
@@ -884,7 +907,7 @@ impl eframe::App for App {
                                     });
                                     if modsync::draft::requires_review(c) && ui.button("Mark these instructions reviewed").clicked() {
                                         if let Err(e) = modsync::draft::mark_reviewed(c) { self.logs.push(format!("Review remains open: {e:#}")); }
-                                        self.validated = false;
+                                        self.validated = false; self.conflicts = None;
                                     }
                                 }
                             }
@@ -912,7 +935,7 @@ impl eframe::App for App {
                         if let Some(g) = &mut self.guide {
                             for c in &mut g.components {
                                 if c.metadata.get("WidescreenOnly").and_then(serde_json::Value::as_bool) == Some(true) {
-                                    if ui.checkbox(&mut c.is_selected, &c.name).changed() { self.validated = false; }
+                                    if ui.checkbox(&mut c.is_selected, &c.name).changed() { self.validated = false; self.conflicts = None; }
                                     if c.is_selected { selected += 1; }
                                 }
                             }
@@ -926,7 +949,7 @@ impl eframe::App for App {
                     ui.label("Validation simulates file changes. Installation keeps a recovery copy of both folders.");
                     ui.label(format!("Game: {}", self.game));
                     ui.label(format!("Mods: {}", self.mods));
-                    if ui.checkbox(&mut self.allow_processes, "Trust this guide to run external programs").changed() { self.validated = false; }
+                    if ui.checkbox(&mut self.allow_processes, "Trust this guide to run external programs").changed() { self.validated = false; self.conflicts = None; }
                     Self::path_row(ui, "FOMOD archive", &mut self.fomod_archive, false);
                     if self.completed_base.is_none() && ui.add_enabled(!self.fomod_archive.trim().is_empty(),
                         egui::Button::new("Configure FOMOD archive…")).clicked() {
@@ -948,19 +971,20 @@ impl eframe::App for App {
                         }
                     }
                     if Self::path_row(ui, "FOMOD choices file (optional)", &mut self.fomod_choices, false) {
-                        self.validated = false;
+                        self.validated = false; self.conflicts = None;
                         self.confirm_install = false;
                     }
                     ui.collapsing("Archive storage", |ui| {
-                        if Self::path_row(ui, "Scratch folder (optional)", &mut self.scratch, true) { self.validated = false; }
+                        if Self::path_row(ui, "Scratch folder (optional)", &mut self.scratch, true) { self.validated = false; self.conflicts = None; }
                         ui.label("Use an existing folder outside the game and mod folders. Blank uses system temp.");
                         ui.horizontal(|ui| {
                             ui.label("Maximum expanded bytes per archive (optional)");
-                            if ui.text_edit_singleline(&mut self.expanded_budget).changed() { self.validated = false; }
+                            if ui.text_edit_singleline(&mut self.expanded_budget).changed() { self.validated = false; self.conflicts = None; }
                         });
                     });
-                    if self.allow_processes && Self::path_row(ui, "OdyPatcher", &mut self.patcher, false) { self.validated = false; }
+                    if self.allow_processes && Self::path_row(ui, "OdyPatcher", &mut self.patcher, false) { self.validated = false; self.conflicts = None; }
                     ui.horizontal(|ui| {
+                        if ui.add_enabled(self.completed_base.is_none(), egui::Button::new("Analyze conflicts")).clicked() { self.start(Job::Conflicts, ctx); }
                         if ui.button("Run validation").clicked() { self.start(Job::Validate, ctx); }
                         if ui.add_enabled(self.validated, egui::Button::new("Install selected mods…")).clicked() { self.confirm_install = true; }
                         if ui.button("Restore failed install").clicked() { self.start(Job::Restore, ctx); }
@@ -969,6 +993,28 @@ impl eframe::App for App {
                                 && let Err(e) = self.save_selection(&path) { self.logs.push(format!("Save failed: {e:#}")); }
                     });
                     ui.separator();
+                    if let Some(report) = &self.conflicts {
+                        ui.collapsing(format!("File conflicts: {} paths across {} analyzed components", report.conflicts.len(), report.analyzed_component_count), |ui| {
+                            ui.label("Simulated game-file writes for the current base selection. Last writer follows install order.");
+                            for limitation in &report.limitations { ui.colored_label(egui::Color32::DARK_RED, limitation); }
+                            if report.conflicts.is_empty() { ui.label("No conflicting simulated writes found."); }
+                            if ui.button("Copy conflict report").clicked() {
+                                match serde_json::to_string_pretty(report) {
+                                    Ok(text) => ui.ctx().copy_text(text),
+                                    Err(error) => self.logs.push(format!("Copy failed: {error}")),
+                                }
+                            }
+                            egui::ScrollArea::vertical().max_height(240.0).show(ui, |ui| {
+                                for conflict in &report.conflicts {
+                                    ui.collapsing(&conflict.destination_path, |ui| {
+                                        for (index, writer) in conflict.writers.iter().enumerate() {
+                                            ui.label(format!("{} — step {}{}", writer.component_name, writer.instruction_index + 1, if index + 1 == conflict.writers.len() { " (last writer)" } else { "" }));
+                                        }
+                                    });
+                                }
+                            });
+                        });
+                    }
                     ui.collapsing("Download a direct archive link", |ui| {
                         ui.label("Use browser downloads for Nexus, DeadlyStream pages, and MEGA. Direct HTTPS ZIP/7z links work here.");
                         ui.add(egui::TextEdit::singleline(&mut self.download_url).hint_text("https://…/mod.zip").desired_width(f32::INFINITY));
@@ -1133,6 +1179,38 @@ mod tests {
     }
 
     #[test]
+    fn desktop_conflict_worker_reports_without_writing_and_clears_stale_results() {
+        let root = tempfile::tempdir().unwrap();
+        let mods = root.path().join("mods");
+        let game = root.path().join("game");
+        std::fs::create_dir(&mods).unwrap();
+        std::fs::create_dir(&game).unwrap();
+        std::fs::write(mods.join("asset.txt"), "asset").unwrap();
+        let mut app = App::new(None, Some(game.clone()), Some(mods));
+        app.guide = Some(Guide::parse(r#"{"thisMod":[
+            {"Guid":"a","Name":"First","Instructions":[{"Action":"Copy","Source":["<<modDirectory>>/asset.txt"],"Destination":"<<gameDirectory>>/Override","Overwrite":true}]},
+            {"Guid":"b","Name":"Last","Instructions":[{"Action":"Copy","Source":["<<modDirectory>>/asset.txt"],"Destination":"<<gameDirectory>>/Override","Overwrite":true}]}
+        ]}"#, "json").unwrap());
+        app.conflicts = Some(modsync::conflicts::Report::default());
+        app.validated = true;
+        app.start(Job::Conflicts, &egui::Context::default());
+        assert!(app.conflicts.is_none());
+        assert!(!app.validated);
+        let receiver = app.receiver.take().unwrap();
+        let report = match receiver.recv_timeout(Duration::from_secs(10)).unwrap() {
+            Message::Conflicts(report) => report,
+            _ => panic!("expected conflict report"),
+        };
+        assert_eq!(report.conflicts.len(), 1);
+        assert_eq!(report.conflicts[0].winner_component_guid, "b");
+        assert!(matches!(
+            receiver.recv_timeout(Duration::from_secs(10)).unwrap(),
+            Message::Done(Ok(()))
+        ));
+        assert_eq!(std::fs::read_dir(&game).unwrap().count(), 0);
+    }
+
+    #[test]
     fn failed_job_setup_invalidates_validation_and_confirmation() {
         let root = tempfile::tempdir().unwrap();
         let game = root.path().join("game");
@@ -1141,7 +1219,13 @@ mod tests {
         std::fs::create_dir(&mods).unwrap();
         let mut app = App::new(None, Some(game.clone()), Some(mods));
         let ctx = egui::Context::default();
-        for job in [Job::Validate, Job::Install, Job::Restore, Job::Download] {
+        for job in [
+            Job::Conflicts,
+            Job::Validate,
+            Job::Install,
+            Job::Restore,
+            Job::Download,
+        ] {
             app.validated = true;
             app.confirm_install = true;
             app.expanded_budget = "invalid".into();
@@ -1156,7 +1240,7 @@ mod tests {
             .join("missing-choices.json")
             .to_string_lossy()
             .into_owned();
-        for job in [Job::Validate, Job::Install] {
+        for job in [Job::Conflicts, Job::Validate, Job::Install] {
             app.validated = true;
             app.confirm_install = true;
             app.start(job, &ctx);
