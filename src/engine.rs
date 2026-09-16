@@ -201,6 +201,13 @@ impl Engine {
 
     fn component(&mut self, c: &Component, emit: &mut impl FnMut(Event)) -> Result<()> {
         self.check_cancelled()?;
+        ensure!(
+            c.metadata
+                .get("UnresolvedMasters")
+                .is_none_or(|v| v.as_array().is_some_and(Vec::is_empty)),
+            "{} has unresolved Markdown masters; review its dependencies",
+            c.name
+        );
         for dependency in &c.dependencies {
             ensure!(
                 self.selected.contains(&dependency.to_ascii_lowercase()),

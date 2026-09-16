@@ -65,6 +65,22 @@ for format in ['toml', 'json', 'yaml', 'xml']:
     assert project(json.loads(read_cs.read_text())) == expected, f'Rust lost or changed {format} data'
     results.append({'format': format, 'csharp_reads_rust': True, 'rust_reads_csharp': True})
     print(f'{format}: both directions preserve compared fields', flush=True)
+markdown = fixture.with_suffix('.md')
+cs_md = output / 'csharp-markdown.json'
+rs_md = output / 'rust-markdown.json'
+csharp(markdown, cs_md, 'json')
+run([str(rust), 'convert', str(markdown), str(rs_md)], 'rust-read-markdown')
+cs_components = json.loads(cs_md.read_text())
+rs_components = json.loads(rs_md.read_text())
+assert project(cs_components) == project(rs_components), 'Markdown instruction/model mismatch'
+for cs, rs in zip(cs_components, rs_components):
+    for key in ['Author', 'Description', 'Directions', 'Tier', 'Heading', 'Language']:
+        default = [] if key == 'Language' else ''
+        assert cs.get(key, default) == rs.get(key, default), f'Markdown {key} mismatch'
+    assert sorted(cs.get('ResourceRegistry', {})) == sorted(rs.get('ResourceRegistry', {}))
+results.append({'format': 'markdown', 'same_input_matches_csharp': True,
+                'fixture_sha256': hashlib.sha256(markdown.read_bytes()).hexdigest()})
+print('markdown: authored fields and instructions match C#', flush=True)
 receipt = {'reference_dll_sha256': hashlib.sha256(reference.read_bytes()).hexdigest(),
            'fixture_sha256': hashlib.sha256(fixture.read_bytes()).hexdigest(), 'checks': results,
            'scope': 'Component identity, category, selection, ordering constraints, instructions, options. Resource metadata and build metadata are not certified.'}

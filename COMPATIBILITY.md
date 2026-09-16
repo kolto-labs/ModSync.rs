@@ -6,7 +6,7 @@ Reference: the local ModSync C# source at `d31ccbd3bfcddb4705917eafa6483715c166d
 |---|---|---|
 | Desktop | Native egui wizard, file/folder pickers, selection, options, search, validation, install, recovery, logs, report export | No visual or accessibility equivalence claim to Avalonia |
 | CLI | List, convert (including stdin/stdout), validate, install, restore, download; JSON progress | No MCP server or protocol registration |
-| Formats | Existing `thisMod` TOML; JSON arrays; YAML document streams; XML; format aliases/autodetection; fenced structured Markdown | Prose Markdown import/export and complete parser error-recovery parity remain open |
+| Formats | Existing `thisMod` TOML; JSON arrays; YAML document streams; XML; format aliases/autodetection; fenced structured Markdown; default prose fields and YAML/TOML component comments | Prose export, legacy bullet metadata, custom regex profiles and complete parser error-recovery parity remain open |
 | Metadata | Preserves additional component fields; TOML/YAML retain build metadata | Preserving a field does not implement its feature; XML typing of arbitrary metadata remains unverified |
 | Selection | File selections, select-all when all components are unselected; explicit CLI components/options | No automatic dependency selection |
 | Ordering | Stable dependency sort, restrictions, InstallBefore/After, instruction conditions | Missing references and cycles fail |
@@ -59,3 +59,11 @@ Local checks: 21 regular integration tests pass; the explicit 513 MiB GZip extra
 ### Structured-format evidence
 
 The five format tests exercise XML legacy roots/entities/collections, YAML documents and metadata, aliases/autodetection, CLI stdin/named paths, and saved C# exports. `tools/check_formats.py` also verified live C#↔Rust conversion for TOML/JSON/YAML/XML, including options and ordering constraints; see `docs/parity/format-check.json` for its exact scope. K1/K2 full guide component models survived JSON/YAML/XML round trips. These checks do not prove natural-language ingestion, complete resource migration, unknown metadata typing, or complete C# CLI parity. JSON/XML follow the C# formats' omission of root build metadata.
+
+### Markdown import checkpoint
+
+The shared loader imports `###` component sections, plain/bold fields and Docusaurus admonitions, linked names, categories/tiers, directions and warnings, plus explicit YAML/TOML `<!--<<ModSync>> ... -->` instructions/options. `## Mod List` limits component selection to that section, following the pinned reference. Exact master names resolve to GUIDs; unresolved master text is retained as `UnresolvedMasters` and blocks installation. Unannotated components use stable UUIDv8 identifiers derived from their section and position; C# generates random identifiers.
+
+Two new regressions compare a captured C# Markdown conversion, execute its explicit instructions in temporary trees, and reject both instruction-free prose and unresolved dependencies before game/mod mutation. Natural-language drafting is not implemented; import does not make prose executable. Author-qualified master aliases, spoiler variants, special widescreen/Aspyr extraction, paste UI and full corpus field equivalence remain open.
+
+The Rust parser loads the desktop K1 full/spoiler-free prose guides (186/180 components) and K2 full/spoiler-free guides (145/139). A live comparison with the pinned C# K1 full parser found the same 186 components; 15 of the 16 compared prose fields matched across all components. Nine `Screenshots` values differ because the reference pattern also matches that word within ordinary prose. This difference remains unresolved, not accepted as parity. The first C# attempt timed out at 120 seconds; the successful bounded retry took 198.76 seconds. See `docs/parity/markdown-check.json` for input/source hashes and mismatches. No corpus install or natural-language instruction generation was performed.

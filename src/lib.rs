@@ -8,4 +8,5 @@ pub mod recovery;
 pub use engine::{Engine, Event, Settings};
 pub use model::{Component, Guide, Instruction};
 
+mod markdown;
 mod xml;

@@ -124,29 +124,7 @@ impl Guide {
                 }
                 guide
             }
-            "md" => {
-                let mut guides = Vec::new();
-                for (index, block) in text.split("```").enumerate() {
-                    if index % 2 == 0 {
-                        continue;
-                    }
-                    if let Some((lang, content)) = block.split_once('\n')
-                        && matches!(lang.trim(), "toml" | "json" | "yaml" | "yml" | "xml")
-                    {
-                        guides.push(Self::parse(content, lang.trim())?);
-                    }
-                }
-                ensure!(
-                    !guides.is_empty(),
-                    "Markdown needs a fenced TOML, JSON, or YAML instruction block. Prose is not executable instructions."
-                );
-                let mut combined = Self::default();
-                for guide in guides {
-                    combined.components.extend(guide.components);
-                    combined.metadata.extend(guide.metadata);
-                }
-                combined
-            }
+            "md" => crate::markdown::parse(text)?,
             other => bail!("Unsupported instruction format: {other}"),
         };
         ensure!(!guide.components.is_empty(), "The guide has no components");
@@ -177,7 +155,7 @@ impl Guide {
         Ok(guide)
     }
 
-    fn from_value(mut value: serde_json::Value) -> Result<Self> {
+    pub(crate) fn from_value(mut value: serde_json::Value) -> Result<Self> {
         use serde_json::Value;
         if value.is_array() {
             value = serde_json::json!({"thisMod": value});
@@ -368,6 +346,21 @@ fn normalize_component(value: &mut serde_json::Value) -> Result<()> {
         .as_object_mut()
         .context("Component must be an object")?;
     object.retain(|_, value| !value.is_null());
+    if let Some(tier) = object.get_mut("Tier")
+        && let Some(text) = tier.as_str()
+    {
+        let lower = text.to_lowercase();
+        *tier = [
+            ("essential", "1 - Essential"),
+            ("recommend", "2 - Recommended"),
+            ("suggest", "3 - Suggested"),
+            ("option", "4 - Optional"),
+        ]
+        .into_iter()
+        .find(|(name, _)| lower.contains(name))
+        .map_or(text.trim(), |(_, normalized)| normalized)
+        .into();
+    }
     for field in ["Category", "Language"] {
         if let Some(value) = object.get_mut(field) {
             let string = value.as_str().or_else(|| {

@@ -39,7 +39,7 @@ enum Action {
         #[arg(long)]
         source_dir: PathBuf,
     },
-    /// Convert TOML, JSON, YAML, XML, or structured Markdown input.
+    /// Convert TOML, JSON, YAML, XML, or Markdown input.
     Convert {
         input: Option<PathBuf>,
         output: Option<PathBuf>,

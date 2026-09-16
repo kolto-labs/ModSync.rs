@@ -172,3 +172,163 @@ fn reads_pinned_csharp_exports_without_losing_components_or_instructions() {
         );
     }
 }
+
+#[test]
+fn markdown_fields_and_embedded_instructions_match_csharp() {
+    let fenced = format!("### Instructions\n```json\n{FIXTURE}\n```\n");
+    assert_eq!(Guide::parse(&fenced, "md").unwrap().components.len(), 2);
+    assert!(
+        Guide::parse(
+            &format!("{fenced}\n### Another mod\nName: Unexecuted\n"),
+            "md"
+        )
+        .is_err()
+    );
+    let text = include_str!("fixtures/guide.md");
+    let notes = Guide::parse(
+        &text
+            .replace("Functionality:** All", "Functionality:** French, German")
+            .replace(
+                "Copy the chosen textures.",
+                "**For Windows:** Copy textures.\n\n    **For Linux:** Copy textures too.",
+            ),
+        "md",
+    )
+    .unwrap();
+    assert_eq!(
+        notes.components[0].metadata["Language"],
+        serde_json::json!(["French, German"])
+    );
+    assert!(notes.components[0].directions.contains("**For Linux:**"));
+    let actual = Guide::parse(text, "md").unwrap();
+    let expected = Guide::parse(include_str!("fixtures/csharp/markdown.json"), "json").unwrap();
+    assert_eq!(actual.components.len(), 2);
+    let a = serde_json::to_value(&actual.components).unwrap();
+    let b = serde_json::to_value(&expected.components).unwrap();
+    for (a, b) in a.as_array().unwrap().iter().zip(b.as_array().unwrap()) {
+        for key in [
+            "Guid",
+            "Name",
+            "Author",
+            "Description",
+            "Tier",
+            "Category",
+            "Directions",
+            "IsSelected",
+            "Instructions",
+            "Options",
+            "Dependencies",
+            "Restrictions",
+        ] {
+            assert_eq!(a[key], b[key], "{key}");
+        }
+    }
+    assert_eq!(actual.components[0].metadata["Heading"], "Display title");
+    assert_eq!(
+        actual.components[0].metadata["Language"],
+        serde_json::json!(["All"])
+    );
+    assert!(
+        actual.components[0]
+            .resource_registry
+            .contains_key("https://example.com/base.zip")
+    );
+    assert!(
+        actual.metadata["preambleContent"]
+            .as_str()
+            .unwrap()
+            .contains("Read before")
+    );
+    assert!(
+        actual.metadata["epilogueContent"]
+            .as_str()
+            .unwrap()
+            .contains("This is not a mod")
+    );
+    let crlf = Guide::parse(&text.replace('\n', "\r\n"), "markdown").unwrap();
+    assert_eq!(serde_json::to_value(crlf.components).unwrap(), a);
+    assert_eq!(Guide::parse(text, "auto").unwrap().components.len(), 2);
+    for malformed in [
+        text.replace("Action: Copy", "Unrecognized: Copy"),
+        text.replace("-->\n___", "\n___"),
+        text.replace("Instructions:\n", "Instructions: [broken\n"),
+    ] {
+        assert!(Guide::parse(&malformed, "md").is_err());
+    }
+    let dir = tempfile::tempdir().unwrap();
+    let mods = dir.path().join("mods");
+    let game = dir.path().join("game");
+    std::fs::create_dir(&mods).unwrap();
+    std::fs::create_dir(&game).unwrap();
+    std::fs::write(mods.join("sample.tga"), b"base").unwrap();
+    std::fs::write(mods.join("extra.tga"), b"extra").unwrap();
+    let settings = modsync::Settings::new(&mods, &game).unwrap();
+    modsync::Engine::new(settings.clone())
+        .unwrap()
+        .validate(&actual, |_| {})
+        .unwrap();
+    assert_eq!(std::fs::read_dir(&game).unwrap().count(), 0);
+    modsync::Engine::new(settings)
+        .unwrap()
+        .install(&actual, |_| {})
+        .unwrap();
+    assert_eq!(
+        std::fs::read(game.join("Override/sample.tga")).unwrap(),
+        b"base"
+    );
+    assert_eq!(
+        std::fs::read(game.join("Override/extra.tga")).unwrap(),
+        b"extra"
+    );
+}
+
+#[test]
+fn prose_import_resolves_masters_but_does_not_invent_executable_instructions() {
+    let text = "### First\nAuthor: Author\n\n### Second\nMasters: First\n:::warning\nInstallation Instructions\n: Copy files manually.\n:::\n";
+    let guide = Guide::parse(text, "md").unwrap();
+    assert_eq!(guide.components.len(), 2);
+    assert_eq!(
+        guide.components[1].dependencies,
+        [guide.components[0].guid.clone()]
+    );
+    assert_eq!(guide.components[1].directions, "Copy files manually.");
+    assert!(guide.components.iter().all(|c| c.instructions.is_empty()));
+    assert_eq!(
+        guide.components[0].guid,
+        Guide::parse(text, "md").unwrap().components[0].guid
+    );
+    let unresolved =
+        Guide::parse(&text.replace("Masters: First", "Masters: Missing"), "md").unwrap();
+    assert_eq!(
+        unresolved.components[1].metadata["UnresolvedMasters"],
+        serde_json::json!(["Missing"])
+    );
+    let dir = tempfile::tempdir().unwrap();
+    let mods = dir.path().join("mods");
+    let game = dir.path().join("game");
+    std::fs::create_dir(&mods).unwrap();
+    std::fs::create_dir(&game).unwrap();
+    let settings = modsync::Settings::new(&mods, &game).unwrap();
+    let error = modsync::Engine::new(settings.clone())
+        .unwrap()
+        .install(&guide, |_| {})
+        .unwrap_err();
+    assert!(
+        error.to_string().contains("no executable instructions"),
+        "{error:#}"
+    );
+    let mut authored = Guide::parse(include_str!("fixtures/guide.md"), "md").unwrap();
+    authored.components[0]
+        .metadata
+        .insert("UnresolvedMasters".into(), serde_json::json!(["Missing"]));
+    let error = modsync::Engine::new(settings)
+        .unwrap()
+        .install(&authored, |_| {})
+        .unwrap_err();
+    assert!(
+        error.to_string().contains("unresolved Markdown masters"),
+        "{error:#}"
+    );
+    assert_eq!(std::fs::read_dir(mods).unwrap().count(), 0);
+    assert_eq!(std::fs::read_dir(game).unwrap().count(), 0);
+}

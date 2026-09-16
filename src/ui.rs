@@ -316,7 +316,7 @@ impl eframe::App for App {
             ui.add_enabled_ui(!busy, |ui| match self.page {
                 0 => {
                     ui.heading("Load an instruction file");
-                    ui.label("Read existing ModSync TOML, JSON, YAML, or Markdown with instruction blocks.");
+                    ui.label("Read ModSync TOML, JSON, YAML, XML, or Markdown. Installation requires explicit instructions.");
                     if Self::path_row(ui, "Guide", &mut self.input, false) { self.validated = false; }
                     if ui.button("Load guide").clicked() { self.load(); }
                     ui.separator();

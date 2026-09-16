@@ -1,0 +1,112 @@
+[
+  {
+    "Guid": "11111111-1111-1111-1111-111111111111",
+    "Name": "Base textures",
+    "NameSpoilerFree": "",
+    "Heading": "Display title",
+    "Author": "Author One",
+    "Category": [
+      "Textures",
+      "Models"
+    ],
+    "Tier": "1 - Essential",
+    "Language": [
+      "All"
+    ],
+    "ResourceRegistry": {
+      "https://example.com/base.zip": {
+        "HandlerMetadata": {},
+        "Files": {},
+        "FileSize": 0,
+        "UpdateAvailable": false
+      }
+    },
+    "ExcludedDownloads": [],
+    "Description": "First line.\n\nSecond line.",
+    "DescriptionSpoilerFree": "",
+    "InstallationMethod": "",
+    "Directions": "Copy the chosen textures.",
+    "DirectionsSpoilerFree": "",
+    "DownloadInstructions": "",
+    "DownloadInstructionsSpoilerFree": "",
+    "UsageWarning": "",
+    "UsageWarningSpoilerFree": "",
+    "Screenshots": "",
+    "ScreenshotsSpoilerFree": "",
+    "KnownBugs": "",
+    "InstallationWarning": "",
+    "CompatibilityWarning": "",
+    "SteamNotes": "",
+    "Dependencies": [],
+    "DependencyNames": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "IsSelected": true,
+    "Instructions": [
+      {
+        "Action": "Copy",
+        "Source": [
+          "<<modDirectory>>/sample.tga"
+        ],
+        "Destination": "<<kotorDirectory>>/Override",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "WidescreenOnly": false
+  },
+  {
+    "Guid": "22222222-2222-2222-2222-222222222222",
+    "Name": "Extra textures",
+    "NameSpoilerFree": "",
+    "Heading": "",
+    "Author": "Author Two",
+    "Category": [
+      "Textures"
+    ],
+    "Tier": "4 - Optional",
+    "Language": [],
+    "ResourceRegistry": {},
+    "ExcludedDownloads": [],
+    "Description": "Additional files.",
+    "DescriptionSpoilerFree": "",
+    "InstallationMethod": "",
+    "Directions": "Copy the second texture.",
+    "DirectionsSpoilerFree": "",
+    "DownloadInstructions": "",
+    "DownloadInstructionsSpoilerFree": "",
+    "UsageWarning": "",
+    "UsageWarningSpoilerFree": "",
+    "Screenshots": "",
+    "ScreenshotsSpoilerFree": "",
+    "KnownBugs": "",
+    "InstallationWarning": "",
+    "CompatibilityWarning": "",
+    "SteamNotes": "",
+    "Dependencies": [
+      "11111111-1111-1111-1111-111111111111"
+    ],
+    "DependencyNames": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "IsSelected": true,
+    "Instructions": [
+      {
+        "Action": "Copy",
+        "Source": [
+          "<<modDirectory>>/extra.tga"
+        ],
+        "Destination": "<<kotorDirectory>>/Override",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "WidescreenOnly": false
+  }
+]

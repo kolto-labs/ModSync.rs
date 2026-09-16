@@ -1,0 +1,172 @@
+{
+  "reference_dll_sha256": "8f3b1e3f8fe47b2cc6f8e3f281912506721c7367218381bb2a35cf86dc5768f0",
+  "fixture_sha256": "17843feeac5622b193fa571868ce79d0c858d729c4c83fb9f8b5d0ffc8578a1d",
+  "checks": [
+    {
+      "format": "toml",
+      "csharp_reads_rust": true,
+      "rust_reads_csharp": true
+    },
+    {
+      "format": "json",
+      "csharp_reads_rust": true,
+      "rust_reads_csharp": true
+    },
+    {
+      "format": "yaml",
+      "csharp_reads_rust": true,
+      "rust_reads_csharp": true
+    },
+    {
+      "format": "xml",
+      "csharp_reads_rust": true,
+      "rust_reads_csharp": true
+    },
+    {
+      "format": "markdown",
+      "same_input_matches_csharp": true,
+      "fixture_sha256": "c6c45c038cbdeb14d3e0c27d8914b257fc66298280d7227b54f91511ad78d3e6"
+    }
+  ],
+  "scope": "Component identity, category, selection, ordering constraints, instructions, options. Resource metadata and build metadata are not certified.",
+  "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+  "rust_source_sha256": {
+    "src/markdown.rs": "adfda2525dc7762c4d924f3ceab8f46d6333f1945f6b91cb40b8f98836db0289",
+    "src/model.rs": "3f70d7e8e3ed9b7b5a93ffc699f81474f758f6e0a79e019061a9d6e752511961",
+    "src/engine.rs": "ac2d8d978e96606086c38131698189f56e2b2a1c92c1735566f1cae2983d81c7",
+    "tests/formats.rs": "da5ef44a3531f132ab5bfeba658cb5dc76513851e5693e61998ce3f7c0f1c278",
+    "tools/check_formats.py": "76b6bb821acc0d022777d233df1036388c38ab36700e0fdcdf56ae709699fdc9"
+  },
+  "rust_corpus_parse": [
+    {
+      "source": "/run/media/brunner56/MyBook/Workspaces/ModSync/mod-builds/content/k1/full.md",
+      "sha256": "fc81840edb64da1684697dc89d72c9235c6afaa43d4d1e0b1989e4f206ba1cd2",
+      "components": 186,
+      "unresolved_master_components": 3,
+      "authored_instruction_count": 0,
+      "scope": "Rust parse only; not C# field or installation equivalence"
+    },
+    {
+      "source": "/run/media/brunner56/MyBook/Workspaces/ModSync/mod-builds/content/k1/spoiler-free.md",
+      "sha256": "ee2eed5ee19f7dc4356c70f1c3a58533fa48e1b25a434b71bf0cec019466bae8",
+      "components": 180,
+      "unresolved_master_components": 3,
+      "authored_instruction_count": 0,
+      "scope": "Rust parse only; not C# field or installation equivalence"
+    },
+    {
+      "source": "/run/media/brunner56/MyBook/Workspaces/ModSync/mod-builds/content/k2/full.md",
+      "sha256": "4587e4a6a3e5dfde23a9b0f2031f4b56ae62b028b3140f79096135df682d8b0a",
+      "components": 145,
+      "unresolved_master_components": 2,
+      "authored_instruction_count": 0,
+      "scope": "Rust parse only; not C# field or installation equivalence"
+    },
+    {
+      "source": "/run/media/brunner56/MyBook/Workspaces/ModSync/mod-builds/content/k2/spoiler-free.md",
+      "sha256": "5b137924f4ba6b883b31abbb496beda323904af4d8f871d4aea42b776302c881",
+      "components": 139,
+      "unresolved_master_components": 2,
+      "authored_instruction_count": 0,
+      "scope": "Rust parse only; not C# field or installation equivalence"
+    }
+  ],
+  "k1_differential": {
+    "components": 186,
+    "fields_compared": [
+      "Name",
+      "Author",
+      "Description",
+      "Directions",
+      "Category",
+      "Tier",
+      "Language",
+      "Heading",
+      "InstallationMethod",
+      "DownloadInstructions",
+      "UsageWarning",
+      "Screenshots",
+      "KnownBugs",
+      "InstallationWarning",
+      "CompatibilityWarning",
+      "SteamNotes"
+    ],
+    "mismatch_count": 9,
+    "mismatches": [
+      {
+        "component_index": 35,
+        "name": "HD Twi'lek Females",
+        "field": "Screenshots",
+        "csharp": "all show a new texture which I don't like and don't use. We use a slightly older mod version without as many head changes.",
+        "rust": ""
+      },
+      {
+        "component_index": 38,
+        "name": "Calo Nord Recolor",
+        "field": "Screenshots",
+        "csharp": ".",
+        "rust": "[Here](http://imgur.com/a/KoIKD)"
+      },
+      {
+        "component_index": 39,
+        "name": "HD Darth Malak",
+        "field": "Screenshots",
+        "csharp": "really don't do this mod justice, it's excellent.",
+        "rust": ""
+      },
+      {
+        "component_index": 41,
+        "name": "Detran's Darth Revan",
+        "field": "Screenshots",
+        "csharp": "really don't do this mod justice, the texture is excellent.",
+        "rust": ""
+      },
+      {
+        "component_index": 50,
+        "name": "Cloaked Jedi Robes",
+        "field": "Screenshots",
+        "csharp": "provided to determine which robe style you would like to use. Aesthetically, I strongly recommend the Brown-Red-Blue Alternative.\n:::",
+        "rust": ""
+      },
+      {
+        "component_index": 63,
+        "name": "Ithorians HD",
+        "field": "Screenshots",
+        "csharp": "at the top of the page are the base install, the spoilered screenshots at the bottom of the mod description are the modified Vurt versions.\n:::",
+        "rust": ""
+      },
+      {
+        "component_index": 77,
+        "name": "Jolee Bindo HD",
+        "field": "Screenshots",
+        "csharp": "in the following download.",
+        "rust": ""
+      },
+      {
+        "component_index": 78,
+        "name": "Fen's Jolee",
+        "field": "Screenshots",
+        "csharp": ". This mod actually looks very good, at least for its head textures. That's all we'll be using it for.",
+        "rust": ""
+      },
+      {
+        "component_index": 95,
+        "name": "Hi-Res Beam Effects",
+        "field": "Screenshots",
+        "csharp": "fool you, this is an extremely well-made mod that looks excellent compared to the original textures when in-game.",
+        "rust": ""
+      }
+    ],
+    "first_attempt_timeout_seconds": 120,
+    "successful_attempt_seconds": 198.76,
+    "scope": "Field comparison only. Random versus deterministic GUIDs, selection, dependency resolution, metadata defaults and installation are not certified."
+  },
+  "local_checks": {
+    "regular_integration_tests": 28,
+    "ignored_large_archive_tests": 1,
+    "fmt": true,
+    "clippy_all_targets": true,
+    "all_targets": true,
+    "no_default_features": true
+  }
+}
