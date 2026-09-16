@@ -279,3 +279,5 @@ F15 XML selection checkpoint: ModuleConfig selection projection connects authore
 F15 presentation metadata checkpoint: plugin descriptions and image paths reach the shared selection model, including mixed XML text and empty defaults. Rendering and safe archive-contained image resolution remain open.
 
 F15 module-data checkpoint: XML retains required/plugin/conditional file records and priorities, with regression coverage for raw paths, order and numeric defaults. Safe mapping, priority execution, remaining dependency kinds and installation proof remain open.
+
+F15 file-planning checkpoint: selected visible files and reference-compatible conditional attachment order are computed without writes. Unsupported mapper patterns reject rather than disappear. Live mapping differential, path containment and engine/UI/CLI integration remain open.

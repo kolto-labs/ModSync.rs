@@ -339,3 +339,38 @@ fn module_file_directives_keep_reference_order_paths_and_priority_defaults() {
     assert_eq!(module.conditional_files[0].files[0].source, "conditional");
     assert!(module.conditional_files[1].files[0].destination.is_empty());
 }
+
+#[test]
+fn file_plan_preserves_conditional_attachment_and_never_skips_unsupported_patterns() {
+    use modsync::fomod::parse_module_xml;
+    let xml = r#"<config><requiredInstallFiles><file source="required"/></requiredInstallFiles><installSteps><installStep><optionalFileGroups><group type="SelectAll"><plugins><plugin name="A"><files><file source="a"/></files><conditionFlags><flag name="mode">yes</flag></conditionFlags></plugin><plugin name="B"><files><file source="b"/></files><conditionFlags><flag name="mode">yes</flag></conditionFlags></plugin></plugins></group></optionalFileGroups></installStep></installSteps><conditionalFileInstalls><patterns><pattern><dependencies><flagDependency flag="MODE" value="yes"/></dependencies><files><file source="attached"/></files></pattern><pattern><files><file source="trailing"/></files></pattern></patterns></conditionalFileInstalls></config>"#;
+    let mut module = parse_module_xml(xml).unwrap();
+    let sources = |m: &modsync::fomod::ModuleConfig| {
+        m.selected_files()
+            .unwrap()
+            .iter()
+            .map(|f| f.source.clone())
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(
+        sources(&module),
+        ["required", "a", "attached", "b", "trailing"]
+    );
+    module.steps[0].groups[0].kind = GroupType::SelectAny;
+    module.steps[0].groups[0].set_selected(0, false).unwrap();
+    assert_eq!(sources(&module), ["required", "b", "trailing"]);
+    let unsupported = xml.replace("<dependencies>", "<dependencies><dependencies/>");
+    assert!(
+        parse_module_xml(&unsupported)
+            .unwrap()
+            .selected_files()
+            .is_err()
+    );
+    let missing = xml.replace("value=\"yes\"", "value=\"missing\"");
+    assert!(
+        parse_module_xml(&missing)
+            .unwrap()
+            .selected_files()
+            .is_err()
+    );
+}

@@ -401,3 +401,7 @@ XML selection state now preserves trimmed plugin descriptions and authored image
 ### FOMOD module file data
 
 parse_module_xml now retains module name, required files, plugin files and flag-conditional file patterns alongside selection state. File/folder records preserve authored source/destination and order; signed 32-bit priority parses with whitespace and defaults to zero for missing/invalid/overflow values, following the reference parser. Missing conditional dependencies become an always-true empty conjunction. Parsing does not resolve paths, sort priorities or authorize writes. File/game dependencies, info.xml, instruction mapping, archive containment and installer integration remain open.
+
+### FOMOD selected file plan
+
+ModuleConfig.selected_files builds a read-only ordered plan: required files, selected visible plugin files with their attached conditional files, then unconditional patterns. Supported flat flag patterns attach to the first plugin declaring all required flags, even if another selected plugin declares them too, following the reference mapper. Nested/multi-branch OR patterns and flags not supplied by one plugin fail explicitly instead of being silently skipped. Priorities remain preserved data: the reference mapper does not sort them. Tests cover attachment order, first-match deselection and unsupported-pattern rejection. Safe path/instruction mapping and real installation remain open.

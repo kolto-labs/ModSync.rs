@@ -352,3 +352,77 @@ pub struct ModuleConfig {
     pub steps: Vec<StepSelection>,
     pub conditional_files: Vec<ConditionalFiles>,
 }
+
+impl ModuleConfig {
+    /// Build the reference mapper's file order without resolving paths or writing files.
+    /// Unsupported patterns fail instead of reproducing the reference's silent skips.
+    pub fn selected_files(&self) -> Result<Vec<&FileInstall>> {
+        let visible = visible_steps(&self.steps);
+        let plugins: Vec<_> = self
+            .steps
+            .iter()
+            .enumerate()
+            .flat_map(|(i, step)| {
+                step.groups
+                    .iter()
+                    .flat_map(move |group| group.plugins().iter().map(move |p| (i, p)))
+            })
+            .collect();
+        let mut attached: std::collections::BTreeMap<usize, Vec<&FileInstall>> =
+            std::collections::BTreeMap::new();
+        let mut trailing = Vec::new();
+        for pattern in &self.conditional_files {
+            let children: Vec<_> = match &pattern.condition {
+                FlagCondition::Flag { .. } => vec![&pattern.condition],
+                FlagCondition::All(children) => children.iter().collect(),
+                FlagCondition::Any(children) if children.len() <= 1 => children.iter().collect(),
+                _ => anyhow::bail!("FOMOD file pattern requires unsupported OR mapping"),
+            };
+            let mut flags = Vec::new();
+            for condition in children {
+                let FlagCondition::Flag { name, value } = condition else {
+                    anyhow::bail!(
+                        "FOMOD file pattern requires unsupported nested dependency mapping"
+                    );
+                };
+                flags.push((name, value));
+            }
+            if flags.is_empty() {
+                trailing.extend(&pattern.files);
+            } else {
+                let index = plugins
+                    .iter()
+                    .position(|(_, plugin)| {
+                        flags.iter().all(|(name, value)| {
+                            plugin
+                                .flags
+                                .iter()
+                                .any(|(n, v)| n.eq_ignore_ascii_case(name) && v == *value)
+                        })
+                    })
+                    .ok_or_else(|| {
+                        anyhow::anyhow!(
+                            "FOMOD conditional flags are not supplied by a single plugin"
+                        )
+                    })?;
+                attached.entry(index).or_default().extend(&pattern.files);
+            }
+        }
+        for &index in &visible {
+            for group in &self.steps[index].groups {
+                group.validate()?;
+            }
+        }
+        let mut files: Vec<_> = self.required_files.iter().collect();
+        for (index, (step, plugin)) in plugins.iter().enumerate() {
+            if visible.contains(step) && plugin.selected {
+                files.extend(&plugin.files);
+                if let Some(extra) = attached.get(&index) {
+                    files.extend(extra);
+                }
+            }
+        }
+        files.extend(trailing);
+        Ok(files)
+    }
+}
