@@ -275,3 +275,5 @@ F15 named-step checkpoint: choices apply atomically across unconditional steps/g
 F15 visibility checkpoint: shared flag conditions and ordered propagation implemented, including hidden-step contributions and visible-only final validation. Source-derived behavior has an executable Rust regression; live differential, file/game dependencies and XML/mapping/UI/CLI remain open.
 
 F15 XML selection checkpoint: ModuleConfig selection projection connects authored XML to shared group/flag logic, with malformed/DTD/unsupported-dependency rejection tests. Complete module/file metadata, conditional mapping, live differential and installation integration remain open.
+
+F15 presentation metadata checkpoint: plugin descriptions and image paths reach the shared selection model, including mixed XML text and empty defaults. Rendering and safe archive-contained image resolution remain open.

@@ -393,3 +393,7 @@ Step selections now carry optional nested All/Any/Flag conditions, and plugins c
 ### FOMOD XML selection reader
 
 The library now reads the selection portion of ModuleConfig.xml into shared steps/groups/plugins, including Required/Recommended defaults, dependencyType defaultType, condition flags and nested flag visibility. It uses namespace-local names, handles escaped attributes/CDATA, rejects DTDs/external entities and malformed roots, and bounds nesting. Unsupported non-flag visibility conditions fail explicitly. This reader intentionally does not produce install instructions or enable FOMOD extraction: files, priorities, descriptions/images, full module metadata and conditional file mapping remain to be added to a complete module parser. Regression checks XML-driven visibility/defaults and rejection boundaries; live differential XML coverage remains open.
+
+### FOMOD plugin details
+
+XML selection state now preserves trimmed plugin descriptions and authored image paths. Nested description text is concatenated in document order, matching XElement.Value semantics, with entity and CDATA decoding. Image paths remain untrusted metadata and are not opened by parsing. Regression covers mixed text, missing fields and an escaping image path retained without filesystem access. Image rendering/path containment and live C# differential proof remain open.

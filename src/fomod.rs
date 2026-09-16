@@ -14,6 +14,9 @@ pub enum GroupType {
 #[derive(Clone, Debug)]
 pub struct PluginSelection {
     pub name: String,
+    pub description: String,
+    /// Archive-relative authored path only; not a trusted filesystem path.
+    pub image_path: String,
     pub required: bool,
     pub flags: Vec<(String, String)>,
     /// Seed with Required/Recommended descriptor defaults before creating the group.

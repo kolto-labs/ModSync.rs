@@ -3,6 +3,8 @@ use modsync::fomod::{GroupSelection, GroupType, PluginSelection};
 fn plugin(name: &str, required: bool, selected: bool) -> PluginSelection {
     PluginSelection {
         name: name.into(),
+        description: String::new(),
+        image_path: String::new(),
         required,
         flags: vec![],
         selected,
@@ -298,4 +300,18 @@ fn module_xml_drives_selection_defaults_flags_and_visibility_without_installing(
         ))
         .is_err()
     );
+}
+
+#[test]
+fn xml_plugin_details_preserve_authored_text_without_opening_image_paths() {
+    use modsync::fomod::parse_selection_xml;
+    let xml = r#"<config><installSteps><installStep name="Details"><optionalFileGroups><group><plugins><plugin name="Described"><description> Before <b>bold &amp; bright</b> after <![CDATA[<literal>]]> </description><image path="../outside &amp; preview.png"/></plugin><plugin name="Empty"/></plugins></group></optionalFileGroups></installStep></installSteps></config>"#;
+    let steps = parse_selection_xml(xml).unwrap();
+    let plugins = steps[0].groups[0].plugins();
+    assert_eq!(
+        plugins[0].description,
+        "Before bold & bright after <literal>"
+    );
+    assert_eq!(plugins[0].image_path, "../outside & preview.png");
+    assert!(plugins[1].description.is_empty() && plugins[1].image_path.is_empty());
 }

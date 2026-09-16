@@ -57,6 +57,9 @@ fn tree(text: &str) -> Result<Node> {
             Event::End(_) => {
                 ensure!(stack.len() > 1, "Unexpected FOMOD XML end tag");
                 let node = stack.pop().unwrap();
+                if stack.len() > 1 {
+                    stack.last_mut().unwrap().text.push_str(&node.text);
+                }
                 stack.last_mut().unwrap().children.push(node);
             }
             Event::Text(text) => stack
@@ -156,6 +159,14 @@ pub fn parse_selection_xml(text: &str) -> Result<Vec<StepSelection>> {
                                 .unwrap_or_default();
                             plugins.push(PluginSelection {
                                 name: plugin.attr("name").into(),
+                                description: plugin
+                                    .child("description")
+                                    .map_or("", |n| n.text.trim())
+                                    .into(),
+                                image_path: plugin
+                                    .child("image")
+                                    .map_or("", |n| n.attr("path"))
+                                    .into(),
                                 required,
                                 selected: required
                                     || plugin_type.eq_ignore_ascii_case("Recommended"),
