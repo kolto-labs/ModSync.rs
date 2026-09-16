@@ -213,6 +213,17 @@ impl Engine {
         self.validate(guide, emit)
     }
 
+    /// Analyze only the uninstalled suffix under the same verified completion
+    /// contract as validate_remaining. Neither install tree is changed.
+    pub fn analyze_conflicts_remaining(
+        mut self,
+        guide: &Guide,
+        completed: &[String],
+    ) -> Result<crate::conflicts::Report> {
+        self.set_completed_prefix(guide, completed)?;
+        self.analyze_conflicts(guide)
+    }
+
     fn set_completed_prefix(&mut self, guide: &Guide, completed: &[String]) -> Result<()> {
         let ordered = guide.ordered()?;
         let ids: BTreeSet<_> = completed.iter().map(|id| id.to_ascii_lowercase()).collect();

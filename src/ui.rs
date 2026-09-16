@@ -564,11 +564,10 @@ impl App {
                     };
                     let engine = Engine::new(settings)?;
                     if job == Job::Conflicts {
-                        anyhow::ensure!(
-                            completed.is_none(),
-                            "Analyze conflicts before base installation"
-                        );
-                        let report = engine.analyze_conflicts(&guide)?;
+                        let report = match completed {
+                            Some(ids) => engine.analyze_conflicts_remaining(&guide, &ids)?,
+                            None => engine.analyze_conflicts(&guide)?,
+                        };
                         let _ = tx.send(Message::Conflicts(report));
                         return Ok(());
                     }
@@ -984,7 +983,7 @@ impl eframe::App for App {
                     });
                     if self.allow_processes && Self::path_row(ui, "OdyPatcher", &mut self.patcher, false) { self.validated = false; self.conflicts = None; }
                     ui.horizontal(|ui| {
-                        if ui.add_enabled(self.completed_base.is_none(), egui::Button::new("Analyze conflicts")).clicked() { self.start(Job::Conflicts, ctx); }
+                        if ui.button("Analyze conflicts").clicked() { self.start(Job::Conflicts, ctx); }
                         if ui.button("Run validation").clicked() { self.start(Job::Validate, ctx); }
                         if ui.add_enabled(self.validated, egui::Button::new("Install selected mods…")).clicked() { self.confirm_install = true; }
                         if ui.button("Restore failed install").clicked() { self.start(Job::Restore, ctx); }

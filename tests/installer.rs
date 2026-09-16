@@ -796,6 +796,43 @@ fn remaining_validation_skips_consumed_base_sources_and_does_not_write() {
 }
 
 #[test]
+fn remaining_conflict_analysis_skips_base_writes_and_keeps_both_trees_unchanged() {
+    let (_dir, settings) = setup();
+    fs::write(settings.roots.mods.join("base.txt"), b"base").unwrap();
+    fs::write(settings.roots.mods.join("wide.txt"), b"wide").unwrap();
+    let mut g = Guide::parse(&serde_json::json!({"thisMod":[
+        {"Guid":"base","Name":"Base","IsSelected":true,"Instructions":[{"Action":"Move","Source":["<<modDirectory>>/base.txt"],"Destination":"<<gameDirectory>>/Override"}]},
+        {"Guid":"wide","Name":"Wide","IsSelected":false,"Dependencies":["base"],"Instructions":[{"Action":"Copy","Source":["<<modDirectory>>/wide.txt"],"Destination":"<<gameDirectory>>/Override"}]}
+    ]}).to_string(), "json").unwrap();
+    Engine::new(settings.clone())
+        .unwrap()
+        .install(&g, |_| {})
+        .unwrap();
+    g.components[1].is_selected = true;
+    let before_game = fs::read(settings.roots.game.join("Override/base.txt")).unwrap();
+    let report = Engine::new(settings.clone())
+        .unwrap()
+        .analyze_conflicts_remaining(&g, &["base".into()])
+        .unwrap();
+    assert_eq!(report.analyzed_component_count, 1);
+    assert!(
+        report.conflicts.is_empty(),
+        "base writes are outside the remaining phase"
+    );
+    assert_eq!(
+        fs::read(settings.roots.game.join("Override/base.txt")).unwrap(),
+        before_game
+    );
+    assert!(settings.roots.mods.join("wide.txt").exists());
+    assert!(
+        Engine::new(settings)
+            .unwrap()
+            .analyze_conflicts_remaining(&g, &["wide".into()])
+            .is_err()
+    );
+}
+
+#[test]
 fn saved_completion_rejects_missing_changed_or_corrupt_base_evidence() {
     let (_dir, settings) = setup();
     fs::write(settings.roots.mods.join("sample.tga"), b"base").unwrap();

@@ -529,3 +529,7 @@ The pinned C# FileConflictAnalyzer was executed in a network-disabled, read-only
 ### Native desktop conflict-report acceptance
 
 At commit 4bdd53a, an isolated Linux X11 run started conflict analysis from the validation page, displayed one conflict across two analyzed components, expanded its destination, and showed both writers in install order with the final writer labeled. Changing the component selection removed the stale report. The game tree remained empty and the mod tree retained only its two source files. Screenshots, fixture inputs, the binary hash, and proof boundaries are recorded in `docs/parity/native-conflicts/receipt.json`. Clipboard contents, other platforms, patchers, and broader instruction combinations remain unverified.
+
+### Remaining-phase conflict analysis
+
+Conflict analysis now has the same saved-completion prefix contract as remaining validation and installation. After a verified base phase, the desktop action analyzes only selected remaining components and keeps it available for the widescreen phase. The shared-engine regression installs a base component, enables a dependent tail component, verifies that the tail alone is analyzed without recreating a base conflict, confirms both trees remain unchanged, and rejects a non-prefix completion list. Native rendering of this post-base action remains unverified.
