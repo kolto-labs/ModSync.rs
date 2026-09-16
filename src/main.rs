@@ -116,6 +116,24 @@ enum Action {
         #[arg(long)]
         prefer_existing_fields: bool,
         #[arg(long)]
+        prefer_existing_name: bool,
+        #[arg(long)]
+        prefer_existing_author: bool,
+        #[arg(long)]
+        prefer_existing_description: bool,
+        #[arg(long)]
+        prefer_existing_directions: bool,
+        #[arg(long)]
+        prefer_existing_category: bool,
+        #[arg(long)]
+        prefer_existing_tier: bool,
+        #[arg(long)]
+        prefer_existing_instructions: bool,
+        #[arg(long)]
+        prefer_existing_options: bool,
+        #[arg(long)]
+        prefer_existing_resource_registry: bool,
+        #[arg(long)]
         exclude_existing_only: bool,
         #[arg(long)]
         exclude_incoming_only: bool,
@@ -647,6 +665,15 @@ fn run() -> Result<()> {
             output,
             use_existing_order,
             prefer_existing_fields,
+            prefer_existing_name,
+            prefer_existing_author,
+            prefer_existing_description,
+            prefer_existing_directions,
+            prefer_existing_category,
+            prefer_existing_tier,
+            prefer_existing_instructions,
+            prefer_existing_options,
+            prefer_existing_resource_registry,
             exclude_existing_only,
             exclude_incoming_only,
         }) => {
@@ -658,6 +685,15 @@ fn run() -> Result<()> {
                 &modsync::merge::Options {
                     use_existing_order,
                     prefer_existing_fields,
+                    prefer_existing_name,
+                    prefer_existing_author,
+                    prefer_existing_description,
+                    prefer_existing_directions,
+                    prefer_existing_category,
+                    prefer_existing_tier,
+                    prefer_existing_instructions,
+                    prefer_existing_options,
+                    prefer_existing_resource_registry,
                     exclude_existing_only,
                     exclude_incoming_only,
                     ..Default::default()

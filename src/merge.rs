@@ -22,7 +22,22 @@ pub struct Options {
     pub exclude_incoming_only: bool,
     pub use_existing_order: bool,
     pub prefer_existing_fields: bool,
+    pub prefer_existing_name: bool,
+    pub prefer_existing_author: bool,
+    pub prefer_existing_description: bool,
+    pub prefer_existing_directions: bool,
+    pub prefer_existing_category: bool,
+    pub prefer_existing_tier: bool,
+    pub prefer_existing_instructions: bool,
+    pub prefer_existing_options: bool,
+    pub prefer_existing_resource_registry: bool,
     pub heuristics: Heuristics,
+}
+
+impl Options {
+    fn prefer(&self, field: bool) -> bool {
+        self.prefer_existing_fields || field
+    }
 }
 
 /// Merge lists as the C# ComponentMergeService does for the shared Rust model.
@@ -45,12 +60,7 @@ pub fn components(
         });
         if let Some((index, source)) = found {
             matched.insert(index);
-            update(
-                target,
-                source,
-                options.prefer_existing_fields,
-                preserve_existing_guid,
-            );
+            update(target, source, options, preserve_existing_guid);
         }
     }
     if !options.exclude_existing_only && !options.exclude_incoming_only {
@@ -227,7 +237,7 @@ fn merge_options(target: &mut Vec<Component>, source: &[Component]) {
 fn update(
     target: &mut Component,
     source: &Component,
-    prefer_source: bool,
+    options: &Options,
     preserve_target_guid: bool,
 ) {
     if target.guid.is_empty()
@@ -235,33 +245,36 @@ fn update(
     {
         target.guid.clone_from(&source.guid);
     }
-    if prefer_source {
-        if !source.name.trim().is_empty() {
-            target.name.clone_from(&source.name);
-        }
-        if !source.author.trim().is_empty() {
-            target.author.clone_from(&source.author);
-        }
-        if !source.description.trim().is_empty() {
-            target.description.clone_from(&source.description);
-        }
-        if !source.directions.trim().is_empty() {
-            target.directions.clone_from(&source.directions);
-        }
-        if !source.tier.trim().is_empty() {
-            target.tier.clone_from(&source.tier);
-        }
-        if !source.category.is_empty() {
-            target.category.clone_from(&source.category);
-        }
+    if options.prefer(options.prefer_existing_name) && !source.name.trim().is_empty() {
+        target.name.clone_from(&source.name);
+    }
+    if options.prefer(options.prefer_existing_author) && !source.author.trim().is_empty() {
+        target.author.clone_from(&source.author);
+    }
+    if options.prefer(options.prefer_existing_description) && !source.description.trim().is_empty()
+    {
+        target.description.clone_from(&source.description);
+    }
+    if options.prefer(options.prefer_existing_directions) && !source.directions.trim().is_empty() {
+        target.directions.clone_from(&source.directions);
+    }
+    if options.prefer(options.prefer_existing_tier) && !source.tier.trim().is_empty() {
+        target.tier.clone_from(&source.tier);
+    }
+    if options.prefer(options.prefer_existing_category) && !source.category.is_empty() {
+        target.category.clone_from(&source.category);
     }
     union(&mut target.dependencies, &source.dependencies);
     union(&mut target.restrictions, &source.restrictions);
     union(&mut target.install_before, &source.install_before);
     union(&mut target.install_after, &source.install_after);
-    if !prefer_source {
+    if !options.prefer(options.prefer_existing_resource_registry) {
         merge_resources(&mut target.resource_registry, &source.resource_registry);
+    }
+    if !options.prefer(options.prefer_existing_instructions) {
         merge_instructions(&mut target.instructions, &source.instructions);
+    }
+    if !options.prefer(options.prefer_existing_options) {
         merge_options(&mut target.options, &source.options);
     }
     for (key, value) in &source.metadata {

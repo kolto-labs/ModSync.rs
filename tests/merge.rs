@@ -124,3 +124,21 @@ fn merges_option_content_and_resource_filenames_by_name() {
     assert_eq!(files["incoming.zip"], false);
     assert_eq!(files["existing.zip"], true);
 }
+
+#[test]
+fn per_field_existing_preferences_do_not_replace_unselected_fields() {
+    let mut existing = component("shared", "Existing");
+    existing.author = "Existing author".into();
+    let mut incoming = component("shared", "Incoming");
+    incoming.author = "Incoming author".into();
+    let result = merge::components(
+        &[existing],
+        &[incoming],
+        &Options {
+            prefer_existing_author: true,
+            ..Default::default()
+        },
+    );
+    assert_eq!(result[0].name, "Incoming");
+    assert_eq!(result[0].author, "Existing author");
+}
