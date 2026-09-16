@@ -83,7 +83,11 @@ fn real_install_uses_case_insensitive_paths_and_texture_priority() {
         b"new texture"
     );
     assert!(!settings.roots.game.join("override/SAMPLE.tpc").exists());
-    assert!(!settings.roots.game.join("Override").exists());
+    let names: Vec<_> = fs::read_dir(&settings.roots.game)
+        .unwrap()
+        .map(|e| e.unwrap().file_name())
+        .collect();
+    assert_eq!(names, [std::ffi::OsString::from("override")]);
 }
 
 #[test]
