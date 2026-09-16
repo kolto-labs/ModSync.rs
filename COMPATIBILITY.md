@@ -355,3 +355,7 @@ The successful completion view now has a Finish action returning to guide setup,
 ### Desktop validation invalidation on setup failure
 
 Starting any desktop job now clears prior validation and install confirmation before checking directories or archive settings. Early setup failures can no longer leave the old install-ready state active. A regression covers invalid archive budgets for validate/install/restore/download and an install directory removed before launch, asserting that no worker starts. This repairs desktop state only; engine preflight already independently rejects invalid inputs.
+
+### Wizard content export preservation
+
+TOML and YAML export now place extracted Markdown wizard-content fields in the reference metadata object, supplying fileFormatVersion 2.0 when absent. Existing nested metadata overrides root content, including explicit blanks and PascalCase aliases. A Markdown-to-TOML/YAML regression verifies content retention and stable re-export; JSON/XML remain component-only exports. Live C# re-import of this new export path remains unverified.

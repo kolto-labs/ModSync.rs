@@ -255,3 +255,5 @@ F02/F24 classification checkpoint: prose WidescreenOnly flags now match referenc
 F24 Finish checkpoint: successful completion can return to setup without an app restart. Phase and validation state clear while guide/directories/logs persist, covered by a desktop regression. Native repeated-install proof and restart/resume remain open.
 
 F08/F24 validation lifecycle correction: early job-setup failures now invalidate prior validation/confirmation. Regression covers all job types and removed directories without launching workers. Native failure-state proof remains open.
+
+F01/F02/F24 metadata export correction: extracted Markdown wizard text survives TOML/YAML save/reload in the reference metadata layout, with default format-version marker and existing overrides preserved. Regression covers content and stable re-export; live cross-language re-import remains open.

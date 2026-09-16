@@ -195,10 +195,46 @@ impl Guide {
     }
 
     pub fn render(&self, format: &str) -> Result<String> {
+        const CONTENT_FIELDS: &[&str] = &[
+            "preambleContent",
+            "epilogueContent",
+            "widescreenWarningContent",
+            "aspyrExclusiveWarningContent",
+            "installationWarningContent",
+        ];
+        let mut metadata = self
+            .metadata
+            .get("metadata")
+            .cloned()
+            .unwrap_or_else(|| serde_json::json!({}));
+        for key in CONTENT_FIELDS {
+            if let Some(content) = self.metadata.get(*key) {
+                let fields = metadata
+                    .as_object_mut()
+                    .context("Guide metadata must be an object")?;
+                let pascal = format!("{}{}", key[..1].to_ascii_uppercase(), &key[1..]);
+                if !fields.contains_key(&pascal) {
+                    fields.entry(*key).or_insert_with(|| content.clone());
+                }
+            }
+        }
+        if let Some(fields) = metadata.as_object_mut()
+            && !fields.is_empty()
+        {
+            fields
+                .entry("fileFormatVersion")
+                .or_insert_with(|| "2.0".into());
+        }
         Ok(
             match canonical_format(format).context("Save as TOML, JSON, YAML or XML")? {
                 "toml" => {
                     let mut value = serde_json::to_value(self)?;
+                    for key in CONTENT_FIELDS {
+                        value.as_object_mut().unwrap().remove(*key);
+                    }
+                    if metadata.as_object().is_none_or(|m| !m.is_empty()) {
+                        value["metadata"] = metadata.clone();
+                    }
                     encode_nullable_files(&mut value);
                     toml::to_string_pretty(&value)?
                 }
@@ -206,9 +242,9 @@ impl Guide {
                 "xml" => crate::xml::render(&serde_json::to_value(&self.components)?)?,
                 "yaml" => {
                     let mut text = String::new();
-                    if let Some(metadata) = self.metadata.get("metadata") {
+                    if metadata.as_object().is_none_or(|m| !m.is_empty()) {
                         text.push_str("---\n# Metadata\n");
-                        text.push_str(&serde_yaml_ng::to_string(metadata)?);
+                        text.push_str(&serde_yaml_ng::to_string(&metadata)?);
                     }
                     for component in &self.components {
                         text.push_str("---\n");

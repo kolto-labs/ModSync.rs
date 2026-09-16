@@ -522,3 +522,37 @@ fn markdown_widescreen_flags_match_reference_section_positions() {
         true
     );
 }
+
+#[test]
+fn markdown_wizard_content_survives_reference_metadata_exports() {
+    let guide = Guide::parse(
+        include_str!("../docs/parity/markdown-warning-oracle/guide.md"),
+        "md",
+    )
+    .unwrap();
+    for format in ["toml", "yaml"] {
+        let saved = guide.render(format).unwrap();
+        let loaded = Guide::parse(&saved, format).unwrap();
+        for key in [
+            "preambleContent",
+            "epilogueContent",
+            "widescreenWarningContent",
+        ] {
+            assert_eq!(
+                loaded.metadata["metadata"][key], guide.metadata[key],
+                "{format}: {key}"
+            );
+            assert!(!loaded.metadata.contains_key(key));
+        }
+        assert_eq!(loaded.components.len(), guide.components.len());
+        assert_eq!(loaded.render(format).unwrap(), saved);
+    }
+    let mut guide = guide;
+    guide.metadata.insert(
+        "metadata".into(),
+        serde_json::json!({"widescreenWarningContent":"", "buildName":"Demo"}),
+    );
+    let loaded = Guide::parse(&guide.render("yaml").unwrap(), "yaml").unwrap();
+    assert_eq!(loaded.metadata["metadata"]["widescreenWarningContent"], "");
+    assert_eq!(loaded.metadata["metadata"]["buildName"], "Demo");
+}
