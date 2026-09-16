@@ -493,3 +493,11 @@ pub struct FomodInfo {
     pub website: String,
     pub description: String,
 }
+
+/// Detect the terminal directory/file pair only; this does not validate path safety.
+pub fn is_module_config_path(path: &str) -> bool {
+    let normalized = path.replace('\\', "/");
+    let mut segments = normalized.trim_matches('/').rsplit('/');
+    matches!((segments.next(), segments.next()), (Some(file), Some(directory))
+        if file.eq_ignore_ascii_case("ModuleConfig.xml") && directory.eq_ignore_ascii_case("fomod"))
+}

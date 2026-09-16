@@ -417,3 +417,7 @@ An isolated C# mapper/install probe returned Success with `textures/*`, installe
 ### FOMOD info.xml metadata
 
 The shared XML reader now parses Name, Author, Version, Website and Description with the reference parser's optional-field defaults, first direct-child lookup, case-insensitive local names and preserved authored text. A regression covers namespaces, duplicate fields, mixed text, malformed XML and DTD rejection. This is source-grounded against FomodParser.ParseInfoXml, not a live C# differential receipt. Website remains untrusted text; archive discovery and UI presentation are still pending.
+
+### FOMOD detector segment boundary
+
+Extraction now uses a shared terminal-segment detector matching FomodDetector.IsModuleConfigPath instead of a raw suffix check. Nested and mixed-case FOMOD paths still require configuration; an unrelated notfomod directory no longer causes false refusal. Isolated ZIP preflight coverage verifies both outcomes without writes. Detection alone does not authorize paths or configured installation.

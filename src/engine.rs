@@ -490,7 +490,9 @@ impl Engine {
                     ensure!(
                         !entries
                             .iter()
-                            .any(|entry| key(&entry.path).ends_with("fomod/moduleconfig.xml")),
+                            .any(|entry| crate::fomod::is_module_config_path(
+                                &entry.path.to_string_lossy()
+                            )),
                         "FOMOD choices are unsupported; refusing to install unconfigured archive content"
                     );
                     for entry in entries {

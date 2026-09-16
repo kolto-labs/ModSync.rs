@@ -860,3 +860,45 @@ fn saved_completion_rejects_missing_changed_or_corrupt_base_evidence() {
         .validate_remaining(&g, &completed, |_| {})
         .unwrap();
 }
+
+#[test]
+fn fomod_detection_requires_exact_directory_segment_before_refusing_extraction() {
+    for (path, blocked) in [
+        ("nested/FoMoD/ModuleConfig.XML", true),
+        ("notfomod/moduleconfig.xml", false),
+    ] {
+        let (_dir, settings) = setup();
+        fs::write(
+            settings.roots.mods.join("mod.zip"),
+            zip(&[(path, b"<config/>")]),
+        )
+        .unwrap();
+        let g = guide(serde_json::json!([
+            {"Action":"Extract", "Source":"<<modDirectory>>/mod.zip"}
+        ]));
+        let result = Engine::new(settings.clone()).unwrap().validate(&g, |_| {});
+        if blocked {
+            assert!(format!("{:#}", result.unwrap_err()).contains("FOMOD"));
+        } else {
+            result.unwrap();
+        }
+        assert_eq!(fs::read_dir(&settings.roots.mods).unwrap().count(), 1);
+        assert_eq!(fs::read_dir(&settings.roots.game).unwrap().count(), 0);
+    }
+    for path in [
+        "fomod/ModuleConfig.xml",
+        r"root\FOMOD\moduleconfig.xml",
+        "/root/fomod/moduleconfig.xml/",
+    ] {
+        assert!(modsync::fomod::is_module_config_path(path));
+    }
+    for path in [
+        "",
+        "ModuleConfig.xml",
+        "notfomod/ModuleConfig.xml",
+        "fomod//ModuleConfig.xml",
+        "fomod/ModuleConfig.xml.bak",
+    ] {
+        assert!(!modsync::fomod::is_module_config_path(path));
+    }
+}
