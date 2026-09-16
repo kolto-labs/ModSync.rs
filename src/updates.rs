@@ -78,6 +78,21 @@ pub fn load_versions(path: &std::path::Path) -> Result<Versions> {
     Ok(serde_json::from_slice(&std::fs::read(path)?)?)
 }
 
+pub fn save_summary(directory: &std::path::Path, summary: &Summary) -> Result<()> {
+    crate::recovery::atomic_write(
+        &directory.join("update-check-last.json"),
+        &serde_json::to_vec_pretty(summary)?,
+    )
+}
+
+pub fn load_summary(directory: &std::path::Path) -> Result<Option<Summary>> {
+    let path = directory.join("update-check-last.json");
+    if !path.exists() {
+        return Ok(None);
+    }
+    Ok(Some(serde_json::from_slice(&std::fs::read(path)?)?))
+}
+
 fn nexus_key(url: &str) -> Option<String> {
     let url = reqwest::Url::parse(url).ok()?;
     if !url.host_str()?.eq_ignore_ascii_case("www.nexusmods.com")
