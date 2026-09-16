@@ -82,3 +82,53 @@ fn protocol_open_rejects_unsafe_modsync_instruction_urls_before_fetching() {
     assert!(!result.status.success());
     assert!(String::from_utf8_lossy(&result.stderr).contains("private address"));
 }
+
+#[test]
+fn nxm_resolution_matches_one_top_level_registry_component_and_rejects_ambiguity() {
+    let guide = modsync::Guide::parse(
+        r#"[
+          {"Guid":"other","Name":"Other","ResourceRegistry":{"https://deadlystream.com/files/file/1/":{}}},
+          {"Guid":"target","Name":"Target","ResourceRegistry":{"https://www.nexusmods.com/kotor/mods/1234?tab=files":{}}}
+        ]"#,
+        "json",
+    )
+    .unwrap();
+    let link = protocol::parse("nxm://kotor/mods/1234/files/5678").unwrap();
+    let (status, matched) = protocol::resolve_nxm(&link, &guide.components);
+    assert_eq!(status, protocol::NxmResolveStatus::Matched);
+    assert_eq!(matched.unwrap().component_name, "Target");
+
+    let ambiguous = modsync::Guide::parse(
+        r#"[
+          {"Guid":"a","Name":"A","ResourceRegistry":{"https://www.nexusmods.com/kotor/mods/1234":{}}},
+          {"Guid":"b","Name":"B","ResourceRegistry":{"https://nexusmods.com/kotor/mods/1234?tab=files":{}}}
+        ]"#,
+        "json",
+    )
+    .unwrap();
+    assert_eq!(
+        protocol::resolve_nxm(&link, &ambiguous.components).0,
+        protocol::NxmResolveStatus::Ambiguous
+    );
+}
+
+#[test]
+fn protocol_resolve_cli_reports_a_read_only_match() {
+    let directory = tempfile::tempdir().unwrap();
+    let input = directory.path().join("guide.json");
+    std::fs::write(
+        &input,
+        r#"[{"Guid":"target","Name":"Target","ResourceRegistry":{"https://www.nexusmods.com/kotor/mods/12":{}}}]"#,
+    )
+    .unwrap();
+    let result = Command::new(env!("CARGO_BIN_EXE_modsync"))
+        .args(["protocol-resolve"])
+        .arg(&input)
+        .arg("nxm://kotor/mods/12/files/34")
+        .output()
+        .unwrap();
+    assert!(result.status.success());
+    let output: serde_json::Value = serde_json::from_slice(&result.stdout).unwrap();
+    assert_eq!(output["Status"], "Matched");
+    assert_eq!(output["Match"]["ComponentName"], "Target");
+}

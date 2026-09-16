@@ -63,6 +63,8 @@ enum Action {
     ProtocolFetch { url: String, output: PathBuf },
     /// Fetch and load a modsync:// instruction link without retaining its temporary download.
     ProtocolOpen { url: String },
+    /// Resolve an nxm:// handoff to exactly one top-level component in a guide.
+    ProtocolResolve { input: PathBuf, url: String },
     /// Apply provider version data from a JSON object keyed as game/modId.
     UpdateApply {
         input: PathBuf,
@@ -443,6 +445,19 @@ fn run() -> Result<()> {
             println!(
                 "{}",
                 serde_json::to_string_pretty(&serde_json::json!({"Link": link, "Guide": guide}))?
+            );
+            Ok(())
+        }
+        Some(Action::ProtocolResolve { input, url }) => {
+            let guide = Guide::load(&input)?;
+            let link = modsync::protocol::parse(&url)?;
+            let (status, matched) = modsync::protocol::resolve_nxm(&link, &guide.components);
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&serde_json::json!({
+                    "Status": status,
+                    "Match": matched,
+                }))?
             );
             Ok(())
         }

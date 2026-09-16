@@ -1,3 +1,4 @@
+use crate::Component;
 use crate::Guide;
 use anyhow::{Result, bail};
 use reqwest::Url;
@@ -25,6 +26,22 @@ pub enum Link {
         game: Option<String>,
         instruction_url: String,
     },
+}
+
+#[derive(Clone, Debug, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "PascalCase")]
+pub enum NxmResolveStatus {
+    NotFound,
+    Ambiguous,
+    Matched,
+}
+
+#[derive(Clone, Debug, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "PascalCase")]
+pub struct NxmComponentMatch {
+    pub component_guid: String,
+    pub component_name: String,
+    pub registry_url: String,
 }
 
 pub fn parse(raw: &str) -> Result<Link> {
@@ -125,6 +142,67 @@ pub fn fetch_modsync_guide(raw: &str) -> Result<(Link, Guide)> {
     let destination = directory.path().join("instruction.toml");
     fetch_instruction(instruction_url, &destination)?;
     Ok((link, Guide::load_for_install(&destination)?))
+}
+
+/// Resolves an nxm handoff against top-level guide components, like the C# resolver.
+/// A link that matches more than one component is deliberately not assigned.
+pub fn resolve_nxm(
+    link: &Link,
+    components: &[Component],
+) -> (NxmResolveStatus, Option<NxmComponentMatch>) {
+    let Link::Nxm {
+        game_domain,
+        mod_id,
+        ..
+    } = link
+    else {
+        return (NxmResolveStatus::NotFound, None);
+    };
+
+    let mut matched = None;
+    for component in components {
+        let Some(registry_url) = component
+            .resource_registry
+            .keys()
+            .find(|url| matches_nexus_url(url, game_domain, *mod_id))
+        else {
+            continue;
+        };
+        if matched.is_some() {
+            return (NxmResolveStatus::Ambiguous, None);
+        }
+        matched = Some(NxmComponentMatch {
+            component_guid: component.guid.clone(),
+            component_name: component.name.clone(),
+            registry_url: registry_url.clone(),
+        });
+    }
+    match matched {
+        Some(found) => (NxmResolveStatus::Matched, Some(found)),
+        None => (NxmResolveStatus::NotFound, None),
+    }
+}
+
+fn matches_nexus_url(url: &str, game_domain: &str, mod_id: u64) -> bool {
+    let Ok(url) = Url::parse(url) else {
+        return false;
+    };
+    let Some(host) = url.host_str() else {
+        return false;
+    };
+    if !host.eq_ignore_ascii_case("nexusmods.com")
+        && !host.to_ascii_lowercase().ends_with(".nexusmods.com")
+    {
+        return false;
+    }
+    let segments: Vec<_> = url
+        .path_segments()
+        .map(Iterator::collect)
+        .unwrap_or_default();
+    segments.len() >= 3
+        && segments[1].eq_ignore_ascii_case("mods")
+        && segments[0].eq_ignore_ascii_case(game_domain)
+        && segments[2].parse::<u64>().ok() == Some(mod_id)
 }
 
 fn ensure_public_ip(ip: IpAddr) -> Result<()> {
