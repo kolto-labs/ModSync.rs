@@ -155,3 +155,25 @@ fn linux_protocol_registration_writes_a_gui_handoff_entry() {
     assert!(entry.contains("MimeType=x-scheme-handler/modsync;"));
     assert!(entry.contains("gui --protocol %u"));
 }
+
+#[test]
+fn platform_registration_builders_match_the_modsync_scheme_contract() {
+    let commands = modsync::protocol_registration::windows_reg_commands(std::path::Path::new(
+        r"C:\\ModSync\\modsync.exe",
+    ))
+    .unwrap();
+    assert!(
+        commands
+            .iter()
+            .all(|command| command.contains("HKCU\\Software\\Classes\\modsync"))
+    );
+    assert!(
+        commands
+            .iter()
+            .any(|command| command.contains("URL Protocol"))
+    );
+    assert!(
+        modsync::protocol_registration::macos_url_types_plist_fragment()
+            .contains("<string>modsync</string>")
+    );
+}
