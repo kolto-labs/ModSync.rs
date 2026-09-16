@@ -460,3 +460,17 @@ impl Profile {
         })
     }
 }
+/// Clone settings for CLI/UI output without exposing stored credentials.
+pub fn redacted(settings: &Value, reveal_secrets: bool) -> Value {
+    let mut clone = settings.clone();
+    if !reveal_secrets
+        && let Some(root) = clone.as_object_mut()
+        && let Some(key) = root
+            .keys()
+            .find(|key| key.eq_ignore_ascii_case("nexusModsApiKey"))
+            .cloned()
+    {
+        root.insert(key, "***".into());
+    }
+    clone
+}

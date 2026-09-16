@@ -10,6 +10,16 @@ fn fixture() -> Profile {
 }
 
 #[test]
+fn settings_output_redacts_nexus_key_without_changing_other_values() {
+    let settings = json!({"nexusModsApiKey":"secret","nested":{"keep":7}});
+    assert_eq!(
+        modsync::profiles::redacted(&settings, false),
+        json!({"nexusModsApiKey":"***","nested":{"keep":7}})
+    );
+    assert_eq!(modsync::profiles::redacted(&settings, true), settings);
+}
+
+#[test]
 fn profile_crud_preserves_schema_and_clone_independence() {
     let dir = tempfile::tempdir().unwrap();
     let store = Store::new(dir.path()).unwrap();
