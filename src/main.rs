@@ -280,7 +280,11 @@ struct InstallArgs {
     #[arg(long)]
     allow_processes: bool,
     /// Patcher executable for Patcher instructions.
-    #[arg(long)]
+    #[arg(
+        long,
+        visible_alias = "kpatcher-path",
+        visible_alias = "odypatcher-path"
+    )]
     patcher: Option<PathBuf>,
     /// CLI patcher backend for Patcher instructions.
     #[arg(long, value_enum)]
@@ -298,11 +302,11 @@ struct InstallArgs {
 
 #[derive(Clone, Copy, Debug, ValueEnum)]
 enum PatcherEngineArg {
-    #[value(name = "ody-patcher")]
+    #[value(name = "ody-patcher", alias = "OdyPatcher", alias = "odypatcher")]
     Ody,
-    #[value(name = "k-patcher")]
+    #[value(name = "k-patcher", alias = "KPatcher", alias = "kpatcher")]
     K,
-    #[value(name = "holo-patcher")]
+    #[value(name = "holo-patcher", alias = "Holopatcher", alias = "holopatcher")]
     Holo,
 }
 impl From<PatcherEngineArg> for PatcherEngine {
