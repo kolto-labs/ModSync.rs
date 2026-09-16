@@ -389,3 +389,7 @@ ArchiveChoices.apply_to routes named selections through unconditional StepSelect
 ### FOMOD flag-based visibility
 
 Step selections now carry optional nested All/Any/Flag conditions, and plugins carry ordered flag assignments. Visibility follows the reference source: all selected plugins contribute even from hidden steps, later assignments win, flag names ignore ASCII case and values are case-sensitive; empty composites are true. Choices application validates resulting visible steps. Regression covers hidden flags, overwrite order, nested conditions, empty Or, value casing and hidden invalid groups becoming visible. Live reference differential proof, Unicode equivalence, file/game dependencies and package integration remain open.
+
+### FOMOD XML selection reader
+
+The library now reads the selection portion of ModuleConfig.xml into shared steps/groups/plugins, including Required/Recommended defaults, dependencyType defaultType, condition flags and nested flag visibility. It uses namespace-local names, handles escaped attributes/CDATA, rejects DTDs/external entities and malformed roots, and bounds nesting. Unsupported non-flag visibility conditions fail explicitly. This reader intentionally does not produce install instructions or enable FOMOD extraction: files, priorities, descriptions/images, full module metadata and conditional file mapping remain to be added to a complete module parser. Regression checks XML-driven visibility/defaults and rejection boundaries; live differential XML coverage remains open.

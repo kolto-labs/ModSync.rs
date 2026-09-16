@@ -323,3 +323,6 @@ pub fn visible_steps(steps: &[StepSelection]) -> Vec<usize> {
         })
         .collect()
 }
+
+mod xml;
+pub use xml::parse_selection_xml;

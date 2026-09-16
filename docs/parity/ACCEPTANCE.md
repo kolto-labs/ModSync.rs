@@ -273,3 +273,5 @@ F15 choices checkpoint: reference JSON schema and archive lookup implemented; ex
 F15 named-step checkpoint: choices apply atomically across unconditional steps/groups, with regression coverage for late failures, duplicates, ambiguity and invalid untouched defaults. Conditional visibility/flags and package parser/mapping/integration remain open.
 
 F15 visibility checkpoint: shared flag conditions and ordered propagation implemented, including hidden-step contributions and visible-only final validation. Source-derived behavior has an executable Rust regression; live differential, file/game dependencies and XML/mapping/UI/CLI remain open.
+
+F15 XML selection checkpoint: ModuleConfig selection projection connects authored XML to shared group/flag logic, with malformed/DTD/unsupported-dependency rejection tests. Complete module/file metadata, conditional mapping, live differential and installation integration remain open.

@@ -272,3 +272,30 @@ fn visibility_uses_ordered_selected_flags_and_only_validates_visible_steps() {
         .is_err()
     );
 }
+
+#[test]
+fn module_xml_drives_selection_defaults_flags_and_visibility_without_installing() {
+    use modsync::fomod::{parse_selection_xml, visible_steps};
+    let xml = r#"<config xmlns="urn:fomod"><installSteps><installStep name="First &amp; Second"><optionalFileGroups><group name="Choose" type="SelectExactlyOne"><plugins><plugin name="A"><typeDescriptor><type name="Optional"/></typeDescriptor></plugin><plugin name="B"><conditionFlags><flag name="Picked"><![CDATA[ yes ]]></flag></conditionFlags><typeDescriptor><dependencyType><defaultType name="Recommended"/></dependencyType></typeDescriptor></plugin></plugins></group></optionalFileGroups></installStep><installStep name="Conditional"><visible operator="And"><dependencies operator="Or"><flagDependency flag="picked" value="yes"/></dependencies></visible></installStep></installSteps></config>"#;
+    let mut steps = parse_selection_xml(xml).unwrap();
+    assert_eq!(steps[0].name, "First & Second");
+    assert_eq!(selected(&steps[0].groups[0]), [false, true]);
+    assert_eq!(visible_steps(&steps), [0, 1]);
+    steps[0].groups[0].set_selected(0, true).unwrap();
+    assert_eq!(visible_steps(&steps), [0]);
+    for invalid in [
+        "<wrong/>",
+        "<config>",
+        "<config/><config/>",
+        "<!DOCTYPE config [<!ENTITY e SYSTEM 'file:///etc/passwd'>]><config>&e;</config>",
+    ] {
+        assert!(parse_selection_xml(invalid).is_err());
+    }
+    assert!(
+        parse_selection_xml(&xml.replace(
+            "flagDependency flag=\"picked\" value=\"yes\"",
+            "fileDependency file=\"a\" state=\"Active\""
+        ))
+        .is_err()
+    );
+}
