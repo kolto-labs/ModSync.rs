@@ -509,3 +509,7 @@ A worker-lifecycle regression verifies that replacing an inspection requests can
 ### Desktop FOMOD step navigation
 
 The editor now displays one visible step at a time with Back and Next actions, matching the C# dialog flow. Next validates the current groups and recomputes flag-dependent visibility; final acceptance still validates captured choices. Descriptions appear inline and required plugins have disabled checkboxes. A regression covers returning to revise an earlier choice, skipping a newly hidden step, invalid selection blocking advancement, and packages without optional steps. Native acceptance of the new multi-step navigation remains pending; earlier native evidence covers the previous single-panel editor.
+
+### Native FOMOD multi-step acceptance
+
+At d813d01, an isolated Linux X11 run exercised Next to a conditional step, Back to change its controlling selection, and Next directly to the last remaining step. Clearing the exclusive selection blocked advancement with a visible error. Accepting and reopening retained the revised choice and reset navigation to the first visible step. The game stayed empty and the mod directory retained only the original archive. Fixture, screenshots, binary hash and limitations are recorded in docs/parity/native-fomod-steps/receipt.json. This verifies native navigation; installation, process restart and other platforms were not exercised in this run.

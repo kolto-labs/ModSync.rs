@@ -1,0 +1,29 @@
+{
+  "tested_commit": "d813d01a2422bc1f4d227e11a06877e9a16e42dd",
+  "binary_sha256": "e43a0d8cd1994373ef4af9fd651252cd7e6ee3089d979a7c2df25d6ae680db90",
+  "fixture_root": "/home/brunner56/.cache/modsync-native-steps-yrppbii9",
+  "environment": "Linux X11, Xvfb :911, xdotool native mouse and keyboard",
+  "checks": [
+    "Next displayed Conditional as step 2 of 3",
+    "Back returned to First; selecting Hide changed count to 2",
+    "Clearing all choices and clicking Next retained First with validation error",
+    "Restoring Hide and clicking Next reached Last as step 2 of 2",
+    "Accepted choices and reopened: Hide retained, First shown, two steps",
+    "Game remained empty; mods contained only original package.zip"
+  ],
+  "limitations": [
+    "No installation in this navigation fixture",
+    "No process restart or saved guide persistence test",
+    "No Windows/macOS or full guide acceptance"
+  ],
+  "files": {
+    "package.zip": "c9953ab974194a729827637bbe2c4dc492280fb3667fe25890f873f8a028090a",
+    "guide.json": "758bd4730917c108dfb7dde9b069add417349073d704968bef3a8d85ef7ec525",
+    "last.png": "96ec430903d035c27269543ade91250d2fb46fc48442fc0c2270cf9dc9d52b9c",
+    "reopened.png": "374ab6257d4beeddcc5196768e33df54ae3d591835a7c4147fd9fed033d44c1b",
+    "first.png": "308cd6373bb0c6b9bb3cdd06246400e54c46aa0fc031799f93b3f07b47fc7e9a",
+    "conditional.png": "0eba3c1f5fb7d401a3bc8a15a91cb437c21edb322249da12e735a58fd6b8499e",
+    "blocked.png": "fb60d68224a130ea9c3b3f4c4d9f24d510fc148fdf552aa10c56a2f813327639",
+    "hidden.png": "e4081c5843d2b175a00ea9e2a58255c91817cc8d618da4e75ffc4c6c6a75611d"
+  }
+}

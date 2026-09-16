@@ -1,0 +1,1 @@
+{"thisMod": [{"Guid": "native-steps", "Name": "Native steps", "IsSelected": true, "Instructions": [{"Action": "Extract", "Source": ["<<modDirectory>>/package.zip"]}]}]}
