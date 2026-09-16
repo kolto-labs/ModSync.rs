@@ -20,9 +20,15 @@ pub struct Editor {
     error: String,
     open: bool,
     dismiss_non_fomod: bool,
+    detected_fomod: bool,
     step_cursor: usize,
 }
 impl Editor {
+    fn dismissal(&self) -> Option<Outcome> {
+        (self.dismiss_non_fomod && self.detected_fomod)
+            .then(|| Outcome::Dismissed(self.filename.clone()))
+    }
+
     pub fn launch(
         &mut self,
         path: std::path::PathBuf,
@@ -37,6 +43,7 @@ impl Editor {
         self.error.clear();
         self.open = true;
         self.dismiss_non_fomod = dismiss_non_fomod;
+        self.detected_fomod = false;
         self.filename = path
             .file_name()
             .unwrap_or_default()
@@ -66,7 +73,10 @@ impl Editor {
                 Ok(result) => {
                     self.receiver = None;
                     match result {
-                        Ok(Some(module)) => self.module = Some(module),
+                        Ok(Some(module)) => {
+                            self.detected_fomod = true;
+                            self.module = Some(module);
+                        }
                         Ok(None) if self.dismiss_non_fomod => self.open = false,
                         Ok(None) => self.error = "This archive has no FOMOD installer.".into(),
                         Err(error) => self.error = format!("{error:#}"),
@@ -184,9 +194,7 @@ impl Editor {
                 self.receiver = None;
                 self.module = None;
                 self.open = false;
-                if self.dismiss_non_fomod {
-                    outcome = Some(Outcome::Dismissed(self.filename.clone()));
-                }
+                outcome = self.dismissal();
             }
         });
         outcome
@@ -221,6 +229,21 @@ impl Drop for Editor {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn automatic_cancel_only_records_a_confirmed_fomod() {
+        let mut editor = Editor::default();
+        editor.filename = "package.zip".into();
+        editor.dismiss_non_fomod = true;
+        assert!(editor.dismissal().is_none());
+        editor.detected_fomod = true;
+        assert!(matches!(
+            editor.dismissal(),
+            Some(Outcome::Dismissed(filename)) if filename == "package.zip"
+        ));
+        editor.dismiss_non_fomod = false;
+        assert!(editor.dismissal().is_none());
+    }
 
     #[test]
     fn navigation_validates_current_step_and_recomputes_flag_visibility() {
