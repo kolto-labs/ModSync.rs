@@ -1354,6 +1354,57 @@ fn validation_report_gates_registered_fomod_without_extract_instruction() {
 }
 
 #[test]
+fn validation_report_rejects_missing_registered_archive_after_fomod_state() {
+    let (_dir, settings) = setup();
+    let guide = Guide::parse(
+        r#"{"thisMod":[{"Guid":"a","Name":"Registered","IsSelected":true,"ResourceRegistry":{"source":{"Files":{"nested/package.zip":true},"HandlerMetadata":{"fomodPromptStatus":{"package.zip":"configured"}}}}}]}"#,
+        "json",
+    )
+    .unwrap();
+    let report = Engine::new(settings)
+        .unwrap()
+        .validate_report(&guide, |_| {});
+    let stage = report
+        .stages
+        .iter()
+        .find(|stage| stage.stage == modsync::validation::Stage::FomodConfiguration)
+        .unwrap();
+    assert!(!stage.passed);
+    assert!(
+        stage
+            .messages
+            .iter()
+            .any(|message| message.contains("missing"))
+    );
+}
+
+#[test]
+fn validation_report_rejects_unreadable_registered_archive() {
+    let (_dir, settings) = setup();
+    fs::write(settings.roots.mods.join("package.zip"), b"not an archive").unwrap();
+    let guide = Guide::parse(
+        r#"{"thisMod":[{"Guid":"a","Name":"Registered","IsSelected":true,"ResourceRegistry":{"source":{"Files":{"package.zip":true}}}}]}"#,
+        "json",
+    )
+    .unwrap();
+    let report = Engine::new(settings)
+        .unwrap()
+        .validate_report(&guide, |_| {});
+    let stage = report
+        .stages
+        .iter()
+        .find(|stage| stage.stage == modsync::validation::Stage::FomodConfiguration)
+        .unwrap();
+    assert!(!stage.passed);
+    assert!(
+        stage
+            .messages
+            .iter()
+            .any(|message| message.contains("cannot be inspected"))
+    );
+}
+
+#[test]
 fn validation_report_rejects_unconfigured_fomod_archive() {
     let (_dir, settings) = setup();
     fs::write(
