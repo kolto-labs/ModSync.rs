@@ -40,6 +40,9 @@ enum Action {
         /// Include mapped copy instructions for this relative mod-directory extraction path.
         #[arg(long)]
         extracted_directory: Option<String>,
+        /// Save the current selections as a reusable version-1 choices file.
+        #[arg(long)]
+        save_choices: Option<PathBuf>,
         #[arg(long)]
         scratch_dir: Option<PathBuf>,
         #[arg(long)]
@@ -164,6 +167,7 @@ fn run() -> Result<()> {
             archive,
             choices,
             extracted_directory,
+            save_choices,
             scratch_dir,
             max_expanded_bytes,
         }) => {
@@ -201,6 +205,24 @@ fn run() -> Result<()> {
                         .copy_instructions(root)
                 })
                 .transpose()?;
+            if let Some(path) = save_choices {
+                ensure!(
+                    std::path::absolute(&path)? != std::path::absolute(&archive)?,
+                    "Choices output must not overwrite the archive"
+                );
+                let module = module
+                    .as_ref()
+                    .context("Archive has no FOMOD installer to save")?;
+                let filename = archive
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .context("Archive filename is not valid UTF-8")?;
+                let choices = modsync::fomod::ChoicesFile::capture(filename, &module.config.steps)?;
+                recovery::atomic_write(
+                    &std::path::absolute(path)?,
+                    &serde_json::to_vec_pretty(&choices)?,
+                )?;
+            }
             let report = module.map(|m| {
                 let visible = modsync::fomod::visible_steps(&m.config.steps);
                 let steps: Vec<_> = m.config.steps.iter().enumerate().map(|(index, step)| {

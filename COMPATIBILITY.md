@@ -457,3 +457,7 @@ The validation page now accepts an optional choices-file path using the existing
 ### FOMOD source provenance guard
 
 Configured copies now require every matched source to be supplied by the current archive. Stale extraction files cannot satisfy missing file directives or join folder wildcard copies. Configured extraction with Overwrite=false rejects existing archive paths rather than retaining stale bytes. Regression installs cover these three cases and verify rejection during preflight, unchanged stale source bytes and no pending snapshot or game writes. This intentionally fails closed on contaminated extraction directories instead of silently using their contents.
+
+### Saving FOMOD selections
+
+The inspection CLI accepts --save-choices to atomically write the current selection session, including choices applied with --choices, in the reusable version-1 schema. Capture preserves hidden-step selections and rejects invalid or ambiguous named groups by reapplying the generated document before saving. A round-trip regression verifies nondefault selection persistence and ambiguity rejection. Interactive selection editing remains outstanding.

@@ -584,3 +584,33 @@ impl ChoicesFile {
         Ok(())
     }
 }
+
+impl ChoicesFile {
+    /// Capture all selected plugins, including hidden steps that may supply flags.
+    /// Reject selections that cannot be unambiguously reapplied by name.
+    pub fn capture(archive_file_name: &str, steps: &[StepSelection]) -> Result<Self> {
+        let archive = ArchiveChoices {
+            archive_file_name: archive_file_name.into(),
+            selections: steps
+                .iter()
+                .flat_map(|step| {
+                    step.groups.iter().map(|group| NamedSelection {
+                        step_name: step.name.clone(),
+                        group_name: group.name.clone(),
+                        plugins: group
+                            .plugins()
+                            .iter()
+                            .filter(|p| p.selected)
+                            .map(|p| p.name.clone())
+                            .collect(),
+                    })
+                })
+                .collect(),
+        };
+        archive.apply_to(&mut steps.to_vec())?;
+        Self::parse(&serde_json::to_string(&Self {
+            version: 1,
+            archives: vec![archive],
+        })?)
+    }
+}

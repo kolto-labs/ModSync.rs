@@ -674,3 +674,24 @@ fn archive_module_mapping_keeps_nested_content_root() {
         assert!(module.copy_instructions(invalid).is_err());
     }
 }
+
+#[test]
+fn captured_choices_roundtrip_selected_plugins_and_reject_ambiguous_names() {
+    use modsync::fomod::{ChoicesFile, parse_module_xml};
+    let xml = "<config><installSteps><installStep name='Step'><optionalFileGroups><group name='Group' type='SelectExactlyOne'><plugins><plugin name='First'/><plugin name='Second'/></plugins></group></optionalFileGroups></installStep></installSteps></config>";
+    let mut module = parse_module_xml(xml).unwrap();
+    module.steps[0].groups[0].set_selected(1, true).unwrap();
+    let saved = ChoicesFile::capture("package.zip", &module.steps).unwrap();
+    let loaded = ChoicesFile::parse(&serde_json::to_string(&saved).unwrap()).unwrap();
+    let mut fresh = parse_module_xml(xml).unwrap();
+    loaded
+        .archive("PACKAGE.ZIP")
+        .unwrap()
+        .apply_to(&mut fresh.steps)
+        .unwrap();
+    assert!(!fresh.steps[0].groups[0].plugins()[0].selected);
+    assert!(fresh.steps[0].groups[0].plugins()[1].selected);
+    let ambiguous = parse_module_xml(&xml.replace("Second", "First")).unwrap();
+    assert!(ChoicesFile::capture("package.zip", &ambiguous.steps).is_err());
+    assert!(ChoicesFile::capture("", &module.steps).is_err());
+}
