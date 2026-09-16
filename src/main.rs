@@ -253,6 +253,7 @@ fn run() -> Result<()> {
                         let plugins: Vec<_> = group.plugins().iter().map(|plugin| serde_json::json!({
                             "name": plugin.name, "description": plugin.description,
                             "imagePath": plugin.image_path, "required": plugin.required,
+                            "pluginType": plugin.plugin_type,
                             "selected": plugin.selected,
                         })).collect();
                         serde_json::json!({"name": group.name, "type": group.kind, "plugins": plugins})

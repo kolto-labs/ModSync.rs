@@ -1,4 +1,4 @@
-use modsync::fomod::{GroupSelection, GroupType, PluginSelection};
+use modsync::fomod::{GroupSelection, GroupType, PluginSelection, PluginType};
 
 fn plugin(name: &str, required: bool, selected: bool) -> PluginSelection {
     PluginSelection {
@@ -6,6 +6,11 @@ fn plugin(name: &str, required: bool, selected: bool) -> PluginSelection {
         description: String::new(),
         image_path: String::new(),
         files: vec![],
+        plugin_type: if required {
+            PluginType::Required
+        } else {
+            PluginType::Optional
+        },
         required,
         flags: vec![],
         selected,
@@ -13,6 +18,43 @@ fn plugin(name: &str, required: bool, selected: bool) -> PluginSelection {
 }
 fn selected(group: &GroupSelection) -> Vec<bool> {
     group.plugins().iter().map(|p| p.selected).collect()
+}
+
+#[test]
+fn plugin_type_descriptors_match_csharp_defaults_and_are_retained() {
+    let steps = modsync::fomod::parse_selection_xml(
+        r#"<config><installSteps><installStep name="Types"><optionalFileGroups>
+        <group name="All types" type="SelectAny"><plugins>
+          <plugin name="Optional"><typeDescriptor><type name="Optional"/></typeDescriptor></plugin>
+          <plugin name="Required"><typeDescriptor><type name="Required"/></typeDescriptor></plugin>
+          <plugin name="Recommended"><typeDescriptor><dependencyType><defaultType name="Recommended"/></dependencyType></typeDescriptor></plugin>
+          <plugin name="Blocked"><typeDescriptor><type name="NotUsable"/></typeDescriptor></plugin>
+          <plugin name="Conditional"><typeDescriptor><type name="CouldBeUsable"/></typeDescriptor></plugin>
+          <plugin name="Unknown"><typeDescriptor><type name="Other"/></typeDescriptor></plugin>
+        </plugins></group></optionalFileGroups></installStep></installSteps></config>"#,
+    )
+    .unwrap();
+    let plugins = steps[0].groups[0].plugins();
+    assert_eq!(
+        plugins
+            .iter()
+            .map(|plugin| plugin.plugin_type)
+            .collect::<Vec<_>>(),
+        vec![
+            PluginType::Optional,
+            PluginType::Required,
+            PluginType::Recommended,
+            PluginType::NotUsable,
+            PluginType::CouldBeUsable,
+            PluginType::Optional,
+        ]
+    );
+    assert_eq!(
+        selected(&steps[0].groups[0]),
+        vec![false, true, true, false, false, false]
+    );
+    assert!(plugins[1].required);
+    assert!(!plugins[3].required && !plugins[4].required);
 }
 
 #[test]
@@ -540,7 +582,7 @@ fn archive_inspection_reads_nested_metadata_and_cleans_scratch_on_failure() {
     write(&[
         (
             "Wrapper/FoMoD/ModuleConfig.xml",
-            "<config><moduleName>Module</moduleName></config>",
+            "<config><moduleName>Module</moduleName><installSteps><installStep name='Types'><optionalFileGroups><group name='All types' type='SelectAny'><plugins><plugin name='Blocked'><typeDescriptor><type name='NotUsable'/></typeDescriptor></plugin></plugins></group></optionalFileGroups></installStep></installSteps></config>",
         ),
         (
             "Wrapper/FoMoD/INFO.XML",
@@ -566,7 +608,10 @@ fn archive_inspection_reads_nested_metadata_and_cleans_scratch_on_failure() {
     assert_eq!(report["contentRoot"], "Wrapper");
     assert_eq!(report["name"], "Module");
     assert_eq!(report["info"]["name"], "Metadata");
-    assert_eq!(report["steps"], serde_json::json!([]));
+    assert_eq!(
+        report["steps"][0]["groups"][0]["plugins"][0]["pluginType"],
+        "NotUsable"
+    );
 
     let result = inspect_archive(&path, &options, &AtomicBool::new(false))
         .unwrap()

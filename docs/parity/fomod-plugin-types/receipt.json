@@ -1,0 +1,19 @@
+{
+  "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+  "reference_dll_sha256": "8f3b1e3f8fe47b2cc6f8e3f281912506721c7367218381bb2a35cf86dc5768f0",
+  "result_sha256": "42c73802ae478e3b6489632da9d7d4311fcbe261e95f3a6696cbd9719f5571ee",
+  "runtime": "dotnet exec on runtime 10.0.11; probe targets net9.0",
+  "isolation": "bwrap read-only root, temporary probe directory writable, network namespace disabled",
+  "checks": [
+    "Optional remains Optional",
+    "Required remains Required",
+    "dependencyType default Recommended remains Recommended",
+    "NotUsable remains NotUsable",
+    "CouldBeUsable remains CouldBeUsable",
+    "Unknown type falls back to Optional"
+  ],
+  "limitations": [
+    "C# parser's dependencyType per-pattern rules remain outside this probe and Rust implementation",
+    "No full FOMOD corpus or native UI proof"
+  ]
+}

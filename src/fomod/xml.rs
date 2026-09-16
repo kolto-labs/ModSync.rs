@@ -156,7 +156,8 @@ pub fn parse_module_xml(text: &str) -> Result<ModuleConfig> {
                                     })
                                 })
                                 .map_or("", |t| t.attr("name"));
-                            let required = plugin_type.eq_ignore_ascii_case("Required");
+                            let plugin_type = crate::fomod::PluginType::from_xml(plugin_type);
+                            let required = plugin_type == crate::fomod::PluginType::Required;
                             let flags = plugin
                                 .child("conditionFlags")
                                 .map(|f| {
@@ -176,9 +177,10 @@ pub fn parse_module_xml(text: &str) -> Result<ModuleConfig> {
                                     .map_or("", |n| n.attr("path"))
                                     .into(),
                                 files: files(plugin.child("files")),
+                                plugin_type,
                                 required,
                                 selected: required
-                                    || plugin_type.eq_ignore_ascii_case("Recommended"),
+                                    || plugin_type == crate::fomod::PluginType::Recommended,
                                 flags,
                             });
                         }

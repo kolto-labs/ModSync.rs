@@ -11,6 +11,30 @@ pub enum GroupType {
     SelectAll,
 }
 
+/// FOMOD's authored plugin type descriptor. It controls defaults only for
+/// Required and Recommended; retain the other values for inspection and
+/// future dependency-type support instead of silently converting them.
+#[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
+pub enum PluginType {
+    Optional,
+    Required,
+    Recommended,
+    NotUsable,
+    CouldBeUsable,
+}
+
+impl PluginType {
+    pub(crate) fn from_xml(name: &str) -> Self {
+        match name.trim().to_ascii_lowercase().as_str() {
+            "required" => Self::Required,
+            "recommended" => Self::Recommended,
+            "notusable" => Self::NotUsable,
+            "couldbeusable" => Self::CouldBeUsable,
+            _ => Self::Optional,
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct PluginSelection {
     pub name: String,
@@ -18,6 +42,7 @@ pub struct PluginSelection {
     /// Archive-relative authored path only; not a trusted filesystem path.
     pub image_path: String,
     pub files: Vec<FileInstall>,
+    pub plugin_type: PluginType,
     pub required: bool,
     pub flags: Vec<(String, String)>,
     /// Seed with Required/Recommended descriptor defaults before creating the group.

@@ -1,0 +1,26 @@
+[
+  {
+    "Name": "Optional",
+    "Type": "Optional"
+  },
+  {
+    "Name": "Required",
+    "Type": "Required"
+  },
+  {
+    "Name": "Recommended",
+    "Type": "Recommended"
+  },
+  {
+    "Name": "Blocked",
+    "Type": "NotUsable"
+  },
+  {
+    "Name": "Conditional",
+    "Type": "CouldBeUsable"
+  },
+  {
+    "Name": "Unknown",
+    "Type": "Optional"
+  }
+]

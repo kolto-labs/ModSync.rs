@@ -533,3 +533,7 @@ At commit 4bdd53a, an isolated Linux X11 run started conflict analysis from the 
 ### Remaining-phase conflict analysis
 
 Conflict analysis now has the same saved-completion prefix contract as remaining validation and installation. After a verified base phase, the desktop action analyzes only selected remaining components and keeps it available for the widescreen phase. The shared-engine regression installs a base component, enables a dependent tail component, verifies that the tail alone is analyzed without recreating a base conflict, confirms both trees remain unchanged, and rejects a non-prefix completion list. Native rendering of this post-base action remains unverified.
+
+### FOMOD plugin type descriptors
+
+FOMOD parsing now preserves Optional, Required, Recommended, NotUsable, and CouldBeUsable descriptors on every plugin. Required and Recommended retain the C# default-selection behavior; unknown descriptors fall back to Optional. The `fomod-inspect` JSON report exposes `pluginType`, so callers no longer have to infer the authored state from the required and selected booleans. A sandboxed execution of the pinned C# parser agrees on all six type cases, including a dependencyType default and unknown fallback; source, result, and DLL hash are in `docs/parity/fomod-plugin-types/`. DependencyType per-pattern rules, full-corpus behavior, and native UI presentation remain open.
