@@ -23,6 +23,8 @@ enum Action {
     /// Open the desktop installer (also the default with no command).
     Gui {
         #[arg(long)]
+        settings_dir: Option<PathBuf>,
+        #[arg(long)]
         input: Option<PathBuf>,
         #[arg(long)]
         game_dir: Option<PathBuf>,
@@ -134,12 +136,13 @@ struct InstallArgs {
 
 fn run() -> Result<()> {
     match Cli::parse().command {
-        None => gui(None, None, None),
+        None => gui(None, None, None, None),
         Some(Action::Gui {
+            settings_dir,
             input,
             game_dir,
             source_dir,
-        }) => gui(input, game_dir, source_dir),
+        }) => gui(input, game_dir, source_dir, settings_dir),
         Some(Action::List { input }) => {
             println!("{}", serde_json::to_string_pretty(&Guide::load(&input)?)?);
             Ok(())
@@ -349,14 +352,19 @@ fn run() -> Result<()> {
     }
 }
 
-fn gui(input: Option<PathBuf>, game: Option<PathBuf>, mods: Option<PathBuf>) -> Result<()> {
+fn gui(
+    input: Option<PathBuf>,
+    game: Option<PathBuf>,
+    mods: Option<PathBuf>,
+    settings_dir: Option<PathBuf>,
+) -> Result<()> {
     #[cfg(feature = "desktop")]
     {
-        ui::launch(input, game, mods)
+        ui::launch(input, game, mods, settings_dir)
     }
     #[cfg(not(feature = "desktop"))]
     {
-        let _ = (input, game, mods);
+        let _ = (input, game, mods, settings_dir);
         anyhow::bail!(
             "Desktop support is disabled. Build with the default features, or use --help for CLI commands."
         )

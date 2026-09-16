@@ -24,7 +24,7 @@ Status: **partial** = some behavior exists but full acceptance is unproven; **mi
 | F14 | Concurrent download queue, progress/speed, cancellation, retries/timeouts, downloaded-file browser | Core download manager/orchestration; GUI download dialogs | missing | Controlled HTTP server failure scenarios and desktop status/stop/restart behavior |
 | F15 | FOMOD discovery/XML/dependency rules/choices/priority/mapping, configure-before-install, CLI sidecar and GUI wizard | Core `Services/Fomod/*`, CLI FOMOD hosts; GUI `FomodInstallerDialog` | missing | Reference FOMOD test corpus; identical chosen files; conditional page flows and safe failure gate |
 | F16 | Persistent profile schema, CRUD/clone/rename/activate, capture/apply component and option selections | Core `Services/Profiles/*`; GUI `ProfileManagerDialog` | partial | Shared C# JSON round trips, CLI verb tests, desktop actions, active profile integration |
-| F17 | Settings schema, defaults, per-key merge, redaction, paths, themes, consent, API keys | Core `Services/Settings/*`; GUI `AppSettings`/settings dialog | missing | Existing settings read/write without unrelated data loss, secret redaction, desktop persistence |
+| F17 | Settings schema, defaults, per-key merge, redaction, paths, themes, consent, API keys | Core `Services/Settings/*`; GUI `AppSettings`/settings dialog | partial | Existing settings read/write without unrelated data loss, secret redaction, desktop persistence |
 | F18 | Managed deployment staging/manifests/hardlinks, ownership, undeploy/purge/profile switching | Core `Services/Deployment/*`, `Services/Installation/Managed*`; GUI mod management | missing | File ownership and restore tests including pre-existing files and multiple profiles; real filesystem probes |
 | F19 | File conflict attribution, winners and competing components, preview/UI | Core `Services/Conflicts/*`; GUI `ConflictsDialog` | missing | VFS-derived conflict report matches C# for overwrite/order/option cases and renders in desktop |
 | F20 | Merge matching/heuristics, per-field preference, exclusions/order, conflict resolution | Core `ComponentMergeService.cs`, `MergeHeuristicsOptions.cs`; GUI merge dialogs | missing | Port merge tests; full TOML+Markdown pipeline retains machine instructions and order |
@@ -179,3 +179,7 @@ F16: shared default settings-directory lookup now serves profile CLI, profile-ba
 ### Legacy profile settings lookup
 
 F16/F17: profile settings now honor the reference's legacy KOTORModSync fallback and current-file precedence. A live CLI comparison matched activation's managed fields and confirmed legacy input preservation. General GUI settings restoration/migration and malformed-schema equivalence remain incomplete.
+
+### Desktop directory preferences
+
+F17 is now partial: sourcePath/destinationPath load at desktop startup, explicit launch paths take precedence, and the user can save directories with unrelated JSON retained. `gui --settings-dir` supports an isolated/custom settings store. Tests cover directory restoration, malformed-field rejection, casing, nested-field preservation and corrupt-file nonreplacement. This is state-level evidence only; themes, the remaining settings fields, automatic save lifecycle and live native interaction remain incomplete.

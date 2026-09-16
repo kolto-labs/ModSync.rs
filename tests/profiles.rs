@@ -453,3 +453,29 @@ fn legacy_settings_fallback_imports_managed_fields_and_current_settings_take_pre
     assert!(!run().status.success());
     assert_eq!(fs::read(storage.join("settings.json")).unwrap(), b"corrupt");
 }
+
+#[test]
+fn directory_preferences_preserve_unrelated_settings_and_normalize_casing() {
+    let dir = tempfile::tempdir().unwrap();
+    let store = Store::new(dir.path()).unwrap();
+    fs::write(dir.path().join("settings.json"), r#"{"SourcePath":"mods","DESTINATIONPATH":"game","activeProfileName":"Keep","nested":{"keep":7}}"#).unwrap();
+    assert_eq!(
+        store.directory_preferences().unwrap(),
+        (Some("mods".into()), Some("game".into()))
+    );
+    store
+        .save_directory_preferences("new-mods", "new-game")
+        .unwrap();
+    let settings: Value =
+        serde_json::from_slice(&fs::read(dir.path().join("settings.json")).unwrap()).unwrap();
+    assert_eq!(
+        settings,
+        json!({"sourcePath":"new-mods","destinationPath":"new-game","activeProfileName":"Keep","nested":{"keep":7}})
+    );
+    fs::write(dir.path().join("settings.json"), "broken").unwrap();
+    assert!(store.save_directory_preferences("", "").is_err());
+    assert_eq!(
+        fs::read(dir.path().join("settings.json")).unwrap(),
+        b"broken"
+    );
+}

@@ -253,6 +253,9 @@ impl Store {
         Ok(true)
     }
     fn settings(&self) -> Result<Value> {
+        self.read_settings(true)
+    }
+    fn read_settings(&self, managed_only: bool) -> Result<Value> {
         let current = self.root.join("settings.json");
         let legacy = dirs::config_dir().map(|p| p.join("KOTORModSync/settings.json"));
         let path = if current.exists() {
@@ -264,7 +267,7 @@ impl Store {
         };
         let mut value: Value = serde_json::from_slice(&fs::read(path)?)?;
         ensure!(value.is_object(), "Settings must be an object");
-        if path != &current {
+        if path != &current && managed_only {
             // The C# profile CLI imports only its two managed-deployment fields.
             value
                 .as_object_mut()
@@ -272,6 +275,37 @@ impl Store {
                 .retain(|key, _| key == "activeProfileName" || key == "managedDeploymentEnabled");
         }
         Ok(value)
+    }
+    pub fn directory_preferences(&self) -> Result<(Option<String>, Option<String>)> {
+        let settings = self.read_settings(false)?;
+        let string = |key: &str| -> Result<Option<String>> {
+            let value = settings
+                .as_object()
+                .unwrap()
+                .iter()
+                .rev()
+                .find(|(k, _)| k.eq_ignore_ascii_case(key))
+                .map(|(_, v)| v);
+            match value {
+                None | Some(Value::Null) => Ok(None),
+                Some(Value::String(s)) => Ok(Some(s.clone())),
+                _ => anyhow::bail!("Settings {key} must be text or null"),
+            }
+        };
+        Ok((string("sourcePath")?, string("destinationPath")?))
+    }
+    pub fn save_directory_preferences(&self, source: &str, destination: &str) -> Result<()> {
+        let _lock = self.lock()?;
+        let mut settings = self.read_settings(false)?;
+        settings.as_object_mut().unwrap().retain(|k, _| {
+            !k.eq_ignore_ascii_case("sourcePath") && !k.eq_ignore_ascii_case("destinationPath")
+        });
+        settings["sourcePath"] = source.into();
+        settings["destinationPath"] = destination.into();
+        recovery::atomic_write(
+            &self.root.join("settings.json"),
+            &serde_json::to_vec_pretty(&settings)?,
+        )
     }
     pub fn active_name(&self) -> Result<Option<String>> {
         Ok(self

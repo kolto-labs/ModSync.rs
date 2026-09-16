@@ -176,3 +176,5 @@ Use **Refresh profiles** to populate the stored-profile selector. Enter a new na
 
 `--settings-dir` is optional for profile commands and profile-backed validation/install. It defaults to `ModSync` within the platform configuration directory (Linux XDG config, macOS Application Support, Windows roaming application data). The desktop prepopulates that directory. Supply an explicit directory to keep a separate set of profiles.
 When the current settings file is absent, profile operations can read the active-profile and managed-deployment fields from the legacy `KOTORModSync/settings.json` in the platform configuration directory. Activation writes to the current store and leaves the legacy file unchanged; profile files themselves are not migrated.
+
+The desktop restores saved game/mod directories when launched without those explicit path arguments. On **Load guide**, **Save directories for next launch** writes them to the selected settings store while preserving unrelated settings. Use `modsync gui --settings-dir /path/to/settings` to launch with a custom store.

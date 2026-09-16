@@ -112,6 +112,24 @@ impl App {
         }
     }
 
+    fn restore_directory_preferences(&mut self) -> Result<()> {
+        anyhow::ensure!(
+            !self.profile_directory.is_empty(),
+            "Settings directory unavailable"
+        );
+        let store = modsync::profiles::Store::new(Path::new(&self.profile_directory))?;
+        let (source, destination) = store.directory_preferences()?;
+        if self.mods.is_empty() {
+            self.mods = source.unwrap_or_default();
+        }
+        if self.game.is_empty() {
+            self.game = destination.unwrap_or_default();
+        }
+        self.validated = false;
+        self.confirm_install = false;
+        Ok(())
+    }
+
     fn profile_action(&mut self, activate: bool) -> Result<()> {
         anyhow::ensure!(
             !self.profile_directory.trim().is_empty(),
@@ -467,6 +485,14 @@ impl eframe::App for App {
                     ui.separator();
                     if Self::path_row(ui, "Game directory", &mut self.game, true) | Self::path_row(ui, "Mod directory", &mut self.mods, true) { self.validated = false; }
                     ui.label("Use separate folders. Put downloaded archives in the mod directory.");
+                    if ui.button("Save directories for next launch").clicked() {
+                        let result = (|| -> Result<()> {
+                            anyhow::ensure!(!self.profile_directory.is_empty(), "Choose a settings directory");
+                            modsync::profiles::Store::new(Path::new(&self.profile_directory))?
+                                .save_directory_preferences(&self.mods, &self.game)
+                        })();
+                        self.logs.push(match result { Ok(()) => "Directories saved in the selected settings directory.".into(), Err(e) => format!("Settings save failed: {e:#}") });
+                    }
                     if let Some(g) = &self.guide { ui.label(format!("{} components loaded", g.components.len())); }
                     if ui.add_enabled(self.guide.is_some(), egui::Button::new("Choose mods →")).clicked() { self.page = 1; }
                 }
@@ -567,7 +593,12 @@ impl eframe::App for App {
     }
 }
 
-pub fn launch(input: Option<PathBuf>, game: Option<PathBuf>, mods: Option<PathBuf>) -> Result<()> {
+pub fn launch(
+    input: Option<PathBuf>,
+    game: Option<PathBuf>,
+    mods: Option<PathBuf>,
+    settings_dir: Option<PathBuf>,
+) -> Result<()> {
     let native = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([1120.0, 780.0])
@@ -577,7 +608,16 @@ pub fn launch(input: Option<PathBuf>, game: Option<PathBuf>, mods: Option<PathBu
     eframe::run_native(
         "ModSync.rs",
         native,
-        Box::new(move |_| Ok(Box::new(App::new(input, game, mods)))),
+        Box::new(move |_| {
+            let mut app = App::new(input, game, mods);
+            if let Some(directory) = settings_dir {
+                app.profile_directory = directory.to_string_lossy().into_owned();
+            }
+            if let Err(e) = app.restore_directory_preferences() {
+                app.logs.push(format!("Settings load failed: {e:#}"));
+            }
+            Ok(Box::new(app))
+        }),
     )
     .map_err(|e| anyhow::anyhow!("Desktop startup failed: {e}"))
 }
@@ -657,5 +697,27 @@ mod tests {
         assert_eq!(app.profile_names, ["Original"]);
         assert_eq!(store.active_name().unwrap(), None);
         assert!(app.profile_delete.is_none());
+    }
+    #[test]
+    fn desktop_restores_saved_directories_but_preserves_explicit_launch_paths() {
+        let dir = tempfile::tempdir().unwrap();
+        let store = modsync::profiles::Store::new(dir.path()).unwrap();
+        store
+            .save_directory_preferences("saved-mods", "saved-game")
+            .unwrap();
+        let mut app = App::new(None, None, Some(PathBuf::from("explicit-mods")));
+        app.profile_directory = dir.path().to_string_lossy().into_owned();
+        app.restore_directory_preferences().unwrap();
+        assert_eq!(app.mods, "explicit-mods");
+        assert_eq!(app.game, "saved-game");
+        assert!(!app.validated && !app.confirm_install);
+        std::fs::write(
+            dir.path().join("settings.json"),
+            r#"{"sourcePath":"other","destinationPath":42}"#,
+        )
+        .unwrap();
+        assert!(app.restore_directory_preferences().is_err());
+        assert_eq!(app.mods, "explicit-mods");
+        assert_eq!(app.game, "saved-game");
     }
 }
