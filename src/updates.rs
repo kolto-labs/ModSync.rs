@@ -1,5 +1,5 @@
 use crate::{Component, Guide};
-use anyhow::Result;
+use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
@@ -93,6 +93,12 @@ pub struct NexusClient {
     hourly_remaining: Option<i64>,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct NxmDownloadLink {
+    pub file_name: String,
+    pub uri: String,
+}
+
 impl NexusClient {
     pub fn new(api_key: Option<String>) -> Result<Self> {
         Self::with_base_url(api_key, "https://api.nexusmods.com/v1/")
@@ -130,6 +136,52 @@ impl NexusClient {
         Ok(self
             .get_json::<Files>(&format!("games/{game_domain}/mods/{mod_id}/files.json"))?
             .files)
+    }
+
+    pub fn nxm_download_link(&mut self, link: &crate::protocol::Link) -> Result<NxmDownloadLink> {
+        let crate::protocol::Link::Nxm {
+            game_domain,
+            mod_id,
+            file_id,
+            key,
+            expires,
+            ..
+        } = link
+        else {
+            bail!("Expected an nxm:// link");
+        };
+        anyhow::ensure!(
+            self.api_key
+                .as_deref()
+                .is_some_and(|value| !value.trim().is_empty())
+                || (key.as_deref().is_some_and(|value| !value.is_empty()) && *expires > 0),
+            "The nxm link has no download key and no Nexus API key is configured"
+        );
+        let metadata: NexusModFile = self.get_json(&format!(
+            "games/{game_domain}/mods/{mod_id}/files/{file_id}.json"
+        ))?;
+        let mut path =
+            format!("games/{game_domain}/mods/{mod_id}/files/{file_id}/download_link.json");
+        if let Some(key) = key.as_deref().filter(|key| !key.is_empty()) {
+            path.push_str(&format!(
+                "?key={}&expires={expires}",
+                urlencoding::encode(&key)
+            ));
+        }
+        let value = self.get_value(&path)?;
+        let links = value
+            .as_array()
+            .or_else(|| value.get("download_links").and_then(Value::as_array));
+        let uri = links
+            .and_then(|links| links.first())
+            .and_then(|link| link.get("URI").or_else(|| link.get("uri")))
+            .and_then(Value::as_str)
+            .filter(|uri| reqwest::Url::parse(uri).is_ok_and(|url| url.scheme() == "https"))
+            .ok_or_else(|| anyhow::anyhow!("Nexus returned no HTTPS download mirror"))?;
+        Ok(NxmDownloadLink {
+            file_name: metadata.file_name,
+            uri: uri.into(),
+        })
     }
 
     pub fn md5_search(&mut self, game_domain: &str, md5: &str) -> Result<Vec<NexusMd5Result>> {
