@@ -3318,6 +3318,7 @@ dependencies = [
  "tokio",
  "toml",
  "unrar",
+ "uuid",
  "walkdir",
  "zip",
 ]

@@ -2,6 +2,7 @@ use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
+use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -10,6 +11,10 @@ pub struct Config {
     pub enabled: bool,
     #[serde(default)]
     pub user_consented: bool,
+    #[serde(default)]
+    pub consent_date: Option<String>,
+    #[serde(default)]
+    pub anonymous_user_id: String,
     #[serde(default = "yes")]
     pub collect_usage_data: bool,
     #[serde(default = "yes")]
@@ -34,6 +39,8 @@ impl Default for Config {
         Self {
             enabled: false,
             user_consented: false,
+            consent_date: None,
+            anonymous_user_id: uuid::Uuid::new_v4().to_string(),
             collect_usage_data: true,
             collect_performance_metrics: true,
             endpoint: String::new(),
@@ -41,6 +48,45 @@ impl Default for Config {
             client_version: default_client_version(),
             signing_secret: None,
         }
+    }
+}
+
+fn secret(directory: &Path) -> Option<String> {
+    std::env::var("MODSYNC_SIGNING_SECRET")
+        .ok()
+        .or_else(|| std::env::var("KOTORMODSYNC_SIGNING_SECRET").ok())
+        .or_else(|| std::fs::read_to_string(directory.join("telemetry.key")).ok())
+        .map(|value| value.trim().to_owned())
+        .filter(|value| !value.is_empty())
+}
+
+impl Config {
+    pub fn load(directory: &Path) -> Result<Self> {
+        let path = directory.join("telemetry_config.json");
+        let mut config = match std::fs::read(&path) {
+            Ok(bytes) => serde_json::from_slice(&bytes).context("Parse telemetry configuration")?,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Self::default(),
+            Err(error) => return Err(error).context("Read telemetry configuration"),
+        };
+        if config.anonymous_user_id.trim().is_empty() {
+            config.anonymous_user_id = uuid::Uuid::new_v4().to_string();
+        }
+        config.session_id = uuid::Uuid::new_v4().to_string();
+        config.signing_secret = secret(directory);
+        Ok(config)
+    }
+
+    pub fn save(&self, directory: &Path) -> Result<()> {
+        crate::recovery::atomic_write(
+            &directory.join("telemetry_config.json"),
+            &serde_json::to_vec_pretty(self)?,
+        )
+    }
+
+    pub fn set_consent(&mut self, enabled: bool) {
+        self.user_consented = enabled;
+        self.enabled = enabled;
+        self.consent_date = enabled.then(|| chrono::Utc::now().to_rfc3339());
     }
 }
 

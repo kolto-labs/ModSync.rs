@@ -90,3 +90,22 @@ fn telemetry_export_requires_consent_and_signs_the_sent_event() {
     );
     server.join().unwrap();
 }
+
+#[test]
+fn telemetry_configuration_persists_consent_but_not_secret_and_rotates_sessions() {
+    let directory = tempfile::tempdir().unwrap();
+    std::fs::write(directory.path().join("telemetry.key"), "secret\n").unwrap();
+    let mut config = Config::load(directory.path()).unwrap();
+    let first_session = config.session_id.clone();
+    assert_eq!(config.signing_secret.as_deref(), Some("secret"));
+    config.set_consent(true);
+    config.save(directory.path()).unwrap();
+    let serialized =
+        std::fs::read_to_string(directory.path().join("telemetry_config.json")).unwrap();
+    assert!(serialized.contains("user_consented"));
+    assert!(!serialized.contains("secret"));
+    let loaded = Config::load(directory.path()).unwrap();
+    assert!(loaded.enabled && loaded.user_consented);
+    assert_eq!(loaded.anonymous_user_id, config.anonymous_user_id);
+    assert_ne!(loaded.session_id, first_session);
+}
