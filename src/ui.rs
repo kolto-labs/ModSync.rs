@@ -14,6 +14,7 @@ use std::{
 enum Message {
     Downloaded(PathBuf, modsync::archive::Options),
     NxmDownloaded(modsync::protocol::NxmComponentMatch, String),
+    ProtocolGuide(Guide),
     Conflicts(modsync::conflicts::Report),
     Log(String),
     Updates(Guide, modsync::updates::Summary),
@@ -27,6 +28,7 @@ enum Job {
     Restore,
     Download,
     NxmDownload,
+    ProtocolOpen,
     Update,
 }
 
@@ -188,20 +190,31 @@ impl App {
         let Some(raw) = self.pending_protocol.take() else {
             return;
         };
-        match modsync::protocol::fetch_modsync_guide(&raw) {
-            Ok((_, guide)) => {
-                self.reset_installation();
-                self.logs.push(format!(
-                    "Loaded {} components from modsync link",
-                    guide.components.len()
-                ));
-                self.loaded_input = None;
-                self.guide = Some(guide);
-                self.selected = 0;
-                self.page = 1;
-            }
-            Err(error) => self.logs.push(format!("ModSync link failed: {error:#}")),
-        }
+        let (tx, rx) = mpsc::channel();
+        self.receiver = Some(rx);
+        self.job = Job::ProtocolOpen;
+        self.logs.push("Downloading ModSync build link…".into());
+        std::thread::spawn(move || {
+            let result = (|| -> Result<()> {
+                let (_, guide) = modsync::protocol::fetch_modsync_guide(&raw)?;
+                tx.send(Message::ProtocolGuide(guide))?;
+                Ok(())
+            })();
+            let _ = tx.send(Message::Done(result));
+        });
+    }
+
+    fn apply_protocol_guide(&mut self, guide: Guide) {
+        self.reset_installation();
+        self.logs.push(format!(
+            "Loaded {} components from modsync link",
+            guide.components.len()
+        ));
+        self.loaded_input = None;
+        self.guide = Some(guide);
+        self.selected = 0;
+        self.page = 1;
+        self.start_pending_nxm_if_ready();
     }
 
     fn accept_protocol(&mut self, url: String) {
@@ -663,6 +676,7 @@ impl App {
                 Job::Restore => "Restoring snapshot…",
                 Job::Download => "Downloading…",
                 Job::NxmDownload => "Downloading linked Nexus file…",
+                Job::ProtocolOpen => "Downloading ModSync build link…",
                 Job::Update => "Checking Nexus updates…",
             }
             .into(),
@@ -855,6 +869,7 @@ impl eframe::App for App {
                         self.nxm_record_error = Some(format!("{error:#}"));
                     }
                 }
+                Message::ProtocolGuide(guide) => self.apply_protocol_guide(guide),
                 Message::Conflicts(report) => self.conflicts = Some(report),
                 Message::Log(line) => self.logs.push(line),
                 Message::Updates(guide, summary) => {
@@ -900,7 +915,7 @@ impl eframe::App for App {
                         self.installed_phase();
                     }
                     self.validated = result.is_ok() && self.job == Job::Validate;
-                    self.logs.push(match result { Ok(()) => match self.job { Job::Conflicts => "Conflict analysis complete. Review the report and its limitations.", Job::Validate => "Validation passed. External program effects, if any, remain unverified.", Job::Install => "Installation complete.", Job::Restore => "Snapshot restored and file hashes verified.", Job::Download => "Archive downloaded and integrity checked.", Job::NxmDownload => "Nexus handoff download complete.", Job::Update => "Nexus update check complete." }.into(), Err(e) => format!("Stopped: {e:#}") });
+                    self.logs.push(match result { Ok(()) => match self.job { Job::Conflicts => "Conflict analysis complete. Review the report and its limitations.", Job::Validate => "Validation passed. External program effects, if any, remain unverified.", Job::Install => "Installation complete.", Job::Restore => "Snapshot restored and file hashes verified.", Job::Download => "Archive downloaded and integrity checked.", Job::NxmDownload => "Nexus handoff download complete.", Job::ProtocolOpen => "ModSync build link loaded.", Job::Update => "Nexus update check complete." }.into(), Err(e) => format!("Stopped: {e:#}") });
                     self.start_pending_nxm_if_ready();
                 }
             }
@@ -1400,6 +1415,29 @@ pub fn launch(
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn protocol_guide_replaces_stale_wizard_state() {
+        let mut app = App::new(None, None, None);
+        app.loaded_input = Some(std::path::PathBuf::from("old.toml"));
+        app.page = 7;
+        app.selected = 4;
+        app.validated = true;
+        app.confirm_install = true;
+        app.apply_protocol_guide(Guide {
+            components: vec![Component {
+                guid: "from-link".into(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        });
+
+        assert_eq!(app.page, 1);
+        assert_eq!(app.selected, 0);
+        assert!(app.loaded_input.is_none());
+        assert!(!app.validated && !app.confirm_install);
+        assert_eq!(app.guide.unwrap().components[0].guid, "from-link");
+    }
+
     #[test]
     fn saved_desktop_selection_embeds_external_fomod_choices_and_reloads() {
         let temp = tempfile::tempdir().unwrap();
