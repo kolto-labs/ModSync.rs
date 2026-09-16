@@ -27,6 +27,7 @@ pub struct Report {
     pub warning_count: usize,
     pub passed_count: usize,
     pub component_count: usize,
+    pub input_path: Option<String>,
     pub stages: Vec<StageResult>,
 }
 impl Report {
@@ -38,6 +39,7 @@ impl Report {
             warning_count: 0,
             passed_count: 0,
             component_count,
+            input_path: None,
             stages: Vec::new(),
         }
     }

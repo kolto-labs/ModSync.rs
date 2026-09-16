@@ -942,7 +942,8 @@ fn run() -> Result<()> {
             } else if install {
                 engine.install(&guide, emit)
             } else if args.validation_report {
-                let report = engine.validate_report(&guide, emit);
+                let mut report = engine.validate_report(&guide, emit);
+                report.input_path = Some(paths.input.to_string_lossy().into_owned());
                 println!("{}", serde_json::to_string_pretty(&report)?);
                 ensure!(report.success, "Validation pipeline reported errors");
                 Ok(())
