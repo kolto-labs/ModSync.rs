@@ -283,8 +283,8 @@ struct InstallArgs {
     #[arg(long)]
     patcher: Option<PathBuf>,
     /// CLI patcher backend for Patcher instructions.
-    #[arg(long, value_enum, default_value_t = PatcherEngineArg::Holo)]
-    patcher_engine: PatcherEngineArg,
+    #[arg(long, value_enum)]
+    patcher_engine: Option<PatcherEngineArg>,
     /// Existing scratch folder outside the game and mod trees (defaults to system temp).
     #[arg(long)]
     scratch_dir: Option<PathBuf>,
@@ -779,14 +779,32 @@ fn run() -> Result<()> {
             else {
                 unreachable!()
             };
-            ensure!(
-                args.settings_dir.is_none() || args.profile.is_some() || args.active_profile,
-                "--settings-dir requires --profile or --active-profile"
-            );
+            let settings_directory =
+                if args.settings_dir.is_some() || args.profile.is_some() || args.active_profile {
+                    Some(modsync::profiles::settings_directory(
+                        args.settings_dir.as_deref(),
+                    )?)
+                } else {
+                    None
+                };
+            let patcher_preferences = settings_directory
+                .as_deref()
+                .map(modsync::profiles::Store::new)
+                .transpose()?
+                .map(|store| store.patcher_preferences())
+                .transpose()?;
+            let patcher_engine = args
+                .patcher_engine
+                .map(Into::into)
+                .or_else(|| {
+                    patcher_preferences
+                        .as_ref()
+                        .map(|preferences| preferences.engine)
+                })
+                .unwrap_or_default();
             let profile = if args.profile.is_some() || args.active_profile {
-                let directory =
-                    modsync::profiles::settings_directory(args.settings_dir.as_deref())?;
-                let store = modsync::profiles::Store::new(&directory)?;
+                let directory = settings_directory.as_ref().unwrap();
+                let store = modsync::profiles::Store::new(directory)?;
                 let name = if args.active_profile {
                     store
                         .active_name()?
@@ -865,7 +883,7 @@ fn run() -> Result<()> {
             }
             if args.direct_markdown {
                 ensure!(
-                    PatcherEngine::from(args.patcher_engine) == PatcherEngine::OdyPatcher,
+                    patcher_engine == PatcherEngine::OdyPatcher,
                     "Direct Markdown mode requires --patcher-engine ody-patcher"
                 );
                 let result = modsync::direct_markdown::apply(&mut guide.components);
@@ -892,8 +910,12 @@ fn run() -> Result<()> {
             }
             let mut settings = Settings::new(&paths.source, &paths.game)?;
             settings.allow_processes = args.allow_processes;
-            settings.patcher = args.patcher;
-            settings.patcher_engine = args.patcher_engine.into();
+            settings.patcher = args.patcher.or_else(|| {
+                patcher_preferences
+                    .filter(|preferences| preferences.engine == patcher_engine)
+                    .and_then(|preferences| preferences.executable.map(PathBuf::from))
+            });
+            settings.patcher_engine = patcher_engine;
             settings.archive.scratch_dir = args.scratch_dir;
             settings.archive.max_expanded_bytes = args.max_expanded_bytes;
             let engine = Engine::new(settings)?;

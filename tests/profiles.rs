@@ -627,3 +627,40 @@ fn patcher_preferences_preserve_unknown_settings_and_use_csharp_keys() {
     assert_eq!(saved["nested"]["keep"], 7);
     assert_eq!(saved["OdyPatcherExecutablePath"], "old");
 }
+
+#[cfg(unix)]
+#[test]
+fn standalone_settings_dir_supplies_saved_patcher_configuration() {
+    use std::os::unix::fs::PermissionsExt;
+    let dir = tempfile::tempdir().unwrap();
+    let game = dir.path().join("game");
+    let mods = dir.path().join("mods");
+    fs::create_dir(&game).unwrap();
+    fs::create_dir_all(mods.join("patch/tslpatchdata")).unwrap();
+    let patcher = dir.path().join("kpatcher");
+    fs::write(&patcher, "#!/bin/sh\nexit 0\n").unwrap();
+    fs::set_permissions(&patcher, fs::Permissions::from_mode(0o755)).unwrap();
+    Store::new(dir.path())
+        .unwrap()
+        .save_patcher_preferences(PatcherEngine::KPatcher, patcher.to_str().unwrap())
+        .unwrap();
+    let guide = dir.path().join("guide.json");
+    fs::write(&guide, r#"[{"Guid":"a","Name":"P","IsSelected":true,"Instructions":[{"Action":"Patcher","Source":"<<modDirectory>>/patch"}]}]"#).unwrap();
+    let result = std::process::Command::new(env!("CARGO_BIN_EXE_modsync"))
+        .args(["validate", "--input"])
+        .arg(&guide)
+        .arg("--game-dir")
+        .arg(&game)
+        .arg("--source-dir")
+        .arg(&mods)
+        .arg("--settings-dir")
+        .arg(dir.path())
+        .arg("--allow-processes")
+        .output()
+        .unwrap();
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+}
