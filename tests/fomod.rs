@@ -374,3 +374,65 @@ fn file_plan_preserves_conditional_attachment_and_never_skips_unsupported_patter
             .is_err()
     );
 }
+
+#[test]
+fn mapped_file_copies_use_shared_preflight_and_install_without_mutating_sources() {
+    use modsync::{Component, Engine, Guide, Settings, fomod::parse_module_xml};
+    let temp = tempfile::tempdir().unwrap();
+    let mods = temp.path().join("mods");
+    let game = temp.path().join("game");
+    std::fs::create_dir_all(mods.join("package/textures")).unwrap();
+    std::fs::create_dir(&game).unwrap();
+    std::fs::write(mods.join("package/textures/a.tga"), b"texture").unwrap();
+    let xml = r#"<config><requiredInstallFiles><file source="textures\a.tga" destination="Override/a.tga"/></requiredInstallFiles></config>"#;
+    let module = parse_module_xml(xml).unwrap();
+    let guide = Guide {
+        components: vec![Component {
+            guid: "fomod".into(),
+            name: "FOMOD".into(),
+            is_selected: true,
+            instructions: module.copy_instructions("package").unwrap(),
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    Engine::new(Settings::new(&mods, &game).unwrap())
+        .unwrap()
+        .validate(&guide, |_| {})
+        .unwrap();
+    assert!(!game.join("Override").exists());
+    Engine::new(Settings::new(&mods, &game).unwrap())
+        .unwrap()
+        .install(&guide, |_| {})
+        .unwrap();
+    assert_eq!(
+        std::fs::read(game.join("Override/a.tga")).unwrap(),
+        b"texture"
+    );
+    assert_eq!(
+        std::fs::read(mods.join("package/textures/a.tga")).unwrap(),
+        b"texture"
+    );
+    for source in ["../escape", "/absolute", "C:\\escape", "*.tga"] {
+        let bad = xml.replace("textures\\a.tga", source);
+        assert!(
+            parse_module_xml(&bad)
+                .unwrap()
+                .copy_instructions("package")
+                .is_err()
+        );
+    }
+    assert!(module.copy_instructions("../package").is_err());
+    for bad in [
+        xml.replace("Override/a.tga", "../escape"),
+        xml.replace("Override/a.tga", "Override/b.tga"),
+        xml.replace("<file ", "<folder "),
+    ] {
+        assert!(
+            parse_module_xml(&bad)
+                .unwrap()
+                .copy_instructions("package")
+                .is_err()
+        );
+    }
+}

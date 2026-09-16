@@ -426,3 +426,59 @@ impl ModuleConfig {
         Ok(files)
     }
 }
+
+impl ModuleConfig {
+    /// Map configured file copies from an already-extracted, mod-relative directory.
+    /// This does not bypass archive configuration gates or perform extraction.
+    pub fn copy_instructions(&self, extracted_directory: &str) -> Result<Vec<crate::Instruction>> {
+        let root = crate::paths::relative(extracted_directory, false)?;
+        ensure!(
+            !root.as_os_str().is_empty(),
+            "FOMOD extraction directory is empty"
+        );
+        let mut instructions = Vec::new();
+        for file in self.selected_files()? {
+            ensure!(
+                !file.is_folder,
+                "FOMOD folder mapping is not implemented: {}",
+                file.source
+            );
+            let source = crate::paths::relative(file.source.trim(), false)?;
+            let filename = source
+                .file_name()
+                .ok_or_else(|| anyhow::anyhow!("FOMOD file source is empty"))?
+                .to_string_lossy();
+            let mut destination = crate::paths::relative(file.destination.trim(), false)?;
+            if let Some(name) = destination.file_name() {
+                let name = name.to_string_lossy();
+                if name.contains('.') || name.eq_ignore_ascii_case(&filename) {
+                    ensure!(
+                        name.eq_ignore_ascii_case(&filename),
+                        "FOMOD file rename mapping is not implemented: {} -> {}",
+                        file.source,
+                        file.destination
+                    );
+                    destination.pop();
+                }
+            }
+            let source = root.join(source).to_string_lossy().replace('\\', "/");
+            let destination = destination.to_string_lossy().replace('\\', "/");
+            instructions.push(crate::Instruction {
+                action: "Copy".into(),
+                source: vec![format!("<<modDirectory>>/{source}")],
+                destination: if destination.is_empty() {
+                    "<<gameDirectory>>".into()
+                } else {
+                    format!("<<gameDirectory>>/{destination}")
+                },
+                overwrite: true,
+                guid: String::new(),
+                parent: String::new(),
+                arguments: String::new(),
+                dependencies: vec![],
+                restrictions: vec![],
+            });
+        }
+        Ok(instructions)
+    }
+}

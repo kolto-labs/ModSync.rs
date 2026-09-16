@@ -405,3 +405,7 @@ parse_module_xml now retains module name, required files, plugin files and flag-
 ### FOMOD selected file plan
 
 ModuleConfig.selected_files builds a read-only ordered plan: required files, selected visible plugin files with their attached conditional files, then unconditional patterns. Supported flat flag patterns attach to the first plugin declaring all required flags, even if another selected plugin declares them too, following the reference mapper. Nested/multi-branch OR patterns and flags not supplied by one plugin fail explicitly instead of being silently skipped. Priorities remain preserved data: the reference mapper does not sort them. Tests cover attachment order, first-match deselection and unsupported-pattern rejection. Safe path/instruction mapping and real installation remain open.
+
+### FOMOD file-copy instruction mapping
+
+ModuleConfig.copy_instructions maps the ordered selected file plan from an explicitly supplied extracted mod-relative directory to shared Copy instructions. Existing cross-platform path validation rejects traversal, rooted paths, wildcards and reserved names before instructions are returned. Compatible filename destinations become parent directories; requested renames and folder directives fail explicitly until implemented. A temporary-directory integration test proves dry validation creates no game files and installation copies exact bytes without changing the source. Archive extraction/configuration gates remain unchanged; this is a library mapping primitive, not end-to-end FOMOD support.
