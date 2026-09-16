@@ -5,6 +5,7 @@ fn plugin(name: &str, required: bool, selected: bool) -> PluginSelection {
         name: name.into(),
         description: String::new(),
         image_path: String::new(),
+        files: vec![],
         required,
         flags: vec![],
         selected,
@@ -314,4 +315,27 @@ fn xml_plugin_details_preserve_authored_text_without_opening_image_paths() {
     );
     assert_eq!(plugins[0].image_path, "../outside & preview.png");
     assert!(plugins[1].description.is_empty() && plugins[1].image_path.is_empty());
+}
+
+#[test]
+fn module_file_directives_keep_reference_order_paths_and_priority_defaults() {
+    use modsync::fomod::parse_module_xml;
+    let xml = r#"<config><moduleName>Example &amp; files</moduleName><requiredInstallFiles><file source="a.txt" destination="Override/b.txt" priority=" -4 "/><folder source="textures" destination="Override" priority="2147483648"/><file source="../untrusted" priority="bad"/></requiredInstallFiles><installSteps><installStep><optionalFileGroups><group><plugins><plugin name="Optional"><files><file source="optional.tga" destination="Override" priority="12"/></files></plugin></plugins></group></optionalFileGroups></installStep></installSteps><conditionalFileInstalls><patterns><pattern><dependencies><flagDependency flag="option" value="yes"/></dependencies><files><folder source="conditional" destination="Override"/></files></pattern><pattern><files><file source="always.txt"/></files></pattern></patterns></conditionalFileInstalls></config>"#;
+    let module = parse_module_xml(xml).unwrap();
+    assert_eq!(module.name, "Example & files");
+    assert_eq!(
+        module
+            .required_files
+            .iter()
+            .map(|f| f.priority)
+            .collect::<Vec<_>>(),
+        [-4, 0, 0]
+    );
+    assert_eq!(module.required_files[0].destination, "Override/b.txt");
+    assert!(module.required_files[1].is_folder);
+    assert_eq!(module.required_files[2].source, "../untrusted");
+    assert_eq!(module.steps[0].groups[0].plugins()[0].files[0].priority, 12);
+    assert_eq!(module.conditional_files.len(), 2);
+    assert_eq!(module.conditional_files[0].files[0].source, "conditional");
+    assert!(module.conditional_files[1].files[0].destination.is_empty());
 }

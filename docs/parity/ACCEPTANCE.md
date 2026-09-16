@@ -277,3 +277,5 @@ F15 visibility checkpoint: shared flag conditions and ordered propagation implem
 F15 XML selection checkpoint: ModuleConfig selection projection connects authored XML to shared group/flag logic, with malformed/DTD/unsupported-dependency rejection tests. Complete module/file metadata, conditional mapping, live differential and installation integration remain open.
 
 F15 presentation metadata checkpoint: plugin descriptions and image paths reach the shared selection model, including mixed XML text and empty defaults. Rendering and safe archive-contained image resolution remain open.
+
+F15 module-data checkpoint: XML retains required/plugin/conditional file records and priorities, with regression coverage for raw paths, order and numeric defaults. Safe mapping, priority execution, remaining dependency kinds and installation proof remain open.

@@ -17,6 +17,7 @@ pub struct PluginSelection {
     pub description: String,
     /// Archive-relative authored path only; not a trusted filesystem path.
     pub image_path: String,
+    pub files: Vec<FileInstall>,
     pub required: bool,
     pub flags: Vec<(String, String)>,
     /// Seed with Required/Recommended descriptor defaults before creating the group.
@@ -328,4 +329,26 @@ pub fn visible_steps(steps: &[StepSelection]) -> Vec<usize> {
 }
 
 mod xml;
-pub use xml::parse_selection_xml;
+pub use xml::{parse_module_xml, parse_selection_xml};
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct FileInstall {
+    pub source: String,
+    pub destination: String,
+    pub priority: i32,
+    pub is_folder: bool,
+}
+
+#[derive(Clone, Debug)]
+pub struct ConditionalFiles {
+    pub condition: FlagCondition,
+    pub files: Vec<FileInstall>,
+}
+
+#[derive(Clone, Debug)]
+pub struct ModuleConfig {
+    pub name: String,
+    pub required_files: Vec<FileInstall>,
+    pub steps: Vec<StepSelection>,
+    pub conditional_files: Vec<ConditionalFiles>,
+}

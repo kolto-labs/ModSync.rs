@@ -1,4 +1,7 @@
-use super::{FlagCondition, GroupSelection, GroupType, PluginSelection, StepSelection};
+use super::{
+    ConditionalFiles, FileInstall, FlagCondition, GroupSelection, GroupType, ModuleConfig,
+    PluginSelection, StepSelection,
+};
 use anyhow::{Result, bail, ensure};
 use quick_xml::{Reader, events::Event};
 use std::collections::BTreeMap;
@@ -118,6 +121,11 @@ fn condition(node: &Node) -> Result<FlagCondition> {
 /// Read the selection projection of ModuleConfig.xml. This does not authorize installation
 /// or map file directives; the engine's unconfigured-FOMOD rejection remains mandatory.
 pub fn parse_selection_xml(text: &str) -> Result<Vec<StepSelection>> {
+    Ok(parse_module_xml(text)?.steps)
+}
+
+/// Parse module data without resolving paths or executing file directives.
+pub fn parse_module_xml(text: &str) -> Result<ModuleConfig> {
     let root = tree(text)?;
     ensure!(
         root.name.eq_ignore_ascii_case("config"),
@@ -167,6 +175,7 @@ pub fn parse_selection_xml(text: &str) -> Result<Vec<StepSelection>> {
                                     .child("image")
                                     .map_or("", |n| n.attr("path"))
                                     .into(),
+                                files: files(plugin.child("files")),
                                 required,
                                 selected: required
                                     || plugin_type.eq_ignore_ascii_case("Recommended"),
@@ -188,5 +197,43 @@ pub fn parse_selection_xml(text: &str) -> Result<Vec<StepSelection>> {
             });
         }
     }
-    Ok(steps)
+    let mut conditional_files = Vec::new();
+    if let Some(patterns) = root
+        .child("conditionalFileInstalls")
+        .and_then(|n| n.child("patterns"))
+    {
+        for pattern in patterns.children("pattern") {
+            conditional_files.push(ConditionalFiles {
+                condition: pattern
+                    .child("dependencies")
+                    .map(condition)
+                    .transpose()?
+                    .unwrap_or_else(|| FlagCondition::All(vec![])),
+                files: files(pattern.child("files")),
+            });
+        }
+    }
+    Ok(ModuleConfig {
+        name: root
+            .child("moduleName")
+            .map_or("", |n| n.text.as_str())
+            .into(),
+        required_files: files(root.child("requiredInstallFiles")),
+        steps,
+        conditional_files,
+    })
+}
+
+fn files(container: Option<&Node>) -> Vec<FileInstall> {
+    container
+        .into_iter()
+        .flat_map(|n| &n.children)
+        .filter(|n| n.name.eq_ignore_ascii_case("file") || n.name.eq_ignore_ascii_case("folder"))
+        .map(|n| FileInstall {
+            source: n.attr("source").into(),
+            destination: n.attr("destination").into(),
+            priority: n.attr("priority").trim().parse().unwrap_or_default(),
+            is_folder: n.name.eq_ignore_ascii_case("folder"),
+        })
+        .collect()
 }

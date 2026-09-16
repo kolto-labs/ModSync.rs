@@ -397,3 +397,7 @@ The library now reads the selection portion of ModuleConfig.xml into shared step
 ### FOMOD plugin details
 
 XML selection state now preserves trimmed plugin descriptions and authored image paths. Nested description text is concatenated in document order, matching XElement.Value semantics, with entity and CDATA decoding. Image paths remain untrusted metadata and are not opened by parsing. Regression covers mixed text, missing fields and an escaping image path retained without filesystem access. Image rendering/path containment and live C# differential proof remain open.
+
+### FOMOD module file data
+
+parse_module_xml now retains module name, required files, plugin files and flag-conditional file patterns alongside selection state. File/folder records preserve authored source/destination and order; signed 32-bit priority parses with whitespace and defaults to zero for missing/invalid/overflow values, following the reference parser. Missing conditional dependencies become an always-true empty conjunction. Parsing does not resolve paths, sort priorities or authorize writes. File/game dependencies, info.xml, instruction mapping, archive containment and installer integration remain open.
