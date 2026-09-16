@@ -1,5 +1,299 @@
 [
   {
+    "Name": "reuse",
+    "Success": true,
+    "InstallationMethod": "Loose-File Mod",
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\reuse.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Choose",
+        "Source": [
+          "Authored red",
+          "Blue"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [
+      {
+        "Name": "Authored red",
+        "Description": "Keep me",
+        "IsSelected": true,
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "\u003C\u003CmodDirectory\u003E\u003E\\reuse\\Red\\*"
+            ],
+            "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ]
+      },
+      {
+        "Name": "Blue",
+        "Description": "Install files from Blue folder",
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "\u003C\u003CmodDirectory\u003E\u003E\\reuse\\Blue\\*"
+            ],
+            "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "Name": "overlap",
+    "Success": true,
+    "InstallationMethod": "Loose-File Mod",
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\overlap.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Choose",
+        "Source": [
+          "Primary",
+          "Blue"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [
+      {
+        "Name": "Primary",
+        "Description": "",
+        "IsSelected": true,
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "\u003C\u003CmodDirectory\u003E\u003E\\overlap\\Red\\*"
+            ],
+            "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          },
+          {
+            "Action": "Copy",
+            "Source": [
+              "\u003C\u003CmodDirectory\u003E\u003E\\readme.txt"
+            ],
+            "Destination": "\u003C\u003CgameDirectory\u003E\u003E",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          },
+          {
+            "Action": "Delete",
+            "Source": [
+              "\u003C\u003CgameDirectory\u003E\u003E\\old.txt"
+            ],
+            "Destination": "",
+            "Arguments": "",
+            "Overwrite": false,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ]
+      },
+      {
+        "Name": "Blue",
+        "Description": "Install files from Blue folder",
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "\u003C\u003CmodDirectory\u003E\u003E\\overlap\\Blue\\*"
+            ],
+            "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "Name": "wildcard-option",
+    "Success": true,
+    "InstallationMethod": "Loose-File Mod",
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\wildcard-option.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Choose",
+        "Source": [
+          "Broad option",
+          "Broad option"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [
+      {
+        "Name": "Broad option",
+        "Description": "All folders",
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "\u003C\u003CmodDirectory\u003E\u003E\\wildcard-option\\*\\*"
+            ],
+            "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "Name": "overwrite-option",
+    "Success": true,
+    "InstallationMethod": "Loose-File Mod",
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\overwrite-option.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Choose",
+        "Source": [
+          "Red",
+          "Blue"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [
+      {
+        "Name": "Keep existing",
+        "Description": "",
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "\u003C\u003CmodDirectory\u003E\u003E\\overwrite-option\\Red\\*"
+            ],
+            "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+            "Arguments": "",
+            "Overwrite": false,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ]
+      },
+      {
+        "Name": "Red",
+        "Description": "Install files from Red folder",
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "\u003C\u003CmodDirectory\u003E\u003E\\overwrite-option\\Red\\*"
+            ],
+            "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ]
+      },
+      {
+        "Name": "Blue",
+        "Description": "Install files from Blue folder",
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "\u003C\u003CmodDirectory\u003E\u003E\\overwrite-option\\Blue\\*"
+            ],
+            "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ]
+      }
+    ]
+  },
+  {
     "Name": "flat",
     "Success": true,
     "InstallationMethod": "Loose-File Mod",

@@ -96,3 +96,10 @@ The C# best-effort install flags must be reconciled with the user's explicit rul
 - An isolated actual install proves selection of one generated folder option and preservation of the other. Validation, corruption, unsafe names, cancellation and expansion-budget tests cover no-write/no-partial-model behavior. The reference may delete corrupt inputs; Rust preserves them. Matching generated patcher paths is not patcher-install proof.
 - F03 remains partial: authored-option/instruction merging, multiple-link selection, non-archive EXE fallback, URL-based generation, desktop inference controls, full direct-Markdown preflight and full corpus installation remain open.
 - The preceding draft commit `e51cf477d48596b3aea9f9f95fcf5a0e2ea4fd7c` passed Linux/macOS/Windows CI run 35054774351, including each native 513 MiB regression. That run predates this archive-generation change.
+
+### Authored archive-option checkpoint
+
+- Added reference-style instruction equivalence, authored-option reuse and overlap consolidation. The first option retains identity, metadata and selection; missing instructions merge and Choose references are rewritten. Existing top-level instructions still skip auto-generation, matching the C# local-processing entry point; direct augmentation of those instructions remains open.
+- Twenty raw C# archive-generation fixtures match, including four authored-option cases. The probe assigns authored Source strings directly to separate inference from JSON-loader path rewriting. The reference can repeat one broad option ID in a new Choose; output equivalence is not correctness proof for that case.
+- A separate actual install verifies preserved authored GUID/selection and resulting texture bytes. Native CI run 35055903581 for preceding commit `7aeb04df44b799e8f87ba751eeae04cd7aa5ad49` completed successfully; it predates option merging.
+- F03 remains partial. This checkpoint removes the existing-options skip restriction; multiple links, executable fallback, desktop integration, direct-Markdown preflight and full corpus/manual-install acceptance remain open.

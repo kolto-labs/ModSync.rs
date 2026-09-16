@@ -1,4 +1,5 @@
 //! Local archive inference shared by guide conversion and desktop callers.
+mod merge;
 use crate::{Component, Guide, Instruction, archive};
 use anyhow::{Context, Result, ensure};
 use serde::Serialize;
@@ -67,10 +68,6 @@ pub fn generate_local(guide: &mut Guide, source: &Path) -> Result<Vec<Generation
             ensure!(
                 component.instructions.is_empty(),
                 "Component already has instructions"
-            );
-            ensure!(
-                component.options.is_empty(),
-                "Archive inference with existing options is not supported yet"
             );
             // The model currently sorts resource keys; do not guess the reference's
             // insertion-first link when several candidates exist.
@@ -176,8 +173,8 @@ pub fn generate_from_archive(
         "Archive operation cancelled"
     );
     ensure!(
-        component.instructions.is_empty() && component.options.is_empty(),
-        "Archive inference requires a component without instructions or options"
+        component.instructions.is_empty(),
+        "Archive inference requires a component without instructions"
     );
     ensure!(path.is_file(), "Archive does not exist: {}", path.display());
     let filename = path
@@ -264,6 +261,7 @@ pub fn generate_from_archive(
     if let Some(index) = namespace_entry {
         let namespaces = parse_namespaces(&fs::read_to_string(entries[index].file.path())?);
         if let Some(values) = namespaces.get("namespaces") {
+            let mut ids = Vec::new();
             for (index, (_, namespace)) in values.iter().enumerate() {
                 if let Some(data) = namespaces.get(&namespace.to_lowercase()) {
                     let field = |name: &str| {
@@ -281,10 +279,12 @@ pub fn generate_from_archive(
                         "<<gameDirectory>>",
                         &index.to_string(),
                     );
-                    add_option(&mut generated, name, description, step);
+                    ids.push(add_option(&mut generated, name, description, step));
                 }
             }
+            add_choose(&mut generated, ids);
         }
+        merge::consolidate(&mut generated);
     } else if changes {
         generated.instructions.push(instruction(
             "Patcher",
@@ -306,6 +306,7 @@ pub fn generate_from_archive(
         .collect();
     if loose {
         if folders.len() > 1 {
+            let mut ids = Vec::new();
             for folder in folders {
                 let step = instruction(
                     "Move",
@@ -313,13 +314,14 @@ pub fn generate_from_archive(
                     "<<gameDirectory>>\\Override",
                     "",
                 );
-                add_option(
+                ids.push(add_option(
                     &mut generated,
                     folder,
                     &format!("Install files from {folder} folder"),
                     step,
-                );
+                ));
             }
+            add_choose(&mut generated, ids);
         } else if let Some(folder) = folders.first() {
             generated.instructions.push(instruction(
                 "Move",
@@ -345,6 +347,7 @@ pub fn generate_from_archive(
         })
         .into(),
     );
+    merge::consolidate(&mut generated);
     *component = generated;
     Ok(true)
 }
@@ -368,15 +371,17 @@ fn instruction(
     }
 }
 
-fn add_option(component: &mut Component, name: &str, description: &str, step: Instruction) {
-    // Newly generated options can repeat a namespace. Existing authored option
-    // merging is a separate unsupported path, rejected at the public boundary.
-    let existing = component.options.iter().find(|o| {
-        o.instructions.len() == 1
-            && o.instructions[0].source == step.source
-            && o.instructions[0].arguments == step.arguments
-    });
-    let id = if let Some(existing) = existing {
+fn add_option(
+    component: &mut Component,
+    name: &str,
+    description: &str,
+    step: Instruction,
+) -> String {
+    let existing = component
+        .options
+        .iter()
+        .find(|o| o.instructions.len() == 1 && merge::equivalent(&o.instructions[0], &step));
+    if let Some(existing) = existing {
         existing.guid.clone()
     } else {
         let id = crate::markdown::generated_id(
@@ -391,19 +396,27 @@ fn add_option(component: &mut Component, name: &str, description: &str, step: In
             ..Default::default()
         });
         id
-    };
+    }
+}
+
+fn add_choose(component: &mut Component, ids: Vec<String>) {
+    if ids.is_empty() {
+        return;
+    }
     if let Some(choose) = component
         .instructions
         .iter_mut()
         .find(|i| i.action == "Choose")
     {
-        if !choose.source.contains(&id) {
-            choose.source.push(id);
+        for id in ids {
+            if !choose.source.iter().any(|s| s.eq_ignore_ascii_case(&id)) {
+                choose.source.push(id);
+            }
         }
     } else {
         component
             .instructions
-            .push(instruction("Choose", vec![id], "", ""));
+            .push(instruction("Choose", ids, "", ""));
     }
 }
 

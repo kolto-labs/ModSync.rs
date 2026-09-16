@@ -23,6 +23,17 @@ static void Run(string[] args) {
     foreach (var (component, value) in components.Zip(input.RootElement.EnumerateArray())) {
         // Isolate inference from resource URL canonicalization in the JSON loader.
         var path = Path.Combine(args[1], value.GetProperty("ResourceRegistry").EnumerateObject().First().Name);
+        // The JSON loader also rewrites authored Source separators. Assign the
+        // original strings directly so both generation services receive identical data.
+        if (value.TryGetProperty("Options", out var options)) {
+            foreach (var (option, raw) in component.Options.Zip(options.EnumerateArray())) {
+                if (raw.TryGetProperty("Instructions", out var instructions)) {
+                    foreach (var (step, item) in option.Instructions.Zip(instructions.EnumerateArray())) {
+                        if (item.TryGetProperty("Source", out var sources)) step.Source = sources.EnumerateArray().Select(s => s.GetString()).ToList();
+                    }
+                }
+            }
+        }
         var success = ModSync.Core.Services.AutoInstructionGenerator.GenerateInstructions(component, path);
         object Step(ModSync.Core.Instruction i) => new { Action = i.Action.ToString(), Source = i.Action == ModSync.Core.Instruction.ActionType.Choose ? i.Source.Select(id => component.Options.First(o => o.Guid.ToString() == id).Name).ToList() : i.Source, i.Destination, i.Arguments, i.Overwrite, i.Dependencies, i.Restrictions };
         output.Add(new { component.Name, Success = success, component.InstallationMethod,
@@ -98,7 +109,7 @@ receipt = {'reference_commit': 'd31ccbd3bfcddb4705917eafa6483715c166de3b',
            'reference_dll_sha256': hashlib.sha256(reference.read_bytes()).hexdigest(),
            'fixture_sha256': hashlib.sha256(fixture.read_bytes()).hexdigest(),
            'cases': len(cases), 'differences': differences,
-           'scope': 'Fresh-component archive generation; Choose GUIDs normalized to option names. Not archive matching, authored-option merging, EXE fallback, or installation proof.'}
+           'scope': 'Instruction-free component generation including authored-option merging. Original authored Source strings assigned directly after C# loading; Choose GUIDs normalized to option names. Not full JSON ingestion, archive matching, existing top-level instruction merging, EXE fallback, or installation proof.'}
 (output / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
 print(json.dumps(receipt, indent=2))
 assert not differences

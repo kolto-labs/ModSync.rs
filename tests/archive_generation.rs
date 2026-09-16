@@ -207,7 +207,7 @@ fn cli_local_generation_reports_skips_and_requires_source_directory() {
 }
 
 #[test]
-fn archive_matching_prefers_exact_then_newest_and_refuses_unsupported_merges() {
+fn archive_matching_prefers_exact_then_newest_and_preserves_unrelated_options() {
     let dir = tempfile::tempdir().unwrap();
     for (name, seconds) in [
         ("sample.zip", 1000),
@@ -244,12 +244,11 @@ fn archive_matching_prefers_exact_then_newest_and_refuses_unsupported_merges() {
         ..Default::default()
     });
     let saved = serde_json::to_value(&guide).unwrap();
-    assert!(
-        archive_generation::generate_local(&mut guide, dir.path()).unwrap()[0]
-            .skip_reason
-            .contains("existing options")
+    assert!(archive_generation::generate_local(&mut guide, dir.path()).unwrap()[0].success);
+    assert_eq!(
+        serde_json::to_value(&guide.components[0].options).unwrap(),
+        saved["thisMod"][0]["Options"]
     );
-    assert_eq!(serde_json::to_value(&guide).unwrap(), saved);
     guide = original;
     guide.components[0]
         .resource_registry
@@ -275,4 +274,53 @@ fn archive_matching_prefers_exact_then_newest_and_refuses_unsupported_merges() {
         .is_err()
     );
     assert!(component.instructions.is_empty());
+}
+
+#[test]
+fn inferred_choices_reuse_authored_identity_selection_and_install_behavior() {
+    let dir = tempfile::tempdir().unwrap();
+    let mods = dir.path().join("mods");
+    let game = dir.path().join("game");
+    fs::create_dir(&mods).unwrap();
+    fs::create_dir(&game).unwrap();
+    let cases: Vec<Value> =
+        serde_json::from_str(include_str!("fixtures/archive-generation.json")).unwrap();
+    let case = cases.iter().find(|c| c["Name"] == "reuse").unwrap();
+    zip(&mods.join("reuse.zip"), &case["Files"]);
+    let mut component: Component = serde_json::from_value(case["Component"].clone()).unwrap();
+    component.guid = "component".into();
+    component.name = "reuse".into();
+    component.is_selected = true;
+    let authored = component.options[0].clone();
+    archive_generation::generate_from_archive(
+        &mut component,
+        &mods.join("reuse.zip"),
+        &archive::Options::default(),
+        &AtomicBool::new(false),
+    )
+    .unwrap();
+    assert_eq!(component.options.len(), 2);
+    assert_eq!(
+        serde_json::to_value(&component.options[0]).unwrap(),
+        serde_json::to_value(&authored).unwrap()
+    );
+    let choose = component
+        .instructions
+        .iter()
+        .find(|i| i.action == "Choose")
+        .unwrap();
+    assert_eq!(choose.source[0], authored.guid);
+    let guide = Guide {
+        components: vec![component],
+        ..Default::default()
+    };
+    Engine::new(Settings::new(&mods, &game).unwrap())
+        .unwrap()
+        .install(&guide, |_| {})
+        .unwrap();
+    assert_eq!(fs::read(game.join("Override/sample.tga")).unwrap(), b"red");
+    assert_eq!(
+        fs::read(mods.join("reuse/Blue/sample.tga")).unwrap(),
+        b"blue"
+    );
 }
