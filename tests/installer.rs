@@ -902,3 +902,43 @@ fn fomod_detection_requires_exact_directory_segment_before_refusing_extraction()
         assert!(!modsync::fomod::is_module_config_path(path));
     }
 }
+
+#[test]
+fn configured_fomod_installs_selected_bytes_through_shared_engine() {
+    let (_dir, settings) = setup();
+    fs::write(settings.roots.mods.join("package.zip"), zip(&[
+        ("Wrapper/fomod/ModuleConfig.xml", br#"<config><installSteps><installStep name="Step"><optionalFileGroups><group name="Group" type="SelectExactlyOne"><plugins><plugin name="First"><files><file source="first.txt" destination="Override"/></files></plugin><plugin name="Second"><files><file source="second.txt" destination="Override"/></files></plugin></plugins></group></optionalFileGroups></installStep></installSteps></config>"#),
+        ("Wrapper/first.txt", b"first"), ("Wrapper/second.txt", b"second")
+    ])).unwrap();
+    let mut g =
+        guide(serde_json::json!([{"Action":"Extract","Source":"<<modDirectory>>/package.zip"}]));
+    assert!(
+        Engine::new(settings.clone())
+            .unwrap()
+            .validate(&g, |_| {})
+            .is_err()
+    );
+    g.components[0].metadata.insert(
+        "FomodChoices".into(),
+        serde_json::json!({
+            "version":1,"archives":[{"archiveFileName":"package.zip","selections":[
+                {"stepName":"Step","groupName":"Group","plugins":["Second"]}
+            ]}]
+        }),
+    );
+    Engine::new(settings.clone())
+        .unwrap()
+        .validate(&g, |_| {})
+        .unwrap();
+    assert_eq!(fs::read_dir(&settings.roots.mods).unwrap().count(), 1);
+    assert_eq!(fs::read_dir(&settings.roots.game).unwrap().count(), 0);
+    Engine::new(settings.clone())
+        .unwrap()
+        .install(&g, |_| {})
+        .unwrap();
+    assert_eq!(
+        fs::read(settings.roots.game.join("Override/second.txt")).unwrap(),
+        b"second"
+    );
+    assert!(!settings.roots.game.join("Override/first.txt").exists());
+}

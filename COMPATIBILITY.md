@@ -437,3 +437,7 @@ The shared archive reader can now inspect and parse a nested ModuleConfig.xml pl
 ### Archive-relative FOMOD copy plans
 
 ArchiveModule copy mapping now retains the wrapper directory above fomod/ModuleConfig.xml. The inspection CLI can emit the validated shared-engine copy instructions with `--extracted-directory <relative-path>`, after optional choices application. Invalid selections and unsafe roots fail before output. A regression checks wrapper-relative source mapping. The command does not extract into that path or install; automatic execution still requires archive configuration and recovery integration.
+
+### Configured FOMOD extraction execution
+
+A component may now embed the version-1 choices document in its FomodChoices metadata. At each Extract instruction, the shared engine parses the actual archive configuration, requires a matching archive entry, applies and validates choices, and runs mapped copies after extraction. Wrapped paths remain relative to the actual extraction destination, which must be inside the mod directory. This uses ordinary preflight, snapshot, ordered execution and recovery; choices remain serialized with component metadata in completion receipts. A real ZIP regression proves default refusal, non-mutating validation and selected output bytes. Automatic prompting/configuration persistence UI, broader archive fixtures and failure/restore acceptance remain open.

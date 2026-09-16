@@ -487,14 +487,28 @@ impl Engine {
                         &self.settings.archive,
                         &self.settings.cancelled,
                     )?;
-                    ensure!(
-                        !entries
-                            .iter()
-                            .any(|entry| crate::fomod::is_module_config_path(
-                                &entry.path.to_string_lossy()
-                            )),
-                        "FOMOD choices are unsupported; refusing to install unconfigured archive content"
-                    );
+                    let configured = if let Some(mut module) =
+                        crate::fomod::inspect_entries(&entries)?
+                    {
+                        let raw = component.metadata.get("FomodChoices")
+                            .context("FOMOD choices are unsupported without explicit FomodChoices configuration")?;
+                        let choices =
+                            crate::fomod::ChoicesFile::parse(&serde_json::to_string(raw)?)?;
+                        let filename = source
+                            .file_name()
+                            .and_then(|n| n.to_str())
+                            .context("FOMOD archive filename is invalid")?;
+                        choices
+                            .archive(filename)
+                            .with_context(|| format!("No FOMOD choices for {filename}"))?
+                            .apply_to(&mut module.config.steps)?;
+                        let relative = dest.strip_prefix(&self.settings.roots.mods).context(
+                            "Configured FOMOD extraction must stay in the mod directory",
+                        )?;
+                        module.copy_instructions(&relative.to_string_lossy())?
+                    } else {
+                        Vec::new()
+                    };
                     for entry in entries {
                         self.check_cancelled()?;
                         self.put(
@@ -502,6 +516,9 @@ impl Engine {
                             Content::Scratch(entry.file, entry.mode),
                             i.overwrite,
                         )?;
+                    }
+                    for copy in configured {
+                        self.execute(component, &copy, emit)?;
                     }
                 }
             }

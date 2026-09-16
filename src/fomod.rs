@@ -519,6 +519,10 @@ pub fn inspect_archive(
     cancelled: &std::sync::atomic::AtomicBool,
 ) -> Result<Option<ArchiveModule>> {
     let entries = crate::archive::unpack(path, path, options, cancelled)?;
+    inspect_entries(&entries)
+}
+
+pub(crate) fn inspect_entries(entries: &[crate::archive::Entry]) -> Result<Option<ArchiveModule>> {
     let mut modules = entries
         .iter()
         .filter(|e| is_module_config_path(&e.path.to_string_lossy()));
