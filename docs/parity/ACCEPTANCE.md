@@ -251,3 +251,5 @@ F24 notice checkpoint: optional widescreen guidance now precedes selection after
 F02/F24 Markdown warning checkpoint: warning and post-widescreen epilogue extraction match an isolated pinned C# parser fixture (`markdown-warning-oracle/`); desktop consumes extracted metadata. Missing-heading and CRLF regressions pass. Widescreen component inclusion/classification and native notice proof remain open.
 
 F02/F24 classification checkpoint: prose WidescreenOnly flags now match reference section positions, with a pinned C# output comparison including a later non-widescreen component. No change to Mod List inclusion boundaries or ordered-prefix installation guards; full corpus/native end-to-end proof remains open.
+
+F24 Finish checkpoint: successful completion can return to setup without an app restart. Phase and validation state clear while guide/directories/logs persist, covered by a desktop regression. Native repeated-install proof and restart/resume remain open.

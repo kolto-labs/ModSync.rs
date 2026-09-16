@@ -116,12 +116,23 @@ impl App {
         app
     }
 
-    fn load(&mut self) {
+    fn reset_installation(&mut self) {
         self.completed_base = None;
+        self.pending_base.clear();
+        self.confirm_install = false;
         self.widescreen_notice_seen = false;
         self.finished = false;
         self.phase_failed = false;
         self.validated = false;
+    }
+
+    fn finish_wizard(&mut self) {
+        self.reset_installation();
+        self.page = 0;
+    }
+
+    fn load(&mut self) {
+        self.reset_installation();
         match Guide::load_for_install(Path::new(&self.input)) {
             Ok(g) => {
                 self.logs
@@ -792,7 +803,13 @@ impl eframe::App for App {
                     });
                 }
                 _ => {
-                    if self.finished { ui.heading("Installation complete"); ui.label("The selected installation phases are complete."); return; }
+                    if self.finished {
+                        ui.heading("Installation complete");
+                        ui.label("The selected installation phases are complete.");
+                        ui.label("Check the output log for detailed installation information.");
+                        if ui.button("Finish").clicked() { self.finish_wizard(); }
+                        return;
+                    }
                     if let Some(content) = self.widescreen_notice() {
                         ui.heading("Widescreen Support");
                         ui.label("Information about widescreen mod installation");
@@ -943,6 +960,31 @@ pub fn launch(
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn finish_returns_to_setup_without_reusing_validation_or_losing_guide() {
+        let mut app = App::new(None, None, None);
+        app.guide = Some(Guide::default());
+        app.game = "game directory".into();
+        app.mods = "mods directory".into();
+        app.logs.push("Installation complete".into());
+        app.page = 2;
+        app.finished = true;
+        app.completed_base = Some(vec!["base".into()]);
+        app.pending_base = vec!["base".into()];
+        app.widescreen_notice_seen = true;
+        app.validated = true;
+        app.confirm_install = true;
+        app.finish_wizard();
+        assert_eq!(app.page, 0);
+        assert!(!app.finished && !app.validated && !app.confirm_install);
+        assert!(app.completed_base.is_none() && app.pending_base.is_empty());
+        assert!(!app.widescreen_notice_seen);
+        assert!(app.guide.is_some());
+        assert_eq!(app.game, "game directory");
+        assert_eq!(app.mods, "mods directory");
+        assert_eq!(app.logs.last().unwrap(), "Installation complete");
+    }
+
     #[test]
     fn widescreen_notice_is_optional_and_only_precedes_widescreen_selection() {
         let mut app = App::new(None, None, None);
