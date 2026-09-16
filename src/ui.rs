@@ -388,6 +388,8 @@ impl App {
     }
 
     fn start(&mut self, job: Job, ctx: &egui::Context) {
+        self.validated = false;
+        self.confirm_install = false;
         let settings = Settings::new(Path::new(&self.mods), Path::new(&self.game));
         let mut settings = match settings {
             Ok(s) => s,
@@ -437,8 +439,6 @@ impl App {
         let (tx, rx) = mpsc::channel();
         self.receiver = Some(rx);
         self.job = job;
-        self.validated = false;
-        self.confirm_install = false;
         self.logs.push(
             match job {
                 Job::Validate => "Validating…",
@@ -960,6 +960,34 @@ pub fn launch(
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn failed_job_setup_invalidates_validation_and_confirmation() {
+        let root = tempfile::tempdir().unwrap();
+        let game = root.path().join("game");
+        let mods = root.path().join("mods");
+        std::fs::create_dir(&game).unwrap();
+        std::fs::create_dir(&mods).unwrap();
+        let mut app = App::new(None, Some(game.clone()), Some(mods));
+        let ctx = egui::Context::default();
+        for job in [Job::Validate, Job::Install, Job::Restore, Job::Download] {
+            app.validated = true;
+            app.confirm_install = true;
+            app.expanded_budget = "invalid".into();
+            app.start(job, &ctx);
+            assert!(!app.validated && !app.confirm_install);
+            assert!(app.receiver.is_none());
+            assert!(app.logs.last().unwrap().contains("nonnegative integer"));
+        }
+        std::fs::remove_dir(&game).unwrap();
+        app.expanded_budget.clear();
+        app.validated = true;
+        app.confirm_install = true;
+        app.start(Job::Install, &ctx);
+        assert!(!app.validated && !app.confirm_install);
+        assert!(app.receiver.is_none());
+        assert!(app.logs.last().unwrap().starts_with("Check directories:"));
+    }
+
     #[test]
     fn finish_returns_to_setup_without_reusing_validation_or_losing_guide() {
         let mut app = App::new(None, None, None);

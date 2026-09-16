@@ -351,3 +351,7 @@ For prose guides, WidescreenOnly now follows component position within the optio
 ### Finish returns to setup
 
 The successful completion view now has a Finish action returning to guide setup, retaining the loaded guide, directories and output log while clearing transient phase/confirmation/validation state. Loading a guide reuses the same reset. A desktop regression verifies this boundary; a new installation requires fresh validation. This supersedes the restart-required limitation above. Saved completion/recovery files are untouched; this is not restart/resume support. Native repeated-install interaction remains unverified. The reference FinishedPage contains static next steps, not authored epilogue display; epilogue documentation export is still a separate parity gap.
+
+### Desktop validation invalidation on setup failure
+
+Starting any desktop job now clears prior validation and install confirmation before checking directories or archive settings. Early setup failures can no longer leave the old install-ready state active. A regression covers invalid archive budgets for validate/install/restore/download and an install directory removed before launch, asserting that no worker starts. This repairs desktop state only; engine preflight already independently rejects invalid inputs.

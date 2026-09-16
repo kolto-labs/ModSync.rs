@@ -253,3 +253,5 @@ F02/F24 Markdown warning checkpoint: warning and post-widescreen epilogue extrac
 F02/F24 classification checkpoint: prose WidescreenOnly flags now match reference section positions, with a pinned C# output comparison including a later non-widescreen component. No change to Mod List inclusion boundaries or ordered-prefix installation guards; full corpus/native end-to-end proof remains open.
 
 F24 Finish checkpoint: successful completion can return to setup without an app restart. Phase and validation state clear while guide/directories/logs persist, covered by a desktop regression. Native repeated-install proof and restart/resume remain open.
+
+F08/F24 validation lifecycle correction: early job-setup failures now invalidate prior validation/confirmation. Regression covers all job types and removed directories without launching workers. Native failure-state proof remains open.
