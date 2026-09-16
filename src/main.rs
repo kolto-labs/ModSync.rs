@@ -70,6 +70,12 @@ enum Action {
     ProtocolOpen { url: String },
     /// Resolve an nxm:// handoff to exactly one top-level component in a guide.
     ProtocolResolve { input: PathBuf, url: String },
+    /// Register modsync:// as a Linux desktop handler for this executable.
+    ProtocolRegisterLinux {
+        executable: PathBuf,
+        #[arg(long)]
+        applications_dir: Option<PathBuf>,
+    },
     /// Apply provider version data from a JSON object keyed as game/modId.
     UpdateApply {
         input: PathBuf,
@@ -478,6 +484,21 @@ fn run() -> Result<()> {
                     "Status": status,
                     "Match": matched,
                 }))?
+            );
+            Ok(())
+        }
+        Some(Action::ProtocolRegisterLinux {
+            executable,
+            applications_dir,
+        }) => {
+            let directory = applications_dir.unwrap_or_else(|| {
+                dirs::data_local_dir()
+                    .unwrap_or_else(|| PathBuf::from("."))
+                    .join("applications")
+            });
+            println!(
+                "{}",
+                modsync::protocol_registration::register_linux(&executable, &directory)?.display()
             );
             Ok(())
         }

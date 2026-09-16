@@ -144,3 +144,14 @@ fn bare_protocol_url_is_accepted_like_a_registered_handler_invocation() {
     assert_eq!(output["scheme"], "nxm");
     assert_eq!(output["mod_id"], 12);
 }
+
+#[test]
+fn linux_protocol_registration_writes_a_gui_handoff_entry() {
+    let directory = tempfile::tempdir().unwrap();
+    let executable = directory.path().join("modsync");
+    let path =
+        modsync::protocol_registration::write_linux_entry(&executable, directory.path()).unwrap();
+    let entry = std::fs::read_to_string(path).unwrap();
+    assert!(entry.contains("MimeType=x-scheme-handler/modsync;"));
+    assert!(entry.contains("gui --protocol %u"));
+}

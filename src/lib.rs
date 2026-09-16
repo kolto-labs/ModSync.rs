@@ -25,6 +25,7 @@ mod reference_paths;
 
 pub mod profiles;
 pub mod protocol;
+pub mod protocol_registration;
 
 pub mod selection;
 pub mod telemetry;
