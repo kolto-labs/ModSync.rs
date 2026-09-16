@@ -473,3 +473,7 @@ fomod-inspect --interactive prompts for numbered plugin selections, reusing grou
 ### Console FOMOD back navigation
 
 The interactive prompt accepts back at a group to revisit the preceding currently visible step. Revised flags are evaluated before advancing again; the regression revisits an earlier choice and hides the previously displayed following step. Cancellation still discards the whole pending session. Native console interaction and the desktop interactive wizard remain unverified.
+
+### Interactive CLI to installation acceptance
+
+The real CLI subprocess fixture now selects a nondefault FOMOD plugin through piped stdin, saves its choices, parses the stdout JSON, validates without install-tree writes and installs using the exported file. It verifies only alternate asset bytes are installed, prompts stay on stderr, the source archive and guide remain unchanged, and the receipt records the selected plugin. This proves the console protocol end to end, not terminal rendering or desktop interaction.

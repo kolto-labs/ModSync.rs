@@ -991,8 +991,8 @@ fn configured_fomod_installs_selected_bytes_through_shared_engine() {
 fn cli_fomod_choices_validate_and_install_without_rewriting_guide() {
     let (dir, settings) = setup();
     fs::write(settings.roots.mods.join("package.zip"), zip(&[
-        ("fomod/ModuleConfig.xml", br#"<config><requiredInstallFiles><file source="asset.txt" destination="Override"/></requiredInstallFiles></config>"#),
-        ("asset.txt", b"configured asset")
+        ("fomod/ModuleConfig.xml", br#"<config><installSteps><installStep name="Style"><optionalFileGroups><group name="Texture" type="SelectExactlyOne"><plugins><plugin name="Default"><files><file source="default.txt" destination="Override"/></files></plugin><plugin name="Alternate"><files><file source="asset.txt" destination="Override"/></files></plugin></plugins></group></optionalFileGroups></installStep></installSteps></config>"#),
+        ("asset.txt", b"configured asset"), ("default.txt", b"default asset")
     ])).unwrap();
     let g =
         guide(serde_json::json!([{"Action":"Extract","Source":"<<modDirectory>>/package.zip"}]));
@@ -1000,11 +1000,35 @@ fn cli_fomod_choices_validate_and_install_without_rewriting_guide() {
     let original = g.render("json").unwrap();
     fs::write(&input, &original).unwrap();
     let choices = dir.path().join("choices.json");
-    fs::write(
-        &choices,
-        r#"{"version":1,"archives":[{"archiveFileName":"package.zip","selections":[]}]}"#,
-    )
-    .unwrap();
+    let archive_before = fs::read(settings.roots.mods.join("package.zip")).unwrap();
+    let mut interactive = std::process::Command::new(env!("CARGO_BIN_EXE_modsync"))
+        .arg("fomod-inspect")
+        .arg(settings.roots.mods.join("package.zip"))
+        .arg("--interactive")
+        .arg("--save-choices")
+        .arg(&choices)
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .unwrap();
+    interactive.stdin.take().unwrap().write_all(b"2\n").unwrap();
+    let output = interactive.wait_with_output().unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(
+        report["steps"][0]["groups"][0]["plugins"][1]["selected"],
+        true
+    );
+    assert!(String::from_utf8_lossy(&output.stderr).contains("Numbers separated"));
+    assert_eq!(
+        fs::read(settings.roots.mods.join("package.zip")).unwrap(),
+        archive_before
+    );
     let run = |action: &str| {
         std::process::Command::new(env!("CARGO_BIN_EXE_modsync"))
             .arg(action)
@@ -1037,11 +1061,16 @@ fn cli_fomod_choices_validate_and_install_without_rewriting_guide() {
         fs::read(settings.roots.game.join("Override/asset.txt")).unwrap(),
         b"configured asset"
     );
+    assert!(!settings.roots.game.join("Override/default.txt").exists());
     assert_eq!(fs::read_to_string(&input).unwrap(), original);
     let receipt: serde_json::Value = serde_json::from_slice(
         &fs::read(recovery::state_dir(&settings.roots).join("completion.json")).unwrap(),
     )
     .unwrap();
+    assert_eq!(
+        receipt["components"][0]["FomodChoices"]["archives"][0]["selections"][0]["plugins"],
+        serde_json::json!(["Alternate"])
+    );
     assert_eq!(
         receipt["components"][0]["FomodChoices"]["archives"][0]["archiveFileName"],
         "package.zip"
