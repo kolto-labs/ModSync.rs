@@ -163,10 +163,7 @@ impl NexusClient {
         let mut path =
             format!("games/{game_domain}/mods/{mod_id}/files/{file_id}/download_link.json");
         if let Some(key) = key.as_deref().filter(|key| !key.is_empty()) {
-            path.push_str(&format!(
-                "?key={}&expires={expires}",
-                key
-            ));
+            path.push_str(&format!("?key={}&expires={expires}", key));
         }
         let value = self.get_value(&path)?;
         let links = value

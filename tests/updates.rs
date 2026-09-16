@@ -174,17 +174,19 @@ fn nxm_link_resolves_metadata_and_authorized_https_mirror() {
     ]);
     let mut client =
         updates::NexusClient::with_base_url(Some("test-key".into()), &base_url).unwrap();
-    let link = modsync::protocol::parse(
-        "nxm://kotor/mods/12/files/34?key=a%20b&expires=99",
-    )
-    .unwrap();
+    let link =
+        modsync::protocol::parse("nxm://kotor/mods/12/files/34?key=a%20b&expires=99").unwrap();
     let result = client.nxm_download_link(&link).unwrap();
     let requests = server.join().unwrap();
     assert_eq!(result.file_name, "Example.zip");
     assert_eq!(result.uri, "https://mirror.example/Example.zip");
     assert!(requests[0].contains("/v1/games/kotor/mods/12/files/34.json"));
     assert!(requests[1].contains("download_link.json?key=a%20b&expires=99"));
-    assert!(requests.iter().all(|request| request.contains("apikey: test-key")));
+    assert!(
+        requests
+            .iter()
+            .all(|request| request.contains("apikey: test-key"))
+    );
 }
 
 #[test]
