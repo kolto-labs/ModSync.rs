@@ -59,6 +59,8 @@ enum Action {
     List { input: PathBuf },
     /// Parse an nxm:// or modsync:// handoff URL without fetching it.
     ProtocolParse { url: String },
+    /// Download an HTTP(S) instruction file with the protocol fetcher's SSRF and size guards.
+    ProtocolFetch { url: String, output: PathBuf },
     /// Apply provider version data from a JSON object keyed as game/modId.
     UpdateApply {
         input: PathBuf,
@@ -427,6 +429,11 @@ fn run() -> Result<()> {
                 "{}",
                 serde_json::to_string_pretty(&modsync::protocol::parse(&url)?)?
             );
+            Ok(())
+        }
+        Some(Action::ProtocolFetch { url, output }) => {
+            modsync::protocol::fetch_instruction(&url, &output)?;
+            println!("{}", output.display());
             Ok(())
         }
         Some(Action::UpdateApply {

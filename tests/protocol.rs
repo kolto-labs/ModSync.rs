@@ -1,4 +1,5 @@
 use modsync::protocol::{self, Link};
+use std::process::Command;
 
 #[test]
 fn parses_reference_nxm_and_modsync_forms_without_fetching() {
@@ -53,4 +54,18 @@ fn instruction_urls_reject_local_targets_before_fetching() {
         assert!(protocol::safe_instruction_url(url).is_err(), "{url}");
     }
     assert!(protocol::safe_instruction_url("https://example.com/guide.toml").is_ok());
+}
+
+#[test]
+fn protocol_fetch_cli_rejects_unsafe_urls_without_creating_output() {
+    let directory = tempfile::tempdir().unwrap();
+    let output = directory.path().join("guide.toml");
+    let result = Command::new(env!("CARGO_BIN_EXE_modsync"))
+        .args(["protocol-fetch", "http://127.0.0.1/guide.toml"])
+        .arg(&output)
+        .output()
+        .unwrap();
+    assert!(!result.status.success());
+    assert!(!output.exists());
+    assert!(String::from_utf8_lossy(&result.stderr).contains("private address"));
 }
