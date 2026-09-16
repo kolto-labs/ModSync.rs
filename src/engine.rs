@@ -74,6 +74,7 @@ pub struct Engine {
     selected: BTreeSet<String>,
     completed: BTreeSet<String>,
     selected_names: BTreeSet<String>,
+    conflicts: Option<crate::conflicts::Tracker>,
 }
 
 impl Engine {
@@ -103,6 +104,7 @@ impl Engine {
             selected: BTreeSet::new(),
             completed: BTreeSet::new(),
             selected_names: BTreeSet::new(),
+            conflicts: None,
         };
         engine.scan()?;
         Ok(engine)
@@ -149,6 +151,15 @@ impl Engine {
         recovery::ensure_clean(&self.settings.roots)?;
         recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
         self.run(guide, &mut emit)
+    }
+
+    /// Analyze actual simulated writes without changing either installation tree.
+    /// Failed instructions return an error rather than an incomplete success report.
+    pub fn analyze_conflicts(mut self, guide: &Guide) -> Result<crate::conflicts::Report> {
+        recovery::ensure_clean(&self.settings.roots)?;
+        self.conflicts = Some(crate::conflicts::Tracker::default());
+        self.run(guide, &mut |_| {})?;
+        Ok(self.conflicts.take().unwrap().finish())
     }
 
     pub fn install(mut self, guide: &Guide, mut emit: impl FnMut(Event)) -> Result<()> {
@@ -251,6 +262,9 @@ impl Engine {
                 "{} has no executable instructions; review the guide",
                 c.name
             );
+            if let Some(tracker) = &mut self.conflicts {
+                tracker.begin(c);
+            }
             self.component(c, emit)?;
         }
         Ok(())
@@ -312,6 +326,15 @@ impl Engine {
             } else {
                 instruction.action.clone()
             };
+            if let Some(tracker) = &mut self.conflicts {
+                if let Some(writer) = &mut tracker.current
+                    && writer.component_guid.eq_ignore_ascii_case(&c.guid)
+                {
+                    writer.instruction_index = n;
+                }
+                tracker.external_effects |=
+                    matches!(instruction.action.as_str(), "Patcher" | "Execute" | "Run");
+            }
             self.execute(c, instruction, emit)
                 .with_context(|| format!("{} / step {} ({})", c.name, n + 1, instruction.action))?;
             emit(Event {
@@ -427,6 +450,11 @@ impl Engine {
         } else {
             content
         };
+        if let Some(tracker) = &mut self.conflicts
+            && let Ok(relative) = path.strip_prefix(&self.settings.roots.game)
+        {
+            tracker.write(&relative.to_string_lossy());
+        }
         self.files.insert(key(&path), (path, content));
         Ok(())
     }

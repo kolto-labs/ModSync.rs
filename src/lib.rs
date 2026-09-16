@@ -23,3 +23,5 @@ pub mod profiles;
 pub mod selection;
 
 pub mod fomod;
+
+pub mod conflicts;

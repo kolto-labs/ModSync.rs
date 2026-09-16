@@ -57,6 +57,8 @@ enum Action {
     List { input: PathBuf },
     /// Simulate instructions without changing the game or mod directory.
     Validate(InstallArgs),
+    /// Report conflicting simulated game-file writes as JSON, without installing.
+    Conflicts(InstallArgs),
     /// Validate, snapshot, then install in dependency order. Stop at the first failure.
     Install(InstallArgs),
     /// Restore both directories from the verified pre-install snapshot after a failure.
@@ -374,9 +376,11 @@ fn run() -> Result<()> {
                 ..Default::default()
             },
         ),
-        Some(action @ (Action::Install(_) | Action::Validate(_))) => {
+        Some(action @ (Action::Install(_) | Action::Validate(_) | Action::Conflicts(_))) => {
             let install = matches!(action, Action::Install(_));
-            let (Action::Install(args) | Action::Validate(args)) = action else {
+            let conflicts = matches!(action, Action::Conflicts(_));
+            let (Action::Install(args) | Action::Validate(args) | Action::Conflicts(args)) = action
+            else {
                 unreachable!()
             };
             ensure!(
@@ -470,7 +474,13 @@ fn run() -> Result<()> {
                     println!("{} / {}: {}", event.component, event.step, event.message);
                 }
             };
-            if install {
+            if conflicts {
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&engine.analyze_conflicts(&guide)?)?
+                );
+                Ok(())
+            } else if install {
                 engine.install(&guide, emit)
             } else {
                 engine.validate(&guide, emit)

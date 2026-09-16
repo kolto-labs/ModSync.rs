@@ -185,3 +185,13 @@ On **Choose mods**, filter by tier or category, then use **Select through tier**
 
 **Spoiler-free names and descriptions** uses authored alternatives or generic fallback text in the selection page; search follows that displayed text. It does not redact URLs, raw draft review, or activity logs. The toggle is saved in the selected settings store and restored at startup. Hover a normal-mode description to read its full text.
 Use **Select multiple categories…** to check several categories, then apply them together. Cancel leaves component selections unchanged.
+
+### File-conflict reports
+
+Use the shared installation simulation to report game files written by multiple components:
+
+```bash
+modsync conflicts --input guide.toml --source-dir /path/to/mods --game-dir /path/to/game
+```
+
+The JSON report lists each destination, its writers in install order, the last writer, and per-component conflict counts. The command accepts the same profile, selection, archive-budget and FOMOD choices arguments as `validate`. Neither installation directory is changed. Mod-workspace staging and skipped overwrites are excluded. External program effects cannot be predicted and are identified as a limitation; simulation errors stop the command instead of producing a partial success report.
