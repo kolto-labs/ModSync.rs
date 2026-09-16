@@ -377,3 +377,7 @@ YAML directive regression correction: directives after an explicit document end 
 ### FOMOD shared group selection
 
 `fomod::GroupSelection` now implements the five reference group modes, default selection and exact cardinality messages. An executable regression compares defaults and selection transitions against the saved C# oracle. Required-plugin removal is rejected both directly and through exclusive siblings, with no partial mutation; this deliberately corrects the reproduced reference bypass. Conflicting required choices remain validation errors. Parser, visibility, mapping, choices files, CLI/desktop wiring and installation remain unfinished, so the engine still refuses FOMOD archives.
+
+### FOMOD choices-file primitives
+
+The library reads/writes the reference version/archives/selections camelCase schema (missing version defaults to 1), finds archive filenames ignoring ASCII case, and applies named plugin groups atomically through shared cardinality validation. Repeated plugin names collapse to one choice. Unsupported versions, duplicate archive/group entries, missing or ambiguous plugins, omitted required plugins and invalid cardinality are rejected without mutating selections. These are explicit stricter checks than permissive reference behavior. Unicode ordinal case equivalence, whole-session step lookup/visibility, CLI flags and configured installation remain open.

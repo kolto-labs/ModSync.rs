@@ -267,3 +267,5 @@ F01 YAML regression correction: successive directive-bearing documents preserve 
 F15 investigation checkpoint: full FOMOD contract mapped in `FOMOD.md`; isolated reference selection probe covers five group types and reproduces required-sibling bypass. F15 remains missing in Rust, with parser/session/mapping/gate/UI/CLI/install acceptance required.
 
 F15 implementation checkpoint: shared group-selection primitive matches the pinned five-mode oracle, protects required selections, and tests empty/conflicting groups. F15 is partial at library-rule level only; archive parsing, session visibility, configuration mapping/gates, UI/CLI and installation acceptance remain required.
+
+F15 choices checkpoint: reference JSON schema and archive lookup implemented; explicit named group application is atomic and tested for required/cardinality/ambiguity failures. Full session routing, Unicode matching, parser/mapping and CLI/GUI installation integration remain open.
