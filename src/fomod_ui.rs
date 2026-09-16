@@ -6,6 +6,11 @@ use std::sync::{
     mpsc::{self, Receiver},
 };
 
+pub enum Outcome {
+    Choices(ChoicesFile),
+    Dismissed(String),
+}
+
 #[derive(Default)]
 pub struct Editor {
     module: Option<ArchiveModule>,
@@ -52,7 +57,7 @@ impl Editor {
         });
     }
 
-    pub fn show(&mut self, ctx: &egui::Context) -> Option<ChoicesFile> {
+    pub fn show(&mut self, ctx: &egui::Context) -> Option<Outcome> {
         if !self.open {
             return None;
         }
@@ -79,7 +84,7 @@ impl Editor {
         if !self.open {
             return None;
         }
-        let mut accepted = None;
+        let mut outcome = None;
         egui::Modal::new(egui::Id::new("fomod_editor")).show(ctx, |ui| {
             ui.set_min_width(540.0);
             ui.heading(format!("Configure {}", self.filename));
@@ -160,7 +165,7 @@ impl Editor {
                             Ok(true) => {
                                 match ChoicesFile::capture(&self.filename, &module.config.steps) {
                                     Ok(choices) => {
-                                        accepted = Some(choices);
+                                        outcome = Some(Outcome::Choices(choices));
                                         self.open = false;
                                     }
                                     Err(error) => self.error = error.to_string(),
@@ -179,9 +184,12 @@ impl Editor {
                 self.receiver = None;
                 self.module = None;
                 self.open = false;
+                if self.dismiss_non_fomod {
+                    outcome = Some(Outcome::Dismissed(self.filename.clone()));
+                }
             }
         });
-        accepted
+        outcome
     }
 }
 // Recompute after edits: a flag change can hide or reveal subsequent steps.

@@ -975,10 +975,31 @@ impl eframe::App for App {
         if self.logs.len() > 5000 {
             self.logs.drain(..self.logs.len() - 5000);
         }
-        if let Some(choices) = self.fomod_editor.show(ctx)
-            && let Err(error) = self.apply_fomod_choices(&choices)
-        {
-            self.logs.push(format!("FOMOD choices: {error:#}"));
+        if let Some(outcome) = self.fomod_editor.show(ctx) {
+            match outcome {
+                crate::fomod_ui::Outcome::Choices(choices) => {
+                    if let Err(error) = self.apply_fomod_choices(&choices) {
+                        self.logs.push(format!("FOMOD choices: {error:#}"));
+                    }
+                }
+                crate::fomod_ui::Outcome::Dismissed(filename) => {
+                    if let Some(guide) = &mut self.guide {
+                        fn mark(components: &mut [Component], filename: &str) {
+                            for component in components {
+                                modsync::fomod::set_prompt_status(
+                                    component,
+                                    filename,
+                                    modsync::fomod::PromptStatus::Dismissed,
+                                );
+                                mark(&mut component.options, filename);
+                            }
+                        }
+                        mark(&mut guide.components, &filename);
+                    }
+                    self.logs
+                        .push(format!("FOMOD configuration dismissed for {filename}."));
+                }
+            }
         }
         let busy = self.receiver.is_some();
         if busy {
