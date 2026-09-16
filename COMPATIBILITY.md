@@ -469,3 +469,7 @@ A Unix subprocess regression reproduced source-archive replacement when --save-c
 ### Interactive console FOMOD selections
 
 fomod-inspect --interactive prompts for numbered plugin selections, reusing group cardinality and required-plugin rules, recomputing visibility before each step and retaining edits only on success. Invalid answers retry; q or EOF cancels. Prompts use stderr so stdout remains JSON, and --save-choices persists the result for installation. A stream-driven regression covers retry, selection and cancellation. Back navigation and the desktop interactive wizard remain open.
+
+### Console FOMOD back navigation
+
+The interactive prompt accepts back at a group to revisit the preceding currently visible step. Revised flags are evaluated before advancing again; the regression revisits an earlier choice and hides the previously displayed following step. Cancellation still discards the whole pending session. Native console interaction and the desktop interactive wizard remain unverified.

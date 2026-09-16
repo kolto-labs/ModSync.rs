@@ -624,14 +624,15 @@ pub fn prompt_choices(
 ) -> Result<()> {
     let mut candidate = steps.to_vec();
     let mut cursor = 0;
-    while cursor < candidate.len() {
+    'steps: while cursor < candidate.len() {
         if !visible_steps(&candidate).contains(&cursor) {
             cursor += 1;
             continue;
         }
         writeln!(output, "Step: {}", candidate[cursor].name)?;
-        for group in &mut candidate[cursor].groups {
+        for group_index in 0..candidate[cursor].groups.len() {
             loop {
+                let group = &mut candidate[cursor].groups[group_index];
                 writeln!(output, "{} ({:?})", group.name, group.kind)?;
                 for (index, plugin) in group.plugins().iter().enumerate() {
                     writeln!(
@@ -646,7 +647,7 @@ pub fn prompt_choices(
                 }
                 write!(
                     output,
-                    "Numbers separated by commas; Enter keeps defaults, 0 clears, q cancels: "
+                    "Numbers separated by commas; Enter keeps selection, 0 clears, back revisits, q cancels: "
                 )?;
                 output.flush()?;
                 let mut line = String::new();
@@ -656,6 +657,13 @@ pub fn prompt_choices(
                 );
                 let line = line.trim();
                 ensure!(!line.eq_ignore_ascii_case("q"), "FOMOD selection cancelled");
+                if line.eq_ignore_ascii_case("back") {
+                    cursor = visible_steps(&candidate)
+                        .into_iter()
+                        .rfind(|index| *index < cursor)
+                        .unwrap_or(cursor);
+                    continue 'steps;
+                }
                 let result = if line.is_empty() {
                     group.validate()
                 } else {

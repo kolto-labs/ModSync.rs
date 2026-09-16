@@ -772,3 +772,32 @@ fn console_selection_retries_invalid_choices_and_cancels_atomically() {
         assert!(module.steps[0].groups[0].plugins()[1].selected);
     }
 }
+
+#[test]
+fn console_back_revises_previous_visible_step_and_recomputes_visibility() {
+    use modsync::fomod::{parse_module_xml, prompt_choices};
+    let xml = "<config><installSteps>
+      <installStep name='First'><optionalFileGroups><group name='G' type='SelectExactlyOne'><plugins>
+        <plugin name='Show'><conditionFlags><flag name='next'>yes</flag></conditionFlags></plugin>
+        <plugin name='Hide'><conditionFlags><flag name='next'>no</flag></conditionFlags></plugin>
+      </plugins></group></optionalFileGroups></installStep>
+      <installStep name='Conditional'><visible><flagDependency flag='next' value='yes'/></visible>
+        <optionalFileGroups><group name='G' type='SelectAny'><plugins><plugin name='Optional'/></plugins></group></optionalFileGroups>
+      </installStep></installSteps></config>";
+    let mut module = parse_module_xml(xml).unwrap();
+    let mut output = Vec::new();
+    prompt_choices(
+        &mut module.steps,
+        &mut &b"1
+back
+2
+"[..],
+        &mut output,
+    )
+    .unwrap();
+    assert!(module.steps[0].groups[0].plugins()[1].selected);
+    assert_eq!(modsync::fomod::visible_steps(&module.steps), [0]);
+    let text = String::from_utf8(output).unwrap();
+    assert_eq!(text.matches("Step: First").count(), 2);
+    assert_eq!(text.matches("Step: Conditional").count(), 1);
+}
