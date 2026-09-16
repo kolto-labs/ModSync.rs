@@ -335,3 +335,7 @@ The desktop now masks widescreen selection in the base job without changing auth
 ### Native two-phase installation
 
 Native Linux input at `7918409` verified base validation/confirmation, base-only writes, transition to widescreen selection, and confirmed dependent widescreen installation after the base source was removed. Final bytes, completion IDs and absence of pending recovery state were asserted. Screenshots, fixture, final completion receipt and binary hash: `docs/parity/native-phases/`. This supersedes native-unverified status for the exercised successful two-phase path; native failure/restore/skip, restart, warning content, empty-base guides, patchers and full builds remain unverified or incomplete.
+
+### Optional widescreen notice
+
+After base success, the desktop shows the reference default warning or authored metadata.widescreenWarningContent (also WidescreenWarningContent) before widescreen selection. Explicit blank/null content skips it; Continue dismisses it for this guide session. Text is displayed literally, matching the reference notice control. A desktop regression covers phase gating, default/authored/blank/null content and dismissal. Native notice interaction and Markdown warning extraction remain unverified/incomplete.

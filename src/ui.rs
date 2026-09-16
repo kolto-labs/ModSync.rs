@@ -54,6 +54,7 @@ pub struct App {
     validated: bool,
     confirm_install: bool,
     completed_base: Option<Vec<String>>,
+    widescreen_notice_seen: bool,
     pending_base: Vec<String>,
     finished: bool,
     phase_failed: bool,
@@ -101,6 +102,7 @@ impl App {
             validated: false,
             confirm_install: false,
             completed_base: None,
+            widescreen_notice_seen: false,
             pending_base: Vec::new(),
             finished: false,
             phase_failed: false,
@@ -116,6 +118,7 @@ impl App {
 
     fn load(&mut self) {
         self.completed_base = None;
+        self.widescreen_notice_seen = false;
         self.finished = false;
         self.phase_failed = false;
         self.validated = false;
@@ -340,6 +343,19 @@ impl App {
             }
         }
         Some(guide)
+    }
+
+    fn widescreen_notice(&self) -> Option<&str> {
+        if self.completed_base.is_none() || self.finished || self.widescreen_notice_seen {
+            return None;
+        }
+        let guide = self.guide.as_ref()?;
+        let metadata = guide.metadata.get("metadata");
+        let content = metadata
+            .and_then(|m| m.get("widescreenWarningContent").or_else(|| m.get("WidescreenWarningContent")))
+            .map(|v| v.as_str().unwrap_or_default())
+            .unwrap_or(":::note\nWidescreen Support\n:   This build includes optional widescreen support. Widescreen mods must be installed before applying the 4GB patcher. Please see the widescreen section below for details.\n:::");
+        (!content.trim().is_empty()).then_some(content)
     }
 
     fn installed_phase(&mut self) {
@@ -776,6 +792,13 @@ impl eframe::App for App {
                 }
                 _ => {
                     if self.finished { ui.heading("Installation complete"); ui.label("The selected installation phases are complete."); return; }
+                    if let Some(content) = self.widescreen_notice() {
+                        ui.heading("Widescreen Support");
+                        ui.label("Information about widescreen mod installation");
+                        ui.label(content);
+                        if ui.button("Continue to widescreen selection").clicked() { self.widescreen_notice_seen = true; }
+                        return;
+                    }
                     if self.completed_base.is_some() {
                         ui.heading("Base installation complete — widescreen mods");
                         let mut selected = 0;
@@ -919,6 +942,42 @@ pub fn launch(
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn widescreen_notice_is_optional_and_only_precedes_widescreen_selection() {
+        let mut app = App::new(None, None, None);
+        app.guide = Some(Guide::default());
+        assert!(app.widescreen_notice().is_none());
+        app.completed_base = Some(vec!["base".into()]);
+        assert!(
+            app.widescreen_notice()
+                .unwrap()
+                .contains("before applying the 4GB patcher")
+        );
+        for key in ["widescreenWarningContent", "WidescreenWarningContent"] {
+            for content in [
+                serde_json::json!("Authored guidance"),
+                serde_json::json!("  "),
+                serde_json::Value::Null,
+            ] {
+                app.guide
+                    .as_mut()
+                    .unwrap()
+                    .metadata
+                    .insert("metadata".into(), serde_json::json!({key: content}));
+                assert_eq!(
+                    app.widescreen_notice(),
+                    content.as_str().filter(|s| !s.trim().is_empty())
+                );
+            }
+        }
+        app.guide.as_mut().unwrap().metadata.clear();
+        app.widescreen_notice_seen = true;
+        assert!(app.widescreen_notice().is_none());
+        app.widescreen_notice_seen = false;
+        app.finished = true;
+        assert!(app.widescreen_notice().is_none());
+    }
+
     #[test]
     fn desktop_phases_defer_widescreen_and_keep_base_context() {
         let mut app = App::new(None, None, None);

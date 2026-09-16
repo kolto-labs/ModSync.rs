@@ -245,3 +245,5 @@ F10/F11/F24 completion checkpoint: installs now save root/definition/game-hash e
 F24 phase wiring checkpoint: desktop base-only jobs transition to widescreen selection and receipt-checked remaining execution, then completion. Base inputs lock across the boundary and pending failures block skipping. Native end-to-end proof, warning page, restart/resume and empty-base handling remain open.
 
 F10/F24 native phased-install checkpoint: two-phase success, deferred wide writes, base dependency context and no base replay verified with native input and exact-byte checks. Evidence in `native-phases/`; failure/restore/skip/restart and full builds remain open.
+
+F24 notice checkpoint: optional widescreen guidance now precedes selection after base completion, with metadata aliases, default/blank/null semantics and one-session dismissal covered by a desktop regression. Native notice interaction and Markdown warning extraction remain open.
