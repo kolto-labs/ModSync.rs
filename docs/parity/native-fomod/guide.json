@@ -1,0 +1,1 @@
+{"thisMod": [{"Guid": "native-fomod", "Name": "Native FOMOD", "IsSelected": true, "Instructions": [{"Action": "Extract", "Source": ["<<modDirectory>>/package.zip"]}]}]}

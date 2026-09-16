@@ -1,0 +1,31 @@
+{
+  "tested_commit": "3e7cf9fa4f5e9cfe6d243ae6c9747e5a0803e7f1",
+  "binary_sha256": "890e530bbfc7daaf486b63731c2ac77aeb8286aa9b5ebbdc7918445438490a1c",
+  "fixture_root": "/home/brunner56/.cache/modsync-native-fomod-6r05gkb3",
+  "environment": "Linux X11 Xvfb :910, xdotool native mouse and keyboard",
+  "checks": [
+    "Opened editor with typed archive path",
+    "Alternate selection cleared Default",
+    "Reopened editor retained Alternate",
+    "Validation passed with game empty and only source archive in mods",
+    "Confirmed native install reached Installation complete",
+    "alternate.txt bytes equal alternate; default.txt absent",
+    "Receipt records Alternate; pending marker absent"
+  ],
+  "limitations": [
+    "No native save-file dialog or process restart proof",
+    "No image previews or automatic download prompt",
+    "One ZIP fixture; no full K1/K2 guide or Windows/macOS proof"
+  ],
+  "files": {
+    "package.zip": "ea3b773f600099ec9e2245755dcb90ac297acf3c1c9cf7837f011ecb896d0fe6",
+    "guide.json": "341ea5084aec2fae9619087f61c554d77f7105cd80f3846f654592d4801b9717",
+    "completion.json": "1a2ec5657c23c4db827235e7178f2d93e402db55dd2272152185903d5fa99e34",
+    "confirm.png": "6575ef18002886c7786372dbbab989626f60f63e220601c57f393d9f108f210a",
+    "editor.png": "867d6f5b28193d76998537b379870f3adf82061ea0af7517e03a324749f6b426",
+    "reopened.png": "6a53cd13a2686302e1d09f2689bad11c4babae8363011b4ea58ecf26aaea9cd0",
+    "selected.png": "bbf640a8c4876c061d1302376a2230154939d1bb8cdd364d2dc9bfa5c3a422fb",
+    "finished.png": "3f3642807c2fb9cd982cee22d8c30dff6b4b623a2737dbfdc50e67204dadae47",
+    "validated.png": "29ed8309454b9b3ab464081c0f368b54e801bcde6fd9906109c334e62bbef969"
+  }
+}

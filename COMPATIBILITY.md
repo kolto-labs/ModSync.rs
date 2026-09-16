@@ -493,3 +493,7 @@ The existing Save selection action now embeds the selected external FOMOD choice
 ### Desktop archive path entry
 
 An isolated Linux X11 run rendered the validation page, but the system archive picker did not appear on that display. FOMOD configuration now accepts a typed archive path with optional Browse, matching the existing path-field pattern. This removes the picker as a prerequisite for opening the editor; full native editor/install acceptance is still pending.
+
+### Native FOMOD editor/install acceptance
+
+Linux X11 acceptance at commit 3e7cf9f opened the desktop editor from a typed archive path, selected Alternate instead of Default, accepted and reopened the session, validated without changing either install tree, and confirmed a real install. The GUI reached Installation complete; only alternate.txt reached Override with exact expected bytes, the completion receipt records Alternate, and no pending marker remains. Screenshots, fixture ZIP, receipt and binary hash are in docs/parity/native-fomod. Save-dialog/restart persistence, previews, automatic prompts, other platforms and full builds remain outside this proof.

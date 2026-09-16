@@ -1,0 +1,55 @@
+{
+  "mods": "/home/brunner56/.cache/modsync-native-fomod-6r05gkb3/mods",
+  "game": "/home/brunner56/.cache/modsync-native-fomod-6r05gkb3/game",
+  "components": [
+    {
+      "Guid": "native-fomod",
+      "Name": "Native FOMOD",
+      "Author": "",
+      "Description": "",
+      "Directions": "",
+      "Tier": "",
+      "Category": [],
+      "IsSelected": true,
+      "Dependencies": [],
+      "Restrictions": [],
+      "InstallBefore": [],
+      "InstallAfter": [],
+      "Instructions": [
+        {
+          "Action": "Extract",
+          "Source": [
+            "<<modDirectory>>/package.zip"
+          ],
+          "Destination": "",
+          "Arguments": "",
+          "Overwrite": true,
+          "Dependencies": [],
+          "Restrictions": []
+        }
+      ],
+      "Options": [],
+      "ResourceRegistry": {},
+      "FomodChoices": {
+        "version": 1,
+        "archives": [
+          {
+            "archiveFileName": "package.zip",
+            "selections": [
+              {
+                "stepName": "Style",
+                "groupName": "Texture",
+                "plugins": [
+                  "Alternate"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "files": {
+    "Override/alternate.txt": "3f251db73f53a7fba1944fa7823e4fe9a2b83a001723311507ada0cef0ce16bc"
+  }
+}
