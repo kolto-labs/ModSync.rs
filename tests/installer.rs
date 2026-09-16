@@ -794,3 +794,69 @@ fn remaining_validation_skips_consumed_base_sources_and_does_not_write() {
             .is_err()
     );
 }
+
+#[test]
+fn saved_completion_rejects_missing_changed_or_corrupt_base_evidence() {
+    let (_dir, settings) = setup();
+    fs::write(settings.roots.mods.join("sample.tga"), b"base").unwrap();
+    let mut g = guide(serde_json::json!([copy()]));
+    let mut tail = g.components[0].clone();
+    tail.guid = "tail".into();
+    tail.name = "Tail".into();
+    tail.dependencies = vec!["a".into()];
+    g.components.push(tail);
+    let completed = vec!["a".to_owned()];
+    assert!(
+        Engine::new(settings.clone())
+            .unwrap()
+            .validate_remaining(&g, &completed, |_| {})
+            .unwrap_err()
+            .to_string()
+            .contains("No saved completion")
+    );
+    g.components[1].is_selected = false;
+    Engine::new(settings.clone())
+        .unwrap()
+        .install(&g, |_| {})
+        .unwrap();
+    g.components[1].is_selected = true;
+    let receipt_path = recovery::state_dir(&settings.roots).join("completion.json");
+    let receipt = fs::read(&receipt_path).unwrap();
+    g.components[0].name = "Changed".into();
+    assert!(
+        Engine::new(settings.clone())
+            .unwrap()
+            .validate_remaining(&g, &completed, |_| {})
+            .unwrap_err()
+            .to_string()
+            .contains("definitions differ")
+    );
+    g.components[0].name = "Test".into();
+    fs::write(settings.roots.game.join("Override/sample.tga"), b"tampered").unwrap();
+    assert!(
+        Engine::new(settings.clone())
+            .unwrap()
+            .install_remaining(&g, &completed, |_| {})
+            .unwrap_err()
+            .to_string()
+            .contains("game files differ")
+    );
+    assert!(
+        !recovery::state_dir(&settings.roots)
+            .join("pending")
+            .exists()
+    );
+    fs::write(settings.roots.game.join("Override/sample.tga"), b"base").unwrap();
+    fs::write(&receipt_path, b"broken json").unwrap();
+    assert!(
+        Engine::new(settings.clone())
+            .unwrap()
+            .validate_remaining(&g, &completed, |_| {})
+            .is_err()
+    );
+    fs::write(receipt_path, receipt).unwrap();
+    Engine::new(settings)
+        .unwrap()
+        .validate_remaining(&g, &completed, |_| {})
+        .unwrap();
+}

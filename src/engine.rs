@@ -147,6 +147,7 @@ impl Engine {
 
     pub fn validate(mut self, guide: &Guide, mut emit: impl FnMut(Event)) -> Result<()> {
         recovery::ensure_clean(&self.settings.roots)?;
+        recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
         self.run(guide, &mut emit)
     }
 
@@ -154,6 +155,7 @@ impl Engine {
         let _lock = recovery::Lock::acquire(&self.settings.roots)?;
         recovery::ensure_clean(&self.settings.roots)?;
         self.scan()?;
+        recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
         self.run(guide, &mut |_| {})?;
         self.scan()?;
         emit(Event {
@@ -170,13 +172,14 @@ impl Engine {
                 recovery::state_dir(&self.settings.roots).display()
             )
         })?;
+        recovery::record_completion(&self.settings.roots, guide)?;
         recovery::finish(&self.settings.roots)?;
         Ok(())
     }
 
     /// Execute the remaining suffix while retaining selected dependency context.
-    /// The caller must verify completion against the same guide and install roots.
-    /// This is not a persisted resume receipt and is not exposed by CLI/GUI yet.
+    /// A saved receipt must match roots, prefix definitions and current game bytes.
+    /// This is not exposed by CLI/GUI yet.
     pub fn install_remaining(
         mut self,
         guide: &Guide,
@@ -187,7 +190,7 @@ impl Engine {
         self.install(guide, emit)
     }
 
-    /// Simulate only the suffix, with the same caller-verified completion contract
+    /// Simulate only the suffix, with the same saved completion contract
     /// as install_remaining. Does not write install trees or run external programs.
     pub fn validate_remaining(
         mut self,

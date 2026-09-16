@@ -16,6 +16,8 @@ struct Snapshot {
     mods: PathBuf,
     game: PathBuf,
     files: BTreeMap<String, String>,
+    #[serde(default)]
+    completion: Option<serde_json::Value>,
 }
 
 pub fn state_dir(roots: &Roots) -> PathBuf {
@@ -108,28 +110,99 @@ pub(crate) fn copy_tree(from: &Path, to: &Path) -> Result<()> {
     Ok(())
 }
 
-fn manifest(dir: &Path) -> Result<BTreeMap<String, String>> {
+fn tree_manifest(dir: &Path) -> Result<BTreeMap<String, String>> {
     let mut result = BTreeMap::new();
-    for root in ["mods", "game"] {
-        for entry in WalkDir::new(dir.join(root)).min_depth(1) {
-            let entry = entry?;
-            ensure!(
-                !entry.file_type().is_symlink(),
-                "Recovery snapshot contains a symlink"
+    for entry in WalkDir::new(dir).min_depth(1) {
+        let entry = entry?;
+        ensure!(!entry.file_type().is_symlink(), "Manifest refuses symlinks");
+        if entry.file_type().is_file() {
+            result.insert(
+                entry
+                    .path()
+                    .strip_prefix(dir)?
+                    .to_string_lossy()
+                    .into_owned(),
+                hash(entry.path())?,
             );
-            if entry.file_type().is_file() {
-                result.insert(
-                    entry
-                        .path()
-                        .strip_prefix(dir)?
-                        .to_string_lossy()
-                        .into_owned(),
-                    hash(entry.path())?,
-                );
-            }
+        } else {
+            ensure!(entry.file_type().is_dir(), "Manifest refuses special files");
         }
     }
     Ok(result)
+}
+
+fn manifest(dir: &Path) -> Result<BTreeMap<String, String>> {
+    let mut result = BTreeMap::new();
+    for root in ["mods", "game"] {
+        for (path, hash) in tree_manifest(&dir.join(root))? {
+            result.insert(
+                Path::new(root).join(path).to_string_lossy().into_owned(),
+                hash,
+            );
+        }
+    }
+    Ok(result)
+}
+
+#[derive(Serialize, Deserialize)]
+struct Completion {
+    mods: PathBuf,
+    game: PathBuf,
+    components: Vec<serde_json::Value>,
+    files: BTreeMap<String, String>,
+}
+
+fn read_completion(roots: &Roots) -> Result<Option<serde_json::Value>> {
+    let path = state_dir(roots).join("completion.json");
+    if !path.exists() {
+        return Ok(None);
+    }
+    Ok(Some(serde_json::from_slice(&fs::read(path)?)?))
+}
+
+pub(crate) fn record_completion(roots: &Roots, guide: &crate::Guide) -> Result<()> {
+    let receipt = Completion {
+        mods: roots.mods.clone(),
+        game: roots.game.clone(),
+        components: guide
+            .ordered()?
+            .into_iter()
+            .map(serde_json::to_value)
+            .collect::<Result<_, _>>()?,
+        files: tree_manifest(&roots.game)?,
+    };
+    atomic_write(
+        &state_dir(roots).join("completion.json"),
+        &serde_json::to_vec_pretty(&receipt)?,
+    )
+}
+
+pub(crate) fn verify_completion(roots: &Roots, guide: &crate::Guide, count: usize) -> Result<()> {
+    if count == 0 {
+        return Ok(());
+    }
+    let receipt: Completion = serde_json::from_value(
+        read_completion(roots)?.context("No saved completion receipt for the completed prefix")?,
+    )?;
+    ensure!(
+        receipt.mods == roots.mods && receipt.game == roots.game,
+        "Completion roots differ"
+    );
+    let expected: Vec<_> = guide
+        .ordered()?
+        .into_iter()
+        .take(count)
+        .map(serde_json::to_value)
+        .collect::<Result<_, _>>()?;
+    ensure!(
+        receipt.components == expected,
+        "Completed component definitions differ from receipt"
+    );
+    ensure!(
+        receipt.files == tree_manifest(&roots.game)?,
+        "Completed game files differ from receipt"
+    );
+    Ok(())
 }
 
 pub fn ensure_clean(roots: &Roots) -> Result<()> {
@@ -155,6 +228,7 @@ pub fn begin(roots: &Roots) -> Result<()> {
         mods: roots.mods.clone(),
         game: roots.game.clone(),
         files: manifest(&snapshot)?,
+        completion: read_completion(roots)?,
     };
     atomic_write(
         &state.join("snapshot.json"),
@@ -208,6 +282,12 @@ pub fn restore(roots: &Roots) -> Result<()> {
                 );
             }
         }
+    }
+    let completion_path = state.join("completion.json");
+    if let Some(completion) = saved.completion {
+        atomic_write(&completion_path, &serde_json::to_vec_pretty(&completion)?)?;
+    } else if completion_path.exists() {
+        fs::remove_file(completion_path)?;
     }
     finish(roots)
 }
