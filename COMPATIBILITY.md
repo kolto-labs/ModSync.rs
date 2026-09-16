@@ -369,3 +369,7 @@ At Rust be7052a, a fresh CLI build exported the saved Markdown warning fixture t
 YAML documents beginning with the reference case-insensitive `# Metadata` marker now load as metadata even without fileFormatVersion. Document separators must be unindented; separator-like text in block scalars remains data. Regression covers marker-only metadata, CRLF, a leading YAML directive, descriptions containing marker text, re-export and invalid non-mapping metadata. Exotic YAML directive/tag combinations and live C# differential coverage for these cases remain open.
 
 YAML directive regression correction: directives after an explicit document end now stay with the following document. A three-document fixture first proves acceptance by serde_yaml_ng, then verifies guide components and metadata. The test failed under 795420a and passes with this correction; exhaustive YAML grammar compatibility is not claimed.
+
+### FOMOD reference selection investigation
+
+`docs/parity/FOMOD.md` records the full implementation/acceptance boundary. The isolated C# parser/mapper/presenter probe in `fomod-selection-oracle/` verifies five group defaults and selection validation, and reproduces an indirect required-plugin deselection conflict. Rust still refuses FOMOD installation; no FOMOD support is claimed from this evidence.

@@ -1,0 +1,93 @@
+{
+  "Groups": [
+    {
+      "Group": "SelectAny",
+      "Defaults": [
+        false,
+        false
+      ],
+      "InitialValidation": null,
+      "Clear": true,
+      "ClearedValidation": null,
+      "Select": true,
+      "Final": [
+        false,
+        true
+      ],
+      "FinalValidation": null
+    },
+    {
+      "Group": "SelectExactlyOne",
+      "Defaults": [
+        true,
+        false
+      ],
+      "InitialValidation": null,
+      "Clear": true,
+      "ClearedValidation": "Select exactly one option in \u0027Group\u0027.",
+      "Select": true,
+      "Final": [
+        false,
+        true
+      ],
+      "FinalValidation": null
+    },
+    {
+      "Group": "SelectAtMostOne",
+      "Defaults": [
+        false,
+        false
+      ],
+      "InitialValidation": null,
+      "Clear": true,
+      "ClearedValidation": null,
+      "Select": true,
+      "Final": [
+        false,
+        true
+      ],
+      "FinalValidation": null
+    },
+    {
+      "Group": "SelectAtLeastOne",
+      "Defaults": [
+        true,
+        false
+      ],
+      "InitialValidation": null,
+      "Clear": true,
+      "ClearedValidation": "Select at least one option in \u0027Group\u0027.",
+      "Select": true,
+      "Final": [
+        false,
+        true
+      ],
+      "FinalValidation": null
+    },
+    {
+      "Group": "SelectAll",
+      "Defaults": [
+        true,
+        true
+      ],
+      "InitialValidation": null,
+      "Clear": true,
+      "ClearedValidation": "All options in \u0027Group\u0027 must be selected.",
+      "Select": true,
+      "Final": [
+        false,
+        true
+      ],
+      "FinalValidation": "All options in \u0027Group\u0027 must be selected."
+    }
+  ],
+  "Required": {
+    "DirectClear": false,
+    "SelectSibling": true,
+    "Selected": [
+      false,
+      true
+    ],
+    "Validation": null
+  }
+}

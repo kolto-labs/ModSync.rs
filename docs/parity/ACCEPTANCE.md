@@ -263,3 +263,5 @@ F01/F02/F24 cross-language export checkpoint: pinned C# deserialization of Rust 
 F01 YAML marker checkpoint: metadata comments without format-version fields are recognized with mapping validation. Regression covers scalar separator text, CRLF and a leading directive; broader YAML grammar and live differential proof remain open.
 
 F01 YAML regression correction: successive directive-bearing documents preserve their boundaries, verified against native parser acceptance and guide results. This repairs a regression introduced by metadata-comment support.
+
+F15 investigation checkpoint: full FOMOD contract mapped in `FOMOD.md`; isolated reference selection probe covers five group types and reproduces required-sibling bypass. F15 remains missing in Rust, with parser/session/mapping/gate/UI/CLI/install acceptance required.
