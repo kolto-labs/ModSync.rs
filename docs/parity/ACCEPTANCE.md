@@ -233,3 +233,5 @@ F10/F24 widescreen investigation: `WIDESCREEN.md` and source hashes distinguish 
 F10/F24 reference defect evidence: isolated bulk/single service calls reproduced widescreen re-execution despite Completed state. DLL-bound receipt in `widescreen-oracle/`; GUI/checkpoint/dependency/failure paths remain open.
 
 F10/F24 dependency oracle: initial wide deselection deferred installation; wide-only context failed a completed-base dependency while full context succeeded. Service-level receipt in `widescreen-dependency-oracle/`; no phased Rust implementation or checkpoint proof claimed.
+
+F10/F24 execution primitive: install_remaining preserves dependency context while skipping a verified completed prefix, covered by no-replay/invalid-prefix regression. Caller completion verification, phase UI, persisted identity and failure recovery proof remain open.

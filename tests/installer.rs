@@ -621,3 +621,46 @@ fn cleanlist_matches_reference_substrings_tokens_and_stopwords() {
         assert_eq!(!settings.roots.game.join(file).exists(), deleted, "{file}");
     }
 }
+
+#[test]
+fn remaining_install_retains_base_dependencies_without_replaying_base() {
+    let (_dir, settings) = setup();
+    fs::write(settings.roots.mods.join("base.txt"), b"original base").unwrap();
+    fs::write(settings.roots.mods.join("wide.txt"), b"wide").unwrap();
+    let mut g = Guide::parse(&serde_json::json!({"thisMod":[
+        {"Guid":"base","Name":"Base","IsSelected":true,"Instructions":[{"Action":"Copy","Source":["<<modDirectory>>/base.txt"],"Destination":"<<gameDirectory>>/Override","Overwrite":true}]},
+        {"Guid":"wide","Name":"Wide","IsSelected":false,"Dependencies":["base"],"WidescreenOnly":true,"Instructions":[{"Action":"Copy","Source":["<<modDirectory>>/wide.txt"],"Destination":"<<gameDirectory>>/Override"}]}
+    ]}).to_string(), "json").unwrap();
+    Engine::new(settings.clone())
+        .unwrap()
+        .install(&g, |_| {})
+        .unwrap();
+    fs::write(settings.roots.mods.join("base.txt"), b"must not replay").unwrap();
+    g.components[1].is_selected = true;
+    let mut events = Vec::new();
+    Engine::new(settings.clone())
+        .unwrap()
+        .install_remaining(&g, &["BASE".into()], |e| events.push(e))
+        .unwrap();
+    assert_eq!(
+        fs::read(settings.roots.game.join("Override/base.txt")).unwrap(),
+        b"original base"
+    );
+    assert_eq!(
+        fs::read(settings.roots.game.join("Override/wide.txt")).unwrap(),
+        b"wide"
+    );
+    assert!(!events.iter().any(|e| e.component == "Base"));
+    for invalid in [
+        vec!["wide".into()],
+        vec!["missing".into()],
+        vec!["base".into(), "BASE".into()],
+    ] {
+        assert!(
+            Engine::new(settings.clone())
+                .unwrap()
+                .install_remaining(&g, &invalid, |_| {})
+                .is_err()
+        );
+    }
+}

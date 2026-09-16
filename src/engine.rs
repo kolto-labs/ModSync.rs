@@ -72,6 +72,7 @@ pub struct Engine {
     directories: BTreeMap<String, PathBuf>,
     install: bool,
     selected: BTreeSet<String>,
+    completed: BTreeSet<String>,
     selected_names: BTreeSet<String>,
 }
 
@@ -100,6 +101,7 @@ impl Engine {
             directories: BTreeMap::new(),
             install: false,
             selected: BTreeSet::new(),
+            completed: BTreeSet::new(),
             selected_names: BTreeSet::new(),
         };
         engine.scan()?;
@@ -172,6 +174,38 @@ impl Engine {
         Ok(())
     }
 
+    /// Execute the remaining suffix while retaining selected dependency context.
+    /// The caller must verify completion against the same guide and install roots.
+    /// This is not a persisted resume receipt and is not exposed by CLI/GUI yet.
+    pub fn install_remaining(
+        mut self,
+        guide: &Guide,
+        completed: &[String],
+        emit: impl FnMut(Event),
+    ) -> Result<()> {
+        let ordered = guide.ordered()?;
+        let ids: BTreeSet<_> = completed.iter().map(|id| id.to_ascii_lowercase()).collect();
+        ensure!(
+            ids.len() == completed.len(),
+            "Duplicate completed component ID"
+        );
+        ensure!(
+            ids.len() < ordered.len(),
+            "No remaining components to install"
+        );
+        let prefix: BTreeSet<_> = ordered
+            .iter()
+            .take(ids.len())
+            .map(|c| c.guid.to_ascii_lowercase())
+            .collect();
+        ensure!(
+            ids == prefix,
+            "Completed components must form the selected installation prefix"
+        );
+        self.completed = ids;
+        self.install(guide, emit)
+    }
+
     fn check_cancelled(&self) -> Result<()> {
         ensure!(
             !self.settings.cancelled.load(Ordering::Relaxed),
@@ -189,6 +223,9 @@ impl Engine {
             .map(|c| c.name.to_lowercase())
             .collect();
         for c in guide.ordered()? {
+            if self.completed.contains(&c.guid.to_ascii_lowercase()) {
+                continue;
+            }
             ensure!(
                 !c.instructions.is_empty(),
                 "{} has no executable instructions; review the guide",
