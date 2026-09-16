@@ -1,0 +1,41 @@
+{
+  "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+  "reference_dll_sha256": "8f3b1e3f8fe47b2cc6f8e3f281912506721c7367218381bb2a35cf86dc5768f0",
+  "runtime": "Microsoft.NETCore.App 10.0.11",
+  "isolation": "bubblewrap: read-only /, private /tmp and user config/data, network unshared; only oracle scratch writable",
+  "checks": [
+    "folder mapped to source/*",
+    "real isolated reference install Success",
+    "top-level output present and nested asset absent"
+  ],
+  "files": {
+    "Program.cs": "fd13ae0ff92b3312b86b73ac5c0b852b06c8ddbf720fde90675bbdc923bf3e3a",
+    "probe.csproj": "35f334ace768b4aba6eedee309e5434d205d433230530a4a63a9f437cada22bd",
+    "verify.py": "1b91a07ad4452c0caaeb592cbf56e02b5a7cd90ae1d16cc15b9ad200557237e6",
+    "result.json": "2f89f58dff000eae58df8ad35b93145163d9cbce2c43ed6ebb33bd00c5aac3ac"
+  },
+  "scope": "One real service-level install with checkpoints disabled; no GUI or archive acquisition proof.",
+  "reference_sources": {
+    "FomodArchiveDiscovery.cs": "c78a91b8935c705f89ff0cd0ac7fec557114562da6882b060ee8de8f01b6ede3",
+    "FomodArchiveExtractService.cs": "7fcab63e7e82cee394a536fc4b420fb73fe708556d77f03484c42fb29db6775b",
+    "FomodArchiveProbe.cs": "c0012a54cbe2d0a2d9945d64372fd1bad49ee677d96f4707354c7ca9dbe086f2",
+    "FomodChoicesApplier.cs": "3404b372683c42ee29492105d88525a79e84b8b4892a22e203e37ad9d59068f4",
+    "FomodChoicesFile.cs": "db34dab4dd6adaf257df8430f6423e27932a362f9b9b210240c1e3a336f6435a",
+    "FomodChoicesFileHost.cs": "7dfaa4c607ee337a49980db2fe82a476c1b9c2d804955100efe99d4553460e4a",
+    "FomodConfigurationGate.cs": "a329829786735607789349f8325fa63ccd633e1a42595f7eaafe693f0c686180",
+    "FomodConfiguredComponentMerger.cs": "87ca3600ac1e6030dc8bfa5d88e982b71f9c2a957e3274f8550e7f68cdbca227",
+    "FomodDetector.cs": "647c594733a7536cd249e5502ba38ea1f7b893023fe35144ade63704f72d6220",
+    "FomodDownloadPromptState.cs": "c5d4b9b7ea07d6478ec64b4eda5cffed4fea5abb40f7b27a927d0cbc39b3c627",
+    "FomodDownloadedArchivePaths.cs": "d94e5a897037bcae14d13845ef0d806ff9724167bd041ab5223e4ffcf94ea7fd",
+    "FomodInfo.cs": "7db7fa99254111add0644fb9a4f091f830e86153ba1eee781e18b9dcb77fb5ca",
+    "FomodInstallerPresenter.cs": "14bc47615d62cdaee2fe12e68952444bd03ae0f6f02774aae1dd123295da47e4",
+    "FomodModuleConfig.cs": "900fe04a06f8c2d4a9182de0b22c2f92bcbb51dfa793c92b3cf2aba7e2ae93ca",
+    "FomodParser.cs": "2b382665fd7d8d557de08ffe359ed51eaf391fe12c22f3ca3a984e6604d3ae41",
+    "FomodPostDownloadOptions.cs": "fd902db9d71450eeada00c76ee0a285b1bf04a634b8e71dd45306d4d83c0d431",
+    "FomodPostDownloadOptionsResolver.cs": "01f3162a1bdfcea401eb3296d79f7af51aa8f8f2850ded71b58fa98451babbe0",
+    "FomodPostDownloadOrchestrator.cs": "2f60fda08fd0e556e4bf39b7c426c4daf9eb1842ccedfe6366ee1812627f276d",
+    "FomodPromptContext.cs": "70f0997e9808bcc41427fdfc07826bda765b5509ac518cb5cecad2bb781df74b",
+    "FomodToComponentMapper.cs": "b05213b676932c06da8d13afed3503ac41ee56e3d0ec61314ee8d5fafd7034b8",
+    "IFomodPostDownloadHost.cs": "5b1eeef6a82cf11c94e2e0647416a590322abc4b2037e4b897d0482f30b215de"
+  }
+}

@@ -438,30 +438,31 @@ impl ModuleConfig {
         );
         let mut instructions = Vec::new();
         for file in self.selected_files()? {
-            ensure!(
-                !file.is_folder,
-                "FOMOD folder mapping is not implemented: {}",
-                file.source
-            );
             let source = crate::paths::relative(file.source.trim(), false)?;
-            let filename = source
-                .file_name()
-                .ok_or_else(|| anyhow::anyhow!("FOMOD file source is empty"))?
-                .to_string_lossy();
             let mut destination = crate::paths::relative(file.destination.trim(), false)?;
-            if let Some(name) = destination.file_name() {
-                let name = name.to_string_lossy();
-                if name.contains('.') || name.eq_ignore_ascii_case(&filename) {
-                    ensure!(
-                        name.eq_ignore_ascii_case(&filename),
-                        "FOMOD file rename mapping is not implemented: {} -> {}",
-                        file.source,
-                        file.destination
-                    );
-                    destination.pop();
+            if !file.is_folder {
+                let filename = source
+                    .file_name()
+                    .ok_or_else(|| anyhow::anyhow!("FOMOD file source is empty"))?
+                    .to_string_lossy();
+                if let Some(name) = destination.file_name() {
+                    let name = name.to_string_lossy();
+                    if name.contains('.') || name.eq_ignore_ascii_case(&filename) {
+                        ensure!(
+                            name.eq_ignore_ascii_case(&filename),
+                            "FOMOD file rename mapping is not implemented: {} -> {}",
+                            file.source,
+                            file.destination
+                        );
+                        destination.pop();
+                    }
                 }
             }
-            let source = root.join(source).to_string_lossy().replace('\\', "/");
+            let mut source = root.join(source).to_string_lossy().replace('\\', "/");
+            if file.is_folder {
+                // Verified C# mapper behavior: immediate files only, not recursive copy.
+                source.push_str("/*");
+            }
             let destination = destination.to_string_lossy().replace('\\', "/");
             instructions.push(crate::Instruction {
                 action: "Copy".into(),

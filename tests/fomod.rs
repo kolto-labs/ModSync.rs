@@ -426,7 +426,6 @@ fn mapped_file_copies_use_shared_preflight_and_install_without_mutating_sources(
     for bad in [
         xml.replace("Override/a.tga", "../escape"),
         xml.replace("Override/a.tga", "Override/b.tga"),
-        xml.replace("<file ", "<folder "),
     ] {
         assert!(
             parse_module_xml(&bad)
@@ -435,4 +434,50 @@ fn mapped_file_copies_use_shared_preflight_and_install_without_mutating_sources(
                 .is_err()
         );
     }
+}
+
+#[test]
+fn folder_mapping_matches_reference_top_level_only_copy() {
+    use modsync::{Component, Engine, Guide, Settings, fomod::parse_module_xml};
+    let temp = tempfile::tempdir().unwrap();
+    let mods = temp.path().join("mods");
+    let game = temp.path().join("game");
+    std::fs::create_dir_all(mods.join("package/textures/nested")).unwrap();
+    std::fs::create_dir(&game).unwrap();
+    std::fs::write(mods.join("package/textures/top.txt"), b"top").unwrap();
+    std::fs::write(mods.join("package/textures/nested/deep.txt"), b"deep").unwrap();
+    let module = parse_module_xml("<config><requiredInstallFiles><folder source='textures' destination='Override'/></requiredInstallFiles></config>").unwrap();
+    let instructions = module.copy_instructions("package").unwrap();
+    assert_eq!(
+        instructions[0].source,
+        ["<<modDirectory>>/package/textures/*"]
+    );
+    let guide = Guide {
+        components: vec![Component {
+            guid: "folder".into(),
+            name: "Folder".into(),
+            is_selected: true,
+            instructions,
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    Engine::new(Settings::new(&mods, &game).unwrap())
+        .unwrap()
+        .validate(&guide, |_| {})
+        .unwrap();
+    assert!(!game.join("Override").exists());
+    Engine::new(Settings::new(&mods, &game).unwrap())
+        .unwrap()
+        .install(&guide, |_| {})
+        .unwrap();
+    assert_eq!(
+        std::fs::read(game.join("Override/top.txt")).unwrap(),
+        b"top"
+    );
+    assert_eq!(std::fs::read_dir(game.join("Override")).unwrap().count(), 1);
+    assert_eq!(
+        std::fs::read(mods.join("package/textures/nested/deep.txt")).unwrap(),
+        b"deep"
+    );
 }

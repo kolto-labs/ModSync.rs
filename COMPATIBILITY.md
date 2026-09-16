@@ -409,3 +409,7 @@ ModuleConfig.selected_files builds a read-only ordered plan: required files, sel
 ### FOMOD file-copy instruction mapping
 
 ModuleConfig.copy_instructions maps the ordered selected file plan from an explicitly supplied extracted mod-relative directory to shared Copy instructions. Existing cross-platform path validation rejects traversal, rooted paths, wildcards and reserved names before instructions are returned. Compatible filename destinations become parent directories; requested renames and folder directives fail explicitly until implemented. A temporary-directory integration test proves dry validation creates no game files and installation copies exact bytes without changing the source. Archive extraction/configuration gates remain unchanged; this is a library mapping primitive, not end-to-end FOMOD support.
+
+### Verified FOMOD folder mapping
+
+An isolated C# mapper/install probe returned Success with `textures/*`, installed only top.txt and omitted nested/deep.txt. Evidence: `docs/parity/fomod-folder-oracle/`; the verifier excludes only C# .modsync session bookkeeping from asset comparison. Rust now emits the same immediate-file wildcard and a shared-engine regression verifies identical asset behavior, dry-run non-mutation and unchanged source data. This supersedes folder mapping rejection above. It is deliberately not recursive FOMOD directory semantics; empty folders, recursive expectations, renames, archive configuration and UI/CLI integration remain open.

@@ -283,3 +283,5 @@ F15 module-data checkpoint: XML retains required/plugin/conditional file records
 F15 file-planning checkpoint: selected visible files and reference-compatible conditional attachment order are computed without writes. Unsupported mapper patterns reject rather than disappear. Live mapping differential, path containment and engine/UI/CLI integration remain open.
 
 F15 engine mapping checkpoint: selected compatible file copies map through existing safe relative paths into shared instructions; isolated preflight/install byte test passes and unsafe/rename/folder inputs reject. Folder/rename semantics, archive gating and UI/CLI integration remain open.
+
+F15 folder checkpoint: actual reference install establishes nonrecursive wildcard behavior; Rust mapping and isolated engine test reproduce top-level-only assets. Evidence in `fomod-folder-oracle/`. Recursive semantics and remaining end-to-end integration are not certified.

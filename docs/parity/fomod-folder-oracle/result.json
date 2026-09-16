@@ -1,0 +1,17 @@
+{
+  "Result": "Success",
+  "Instructions": [
+    {
+      "Action": "Copy",
+      "Source": [
+        "\u003C\u003CmodDirectory\u003E\u003E/package/textures/*"
+      ],
+      "Destination": "\u003C\u003CkotorDirectory\u003E\u003E/Override",
+      "Overwrite": true
+    }
+  ],
+  "Files": {
+    ".modsync/install_session.json": "{\n  \u0022Version\u0022: \u00222.0\u0022,\n  \u0022SessionId\u0022: \u00225d8bc600-1c13-4023-bf57-54cda1b0d4db\u0022,\n  \u0022CreatedUtc\u0022: \u00222026-09-16T08:36:16.50383\u002B00:00\u0022,\n  \u0022DestinationPath\u0022: \u0022/home/brunner56/.cache/modsync-fomod-folder-oracle/game\u0022,\n  \u0022ComponentOrder\u0022: [\n    \u002236491c88-5210-4100-b682-8c5a84234cb8\u0022\n  ],\n  \u0022Components\u0022: {\n    \u002236491c88-5210-4100-b682-8c5a84234cb8\u0022: {\n      \u0022ComponentId\u0022: \u002236491c88-5210-4100-b682-8c5a84234cb8\u0022,\n      \u0022State\u0022: 2,\n      \u0022LastStartedUtc\u0022: \u00222026-09-16T08:36:16.6664418\u002B00:00\u0022,\n      \u0022LastCompletedUtc\u0022: \u00222026-09-16T08:36:16.769427\u002B00:00\u0022\n    }\n  },\n  \u0022BackupPath\u0022: \u0022\u0022,\n  \u0022CurrentRevision\u0022: 0,\n  \u0022BaselineCheckpointId\u0022: \u0022\u0022,\n  \u0022ComponentCheckpoints\u0022: {}\n}",
+    "Override/top.txt": "top"
+  }
+}
