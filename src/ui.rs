@@ -72,6 +72,7 @@ pub struct App {
     download_name: String,
     download_hash: String,
     pending_protocol: Option<String>,
+    pending_nxm: Option<String>,
 }
 
 impl App {
@@ -126,6 +127,7 @@ impl App {
             download_name: String::new(),
             download_hash: String::new(),
             pending_protocol: None,
+            pending_nxm: None,
         };
         if !app.input.is_empty() {
             app.load();
@@ -191,6 +193,48 @@ impl App {
             }
             Err(error) => self.logs.push(format!("ModSync link failed: {error:#}")),
         }
+    }
+
+    fn download_pending_nxm(&mut self) {
+        let Some(raw) = self.pending_nxm.take() else {
+            return;
+        };
+        let result = (|| -> Result<()> {
+            let link = modsync::protocol::parse(&raw)?;
+            let guide = self
+                .guide
+                .as_mut()
+                .ok_or_else(|| anyhow::anyhow!("Load an instruction file first"))?;
+            let (status, matched) = modsync::protocol::resolve_nxm(&link, &guide.components);
+            anyhow::ensure!(
+                status == modsync::protocol::NxmResolveStatus::Matched,
+                "Nexus link does not identify exactly one loaded component"
+            );
+            let matched = matched.expect("matched status has a match");
+            anyhow::ensure!(
+                !self.mods.trim().is_empty(),
+                "Set a mod download directory first"
+            );
+            let mut client = modsync::updates::NexusClient::new(Some(self.nexus_api_key.clone()))?;
+            let download_link = client.nxm_download_link(&link)?;
+            let output = Path::new(&self.mods).join(&download_link.file_name);
+            modsync::download::fetch(&download_link.uri, &output, None, &AtomicBool::new(false))?;
+            let component = guide
+                .components
+                .iter_mut()
+                .find(|component| component.guid == matched.component_guid)
+                .ok_or_else(|| anyhow::anyhow!("Resolved component changed before download"))?;
+            modsync::updates::record_nxm_download(
+                component,
+                &matched.registry_url,
+                &download_link.file_name,
+            )?;
+            Ok(())
+        })();
+        self.logs.push(match result {
+            Ok(()) => "Nexus handoff download complete.".into(),
+            Err(error) => format!("Nexus handoff failed: {error:#}"),
+        });
     }
 
     fn apply_category_selection(&mut self) {
@@ -884,6 +928,13 @@ impl eframe::App for App {
                             if ui.button("Cancel").clicked() { self.pending_protocol = None; self.logs.push("Declined ModSync build link.".into()); }
                         });
                     }
+                    if let Some(url) = self.pending_nxm.clone() {
+                        ui.separator();
+                        ui.strong("Nexus Mod Manager link received");
+                        ui.label(&url);
+                        if ui.add_enabled(self.guide.is_some() && !self.mods.trim().is_empty(), egui::Button::new("Download linked Nexus file")).clicked() { self.download_pending_nxm(); }
+                        if ui.button("Dismiss Nexus link").clicked() { self.pending_nxm = None; }
+                    }
                     if ui.add_enabled(self.guide.is_some(), egui::Button::new("Draft instructions from prose")).clicked()
                         && let Some(guide) = &mut self.guide {
                         let results = modsync::draft::generate(guide);
@@ -1217,12 +1268,13 @@ pub fn launch(
         native,
         Box::new(move |creation| {
             let mut app = App::new(input, game, mods);
-            app.pending_protocol = protocol.filter(|url| {
-                matches!(
-                    modsync::protocol::parse(url),
-                    Ok(modsync::protocol::Link::Modsync { .. })
-                )
-            });
+            if let Some(url) = protocol {
+                match modsync::protocol::parse(&url) {
+                    Ok(modsync::protocol::Link::Modsync { .. }) => app.pending_protocol = Some(url),
+                    Ok(modsync::protocol::Link::Nxm { .. }) => app.pending_nxm = Some(url),
+                    Err(error) => app.logs.push(format!("Protocol link rejected: {error:#}")),
+                }
+            }
             if let Some(directory) = settings_dir {
                 app.profile_directory = directory.to_string_lossy().into_owned();
             }
