@@ -632,6 +632,11 @@ impl eframe::App for App {
                             .flat_map(|c| c.category.iter().cloned()).map(|category| (category, false)).collect());
                     }
                     ui.separator();
+                    let has_visible = g.components.iter().any(|c| modsync::selection::matches_filters(c, &self.search, &self.tier_filter, &self.category_filter, self.spoiler_free));
+                    if !has_visible {
+                        ui.heading("No mods match your filters");
+                        ui.label("Try adjusting your search or clearing filters");
+                    }
                     ui.columns(2, |columns| {
                         egui::ScrollArea::vertical().id_salt("mods").show(&mut columns[0], |ui| {
                             for (index, c) in g.components.iter_mut().enumerate() {
@@ -643,7 +648,7 @@ impl eframe::App for App {
                             }
                         });
                         egui::ScrollArea::vertical().id_salt("details").show(&mut columns[1], |ui| {
-                            if let Some(c) = g.components.get_mut(self.selected) {
+                            if let Some(c) = g.components.get_mut(self.selected).filter(|c| modsync::selection::matches_filters(c, &self.search, &self.tier_filter, &self.category_filter, self.spoiler_free)) {
                                 ui.heading(modsync::selection::display_name(c, self.spoiler_free));
                                 ui.label(format!("{}  ·  {}", c.author, c.tier));
                                 ui.label(modsync::selection::display_description(c, self.spoiler_free)).on_hover_text(modsync::selection::tooltip(c, self.spoiler_free));

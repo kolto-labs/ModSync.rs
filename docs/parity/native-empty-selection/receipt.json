@@ -1,0 +1,16 @@
+{
+  "tested_base_commit": "90aaa28e1c6790d2c15575492ab646452404af5a",
+  "ui_source_sha256": "22f330e91388212a5d22e168be602a6668e4ae96567e83515ad584aa146f6754",
+  "binary_sha256": "02bced7098e161321e44691d74da8d150a08dfb11139ebb91e08c17420b38edc",
+  "fixture": "../native-selection/guide.json",
+  "environment": "Linux native egui, Xvfb :903, xdotool",
+  "checks": [
+    "Search nonexistent shows no-results message and no component details/options",
+    "Counts remain 2/2 selected, Required 1 Optional 1 while 0 base rows match",
+    "Clear filters restores all rows and Alpha details without changing selections"
+  ],
+  "limits": [
+    "No C# side-by-side GUI comparison",
+    "No Windows/macOS or accessibility verification"
+  ]
+}

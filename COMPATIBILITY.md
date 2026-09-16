@@ -291,3 +291,7 @@ The base-selection page now displays the reference required/optional counts. Req
 ### Native selection verification
 
 Linux native input at commit `253ba18301c0b150ca9b5542122dda63430437fe` verified search-filtered Select all, Clear filters, preserved widescreen selection, base counts, required/optional counts, safe component/option hover content and authored safe option description with an empty raw field. Screenshots, corrected fixture and binary hash are in `docs/parity/native-selection/receipt.json`. This supersedes the native-unverified notes for those exercised paths only. Tier/category dropdown interaction, accessibility, other platforms and separate widescreen flow remain open. Some emoji glyphs displayed fallback boxes; visual parity is not established.
+
+### No-result selection state
+
+The desktop now shows an explicit no-results message and recovery hint when no rows match. The details pane uses the shared row-filter predicate, so hidden components no longer retain visible editable options or links. Clearing filters restores details without changing selection. Native Linux screenshots and source/binary hashes are recorded in `docs/parity/native-empty-selection/receipt.json`; required Rust checks passed. This closes the exercised empty-state gap, not full grouped-card/widescreen/accessibility parity.
