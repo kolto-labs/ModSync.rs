@@ -620,6 +620,11 @@ impl eframe::App for App {
                         }
                     });
                     ui.label(format!("Base build: {}", modsync::selection::selection_summary(&g.components)));
+                    let (required, optional) = modsync::selection::selection_badges(&g.components);
+                    ui.horizontal(|ui| {
+                        ui.strong(format!("Required: {required}")).on_hover_text("Selected base mods that declare dependencies.");
+                        ui.strong(format!("Optional: {optional}")).on_hover_text("Selected base mods with no declared dependencies.");
+                    });
                     ui.label(format!("Base build: {}", modsync::selection::filter_summary(&g.components, &self.search, &self.tier_filter, &self.category_filter, self.spoiler_free)));
                     if ui.button("Select multiple categories…").clicked() {
                         self.category_selection = Some(g.components.iter()

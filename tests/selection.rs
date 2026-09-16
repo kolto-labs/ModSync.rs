@@ -214,3 +214,17 @@ fn selection_and_filter_summaries_keep_hidden_selections_and_exclude_widescreen(
         "0 of 0 mods selected — Select the mods you want to install"
     );
 }
+
+#[test]
+fn required_badge_counts_selected_dependency_declarations_not_targets_or_tiers() {
+    let components: Vec<Component> = serde_json::from_value(serde_json::json!([
+        {"Guid":"target", "Tier":"1", "IsSelected":true},
+        {"Guid":"dependent", "Tier":"Optional", "Dependencies":["target","other"], "IsSelected":true},
+        {"Dependencies":["target"], "IsSelected":false},
+        {"Dependencies":["target"], "WidescreenOnly":true,"IsSelected":true},
+        {"Dependencies":[], "WidescreenOnly":true,"IsSelected":true},
+        {"Dependencies":[], "IsSelected":true}
+    ])).unwrap();
+    assert_eq!(selection::selection_badges(&components), (1, 2));
+    assert_eq!(selection::selection_badges(&[]), (0, 0));
+}

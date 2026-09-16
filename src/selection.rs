@@ -361,3 +361,18 @@ pub fn filter_summary(
         )
     }
 }
+
+/// Reference badges classify selected base mods by whether they declare dependencies.
+/// They do not count dependency targets or infer required tiers.
+pub fn selection_badges(components: &[Component]) -> (usize, usize) {
+    let mut required = 0;
+    let mut optional = 0;
+    for c in components.iter().filter(|c| base(c) && c.is_selected) {
+        if c.dependencies.is_empty() {
+            optional += 1;
+        } else {
+            required += 1;
+        }
+    }
+    (required, optional)
+}

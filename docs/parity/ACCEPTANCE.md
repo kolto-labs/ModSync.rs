@@ -217,3 +217,5 @@ F04/F24 tooltip checkpoint: shared comprehensive tooltip content now reaches com
 F04/F24 filtered bulk-selection checkpoint: row rendering and Select all share the search/tier/category predicate; bulk selection excludes widescreen and Deselect all preserves it. Clear filters is available. Shared-rule regression passes; separate widescreen UI and native interaction verification remain open.
 
 F04/F24 summary checkpoint: base-build selection totals and active-filter summaries now follow reference counting/content rules, covered by shared-rule regression. Native layout, required/optional badges and separate widescreen flow remain open.
+
+F04/F24 badge checkpoint: required/optional counts now follow the reference selected-base dependency-presence rule, with regression coverage and explanatory desktop tooltips. Earlier missing-badge notes are superseded for content/counting; native rendering and the broader wizard remain unverified.

@@ -283,3 +283,7 @@ Select all now applies the same search/tier/category predicate as visible rows, 
 ### Selection and filter summaries
 
 The selection page reports base-build selected/total counts and the reference none/all/partial selection detail, independently of active filters. A separate summary reports matching base components and active search/category/tier/spoiler filters in reference order. Both exclude widescreen-only components. Labels explicitly identify base-build scope because widescreen rows remain on the single Rust selection page. Regression coverage includes hidden selections, widescreen exclusion, no filters, spoiler mode and empty guides. Reference required/optional badges, separate widescreen flow and native summary layout remain open.
+
+### Required and optional selection badges
+
+The base-selection page now displays the reference required/optional counts. Required counts selected non-widescreen components with at least one declared dependency; optional counts the remaining selected base components. This follows UpdateSelectionCount exactly for supported dependency arrays, rather than inferring counts from tiers, dependency targets or dependency-list length. Explanatory tooltips state the rule. A regression distinguishes each case and excludes unselected/widescreen entries. This supersedes the earlier missing-badges note; native layout and accessibility remain unverified.
