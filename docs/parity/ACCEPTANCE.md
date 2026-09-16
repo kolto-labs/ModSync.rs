@@ -191,3 +191,7 @@ F17/F24: the desktop now persists and restores the three canonical C# theme path
 ### Native Linux profile/settings workflow proof
 
 F16/F17/F24 now have bounded native interaction evidence at `native-profiles/receipt.json`, tied to commit 13f50111ec0eb6950ef73a21f29491fe5a6278a4 and its binary hash. Screenshots cover profile listing, deletion confirmation, validation, installation and restart. Verified profile/settings disk state and exact installed bytes support those specific paths. This does not close any domain: full guide, platform, accessibility, visual and remaining settings requirements still apply.
+
+### Tier/category selection progress
+
+F04/F24: added shared additive tier/category selection rules and desktop exact filters/buttons. Reference source defines cumulative tier priorities and widescreen exclusion for bulk selection. Regression coverage exercises those rules. Native controls, multi-category dialog, reference text/spoiler filtering, Unicode comparison and the separate widescreen phase remain incomplete or unverified.

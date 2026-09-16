@@ -42,6 +42,8 @@ pub struct App {
     page: usize,
     selected: usize,
     search: String,
+    tier_filter: String,
+    category_filter: String,
     logs: Vec<String>,
     receiver: Option<Receiver<Message>>,
     cancelled: Arc<AtomicBool>,
@@ -80,6 +82,8 @@ impl App {
             page: 0,
             selected: 0,
             search: String::new(),
+            tier_filter: String::new(),
+            category_filter: String::new(),
             logs: Vec::new(),
             receiver: None,
             cancelled: Arc::new(AtomicBool::new(false)),
@@ -105,6 +109,8 @@ impl App {
                 self.loaded_input = Some(PathBuf::from(&self.input));
                 self.guide = Some(g);
                 self.selected = 0;
+                self.tier_filter.clear();
+                self.category_filter.clear();
             }
             Err(e) => {
                 self.loaded_input = None;
@@ -550,11 +556,33 @@ impl eframe::App for App {
                         ui.label(format!("{} / {} selected", g.components.iter().filter(|c| c.is_selected).count(), g.components.len()));
                         ui.add(egui::TextEdit::singleline(&mut self.search).hint_text("Filter name, tier, category"));
                     });
+                    ui.horizontal_wrapped(|ui| {
+                        let tiers: std::collections::BTreeSet<_> = g.components.iter().map(|c| c.tier.clone()).filter(|s| !s.is_empty()).collect();
+                        let categories: std::collections::BTreeSet<_> = g.components.iter().flat_map(|c| c.category.clone()).collect();
+                        egui::ComboBox::from_id_salt("tier_filter").selected_text(if self.tier_filter.is_empty() { "All tiers" } else { &self.tier_filter }).show_ui(ui, |ui| {
+                            ui.selectable_value(&mut self.tier_filter, String::new(), "All tiers");
+                            for tier in tiers { ui.selectable_value(&mut self.tier_filter, tier.clone(), tier); }
+                        });
+                        if ui.add_enabled(!self.tier_filter.is_empty(), egui::Button::new("Select through tier")).clicked() {
+                            modsync::selection::select_tier(&mut g.components, &self.tier_filter);
+                            self.validated = false; self.confirm_install = false;
+                        }
+                        egui::ComboBox::from_id_salt("category_filter").selected_text(if self.category_filter.is_empty() { "All categories" } else { &self.category_filter }).show_ui(ui, |ui| {
+                            ui.selectable_value(&mut self.category_filter, String::new(), "All categories");
+                            for category in categories { ui.selectable_value(&mut self.category_filter, category.clone(), category); }
+                        });
+                        if ui.add_enabled(!self.category_filter.is_empty(), egui::Button::new("Select category")).clicked() {
+                            modsync::selection::select_categories(&mut g.components, std::slice::from_ref(&self.category_filter));
+                            self.validated = false; self.confirm_install = false;
+                        }
+                    });
                     ui.separator();
                     ui.columns(2, |columns| {
                         egui::ScrollArea::vertical().id_salt("mods").show(&mut columns[0], |ui| {
                             for (index, c) in g.components.iter_mut().enumerate() {
                                 if !format!("{} {} {}", c.name, c.tier, c.category.join(" ")).to_lowercase().contains(&self.search.to_lowercase()) { continue; }
+                                if !self.tier_filter.is_empty() && !c.tier.eq_ignore_ascii_case(&self.tier_filter) { continue; }
+                                if !self.category_filter.is_empty() && !c.category.iter().any(|cat| cat.eq_ignore_ascii_case(&self.category_filter)) { continue; }
                                 ui.horizontal(|ui| {
                                     if ui.checkbox(&mut c.is_selected, "").on_hover_text("Select component").changed() { self.validated = false; }
                                     if ui.selectable_label(self.selected == index, &c.name).clicked() { self.selected = index; }

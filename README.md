@@ -180,3 +180,5 @@ When the current settings file is absent, profile operations can read the active
 The desktop restores saved game/mod directories when launched without those explicit path arguments. On **Load guide**, **Save directories for next launch** writes them to the selected settings store while preserving unrelated settings. Use `modsync gui --settings-dir /path/to/settings` to launch with a custom store.
 
 The desktop **Theme** menu saves Light, KOTOR, or KOTOR 2 in the selected settings store and restores it at startup. The game themes currently provide dark egui visuals with their reference accent colors; the full Avalonia appearance and theme-driven target-game behavior are still being ported.
+
+On **Choose mods**, filter by tier or category, then use **Select through tier** or **Select category** to add matching base-build components. Known tiers are cumulative (1–4, then Optional); custom tiers match exactly. Existing selections are retained, and these bulk actions skip widescreen-only components.
