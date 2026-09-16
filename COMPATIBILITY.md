@@ -505,7 +505,7 @@ Linux X11 acceptance at commit 3e7cf9f opened the desktop editor from a typed ar
 
 ### Desktop post-download FOMOD prompt
 
-Successful verified direct downloads now pass their actual output path and archive limits to the desktop FOMOD editor when a guide is loaded before base installation. Inspection runs in the background, restores existing choices through the same resolver as manual opening, and dismisses ordinary archives without a configuration error. Failed downloads do not dispatch this event; inspection errors remain visible. An egui regression checks ordinary-archive dismissal and visible errors. Native network-download-to-editor acceptance and multi-host queue integration remain pending.
+Successful verified direct downloads now pass their actual output path and archive limits to the desktop FOMOD editor when a guide is loaded before base installation. Before launching, Rust matches the downloaded filename against resource-registry entries and uses shared prompt state: registered `configured` and `warned` archives stay quiet, while `dismissed` or unregistered archives remain eligible for inspection. Inspection runs in the background, restores existing choices through the same resolver as manual opening, and dismisses ordinary archives without a configuration error. Failed downloads do not dispatch this event; inspection errors remain visible. An egui regression checks ordinary-archive dismissal, status suppression, and visible errors. Native network-download-to-editor acceptance, explicit dismissal persistence, and multi-host queue integration remain pending.
 
 ### Persisted FOMOD prompt state
 

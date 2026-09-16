@@ -636,6 +636,15 @@ fn resource_matches(value: &serde_json::Value, filename: &str) -> bool {
         .any(|name| archive_name(name) == filename || name.trim().eq_ignore_ascii_case(filename))
 }
 
+/// Whether this component registers the archive under a resource-registry Files key.
+pub fn resource_matches_archive(component: &crate::Component, archive: &str) -> bool {
+    let filename = archive_name(archive);
+    component
+        .resource_registry
+        .values()
+        .any(|resource| resource_matches(resource, &filename))
+}
+
 /// Read the C#-compatible per-archive prompt status from the matching resource entry.
 pub fn prompt_status(component: &crate::Component, archive: &str) -> Option<String> {
     let filename = archive_name(archive);

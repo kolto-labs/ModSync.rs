@@ -575,6 +575,35 @@ impl App {
         }
     }
 
+    fn should_offer_fomod_editor(&self, path: &Path) -> bool {
+        let Some(filename) = path.file_name().and_then(|name| name.to_str()) else {
+            return true;
+        };
+        fn visit(component: &Component, filename: &str) -> (bool, bool) {
+            let matches = modsync::fomod::resource_matches_archive(component, filename);
+            let pending = matches && modsync::fomod::should_prompt(component, filename);
+            component
+                .options
+                .iter()
+                .fold((matches, pending), |(found, offer), option| {
+                    let (child_found, child_offer) = visit(option, filename);
+                    (found || child_found, offer || child_offer)
+                })
+        }
+        let Some(guide) = &self.guide else {
+            return true;
+        };
+        let (matched, pending) =
+            guide
+                .components
+                .iter()
+                .fold((false, false), |(found, offer), component| {
+                    let (component_found, component_offer) = visit(component, filename);
+                    (found || component_found, offer || component_offer)
+                });
+        !matched || pending
+    }
+
     fn apply_fomod_choices(&mut self, choices: &modsync::fomod::ChoicesFile) -> Result<()> {
         let mut guide = self
             .guide
@@ -872,7 +901,10 @@ impl eframe::App for App {
         for message in messages {
             match message {
                 Message::Downloaded(path, options) => {
-                    if self.completed_base.is_none() && self.guide.is_some() {
+                    if self.completed_base.is_none()
+                        && self.guide.is_some()
+                        && self.should_offer_fomod_editor(&path)
+                    {
                         let saved = self.saved_fomod_choices(&path);
                         match saved {
                             Ok(saved) => {
@@ -1975,5 +2007,21 @@ mod tests {
         );
         assert!(!app.validated && !app.confirm_install);
         assert!(app.category_selection.is_none());
+    }
+
+    #[test]
+    fn post_download_fomod_prompt_obeys_registered_status() {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("package.zip");
+        let mut app = App::new(None, None, None);
+        app.guide = Some(Guide::parse(
+            r#"{"thisMod":[{"Guid":"a","Name":"Registered","IsSelected":true,"ResourceRegistry":{"source":{"Files":{"package.zip":true},"HandlerMetadata":{"fomodPromptStatus":{"package.zip":"configured"}}}}}]}"#,
+            "json",
+        ).unwrap());
+        assert!(!app.should_offer_fomod_editor(&path));
+        app.guide.as_mut().unwrap().components[0].resource_registry["source"]["HandlerMetadata"]
+            ["fomodPromptStatus"]["package.zip"] = "dismissed".into();
+        assert!(app.should_offer_fomod_editor(&path));
+        assert!(app.should_offer_fomod_editor(&temp.path().join("unregistered.zip")));
     }
 }
