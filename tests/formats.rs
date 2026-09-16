@@ -4,6 +4,70 @@ use serde_json::Value;
 const FIXTURE: &str = include_str!("fixtures/guide.json");
 
 #[test]
+fn resource_insertion_order_survives_all_formats_and_markdown_links() {
+    let guide = Guide::parse(include_str!("fixtures/resource-order.json"), "json").unwrap();
+    let expected = [
+        "https://z.example/first",
+        "https://a.example/second",
+        "https://m.example/third",
+    ];
+    for format in ["json", "toml", "yaml", "xml"] {
+        let parsed = Guide::parse(&guide.render(format).unwrap(), format).unwrap();
+        for component in [&parsed.components[0], &parsed.components[0].options[0]] {
+            assert_eq!(
+                component
+                    .resource_registry
+                    .keys()
+                    .map(String::as_str)
+                    .collect::<Vec<_>>(),
+                expected,
+                "{format}"
+            );
+        }
+    }
+    let markdown = "### Ordered\nName: [First](https://z.example/first), [Second](https://a.example/second), [Third](https://m.example/third)\nDirections: Copy files into Override.\n";
+    let parsed = Guide::parse(markdown, "md").unwrap();
+    assert_eq!(
+        parsed.components[0]
+            .resource_registry
+            .keys()
+            .map(String::as_str)
+            .collect::<Vec<_>>(),
+        expected
+    );
+}
+
+#[test]
+fn yaml_emits_reference_legacy_resource_map_without_roundtrip_metadata_drift() {
+    let mut guide = Guide::parse(include_str!("fixtures/resource-order.json"), "json").unwrap();
+    guide.components[0].resource_registry["https://z.example/first"]["Files"] =
+        serde_json::json!({"selected.zip":true,"excluded.zip":false,"unknown.zip":null});
+    guide.components[0].metadata.insert(
+        "ModLinkFilenames".into(),
+        serde_json::json!({"https://legacy.example/old":{"old.zip":true}}),
+    );
+    let yaml = guide.render("yaml").unwrap();
+    let document: Value = serde_yaml_ng::from_str(&yaml).unwrap();
+    assert_eq!(
+        document["ModLinkFilenames"]["https://z.example/first"],
+        serde_json::json!({"selected.zip":true,"excluded.zip":false,"unknown.zip":"null"})
+    );
+    assert_eq!(
+        document["ModLinkFilenames"]["https://a.example/second"],
+        serde_json::json!({})
+    );
+    assert_eq!(
+        document["ModLinkFilenames"]["https://legacy.example/old"]["old.zip"],
+        true
+    );
+    let reloaded = Guide::parse(&yaml, "yaml").unwrap();
+    assert_eq!(
+        serde_json::to_value(reloaded).unwrap(),
+        serde_json::to_value(guide).unwrap()
+    );
+}
+
+#[test]
 fn csharp_shapes_roundtrip_collections_options_paths_and_resources() {
     let mut guide = Guide::parse(FIXTURE, "json").unwrap();
     guide.components[0].options[0].resource_registry =

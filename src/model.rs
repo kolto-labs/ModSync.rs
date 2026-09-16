@@ -53,7 +53,7 @@ pub struct Component {
     pub install_after: Vec<String>,
     pub instructions: Vec<Instruction>,
     pub options: Vec<Component>,
-    pub resource_registry: BTreeMap<String, serde_json::Value>,
+    pub resource_registry: serde_json::Map<String, serde_json::Value>,
     #[serde(flatten)]
     pub metadata: BTreeMap<String, serde_json::Value>,
 }
@@ -210,6 +210,7 @@ impl Guide {
                         text.push_str("---\n");
                         let mut value = serde_json::to_value(component)?;
                         encode_nullable_files(&mut value);
+                        yaml_legacy_resources(&mut value);
                         text.push_str(&serde_yaml_ng::to_string(&value)?);
                     }
                     text
@@ -410,6 +411,22 @@ fn normalize_component(value: &mut serde_json::Value) -> Result<()> {
             }
         }
     }
+    // Legacy selections for an existing registry URL are ignored by C#. Remove
+    // those redundant wire entries, while retaining unmigrated legacy URLs.
+    let urls: Vec<_> = object
+        .get("ResourceRegistry")
+        .and_then(Value::as_object)
+        .map(|r| r.keys().cloned().collect())
+        .unwrap_or_default();
+    if let Some(legacy) = object
+        .get_mut("ModLinkFilenames")
+        .and_then(Value::as_object_mut)
+    {
+        legacy.retain(|url, _| !urls.iter().any(|key| key.eq_ignore_ascii_case(url)));
+        if legacy.is_empty() {
+            object.remove("ModLinkFilenames");
+        }
+    }
     if let Some(instructions) = object.get_mut("Instructions").and_then(Value::as_array_mut) {
         for instruction in instructions {
             let instruction = instruction
@@ -431,6 +448,42 @@ fn normalize_component(value: &mut serde_json::Value) -> Result<()> {
         }
     }
     Ok(())
+}
+
+fn yaml_legacy_resources(value: &mut serde_json::Value) {
+    use serde_json::{Map, Value};
+    let Some(component) = value.as_object_mut() else {
+        return;
+    };
+    // C# YAML preprocessing flattens ResourceRegistry into a list and then
+    // recovers URLs through the preserved ModLinkFilenames compatibility map.
+    // Emit the same derived map without replacing the richer registry itself.
+    let mut legacy = Map::new();
+    if let Some(registry) = component.get("ResourceRegistry").and_then(Value::as_object) {
+        for (url, resource) in registry {
+            let files = resource
+                .get("Files")
+                .and_then(Value::as_object)
+                .cloned()
+                .unwrap_or_default();
+            legacy.insert(url.clone(), Value::Object(files));
+        }
+    }
+    if let Some(existing) = component.get("ModLinkFilenames").and_then(Value::as_object) {
+        for (url, files) in existing {
+            if !legacy.keys().any(|key| key.eq_ignore_ascii_case(url)) {
+                legacy.insert(url.clone(), files.clone());
+            }
+        }
+    }
+    if !legacy.is_empty() {
+        component.insert("ModLinkFilenames".into(), Value::Object(legacy));
+    }
+    if let Some(options) = component.get_mut("Options").and_then(Value::as_array_mut) {
+        for option in options {
+            yaml_legacy_resources(option);
+        }
+    }
 }
 
 fn encode_nullable_files(value: &mut serde_json::Value) {

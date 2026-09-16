@@ -1,0 +1,138 @@
+{
+  "reference_dll_sha256": "8f3b1e3f8fe47b2cc6f8e3f281912506721c7367218381bb2a35cf86dc5768f0",
+  "fixture_sha256": "532ae18850837f32ee770e13c70985d5779f89dbc00b398023939cb5f77cc37c",
+  "checks": [
+    {
+      "format": "toml",
+      "csharp_reads_rust": true,
+      "rust_reads_csharp": true
+    },
+    {
+      "format": "json",
+      "csharp_reads_rust": true,
+      "rust_reads_csharp": true
+    },
+    {
+      "format": "yaml",
+      "csharp_reads_rust": true,
+      "rust_reads_csharp": true
+    },
+    {
+      "format": "xml",
+      "csharp_reads_rust": true,
+      "rust_reads_csharp": true
+    }
+  ],
+  "input_resource_orders": [
+    {
+      "guid": "11111111-1111-4111-8111-111111111111",
+      "keys": [
+        "https://z.example/first",
+        "https://a.example/second",
+        "https://m.example/third"
+      ]
+    },
+    {
+      "guid": "22222222-2222-4222-8222-222222222222",
+      "keys": [
+        "https://z.example/first",
+        "https://a.example/second",
+        "https://m.example/third"
+      ]
+    }
+  ],
+  "reference_control_resource_orders": [
+    {
+      "guid": "11111111-1111-4111-8111-111111111111",
+      "keys": [
+        "https://z.example/first",
+        "https://a.example/second",
+        "https://m.example/third"
+      ]
+    },
+    {
+      "guid": "22222222-2222-4222-8222-222222222222",
+      "keys": []
+    }
+  ],
+  "scope": "Component identity, category, selection, ordering constraints, instructions, options and resource-key order. Resource metadata values and build metadata are not certified.",
+  "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+  "source_files_sha256": {
+    "src/model.rs": "aa6cff0ac378f418b03c5ed9522f77f1f978c0409dcad8604b2ea9d2a62f904a",
+    "src/markdown.rs": "812cd1fd565a9d2921a40b77001aa1ca81ef463bc8dd2c0b2b58136797392202",
+    "src/archive_generation.rs": "8158ae1b7c638620d07d72743694524d2133223f7cb24323b7cc0873ebe508a4",
+    "Cargo.toml": "1d7e1c33133cfd1377935de3e2db8642ae699e09b40bbf25cfad6b016d5662ca",
+    "tools/check_formats.py": "e897cf9f474c9512afb4efa499a375f73c0aa91480ffb0a12ae72c88d295b1c4"
+  },
+  "original_fixture_regression": {
+    "reference_dll_sha256": "8f3b1e3f8fe47b2cc6f8e3f281912506721c7367218381bb2a35cf86dc5768f0",
+    "fixture_sha256": "17843feeac5622b193fa571868ce79d0c858d729c4c83fb9f8b5d0ffc8578a1d",
+    "checks": [
+      {
+        "format": "toml",
+        "csharp_reads_rust": true,
+        "rust_reads_csharp": true
+      },
+      {
+        "format": "json",
+        "csharp_reads_rust": true,
+        "rust_reads_csharp": true
+      },
+      {
+        "format": "yaml",
+        "csharp_reads_rust": true,
+        "rust_reads_csharp": true
+      },
+      {
+        "format": "xml",
+        "csharp_reads_rust": true,
+        "rust_reads_csharp": true
+      },
+      {
+        "format": "markdown",
+        "same_input_matches_csharp": true,
+        "fixture_sha256": "c6c45c038cbdeb14d3e0c27d8914b257fc66298280d7227b54f91511ad78d3e6"
+      }
+    ],
+    "input_resource_orders": [
+      {
+        "guid": "11111111-1111-1111-1111-111111111111",
+        "keys": [
+          "https://example.invalid/mod?id=1&file=2"
+        ]
+      },
+      {
+        "guid": "22222222-2222-2222-2222-222222222222",
+        "keys": []
+      },
+      {
+        "guid": "33333333-3333-3333-3333-333333333333",
+        "keys": []
+      }
+    ],
+    "reference_control_resource_orders": [
+      {
+        "guid": "11111111-1111-1111-1111-111111111111",
+        "keys": [
+          "https://example.invalid/mod?id=1&file=2",
+          "https://example.invalid/legacy"
+        ]
+      },
+      {
+        "guid": "22222222-2222-2222-2222-222222222222",
+        "keys": []
+      },
+      {
+        "guid": "33333333-3333-3333-3333-333333333333",
+        "keys": []
+      }
+    ],
+    "scope": "Component identity, category, selection, ordering constraints, instructions, options and resource-key order. Resource metadata values and build metadata are not certified."
+  },
+  "local_checks": {
+    "fmt": true,
+    "clippy_all_targets_deny_warnings": true,
+    "all_targets_regular_integration_tests": 38,
+    "no_default_features_regular_integration_tests": 38
+  }
+}

@@ -185,9 +185,9 @@ fn component(section: &str, index: usize) -> Result<(Component, String)> {
         if let Some((label, _)) = links.first().filter(|_| name.starts_with('[')) {
             object.insert("Name".into(), (*label).into());
         }
-        let registry: BTreeMap<_, _> = links
+        let registry: serde_json::Map<_, _> = links
             .into_iter()
-            .map(|(_, url)| (url, json!({"Files": {}, "HandlerMetadata": {}})))
+            .map(|(_, url)| (url.to_owned(), json!({"Files": {}, "HandlerMetadata": {}})))
             .collect();
         object.insert("ResourceRegistry".into(), serde_json::to_value(registry)?);
     }

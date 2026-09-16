@@ -69,11 +69,9 @@ pub fn generate_local(guide: &mut Guide, source: &Path) -> Result<Vec<Generation
                 component.instructions.is_empty(),
                 "Component already has instructions"
             );
-            // The model currently sorts resource keys; do not guess the reference's
-            // insertion-first link when several candidates exist.
             ensure!(
-                component.resource_registry.len() == 1,
-                "Archive inference currently requires exactly one mod link"
+                !component.resource_registry.is_empty(),
+                "No mod links available"
             );
             let link = component.resource_registry.keys().next().unwrap();
             let term = search_term(link, &component.name)?;

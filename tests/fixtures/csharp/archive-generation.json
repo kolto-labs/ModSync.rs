@@ -1,5 +1,42 @@
 [
   {
+    "Name": "matching-order",
+    "Success": true,
+    "InstallationMethod": "Loose-File Mod",
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\matching-order.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Move",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\matching-order\\*"
+        ],
+        "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": []
+  },
+  {
+    "Name": "later-link-only",
+    "Success": false,
+    "InstallationMethod": "",
+    "Instructions": [],
+    "Options": []
+  },
+  {
     "Name": "reuse",
     "Success": true,
     "InstallationMethod": "Loose-File Mod",

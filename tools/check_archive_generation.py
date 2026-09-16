@@ -19,6 +19,7 @@ Run(args.Skip(1).ToArray());
 static void Run(string[] args) {
     var components = ModSync.Core.Services.ModComponentSerializationService.DeserializeModComponentFromString(File.ReadAllText(args[0]), "json");
     var output = new List<object>();
+    var config = new ModSync.Core.MainConfig { sourcePath = new DirectoryInfo(args[1]) };
     using var input = JsonDocument.Parse(File.ReadAllText(args[0]));
     foreach (var (component, value) in components.Zip(input.RootElement.EnumerateArray())) {
         // Isolate inference from resource URL canonicalization in the JSON loader.
@@ -34,7 +35,9 @@ static void Run(string[] args) {
                 }
             }
         }
-        var success = ModSync.Core.Services.AutoInstructionGenerator.GenerateInstructions(component, path);
+        var success = value.TryGetProperty("_LocalMatching", out var local) && local.GetBoolean()
+            ? ModSync.Core.Services.AutoInstructionGenerator.TryGenerateInstructionsFromArchive(component)
+            : ModSync.Core.Services.AutoInstructionGenerator.GenerateInstructions(component, path);
         object Step(ModSync.Core.Instruction i) => new { Action = i.Action.ToString(), Source = i.Action == ModSync.Core.Instruction.ActionType.Choose ? i.Source.Select(id => component.Options.First(o => o.Guid.ToString() == id).Name).ToList() : i.Source, i.Destination, i.Arguments, i.Overwrite, i.Dependencies, i.Restrictions };
         output.Add(new { component.Name, Success = success, component.InstallationMethod,
             Instructions = component.Instructions.Select(Step),
@@ -66,7 +69,7 @@ for index, case in enumerate(cases):
         for name, content in case['Files'].items():
             archive.writestr(name, content)
     components.append({'Guid': f'00000000-0000-4000-8000-{index+1:012}', 'Name': case['Name'],
-                       'ResourceRegistry': {filename: {}}, **case.get('Component', {})})
+                       'ResourceRegistry': {filename: {}}, '_LocalMatching': case.get('LocalMatching', False), **case.get('Component', {})})
 source = output / 'input.json'
 source.write_text(json.dumps(components))
 probe = output / 'probe'
@@ -109,7 +112,7 @@ receipt = {'reference_commit': 'd31ccbd3bfcddb4705917eafa6483715c166de3b',
            'reference_dll_sha256': hashlib.sha256(reference.read_bytes()).hexdigest(),
            'fixture_sha256': hashlib.sha256(fixture.read_bytes()).hexdigest(),
            'cases': len(cases), 'differences': differences,
-           'scope': 'Instruction-free component generation including authored-option merging. Original authored Source strings assigned directly after C# loading; Choose GUIDs normalized to option names. Not full JSON ingestion, archive matching, existing top-level instruction merging, EXE fallback, or installation proof.'}
+           'scope': 'Instruction-free component generation including authored-option merging and two insertion-first local-matching cases. Original authored Source strings assigned directly after C# loading; Choose GUIDs normalized to option names. Not full JSON ingestion, all archive-matching cases, existing top-level instruction merging, EXE fallback, or installation proof.'}
 (output / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
 print(json.dumps(receipt, indent=2))
 assert not differences

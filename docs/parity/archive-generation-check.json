@@ -1,8 +1,8 @@
 {
   "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
   "reference_dll_sha256": "8f3b1e3f8fe47b2cc6f8e3f281912506721c7367218381bb2a35cf86dc5768f0",
-  "fixture_sha256": "59ad04d85e956a0cdfd49811f1dc551c373c41f7f94f0531f0925f503bf6a9ef",
-  "cases": 20,
+  "fixture_sha256": "1c562df5300a0da273f77a801503194f07b39e2e00010af5e61bfb0ffc6ee99a",
+  "cases": 22,
   "differences": [],
-  "scope": "Instruction-free component generation including authored-option merging. Original authored Source strings assigned directly after C# loading; Choose GUIDs normalized to option names. Not full JSON ingestion, archive matching, existing top-level instruction merging, EXE fallback, or installation proof."
+  "scope": "Instruction-free component generation including authored-option merging and two insertion-first local-matching cases. Original authored Source strings assigned directly after C# loading; Choose GUIDs normalized to option names. Not full JSON ingestion, all archive-matching cases, existing top-level instruction merging, EXE fallback, or installation proof."
 }

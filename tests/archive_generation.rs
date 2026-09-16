@@ -59,13 +59,24 @@ fn fresh_archive_generation_matches_csharp_raw_objects() {
             .join(format!("{}.zip", case["Name"].as_str().unwrap()));
         zip(&path, &case["Files"]);
         let original = fs::read(&path).unwrap();
-        let success = archive_generation::generate_from_archive(
-            &mut component,
-            &path,
-            &archive::Options::default(),
-            &AtomicBool::new(false),
-        )
-        .unwrap();
+        let success = if case["LocalMatching"] == true {
+            let mut guide = Guide {
+                components: vec![component.clone()],
+                ..Default::default()
+            };
+            let success =
+                archive_generation::generate_local(&mut guide, dir.path()).unwrap()[0].success;
+            component = guide.components.remove(0);
+            success
+        } else {
+            archive_generation::generate_from_archive(
+                &mut component,
+                &path,
+                &archive::Options::default(),
+                &AtomicBool::new(false),
+            )
+            .unwrap()
+        };
         assert_eq!(
             normalized(&component, success),
             *expected,
@@ -253,13 +264,11 @@ fn archive_matching_prefers_exact_then_newest_and_preserves_unrelated_options() 
     guide.components[0]
         .resource_registry
         .insert("another.zip".into(), json!({}));
-    let saved = serde_json::to_value(&guide).unwrap();
-    assert!(
-        archive_generation::generate_local(&mut guide, dir.path()).unwrap()[0]
-            .skip_reason
-            .contains("exactly one")
+    assert!(archive_generation::generate_local(&mut guide, dir.path()).unwrap()[0].success);
+    assert_eq!(
+        guide.components[0].instructions[0].source,
+        ["<<modDirectory>>\\sample-v2.zip"]
     );
-    assert_eq!(serde_json::to_value(&guide).unwrap(), saved);
     let mut component = Component {
         name: "Remove Duplicate TGA/TPC".into(),
         ..Default::default()
