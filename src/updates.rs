@@ -165,7 +165,7 @@ impl NexusClient {
         if let Some(key) = key.as_deref().filter(|key| !key.is_empty()) {
             path.push_str(&format!(
                 "?key={}&expires={expires}",
-                urlencoding::encode(&key)
+                key
             ));
         }
         let value = self.get_value(&path)?;

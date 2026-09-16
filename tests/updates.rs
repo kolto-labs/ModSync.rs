@@ -167,6 +167,27 @@ fn nexus_validation_and_md5_inputs_fail_closed_without_a_request() {
 }
 
 #[test]
+fn nxm_link_resolves_metadata_and_authorized_https_mirror() {
+    let (base_url, server) = nexus_server(vec![
+        r#"{"file_id":34,"file_name":"Example.zip"}"#,
+        r#"[{"URI":"https://mirror.example/Example.zip"}]"#,
+    ]);
+    let mut client =
+        updates::NexusClient::with_base_url(Some("test-key".into()), &base_url).unwrap();
+    let link = modsync::protocol::parse(
+        "nxm://kotor/mods/12/files/34?key=a%20b&expires=99",
+    )
+    .unwrap();
+    let result = client.nxm_download_link(&link).unwrap();
+    let requests = server.join().unwrap();
+    assert_eq!(result.file_name, "Example.zip");
+    assert_eq!(result.uri, "https://mirror.example/Example.zip");
+    assert!(requests[0].contains("/v1/games/kotor/mods/12/files/34.json"));
+    assert!(requests[1].contains("download_link.json?key=a%20b&expires=99"));
+    assert!(requests.iter().all(|request| request.contains("apikey: test-key")));
+}
+
+#[test]
 fn component_badge_reflects_any_resource_update_flag() {
     let guide = Guide::parse(
         r#"[{"Guid":"one","Name":"One","ResourceRegistry":{"https://example.com/a":{"UpdateAvailable":false},"https://www.nexusmods.com/kotor/mods/1":{"UpdateAvailable":true}}}]"#,

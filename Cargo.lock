@@ -2262,7 +2262,6 @@ dependencies = [
  "tempfile",
  "toml",
  "unrar",
- "urlencoding",
  "walkdir",
  "zip",
 ]
