@@ -1325,12 +1325,16 @@ pub fn launch(
     mods: Option<PathBuf>,
     settings_dir: Option<PathBuf>,
     protocol: Option<String>,
+    allow_multiple_instances: bool,
 ) -> Result<()> {
-    let Some((protocol_receiver, instance_guard)) =
+    let primary = if allow_multiple_instances {
+        None
+    } else {
         modsync::single_instance::claim_or_forward(protocol.as_deref())?
-    else {
-        return Ok(());
     };
+    if primary.is_none() && !allow_multiple_instances {
+        return Ok(());
+    }
     let native = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([1120.0, 780.0])
@@ -1342,8 +1346,10 @@ pub fn launch(
         native,
         Box::new(move |creation| {
             let mut app = App::new(input, game, mods);
-            app.protocol_receiver = Some(protocol_receiver);
-            app._instance_guard = Some(instance_guard);
+            if let Some((protocol_receiver, instance_guard)) = primary {
+                app.protocol_receiver = Some(protocol_receiver);
+                app._instance_guard = Some(instance_guard);
+            }
             if let Some(url) = protocol {
                 app.accept_protocol(url);
             }

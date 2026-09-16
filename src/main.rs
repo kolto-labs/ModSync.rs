@@ -39,6 +39,9 @@ enum Action {
         /// A modsync:// URL received from an OS protocol handler.
         #[arg(long)]
         protocol: Option<String>,
+        /// Start a separate desktop process instead of forwarding to the running instance.
+        #[arg(long)]
+        allow_multiple_instances: bool,
     },
     /// Inspect FOMOD metadata and selection defaults as JSON without installing.
     FomodInspect {
@@ -303,14 +306,22 @@ fn run() -> Result<()> {
             );
             Ok(())
         }
-        None => gui(None, None, None, None, None),
+        None => gui(None, None, None, None, None, false),
         Some(Action::Gui {
             settings_dir,
             input,
             game_dir,
             source_dir,
             protocol,
-        }) => gui(input, game_dir, source_dir, settings_dir, protocol),
+            allow_multiple_instances,
+        }) => gui(
+            input,
+            game_dir,
+            source_dir,
+            settings_dir,
+            protocol,
+            allow_multiple_instances,
+        ),
         Some(Action::Deployment(args)) => {
             let (game, staging, manifests) = match &args.action {
                 DeploymentAction::Status {
@@ -855,14 +866,29 @@ fn gui(
     mods: Option<PathBuf>,
     settings_dir: Option<PathBuf>,
     protocol: Option<String>,
+    allow_multiple_instances: bool,
 ) -> Result<()> {
     #[cfg(feature = "desktop")]
     {
-        ui::launch(input, game, mods, settings_dir, protocol)
+        ui::launch(
+            input,
+            game,
+            mods,
+            settings_dir,
+            protocol,
+            allow_multiple_instances,
+        )
     }
     #[cfg(not(feature = "desktop"))]
     {
-        let _ = (input, game, mods, settings_dir, protocol);
+        let _ = (
+            input,
+            game,
+            mods,
+            settings_dir,
+            protocol,
+            allow_multiple_instances,
+        );
         anyhow::bail!(
             "Desktop support is disabled. Build with the default features, or use --help for CLI commands."
         )
