@@ -6,7 +6,7 @@ use std::{
 };
 
 const FILE_NAME: &str = "modsync-protocol.desktop";
-const MIME: &str = "x-scheme-handler/modsync";
+const MIMES: [&str; 2] = ["x-scheme-handler/modsync", "x-scheme-handler/nxm"];
 
 pub fn windows_reg_commands(executable: &Path) -> Result<[String; 4]> {
     if executable.as_os_str().is_empty() {
@@ -34,16 +34,19 @@ pub fn linux_desktop_entry(executable: &Path) -> Result<String> {
         bail!("Executable path is required");
     }
     Ok(format!(
-        "[Desktop Entry]\nType=Application\nName=ModSync\nComment=ModSync protocol handler for Install with ModSync build links\nExec=\"{}\" gui --protocol %u\nTerminal=false\nNoDisplay=true\nMimeType={MIME};\n",
-        executable.display()
+        "[Desktop Entry]\nType=Application\nName=ModSync\nComment=ModSync protocol handler for build and Nexus links\nExec=\"{}\" gui --protocol %u\nTerminal=false\nNoDisplay=true\nMimeType={};\n",
+        executable.display(),
+        MIMES.join(";")
     ))
 }
 
 pub fn register_linux(executable: &Path, applications_dir: &Path) -> Result<PathBuf> {
     let path = write_linux_entry(executable, applications_dir)?;
-    let _ = Command::new("xdg-mime")
-        .args(["default", FILE_NAME, MIME])
-        .status();
+    for mime in MIMES {
+        let _ = Command::new("xdg-mime")
+            .args(["default", FILE_NAME, mime])
+            .status();
+    }
     let _ = Command::new("update-desktop-database")
         .arg(applications_dir)
         .status();

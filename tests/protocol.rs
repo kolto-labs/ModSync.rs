@@ -169,7 +169,7 @@ fn linux_protocol_registration_writes_a_gui_handoff_entry() {
     let path =
         modsync::protocol_registration::write_linux_entry(&executable, directory.path()).unwrap();
     let entry = std::fs::read_to_string(path).unwrap();
-    assert!(entry.contains("MimeType=x-scheme-handler/modsync;"));
+    assert!(entry.contains("MimeType=x-scheme-handler/modsync;x-scheme-handler/nxm;"));
     assert!(entry.contains("gui --protocol %u"));
 }
 
