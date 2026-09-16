@@ -178,3 +178,5 @@ Use **Refresh profiles** to populate the stored-profile selector. Enter a new na
 When the current settings file is absent, profile operations can read the active-profile and managed-deployment fields from the legacy `KOTORModSync/settings.json` in the platform configuration directory. Activation writes to the current store and leaves the legacy file unchanged; profile files themselves are not migrated.
 
 The desktop restores saved game/mod directories when launched without those explicit path arguments. On **Load guide**, **Save directories for next launch** writes them to the selected settings store while preserving unrelated settings. Use `modsync gui --settings-dir /path/to/settings` to launch with a custom store.
+
+The desktop **Theme** menu saves Light, KOTOR, or KOTOR 2 in the selected settings store and restores it at startup. The game themes currently provide dark egui visuals with their reference accent colors; the full Avalonia appearance and theme-driven target-game behavior are still being ported.

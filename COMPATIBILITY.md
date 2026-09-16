@@ -215,3 +215,11 @@ Desktop startup now restores C# sourcePath/destinationPath settings when corresp
 C# source inspection grounds the field names and nullable/empty behavior; this checkpoint has Rust store and desktop-state tests, not a live C# GUI comparison. Rust preserves unknown settings instead of serializing only the C# typed schema, and refuses corrupt JSON rather than replacing it. F17 is partial: theme, remaining settings, automatic save lifecycle, native interaction, schema edge cases and secret redaction remain outstanding.
 
 Formatting, clippy with warnings denied, 56 regular integration tests in both configurations and three desktop-state tests passed for this checkpoint. The large-archive regression was not rerun locally; hosted native CI remains unverified under the recorded account billing limitation.
+
+## Desktop theme preference checkpoint
+
+The desktop Theme selector now offers the pinned C# ThemeService choices (Light, KOTOR, KOTOR 2) and persists their canonical `/Styles/*Style.axaml` paths. Startup reads the saved theme, including legacy settings fallback; absent/null uses Light. Reads are case-insensitive for the settings key. Writes atomically preserve unrelated settings and normalize that key. A save failure leaves the displayed theme unchanged. Shared string-field decoding is reused by directory preferences.
+
+Rust uses egui light/dark visuals, with blue `#3AAAFF` and green `#18AE88` interaction/link accents drawn from the reference game themes. This is not a reproduction of the Avalonia styles, backgrounds, typography or images. C# also derives MainConfig.TargetGame from the theme; propagation into Rust's game-dependent consumers remains unimplemented. State tests verify persistence, light/dark switching and failed-save behavior; native visual/interaction proof remains open. F17/F24 stay partial.
+
+This checkpoint passed formatting, clippy with warnings denied, 57 regular integration tests in both configurations and four desktop-state tests. The explicit large-archive test was not rerun locally; no new hosted native CI proof is claimed.

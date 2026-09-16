@@ -19,6 +19,21 @@ pub fn settings_directory(explicit: Option<&Path>) -> Result<PathBuf> {
         .context("Cannot locate user settings; supply --settings-dir")
 }
 
+fn setting_text(settings: &Value, key: &str) -> Result<Option<String>> {
+    match settings
+        .as_object()
+        .unwrap()
+        .iter()
+        .rev()
+        .find(|(k, _)| k.eq_ignore_ascii_case(key))
+        .map(|(_, v)| v)
+    {
+        None | Some(Value::Null) => Ok(None),
+        Some(Value::String(s)) => Ok(Some(s.clone())),
+        _ => anyhow::bail!("Settings {key} must be text or null"),
+    }
+}
+
 fn now() -> String {
     chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true)
 }
@@ -278,22 +293,29 @@ impl Store {
     }
     pub fn directory_preferences(&self) -> Result<(Option<String>, Option<String>)> {
         let settings = self.read_settings(false)?;
-        let string = |key: &str| -> Result<Option<String>> {
-            let value = settings
-                .as_object()
-                .unwrap()
-                .iter()
-                .rev()
-                .find(|(k, _)| k.eq_ignore_ascii_case(key))
-                .map(|(_, v)| v);
-            match value {
-                None | Some(Value::Null) => Ok(None),
-                Some(Value::String(s)) => Ok(Some(s.clone())),
-                _ => anyhow::bail!("Settings {key} must be text or null"),
-            }
-        };
-        Ok((string("sourcePath")?, string("destinationPath")?))
+        Ok((
+            setting_text(&settings, "sourcePath")?,
+            setting_text(&settings, "destinationPath")?,
+        ))
     }
+    pub fn theme_preference(&self) -> Result<String> {
+        Ok(setting_text(&self.read_settings(false)?, "theme")?
+            .unwrap_or_else(|| "/Styles/LightStyle.axaml".into()))
+    }
+    pub fn save_theme_preference(&self, theme: &str) -> Result<()> {
+        let _lock = self.lock()?;
+        let mut settings = self.read_settings(false)?;
+        settings
+            .as_object_mut()
+            .unwrap()
+            .retain(|k, _| !k.eq_ignore_ascii_case("theme"));
+        settings["theme"] = theme.into();
+        recovery::atomic_write(
+            &self.root.join("settings.json"),
+            &serde_json::to_vec_pretty(&settings)?,
+        )
+    }
+
     pub fn save_directory_preferences(&self, source: &str, destination: &str) -> Result<()> {
         let _lock = self.lock()?;
         let mut settings = self.read_settings(false)?;

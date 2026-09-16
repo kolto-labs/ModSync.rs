@@ -183,3 +183,7 @@ F16/F17: profile settings now honor the reference's legacy KOTORModSync fallback
 ### Desktop directory preferences
 
 F17 is now partial: sourcePath/destinationPath load at desktop startup, explicit launch paths take precedence, and the user can save directories with unrelated JSON retained. `gui --settings-dir` supports an isolated/custom settings store. Tests cover directory restoration, malformed-field rejection, casing, nested-field preservation and corrupt-file nonreplacement. This is state-level evidence only; themes, the remaining settings fields, automatic save lifecycle and live native interaction remain incomplete.
+
+### Theme settings progress
+
+F17/F24: the desktop now persists and restores the three canonical C# theme paths, with Light as the absent/null default. It preserves unrelated settings and retains the displayed theme on save failure. Shared-store and egui-context tests cover these behaviors. Full Avalonia appearance and the reference theme-to-TargetGame effects are not implemented or claimed; native interaction proof remains outstanding.

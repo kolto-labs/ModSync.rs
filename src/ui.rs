@@ -24,6 +24,7 @@ enum Job {
 }
 
 pub struct App {
+    theme: String,
     input: String,
     loaded_input: Option<PathBuf>,
     profile_directory: String,
@@ -59,6 +60,7 @@ impl App {
                 .unwrap_or_default()
         };
         let mut app = Self {
+            theme: "/Styles/LightStyle.axaml".into(),
             input: string(input),
             loaded_input: None,
             profile_directory: modsync::profiles::settings_directory(None)
@@ -110,6 +112,36 @@ impl App {
                 self.logs.push(format!("Load failed: {e:#}"));
             }
         }
+    }
+
+    fn apply_theme(&self, ctx: &egui::Context) {
+        let path = self.theme.to_ascii_lowercase();
+        let mut visuals = egui::Visuals::light();
+        if !path.contains("lightstyle") && path.contains("kotor") {
+            visuals = egui::Visuals::dark();
+            let accent = if path.contains("kotor2") {
+                egui::Color32::from_rgb(0x18, 0xae, 0x88)
+            } else {
+                egui::Color32::from_rgb(0x3a, 0xaa, 0xff)
+            };
+            visuals.hyperlink_color = accent;
+            visuals.selection.stroke.color = accent;
+            visuals.widgets.active.fg_stroke.color = accent;
+            visuals.widgets.hovered.fg_stroke.color = accent;
+        }
+        ctx.set_visuals(visuals);
+    }
+
+    fn change_theme(&mut self, theme: &str, ctx: &egui::Context) -> Result<()> {
+        anyhow::ensure!(
+            !self.profile_directory.is_empty(),
+            "Choose a settings directory"
+        );
+        modsync::profiles::Store::new(Path::new(&self.profile_directory))?
+            .save_theme_preference(theme)?;
+        self.theme = theme.into();
+        self.apply_theme(ctx);
+        Ok(())
     }
 
     fn restore_directory_preferences(&mut self) -> Result<()> {
@@ -420,7 +452,21 @@ impl eframe::App for App {
                 ui.heading("ModSync.rs");
                 ui.label("Install mods in guide order");
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    egui::widgets::global_theme_preference_buttons(ui);
+                    egui::ComboBox::from_id_salt("theme")
+                        .selected_text("Theme")
+                        .show_ui(ui, |ui| {
+                            for (label, path) in [
+                                ("Light", "/Styles/LightStyle.axaml"),
+                                ("KOTOR", "/Styles/KotorStyle.axaml"),
+                                ("KOTOR 2", "/Styles/Kotor2Style.axaml"),
+                            ] {
+                                if ui.selectable_label(self.theme == path, label).clicked()
+                                    && let Err(e) = self.change_theme(path, ctx)
+                                {
+                                    self.logs.push(format!("Theme save failed: {e:#}"));
+                                }
+                            }
+                        });
                 });
             });
             ui.add_enabled_ui(!busy, |ui| {
@@ -608,7 +654,7 @@ pub fn launch(
     eframe::run_native(
         "ModSync.rs",
         native,
-        Box::new(move |_| {
+        Box::new(move |creation| {
             let mut app = App::new(input, game, mods);
             if let Some(directory) = settings_dir {
                 app.profile_directory = directory.to_string_lossy().into_owned();
@@ -616,6 +662,13 @@ pub fn launch(
             if let Err(e) = app.restore_directory_preferences() {
                 app.logs.push(format!("Settings load failed: {e:#}"));
             }
+            match modsync::profiles::Store::new(Path::new(&app.profile_directory))
+                .and_then(|store| store.theme_preference())
+            {
+                Ok(theme) => app.theme = theme,
+                Err(e) => app.logs.push(format!("Theme load failed: {e:#}")),
+            }
+            app.apply_theme(&creation.egui_ctx);
             Ok(Box::new(app))
         }),
     )
@@ -719,5 +772,31 @@ mod tests {
         assert!(app.restore_directory_preferences().is_err());
         assert_eq!(app.mods, "explicit-mods");
         assert_eq!(app.game, "saved-game");
+    }
+    #[test]
+    fn themes_persist_and_failed_save_keeps_displayed_theme() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut app = App::new(None, None, None);
+        app.profile_directory = dir.path().to_string_lossy().into_owned();
+        let ctx = egui::Context::default();
+        for path in [
+            "/Styles/KotorStyle.axaml",
+            "/Styles/Kotor2Style.axaml",
+            "/Styles/LightStyle.axaml",
+        ] {
+            app.change_theme(path, &ctx).unwrap();
+            assert_eq!(ctx.style().visuals.dark_mode, !path.contains("Light"));
+            assert_eq!(
+                modsync::profiles::Store::new(dir.path())
+                    .unwrap()
+                    .theme_preference()
+                    .unwrap(),
+                path
+            );
+        }
+        std::fs::write(dir.path().join("settings.json"), "broken").unwrap();
+        assert!(app.change_theme("/Styles/KotorStyle.axaml", &ctx).is_err());
+        assert!(!ctx.style().visuals.dark_mode);
+        assert_eq!(app.theme, "/Styles/LightStyle.axaml");
     }
 }

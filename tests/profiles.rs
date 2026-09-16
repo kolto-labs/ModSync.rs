@@ -479,3 +479,29 @@ fn directory_preferences_preserve_unrelated_settings_and_normalize_casing() {
         b"broken"
     );
 }
+
+#[test]
+fn theme_settings_handle_defaults_casing_and_preserve_other_fields() {
+    let dir = tempfile::tempdir().unwrap();
+    let store = Store::new(dir.path()).unwrap();
+    fs::write(
+        dir.path().join("settings.json"),
+        r#"{"Theme":null,"sourcePath":"keep","nested":{"value":7}}"#,
+    )
+    .unwrap();
+    assert_eq!(
+        store.theme_preference().unwrap(),
+        "/Styles/LightStyle.axaml"
+    );
+    store
+        .save_theme_preference("/Styles/Kotor2Style.axaml")
+        .unwrap();
+    let settings: Value =
+        serde_json::from_slice(&fs::read(dir.path().join("settings.json")).unwrap()).unwrap();
+    assert_eq!(
+        settings,
+        json!({"theme":"/Styles/Kotor2Style.axaml","sourcePath":"keep","nested":{"value":7}})
+    );
+    fs::write(dir.path().join("settings.json"), r#"{"theme":42}"#).unwrap();
+    assert!(store.theme_preference().is_err());
+}
