@@ -87,6 +87,18 @@ pub struct App {
 }
 
 impl App {
+    fn emit_telemetry(&self, name: &str, attributes: serde_json::Map<String, serde_json::Value>) {
+        let config = self.telemetry.clone();
+        let event = modsync::telemetry::Event {
+            name: name.into(),
+            timestamp: chrono::Utc::now().timestamp(),
+            attributes: attributes.into_iter().collect(),
+        };
+        std::thread::spawn(move || {
+            let _ = modsync::telemetry::export(&config, "/v1/events", &event);
+        });
+    }
+
     fn new(input: Option<PathBuf>, game: Option<PathBuf>, mods: Option<PathBuf>) -> Self {
         let string = |p: Option<PathBuf>| {
             p.map(|p| p.to_string_lossy().into_owned())
@@ -186,6 +198,17 @@ impl App {
                     .push(format!("Loaded {} components", g.components.len()));
                 self.loaded_input = Some(PathBuf::from(&self.input));
                 self.guide = Some(g);
+                self.emit_telemetry(
+                    "guide.loaded",
+                    serde_json::Map::from_iter([(
+                        "component_count".into(),
+                        serde_json::json!(
+                            self.guide
+                                .as_ref()
+                                .map_or(0, |guide| guide.components.len())
+                        ),
+                    )]),
+                );
                 self.selected = 0;
                 self.tier_filter.clear();
                 self.category_filter.clear();
@@ -1164,6 +1187,7 @@ impl eframe::App for App {
                     } else {
                         result
                     };
+                    let succeeded = result.is_ok();
                     if self.job == Job::Install {
                         self.phase_failed = result.is_err()
                             && Settings::new(Path::new(&self.mods), Path::new(&self.game))
@@ -1179,6 +1203,23 @@ impl eframe::App for App {
                     }
                     self.validated = result.is_ok() && self.job == Job::Validate;
                     self.logs.push(match result { Ok(()) => match self.job { Job::Conflicts => "Conflict analysis complete. Review the report and its limitations.", Job::Validate => "Validation passed. External program effects, if any, remain unverified.", Job::Install => "Installation complete.", Job::Restore => "Snapshot restored and file hashes verified.", Job::Download => "Archive downloaded and integrity checked.", Job::NxmDownload => "Nexus handoff download complete.", Job::ProtocolOpen => "ModSync build link loaded.", Job::Update => "Nexus update check complete." }.into(), Err(e) => format!("Stopped: {e:#}") });
+                    let job = match self.job {
+                        Job::Conflicts => "conflicts",
+                        Job::Validate => "validation",
+                        Job::Install => "installation",
+                        Job::Restore => "restore",
+                        Job::Download => "download",
+                        Job::NxmDownload => "nxm_download",
+                        Job::ProtocolOpen => "protocol_open",
+                        Job::Update => "update",
+                    };
+                    self.emit_telemetry(
+                        "operation.completed",
+                        serde_json::Map::from_iter([
+                            ("operation".into(), serde_json::json!(job)),
+                            ("success".into(), serde_json::json!(succeeded)),
+                        ]),
+                    );
                     self.start_pending_nxm_if_ready();
                 }
             }

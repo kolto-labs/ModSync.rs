@@ -149,7 +149,11 @@ pub fn export(config: &Config, path: &str, event: &Event) -> Result<Export> {
         .as_secs() as i64;
     let endpoint = format!("{}{}", config.endpoint.trim_end_matches('/'), path);
     let body = serde_json::to_vec(event).context("Serialize telemetry event")?;
-    let response = reqwest::blocking::Client::new()
+    let client = reqwest::blocking::Client::builder()
+        .timeout(std::time::Duration::from_secs(10))
+        .build()
+        .context("Build telemetry HTTP client")?;
+    let response = client
         .post(&endpoint)
         .header(
             "X-KMS-Signature",
