@@ -279,3 +279,7 @@ Component names, option checkboxes and description labels now expose a shared co
 ### Filtered bulk selection
 
 Select all now applies the same search/tier/category predicate as visible rows, retaining existing selections outside the filter and excluding widescreen-only components. Deselect all clears every base component regardless of filters and preserves widescreen selections, following SelectAllVisibleMods and DeselectAllMods in the reference. Clear filters resets search, tier and category without changing selection. Regression coverage combines all filters, spoiler display search, additive selection and widescreen preservation. The Rust single-page list still exposes widescreen rows; a separate widescreen phase and native button verification remain open.
+
+### Selection and filter summaries
+
+The selection page reports base-build selected/total counts and the reference none/all/partial selection detail, independently of active filters. A separate summary reports matching base components and active search/category/tier/spoiler filters in reference order. Both exclude widescreen-only components. Labels explicitly identify base-build scope because widescreen rows remain on the single Rust selection page. Regression coverage includes hidden selections, widescreen exclusion, no filters, spoiler mode and empty guides. Reference required/optional badges, separate widescreen flow and native summary layout remain open.

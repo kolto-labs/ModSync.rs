@@ -174,3 +174,43 @@ fn visible_selection_combines_filters_and_deselect_preserves_widescreen() {
         [true, true, true, false, true]
     );
 }
+
+#[test]
+fn selection_and_filter_summaries_keep_hidden_selections_and_exclude_widescreen() {
+    let mut components: Vec<Component> = serde_json::from_value(serde_json::json!([
+        {"Name":"One", "Tier":"1", "Category":["Fix"], "IsSelected":true},
+        {"Name":"Two", "Tier":"2", "Category":["Texture"]},
+        {"Name":"Wide", "WidescreenOnly":true, "IsSelected":true}
+    ]))
+    .unwrap();
+    assert_eq!(
+        selection::selection_summary(&components),
+        "1 of 2 mods selected — 1 mods not selected"
+    );
+    assert_eq!(
+        selection::filter_summary(&components, "Two", "2", "Texture", false),
+        "Showing 1 of 2 mods • Filters: Search: \"Two\", Category: Texture, Tier: 2"
+    );
+    assert_eq!(
+        selection::filter_summary(&components, "", "", "", true),
+        "Showing 2 of 2 mods • Filters: Spoiler-Free Mode"
+    );
+    assert_eq!(
+        selection::filter_summary(&components, "", "", "", false),
+        "Showing all 2 mods"
+    );
+    selection::deselect_base(&mut components);
+    assert_eq!(
+        selection::selection_summary(&components),
+        "0 of 2 mods selected — Select the mods you want to install"
+    );
+    selection::select_visible(&mut components, "", "", "", false);
+    assert_eq!(
+        selection::selection_summary(&components),
+        "2 of 2 mods selected — All mods selected for installation"
+    );
+    assert_eq!(
+        selection::selection_summary(&[]),
+        "0 of 0 mods selected — Select the mods you want to install"
+    );
+}

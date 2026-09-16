@@ -309,3 +309,55 @@ pub fn deselect_base(components: &mut [Component]) {
         c.is_selected = false;
     }
 }
+
+/// Base-build counts remain independent of the current filter.
+pub fn selection_summary(components: &[Component]) -> String {
+    let total = components.iter().filter(|c| base(c)).count();
+    let selected = components
+        .iter()
+        .filter(|c| base(c) && c.is_selected)
+        .count();
+    let detail = if selected == 0 {
+        "Select the mods you want to install".to_owned()
+    } else if selected == total {
+        "All mods selected for installation".to_owned()
+    } else {
+        format!("{} mods not selected", total - selected)
+    };
+    format!("{selected} of {total} mods selected — {detail}")
+}
+
+pub fn filter_summary(
+    components: &[Component],
+    search: &str,
+    tier: &str,
+    category: &str,
+    spoiler_free: bool,
+) -> String {
+    let total = components.iter().filter(|c| base(c)).count();
+    let visible = components
+        .iter()
+        .filter(|c| base(c) && matches_filters(c, search, tier, category, spoiler_free))
+        .count();
+    let mut filters = Vec::new();
+    if !search.is_empty() {
+        filters.push(format!("Search: \"{search}\""));
+    }
+    if !category.is_empty() {
+        filters.push(format!("Category: {category}"));
+    }
+    if !tier.is_empty() {
+        filters.push(format!("Tier: {tier}"));
+    }
+    if spoiler_free {
+        filters.push("Spoiler-Free Mode".into());
+    }
+    if filters.is_empty() {
+        format!("Showing all {total} mods")
+    } else {
+        format!(
+            "Showing {visible} of {total} mods • Filters: {}",
+            filters.join(", ")
+        )
+    }
+}

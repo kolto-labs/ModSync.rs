@@ -583,7 +583,6 @@ impl eframe::App for App {
                     ui.horizontal(|ui| {
                         if ui.button("Select all").clicked() { modsync::selection::select_visible(&mut g.components, &self.search, &self.tier_filter, &self.category_filter, self.spoiler_free); self.validated = false; self.confirm_install = false; }
                         if ui.button("Deselect all").clicked() { modsync::selection::deselect_base(&mut g.components); self.validated = false; self.confirm_install = false; }
-                        ui.label(format!("{} / {} selected", g.components.iter().filter(|c| c.is_selected).count(), g.components.len()));
                         ui.add(egui::TextEdit::singleline(&mut self.search).hint_text("Search displayed name or description"));
                         if ui.add_enabled(!self.search.is_empty() || !self.tier_filter.is_empty() || !self.category_filter.is_empty(), egui::Button::new("Clear filters")).clicked() {
                             self.search.clear(); self.tier_filter.clear(); self.category_filter.clear();
@@ -620,6 +619,8 @@ impl eframe::App for App {
                             self.validated = false; self.confirm_install = false;
                         }
                     });
+                    ui.label(format!("Base build: {}", modsync::selection::selection_summary(&g.components)));
+                    ui.label(format!("Base build: {}", modsync::selection::filter_summary(&g.components, &self.search, &self.tier_filter, &self.category_filter, self.spoiler_free)));
                     if ui.button("Select multiple categories…").clicked() {
                         self.category_selection = Some(g.components.iter()
                             .filter(|c| c.metadata.get("WidescreenOnly").and_then(serde_json::Value::as_bool) != Some(true))

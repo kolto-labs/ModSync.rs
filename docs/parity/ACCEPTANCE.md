@@ -215,3 +215,5 @@ F04/F24 option-description checkpoint: the visibility guard now follows displaye
 F04/F24 tooltip checkpoint: shared comprehensive tooltip content now reaches component names, options and descriptions. Source-grounded regression covers all content sections and spoiler handling. Native hover/accessibility behavior remains unverified; neither domain is complete.
 
 F04/F24 filtered bulk-selection checkpoint: row rendering and Select all share the search/tier/category predicate; bulk selection excludes widescreen and Deselect all preserves it. Clear filters is available. Shared-rule regression passes; separate widescreen UI and native interaction verification remain open.
+
+F04/F24 summary checkpoint: base-build selection totals and active-filter summaries now follow reference counting/content rules, covered by shared-rule regression. Native layout, required/optional badges and separate widescreen flow remain open.
