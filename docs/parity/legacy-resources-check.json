@@ -1,0 +1,100 @@
+{
+  "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+  "reference_dll_sha256": "8f3b1e3f8fe47b2cc6f8e3f281912506721c7367218381bb2a35cf86dc5768f0",
+  "fixture_sha256": "af3e23febd41e2a9f1fcfe4db5a52e0bef87d826745bcaca5d98e0050b8d4dbe",
+  "cases": 15,
+  "differences": [
+    {
+      "case": "precedence",
+      "csharp": {
+        "Name": "precedence",
+        "ResourceRegistry": [
+          {
+            "Url": "https://example.com/existing",
+            "ContentKey": "authored",
+            "MetadataHash": null,
+            "Files": {},
+            "HandlerMetadata": {},
+            "FileSize": 0
+          },
+          {
+            "Url": "https://example.com/from-link",
+            "ContentKey": "a9888edd96f7a9e50fe5890aab2cdf60570769df",
+            "MetadataHash": "a9888edd96f7a9e50fe5890aab2cdf60570769df",
+            "Files": {},
+            "HandlerMetadata": {},
+            "FileSize": 0
+          },
+          {
+            "Url": "https://example.com/files",
+            "ContentKey": "81c5fe3d1ba734bff7953121a10eb8436706ad44",
+            "MetadataHash": "81c5fe3d1ba734bff7953121a10eb8436706ad44",
+            "Files": {
+              "A.zip": false,
+              "B.zip": false,
+              "C.zip": null,
+              "D.zip": true,
+              "E.zip": null
+            },
+            "HandlerMetadata": {},
+            "FileSize": 0
+          },
+          {
+            "Url": "https://example.com/empty",
+            "ContentKey": "beef0a4261ed3bbb0c8397173e53da92500d58f2",
+            "MetadataHash": "beef0a4261ed3bbb0c8397173e53da92500d58f2",
+            "Files": {},
+            "HandlerMetadata": {},
+            "FileSize": 0
+          }
+        ]
+      },
+      "rust": {
+        "Name": "precedence",
+        "ResourceRegistry": [
+          {
+            "Url": "https://example.com/existing",
+            "ContentKey": "authored",
+            "MetadataHash": null,
+            "Files": {
+              "keep.zip": false
+            },
+            "HandlerMetadata": {},
+            "FileSize": 0
+          },
+          {
+            "Url": "https://example.com/from-link",
+            "ContentKey": "a9888edd96f7a9e50fe5890aab2cdf60570769df",
+            "MetadataHash": "a9888edd96f7a9e50fe5890aab2cdf60570769df",
+            "Files": {},
+            "HandlerMetadata": {},
+            "FileSize": 0
+          },
+          {
+            "Url": "https://example.com/files",
+            "ContentKey": "81c5fe3d1ba734bff7953121a10eb8436706ad44",
+            "MetadataHash": "81c5fe3d1ba734bff7953121a10eb8436706ad44",
+            "Files": {
+              "A.zip": false,
+              "B.zip": false,
+              "C.zip": null,
+              "D.zip": true,
+              "E.zip": null
+            },
+            "HandlerMetadata": {},
+            "FileSize": 0
+          },
+          {
+            "Url": "https://example.com/empty",
+            "ContentKey": "beef0a4261ed3bbb0c8397173e53da92500d58f2",
+            "MetadataHash": "beef0a4261ed3bbb0c8397173e53da92500d58f2",
+            "Files": {},
+            "HandlerMetadata": {},
+            "FileSize": 0
+          }
+        ]
+      }
+    }
+  ],
+  "scope": "JSON loader legacy resource migration, ordered URLs, normalized hashes, nullable file flags and precedence. Not host downloads, cache behavior or all URI variants."
+}

@@ -1,0 +1,229 @@
+[
+  {
+    "Name": "precedence",
+    "ResourceRegistry": [
+      {
+        "Url": "https://example.com/existing",
+        "ContentKey": "authored",
+        "MetadataHash": null,
+        "Files": {},
+        "HandlerMetadata": {},
+        "FileSize": 0
+      },
+      {
+        "Url": "https://example.com/from-link",
+        "ContentKey": "a9888edd96f7a9e50fe5890aab2cdf60570769df",
+        "MetadataHash": "a9888edd96f7a9e50fe5890aab2cdf60570769df",
+        "Files": {},
+        "HandlerMetadata": {},
+        "FileSize": 0
+      },
+      {
+        "Url": "https://example.com/files",
+        "ContentKey": "81c5fe3d1ba734bff7953121a10eb8436706ad44",
+        "MetadataHash": "81c5fe3d1ba734bff7953121a10eb8436706ad44",
+        "Files": {
+          "A.zip": false,
+          "B.zip": false,
+          "C.zip": null,
+          "D.zip": true,
+          "E.zip": null
+        },
+        "HandlerMetadata": {},
+        "FileSize": 0
+      },
+      {
+        "Url": "https://example.com/empty",
+        "ContentKey": "beef0a4261ed3bbb0c8397173e53da92500d58f2",
+        "MetadataHash": "beef0a4261ed3bbb0c8397173e53da92500d58f2",
+        "Files": {},
+        "HandlerMetadata": {},
+        "FileSize": 0
+      }
+    ]
+  },
+  {
+    "Name": "multiline",
+    "ResourceRegistry": [
+      {
+        "Url": "https://example.com/one\r\nhttps://example.com/two\n\nhttps://example.com/one",
+        "ContentKey": "d8ca420b32d2b957b075c8c27281ca25587d6b60",
+        "MetadataHash": "d8ca420b32d2b957b075c8c27281ca25587d6b60",
+        "Files": {},
+        "HandlerMetadata": {},
+        "FileSize": 0
+      }
+    ]
+  },
+  {
+    "Name": "lowercase",
+    "ResourceRegistry": [
+      {
+        "Url": "https://example.com/lower",
+        "ContentKey": "ba2433d88c42887424f2bb624ef759826741e1e2",
+        "MetadataHash": "ba2433d88c42887424f2bb624ef759826741e1e2",
+        "Files": {
+          "One.zip": false
+        },
+        "HandlerMetadata": {},
+        "FileSize": 0
+      }
+    ]
+  },
+  {
+    "Name": "url-0",
+    "ResourceRegistry": [
+      {
+        "Url": "HTTPS://EXAMPLE.COM:443/a/../b/%7euser/?z=2\u0026a=1#fragment",
+        "ContentKey": "d0f6ce15a71727bd5a552d002f79cf53ab047a15",
+        "MetadataHash": "d0f6ce15a71727bd5a552d002f79cf53ab047a15",
+        "Files": {},
+        "HandlerMetadata": {},
+        "FileSize": 0
+      }
+    ]
+  },
+  {
+    "Name": "url-1",
+    "ResourceRegistry": [
+      {
+        "Url": "http://example.com:80/",
+        "ContentKey": "89dce6a446a69d6b9bdc01ac75251e4c322bcdff",
+        "MetadataHash": "89dce6a446a69d6b9bdc01ac75251e4c322bcdff",
+        "Files": {},
+        "HandlerMetadata": {},
+        "FileSize": 0
+      }
+    ]
+  },
+  {
+    "Name": "url-2",
+    "ResourceRegistry": [
+      {
+        "Url": "https://example.com//a/./b/../c/",
+        "ContentKey": "f5818772c4ef19937df4d17e2d4dc09ea6f83711",
+        "MetadataHash": "f5818772c4ef19937df4d17e2d4dc09ea6f83711",
+        "Files": {},
+        "HandlerMetadata": {},
+        "FileSize": 0
+      }
+    ]
+  },
+  {
+    "Name": "url-3",
+    "ResourceRegistry": [
+      {
+        "Url": "https://example.com/%2f/%41/%7e?z=3\u0026\u0026a=1",
+        "ContentKey": "c5d39efd325a3ca83a4fd923e9d238893d870a87",
+        "MetadataHash": "c5d39efd325a3ca83a4fd923e9d238893d870a87",
+        "Files": {},
+        "HandlerMetadata": {},
+        "FileSize": 0
+      }
+    ]
+  },
+  {
+    "Name": "url-4",
+    "ResourceRegistry": [
+      {
+        "Url": "https://example.com?",
+        "ContentKey": "33928b1063b8de57d9997e75c5b677d960ad6973",
+        "MetadataHash": "33928b1063b8de57d9997e75c5b677d960ad6973",
+        "Files": {},
+        "HandlerMetadata": {},
+        "FileSize": 0
+      }
+    ]
+  },
+  {
+    "Name": "url-5",
+    "ResourceRegistry": [
+      {
+        "Url": "https://example.com?x=1\u0026",
+        "ContentKey": "c49619c639c726eb5e87074c0654b68b03ca569f",
+        "MetadataHash": "c49619c639c726eb5e87074c0654b68b03ca569f",
+        "Files": {},
+        "HandlerMetadata": {},
+        "FileSize": 0
+      }
+    ]
+  },
+  {
+    "Name": "url-6",
+    "ResourceRegistry": [
+      {
+        "Url": "https://user:pass@example.com:8443/path",
+        "ContentKey": "7fb70a98cba494ba04b9a9f0d1f6df8680f8cfe6",
+        "MetadataHash": "7fb70a98cba494ba04b9a9f0d1f6df8680f8cfe6",
+        "Files": {},
+        "HandlerMetadata": {},
+        "FileSize": 0
+      }
+    ]
+  },
+  {
+    "Name": "url-7",
+    "ResourceRegistry": [
+      {
+        "Url": "not a URL",
+        "ContentKey": "daf35c1d13f11ff8cab64a59610d84d0dbc594b7",
+        "MetadataHash": "daf35c1d13f11ff8cab64a59610d84d0dbc594b7",
+        "Files": {},
+        "HandlerMetadata": {},
+        "FileSize": 0
+      }
+    ]
+  },
+  {
+    "Name": "url-8",
+    "ResourceRegistry": [
+      {
+        "Url": "ftp://example.com/file",
+        "ContentKey": "47d268caed74b6c26222dcdc4ca3bde06c18f409",
+        "MetadataHash": "47d268caed74b6c26222dcdc4ca3bde06c18f409",
+        "Files": {},
+        "HandlerMetadata": {},
+        "FileSize": 0
+      }
+    ]
+  },
+  {
+    "Name": "url-9",
+    "ResourceRegistry": [
+      {
+        "Url": "https://example.com/a/../../",
+        "ContentKey": "327c3fda87ce286848a574982ddd0b7c7487f816",
+        "MetadataHash": "327c3fda87ce286848a574982ddd0b7c7487f816",
+        "Files": {},
+        "HandlerMetadata": {},
+        "FileSize": 0
+      }
+    ]
+  },
+  {
+    "Name": "url-10",
+    "ResourceRegistry": [
+      {
+        "Url": "https://example.com/caf\u00E9?q=hello world",
+        "ContentKey": "4156e8fdc900d192356430f097ac265c1b687140",
+        "MetadataHash": "4156e8fdc900d192356430f097ac265c1b687140",
+        "Files": {},
+        "HandlerMetadata": {},
+        "FileSize": 0
+      }
+    ]
+  },
+  {
+    "Name": "url-11",
+    "ResourceRegistry": [
+      {
+        "Url": "https://example.com/%2E%2e/foo",
+        "ContentKey": "d397ac914c3eaa169164ce02a59bdd64b614a300",
+        "MetadataHash": "d397ac914c3eaa169164ce02a59bdd64b614a300",
+        "Files": {},
+        "HandlerMetadata": {},
+        "FileSize": 0
+      }
+    ]
+  }
+]

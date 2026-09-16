@@ -115,7 +115,11 @@ impl Guide {
         }
         let mut guide: Self = match canonical_format(&format).unwrap_or(&format) {
             "toml" => Self::from_value(toml::from_str(text).context("Parse ModSync TOML")?)?,
-            "json" => Self::from_value(serde_json::from_str(text)?)?,
+            "json" => {
+                let mut value = serde_json::from_str(text)?;
+                crate::resources::prepare_json(&mut value);
+                Self::from_value(value)?
+            }
             "xml" => Self::from_value(crate::xml::parse(text)?)?,
             "yaml" => {
                 let mut guide = Self::default();
@@ -411,22 +415,7 @@ fn normalize_component(value: &mut serde_json::Value) -> Result<()> {
             }
         }
     }
-    // Legacy selections for an existing registry URL are ignored by C#. Remove
-    // those redundant wire entries, while retaining unmigrated legacy URLs.
-    let urls: Vec<_> = object
-        .get("ResourceRegistry")
-        .and_then(Value::as_object)
-        .map(|r| r.keys().cloned().collect())
-        .unwrap_or_default();
-    if let Some(legacy) = object
-        .get_mut("ModLinkFilenames")
-        .and_then(Value::as_object_mut)
-    {
-        legacy.retain(|url, _| !urls.iter().any(|key| key.eq_ignore_ascii_case(url)));
-        if legacy.is_empty() {
-            object.remove("ModLinkFilenames");
-        }
-    }
+    crate::resources::migrate(object);
     if let Some(instructions) = object.get_mut("Instructions").and_then(Value::as_array_mut) {
         for instruction in instructions {
             let instruction = instruction

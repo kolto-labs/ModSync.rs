@@ -46,6 +46,7 @@ fn yaml_emits_reference_legacy_resource_map_without_roundtrip_metadata_drift() {
         "ModLinkFilenames".into(),
         serde_json::json!({"https://legacy.example/old":{"old.zip":true}}),
     );
+    let guide = Guide::parse(&guide.render("yaml").unwrap(), "yaml").unwrap();
     let yaml = guide.render("yaml").unwrap();
     let document: Value = serde_yaml_ng::from_str(&yaml).unwrap();
     assert_eq!(
@@ -396,4 +397,37 @@ fn prose_import_resolves_masters_but_does_not_invent_executable_instructions() {
     );
     assert_eq!(std::fs::read_dir(mods).unwrap().count(), 0);
     assert_eq!(std::fs::read_dir(game).unwrap().count(), 0);
+}
+
+#[test]
+fn legacy_resources_match_reference_migration_with_documented_modern_files_gap() {
+    let guide = Guide::parse(include_str!("fixtures/legacy-resources.json"), "json").unwrap();
+    let mut expected: Value =
+        serde_json::from_str(include_str!("fixtures/csharp/legacy-resources.json")).unwrap();
+    // Existing, explicitly unresolved JSON-loader difference: C# discards this
+    // modern file map; Rust retains it. All legacy migration fields are exact.
+    expected[0]["ResourceRegistry"][0]["Files"] = serde_json::json!({"keep.zip": false});
+    let project = |guide: &Guide| -> Value {
+        Value::Array(guide.components.iter().map(|c| serde_json::json!({
+            "Name": c.name,
+            "ResourceRegistry": c.resource_registry.iter().map(|(url, meta)| serde_json::json!({
+                "Url": url, "ContentKey": meta.get("ContentKey"), "MetadataHash": meta.get("MetadataHash"),
+                "Files": meta.get("Files").cloned().unwrap_or(serde_json::json!({})),
+                "HandlerMetadata": meta.get("HandlerMetadata").cloned().unwrap_or(serde_json::json!({})),
+                "FileSize": meta.get("FileSize").cloned().unwrap_or(serde_json::json!(0))
+            })).collect::<Vec<_>>()
+        })).collect())
+    };
+    assert_eq!(project(&guide), expected);
+    for format in ["json", "toml", "yaml", "xml"] {
+        let reloaded = Guide::parse(&guide.render(format).unwrap(), format).unwrap();
+        assert_eq!(project(&reloaded), expected, "{format}");
+        assert!(
+            reloaded
+                .components
+                .iter()
+                .all(|c| !c.metadata.contains_key("ModLink")
+                    && !c.metadata.contains_key("ModLinkFilenames"))
+        );
+    }
 }

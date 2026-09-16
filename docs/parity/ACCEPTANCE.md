@@ -123,3 +123,10 @@ The C# best-effort install flags must be reconciled with the user's explicit rul
 - Six captured direct-API C# cases extend the corpus to 34. Rust integration tests compare these objects; the CLI checker separately reports 27 exact matches and the existing unresolved renamed-ZIP EXE difference.
 - An isolated install verifies idempotent augmentation and the authored Modules Copy destination, source retention and absence of an unintended Override move. F03 remains partial.
 - Preceding commit `967f6c81cbc858cb30c3985160b7a3f2a4657758` passed native CI run 35058007498.
+
+### Legacy resource migration checkpoint
+
+- F01/F12: implemented ordered legacy ModLink/ModLinkFilenames migration, modern-resource precedence, nullable filename flags, empty-map URLs and normalized-URL identity hashes. JSON filename key conversion follows the reference.
+- Fifteen live C# JSON-loader cases: fourteen exact matches and one explicitly retained modern Files-map loss difference. Rust round-trips the resulting data through all four structured formats. These receipts do not certify all URI/format/option behaviors or download/cache integration.
+- An isolated legacy-guide flow reaches local archive inference, validation without game writes, and installation with expected texture bytes. F01/F12 remain partial.
+- Native CI run 35058728745 passed for preceding augmentation commit `78774c295fc00be4be5a4ddc6b62fbf9fdba042b`.

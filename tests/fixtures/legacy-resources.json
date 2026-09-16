@@ -1,0 +1,147 @@
+[
+  {
+    "Name": "precedence",
+    "ResourceRegistry": {
+      "https://example.com/existing": {
+        "ContentKey": "authored",
+        "Files": {
+          "keep.zip": false
+        }
+      }
+    },
+    "ModLink": [
+      "HTTPS://EXAMPLE.COM/EXISTING",
+      "https://example.com/from-link",
+      " "
+    ],
+    "ModLinkFilenames": {
+      "https://example.com/from-link": {
+        "ignored.zip": true
+      },
+      "https://example.com/files": {
+        "a.zip": true,
+        "b.zip": false,
+        "c.zip": null,
+        "d.zip": " TRUE ",
+        "e.zip": "invalid",
+        "A.ZIP": false
+      },
+      "https://example.com/empty": {},
+      " ": {}
+    },
+    "Guid": "00000000-0000-4000-8000-000000000001",
+    "IsSelected": true
+  },
+  {
+    "Name": "multiline",
+    "ModLink": "https://example.com/one\r\nhttps://example.com/two\n\nhttps://example.com/one",
+    "Guid": "00000000-0000-4000-8000-000000000002",
+    "IsSelected": true
+  },
+  {
+    "Name": "lowercase",
+    "modLinkFilenames": {
+      "https://example.com/lower": {
+        "one.zip": "false"
+      }
+    },
+    "Guid": "00000000-0000-4000-8000-000000000003",
+    "IsSelected": true
+  },
+  {
+    "Name": "url-0",
+    "ModLink": [
+      "HTTPS://EXAMPLE.COM:443/a/../b/%7euser/?z=2&a=1#fragment"
+    ],
+    "Guid": "00000000-0000-4000-8000-000000000004",
+    "IsSelected": true
+  },
+  {
+    "Name": "url-1",
+    "ModLink": [
+      "http://example.com:80/"
+    ],
+    "Guid": "00000000-0000-4000-8000-000000000005",
+    "IsSelected": true
+  },
+  {
+    "Name": "url-2",
+    "ModLink": [
+      "https://example.com//a/./b/../c/"
+    ],
+    "Guid": "00000000-0000-4000-8000-000000000006",
+    "IsSelected": true
+  },
+  {
+    "Name": "url-3",
+    "ModLink": [
+      "https://example.com/%2f/%41/%7e?z=3&&a=1"
+    ],
+    "Guid": "00000000-0000-4000-8000-000000000007",
+    "IsSelected": true
+  },
+  {
+    "Name": "url-4",
+    "ModLink": [
+      "https://example.com?"
+    ],
+    "Guid": "00000000-0000-4000-8000-000000000008",
+    "IsSelected": true
+  },
+  {
+    "Name": "url-5",
+    "ModLink": [
+      "https://example.com?x=1&"
+    ],
+    "Guid": "00000000-0000-4000-8000-000000000009",
+    "IsSelected": true
+  },
+  {
+    "Name": "url-6",
+    "ModLink": [
+      "https://user:pass@example.com:8443/path"
+    ],
+    "Guid": "00000000-0000-4000-8000-000000000010",
+    "IsSelected": true
+  },
+  {
+    "Name": "url-7",
+    "ModLink": [
+      "not a URL"
+    ],
+    "Guid": "00000000-0000-4000-8000-000000000011",
+    "IsSelected": true
+  },
+  {
+    "Name": "url-8",
+    "ModLink": [
+      "ftp://example.com/file"
+    ],
+    "Guid": "00000000-0000-4000-8000-000000000012",
+    "IsSelected": true
+  },
+  {
+    "Name": "url-9",
+    "ModLink": [
+      "https://example.com/a/../../"
+    ],
+    "Guid": "00000000-0000-4000-8000-000000000013",
+    "IsSelected": true
+  },
+  {
+    "Name": "url-10",
+    "ModLink": [
+      "https://example.com/caf\u00e9?q=hello world"
+    ],
+    "Guid": "00000000-0000-4000-8000-000000000014",
+    "IsSelected": true
+  },
+  {
+    "Name": "url-11",
+    "ModLink": [
+      "https://example.com/%2E%2e/foo"
+    ],
+    "Guid": "00000000-0000-4000-8000-000000000015",
+    "IsSelected": true
+  }
+]
