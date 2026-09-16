@@ -3,7 +3,34 @@ use modsync::{
     updates::{self, Versions},
 };
 use std::collections::BTreeMap;
+use std::{
+    io::{Read, Write},
+    net::TcpListener,
+    thread::JoinHandle,
+};
 use tempfile::tempdir;
+
+fn nexus_server(bodies: Vec<&'static str>) -> (String, JoinHandle<Vec<String>>) {
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let address = listener.local_addr().unwrap();
+    let worker = std::thread::spawn(move || {
+        let mut requests = Vec::new();
+        for body in bodies {
+            let (mut stream, _) = listener.accept().unwrap();
+            let mut request = [0; 4096];
+            let size = stream.read(&mut request).unwrap();
+            requests.push(String::from_utf8_lossy(&request[..size]).into_owned());
+            write!(
+                stream,
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+                body.len()
+            )
+            .unwrap();
+        }
+        requests
+    });
+    (format!("http://{address}/v1/"), worker)
+}
 
 #[test]
 fn applies_versions_once_and_preserves_first_check_baseline() {
@@ -37,4 +64,72 @@ fn stores_and_loads_the_last_update_summary() {
             .checked_count,
         2
     );
+}
+
+#[test]
+fn nexus_check_deduplicates_resources_and_applies_provider_versions() {
+    let (base_url, server) = nexus_server(vec![r#"{"name":"One","version":"2.0"}"#]);
+    let mut guide = Guide::parse(
+        r#"[{"Guid":"one","Name":"One","ResourceRegistry":{"https://www.nexusmods.com/kotor/mods/12":{"ModVersion":"1.0"}}},{"Guid":"two","Name":"Two","ResourceRegistry":{"https://www.nexusmods.com/kotor/mods/12?tab=files":{},"https://example.com/x":{}}}]"#,
+        "json",
+    )
+    .unwrap();
+    let mut client =
+        updates::NexusClient::with_base_url(Some("test-key".into()), &base_url).unwrap();
+
+    let summary = updates::check(&mut guide, &mut client);
+    let requests = server.join().unwrap();
+
+    assert_eq!(requests.len(), 1);
+    assert!(requests[0].starts_with("GET /v1/games/kotor/mods/12.json HTTP/1.1"));
+    assert!(requests[0].contains("apikey: test-key"));
+    assert_eq!(summary.checked_count, 2);
+    assert_eq!(summary.skipped_count, 1);
+    assert_eq!(summary.updates_found.len(), 1);
+    assert_eq!(summary.updates_found[0].component_name, "One");
+    assert_eq!(
+        guide.components[1].resource_registry["https://www.nexusmods.com/kotor/mods/12?tab=files"]
+            ["ModVersion"],
+        "2.0"
+    );
+}
+
+#[test]
+fn nexus_check_stops_before_a_new_request_when_the_api_budget_is_empty() {
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let address = listener.local_addr().unwrap();
+    let server = std::thread::spawn(move || {
+        let (mut stream, _) = listener.accept().unwrap();
+        let mut request = [0; 4096];
+        let size = stream.read(&mut request).unwrap();
+        let body = r#"{"name":"One","version":"1.0"}"#;
+        write!(
+            stream,
+            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nX-RL-Daily-Remaining: 0\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+            body.len()
+        )
+        .unwrap();
+        String::from_utf8_lossy(&request[..size]).into_owned()
+    });
+    let mut guide = Guide::parse(
+        r#"[{"Guid":"one","Name":"One","ResourceRegistry":{"https://www.nexusmods.com/kotor/mods/1":{}}},{"Guid":"two","Name":"Two","ResourceRegistry":{"https://www.nexusmods.com/kotor/mods/2":{}}}]"#,
+        "json",
+    )
+    .unwrap();
+    let mut client =
+        updates::NexusClient::with_base_url(None, &format!("http://{address}/v1/")).unwrap();
+
+    let summary = updates::check(&mut guide, &mut client);
+
+    assert!(
+        server
+            .join()
+            .unwrap()
+            .contains("/v1/games/kotor/mods/1.json")
+    );
+    assert!(summary.rate_limit_reached);
+    assert_eq!(summary.checked_count, 1);
+    assert!(guide.components[1].resource_registry["https://www.nexusmods.com/kotor/mods/2"]
+        ["LastUpdateCheck"]
+        .is_null());
 }

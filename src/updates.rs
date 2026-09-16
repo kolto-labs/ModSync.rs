@@ -3,6 +3,7 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
+use std::time::Duration;
 
 #[derive(Clone, Debug, Default, Deserialize)]
 pub struct Versions(pub BTreeMap<String, String>);
@@ -12,7 +13,11 @@ pub struct Versions(pub BTreeMap<String, String>);
 pub struct Summary {
     pub checked_count: usize,
     pub skipped_count: usize,
+    #[serde(default)]
+    pub rate_limit_reached: bool,
     pub updates_found: Vec<Update>,
+    #[serde(default)]
+    pub errors: Vec<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -22,6 +27,100 @@ pub struct Update {
     pub url: String,
     pub installed_version: String,
     pub latest_version: String,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+pub struct NexusModInfo {
+    #[serde(default)]
+    pub name: String,
+    #[serde(default)]
+    pub version: String,
+    #[serde(default)]
+    pub updated_timestamp: i64,
+    #[serde(default = "available_by_default")]
+    pub available: bool,
+}
+
+fn available_by_default() -> bool {
+    true
+}
+
+pub struct NexusClient {
+    client: reqwest::blocking::Client,
+    base_url: reqwest::Url,
+    api_key: Option<String>,
+    daily_remaining: Option<i64>,
+    hourly_remaining: Option<i64>,
+}
+
+impl NexusClient {
+    pub fn new(api_key: Option<String>) -> Result<Self> {
+        Self::with_base_url(api_key, "https://api.nexusmods.com/v1/")
+    }
+
+    pub fn with_base_url(api_key: Option<String>, base_url: &str) -> Result<Self> {
+        Ok(Self {
+            client: reqwest::blocking::Client::builder()
+                .timeout(Duration::from_secs(60))
+                .build()?,
+            base_url: reqwest::Url::parse(base_url)?.join("./")?,
+            api_key,
+            daily_remaining: None,
+            hourly_remaining: None,
+        })
+    }
+
+    pub fn is_rate_limit_exhausted(&self) -> bool {
+        self.daily_remaining.is_some_and(|remaining| remaining <= 0)
+            || self
+                .hourly_remaining
+                .is_some_and(|remaining| remaining <= 0)
+    }
+
+    pub fn get_mod_info(&mut self, game_domain: &str, mod_id: &str) -> Result<NexusModInfo> {
+        let path = format!("games/{game_domain}/mods/{mod_id}.json");
+        let url = self.base_url.join(&path)?;
+        let mut response = self.request(url.clone())?;
+        if response.status() == reqwest::StatusCode::TOO_MANY_REQUESTS {
+            let delay = response
+                .headers()
+                .get(reqwest::header::RETRY_AFTER)
+                .and_then(|value| value.to_str().ok())
+                .and_then(|value| value.parse::<u64>().ok())
+                .unwrap_or(60);
+            drop(response);
+            std::thread::sleep(Duration::from_secs(delay));
+            response = self.request(url)?;
+        }
+        let response = response.error_for_status()?;
+        Ok(serde_json::from_str(&response.text()?)?)
+    }
+
+    fn request(&mut self, url: reqwest::Url) -> Result<reqwest::blocking::Response> {
+        let mut request = self
+            .client
+            .get(url)
+            .header("Application-Name", "ModSync")
+            .header("Application-Version", "2.0.0a1")
+            .header(reqwest::header::ACCEPT, "application/json")
+            .header(
+                reqwest::header::USER_AGENT,
+                "ModSync/2.0.0a1 (https://github.com/th3w1zard1/ModSync)",
+            );
+        if let Some(key) = self.api_key.as_deref().filter(|key| !key.trim().is_empty()) {
+            request = request.header("apikey", key);
+        }
+        let response = request.send()?;
+        self.daily_remaining =
+            header_count(&response, "X-RL-Daily-Remaining").or(self.daily_remaining);
+        self.hourly_remaining =
+            header_count(&response, "X-RL-Hourly-Remaining").or(self.hourly_remaining);
+        Ok(response)
+    }
+}
+
+fn header_count(response: &reqwest::blocking::Response, name: &str) -> Option<i64> {
+    response.headers().get(name)?.to_str().ok()?.parse().ok()
 }
 
 pub fn apply(guide: &mut Guide, versions: &Versions) -> Summary {
@@ -42,36 +141,96 @@ pub fn apply(guide: &mut Guide, versions: &Versions) -> Summary {
             let Value::Object(metadata) = metadata else {
                 continue;
             };
-            let installed = metadata
-                .get("ModVersion")
-                .and_then(Value::as_str)
-                .unwrap_or("")
-                .trim()
-                .to_owned();
-            metadata.insert("LatestKnownVersion".into(), json!(version.trim()));
-            metadata.insert(
-                "LastUpdateCheck".into(),
-                json!(chrono::Utc::now().to_rfc3339()),
-            );
-            summary.checked_count += 1;
-            if installed.is_empty() {
-                metadata.insert("ModVersion".into(), json!(version.trim()));
-                metadata.insert("UpdateAvailable".into(), json!(false));
-            } else {
-                let available = !installed.eq_ignore_ascii_case(version.trim());
-                metadata.insert("UpdateAvailable".into(), json!(available));
-                if available {
-                    summary.updates_found.push(Update {
-                        component_name: component.name.clone(),
-                        url: url.clone(),
-                        installed_version: installed,
-                        latest_version: version.trim().into(),
-                    });
-                }
-            }
+            apply_metadata(&mut summary, &component.name, url, metadata, version);
         }
     }
     summary
+}
+
+pub fn check(guide: &mut Guide, client: &mut NexusClient) -> Summary {
+    let mut summary = Summary::default();
+    let mut cache = BTreeMap::<String, Result<NexusModInfo, String>>::new();
+    for component in &mut guide.components {
+        for (url, metadata) in &mut component.resource_registry {
+            let Some(key) = nexus_key(url) else {
+                summary.skipped_count += 1;
+                continue;
+            };
+            let Value::Object(metadata) = metadata else {
+                continue;
+            };
+            if !cache.contains_key(&key) {
+                if client.is_rate_limit_exhausted() {
+                    summary.rate_limit_reached = true;
+                    return summary;
+                }
+                let Some((domain, mod_id)) = key.split_once('/') else {
+                    summary
+                        .errors
+                        .push(format!("{key}: invalid Nexus resource key"));
+                    continue;
+                };
+                cache.insert(
+                    key.clone(),
+                    client
+                        .get_mod_info(domain, mod_id)
+                        .map_err(|error| error.to_string()),
+                );
+            }
+            let info = match cache.get(&key).expect("cached Nexus request") {
+                Ok(info) => info,
+                Err(error) => {
+                    let entry = format!("{key}: {error}");
+                    if !summary.errors.contains(&entry) {
+                        summary.errors.push(entry);
+                    }
+                    continue;
+                }
+            };
+            apply_metadata(&mut summary, &component.name, url, metadata, &info.version);
+        }
+    }
+    summary
+}
+
+fn apply_metadata(
+    summary: &mut Summary,
+    component_name: &str,
+    url: &str,
+    metadata: &mut serde_json::Map<String, Value>,
+    version: &str,
+) {
+    let version = version.trim();
+    if version.is_empty() {
+        return;
+    }
+    let installed = metadata
+        .get("ModVersion")
+        .and_then(Value::as_str)
+        .unwrap_or("")
+        .trim()
+        .to_owned();
+    metadata.insert("LatestKnownVersion".into(), json!(version));
+    metadata.insert(
+        "LastUpdateCheck".into(),
+        json!(chrono::Utc::now().to_rfc3339()),
+    );
+    summary.checked_count += 1;
+    if installed.is_empty() {
+        metadata.insert("ModVersion".into(), json!(version));
+        metadata.insert("UpdateAvailable".into(), json!(false));
+    } else {
+        let available = !installed.eq_ignore_ascii_case(version);
+        metadata.insert("UpdateAvailable".into(), json!(available));
+        if available {
+            summary.updates_found.push(Update {
+                component_name: component_name.into(),
+                url: url.into(),
+                installed_version: installed,
+                latest_version: version.into(),
+            });
+        }
+    }
 }
 
 pub fn load_versions(path: &std::path::Path) -> Result<Versions> {
