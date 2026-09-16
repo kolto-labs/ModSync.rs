@@ -271,3 +271,5 @@ F15 implementation checkpoint: shared group-selection primitive matches the pinn
 F15 choices checkpoint: reference JSON schema and archive lookup implemented; explicit named group application is atomic and tested for required/cardinality/ambiguity failures. Full session routing, Unicode matching, parser/mapping and CLI/GUI installation integration remain open.
 
 F15 named-step checkpoint: choices apply atomically across unconditional steps/groups, with regression coverage for late failures, duplicates, ambiguity and invalid untouched defaults. Conditional visibility/flags and package parser/mapping/integration remain open.
+
+F15 visibility checkpoint: shared flag conditions and ordered propagation implemented, including hidden-step contributions and visible-only final validation. Source-derived behavior has an executable Rust regression; live differential, file/game dependencies and XML/mapping/UI/CLI remain open.

@@ -385,3 +385,7 @@ The library reads/writes the reference version/archives/selections camelCase sch
 ### FOMOD choices across steps
 
 ArchiveChoices.apply_to routes named selections through unconditional StepSelection groups using ASCII-insensitive lookup. It validates the candidate set before committing any changes: late failures, missing/ambiguous names, duplicate choices and invalid untouched defaults leave all original groups unchanged. This closes whole-set atomicity for unconditional steps only. Visibility-dependent validation and session flag propagation remain required before this can configure arbitrary FOMOD packages.
+
+### FOMOD flag-based visibility
+
+Step selections now carry optional nested All/Any/Flag conditions, and plugins carry ordered flag assignments. Visibility follows the reference source: all selected plugins contribute even from hidden steps, later assignments win, flag names ignore ASCII case and values are case-sensitive; empty composites are true. Choices application validates resulting visible steps. Regression covers hidden flags, overwrite order, nested conditions, empty Or, value casing and hidden invalid groups becoming visible. Live reference differential proof, Unicode equivalence, file/game dependencies and package integration remain open.

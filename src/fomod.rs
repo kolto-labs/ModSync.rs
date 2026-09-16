@@ -15,6 +15,7 @@ pub enum GroupType {
 pub struct PluginSelection {
     pub name: String,
     pub required: bool,
+    pub flags: Vec<(String, String)>,
     /// Seed with Required/Recommended descriptor defaults before creating the group.
     pub selected: bool,
 }
@@ -220,10 +221,11 @@ impl GroupSelection {
 pub struct StepSelection {
     pub name: String,
     pub groups: Vec<GroupSelection>,
+    pub visible: Option<FlagCondition>,
 }
 
 impl ArchiveChoices {
-    /// Apply choices to an unconditional step set. Visibility is not implemented yet.
+    /// Apply choices and validate the resulting visible steps.
     /// Unknown or ambiguous names and invalid groups leave the entire set unchanged.
     pub fn apply_to(&self, steps: &mut [StepSelection]) -> Result<()> {
         let mut candidate = steps.to_vec();
@@ -268,12 +270,56 @@ impl ArchiveChoices {
             );
             group.apply_names(&selection.plugins)?;
         }
-        for step in &candidate {
-            for group in &step.groups {
+        for index in visible_steps(&candidate) {
+            for group in &candidate[index].groups {
                 group.validate()?;
             }
         }
         steps.clone_from_slice(&candidate);
         Ok(())
     }
+}
+
+/// Flag-only dependency expressions. File/game dependencies need a separate evaluator.
+#[derive(Clone, Debug)]
+pub enum FlagCondition {
+    Flag { name: String, value: String },
+    All(Vec<FlagCondition>),
+    Any(Vec<FlagCondition>),
+}
+
+impl FlagCondition {
+    fn matches(&self, flags: &std::collections::BTreeMap<String, String>) -> bool {
+        match self {
+            Self::Flag { name, value } => flags.get(&name.to_ascii_lowercase()) == Some(value),
+            Self::All(children) => children.iter().all(|c| c.matches(flags)),
+            // C# treats every empty composite as true, including Or.
+            Self::Any(children) => children.is_empty() || children.iter().any(|c| c.matches(flags)),
+        }
+    }
+}
+
+/// Reference order: all selected plugins contribute, including those in hidden steps.
+/// Later flag assignments win; names ignore ASCII case and values are case-sensitive.
+pub fn visible_steps(steps: &[StepSelection]) -> Vec<usize> {
+    let mut flags = std::collections::BTreeMap::new();
+    for step in steps {
+        for group in &step.groups {
+            for plugin in group.plugins().iter().filter(|p| p.selected) {
+                for (name, value) in &plugin.flags {
+                    flags.insert(name.to_ascii_lowercase(), value.clone());
+                }
+            }
+        }
+    }
+    steps
+        .iter()
+        .enumerate()
+        .filter_map(|(i, step)| {
+            step.visible
+                .as_ref()
+                .is_none_or(|c| c.matches(&flags))
+                .then_some(i)
+        })
+        .collect()
 }

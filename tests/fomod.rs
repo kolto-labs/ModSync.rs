@@ -4,6 +4,7 @@ fn plugin(name: &str, required: bool, selected: bool) -> PluginSelection {
     PluginSelection {
         name: name.into(),
         required,
+        flags: vec![],
         selected,
     }
 }
@@ -154,10 +155,12 @@ fn archive_choices_route_steps_and_commit_only_when_every_group_is_valid() {
     let initial = vec![
         StepSelection {
             name: "One".into(),
+            visible: None,
             groups: vec![group()],
         },
         StepSelection {
             name: "Two".into(),
+            visible: None,
             groups: vec![group()],
         },
     ];
@@ -201,4 +204,71 @@ fn archive_choices_route_steps_and_commit_only_when_every_group_is_valid() {
     only_first.selections.pop();
     assert!(only_first.apply_to(&mut invalid_default).is_err());
     assert_eq!(selected(&invalid_default[0].groups[0]), [true, false]);
+}
+
+#[test]
+fn visibility_uses_ordered_selected_flags_and_only_validates_visible_steps() {
+    use modsync::fomod::{ArchiveChoices, FlagCondition, StepSelection, visible_steps};
+    let flag = |name: &str, value: &str| FlagCondition::Flag {
+        name: name.into(),
+        value: value.into(),
+    };
+    let mut first = plugin("First", false, true);
+    first.flags = vec![("Choice".into(), "old".into())];
+    let mut hidden = plugin("Hidden", false, true);
+    hidden.flags = vec![("CHOICE".into(), "new".into())];
+    let mut steps = vec![
+        StepSelection {
+            name: "Base".into(),
+            visible: None,
+            groups: vec![GroupSelection::new(
+                "Base".into(),
+                GroupType::SelectAny,
+                vec![first],
+            )],
+        },
+        StepSelection {
+            name: "Hidden".into(),
+            visible: Some(flag("missing", "yes")),
+            groups: vec![
+                GroupSelection::new("Hidden".into(), GroupType::SelectAny, vec![hidden]),
+                GroupSelection::new("Empty".into(), GroupType::SelectExactlyOne, vec![]),
+            ],
+        },
+        StepSelection {
+            name: "Visible".into(),
+            visible: Some(FlagCondition::All(vec![
+                flag("choice", "new"),
+                FlagCondition::Any(vec![]),
+            ])),
+            groups: vec![],
+        },
+        StepSelection {
+            name: "Wrong case".into(),
+            visible: Some(flag("choice", "NEW")),
+            groups: vec![],
+        },
+    ];
+    assert_eq!(visible_steps(&steps), [0, 2]);
+    ArchiveChoices {
+        archive_file_name: "a.zip".into(),
+        selections: vec![],
+    }
+    .apply_to(&mut steps)
+    .unwrap();
+    steps[1].groups[0].set_selected(0, false).unwrap();
+    assert_eq!(visible_steps(&steps), [0]);
+    steps[1].visible = Some(FlagCondition::Any(vec![
+        flag("Choice", "old"),
+        flag("missing", "yes"),
+    ]));
+    assert_eq!(visible_steps(&steps), [0, 1]);
+    assert!(
+        ArchiveChoices {
+            archive_file_name: "a.zip".into(),
+            selections: vec![]
+        }
+        .apply_to(&mut steps)
+        .is_err()
+    );
 }
