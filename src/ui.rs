@@ -897,6 +897,7 @@ impl eframe::App for App {
                     }
                     self.validated = result.is_ok() && self.job == Job::Validate;
                     self.logs.push(match result { Ok(()) => match self.job { Job::Conflicts => "Conflict analysis complete. Review the report and its limitations.", Job::Validate => "Validation passed. External program effects, if any, remain unverified.", Job::Install => "Installation complete.", Job::Restore => "Snapshot restored and file hashes verified.", Job::Download => "Archive downloaded and integrity checked.", Job::NxmDownload => "Nexus handoff download complete.", Job::Update => "Nexus update check complete." }.into(), Err(e) => format!("Stopped: {e:#}") });
+                    self.start_pending_nxm_if_ready();
                 }
             }
         }
