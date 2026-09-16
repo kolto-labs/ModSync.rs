@@ -180,6 +180,27 @@ enum Action {
         #[arg(long)]
         max_expanded_bytes: Option<u64>,
     },
+    /// Fetch one content-addressed archive from a BitTorrent swarm.
+    TorrentDownload {
+        magnet: String,
+        output: PathBuf,
+        /// Required content identity; the torrent is discarded on mismatch.
+        #[arg(long)]
+        sha256: String,
+        /// Known seeder address from torrent-seed; repeat for fallbacks.
+        #[arg(long)]
+        peer: Vec<std::net::SocketAddr>,
+        /// Optional expanded-byte budget for the integrity check.
+        #[arg(long)]
+        max_expanded_bytes: Option<u64>,
+    },
+    /// Validate and seed one archive until Ctrl+C; prints its magnet and SHA-256.
+    TorrentSeed {
+        archive: PathBuf,
+        /// Optional tracker announce URL; repeat to add fallbacks. DHT remains available.
+        #[arg(long)]
+        tracker: Vec<String>,
+    },
     /// Download a JSON array of direct HTTPS jobs with bounded concurrency and retries.
     DownloadBatch {
         input: PathBuf,
@@ -755,6 +776,27 @@ fn run() -> Result<()> {
                 ..Default::default()
             },
         ),
+        Some(Action::TorrentDownload {
+            magnet,
+            output,
+            sha256,
+            peer,
+            max_expanded_bytes,
+        }) => modsync::p2p::fetch(
+            &magnet,
+            &output,
+            &sha256,
+            peer,
+            &AtomicBool::new(false),
+            &modsync::archive::Options {
+                max_expanded_bytes,
+                ..Default::default()
+            },
+        ),
+        Some(Action::TorrentSeed { archive, tracker }) => {
+            modsync::p2p::seed(&archive, tracker)?;
+            Ok(())
+        }
         Some(Action::DownloadBatch {
             input,
             workers,
