@@ -932,6 +932,44 @@ fn configured_fomod_installs_selected_bytes_through_shared_engine() {
         .unwrap();
     assert_eq!(fs::read_dir(&settings.roots.mods).unwrap().count(), 1);
     assert_eq!(fs::read_dir(&settings.roots.game).unwrap().count(), 0);
+    fs::write(settings.roots.game.join("keep.dat"), b"baseline").unwrap();
+    let archive_before = fs::read(settings.roots.mods.join("package.zip")).unwrap();
+    g.components[0].instructions.push(
+        serde_json::from_value(serde_json::json!({
+            "Action":"Delete", "Source":"<<kotorDirectory>>/keep.dat"
+        }))
+        .unwrap(),
+    );
+    let cancel = settings.cancelled.clone();
+    let failed = Engine::new(settings.clone()).unwrap().install(&g, |event| {
+        if event.component == "Test" && event.step == 1 {
+            cancel.store(true, Ordering::Relaxed);
+        }
+    });
+    assert!(failed.is_err());
+    assert!(settings.roots.game.join("Override/second.txt").exists());
+    assert_eq!(
+        fs::read(settings.roots.game.join("keep.dat")).unwrap(),
+        b"baseline"
+    );
+    settings.cancelled.store(false, Ordering::Relaxed);
+    assert!(
+        Engine::new(settings.clone())
+            .unwrap()
+            .install(&g, |_| {})
+            .is_err()
+    );
+    recovery::restore(&settings.roots).unwrap();
+    assert_eq!(fs::read_dir(&settings.roots.mods).unwrap().count(), 1);
+    assert_eq!(
+        fs::read(settings.roots.mods.join("package.zip")).unwrap(),
+        archive_before
+    );
+    assert_eq!(fs::read_dir(&settings.roots.game).unwrap().count(), 1);
+    assert_eq!(
+        fs::read(settings.roots.game.join("keep.dat")).unwrap(),
+        b"baseline"
+    );
     Engine::new(settings.clone())
         .unwrap()
         .install(&g, |_| {})
@@ -939,6 +977,12 @@ fn configured_fomod_installs_selected_bytes_through_shared_engine() {
     assert_eq!(
         fs::read(settings.roots.game.join("Override/second.txt")).unwrap(),
         b"second"
+    );
+    assert!(!settings.roots.game.join("keep.dat").exists());
+    assert!(
+        !recovery::state_dir(&settings.roots)
+            .join("pending")
+            .exists()
     );
     assert!(!settings.roots.game.join("Override/first.txt").exists());
 }

@@ -441,3 +441,7 @@ ArchiveModule copy mapping now retains the wrapper directory above fomod/ModuleC
 ### Configured FOMOD extraction execution
 
 A component may now embed the version-1 choices document in its FomodChoices metadata. At each Extract instruction, the shared engine parses the actual archive configuration, requires a matching archive entry, applies and validates choices, and runs mapped copies after extraction. Wrapped paths remain relative to the actual extraction destination, which must be inside the mod directory. This uses ordinary preflight, snapshot, ordered execution and recovery; choices remain serialized with component metadata in completion receipts. A real ZIP regression proves default refusal, non-mutating validation and selected output bytes. Automatic prompting/configuration persistence UI, broader archive fixtures and failure/restore acceptance remain open.
+
+### Configured FOMOD cancellation and restore acceptance
+
+The configured ZIP install regression now cancels after the FOMOD Extract/copy step and before a later Delete. It verifies selected output exists at failure, the later step did not run, retry is refused while recovery is pending, restore removes extracted files and restores exact baseline/archive bytes, and an ordered retry completes with no pending marker. This covers cancellation between guide instructions, not every interruption point within archive extraction or copying.
