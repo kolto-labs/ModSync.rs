@@ -1,6 +1,6 @@
 use crate::Guide;
 use anyhow::Result;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
 use std::time::Duration;
@@ -41,6 +41,46 @@ pub struct NexusModInfo {
     pub available: bool,
 }
 
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+pub struct NexusModFile {
+    #[serde(default)]
+    pub file_id: i64,
+    #[serde(default)]
+    pub file_name: String,
+    #[serde(default)]
+    pub version: String,
+    #[serde(default)]
+    pub category_name: String,
+    #[serde(default, deserialize_with = "lowercase_optional")]
+    pub md5: String,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+pub struct NexusMd5Result {
+    #[serde(default)]
+    pub mod_info: Option<NexusModInfo>,
+    #[serde(default)]
+    pub mod_id: i64,
+    #[serde(default)]
+    pub file: Option<NexusModFile>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct NexusValidateResult {
+    pub is_valid: bool,
+    pub user_name: String,
+    pub is_premium: bool,
+    pub message: String,
+}
+
+fn lowercase_optional<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<String, D::Error> {
+    Ok(Option::<String>::deserialize(deserializer)?
+        .unwrap_or_default()
+        .to_ascii_lowercase())
+}
+
 fn available_by_default() -> bool {
     true
 }
@@ -78,8 +118,84 @@ impl NexusClient {
     }
 
     pub fn get_mod_info(&mut self, game_domain: &str, mod_id: &str) -> Result<NexusModInfo> {
-        let path = format!("games/{game_domain}/mods/{mod_id}.json");
-        let url = self.base_url.join(&path)?;
+        self.get_json(&format!("games/{game_domain}/mods/{mod_id}.json"))
+    }
+
+    pub fn get_mod_files(&mut self, game_domain: &str, mod_id: &str) -> Result<Vec<NexusModFile>> {
+        #[derive(Deserialize)]
+        struct Files {
+            #[serde(default)]
+            files: Vec<NexusModFile>,
+        }
+        Ok(self
+            .get_json::<Files>(&format!("games/{game_domain}/mods/{mod_id}/files.json"))?
+            .files)
+    }
+
+    pub fn md5_search(&mut self, game_domain: &str, md5: &str) -> Result<Vec<NexusMd5Result>> {
+        let md5 = md5.trim();
+        anyhow::ensure!(!md5.is_empty(), "md5 hash must be provided");
+        #[derive(Deserialize)]
+        struct Search {
+            #[serde(rename = "mod")]
+            mod_info: Option<NexusModInfo>,
+            #[serde(default)]
+            mod_id: i64,
+            #[serde(rename = "file_details")]
+            file: Option<NexusModFile>,
+        }
+        Ok(
+            serde_json::from_value::<Vec<Search>>(self.get_value(&format!(
+                "games/{game_domain}/mods/md5_search/{}.json",
+                md5.to_ascii_lowercase()
+            ))?)?
+            .into_iter()
+            .map(|entry| NexusMd5Result {
+                mod_info: entry.mod_info,
+                mod_id: entry.mod_id,
+                file: entry.file,
+            })
+            .collect(),
+        )
+    }
+
+    pub fn validate(&mut self) -> Result<NexusValidateResult> {
+        if self
+            .api_key
+            .as_deref()
+            .is_none_or(|key| key.trim().is_empty())
+        {
+            return Ok(NexusValidateResult {
+                is_valid: false,
+                user_name: String::new(),
+                is_premium: false,
+                message: "No Nexus Mods API key configured.".into(),
+            });
+        }
+        let response = self.request(self.base_url.join("users/validate.json")?)?;
+        if response.status() == reqwest::StatusCode::UNAUTHORIZED {
+            return Ok(NexusValidateResult {
+                is_valid: false,
+                user_name: String::new(),
+                is_premium: false,
+                message: "API key is invalid or unauthorized.".into(),
+            });
+        }
+        let value: Value = serde_json::from_str(&response.error_for_status()?.text()?)?;
+        Ok(NexusValidateResult {
+            is_valid: true,
+            user_name: value["name"].as_str().unwrap_or_default().into(),
+            is_premium: value["is_premium"].as_bool().unwrap_or(false),
+            message: "API key is valid.".into(),
+        })
+    }
+
+    fn get_json<T: DeserializeOwned>(&mut self, path: &str) -> Result<T> {
+        Ok(serde_json::from_value(self.get_value(path)?)?)
+    }
+
+    fn get_value(&mut self, path: &str) -> Result<Value> {
+        let url = self.base_url.join(path)?;
         let mut response = self.request(url.clone())?;
         if response.status() == reqwest::StatusCode::TOO_MANY_REQUESTS {
             let delay = response

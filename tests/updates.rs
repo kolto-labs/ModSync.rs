@@ -133,3 +133,35 @@ fn nexus_check_stops_before_a_new_request_when_the_api_budget_is_empty() {
         ["LastUpdateCheck"]
         .is_null());
 }
+
+#[test]
+fn nexus_client_parses_files_md5_matches_and_key_validation() {
+    let (base_url, server) = nexus_server(vec![
+        r#"{"files":[{"file_id":7,"file_name":"One.zip","version":"1.0","category_name":"MAIN","md5":"ABCDEF"}]}"#,
+        r#"[{"mod":{"mod_id":12,"name":"One","version":"2.0"},"file_details":{"file_id":7,"file_name":"One.zip","md5":null}}]"#,
+        r#"{"name":"tester","is_premium":true}"#,
+    ]);
+    let mut client =
+        updates::NexusClient::with_base_url(Some("test-key".into()), &base_url).unwrap();
+
+    let files = client.get_mod_files("kotor", "12").unwrap();
+    let matches = client.md5_search("kotor", "ABCDEF").unwrap();
+    let validation = client.validate().unwrap();
+    let requests = server.join().unwrap();
+
+    assert_eq!(files[0].md5, "abcdef");
+    assert_eq!(matches[0].mod_info.as_ref().unwrap().version, "2.0");
+    assert_eq!(matches[0].file.as_ref().unwrap().md5, "");
+    assert!(validation.is_valid && validation.is_premium);
+    assert_eq!(validation.user_name, "tester");
+    assert!(requests[0].contains("/v1/games/kotor/mods/12/files.json"));
+    assert!(requests[1].contains("/v1/games/kotor/mods/md5_search/abcdef.json"));
+    assert!(requests[2].contains("/v1/users/validate.json"));
+}
+
+#[test]
+fn nexus_validation_and_md5_inputs_fail_closed_without_a_request() {
+    let mut client = updates::NexusClient::new(None).unwrap();
+    assert!(!client.validate().unwrap().is_valid);
+    assert!(client.md5_search("kotor", " ").is_err());
+}
