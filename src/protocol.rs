@@ -1,7 +1,12 @@
 use anyhow::{Result, bail};
 use reqwest::Url;
 use serde::Serialize;
-use std::net::IpAddr;
+use std::net::{IpAddr, ToSocketAddrs};
+use std::{
+    io::{Read, Write},
+    path::Path,
+    time::Duration,
+};
 
 #[derive(Clone, Debug, Serialize, PartialEq, Eq)]
 #[serde(tag = "scheme", rename_all = "lowercase")]
@@ -52,8 +57,59 @@ pub fn safe_instruction_url(raw: &str) -> Result<Url> {
     }
     if let Ok(ip) = host.parse::<IpAddr>() {
         ensure_public_ip(ip)?;
+    } else {
+        let addresses: Vec<_> = (host, url.port_or_known_default().unwrap_or(443))
+            .to_socket_addrs()?
+            .collect();
+        if addresses.is_empty() {
+            bail!("Instruction URL host could not be resolved");
+        }
+        for address in addresses {
+            ensure_public_ip(address.ip())?;
+        }
     }
     Ok(url)
+}
+
+pub fn fetch_instruction(raw: &str, destination: &Path) -> Result<()> {
+    const MAX_BYTES: u64 = 5 * 1024 * 1024;
+    let url = safe_instruction_url(raw)?;
+    if destination.exists() {
+        bail!("Instruction destination already exists");
+    }
+    let client = reqwest::blocking::Client::builder()
+        .timeout(Duration::from_secs(60))
+        .build()?;
+    let mut response = client.get(url).send()?.error_for_status()?;
+    safe_instruction_url(response.url().as_str())?;
+    if response
+        .content_length()
+        .is_some_and(|length| length > MAX_BYTES)
+    {
+        bail!("Instruction file exceeds the 5242880 byte download limit");
+    }
+    let parent = destination
+        .parent()
+        .ok_or_else(|| anyhow::anyhow!("Choose an instruction destination folder"))?;
+    let mut temporary = tempfile::NamedTempFile::new_in(parent)?;
+    let mut total = 0_u64;
+    let mut buffer = [0; 64 * 1024];
+    loop {
+        let count = response.read(&mut buffer)?;
+        if count == 0 {
+            break;
+        }
+        total += count as u64;
+        if total > MAX_BYTES {
+            bail!("Instruction file exceeds the 5242880 byte download limit");
+        }
+        temporary.write_all(&buffer[..count])?;
+    }
+    temporary.as_file().sync_all()?;
+    temporary
+        .persist_noclobber(destination)
+        .map_err(|error| error.error)?;
+    Ok(())
 }
 
 fn ensure_public_ip(ip: IpAddr) -> Result<()> {
