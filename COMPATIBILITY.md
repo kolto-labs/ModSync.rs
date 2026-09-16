@@ -485,3 +485,7 @@ The validation page now offers Configure FOMOD archive. A background worker insp
 ### Reopening desktop FOMOD selections
 
 The desktop editor now reapplies saved archive choices after inspection, using the selected external choices file or embedded guide configuration. Invalid saved selections stop loading instead of silently reverting to defaults. Conflicting component configurations are reported. A shared resolver regression covers nested components, case-insensitive archive names, missing entries and conflicts; native reopening acceptance remains pending.
+
+### Desktop configured-guide persistence
+
+The existing Save selection action now embeds the selected external FOMOD choices file into its saved guide, as installation does. Accepted editor choices were already embedded in the loaded guide and use the same save path. A desktop regression saves TOML, reloads component selections and named archive choices, verifies the in-memory guide remains unchanged, and proves invalid choices leave an existing output untouched. Native save-dialog acceptance remains pending.

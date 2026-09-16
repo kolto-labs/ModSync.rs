@@ -410,6 +410,18 @@ impl App {
         Ok(())
     }
 
+    fn save_selection(&self, path: &Path) -> Result<()> {
+        let mut guide = self
+            .guide
+            .clone()
+            .ok_or_else(|| anyhow::anyhow!("Load a guide first"))?;
+        if !self.fomod_choices.trim().is_empty() {
+            modsync::fomod::ChoicesFile::parse(&std::fs::read_to_string(&self.fomod_choices)?)?
+                .apply_to_guide(&mut guide)?;
+        }
+        guide.save(path)
+    }
+
     fn start(&mut self, job: Job, ctx: &egui::Context) {
         self.validated = false;
         self.confirm_install = false;
@@ -926,8 +938,8 @@ impl eframe::App for App {
                         if ui.add_enabled(self.validated, egui::Button::new("Install selected mods…")).clicked() { self.confirm_install = true; }
                         if ui.button("Restore failed install").clicked() { self.start(Job::Restore, ctx); }
                         if ui.button("Save selection…").clicked()
-                            && let (Some(g), Some(path)) = (&self.guide, rfd::FileDialog::new().set_file_name("selection.toml").save_file())
-                                && let Err(e) = g.save(&path) { self.logs.push(format!("Save failed: {e:#}")); }
+                            && let Some(path) = rfd::FileDialog::new().set_file_name("selection.toml").save_file()
+                                && let Err(e) = self.save_selection(&path) { self.logs.push(format!("Save failed: {e:#}")); }
                     });
                     ui.separator();
                     ui.collapsing("Download a direct archive link", |ui| {
@@ -1034,6 +1046,41 @@ pub fn launch(
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn saved_desktop_selection_embeds_external_fomod_choices_and_reloads() {
+        let temp = tempfile::tempdir().unwrap();
+        let choices = temp.path().join("choices.json");
+        std::fs::write(&choices, r#"{"archives":[{"archiveFileName":"mod.zip","selections":[{"stepName":"S","groupName":"G","plugins":["Second"]}]}]}"#).unwrap();
+        let mut app = App::new(None, None, None);
+        app.guide = Some(Guide {
+            components: vec![Component {
+                guid: "selected".into(),
+                name: "Selected".into(),
+                is_selected: true,
+                ..Default::default()
+            }],
+            ..Default::default()
+        });
+        app.fomod_choices = choices.to_string_lossy().into_owned();
+        let output = temp.path().join("selection.toml");
+        app.save_selection(&output).unwrap();
+        let reopened = Guide::load(&output).unwrap();
+        assert!(reopened.components[0].is_selected);
+        let saved = modsync::fomod::saved_archive_choices(&reopened, "mod.zip")
+            .unwrap()
+            .unwrap();
+        assert_eq!(saved.selections[0].plugins, ["Second"]);
+        assert!(
+            !app.guide.as_ref().unwrap().components[0]
+                .metadata
+                .contains_key("FomodChoices")
+        );
+        let before = std::fs::read(&output).unwrap();
+        std::fs::write(&choices, "invalid").unwrap();
+        assert!(app.save_selection(&output).is_err());
+        assert_eq!(std::fs::read(output).unwrap(), before);
+    }
+
     #[test]
     fn desktop_fomod_edits_preserve_choices_file_archives_and_invalidate_readiness() {
         let temp = tempfile::tempdir().unwrap();
