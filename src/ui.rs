@@ -811,7 +811,11 @@ impl eframe::App for App {
             .map(|receiver| receiver.try_iter().collect())
             .unwrap_or_default();
         for url in protocol_messages {
-            self.accept_protocol(url);
+            if url == modsync::single_instance::ACTIVATE_MESSAGE {
+                ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
+            } else {
+                self.accept_protocol(url);
+            }
         }
         let messages: Vec<_> = self
             .receiver

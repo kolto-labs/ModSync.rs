@@ -1,6 +1,8 @@
 use anyhow::Result;
 use std::sync::mpsc::Receiver;
 
+pub const ACTIVATE_MESSAGE: &str = "__MODSYNC_ACTIVATE__";
+
 #[cfg(unix)]
 use std::{
     io::{Read, Write},
@@ -19,7 +21,7 @@ impl Drop for Guard {
     }
 }
 
-/// Claims the per-user Unix socket or forwards one protocol URL to the primary.
+/// Claims the per-user Unix socket or forwards a handoff/activation message to the primary.
 /// A stale socket is removed only after a connection attempt proves it has no listener.
 #[cfg(unix)]
 pub fn claim_or_forward(protocol: Option<&str>) -> Result<Option<(Receiver<String>, Guard)>> {
@@ -39,10 +41,7 @@ fn claim_at(path: PathBuf, protocol: Option<&str>) -> Result<Option<(Receiver<St
     let listener = match UnixListener::bind(&path) {
         Ok(listener) => listener,
         Err(error) if error.kind() == std::io::ErrorKind::AddrInUse => {
-            let Some(protocol) = protocol else {
-                anyhow::bail!("ModSync.rs is already running");
-            };
-            if forward(&path, protocol).is_ok() {
+            if forward(&path, protocol.unwrap_or(ACTIVATE_MESSAGE)).is_ok() {
                 return Ok(None);
             }
             std::fs::remove_file(&path)?;
@@ -94,7 +93,13 @@ mod tests {
         let directory = tempfile::tempdir().unwrap();
         let path = directory.path().join("handoff.sock");
         let (receiver, _guard) = claim_at(path.clone(), None).unwrap().unwrap();
-        assert!(claim_at(path.clone(), None).is_err());
+        assert!(claim_at(path.clone(), None).unwrap().is_none());
+        assert_eq!(
+            receiver
+                .recv_timeout(std::time::Duration::from_secs(2))
+                .unwrap(),
+            ACTIVATE_MESSAGE
+        );
         assert!(
             claim_at(path, Some("nxm://kotor/mods/1/files/2"))
                 .unwrap()
