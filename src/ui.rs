@@ -71,6 +71,7 @@ pub struct App {
     download_url: String,
     download_name: String,
     download_hash: String,
+    pending_protocol: Option<String>,
 }
 
 impl App {
@@ -124,6 +125,7 @@ impl App {
             download_url: String::new(),
             download_name: String::new(),
             download_hash: String::new(),
+            pending_protocol: None,
         };
         if !app.input.is_empty() {
             app.load();
@@ -168,6 +170,26 @@ impl App {
                 self.guide = None;
                 self.logs.push(format!("Load failed: {e:#}"));
             }
+        }
+    }
+
+    fn open_pending_protocol(&mut self) {
+        let Some(raw) = self.pending_protocol.take() else {
+            return;
+        };
+        match modsync::protocol::fetch_modsync_guide(&raw) {
+            Ok((_, guide)) => {
+                self.reset_installation();
+                self.logs.push(format!(
+                    "Loaded {} components from modsync link",
+                    guide.components.len()
+                ));
+                self.loaded_input = None;
+                self.guide = Some(guide);
+                self.selected = 0;
+                self.page = 1;
+            }
+            Err(error) => self.logs.push(format!("ModSync link failed: {error:#}")),
         }
     }
 
@@ -852,6 +874,16 @@ impl eframe::App for App {
                     ui.label("Read ModSync TOML, JSON, YAML, XML, or Markdown. Review generated instructions before installing.");
                     if Self::path_row(ui, "Guide", &mut self.input, false) { self.validated = false; self.conflicts = None; }
                     if ui.button("Load guide").clicked() { self.load(); }
+                    if let Some(url) = self.pending_protocol.clone() {
+                        ui.separator();
+                        ui.strong("Open ModSync build link?");
+                        ui.label(&url);
+                        ui.label("Only continue for links you trust.");
+                        ui.horizontal(|ui| {
+                            if ui.button("Download & Open").clicked() { self.open_pending_protocol(); }
+                            if ui.button("Cancel").clicked() { self.pending_protocol = None; self.logs.push("Declined ModSync build link.".into()); }
+                        });
+                    }
                     if ui.add_enabled(self.guide.is_some(), egui::Button::new("Draft instructions from prose")).clicked()
                         && let Some(guide) = &mut self.guide {
                         let results = modsync::draft::generate(guide);
@@ -1172,6 +1204,7 @@ pub fn launch(
     game: Option<PathBuf>,
     mods: Option<PathBuf>,
     settings_dir: Option<PathBuf>,
+    protocol: Option<String>,
 ) -> Result<()> {
     let native = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
@@ -1184,6 +1217,12 @@ pub fn launch(
         native,
         Box::new(move |creation| {
             let mut app = App::new(input, game, mods);
+            app.pending_protocol = protocol.filter(|url| {
+                matches!(
+                    modsync::protocol::parse(url),
+                    Ok(modsync::protocol::Link::Modsync { .. })
+                )
+            });
             if let Some(directory) = settings_dir {
                 app.profile_directory = directory.to_string_lossy().into_owned();
             }

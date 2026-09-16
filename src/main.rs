@@ -36,6 +36,9 @@ enum Action {
         game_dir: Option<PathBuf>,
         #[arg(long)]
         source_dir: Option<PathBuf>,
+        /// A modsync:// URL received from an OS protocol handler.
+        #[arg(long)]
+        protocol: Option<String>,
     },
     /// Inspect FOMOD metadata and selection defaults as JSON without installing.
     FomodInspect {
@@ -285,13 +288,14 @@ fn run() -> Result<()> {
             );
             Ok(())
         }
-        None => gui(None, None, None, None),
+        None => gui(None, None, None, None, None),
         Some(Action::Gui {
             settings_dir,
             input,
             game_dir,
             source_dir,
-        }) => gui(input, game_dir, source_dir, settings_dir),
+            protocol,
+        }) => gui(input, game_dir, source_dir, settings_dir, protocol),
         Some(Action::Deployment(args)) => {
             let (game, staging, manifests) = match &args.action {
                 DeploymentAction::Status {
@@ -798,14 +802,15 @@ fn gui(
     game: Option<PathBuf>,
     mods: Option<PathBuf>,
     settings_dir: Option<PathBuf>,
+    protocol: Option<String>,
 ) -> Result<()> {
     #[cfg(feature = "desktop")]
     {
-        ui::launch(input, game, mods, settings_dir)
+        ui::launch(input, game, mods, settings_dir, protocol)
     }
     #[cfg(not(feature = "desktop"))]
     {
-        let _ = (input, game, mods, settings_dir);
+        let _ = (input, game, mods, settings_dir, protocol);
         anyhow::bail!(
             "Desktop support is disabled. Build with the default features, or use --help for CLI commands."
         )
