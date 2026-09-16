@@ -60,6 +60,8 @@ pub struct App {
     category_selection: Option<std::collections::BTreeMap<String, bool>>,
     logs: Vec<String>,
     receiver: Option<Receiver<Message>>,
+    protocol_receiver: Option<Receiver<String>>,
+    _instance_guard: Option<modsync::single_instance::Guard>,
     cancelled: Arc<AtomicBool>,
     job: Job,
     validated: bool,
@@ -116,6 +118,8 @@ impl App {
             category_selection: None,
             logs: Vec::new(),
             receiver: None,
+            protocol_receiver: None,
+            _instance_guard: None,
             cancelled: Arc::new(AtomicBool::new(false)),
             job: Job::Validate,
             validated: false,
@@ -196,6 +200,14 @@ impl App {
                 self.page = 1;
             }
             Err(error) => self.logs.push(format!("ModSync link failed: {error:#}")),
+        }
+    }
+
+    fn accept_protocol(&mut self, url: String) {
+        match modsync::protocol::parse(&url) {
+            Ok(modsync::protocol::Link::Modsync { .. }) => self.pending_protocol = Some(url),
+            Ok(modsync::protocol::Link::Nxm { .. }) => self.pending_nxm = Some(url),
+            Err(error) => self.logs.push(format!("Protocol link rejected: {error:#}")),
         }
     }
 
@@ -793,6 +805,14 @@ impl App {
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        let protocol_messages: Vec<_> = self
+            .protocol_receiver
+            .as_ref()
+            .map(|receiver| receiver.try_iter().collect())
+            .unwrap_or_default();
+        for url in protocol_messages {
+            self.accept_protocol(url);
+        }
         let messages: Vec<_> = self
             .receiver
             .as_ref()
@@ -1302,6 +1322,11 @@ pub fn launch(
     settings_dir: Option<PathBuf>,
     protocol: Option<String>,
 ) -> Result<()> {
+    let Some((protocol_receiver, instance_guard)) =
+        modsync::single_instance::claim_or_forward(protocol.as_deref())?
+    else {
+        return Ok(());
+    };
     let native = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([1120.0, 780.0])
@@ -1313,12 +1338,10 @@ pub fn launch(
         native,
         Box::new(move |creation| {
             let mut app = App::new(input, game, mods);
+            app.protocol_receiver = Some(protocol_receiver);
+            app._instance_guard = Some(instance_guard);
             if let Some(url) = protocol {
-                match modsync::protocol::parse(&url) {
-                    Ok(modsync::protocol::Link::Modsync { .. }) => app.pending_protocol = Some(url),
-                    Ok(modsync::protocol::Link::Nxm { .. }) => app.pending_nxm = Some(url),
-                    Err(error) => app.logs.push(format!("Protocol link rejected: {error:#}")),
-                }
+                app.accept_protocol(url);
             }
             if let Some(directory) = settings_dir {
                 app.profile_directory = directory.to_string_lossy().into_owned();
