@@ -59,6 +59,14 @@ enum Action {
     List { input: PathBuf },
     /// Parse an nxm:// or modsync:// handoff URL without fetching it.
     ProtocolParse { url: String },
+    /// Apply provider version data from a JSON object keyed as game/modId.
+    UpdateApply {
+        input: PathBuf,
+        versions: PathBuf,
+        output: PathBuf,
+        #[arg(long)]
+        summary: Option<PathBuf>,
+    },
     /// Merge two guides, matching GUIDs then normalized names/authors.
     Merge {
         existing: PathBuf,
@@ -407,6 +415,25 @@ fn run() -> Result<()> {
                 "{}",
                 serde_json::to_string_pretty(&modsync::protocol::parse(&url)?)?
             );
+            Ok(())
+        }
+        Some(Action::UpdateApply {
+            input,
+            versions,
+            output,
+            summary,
+        }) => {
+            let mut guide = Guide::load(&input)?;
+            let report =
+                modsync::updates::apply(&mut guide, &modsync::updates::load_versions(&versions)?);
+            guide.save(&output)?;
+            if let Some(path) = summary {
+                recovery::atomic_write(
+                    &std::path::absolute(path)?,
+                    &serde_json::to_vec_pretty(&report)?,
+                )?;
+            }
+            println!("{}", serde_json::to_string_pretty(&report)?);
             Ok(())
         }
         Some(Action::Merge {

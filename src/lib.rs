@@ -25,6 +25,7 @@ pub mod profiles;
 pub mod protocol;
 
 pub mod selection;
+pub mod updates;
 
 pub mod fomod;
 

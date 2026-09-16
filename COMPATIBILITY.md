@@ -25,6 +25,7 @@ Reference: the local ModSync C# source at `d31ccbd3bfcddb4705917eafa6483715c166d
 | Managed deployment | Staged-tree manifest deploy/uninstall/purge CLI with hardlink-or-copy materialization and hash-guarded restoration | Normal engine actions are not yet redirected into per-component staging; no profile switching, patcher provenance, or GUI management integration |
 | Merge | `merge EXISTING INCOMING OUTPUT` matches GUIDs, then normalized name/author values; it supports existing-order, field-preference and exclusion switches | No C# URL validation, domain fallback, complete per-field/resource conflict rules, full option merge, or GUI merge dialogs |
 | Protocol links | `protocol-parse` parses `nxm://` and `modsync://` links into typed JSON and rejects local instruction paths | No safe fetcher, component resolution, single-instance handoff, or OS registration |
+| Updates | `update-apply` records supplied Nexus game/mod versions on resource metadata and emits a summary | No Nexus API client, rate-limit behavior, stored-result loading, or GUI badges |
 | Widescreen, Aspyr, game-specific notices | Retained as metadata | No dynamic wizard stages or automatic game/version detection |
 | Editor, telemetry | Not implemented | Edit instruction files externally |
 
