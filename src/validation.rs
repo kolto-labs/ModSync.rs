@@ -56,6 +56,35 @@ pub struct Report {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub dry_run: Option<DryRun>,
 }
+/// Machine-readable failure report emitted when validation cannot produce a
+/// pipeline result at all (guide load, selection, or engine setup failed before
+/// any stage ran). Matches the C# `ValidationPipelineJsonFormatter.SerializeError`
+/// shape: the scalar counters serialize as zero/false, and `inputPath`, `stages`,
+/// and `dryRun` are omitted.
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ErrorReport {
+    pub success: bool,
+    pub exit_code: u8,
+    pub error_count: usize,
+    pub warning_count: usize,
+    pub passed_count: usize,
+    pub component_count: usize,
+    pub error: String,
+}
+impl ErrorReport {
+    pub fn new(error: String) -> Self {
+        Self {
+            success: false,
+            exit_code: 1,
+            error_count: 0,
+            warning_count: 0,
+            passed_count: 0,
+            component_count: 0,
+            error,
+        }
+    }
+}
 impl Report {
     pub fn new(component_count: usize) -> Self {
         Self {

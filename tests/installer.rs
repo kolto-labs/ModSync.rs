@@ -1447,3 +1447,42 @@ fn validation_report_dry_run_is_structured_and_does_not_write() {
     );
     assert!(fs::read_dir(game).unwrap().next().is_none());
 }
+
+#[test]
+fn cli_validation_report_emits_structured_error_when_setup_fails() {
+    let (dir, settings) = setup();
+    // A guide path that does not exist fails before any pipeline stage runs.
+    let missing = dir.path().join("does-not-exist.json");
+    let output = std::process::Command::new(env!("CARGO_BIN_EXE_modsync"))
+        .arg("validate")
+        .arg("--input")
+        .arg(&missing)
+        .arg("--game-dir")
+        .arg(&settings.roots.game)
+        .arg("--source-dir")
+        .arg(&settings.roots.mods)
+        .args(["--use-file-selection", "--validation-report"])
+        .output()
+        .unwrap();
+    assert!(!output.status.success());
+    // The structured error report is the sole machine output on stdout; stderr
+    // carries no extra human error line, matching the C# SerializeError contract.
+    assert!(
+        output.stderr.is_empty(),
+        "unexpected stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(report["success"], false);
+    assert_eq!(report["exitCode"], 1);
+    assert_eq!(report["errorCount"], 0);
+    assert_eq!(report["warningCount"], 0);
+    assert_eq!(report["passedCount"], 0);
+    assert_eq!(report["componentCount"], 0);
+    assert!(report["error"].as_str().is_some_and(|e| !e.is_empty()));
+    // inputPath, stages, and dryRun are omitted for the error form.
+    let object = report.as_object().unwrap();
+    assert!(!object.contains_key("stages"));
+    assert!(!object.contains_key("dryRun"));
+    assert!(!object.contains_key("inputPath"));
+}

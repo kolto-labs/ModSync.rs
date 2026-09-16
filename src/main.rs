@@ -867,172 +867,199 @@ fn run() -> Result<()> {
             else {
                 unreachable!()
             };
-            let settings_directory =
-                if args.settings_dir.is_some() || args.profile.is_some() || args.active_profile {
-                    Some(modsync::profiles::settings_directory(
-                        args.settings_dir.as_deref(),
-                    )?)
+            let report_mode = args.validation_report && !install && !conflicts;
+            let dispatch = (|| -> Result<()> {
+                let settings_directory =
+                    if args.settings_dir.is_some() || args.profile.is_some() || args.active_profile
+                    {
+                        Some(modsync::profiles::settings_directory(
+                            args.settings_dir.as_deref(),
+                        )?)
+                    } else {
+                        None
+                    };
+                let patcher_preferences = settings_directory
+                    .as_deref()
+                    .map(modsync::profiles::Store::new)
+                    .transpose()?
+                    .map(|store| store.patcher_preferences())
+                    .transpose()?;
+                let patcher_engine = args
+                    .patcher_engine
+                    .map(Into::into)
+                    .or_else(|| {
+                        patcher_preferences
+                            .as_ref()
+                            .map(|preferences| preferences.engine)
+                    })
+                    .unwrap_or_default();
+                let profile = if args.profile.is_some() || args.active_profile {
+                    let directory = settings_directory.as_ref().unwrap();
+                    let store = modsync::profiles::Store::new(directory)?;
+                    let name = if args.active_profile {
+                        store
+                            .active_name()?
+                            .context("No active profile is configured")?
+                    } else {
+                        args.profile.clone().unwrap()
+                    };
+                    Some(store.require(&name)?)
                 } else {
                     None
                 };
-            let patcher_preferences = settings_directory
-                .as_deref()
-                .map(modsync::profiles::Store::new)
-                .transpose()?
-                .map(|store| store.patcher_preferences())
-                .transpose()?;
-            let patcher_engine = args
-                .patcher_engine
-                .map(Into::into)
-                .or_else(|| {
-                    patcher_preferences
-                        .as_ref()
-                        .map(|preferences| preferences.engine)
-                })
-                .unwrap_or_default();
-            let profile = if args.profile.is_some() || args.active_profile {
-                let directory = settings_directory.as_ref().unwrap();
-                let store = modsync::profiles::Store::new(directory)?;
-                let name = if args.active_profile {
-                    store
-                        .active_name()?
-                        .context("No active profile is configured")?
+                let paths = if let Some(profile) = &profile {
+                    profile.install_paths(
+                        args.input.as_deref(),
+                        args.game_dir.as_deref(),
+                        args.source_dir.as_deref(),
+                    )?
                 } else {
-                    args.profile.clone().unwrap()
+                    modsync::profiles::InstallPaths {
+                        input: args.input.clone().context("Supply --input")?,
+                        game: args.game_dir.clone().context("Supply --game-dir")?,
+                        source: args.source_dir.clone().context("Supply --source-dir")?,
+                    }
                 };
-                Some(store.require(&name)?)
-            } else {
-                None
-            };
-            let paths = if let Some(profile) = &profile {
-                profile.install_paths(
-                    args.input.as_deref(),
-                    args.game_dir.as_deref(),
-                    args.source_dir.as_deref(),
-                )?
-            } else {
-                modsync::profiles::InstallPaths {
-                    input: args.input.clone().context("Supply --input")?,
-                    game: args.game_dir.clone().context("Supply --game-dir")?,
-                    source: args.source_dir.clone().context("Supply --source-dir")?,
+                if args.direct_markdown {
+                    ensure!(
+                        paths
+                            .input
+                            .extension()
+                            .and_then(|extension| extension.to_str())
+                            .is_some_and(|extension| extension.eq_ignore_ascii_case("md")),
+                        "Direct Markdown mode requires a .md input file"
+                    );
                 }
-            };
-            if args.direct_markdown {
-                ensure!(
-                    paths
-                        .input
-                        .extension()
-                        .and_then(|extension| extension.to_str())
-                        .is_some_and(|extension| extension.eq_ignore_ascii_case("md")),
-                    "Direct Markdown mode requires a .md input file"
-                );
-            }
-            let mut guide = Guide::load_for_install(&paths.input)?;
-            if let Some(profile) = &profile {
-                profile.apply(&mut guide);
-            }
-            for requested in &args.select {
-                ensure!(
-                    guide
-                        .components
-                        .iter()
-                        .any(|c| c.guid.eq_ignore_ascii_case(requested)
-                            || c.name.eq_ignore_ascii_case(requested)),
-                    "Unknown component: {requested}"
-                );
-            }
-            for c in &mut guide.components {
-                if !args.select.is_empty() {
-                    c.is_selected = args
-                        .select
-                        .iter()
-                        .any(|s| c.guid.eq_ignore_ascii_case(s) || c.name.eq_ignore_ascii_case(s));
-                } else if !args.use_file_selection && profile.is_none() {
-                    c.is_selected = true;
+                let mut guide = Guide::load_for_install(&paths.input)?;
+                if let Some(profile) = &profile {
+                    profile.apply(&mut guide);
                 }
-            }
-            fn select_option(c: &mut modsync::Component, id: &str) -> bool {
-                for o in &mut c.options {
-                    if o.guid.eq_ignore_ascii_case(id) {
-                        o.is_selected = true;
-                        return true;
-                    }
-                    if select_option(o, id) {
-                        return true;
+                for requested in &args.select {
+                    ensure!(
+                        guide
+                            .components
+                            .iter()
+                            .any(|c| c.guid.eq_ignore_ascii_case(requested)
+                                || c.name.eq_ignore_ascii_case(requested)),
+                        "Unknown component: {requested}"
+                    );
+                }
+                for c in &mut guide.components {
+                    if !args.select.is_empty() {
+                        c.is_selected = args.select.iter().any(|s| {
+                            c.guid.eq_ignore_ascii_case(s) || c.name.eq_ignore_ascii_case(s)
+                        });
+                    } else if !args.use_file_selection && profile.is_none() {
+                        c.is_selected = true;
                     }
                 }
-                false
-            }
-            for id in &args.option {
-                ensure!(
-                    guide.components.iter_mut().any(|c| select_option(c, id)),
-                    "Unknown option: {id}"
-                );
-            }
-            if args.direct_markdown {
-                ensure!(
-                    patcher_engine == PatcherEngine::OdyPatcher,
-                    "Direct Markdown mode requires --patcher-engine ody-patcher"
-                );
-                let result = modsync::direct_markdown::apply(&mut guide.components);
-                eprintln!(
-                    "Direct Markdown NLP: draftedFromProse={}, 4GB Patcher skipped={}, widescreen skipped={}",
-                    result.drafted_from_prose, result.skipped_four_gb, result.skipped_widescreen
-                );
-                ensure!(
-                    result.ready(),
-                    "Direct Markdown preflight stopped before game writes: {} selected component(s) have no reviewed executable actions: {}",
-                    result.unresolved_components.len(),
-                    result
-                        .unresolved_components
-                        .iter()
-                        .take(25)
-                        .cloned()
-                        .collect::<Vec<_>>()
-                        .join(", ")
-                );
-            }
-            if let Some(path) = &args.fomod_choices {
-                let choices = modsync::fomod::ChoicesFile::parse(&std::fs::read_to_string(path)?)?;
-                choices.apply_to_guide(&mut guide)?;
-            }
-            let mut settings = Settings::new(&paths.source, &paths.game)?;
-            settings.allow_processes = args.allow_processes;
-            settings.patcher = args.patcher.or_else(|| {
-                patcher_preferences
-                    .filter(|preferences| preferences.engine == patcher_engine)
-                    .and_then(|preferences| preferences.executable.map(PathBuf::from))
-            });
-            settings.patcher_engine = patcher_engine;
-            settings.archive.scratch_dir = args.scratch_dir;
-            settings.archive.max_expanded_bytes = args.max_expanded_bytes;
-            let engine = Engine::new(settings)?;
-            let emit = |event: modsync::Event| {
-                if args.validation_report {
-                    return;
+                fn select_option(c: &mut modsync::Component, id: &str) -> bool {
+                    for o in &mut c.options {
+                        if o.guid.eq_ignore_ascii_case(id) {
+                            o.is_selected = true;
+                            return true;
+                        }
+                        if select_option(o, id) {
+                            return true;
+                        }
+                    }
+                    false
                 }
-                if args.json {
-                    println!("{}", serde_json::to_string(&event).unwrap());
+                for id in &args.option {
+                    ensure!(
+                        guide.components.iter_mut().any(|c| select_option(c, id)),
+                        "Unknown option: {id}"
+                    );
+                }
+                if args.direct_markdown {
+                    ensure!(
+                        patcher_engine == PatcherEngine::OdyPatcher,
+                        "Direct Markdown mode requires --patcher-engine ody-patcher"
+                    );
+                    let result = modsync::direct_markdown::apply(&mut guide.components);
+                    eprintln!(
+                        "Direct Markdown NLP: draftedFromProse={}, 4GB Patcher skipped={}, widescreen skipped={}",
+                        result.drafted_from_prose,
+                        result.skipped_four_gb,
+                        result.skipped_widescreen
+                    );
+                    ensure!(
+                        result.ready(),
+                        "Direct Markdown preflight stopped before game writes: {} selected component(s) have no reviewed executable actions: {}",
+                        result.unresolved_components.len(),
+                        result
+                            .unresolved_components
+                            .iter()
+                            .take(25)
+                            .cloned()
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    );
+                }
+                if let Some(path) = &args.fomod_choices {
+                    let choices =
+                        modsync::fomod::ChoicesFile::parse(&std::fs::read_to_string(path)?)?;
+                    choices.apply_to_guide(&mut guide)?;
+                }
+                let mut settings = Settings::new(&paths.source, &paths.game)?;
+                settings.allow_processes = args.allow_processes;
+                settings.patcher = args.patcher.or_else(|| {
+                    patcher_preferences
+                        .filter(|preferences| preferences.engine == patcher_engine)
+                        .and_then(|preferences| preferences.executable.map(PathBuf::from))
+                });
+                settings.patcher_engine = patcher_engine;
+                settings.archive.scratch_dir = args.scratch_dir;
+                settings.archive.max_expanded_bytes = args.max_expanded_bytes;
+                let engine = Engine::new(settings)?;
+                let emit = |event: modsync::Event| {
+                    if args.validation_report {
+                        return;
+                    }
+                    if args.json {
+                        println!("{}", serde_json::to_string(&event).unwrap());
+                    } else {
+                        println!("{} / {}: {}", event.component, event.step, event.message);
+                    }
+                };
+                if conflicts {
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(&engine.analyze_conflicts(&guide)?)?
+                    );
+                    Ok(())
+                } else if install {
+                    engine.install(&guide, emit)
+                } else if args.validation_report {
+                    let mut report =
+                        engine.validate_report_with_dry_run(&guide, emit, args.dry_run);
+                    report.input_path = Some(paths.input.to_string_lossy().into_owned());
+                    println!("{}", serde_json::to_string_pretty(&report)?);
+                    if !report.success {
+                        // The pipeline report is the machine output; a failing report
+                        // exits nonzero without an extra stderr line, matching C#.
+                        std::process::exit(1);
+                    }
+                    Ok(())
                 } else {
-                    println!("{} / {}: {}", event.component, event.step, event.message);
+                    engine.validate(&guide, emit)
                 }
-            };
-            if conflicts {
-                println!(
-                    "{}",
-                    serde_json::to_string_pretty(&engine.analyze_conflicts(&guide)?)?
-                );
-                Ok(())
-            } else if install {
-                engine.install(&guide, emit)
-            } else if args.validation_report {
-                let mut report = engine.validate_report_with_dry_run(&guide, emit, args.dry_run);
-                report.input_path = Some(paths.input.to_string_lossy().into_owned());
-                println!("{}", serde_json::to_string_pretty(&report)?);
-                ensure!(report.success, "Validation pipeline reported errors");
+            })();
+            if report_mode {
+                if let Err(error) = dispatch {
+                    // Setup failed before any pipeline stage ran; emit the C#
+                    // SerializeError shape as the sole machine output.
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(&modsync::validation::ErrorReport::new(
+                            format!("{error:#}")
+                        ))?
+                    );
+                    std::process::exit(1);
+                }
                 Ok(())
             } else {
-                engine.validate(&guide, emit)
+                dispatch
             }
         }
     }
