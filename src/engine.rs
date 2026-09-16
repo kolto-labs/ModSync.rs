@@ -18,11 +18,20 @@ use std::{
     },
 };
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum PatcherEngine {
+    #[default]
+    OdyPatcher,
+    KPatcher,
+    HoloPatcher,
+}
+
 #[derive(Clone, Debug)]
 pub struct Settings {
     pub roots: Roots,
     pub allow_processes: bool,
     pub patcher: Option<PathBuf>,
+    pub patcher_engine: PatcherEngine,
     pub archive: archive::Options,
     pub cancelled: Arc<AtomicBool>,
 }
@@ -32,6 +41,7 @@ impl Settings {
             roots: Roots::new(mods, game)?,
             allow_processes: false,
             patcher: None,
+            patcher_engine: PatcherEngine::default(),
             archive: archive::Options::default(),
             cancelled: Arc::new(AtomicBool::new(false)),
         })
@@ -714,7 +724,7 @@ impl Engine {
                 .settings
                 .patcher
                 .as_ref()
-                .context("Configure the OdyPatcher executable with --patcher")?;
+                .context("Configure a patcher executable with --patcher")?;
             ensure!(patcher.is_file(), "Patcher executable is missing");
             let dest = if i.destination.is_empty() {
                 self.settings.roots.game.clone()
@@ -729,14 +739,7 @@ impl Engine {
             } else {
                 &path
             };
-            let mut cmd = Command::new(patcher);
-            cmd.arg("--install")
-                .arg("--game-dir")
-                .arg(dest)
-                .arg("--tslpatchdata")
-                .arg(base)
-                .arg("--cli")
-                .arg("-y");
+            let mut cmd = self.patcher_command(patcher, &dest, base);
             if !i.arguments.trim().is_empty() {
                 if let Ok(index) = i.arguments.trim().parse::<usize>() {
                     cmd.arg("--namespace-option-index").arg(index.to_string());
@@ -778,18 +781,12 @@ impl Engine {
                                 fs::remove_file(entry.path())?;
                             }
                         }
-                        cmd = Command::new(patcher);
-                        cmd.arg("--install")
-                            .arg("--game-dir")
-                            .arg(if i.destination.is_empty() {
-                                self.settings.roots.game.clone()
-                            } else {
-                                self.actual(&self.path(&i.destination, false)?)
-                            })
-                            .arg("--tslpatchdata")
-                            .arg(stage.path())
-                            .arg("--cli")
-                            .arg("-y");
+                        let destination = if i.destination.is_empty() {
+                            self.settings.roots.game.clone()
+                        } else {
+                            self.actual(&self.path(&i.destination, false)?)
+                        };
+                        cmd = self.patcher_command(patcher, &destination, stage.path());
                         staged_patcher = Some(stage);
                     }
                 }
@@ -838,6 +835,23 @@ impl Engine {
         }
         drop(staged_patcher);
         Ok(())
+    }
+
+    fn patcher_command(&self, patcher: &Path, destination: &Path, data: &Path) -> Command {
+        let mut command = Command::new(patcher);
+        if self.settings.patcher_engine == PatcherEngine::KPatcher && !cfg!(windows) {
+            command.arg("--console");
+        }
+        command
+            .arg("--install")
+            .arg("--game-dir")
+            .arg(destination)
+            .arg("--tslpatchdata")
+            .arg(data);
+        if self.settings.patcher_engine == PatcherEngine::OdyPatcher {
+            command.arg("--cli").arg("-y");
+        }
+        command
     }
 }
 

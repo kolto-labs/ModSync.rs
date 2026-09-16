@@ -64,14 +64,14 @@ For a prose Markdown guide that is the sole install authority, use `--direct-mar
 
 ## Run patchers
 
-Point to an installed OdyPatcher executable:
+Point to an installed patcher executable (OdyPatcher is the default backend):
 
 ```sh
 modsync install --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods \
   --allow-processes --patcher /path/to/odypatcher
 ```
 
-`Patcher` invokes OdyPatcher headlessly with `--install --game-dir … --tslpatchdata … --cli -y` and accepts a namespace index or an INI filename in `Arguments`. Named INI installs use a temporary copy of `tslpatchdata`, leaving the original patcher configuration intact. `Execute` and `Run` invoke the specified local program directly, without a shell. External programs have your user permissions and require the explicit trust switch. Windows executables require a Windows host; no implicit Wine execution is provided.
+`Patcher` invokes OdyPatcher by default with `--install --game-dir … --tslpatchdata … --cli -y`; select `--patcher-engine k-patcher` for KPatcher (which adds `--console` on non-Windows) or `--patcher-engine holo-patcher` for HoloPatcher. All backends accept a namespace index or an INI filename in `Arguments`. Named INI installs use a temporary copy of `tslpatchdata`, leaving the original patcher configuration intact. `Execute` and `Run` invoke the specified local program directly, without a shell. External programs have your user permissions and require the explicit trust switch. Windows executables require a Windows host; no implicit Wine execution is provided.
 
 Validation checks process inputs but does not execute programs or predict their effects. It may reject a later step that requires a file an external program would create. A successful validation report is not proof that an external patcher will succeed.
 

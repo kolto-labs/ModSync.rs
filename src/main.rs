@@ -1,7 +1,7 @@
 mod profile_cli;
 use anyhow::{Context, Result, ensure};
-use clap::{Args, Parser, Subcommand};
-use modsync::{Engine, Guide, Settings, download, paths::Roots, recovery};
+use clap::{Args, Parser, Subcommand, ValueEnum};
+use modsync::{Engine, Guide, PatcherEngine, Settings, download, paths::Roots, recovery};
 use std::{ffi::OsString, path::PathBuf, sync::atomic::AtomicBool};
 
 #[cfg(feature = "desktop")]
@@ -279,9 +279,12 @@ struct InstallArgs {
     /// Trust this guide to run programs with your user permissions.
     #[arg(long)]
     allow_processes: bool,
-    /// OdyPatcher executable for Patcher instructions.
+    /// Patcher executable for Patcher instructions.
     #[arg(long)]
     patcher: Option<PathBuf>,
+    /// CLI patcher backend for Patcher instructions.
+    #[arg(long, value_enum, default_value_t = PatcherEngineArg::Ody)]
+    patcher_engine: PatcherEngineArg,
     /// Existing scratch folder outside the game and mod trees (defaults to system temp).
     #[arg(long)]
     scratch_dir: Option<PathBuf>,
@@ -291,6 +294,25 @@ struct InstallArgs {
     /// Emit newline-delimited JSON events.
     #[arg(long)]
     json: bool,
+}
+
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum PatcherEngineArg {
+    #[value(name = "ody-patcher")]
+    Ody,
+    #[value(name = "k-patcher")]
+    K,
+    #[value(name = "holo-patcher")]
+    Holo,
+}
+impl From<PatcherEngineArg> for PatcherEngine {
+    fn from(value: PatcherEngineArg) -> Self {
+        match value {
+            PatcherEngineArg::Ody => Self::OdyPatcher,
+            PatcherEngineArg::K => Self::KPatcher,
+            PatcherEngineArg::Holo => Self::HoloPatcher,
+        }
+    }
 }
 
 fn run() -> Result<()> {
@@ -867,6 +889,7 @@ fn run() -> Result<()> {
             let mut settings = Settings::new(&paths.source, &paths.game)?;
             settings.allow_processes = args.allow_processes;
             settings.patcher = args.patcher;
+            settings.patcher_engine = args.patcher_engine.into();
             settings.archive.scratch_dir = args.scratch_dir;
             settings.archive.max_expanded_bytes = args.max_expanded_bytes;
             let engine = Engine::new(settings)?;

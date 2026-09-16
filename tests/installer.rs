@@ -1,4 +1,4 @@
-use modsync::{Engine, Guide, Settings, archive, paths::Roots, recovery};
+use modsync::{Engine, Guide, PatcherEngine, Settings, archive, paths::Roots, recovery};
 use std::{
     fs,
     io::{Cursor, Write},
@@ -421,6 +421,41 @@ fn external_failure_halts_and_named_ini_staging_keeps_original_config() {
     assert!(patch.join("namespaces.ini").exists());
     recovery::restore(&settings.roots).unwrap();
     assert!(!settings.roots.game.join("patched.txt").exists());
+}
+
+#[cfg(unix)]
+#[test]
+fn kpatcher_uses_console_without_ody_flags() {
+    use std::os::unix::fs::PermissionsExt;
+    let (dir, mut settings) = setup();
+    let data = settings.roots.mods.join("patch/tslpatchdata");
+    fs::create_dir_all(&data).unwrap();
+    fs::write(data.join("changes.ini"), "config").unwrap();
+    let stub = dir.path().join("kpatcher");
+    fs::write(
+        &stub,
+        r#"#!/bin/sh
+[ "$1" = --console ] && [ "$2" = --install ] && [ "$3" = --game-dir ] && [ "$5" = --tslpatchdata ] || exit 2
+[ "${7-}" != --cli ] && [ "${7-}" != -y ] || exit 3
+printf kpatched > "$4/kpatched.txt"
+"#,
+    )
+    .unwrap();
+    fs::set_permissions(&stub, fs::Permissions::from_mode(0o755)).unwrap();
+    settings.allow_processes = true;
+    settings.patcher = Some(stub);
+    settings.patcher_engine = PatcherEngine::KPatcher;
+    let g = guide(serde_json::json!([
+        {"Action":"Patcher", "Source":"<<modDirectory>>/patch"}
+    ]));
+    Engine::new(settings.clone())
+        .unwrap()
+        .install(&g, |_| {})
+        .unwrap();
+    assert_eq!(
+        fs::read(settings.roots.game.join("kpatched.txt")).unwrap(),
+        b"kpatched"
+    );
 }
 
 fn unpack(bytes: &[u8]) -> anyhow::Result<Vec<(std::path::PathBuf, Vec<u8>)>> {
