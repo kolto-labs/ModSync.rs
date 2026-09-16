@@ -336,13 +336,18 @@ fn module_xml_drives_selection_defaults_flags_and_visibility_without_installing(
     ] {
         assert!(parse_selection_xml(invalid).is_err());
     }
-    assert!(
-        parse_selection_xml(&xml.replace(
-            "flagDependency flag=\"picked\" value=\"yes\"",
-            "fileDependency file=\"a\" state=\"Active\""
-        ))
-        .is_err()
-    );
+    let file_visibility = parse_selection_xml(&xml.replace(
+        "flagDependency flag=\"picked\" value=\"yes\"",
+        "fileDependency file=\"a\" state=\"Active\"",
+    ))
+    .unwrap();
+    let game_visibility = parse_selection_xml(&xml.replace(
+        "flagDependency flag=\"picked\" value=\"yes\"",
+        "gameDependency version=\"1.2\"",
+    ))
+    .unwrap();
+    assert_eq!(visible_steps(&file_visibility), [0, 1]);
+    assert_eq!(visible_steps(&game_visibility), [0, 1]);
 }
 
 #[test]
@@ -414,6 +419,22 @@ fn file_plan_preserves_conditional_attachment_and_never_skips_unsupported_patter
             .unwrap()
             .selected_files()
             .is_err()
+    );
+}
+
+#[test]
+fn file_and_game_dependencies_match_csharp_satisfied_mapping_behavior() {
+    use modsync::fomod::parse_module_xml;
+    let xml = r#"<config><installSteps><installStep><optionalFileGroups><group type="SelectAll"><plugins><plugin name="A"><files><file source="a"/></files><conditionFlags><flag name="mode">yes</flag></conditionFlags></plugin></plugins></group></optionalFileGroups></installStep></installSteps><conditionalFileInstalls><patterns><pattern><dependencies><fileDependency file="plugin.esp" state="Active"/><gameDependency version="1.2"/><flagDependency flag="mode" value="yes"/></dependencies><files><file source="attached"/></files></pattern><pattern><dependencies><fileDependency file="plugin.esp" state="Missing"/></dependencies><files><file source="trailing"/></files></pattern></patterns></conditionalFileInstalls></config>"#;
+    let module = parse_module_xml(xml).unwrap();
+    assert_eq!(
+        module
+            .selected_files()
+            .unwrap()
+            .iter()
+            .map(|file| file.source.as_str())
+            .collect::<Vec<_>>(),
+        ["a", "attached", "trailing"]
     );
 }
 

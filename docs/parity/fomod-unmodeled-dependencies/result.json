@@ -1,0 +1,12 @@
+{
+  "Visible": true,
+  "Conditional": true,
+  "VisibleKinds": [
+    "File",
+    "Game"
+  ],
+  "ConditionalKinds": [
+    "File",
+    "Game"
+  ]
+}

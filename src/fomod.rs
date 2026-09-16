@@ -312,7 +312,14 @@ impl ArchiveChoices {
 /// Flag-only dependency expressions. File/game dependencies need a separate evaluator.
 #[derive(Clone, Debug)]
 pub enum FlagCondition {
-    Flag { name: String, value: String },
+    Flag {
+        name: String,
+        value: String,
+    },
+    /// C# does not model FOMOD file/game dependency state and treats these
+    /// leaves as satisfied. Keep their effect explicit rather than rejecting
+    /// otherwise usable packages.
+    Always,
     All(Vec<FlagCondition>),
     Any(Vec<FlagCondition>),
 }
@@ -321,6 +328,7 @@ impl FlagCondition {
     fn matches(&self, flags: &std::collections::BTreeMap<String, String>) -> bool {
         match self {
             Self::Flag { name, value } => flags.get(&name.to_ascii_lowercase()) == Some(value),
+            Self::Always => true,
             Self::All(children) => children.iter().all(|c| c.matches(flags)),
             // C# treats every empty composite as true, including Or.
             Self::Any(children) => children.is_empty() || children.iter().any(|c| c.matches(flags)),
@@ -398,19 +406,20 @@ impl ModuleConfig {
         let mut trailing = Vec::new();
         for pattern in &self.conditional_files {
             let children: Vec<_> = match &pattern.condition {
-                FlagCondition::Flag { .. } => vec![&pattern.condition],
+                FlagCondition::Flag { .. } | FlagCondition::Always => vec![&pattern.condition],
                 FlagCondition::All(children) => children.iter().collect(),
                 FlagCondition::Any(children) if children.len() <= 1 => children.iter().collect(),
                 _ => anyhow::bail!("FOMOD file pattern requires unsupported OR mapping"),
             };
             let mut flags = Vec::new();
             for condition in children {
-                let FlagCondition::Flag { name, value } = condition else {
-                    anyhow::bail!(
+                match condition {
+                    FlagCondition::Flag { name, value } => flags.push((name, value)),
+                    FlagCondition::Always => {}
+                    _ => anyhow::bail!(
                         "FOMOD file pattern requires unsupported nested dependency mapping"
-                    );
-                };
-                flags.push((name, value));
+                    ),
+                }
             }
             if flags.is_empty() {
                 trailing.extend(&pattern.files);

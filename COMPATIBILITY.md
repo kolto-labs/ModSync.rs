@@ -537,3 +537,7 @@ Conflict analysis now has the same saved-completion prefix contract as remaining
 ### FOMOD plugin type descriptors
 
 FOMOD parsing now preserves Optional, Required, Recommended, NotUsable, and CouldBeUsable descriptors on every plugin. Required and Recommended retain the C# default-selection behavior; unknown descriptors fall back to Optional. The `fomod-inspect` JSON report exposes `pluginType`, so callers no longer have to infer the authored state from the required and selected booleans. A sandboxed execution of the pinned C# parser agrees on all six type cases, including a dependencyType default and unknown fallback; source, result, and DLL hash are in `docs/parity/fomod-plugin-types/`. DependencyType per-pattern rules, full-corpus behavior, and native UI presentation remain open.
+
+### FOMOD file and game dependencies
+
+The pinned C# mapper logs fileDependency and gameDependency as unmodeled, then treats each as satisfied. Rust now preserves that behavior as an always-satisfied dependency so a file or game leaf does not hide a step or discard a conditional-file pattern. Flag leaves in the same AND group remain enforced. A network-disabled C# parser/mapper probe confirms both dependency kinds evaluate true in visible and conditional contexts; source, output, and receipt are in `docs/parity/fomod-unmodeled-dependencies/`. This does not model game state or file presence, and nested unsupported dependency shapes remain rejected.
