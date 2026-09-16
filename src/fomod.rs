@@ -567,3 +567,20 @@ impl ArchiveModule {
         )
     }
 }
+
+impl ChoicesFile {
+    /// Override embedded choices recursively; the caller owns persistence of the guide.
+    pub fn apply_to_guide(&self, guide: &mut crate::Guide) -> Result<()> {
+        let value = serde_json::to_value(self)?;
+        fn attach(components: &mut [crate::Component], value: &serde_json::Value) {
+            for component in components {
+                component
+                    .metadata
+                    .insert("FomodChoices".into(), value.clone());
+                attach(&mut component.options, value);
+            }
+        }
+        attach(&mut guide.components, &value);
+        Ok(())
+    }
+}

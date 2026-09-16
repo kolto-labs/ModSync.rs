@@ -449,3 +449,7 @@ The configured ZIP install regression now cancels after the FOMOD Extract/copy s
 ### CLI configured FOMOD installation
 
 Validate and install accept --fomod-choices with the existing version-1 JSON contract. Explicit CLI choices override embedded choices for the run, including option components, and are retained in completion component definitions without rewriting the input guide. A subprocess test validates without writes, installs a real configured ZIP, checks exact output bytes and verifies choices in the completion receipt. Desktop selection controls and automatic post-download prompts remain open.
+
+### Desktop FOMOD choices-file input
+
+The validation page now accepts an optional choices-file path using the existing file picker. Desktop validation and installation parse that file and use the same recursive guide override as CLI; load errors invalidate validation and prevent job launch. Restore does not depend on the choices file. This is file-based configuration, not the full interactive plugin-selection wizard; native visual acceptance remains pending.

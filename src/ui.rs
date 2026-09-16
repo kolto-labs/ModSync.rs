@@ -36,6 +36,7 @@ pub struct App {
     mods: String,
     patcher: String,
     scratch: String,
+    fomod_choices: String,
     expanded_budget: String,
     allow_processes: bool,
     guide: Option<Guide>,
@@ -84,6 +85,7 @@ impl App {
             mods: string(mods),
             patcher: String::new(),
             scratch: String::new(),
+            fomod_choices: String::new(),
             expanded_budget: String::new(),
             allow_processes: false,
             guide: None,
@@ -422,7 +424,22 @@ impl App {
             }
         };
         self.cancelled = settings.cancelled.clone();
-        let guide = self.phase_guide();
+        let mut guide = self.phase_guide();
+        if matches!(job, Job::Validate | Job::Install) && !self.fomod_choices.trim().is_empty() {
+            let result = (|| -> anyhow::Result<()> {
+                let choices = modsync::fomod::ChoicesFile::parse(&std::fs::read_to_string(
+                    &self.fomod_choices,
+                )?)?;
+                if let Some(guide) = &mut guide {
+                    choices.apply_to_guide(guide)?;
+                }
+                Ok(())
+            })();
+            if let Err(error) = result {
+                self.logs.push(format!("FOMOD choices: {error:#}"));
+                return;
+            }
+        }
         let completed = self.completed_base.clone();
         if job == Job::Install && completed.is_none() {
             self.pending_base = guide
@@ -838,6 +855,10 @@ impl eframe::App for App {
                     ui.label(format!("Game: {}", self.game));
                     ui.label(format!("Mods: {}", self.mods));
                     if ui.checkbox(&mut self.allow_processes, "Trust this guide to run external programs").changed() { self.validated = false; }
+                    if Self::path_row(ui, "FOMOD choices file (optional)", &mut self.fomod_choices, false) {
+                        self.validated = false;
+                        self.confirm_install = false;
+                    }
                     ui.collapsing("Archive storage", |ui| {
                         if Self::path_row(ui, "Scratch folder (optional)", &mut self.scratch, true) { self.validated = false; }
                         ui.label("Use an existing folder outside the game and mod folders. Blank uses system temp.");
@@ -977,6 +998,20 @@ mod tests {
             assert!(!app.validated && !app.confirm_install);
             assert!(app.receiver.is_none());
             assert!(app.logs.last().unwrap().contains("nonnegative integer"));
+        }
+        app.expanded_budget.clear();
+        app.fomod_choices = root
+            .path()
+            .join("missing-choices.json")
+            .to_string_lossy()
+            .into_owned();
+        for job in [Job::Validate, Job::Install] {
+            app.validated = true;
+            app.confirm_install = true;
+            app.start(job, &ctx);
+            assert!(!app.validated && !app.confirm_install);
+            assert!(app.receiver.is_none());
+            assert!(app.logs.last().unwrap().starts_with("FOMOD choices:"));
         }
         std::fs::remove_dir(&game).unwrap();
         app.expanded_budget.clear();

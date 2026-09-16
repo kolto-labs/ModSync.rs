@@ -412,16 +412,7 @@ fn run() -> Result<()> {
             }
             if let Some(path) = &args.fomod_choices {
                 let choices = modsync::fomod::ChoicesFile::parse(&std::fs::read_to_string(path)?)?;
-                let value = serde_json::to_value(choices)?;
-                fn attach(components: &mut [modsync::Component], choices: &serde_json::Value) {
-                    for component in components {
-                        component
-                            .metadata
-                            .insert("FomodChoices".into(), choices.clone());
-                        attach(&mut component.options, choices);
-                    }
-                }
-                attach(&mut guide.components, &value);
+                choices.apply_to_guide(&mut guide)?;
             }
             let mut settings = Settings::new(&paths.source, &paths.game)?;
             settings.allow_processes = args.allow_processes;
