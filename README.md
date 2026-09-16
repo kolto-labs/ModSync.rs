@@ -60,6 +60,8 @@ CLI validation and installation select all top-level components by default, matc
 
 The desktop can save selections as a TOML file. The CLI reads the same file with `--use-file-selection`.
 
+For a prose Markdown guide that is the sole install authority, use `--direct-markdown`. It loads generated draft actions, skips 4GB Patcher and widescreen-only entries, and stops before game writes until every selected draft has been explicitly reviewed. It cannot be combined with component/profile/option/FOMOD selection overrides.
+
 ## Run patchers
 
 Point to an installed OdyPatcher executable:

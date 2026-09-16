@@ -204,3 +204,36 @@ fn cli_drafts_and_reviews_without_installing() {
         &Guide::load(&reviewed).unwrap().components[0]
     ));
 }
+
+#[test]
+fn direct_markdown_rejects_unreviewed_drafts_before_game_writes() {
+    use std::process::Command;
+    let dir = tempfile::tempdir().unwrap();
+    let markdown = dir.path().join("input.md");
+    let game = dir.path().join("game");
+    let mods = dir.path().join("mods");
+    fs::create_dir(&game).unwrap();
+    fs::create_dir(&mods).unwrap();
+    fs::write(mods.join("sample.tga"), "source").unwrap();
+    fs::write(
+        &markdown,
+        "### Test\n**Installation Instructions:** Move only sample.tga to your Override.\n",
+    )
+    .unwrap();
+
+    let result = Command::new(env!("CARGO_BIN_EXE_modsync"))
+        .args(["install", "--direct-markdown", "--input"])
+        .arg(&markdown)
+        .arg("--game-dir")
+        .arg(&game)
+        .arg("--source-dir")
+        .arg(&mods)
+        .output()
+        .unwrap();
+
+    assert!(!result.status.success());
+    assert!(
+        String::from_utf8_lossy(&result.stderr).contains("preflight stopped before game writes")
+    );
+    assert_eq!(fs::read_dir(&game).unwrap().count(), 0);
+}

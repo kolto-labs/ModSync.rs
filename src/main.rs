@@ -247,6 +247,9 @@ enum DeploymentAction {
 }
 #[derive(Args)]
 struct InstallArgs {
+    /// Install a Markdown guide in source order after direct-Markdown preflight.
+    #[arg(long, conflicts_with_all = ["fomod_choices", "profile", "active_profile", "use_file_selection", "select", "option"])]
+    direct_markdown: bool,
     /// Version-1 FOMOD choices JSON; overrides embedded choices for this run.
     #[arg(long)]
     fomod_choices: Option<PathBuf>,
@@ -786,6 +789,16 @@ fn run() -> Result<()> {
                     source: args.source_dir.clone().context("Supply --source-dir")?,
                 }
             };
+            if args.direct_markdown {
+                ensure!(
+                    paths
+                        .input
+                        .extension()
+                        .and_then(|extension| extension.to_str())
+                        .is_some_and(|extension| extension.eq_ignore_ascii_case("md")),
+                    "Direct Markdown mode requires a .md input file"
+                );
+            }
             let mut guide = Guide::load_for_install(&paths.input)?;
             if let Some(profile) = &profile {
                 profile.apply(&mut guide);
@@ -826,6 +839,25 @@ fn run() -> Result<()> {
                 ensure!(
                     guide.components.iter_mut().any(|c| select_option(c, id)),
                     "Unknown option: {id}"
+                );
+            }
+            if args.direct_markdown {
+                let result = modsync::direct_markdown::apply(&mut guide.components);
+                eprintln!(
+                    "Direct Markdown NLP: draftedFromProse={}, 4GB Patcher skipped={}, widescreen skipped={}",
+                    result.drafted_from_prose, result.skipped_four_gb, result.skipped_widescreen
+                );
+                ensure!(
+                    result.ready(),
+                    "Direct Markdown preflight stopped before game writes: {} selected component(s) have no reviewed executable actions: {}",
+                    result.unresolved_components.len(),
+                    result
+                        .unresolved_components
+                        .iter()
+                        .take(25)
+                        .cloned()
+                        .collect::<Vec<_>>()
+                        .join(", ")
                 );
             }
             if let Some(path) = &args.fomod_choices {

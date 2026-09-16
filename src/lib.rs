@@ -1,6 +1,7 @@
 pub mod archive;
 pub mod archive_generation;
 pub mod deployment;
+pub mod direct_markdown;
 pub mod download;
 pub mod download_hosts;
 pub mod download_queue;
