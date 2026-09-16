@@ -41,3 +41,16 @@ fn rejects_unsafe_or_ambiguous_protocol_shapes_before_fetching() {
         assert!(protocol::parse(value).is_err(), "{value}");
     }
 }
+
+#[test]
+fn instruction_urls_reject_local_targets_before_fetching() {
+    for url in [
+        "file:///tmp/guide.toml",
+        "https://localhost/guide.toml",
+        "https://127.0.0.1/guide.toml",
+        "https://10.0.0.1/guide.toml",
+    ] {
+        assert!(protocol::safe_instruction_url(url).is_err(), "{url}");
+    }
+    assert!(protocol::safe_instruction_url("https://example.com/guide.toml").is_ok());
+}

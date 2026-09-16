@@ -1,6 +1,7 @@
 use anyhow::{Result, bail};
 use reqwest::Url;
 use serde::Serialize;
+use std::net::IpAddr;
 
 #[derive(Clone, Debug, Serialize, PartialEq, Eq)]
 #[serde(tag = "scheme", rename_all = "lowercase")]
@@ -33,6 +34,49 @@ pub fn parse(raw: &str) -> Result<Link> {
         "modsync" => modsync(&url),
         _ => bail!("Unsupported protocol URL"),
     }
+}
+
+pub fn safe_instruction_url(raw: &str) -> Result<Url> {
+    let url = Url::parse(raw)?;
+    if !matches!(url.scheme(), "http" | "https") {
+        bail!("Instruction URL must use HTTP(S)");
+    }
+    let host = url
+        .host_str()
+        .ok_or_else(|| anyhow::anyhow!("Instruction URL host is required"))?;
+    if host.eq_ignore_ascii_case("localhost")
+        || host.ends_with(".localhost")
+        || host.ends_with(".local")
+    {
+        bail!("Instruction URL cannot target a local host");
+    }
+    if let Ok(ip) = host.parse::<IpAddr>() {
+        ensure_public_ip(ip)?;
+    }
+    Ok(url)
+}
+
+fn ensure_public_ip(ip: IpAddr) -> Result<()> {
+    let blocked = match ip {
+        IpAddr::V4(ip) => {
+            ip.is_loopback()
+                || ip.is_private()
+                || ip.is_link_local()
+                || ip.is_unspecified()
+                || (ip.octets()[0] == 100 && (64..=127).contains(&ip.octets()[1]))
+        }
+        IpAddr::V6(ip) => {
+            ip.is_loopback()
+                || ip.is_unspecified()
+                || ip.is_unique_local()
+                || ip.is_unicast_link_local()
+                || ip.is_multicast()
+        }
+    };
+    if blocked {
+        bail!("Instruction URL cannot target a private address");
+    }
+    Ok(())
 }
 
 fn nxm(url: &Url) -> Result<Link> {
