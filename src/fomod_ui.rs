@@ -159,6 +159,39 @@ mod tests {
     use super::*;
 
     #[test]
+    fn replacing_inspection_cancels_old_worker_and_rejects_its_late_result() {
+        let scratch = tempfile::tempdir().unwrap();
+        let (old_sender, old_receiver) = mpsc::channel();
+        let mut editor = Editor::default();
+        editor.receiver = Some(old_receiver);
+        editor.open = true;
+        let old_cancel = editor.cancel.clone();
+
+        editor.launch(
+            scratch.path().join("missing.zip"),
+            modsync::archive::Options::default(),
+            None,
+            false,
+        );
+
+        assert!(old_cancel.load(Ordering::Relaxed));
+        assert!(old_sender.send(Ok(None)).is_err());
+        assert!(!editor.cancel.load(Ordering::Relaxed));
+        assert_eq!(editor.filename, "missing.zip");
+        let result = editor
+            .receiver
+            .as_ref()
+            .unwrap()
+            .recv_timeout(std::time::Duration::from_secs(10))
+            .expect("replacement worker must report its own result");
+        assert!(result.is_err(), "the replacement archive does not exist");
+
+        let current_cancel = editor.cancel.clone();
+        drop(editor);
+        assert!(current_cancel.load(Ordering::Relaxed));
+    }
+
+    #[test]
     fn automatic_inspection_closes_for_ordinary_archives_but_keeps_errors_visible() {
         let ctx = egui::Context::default();
         for failed in [false, true] {
