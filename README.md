@@ -183,4 +183,4 @@ The desktop **Theme** menu saves Light, KOTOR, or KOTOR 2 in the selected settin
 
 On **Choose mods**, filter by tier or category, then use **Select through tier** or **Select category** to add matching base-build components. Known tiers are cumulative (1–4, then Optional); custom tiers match exactly. Existing selections are retained, and these bulk actions skip widescreen-only components.
 
-**Spoiler-free names and descriptions** uses authored alternatives or generic fallback text in the selection page; search follows that displayed text. It does not redact URLs, raw draft review, or activity logs. The toggle currently applies to the running session only.
+**Spoiler-free names and descriptions** uses authored alternatives or generic fallback text in the selection page; search follows that displayed text. It does not redact URLs, raw draft review, or activity logs. The toggle is saved in the selected settings store and restored at startup. Hover a normal-mode description to read its full text.

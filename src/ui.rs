@@ -421,6 +421,10 @@ impl App {
                 ui.label(modsync::selection::display_description(
                     option,
                     spoiler_free,
+                ))
+                .on_hover_text(modsync::selection::tooltip_description(
+                    option,
+                    spoiler_free,
                 ));
             }
             if option.is_selected {
@@ -562,7 +566,17 @@ impl eframe::App for App {
                         ui.label(format!("{} / {} selected", g.components.iter().filter(|c| c.is_selected).count(), g.components.len()));
                         ui.add(egui::TextEdit::singleline(&mut self.search).hint_text("Search displayed name or description"));
                     });
-                    ui.checkbox(&mut self.spoiler_free, "Spoiler-free names and descriptions");
+                    let mut spoiler_free = self.spoiler_free;
+                    if ui.checkbox(&mut spoiler_free, "Spoiler-free names and descriptions").changed() {
+                        let result = (|| -> Result<()> {
+                            anyhow::ensure!(!self.profile_directory.is_empty(), "Choose a settings directory");
+                            modsync::profiles::Store::new(Path::new(&self.profile_directory))?.save_spoiler_free_preference(spoiler_free)
+                        })();
+                        match result {
+                            Ok(()) => self.spoiler_free = spoiler_free,
+                            Err(e) => self.logs.push(format!("Spoiler preference save failed: {e:#}")),
+                        }
+                    }
                     ui.horizontal_wrapped(|ui| {
                         let tiers: std::collections::BTreeSet<_> = g.components.iter().map(|c| c.tier.clone()).filter(|s| !s.is_empty()).collect();
                         let categories: std::collections::BTreeSet<_> = g.components.iter().flat_map(|c| c.category.clone()).collect();
@@ -600,7 +614,7 @@ impl eframe::App for App {
                             if let Some(c) = g.components.get_mut(self.selected) {
                                 ui.heading(modsync::selection::display_name(c, self.spoiler_free));
                                 ui.label(format!("{}  ·  {}", c.author, c.tier));
-                                ui.label(modsync::selection::display_description(c, self.spoiler_free));
+                                ui.label(modsync::selection::display_description(c, self.spoiler_free)).on_hover_text(modsync::selection::tooltip_description(c, self.spoiler_free));
                                 if !c.directions.is_empty() && !self.spoiler_free { ui.separator(); ui.label(&c.directions); }
                                 if Self::options(ui, c, self.spoiler_free) { self.validated = false; }
                                 ui.separator();
@@ -702,6 +716,14 @@ pub fn launch(
             {
                 Ok(theme) => app.theme = theme,
                 Err(e) => app.logs.push(format!("Theme load failed: {e:#}")),
+            }
+            match modsync::profiles::Store::new(Path::new(&app.profile_directory))
+                .and_then(|store| store.spoiler_free_preference())
+            {
+                Ok(enabled) => app.spoiler_free = enabled,
+                Err(e) => app
+                    .logs
+                    .push(format!("Spoiler preference load failed: {e:#}")),
             }
             app.apply_theme(&creation.egui_ctx);
             Ok(Box::new(app))

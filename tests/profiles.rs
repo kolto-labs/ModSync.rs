@@ -505,3 +505,44 @@ fn theme_settings_handle_defaults_casing_and_preserve_other_fields() {
     fs::write(dir.path().join("settings.json"), r#"{"theme":42}"#).unwrap();
     assert!(store.theme_preference().is_err());
 }
+
+#[test]
+fn spoiler_preference_persists_with_strict_boolean_type_and_unrelated_fields() {
+    let dir = tempfile::tempdir().unwrap();
+    let store = Store::new(dir.path()).unwrap();
+    fs::write(
+        dir.path().join("settings.json"),
+        r#"{"theme":"Keep","nested":{"keep":7}}"#,
+    )
+    .unwrap();
+    assert!(!store.spoiler_free_preference().unwrap());
+    store.save_spoiler_free_preference(true).unwrap();
+    assert!(store.spoiler_free_preference().unwrap());
+    let settings: Value =
+        serde_json::from_slice(&fs::read(dir.path().join("settings.json")).unwrap()).unwrap();
+    assert_eq!(
+        settings,
+        json!({"theme":"Keep","nested":{"keep":7},"spoilerFreeMode":true})
+    );
+    fs::write(
+        dir.path().join("settings.json"),
+        r#"{"SPOILERFREEMODE":true}"#,
+    )
+    .unwrap();
+    assert!(store.spoiler_free_preference().unwrap());
+    store.save_spoiler_free_preference(false).unwrap();
+    assert!(!store.spoiler_free_preference().unwrap());
+    for text in [
+        r#"{"spoilerFreeMode":null}"#,
+        r#"{"spoilerFreeMode":"true"}"#,
+    ] {
+        fs::write(dir.path().join("settings.json"), text).unwrap();
+        assert!(store.spoiler_free_preference().is_err());
+    }
+    fs::write(dir.path().join("settings.json"), "broken").unwrap();
+    assert!(store.save_spoiler_free_preference(true).is_err());
+    assert_eq!(
+        fs::read(dir.path().join("settings.json")).unwrap(),
+        b"broken"
+    );
+}

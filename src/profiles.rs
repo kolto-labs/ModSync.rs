@@ -298,6 +298,34 @@ impl Store {
             setting_text(&settings, "destinationPath")?,
         ))
     }
+    pub fn spoiler_free_preference(&self) -> Result<bool> {
+        let settings = self.read_settings(false)?;
+        match settings
+            .as_object()
+            .unwrap()
+            .iter()
+            .rev()
+            .find(|(k, _)| k.eq_ignore_ascii_case("spoilerFreeMode"))
+            .map(|(_, v)| v)
+        {
+            None => Ok(false),
+            Some(Value::Bool(value)) => Ok(*value),
+            _ => anyhow::bail!("Settings spoilerFreeMode must be a boolean"),
+        }
+    }
+    pub fn save_spoiler_free_preference(&self, enabled: bool) -> Result<()> {
+        let _lock = self.lock()?;
+        let mut settings = self.read_settings(false)?;
+        settings
+            .as_object_mut()
+            .unwrap()
+            .retain(|k, _| !k.eq_ignore_ascii_case("spoilerFreeMode"));
+        settings["spoilerFreeMode"] = enabled.into();
+        recovery::atomic_write(
+            &self.root.join("settings.json"),
+            &serde_json::to_vec_pretty(&settings)?,
+        )
+    }
     pub fn theme_preference(&self) -> Result<String> {
         Ok(setting_text(&self.read_settings(false)?, "theme")?
             .unwrap_or_else(|| "/Styles/LightStyle.axaml".into()))

@@ -88,3 +88,14 @@ fn spoiler_acronyms_follow_reference_algorithm_instead_of_comment_examples() {
         assert_eq!(selection::display_name(&c, true), expected);
     }
 }
+
+#[test]
+fn tooltip_keeps_full_normal_description_without_leaking_it_in_spoiler_mode() {
+    let c = Component {
+        description: format!("{}secret", "x".repeat(220)),
+        ..Default::default()
+    };
+    assert!(!selection::display_description(&c, false).contains("secret"));
+    assert!(selection::tooltip_description(&c, false).ends_with("secret"));
+    assert!(!selection::tooltip_description(&c, true).contains("secret"));
+}

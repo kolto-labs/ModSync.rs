@@ -199,3 +199,7 @@ F04/F24: added shared additive tier/category selection rules and desktop exact f
 ### Spoiler-aware display and search
 
 F04/F24: authored spoiler-free text and reference fallback names/descriptions now drive component/option display and selection search. Regression tests verify hidden-description exclusion, fallbacks and truncation without mutating guide data. Persistence of the toggle, complete tooltip/detail handling, other raw text surfaces, Unicode edge cases and native interaction remain outstanding.
+
+### Spoiler preference persistence and full description access
+
+F17/F24: spoilerFreeMode now persists and loads at startup; normal description tooltips retain full text and spoiler tooltips exclude the hidden normal description. Store/projection regressions verify those boundaries. Native toggle/restart/hover and full reference tooltip metadata remain unverified or incomplete.

@@ -135,3 +135,12 @@ pub fn matches_search(c: &Component, search: &str, spoiler_free: bool) -> bool {
             .to_lowercase()
             .contains(&query)
 }
+
+/// The reference tooltip retains the full ordinary description.
+pub fn tooltip_description(c: &Component, spoiler_free: bool) -> String {
+    if spoiler_free {
+        display_description(c, true)
+    } else {
+        c.description.clone()
+    }
+}
