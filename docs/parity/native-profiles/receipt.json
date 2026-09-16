@@ -1,0 +1,27 @@
+{
+  "tested_commit": "13f50111ec0eb6950ef73a21f29491fe5a6278a4",
+  "binary_sha256": "23f0afb4e2bbe5f207bcc80177a2a61b39ef65531a78ba7b04da5f19196366e3",
+  "platform": "Linux X11 / Xvfb 1280x900; native egui application 1120x780",
+  "actions": [
+    "restored seeded directories at launch",
+    "selected KOTOR 2 through theme menu",
+    "saved Native profile",
+    "cloned profile then renamed clone to Renam",
+    "activated Renam",
+    "opened stored-profile list",
+    "confirmed deletion of active Renam",
+    "ran validation",
+    "confirmed snapshot and install",
+    "restarted application and inspected restored theme/directories",
+    "clicked save directories after restart"
+  ],
+  "checks": {
+    "installed_bytes": "selected bytes",
+    "source_bytes_unchanged": true,
+    "active_profile_cleared": true,
+    "nested_settings_preserved": true,
+    "original_profile_retained": true,
+    "renamed_profile_removed": true
+  },
+  "limits": "One component Copy fixture only. No full K1/K2 guide, C# GUI differential, native Windows/macOS, screen reader, keyboard-only, all theme visuals or all profile error-path proof. Initial typing before window focus failed with visible empty-name validation; focus was set and operation retried. Input timing produced actual renamed name Renam."
+}

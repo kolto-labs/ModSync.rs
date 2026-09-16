@@ -187,3 +187,7 @@ F17 is now partial: sourcePath/destinationPath load at desktop startup, explicit
 ### Theme settings progress
 
 F17/F24: the desktop now persists and restores the three canonical C# theme paths, with Light as the absent/null default. It preserves unrelated settings and retains the displayed theme on save failure. Shared-store and egui-context tests cover these behaviors. Full Avalonia appearance and the reference theme-to-TargetGame effects are not implemented or claimed; native interaction proof remains outstanding.
+
+### Native Linux profile/settings workflow proof
+
+F16/F17/F24 now have bounded native interaction evidence at `native-profiles/receipt.json`, tied to commit 13f50111ec0eb6950ef73a21f29491fe5a6278a4 and its binary hash. Screenshots cover profile listing, deletion confirmation, validation, installation and restart. Verified profile/settings disk state and exact installed bytes support those specific paths. This does not close any domain: full guide, platform, accessibility, visual and remaining settings requirements still apply.
