@@ -1,0 +1,22 @@
+{
+  "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+  "reference_dll_sha256": "8f3b1e3f8fe47b2cc6f8e3f281912506721c7367218381bb2a35cf86dc5768f0",
+  "runtime": "dotnet 10.0.11; probe targets net9.0",
+  "isolation": "bwrap read-only root, temporary fixture writable, network namespace disabled",
+  "checks": [
+    "C# analysis produced one conflict with two writers",
+    "Latest first-component instruction index retained",
+    "Overwrite=false writer omitted",
+    "Workspace staging omitted",
+    "Game remained empty and staging was not created"
+  ],
+  "limitations": [
+    "One Copy fixture; no external patchers, options, deletes, or GUI proof",
+    "Rust regression also varies path casing; C# fixture uses identical casing"
+  ],
+  "files": {
+    "Program.cs": "a4baea29c6c7079902e38323df01dc9fdb895a0776e1f01bcc15f1e84ef33b17",
+    "probe.csproj": "35f334ace768b4aba6eedee309e5434d205d433230530a4a63a9f437cada22bd",
+    "result.json": "da0c947ef79866a32871fc9f7c8bdb3010d083219149edf0c000cd6419daae32"
+  }
+}

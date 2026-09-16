@@ -18,15 +18,15 @@ fn conflicts_follow_real_writes_and_cli_is_read_only() {
         })
     };
     let text = json!({"thisMod":[
-        {"Guid":"first","Name":"First","IsSelected":true,"Instructions":[
+        {"Guid":"11111111-1111-1111-1111-111111111111","Name":"First","IsSelected":true,"Instructions":[
             copy("<<modDirectory>>/a/*", "<<gameDirectory>>/Override",true),
             copy("<<modDirectory>>/a/*", "<<gameDirectory>>/Override",true),
             copy("<<modDirectory>>/a/*", "<<modDirectory>>/staging",true)
         ]},
-        {"Guid":"skipped","Name":"No overwrite","IsSelected":true,"Instructions":[
+        {"Guid":"22222222-2222-2222-2222-222222222222","Name":"Skipped overwrite","IsSelected":true,"Instructions":[
             copy("<<modDirectory>>/b/*", "<<gameDirectory>>/override",false)
         ]},
-        {"Guid":"last","Name":"Last","IsSelected":true,"Instructions":[
+        {"Guid":"33333333-3333-3333-3333-333333333333","Name":"Last","IsSelected":true,"Instructions":[
             copy("<<modDirectory>>/b/*", "<<gameDirectory>>/override",true),
             copy("<<modDirectory>>/b/*", "<<modDirectory>>/staging",true)
         ]}
@@ -45,11 +45,45 @@ fn conflicts_follow_real_writes_and_cli_is_read_only() {
         conflict.destination_path,
         "<<kotorDirectory>>/Override/asset.txt"
     );
-    assert_eq!(conflict.winner_component_guid, "last");
+    assert_eq!(
+        conflict.winner_component_guid,
+        "33333333-3333-3333-3333-333333333333"
+    );
     assert_eq!(conflict.writers.len(), 2);
     assert_eq!(conflict.writers[0].instruction_index, 1);
     assert_eq!(conflict.writers[1].instruction_index, 0);
     assert_eq!(report.conflict_counts_by_component.len(), 2);
+    // Match the captured C# service output, allowing only serialization casing
+    // and Rust's explicit limitations field to differ.
+    fn camel_keys(value: serde_json::Value) -> serde_json::Value {
+        match value {
+            serde_json::Value::Object(map) => serde_json::Value::Object(
+                map.into_iter()
+                    .map(|(key, value)| {
+                        let key = format!("{}{}", key[..1].to_ascii_lowercase(), &key[1..]);
+                        (key, camel_keys(value))
+                    })
+                    .collect(),
+            ),
+            serde_json::Value::Array(values) => {
+                serde_json::Value::Array(values.into_iter().map(camel_keys).collect())
+            }
+            other => other,
+        }
+    }
+    let mut reference = camel_keys(
+        serde_json::from_str(include_str!("../docs/parity/conflict-oracle/result.json")).unwrap(),
+    );
+    assert_eq!(
+        reference.as_object_mut().unwrap().remove("hasConflicts"),
+        Some(json!(true))
+    );
+    let mut actual = serde_json::to_value(&report).unwrap();
+    assert_eq!(
+        actual.as_object_mut().unwrap().remove("limitations"),
+        Some(json!([]))
+    );
+    assert_eq!(actual, reference);
     assert!(!mods.join("staging").exists());
     assert_eq!(fs::read_dir(&game).unwrap().count(), 0);
 

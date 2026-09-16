@@ -1,0 +1,26 @@
+{
+  "Conflicts": [
+    {
+      "DestinationPath": "\u003C\u003CkotorDirectory\u003E\u003E/Override/asset.txt",
+      "Writers": [
+        {
+          "ComponentGuid": "11111111-1111-1111-1111-111111111111",
+          "ComponentName": "First",
+          "InstructionIndex": 1
+        },
+        {
+          "ComponentGuid": "33333333-3333-3333-3333-333333333333",
+          "ComponentName": "Last",
+          "InstructionIndex": 0
+        }
+      ],
+      "WinnerComponentGuid": "33333333-3333-3333-3333-333333333333"
+    }
+  ],
+  "ConflictCountsByComponent": {
+    "11111111-1111-1111-1111-111111111111": 1,
+    "33333333-3333-3333-3333-333333333333": 1
+  },
+  "AnalyzedComponentCount": 3,
+  "HasConflicts": true
+}

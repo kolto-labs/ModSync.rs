@@ -521,3 +521,7 @@ The shared engine now exposes analyze_conflicts, and the conflicts CLI accepts t
 ### Desktop file-conflict report
 
 The validation page can now run shared conflict analysis in its background worker before base installation. The expandable report lists paths and ordered writers with instruction numbers and last-writer labels, exposes external-effect limitations, and copies JSON. Input/readiness invalidation clears the report, and conflict success does not authorize installation. A desktop worker regression checks the report, read-only game state and stale-result clearing; setup-failure tests include the new action. Native rendering/click acceptance and remaining-phase analysis are still pending.
+
+### C# conflict-service differential fixture
+
+The pinned C# FileConflictAnalyzer was executed in a network-disabled, read-only-root sandbox with only an isolated fixture writable. Its report agrees with Rust on destination, ordered writers, latest instruction index per writer, last writer, per-component counts and analyzed count for repeated Copy instructions, overwrite=false and staging exclusions. The Rust regression consumes the captured C# result; probe source, DLL hash, result and boundaries are recorded in docs/parity/conflict-oracle. Both analyzers leave the fixture game empty. This is one service-level fixture, not full conflict parity or native desktop acceptance.
