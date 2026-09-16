@@ -157,9 +157,11 @@ impl NexusClient {
                 || (key.as_deref().is_some_and(|value| !value.is_empty()) && *expires > 0),
             "The nxm link has no download key and no Nexus API key is configured"
         );
-        let metadata: NexusModFile = self.get_json(&format!(
-            "games/{game_domain}/mods/{mod_id}/files/{file_id}.json"
-        ))?;
+        let metadata = self
+            .get_json::<NexusModFile>(&format!(
+                "games/{game_domain}/mods/{mod_id}/files/{file_id}.json"
+            ))
+            .ok();
         let mut path =
             format!("games/{game_domain}/mods/{mod_id}/files/{file_id}/download_link.json");
         if let Some(key) = key.as_deref().filter(|key| !key.is_empty()) {
@@ -175,8 +177,18 @@ impl NexusClient {
             .and_then(Value::as_str)
             .filter(|uri| reqwest::Url::parse(uri).is_ok_and(|url| url.scheme() == "https"))
             .ok_or_else(|| anyhow::anyhow!("Nexus returned no HTTPS download mirror"))?;
+        let file_name = metadata
+            .map(|metadata| metadata.file_name)
+            .filter(|name| !name.is_empty())
+            .or_else(|| {
+                reqwest::Url::parse(uri)
+                    .ok()
+                    .and_then(|url| url.path_segments()?.last().map(str::to_owned))
+            })
+            .filter(|name| !name.is_empty())
+            .unwrap_or_else(|| format!("nexus_{game_domain}_{mod_id}_{file_id}"));
         Ok(NxmDownloadLink {
-            file_name: metadata.file_name,
+            file_name,
             uri: uri.into(),
         })
     }
