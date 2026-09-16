@@ -550,3 +550,7 @@ The C# mapper cannot express a rename through its Copy action. For a file destin
 ### Managed deployment manifests
 
 The shared deployment service stages `staging/<component-guid>` trees into the game directory using hardlinks with a copy fallback, writes C#-shaped per-component JSON manifests, backs up overwritten files, and exposes status, deploy, uninstall, and newest-first purge through the CLI. Uninstall removes only files whose current SHA-256 matches the manifest and restores a displaced file only after that removal; user-modified deployed files and their backups remain intact. Isolated filesystem tests cover deploy/uninstall restoration, hash-mismatch preservation, purge ordering, unsafe manifest paths, and numeric deployment-method serialization. Engine staging, managed profile switching, patcher provenance, GUI controls, multi-platform filesystem behavior, and C# differential execution remain open.
+
+### Concurrent direct-download queue
+
+`download-batch` accepts a JSON array of direct HTTPS jobs and runs a bounded worker queue with retry counts and stable input-order JSON results. The shared queue marks work that has not started after cancellation as cancelled and leaves failed direct-download output unpublished because the existing downloader uses a temporary file. Deterministic executor tests cover retry, terminal failure, result order and cancellation before start. Per-byte progress/speed, live cancellation control, provider-specific handlers, GUI status/restart behavior and controlled HTTPS transport acceptance remain open.

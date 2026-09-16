@@ -117,6 +117,18 @@ enum Action {
         #[arg(long)]
         max_expanded_bytes: Option<u64>,
     },
+    /// Download a JSON array of direct HTTPS jobs with bounded concurrency and retries.
+    DownloadBatch {
+        input: PathBuf,
+        #[arg(long, default_value_t = 4)]
+        workers: usize,
+        #[arg(long, default_value_t = 1)]
+        retries: usize,
+        #[arg(long)]
+        scratch_dir: Option<PathBuf>,
+        #[arg(long)]
+        max_expanded_bytes: Option<u64>,
+    },
 }
 #[derive(Args)]
 struct DeploymentArgs {
@@ -478,6 +490,33 @@ fn run() -> Result<()> {
                 ..Default::default()
             },
         ),
+        Some(Action::DownloadBatch {
+            input,
+            workers,
+            retries,
+            scratch_dir,
+            max_expanded_bytes,
+        }) => {
+            let jobs = serde_json::from_slice(&std::fs::read(input)?)?;
+            let results = modsync::download_queue::fetch_all(
+                jobs,
+                workers,
+                retries,
+                &AtomicBool::new(false),
+                modsync::archive::Options {
+                    scratch_dir,
+                    max_expanded_bytes,
+                },
+            )?;
+            println!("{}", serde_json::to_string_pretty(&results)?);
+            ensure!(
+                results
+                    .iter()
+                    .all(|item| item.status == modsync::download_queue::Status::Completed),
+                "One or more downloads failed"
+            );
+            Ok(())
+        }
         Some(action @ (Action::Install(_) | Action::Validate(_) | Action::Conflicts(_))) => {
             let install = matches!(action, Action::Install(_));
             let conflicts = matches!(action, Action::Conflicts(_));

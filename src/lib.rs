@@ -2,6 +2,7 @@ pub mod archive;
 pub mod archive_generation;
 pub mod deployment;
 pub mod download;
+pub mod download_queue;
 pub mod draft;
 pub mod engine;
 pub mod model;
