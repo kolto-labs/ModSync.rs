@@ -501,3 +501,48 @@ pub fn is_module_config_path(path: &str) -> bool {
     matches!((segments.next(), segments.next()), (Some(file), Some(directory))
         if file.eq_ignore_ascii_case("ModuleConfig.xml") && directory.eq_ignore_ascii_case("fomod"))
 }
+
+/// Parsed installer metadata from a verified archive; no installation is authorized.
+pub struct ArchiveModule {
+    pub module_path: std::path::PathBuf,
+    pub content_root: std::path::PathBuf,
+    pub config: ModuleConfig,
+    pub info: Option<FomodInfo>,
+}
+
+/// Inspect in temporary scratch storage, retaining no extracted files.
+/// ponytail: spools the whole archive through the existing verified reader;
+/// selective metadata extraction can replace this if profiling warrants it.
+pub fn inspect_archive(
+    path: &std::path::Path,
+    options: &crate::archive::Options,
+    cancelled: &std::sync::atomic::AtomicBool,
+) -> Result<Option<ArchiveModule>> {
+    let entries = crate::archive::unpack(path, path, options, cancelled)?;
+    let mut modules = entries
+        .iter()
+        .filter(|e| is_module_config_path(&e.path.to_string_lossy()));
+    let Some(module) = modules.next() else {
+        return Ok(None);
+    };
+    ensure!(
+        modules.next().is_none(),
+        "Archive contains multiple FOMOD installers"
+    );
+    let directory = module.path.parent().unwrap();
+    let info_path = directory
+        .join("info.xml")
+        .to_string_lossy()
+        .to_ascii_lowercase();
+    let info = entries
+        .iter()
+        .find(|e| e.path.to_string_lossy().to_ascii_lowercase() == info_path)
+        .map(|e| -> Result<FomodInfo> { parse_info_xml(&std::fs::read_to_string(e.file.path())?) })
+        .transpose()?;
+    Ok(Some(ArchiveModule {
+        module_path: module.path.clone(),
+        content_root: directory.parent().unwrap().to_path_buf(),
+        config: parse_module_xml(&std::fs::read_to_string(module.file.path())?)?,
+        info,
+    }))
+}

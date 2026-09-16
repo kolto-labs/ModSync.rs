@@ -421,3 +421,7 @@ The shared XML reader now parses Name, Author, Version, Website and Description 
 ### FOMOD detector segment boundary
 
 Extraction now uses a shared terminal-segment detector matching FomodDetector.IsModuleConfigPath instead of a raw suffix check. Nested and mixed-case FOMOD paths still require configuration; an unrelated notfomod directory no longer causes false refusal. Isolated ZIP preflight coverage verifies both outcomes without writes. Detection alone does not authorize paths or configured installation.
+
+### FOMOD archive inspection
+
+The shared archive reader can now inspect and parse a nested ModuleConfig.xml plus sibling info.xml, returning their content root without retaining extracted files. It uses existing archive safety, size-budget and cancellation checks and temporary scratch storage. Multiple installers fail explicitly rather than choosing an enumeration-dependent first entry. ZIP regressions cover metadata, unchanged source bytes, cleanup, malformed XML, corrupt archives, unsafe paths and cancellation. This spools the whole archive and is not the C# listing-only probe; configured installation and interface integration remain open.

@@ -515,3 +515,66 @@ fn info_xml_preserves_reference_metadata_and_rejects_unsafe_xml() {
         assert!(parse_info_xml(invalid).is_err());
     }
 }
+
+#[test]
+fn archive_inspection_reads_nested_metadata_and_cleans_scratch_on_failure() {
+    use modsync::{archive::Options, fomod::inspect_archive};
+    use std::{io::Write, sync::atomic::AtomicBool};
+    let temp = tempfile::tempdir().unwrap();
+    let scratch = temp.path().join("scratch");
+    std::fs::create_dir(&scratch).unwrap();
+    let path = temp.path().join("mod.zip");
+    let options = Options {
+        scratch_dir: Some(scratch.clone()),
+        max_expanded_bytes: Some(4096),
+    };
+    let write = |files: &[(&str, &str)]| {
+        let mut zip = zip::ZipWriter::new(std::fs::File::create(&path).unwrap());
+        for (name, content) in files {
+            zip.start_file(*name, zip::write::SimpleFileOptions::default())
+                .unwrap();
+            zip.write_all(content.as_bytes()).unwrap();
+        }
+        zip.finish().unwrap();
+    };
+    write(&[
+        (
+            "Wrapper/FoMoD/ModuleConfig.xml",
+            "<config><moduleName>Module</moduleName></config>",
+        ),
+        (
+            "Wrapper/FoMoD/INFO.XML",
+            "<fomod><Name>Metadata</Name></fomod>",
+        ),
+    ]);
+    let original = std::fs::read(&path).unwrap();
+    let result = inspect_archive(&path, &options, &AtomicBool::new(false))
+        .unwrap()
+        .unwrap();
+    assert_eq!(result.content_root, std::path::Path::new("Wrapper"));
+    assert_eq!(result.config.name, "Module");
+    assert_eq!(result.info.unwrap().name, "Metadata");
+    assert_eq!(std::fs::read(&path).unwrap(), original);
+    assert_eq!(std::fs::read_dir(&scratch).unwrap().count(), 0);
+    assert!(inspect_archive(&path, &options, &AtomicBool::new(true)).is_err());
+    for files in [
+        vec![("fomod/ModuleConfig.xml", "<broken>")],
+        vec![
+            ("fomod/ModuleConfig.xml", "<config/>"),
+            ("other/fomod/ModuleConfig.xml", "<config/>"),
+        ],
+        vec![("../fomod/ModuleConfig.xml", "<config/>")],
+    ] {
+        write(&files);
+        assert!(inspect_archive(&path, &options, &AtomicBool::new(false)).is_err());
+        assert_eq!(std::fs::read_dir(&scratch).unwrap().count(), 0);
+    }
+    write(&[("ordinary.txt", "ordinary")]);
+    assert!(
+        inspect_archive(&path, &options, &AtomicBool::new(false))
+            .unwrap()
+            .is_none()
+    );
+    std::fs::write(&path, b"corrupt").unwrap();
+    assert!(inspect_archive(&path, &options, &AtomicBool::new(false)).is_err());
+}
