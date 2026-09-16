@@ -507,6 +507,10 @@ Linux X11 acceptance at commit 3e7cf9f opened the desktop editor from a typed ar
 
 Successful verified direct downloads now pass their actual output path and archive limits to the desktop FOMOD editor when a guide is loaded before base installation. Inspection runs in the background, restores existing choices through the same resolver as manual opening, and dismisses ordinary archives without a configuration error. Failed downloads do not dispatch this event; inspection errors remain visible. An egui regression checks ordinary-archive dismissal and visible errors. Native network-download-to-editor acceptance and multi-host queue integration remain pending.
 
+### Persisted FOMOD prompt state
+
+The Rust guide resource registry now preserves the C# `handlerMetadata.fomodPromptStatus` shape per matching archive filename. It recognizes `dismissed`, `configured`, and `warned`: dismissed archives prompt again, while configured and warned archives do not. Applying or merging valid Rust choices records `configured` when the component already has a resource entry for that archive, preserving existing metadata and its serialized key casing. A focused regression proves nested, case-insensitive archive matching and this prompt policy. The state by itself does not authorize execution: the Rust validation gate still requires explicit `FomodChoices`, because the C# download-orchestration and post-download prompt/recovery flow has not been ported or differentially proven.
+
 ### Desktop FOMOD inspection lifecycle
 
 A worker-lifecycle regression verifies that replacing an inspection requests cancellation of the old worker, disconnects its result channel, and receives the replacement worker's own error. Dropping the editor requests cancellation of the current worker. This establishes result isolation and cancellation signaling; it does not prove a bound on archive-reader cancellation latency.

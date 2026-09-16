@@ -597,19 +597,135 @@ impl ArchiveModule {
     }
 }
 
+/// C# stores this state in `resourceRegistry.*.handlerMetadata.fomodPromptStatus`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PromptStatus {
+    Dismissed,
+    Configured,
+    Warned,
+}
+impl PromptStatus {
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::Dismissed => "dismissed",
+            Self::Configured => "configured",
+            Self::Warned => "warned",
+        }
+    }
+}
+
+fn archive_name(name: &str) -> String {
+    name.trim()
+        .replace('\\', "/")
+        .rsplit('/')
+        .next()
+        .unwrap_or("")
+        .to_ascii_lowercase()
+}
+
+fn resource_matches(value: &serde_json::Value, filename: &str) -> bool {
+    let Some(files) = value
+        .get("files")
+        .or_else(|| value.get("Files"))
+        .and_then(serde_json::Value::as_object)
+    else {
+        return false;
+    };
+    files
+        .keys()
+        .any(|name| archive_name(name) == filename || name.trim().eq_ignore_ascii_case(filename))
+}
+
+/// Read the C#-compatible per-archive prompt status from the matching resource entry.
+pub fn prompt_status(component: &crate::Component, archive: &str) -> Option<String> {
+    let filename = archive_name(archive);
+    let resource = component
+        .resource_registry
+        .values()
+        .find(|resource| resource_matches(resource, &filename))?;
+    let metadata = resource
+        .get("handlerMetadata")
+        .or_else(|| resource.get("HandlerMetadata"))?
+        .as_object()?;
+    let statuses = metadata.get("fomodPromptStatus")?.as_object()?;
+    statuses
+        .iter()
+        .find(|(name, _)| archive_name(name) == filename)
+        .and_then(|(_, status)| status.as_str())
+        .map(str::to_owned)
+}
+
+/// Match C# prompt policy: dismissed prompts again; configured and warned do not.
+pub fn should_prompt(component: &crate::Component, archive: &str) -> bool {
+    !matches!(
+        prompt_status(component, archive).as_deref(),
+        Some("configured" | "warned")
+    )
+}
+
+/// Persist a C#-compatible prompt state when a resource registry entry contains the archive.
+pub fn set_prompt_status(
+    component: &mut crate::Component,
+    archive: &str,
+    status: PromptStatus,
+) -> bool {
+    let filename = archive_name(archive);
+    let Some(resource) = component
+        .resource_registry
+        .values_mut()
+        .find(|resource| resource_matches(resource, &filename))
+    else {
+        return false;
+    };
+    let object = resource
+        .as_object_mut()
+        .expect("resource matched only as an object");
+    let metadata_key = if object.contains_key("handlerMetadata") {
+        "handlerMetadata"
+    } else if object.contains_key("HandlerMetadata") {
+        "HandlerMetadata"
+    } else {
+        "handlerMetadata"
+    };
+    let metadata = object
+        .entry(metadata_key)
+        .or_insert_with(|| serde_json::json!({}));
+    let statuses = metadata
+        .as_object_mut()
+        .expect("handlerMetadata must be an object")
+        .entry("fomodPromptStatus")
+        .or_insert_with(|| serde_json::json!({}));
+    statuses
+        .as_object_mut()
+        .expect("fomodPromptStatus must be an object")
+        .insert(filename, serde_json::Value::String(status.as_str().into()));
+    true
+}
+
 impl ChoicesFile {
     /// Override embedded choices recursively; the caller owns persistence of the guide.
     pub fn apply_to_guide(&self, guide: &mut crate::Guide) -> Result<()> {
         let value = serde_json::to_value(self)?;
-        fn attach(components: &mut [crate::Component], value: &serde_json::Value) {
+        fn attach(
+            components: &mut [crate::Component],
+            value: &serde_json::Value,
+            archives: &[ArchiveChoices],
+        ) {
             for component in components {
                 component
                     .metadata
                     .insert("FomodChoices".into(), value.clone());
-                attach(&mut component.options, value);
+                for archive in archives {
+                    set_prompt_status(
+                        component,
+                        &archive.archive_file_name,
+                        PromptStatus::Configured,
+                    );
+                }
+                attach(&mut component.options, value, archives);
             }
         }
-        attach(&mut guide.components, &value);
+        attach(&mut guide.components, &value, &self.archives);
         Ok(())
     }
 }
@@ -750,6 +866,13 @@ impl ChoicesFile {
                 component
                     .metadata
                     .insert("FomodChoices".into(), serde_json::to_value(choices)?);
+                for archive in &edits.archives {
+                    set_prompt_status(
+                        component,
+                        &archive.archive_file_name,
+                        PromptStatus::Configured,
+                    );
+                }
                 merge(&mut component.options, edits)?;
             }
             Ok(())

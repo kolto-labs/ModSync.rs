@@ -937,3 +937,71 @@ fn saved_archive_selection_resolves_nested_components_and_rejects_conflicts() {
         .unwrap()["archives"][0]["selections"][0]["plugins"] = serde_json::json!(["First"]);
     assert!(saved_archive_choices(&guide, "mod.zip").is_err());
 }
+
+#[test]
+fn prompt_status_matches_csharp_resource_metadata_contract() {
+    let mut component = modsync::Component {
+        resource_registry: serde_json::from_value(serde_json::json!({
+            "https://example.test/download": {
+                "files": {"nested\\Package.ZIP": true},
+                "handlerMetadata": {"unrelated": "keep"}
+            }
+        }))
+        .unwrap(),
+        ..Default::default()
+    };
+    assert!(modsync::fomod::should_prompt(&component, "package.zip"));
+    assert!(modsync::fomod::set_prompt_status(
+        &mut component,
+        "PACKAGE.zip",
+        modsync::fomod::PromptStatus::Dismissed
+    ));
+    assert_eq!(
+        modsync::fomod::prompt_status(&component, "nested/package.zip").as_deref(),
+        Some("dismissed")
+    );
+    assert!(modsync::fomod::should_prompt(&component, "package.zip"));
+    modsync::fomod::set_prompt_status(
+        &mut component,
+        "package.zip",
+        modsync::fomod::PromptStatus::Warned,
+    );
+    assert!(!modsync::fomod::should_prompt(&component, "package.zip"));
+    modsync::fomod::set_prompt_status(
+        &mut component,
+        "package.zip",
+        modsync::fomod::PromptStatus::Configured,
+    );
+    let resource = component.resource_registry.values().next().unwrap();
+    assert_eq!(resource["handlerMetadata"]["unrelated"], "keep");
+    assert_eq!(
+        resource["handlerMetadata"]["fomodPromptStatus"]["package.zip"],
+        "configured"
+    );
+}
+
+#[test]
+fn prompt_status_preserves_existing_metadata_casing() {
+    let mut component = modsync::Component {
+        resource_registry: serde_json::from_value(serde_json::json!({
+            "source": {
+                "Files": {"Package.zip": true},
+                "HandlerMetadata": {"existing": true}
+            }
+        }))
+        .unwrap(),
+        ..Default::default()
+    };
+    assert!(modsync::fomod::set_prompt_status(
+        &mut component,
+        "package.zip",
+        modsync::fomod::PromptStatus::Configured,
+    ));
+    let resource = component.resource_registry.values().next().unwrap();
+    assert!(resource.get("handlerMetadata").is_none());
+    assert_eq!(resource["HandlerMetadata"]["existing"], true);
+    assert_eq!(
+        modsync::fomod::prompt_status(&component, "PACKAGE.ZIP").as_deref(),
+        Some("configured")
+    );
+}
