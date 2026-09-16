@@ -150,7 +150,10 @@ fn nxm_download_cli_rejects_non_nxm_urls_before_network_or_output() {
     let directory = tempfile::tempdir().unwrap();
     let output = directory.path().join("archive.zip");
     let result = Command::new(env!("CARGO_BIN_EXE_modsync"))
-        .args(["nxm-download", "modsync://install?url=https%3A%2F%2Fexample.com%2Fguide.toml"])
+        .args([
+            "nxm-download",
+            "modsync://install?url=https%3A%2F%2Fexample.com%2Fguide.toml",
+        ])
         .arg(&output)
         .output()
         .unwrap();
