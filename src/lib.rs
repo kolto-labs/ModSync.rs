@@ -17,3 +17,5 @@ mod resources;
 
 pub mod download_plan;
 mod reference_paths;
+
+pub mod profiles;

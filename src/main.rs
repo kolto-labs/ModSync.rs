@@ -1,3 +1,4 @@
+mod profile_cli;
 use anyhow::{Context, Result, ensure};
 use clap::{Args, Parser, Subcommand};
 use modsync::{Engine, Guide, Settings, download, paths::Roots, recovery};
@@ -17,6 +18,8 @@ struct Cli {
 }
 #[derive(Subcommand)]
 enum Action {
+    /// Manage stored install profiles.
+    Profile(profile_cli::ProfileArgs),
     /// Open the desktop installer (also the default with no command).
     Gui {
         #[arg(long)]
@@ -194,6 +197,7 @@ fn run() -> Result<()> {
             game_dir,
             source_dir,
         }) => recovery::restore(&Roots::new(&source_dir, &game_dir)?),
+        Some(Action::Profile(args)) => args.run(),
         Some(Action::DownloadPlan {
             input,
             component,

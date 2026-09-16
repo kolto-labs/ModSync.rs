@@ -145,3 +145,19 @@ modsync download-plan guide.toml --component <GUID> \
 ```
 
 The JSON result reports `UrlEnabled` and `Filenames`. The command applies resource file flags and the reference's unsatisfied-Extract-pattern filter without downloading or modifying files. It is a filename-selection plan, not an install-readiness result: the reference also counts known registry filenames as satisfying patterns. Direct `download` remains a separate explicit action; host scraping, download queues and desktop plan controls remain unfinished.
+
+## Profiles
+
+Profiles store directories, the guide path, and component/option selections in C#-compatible JSON under `<settings-dir>/profiles/`.
+
+```sh
+modsync profile --settings-dir /path/to/settings --action create --name "Full Build"
+modsync profile --settings-dir /path/to/settings --action list --json
+modsync profile --settings-dir /path/to/settings --action capture --name "Full Build" \
+  --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods
+modsync profile --settings-dir /path/to/settings --action apply --name "Full Build" \
+  --input guide.toml --output selected-guide.toml
+modsync profile --settings-dir /path/to/settings --action activate --name "Full Build"
+```
+
+`show` and `delete` use `--name`; `clone` and `rename` use `--from` and `--to`. Commands output JSON. Capture updates an existing profile while retaining its creation time. Apply changes selections in the output guide; components absent from the profile retain their current selections. Activate saves `activeProfileName` in settings while preserving unrelated settings. Automatic install/desktop activation and platform-default settings discovery remain unfinished; these commands require an explicit settings directory. Applying a profile does not itself install anything. The guide loader's existing all-unselected fallback still applies when an exported guide is subsequently reloaded.
