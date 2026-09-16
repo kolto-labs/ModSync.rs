@@ -9,24 +9,40 @@ const FILE_NAME: &str = "modsync-protocol.desktop";
 const MIMES: [&str; 2] = ["x-scheme-handler/modsync", "x-scheme-handler/nxm"];
 
 pub fn windows_reg_commands(executable: &Path) -> Result<[String; 4]> {
+    scheme_windows_reg_commands(executable, "modsync", "ModSync Protocol")
+}
+
+pub fn windows_nxm_reg_commands(executable: &Path) -> Result<[String; 4]> {
+    scheme_windows_reg_commands(executable, "nxm", "Nexus Mods Protocol")
+}
+
+fn scheme_windows_reg_commands(
+    executable: &Path,
+    scheme: &str,
+    description: &str,
+) -> Result<[String; 4]> {
     if executable.as_os_str().is_empty() {
         bail!("Executable path is required");
     }
     let executable = executable.display();
     Ok([
-        "add HKCU\\Software\\Classes\\modsync /ve /d \"URL:ModSync Protocol\" /f".into(),
-        "add HKCU\\Software\\Classes\\modsync /v \"URL Protocol\" /d \"\" /f".into(),
+        format!("add HKCU\\Software\\Classes\\{scheme} /ve /d \"URL:{description}\" /f"),
+        format!("add HKCU\\Software\\Classes\\{scheme} /v \"URL Protocol\" /d \"\" /f"),
         format!(
-            "add HKCU\\Software\\Classes\\modsync\\DefaultIcon /ve /d \"\\\"{executable}\\\",0\" /f"
+            "add HKCU\\Software\\Classes\\{scheme}\\DefaultIcon /ve /d \"\\\"{executable}\\\",0\" /f"
         ),
         format!(
-            "add HKCU\\Software\\Classes\\modsync\\shell\\open\\command /ve /d \"\\\"{executable}\\\" \\\"%1\\\"\" /f"
+            "add HKCU\\Software\\Classes\\{scheme}\\shell\\open\\command /ve /d \"\\\"{executable}\\\" \\\"%1\\\"\" /f"
         ),
     ])
 }
 
 pub fn macos_url_types_plist_fragment() -> &'static str {
     "<key>CFBundleURLTypes</key>\n<array>\n  <dict>\n    <key>CFBundleURLName</key>\n    <string>ModSync Protocol</string>\n    <key>CFBundleURLSchemes</key>\n    <array>\n      <string>modsync</string>\n    </array>\n  </dict>\n</array>"
+}
+
+pub fn macos_nxm_url_types_plist_fragment() -> &'static str {
+    "<key>CFBundleURLTypes</key>\n<array>\n  <dict>\n    <key>CFBundleURLName</key>\n    <string>Nexus Mods Protocol</string>\n    <key>CFBundleURLSchemes</key>\n    <array>\n      <string>nxm</string>\n    </array>\n  </dict>\n</array>"
 }
 
 pub fn linux_desktop_entry(executable: &Path) -> Result<String> {

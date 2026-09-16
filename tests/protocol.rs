@@ -193,4 +193,16 @@ fn platform_registration_builders_match_the_modsync_scheme_contract() {
         modsync::protocol_registration::macos_url_types_plist_fragment()
             .contains("<string>modsync</string>")
     );
+    let nxm = modsync::protocol_registration::windows_nxm_reg_commands(std::path::Path::new(
+        r"C:\\ModSync\\modsync.exe",
+    ))
+    .unwrap();
+    assert!(
+        nxm.iter()
+            .all(|command| command.contains("HKCU\\Software\\Classes\\nxm"))
+    );
+    assert!(
+        modsync::protocol_registration::macos_nxm_url_types_plist_fragment()
+            .contains("<string>nxm</string>")
+    );
 }
