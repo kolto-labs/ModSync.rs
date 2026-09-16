@@ -546,3 +546,20 @@ pub fn inspect_archive(
         info,
     }))
 }
+
+impl ArchiveModule {
+    /// Resolve mapped sources against both the extraction directory and archive wrapper.
+    pub fn copy_instructions(&self, extracted_directory: &str) -> Result<Vec<crate::Instruction>> {
+        let root = crate::paths::relative(extracted_directory, false)?;
+        ensure!(
+            !root.as_os_str().is_empty(),
+            "FOMOD extraction directory is empty"
+        );
+        self.config.copy_instructions(
+            &root
+                .join(&self.content_root)
+                .to_string_lossy()
+                .replace('\\', "/"),
+        )
+    }
+}

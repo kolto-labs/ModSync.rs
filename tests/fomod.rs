@@ -654,3 +654,23 @@ fn inspect_cli_applies_archive_choices_and_reports_invalid_names() {
     }
     assert_eq!(std::fs::read(&archive).unwrap(), original);
 }
+
+#[test]
+fn archive_module_mapping_keeps_nested_content_root() {
+    use modsync::fomod::{ArchiveModule, parse_module_xml};
+    let module = ArchiveModule {
+        module_path: "Wrapper/fomod/ModuleConfig.xml".into(),
+        content_root: "Wrapper".into(),
+        config: parse_module_xml("<config><requiredInstallFiles><file source='data/a.tga' destination='Override/a.tga'/></requiredInstallFiles></config>").unwrap(),
+        info: None,
+    };
+    let instructions = module.copy_instructions("extracted/package").unwrap();
+    assert_eq!(
+        instructions[0].source,
+        ["<<modDirectory>>/extracted/package/Wrapper/data/a.tga"]
+    );
+    assert_eq!(instructions[0].destination, "<<gameDirectory>>/Override");
+    for invalid in ["", "../outside", "/absolute"] {
+        assert!(module.copy_instructions(invalid).is_err());
+    }
+}

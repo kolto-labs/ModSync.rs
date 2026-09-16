@@ -37,6 +37,9 @@ enum Action {
         /// Apply the matching archive entry from a version-1 choices JSON file.
         #[arg(long)]
         choices: Option<PathBuf>,
+        /// Include mapped copy instructions for this relative mod-directory extraction path.
+        #[arg(long)]
+        extracted_directory: Option<String>,
         #[arg(long)]
         scratch_dir: Option<PathBuf>,
         #[arg(long)]
@@ -157,6 +160,7 @@ fn run() -> Result<()> {
         Some(Action::FomodInspect {
             archive,
             choices,
+            extracted_directory,
             scratch_dir,
             max_expanded_bytes,
         }) => {
@@ -185,6 +189,15 @@ fn run() -> Result<()> {
                         .steps,
                 )?;
             }
+            let instructions = extracted_directory
+                .as_deref()
+                .map(|root| {
+                    module
+                        .as_ref()
+                        .context("Archive has no FOMOD installer to map")?
+                        .copy_instructions(root)
+                })
+                .transpose()?;
             let report = module.map(|m| {
                 let visible = modsync::fomod::visible_steps(&m.config.steps);
                 let steps: Vec<_> = m.config.steps.iter().enumerate().map(|(index, step)| {
@@ -201,6 +214,7 @@ fn run() -> Result<()> {
                 serde_json::json!({
                     "modulePath": m.module_path, "contentRoot": m.content_root,
                     "name": m.config.name, "info": m.info, "steps": steps,
+                    "instructions": instructions,
                 })
             });
             println!("{}", serde_json::to_string_pretty(&report)?);

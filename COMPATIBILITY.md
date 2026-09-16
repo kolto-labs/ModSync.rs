@@ -433,3 +433,7 @@ The shared archive reader can now inspect and parse a nested ModuleConfig.xml pl
 ### CLI FOMOD choices validation
 
 `fomod-inspect --choices <json>` applies the matching archive entry through the shared atomic selection logic before reporting selections and visibility. Archive, step, group and plugin matching reuse the existing case-insensitive rules. Missing archive entries, absent installers and invalid selections return errors without a success report. A subprocess regression verifies selection changes, invalid names and unchanged archive bytes. This does not persist configuration or enable installation.
+
+### Archive-relative FOMOD copy plans
+
+ArchiveModule copy mapping now retains the wrapper directory above fomod/ModuleConfig.xml. The inspection CLI can emit the validated shared-engine copy instructions with `--extracted-directory <relative-path>`, after optional choices application. Invalid selections and unsafe roots fail before output. A regression checks wrapper-relative source mapping. The command does not extract into that path or install; automatic execution still requires archive configuration and recovery integration.
