@@ -181,11 +181,6 @@ impl Engine {
         if !report.push(crate::validation::Stage::Environment, environment) {
             return report.finish();
         }
-        let order = guide
-            .ordered()
-            .map(|_| ())
-            .map_err(|error| format!("{error:#}"));
-        report.push(crate::validation::Stage::InstallOrder, order);
         match Engine::new(self.settings.clone()).and_then(|engine| engine.analyze_conflicts(guide))
         {
             Ok(conflicts) => report.conflicts(&conflicts),
@@ -196,6 +191,11 @@ impl Engine {
                 );
             }
         }
+        let order = guide
+            .ordered()
+            .map(|_| ())
+            .map_err(|error| format!("{error:#}"));
+        report.push(crate::validation::Stage::InstallOrder, order);
         let component = Engine::new(self.settings)
             .and_then(|engine| engine.validate(guide, emit))
             .map_err(|error| format!("{error:#}"));

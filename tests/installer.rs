@@ -1252,8 +1252,8 @@ fn validation_report_has_ordered_shared_engine_stages() {
             .collect::<Vec<_>>(),
         vec![
             modsync::validation::Stage::Environment,
-            modsync::validation::Stage::InstallOrder,
             modsync::validation::Stage::Conflicts,
+            modsync::validation::Stage::InstallOrder,
             modsync::validation::Stage::ComponentValidation,
         ]
     );
