@@ -215,3 +215,65 @@ impl GroupSelection {
         Ok(())
     }
 }
+
+#[derive(Clone, Debug)]
+pub struct StepSelection {
+    pub name: String,
+    pub groups: Vec<GroupSelection>,
+}
+
+impl ArchiveChoices {
+    /// Apply choices to an unconditional step set. Visibility is not implemented yet.
+    /// Unknown or ambiguous names and invalid groups leave the entire set unchanged.
+    pub fn apply_to(&self, steps: &mut [StepSelection]) -> Result<()> {
+        let mut candidate = steps.to_vec();
+        let mut seen = std::collections::BTreeSet::new();
+        for selection in &self.selections {
+            ensure!(
+                seen.insert((
+                    selection.step_name.to_ascii_lowercase(),
+                    selection.group_name.to_ascii_lowercase()
+                )),
+                "Duplicate FOMOD selection for '{}' / '{}'",
+                selection.step_name,
+                selection.group_name
+            );
+            let mut matches = candidate
+                .iter_mut()
+                .filter(|s| s.name.eq_ignore_ascii_case(&selection.step_name));
+            let step = matches.next().ok_or_else(|| {
+                anyhow::anyhow!("FOMOD step '{}' was not found", selection.step_name)
+            })?;
+            ensure!(
+                matches.next().is_none(),
+                "FOMOD step '{}' is ambiguous",
+                selection.step_name
+            );
+            let mut matches = step
+                .groups
+                .iter_mut()
+                .filter(|g| g.name.eq_ignore_ascii_case(&selection.group_name));
+            let group = matches.next().ok_or_else(|| {
+                anyhow::anyhow!(
+                    "FOMOD group '{}' was not found in step '{}'",
+                    selection.group_name,
+                    step.name
+                )
+            })?;
+            ensure!(
+                matches.next().is_none(),
+                "FOMOD group '{}' is ambiguous in step '{}'",
+                selection.group_name,
+                step.name
+            );
+            group.apply_names(&selection.plugins)?;
+        }
+        for step in &candidate {
+            for group in &step.groups {
+                group.validate()?;
+            }
+        }
+        steps.clone_from_slice(&candidate);
+        Ok(())
+    }
+}

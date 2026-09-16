@@ -381,3 +381,7 @@ YAML directive regression correction: directives after an explicit document end 
 ### FOMOD choices-file primitives
 
 The library reads/writes the reference version/archives/selections camelCase schema (missing version defaults to 1), finds archive filenames ignoring ASCII case, and applies named plugin groups atomically through shared cardinality validation. Repeated plugin names collapse to one choice. Unsupported versions, duplicate archive/group entries, missing or ambiguous plugins, omitted required plugins and invalid cardinality are rejected without mutating selections. These are explicit stricter checks than permissive reference behavior. Unicode ordinal case equivalence, whole-session step lookup/visibility, CLI flags and configured installation remain open.
+
+### FOMOD choices across steps
+
+ArchiveChoices.apply_to routes named selections through unconditional StepSelection groups using ASCII-insensitive lookup. It validates the candidate set before committing any changes: late failures, missing/ambiguous names, duplicate choices and invalid untouched defaults leave all original groups unchanged. This closes whole-set atomicity for unconditional steps only. Visibility-dependent validation and session flag propagation remain required before this can configure arbitrary FOMOD packages.

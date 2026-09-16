@@ -137,3 +137,68 @@ fn choices_file_schema_and_named_selections_reject_ambiguous_or_invalid_changes(
     assert!(saved.contains("archiveFileName") && saved.contains("stepName"));
     assert_eq!(ChoicesFile::parse(&saved).unwrap().version, 1);
 }
+
+#[test]
+fn archive_choices_route_steps_and_commit_only_when_every_group_is_valid() {
+    use modsync::fomod::{ArchiveChoices, NamedSelection, StepSelection};
+    let group = || {
+        GroupSelection::new(
+            "Group".into(),
+            GroupType::SelectExactlyOne,
+            vec![
+                plugin("First", false, false),
+                plugin("Second", false, false),
+            ],
+        )
+    };
+    let initial = vec![
+        StepSelection {
+            name: "One".into(),
+            groups: vec![group()],
+        },
+        StepSelection {
+            name: "Two".into(),
+            groups: vec![group()],
+        },
+    ];
+    let choices = |last_step: &str, last_plugin: &str| ArchiveChoices {
+        archive_file_name: "Example.zip".into(),
+        selections: vec![
+            NamedSelection {
+                step_name: "ONE".into(),
+                group_name: "group".into(),
+                plugins: vec!["Second".into()],
+            },
+            NamedSelection {
+                step_name: last_step.into(),
+                group_name: "Group".into(),
+                plugins: vec![last_plugin.into()],
+            },
+        ],
+    };
+    let mut steps = initial.clone();
+    for invalid in [
+        choices("Missing", "Second"),
+        choices("Two", "Missing"),
+        choices("One", "First"),
+    ] {
+        assert!(invalid.apply_to(&mut steps).is_err());
+        assert_eq!(selected(&steps[0].groups[0]), [true, false]);
+        assert_eq!(selected(&steps[1].groups[0]), [true, false]);
+    }
+    choices("two", "second").apply_to(&mut steps).unwrap();
+    assert!(
+        steps
+            .iter()
+            .all(|s| selected(&s.groups[0]) == [false, true])
+    );
+    let mut ambiguous = initial.clone();
+    ambiguous.push(initial[0].clone());
+    assert!(choices("Two", "Second").apply_to(&mut ambiguous).is_err());
+    let mut invalid_default = initial;
+    invalid_default[1].groups[0].set_selected(0, false).unwrap();
+    let mut only_first = choices("Two", "Second");
+    only_first.selections.pop();
+    assert!(only_first.apply_to(&mut invalid_default).is_err());
+    assert_eq!(selected(&invalid_default[0].groups[0]), [true, false]);
+}
