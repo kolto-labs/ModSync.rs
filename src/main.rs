@@ -57,6 +57,20 @@ enum Action {
     },
     /// List components and their download links as JSON.
     List { input: PathBuf },
+    /// Merge two guides, matching GUIDs then normalized names/authors.
+    Merge {
+        existing: PathBuf,
+        incoming: PathBuf,
+        output: PathBuf,
+        #[arg(long)]
+        use_existing_order: bool,
+        #[arg(long)]
+        prefer_existing_fields: bool,
+        #[arg(long)]
+        exclude_existing_only: bool,
+        #[arg(long)]
+        exclude_incoming_only: bool,
+    },
     /// Simulate instructions without changing the game or mod directory.
     Validate(InstallArgs),
     /// Report conflicting simulated game-file writes as JSON, without installing.
@@ -385,6 +399,30 @@ fn run() -> Result<()> {
         Some(Action::List { input }) => {
             println!("{}", serde_json::to_string_pretty(&Guide::load(&input)?)?);
             Ok(())
+        }
+        Some(Action::Merge {
+            existing,
+            incoming,
+            output,
+            use_existing_order,
+            prefer_existing_fields,
+            exclude_existing_only,
+            exclude_incoming_only,
+        }) => {
+            let existing = Guide::load(&existing)?;
+            let mut incoming = Guide::load(&incoming)?;
+            incoming.components = modsync::merge::components(
+                &existing.components,
+                &incoming.components,
+                &modsync::merge::Options {
+                    use_existing_order,
+                    prefer_existing_fields,
+                    exclude_existing_only,
+                    exclude_incoming_only,
+                    ..Default::default()
+                },
+            );
+            incoming.save(&output)
         }
         Some(Action::Convert {
             input,
