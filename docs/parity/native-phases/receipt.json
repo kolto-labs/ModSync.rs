@@ -1,0 +1,22 @@
+{
+  "tested_commit": "7918409b87d522c0dbe5a59418e454e2111866c2",
+  "binary_sha256": "121d3e0337c825a28a6d5b4c7b05dfd48ed1ea68dd0676a56e47e5c9b179f27e",
+  "environment": "Linux X11 native egui, Xvfb :905, xdotool input",
+  "fixture_root": "/home/brunner56/.cache/modsync-native-phases-w6muvhhb",
+  "checks": [
+    "Base validation and confirmed install execute Base only",
+    "After base install: base.txt equals base bytes; wide.txt absent",
+    "GUI transitions to widescreen selection with base navigation disabled",
+    "Base source first changed, then removed before widescreen validation",
+    "Widescreen validation and confirmed install succeed with base dependency and absent base source",
+    "Final base.txt equals base bytes and wide.txt equals wide bytes",
+    "Completion receipt IDs are base,wide and pending marker is absent",
+    "GUI reaches Installation complete"
+  ],
+  "limitations": [
+    "No full K1/K2 guide or external patcher",
+    "No native failure/restore/skip or restart path in this run",
+    "No Windows/macOS or accessibility verification",
+    "Snapshot receipt content is recorded but no power-loss durability claim"
+  ]
+}

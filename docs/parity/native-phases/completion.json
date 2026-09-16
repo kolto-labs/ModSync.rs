@@ -1,0 +1,72 @@
+{
+  "mods": "/home/brunner56/.cache/modsync-native-phases-w6muvhhb/mods",
+  "game": "/home/brunner56/.cache/modsync-native-phases-w6muvhhb/game",
+  "components": [
+    {
+      "Guid": "base",
+      "Name": "Base",
+      "Author": "",
+      "Description": "",
+      "Directions": "",
+      "Tier": "",
+      "Category": [],
+      "IsSelected": true,
+      "Dependencies": [],
+      "Restrictions": [],
+      "InstallBefore": [],
+      "InstallAfter": [],
+      "Instructions": [
+        {
+          "Action": "Copy",
+          "Source": [
+            "<<modDirectory>>/base.txt"
+          ],
+          "Destination": "<<gameDirectory>>/Override",
+          "Arguments": "",
+          "Overwrite": true,
+          "Dependencies": [],
+          "Restrictions": []
+        }
+      ],
+      "Options": [],
+      "ResourceRegistry": {},
+      "WidescreenOnly": false
+    },
+    {
+      "Guid": "wide",
+      "Name": "Wide",
+      "Author": "",
+      "Description": "",
+      "Directions": "",
+      "Tier": "",
+      "Category": [],
+      "IsSelected": true,
+      "Dependencies": [
+        "base"
+      ],
+      "Restrictions": [],
+      "InstallBefore": [],
+      "InstallAfter": [],
+      "Instructions": [
+        {
+          "Action": "Copy",
+          "Source": [
+            "<<modDirectory>>/wide.txt"
+          ],
+          "Destination": "<<gameDirectory>>/Override",
+          "Arguments": "",
+          "Overwrite": true,
+          "Dependencies": [],
+          "Restrictions": []
+        }
+      ],
+      "Options": [],
+      "ResourceRegistry": {},
+      "WidescreenOnly": true
+    }
+  ],
+  "files": {
+    "Override/base.txt": "4f6a821a3a8811b223d5144f73b9d2262286a13741fff195faf1df54b2b29c98",
+    "Override/wide.txt": "4f3b020909fc227b803a23567c2ceb39c2677d26147057a2fb67468061ca8de1"
+  }
+}
