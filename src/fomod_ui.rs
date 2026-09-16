@@ -15,6 +15,7 @@ pub struct Editor {
     error: String,
     open: bool,
     dismiss_non_fomod: bool,
+    step_cursor: usize,
 }
 impl Editor {
     pub fn launch(
@@ -27,6 +28,7 @@ impl Editor {
         self.cancel.store(true, Ordering::Relaxed);
         self.cancel = Arc::new(AtomicBool::new(false));
         self.module = None;
+        self.step_cursor = 0;
         self.error.clear();
         self.open = true;
         self.dismiss_non_fomod = dismiss_non_fomod;
@@ -87,10 +89,21 @@ impl Editor {
             }
             if let Some(module) = &mut self.module {
                 ui.label(&module.config.name);
+                let visible = visible_steps(&module.config.steps);
+                self.step_cursor = self.step_cursor.min(visible.len().saturating_sub(1));
+                if visible.is_empty() {
+                    ui.label("This package has no optional install steps.");
+                } else {
+                    ui.label(format!(
+                        "Step {} of {}",
+                        self.step_cursor + 1,
+                        visible.len()
+                    ));
+                }
                 egui::ScrollArea::vertical()
                     .max_height(420.0)
                     .show(ui, |ui| {
-                        for index in visible_steps(&module.config.steps) {
+                        for &index in visible.get(self.step_cursor).into_iter() {
                             let step = &mut module.config.steps[index];
                             ui.push_id(index, |ui| {
                                 ui.heading(&step.name);
@@ -105,9 +118,13 @@ impl Editor {
                                             } else {
                                                 plugin.name.clone()
                                             };
-                                            let response = ui
-                                                .checkbox(&mut selected, label)
-                                                .on_hover_text(&plugin.description);
+                                            let response = ui.add_enabled(
+                                                !plugin.required,
+                                                egui::Checkbox::new(&mut selected, label),
+                                            );
+                                            if !plugin.description.trim().is_empty() {
+                                                ui.label(&plugin.description);
+                                            }
                                             if response.changed() {
                                                 self.error.clear();
                                                 if let Err(error) =
@@ -125,15 +142,34 @@ impl Editor {
                             });
                         }
                     });
-                if ui.button("Use these choices").clicked() {
-                    match ChoicesFile::capture(&self.filename, &module.config.steps) {
-                        Ok(choices) => {
-                            accepted = Some(choices);
-                            self.open = false;
-                        }
-                        Err(error) => self.error = error.to_string(),
+                ui.horizontal(|ui| {
+                    if ui
+                        .add_enabled(self.step_cursor > 0, egui::Button::new("Back"))
+                        .clicked()
+                    {
+                        self.step_cursor -= 1;
+                        self.error.clear();
                     }
-                }
+                    let last = self.step_cursor + 1 >= visible.len();
+                    if ui
+                        .button(if last { "Use these choices" } else { "Next" })
+                        .clicked()
+                    {
+                        match advance_step(&module.config.steps, &mut self.step_cursor) {
+                            Ok(false) => self.error.clear(),
+                            Ok(true) => {
+                                match ChoicesFile::capture(&self.filename, &module.config.steps) {
+                                    Ok(choices) => {
+                                        accepted = Some(choices);
+                                        self.open = false;
+                                    }
+                                    Err(error) => self.error = error.to_string(),
+                                }
+                            }
+                            Err(error) => self.error = error.to_string(),
+                        }
+                    }
+                });
             }
             if !self.error.is_empty() {
                 ui.colored_label(egui::Color32::RED, &self.error);
@@ -148,6 +184,26 @@ impl Editor {
         accepted
     }
 }
+// Recompute after edits: a flag change can hide or reveal subsequent steps.
+fn advance_step(
+    steps: &[modsync::fomod::StepSelection],
+    cursor: &mut usize,
+) -> anyhow::Result<bool> {
+    let visible = visible_steps(steps);
+    *cursor = (*cursor).min(visible.len().saturating_sub(1));
+    if let Some(&index) = visible.get(*cursor) {
+        for group in &steps[index].groups {
+            group.validate()?;
+        }
+    }
+    if *cursor + 1 < visible.len() {
+        *cursor += 1;
+        Ok(false)
+    } else {
+        Ok(true)
+    }
+}
+
 impl Drop for Editor {
     fn drop(&mut self) {
         self.cancel.store(true, Ordering::Relaxed);
@@ -157,6 +213,33 @@ impl Drop for Editor {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn navigation_validates_current_step_and_recomputes_flag_visibility() {
+        let mut steps = modsync::fomod::parse_selection_xml(r#"
+            <config><installSteps>
+              <installStep name="First"><optionalFileGroups><group name="Choice" type="SelectExactlyOne">
+                <plugins><plugin name="Show"><conditionFlags><flag name="extra">yes</flag></conditionFlags></plugin>
+                <plugin name="Hide"/></plugins>
+              </group></optionalFileGroups></installStep>
+              <installStep name="Conditional"><visible><flagDependency flag="extra" value="yes"/></visible></installStep>
+              <installStep name="Last"/>
+            </installSteps></config>"#).unwrap();
+        let mut cursor = 0;
+        assert!(!advance_step(&steps, &mut cursor).unwrap());
+        assert_eq!(visible_steps(&steps)[cursor], 1);
+        // Back and revise the first step: the next action must skip the hidden step.
+        cursor -= 1;
+        steps[0].groups[0].set_selected(1, true).unwrap();
+        assert!(!advance_step(&steps, &mut cursor).unwrap());
+        assert_eq!(visible_steps(&steps)[cursor], 2);
+        assert!(advance_step(&steps, &mut cursor).unwrap());
+        cursor = 0;
+        steps[0].groups[0].set_selected(1, false).unwrap();
+        assert!(advance_step(&steps, &mut cursor).is_err());
+        assert_eq!(cursor, 0);
+        assert!(advance_step(&[], &mut cursor).unwrap());
+    }
 
     #[test]
     fn replacing_inspection_cancels_old_worker_and_rejects_its_late_result() {

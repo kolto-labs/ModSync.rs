@@ -505,3 +505,7 @@ Successful verified direct downloads now pass their actual output path and archi
 ### Desktop FOMOD inspection lifecycle
 
 A worker-lifecycle regression verifies that replacing an inspection requests cancellation of the old worker, disconnects its result channel, and receives the replacement worker's own error. Dropping the editor requests cancellation of the current worker. This establishes result isolation and cancellation signaling; it does not prove a bound on archive-reader cancellation latency.
+
+### Desktop FOMOD step navigation
+
+The editor now displays one visible step at a time with Back and Next actions, matching the C# dialog flow. Next validates the current groups and recomputes flag-dependent visibility; final acceptance still validates captured choices. Descriptions appear inline and required plugins have disabled checkboxes. A regression covers returning to revise an earlier choice, skipping a newly hidden step, invalid selection blocking advancement, and packages without optional steps. Native acceptance of the new multi-step navigation remains pending; earlier native evidence covers the previous single-panel editor.
