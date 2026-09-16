@@ -481,3 +481,7 @@ The real CLI subprocess fixture now selects a nondefault FOMOD plugin through pi
 ### Desktop interactive FOMOD configuration
 
 The validation page now offers Configure FOMOD archive. A background worker inspects the selected archive, then a modal displays visible steps and plugin checkboxes through the shared selection rules. Accept captures valid choices and merges them into loaded guide metadata, preserving other archive configurations and invalidating installation readiness. Cancel discards pending edits and requests worker cancellation. A merge regression verifies package preservation. Native rendering/click acceptance, archive images, persistence to a saved guide and automatic post-download prompting remain outstanding.
+
+### Reopening desktop FOMOD selections
+
+The desktop editor now reapplies saved archive choices after inspection, using the selected external choices file or embedded guide configuration. Invalid saved selections stop loading instead of silently reverting to defaults. Conflicting component configurations are reported. A shared resolver regression covers nested components, case-insensitive archive names, missing entries and conflicts; native reopening acceptance remains pending.

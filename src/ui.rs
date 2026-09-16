@@ -886,10 +886,25 @@ impl eframe::App for App {
                         let budget = if self.expanded_budget.trim().is_empty() { Ok(None) }
                             else { self.expanded_budget.trim().parse::<u64>().map(Some) };
                         match budget {
-                            Ok(max_expanded_bytes) => self.fomod_editor.launch(path, modsync::archive::Options {
-                                scratch_dir: if self.scratch.is_empty() { None } else { Some(PathBuf::from(&self.scratch)) },
-                                max_expanded_bytes,
-                            }),
+                            Ok(max_expanded_bytes) => {
+                                let saved = (|| -> Result<_> {
+                                    let filename = path.file_name().and_then(|n| n.to_str())
+                                        .ok_or_else(|| anyhow::anyhow!("Invalid archive filename"))?;
+                                    if !self.fomod_choices.trim().is_empty() {
+                                        let choices = modsync::fomod::ChoicesFile::parse(&std::fs::read_to_string(&self.fomod_choices)?)?;
+                                        Ok(choices.archive(filename).cloned())
+                                    } else if let Some(guide) = &self.guide {
+                                        modsync::fomod::saved_archive_choices(guide, filename)
+                                    } else { Ok(None) }
+                                })();
+                                match saved {
+                                    Ok(saved) => self.fomod_editor.launch(path, modsync::archive::Options {
+                                        scratch_dir: if self.scratch.is_empty() { None } else { Some(PathBuf::from(&self.scratch)) },
+                                        max_expanded_bytes,
+                                    }, saved),
+                                    Err(error) => self.logs.push(format!("FOMOD choices: {error:#}")),
+                                }
+                            },
                             Err(_) => self.logs.push("Expanded-byte budget must be a nonnegative integer.".into()),
                         }
                     }

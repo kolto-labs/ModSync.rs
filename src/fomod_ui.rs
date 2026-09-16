@@ -16,7 +16,12 @@ pub struct Editor {
     open: bool,
 }
 impl Editor {
-    pub fn launch(&mut self, path: std::path::PathBuf, options: modsync::archive::Options) {
+    pub fn launch(
+        &mut self,
+        path: std::path::PathBuf,
+        options: modsync::archive::Options,
+        saved: Option<modsync::fomod::ArchiveChoices>,
+    ) {
         self.cancel.store(true, Ordering::Relaxed);
         self.cancel = Arc::new(AtomicBool::new(false));
         self.module = None;
@@ -31,7 +36,14 @@ impl Editor {
         self.receiver = Some(rx);
         let cancel = self.cancel.clone();
         std::thread::spawn(move || {
-            let _ = tx.send(modsync::fomod::inspect_archive(&path, &options, &cancel));
+            let result = (|| -> anyhow::Result<Option<ArchiveModule>> {
+                let mut module = modsync::fomod::inspect_archive(&path, &options, &cancel)?;
+                if let (Some(module), Some(saved)) = (&mut module, saved) {
+                    saved.apply_to(&mut module.config.steps)?;
+                }
+                Ok(module)
+            })();
+            let _ = tx.send(result);
         });
     }
 

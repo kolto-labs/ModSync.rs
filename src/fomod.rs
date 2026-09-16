@@ -731,3 +731,37 @@ impl ChoicesFile {
         Ok(())
     }
 }
+
+/// Find a saved archive session; refuse conflicting component configurations.
+pub fn saved_archive_choices(
+    guide: &crate::Guide,
+    filename: &str,
+) -> Result<Option<ArchiveChoices>> {
+    fn visit(
+        components: &[crate::Component],
+        filename: &str,
+        found: &mut Option<ArchiveChoices>,
+    ) -> Result<()> {
+        for component in components {
+            if let Some(value) = component.metadata.get("FomodChoices") {
+                let file = ChoicesFile::parse(&serde_json::to_string(value)?)?;
+                if let Some(choices) = file.archive(filename) {
+                    if let Some(previous) = found {
+                        ensure!(
+                            serde_json::to_value(&previous.selections)?
+                                == serde_json::to_value(&choices.selections)?,
+                            "Conflicting saved FOMOD choices for {filename}"
+                        );
+                    } else {
+                        *found = Some(choices.clone());
+                    }
+                }
+            }
+            visit(&component.options, filename, found)?;
+        }
+        Ok(())
+    }
+    let mut found = None;
+    visit(&guide.components, filename, &mut found)?;
+    Ok(found)
+}

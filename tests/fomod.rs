@@ -825,3 +825,32 @@ fn edited_archive_choices_merge_without_losing_other_packages() {
         ["P"]
     );
 }
+
+#[test]
+fn saved_archive_selection_resolves_nested_components_and_rejects_conflicts() {
+    use modsync::{
+        Component, Guide,
+        fomod::{ChoicesFile, saved_archive_choices},
+    };
+    let mut guide = Guide {
+        components: vec![Component {
+            options: vec![Component::default()],
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    let choices = ChoicesFile::parse(r#"{"archives":[{"archiveFileName":"mod.zip","selections":[{"stepName":"S","groupName":"G","plugins":["Second"]}]}]}"#).unwrap();
+    choices.apply_to_guide(&mut guide).unwrap();
+    let saved = saved_archive_choices(&guide, "MOD.ZIP").unwrap().unwrap();
+    assert_eq!(saved.selections[0].plugins, ["Second"]);
+    assert!(
+        saved_archive_choices(&guide, "absent.zip")
+            .unwrap()
+            .is_none()
+    );
+    guide.components[0].options[0]
+        .metadata
+        .get_mut("FomodChoices")
+        .unwrap()["archives"][0]["selections"][0]["plugins"] = serde_json::json!(["First"]);
+    assert!(saved_archive_choices(&guide, "mod.zip").is_err());
+}
