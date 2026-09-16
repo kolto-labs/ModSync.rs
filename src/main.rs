@@ -153,6 +153,8 @@ enum Action {
         #[arg(long)]
         max_expanded_bytes: Option<u64>,
     },
+    /// Report the provider selected for an HTTP(S) URL without downloading it.
+    DownloadProvider { url: String },
 }
 #[derive(Args)]
 struct DeploymentArgs {
@@ -546,6 +548,13 @@ fn run() -> Result<()> {
                 serde_json::to_string_pretty(
                     &serde_json::json!({"UrlEnabled": modsync::download_plan::url_enabled(c, &url), "Filenames": selected})
                 )?
+            );
+            Ok(())
+        }
+        Some(Action::DownloadProvider { url }) => {
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&modsync::download_hosts::provider(&url)?)?
             );
             Ok(())
         }
