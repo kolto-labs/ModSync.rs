@@ -5,6 +5,8 @@ use modsync::{Engine, Guide, Settings, download, paths::Roots, recovery};
 use std::{path::PathBuf, sync::atomic::AtomicBool};
 
 #[cfg(feature = "desktop")]
+mod fomod_ui;
+#[cfg(feature = "desktop")]
 mod ui;
 
 #[derive(Parser)]

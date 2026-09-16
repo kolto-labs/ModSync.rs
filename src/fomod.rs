@@ -701,3 +701,33 @@ pub fn prompt_choices(
     steps.clone_from_slice(&candidate);
     Ok(())
 }
+
+impl ChoicesFile {
+    /// Merge edited archives while preserving choices for other packages atomically.
+    pub fn merge_into_guide(&self, guide: &mut crate::Guide) -> Result<()> {
+        fn merge(components: &mut [crate::Component], edits: &ChoicesFile) -> Result<()> {
+            for component in components {
+                let mut choices = match component.metadata.get("FomodChoices") {
+                    Some(value) => ChoicesFile::parse(&serde_json::to_string(value)?)?,
+                    None => ChoicesFile {
+                        version: 1,
+                        archives: Vec::new(),
+                    },
+                };
+                choices
+                    .archives
+                    .retain(|old| edits.archive(&old.archive_file_name).is_none());
+                choices.archives.extend(edits.archives.clone());
+                component
+                    .metadata
+                    .insert("FomodChoices".into(), serde_json::to_value(choices)?);
+                merge(&mut component.options, edits)?;
+            }
+            Ok(())
+        }
+        let mut candidate = guide.clone();
+        merge(&mut candidate.components, self)?;
+        *guide = candidate;
+        Ok(())
+    }
+}

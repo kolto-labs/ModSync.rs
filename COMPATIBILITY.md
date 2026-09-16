@@ -477,3 +477,7 @@ The interactive prompt accepts back at a group to revisit the preceding currentl
 ### Interactive CLI to installation acceptance
 
 The real CLI subprocess fixture now selects a nondefault FOMOD plugin through piped stdin, saves its choices, parses the stdout JSON, validates without install-tree writes and installs using the exported file. It verifies only alternate asset bytes are installed, prompts stay on stderr, the source archive and guide remain unchanged, and the receipt records the selected plugin. This proves the console protocol end to end, not terminal rendering or desktop interaction.
+
+### Desktop interactive FOMOD configuration
+
+The validation page now offers Configure FOMOD archive. A background worker inspects the selected archive, then a modal displays visible steps and plugin checkboxes through the shared selection rules. Accept captures valid choices and merges them into loaded guide metadata, preserving other archive configurations and invalidating installation readiness. Cancel discards pending edits and requests worker cancellation. A merge regression verifies package preservation. Native rendering/click acceptance, archive images, persistence to a saved guide and automatic post-download prompting remain outstanding.

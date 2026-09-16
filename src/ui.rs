@@ -37,6 +37,7 @@ pub struct App {
     patcher: String,
     scratch: String,
     fomod_choices: String,
+    fomod_editor: crate::fomod_ui::Editor,
     expanded_budget: String,
     allow_processes: bool,
     guide: Option<Guide>,
@@ -86,6 +87,7 @@ impl App {
             patcher: String::new(),
             scratch: String::new(),
             fomod_choices: String::new(),
+            fomod_editor: Default::default(),
             expanded_budget: String::new(),
             allow_processes: false,
             guide: None,
@@ -389,6 +391,25 @@ impl App {
         self.page = 2;
     }
 
+    fn apply_fomod_choices(&mut self, choices: &modsync::fomod::ChoicesFile) -> Result<()> {
+        let mut guide = self
+            .guide
+            .clone()
+            .ok_or_else(|| anyhow::anyhow!("Load a guide first"))?;
+        if !self.fomod_choices.trim().is_empty() {
+            modsync::fomod::ChoicesFile::parse(&std::fs::read_to_string(&self.fomod_choices)?)?
+                .apply_to_guide(&mut guide)?;
+        }
+        choices.merge_into_guide(&mut guide)?;
+        self.guide = Some(guide);
+        self.fomod_choices.clear();
+        self.validated = false;
+        self.confirm_install = false;
+        self.logs
+            .push("FOMOD choices applied. Run validation before installing.".into());
+        Ok(())
+    }
+
     fn start(&mut self, job: Job, ctx: &egui::Context) {
         self.validated = false;
         self.confirm_install = false;
@@ -589,6 +610,11 @@ impl eframe::App for App {
         }
         if self.logs.len() > 5000 {
             self.logs.drain(..self.logs.len() - 5000);
+        }
+        if let Some(choices) = self.fomod_editor.show(ctx)
+            && let Err(error) = self.apply_fomod_choices(&choices)
+        {
+            self.logs.push(format!("FOMOD choices: {error:#}"));
         }
         let busy = self.receiver.is_some();
         if busy {
@@ -855,6 +881,18 @@ impl eframe::App for App {
                     ui.label(format!("Game: {}", self.game));
                     ui.label(format!("Mods: {}", self.mods));
                     if ui.checkbox(&mut self.allow_processes, "Trust this guide to run external programs").changed() { self.validated = false; }
+                    if self.completed_base.is_none() && ui.button("Configure FOMOD archive…").clicked()
+                        && let Some(path) = rfd::FileDialog::new().set_directory(&self.mods).pick_file() {
+                        let budget = if self.expanded_budget.trim().is_empty() { Ok(None) }
+                            else { self.expanded_budget.trim().parse::<u64>().map(Some) };
+                        match budget {
+                            Ok(max_expanded_bytes) => self.fomod_editor.launch(path, modsync::archive::Options {
+                                scratch_dir: if self.scratch.is_empty() { None } else { Some(PathBuf::from(&self.scratch)) },
+                                max_expanded_bytes,
+                            }),
+                            Err(_) => self.logs.push("Expanded-byte budget must be a nonnegative integer.".into()),
+                        }
+                    }
                     if Self::path_row(ui, "FOMOD choices file (optional)", &mut self.fomod_choices, false) {
                         self.validated = false;
                         self.confirm_install = false;
@@ -981,6 +1019,30 @@ pub fn launch(
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn desktop_fomod_edits_preserve_choices_file_archives_and_invalidate_readiness() {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("choices.json");
+        std::fs::write(&path, r#"{"archives":[{"archiveFileName":"other.zip"}]}"#).unwrap();
+        let mut app = App::new(None, None, None);
+        app.guide = Some(Guide {
+            components: vec![Component::default()],
+            ..Default::default()
+        });
+        app.fomod_choices = path.to_string_lossy().into_owned();
+        app.validated = true;
+        app.confirm_install = true;
+        let edits = modsync::fomod::ChoicesFile::parse(
+            r#"{"archives":[{"archiveFileName":"edited.zip"}]}"#,
+        )
+        .unwrap();
+        app.apply_fomod_choices(&edits).unwrap();
+        let saved = &app.guide.as_ref().unwrap().components[0].metadata["FomodChoices"];
+        assert_eq!(saved["archives"].as_array().unwrap().len(), 2);
+        assert!(!app.validated && !app.confirm_install);
+        assert!(app.fomod_choices.is_empty());
+    }
+
     #[test]
     fn failed_job_setup_invalidates_validation_and_confirmation() {
         let root = tempfile::tempdir().unwrap();

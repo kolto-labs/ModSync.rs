@@ -801,3 +801,27 @@ back
     assert_eq!(text.matches("Step: First").count(), 2);
     assert_eq!(text.matches("Step: Conditional").count(), 1);
 }
+
+#[test]
+fn edited_archive_choices_merge_without_losing_other_packages() {
+    use modsync::{Component, Guide, fomod::ChoicesFile};
+    let mut guide = Guide {
+        components: vec![Component::default()],
+        ..Default::default()
+    };
+    let first = ChoicesFile::parse(
+        r#"{"archives":[{"archiveFileName":"one.zip"},{"archiveFileName":"two.zip"}]}"#,
+    )
+    .unwrap();
+    first.apply_to_guide(&mut guide).unwrap();
+    let edit = ChoicesFile::parse(r#"{"archives":[{"archiveFileName":"ONE.ZIP","selections":[{"stepName":"S","groupName":"G","plugins":["P"]}]}]}"#).unwrap();
+    edit.merge_into_guide(&mut guide).unwrap();
+    let saved =
+        ChoicesFile::parse(&guide.components[0].metadata["FomodChoices"].to_string()).unwrap();
+    assert_eq!(saved.archives.len(), 2);
+    assert!(saved.archive("two.zip").is_some());
+    assert_eq!(
+        saved.archive("one.zip").unwrap().selections[0].plugins,
+        ["P"]
+    );
+}
