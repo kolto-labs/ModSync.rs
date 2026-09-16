@@ -1,0 +1,7 @@
+{
+  "Action": 5,
+  "Source": [
+    "<<modDirectory>>/package/textures/a.tga"
+  ],
+  "Destination": "<<kotorDirectory>>/Override"
+}

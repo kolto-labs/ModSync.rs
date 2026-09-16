@@ -541,3 +541,7 @@ FOMOD parsing now preserves Optional, Required, Recommended, NotUsable, and Coul
 ### FOMOD file and game dependencies
 
 The pinned C# mapper logs fileDependency and gameDependency as unmodeled, then treats each as satisfied. Rust now preserves that behavior as an always-satisfied dependency so a file or game leaf does not hide a step or discard a conditional-file pattern. Flag leaves in the same AND group remain enforced. A network-disabled C# parser/mapper probe confirms both dependency kinds evaluate true in visible and conditional contexts; source, output, and receipt are in `docs/parity/fomod-unmodeled-dependencies/`. This does not model game state or file presence, and nested unsupported dependency shapes remain rejected.
+
+### FOMOD file rename mapping
+
+The C# mapper cannot express a rename through its Copy action. For a file destination containing a filename, it logs the requested rename, drops that filename, and copies the source filename into the destination directory. Rust now does the same. An isolated install regression verifies that `textures/a.tga` requested as `Override/b.tga` installs `Override/a.tga`; a network-disabled C# mapper probe records the same generated source and destination in `docs/parity/fomod-rename-oracle/`. Archive extraction, full FOMOD corpus behavior, and native desktop parity remain outside this proof.

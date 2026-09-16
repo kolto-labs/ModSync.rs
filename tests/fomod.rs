@@ -486,17 +486,38 @@ fn mapped_file_copies_use_shared_preflight_and_install_without_mutating_sources(
         );
     }
     assert!(module.copy_instructions("../package").is_err());
-    for bad in [
-        xml.replace("Override/a.tga", "../escape"),
-        xml.replace("Override/a.tga", "Override/b.tga"),
-    ] {
-        assert!(
-            parse_module_xml(&bad)
-                .unwrap()
-                .copy_instructions("package")
-                .is_err()
-        );
-    }
+    let bad = xml.replace("Override/a.tga", "../escape");
+    assert!(
+        parse_module_xml(&bad)
+            .unwrap()
+            .copy_instructions("package")
+            .is_err()
+    );
+
+    let renamed = parse_module_xml(&xml.replace("Override/a.tga", "Override/b.tga"))
+        .unwrap()
+        .copy_instructions("package")
+        .unwrap();
+    assert_eq!(renamed[0].destination, "<<gameDirectory>>/Override");
+    let renamed_guide = Guide {
+        components: vec![Component {
+            guid: "fomod-renamed".into(),
+            name: "FOMOD renamed".into(),
+            is_selected: true,
+            instructions: renamed,
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    Engine::new(Settings::new(&mods, &game).unwrap())
+        .unwrap()
+        .install(&renamed_guide, |_| {})
+        .unwrap();
+    assert_eq!(
+        std::fs::read(game.join("Override/a.tga")).unwrap(),
+        b"texture"
+    );
+    assert!(!game.join("Override/b.tga").exists());
 }
 
 #[test]

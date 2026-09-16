@@ -482,12 +482,9 @@ impl ModuleConfig {
                 if let Some(name) = destination.file_name() {
                     let name = name.to_string_lossy();
                     if name.contains('.') || name.eq_ignore_ascii_case(&filename) {
-                        ensure!(
-                            name.eq_ignore_ascii_case(&filename),
-                            "FOMOD file rename mapping is not implemented: {} -> {}",
-                            file.source,
-                            file.destination
-                        );
+                        // The shared Copy action preserves the source name. The C# mapper
+                        // therefore drops an authored destination filename, including a
+                        // requested rename, and keeps the destination directory.
                         destination.pop();
                     }
                 }
