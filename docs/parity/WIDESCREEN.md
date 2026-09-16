@@ -36,3 +36,9 @@ The Rust single selection page and engine still execute a single guide. Existing
 This upgrades the double-execution finding from source inference to service-level reproduction. It does not prove GUI navigation, checkpoint behavior, initially unselected/zero-selection behavior, or cross-phase dependencies. The net9 attempt failed on a DiagnosticSource version conflict; the successful probe ran under installed .NET 10.0.11 against the same reference DLL.
 
 The Rust phase implementation must prevent this observed duplicate execution, explicitly documenting it as a reference defect correction under the user's guide-order/no-backfill constraint. Next work remains the untested dependency and failure cases, then phase-scoped execution with completed-base context and verified recovery boundaries.
+
+## Live dependency-context reproduction
+
+`widescreen-dependency-oracle/` adds a wide component initially unselected and dependent on the base GUID. Bulk installation succeeded without creating the wide file; its state stayed Pending. Selecting it and invoking the single service with only the widescreen list returned DependencyViolation and created no file. Passing the full component list to the same service then returned Success and wrote the expected bytes. The runtime/isolation/DLL binding is recorded in the receipt, with a result assertion in verify.py.
+
+This confirms that execution membership and dependency context must remain distinct in the Rust phase implementation. The base install must not be replayed to satisfy a wide dependency. Initial deselection is also observed to defer wide execution in this fixture. Zero-selection completion, failures and checkpoint recovery remain unverified.

@@ -231,3 +231,5 @@ F04/F24 native group checkpoint: expand/collapse, filtered group selection and c
 F10/F24 widescreen investigation: `WIDESCREEN.md` and source hashes distinguish base UI counts from actual reference execution. A possible duplicate invocation requires live reproduction before implementing phase splitting; this is new source evidence, not phase completion.
 
 F10/F24 reference defect evidence: isolated bulk/single service calls reproduced widescreen re-execution despite Completed state. DLL-bound receipt in `widescreen-oracle/`; GUI/checkpoint/dependency/failure paths remain open.
+
+F10/F24 dependency oracle: initial wide deselection deferred installation; wide-only context failed a completed-base dependency while full context succeeded. Service-level receipt in `widescreen-dependency-oracle/`; no phased Rust implementation or checkpoint proof claimed.

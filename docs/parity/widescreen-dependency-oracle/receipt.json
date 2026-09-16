@@ -1,0 +1,16 @@
+{
+  "reference_dll_sha256": "8f3b1e3f8fe47b2cc6f8e3f281912506721c7367218381bb2a35cf86dc5768f0",
+  "runtime": "Microsoft.NETCore.App 10.0.11",
+  "configuration": "NoCheckpoint=true; default bulk ordering; wide initially unselected; component dependency on selected base GUID",
+  "isolation": "bubblewrap read-only root, writable isolated fixture only, private config/share/tmp, network disabled",
+  "observations": [
+    "Bulk installs base and does not install unselected wide",
+    "Select wide after bulk; single service with wide-only context returns DependencyViolation without target file",
+    "Same wide component with full component context returns Success and writes expected bytes"
+  ],
+  "limits": [
+    "Service-level test, no GUI navigation or checkpoints",
+    "Zero-selection completion and failure/retry remain untested",
+    "Completed-state tracking was not independently persisted/reloaded"
+  ]
+}

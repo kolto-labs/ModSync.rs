@@ -1,0 +1,9 @@
+{
+  "Bulk": "Success",
+  "AfterBulk": null,
+  "StateAfterBulk": "Pending",
+  "Narrow": "DependencyViolation",
+  "AfterNarrow": null,
+  "Full": "Success",
+  "AfterFull": "second"
+}

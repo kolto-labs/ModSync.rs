@@ -1,0 +1,197 @@
+[09/16/2026 02:25:47] [Verbose] Loading from string with format: json
+[09/16/2026 02:25:47] [Verbose] Loading from JSON string
+[09/16/2026 02:25:47] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue: Found key 'Guid', type=String, value=11111111-1111-4111-8111-000000000001
+[09/16/2026 02:25:47] [Verbose] GetValue<Guid>: key='Guid', type=string, value='11111111-1111-4111-8111-000000000001'
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue: Found key 'Name', type=String, value=Base
+[09/16/2026 02:25:47] [Verbose]  == Deserialize next component 'Base' ==
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] DeserializeResourceRegistry: No ResourceRegistry field found in componentDict
+[09/16/2026 02:25:47] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue: Found key 'IsSelected', type=Boolean, value=True
+[09/16/2026 02:25:47] [Verbose] === Processing Instructions for component 'Base' ===
+[09/16/2026 02:25:47] [Verbose] componentDict contains 'Instructions' key: True
+[09/16/2026 02:25:47] [Verbose] Instructions object type: List`1, value: System.Collections.Generic.List`1[System.Object]
+[09/16/2026 02:25:47] [Verbose] Instructions is IList<object> with 1 items
+[09/16/2026 02:25:47] [Verbose] DeserializeInstructions called for 'Base' with 1 items
+[09/16/2026 02:25:47] [Verbose]   instructionsSerializedList[0] type: Dictionary`2, value: System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/16/2026 02:25:47] [Verbose] Processing instruction 1 for 'Base': System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/16/2026 02:25:47] [Verbose] Serialized instruction dict: Action, Source, Destination, Overwrite
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/16/2026 02:25:47] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/16/2026 02:25:47] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/16/2026 02:25:47] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/16/2026 02:25:47] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/16/2026 02:25:47] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 4 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<Boolean>: Attempting to get key 'Overwrite' from dict with 4 keys
+[09/16/2026 02:25:47] [Verbose] GetValue: Found key 'Overwrite', type=Boolean, value=True
+[09/16/2026 02:25:47] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 4 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 4 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 4 keys
+[09/16/2026 02:25:47] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.String]
+[09/16/2026 02:25:47] [Verbose] [Instruction.set_Source] Setting new source and calling OnPropertyChanged
+[09/16/2026 02:25:47] [Verbose] [Instruction.set_Source] OnPropertyChanged completed
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 4 keys
+[09/16/2026 02:25:47] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/16/2026 02:25:47] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] Successfully deserialized component 'Base'
+[09/16/2026 02:25:47] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue: Found key 'Guid', type=String, value=11111111-1111-4111-8111-000000000002
+[09/16/2026 02:25:47] [Verbose] GetValue<Guid>: key='Guid', type=string, value='11111111-1111-4111-8111-000000000002'
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue: Found key 'Name', type=String, value=Wide
+[09/16/2026 02:25:47] [Verbose]  == Deserialize next component 'Wide' ==
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] DeserializeResourceRegistry: No ResourceRegistry field found in componentDict
+[09/16/2026 02:25:47] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] GetValue: Found key 'IsSelected', type=Boolean, value=False
+[09/16/2026 02:25:47] [Verbose] === Processing Instructions for component 'Wide' ===
+[09/16/2026 02:25:47] [Verbose] componentDict contains 'Instructions' key: True
+[09/16/2026 02:25:47] [Verbose] Instructions object type: List`1, value: System.Collections.Generic.List`1[System.Object]
+[09/16/2026 02:25:47] [Verbose] Instructions is IList<object> with 1 items
+[09/16/2026 02:25:47] [Verbose] DeserializeInstructions called for 'Wide' with 1 items
+[09/16/2026 02:25:47] [Verbose]   instructionsSerializedList[0] type: Dictionary`2, value: System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/16/2026 02:25:47] [Verbose] Processing instruction 1 for 'Wide': System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/16/2026 02:25:47] [Verbose] Serialized instruction dict: Action, Source, Destination, Overwrite
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/16/2026 02:25:47] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/16/2026 02:25:47] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/16/2026 02:25:47] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/16/2026 02:25:47] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/16/2026 02:25:47] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 4 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<Boolean>: Attempting to get key 'Overwrite' from dict with 4 keys
+[09/16/2026 02:25:47] [Verbose] GetValue: Found key 'Overwrite', type=Boolean, value=True
+[09/16/2026 02:25:47] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 4 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 4 keys
+[09/16/2026 02:25:47] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 4 keys
+[09/16/2026 02:25:47] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.String]
+[09/16/2026 02:25:47] [Verbose] [Instruction.set_Source] Setting new source and calling OnPropertyChanged
+[09/16/2026 02:25:47] [Verbose] [Instruction.set_Source] OnPropertyChanged completed
+[09/16/2026 02:25:47] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 4 keys
+[09/16/2026 02:25:47] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/16/2026 02:25:47] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 5 keys
+[09/16/2026 02:25:47] [Verbose] Successfully deserialized component 'Wide'
+[09/16/2026 02:25:47] [Verbose] [DownloadCacheService] Created cache directory: /home/brunner56/.local/share/ModSync
+[09/16/2026 02:25:47] [Verbose] [Cache] No resource index found, starting fresh
+[09/16/2026 02:25:47] [Verbose] Successfully resolved dependencies and reordered 2 components
+[09/16/2026 02:25:47] [Verbose] Auto-fix enabled, applying fixes to loaded components
+[09/16/2026 02:25:47] [Verbose] [Cache] No resource index found, starting fresh
+[09/16/2026 02:25:47] Start install of 'Base'...
+[09/16/2026 02:25:47] [Verbose] [Instruction.SetRealPaths] Action=Copy, Source count=1, sourceIsNotFilePath=False, skipExistenceCheck=False
+[09/16/2026 02:25:47] [Verbose] [Instruction.SetRealPaths] Raw Source paths: [<<modDirectory>>/base.txt]
+[09/16/2026 02:25:47] [Verbose] [Instruction.SetRealPaths] MainConfig.SourcePath: /home/brunner56/.cache/modsync-rs-widescreen-dependency/run/mods
+[09/16/2026 02:25:47] [Verbose] [Instruction.SetRealPaths] MainConfig.DestinationPath: /home/brunner56/.cache/modsync-rs-widescreen-dependency/run/game
+[09/16/2026 02:25:47] [Verbose] [Instruction.SetRealPaths] Calling ReplaceCustomVariables on source paths...
+[09/16/2026 02:25:47] [Verbose] [Instruction.SetRealPaths] After ReplaceCustomVariables on source: [/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/mods/base.txt]
+[09/16/2026 02:25:47] [Verbose] [Instruction.SetRealPaths] Calling EnumerateFilesWithWildcards with processed paths...
+[09/16/2026 02:25:47] [Verbose] [PathHelper] EnumerateFilesWithWildcards: path=/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/mods/base.txt, formatted=/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/mods/base.txt
+[09/16/2026 02:25:47] [Verbose] [PathHelper] No wildcards, checking FileExists...
+[09/16/2026 02:25:47] [Verbose] [PathHelper] EXISTS! Adding: /home/brunner56/.cache/modsync-rs-widescreen-dependency/run/mods/base.txt
+[09/16/2026 02:25:47] [Verbose] [Instruction.SetRealPaths] After EnumerateFilesWithWildcards: Found 1 files
+[09/16/2026 02:25:47] [Verbose] [Instruction.SetRealPaths] Raw Destination: <<kotorDirectory>>/Override
+[09/16/2026 02:25:47] [Verbose] [Instruction.SetRealPaths] After ReplaceCustomVariables on Destination: /home/brunner56/.cache/modsync-rs-widescreen-dependency/run/game/Override
+[09/16/2026 02:25:47] [Verbose] [Instruction.SetRealPaths] TryGetValidDirectoryInfo result: /home/brunner56/.cache/modsync-rs-widescreen-dependency/run/game/Override
+[09/16/2026 02:25:47] [Verbose] [PathHelper.GetRelativePath] Called with relativeTo='/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/mods', path='/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/mods/base.txt'
+[09/16/2026 02:25:47] [Verbose] [PathHelper.GetRelativePath] After FixPathFormatting: relativeTo='/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/mods', path='/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/mods/base.txt'
+[09/16/2026 02:25:47] [Verbose] [PathHelper.GetRelativePath] After GetFullPath: relativeTo='/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/mods', path='/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/mods/base.txt'
+[09/16/2026 02:25:47] [Verbose] [PathHelper.GetRelativePath] Common path length: 60
+[09/16/2026 02:25:47] [Verbose] [PathHelper.GetRelativePath] Returning relative path: 'mods/base.txt'
+[09/16/2026 02:25:47] [Verbose] [PathHelper.GetRelativePath] Called with relativeTo='/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/game', path='/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/game/Override/base.txt'
+[09/16/2026 02:25:47] [Verbose] [PathHelper.GetRelativePath] After FixPathFormatting: relativeTo='/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/game', path='/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/game/Override/base.txt'
+[09/16/2026 02:25:47] [Verbose] [PathHelper.GetRelativePath] After GetFullPath: relativeTo='/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/game', path='/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/game/Override/base.txt'
+[09/16/2026 02:25:47] [Verbose] [PathHelper.GetRelativePath] Common path length: 60
+[09/16/2026 02:25:47] [Verbose] [PathHelper.GetRelativePath] Returning relative path: 'game/Override/base.txt'
+[09/16/2026 02:25:47] Copy 'mods/base.txt' to 'game/Override/base.txt'
+[09/16/2026 02:25:47] [Warning] [Telemetry] No signing secret found - telemetry will be disabled
+[09/16/2026 02:25:47] [Verbose] Instruction #1 'Copy' exited with code Success
+[09/16/2026 02:25:47] [Verbose] Successfully completed instruction #1 'Copy'
+[09/16/2026 02:25:47] Completed Successfully
+[09/16/2026 02:25:47] Install of 'Base' succeeded.
+[09/16/2026 02:25:47] [Verbose]  == Validating 'Wide' == 
+[09/16/2026 02:25:47] A dependency or restriction violation between components has occurred.
+[09/16/2026 02:25:47] [Verbose]  == Validating 'Wide' == 
+[09/16/2026 02:25:47] [Verbose] [Instruction.SetRealPaths] Action=Copy, Source count=1, sourceIsNotFilePath=False, skipExistenceCheck=False
+[09/16/2026 02:25:47] [Verbose] [Instruction.SetRealPaths] Raw Source paths: [<<modDirectory>>/wide.txt]
+[09/16/2026 02:25:47] [Verbose] [Instruction.SetRealPaths] MainConfig.SourcePath: /home/brunner56/.cache/modsync-rs-widescreen-dependency/run/mods
+[09/16/2026 02:25:47] [Verbose] [Instruction.SetRealPaths] MainConfig.DestinationPath: /home/brunner56/.cache/modsync-rs-widescreen-dependency/run/game
+[09/16/2026 02:25:47] [Verbose] [Instruction.SetRealPaths] Calling ReplaceCustomVariables on source paths...
+[09/16/2026 02:25:47] [Verbose] [Instruction.SetRealPaths] After ReplaceCustomVariables on source: [/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/mods/wide.txt]
+[09/16/2026 02:25:47] [Verbose] [Instruction.SetRealPaths] Calling EnumerateFilesWithWildcards with processed paths...
+[09/16/2026 02:25:47] [Verbose] [PathHelper] EnumerateFilesWithWildcards: path=/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/mods/wide.txt, formatted=/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/mods/wide.txt
+[09/16/2026 02:25:47] [Verbose] [PathHelper] No wildcards, checking FileExists...
+[09/16/2026 02:25:47] [Verbose] [PathHelper] EXISTS! Adding: /home/brunner56/.cache/modsync-rs-widescreen-dependency/run/mods/wide.txt
+[09/16/2026 02:25:47] [Verbose] [Instruction.SetRealPaths] After EnumerateFilesWithWildcards: Found 1 files
+[09/16/2026 02:25:47] [Verbose] [Instruction.SetRealPaths] Raw Destination: <<kotorDirectory>>/Override
+[09/16/2026 02:25:47] [Verbose] [Instruction.SetRealPaths] After ReplaceCustomVariables on Destination: /home/brunner56/.cache/modsync-rs-widescreen-dependency/run/game/Override
+[09/16/2026 02:25:47] [Verbose] [Instruction.SetRealPaths] TryGetValidDirectoryInfo result: /home/brunner56/.cache/modsync-rs-widescreen-dependency/run/game/Override
+[09/16/2026 02:25:47] [Verbose] [PathHelper.GetRelativePath] Called with relativeTo='/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/mods', path='/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/mods/wide.txt'
+[09/16/2026 02:25:47] [Verbose] [PathHelper.GetRelativePath] After FixPathFormatting: relativeTo='/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/mods', path='/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/mods/wide.txt'
+[09/16/2026 02:25:47] [Verbose] [PathHelper.GetRelativePath] After GetFullPath: relativeTo='/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/mods', path='/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/mods/wide.txt'
+[09/16/2026 02:25:47] [Verbose] [PathHelper.GetRelativePath] Common path length: 60
+[09/16/2026 02:25:47] [Verbose] [PathHelper.GetRelativePath] Returning relative path: 'mods/wide.txt'
+[09/16/2026 02:25:47] [Verbose] [PathHelper.GetRelativePath] Called with relativeTo='/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/game', path='/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/game/Override/wide.txt'
+[09/16/2026 02:25:47] [Verbose] [PathHelper.GetRelativePath] After FixPathFormatting: relativeTo='/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/game', path='/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/game/Override/wide.txt'
+[09/16/2026 02:25:47] [Verbose] [PathHelper.GetRelativePath] After GetFullPath: relativeTo='/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/game', path='/home/brunner56/.cache/modsync-rs-widescreen-dependency/run/game/Override/wide.txt'
+[09/16/2026 02:25:47] [Verbose] [PathHelper.GetRelativePath] Common path length: 60
+[09/16/2026 02:25:47] [Verbose] [PathHelper.GetRelativePath] Returning relative path: 'game/Override/wide.txt'
+[09/16/2026 02:25:47] Copy 'mods/wide.txt' to 'game/Override/wide.txt'
+[09/16/2026 02:25:47] [Verbose] Instruction #1 'Copy' exited with code Success
+[09/16/2026 02:25:47] [Verbose] Successfully completed instruction #1 'Copy'
+[09/16/2026 02:25:47] Completed Successfully
