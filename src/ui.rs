@@ -438,15 +438,13 @@ impl App {
         for option in &mut component.options {
             let name = modsync::selection::display_name(option, spoiler_free);
             changed |= ui.checkbox(&mut option.is_selected, name).changed();
-            if !option.description.is_empty() {
-                ui.label(modsync::selection::display_description(
-                    option,
-                    spoiler_free,
-                ))
-                .on_hover_text(modsync::selection::tooltip_description(
-                    option,
-                    spoiler_free,
-                ));
+            let description = modsync::selection::display_description(option, spoiler_free);
+            if !description.trim().is_empty() {
+                ui.label(description)
+                    .on_hover_text(modsync::selection::tooltip_description(
+                        option,
+                        spoiler_free,
+                    ));
             }
             if option.is_selected {
                 changed |= Self::options(ui, option, spoiler_free);
@@ -795,6 +793,38 @@ pub fn launch(
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn option_without_raw_description_renders_spoiler_description() {
+        for authored in [false, true] {
+            let mut option = Component {
+                name: "Option".into(),
+                ..Default::default()
+            };
+            let expected = if authored {
+                option.metadata.insert(
+                    "DescriptionSpoilerFree".into(),
+                    "Authored safe description".into(),
+                );
+                "Authored safe description"
+            } else {
+                "This modification enhances your gameplay."
+            };
+            let mut component = Component {
+                options: vec![option],
+                ..Default::default()
+            };
+            let ctx = egui::Context::default();
+            let output = ctx.run(egui::RawInput::default(), |ctx| {
+                egui::CentralPanel::default().show(ctx, |ui| {
+                    App::options(ui, &mut component, true);
+                });
+            });
+            assert!(output.shapes.iter().any(|shape| {
+                matches!(&shape.shape, egui::Shape::Text(text) if text.galley.text() == expected)
+            }), "missing rendered description: {expected}");
+        }
+    }
+
     use super::*;
 
     #[test]

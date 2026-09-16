@@ -267,3 +267,7 @@ Formatting, clippy with warnings denied, 62 regular integration tests in both co
 ### Native modal input verification
 
 The category chooser and install confirmation now use the installed egui Modal container. Background input is blocked; Escape and backdrop clicks cancel. This supersedes the earlier nonmodal-window limitation for these two dialogs. Native Linux input checks verified blocked background Deselect all and trust-checkbox clicks, category application, install cancellation without game writes or snapshots, and an explicitly confirmed two-component Copy install with exact byte checks. Evidence and source/binary hashes: `docs/parity/native-modals/receipt.json` and adjacent screenshots. Required format, lint and both test configurations passed. Windows/macOS, exhaustive focus/accessibility behavior, reference GUI comparison and the separate widescreen phase remain unverified or incomplete. F04/F24 stay partial.
+
+### Option description visibility
+
+Option descriptions now test the displayed text for whitespace, matching the reference ModSelectionPage option-card condition. An empty raw Description no longer suppresses authored DescriptionSpoilerFree or the generated safe fallback. The shared recursive option renderer applies the same rule to nested options. An egui rendering regression inspects emitted text shapes for both authored and fallback descriptions with an empty raw field. This is rendering-path evidence, not native accessibility or full option-card parity.
