@@ -252,7 +252,15 @@ impl Engine {
         let mut found = BTreeMap::new();
         for source in sources {
             let path = self.path(source, true)?;
-            let pattern = glob::Pattern::new(&key(&path))?;
+            let root = [&self.settings.roots.mods, &self.settings.roots.game]
+                .into_iter()
+                .find(|root| path.starts_with(root))
+                .unwrap();
+            let pattern = glob::Pattern::new(&format!(
+                "{}/{}",
+                glob::Pattern::escape(&key(root)),
+                key(path.strip_prefix(root)?)
+            ))?;
             let prefix = format!("{}/", key(&path));
             let matches: Vec<_> = self
                 .files
@@ -273,6 +281,7 @@ impl Engine {
                 "Source matches no files: {source}"
             );
             for (k, (p, _)) in matches {
+                self.settings.roots.check(p)?;
                 found.insert(k.clone(), p.clone());
             }
         }

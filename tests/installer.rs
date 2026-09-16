@@ -162,6 +162,27 @@ fn unsafe_paths_and_overlapping_roots_are_rejected() {
     assert!(Roots::new(&settings.roots.mods, settings.roots.mods.parent().unwrap()).is_err());
 }
 
+#[test]
+fn wildcard_sources_keep_root_names_literal_and_check_existing_parents() {
+    let (dir, settings) = setup();
+    let mods = dir.path().join("mods[1]");
+    fs::rename(&settings.roots.mods, &mods).unwrap();
+    let settings = Settings::new(&mods, &settings.roots.game).unwrap();
+    fs::create_dir(mods.join("existing")).unwrap();
+    fs::write(mods.join("existing/sample.tga"), b"texture").unwrap();
+    let g = guide(
+        serde_json::json!([{"Action":"Copy", "Source":"<<modDirectory>>/existing/*.tga", "Destination":"<<kotorDirectory>>/Override"}]),
+    );
+    Engine::new(settings.clone())
+        .unwrap()
+        .install(&g, |_| {})
+        .unwrap();
+    assert_eq!(
+        fs::read(settings.roots.game.join("Override/sample.tga")).unwrap(),
+        b"texture"
+    );
+}
+
 #[cfg(unix)]
 #[test]
 fn symlinks_cannot_escape_or_hide_inside_install_trees() {
