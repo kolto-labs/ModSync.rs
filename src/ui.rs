@@ -12,6 +12,7 @@ use std::{
 };
 
 enum Message {
+    Downloaded(PathBuf, modsync::archive::Options),
     Log(String),
     Done(Result<()>),
 }
@@ -393,6 +394,22 @@ impl App {
         self.page = 2;
     }
 
+    fn saved_fomod_choices(&self, path: &Path) -> Result<Option<modsync::fomod::ArchiveChoices>> {
+        let filename = path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .ok_or_else(|| anyhow::anyhow!("Invalid archive filename"))?;
+        if !self.fomod_choices.trim().is_empty() {
+            let choices =
+                modsync::fomod::ChoicesFile::parse(&std::fs::read_to_string(&self.fomod_choices)?)?;
+            Ok(choices.archive(filename).cloned())
+        } else if let Some(guide) = &self.guide {
+            modsync::fomod::saved_archive_choices(guide, filename)
+        } else {
+            Ok(None)
+        }
+    }
+
     fn apply_fomod_choices(&mut self, choices: &modsync::fomod::ChoicesFile) -> Result<()> {
         let mut guide = self
             .guide
@@ -513,13 +530,16 @@ impl App {
                             name.components().count() == 1,
                             "Enter one archive filename"
                         );
-                        return download::fetch_with_options(
+                        let output = settings.roots.mods.join(name);
+                        download::fetch_with_options(
                             &url,
-                            &settings.roots.mods.join(name),
+                            &output,
                             if hash.is_empty() { None } else { Some(&hash) },
                             &settings.cancelled,
                             &settings.archive,
-                        );
+                        )?;
+                        let _ = tx.send(Message::Downloaded(output, settings.archive.clone()));
+                        return Ok(());
                     }
                     let guide = guide.ok_or_else(|| anyhow::anyhow!("Load a guide first"))?;
                     let emit = |e: modsync::Event| {
@@ -601,6 +621,18 @@ impl eframe::App for App {
             .unwrap_or_default();
         for message in messages {
             match message {
+                Message::Downloaded(path, options) => {
+                    if self.completed_base.is_none() && self.guide.is_some() {
+                        let saved = self.saved_fomod_choices(&path);
+                        match saved {
+                            Ok(saved) => {
+                                self.fomod_archive = path.to_string_lossy().into_owned();
+                                self.fomod_editor.launch(path, options, saved, true);
+                            }
+                            Err(error) => self.logs.push(format!("FOMOD choices: {error:#}")),
+                        }
+                    }
+                }
                 Message::Log(line) => self.logs.push(line),
                 Message::Done(result) => {
                     self.receiver = None;
@@ -903,21 +935,12 @@ impl eframe::App for App {
                             else { self.expanded_budget.trim().parse::<u64>().map(Some) };
                         match budget {
                             Ok(max_expanded_bytes) => {
-                                let saved = (|| -> Result<_> {
-                                    let filename = path.file_name().and_then(|n| n.to_str())
-                                        .ok_or_else(|| anyhow::anyhow!("Invalid archive filename"))?;
-                                    if !self.fomod_choices.trim().is_empty() {
-                                        let choices = modsync::fomod::ChoicesFile::parse(&std::fs::read_to_string(&self.fomod_choices)?)?;
-                                        Ok(choices.archive(filename).cloned())
-                                    } else if let Some(guide) = &self.guide {
-                                        modsync::fomod::saved_archive_choices(guide, filename)
-                                    } else { Ok(None) }
-                                })();
+                                let saved = self.saved_fomod_choices(&path);
                                 match saved {
                                     Ok(saved) => self.fomod_editor.launch(path, modsync::archive::Options {
                                         scratch_dir: if self.scratch.is_empty() { None } else { Some(PathBuf::from(&self.scratch)) },
                                         max_expanded_bytes,
-                                    }, saved),
+                                    }, saved, false),
                                     Err(error) => self.logs.push(format!("FOMOD choices: {error:#}")),
                                 }
                             },

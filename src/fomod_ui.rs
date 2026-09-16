@@ -14,6 +14,7 @@ pub struct Editor {
     cancel: Arc<AtomicBool>,
     error: String,
     open: bool,
+    dismiss_non_fomod: bool,
 }
 impl Editor {
     pub fn launch(
@@ -21,12 +22,14 @@ impl Editor {
         path: std::path::PathBuf,
         options: modsync::archive::Options,
         saved: Option<modsync::fomod::ArchiveChoices>,
+        dismiss_non_fomod: bool,
     ) {
         self.cancel.store(true, Ordering::Relaxed);
         self.cancel = Arc::new(AtomicBool::new(false));
         self.module = None;
         self.error.clear();
         self.open = true;
+        self.dismiss_non_fomod = dismiss_non_fomod;
         self.filename = path
             .file_name()
             .unwrap_or_default()
@@ -57,6 +60,7 @@ impl Editor {
                     self.receiver = None;
                     match result {
                         Ok(Some(module)) => self.module = Some(module),
+                        Ok(None) if self.dismiss_non_fomod => self.open = false,
                         Ok(None) => self.error = "This archive has no FOMOD installer.".into(),
                         Err(error) => self.error = format!("{error:#}"),
                     }
@@ -69,6 +73,9 @@ impl Editor {
                     self.error = "Archive inspection stopped unexpectedly.".into();
                 }
             }
+        }
+        if !self.open {
+            return None;
         }
         let mut accepted = None;
         egui::Modal::new(egui::Id::new("fomod_editor")).show(ctx, |ui| {
@@ -144,5 +151,36 @@ impl Editor {
 impl Drop for Editor {
     fn drop(&mut self) {
         self.cancel.store(true, Ordering::Relaxed);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn automatic_inspection_closes_for_ordinary_archives_but_keeps_errors_visible() {
+        let ctx = egui::Context::default();
+        for failed in [false, true] {
+            let (tx, rx) = mpsc::channel();
+            tx.send(if failed {
+                Err(anyhow::anyhow!("corrupt archive"))
+            } else {
+                Ok(None)
+            })
+            .unwrap();
+            let mut editor = Editor::default();
+            editor.receiver = Some(rx);
+            editor.open = true;
+            editor.dismiss_non_fomod = true;
+            let _ = ctx.run(Default::default(), |ctx| {
+                assert!(editor.show(ctx).is_none());
+            });
+            assert_eq!(editor.open, failed);
+            assert!(editor.receiver.is_none());
+            if failed {
+                assert!(editor.error.contains("corrupt archive"));
+            }
+        }
     }
 }

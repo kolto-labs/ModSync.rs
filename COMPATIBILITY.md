@@ -497,3 +497,7 @@ An isolated Linux X11 run rendered the validation page, but the system archive p
 ### Native FOMOD editor/install acceptance
 
 Linux X11 acceptance at commit 3e7cf9f opened the desktop editor from a typed archive path, selected Alternate instead of Default, accepted and reopened the session, validated without changing either install tree, and confirmed a real install. The GUI reached Installation complete; only alternate.txt reached Override with exact expected bytes, the completion receipt records Alternate, and no pending marker remains. Screenshots, fixture ZIP, receipt and binary hash are in docs/parity/native-fomod. Save-dialog/restart persistence, previews, automatic prompts, other platforms and full builds remain outside this proof.
+
+### Desktop post-download FOMOD prompt
+
+Successful verified direct downloads now pass their actual output path and archive limits to the desktop FOMOD editor when a guide is loaded before base installation. Inspection runs in the background, restores existing choices through the same resolver as manual opening, and dismisses ordinary archives without a configuration error. Failed downloads do not dispatch this event; inspection errors remain visible. An egui regression checks ordinary-archive dismissal and visible errors. Native network-download-to-editor acceptance and multi-host queue integration remain pending.
