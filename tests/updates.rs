@@ -198,3 +198,22 @@ fn component_badge_reflects_any_resource_update_flag() {
     .unwrap();
     assert!(updates::component_update_available(&guide.components[0]));
 }
+
+#[test]
+fn nxm_download_record_marks_the_resolved_file_available() {
+    let mut guide = Guide::parse(
+        r#"[{"Guid":"one","Name":"One","ResourceRegistry":{"https://www.nexusmods.com/kotor/mods/1":{"Files":{"old.zip":false}}}}]"#,
+        "json",
+    )
+    .unwrap();
+    updates::record_nxm_download(
+        &mut guide.components[0],
+        "https://www.nexusmods.com/kotor/mods/1",
+        "new.zip",
+    )
+    .unwrap();
+    assert_eq!(
+        guide.components[0].resource_registry["https://www.nexusmods.com/kotor/mods/1"]["Files"]["new.zip"],
+        true
+    );
+}

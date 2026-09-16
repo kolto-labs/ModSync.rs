@@ -99,6 +99,30 @@ pub struct NxmDownloadLink {
     pub uri: String,
 }
 
+pub fn record_nxm_download(
+    component: &mut Component,
+    registry_url: &str,
+    file_name: &str,
+) -> Result<()> {
+    anyhow::ensure!(
+        !file_name.trim().is_empty(),
+        "Downloaded filename is required"
+    );
+    let metadata = component
+        .resource_registry
+        .get_mut(registry_url)
+        .ok_or_else(|| anyhow::anyhow!("Resolved registry URL is no longer present"))?;
+    let files = metadata
+        .as_object_mut()
+        .ok_or_else(|| anyhow::anyhow!("Resource metadata must be an object"))?
+        .entry("Files")
+        .or_insert_with(|| Value::Object(Default::default()))
+        .as_object_mut()
+        .ok_or_else(|| anyhow::anyhow!("Resource Files must be an object"))?;
+    files.insert(file_name.into(), Value::Bool(true));
+    Ok(())
+}
+
 impl NexusClient {
     pub fn new(api_key: Option<String>) -> Result<Self> {
         Self::with_base_url(api_key, "https://api.nexusmods.com/v1/")
