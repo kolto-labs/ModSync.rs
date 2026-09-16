@@ -1244,10 +1244,10 @@ fn validation_report_has_ordered_shared_engine_stages() {
         .validate_report(&guide(serde_json::json!([copy()])), |_| {});
     assert!(report.success);
     assert_eq!(report.error_count, 0);
-    assert_eq!(
-        serde_json::to_value(&report).unwrap()["stages"][0]["stage"],
-        "Environment"
-    );
+    let json = serde_json::to_value(&report).unwrap();
+    assert_eq!(json["stages"][0]["stage"], "Environment");
+    assert!(json.get("inputPath").is_none());
+    assert!(json["stages"][0].get("messages").is_none());
     assert_eq!(
         report
             .stages

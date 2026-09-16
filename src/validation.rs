@@ -19,6 +19,7 @@ pub struct StageResult {
     pub passed: bool,
     pub has_warnings: bool,
     pub summary: String,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub messages: Vec<String>,
 }
 #[derive(Clone, Debug, Serialize)]
@@ -30,6 +31,7 @@ pub struct Report {
     pub warning_count: usize,
     pub passed_count: usize,
     pub component_count: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub input_path: Option<String>,
     pub stages: Vec<StageResult>,
 }
