@@ -174,6 +174,7 @@ impl App {
                 self.tier_filter.clear();
                 self.category_filter.clear();
                 self.category_selection = None;
+                self.start_pending_nxm_if_ready();
             }
             Err(e) => {
                 self.loaded_input = None;
@@ -206,8 +207,17 @@ impl App {
     fn accept_protocol(&mut self, url: String) {
         match modsync::protocol::parse(&url) {
             Ok(modsync::protocol::Link::Modsync { .. }) => self.pending_protocol = Some(url),
-            Ok(modsync::protocol::Link::Nxm { .. }) => self.pending_nxm = Some(url),
+            Ok(modsync::protocol::Link::Nxm { .. }) => {
+                self.pending_nxm = Some(url);
+                self.start_pending_nxm_if_ready();
+            }
             Err(error) => self.logs.push(format!("Protocol link rejected: {error:#}")),
+        }
+    }
+
+    fn start_pending_nxm_if_ready(&mut self) {
+        if self.guide.is_some() && !self.mods.trim().is_empty() && self.receiver.is_none() {
+            self.download_pending_nxm();
         }
     }
 
