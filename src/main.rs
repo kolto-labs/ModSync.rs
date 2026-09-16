@@ -930,6 +930,9 @@ fn run() -> Result<()> {
             settings.archive.max_expanded_bytes = args.max_expanded_bytes;
             let engine = Engine::new(settings)?;
             let emit = |event: modsync::Event| {
+                if args.validation_report {
+                    return;
+                }
                 if args.json {
                     println!("{}", serde_json::to_string(&event).unwrap());
                 } else {
