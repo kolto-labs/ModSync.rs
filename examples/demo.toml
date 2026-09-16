@@ -1,0 +1,30 @@
+[metadata]
+title = "ModSync.rs sample install"
+
+[[thisMod]]
+Guid = "sample-textures"
+Name = "Sample textures"
+Author = "ModSync.rs"
+Tier = "Essential"
+Category = ["Textures"]
+Description = "Copies sample.tga from the mod directory into Override. Use empty demo folders, not a real game install."
+IsSelected = true
+
+[[thisMod.Instructions]]
+Action = "Copy"
+Source = ["<<modDirectory>>/sample.tga"]
+Destination = "<<kotorDirectory>>/Override"
+
+[[thisMod]]
+Guid = "sample-cleanup"
+Name = "Remove conflicting textures"
+Tier = "Essential"
+Description = "Removes a TPC when a TGA with the same name exists."
+IsSelected = true
+Dependencies = ["sample-textures"]
+
+[[thisMod.Instructions]]
+Action = "DelDuplicate"
+Source = [".tga", ".tpc"]
+Destination = "<<kotorDirectory>>/Override"
+Arguments = ".tpc"

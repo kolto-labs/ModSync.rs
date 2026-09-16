@@ -1,0 +1,223 @@
+use crate::paths::Roots;
+use anyhow::{Context, Result, ensure};
+use fs2::FileExt;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+use std::{
+    collections::BTreeMap,
+    fs::{self, File, OpenOptions},
+    io,
+    path::{Path, PathBuf},
+};
+use walkdir::WalkDir;
+
+#[derive(Serialize, Deserialize)]
+struct Snapshot {
+    mods: PathBuf,
+    game: PathBuf,
+    files: BTreeMap<String, String>,
+}
+
+pub fn state_dir(roots: &Roots) -> PathBuf {
+    let key = format!(
+        "{:x}",
+        Sha256::digest(roots.game.to_string_lossy().as_bytes())
+    );
+    roots
+        .game
+        .parent()
+        .unwrap()
+        .join(format!(".modsync-{}", &key[..16]))
+}
+
+pub struct Lock {
+    files: Vec<File>,
+}
+impl Drop for Lock {
+    fn drop(&mut self) {
+        for file in &self.files {
+            let _ = FileExt::unlock(file);
+        }
+    }
+}
+impl Lock {
+    pub fn acquire(roots: &Roots) -> Result<Self> {
+        let dir = state_dir(roots);
+        ensure!(
+            !dir.starts_with(&roots.mods) && !roots.mods.starts_with(&dir),
+            "Recovery directory overlaps mod directory"
+        );
+        fs::create_dir_all(&dir)?;
+        ensure!(
+            !fs::symlink_metadata(&dir)?.file_type().is_symlink(),
+            "Recovery directory is a symlink"
+        );
+        let mut lock = Self { files: Vec::new() };
+        let mut roots = [&roots.game, &roots.mods];
+        roots.sort();
+        for root in roots {
+            let hash = format!("{:x}", Sha256::digest(root.to_string_lossy().as_bytes()));
+            let path = root
+                .parent()
+                .unwrap()
+                .join(format!(".modsync-lock-{}", &hash[..16]));
+            if let Ok(meta) = fs::symlink_metadata(&path) {
+                ensure!(!meta.file_type().is_symlink(), "Lock file is a symlink");
+            }
+            let file = OpenOptions::new()
+                .create(true)
+                .truncate(false)
+                .read(true)
+                .write(true)
+                .open(path)?;
+            file.try_lock_exclusive()
+                .context("Another ModSync process is using the game or mod directory")?;
+            lock.files.push(file);
+        }
+        Ok(lock)
+    }
+}
+
+fn hash(path: &Path) -> Result<String> {
+    let mut file = File::open(path)?;
+    let mut hash = Sha256::new();
+    io::copy(&mut file, &mut hash)?;
+    Ok(format!("{:x}", hash.finalize()))
+}
+
+pub(crate) fn copy_tree(from: &Path, to: &Path) -> Result<()> {
+    fs::create_dir_all(to)?;
+    for entry in WalkDir::new(from).min_depth(1) {
+        let entry = entry?;
+        ensure!(
+            !entry.file_type().is_symlink(),
+            "Snapshot refuses symlinks: {}",
+            entry.path().display()
+        );
+        let target = to.join(entry.path().strip_prefix(from)?);
+        if entry.file_type().is_dir() {
+            fs::create_dir_all(target)?;
+        } else {
+            ensure!(
+                entry.file_type().is_file(),
+                "Snapshot refuses special files"
+            );
+            fs::copy(entry.path(), target)?;
+        }
+    }
+    Ok(())
+}
+
+fn manifest(dir: &Path) -> Result<BTreeMap<String, String>> {
+    let mut result = BTreeMap::new();
+    for root in ["mods", "game"] {
+        for entry in WalkDir::new(dir.join(root)).min_depth(1) {
+            let entry = entry?;
+            ensure!(
+                !entry.file_type().is_symlink(),
+                "Recovery snapshot contains a symlink"
+            );
+            if entry.file_type().is_file() {
+                result.insert(
+                    entry
+                        .path()
+                        .strip_prefix(dir)?
+                        .to_string_lossy()
+                        .into_owned(),
+                    hash(entry.path())?,
+                );
+            }
+        }
+    }
+    Ok(result)
+}
+
+pub fn ensure_clean(roots: &Roots) -> Result<()> {
+    ensure!(
+        !state_dir(roots).join("pending").exists(),
+        "An unfinished install exists. Run restore before retrying. Recovery: {}",
+        state_dir(roots).display()
+    );
+    Ok(())
+}
+
+pub fn begin(roots: &Roots) -> Result<()> {
+    ensure_clean(roots)?;
+    let state = state_dir(roots);
+    let snapshot = state.join("snapshot");
+    if snapshot.exists() {
+        fs::remove_dir_all(&snapshot)?;
+    }
+    // ponytail: full copies cost two tree sizes; use reflink snapshots when install size warrants it.
+    copy_tree(&roots.mods, &snapshot.join("mods"))?;
+    copy_tree(&roots.game, &snapshot.join("game"))?;
+    let data = Snapshot {
+        mods: roots.mods.clone(),
+        game: roots.game.clone(),
+        files: manifest(&snapshot)?,
+    };
+    atomic_write(
+        &state.join("snapshot.json"),
+        &serde_json::to_vec_pretty(&data)?,
+    )?;
+    atomic_write(
+        &state.join("pending"),
+        b"Restore the verified snapshot before retrying this install.\n",
+    )?;
+    Ok(())
+}
+
+pub fn finish(roots: &Roots) -> Result<()> {
+    fs::remove_file(state_dir(roots).join("pending"))?;
+    Ok(())
+}
+
+pub fn restore(roots: &Roots) -> Result<()> {
+    let _lock = Lock::acquire(roots)?;
+    let state = state_dir(roots);
+    ensure!(
+        state.join("pending").exists(),
+        "There is no unfinished install to restore"
+    );
+    let saved: Snapshot = serde_json::from_slice(&fs::read(state.join("snapshot.json"))?)?;
+    ensure!(
+        saved.mods == roots.mods && saved.game == roots.game,
+        "Recovery roots do not match this install"
+    );
+    let snapshot = state.join("snapshot");
+    ensure!(
+        manifest(&snapshot)? == saved.files,
+        "Snapshot hashes differ; refusing to restore"
+    );
+    for (name, target) in [("mods", &roots.mods), ("game", &roots.game)] {
+        // Keep the root directory inode so another process cannot acquire a different lock.
+        for entry in fs::read_dir(target)? {
+            let entry = entry?;
+            if entry.file_type()?.is_dir() {
+                fs::remove_dir_all(entry.path())?;
+            } else {
+                fs::remove_file(entry.path())?;
+            }
+        }
+        copy_tree(&snapshot.join(name), target)?;
+        for (file, expected) in &saved.files {
+            if let Ok(rel) = Path::new(file).strip_prefix(name) {
+                ensure!(
+                    hash(&target.join(rel))? == *expected,
+                    "Restored hash mismatch: {file}"
+                );
+            }
+        }
+    }
+    finish(roots)
+}
+
+pub fn atomic_write(path: &Path, data: &[u8]) -> Result<()> {
+    use std::io::Write;
+    fs::create_dir_all(path.parent().context("Path needs a parent")?)?;
+    let mut temp = tempfile::NamedTempFile::new_in(path.parent().unwrap())?;
+    temp.write_all(data)?;
+    temp.as_file().sync_all()?;
+    temp.persist(path).map_err(|e| e.error)?;
+    Ok(())
+}

@@ -1,0 +1,109 @@
+# ModSync.rs
+
+A Rust desktop app and CLI for installing mods from ModSync instruction files. The desktop wizard and CLI share the same selection, validation, archive, and installation engine. No .NET runtime is required.
+
+This is an initial implementation, not a verified replacement for every feature in the C# application. See [COMPATIBILITY.md](COMPATIBILITY.md) for the supported behavior and remaining differences.
+
+## Run
+
+Install Rust stable and a C/C++ build toolchain, then:
+
+```sh
+git clone https://github.com/bodencrouch/ModSync.rs.git
+cd ModSync.rs
+cargo run --release
+```
+
+The default build includes the desktop app. Linux needs an X11 or Wayland session with OpenGL support. File dialogs use the desktop portal. Windows builds need the MSVC C++ tools; macOS needs the Xcode command-line tools. The RAR reader compiles the bundled UnRAR C++ library.
+
+For a CLI-only binary:
+
+```sh
+cargo build --release --no-default-features
+./target/release/modsync --help
+```
+
+## Try an isolated install
+
+Use empty sample folders. These files are demonstration data, not game assets.
+
+```sh
+mkdir -p demo-work/game/Override demo-work/mods
+printf 'sample texture\n' > demo-work/mods/sample.tga
+printf 'old texture\n' > demo-work/game/Override/sample.tpc
+cargo run -- gui --input examples/demo.toml \
+  --game-dir demo-work/game --source-dir demo-work/mods
+```
+
+Load a guide, choose components and options, then run validation. Review the report and install. Work runs on a background thread; the Activity panel shows results and lets you request cancellation.
+
+The same install from the CLI:
+
+```sh
+cargo run -- validate --input examples/demo.toml \
+  --game-dir demo-work/game --source-dir demo-work/mods --json
+cargo run -- install --input examples/demo.toml \
+  --game-dir demo-work/game --source-dir demo-work/mods
+```
+
+The result is `game/Override/sample.tga`; the conflicting `sample.tpc` is removed.
+
+## Use existing guides
+
+```sh
+modsync list KOTOR1_Full.toml
+modsync validate --input KOTOR1_Full.toml --game-dir /path/to/game --source-dir /path/to/mods
+modsync convert instructions.toml instructions.json
+```
+
+CLI validation and installation select all top-level components by default, matching ModSync. Use `--use-file-selection` to honor `IsSelected`, or repeat `--select NAME_OR_GUID` to select specific components. Repeat `--option GUID` to enable options. Option defaults from the guide remain intact. Dependencies must be selected explicitly; missing dependencies and incompatible selections stop validation.
+
+The desktop can save selections as a TOML file. The CLI reads the same file with `--use-file-selection`.
+
+## Run patchers
+
+Point to an installed OdyPatcher executable:
+
+```sh
+modsync install --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods \
+  --allow-processes --patcher /path/to/odypatcher
+```
+
+`Patcher` accepts a namespace index or an INI filename in `Arguments`. Named INI installs use a temporary copy of `tslpatchdata`, leaving the original patcher configuration intact. `Execute` and `Run` invoke the specified local program directly, without a shell. External programs have your user permissions and require the explicit trust switch. Windows executables require a Windows host; no implicit Wine execution is provided.
+
+Validation checks process inputs but does not execute programs or predict their effects. It may reject a later step that requires a file an external program would create. A successful validation report is not proof that an external patcher will succeed.
+
+## Download archives
+
+```sh
+modsync download https://example.org/mod.zip /path/to/mods/mod.zip --sha256 EXPECTED_HASH
+```
+
+Direct HTTPS ZIP, 7z, and RAR downloads are checked before being saved. HTML responses, archive corruption, unsafe names, and checksum mismatches fail. Existing downloads are never overwritten. Nexus/DeadlyStream landing pages and MEGA links remain browser workflows; the desktop exposes guide links for that purpose. Files and expanded archives currently have a 512 MiB limit.
+
+## Recover a failed install
+
+Installation validates first, locks both folders, and snapshots the game and mod trees. It stops at the first failure. A pending recovery marker prevents another install on top of partial changes.
+
+```sh
+modsync restore --game-dir /path/to/game --source-dir /path/to/mods
+```
+
+Restore verifies the snapshot hashes before changing either folder and verifies restored files afterward. Then fix the cause and rerun from the start, in guide order. Never append a failed early mod to the end of an installation.
+
+Snapshots live beside the game directory in `.modsync-<id>/snapshot`. They require space for full copies of both folders. The most recent successful run's snapshot remains until the next run; `restore` is deliberately limited to unfinished installations. Keep independent backups of valuable game data. The process lock coordinates this app; do not edit either tree with other tools during installation or restoration.
+
+## Check the build
+
+```sh
+cargo fmt --all -- --check
+cargo clippy --locked --all-targets -- -D warnings
+cargo test --locked --all-targets
+cargo test --locked --no-default-features
+```
+
+The test suite covers simulated and real file changes, ZIP/7z/RAR, path and symlink rejection, dependency ordering, option selection, texture cleanup, cancellation, recovery hashes, and the CLI. CI runs on Linux, Windows, and macOS.
+
+## Attribution
+
+Instruction behavior is based on [ModSync](https://github.com/th3w1zard1/ModSync). Its BSL 1.1 license and notices are retained in [LICENSE.txt](LICENSE.txt). Third-party Rust crates retain their respective licenses. `tests/fixtures/version.rar` comes from unrar 0.5.8; its MIT license is included beside the fixture.
