@@ -180,5 +180,50 @@
     "ModLink": " https://example.com/first ; https://example.com/second,https://example.com/first ",
     "Guid": "00000000-0000-4000-8000-000000000018",
     "IsSelected": true
+  },
+  {
+    "Name": "hash-key-primary-url",
+    "ResourceRegistry": {
+      "old-hash": {
+        "PrimaryUrl": "https://example.com/archive",
+        "ContentKey": "kept-hash",
+        "FileSize": 123
+      }
+    },
+    "Guid": "00000000-0000-4000-8000-000000000019",
+    "IsSelected": true
+  },
+  {
+    "Name": "primary-url-collision",
+    "ResourceRegistry": {
+      "hash-one": {
+        "PrimaryUrl": "https://example.com/archive",
+        "ContentKey": "first"
+      },
+      "unrelated": {
+        "PrimaryUrl": "https://example.com/other",
+        "ContentKey": "other"
+      },
+      "hash-two": {
+        "PrimaryUrl": "HTTPS://EXAMPLE.COM/ARCHIVE",
+        "ContentKey": "last"
+      }
+    },
+    "ModLink": [
+      "https://example.com/archive"
+    ],
+    "Guid": "00000000-0000-4000-8000-000000000020",
+    "IsSelected": true
+  },
+  {
+    "Name": "empty-primary-url",
+    "ResourceRegistry": {
+      "https://example.com/original": {
+        "PrimaryUrl": "",
+        "ContentKey": "original"
+      }
+    },
+    "Guid": "00000000-0000-4000-8000-000000000021",
+    "IsSelected": true
   }
 ]

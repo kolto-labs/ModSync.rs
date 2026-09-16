@@ -84,6 +84,33 @@ fn insert(registry: &mut Map<String, Value>, url: &str, files: Map<String, Value
     );
 }
 
+pub(crate) fn normalize_registry(component: &mut Map<String, Value>) {
+    let Some(Value::Object(registry)) = component.get_mut("ResourceRegistry") else {
+        return;
+    };
+    let old = std::mem::take(registry);
+    for (original_key, mut metadata) in old {
+        let primary = metadata.as_object_mut().and_then(|meta| {
+            let field = meta
+                .keys()
+                .find(|key| key.eq_ignore_ascii_case("PrimaryUrl"))
+                .cloned()?;
+            meta.remove(&field)
+        });
+        let url = primary
+            .as_ref()
+            .and_then(Value::as_str)
+            .filter(|s| !s.is_empty())
+            .unwrap_or(&original_key);
+        let key = registry
+            .keys()
+            .find(|key| key.eq_ignore_ascii_case(url))
+            .cloned()
+            .unwrap_or_else(|| url.to_owned());
+        registry.insert(key, metadata);
+    }
+}
+
 pub(crate) fn migrate(component: &mut Map<String, Value>) {
     let links = component.remove("ModLink");
     let filenames = component

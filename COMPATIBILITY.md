@@ -141,3 +141,9 @@ This checkpoint passed formatting, clippy with warnings denied, and 42 regular i
 Case-insensitive duplicate ModLinkFilenames URLs now use the last filename map while retaining the first URL spelling and insertion position, matching C# dictionary materialization. Existing registry entries and ModLink entries still win over that consolidated map. Three additional live-loader fixtures cover duplicate URL maps, duplicate ModLink precedence and comma/semicolon string splitting. The corpus totals 18 cases; the previously documented modern Files-map difference remains unresolved.
 
 The 18-case comparison has 17 exact matches and the one previously recorded modern Files-map difference. Formatting, clippy and 42 regular integration tests passed in both configurations. Preceding commit `234e7cd3d3c07c0049ad0ce7bf415f985e015283` passed native CI run 35059298226.
+
+## PrimaryUrl resource migration checkpoint
+
+Old content-hash registry keys now migrate to their nonempty PrimaryUrl before legacy links are merged. Resource metadata is retained; the obsolete PrimaryUrl field is removed. Case-insensitive collisions retain the first URL spelling/order and the last metadata entry. Empty PrimaryUrl uses the original registry key. This also consolidates duplicate modern URL keys. Three live C# loader fixtures cover hash-key migration, collisions and the empty fallback; the corpus now has 21 cases. The existing modern Files-map difference remains open. The isolated archive-inference/install flow now also starts from an old hash-key registry.
+
+This checkpoint passed formatting, clippy with warnings denied, and 42 regular integration tests in both configurations. The reference corpus has 20 exact matches and the existing modern Files-map difference. Preceding commit `914a14a01e87b8071aaf609677ea12f1c5990a10` passed native CI run 35059525742.

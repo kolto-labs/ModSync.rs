@@ -134,3 +134,8 @@ The C# best-effort install flags must be reconciled with the user's explicit rul
 ### Duplicate legacy URLs
 
 - Corrected filename-map consolidation before legacy resource insertion: last map wins, first key spelling/order survives, and existing registry/ModLink precedence is unchanged. Expanded the live JSON-loader corpus from 15 to 18 cases. This closes the observed duplicate-URL mismatch; F01/F12 remain partial, including the modern Files-map difference.
+
+### PrimaryUrl registry migration
+
+- Added old hash-key to PrimaryUrl migration before legacy link precedence, with collision and empty-value behavior verified against three additional C# fixtures. Resource identity metadata survives migration.
+- Extended the isolated inference/validation/install flow to consume an old hash-key registry. F01/F12 remain partial; modern Files loading, all URI forms, format-specific deserialization and host/cache integration remain open.

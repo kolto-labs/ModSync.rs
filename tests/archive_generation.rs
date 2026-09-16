@@ -462,28 +462,33 @@ fn augmentation_is_idempotent_and_retains_authored_copy_destination() {
 
 #[test]
 fn legacy_download_links_reach_local_inference_and_shared_install_engine() {
-    let dir = tempfile::tempdir().unwrap();
-    let mods = dir.path().join("mods");
-    let game = dir.path().join("game");
-    fs::create_dir(&mods).unwrap();
-    fs::create_dir(&game).unwrap();
-    zip(
-        &mods.join("sample.zip"),
-        &json!({"sample.tga":"legacy texture"}),
-    );
-    let mut guide = Guide::parse(r#"[{"Guid":"legacy","Name":"Different Name","ModLinkFilenames":{"https://example.com/sample":{}}}]"#, "json").unwrap();
-    let report = archive_generation::generate_local(&mut guide, &mods).unwrap();
-    assert!(report[0].success);
-    let engine = Engine::new(Settings::new(&mods, &game).unwrap()).unwrap();
-    engine.validate(&guide, |_| {}).unwrap();
-    assert!(!game.join("Override").exists());
-    Engine::new(Settings::new(&mods, &game).unwrap())
-        .unwrap()
-        .install(&guide, |_| {})
-        .unwrap();
-    assert_eq!(
-        fs::read(game.join("Override/sample.tga")).unwrap(),
-        b"legacy texture"
-    );
-    assert!(mods.join("sample.zip").exists());
+    for source in [
+        r#"[{"Guid":"legacy","Name":"Different Name","ModLinkFilenames":{"https://example.com/sample":{}}}]"#,
+        r#"[{"Guid":"legacy","Name":"Different Name","ResourceRegistry":{"old-content-hash":{"PrimaryUrl":"https://example.com/sample","ContentKey":"retained"}}}]"#,
+    ] {
+        let dir = tempfile::tempdir().unwrap();
+        let mods = dir.path().join("mods");
+        let game = dir.path().join("game");
+        fs::create_dir(&mods).unwrap();
+        fs::create_dir(&game).unwrap();
+        zip(
+            &mods.join("sample.zip"),
+            &json!({"sample.tga":"legacy texture"}),
+        );
+        let mut guide = Guide::parse(source, "json").unwrap();
+        let report = archive_generation::generate_local(&mut guide, &mods).unwrap();
+        assert!(report[0].success);
+        let engine = Engine::new(Settings::new(&mods, &game).unwrap()).unwrap();
+        engine.validate(&guide, |_| {}).unwrap();
+        assert!(!game.join("Override").exists());
+        Engine::new(Settings::new(&mods, &game).unwrap())
+            .unwrap()
+            .install(&guide, |_| {})
+            .unwrap();
+        assert_eq!(
+            fs::read(game.join("Override/sample.tga")).unwrap(),
+            b"legacy texture"
+        );
+        assert!(mods.join("sample.zip").exists());
+    }
 }

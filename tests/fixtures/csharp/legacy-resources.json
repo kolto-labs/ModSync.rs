@@ -282,5 +282,52 @@
         "FileSize": 0
       }
     ]
+  },
+  {
+    "Name": "hash-key-primary-url",
+    "ResourceRegistry": [
+      {
+        "Url": "https://example.com/archive",
+        "ContentKey": "kept-hash",
+        "MetadataHash": null,
+        "Files": {},
+        "HandlerMetadata": {},
+        "FileSize": 123
+      }
+    ]
+  },
+  {
+    "Name": "primary-url-collision",
+    "ResourceRegistry": [
+      {
+        "Url": "https://example.com/archive",
+        "ContentKey": "last",
+        "MetadataHash": null,
+        "Files": {},
+        "HandlerMetadata": {},
+        "FileSize": 0
+      },
+      {
+        "Url": "https://example.com/other",
+        "ContentKey": "other",
+        "MetadataHash": null,
+        "Files": {},
+        "HandlerMetadata": {},
+        "FileSize": 0
+      }
+    ]
+  },
+  {
+    "Name": "empty-primary-url",
+    "ResourceRegistry": [
+      {
+        "Url": "https://example.com/original",
+        "ContentKey": "original",
+        "MetadataHash": null,
+        "Files": {},
+        "HandlerMetadata": {},
+        "FileSize": 0
+      }
+    ]
   }
 ]

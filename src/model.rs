@@ -396,6 +396,7 @@ fn normalize_component(value: &mut serde_json::Value) -> Result<()> {
             }
         }
     }
+    crate::resources::normalize_registry(object);
     if let Some(registry) = object
         .get_mut("ResourceRegistry")
         .and_then(Value::as_object_mut)
