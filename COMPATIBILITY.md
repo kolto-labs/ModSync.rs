@@ -21,7 +21,8 @@ Reference: the local ModSync C# source at `d31ccbd3bfcddb4705917eafa6483715c166d
 | Recovery | Snapshot both roots, stop on first failure, block retry until verified restore | Full copies; restart whole guide after restore; not per-component resume or a power-loss atomic filesystem transaction |
 | Downloads | HTTPS, streamed transfer and integrity checks, optional SHA-256, no-clobber publish | No host scraping, account management, CAPTCHA interaction, MEGA decryption, automatic resource acquisition, or update checks |
 | Profiles | Persistent profile store and CLI CRUD/capture/apply/activation; profile-backed CLI validation/install | Desktop manager, default storage discovery and full schema/platform parity remain incomplete |
-| FOMOD, managed deployment | Not implemented | Do not use guides requiring these features |
+| FOMOD | Archive discovery, XML/choices parsing, configured archive extraction and selected-copy installation; CLI and desktop selection flows | Full corpus, restart/recovery, and complete native interface parity remain open |
+| Managed deployment | Staged-tree manifest deploy/uninstall/purge CLI with hardlink-or-copy materialization and hash-guarded restoration | Normal engine actions are not yet redirected into per-component staging; no profile switching, patcher provenance, or GUI management integration |
 | Widescreen, Aspyr, game-specific notices | Retained as metadata | No dynamic wizard stages or automatic game/version detection |
 | Editor, telemetry | Not implemented | Edit instruction files externally |
 
