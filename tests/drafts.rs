@@ -237,3 +237,50 @@ fn direct_markdown_rejects_unreviewed_drafts_before_game_writes() {
     );
     assert_eq!(fs::read_dir(&game).unwrap().count(), 0);
 }
+
+#[test]
+fn direct_markdown_installs_reviewed_actions_and_skips_special_components() {
+    use std::process::Command;
+    let dir = tempfile::tempdir().unwrap();
+    let markdown = dir.path().join("input.md");
+    let game = dir.path().join("game");
+    let mods = dir.path().join("mods");
+    fs::create_dir(&game).unwrap();
+    fs::create_dir(&mods).unwrap();
+    fs::write(mods.join("normal.txt"), "normal").unwrap();
+    fs::write(mods.join("wide.txt"), "wide").unwrap();
+    fs::write(
+        &markdown,
+        r#"```json
+{"thisMod":[
+ {"Guid":"normal","Name":"Normal","Instructions":[{"Action":"Copy","Source":"<<modDirectory>>/normal.txt","Destination":"<<kotorDirectory>>/Override"}]},
+ {"Guid":"wide","Name":"Wide","WidescreenOnly":true,"Instructions":[{"Action":"Copy","Source":"<<modDirectory>>/wide.txt","Destination":"<<kotorDirectory>>/Override"}]},
+ {"Guid":"four","Name":"4GB Patcher"}
+]}
+```
+"#,
+    )
+    .unwrap();
+
+    let result = Command::new(env!("CARGO_BIN_EXE_modsync"))
+        .args(["install", "--direct-markdown", "--input"])
+        .arg(&markdown)
+        .arg("--game-dir")
+        .arg(&game)
+        .arg("--source-dir")
+        .arg(&mods)
+        .output()
+        .unwrap();
+
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    assert_eq!(
+        fs::read(game.join("Override/normal.txt")).unwrap(),
+        b"normal"
+    );
+    assert!(!game.join("Override/wide.txt").exists());
+    assert!(String::from_utf8_lossy(&result.stderr).contains("4GB Patcher skipped=1"));
+}
