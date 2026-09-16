@@ -287,3 +287,7 @@ The selection page reports base-build selected/total counts and the reference no
 ### Required and optional selection badges
 
 The base-selection page now displays the reference required/optional counts. Required counts selected non-widescreen components with at least one declared dependency; optional counts the remaining selected base components. This follows UpdateSelectionCount exactly for supported dependency arrays, rather than inferring counts from tiers, dependency targets or dependency-list length. Explanatory tooltips state the rule. A regression distinguishes each case and excludes unselected/widescreen entries. This supersedes the earlier missing-badges note; native layout and accessibility remain unverified.
+
+### Native selection verification
+
+Linux native input at commit `253ba18301c0b150ca9b5542122dda63430437fe` verified search-filtered Select all, Clear filters, preserved widescreen selection, base counts, required/optional counts, safe component/option hover content and authored safe option description with an empty raw field. Screenshots, corrected fixture and binary hash are in `docs/parity/native-selection/receipt.json`. This supersedes the native-unverified notes for those exercised paths only. Tier/category dropdown interaction, accessibility, other platforms and separate widescreen flow remain open. Some emoji glyphs displayed fallback boxes; visual parity is not established.

@@ -219,3 +219,5 @@ F04/F24 filtered bulk-selection checkpoint: row rendering and Select all share t
 F04/F24 summary checkpoint: base-build selection totals and active-filter summaries now follow reference counting/content rules, covered by shared-rule regression. Native layout, required/optional badges and separate widescreen flow remain open.
 
 F04/F24 badge checkpoint: required/optional counts now follow the reference selected-base dependency-presence rule, with regression coverage and explanatory desktop tooltips. Earlier missing-badge notes are superseded for content/counting; native rendering and the broader wizard remain unverified.
+
+F04/F24 native selection receipt: `native-selection/receipt.json` binds Linux input/screenshot checks to commit 253ba18 and binary hash. Verified filtered selection, clear filters, counts, preserved widescreen selection and safe tooltips. Missing emoji glyphs and untested platform/accessibility/dropdown paths remain explicit limitations.

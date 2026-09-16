@@ -1,0 +1,23 @@
+{
+  "tested_commit": "253ba18301c0b150ca9b5542122dda63430437fe",
+  "binary_sha256": "20c82521651761b225ecaa3f7efd081b787cd79645032721973bd73e75fc1b44",
+  "environment": "Linux X11 Xvfb :902, 1120x780 native egui window, xdotool input",
+  "checks": [
+    "Loaded corrected 3-component fixture with spoiler preference enabled",
+    "Base counts exclude selected widescreen component: 2/2 selected, Required 1 Optional 1",
+    "Authored safe option description visible despite empty raw description",
+    "Component-name hover shows safe name, author, category/tier descriptions and customization count",
+    "Deselect all clears base selections; filtered Alpha search shows 1/2 base mods",
+    "Filtered Select all selects Alpha only; counts Required 1 Optional 0",
+    "Clear filters retains Alpha selected, Beta unselected, Wide selected and spoiler mode enabled",
+    "Option checkbox hover displays safe name and authored safe description"
+  ],
+  "limitations": [
+    "Fixture initially missing option GUID was rejected; corrected guide is included",
+    "Some emoji glyphs render as fallback boxes",
+    "No C# side-by-side GUI comparison",
+    "No Windows/macOS or accessibility verification",
+    "No full guide install or separate widescreen workflow tested",
+    "Tier/category dropdown input not exercised in this native session"
+  ]
+}
