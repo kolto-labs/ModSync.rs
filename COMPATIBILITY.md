@@ -295,3 +295,7 @@ Linux native input at commit `253ba18301c0b150ca9b5542122dda63430437fe` verified
 ### No-result selection state
 
 The desktop now shows an explicit no-results message and recovery hint when no rows match. The details pane uses the shared row-filter predicate, so hidden components no longer retain visible editable options or links. Clearing filters restores details without changing selection. Native Linux screenshots and source/binary hashes are recorded in `docs/parity/native-empty-selection/receipt.json`; required Rust checks passed. This closes the exercised empty-state gap, not full grouped-card/widescreen/accessibility parity.
+
+### Category grouping and expansion
+
+Filtered selection rows now group by the first category (Other when absent), using ordinal UTF-16 category and raw-name ordering while retaining original guide indices for installation. Groups start collapsed and expose selected counts, select/deselect-group actions and global expand/collapse controls. Individual expansion uses egui retained state. Regression covers first-category grouping, secondary-category filtering, raw-name ordering in safe mode, empty matches and unchanged source order. Native group interaction and precise expansion-state lifecycle parity remain unverified. The existing single-page widescreen exposure also remains; group actions currently operate on all displayed members.

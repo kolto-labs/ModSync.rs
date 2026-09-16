@@ -228,3 +228,28 @@ fn required_badge_counts_selected_dependency_declarations_not_targets_or_tiers()
     assert_eq!(selection::selection_badges(&components), (1, 2));
     assert_eq!(selection::selection_badges(&[]), (0, 0));
 }
+
+#[test]
+fn category_groups_sort_display_without_reordering_guide_or_using_safe_names() {
+    let components: Vec<Component> = serde_json::from_value(serde_json::json!([
+        {"Name":"Zulu", "NameSpoilerFree":"A", "Category":["Fix","Texture"]},
+        {"Name":"Alpha", "NameSpoilerFree":"Z", "Category":["Fix"]},
+        {"Name":"Other mod"},
+        {"Name":"Lowercase", "Category":["fix"]}
+    ]))
+    .unwrap();
+    assert_eq!(
+        selection::category_groups(&components, "", "", "", true),
+        vec![
+            ("Fix".into(), vec![1, 0]),
+            ("Other".into(), vec![2]),
+            ("fix".into(), vec![3])
+        ]
+    );
+    assert_eq!(
+        selection::category_groups(&components, "", "", "Texture", false),
+        vec![("Fix".into(), vec![0])]
+    );
+    assert!(selection::category_groups(&components, "missing", "", "", false).is_empty());
+    assert_eq!(components[0].name, "Zulu");
+}

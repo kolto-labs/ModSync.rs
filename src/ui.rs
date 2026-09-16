@@ -45,6 +45,7 @@ pub struct App {
     search: String,
     tier_filter: String,
     category_filter: String,
+    all_expanded: bool,
     category_selection: Option<std::collections::BTreeMap<String, bool>>,
     logs: Vec<String>,
     receiver: Option<Receiver<Message>>,
@@ -87,6 +88,7 @@ impl App {
             search: String::new(),
             tier_filter: String::new(),
             category_filter: String::new(),
+            all_expanded: false,
             category_selection: None,
             logs: Vec::new(),
             receiver: None,
@@ -632,19 +634,37 @@ impl eframe::App for App {
                             .flat_map(|c| c.category.iter().cloned()).map(|category| (category, false)).collect());
                     }
                     ui.separator();
-                    let has_visible = g.components.iter().any(|c| modsync::selection::matches_filters(c, &self.search, &self.tier_filter, &self.category_filter, self.spoiler_free));
-                    if !has_visible {
+                    let groups = modsync::selection::category_groups(&g.components, &self.search, &self.tier_filter, &self.category_filter, self.spoiler_free);
+                    let force_open = if ui.button(if self.all_expanded { "Collapse all" } else { "Expand all" }).clicked() {
+                        self.all_expanded = !self.all_expanded;
+                        Some(self.all_expanded)
+                    } else { None };
+                    if groups.is_empty() {
                         ui.heading("No mods match your filters");
                         ui.label("Try adjusting your search or clearing filters");
                     }
                     ui.columns(2, |columns| {
                         egui::ScrollArea::vertical().id_salt("mods").show(&mut columns[0], |ui| {
-                            for (index, c) in g.components.iter_mut().enumerate() {
-                                if !modsync::selection::matches_filters(c, &self.search, &self.tier_filter, &self.category_filter, self.spoiler_free) { continue; }
+                            for (category, indices) in &groups {
+                                let selected_count = indices.iter().filter(|i| g.components[**i].is_selected).count();
                                 ui.horizontal(|ui| {
-                                    if ui.checkbox(&mut c.is_selected, "").on_hover_text("Select component").changed() { self.validated = false; }
-                                    if ui.selectable_label(self.selected == index, modsync::selection::display_name(c, self.spoiler_free)).on_hover_text(modsync::selection::tooltip(c, self.spoiler_free)).clicked() { self.selected = index; }
+                                    if ui.small_button(if selected_count == indices.len() { "Deselect group" } else { "Select group" }).clicked() {
+                                        for index in indices { g.components[*index].is_selected = selected_count < indices.len(); }
+                                        self.validated = false; self.confirm_install = false;
+                                    }
+                                    ui.label(format!("{selected_count} / {} selected", indices.len()));
                                 });
+                                egui::CollapsingHeader::new(format!("{category} ({} mods)", indices.len()))
+                                    .id_salt(("category_group", category)).default_open(self.all_expanded).open(force_open)
+                                    .show(ui, |ui| {
+                                        for index in indices {
+                                            let c = &mut g.components[*index];
+                                            ui.horizontal(|ui| {
+                                                if ui.checkbox(&mut c.is_selected, "").on_hover_text("Select component").changed() { self.validated = false; }
+                                                if ui.selectable_label(self.selected == *index, modsync::selection::display_name(c, self.spoiler_free)).on_hover_text(modsync::selection::tooltip(c, self.spoiler_free)).clicked() { self.selected = *index; }
+                                            });
+                                        }
+                                    });
                             }
                         });
                         egui::ScrollArea::vertical().id_salt("details").show(&mut columns[1], |ui| {

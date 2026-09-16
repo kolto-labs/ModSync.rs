@@ -376,3 +376,40 @@ pub fn selection_badges(components: &[Component]) -> (usize, usize) {
     }
     (required, optional)
 }
+
+/// Display ordering only; indices retain the original install order in the guide.
+pub fn category_groups(
+    components: &[Component],
+    search: &str,
+    tier: &str,
+    category: &str,
+    spoiler_free: bool,
+) -> Vec<(String, Vec<usize>)> {
+    let mut groups = std::collections::BTreeMap::<String, Vec<usize>>::new();
+    for (index, c) in components
+        .iter()
+        .enumerate()
+        .filter(|(_, c)| matches_filters(c, search, tier, category, spoiler_free))
+    {
+        groups
+            .entry(
+                c.category
+                    .first()
+                    .cloned()
+                    .unwrap_or_else(|| "Other".into()),
+            )
+            .or_default()
+            .push(index);
+    }
+    let mut groups: Vec<_> = groups.into_iter().collect();
+    groups.sort_by(|a, b| a.0.encode_utf16().cmp(b.0.encode_utf16()));
+    for (_, indices) in &mut groups {
+        indices.sort_by(|a, b| {
+            components[*a]
+                .name
+                .encode_utf16()
+                .cmp(components[*b].name.encode_utf16())
+        });
+    }
+    groups
+}

@@ -223,3 +223,5 @@ F04/F24 badge checkpoint: required/optional counts now follow the reference sele
 F04/F24 native selection receipt: `native-selection/receipt.json` binds Linux input/screenshot checks to commit 253ba18 and binary hash. Verified filtered selection, clear filters, counts, preserved widescreen selection and safe tooltips. Missing emoji glyphs and untested platform/accessibility/dropdown paths remain explicit limitations.
 
 F04/F24 empty-state checkpoint: no-results messaging and filtered detail visibility verified through native Linux search and clear-filter input; see `native-empty-selection/receipt.json`. Selection remains unchanged. Other platforms and accessibility remain unverified.
+
+F04/F24 grouping checkpoint: category headers, ordered rows, per-group selection and expand/collapse controls added. Shared display-order regression passes without changing guide order. Native interaction, expansion-state lifecycle and separate widescreen flow remain open.
