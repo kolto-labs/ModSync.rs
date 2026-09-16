@@ -1,4 +1,5 @@
 pub mod archive;
+pub mod archive_generation;
 pub mod download;
 pub mod draft;
 pub mod engine;

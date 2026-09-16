@@ -1,0 +1,18 @@
+[
+  {"Name":"flat", "Files":{"sample.tga":"texture","readme.txt":"readme"}},
+  {"Name":"folder", "Files":{"Override/sample.tga":"texture"}},
+  {"Name":"nested", "Files":{"Wrapped/Textures/sample.TPC":"texture","Wrapped/readme.txt":"readme"}},
+  {"Name":"options", "Files":{"Red/sample.tga":"red","Blue/sample.tga":"blue","Docs/readme.txt":"readme"}},
+  {"Name":"flat-and-folders", "Files":{"sample.tga":"root","Red/sample.tga":"red","Blue/sample.tga":"blue"}},
+  {"Name":"changes", "Files":{"tslpatchdata/changes.ini":"[Settings]","TSLPatcher.exe":"placeholder"}},
+  {"Name":"wrapped-patcher", "Files":{"Wrapper/tslpatchdata/changes.ini":"[Settings]","Wrapper/tslpatchdata/custom.exe":"placeholder"}},
+  {"Name":"hybrid", "Files":{"tslpatchdata/changes.ini":"[Settings]","Override/sample.tga":"texture"}},
+  {"Name":"wrapped-hybrid", "Files":{"Wrapper/tslpatchdata/changes.ini":"[Settings]","Wrapper/sample.tga":"texture","Extra/other.tga":"texture"}},
+  {"Name":"namespaces", "Files":{"tslpatchdata/namespaces.ini":"[Namespaces]\n1=blue\n0=red\n2=missing\n[blue]\nName=Blue option\nDescription=Blue files\n[red]\nName=Red option\n","tslpatchdata/blue/changes.ini":"[Settings]"}},
+  {"Name":"namespace-hybrid", "Files":{"Package/tslpatchdata/namespaces.ini":"[Namespaces]\n0=first\n[first]\nName=First\n","Red/sample.tga":"red","Blue/sample.tga":"blue"}},
+  {"Name":"namespace-keys", "Files":{"tslpatchdata/namespaces.ini":"[NAMESPACES]\n0=wrong\n0=actual\n1=missing\n2=last\n[actual]\nNAME=Actual\nDescription=ignored=extra\n[last]\nDescription=Last\n"}},
+  {"Name":"patch-data-only", "Files":{"tslpatchdata/sample.tga":"texture"}},
+  {"Name":"unsupported", "Files":{"readme.txt":"No game files","model.nss":"void main() {}","tga":"No extension"}},
+  {"Name":"dedupe", "Component":{"Name":"Remove Duplicate TGA/TPC"}, "Files":{"readme.txt":"tool"}},
+  {"Name":"game-extension-list", "Files":{"a.2da":"x","b.are":"x","c.bik":"x","d.dds":"x","e.dlg":"x","f.erf":"x","g.git":"x","h.gui":"x","i.ifo":"x","j.mod":"x","k.jrl":"x","l.lip":"x","m.lyt":"x","n.mdl":"x","o.mdx":"x","p.ncs":"x","q.pth":"x","r.rim":"x","s.ssf":"x","t.tga":"x","u.tlk":"x","v.txi":"x","w.tpc":"x","x.utc":"x","y.utd":"x","z.ute":"x","aa.uti":"x","ab.utm":"x","ac.utp":"x","ad.uts":"x","ae.utw":"x","af.vis":"x","ag.wav":"x"}}
+]

@@ -1,0 +1,8 @@
+{
+  "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+  "reference_dll_sha256": "8f3b1e3f8fe47b2cc6f8e3f281912506721c7367218381bb2a35cf86dc5768f0",
+  "fixture_sha256": "05d562e5baa8b0d5d5bb67d520bbe3326f57eeed51498d0e85c9db547e3a7cc0",
+  "cases": 16,
+  "differences": [],
+  "scope": "Fresh-component archive generation; Choose GUIDs normalized to option names. Not archive matching, authored-option merging, EXE fallback, or installation proof."
+}

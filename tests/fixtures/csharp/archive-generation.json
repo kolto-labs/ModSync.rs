@@ -1,0 +1,666 @@
+[
+  {
+    "Name": "flat",
+    "Success": true,
+    "InstallationMethod": "Loose-File Mod",
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\flat.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Move",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\flat\\*"
+        ],
+        "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": []
+  },
+  {
+    "Name": "folder",
+    "Success": true,
+    "InstallationMethod": "Loose-File Mod",
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\folder.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Move",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\folder\\Override\\*"
+        ],
+        "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": []
+  },
+  {
+    "Name": "nested",
+    "Success": true,
+    "InstallationMethod": "Loose-File Mod",
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\nested.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Move",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\nested\\Wrapped\\*"
+        ],
+        "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": []
+  },
+  {
+    "Name": "options",
+    "Success": true,
+    "InstallationMethod": "Loose-File Mod",
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\options.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Choose",
+        "Source": [
+          "Red",
+          "Blue"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [
+      {
+        "Name": "Red",
+        "Description": "Install files from Red folder",
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "\u003C\u003CmodDirectory\u003E\u003E\\options\\Red\\*"
+            ],
+            "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ]
+      },
+      {
+        "Name": "Blue",
+        "Description": "Install files from Blue folder",
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "\u003C\u003CmodDirectory\u003E\u003E\\options\\Blue\\*"
+            ],
+            "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "Name": "flat-and-folders",
+    "Success": true,
+    "InstallationMethod": "Loose-File Mod",
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\flat-and-folders.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Choose",
+        "Source": [
+          "Red",
+          "Blue"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [
+      {
+        "Name": "Red",
+        "Description": "Install files from Red folder",
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "\u003C\u003CmodDirectory\u003E\u003E\\flat-and-folders\\Red\\*"
+            ],
+            "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ]
+      },
+      {
+        "Name": "Blue",
+        "Description": "Install files from Blue folder",
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "\u003C\u003CmodDirectory\u003E\u003E\\flat-and-folders\\Blue\\*"
+            ],
+            "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "Name": "changes",
+    "Success": true,
+    "InstallationMethod": "TSLPatcher",
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\changes.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Patcher",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\changes\\TSLPatcher.exe"
+        ],
+        "Destination": "\u003C\u003CgameDirectory\u003E\u003E",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": []
+  },
+  {
+    "Name": "wrapped-patcher",
+    "Success": true,
+    "InstallationMethod": "TSLPatcher",
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\wrapped-patcher.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Patcher",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\Wrapper\\custom.exe"
+        ],
+        "Destination": "\u003C\u003CgameDirectory\u003E\u003E",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": []
+  },
+  {
+    "Name": "hybrid",
+    "Success": true,
+    "InstallationMethod": "Hybrid (TSLPatcher \u002B Loose Files)",
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\hybrid.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Patcher",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\hybrid\\TSLPatcher.exe"
+        ],
+        "Destination": "\u003C\u003CgameDirectory\u003E\u003E",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Move",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\hybrid\\Override\\*"
+        ],
+        "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": []
+  },
+  {
+    "Name": "wrapped-hybrid",
+    "Success": true,
+    "InstallationMethod": "Hybrid (TSLPatcher \u002B Loose Files)",
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\wrapped-hybrid.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Patcher",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\Wrapper\\TSLPatcher.exe"
+        ],
+        "Destination": "\u003C\u003CgameDirectory\u003E\u003E",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Move",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\wrapped-hybrid\\Extra\\*"
+        ],
+        "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": []
+  },
+  {
+    "Name": "namespaces",
+    "Success": true,
+    "InstallationMethod": "TSLPatcher",
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\namespaces.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Choose",
+        "Source": [
+          "Blue option",
+          "Red option"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [
+      {
+        "Name": "Blue option",
+        "Description": "Blue files",
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Patcher",
+            "Source": [
+              "\u003C\u003CmodDirectory\u003E\u003E\\namespaces\\blue\\blue.exe"
+            ],
+            "Destination": "\u003C\u003CgameDirectory\u003E\u003E",
+            "Arguments": "0",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ]
+      },
+      {
+        "Name": "Red option",
+        "Description": "",
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Patcher",
+            "Source": [
+              "\u003C\u003CmodDirectory\u003E\u003E\\namespaces\\red\\red.exe"
+            ],
+            "Destination": "\u003C\u003CgameDirectory\u003E\u003E",
+            "Arguments": "1",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "Name": "namespace-hybrid",
+    "Success": true,
+    "InstallationMethod": "Hybrid (TSLPatcher \u002B Loose Files)",
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\namespace-hybrid.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Choose",
+        "Source": [
+          "First",
+          "Red",
+          "Blue"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [
+      {
+        "Name": "First",
+        "Description": "",
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Patcher",
+            "Source": [
+              "\u003C\u003CmodDirectory\u003E\u003E\\Package\\first\\first.exe"
+            ],
+            "Destination": "\u003C\u003CgameDirectory\u003E\u003E",
+            "Arguments": "0",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ]
+      },
+      {
+        "Name": "Red",
+        "Description": "Install files from Red folder",
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "\u003C\u003CmodDirectory\u003E\u003E\\namespace-hybrid\\Red\\*"
+            ],
+            "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ]
+      },
+      {
+        "Name": "Blue",
+        "Description": "Install files from Blue folder",
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "\u003C\u003CmodDirectory\u003E\u003E\\namespace-hybrid\\Blue\\*"
+            ],
+            "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "Name": "namespace-keys",
+    "Success": true,
+    "InstallationMethod": "TSLPatcher",
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\namespace-keys.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Choose",
+        "Source": [
+          "Actual",
+          "last"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [
+      {
+        "Name": "Actual",
+        "Description": "",
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Patcher",
+            "Source": [
+              "\u003C\u003CmodDirectory\u003E\u003E\\namespace-keys\\actual\\actual.exe"
+            ],
+            "Destination": "\u003C\u003CgameDirectory\u003E\u003E",
+            "Arguments": "0",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ]
+      },
+      {
+        "Name": "last",
+        "Description": "Last",
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Patcher",
+            "Source": [
+              "\u003C\u003CmodDirectory\u003E\u003E\\namespace-keys\\last\\last.exe"
+            ],
+            "Destination": "\u003C\u003CgameDirectory\u003E\u003E",
+            "Arguments": "2",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "Name": "patch-data-only",
+    "Success": true,
+    "InstallationMethod": "TSLPatcher",
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\patch-data-only.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": []
+  },
+  {
+    "Name": "unsupported",
+    "Success": false,
+    "InstallationMethod": "",
+    "Instructions": [],
+    "Options": []
+  },
+  {
+    "Name": "Remove Duplicate TGA/TPC",
+    "Success": true,
+    "InstallationMethod": "",
+    "Instructions": [
+      {
+        "Action": "DelDuplicate",
+        "Source": [],
+        "Destination": "",
+        "Arguments": ".tpc",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": []
+  },
+  {
+    "Name": "game-extension-list",
+    "Success": true,
+    "InstallationMethod": "Loose-File Mod",
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\game-extension-list.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Move",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\game-extension-list\\*"
+        ],
+        "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": []
+  }
+]

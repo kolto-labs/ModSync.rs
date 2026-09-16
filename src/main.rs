@@ -55,6 +55,11 @@ enum Action {
         /// Draft instructions from prose; generated steps require review before installation.
         #[arg(long)]
         parse_directions: bool,
+        /// Infer missing instructions from local downloaded archives.
+        #[arg(long, requires = "source_path")]
+        auto_generate_local: bool,
+        #[arg(long)]
+        source_path: Option<PathBuf>,
         /// Mark a component's displayed drafts reviewed (GUID; repeat for multiple components).
         #[arg(long)]
         review_draft: Vec<String>,
@@ -124,6 +129,8 @@ fn run() -> Result<()> {
             stdin,
             format,
             parse_directions,
+            auto_generate_local,
+            source_path,
             review_draft,
         }) => {
             let mut guide = if stdin {
@@ -140,6 +147,13 @@ fn run() -> Result<()> {
             };
             if parse_directions {
                 modsync::draft::generate(&mut guide);
+            }
+            if auto_generate_local {
+                let reports = modsync::archive_generation::generate_local(
+                    &mut guide,
+                    source_path.as_deref().unwrap(),
+                )?;
+                eprintln!("{}", serde_json::to_string_pretty(&reports)?);
             }
             for id in review_draft {
                 let component = guide

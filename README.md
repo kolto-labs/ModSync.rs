@@ -126,4 +126,12 @@ cargo run -- convert guide.md draft.json --parse-directions
 cargo run -- convert draft.json reviewed.toml --review-draft <component-guid>
 ```
 
+For instruction-free components whose archives are already downloaded:
+
+```bash
+cargo run -- convert guide.toml generated.toml --auto-generate-local --source-path /path/to/mods
+```
+
+This infers extraction, loose-file moves, folder choices and patcher steps, then writes a per-component JSON report to stderr. Inspect the generated guide and validate it before installation. Existing instructions are preserved. Components with existing options or more than one resource link currently receive a skip report; executable-installer fallback and desktop controls for archive inference are still in progress. Input archives are never deleted by inference.
+
 Inspect every generated action/path before accepting it. Components with unparsed gaps, conditional drafts or rejected paths remain blocked from acceptance. The desktop provides the same drafting and review operations. A generated draft is not proof that the prose was interpreted correctly; see the compatibility document for known reference-parser limitations.
