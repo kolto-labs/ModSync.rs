@@ -614,3 +614,82 @@ impl ChoicesFile {
         })?)
     }
 }
+
+/// Edit selections using numbered groups. Prompts go to the supplied writer,
+/// leaving CLI stdout available for JSON. Cancellation leaves the session unchanged.
+pub fn prompt_choices(
+    steps: &mut [StepSelection],
+    input: &mut impl std::io::BufRead,
+    output: &mut impl std::io::Write,
+) -> Result<()> {
+    let mut candidate = steps.to_vec();
+    let mut cursor = 0;
+    while cursor < candidate.len() {
+        if !visible_steps(&candidate).contains(&cursor) {
+            cursor += 1;
+            continue;
+        }
+        writeln!(output, "Step: {}", candidate[cursor].name)?;
+        for group in &mut candidate[cursor].groups {
+            loop {
+                writeln!(output, "{} ({:?})", group.name, group.kind)?;
+                for (index, plugin) in group.plugins().iter().enumerate() {
+                    writeln!(
+                        output,
+                        "{}. [{}] {}{}\n   {}",
+                        index + 1,
+                        if plugin.selected { "x" } else { " " },
+                        plugin.name,
+                        if plugin.required { " (required)" } else { "" },
+                        plugin.description
+                    )?;
+                }
+                write!(
+                    output,
+                    "Numbers separated by commas; Enter keeps defaults, 0 clears, q cancels: "
+                )?;
+                output.flush()?;
+                let mut line = String::new();
+                ensure!(
+                    input.read_line(&mut line)? != 0,
+                    "FOMOD selection cancelled at end of input"
+                );
+                let line = line.trim();
+                ensure!(!line.eq_ignore_ascii_case("q"), "FOMOD selection cancelled");
+                let result = if line.is_empty() {
+                    group.validate()
+                } else {
+                    let names = if line == "0" {
+                        Ok(Vec::new())
+                    } else {
+                        line.split(',')
+                            .map(|item| {
+                                let index = item.trim().parse::<usize>()?;
+                                let plugin = index
+                                    .checked_sub(1)
+                                    .and_then(|i| group.plugins().get(i))
+                                    .ok_or_else(|| {
+                                        anyhow::anyhow!("Invalid option number: {index}")
+                                    })?;
+                                Ok(plugin.name.clone())
+                            })
+                            .collect::<Result<Vec<_>>>()
+                    };
+                    names.and_then(|names| group.apply_names(&names))
+                };
+                match result {
+                    Ok(()) => break,
+                    Err(error) => writeln!(output, "Invalid selection: {error}")?,
+                }
+            }
+        }
+        cursor += 1;
+    }
+    for index in visible_steps(&candidate) {
+        for group in &candidate[index].groups {
+            group.validate()?;
+        }
+    }
+    steps.clone_from_slice(&candidate);
+    Ok(())
+}

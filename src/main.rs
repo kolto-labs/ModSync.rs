@@ -43,6 +43,9 @@ enum Action {
         /// Save the current selections as a reusable version-1 choices file.
         #[arg(long)]
         save_choices: Option<PathBuf>,
+        /// Prompt for plugin selections on stdin; prompts are written to stderr.
+        #[arg(long)]
+        interactive: bool,
         #[arg(long)]
         scratch_dir: Option<PathBuf>,
         #[arg(long)]
@@ -168,6 +171,7 @@ fn run() -> Result<()> {
             choices,
             extracted_directory,
             save_choices,
+            interactive,
             scratch_dir,
             max_expanded_bytes,
         }) => {
@@ -194,6 +198,17 @@ fn run() -> Result<()> {
                         .context("Archive has no FOMOD installer to configure")?
                         .config
                         .steps,
+                )?;
+            }
+            if interactive {
+                modsync::fomod::prompt_choices(
+                    &mut module
+                        .as_mut()
+                        .context("Archive has no FOMOD installer to configure")?
+                        .config
+                        .steps,
+                    &mut std::io::stdin().lock(),
+                    &mut std::io::stderr().lock(),
                 )?;
             }
             let instructions = extracted_directory

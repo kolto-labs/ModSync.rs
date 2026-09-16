@@ -465,3 +465,7 @@ The inspection CLI accepts --save-choices to atomically write the current select
 ### Choices export archive preservation
 
 A Unix subprocess regression reproduced source-archive replacement when --save-choices named the archive through a symlinked parent directory. Export now compares canonical existing paths before writing and propagates unexpected resolution errors. The regression also reads back a successful choices export and verifies original archive bytes survive the rejected alias write. Concurrent external path replacement is outside this check's guarantee.
+
+### Interactive console FOMOD selections
+
+fomod-inspect --interactive prompts for numbered plugin selections, reusing group cardinality and required-plugin rules, recomputing visibility before each step and retaining edits only on success. Invalid answers retry; q or EOF cancels. Prompts use stderr so stdout remains JSON, and --save-choices persists the result for installation. A stream-driven regression covers retry, selection and cancellation. Back navigation and the desktop interactive wizard remain open.

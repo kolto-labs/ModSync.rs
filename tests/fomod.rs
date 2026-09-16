@@ -740,3 +740,35 @@ fn choices_export_roundtrips_and_cannot_replace_archive_through_directory_alias(
     assert!(String::from_utf8_lossy(&result.stderr).contains("must not overwrite"));
     assert_eq!(std::fs::read(archive).unwrap(), original);
 }
+
+#[test]
+fn console_selection_retries_invalid_choices_and_cancels_atomically() {
+    use modsync::fomod::{parse_module_xml, prompt_choices};
+    let xml = "<config><installSteps><installStep name='Step'><optionalFileGroups><group name='Group' type='SelectExactlyOne'><plugins><plugin name='First'/><plugin name='Second'/></plugins></group></optionalFileGroups></installStep></installSteps></config>";
+    let mut module = parse_module_xml(xml).unwrap();
+    let mut output = Vec::new();
+    prompt_choices(
+        &mut module.steps,
+        &mut &b"0
+99
+2
+"[..],
+        &mut output,
+    )
+    .unwrap();
+    assert!(module.steps[0].groups[0].plugins()[1].selected);
+    assert!(
+        String::from_utf8(output)
+            .unwrap()
+            .contains("Invalid selection")
+    );
+    for input in [
+        b"q
+"
+        .as_slice(),
+        b"".as_slice(),
+    ] {
+        assert!(prompt_choices(&mut module.steps, &mut &*input, &mut Vec::new()).is_err());
+        assert!(module.steps[0].groups[0].plugins()[1].selected);
+    }
+}
