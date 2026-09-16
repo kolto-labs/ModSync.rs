@@ -69,3 +69,16 @@ fn protocol_fetch_cli_rejects_unsafe_urls_without_creating_output() {
     assert!(!output.exists());
     assert!(String::from_utf8_lossy(&result.stderr).contains("private address"));
 }
+
+#[test]
+fn protocol_open_rejects_unsafe_modsync_instruction_urls_before_fetching() {
+    let result = Command::new(env!("CARGO_BIN_EXE_modsync"))
+        .args([
+            "protocol-open",
+            "modsync://install?url=http%3A%2F%2F127.0.0.1%2Fguide.toml",
+        ])
+        .output()
+        .unwrap();
+    assert!(!result.status.success());
+    assert!(String::from_utf8_lossy(&result.stderr).contains("private address"));
+}

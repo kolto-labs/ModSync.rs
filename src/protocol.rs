@@ -1,3 +1,4 @@
+use crate::Guide;
 use anyhow::{Result, bail};
 use reqwest::Url;
 use serde::Serialize;
@@ -110,6 +111,20 @@ pub fn fetch_instruction(raw: &str, destination: &Path) -> Result<()> {
         .persist_noclobber(destination)
         .map_err(|error| error.error)?;
     Ok(())
+}
+
+pub fn fetch_modsync_guide(raw: &str) -> Result<(Link, Guide)> {
+    let link = parse(raw)?;
+    let Link::Modsync {
+        instruction_url, ..
+    } = &link
+    else {
+        bail!("Only modsync:// links contain an instruction URL");
+    };
+    let directory = tempfile::tempdir()?;
+    let destination = directory.path().join("instruction.toml");
+    fetch_instruction(instruction_url, &destination)?;
+    Ok((link, Guide::load_for_install(&destination)?))
 }
 
 fn ensure_public_ip(ip: IpAddr) -> Result<()> {

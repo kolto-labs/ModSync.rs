@@ -61,6 +61,8 @@ enum Action {
     ProtocolParse { url: String },
     /// Download an HTTP(S) instruction file with the protocol fetcher's SSRF and size guards.
     ProtocolFetch { url: String, output: PathBuf },
+    /// Fetch and load a modsync:// instruction link without retaining its temporary download.
+    ProtocolOpen { url: String },
     /// Apply provider version data from a JSON object keyed as game/modId.
     UpdateApply {
         input: PathBuf,
@@ -434,6 +436,14 @@ fn run() -> Result<()> {
         Some(Action::ProtocolFetch { url, output }) => {
             modsync::protocol::fetch_instruction(&url, &output)?;
             println!("{}", output.display());
+            Ok(())
+        }
+        Some(Action::ProtocolOpen { url }) => {
+            let (link, guide) = modsync::protocol::fetch_modsync_guide(&url)?;
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&serde_json::json!({"Link": link, "Guide": guide}))?
+            );
             Ok(())
         }
         Some(Action::UpdateApply {
