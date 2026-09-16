@@ -956,6 +956,9 @@ impl eframe::App for App {
                     ui.strong("Activity");
                     if busy {
                         ui.spinner();
+                        if self.job == Job::NxmDownload {
+                            ui.label("Downloading linked Nexus file…");
+                        }
                         if ui.button("Stop").clicked() {
                             self.cancelled.store(true, Ordering::Relaxed);
                         }
