@@ -41,6 +41,7 @@ pub struct App {
     guide: Option<Guide>,
     page: usize,
     selected: usize,
+    spoiler_free: bool,
     search: String,
     tier_filter: String,
     category_filter: String,
@@ -81,6 +82,7 @@ impl App {
             guide: None,
             page: 0,
             selected: 0,
+            spoiler_free: false,
             search: String::new(),
             tier_filter: String::new(),
             category_filter: String::new(),
@@ -410,15 +412,19 @@ impl App {
         changed
     }
 
-    fn options(ui: &mut egui::Ui, component: &mut Component) -> bool {
+    fn options(ui: &mut egui::Ui, component: &mut Component, spoiler_free: bool) -> bool {
         let mut changed = false;
         for option in &mut component.options {
-            changed |= ui.checkbox(&mut option.is_selected, &option.name).changed();
+            let name = modsync::selection::display_name(option, spoiler_free);
+            changed |= ui.checkbox(&mut option.is_selected, name).changed();
             if !option.description.is_empty() {
-                ui.label(&option.description);
+                ui.label(modsync::selection::display_description(
+                    option,
+                    spoiler_free,
+                ));
             }
             if option.is_selected {
-                changed |= Self::options(ui, option);
+                changed |= Self::options(ui, option, spoiler_free);
             }
         }
         changed
@@ -554,8 +560,9 @@ impl eframe::App for App {
                         if ui.button("Select all").clicked() { for c in &mut g.components { c.is_selected = true; } self.validated = false; }
                         if ui.button("Deselect all").clicked() { for c in &mut g.components { c.is_selected = false; } self.validated = false; }
                         ui.label(format!("{} / {} selected", g.components.iter().filter(|c| c.is_selected).count(), g.components.len()));
-                        ui.add(egui::TextEdit::singleline(&mut self.search).hint_text("Filter name, tier, category"));
+                        ui.add(egui::TextEdit::singleline(&mut self.search).hint_text("Search displayed name or description"));
                     });
+                    ui.checkbox(&mut self.spoiler_free, "Spoiler-free names and descriptions");
                     ui.horizontal_wrapped(|ui| {
                         let tiers: std::collections::BTreeSet<_> = g.components.iter().map(|c| c.tier.clone()).filter(|s| !s.is_empty()).collect();
                         let categories: std::collections::BTreeSet<_> = g.components.iter().flat_map(|c| c.category.clone()).collect();
@@ -580,22 +587,22 @@ impl eframe::App for App {
                     ui.columns(2, |columns| {
                         egui::ScrollArea::vertical().id_salt("mods").show(&mut columns[0], |ui| {
                             for (index, c) in g.components.iter_mut().enumerate() {
-                                if !format!("{} {} {}", c.name, c.tier, c.category.join(" ")).to_lowercase().contains(&self.search.to_lowercase()) { continue; }
+                                if !modsync::selection::matches_search(c, &self.search, self.spoiler_free) { continue; }
                                 if !self.tier_filter.is_empty() && !c.tier.eq_ignore_ascii_case(&self.tier_filter) { continue; }
                                 if !self.category_filter.is_empty() && !c.category.iter().any(|cat| cat.eq_ignore_ascii_case(&self.category_filter)) { continue; }
                                 ui.horizontal(|ui| {
                                     if ui.checkbox(&mut c.is_selected, "").on_hover_text("Select component").changed() { self.validated = false; }
-                                    if ui.selectable_label(self.selected == index, &c.name).clicked() { self.selected = index; }
+                                    if ui.selectable_label(self.selected == index, modsync::selection::display_name(c, self.spoiler_free)).clicked() { self.selected = index; }
                                 });
                             }
                         });
                         egui::ScrollArea::vertical().id_salt("details").show(&mut columns[1], |ui| {
                             if let Some(c) = g.components.get_mut(self.selected) {
-                                ui.heading(&c.name);
+                                ui.heading(modsync::selection::display_name(c, self.spoiler_free));
                                 ui.label(format!("{}  ·  {}", c.author, c.tier));
-                                ui.label(&c.description);
-                                if !c.directions.is_empty() { ui.separator(); ui.label(&c.directions); }
-                                if Self::options(ui, c) { self.validated = false; }
+                                ui.label(modsync::selection::display_description(c, self.spoiler_free));
+                                if !c.directions.is_empty() && !self.spoiler_free { ui.separator(); ui.label(&c.directions); }
+                                if Self::options(ui, c, self.spoiler_free) { self.validated = false; }
                                 ui.separator();
                                 ui.strong("Download links");
                                 for url in c.resource_registry.keys() { ui.hyperlink(url); }

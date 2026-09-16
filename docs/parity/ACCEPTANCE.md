@@ -195,3 +195,7 @@ F16/F17/F24 now have bounded native interaction evidence at `native-profiles/rec
 ### Tier/category selection progress
 
 F04/F24: added shared additive tier/category selection rules and desktop exact filters/buttons. Reference source defines cumulative tier priorities and widescreen exclusion for bulk selection. Regression coverage exercises those rules. Native controls, multi-category dialog, reference text/spoiler filtering, Unicode comparison and the separate widescreen phase remain incomplete or unverified.
+
+### Spoiler-aware display and search
+
+F04/F24: authored spoiler-free text and reference fallback names/descriptions now drive component/option display and selection search. Regression tests verify hidden-description exclusion, fallbacks and truncation without mutating guide data. Persistence of the toggle, complete tooltip/detail handling, other raw text surfaces, Unicode edge cases and native interaction remain outstanding.

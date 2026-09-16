@@ -239,3 +239,11 @@ Source grounding: ModSelectionPage.SelectByTier and SelectByCategories. A regres
 Investigation note: UseCopyForMoveActions exists in C# configuration/persistence but no execution reader was found in the pinned source. Rust already implements Move as copy then delete. No ineffective switch or alternative move behavior was added based on that setting name.
 
 Formatting, clippy with warnings denied, 58 regular integration tests in both configurations and four desktop-state tests passed. The new selection regression is grounded in inspected reference source, not a live C# wizard differential. The explicit large-archive regression was not rerun locally.
+
+## Spoiler-aware selection text checkpoint
+
+The selection page now offers spoiler-free names/descriptions for components and nested options. Authored NameSpoilerFree/DescriptionSpoilerFree values take precedence; whitespace-only alternatives fall back to the reference's acronym/metadata name and simplified category description. Search now matches displayed name or simplified description, rather than the prior concatenated name/tier/category string. Normal descriptions use the reference's 200 UTF-16-unit threshold and 197-unit prefix plus ellipsis. Directions are hidden while the toggle is enabled. Component data and executable instructions are unchanged.
+
+The acronym implementation follows the pinned converter body, including its differences from comments: JC's Weapons yields JsW, and K1 Restoration yields KR. Tests cover authored overrides, acronym limits/filler handling, hidden-text search exclusion and truncation. These are source-grounded Rust regressions, not a live C# converter differential. Unicode letter/casing behavior and truncation through an unpaired UTF-16 surrogate are not fully equivalent (Rust replaces an unpaired surrogate). The toggle is not yet persisted; links, raw draft review and activity logs can still contain original text. It is a name/description display mode, not comprehensive spoiler redaction. Native interaction and full tooltip/detail parity remain open.
+
+Formatting, clippy with warnings denied, 60 regular integration tests in both configurations and four desktop-state tests passed for this checkpoint. No new native interaction or large-archive execution proof is claimed.
