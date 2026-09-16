@@ -1,6 +1,6 @@
 # FOMOD parity contract — investigation
 
-Reference: d31ccbd3bfcddb4705917eafa6483715c166de3b. Source hashes and an isolated executable selection probe are in `fomod-selection-oracle/`. Rust currently rejects FOMOD archives at extraction; F15 remains missing.
+Reference: d31ccbd3bfcddb4705917eafa6483715c166de3b. Source hashes and an isolated executable selection probe are in `fomod-selection-oracle/`. Rust currently rejects unconfigured FOMOD archives at extraction; F15 is partial. Shared selection, choices-file parsing, flag visibility, module/info XML parsing and safe copy mapping exist; archive configuration and interface integration remain open.
 
 ## Required implementation and acceptance
 

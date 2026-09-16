@@ -329,7 +329,7 @@ pub fn visible_steps(steps: &[StepSelection]) -> Vec<usize> {
 }
 
 mod xml;
-pub use xml::{parse_module_xml, parse_selection_xml};
+pub use xml::{parse_info_xml, parse_module_xml, parse_selection_xml};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct FileInstall {
@@ -482,4 +482,14 @@ impl ModuleConfig {
         }
         Ok(instructions)
     }
+}
+
+/// Optional authored info.xml metadata. Website is text, not a trusted URL.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct FomodInfo {
+    pub name: String,
+    pub author: String,
+    pub version: String,
+    pub website: String,
+    pub description: String,
 }

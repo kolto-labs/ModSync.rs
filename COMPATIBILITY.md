@@ -413,3 +413,7 @@ ModuleConfig.copy_instructions maps the ordered selected file plan from an expli
 ### Verified FOMOD folder mapping
 
 An isolated C# mapper/install probe returned Success with `textures/*`, installed only top.txt and omitted nested/deep.txt. Evidence: `docs/parity/fomod-folder-oracle/`; the verifier excludes only C# .modsync session bookkeeping from asset comparison. Rust now emits the same immediate-file wildcard and a shared-engine regression verifies identical asset behavior, dry-run non-mutation and unchanged source data. This supersedes folder mapping rejection above. It is deliberately not recursive FOMOD directory semantics; empty folders, recursive expectations, renames, archive configuration and UI/CLI integration remain open.
+
+### FOMOD info.xml metadata
+
+The shared XML reader now parses Name, Author, Version, Website and Description with the reference parser's optional-field defaults, first direct-child lookup, case-insensitive local names and preserved authored text. A regression covers namespaces, duplicate fields, mixed text, malformed XML and DTD rejection. This is source-grounded against FomodParser.ParseInfoXml, not a live C# differential receipt. Website remains untrusted text; archive discovery and UI presentation are still pending.

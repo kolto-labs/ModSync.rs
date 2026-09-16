@@ -481,3 +481,37 @@ fn folder_mapping_matches_reference_top_level_only_copy() {
         b"deep"
     );
 }
+
+#[test]
+fn info_xml_preserves_reference_metadata_and_rejects_unsafe_xml() {
+    use modsync::fomod::{FomodInfo, parse_info_xml};
+    assert_eq!(parse_info_xml("<anything/>").unwrap(), FomodInfo::default());
+    let info = parse_info_xml(
+        r#"<fomod xmlns:m="urn:test">
+      <m:nAmE> First &amp; Last </m:nAmE><Name>ignored duplicate</Name>
+      <Author>Author</Author><Version>1.2</Version>
+      <Website>https://example.invalid/?a=1&amp;b=2</Website>
+      <Description>Before <b>bold</b><![CDATA[ after]]></Description>
+      <wrapper><Name>not a direct child</Name></wrapper>
+    </fomod>"#,
+    )
+    .unwrap();
+    assert_eq!(
+        info,
+        FomodInfo {
+            name: " First & Last ".into(),
+            author: "Author".into(),
+            version: "1.2".into(),
+            website: "https://example.invalid/?a=1&b=2".into(),
+            description: "Before bold after".into(),
+        }
+    );
+    for invalid in [
+        "",
+        "<fomod>",
+        "<fomod/><other/>",
+        "<!DOCTYPE fomod [<!ENTITY x SYSTEM 'file:///etc/passwd'>]><fomod><Name>&x;</Name></fomod>",
+    ] {
+        assert!(parse_info_xml(invalid).is_err());
+    }
+}

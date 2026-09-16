@@ -237,3 +237,18 @@ fn files(container: Option<&Node>) -> Vec<FileInstall> {
         })
         .collect()
 }
+
+/// Parse optional info.xml fields, preserving authored whitespace and mixed text.
+/// Like the reference parser, root names are unrestricted and the first matching
+/// direct child supplies each field. DTDs remain forbidden at the shared XML boundary.
+pub fn parse_info_xml(text: &str) -> Result<super::FomodInfo> {
+    let root = tree(text)?;
+    let value = |name| root.child(name).map_or("", |n| n.text.as_str()).to_owned();
+    Ok(super::FomodInfo {
+        name: value("Name"),
+        author: value("Author"),
+        version: value("Version"),
+        website: value("Website"),
+        description: value("Description"),
+    })
+}
