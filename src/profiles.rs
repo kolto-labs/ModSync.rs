@@ -1,5 +1,5 @@
 //! Persistent profiles shared by command-line and desktop callers.
-use crate::{Guide, recovery};
+use crate::{Guide, PatcherEngine, recovery};
 use anyhow::{Context, Result, ensure};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -114,6 +114,11 @@ pub fn sanitize(name: &str) -> Result<String> {
     );
     Ok(result)
 }
+pub struct PatcherPreferences {
+    pub engine: PatcherEngine,
+    pub executable: Option<String>,
+}
+
 pub struct Store {
     root: PathBuf,
 }
@@ -339,6 +344,49 @@ impl Store {
             .unwrap()
             .retain(|k, _| !k.eq_ignore_ascii_case("spoilerFreeMode"));
         settings["spoilerFreeMode"] = enabled.into();
+        recovery::atomic_write(
+            &self.root.join("settings.json"),
+            &serde_json::to_vec_pretty(&settings)?,
+        )
+    }
+    pub fn patcher_preferences(&self) -> Result<PatcherPreferences> {
+        let settings = self.read_settings(false)?;
+        let engine = match setting_text(&settings, "patcherEngine")?
+            .as_deref()
+            .unwrap_or("Holopatcher")
+            .to_ascii_lowercase()
+            .as_str()
+        {
+            "holopatcher" => PatcherEngine::HoloPatcher,
+            "kpatcher" => PatcherEngine::KPatcher,
+            "odypatcher" => PatcherEngine::OdyPatcher,
+            other => anyhow::bail!("Unsupported patcherEngine: {other}"),
+        };
+        let key = match engine {
+            PatcherEngine::KPatcher => "kpatcherExecutablePath",
+            PatcherEngine::OdyPatcher => "odyPatcherExecutablePath",
+            PatcherEngine::HoloPatcher => "holopatcherExecutablePath",
+        };
+        Ok(PatcherPreferences {
+            engine,
+            executable: setting_text(&settings, key)?,
+        })
+    }
+    pub fn save_patcher_preferences(&self, engine: PatcherEngine, executable: &str) -> Result<()> {
+        let _lock = self.lock()?;
+        let mut settings = self.read_settings(false)?;
+        let (engine_name, key) = match engine {
+            PatcherEngine::HoloPatcher => ("Holopatcher", "holopatcherExecutablePath"),
+            PatcherEngine::KPatcher => ("KPatcher", "kpatcherExecutablePath"),
+            PatcherEngine::OdyPatcher => ("OdyPatcher", "odyPatcherExecutablePath"),
+        };
+        settings.as_object_mut().unwrap().retain(|name, _| {
+            !name.eq_ignore_ascii_case("patcherEngine") && !name.eq_ignore_ascii_case(key)
+        });
+        settings["patcherEngine"] = engine_name.into();
+        if !executable.trim().is_empty() {
+            settings[key] = executable.trim().into();
+        }
         recovery::atomic_write(
             &self.root.join("settings.json"),
             &serde_json::to_vec_pretty(&settings)?,

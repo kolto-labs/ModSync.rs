@@ -1,6 +1,6 @@
 use anyhow::Result;
 use eframe::egui;
-use modsync::{Component, Engine, Guide, Settings, download, recovery};
+use modsync::{Component, Engine, Guide, PatcherEngine, Settings, download, recovery};
 use std::{
     path::{Path, PathBuf},
     sync::{
@@ -45,6 +45,7 @@ pub struct App {
     game: String,
     mods: String,
     patcher: String,
+    patcher_engine: PatcherEngine,
     scratch: String,
     fomod_choices: String,
     fomod_archive: String,
@@ -103,6 +104,7 @@ impl App {
             game: string(game),
             mods: string(mods),
             patcher: String::new(),
+            patcher_engine: PatcherEngine::HoloPatcher,
             scratch: String::new(),
             fomod_choices: String::new(),
             fomod_archive: String::new(),
@@ -611,6 +613,7 @@ impl App {
             }
         };
         settings.allow_processes = self.allow_processes;
+        settings.patcher_engine = self.patcher_engine;
         settings.patcher = if self.patcher.is_empty() {
             None
         } else {
@@ -1264,7 +1267,26 @@ impl eframe::App for App {
                             if ui.text_edit_singleline(&mut self.expanded_budget).changed() { self.validated = false; self.conflicts = None; }
                         });
                     });
-                    if self.allow_processes && Self::path_row(ui, "OdyPatcher", &mut self.patcher, false) { self.validated = false; self.conflicts = None; }
+                    if self.allow_processes {
+                        ui.horizontal(|ui| {
+                            ui.label("Patcher backend");
+                            egui::ComboBox::from_id_salt("patcher-engine")
+                                .selected_text(match self.patcher_engine { PatcherEngine::HoloPatcher => "HoloPatcher", PatcherEngine::KPatcher => "KPatcher", PatcherEngine::OdyPatcher => "OdyPatcher" })
+                                .show_ui(ui, |ui| {
+                                    ui.selectable_value(&mut self.patcher_engine, PatcherEngine::HoloPatcher, "HoloPatcher");
+                                    ui.selectable_value(&mut self.patcher_engine, PatcherEngine::KPatcher, "KPatcher");
+                                    ui.selectable_value(&mut self.patcher_engine, PatcherEngine::OdyPatcher, "OdyPatcher");
+                                });
+                        });
+                        if Self::path_row(ui, "Patcher executable", &mut self.patcher, false) { self.validated = false; self.conflicts = None; }
+                        if ui.button("Save patcher setting").clicked() {
+                            match modsync::profiles::Store::new(Path::new(&self.profile_directory))
+                                .and_then(|store| store.save_patcher_preferences(self.patcher_engine, &self.patcher)) {
+                                Ok(()) => self.logs.push("Patcher setting saved.".into()),
+                                Err(error) => self.logs.push(format!("Patcher setting save failed: {error:#}")),
+                            }
+                        }
+                    }
                     ui.horizontal(|ui| {
                         if ui.button("Analyze conflicts").clicked() { self.start(Job::Conflicts, ctx); }
                         if ui.button("Run validation").clicked() { self.start(Job::Validate, ctx); }
@@ -1400,6 +1422,15 @@ pub fn launch(
             {
                 Ok(theme) => app.theme = theme,
                 Err(e) => app.logs.push(format!("Theme load failed: {e:#}")),
+            }
+            match modsync::profiles::Store::new(Path::new(&app.profile_directory))
+                .and_then(|store| store.patcher_preferences())
+            {
+                Ok(preferences) => {
+                    app.patcher_engine = preferences.engine;
+                    app.patcher = preferences.executable.unwrap_or_default();
+                }
+                Err(e) => app.logs.push(format!("Patcher setting load failed: {e:#}")),
             }
             match modsync::profiles::Store::new(Path::new(&app.profile_directory))
                 .and_then(|store| store.spoiler_free_preference())

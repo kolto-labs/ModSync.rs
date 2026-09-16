@@ -1,5 +1,5 @@
 use modsync::{
-    Guide,
+    Guide, PatcherEngine,
     profiles::{Profile, Selection, Store, sanitize},
 };
 use serde_json::{Value, json};
@@ -603,4 +603,27 @@ fn spoiler_preference_persists_with_strict_boolean_type_and_unrelated_fields() {
         fs::read(dir.path().join("settings.json")).unwrap(),
         b"broken"
     );
+}
+
+#[test]
+fn patcher_preferences_preserve_unknown_settings_and_use_csharp_keys() {
+    let dir = tempfile::tempdir().unwrap();
+    fs::write(
+        dir.path().join("settings.json"),
+        r#"{"PatcherEngine":"odypatcher","OdyPatcherExecutablePath":"old","nested":{"keep":7}}"#,
+    )
+    .unwrap();
+    let store = Store::new(dir.path()).unwrap();
+    let preferences = store.patcher_preferences().unwrap();
+    assert_eq!(preferences.engine, PatcherEngine::OdyPatcher);
+    assert_eq!(preferences.executable.as_deref(), Some("old"));
+    store
+        .save_patcher_preferences(PatcherEngine::KPatcher, " /bin/kpatcher ")
+        .unwrap();
+    let saved: Value =
+        serde_json::from_slice(&fs::read(dir.path().join("settings.json")).unwrap()).unwrap();
+    assert_eq!(saved["patcherEngine"], "KPatcher");
+    assert_eq!(saved["kpatcherExecutablePath"], "/bin/kpatcher");
+    assert_eq!(saved["nested"]["keep"], 7);
+    assert_eq!(saved["OdyPatcherExecutablePath"], "old");
 }
