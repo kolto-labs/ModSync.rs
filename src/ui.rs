@@ -437,14 +437,15 @@ impl App {
         let mut changed = false;
         for option in &mut component.options {
             let name = modsync::selection::display_name(option, spoiler_free);
-            changed |= ui.checkbox(&mut option.is_selected, name).changed();
+            let tooltip = modsync::selection::tooltip(option, spoiler_free);
+            changed |= ui
+                .checkbox(&mut option.is_selected, name)
+                .on_hover_text(tooltip)
+                .changed();
             let description = modsync::selection::display_description(option, spoiler_free);
             if !description.trim().is_empty() {
                 ui.label(description)
-                    .on_hover_text(modsync::selection::tooltip_description(
-                        option,
-                        spoiler_free,
-                    ));
+                    .on_hover_text(modsync::selection::tooltip(option, spoiler_free));
             }
             if option.is_selected {
                 changed |= Self::options(ui, option, spoiler_free);
@@ -630,7 +631,7 @@ impl eframe::App for App {
                                 if !self.category_filter.is_empty() && !c.category.iter().any(|cat| cat.eq_ignore_ascii_case(&self.category_filter)) { continue; }
                                 ui.horizontal(|ui| {
                                     if ui.checkbox(&mut c.is_selected, "").on_hover_text("Select component").changed() { self.validated = false; }
-                                    if ui.selectable_label(self.selected == index, modsync::selection::display_name(c, self.spoiler_free)).clicked() { self.selected = index; }
+                                    if ui.selectable_label(self.selected == index, modsync::selection::display_name(c, self.spoiler_free)).on_hover_text(modsync::selection::tooltip(c, self.spoiler_free)).clicked() { self.selected = index; }
                                 });
                             }
                         });
@@ -638,7 +639,7 @@ impl eframe::App for App {
                             if let Some(c) = g.components.get_mut(self.selected) {
                                 ui.heading(modsync::selection::display_name(c, self.spoiler_free));
                                 ui.label(format!("{}  ·  {}", c.author, c.tier));
-                                ui.label(modsync::selection::display_description(c, self.spoiler_free)).on_hover_text(modsync::selection::tooltip_description(c, self.spoiler_free));
+                                ui.label(modsync::selection::display_description(c, self.spoiler_free)).on_hover_text(modsync::selection::tooltip(c, self.spoiler_free));
                                 if !c.directions.is_empty() && !self.spoiler_free { ui.separator(); ui.label(&c.directions); }
                                 if Self::options(ui, c, self.spoiler_free) { self.validated = false; }
                                 ui.separator();

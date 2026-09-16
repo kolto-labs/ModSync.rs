@@ -99,3 +99,37 @@ fn tooltip_keeps_full_normal_description_without_leaking_it_in_spoiler_mode() {
     assert!(selection::tooltip_description(&c, false).ends_with("secret"));
     assert!(!selection::tooltip_description(&c, true).contains("secret"));
 }
+
+#[test]
+fn complete_tooltip_preserves_reference_sections_and_spoiler_boundary() {
+    let c: Component = serde_json::from_value(serde_json::json!({
+        "Name": "Secret title", "NameSpoilerFree": "Safe title", "Author": "A",
+        "Description": "Secret description", "DescriptionSpoilerFree": "Safe description",
+        "Category": ["UI", "custom"], "Tier": "2 recommended",
+        "Instructions": [{"Action": "Copy", "Source": ["a"], "Destination": "b"}],
+        "Options": [{"Name": "Choice"}], "InstallationMethod": "Loose files",
+        "Language": ["English", "French"], "ResourceRegistry": {"https://example.invalid": {}}
+    }))
+    .unwrap();
+    assert_eq!(
+        selection::tooltip(&c, true),
+        concat!(
+            "📦 Safe title\n\n👤 Author: A\n\n🏷️ Categories:\n",
+            "• UI: Mods that modify the user interface, menus, or HUD elements.\n",
+            "• custom: Custom category: custom\n\n",
+            "⭐ Tier: 2 recommended - High-quality mods that significantly improve the game experience. Strongly recommended for most players.\n\n",
+            "📝 Description: Safe description\n\n",
+            "⚙️ Installation: 1 installation step(s), 1 customization option(s), uses Loose files\n\n",
+            "🌐 Language support: English, French\n\n🔗 1 download source(s) available"
+        )
+    );
+    assert!(selection::tooltip(&c, false).contains("Secret description"));
+    assert!(!selection::tooltip(&c, true).contains("Secret"));
+    assert_eq!(selection::tooltip(&Component::default(), false), "📦 ");
+    assert_eq!(selection::category_description("ui"), "Custom category: ui");
+    assert_eq!(selection::tier_description("2"), "Custom tier: 2");
+    assert_eq!(selection::tier_description(""), "No tier specified.");
+    assert!(selection::tier_description(" 3 - SUGGESTED ").starts_with("Good quality"));
+    assert!(selection::tier_description("Optional").starts_with("Mods that are nice"));
+    assert!(selection::tier_description("Essential 1").starts_with("Critical mods"));
+}

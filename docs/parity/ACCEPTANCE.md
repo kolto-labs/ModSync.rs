@@ -211,3 +211,5 @@ F04/F24: a desktop checkbox chooser now applies several categories atomically at
 F04/F24 modal checkpoint: category selection and install confirmation now block background input using egui Modal. Native Linux screenshots and disk assertions in `native-modals/receipt.json` cover category apply, background-click cancellation, Escape and confirmed fixture installation. This supersedes the earlier nonmodal limitation for the exercised paths; it does not establish full wizard, platform or accessibility parity.
 
 F04/F24 option-description checkpoint: the visibility guard now follows displayed text, so options with empty raw descriptions still show authored or generated spoiler-free descriptions. An egui text-shape regression exercises the actual option renderer. Full option-card tooltips, accessibility and wizard parity remain open.
+
+F04/F24 tooltip checkpoint: shared comprehensive tooltip content now reaches component names, options and descriptions. Source-grounded regression covers all content sections and spoiler handling. Native hover/accessibility behavior remains unverified; neither domain is complete.

@@ -144,3 +144,131 @@ pub fn tooltip_description(c: &Component, spoiler_free: bool) -> String {
         c.description.clone()
     }
 }
+
+/// Category descriptions from the pinned C# CategoryTierDefinitions.
+pub fn category_description(category: &str) -> String {
+    match category {
+        "" => "No category specified.".into(),
+        "Patch" => "Official or community patches that fix bugs and issues in the base game.".into(),
+        "Bugfix" => "Mods that fix specific bugs, glitches, or technical issues.".into(),
+        "Bug Fix" => "Mods that fix specific bugs, glitches, or technical issues.".into(),
+        "Graphics Improvement" => "Mods that enhance visual quality, textures, models, or lighting.".into(),
+        "Graphical Improvement" => "Mods that enhance visual quality, textures, models, or lighting.".into(),
+        "Graphics Improvement & Bugfix" => "Mods that both fix bugs and improve visual quality.".into(),
+        "Bugfix & Graphics Improvement" => "Mods that both fix bugs and improve visual quality.".into(),
+        "Bugfix & Graphics Improvement & Immersion" => "Mods that fix bugs, improve graphics, and enhance immersion.".into(),
+        "Bugfix, Graphics Improvement & Immersion" => "Mods that fix bugs, improve graphics, and enhance immersion.".into(),
+        "Bugfix, Immersion, Mechanics Change & Restored Content" => "Comprehensive mods that fix bugs, enhance immersion, change mechanics, and restore content.".into(),
+        "Mechanics Change" => "Mods that alter game mechanics, rules, or gameplay systems.".into(),
+        "Mechanics Change & Patch" => "Mods that change game mechanics and include patches.".into(),
+        "Mechanics Change & Immersion" => "Mods that change game mechanics while enhancing immersion.".into(),
+        "Mechanics Change, Bugfix & Immersion" => "Mods that change mechanics, fix bugs, and enhance immersion.".into(),
+        "Gameplay" => "Mods that modify gameplay elements, combat, or game systems.".into(),
+        "Appearance Change" => "Mods that change the appearance of characters, items, or environments.".into(),
+        "Appearance Change & Graphics Improvement" => "Mods that change appearances and improve graphics quality.".into(),
+        "Appearance Change & Bugfix" => "Mods that change appearances and fix related bugs.".into(),
+        "Appearance Change, Immersion & Graphics Improvement" => "Mods that change appearances, enhance immersion, and improve graphics.".into(),
+        "Appearance Change, Bugfix & Graphics Improvement" => "Mods that change appearances, fix bugs, and improve graphics.".into(),
+        "Immersion" => "Mods that enhance role-playing immersion, dialogue, or story elements.".into(),
+        "Immersion & Appearance Change" => "Mods that enhance immersion and change appearances.".into(),
+        "Immersion & Mechanics Change" => "Mods that enhance immersion and change game mechanics.".into(),
+        "Immersion & Graphics Improvement" => "Mods that enhance immersion and improve graphics.".into(),
+        "Story" => "Mods that add, modify, or enhance story content and narrative elements.".into(),
+        "Restored Content" => "Mods that restore content that was cut or unused in the original game.".into(),
+        "Restored Content & Immersion" => "Mods that restore content and enhance immersion.".into(),
+        "Added Content" => "Mods that add new content, areas, characters, or features to the game.".into(),
+        "Added Content, Appearance Change & Immersion" => "Mods that add content, change appearances, and enhance immersion.".into(),
+        "Added Content & Immersion" => "Mods that add new content and enhance immersion.".into(),
+        "UI" => "Mods that modify the user interface, menus, or HUD elements.".into(),
+        "Audio" => "Mods that change or improve audio, music, or sound effects.".into(),
+        "Graphics Improvement & Immersion" => "Mods that improve graphics and enhance immersion.".into(),
+        "Graphics Improvement & Appearance Change" => "Mods that improve graphics and change appearances.".into(),
+        "Patch & Graphics Improvement" => "Mods that provide patches and improve graphics.".into(),
+        "Bugfix & Immersion" => "Mods that fix bugs and enhance immersion.".into(),
+        "Bugfix, Graphics Improvement & Appearance Change" => "Mods that fix bugs, improve graphics, and change appearances.".into(),
+        "Appearance Change & Immersion" => "Mods that change appearances and enhance immersion.".into(),
+        _ => format!("Custom category: {category}"),
+    }
+}
+
+pub fn tier_description(tier: &str) -> String {
+    if tier.is_empty() {
+        return "No tier specified.".into();
+    }
+    let normalized = tier.trim().to_lowercase();
+    if normalized.contains("essential") {
+        "Critical mods that fix major bugs or provide essential improvements.".into()
+    } else if normalized.contains("recommend") {
+        "High-quality mods that significantly improve the game experience. Strongly recommended for most players.".into()
+    } else if normalized.contains("suggest") {
+        "Good quality mods that enhance specific aspects of the game. Recommended for players who want more content.".into()
+    } else if normalized.contains("option") {
+        "Mods that are nice to have but not necessary. Install based on personal preference.".into()
+    } else {
+        format!("Custom tier: {tier}")
+    }
+}
+
+/// Complete selection-card content, shared by components and options.
+pub fn tooltip(c: &Component, spoiler_free: bool) -> String {
+    let mut parts = vec![format!("📦 {}", display_name(c, spoiler_free))];
+    if !c.author.trim().is_empty() {
+        parts.push(format!("👤 Author: {}", c.author));
+    }
+    if !c.category.is_empty() {
+        parts.push(format!(
+            "🏷️ Categories:\n{}",
+            c.category
+                .iter()
+                .map(|cat| format!("• {cat}: {}", category_description(cat)))
+                .collect::<Vec<_>>()
+                .join("\n")
+        ));
+    }
+    if !c.tier.trim().is_empty() {
+        parts.push(format!(
+            "⭐ Tier: {} - {}",
+            c.tier,
+            tier_description(&c.tier)
+        ));
+    }
+    let description = tooltip_description(c, spoiler_free);
+    if !description.trim().is_empty() {
+        parts.push(format!("📝 Description: {description}"));
+    }
+    let mut install = Vec::new();
+    if !c.instructions.is_empty() {
+        install.push(format!("{} installation step(s)", c.instructions.len()));
+    }
+    if !c.options.is_empty() {
+        install.push(format!("{} customization option(s)", c.options.len()));
+    }
+    if let Some(method) = alternate(c, "InstallationMethod") {
+        install.push(format!("uses {method}"));
+    }
+    if !install.is_empty() {
+        parts.push(format!("⚙️ Installation: {}", install.join(", ")));
+    }
+    if let Some(languages) = c
+        .metadata
+        .get("Language")
+        .and_then(serde_json::Value::as_array)
+        && !languages.is_empty()
+    {
+        parts.push(format!(
+            "🌐 Language support: {}",
+            languages
+                .iter()
+                .filter_map(serde_json::Value::as_str)
+                .collect::<Vec<_>>()
+                .join(", ")
+        ));
+    }
+    if !c.resource_registry.is_empty() {
+        parts.push(format!(
+            "🔗 {} download source(s) available",
+            c.resource_registry.len()
+        ));
+    }
+    parts.join("\n\n")
+}

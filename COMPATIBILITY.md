@@ -271,3 +271,7 @@ The category chooser and install confirmation now use the installed egui Modal c
 ### Option description visibility
 
 Option descriptions now test the displayed text for whitespace, matching the reference ModSelectionPage option-card condition. An empty raw Description no longer suppresses authored DescriptionSpoilerFree or the generated safe fallback. The shared recursive option renderer applies the same rule to nested options. An egui rendering regression inspects emitted text shapes for both authored and fallback descriptions with an empty raw field. This is rendering-path evidence, not native accessibility or full option-card parity.
+
+### Selection tooltip content
+
+Component names, option checkboxes and description labels now expose a shared comprehensive tooltip following pinned ModSelectionPage.CreateModTooltip: displayed name, author, case-sensitive category descriptions, normalized tier description, full ordinary or safe description, instruction/option counts, installation method, language list and resource count. Category definitions are ported from CategoryTierDefinitions, including custom fallbacks. Numeric-only tiers retain the reference custom-tier description. A regression checks the complete multi-section output, omitted empty sections, casing, tier names and spoiler isolation. Language metadata currently requires a JSON array of strings; malformed or alternate representations do not establish schema parity. Native hover timing, positioning, accessibility and cross-platform rendering remain unverified.
