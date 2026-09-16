@@ -373,3 +373,7 @@ YAML directive regression correction: directives after an explicit document end 
 ### FOMOD reference selection investigation
 
 `docs/parity/FOMOD.md` records the full implementation/acceptance boundary. The isolated C# parser/mapper/presenter probe in `fomod-selection-oracle/` verifies five group defaults and selection validation, and reproduces an indirect required-plugin deselection conflict. Rust still refuses FOMOD installation; no FOMOD support is claimed from this evidence.
+
+### FOMOD shared group selection
+
+`fomod::GroupSelection` now implements the five reference group modes, default selection and exact cardinality messages. An executable regression compares defaults and selection transitions against the saved C# oracle. Required-plugin removal is rejected both directly and through exclusive siblings, with no partial mutation; this deliberately corrects the reproduced reference bypass. Conflicting required choices remain validation errors. Parser, visibility, mapping, choices files, CLI/desktop wiring and installation remain unfinished, so the engine still refuses FOMOD archives.

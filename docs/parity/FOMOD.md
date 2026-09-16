@@ -29,3 +29,7 @@ Required-plugin conflict: direct deselection returns false, but selecting an opt
 ## Source-grounded limitations requiring separate probes
 
 `FomodToComponentMapper.EvaluateDependency` treats file/game dependencies as satisfied with warnings. Conditional mapping supports only restricted flat flag patterns and skips unsupported patterns. These are source findings, not full live reproductions. Visibility, conflicting flags, priority, conditional mapping, NotUsable plugins, duplicate names, archive path layout and choices-file handling all need independent acceptance before F15 can advance beyond the initial selection investigation.
+
+## Rust selection primitive
+
+GroupSelection now provides defaults, cardinality validation and atomic selection changes. Tests compare against the saved five-mode C# result. The required-sibling conflict is resolved by rejecting any exclusive selection that would deselect a required sibling; conflicting required defaults fail validation. This is an explicit correctness divergence. The engine extraction gate is unchanged until full configured-archive integration is implemented and verified.
