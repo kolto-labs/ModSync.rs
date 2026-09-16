@@ -13,6 +13,7 @@ pub mod model;
 pub mod patcher;
 pub mod paths;
 pub mod recovery;
+pub mod validation;
 
 pub use engine::{Engine, Event, PatcherEngine, Settings};
 pub use model::{Component, Guide, Instruction};

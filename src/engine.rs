@@ -162,6 +162,47 @@ impl Engine {
         self.run(guide, &mut emit)
     }
 
+    pub fn validate_report(
+        self,
+        guide: &Guide,
+        emit: impl FnMut(Event),
+    ) -> crate::validation::Report {
+        let component_count = guide
+            .components
+            .iter()
+            .filter(|component| component.is_selected)
+            .count();
+        let mut report = crate::validation::Report::new(component_count);
+        let environment = (|| -> Result<()> {
+            recovery::ensure_clean(&self.settings.roots)?;
+            recovery::verify_completion(&self.settings.roots, guide, self.completed.len())
+        })()
+        .map_err(|error| format!("{error:#}"));
+        if !report.push(crate::validation::Stage::Environment, environment) {
+            return report.finish();
+        }
+        let order = guide
+            .ordered()
+            .map(|_| ())
+            .map_err(|error| format!("{error:#}"));
+        report.push(crate::validation::Stage::InstallOrder, order);
+        match Engine::new(self.settings.clone()).and_then(|engine| engine.analyze_conflicts(guide))
+        {
+            Ok(conflicts) => report.conflicts(&conflicts),
+            Err(error) => {
+                report.push(
+                    crate::validation::Stage::Conflicts,
+                    Err(format!("{error:#}")),
+                );
+            }
+        }
+        let component = Engine::new(self.settings)
+            .and_then(|engine| engine.validate(guide, emit))
+            .map_err(|error| format!("{error:#}"));
+        report.push(crate::validation::Stage::ComponentValidation, component);
+        report.finish()
+    }
+
     /// Analyze actual simulated writes without changing either installation tree.
     /// Failed instructions return an error rather than an incomplete success report.
     pub fn analyze_conflicts(mut self, guide: &Guide) -> Result<crate::conflicts::Report> {

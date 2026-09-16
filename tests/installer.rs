@@ -1234,3 +1234,54 @@ fn configured_fomod_never_uses_stale_extraction_sources() {
         );
     }
 }
+
+#[test]
+fn validation_report_has_ordered_shared_engine_stages() {
+    let (_dir, settings) = setup();
+    fs::write(settings.roots.mods.join("sample.tga"), b"content").unwrap();
+    let report = Engine::new(settings)
+        .unwrap()
+        .validate_report(&guide(serde_json::json!([copy()])), |_| {});
+    assert!(report.success);
+    assert_eq!(report.error_count, 0);
+    assert_eq!(
+        report
+            .stages
+            .iter()
+            .map(|stage| stage.stage)
+            .collect::<Vec<_>>(),
+        vec![
+            modsync::validation::Stage::Environment,
+            modsync::validation::Stage::InstallOrder,
+            modsync::validation::Stage::Conflicts,
+            modsync::validation::Stage::ComponentValidation,
+        ]
+    );
+}
+
+#[test]
+fn validation_report_keeps_component_failure_as_structured_error() {
+    let (_dir, settings) = setup();
+    let report = Engine::new(settings).unwrap().validate_report(
+        &guide(serde_json::json!([{"Action":"Copy", "Source":"<<modDirectory>>/missing.tga", "Destination":"<<kotorDirectory>>/Override"}])),
+        |_| {},
+    );
+    assert!(!report.success);
+    assert_eq!(report.exit_code, 1);
+    assert_eq!(report.error_count, 2);
+    assert!(
+        !report
+            .stages
+            .iter()
+            .find(|stage| stage.stage == modsync::validation::Stage::Conflicts)
+            .unwrap()
+            .passed
+    );
+    let component = report.stages.last().unwrap();
+    assert_eq!(
+        component.stage,
+        modsync::validation::Stage::ComponentValidation
+    );
+    assert!(!component.passed);
+    assert!(!component.messages.is_empty());
+}

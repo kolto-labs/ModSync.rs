@@ -298,6 +298,9 @@ struct InstallArgs {
     /// Emit newline-delimited JSON events.
     #[arg(long)]
     json: bool,
+    /// Emit the structured validation pipeline report instead of validation events.
+    #[arg(long, conflicts_with = "json")]
+    validation_report: bool,
 }
 
 #[derive(Clone, Copy, Debug, ValueEnum)]
@@ -938,6 +941,11 @@ fn run() -> Result<()> {
                 Ok(())
             } else if install {
                 engine.install(&guide, emit)
+            } else if args.validation_report {
+                let report = engine.validate_report(&guide, emit);
+                println!("{}", serde_json::to_string_pretty(&report)?);
+                ensure!(report.success, "Validation pipeline reported errors");
+                Ok(())
             } else {
                 engine.validate(&guide, emit)
             }
