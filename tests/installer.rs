@@ -1311,3 +1311,26 @@ fn validation_report_rejects_unconfigured_fomod_archive() {
     assert!(!stage.passed);
     assert!(stage.messages[0].contains("no explicit FomodChoices"));
 }
+
+#[test]
+fn validation_report_dry_run_is_structured_and_does_not_write() {
+    let (_dir, settings) = setup();
+    fs::write(settings.roots.mods.join("sample.tga"), b"content").unwrap();
+    let game = settings.roots.game.clone();
+    let report = Engine::new(settings).unwrap().validate_report_with_dry_run(
+        &guide(serde_json::json!([copy()])),
+        |_| {},
+        true,
+    );
+    assert!(report.success);
+    assert!(report.dry_run.as_ref().unwrap().is_valid);
+    assert_eq!(
+        report.stages.last().unwrap().stage,
+        modsync::validation::Stage::DryRun
+    );
+    assert_eq!(
+        serde_json::to_value(&report).unwrap()["dryRun"]["isValid"],
+        true
+    );
+    assert!(fs::read_dir(game).unwrap().next().is_none());
+}

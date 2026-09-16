@@ -13,6 +13,23 @@ pub enum Stage {
     ComponentValidation,
     #[serde(rename = "FomodConfiguration")]
     FomodConfiguration,
+    #[serde(rename = "DryRun")]
+    DryRun,
+}
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DryRunIssue {
+    pub severity: String,
+    pub category: String,
+    pub message: String,
+}
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DryRun {
+    pub is_valid: bool,
+    pub has_warnings: bool,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub issues: Vec<DryRunIssue>,
 }
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -36,6 +53,8 @@ pub struct Report {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub input_path: Option<String>,
     pub stages: Vec<StageResult>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dry_run: Option<DryRun>,
 }
 impl Report {
     pub fn new(component_count: usize) -> Self {
@@ -48,6 +67,7 @@ impl Report {
             component_count,
             input_path: None,
             stages: Vec::new(),
+            dry_run: None,
         }
     }
     pub(crate) fn push(&mut self, stage: Stage, outcome: Result<(), String>) -> bool {
@@ -73,6 +93,44 @@ impl Report {
                     messages: vec![error],
                 });
                 false
+            }
+        }
+    }
+    pub(crate) fn dry_run(&mut self, outcome: Result<(), String>) {
+        match outcome {
+            Ok(()) => {
+                self.passed_count += 1;
+                self.stages.push(StageResult {
+                    stage: Stage::DryRun,
+                    passed: true,
+                    has_warnings: false,
+                    summary: "Dry-run validation passed.".into(),
+                    messages: Vec::new(),
+                });
+                self.dry_run = Some(DryRun {
+                    is_valid: true,
+                    has_warnings: false,
+                    issues: Vec::new(),
+                });
+            }
+            Err(error) => {
+                self.error_count += 1;
+                self.stages.push(StageResult {
+                    stage: Stage::DryRun,
+                    passed: false,
+                    has_warnings: false,
+                    summary: "Dry-run validation failed.".into(),
+                    messages: vec![format!("ERROR: [EngineSimulation] {error}")],
+                });
+                self.dry_run = Some(DryRun {
+                    is_valid: false,
+                    has_warnings: false,
+                    issues: vec![DryRunIssue {
+                        severity: "Error".into(),
+                        category: "EngineSimulation".into(),
+                        message: error,
+                    }],
+                });
             }
         }
     }

@@ -167,6 +167,16 @@ impl Engine {
         guide: &Guide,
         emit: impl FnMut(Event),
     ) -> crate::validation::Report {
+        self.validate_report_with_dry_run(guide, emit, false)
+    }
+
+    pub fn validate_report_with_dry_run(
+        self,
+        guide: &Guide,
+        emit: impl FnMut(Event),
+        dry_run: bool,
+    ) -> crate::validation::Report {
+        let settings = self.settings.clone();
         let component_count = guide
             .components
             .iter()
@@ -181,8 +191,7 @@ impl Engine {
         if !report.push(crate::validation::Stage::Environment, environment) {
             return report.finish();
         }
-        match Engine::new(self.settings.clone()).and_then(|engine| engine.analyze_conflicts(guide))
-        {
+        match Engine::new(settings.clone()).and_then(|engine| engine.analyze_conflicts(guide)) {
             Ok(conflicts) => report.conflicts(&conflicts),
             Err(error) => {
                 report.push(
@@ -196,14 +205,20 @@ impl Engine {
             .map(|_| ())
             .map_err(|error| format!("{error:#}"));
         report.push(crate::validation::Stage::InstallOrder, order);
-        let component = Engine::new(self.settings.clone())
+        let component = Engine::new(settings.clone())
             .and_then(|engine| engine.validate(guide, emit))
             .map_err(|error| format!("{error:#}"));
         report.push(crate::validation::Stage::ComponentValidation, component);
-        let fomod = Engine::new(self.settings)
+        let fomod = Engine::new(settings.clone())
             .and_then(|engine| engine.validate_fomod_configuration(guide))
             .map_err(|error| format!("{error:#}"));
         report.push(crate::validation::Stage::FomodConfiguration, fomod);
+        if dry_run {
+            let result = Engine::new(settings)
+                .and_then(|engine| engine.validate(guide, |_| {}))
+                .map_err(|error| format!("{error:#}"));
+            report.dry_run(result);
+        }
         report.finish()
     }
 
