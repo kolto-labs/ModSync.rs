@@ -426,6 +426,38 @@ fn external_failure_halts_and_named_ini_staging_keeps_original_config() {
 
 #[cfg(unix)]
 #[test]
+fn patcher_log_errors_halt_later_components() {
+    use std::os::unix::fs::PermissionsExt;
+    let (dir, mut settings) = setup();
+    let data = settings.roots.mods.join("patch/tslpatchdata");
+    fs::create_dir_all(&data).unwrap();
+    let stub = dir.path().join("patcher");
+    fs::write(
+        &stub,
+        r#"#!/bin/sh
+printf '[Error] patch failed\n' > "$5/installlog.txt"
+exit 0
+"#,
+    )
+    .unwrap();
+    fs::set_permissions(&stub, fs::Permissions::from_mode(0o755)).unwrap();
+    settings.allow_processes = true;
+    settings.patcher = Some(stub);
+    settings.patcher_engine = PatcherEngine::OdyPatcher;
+    fs::write(settings.roots.mods.join("sample.tga"), b"later step").unwrap();
+    let g = guide(serde_json::json!([
+        {"Action":"Patcher", "Source":"<<modDirectory>>/patch"}, copy()
+    ]));
+    let error = Engine::new(settings.clone())
+        .unwrap()
+        .install(&g, |_| {})
+        .unwrap_err();
+    assert!(format!("{error:#}").contains("Patcher install log reported errors"));
+    assert!(!settings.roots.game.join("Override/sample.tga").exists());
+}
+
+#[cfg(unix)]
+#[test]
 fn kpatcher_uses_console_without_ody_flags() {
     use std::os::unix::fs::PermissionsExt;
     let (dir, mut settings) = setup();

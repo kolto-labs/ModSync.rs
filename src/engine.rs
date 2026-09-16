@@ -718,6 +718,7 @@ impl Engine {
             path.display()
         );
         let mut staged_patcher = None;
+        let mut patcher_data = None;
         let mut command = if i.action == "Patcher" {
             let patcher = self
                 .settings
@@ -738,6 +739,7 @@ impl Engine {
             } else {
                 &path
             };
+            patcher_data = Some(base.to_path_buf());
             let mut cmd = self.patcher_command(patcher, &dest, base);
             if !i.arguments.trim().is_empty() {
                 if let Ok(index) = i.arguments.trim().parse::<usize>() {
@@ -786,6 +788,7 @@ impl Engine {
                             self.actual(&self.path(&i.destination, false)?)
                         };
                         cmd = self.patcher_command(patcher, &destination, stage.path());
+                        patcher_data = Some(stage.path().to_path_buf());
                         staged_patcher = Some(stage);
                     }
                 }
@@ -797,6 +800,11 @@ impl Engine {
             cmd
         };
         if self.install {
+            if let Some(data) = &patcher_data {
+                for name in ["installlog.rtf", "installlog.txt"] {
+                    let _ = fs::remove_file(data.join(name));
+                }
+            }
             let stdout = tempfile::NamedTempFile::new()?;
             let stderr = tempfile::NamedTempFile::new()?;
             let mut child = command
@@ -830,6 +838,14 @@ impl Engine {
                 }
             }
             ensure!(status.success(), "External program failed with {status}");
+            if let Some(data) = &patcher_data {
+                let errors = patcher_log_errors(data)?;
+                ensure!(
+                    errors.is_empty(),
+                    "Patcher install log reported errors: {}",
+                    errors.join(" | ")
+                );
+            }
             self.scan()?;
         }
         drop(staged_patcher);
@@ -852,6 +868,23 @@ impl Engine {
         }
         command
     }
+}
+
+fn patcher_log_errors(data: &Path) -> Result<Vec<String>> {
+    let log = ["installlog.rtf", "installlog.txt"]
+        .into_iter()
+        .map(|name| data.join(name))
+        .find(|path| path.is_file());
+    let Some(log) = log else {
+        return Ok(Vec::new());
+    };
+    Ok(fs::read_to_string(log)?
+        .lines()
+        .filter(|line| {
+            !line.trim().is_empty() && (line.contains("Error: ") || line.contains("[Error]"))
+        })
+        .map(str::to_owned)
+        .collect())
 }
 
 // Match ModComponent.ExecuteSingleInstructionAsync's CleanList selection rules.
