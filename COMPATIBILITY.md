@@ -255,3 +255,11 @@ The selection toggle now persists the C# `spoilerFreeMode` boolean using the sha
 Store and projection tests cover round trips, key casing, defaults, type rejection, corrupt-file preservation and long-description tooltip visibility. Native toggle/restart/hover proof remains outstanding. This does not redact URLs, raw draft review or activity logs and does not complete the reference's comprehensive metadata tooltip. C# settings-load failures fall back to defaults; Rust reports errors and retains files, as documented in earlier checkpoints.
 
 Formatting, clippy with warnings denied, 62 regular integration tests in both configurations and four desktop-state tests passed. No new native interaction, hosted CI or large-archive proof is claimed for this checkpoint.
+
+## Multiple-category chooser checkpoint
+
+The desktop now opens a scrollable category chooser with independent checkboxes, Select categories and Cancel. Its category inventory excludes widescreen-only components and deduplicates/sorts names. Applying calls the existing shared additive selection rule with all checked categories, preserves prior choices and invalidates validation plus install confirmation. No selection changes occur while checking boxes or cancelling; Select is disabled for an empty choice. Loading a new guide clears the pending chooser.
+
+A desktop-state regression applies two categories together, retains an unrelated selected component, excludes widescreen and verifies validation/confirmation reset. This is not native modal-dialog parity: the egui window is not an Avalonia modal window, and Unicode ordering/casing and live interaction remain unverified. The separate widescreen phase still has not been ported.
+
+Formatting, clippy with warnings denied, 62 regular integration tests in both configurations and five desktop-state tests passed. The existing large-archive test was not rerun locally; no new native or hosted CI proof is claimed.

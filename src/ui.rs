@@ -45,6 +45,7 @@ pub struct App {
     search: String,
     tier_filter: String,
     category_filter: String,
+    category_selection: Option<std::collections::BTreeMap<String, bool>>,
     logs: Vec<String>,
     receiver: Option<Receiver<Message>>,
     cancelled: Arc<AtomicBool>,
@@ -86,6 +87,7 @@ impl App {
             search: String::new(),
             tier_filter: String::new(),
             category_filter: String::new(),
+            category_selection: None,
             logs: Vec::new(),
             receiver: None,
             cancelled: Arc::new(AtomicBool::new(false)),
@@ -113,12 +115,31 @@ impl App {
                 self.selected = 0;
                 self.tier_filter.clear();
                 self.category_filter.clear();
+                self.category_selection = None;
             }
             Err(e) => {
                 self.loaded_input = None;
                 self.guide = None;
                 self.logs.push(format!("Load failed: {e:#}"));
             }
+        }
+    }
+
+    fn apply_category_selection(&mut self) {
+        let Some(categories) = self.category_selection.take() else {
+            return;
+        };
+        let selected: Vec<_> = categories
+            .into_iter()
+            .filter_map(|(name, selected)| selected.then_some(name))
+            .collect();
+        if selected.is_empty() {
+            return;
+        }
+        if let Some(guide) = &mut self.guide {
+            modsync::selection::select_categories(&mut guide.components, &selected);
+            self.validated = false;
+            self.confirm_install = false;
         }
     }
 
@@ -597,6 +618,11 @@ impl eframe::App for App {
                             self.validated = false; self.confirm_install = false;
                         }
                     });
+                    if ui.button("Select multiple categories…").clicked() {
+                        self.category_selection = Some(g.components.iter()
+                            .filter(|c| c.metadata.get("WidescreenOnly").and_then(serde_json::Value::as_bool) != Some(true))
+                            .flat_map(|c| c.category.iter().cloned()).map(|category| (category, false)).collect());
+                    }
                     ui.separator();
                     ui.columns(2, |columns| {
                         egui::ScrollArea::vertical().id_salt("mods").show(&mut columns[0], |ui| {
@@ -675,6 +701,37 @@ impl eframe::App for App {
                 }
             });
         });
+        if let Some(categories) = &mut self.category_selection {
+            let mut apply = false;
+            let mut cancel = false;
+            egui::Window::new("Select mods by category")
+                .collapsible(false)
+                .show(ctx, |ui| {
+                    ui.add_enabled_ui(!busy, |ui| {
+                        egui::ScrollArea::vertical()
+                            .max_height(320.0)
+                            .show(ui, |ui| {
+                                for (category, selected) in categories.iter_mut() {
+                                    ui.checkbox(selected, category);
+                                }
+                            });
+                        ui.horizontal(|ui| {
+                            apply = ui
+                                .add_enabled(
+                                    categories.values().any(|v| *v),
+                                    egui::Button::new("Select categories"),
+                                )
+                                .clicked();
+                            cancel = ui.button("Cancel").clicked();
+                        });
+                    });
+                });
+            if apply {
+                self.apply_category_selection();
+            } else if cancel {
+                self.category_selection = None;
+            }
+        }
         if self.confirm_install {
             egui::Window::new("Install selected mods?").collapsible(false).resizable(false).show(ctx, |ui| {
                 ui.label(format!("Modify {}", self.game));
@@ -855,5 +912,43 @@ mod tests {
         assert!(app.change_theme("/Styles/KotorStyle.axaml", &ctx).is_err());
         assert!(!ctx.style().visuals.dark_mode);
         assert_eq!(app.theme, "/Styles/LightStyle.axaml");
+    }
+    #[test]
+    fn multiple_categories_apply_together_without_clearing_existing_selections() {
+        let component = |category: &str| Component {
+            category: vec![category.into()],
+            ..Default::default()
+        };
+        let mut app = App::new(None, None, None);
+        let mut guide = Guide {
+            components: vec![
+                component("Fix"),
+                component("Texture"),
+                component("Other"),
+                component("Fix"),
+            ],
+            ..Default::default()
+        };
+        guide.components[2].is_selected = true;
+        guide.components[3]
+            .metadata
+            .insert("WidescreenOnly".into(), true.into());
+        app.guide = Some(guide);
+        app.validated = true;
+        app.confirm_install = true;
+        app.category_selection = Some([("fix".into(), true), ("Texture".into(), true)].into());
+        app.apply_category_selection();
+        assert_eq!(
+            app.guide
+                .as_ref()
+                .unwrap()
+                .components
+                .iter()
+                .map(|c| c.is_selected)
+                .collect::<Vec<_>>(),
+            [true, true, true, false]
+        );
+        assert!(!app.validated && !app.confirm_install);
+        assert!(app.category_selection.is_none());
     }
 }

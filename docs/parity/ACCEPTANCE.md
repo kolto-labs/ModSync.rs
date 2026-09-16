@@ -203,3 +203,7 @@ F04/F24: authored spoiler-free text and reference fallback names/descriptions no
 ### Spoiler preference persistence and full description access
 
 F17/F24: spoilerFreeMode now persists and loads at startup; normal description tooltips retain full text and spoiler tooltips exclude the hidden normal description. Store/projection regressions verify those boundaries. Native toggle/restart/hover and full reference tooltip metadata remain unverified or incomplete.
+
+### Multiple-category chooser progress
+
+F04/F24: a desktop checkbox chooser now applies several categories atomically at the UI state level through the shared additive selector. Existing selections survive and validation is invalidated. The chooser's category inventory excludes widescreen-only components. Native interaction, reference modal-window semantics, Unicode ordering and the separate widescreen phase remain open.
