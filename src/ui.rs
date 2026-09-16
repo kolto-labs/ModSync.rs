@@ -1516,6 +1516,16 @@ mod tests {
     }
 
     #[test]
+    fn queued_nxm_handoffs_keep_arrival_order_until_setup_is_ready() {
+        let mut app = App::new(None, None, None);
+        app.accept_protocol("nxm://kotor/mods/1/files/2?key=one&expires=1".into());
+        app.accept_protocol("nxm://kotor/mods/3/files/4?key=two&expires=1".into());
+        assert_eq!(app.pending_nxm.len(), 2);
+        assert!(app.pending_nxm[0].contains("mods/1/files/2"));
+        assert!(app.pending_nxm[1].contains("mods/3/files/4"));
+    }
+
+    #[test]
     fn failed_job_setup_invalidates_validation_and_confirmation() {
         let root = tempfile::tempdir().unwrap();
         let game = root.path().join("game");
