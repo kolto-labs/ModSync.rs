@@ -1323,6 +1323,37 @@ fn validation_report_keeps_component_failure_as_structured_error() {
 }
 
 #[test]
+fn validation_report_gates_registered_fomod_without_extract_instruction() {
+    let (_dir, settings) = setup();
+    fs::create_dir(settings.roots.mods.join("nested")).unwrap();
+    fs::write(
+        settings.roots.mods.join("nested/package.zip"),
+        zip(&[("fomod/ModuleConfig.xml", b"<config/>")]),
+    )
+    .unwrap();
+    let guide = Guide::parse(
+        r#"{"thisMod":[{"Guid":"a","Name":"Registered","IsSelected":true,"ResourceRegistry":{"source":{"Files":{"nested/package.zip":true}}}}]}"#,
+        "json",
+    )
+    .unwrap();
+    let report = Engine::new(settings)
+        .unwrap()
+        .validate_report(&guide, |_| {});
+    let stage = report
+        .stages
+        .iter()
+        .find(|stage| stage.stage == modsync::validation::Stage::FomodConfiguration)
+        .unwrap();
+    assert!(!stage.passed);
+    assert!(
+        stage
+            .messages
+            .iter()
+            .any(|message| message.contains("package.zip"))
+    );
+}
+
+#[test]
 fn validation_report_rejects_unconfigured_fomod_archive() {
     let (_dir, settings) = setup();
     fs::write(

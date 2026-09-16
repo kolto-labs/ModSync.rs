@@ -223,7 +223,75 @@ impl Engine {
     }
 
     fn validate_fomod_configuration(&self, guide: &Guide) -> Result<()> {
+        fn is_archive(name: &str) -> bool {
+            matches!(
+                std::path::Path::new(name)
+                    .extension()
+                    .and_then(|extension| extension.to_str())
+                    .map(|extension| extension.to_ascii_lowercase())
+                    .as_deref(),
+                Some("zip" | "7z" | "rar" | "exe" | "tar" | "gz")
+            )
+        }
+        fn configured_choices(component: &Component, filename: &str) -> Result<()> {
+            let raw = component.metadata.get("FomodChoices").with_context(|| {
+                format!("FOMOD archive '{filename}' has no explicit FomodChoices configuration")
+            })?;
+            let choices = crate::fomod::ChoicesFile::parse(&serde_json::to_string(raw)?)?;
+            choices
+                .archive(filename)
+                .with_context(|| format!("No FOMOD choices for {filename}"))?;
+            Ok(())
+        }
+
+        // C# gates registered download artifacts even when no Extract instruction names them.
+        // A previously recorded prompt state makes a missing artifact fail closed.
         let selected = guide.selected_ids();
+        for component in guide.ordered()? {
+            let mut registered = BTreeSet::new();
+            for resource in component.resource_registry.values() {
+                let Some(files) = resource
+                    .get("Files")
+                    .or_else(|| resource.get("files"))
+                    .and_then(serde_json::Value::as_object)
+                else {
+                    continue;
+                };
+                for name in files.keys() {
+                    if !is_archive(name) || !registered.insert(name.to_ascii_lowercase()) {
+                        continue;
+                    }
+                    let relative_name = relative(name, false).with_context(|| {
+                        format!("Registered FOMOD archive path is unsafe: {name}")
+                    })?;
+                    let path = self.settings.roots.mods.join(&relative_name);
+                    let filename = relative_name
+                        .file_name()
+                        .and_then(|name| name.to_str())
+                        .context("Registered FOMOD archive filename is invalid")?;
+                    if !path.is_file() {
+                        if crate::fomod::prompt_status(component, filename).is_some() {
+                            bail!(
+                                "Registered FOMOD archive '{filename}' is missing from the mod directory after configuration state was recorded"
+                            );
+                        }
+                        continue;
+                    }
+                    let entries = archive::unpack(
+                        &path,
+                        &relative_name,
+                        &self.settings.archive,
+                        &self.settings.cancelled,
+                    )
+                    .with_context(|| {
+                        format!("Registered archive '{filename}' cannot be inspected")
+                    })?;
+                    if crate::fomod::inspect_entries(&entries)?.is_some() {
+                        configured_choices(component, filename)?;
+                    }
+                }
+            }
+        }
         for component in guide.ordered()? {
             for instruction in &component.instructions {
                 if instruction.action != "Extract"
@@ -253,15 +321,7 @@ impl Engine {
                         .file_name()
                         .and_then(|name| name.to_str())
                         .context("FOMOD archive filename is invalid")?;
-                    let raw = component.metadata.get("FomodChoices").with_context(|| {
-                        format!(
-                            "FOMOD archive '{filename}' has no explicit FomodChoices configuration"
-                        )
-                    })?;
-                    let choices = crate::fomod::ChoicesFile::parse(&serde_json::to_string(raw)?)?;
-                    choices
-                        .archive(filename)
-                        .with_context(|| format!("No FOMOD choices for {filename}"))?;
+                    configured_choices(component, filename)?;
                 }
             }
         }
