@@ -453,3 +453,7 @@ Validate and install accept --fomod-choices with the existing version-1 JSON con
 ### Desktop FOMOD choices-file input
 
 The validation page now accepts an optional choices-file path using the existing file picker. Desktop validation and installation parse that file and use the same recursive guide override as CLI; load errors invalidate validation and prevent job launch. Restore does not depend on the choices file. This is file-based configuration, not the full interactive plugin-selection wizard; native visual acceptance remains pending.
+
+### FOMOD source provenance guard
+
+Configured copies now require every matched source to be supplied by the current archive. Stale extraction files cannot satisfy missing file directives or join folder wildcard copies. Configured extraction with Overwrite=false rejects existing archive paths rather than retaining stale bytes. Regression installs cover these three cases and verify rejection during preflight, unchanged stale source bytes and no pending snapshot or game writes. This intentionally fails closed on contaminated extraction directories instead of silently using their contents.

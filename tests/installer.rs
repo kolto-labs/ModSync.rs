@@ -1047,3 +1047,56 @@ fn cli_fomod_choices_validate_and_install_without_rewriting_guide() {
         "package.zip"
     );
 }
+
+#[test]
+fn configured_fomod_never_uses_stale_extraction_sources() {
+    for (directive, extra, overwrite) in [
+        (
+            "<file source='missing.txt' destination='Override'/>",
+            None,
+            true,
+        ),
+        (
+            "<folder source='' destination='Override'/>",
+            Some("present.txt"),
+            true,
+        ),
+        (
+            "<file source='missing.txt' destination='Override'/>",
+            Some("missing.txt"),
+            false,
+        ),
+    ] {
+        let (_dir, settings) = setup();
+        let xml =
+            format!("<config><requiredInstallFiles>{directive}</requiredInstallFiles></config>");
+        let mut entries = vec![("fomod/ModuleConfig.xml", xml.as_bytes())];
+        if let Some(name) = extra {
+            entries.push((name, b"new"));
+        }
+        fs::write(settings.roots.mods.join("package.zip"), zip(&entries)).unwrap();
+        fs::create_dir(settings.roots.mods.join("package")).unwrap();
+        fs::write(settings.roots.mods.join("package/missing.txt"), b"stale").unwrap();
+        let mut g = guide(serde_json::json!([{"Action":"Extract",
+            "Source":"<<modDirectory>>/package.zip", "Overwrite":overwrite}]));
+        g.components[0].metadata.insert("FomodChoices".into(),
+            serde_json::json!({"version":1,"archives":[{"archiveFileName":"package.zip","selections":[]}]}));
+        assert!(
+            Engine::new(settings.clone())
+                .unwrap()
+                .install(&g, |_| {})
+                .is_err()
+        );
+        assert_eq!(fs::read_dir(&settings.roots.game).unwrap().count(), 0);
+        assert_eq!(
+            fs::read(settings.roots.mods.join("package/missing.txt")).unwrap(),
+            b"stale"
+        );
+        assert!(!settings.roots.mods.join("package/fomod").exists());
+        assert!(
+            !recovery::state_dir(&settings.roots)
+                .join("pending")
+                .exists()
+        );
+    }
+}

@@ -509,6 +509,18 @@ impl Engine {
                     } else {
                         Vec::new()
                     };
+                    let archive_paths: BTreeSet<_> = entries
+                        .iter()
+                        .map(|entry| key(&dest.join(&entry.path)))
+                        .collect();
+                    if !configured.is_empty() && !i.overwrite {
+                        ensure!(
+                            archive_paths
+                                .iter()
+                                .all(|path| !self.files.contains_key(path)),
+                            "Configured FOMOD extraction cannot retain existing files with Overwrite=false"
+                        );
+                    }
                     for entry in entries {
                         self.check_cancelled()?;
                         self.put(
@@ -518,6 +530,13 @@ impl Engine {
                         )?;
                     }
                     for copy in configured {
+                        for source in self.matches(&copy.source, false)? {
+                            ensure!(
+                                archive_paths.contains(&key(&source)),
+                                "FOMOD source is not supplied by the current archive: {}",
+                                source.display()
+                            );
+                        }
                         self.execute(component, &copy, emit)?;
                     }
                 }
