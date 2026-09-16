@@ -20,6 +20,33 @@ fn settings_output_redacts_nexus_key_without_changing_other_values() {
 }
 
 #[test]
+fn nexus_api_key_reads_the_existing_settings_schema_and_cli_requires_one() {
+    let dir = tempfile::tempdir().unwrap();
+    fs::write(
+        dir.path().join("settings.json"),
+        r#"{"nexusModsApiKey":"stored-key","other":true}"#,
+    )
+    .unwrap();
+    assert_eq!(
+        Store::new(dir.path()).unwrap().nexus_api_key().unwrap(),
+        Some("stored-key".into())
+    );
+    fs::write(dir.path().join("settings.json"), "{}").unwrap();
+    let output = std::process::Command::new(env!("CARGO_BIN_EXE_modsync"))
+        .args([
+            "update-check",
+            "missing.toml",
+            "output.toml",
+            "--settings-dir",
+        ])
+        .arg(dir.path())
+        .output()
+        .unwrap();
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("Nexus API-key"));
+}
+
+#[test]
 fn profile_crud_preserves_schema_and_clone_independence() {
     let dir = tempfile::tempdir().unwrap();
     let store = Store::new(dir.path()).unwrap();

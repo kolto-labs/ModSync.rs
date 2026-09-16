@@ -298,6 +298,9 @@ impl Store {
             setting_text(&settings, "destinationPath")?,
         ))
     }
+    pub fn nexus_api_key(&self) -> Result<Option<String>> {
+        setting_text(&self.read_settings(false)?, "nexusModsApiKey")
+    }
     pub fn spoiler_free_preference(&self) -> Result<bool> {
         let settings = self.read_settings(false)?;
         match settings

@@ -67,6 +67,16 @@ enum Action {
         #[arg(long)]
         summary: Option<PathBuf>,
     },
+    /// Query Nexus Mods for tracked resource versions and persist the updated guide.
+    UpdateCheck {
+        input: PathBuf,
+        output: PathBuf,
+        /// Overrides nexusModsApiKey from settings.json.
+        #[arg(long)]
+        nexus_mods_api_key: Option<String>,
+        #[arg(long)]
+        settings_dir: Option<PathBuf>,
+    },
     /// Merge two guides, matching GUIDs then normalized names/authors.
     Merge {
         existing: PathBuf,
@@ -435,6 +445,28 @@ fn run() -> Result<()> {
                     &serde_json::to_vec_pretty(&report)?,
                 )?;
             }
+            println!("{}", serde_json::to_string_pretty(&report)?);
+            Ok(())
+        }
+        Some(Action::UpdateCheck {
+            input,
+            output,
+            nexus_mods_api_key,
+            settings_dir,
+        }) => {
+            let directory = modsync::profiles::settings_directory(settings_dir.as_deref())?;
+            let key = nexus_mods_api_key
+                .or(modsync::profiles::Store::new(&directory)?.nexus_api_key()?)
+                .or_else(|| std::env::var("KOTOR_MODSYNC_NEXUS_API_KEY").ok())
+                .or_else(|| std::env::var("NEXUS_MODS_API_KEY").ok())
+                .filter(|key| !key.trim().is_empty())
+                .context("Set nexusModsApiKey in settings, an API-key flag, or a Nexus API-key environment variable")?;
+            let mut guide = Guide::load(&input)?;
+            let mut client = modsync::updates::NexusClient::new(Some(key))?;
+            let report = modsync::updates::check(&mut guide, &mut client);
+            guide.save(&output)?;
+            std::fs::create_dir_all(&directory)?;
+            modsync::updates::save_summary(&directory, &report)?;
             println!("{}", serde_json::to_string_pretty(&report)?);
             Ok(())
         }
