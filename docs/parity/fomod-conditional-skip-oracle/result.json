@@ -1,0 +1,7 @@
+{
+  "Options": [
+    { "Name": "A", "Sources": ["<<modDirectory>>/package/a"] },
+    { "Name": "B", "Sources": ["<<modDirectory>>/package/b"] }
+  ],
+  "ComponentSources": ["<<modDirectory>>/package/trailing"]
+}

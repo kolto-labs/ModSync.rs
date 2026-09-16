@@ -1,0 +1,19 @@
+{
+  "reference": {
+    "repository": "ModSync",
+    "commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+    "assembly": "ModSync.Core.dll",
+    "path": "/home/brunner56/.cache/modsync-rs-reference-build/bin/ModSync.Core/debug_net9.0/ModSync.Core.dll"
+  },
+  "execution": {
+    "sandbox": "bwrap read-only root, isolated writable probe directory, network namespace unshared",
+    "command": "dotnet exec --fx-version 10.0.11 probe.dll <reference-directory>",
+    "result": "success"
+  },
+  "observed": {
+    "nestedDependencyPattern": "skipped",
+    "unmatchedFlagPattern": "skipped",
+    "unconditionalPattern": "retained on the component"
+  },
+  "boundary": "This is a mapper probe. It does not prove archive extraction, full FOMOD behavior, or native desktop parity."
+}

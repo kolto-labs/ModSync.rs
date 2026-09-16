@@ -388,7 +388,7 @@ pub struct ModuleConfig {
 
 impl ModuleConfig {
     /// Build the reference mapper's file order without resolving paths or writing files.
-    /// Unsupported patterns fail instead of reproducing the reference's silent skips.
+    /// Conditional patterns that the reference cannot attach to one plugin are skipped.
     pub fn selected_files(&self) -> Result<Vec<&FileInstall>> {
         let visible = visible_steps(&self.steps);
         let plugins: Vec<_> = self
@@ -409,36 +409,34 @@ impl ModuleConfig {
                 FlagCondition::Flag { .. } | FlagCondition::Always => vec![&pattern.condition],
                 FlagCondition::All(children) => children.iter().collect(),
                 FlagCondition::Any(children) if children.len() <= 1 => children.iter().collect(),
-                _ => anyhow::bail!("FOMOD file pattern requires unsupported OR mapping"),
+                _ => continue,
             };
             let mut flags = Vec::new();
+            let mut supported = true;
             for condition in children {
                 match condition {
                     FlagCondition::Flag { name, value } => flags.push((name, value)),
                     FlagCondition::Always => {}
-                    _ => anyhow::bail!(
-                        "FOMOD file pattern requires unsupported nested dependency mapping"
-                    ),
+                    _ => supported = false,
                 }
+            }
+            if !supported {
+                continue;
             }
             if flags.is_empty() {
                 trailing.extend(&pattern.files);
             } else {
-                let index = plugins
-                    .iter()
-                    .position(|(_, plugin)| {
-                        flags.iter().all(|(name, value)| {
-                            plugin
-                                .flags
-                                .iter()
-                                .any(|(n, v)| n.eq_ignore_ascii_case(name) && v == *value)
-                        })
+                let index = plugins.iter().position(|(_, plugin)| {
+                    flags.iter().all(|(name, value)| {
+                        plugin
+                            .flags
+                            .iter()
+                            .any(|(n, v)| n.eq_ignore_ascii_case(name) && v == *value)
                     })
-                    .ok_or_else(|| {
-                        anyhow::anyhow!(
-                            "FOMOD conditional flags are not supplied by a single plugin"
-                        )
-                    })?;
+                });
+                let Some(index) = index else {
+                    continue;
+                };
                 attached.entry(index).or_default().extend(&pattern.files);
             }
         }

@@ -404,7 +404,7 @@ parse_module_xml now retains module name, required files, plugin files and flag-
 
 ### FOMOD selected file plan
 
-ModuleConfig.selected_files builds a read-only ordered plan: required files, selected visible plugin files with their attached conditional files, then unconditional patterns. Supported flat flag patterns attach to the first plugin declaring all required flags, even if another selected plugin declares them too, following the reference mapper. Nested/multi-branch OR patterns and flags not supplied by one plugin fail explicitly instead of being silently skipped. Priorities remain preserved data: the reference mapper does not sort them. Tests cover attachment order, first-match deselection and unsupported-pattern rejection. Safe path/instruction mapping and real installation remain open.
+ModuleConfig.selected_files builds a read-only ordered plan: required files, selected visible plugin files with their attached conditional files, then unconditional patterns. Supported flat flag patterns attach to the first plugin declaring all required flags, even if another selected plugin declares them too, following the reference mapper. Nested/multi-branch OR patterns and flags not supplied by one plugin are skipped, matching the reference mapper's scoped fallback. A network-disabled C# mapper probe confirms both skip cases leave only plugin files and an unconditional trailing file; source, result, and receipt are in `docs/parity/fomod-conditional-skip-oracle/`. Priorities remain preserved data: the reference mapper does not sort them. Safe path/instruction mapping and real installation remain open.
 
 ### FOMOD file-copy instruction mapping
 
