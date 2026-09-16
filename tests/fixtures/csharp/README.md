@@ -13,3 +13,5 @@ the live bidirectional check; `docs/parity/format-check.json` records its proof
 boundary and the reference DLL hash.
 
 `markdown.json` was generated from `../guide.md` using the same pinned executable and sandbox. It records the prose fields and explicit YAML/TOML metadata merge, not natural-language drafting.
+
+`drafts.json` captures raw `DraftInstructionService` output for `../drafts.json`, using the managed probe in `tools/check_drafts.py` and the same pinned DLL/sandbox. It deliberately bypasses serializer omissions for instruction fields and ignores random option GUIDs in comparisons.

@@ -202,6 +202,11 @@ impl Engine {
     fn component(&mut self, c: &Component, emit: &mut impl FnMut(Event)) -> Result<()> {
         self.check_cancelled()?;
         ensure!(
+            !crate::draft::requires_review(c),
+            "{} has unreviewed draft instructions; review them before installation",
+            c.name
+        );
+        ensure!(
             c.metadata
                 .get("UnresolvedMasters")
                 .is_none_or(|v| v.as_array().is_some_and(Vec::is_empty)),

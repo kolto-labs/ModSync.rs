@@ -1,0 +1,117 @@
+[
+  {
+    "Guid": "00000000-0000-0000-0000-000000000001",
+    "Name": "MoveFoldersProse",
+    "Directions": "Move everything from the Straight Fixes, Resolution Fixes, and Aesthetic Improvements folders to your Override.",
+    "IsSelected": true
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-000000000002",
+    "Name": "PatcherProse",
+    "Directions": "Run the installer, then move the files from the patch to your override.",
+    "IsSelected": true
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-000000000003",
+    "Name": "DeleteBeforeMoveProse",
+    "Directions": "Make sure to delete LSI_win01.tpc and LSI_box01.tpc **before** moving to override.",
+    "IsSelected": true
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-000000000004",
+    "Name": "BeforeMovingDeleteProse",
+    "Directions": "Before moving the files to the override folder, be sure to delete the following: PFBI01 through PFBI04, and PMBI01 through PMBI04.",
+    "IsSelected": true
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-000000000005",
+    "Name": "RerunPatcherProse",
+    "Directions": "Install the main mod, then re-run the patcher and select the K1CP compatibility install option and install it as well, if using K1CP.",
+    "IsSelected": true
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-000000000006",
+    "Name": "MoveExceptProse",
+    "Directions": "The file has the wrong readme; move all the files in the Creatures folder, except for the readme and Gizka.jpg (any .jpg/.png files are always previews and can be deleted), to the override.",
+    "IsSelected": true
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-000000000007",
+    "Name": "Conditional",
+    "Directions": "Delete old.tga from override, and if also using Extra Textures, additionally delete extra.tga from override.",
+    "IsSelected": true
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-000000000008",
+    "Name": "NamedCleanList",
+    "Directions": "Delete the files listed in cleanlist_k1.txt for your installed mods before running the patcher.",
+    "IsSelected": true
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-000000000009",
+    "Name": "BareCleanList",
+    "Directions": "Before installing, delete any files listed in the cleanlist that correspond to mods you already have installed.",
+    "IsSelected": true
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-00000000000a",
+    "Name": "UnknownAction",
+    "Directions": "Download the archive using a browser.",
+    "IsSelected": true
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-00000000000b",
+    "Name": "Commentary",
+    "Directions": "Bear in mind this is normal.",
+    "IsSelected": true
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-00000000000c",
+    "Name": "Range",
+    "Directions": "Delete file01.tga through file10.tga before moving the files.",
+    "IsSelected": true
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-00000000000d",
+    "Name": "Rename",
+    "Directions": "Rename the file old.tga to new.tga.",
+    "IsSelected": true
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-00000000000e",
+    "Name": "CopyRename",
+    "Directions": "Make a copy of old.tga and rename it to new.tga.",
+    "IsSelected": true
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-00000000000f",
+    "Name": "Extract",
+    "Directions": "Extract the mod to your mod directory.",
+    "IsSelected": true
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-000000000010",
+    "Name": "Movies",
+    "Directions": "Move the movie files to your Movies folder.",
+    "IsSelected": true
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-000000000011",
+    "Name": "DownloadOptions",
+    "Directions": "Move texture.tga to your override.",
+    "IsSelected": true,
+    "DownloadInstructions": "I recommend the High Resolution version. Choose the Blue variant."
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-000000000012",
+    "Name": "Overwrite",
+    "Directions": "Delete old.tga from override and do not overwrite.",
+    "IsSelected": true
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-000000000013",
+    "Name": "Unsafe",
+    "Directions": "Move everything from the ../../outside folder to your Override.",
+    "IsSelected": true
+  }
+]

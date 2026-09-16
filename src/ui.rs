@@ -82,7 +82,7 @@ impl App {
 
     fn load(&mut self) {
         self.validated = false;
-        match Guide::load(Path::new(&self.input)) {
+        match Guide::load_for_install(Path::new(&self.input)) {
             Ok(g) => {
                 self.logs
                     .push(format!("Loaded {} components", g.components.len()));
@@ -316,9 +316,15 @@ impl eframe::App for App {
             ui.add_enabled_ui(!busy, |ui| match self.page {
                 0 => {
                     ui.heading("Load an instruction file");
-                    ui.label("Read ModSync TOML, JSON, YAML, XML, or Markdown. Installation requires explicit instructions.");
+                    ui.label("Read ModSync TOML, JSON, YAML, XML, or Markdown. Review generated instructions before installing.");
                     if Self::path_row(ui, "Guide", &mut self.input, false) { self.validated = false; }
                     if ui.button("Load guide").clicked() { self.load(); }
+                    if ui.add_enabled(self.guide.is_some(), egui::Button::new("Draft instructions from prose")).clicked()
+                        && let Some(guide) = &mut self.guide {
+                        let results = modsync::draft::generate(guide);
+                        self.logs.push(format!("Drafted {} instructions; inspect each component before accepting its draft.", results.iter().map(|r| r.draft_instruction_count).sum::<usize>()));
+                        self.validated = false;
+                    }
                     ui.separator();
                     if Self::path_row(ui, "Game directory", &mut self.game, true) | Self::path_row(ui, "Mod directory", &mut self.mods, true) { self.validated = false; }
                     ui.label("Use separate folders. Put downloaded archives in the mod directory.");
@@ -361,6 +367,16 @@ impl eframe::App for App {
                                     }
                                 }
                                 ui.label(format!("{} install steps", c.instructions.len()));
+                                if c.metadata.contains_key("DraftReview") {
+                                    ui.collapsing("Draft instructions and review notes", |ui| {
+                                        ui.monospace(serde_json::to_string_pretty(&c.instructions).unwrap_or_default());
+                                        ui.monospace(serde_json::to_string_pretty(&c.metadata["DraftReview"]).unwrap_or_default());
+                                    });
+                                    if modsync::draft::requires_review(c) && ui.button("Mark these instructions reviewed").clicked() {
+                                        if let Err(e) = modsync::draft::mark_reviewed(c) { self.logs.push(format!("Review remains open: {e:#}")); }
+                                        self.validated = false;
+                                    }
+                                }
                             }
                         });
                     });

@@ -52,6 +52,12 @@ enum Action {
         /// Output format; defaults to TOML, or the positional output extension.
         #[arg(short, long)]
         format: Option<String>,
+        /// Draft instructions from prose; generated steps require review before installation.
+        #[arg(long)]
+        parse_directions: bool,
+        /// Mark a component's displayed drafts reviewed (GUID; repeat for multiple components).
+        #[arg(long)]
+        review_draft: Vec<String>,
     },
     /// Fetch and verify a direct HTTPS archive URL.
     Download {
@@ -117,8 +123,10 @@ fn run() -> Result<()> {
             output_path,
             stdin,
             format,
+            parse_directions,
+            review_draft,
         }) => {
-            let guide = if stdin {
+            let mut guide = if stdin {
                 use std::io::Read;
                 let mut text = String::new();
                 std::io::stdin().read_to_string(&mut text)?;
@@ -130,6 +138,17 @@ fn run() -> Result<()> {
                         .context("Use --input <file> or --stdin")?,
                 )?
             };
+            if parse_directions {
+                modsync::draft::generate(&mut guide);
+            }
+            for id in review_draft {
+                let component = guide
+                    .components
+                    .iter_mut()
+                    .find(|c| c.guid.eq_ignore_ascii_case(&id))
+                    .with_context(|| format!("Unknown component GUID: {id}"))?;
+                modsync::draft::mark_reviewed(component)?;
+            }
             let format = format.as_deref().unwrap_or_else(|| {
                 output
                     .as_ref()
@@ -169,7 +188,7 @@ fn run() -> Result<()> {
             let (Action::Install(args) | Action::Validate(args)) = action else {
                 unreachable!()
             };
-            let mut guide = Guide::load(&args.input)?;
+            let mut guide = Guide::load_for_install(&args.input)?;
             for requested in &args.select {
                 ensure!(
                     guide

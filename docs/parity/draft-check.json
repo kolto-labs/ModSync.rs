@@ -1,0 +1,76 @@
+{
+  "reference_dll_sha256": "8f3b1e3f8fe47b2cc6f8e3f281912506721c7367218381bb2a35cf86dc5768f0",
+  "checks": [
+    {
+      "input": "/run/media/brunner56/MyBook/Workspaces/ModSync.rs/tests/fixtures/drafts.json",
+      "input_sha256": "6875b689cb08a0a546ebcda5e1946c1b648ef2db5a8dcf088c695686c9863e79",
+      "components": 19,
+      "draft_instructions": 18,
+      "differences": []
+    },
+    {
+      "input": "/home/brunner56/.cache/modsync-rs-markdown-oracle/k1-full.json",
+      "input_sha256": "7e8985e248edd16b515f065328bb9ce25d484d7c252a7401de90787383dade3d",
+      "components": 186,
+      "draft_instructions": 72,
+      "differences": []
+    },
+    {
+      "input": "/home/brunner56/.cache/modsync-rs-markdown-oracle/k2-full.json",
+      "input_sha256": "4bd8e8222921ada9aae75b4255bee4198d8f4bd4fa965fc3f22cc9a10300b8ab",
+      "components": 145,
+      "draft_instructions": 56,
+      "differences": []
+    },
+    {
+      "input": "/home/brunner56/.cache/modsync-rs-markdown-oracle/k1-spoiler-free.json",
+      "input_sha256": "a83ca95261ef4caa4de082ab0baac13964c0edd1b0ec8532dbb61c667e025711",
+      "components": 180,
+      "draft_instructions": 72,
+      "differences": []
+    },
+    {
+      "input": "/home/brunner56/.cache/modsync-rs-markdown-oracle/k2-spoiler-free.json",
+      "input_sha256": "f86ee895a53ea3dc19c1623d7b89a616516ae795024ab7366d570ffdb1bdd232",
+      "components": 139,
+      "draft_instructions": 50,
+      "differences": []
+    }
+  ],
+  "scope": "Prose fields assigned directly to isolate DraftInstructionService from legacy JSON-loader omissions. Raw instructions, option fields excluding generated IDs, review warnings, unparsed gaps and conditional notes. Not final install correctness or full guide ingestion.",
+  "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+  "source_sha256": {
+    "src/draft.rs": "86525e213956a05155b3b9c7353935ad1cb9202f7980bce5454dfddc39ba1703",
+    "src/model.rs": "0bcb4e38b5072520a09cea8c515b2642b7e377f99a3329d6fc8e20547264d1d7",
+    "src/engine.rs": "2caa9d87d4595858a86e5c85b9d1ca76c5c81743ffe167e9b66176c9a57e14b1",
+    "src/main.rs": "bbfa7be0b3ec4df603307b70a1209703dc1c4d8c9f65c746a26358a969ae3614",
+    "src/ui.rs": "d6dcbe2e4defd4ce8e49fbde7d7abe3cd42101e05eed18d77eb754b4b5b7ec6f",
+    "tests/drafts.rs": "f4818271ed14e00f05a094ff79fd91c82f53ad3ba44ef50cbb6a9f82bc5f87d4",
+    "tests/formats.rs": "96e603720b5aad8ecb2f3f589f6c1dec2def4727e998dfc723d2b505759b1ec7",
+    "tools/check_drafts.py": "b44e2aae4e15398b8279e0054607a4a7629054667d9147e82af517b0b2fcd3f6"
+  },
+  "local_checks": {
+    "fmt": true,
+    "clippy_all_targets": true,
+    "tests_all_targets": 31,
+    "tests_no_default_features": 31,
+    "large_archive_ignored": 1
+  },
+  "native_ui": {
+    "guide": "/home/brunner56/.cache/modsync-rs-draft-ui/guide.md",
+    "target": "/home/brunner56/.cache/modsync-rs-draft-ui/game/Override/sample.tga",
+    "target_sha256": "f05c225b8b1dccd30736c3f72dc5f413759d2babf5f05e5c3b1041c42e5641cd",
+    "source_removed": true,
+    "scope": "Native X11 desktop: automatic Markdown drafts, blocked validation before review, displayed draft review, explicit acceptance, successful validation and isolated installation.",
+    "screenshots": {
+      "01-loaded.png": "faabcb26f5648eb2e32e0a79e3e8666b215dd9c7d8167a2e8bf56cf4b2647ff6",
+      "02-validation-page.png": "089fb3bc07fe264fe3ede12856ba2c0e3b19bf3a4cfb7e26af4ba095d026037e",
+      "03-blocked.png": "656ded1e33ff0926dd33532bfb1797de3c4e27d23e0f2f769820383c28aae993",
+      "04-review.png": "067a5de1dedd619213930a5d7bf84141b8eb1957d8fa4438f030e1ba612d853b",
+      "05-instructions.png": "f6edef7148e737cf7257c074ef8cf0c3dc9ef4b585a87b6f9a3b7b066a7e63f3",
+      "06-validated.png": "aab1fbd2e1136f569084454d176300d823f1a49adce0e64705aeee68e93efb0a",
+      "07-confirm.png": "a9949942b47dc32c5ed3c2d6fa1eff72e7a57ce256437c42a46c3053dd09f5e7",
+      "08-installed.png": "4382eae644492f2df5a571489ee24078220009f0f5c7808e104754207b5736d3"
+    }
+  }
+}

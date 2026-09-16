@@ -184,7 +184,8 @@ fn markdown_fields_and_embedded_instructions_match_csharp() {
         )
         .is_err()
     );
-    let text = include_str!("fixtures/guide.md");
+    let normalized = include_str!("fixtures/guide.md").replace("\r\n", "\n");
+    let text = normalized.as_str();
     let notes = Guide::parse(
         &text
             .replace("Functionality:** All", "Functionality:** French, German")

@@ -115,6 +115,15 @@ modsync convert --input guide.toml --output guide.xml --format xml
 modsync convert --stdin --format yaml < guide.json
 ```
 
-TOML, JSON, YAML and XML conversion uses formats readable by the C# application. JSON writes a component array; YAML writes a metadata document followed by component documents. Keep build-level metadata in TOML or YAML. File extensions are case insensitive, and unknown extensions trigger content detection. Markdown can import default prose fields and explicit YAML/TOML instruction comments. Prose-only entries remain non-executable; natural-language drafting and Markdown export remain in progress.
+TOML, JSON, YAML and XML conversion uses formats readable by the C# application. JSON writes a component array; YAML writes a metadata document followed by component documents. Keep build-level metadata in TOML or YAML. File extensions are case insensitive, and unknown extensions trigger content detection. Markdown can import default prose fields and explicit YAML/TOML instruction comments. Desktop/installer Markdown loading drafts prose into reviewable instructions. Conversion uses `--parse-directions` to opt in. Markdown export remains in progress.
 
 The pinned C# fixtures in `tests/fixtures/csharp` run in normal Cargo tests. On Linux, `tools/check_formats.py --reference-dll <built-ModSync.Core.dll> --rust <modsync-binary> --output <scratch-folder>` reruns the bidirectional checks with bubblewrap isolating C# settings/cache and network access. The check compares install-relevant fields and records its scope in `receipt.json`.
+
+To draft and inspect instructions without installing:
+
+```sh
+cargo run -- convert guide.md draft.json --parse-directions
+cargo run -- convert draft.json reviewed.toml --review-draft <component-guid>
+```
+
+Inspect every generated action/path before accepting it. Components with unparsed gaps, conditional drafts or rejected paths remain blocked from acceptance. The desktop provides the same drafting and review operations. A generated draft is not proof that the prose was interpreted correctly; see the compatibility document for known reference-parser limitations.

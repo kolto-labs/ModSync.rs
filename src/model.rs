@@ -84,6 +84,16 @@ pub struct Instruction {
 }
 
 impl Guide {
+    /// File-open/install ingestion drafts prose Markdown, matching the C# file loader.
+    /// Conversion remains opt-in through draft::generate.
+    pub fn load_for_install(path: &Path) -> Result<Self> {
+        let mut guide = Self::load(path)?;
+        if canonical_format(path.extension().and_then(|s| s.to_str()).unwrap_or("")) == Some("md") {
+            crate::draft::generate(&mut guide);
+        }
+        Ok(guide)
+    }
+
     pub fn load(path: &Path) -> Result<Self> {
         let bytes = fs::read(path).with_context(|| format!("Read {}", path.display()))?;
         let text = String::from_utf8_lossy(&bytes).replace('\u{fffd}', "_");

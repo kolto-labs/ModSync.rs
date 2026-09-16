@@ -2180,6 +2180,7 @@ dependencies = [
  "fs2",
  "glob",
  "quick-xml",
+ "regex",
  "reqwest",
  "rfd",
  "serde",

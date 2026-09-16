@@ -1,0 +1,466 @@
+[
+  {
+    "Guid": "00000000-0000-0000-0000-000000000001",
+    "Name": "MoveFoldersProse",
+    "Instructions": [
+      {
+        "Action": "Move",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\e\\*"
+        ],
+        "Destination": "\u003C\u003CkotorDirectory\u003E\u003E\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Result": {
+      "DraftInstructionCount": 1,
+      "UnparsedGaps": [],
+      "ConditionalDrafts": []
+    }
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-000000000002",
+    "Name": "PatcherProse",
+    "Instructions": [
+      {
+        "Action": "Patcher",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\installer"
+        ],
+        "Destination": "\u003C\u003CkotorDirectory\u003E\u003E",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Move",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\f\\*"
+        ],
+        "Destination": "\u003C\u003CkotorDirectory\u003E\u003E\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Result": {
+      "DraftInstructionCount": 2,
+      "UnparsedGaps": [],
+      "ConditionalDrafts": []
+    }
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-000000000003",
+    "Name": "DeleteBeforeMoveProse",
+    "Instructions": [
+      {
+        "Action": "Delete",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\LSI_win01.tpc",
+          "\u003C\u003CmodDirectory\u003E\u003E\\LSI_box01.tpc"
+        ],
+        "Destination": "\u003C\u003CkotorDirectory\u003E\u003E\\Override",
+        "Arguments": "",
+        "Overwrite": false,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Result": {
+      "DraftInstructionCount": 1,
+      "UnparsedGaps": [],
+      "ConditionalDrafts": []
+    }
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-000000000004",
+    "Name": "BeforeMovingDeleteProse",
+    "Instructions": [
+      {
+        "Action": "Delete",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\",
+          "\u003C\u003CmodDirectory\u003E\u003E\\"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": false,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Result": {
+      "DraftInstructionCount": 1,
+      "UnparsedGaps": [],
+      "ConditionalDrafts": []
+    }
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-000000000005",
+    "Name": "RerunPatcherProse",
+    "Instructions": [
+      {
+        "Action": "Patcher",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\patcher"
+        ],
+        "Destination": "\u003C\u003CkotorDirectory\u003E\u003E",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Result": {
+      "DraftInstructionCount": 1,
+      "UnparsedGaps": [
+        "Install the main mod"
+      ],
+      "ConditionalDrafts": []
+    }
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-000000000006",
+    "Name": "MoveExceptProse",
+    "Instructions": [
+      {
+        "Action": "Move",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\the\\*"
+        ],
+        "Destination": "\u003C\u003CkotorDirectory\u003E\u003E\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Result": {
+      "DraftInstructionCount": 1,
+      "UnparsedGaps": [],
+      "ConditionalDrafts": []
+    }
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-000000000007",
+    "Name": "Conditional",
+    "Instructions": [
+      {
+        "Action": "Delete",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\old.tga"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": false,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Delete",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\extra.tga"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": false,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.\nDelete (\u003C\u003CmodDirectory\u003E\u003E\\extra.tga) applies only if also using \u0027Extra Textures\u0027 - verify before installing.",
+    "Result": {
+      "DraftInstructionCount": 2,
+      "UnparsedGaps": [],
+      "ConditionalDrafts": [
+        "Delete (\u003C\u003CmodDirectory\u003E\u003E\\extra.tga) applies only if also using \u0027Extra Textures\u0027 - verify before installing."
+      ]
+    }
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-000000000008",
+    "Name": "NamedCleanList",
+    "Instructions": [
+      {
+        "Action": "CleanList",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\cleanlist_k1.txt"
+        ],
+        "Destination": "\u003C\u003CkotorDirectory\u003E\u003E\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Result": {
+      "DraftInstructionCount": 1,
+      "UnparsedGaps": [],
+      "ConditionalDrafts": []
+    }
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-000000000009",
+    "Name": "BareCleanList",
+    "Instructions": [],
+    "Options": [],
+    "InstallationWarning": "",
+    "Result": {
+      "DraftInstructionCount": 0,
+      "UnparsedGaps": [
+        "Before installing, delete any files listed in the cleanlist that correspond to mods you already have installed"
+      ],
+      "ConditionalDrafts": []
+    }
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-00000000000a",
+    "Name": "UnknownAction",
+    "Instructions": [],
+    "Options": [],
+    "InstallationWarning": "",
+    "Result": {
+      "DraftInstructionCount": 0,
+      "UnparsedGaps": [
+        "Download the archive using a browser"
+      ],
+      "ConditionalDrafts": []
+    }
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-00000000000b",
+    "Name": "Commentary",
+    "Instructions": [],
+    "Options": [],
+    "InstallationWarning": "",
+    "Result": {
+      "DraftInstructionCount": 0,
+      "UnparsedGaps": [],
+      "ConditionalDrafts": []
+    }
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-00000000000c",
+    "Name": "Range",
+    "Instructions": [
+      {
+        "Action": "Delete",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\file*.tga"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": false,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Result": {
+      "DraftInstructionCount": 1,
+      "UnparsedGaps": [],
+      "ConditionalDrafts": []
+    }
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-00000000000d",
+    "Name": "Rename",
+    "Instructions": [
+      {
+        "Action": "Rename",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\old.tga",
+          "\u003C\u003CmodDirectory\u003E\u003E\\new.tga"
+        ],
+        "Destination": "\u003C\u003CkotorDirectory\u003E\u003E\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Result": {
+      "DraftInstructionCount": 1,
+      "UnparsedGaps": [],
+      "ConditionalDrafts": []
+    }
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-00000000000e",
+    "Name": "CopyRename",
+    "Instructions": [
+      {
+        "Action": "Move",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\o\\*"
+        ],
+        "Destination": "\u003C\u003CkotorDirectory\u003E\u003E\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Result": {
+      "DraftInstructionCount": 1,
+      "UnparsedGaps": [],
+      "ConditionalDrafts": []
+    }
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-00000000000f",
+    "Name": "Extract",
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\m"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Result": {
+      "DraftInstructionCount": 1,
+      "UnparsedGaps": [],
+      "ConditionalDrafts": []
+    }
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-000000000010",
+    "Name": "Movies",
+    "Instructions": [
+      {
+        "Action": "Move",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\m\\*"
+        ],
+        "Destination": "\u003C\u003CkotorDirectory\u003E\u003E\\Movies",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Result": {
+      "DraftInstructionCount": 1,
+      "UnparsedGaps": [],
+      "ConditionalDrafts": []
+    }
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-000000000011",
+    "Name": "DownloadOptions",
+    "Instructions": [
+      {
+        "Action": "Move",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\t\\*"
+        ],
+        "Destination": "\u003C\u003CkotorDirectory\u003E\u003E\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [
+      {
+        "Name": "High Resolution",
+        "Description": "Recommended option: High Resolution",
+        "IsSelected": true
+      },
+      {
+        "Name": "Blue",
+        "Description": "Recommended option: Blue",
+        "IsSelected": true
+      }
+    ],
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Result": {
+      "DraftInstructionCount": 1,
+      "UnparsedGaps": [],
+      "ConditionalDrafts": []
+    }
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-000000000012",
+    "Name": "Overwrite",
+    "Instructions": [
+      {
+        "Action": "Delete",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\old.tga"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Result": {
+      "DraftInstructionCount": 1,
+      "UnparsedGaps": [],
+      "ConditionalDrafts": []
+    }
+  },
+  {
+    "Guid": "00000000-0000-0000-0000-000000000013",
+    "Name": "Unsafe",
+    "Instructions": [
+      {
+        "Action": "Move",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\e\\*"
+        ],
+        "Destination": "\u003C\u003CkotorDirectory\u003E\u003E\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Result": {
+      "DraftInstructionCount": 1,
+      "UnparsedGaps": [],
+      "ConditionalDrafts": []
+    }
+  }
+]

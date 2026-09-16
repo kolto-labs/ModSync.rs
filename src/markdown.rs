@@ -352,7 +352,7 @@ fn links(mut text: &str) -> Vec<(&str, &str)> {
     result
 }
 
-fn generated_id(section: &str, index: usize) -> String {
+pub(crate) fn generated_id(section: &str, index: usize) -> String {
     // Stable UUIDv8 for unannotated prose; C# generates random component GUIDs.
     let mut hash = Sha256::new();
     hash.update((index as u64).to_le_bytes());
