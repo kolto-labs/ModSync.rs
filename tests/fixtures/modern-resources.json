@@ -1,0 +1,27 @@
+[
+  {
+    "Guid": "11111111-1111-4111-8111-111111111111",
+    "Name": "Modern resource fields",
+    "IsSelected": true,
+    "ResourceRegistry": {
+      "https://example.com/archive": {
+        "ContentKey": "identity",
+        "MetadataHash": "metadata",
+        "FileSize": 123,
+        "Files": {
+          "Selected.zip": true,
+          "Excluded.zip": false,
+          "Unknown.zip": null
+        },
+        "HandlerMetadata": {
+          "Filename": "archive.zip",
+          "Nested": {
+            "Id": 17
+          }
+        },
+        "FirstSeen": "2026-01-02T03:04:05Z",
+        "LastVerified": "2026-02-03T04:05:06Z"
+      }
+    }
+  }
+]

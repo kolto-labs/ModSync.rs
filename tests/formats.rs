@@ -431,3 +431,22 @@ fn legacy_resources_match_reference_migration_with_documented_modern_files_gap()
         );
     }
 }
+
+#[test]
+fn modern_resource_roundtrips_track_nested_xml_type_gap() {
+    let guide = Guide::parse(include_str!("fixtures/modern-resources.json"), "json").unwrap();
+    let expected = &guide.components[0].resource_registry;
+    for format in ["json", "toml", "yaml"] {
+        let reloaded = Guide::parse(&guide.render(format).unwrap(), format).unwrap();
+        assert_eq!(
+            &reloaded.components[0].resource_registry, expected,
+            "{format}"
+        );
+    }
+    let reloaded = Guide::parse(&guide.render("xml").unwrap(), "xml").unwrap();
+    let mut observed_xml = expected.clone();
+    // XML's current untyped scalar representation loses this number's type.
+    // Track the exact gap; do not claim arbitrary handler metadata round-trips.
+    observed_xml["https://example.com/archive"]["HandlerMetadata"]["Nested"]["Id"] = "17".into();
+    assert_eq!(reloaded.components[0].resource_registry, observed_xml);
+}

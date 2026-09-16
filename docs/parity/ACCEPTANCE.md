@@ -139,3 +139,9 @@ The C# best-effort install flags must be reconciled with the user's explicit rul
 
 - Added old hash-key to PrimaryUrl migration before legacy link precedence, with collision and empty-value behavior verified against three additional C# fixtures. Resource identity metadata survives migration.
 - Extended the isolated inference/validation/install flow to consume an old hash-key registry. F01/F12 remain partial; modern Files loading, all URI forms, format-specific deserialization and host/cache integration remain open.
+
+### Modern resource metadata proof boundary
+
+- Added a four-format live loader inspection with raw outputs and input/DLL hashes in `modern-resource-formats.json`; analysis is in `modern-resource-formats.md`.
+- C# map loss extends beyond the earlier JSON fixture. YAML fallback also loses original resource identity, size and timestamps. Rust has an independent XML nested-number-to-string round-trip gap.
+- Added regression coverage for JSON/TOML/YAML metadata preservation and the exact remaining XML gap. F01/F12 remain partial; URL-order and component/instruction projections are insufficient evidence for resource metadata or consumer behavior.
