@@ -53,6 +53,10 @@ pub struct App {
     job: Job,
     validated: bool,
     confirm_install: bool,
+    completed_base: Option<Vec<String>>,
+    pending_base: Vec<String>,
+    finished: bool,
+    phase_failed: bool,
     download_url: String,
     download_name: String,
     download_hash: String,
@@ -96,6 +100,10 @@ impl App {
             job: Job::Validate,
             validated: false,
             confirm_install: false,
+            completed_base: None,
+            pending_base: Vec::new(),
+            finished: false,
+            phase_failed: false,
             download_url: String::new(),
             download_name: String::new(),
             download_hash: String::new(),
@@ -107,6 +115,9 @@ impl App {
     }
 
     fn load(&mut self) {
+        self.completed_base = None;
+        self.finished = false;
+        self.phase_failed = false;
         self.validated = false;
         match Guide::load_for_install(Path::new(&self.input)) {
             Ok(g) => {
@@ -315,6 +326,39 @@ impl App {
         });
     }
 
+    fn phase_guide(&self) -> Option<Guide> {
+        let mut guide = self.guide.clone()?;
+        if self.completed_base.is_none() {
+            for c in &mut guide.components {
+                if c.metadata
+                    .get("WidescreenOnly")
+                    .and_then(serde_json::Value::as_bool)
+                    == Some(true)
+                {
+                    c.is_selected = false;
+                }
+            }
+        }
+        Some(guide)
+    }
+
+    fn installed_phase(&mut self) {
+        if self.completed_base.is_none() {
+            self.completed_base = Some(self.pending_base.clone());
+            self.finished = !self.guide.as_ref().is_some_and(|g| {
+                g.components.iter().any(|c| {
+                    c.metadata
+                        .get("WidescreenOnly")
+                        .and_then(serde_json::Value::as_bool)
+                        == Some(true)
+                })
+            });
+        } else {
+            self.finished = true;
+        }
+        self.page = 2;
+    }
+
     fn start(&mut self, job: Job, ctx: &egui::Context) {
         let settings = Settings::new(Path::new(&self.mods), Path::new(&self.game));
         let mut settings = match settings {
@@ -348,7 +392,17 @@ impl App {
             }
         };
         self.cancelled = settings.cancelled.clone();
-        let guide = self.guide.clone();
+        let guide = self.phase_guide();
+        let completed = self.completed_base.clone();
+        if job == Job::Install && completed.is_none() {
+            self.pending_base = guide
+                .as_ref()
+                .and_then(|g| g.ordered().ok())
+                .unwrap_or_default()
+                .iter()
+                .map(|c| c.guid.clone())
+                .collect();
+        }
         let url = self.download_url.clone();
         let filename = self.download_name.clone();
         let hash = self.download_hash.clone();
@@ -396,10 +450,11 @@ impl App {
                         ctx.request_repaint();
                     };
                     let engine = Engine::new(settings)?;
-                    if job == Job::Install {
-                        engine.install(&guide, emit)
-                    } else {
-                        engine.validate(&guide, emit)
+                    match (job, completed) {
+                        (Job::Install, Some(ids)) => engine.install_remaining(&guide, &ids, emit),
+                        (Job::Install, None) => engine.install(&guide, emit),
+                        (_, Some(ids)) => engine.validate_remaining(&guide, &ids, emit),
+                        (_, None) => engine.validate(&guide, emit),
                     }
                 }))
                 .unwrap_or_else(|_| {
@@ -469,6 +524,19 @@ impl eframe::App for App {
                 Message::Log(line) => self.logs.push(line),
                 Message::Done(result) => {
                     self.receiver = None;
+                    if self.job == Job::Install {
+                        self.phase_failed = result.is_err()
+                            && Settings::new(Path::new(&self.mods), Path::new(&self.game))
+                                .is_ok_and(|s| {
+                                    recovery::state_dir(&s.roots).join("pending").exists()
+                                });
+                    }
+                    if result.is_ok() && self.job == Job::Restore {
+                        self.phase_failed = false;
+                    }
+                    if result.is_ok() && self.job == Job::Install {
+                        self.installed_phase();
+                    }
                     self.validated = result.is_ok() && self.job == Job::Validate;
                     self.logs.push(match result { Ok(()) => match self.job { Job::Validate => "Validation passed. External program effects, if any, remain unverified.", Job::Install => "Installation complete.", Job::Restore => "Snapshot restored and file hashes verified.", Job::Download => "Archive downloaded and integrity checked." }.into(), Err(e) => format!("Stopped: {e:#}") });
                 }
@@ -508,13 +576,19 @@ impl eframe::App for App {
                 });
             });
             ui.add_enabled_ui(!busy, |ui| {
-                self.profiles(ui);
+                ui.add_enabled_ui(self.completed_base.is_none(), |ui| self.profiles(ui));
                 ui.horizontal(|ui| {
                     for (n, title) in ["1  Load guide", "2  Choose mods", "3  Validate and install"]
                         .iter()
                         .enumerate()
                     {
-                        if ui.selectable_label(self.page == n, *title).clicked() {
+                        if ui
+                            .add_enabled(
+                                self.completed_base.is_none() || n == 2,
+                                egui::Button::new(*title).selected(self.page == n),
+                            )
+                            .clicked()
+                        {
                             self.page = n;
                         }
                     }
@@ -634,7 +708,9 @@ impl eframe::App for App {
                             .flat_map(|c| c.category.iter().cloned()).map(|category| (category, false)).collect());
                     }
                     ui.separator();
-                    let groups = modsync::selection::category_groups(&g.components, &self.search, &self.tier_filter, &self.category_filter, self.spoiler_free);
+                    let mut groups = modsync::selection::category_groups(&g.components, &self.search, &self.tier_filter, &self.category_filter, self.spoiler_free);
+                    for (_, indices) in &mut groups { indices.retain(|i| g.components[*i].metadata.get("WidescreenOnly").and_then(serde_json::Value::as_bool) != Some(true)); }
+                    groups.retain(|(_, indices)| !indices.is_empty());
                     let force_open = if ui.button(if self.all_expanded { "Collapse all" } else { "Expand all" }).clicked() {
                         self.all_expanded = !self.all_expanded;
                         Some(self.all_expanded)
@@ -668,7 +744,7 @@ impl eframe::App for App {
                             }
                         });
                         egui::ScrollArea::vertical().id_salt("details").show(&mut columns[1], |ui| {
-                            if let Some(c) = g.components.get_mut(self.selected).filter(|c| modsync::selection::matches_filters(c, &self.search, &self.tier_filter, &self.category_filter, self.spoiler_free)) {
+                            if let Some(c) = g.components.get_mut(self.selected).filter(|c| c.metadata.get("WidescreenOnly").and_then(serde_json::Value::as_bool) != Some(true)).filter(|c| modsync::selection::matches_filters(c, &self.search, &self.tier_filter, &self.category_filter, self.spoiler_free)) {
                                 ui.heading(modsync::selection::display_name(c, self.spoiler_free));
                                 ui.label(format!("{}  ·  {}", c.author, c.tier));
                                 ui.label(modsync::selection::display_description(c, self.spoiler_free)).on_hover_text(modsync::selection::tooltip(c, self.spoiler_free));
@@ -699,7 +775,24 @@ impl eframe::App for App {
                     });
                 }
                 _ => {
-                    ui.heading("Validate before installing");
+                    if self.finished { ui.heading("Installation complete"); ui.label("The selected installation phases are complete."); return; }
+                    if self.completed_base.is_some() {
+                        ui.heading("Base installation complete — widescreen mods");
+                        let mut selected = 0;
+                        if let Some(g) = &mut self.guide {
+                            for c in &mut g.components {
+                                if c.metadata.get("WidescreenOnly").and_then(serde_json::Value::as_bool) == Some(true) {
+                                    if ui.checkbox(&mut c.is_selected, &c.name).changed() { self.validated = false; }
+                                    if c.is_selected { selected += 1; }
+                                }
+                            }
+                        }
+                        if selected == 0 {
+                            if ui.add_enabled(!self.phase_failed, egui::Button::new("Finish without widescreen mods")).clicked() { self.finished = true; }
+                            if self.phase_failed && ui.button("Restore failed install").clicked() { self.start(Job::Restore, ctx); }
+                            return;
+                        }
+                    } else { ui.heading("Validate base installation"); }
                     ui.label("Validation simulates file changes. Installation keeps a recovery copy of both folders.");
                     ui.label(format!("Game: {}", self.game));
                     ui.label(format!("Mods: {}", self.mods));
@@ -826,6 +919,35 @@ pub fn launch(
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn desktop_phases_defer_widescreen_and_keep_base_context() {
+        let mut app = App::new(None, None, None);
+        let g: Guide = serde_json::from_value(serde_json::json!({"thisMod":[
+            {"Guid":"base", "Name":"Base", "IsSelected":true},
+            {"Guid":"wide", "Name":"Wide", "IsSelected":true,"WidescreenOnly":true}
+        ]}))
+        .unwrap();
+        app.guide = Some(g);
+        let base = app.phase_guide().unwrap();
+        assert!(base.components[0].is_selected);
+        assert!(!base.components[1].is_selected);
+        assert!(app.guide.as_ref().unwrap().components[1].is_selected);
+        app.pending_base = vec!["base".into()];
+        app.installed_phase();
+        assert!(!app.finished);
+        assert_eq!(app.page, 2);
+        assert_eq!(app.completed_base, Some(vec!["base".into()]));
+        assert!(
+            app.phase_guide()
+                .unwrap()
+                .components
+                .iter()
+                .all(|c| c.is_selected)
+        );
+        app.installed_phase();
+        assert!(app.finished);
+    }
+
     #[test]
     fn option_without_raw_description_renders_spoiler_description() {
         for authored in [false, true] {

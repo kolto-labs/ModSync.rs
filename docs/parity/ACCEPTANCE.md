@@ -241,3 +241,5 @@ F10/F24 remaining-phase recovery checkpoint: cancellation after a suffix write, 
 F08/F10/F24 suffix validation: shared prefix validation now serves dry-run and installation; consumed-base-source regression demonstrates no replay and no filesystem/recovery mutation. Durable completion identity and UI integration remain open.
 
 F10/F11/F24 completion checkpoint: installs now save root/definition/game-hash evidence, suffix APIs verify it, and recovery restores the prior receipt. F11 advances from missing toward partial receipt support only; per-component checkpoints/provenance, crash durability, GUI transitions and full reference resume semantics remain open.
+
+F24 phase wiring checkpoint: desktop base-only jobs transition to widescreen selection and receipt-checked remaining execution, then completion. Base inputs lock across the boundary and pending failures block skipping. Native end-to-end proof, warning page, restart/resume and empty-base handling remain open.
