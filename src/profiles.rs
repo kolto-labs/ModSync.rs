@@ -219,6 +219,29 @@ impl Store {
         fs::remove_file(path)?;
         Ok(true)
     }
+    /// Desktop deletion also clears the active selection, preserving unrelated settings.
+    pub fn delete_and_deactivate(&self, name: &str) -> Result<bool> {
+        let _lock = self.lock()?;
+        let path = self.path(name)?;
+        if !path.exists() {
+            return Ok(false);
+        }
+        let mut settings = self.settings()?;
+        if settings
+            .get("activeProfileName")
+            .and_then(Value::as_str)
+            .is_some_and(|active| active.eq_ignore_ascii_case(name))
+        {
+            settings["activeProfileName"] = Value::Null;
+            // Clear the setting first: a failed delete leaves a usable, inactive profile.
+            recovery::atomic_write(
+                &self.root.join("settings.json"),
+                &serde_json::to_vec_pretty(&settings)?,
+            )?;
+        }
+        fs::remove_file(path)?;
+        Ok(true)
+    }
     fn settings(&self) -> Result<Value> {
         let path = self.root.join("settings.json");
         if !path.exists() {

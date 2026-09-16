@@ -333,3 +333,29 @@ fn profile_all_unselected_and_missing_defaults_fail_without_installing() {
     assert!(!result.status.success());
     assert!(String::from_utf8_lossy(&result.stderr).contains("Profile has no input"));
 }
+
+#[test]
+fn desktop_delete_preserves_settings_and_refuses_corrupt_settings_before_deletion() {
+    let dir = tempfile::tempdir().unwrap();
+    let store = Store::new(dir.path()).unwrap();
+    store.create("Active").unwrap();
+    store.create("Other").unwrap();
+    fs::write(
+        dir.path().join("settings.json"),
+        r#"{"activeProfileName":"ACTIVE","theme":"dark","nested":{"keep":7}}"#,
+    )
+    .unwrap();
+    assert!(store.delete_and_deactivate("Other").unwrap());
+    assert_eq!(store.active_name().unwrap().as_deref(), Some("ACTIVE"));
+    assert!(store.delete_and_deactivate("Active").unwrap());
+    let settings: Value =
+        serde_json::from_slice(&fs::read(dir.path().join("settings.json")).unwrap()).unwrap();
+    assert_eq!(
+        settings,
+        json!({"activeProfileName":null,"theme":"dark","nested":{"keep":7}})
+    );
+    store.create("Keep").unwrap();
+    fs::write(dir.path().join("settings.json"), "corrupt").unwrap();
+    assert!(store.delete_and_deactivate("Keep").is_err());
+    assert!(store.require("Keep").is_ok());
+}

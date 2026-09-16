@@ -28,6 +28,9 @@ pub struct App {
     loaded_input: Option<PathBuf>,
     profile_directory: String,
     profile_name: String,
+    profile_names: Vec<String>,
+    profile_target: String,
+    profile_delete: Option<(String, String)>,
     game: String,
     mods: String,
     patcher: String,
@@ -60,6 +63,9 @@ impl App {
             loaded_input: None,
             profile_directory: String::new(),
             profile_name: String::new(),
+            profile_names: Vec::new(),
+            profile_target: String::new(),
+            profile_delete: None,
             game: string(game),
             mods: string(mods),
             patcher: String::new(),
@@ -140,13 +146,77 @@ impl App {
         Ok(())
     }
 
+    fn manage_profile(&mut self, action: &str) -> Result<()> {
+        anyhow::ensure!(
+            !self.profile_directory.trim().is_empty(),
+            "Choose a profile settings directory"
+        );
+        let store = modsync::profiles::Store::new(Path::new(&self.profile_directory))?;
+        match action {
+            "Clone" => {
+                self.profile_name = store
+                    .clone_profile(&self.profile_name, &self.profile_target)?
+                    .name;
+            }
+            "Rename" => {
+                self.profile_name = store.rename(&self.profile_name, &self.profile_target)?.name;
+            }
+            "Delete" => {
+                anyhow::ensure!(
+                    self.profile_delete.as_ref()
+                        == Some(&(self.profile_directory.clone(), self.profile_name.clone())),
+                    "Confirm this profile deletion first"
+                );
+                store.delete_and_deactivate(&self.profile_name)?;
+                self.profile_delete = None;
+                self.profile_name.clear();
+            }
+            "Refresh" => {}
+            _ => anyhow::bail!("Unknown profile action"),
+        }
+        self.profile_names = store.list()?.into_iter().map(|p| p.name).collect();
+        Ok(())
+    }
+
     fn profiles(&mut self, ui: &mut egui::Ui) {
         ui.collapsing("Install profiles", |ui| {
-            Self::path_row(ui, "Settings directory", &mut self.profile_directory, true);
+            if Self::path_row(ui, "Settings directory", &mut self.profile_directory, true) {
+                self.profile_names.clear();
+                self.profile_delete = None;
+            }
+            ui.horizontal(|ui| {
+                if ui.button("Refresh profiles").clicked() && let Err(e) = self.manage_profile("Refresh") {
+                    self.logs.push(format!("Profile failed: {e:#}"));
+                }
+                egui::ComboBox::from_id_salt("stored_profiles").selected_text("Choose stored profile").show_ui(ui, |ui| {
+                    for name in &self.profile_names { ui.selectable_value(&mut self.profile_name, name.clone(), name); }
+                });
+            });
             ui.horizontal(|ui| {
                 ui.label("Profile name");
                 ui.text_edit_singleline(&mut self.profile_name);
             });
+            ui.horizontal(|ui| {
+                ui.label("New name for clone or rename");
+                ui.text_edit_singleline(&mut self.profile_target);
+                for action in ["Clone", "Rename"] {
+                    if ui.button(action).clicked() && let Err(e) = self.manage_profile(action) {
+                        self.logs.push(format!("Profile failed: {e:#}"));
+                    }
+                }
+                if ui.button("Delete profile…").clicked() {
+                    self.profile_delete = Some((self.profile_directory.clone(), self.profile_name.clone()));
+                }
+            });
+            if self.profile_delete.as_ref() == Some(&(self.profile_directory.clone(), self.profile_name.clone())) {
+                ui.label(format!("Delete '{}'? This cannot be undone. Its active setting will be cleared; installed files are unchanged.", self.profile_name));
+                ui.horizontal(|ui| {
+                    if ui.button("Confirm delete").clicked() && let Err(e) = self.manage_profile("Delete") {
+                        self.logs.push(format!("Profile failed: {e:#}"));
+                    }
+                    if ui.button("Cancel deletion").clicked() { self.profile_delete = None; }
+                });
+            }
             ui.label("Activation applies selections to the loaded guide and restores stored game/mod directories.");
             ui.horizontal(|ui| {
                 for (label, activate) in [("Save current profile", false), ("Activate profile", true)] {
@@ -559,5 +629,31 @@ mod tests {
         assert!(app.profile_action(true).is_err());
         assert!(app.guide.as_ref().unwrap().components[0].is_selected);
         assert_eq!(app.game, "unchanged");
+    }
+    #[test]
+    fn desktop_profile_management_checks_confirmation_and_refreshes_names() {
+        let dir = tempfile::tempdir().unwrap();
+        let store = modsync::profiles::Store::new(dir.path()).unwrap();
+        store.create("Original").unwrap();
+        let mut app = App::new(None, None, None);
+        app.profile_directory = dir.path().to_string_lossy().into_owned();
+        app.manage_profile("Refresh").unwrap();
+        assert_eq!(app.profile_names, ["Original"]);
+        app.profile_name = "Original".into();
+        app.profile_target = "Copy".into();
+        app.manage_profile("Clone").unwrap();
+        assert_eq!(app.profile_name, "Copy");
+        app.profile_target = "Renamed".into();
+        app.manage_profile("Rename").unwrap();
+        assert_eq!(app.profile_names, ["Original", "Renamed"]);
+        store.activate("Renamed").unwrap();
+        assert!(app.manage_profile("Delete").is_err());
+        app.profile_delete = Some((app.profile_directory.clone(), "Original".into()));
+        assert!(app.manage_profile("Delete").is_err());
+        app.profile_delete = Some((app.profile_directory.clone(), app.profile_name.clone()));
+        app.manage_profile("Delete").unwrap();
+        assert_eq!(app.profile_names, ["Original"]);
+        assert_eq!(store.active_name().unwrap(), None);
+        assert!(app.profile_delete.is_none());
     }
 }

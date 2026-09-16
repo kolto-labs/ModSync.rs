@@ -167,3 +167,7 @@ The C# best-effort install flags must be reconciled with the user's explicit rul
 ### Desktop profile activation progress
 
 F16/F24: the desktop now exposes capture and activation through the shared profile store, applying selections to the loaded guide and restoring game/mod directories. Activation invalidates validation and install confirmation. A state test covers successful capture/activation and malformed settings without displayed-state mutation. Native interaction proof, remaining profile manager controls and startup/default storage behavior remain unverified or missing. Neither domain is complete.
+
+### Desktop profile management progress
+
+F16/F24: explicit listing/selection, clone, rename and confirmed delete controls now reuse the shared store. Deleting the active profile clears its setting without changing installed files. Tests cover desktop state transitions and settings preservation/error boundaries; native interaction proof remains open. Default storage, automatic startup activation and full schema/platform equivalence remain incomplete.
