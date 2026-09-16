@@ -178,9 +178,11 @@ fn process(
                 "Archive exceeds expanded-byte budget or available scratch space"
             );
             if spool {
-                let temp = output.temp()?;
-                archive = entry.extract_to(temp.path())?;
-                let meta = std::fs::symlink_metadata(temp.path())?;
+                // Native UnRAR opens output exclusively on Windows. Keep path ownership,
+                // but release our handle before asking the decoder to create the file.
+                let temp_path = output.temp()?.into_temp_path();
+                archive = entry.extract_to(&temp_path)?;
+                let meta = std::fs::symlink_metadata(&temp_path)?;
                 ensure!(
                     meta.is_file() && meta.len() == size,
                     "Invalid extracted RAR entry"
@@ -190,6 +192,7 @@ fn process(
                     use std::os::unix::fs::MetadataExt;
                     ensure!(meta.nlink() == 1, "RAR hard links are forbidden");
                 }
+                let temp = tempfile::NamedTempFile::from_parts(File::open(&temp_path)?, temp_path);
                 output.files.push(Entry {
                     path,
                     file: Arc::new(temp),
