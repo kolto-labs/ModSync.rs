@@ -393,7 +393,7 @@ fn external_failure_halts_and_named_ini_staging_keeps_original_config() {
     fs::write(patch.join("alternate.ini"), "alternate").unwrap();
     fs::write(patch.join("namespaces.ini"), "original namespaces").unwrap();
     let stub = dir.path().join("patcher");
-    fs::write(&stub, "#!/bin/sh\n[ \"$(cat \"$2/tslpatchdata/changes.ini\")\" = alternate ] || exit 3\n[ ! -f \"$2/tslpatchdata/namespaces.ini\" ] || exit 4\nprintf patched > \"$4/patched.txt\"\nexit 7\n").unwrap();
+    fs::write(&stub, "#!/bin/sh\n[ \"$1\" = --install ] && [ \"$2\" = --game-dir ] && [ \"$4\" = --tslpatchdata ] || exit 2\n[ \"$(cat \"$5/tslpatchdata/changes.ini\")\" = alternate ] || exit 3\n[ ! -f \"$5/tslpatchdata/namespaces.ini\" ] || exit 4\n[ \"$6\" = --cli ] && [ \"$7\" = -y ] || exit 5\nprintf patched > \"$3/patched.txt\"\nexit 7\n").unwrap();
     fs::set_permissions(&stub, fs::Permissions::from_mode(0o755)).unwrap();
     settings.patcher = Some(stub);
     settings.allow_processes = true;

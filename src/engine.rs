@@ -730,11 +730,13 @@ impl Engine {
                 &path
             };
             let mut cmd = Command::new(patcher);
-            cmd.arg("--tslpatchdata")
-                .arg(base)
+            cmd.arg("--install")
                 .arg("--game-dir")
                 .arg(dest)
-                .arg("--install");
+                .arg("--tslpatchdata")
+                .arg(base)
+                .arg("--cli")
+                .arg("-y");
             if !i.arguments.trim().is_empty() {
                 if let Ok(index) = i.arguments.trim().parse::<usize>() {
                     cmd.arg("--namespace-option-index").arg(index.to_string());
@@ -777,15 +779,17 @@ impl Engine {
                             }
                         }
                         cmd = Command::new(patcher);
-                        cmd.arg("--tslpatchdata")
-                            .arg(stage.path())
+                        cmd.arg("--install")
                             .arg("--game-dir")
                             .arg(if i.destination.is_empty() {
                                 self.settings.roots.game.clone()
                             } else {
                                 self.actual(&self.path(&i.destination, false)?)
                             })
-                            .arg("--install");
+                            .arg("--tslpatchdata")
+                            .arg(stage.path())
+                            .arg("--cli")
+                            .arg("-y");
                         staged_patcher = Some(stage);
                     }
                 }
