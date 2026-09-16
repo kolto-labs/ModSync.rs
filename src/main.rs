@@ -108,6 +108,9 @@ enum Action {
 }
 #[derive(Args)]
 struct InstallArgs {
+    /// Version-1 FOMOD choices JSON; overrides embedded choices for this run.
+    #[arg(long)]
+    fomod_choices: Option<PathBuf>,
     #[arg(long, short, required_unless_present_any = ["profile", "active_profile"])]
     input: Option<PathBuf>,
     #[arg(long, required_unless_present_any = ["profile", "active_profile"])]
@@ -406,6 +409,19 @@ fn run() -> Result<()> {
                     guide.components.iter_mut().any(|c| select_option(c, id)),
                     "Unknown option: {id}"
                 );
+            }
+            if let Some(path) = &args.fomod_choices {
+                let choices = modsync::fomod::ChoicesFile::parse(&std::fs::read_to_string(path)?)?;
+                let value = serde_json::to_value(choices)?;
+                fn attach(components: &mut [modsync::Component], choices: &serde_json::Value) {
+                    for component in components {
+                        component
+                            .metadata
+                            .insert("FomodChoices".into(), choices.clone());
+                        attach(&mut component.options, choices);
+                    }
+                }
+                attach(&mut guide.components, &value);
             }
             let mut settings = Settings::new(&paths.source, &paths.game)?;
             settings.allow_processes = args.allow_processes;

@@ -986,3 +986,64 @@ fn configured_fomod_installs_selected_bytes_through_shared_engine() {
     );
     assert!(!settings.roots.game.join("Override/first.txt").exists());
 }
+
+#[test]
+fn cli_fomod_choices_validate_and_install_without_rewriting_guide() {
+    let (dir, settings) = setup();
+    fs::write(settings.roots.mods.join("package.zip"), zip(&[
+        ("fomod/ModuleConfig.xml", br#"<config><requiredInstallFiles><file source="asset.txt" destination="Override"/></requiredInstallFiles></config>"#),
+        ("asset.txt", b"configured asset")
+    ])).unwrap();
+    let g =
+        guide(serde_json::json!([{"Action":"Extract","Source":"<<modDirectory>>/package.zip"}]));
+    let input = dir.path().join("guide.json");
+    let original = g.render("json").unwrap();
+    fs::write(&input, &original).unwrap();
+    let choices = dir.path().join("choices.json");
+    fs::write(
+        &choices,
+        r#"{"version":1,"archives":[{"archiveFileName":"package.zip","selections":[]}]}"#,
+    )
+    .unwrap();
+    let run = |action: &str| {
+        std::process::Command::new(env!("CARGO_BIN_EXE_modsync"))
+            .arg(action)
+            .arg("--input")
+            .arg(&input)
+            .arg("--source-dir")
+            .arg(&settings.roots.mods)
+            .arg("--game-dir")
+            .arg(&settings.roots.game)
+            .arg("--fomod-choices")
+            .arg(&choices)
+            .output()
+            .unwrap()
+    };
+    let output = run("validate");
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(fs::read_dir(&settings.roots.mods).unwrap().count(), 1);
+    assert_eq!(fs::read_dir(&settings.roots.game).unwrap().count(), 0);
+    let output = run("install");
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(
+        fs::read(settings.roots.game.join("Override/asset.txt")).unwrap(),
+        b"configured asset"
+    );
+    assert_eq!(fs::read_to_string(&input).unwrap(), original);
+    let receipt: serde_json::Value = serde_json::from_slice(
+        &fs::read(recovery::state_dir(&settings.roots).join("completion.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(
+        receipt["components"][0]["FomodChoices"]["archives"][0]["archiveFileName"],
+        "package.zip"
+    );
+}

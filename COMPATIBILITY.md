@@ -445,3 +445,7 @@ A component may now embed the version-1 choices document in its FomodChoices met
 ### Configured FOMOD cancellation and restore acceptance
 
 The configured ZIP install regression now cancels after the FOMOD Extract/copy step and before a later Delete. It verifies selected output exists at failure, the later step did not run, retry is refused while recovery is pending, restore removes extracted files and restores exact baseline/archive bytes, and an ordered retry completes with no pending marker. This covers cancellation between guide instructions, not every interruption point within archive extraction or copying.
+
+### CLI configured FOMOD installation
+
+Validate and install accept --fomod-choices with the existing version-1 JSON contract. Explicit CLI choices override embedded choices for the run, including option components, and are retained in completion component definitions without rewriting the input guide. A subprocess test validates without writes, installs a real configured ZIP, checks exact output bytes and verifies choices in the completion receipt. Desktop selection controls and automatic post-download prompts remain open.
