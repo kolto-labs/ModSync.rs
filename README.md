@@ -173,3 +173,5 @@ The profile supplies the guide path, game directory, mod directory, and selectio
 
 In the desktop, expand **Install profiles**, choose a settings directory and enter a profile name. **Save current profile** captures the loaded guide's selections and current directories. **Activate profile** applies that profile to the currently loaded guide and restores its game/mod directories; run validation again before installing. Profile management commands also support listing, cloning, renaming and deleting profiles.
 Use **Refresh profiles** to populate the stored-profile selector. Enter a new name to clone or rename the selected profile. **Delete profile…** asks for confirmation and clears the active setting when applicable; it does not uninstall files.
+
+`--settings-dir` is optional for profile commands and profile-backed validation/install. It defaults to `ModSync` within the platform configuration directory (Linux XDG config, macOS Application Support, Windows roaming application data). The desktop prepopulates that directory. Supply an explicit directory to keep a separate set of profiles.

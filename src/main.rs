@@ -99,10 +99,10 @@ struct InstallArgs {
     #[arg(long, required_unless_present_any = ["profile", "active_profile"])]
     source_dir: Option<PathBuf>,
     /// Apply this stored profile before explicit selection overrides.
-    #[arg(long, requires = "settings_dir", conflicts_with = "active_profile")]
+    #[arg(long, conflicts_with = "active_profile")]
     profile: Option<String>,
     /// Use activeProfileName from the specified settings directory.
-    #[arg(long, requires = "settings_dir")]
+    #[arg(long)]
     active_profile: bool,
     #[arg(long)]
     settings_dir: Option<PathBuf>,
@@ -257,8 +257,10 @@ fn run() -> Result<()> {
                 args.settings_dir.is_none() || args.profile.is_some() || args.active_profile,
                 "--settings-dir requires --profile or --active-profile"
             );
-            let profile = if let Some(directory) = &args.settings_dir {
-                let store = modsync::profiles::Store::new(directory)?;
+            let profile = if args.profile.is_some() || args.active_profile {
+                let directory =
+                    modsync::profiles::settings_directory(args.settings_dir.as_deref())?;
+                let store = modsync::profiles::Store::new(&directory)?;
                 let name = if args.active_profile {
                     store
                         .active_name()?

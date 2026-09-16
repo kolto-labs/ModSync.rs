@@ -21,7 +21,7 @@ pub struct ProfileArgs {
     #[arg(long, value_enum, default_value = "list")]
     action: Action,
     #[arg(long)]
-    settings_dir: PathBuf,
+    settings_dir: Option<PathBuf>,
     #[arg(long)]
     name: Option<String>,
     #[arg(long)]
@@ -41,7 +41,8 @@ pub struct ProfileArgs {
 }
 impl ProfileArgs {
     pub fn run(self) -> Result<()> {
-        let store = Store::new(&self.settings_dir)?;
+        let directory = modsync::profiles::settings_directory(self.settings_dir.as_deref())?;
+        let store = Store::new(&directory)?;
         let required = |value: Option<&str>, flag: &str| -> Result<String> {
             let v = value
                 .context(format!("Profile action requires --{flag}"))?

@@ -171,3 +171,7 @@ F16/F24: the desktop now exposes capture and activation through the shared profi
 ### Desktop profile management progress
 
 F16/F24: explicit listing/selection, clone, rename and confirmed delete controls now reuse the shared store. Deleting the active profile clears its setting without changing installed files. Tests cover desktop state transitions and settings preservation/error boundaries; native interaction proof remains open. Default storage, automatic startup activation and full schema/platform equivalence remain incomplete.
+
+### Default profile storage and startup requirement correction
+
+F16: shared default settings-directory lookup now serves profile CLI, profile-backed install/validate and the desktop field. Live Linux C#/Rust create operations chose the same path under an isolated existing XDG_CONFIG_HOME. Native macOS/Windows folder comparison, missing/unreadable bases and legacy settings fallback remain open. Earlier automatic-startup-activation notes overstated the pinned reference: ApplyProfile's only concrete caller is the profile manager dialog. General settings restoration remains in F17; no automatic profile reapplication requirement has been established by current source evidence.

@@ -9,6 +9,16 @@ use std::{
     path::{Path, PathBuf},
 };
 
+/// Same application directory name and platform base as the C# settings store.
+pub fn settings_directory(explicit: Option<&Path>) -> Result<PathBuf> {
+    if let Some(path) = explicit {
+        return Ok(path.to_owned());
+    }
+    dirs::config_dir()
+        .map(|base| base.join("ModSync"))
+        .context("Cannot locate user settings; supply --settings-dir")
+}
+
 fn now() -> String {
     chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true)
 }

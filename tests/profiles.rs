@@ -359,3 +359,47 @@ fn desktop_delete_preserves_settings_and_refuses_corrupt_settings_before_deletio
     assert!(store.delete_and_deactivate("Keep").is_err());
     assert!(store.require("Keep").is_ok());
 }
+
+#[cfg(target_os = "linux")]
+#[test]
+fn default_profile_directory_uses_xdg_and_explicit_override_without_touching_home() {
+    let dir = tempfile::tempdir().unwrap();
+    let config = dir.path().join("config");
+    fs::create_dir(&config).unwrap();
+    let run = |args: &[&str]| {
+        std::process::Command::new(env!("CARGO_BIN_EXE_modsync"))
+            .env("XDG_CONFIG_HOME", &config)
+            .args(args)
+            .output()
+            .unwrap()
+    };
+    assert!(
+        run(&["profile", "--action", "create", "--name", "Default"])
+            .status
+            .success()
+    );
+    let store = Store::new(&config.join("ModSync")).unwrap();
+    assert!(store.require("Default").is_ok());
+    let explicit = dir.path().join("explicit");
+    assert!(
+        run(&[
+            "profile",
+            "--action",
+            "create",
+            "--name",
+            "Override",
+            "--settings-dir",
+            explicit.to_str().unwrap()
+        ])
+        .status
+        .success()
+    );
+    assert!(Store::new(&explicit).unwrap().require("Override").is_ok());
+    assert!(store.load("Override").unwrap().is_none());
+    store.activate("Default").unwrap();
+    let result = run(&["validate", "--active-profile"]);
+    assert!(!result.status.success());
+    assert!(String::from_utf8_lossy(&result.stderr).contains("Profile has no input"));
+    let result = run(&["validate", "--profile", "Default"]);
+    assert!(String::from_utf8_lossy(&result.stderr).contains("Profile has no input"));
+}

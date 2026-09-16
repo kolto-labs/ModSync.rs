@@ -1,0 +1,17 @@
+{
+  "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+  "reference_dll_sha256": "8f3b1e3f8fe47b2cc6f8e3f281912506721c7367218381bb2a35cf86dc5768f0",
+  "cases": [
+    {
+      "implementation": "csharp",
+      "exit_code": 0,
+      "relative_profile_path": "ModSync/profiles/Default.json"
+    },
+    {
+      "implementation": "rust",
+      "exit_code": 0,
+      "relative_profile_path": "ModSync/profiles/Default.json"
+    }
+  ],
+  "scope": "Linux existing absolute XDG_CONFIG_HOME; default profile CLI storage. Not macOS/Windows native folder lookup or missing/unreadable base behavior."
+}

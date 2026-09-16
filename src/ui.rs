@@ -61,7 +61,9 @@ impl App {
         let mut app = Self {
             input: string(input),
             loaded_input: None,
-            profile_directory: String::new(),
+            profile_directory: modsync::profiles::settings_directory(None)
+                .map(|p| p.to_string_lossy().into_owned())
+                .unwrap_or_default(),
             profile_name: String::new(),
             profile_names: Vec::new(),
             profile_target: String::new(),
