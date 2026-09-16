@@ -429,3 +429,7 @@ The shared archive reader can now inspect and parse a nested ModuleConfig.xml pl
 ### FOMOD inspection CLI
 
 `modsync fomod-inspect <archive> [--scratch-dir <directory>] [--max-expanded-bytes <bytes>]` exposes archive inspection as JSON: module path, content root, optional info metadata, steps, current visibility, group modes and plugin defaults. Non-FOMOD archives return JSON null; invalid archives exit with an error. The ZIP integration test invokes the actual CLI and checks its report. Inspection does not configure or authorize installation.
+
+### CLI FOMOD choices validation
+
+`fomod-inspect --choices <json>` applies the matching archive entry through the shared atomic selection logic before reporting selections and visibility. Archive, step, group and plugin matching reuse the existing case-insensitive rules. Missing archive entries, absent installers and invalid selections return errors without a success report. A subprocess regression verifies selection changes, invalid names and unchanged archive bytes. This does not persist configuration or enable installation.

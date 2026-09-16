@@ -34,6 +34,9 @@ enum Action {
     /// Inspect FOMOD metadata and selection defaults as JSON without installing.
     FomodInspect {
         archive: PathBuf,
+        /// Apply the matching archive entry from a version-1 choices JSON file.
+        #[arg(long)]
+        choices: Option<PathBuf>,
         #[arg(long)]
         scratch_dir: Option<PathBuf>,
         #[arg(long)]
@@ -153,10 +156,11 @@ fn run() -> Result<()> {
         }) => gui(input, game_dir, source_dir, settings_dir),
         Some(Action::FomodInspect {
             archive,
+            choices,
             scratch_dir,
             max_expanded_bytes,
         }) => {
-            let module = modsync::fomod::inspect_archive(
+            let mut module = modsync::fomod::inspect_archive(
                 &archive,
                 &modsync::archive::Options {
                     scratch_dir,
@@ -164,6 +168,23 @@ fn run() -> Result<()> {
                 },
                 &AtomicBool::new(false),
             )?;
+            if let Some(path) = choices {
+                let choices = modsync::fomod::ChoicesFile::parse(&std::fs::read_to_string(path)?)?;
+                let filename = archive
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .context("Archive filename is not valid UTF-8")?;
+                let selections = choices.archive(filename).with_context(|| {
+                    format!("Choices file has no entry for archive '{filename}'")
+                })?;
+                selections.apply_to(
+                    &mut module
+                        .as_mut()
+                        .context("Archive has no FOMOD installer to configure")?
+                        .config
+                        .steps,
+                )?;
+            }
             let report = module.map(|m| {
                 let visible = modsync::fomod::visible_steps(&m.config.steps);
                 let steps: Vec<_> = m.config.steps.iter().enumerate().map(|(index, step)| {

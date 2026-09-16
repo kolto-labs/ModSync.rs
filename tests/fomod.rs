@@ -598,3 +598,59 @@ fn archive_inspection_reads_nested_metadata_and_cleans_scratch_on_failure() {
     std::fs::write(&path, b"corrupt").unwrap();
     assert!(inspect_archive(&path, &options, &AtomicBool::new(false)).is_err());
 }
+
+#[test]
+fn inspect_cli_applies_archive_choices_and_reports_invalid_names() {
+    use std::io::Write;
+    let temp = tempfile::tempdir().unwrap();
+    let archive = temp.path().join("package.zip");
+    let choices = temp.path().join("choices.json");
+    let mut zip = zip::ZipWriter::new(std::fs::File::create(&archive).unwrap());
+    zip.start_file(
+        "fomod/ModuleConfig.xml",
+        zip::write::SimpleFileOptions::default(),
+    )
+    .unwrap();
+    zip.write_all(
+        br#"<config><installSteps><installStep name="Step"><optionalFileGroups>
+        <group name="Group" type="SelectExactlyOne"><plugins>
+        <plugin name="First"/><plugin name="Second"/>
+        </plugins></group></optionalFileGroups></installStep></installSteps></config>"#,
+    )
+    .unwrap();
+    zip.finish().unwrap();
+    let original = std::fs::read(&archive).unwrap();
+    let run = || {
+        std::process::Command::new(env!("CARGO_BIN_EXE_modsync"))
+            .arg("fomod-inspect")
+            .arg(&archive)
+            .arg("--choices")
+            .arg(&choices)
+            .output()
+            .unwrap()
+    };
+    let value = serde_json::json!({"version":1,"archives":[{"archiveFileName":"PACKAGE.ZIP",
+        "selections":[{"stepName":"step","groupName":"group","plugins":["second"]}]}]});
+    std::fs::write(&choices, value.to_string()).unwrap();
+    let output = run();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    let plugins = &report["steps"][0]["groups"][0]["plugins"];
+    assert_eq!(plugins[0]["selected"], false);
+    assert_eq!(plugins[1]["selected"], true);
+    for bad in [
+        value.to_string().replace("second", "unknown"),
+        value.to_string().replace("PACKAGE.ZIP", "other.zip"),
+    ] {
+        std::fs::write(&choices, bad).unwrap();
+        let output = run();
+        assert!(!output.status.success());
+        assert!(output.stdout.is_empty());
+        assert!(!output.stderr.is_empty());
+    }
+    assert_eq!(std::fs::read(&archive).unwrap(), original);
+}
