@@ -263,3 +263,7 @@ The desktop now opens a scrollable category chooser with independent checkboxes,
 A desktop-state regression applies two categories together, retains an unrelated selected component, excludes widescreen and verifies validation/confirmation reset. This is not native modal-dialog parity: the egui window is not an Avalonia modal window, and Unicode ordering/casing and live interaction remain unverified. The separate widescreen phase still has not been ported.
 
 Formatting, clippy with warnings denied, 62 regular integration tests in both configurations and five desktop-state tests passed. The existing large-archive test was not rerun locally; no new native or hosted CI proof is claimed.
+
+### Native modal input verification
+
+The category chooser and install confirmation now use the installed egui Modal container. Background input is blocked; Escape and backdrop clicks cancel. This supersedes the earlier nonmodal-window limitation for these two dialogs. Native Linux input checks verified blocked background Deselect all and trust-checkbox clicks, category application, install cancellation without game writes or snapshots, and an explicitly confirmed two-component Copy install with exact byte checks. Evidence and source/binary hashes: `docs/parity/native-modals/receipt.json` and adjacent screenshots. Required format, lint and both test configurations passed. Windows/macOS, exhaustive focus/accessibility behavior, reference GUI comparison and the separate widescreen phase remain unverified or incomplete. F04/F24 stay partial.

@@ -1,0 +1,27 @@
+{
+  "tested_base_commit": "50dd5d31b0ae625bb68eccd3a591ba97bc3d1900",
+  "ui_source_sha256": "95f3675abd55bf837a2d17d9cbba2aca1e32302bdca89a72dec456206601e844",
+  "binary_sha256": "d6dd4f94912a42d752352bac21f913775633d5f2079874ff39bedf37a25e39b9",
+  "environment": "Linux X11, Xvfb :901, native egui window, xdotool input",
+  "fixture_root": "/home/brunner56/.cache/modsync-native-dialogs-bdzsj8lb",
+  "checks": [
+    "Category backdrop click on Deselect all dismisses modal and retains 2/2 selections",
+    "Category Escape dismisses; subsequent Deselect all works; both categories can be applied to restore 2/2",
+    "Install backdrop click on trust checkbox dismisses without enabling trust",
+    "Install Escape dismisses; game remains empty and no snapshot.json exists",
+    "Explicit confirmation creates snapshot and completes both Copy steps",
+    "Installed Override/a.txt and original mods/a.txt both equal bytes modal test"
+  ],
+  "automated_checks": [
+    "cargo fmt --all -- --check",
+    "cargo clippy --all-targets -- -D warnings",
+    "cargo test --all-targets: 62 integration and 5 desktop-state passed; large archive test ignored",
+    "cargo test --no-default-features: 62 integration passed; large archive test ignored"
+  ],
+  "limitations": [
+    "No Windows/macOS native verification",
+    "No C# GUI side-by-side comparison",
+    "No full K1/K2 build",
+    "No exhaustive keyboard focus/accessibility or nested-dialog validation"
+  ]
+}

@@ -207,3 +207,5 @@ F17/F24: spoilerFreeMode now persists and loads at startup; normal description t
 ### Multiple-category chooser progress
 
 F04/F24: a desktop checkbox chooser now applies several categories atomically at the UI state level through the shared additive selector. Existing selections survive and validation is invalidated. The chooser's category inventory excludes widescreen-only components. Native interaction, reference modal-window semantics, Unicode ordering and the separate widescreen phase remain open.
+
+F04/F24 modal checkpoint: category selection and install confirmation now block background input using egui Modal. Native Linux screenshots and disk assertions in `native-modals/receipt.json` cover category apply, background-click cancellation, Escape and confirmed fixture installation. This supersedes the earlier nonmodal limitation for the exercised paths; it does not establish full wizard, platform or accessibility parity.

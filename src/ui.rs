@@ -704,9 +704,9 @@ impl eframe::App for App {
         if let Some(categories) = &mut self.category_selection {
             let mut apply = false;
             let mut cancel = false;
-            egui::Window::new("Select mods by category")
-                .collapsible(false)
-                .show(ctx, |ui| {
+            let response =
+                egui::Modal::new(egui::Id::new("category_selection_modal")).show(ctx, |ui| {
+                    ui.heading("Select mods by category");
                     ui.add_enabled_ui(!busy, |ui| {
                         egui::ScrollArea::vertical()
                             .max_height(320.0)
@@ -728,12 +728,13 @@ impl eframe::App for App {
                 });
             if apply {
                 self.apply_category_selection();
-            } else if cancel {
+            } else if cancel || response.should_close() {
                 self.category_selection = None;
             }
         }
         if self.confirm_install {
-            egui::Window::new("Install selected mods?").collapsible(false).resizable(false).show(ctx, |ui| {
+            let response = egui::Modal::new(egui::Id::new("install_confirmation_modal")).show(ctx, |ui| {
+                ui.heading("Install selected mods?");
                 ui.label(format!("Modify {}", self.game));
                 ui.label("The snapshot needs space for both folders. The install stops on the first error.");
                 ui.horizontal(|ui| {
@@ -741,6 +742,9 @@ impl eframe::App for App {
                     if ui.button("Cancel").clicked() { self.confirm_install = false; }
                 });
             });
+            if response.should_close() {
+                self.confirm_install = false;
+            }
         }
     }
 }
