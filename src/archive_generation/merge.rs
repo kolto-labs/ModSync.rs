@@ -129,6 +129,27 @@ pub(super) fn equivalent(a: &Instruction, b: &Instruction) -> bool {
     !matches!(a.action.as_str(), "Move" | "Copy" | "Rename") || a.overwrite == b.overwrite
 }
 
+pub(super) fn folder_covered(component: &Component, source: &str) -> bool {
+    component
+        .instructions
+        .iter()
+        .filter(|i| matches!(i.action.as_str(), "Move" | "Copy"))
+        .flat_map(|i| &i.source)
+        .any(|existing| {
+            if sources_match(existing, source) {
+                return true;
+            }
+            let parent = normalize(existing);
+            let child = normalize(source);
+            let prefix = parent.trim_end_matches(['*', '\\']).to_lowercase();
+            let child = child.trim_end_matches(['*', '\\']).to_lowercase();
+            parent.ends_with("\\*")
+                && child
+                    .strip_prefix(&prefix)
+                    .is_some_and(|tail| tail.is_empty() || tail.starts_with('\\'))
+        })
+}
+
 pub(super) fn consolidate(component: &mut Component) {
     // Match the reference's snapshot ordering: identify all overlapping candidates
     // before adding any of their instructions to the primary option.

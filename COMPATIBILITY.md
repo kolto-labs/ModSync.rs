@@ -117,3 +117,11 @@ The expanded differential corpus has 28 cases: 27 match C# and one remains expli
 The preceding resource-order commit passed native CI run 35057519588; that evidence predates executable inference.
 
 All 39 regular integration tests pass with and without desktop features, alongside formatting and Clippy. The added engine test proves rejection without process trust, validation without execution even when trust is configured, unchanged input bytes and cancellation without a generated step. These checks do not prove real installer execution or resolve the renamed-ZIP difference.
+
+## Direct archive API augmentation checkpoint
+
+The public `generate_from_archive` API now augments authored instructions, reusing equivalent steps and honoring existing Copy/Move folder coverage. Parent-folder coverage respects path boundaries; similarly named sibling folders remain separate. Existing Choose references and option identities are retained. The automatic local CLI path still skips components with top-level instructions, matching C#.
+
+The corpus now contains 34 cases: 27 live CLI comparisons match, six direct-API C# outputs are checked by Rust integration tests, and the renamed-ZIP EXE difference above remains unresolved. An isolated installation test verifies repeated augmentation is idempotent and preserves an authored Copy destination in Modules, including source retention. This does not prove all merging paths or full-build parity. Native CI run 35058007498 passed for preceding commit `967f6c81cbc858cb30c3985160b7a3f2a4657758`.
+
+Local validation for this checkpoint passed formatting, clippy with warnings denied, all-target tests and no-default-feature tests. Both test configurations passed 40 regular integration tests; the explicit 513 MiB regression was not rerun locally for this instruction-merging change.

@@ -158,7 +158,7 @@ fn search_term(link: &str, fallback: &str) -> Result<String> {
     Ok(term)
 }
 
-/// Infer a new component's instructions without writing into the mod/game trees.
+/// Infer or augment a component's instructions without writing into the mod/game trees.
 /// The existing streaming archive decoder checks integrity and stages into scratch.
 pub fn generate_from_archive(
     component: &mut Component,
@@ -169,10 +169,6 @@ pub fn generate_from_archive(
     ensure!(
         !cancelled.load(Ordering::Relaxed),
         "Archive operation cancelled"
-    );
-    ensure!(
-        component.instructions.is_empty(),
-        "Archive inference requires a component without instructions"
     );
     ensure!(path.is_file(), "Archive does not exist: {}", path.display());
     let filename = path
@@ -194,9 +190,7 @@ pub fn generate_from_archive(
             link.contains("nexusmods.com/kotor/mods/1384") || link.contains("pastebin.com/6wcn122s")
         });
     if dedupe {
-        component
-            .instructions
-            .push(instruction("DelDuplicate", vec![], "", ".tpc"));
+        add_step(component, instruction("DelDuplicate", vec![], "", ".tpc"));
         return Ok(true);
     }
     let entries = match archive::unpack(path, path, options, cancelled) {
@@ -205,15 +199,19 @@ pub fn generate_from_archive(
             // C# treats an EXE that cannot be opened as an archive as an
             // executable installer. Inference only records the step; the shared
             // engine still requires explicit external-program trust to run it.
-            component.instructions.push(instruction(
-                "Execute",
-                vec![format!("<<modDirectory>>\\{filename}")],
-                "",
-                "",
-            ));
-            component
-                .metadata
-                .insert("InstallationMethod".into(), "Executable Installer".into());
+            if add_step(
+                component,
+                instruction(
+                    "Execute",
+                    vec![format!("<<modDirectory>>\\{filename}")],
+                    "",
+                    "",
+                ),
+            ) {
+                component
+                    .metadata
+                    .insert("InstallationMethod".into(), "Executable Installer".into());
+            }
             return Ok(true);
         }
         Err(error) => return Err(error),
@@ -263,12 +261,15 @@ pub fn generate_from_archive(
     }
     // Stage the model too: namespace decode failures must not publish a half-generated guide.
     let mut generated = component.clone();
-    generated.instructions.push(instruction(
-        "Extract",
-        vec![format!("<<modDirectory>>\\{filename}")],
-        "",
-        "",
-    ));
+    add_step(
+        &mut generated,
+        instruction(
+            "Extract",
+            vec![format!("<<modDirectory>>\\{filename}")],
+            "",
+            "",
+        ),
+    );
     let patcher_root = if patcher_path.is_empty() {
         &extracted
     } else {
@@ -302,15 +303,18 @@ pub fn generate_from_archive(
         }
         merge::consolidate(&mut generated);
     } else if changes {
-        generated.instructions.push(instruction(
-            "Patcher",
-            vec![format!(
-                "<<modDirectory>>\\{patcher_root}\\{}",
-                executable.unwrap_or("TSLPatcher.exe")
-            )],
-            "<<gameDirectory>>",
-            "",
-        ));
+        add_step(
+            &mut generated,
+            instruction(
+                "Patcher",
+                vec![format!(
+                    "<<modDirectory>>\\{patcher_root}\\{}",
+                    executable.unwrap_or("TSLPatcher.exe")
+                )],
+                "<<gameDirectory>>",
+                "",
+            ),
+        );
     }
     let patch_top = patcher_path.split('/').next().unwrap_or("");
     let folders: Vec<_> = folders
@@ -324,12 +328,11 @@ pub fn generate_from_archive(
         if folders.len() > 1 {
             let mut ids = Vec::new();
             for folder in folders {
-                let step = instruction(
-                    "Move",
-                    vec![format!("<<modDirectory>>\\{extracted}\\{folder}\\*")],
-                    "<<gameDirectory>>\\Override",
-                    "",
-                );
+                let source = format!("<<modDirectory>>\\{extracted}\\{folder}\\*");
+                if merge::folder_covered(&generated, &source) {
+                    continue;
+                }
+                let step = instruction("Move", vec![source], "<<gameDirectory>>\\Override", "");
                 ids.push(add_option(
                     &mut generated,
                     folder,
@@ -339,19 +342,25 @@ pub fn generate_from_archive(
             }
             add_choose(&mut generated, ids);
         } else if let Some(folder) = folders.first() {
-            generated.instructions.push(instruction(
-                "Move",
-                vec![format!("<<modDirectory>>\\{extracted}\\{folder}\\*")],
-                "<<gameDirectory>>\\Override",
-                "",
-            ));
+            add_step(
+                &mut generated,
+                instruction(
+                    "Move",
+                    vec![format!("<<modDirectory>>\\{extracted}\\{folder}\\*")],
+                    "<<gameDirectory>>\\Override",
+                    "",
+                ),
+            );
         } else if flat {
-            generated.instructions.push(instruction(
-                "Move",
-                vec![format!("<<modDirectory>>\\{extracted}\\*")],
-                "<<gameDirectory>>\\Override",
-                "",
-            ));
+            add_step(
+                &mut generated,
+                instruction(
+                    "Move",
+                    vec![format!("<<modDirectory>>\\{extracted}\\*")],
+                    "<<gameDirectory>>\\Override",
+                    "",
+                ),
+            );
         }
     }
     generated.metadata.insert(
@@ -366,6 +375,23 @@ pub fn generate_from_archive(
     merge::consolidate(&mut generated);
     *component = generated;
     Ok(true)
+}
+
+fn add_step(component: &mut Component, step: Instruction) -> bool {
+    if (step.action == "Move"
+        && step
+            .source
+            .iter()
+            .any(|s| merge::folder_covered(component, s)))
+        || component
+            .instructions
+            .iter()
+            .any(|existing| merge::equivalent(existing, &step))
+    {
+        return false;
+    }
+    component.instructions.push(step);
+    true
 }
 
 fn instruction(

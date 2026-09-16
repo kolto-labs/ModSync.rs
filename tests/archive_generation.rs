@@ -408,3 +408,54 @@ fn executable_inference_never_runs_the_input_or_bypasses_engine_trust_and_cancel
     assert!(component.instructions.is_empty());
     assert!(component.metadata.is_empty());
 }
+
+#[test]
+fn augmentation_is_idempotent_and_retains_authored_copy_destination() {
+    let dir = tempfile::tempdir().unwrap();
+    let mods = dir.path().join("mods");
+    let game = dir.path().join("game");
+    fs::create_dir(&mods).unwrap();
+    fs::create_dir(&game).unwrap();
+    let cases: Vec<Value> =
+        serde_json::from_str(include_str!("fixtures/archive-generation.json")).unwrap();
+    let case = cases.iter().find(|c| c["Name"] == "augment-copy").unwrap();
+    let path = mods.join("augment-copy.zip");
+    zip(&path, &case["Files"]);
+    let mut component: Component = serde_json::from_value(case["Component"].clone()).unwrap();
+    component.guid = "augment".into();
+    component.name = "Augment".into();
+    component.is_selected = true;
+    let authored = serde_json::to_value(&component.instructions).unwrap();
+    for _ in 0..2 {
+        assert!(
+            archive_generation::generate_from_archive(
+                &mut component,
+                &path,
+                &archive::Options::default(),
+                &AtomicBool::new(false)
+            )
+            .unwrap()
+        );
+        assert_eq!(
+            serde_json::to_value(&component.instructions).unwrap(),
+            authored
+        );
+    }
+    let guide = Guide {
+        components: vec![component],
+        ..Default::default()
+    };
+    Engine::new(Settings::new(&mods, &game).unwrap())
+        .unwrap()
+        .install(&guide, |_| {})
+        .unwrap();
+    assert_eq!(
+        fs::read(game.join("Modules/sample.tga")).unwrap(),
+        b"texture"
+    );
+    assert_eq!(
+        fs::read(mods.join("augment-copy/sample.tga")).unwrap(),
+        b"texture"
+    );
+    assert!(!game.join("Override/sample.tga").exists());
+}

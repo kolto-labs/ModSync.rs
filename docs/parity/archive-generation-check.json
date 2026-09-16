@@ -1,9 +1,17 @@
 {
   "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
   "reference_dll_sha256": "8f3b1e3f8fe47b2cc6f8e3f281912506721c7367218381bb2a35cf86dc5768f0",
-  "fixture_sha256": "b3bb640b1b87db9087302b6b6fde715404c0dd722631b8d21de1d17168c23d13",
-  "cases": 28,
-  "matching_cases": 27,
+  "fixture_sha256": "3cb877a7f65364428df571744a0841290135615b9ec46fb54de455cbcc420cdf",
+  "cases": 34,
+  "direct_api_fixture_cases": [
+    "augment-choice",
+    "augment-copy",
+    "augment-parent",
+    "augment-neighbor",
+    "augment-patcher",
+    "augment-executable"
+  ],
+  "matching_cli_cases": 27,
   "differences": [
     {
       "case": "archive-installer",
@@ -59,5 +67,5 @@
       "known_unresolved": true
     }
   ],
-  "scope": "Instruction-free component generation including authored-option merging, insertion-first local matching and EXE fallback. Original authored Source strings assigned directly after C# loading; Choose GUIDs normalized to option names. Not full JSON ingestion, all archive-matching cases, existing top-level instruction merging, real installer execution or full-build proof."
+  "scope": "CLI comparison for instruction-free generation; direct-API objects captured for Rust integration-test comparison. Original authored Source strings assigned directly after C# loading; Choose GUIDs normalized to option names. Not full JSON ingestion, all matching cases, real installer execution or full-build proof."
 }

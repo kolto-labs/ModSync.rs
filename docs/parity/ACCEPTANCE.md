@@ -116,3 +116,10 @@ The C# best-effort install flags must be reconciled with the user's explicit rul
 - Added Execute inference and Executable Installer labeling when EXE archive reading fails. Cancellation does not produce an Execute step; the texture-dedupe special case retains precedence. Inference and validation do not run the input, and installation still requires explicit external-program trust.
 - Of 28 raw C# fixtures, 27 match. A ZIP renamed to `.exe` remains different: C# chooses its 7z reader and eventually emits only Extract; Rust sniffs ZIP content and also emits Move. The complete difference remains in `archive-generation-check.json`, with an exact fixture annotation rather than an unrestricted comparison waiver. F03 remains partial until this behavior is resolved, alongside remaining generation paths and full-build acceptance.
 - Native CI run 35057519588 passed for preceding commit `9a8a740bea85f3ed7f00480aa3b9f4887934c0a2`; it predates this change. No real installer execution is claimed by the inference fixtures.
+
+### Direct archive API augmentation checkpoint
+
+- Public direct generation augments existing steps; automatic local generation continues to skip components with top-level instructions. Equivalent steps, authored Copy/Move coverage, existing Choose references and option identity are preserved in the covered cases.
+- Six captured direct-API C# cases extend the corpus to 34. Rust integration tests compare these objects; the CLI checker separately reports 27 exact matches and the existing unresolved renamed-ZIP EXE difference.
+- An isolated install verifies idempotent augmentation and the authored Modules Copy destination, source retention and absence of an unintended Override move. F03 remains partial.
+- Preceding commit `967f6c81cbc858cb30c3985160b7a3f2a4657758` passed native CI run 35058007498.

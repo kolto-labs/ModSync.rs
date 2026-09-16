@@ -25,6 +25,11 @@ static void Run(string[] args) {
     foreach (var (component, value) in components.Zip(input.RootElement.EnumerateArray())) {
         // Isolate inference from resource URL canonicalization in the JSON loader.
         var path = Path.Combine(args[1], value.GetProperty("ResourceRegistry").EnumerateObject().First().Name);
+        if (value.TryGetProperty("Instructions", out var topInstructions)) {
+            foreach (var (step, item) in component.Instructions.Zip(topInstructions.EnumerateArray())) {
+                if (item.TryGetProperty("Source", out var sources)) step.Source = sources.EnumerateArray().Select(s => s.GetString()).ToList();
+            }
+        }
         // The JSON loader also rewrites authored Source separators. Assign the
         // original strings directly so both generation services receive identical data.
         if (value.TryGetProperty("Options", out var options)) {
@@ -112,6 +117,10 @@ def normalize(c):
 differences = []
 unexpected = []
 for case, a, b in zip(cases, expected, actual):
+    if case.get('DirectApi'):
+        # convert --auto-generate-local intentionally skips authored instructions.
+        # The captured raw objects for this public API are compared by Rust tests.
+        continue
     normalized = normalize(b)
     if a == normalized:
         assert 'UnresolvedAdditionalInstruction' not in case, 'Previously observed difference changed; re-audit and remove its fixture annotation'
@@ -130,8 +139,10 @@ if len(expected) != len(actual):
 receipt = {'reference_commit': 'd31ccbd3bfcddb4705917eafa6483715c166de3b',
            'reference_dll_sha256': hashlib.sha256(reference.read_bytes()).hexdigest(),
            'fixture_sha256': hashlib.sha256(fixture.read_bytes()).hexdigest(),
-           'cases': len(cases), 'matching_cases': len(cases) - len(differences), 'differences': differences,
-           'scope': 'Instruction-free component generation including authored-option merging, insertion-first local matching and EXE fallback. Original authored Source strings assigned directly after C# loading; Choose GUIDs normalized to option names. Not full JSON ingestion, all archive-matching cases, existing top-level instruction merging, real installer execution or full-build proof.'}
+           'cases': len(cases),
+           'direct_api_fixture_cases': [c['Name'] for c in cases if c.get('DirectApi')],
+           'matching_cli_cases': sum(not c.get('DirectApi') for c in cases) - len(differences), 'differences': differences,
+           'scope': 'CLI comparison for instruction-free generation; direct-API objects captured for Rust integration-test comparison. Original authored Source strings assigned directly after C# loading; Choose GUIDs normalized to option names. Not full JSON ingestion, all matching cases, real installer execution or full-build proof.'}
 (output / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
 print(json.dumps(receipt, indent=2))
 assert not unexpected

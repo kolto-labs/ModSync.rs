@@ -1,5 +1,261 @@
 [
   {
+    "Name": "augment-choice",
+    "Success": true,
+    "InstallationMethod": "Loose-File Mod",
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\augment-choice.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Choose",
+        "Source": [
+          "Authored red",
+          "Blue"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [
+      {
+        "Name": "Authored red",
+        "Description": "",
+        "IsSelected": true,
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "\u003C\u003CmodDirectory\u003E\u003E\\augment-choice\\Red\\*"
+            ],
+            "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ]
+      },
+      {
+        "Name": "Blue",
+        "Description": "Install files from Blue folder",
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "\u003C\u003CmodDirectory\u003E\u003E\\augment-choice\\Blue\\*"
+            ],
+            "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "Name": "augment-copy",
+    "Success": true,
+    "InstallationMethod": "Loose-File Mod",
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\augment-copy.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Copy",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\augment-copy\\*"
+        ],
+        "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Modules",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": []
+  },
+  {
+    "Name": "augment-parent",
+    "Success": true,
+    "InstallationMethod": "Loose-File Mod",
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\augment-parent.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Move",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\augment-parent\\*"
+        ],
+        "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": []
+  },
+  {
+    "Name": "augment-neighbor",
+    "Success": true,
+    "InstallationMethod": "Loose-File Mod",
+    "Instructions": [
+      {
+        "Action": "Move",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\augment-neighbor\\Fold\\*"
+        ],
+        "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\augment-neighbor.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Choose",
+        "Source": [
+          "Folder",
+          "Other"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [
+      {
+        "Name": "Folder",
+        "Description": "Install files from Folder folder",
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "\u003C\u003CmodDirectory\u003E\u003E\\augment-neighbor\\Folder\\*"
+            ],
+            "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ]
+      },
+      {
+        "Name": "Other",
+        "Description": "Install files from Other folder",
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "\u003C\u003CmodDirectory\u003E\u003E\\augment-neighbor\\Other\\*"
+            ],
+            "Destination": "\u003C\u003CgameDirectory\u003E\u003E\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "Name": "augment-patcher",
+    "Success": true,
+    "InstallationMethod": "TSLPatcher",
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\augment-patcher.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Patcher",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\augment-patcher\\TSLPatcher.exe"
+        ],
+        "Destination": "\u003C\u003CgameDirectory\u003E\u003E",
+        "Arguments": "",
+        "Overwrite": false,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": []
+  },
+  {
+    "Name": "augment-executable",
+    "Success": true,
+    "InstallationMethod": "Authored method",
+    "Instructions": [
+      {
+        "Action": "Execute",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\augment-executable.exe"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": []
+  },
+  {
     "Name": "plain-installer",
     "Success": true,
     "InstallationMethod": "Executable Installer",
