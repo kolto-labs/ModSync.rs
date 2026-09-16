@@ -485,7 +485,7 @@ impl ModuleConfig {
 }
 
 /// Optional authored info.xml metadata. Website is text, not a trusted URL.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize)]
 pub struct FomodInfo {
     pub name: String,
     pub author: String,

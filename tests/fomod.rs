@@ -548,6 +548,26 @@ fn archive_inspection_reads_nested_metadata_and_cleans_scratch_on_failure() {
         ),
     ]);
     let original = std::fs::read(&path).unwrap();
+    let output = std::process::Command::new(env!("CARGO_BIN_EXE_modsync"))
+        .arg("fomod-inspect")
+        .arg(&path)
+        .arg("--scratch-dir")
+        .arg(&scratch)
+        .arg("--max-expanded-bytes")
+        .arg("4096")
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(report["contentRoot"], "Wrapper");
+    assert_eq!(report["name"], "Module");
+    assert_eq!(report["info"]["name"], "Metadata");
+    assert_eq!(report["steps"], serde_json::json!([]));
+
     let result = inspect_archive(&path, &options, &AtomicBool::new(false))
         .unwrap()
         .unwrap();

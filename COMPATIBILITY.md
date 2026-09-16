@@ -425,3 +425,7 @@ Extraction now uses a shared terminal-segment detector matching FomodDetector.Is
 ### FOMOD archive inspection
 
 The shared archive reader can now inspect and parse a nested ModuleConfig.xml plus sibling info.xml, returning their content root without retaining extracted files. It uses existing archive safety, size-budget and cancellation checks and temporary scratch storage. Multiple installers fail explicitly rather than choosing an enumeration-dependent first entry. ZIP regressions cover metadata, unchanged source bytes, cleanup, malformed XML, corrupt archives, unsafe paths and cancellation. This spools the whole archive and is not the C# listing-only probe; configured installation and interface integration remain open.
+
+### FOMOD inspection CLI
+
+`modsync fomod-inspect <archive> [--scratch-dir <directory>] [--max-expanded-bytes <bytes>]` exposes archive inspection as JSON: module path, content root, optional info metadata, steps, current visibility, group modes and plugin defaults. Non-FOMOD archives return JSON null; invalid archives exit with an error. The ZIP integration test invokes the actual CLI and checks its report. Inspection does not configure or authorize installation.

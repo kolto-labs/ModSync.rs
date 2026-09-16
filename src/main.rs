@@ -31,6 +31,14 @@ enum Action {
         #[arg(long)]
         source_dir: Option<PathBuf>,
     },
+    /// Inspect FOMOD metadata and selection defaults as JSON without installing.
+    FomodInspect {
+        archive: PathBuf,
+        #[arg(long)]
+        scratch_dir: Option<PathBuf>,
+        #[arg(long)]
+        max_expanded_bytes: Option<u64>,
+    },
     /// List components and their download links as JSON.
     List { input: PathBuf },
     /// Simulate instructions without changing the game or mod directory.
@@ -143,6 +151,40 @@ fn run() -> Result<()> {
             game_dir,
             source_dir,
         }) => gui(input, game_dir, source_dir, settings_dir),
+        Some(Action::FomodInspect {
+            archive,
+            scratch_dir,
+            max_expanded_bytes,
+        }) => {
+            let module = modsync::fomod::inspect_archive(
+                &archive,
+                &modsync::archive::Options {
+                    scratch_dir,
+                    max_expanded_bytes,
+                },
+                &AtomicBool::new(false),
+            )?;
+            let report = module.map(|m| {
+                let visible = modsync::fomod::visible_steps(&m.config.steps);
+                let steps: Vec<_> = m.config.steps.iter().enumerate().map(|(index, step)| {
+                    let groups: Vec<_> = step.groups.iter().map(|group| {
+                        let plugins: Vec<_> = group.plugins().iter().map(|plugin| serde_json::json!({
+                            "name": plugin.name, "description": plugin.description,
+                            "imagePath": plugin.image_path, "required": plugin.required,
+                            "selected": plugin.selected,
+                        })).collect();
+                        serde_json::json!({"name": group.name, "type": group.kind, "plugins": plugins})
+                    }).collect();
+                    serde_json::json!({"name": step.name, "visible": visible.contains(&index), "groups": groups})
+                }).collect();
+                serde_json::json!({
+                    "modulePath": m.module_path, "contentRoot": m.content_root,
+                    "name": m.config.name, "info": m.info, "steps": steps,
+                })
+            });
+            println!("{}", serde_json::to_string_pretty(&report)?);
+            Ok(())
+        }
         Some(Action::List { input }) => {
             println!("{}", serde_json::to_string_pretty(&Guide::load(&input)?)?);
             Ok(())
