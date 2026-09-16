@@ -196,11 +196,61 @@ impl Engine {
             .map(|_| ())
             .map_err(|error| format!("{error:#}"));
         report.push(crate::validation::Stage::InstallOrder, order);
-        let component = Engine::new(self.settings)
+        let component = Engine::new(self.settings.clone())
             .and_then(|engine| engine.validate(guide, emit))
             .map_err(|error| format!("{error:#}"));
         report.push(crate::validation::Stage::ComponentValidation, component);
+        let fomod = Engine::new(self.settings)
+            .and_then(|engine| engine.validate_fomod_configuration(guide))
+            .map_err(|error| format!("{error:#}"));
+        report.push(crate::validation::Stage::FomodConfiguration, fomod);
         report.finish()
+    }
+
+    fn validate_fomod_configuration(&self, guide: &Guide) -> Result<()> {
+        let selected = guide.selected_ids();
+        for component in guide.ordered()? {
+            for instruction in &component.instructions {
+                if instruction.action != "Extract"
+                    || !instruction
+                        .dependencies
+                        .iter()
+                        .all(|id| selected.contains(&id.to_ascii_lowercase()))
+                    || instruction
+                        .restrictions
+                        .iter()
+                        .any(|id| selected.contains(&id.to_ascii_lowercase()))
+                {
+                    continue;
+                }
+                for source in self.matches(&instruction.source, false)? {
+                    let content = &self.files[&key(&source)].1;
+                    let entries = archive::unpack(
+                        content.path(),
+                        &source,
+                        &self.settings.archive,
+                        &self.settings.cancelled,
+                    )?;
+                    if crate::fomod::inspect_entries(&entries)?.is_none() {
+                        continue;
+                    }
+                    let filename = source
+                        .file_name()
+                        .and_then(|name| name.to_str())
+                        .context("FOMOD archive filename is invalid")?;
+                    let raw = component.metadata.get("FomodChoices").with_context(|| {
+                        format!(
+                            "FOMOD archive '{filename}' has no explicit FomodChoices configuration"
+                        )
+                    })?;
+                    let choices = crate::fomod::ChoicesFile::parse(&serde_json::to_string(raw)?)?;
+                    choices
+                        .archive(filename)
+                        .with_context(|| format!("No FOMOD choices for {filename}"))?;
+                }
+            }
+        }
+        Ok(())
     }
 
     /// Analyze actual simulated writes without changing either installation tree.

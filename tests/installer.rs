@@ -1259,6 +1259,7 @@ fn validation_report_has_ordered_shared_engine_stages() {
             modsync::validation::Stage::Conflicts,
             modsync::validation::Stage::InstallOrder,
             modsync::validation::Stage::ComponentValidation,
+            modsync::validation::Stage::FomodConfiguration,
         ]
     );
 }
@@ -1281,11 +1282,32 @@ fn validation_report_keeps_component_failure_as_structured_error() {
             .unwrap()
             .passed
     );
-    let component = report.stages.last().unwrap();
-    assert_eq!(
-        component.stage,
-        modsync::validation::Stage::ComponentValidation
-    );
+    let component = report
+        .stages
+        .iter()
+        .find(|stage| stage.stage == modsync::validation::Stage::ComponentValidation)
+        .unwrap();
     assert!(!component.passed);
     assert!(!component.messages.is_empty());
+}
+
+#[test]
+fn validation_report_rejects_unconfigured_fomod_archive() {
+    let (_dir, settings) = setup();
+    fs::write(
+        settings.roots.mods.join("package.zip"),
+        zip(&[("fomod/ModuleConfig.xml", b"<config/>")]),
+    )
+    .unwrap();
+    let report = Engine::new(settings).unwrap().validate_report(
+        &guide(serde_json::json!([{"Action":"Extract", "Source":"<<modDirectory>>/package.zip"}])),
+        |_| {},
+    );
+    let stage = report
+        .stages
+        .iter()
+        .find(|stage| stage.stage == modsync::validation::Stage::FomodConfiguration)
+        .unwrap();
+    assert!(!stage.passed);
+    assert!(stage.messages[0].contains("no explicit FomodChoices"));
 }

@@ -11,6 +11,8 @@ pub enum Stage {
     InstallOrder,
     #[serde(rename = "ComponentValidation")]
     ComponentValidation,
+    #[serde(rename = "FomodConfiguration")]
+    FomodConfiguration,
 }
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
