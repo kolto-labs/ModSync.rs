@@ -124,6 +124,106 @@ fn union(target: &mut Vec<String>, source: &[String]) {
     }
 }
 
+fn instruction_key(instruction: &crate::Instruction) -> (String, String) {
+    (
+        instruction.action.to_ascii_lowercase(),
+        instruction.destination.to_ascii_lowercase(),
+    )
+}
+
+fn merge_instructions(target: &mut Vec<crate::Instruction>, source: &[crate::Instruction]) {
+    for incoming in source {
+        if let Some(existing) = target
+            .iter()
+            .position(|known| instruction_key(known) == instruction_key(incoming))
+        {
+            let mut replacement = incoming.clone();
+            let prior = &target[existing];
+            if incoming.action.eq_ignore_ascii_case(&prior.action)
+                && incoming.source == prior.source
+                && incoming
+                    .destination
+                    .eq_ignore_ascii_case(&prior.destination)
+                && incoming.arguments.eq_ignore_ascii_case(&prior.arguments)
+            {
+                replacement.source.clone_from(&prior.source);
+            }
+            target[existing] = replacement;
+        } else {
+            target.push(incoming.clone());
+        }
+    }
+}
+
+fn merge_resource_metadata(target: &mut serde_json::Value, source: &serde_json::Value) {
+    let (Some(target), Some(source)) = (target.as_object_mut(), source.as_object()) else {
+        return;
+    };
+    for (key, source_value) in source {
+        match target.get_mut(key) {
+            Some(target_value) if key.eq_ignore_ascii_case("Files") => {
+                let (Some(target_files), Some(source_files)) =
+                    (target_value.as_object_mut(), source_value.as_object())
+                else {
+                    continue;
+                };
+                for (filename, selected) in source_files {
+                    target_files
+                        .entry(filename.clone())
+                        .or_insert_with(|| selected.clone());
+                }
+            }
+            Some(_) => {}
+            None => {
+                target.insert(key.clone(), source_value.clone());
+            }
+        }
+    }
+}
+
+fn merge_resources(
+    target: &mut serde_json::Map<String, serde_json::Value>,
+    source: &serde_json::Map<String, serde_json::Value>,
+) {
+    for (url, source_metadata) in source {
+        if let Some(target_metadata) = target.get_mut(url) {
+            merge_resource_metadata(target_metadata, source_metadata);
+        } else {
+            target.insert(url.clone(), source_metadata.clone());
+        }
+    }
+}
+
+fn merge_options(target: &mut Vec<Component>, source: &[Component]) {
+    for source_option in source {
+        if let Some(target_option) = target.iter_mut().find(|option| {
+            option
+                .name
+                .trim()
+                .eq_ignore_ascii_case(source_option.name.trim())
+        }) {
+            if target_option.guid.is_empty() && !source_option.guid.is_empty() {
+                target_option.guid.clone_from(&source_option.guid);
+            }
+            if !source_option.description.trim().is_empty() {
+                target_option
+                    .description
+                    .clone_from(&source_option.description);
+            }
+            union(&mut target_option.dependencies, &source_option.dependencies);
+            union(&mut target_option.restrictions, &source_option.restrictions);
+            merge_instructions(&mut target_option.instructions, &source_option.instructions);
+            merge_resources(
+                &mut target_option.resource_registry,
+                &source_option.resource_registry,
+            );
+            merge_options(&mut target_option.options, &source_option.options);
+        } else {
+            target.push(source_option.clone());
+        }
+    }
+}
+
 fn update(
     target: &mut Component,
     source: &Component,
@@ -160,21 +260,14 @@ fn update(
     union(&mut target.install_before, &source.install_before);
     union(&mut target.install_after, &source.install_after);
     if !prefer_source {
-        for (url, metadata) in &source.resource_registry {
-            target
-                .resource_registry
-                .entry(url.clone())
-                .or_insert_with(|| metadata.clone());
-        }
-        for instruction in &source.instructions {
-            if !target.instructions.iter().any(|known| {
-                known.action.eq_ignore_ascii_case(&instruction.action)
-                    && known
-                        .destination
-                        .eq_ignore_ascii_case(&instruction.destination)
-            }) {
-                target.instructions.push(instruction.clone());
-            }
-        }
+        merge_resources(&mut target.resource_registry, &source.resource_registry);
+        merge_instructions(&mut target.instructions, &source.instructions);
+        merge_options(&mut target.options, &source.options);
+    }
+    for (key, value) in &source.metadata {
+        target
+            .metadata
+            .entry(key.clone())
+            .or_insert_with(|| value.clone());
     }
 }
