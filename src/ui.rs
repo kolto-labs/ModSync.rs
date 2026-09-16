@@ -15,6 +15,7 @@ enum Message {
     Downloaded(PathBuf, modsync::archive::Options),
     Conflicts(modsync::conflicts::Report),
     Log(String),
+    Updates(Guide, modsync::updates::Summary),
     Done(Result<()>),
 }
 #[derive(Clone, Copy, PartialEq)]
@@ -24,6 +25,7 @@ enum Job {
     Install,
     Restore,
     Download,
+    Update,
 }
 
 pub struct App {
@@ -527,6 +529,7 @@ impl App {
                 Job::Install => "Installing…",
                 Job::Restore => "Restoring snapshot…",
                 Job::Download => "Downloading…",
+                Job::Update => "Checking Nexus updates…",
             }
             .into(),
         );
@@ -586,6 +589,53 @@ impl App {
             let _ = tx.send(Message::Done(result));
             ctx.request_repaint();
         });
+    }
+
+    fn start_update_check(&mut self, ctx: &egui::Context) {
+        let Some(guide) = self.guide.clone() else {
+            self.logs
+                .push("Load a guide before checking Nexus updates.".into());
+            return;
+        };
+        let directory = PathBuf::from(&self.profile_directory);
+        let key = (|| -> Result<String> {
+            anyhow::ensure!(
+                !directory.as_os_str().is_empty(),
+                "Choose a settings directory"
+            );
+            modsync::profiles::Store::new(&directory)?
+                .nexus_api_key()?
+                .filter(|key| !key.trim().is_empty())
+                .ok_or_else(|| {
+                    anyhow::anyhow!(
+                        "Set nexusModsApiKey in settings.json before checking for updates"
+                    )
+                })
+        })();
+        let key = match key {
+            Ok(key) => key,
+            Err(error) => {
+                self.logs.push(format!("Nexus update check: {error:#}"));
+                return;
+            }
+        };
+        let (tx, rx) = mpsc::channel();
+        self.receiver = Some(rx);
+        self.job = Job::Update;
+        self.cancelled.store(false, Ordering::Relaxed);
+        std::thread::spawn(move || {
+            let mut guide = guide;
+            let result = (|| -> Result<()> {
+                let mut client = modsync::updates::NexusClient::new(Some(key))?;
+                let summary = modsync::updates::check(&mut guide, &mut client);
+                std::fs::create_dir_all(&directory)?;
+                modsync::updates::save_summary(&directory, &summary)?;
+                tx.send(Message::Updates(guide, summary))?;
+                Ok(())
+            })();
+            let _ = tx.send(Message::Done(result));
+        });
+        ctx.request_repaint();
     }
 
     fn path_row(ui: &mut egui::Ui, label: &str, value: &mut String, folder: bool) -> bool {
@@ -656,6 +706,25 @@ impl eframe::App for App {
                 }
                 Message::Conflicts(report) => self.conflicts = Some(report),
                 Message::Log(line) => self.logs.push(line),
+                Message::Updates(guide, summary) => {
+                    self.guide = Some(guide);
+                    self.logs.push(format!(
+                        "Nexus update check: checked {}, skipped {}, found {} updates{}{}.",
+                        summary.checked_count,
+                        summary.skipped_count,
+                        summary.updates_found.len(),
+                        if summary.rate_limit_reached {
+                            "; rate limit reached"
+                        } else {
+                            ""
+                        },
+                        if summary.errors.is_empty() {
+                            String::new()
+                        } else {
+                            format!("; {} errors", summary.errors.len())
+                        },
+                    ));
+                }
                 Message::Done(result) => {
                     self.receiver = None;
                     if self.job == Job::Install {
@@ -672,7 +741,7 @@ impl eframe::App for App {
                         self.installed_phase();
                     }
                     self.validated = result.is_ok() && self.job == Job::Validate;
-                    self.logs.push(match result { Ok(()) => match self.job { Job::Conflicts => "Conflict analysis complete. Review the report and its limitations.", Job::Validate => "Validation passed. External program effects, if any, remain unverified.", Job::Install => "Installation complete.", Job::Restore => "Snapshot restored and file hashes verified.", Job::Download => "Archive downloaded and integrity checked." }.into(), Err(e) => format!("Stopped: {e:#}") });
+                    self.logs.push(match result { Ok(()) => match self.job { Job::Conflicts => "Conflict analysis complete. Review the report and its limitations.", Job::Validate => "Validation passed. External program effects, if any, remain unverified.", Job::Install => "Installation complete.", Job::Restore => "Snapshot restored and file hashes verified.", Job::Download => "Archive downloaded and integrity checked.", Job::Update => "Nexus update check complete." }.into(), Err(e) => format!("Stopped: {e:#}") });
                 }
             }
         }
@@ -794,6 +863,9 @@ impl eframe::App for App {
                     if ui.add_enabled(self.guide.is_some(), egui::Button::new("Choose mods →")).clicked() { self.page = 1; }
                 }
                 1 => {
+                    if ui.add_enabled(self.guide.is_some(), egui::Button::new("Check Nexus updates")).clicked() {
+                        self.start_update_check(ctx);
+                    }
                     let Some(g) = &mut self.guide else { ui.label("Load a guide first."); return; };
                     ui.horizontal(|ui| {
                         if ui.button("Select all").clicked() { modsync::selection::select_visible(&mut g.components, &self.search, &self.tier_filter, &self.category_filter, self.spoiler_free); self.validated = false; self.conflicts = None; self.confirm_install = false; }
@@ -877,6 +949,7 @@ impl eframe::App for App {
                                             ui.horizontal(|ui| {
                                                 if ui.checkbox(&mut c.is_selected, "").on_hover_text("Select component").changed() { self.validated = false; self.conflicts = None; }
                                                 if ui.selectable_label(self.selected == *index, modsync::selection::display_name(c, self.spoiler_free)).on_hover_text(modsync::selection::tooltip(c, self.spoiler_free)).clicked() { self.selected = *index; }
+                                                if modsync::updates::component_update_available(c) { ui.label("Update").on_hover_text("A newer version is available on Nexus Mods"); }
                                             });
                                         }
                                     });

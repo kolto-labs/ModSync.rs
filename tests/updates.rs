@@ -165,3 +165,13 @@ fn nexus_validation_and_md5_inputs_fail_closed_without_a_request() {
     assert!(!client.validate().unwrap().is_valid);
     assert!(client.md5_search("kotor", " ").is_err());
 }
+
+#[test]
+fn component_badge_reflects_any_resource_update_flag() {
+    let guide = Guide::parse(
+        r#"[{"Guid":"one","Name":"One","ResourceRegistry":{"https://example.com/a":{"UpdateAvailable":false},"https://www.nexusmods.com/kotor/mods/1":{"UpdateAvailable":true}}}]"#,
+        "json",
+    )
+    .unwrap();
+    assert!(updates::component_update_available(&guide.components[0]));
+}

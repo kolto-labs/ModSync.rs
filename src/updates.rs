@@ -1,4 +1,4 @@
-use crate::Guide;
+use crate::{Component, Guide};
 use anyhow::Result;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use serde_json::{Value, json};
@@ -307,6 +307,15 @@ pub fn check(guide: &mut Guide, client: &mut NexusClient) -> Summary {
         }
     }
     summary
+}
+
+pub fn component_update_available(component: &Component) -> bool {
+    component.resource_registry.values().any(|metadata| {
+        metadata
+            .get("UpdateAvailable")
+            .and_then(Value::as_bool)
+            .unwrap_or(false)
+    })
 }
 
 fn apply_metadata(
