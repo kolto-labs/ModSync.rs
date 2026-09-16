@@ -207,7 +207,7 @@ impl NexusClient {
             .or_else(|| {
                 reqwest::Url::parse(uri)
                     .ok()
-                    .and_then(|url| url.path_segments()?.last().map(str::to_owned))
+                    .and_then(|url| url.path_segments()?.next_back().map(str::to_owned))
             })
             .filter(|name| !name.is_empty())
             .unwrap_or_else(|| format!("nexus_{game_domain}_{mod_id}_{file_id}"));

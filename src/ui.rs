@@ -13,6 +13,7 @@ use std::{
 
 enum Message {
     Downloaded(PathBuf, modsync::archive::Options),
+    NxmDownloaded(modsync::protocol::NxmComponentMatch, String),
     Conflicts(modsync::conflicts::Report),
     Log(String),
     Updates(Guide, modsync::updates::Summary),
@@ -25,6 +26,7 @@ enum Job {
     Install,
     Restore,
     Download,
+    NxmDownload,
     Update,
 }
 
@@ -73,6 +75,7 @@ pub struct App {
     download_hash: String,
     pending_protocol: Option<String>,
     pending_nxm: Option<String>,
+    nxm_record_error: Option<String>,
 }
 
 impl App {
@@ -128,6 +131,7 @@ impl App {
             download_hash: String::new(),
             pending_protocol: None,
             pending_nxm: None,
+            nxm_record_error: None,
         };
         if !app.input.is_empty() {
             app.load();
@@ -199,11 +203,11 @@ impl App {
         let Some(raw) = self.pending_nxm.take() else {
             return;
         };
-        let result = (|| -> Result<()> {
+        let result = (|| -> Result<_> {
             let link = modsync::protocol::parse(&raw)?;
             let guide = self
                 .guide
-                .as_mut()
+                .as_ref()
                 .ok_or_else(|| anyhow::anyhow!("Load an instruction file first"))?;
             let (status, matched) = modsync::protocol::resolve_nxm(&link, &guide.components);
             anyhow::ensure!(
@@ -215,26 +219,53 @@ impl App {
                 !self.mods.trim().is_empty(),
                 "Set a mod download directory first"
             );
-            let mut client = modsync::updates::NexusClient::new(Some(self.nexus_api_key.clone()))?;
-            let download_link = client.nxm_download_link(&link)?;
-            let output = Path::new(&self.mods).join(&download_link.file_name);
-            modsync::download::fetch(&download_link.uri, &output, None, &AtomicBool::new(false))?;
-            let component = guide
-                .components
-                .iter_mut()
-                .find(|component| component.guid == matched.component_guid)
-                .ok_or_else(|| anyhow::anyhow!("Resolved component changed before download"))?;
-            modsync::updates::record_nxm_download(
-                component,
-                &matched.registry_url,
-                &download_link.file_name,
-            )?;
-            Ok(())
+            Ok((link, matched))
         })();
-        self.logs.push(match result {
-            Ok(()) => "Nexus handoff download complete.".into(),
-            Err(error) => format!("Nexus handoff failed: {error:#}"),
+        let (link, matched) = match result {
+            Ok(value) => value,
+            Err(error) => {
+                self.logs.push(format!("Nexus handoff failed: {error:#}"));
+                return;
+            }
+        };
+        let mods = PathBuf::from(&self.mods);
+        let key = self.nexus_api_key.clone();
+        let cancelled = Arc::new(AtomicBool::new(false));
+        self.cancelled = cancelled.clone();
+        let (tx, rx) = mpsc::channel();
+        self.receiver = Some(rx);
+        self.job = Job::NxmDownload;
+        self.nxm_record_error = None;
+        self.logs.push("Downloading linked Nexus file…".into());
+        std::thread::spawn(move || {
+            let result = (|| -> Result<()> {
+                let mut client = modsync::updates::NexusClient::new(Some(key))?;
+                let download_link = client.nxm_download_link(&link)?;
+                let output = mods.join(&download_link.file_name);
+                modsync::download::fetch(&download_link.uri, &output, None, &cancelled)?;
+                tx.send(Message::NxmDownloaded(matched, download_link.file_name))?;
+                Ok(())
+            })();
+            let _ = tx.send(Message::Done(result));
         });
+    }
+
+    fn record_nxm_download(
+        &mut self,
+        matched: modsync::protocol::NxmComponentMatch,
+        file_name: &str,
+    ) -> Result<()> {
+        let component = self
+            .guide
+            .as_mut()
+            .and_then(|guide| {
+                guide
+                    .components
+                    .iter_mut()
+                    .find(|component| component.guid == matched.component_guid)
+            })
+            .ok_or_else(|| anyhow::anyhow!("Resolved component changed before download"))?;
+        modsync::updates::record_nxm_download(component, &matched.registry_url, file_name)
     }
 
     fn apply_category_selection(&mut self) {
@@ -605,6 +636,7 @@ impl App {
                 Job::Install => "Installing…",
                 Job::Restore => "Restoring snapshot…",
                 Job::Download => "Downloading…",
+                Job::NxmDownload => "Downloading linked Nexus file…",
                 Job::Update => "Checking Nexus updates…",
             }
             .into(),
@@ -780,6 +812,11 @@ impl eframe::App for App {
                         }
                     }
                 }
+                Message::NxmDownloaded(matched, file_name) => {
+                    if let Err(error) = self.record_nxm_download(matched, &file_name) {
+                        self.nxm_record_error = Some(format!("{error:#}"));
+                    }
+                }
                 Message::Conflicts(report) => self.conflicts = Some(report),
                 Message::Log(line) => self.logs.push(line),
                 Message::Updates(guide, summary) => {
@@ -803,6 +840,14 @@ impl eframe::App for App {
                 }
                 Message::Done(result) => {
                     self.receiver = None;
+                    let result = if self.job == Job::NxmDownload {
+                        match self.nxm_record_error.take() {
+                            Some(error) => Err(anyhow::anyhow!(error)),
+                            None => result,
+                        }
+                    } else {
+                        result
+                    };
                     if self.job == Job::Install {
                         self.phase_failed = result.is_err()
                             && Settings::new(Path::new(&self.mods), Path::new(&self.game))
@@ -817,7 +862,7 @@ impl eframe::App for App {
                         self.installed_phase();
                     }
                     self.validated = result.is_ok() && self.job == Job::Validate;
-                    self.logs.push(match result { Ok(()) => match self.job { Job::Conflicts => "Conflict analysis complete. Review the report and its limitations.", Job::Validate => "Validation passed. External program effects, if any, remain unverified.", Job::Install => "Installation complete.", Job::Restore => "Snapshot restored and file hashes verified.", Job::Download => "Archive downloaded and integrity checked.", Job::Update => "Nexus update check complete." }.into(), Err(e) => format!("Stopped: {e:#}") });
+                    self.logs.push(match result { Ok(()) => match self.job { Job::Conflicts => "Conflict analysis complete. Review the report and its limitations.", Job::Validate => "Validation passed. External program effects, if any, remain unverified.", Job::Install => "Installation complete.", Job::Restore => "Snapshot restored and file hashes verified.", Job::Download => "Archive downloaded and integrity checked.", Job::NxmDownload => "Nexus handoff download complete.", Job::Update => "Nexus update check complete." }.into(), Err(e) => format!("Stopped: {e:#}") });
                 }
             }
         }
@@ -1393,6 +1438,30 @@ mod tests {
             Message::Done(Ok(()))
         ));
         assert_eq!(std::fs::read_dir(&game).unwrap().count(), 0);
+    }
+
+    #[test]
+    fn nxm_completion_marks_only_the_resolved_registry_file() {
+        let mut app = App::new(None, None, None);
+        app.guide = Some(Guide::parse(
+            r#"{"thisMod":[{"Guid":"component","Name":"Component","ResourceRegistry":{"https://www.nexusmods.com/kotor/mods/9":{"Files":{}}}}]}"#,
+            "json",
+        )
+        .unwrap());
+        app.record_nxm_download(
+            modsync::protocol::NxmComponentMatch {
+                component_guid: "component".into(),
+                component_name: String::new(),
+                registry_url: "https://www.nexusmods.com/kotor/mods/9".into(),
+            },
+            "archive.zip",
+        )
+        .unwrap();
+        assert_eq!(
+            app.guide.as_ref().unwrap().components[0].resource_registry["https://www.nexusmods.com/kotor/mods/9"]
+                ["Files"]["archive.zip"],
+            true
+        );
     }
 
     #[test]
