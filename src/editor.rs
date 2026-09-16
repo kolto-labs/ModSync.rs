@@ -1,6 +1,26 @@
 use crate::{Component, Instruction};
 use anyhow::{Result, bail};
 
+pub fn add_component(components: &mut Vec<Component>) -> usize {
+    let mut number = components.len() + 1;
+    let guid = loop {
+        let candidate = format!("component-{number}");
+        if components
+            .iter()
+            .all(|component| !component.guid.eq_ignore_ascii_case(&candidate))
+        {
+            break candidate;
+        }
+        number += 1;
+    };
+    components.push(Component {
+        guid: guid.clone(),
+        name: guid,
+        ..Default::default()
+    });
+    components.len() - 1
+}
+
 pub fn move_component(components: &mut [Component], guid: &str, offset: isize) -> Result<()> {
     let index = components
         .iter()
@@ -58,4 +78,11 @@ pub fn add_instruction(component: &mut Component, index: usize) -> Result<()> {
         },
     );
     Ok(())
+}
+
+pub fn remove_instruction(component: &mut Component, index: usize) -> Result<Instruction> {
+    if index >= component.instructions.len() {
+        bail!("Instruction removal is out of range");
+    }
+    Ok(component.instructions.remove(index))
 }

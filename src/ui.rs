@@ -885,6 +885,201 @@ impl App {
         }
         changed
     }
+
+    fn edit_lines(ui: &mut egui::Ui, label: &str, values: &mut Vec<String>) {
+        ui.label(label);
+        let mut text = values.join("\n");
+        if ui
+            .add(egui::TextEdit::multiline(&mut text).desired_rows(2))
+            .changed()
+        {
+            *values = text
+                .lines()
+                .map(str::trim)
+                .filter(|line| !line.is_empty())
+                .map(str::to_owned)
+                .collect();
+        }
+    }
+
+    fn guide_editor(&mut self, ui: &mut egui::Ui) {
+        ui.heading("Guide editor");
+        ui.label("Edit components and executable instructions, then save a new guide file.");
+        let mut save = false;
+        ui.horizontal(|ui| {
+            if ui.button("Add component").clicked()
+                && let Some(guide) = &mut self.guide
+            {
+                self.selected = modsync::editor::add_component(&mut guide.components);
+            }
+            save = ui
+                .add_enabled(self.guide.is_some(), egui::Button::new("Save guide as…"))
+                .clicked();
+        });
+        if save
+            && let Some(path) = rfd::FileDialog::new()
+                .set_file_name("modsync-guide.toml")
+                .save_file()
+        {
+            let result = self
+                .guide
+                .as_ref()
+                .ok_or_else(|| anyhow::anyhow!("Load a guide first"))
+                .and_then(|guide| guide.save(&path));
+            self.logs.push(match result {
+                Ok(()) => format!("Saved edited guide to {}.", path.display()),
+                Err(error) => format!("Guide save failed: {error:#}"),
+            });
+        }
+
+        let Some(guide) = &mut self.guide else {
+            ui.label("Load a guide first.");
+            return;
+        };
+        if guide.components.is_empty() {
+            return;
+        }
+        self.selected = self.selected.min(guide.components.len() - 1);
+        egui::ComboBox::from_id_salt("editor-component")
+            .selected_text(&guide.components[self.selected].name)
+            .show_ui(ui, |ui| {
+                for (index, component) in guide.components.iter().enumerate() {
+                    ui.selectable_value(&mut self.selected, index, &component.name);
+                }
+            });
+
+        let guid = guide.components[self.selected].guid.clone();
+        let mut component_action = None;
+        ui.horizontal(|ui| {
+            if ui
+                .add_enabled(self.selected > 0, egui::Button::new("Move up"))
+                .clicked()
+            {
+                component_action = Some(-1);
+            }
+            if ui
+                .add_enabled(
+                    self.selected + 1 < guide.components.len(),
+                    egui::Button::new("Move down"),
+                )
+                .clicked()
+            {
+                component_action = Some(1);
+            }
+            if ui.button("Remove component").clicked() {
+                component_action = Some(0);
+            }
+        });
+        if let Some(offset) = component_action {
+            let result = if offset == 0 {
+                modsync::editor::remove_component(&mut guide.components, &guid).map(|_| ())
+            } else {
+                modsync::editor::move_component(&mut guide.components, &guid, offset)
+            };
+            match result {
+                Ok(()) => {
+                    self.selected = self
+                        .selected
+                        .checked_add_signed(offset)
+                        .unwrap_or(self.selected)
+                        .min(guide.components.len().saturating_sub(1));
+                    self.validated = false;
+                }
+                Err(error) => self.logs.push(format!("Edit failed: {error:#}")),
+            }
+            return;
+        }
+
+        let component = &mut guide.components[self.selected];
+        egui::Grid::new("component-fields")
+            .num_columns(2)
+            .show(ui, |ui| {
+                for (label, value) in [
+                    ("GUID", &mut component.guid),
+                    ("Name", &mut component.name),
+                    ("Author", &mut component.author),
+                    ("Tier", &mut component.tier),
+                ] {
+                    ui.label(label);
+                    ui.text_edit_singleline(value);
+                    ui.end_row();
+                }
+            });
+        ui.label("Description");
+        ui.text_edit_multiline(&mut component.description);
+        ui.label("Directions");
+        ui.text_edit_multiline(&mut component.directions);
+        Self::edit_lines(ui, "Categories (one per line)", &mut component.category);
+        Self::edit_lines(
+            ui,
+            "Dependencies (GUIDs, one per line)",
+            &mut component.dependencies,
+        );
+        Self::edit_lines(
+            ui,
+            "Restrictions (GUIDs, one per line)",
+            &mut component.restrictions,
+        );
+
+        ui.separator();
+        ui.heading("Instructions");
+        let mut instruction_action = None;
+        let instruction_count = component.instructions.len();
+        for index in 0..instruction_count {
+            ui.group(|ui| {
+                let instruction = &mut component.instructions[index];
+                ui.horizontal(|ui| {
+                    ui.strong(format!("Step {}", index + 1));
+                    if ui.add_enabled(index > 0, egui::Button::new("↑")).clicked() {
+                        instruction_action = Some((index, -1));
+                    }
+                    if ui
+                        .add_enabled(index + 1 < instruction_count, egui::Button::new("↓"))
+                        .clicked()
+                    {
+                        instruction_action = Some((index, 1));
+                    }
+                    if ui.button("Remove").clicked() {
+                        instruction_action = Some((index, 0));
+                    }
+                });
+                ui.horizontal(|ui| {
+                    ui.label("Action");
+                    ui.text_edit_singleline(&mut instruction.action);
+                    ui.checkbox(&mut instruction.overwrite, "Overwrite");
+                });
+                Self::edit_lines(ui, "Sources (one per line)", &mut instruction.source);
+                ui.horizontal(|ui| {
+                    ui.label("Destination");
+                    ui.text_edit_singleline(&mut instruction.destination);
+                });
+                ui.horizontal(|ui| {
+                    ui.label("Arguments");
+                    ui.text_edit_singleline(&mut instruction.arguments);
+                });
+            });
+        }
+        if let Some((index, offset)) = instruction_action {
+            let result = if offset == 0 {
+                modsync::editor::remove_instruction(component, index).map(|_| ())
+            } else {
+                modsync::editor::move_instruction(component, index, offset)
+            };
+            if let Err(error) = result {
+                self.logs.push(format!("Edit failed: {error:#}"));
+            }
+        }
+        if ui.button("Add instruction").clicked()
+            && let Err(error) =
+                modsync::editor::add_instruction(component, component.instructions.len())
+        {
+            self.logs.push(format!("Edit failed: {error:#}"));
+        }
+        self.validated = false;
+        self.conflicts = None;
+        self.validation_report = None;
+        self.confirm_install = false;
+    }
 }
 
 impl eframe::App for App {
@@ -1042,9 +1237,14 @@ impl eframe::App for App {
             ui.add_enabled_ui(!busy, |ui| {
                 ui.add_enabled_ui(self.completed_base.is_none(), |ui| self.profiles(ui));
                 ui.horizontal(|ui| {
-                    for (n, title) in ["1  Load guide", "2  Choose mods", "3  Validate and install"]
-                        .iter()
-                        .enumerate()
+                    for (n, title) in [
+                        "1  Load guide",
+                        "2  Choose mods",
+                        "3  Validate and install",
+                        "4  Edit guide",
+                    ]
+                    .iter()
+                    .enumerate()
                     {
                         if ui
                             .add_enabled(
@@ -1292,7 +1492,7 @@ impl eframe::App for App {
                         });
                     });
                 }
-                _ => {
+                2 => {
                     if self.finished {
                         ui.heading("Installation complete");
                         ui.label("The selected installation phases are complete.");
@@ -1447,6 +1647,7 @@ impl eframe::App for App {
                         if ui.button("Download archive").clicked() { self.start(Job::Download, ctx); }
                     });
                 }
+                _ => self.guide_editor(ui),
             });
         });
         if let Some(categories) = &mut self.category_selection {
