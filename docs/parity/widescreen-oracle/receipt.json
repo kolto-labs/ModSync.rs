@@ -1,0 +1,20 @@
+{
+  "reference_dll": "/home/brunner56/.cache/modsync-rs-reference-build/bin/ModSync.Core/debug_net9.0/ModSync.Core.dll",
+  "reference_dll_sha256": "8f3b1e3f8fe47b2cc6f8e3f281912506721c7367218381bb2a35cf86dc5768f0",
+  "runtime": "Microsoft.NETCore.App 10.0.11; probe targets net9.0",
+  "isolation": "bubblewrap read-only root, private /dev /tmp config/share, network namespace disabled, only fixture root writable",
+  "configuration": "NoCheckpoint=true via reflection; default bulk ordering; default unmanaged settings",
+  "result": {
+    "Bulk": "Success",
+    "AfterBulk": "first",
+    "StateAfterBulk": "Completed",
+    "Single": "Success",
+    "AfterSingle": "second"
+  },
+  "limitations": [
+    "Service-level reproduction, not GUI navigation",
+    "No checkpoints exercised",
+    "No initially-unselected, zero-selection, base-dependency or failure cases yet",
+    "net9 runtime failed on DiagnosticSource assembly version; successful run uses installed net10"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "Bulk": "Success",
+  "AfterBulk": "first",
+  "StateAfterBulk": "Completed",
+  "Single": "Success",
+  "AfterSingle": "second"
+}

@@ -28,3 +28,11 @@ Do not claim that the C# base engine already excludes widescreen just because it
 5. Bind recovery to the phase boundary: a widescreen failure must restore the verified pre-widescreen snapshot, retain the completed base install, and prohibit continuing past the failed step. No full parity claim until isolated failure/retry and native navigation are verified.
 
 The Rust single selection page and engine still execute a single guide. Existing grouping/count/filter checks do not prove phased installation, resume or widescreen correctness.
+
+## Live service reproduction
+
+`widescreen-oracle/` contains the probe, project, output, reference log and DLL-bound receipt. The bulk service installed the initially selected widescreen Copy and marked it Completed. After changing only the source bytes from `first` to `second`, the single-component service installed it again and returned Success. Default bulk ordering was used. NoCheckpoint was enabled to avoid unrelated backup machinery. Network and host writes were isolated with bubblewrap.
+
+This upgrades the double-execution finding from source inference to service-level reproduction. It does not prove GUI navigation, checkpoint behavior, initially unselected/zero-selection behavior, or cross-phase dependencies. The net9 attempt failed on a DiagnosticSource version conflict; the successful probe ran under installed .NET 10.0.11 against the same reference DLL.
+
+The Rust phase implementation must prevent this observed duplicate execution, explicitly documenting it as a reference defect correction under the user's guide-order/no-backfill constraint. Next work remains the untested dependency and failure cases, then phase-scoped execution with completed-base context and verified recovery boundaries.

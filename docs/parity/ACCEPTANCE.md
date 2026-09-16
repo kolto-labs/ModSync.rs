@@ -229,3 +229,5 @@ F04/F24 grouping checkpoint: category headers, ordered rows, per-group selection
 F04/F24 native group checkpoint: expand/collapse, filtered group selection and counts verified on Linux; see `native-groups/receipt.json`. Full expansion lifecycle, separate widescreen flow and other platforms remain open.
 
 F10/F24 widescreen investigation: `WIDESCREEN.md` and source hashes distinguish base UI counts from actual reference execution. A possible duplicate invocation requires live reproduction before implementing phase splitting; this is new source evidence, not phase completion.
+
+F10/F24 reference defect evidence: isolated bulk/single service calls reproduced widescreen re-execution despite Completed state. DLL-bound receipt in `widescreen-oracle/`; GUI/checkpoint/dependency/failure paths remain open.
