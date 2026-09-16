@@ -225,3 +225,5 @@ F04/F24 native selection receipt: `native-selection/receipt.json` binds Linux in
 F04/F24 empty-state checkpoint: no-results messaging and filtered detail visibility verified through native Linux search and clear-filter input; see `native-empty-selection/receipt.json`. Selection remains unchanged. Other platforms and accessibility remain unverified.
 
 F04/F24 grouping checkpoint: category headers, ordered rows, per-group selection and expand/collapse controls added. Shared display-order regression passes without changing guide order. Native interaction, expansion-state lifecycle and separate widescreen flow remain open.
+
+F04/F24 native group checkpoint: expand/collapse, filtered group selection and counts verified on Linux; see `native-groups/receipt.json`. Full expansion lifecycle, separate widescreen flow and other platforms remain open.

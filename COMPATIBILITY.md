@@ -299,3 +299,7 @@ The desktop now shows an explicit no-results message and recovery hint when no r
 ### Category grouping and expansion
 
 Filtered selection rows now group by the first category (Other when absent), using ordinal UTF-16 category and raw-name ordering while retaining original guide indices for installation. Groups start collapsed and expose selected counts, select/deselect-group actions and global expand/collapse controls. Individual expansion uses egui retained state. Regression covers first-category grouping, secondary-category filtering, raw-name ordering in safe mode, empty matches and unchanged source order. Native group interaction and precise expansion-state lifecycle parity remain unverified. The existing single-page widescreen exposure also remains; group actions currently operate on all displayed members.
+
+### Native group controls
+
+Linux native input at commit `8ba677c` verified initial collapse, expand/collapse all, counts, filtered group deselection, restored selection and retained expansion through the exercised search/clear cycle. Evidence and binary hash: `docs/parity/native-groups/receipt.json`. This supersedes native-unverified notes for these paths only. Exact C# state lifecycle, separate widescreen handling, accessibility and other platforms remain unverified or incomplete. Installation order was not exercised in this GUI session; the shared grouping regression remains its current proof.

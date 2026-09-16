@@ -1,0 +1,20 @@
+{
+  "tested_commit": "8ba677c60fd91ea9ada1de649720696ce31da944",
+  "binary_sha256": "271e6d8af4e82d5abf655611efbdae2f50ff39cf9c3245cfc6610ab987c12845",
+  "fixture": "../native-selection/guide.json",
+  "environment": "Linux X11 native egui, Xvfb :904, xdotool",
+  "checks": [
+    "Category groups start collapsed with correct selected counts",
+    "Expand all opens Fix and Texture",
+    "Search Beta leaves Texture expanded with one matching member",
+    "Deselect filtered group then clear filters leaves Beta unselected and Alpha/Wide selected",
+    "Select partially selected Texture group restores Beta",
+    "Collapse all closes both groups and retains selections"
+  ],
+  "limitations": [
+    "Guide-order preservation is covered by existing regression, not a native installation here",
+    "No exact C# expansion lifecycle comparison",
+    "Widescreen remains in the single Rust list",
+    "No Windows/macOS or accessibility checks"
+  ]
+}
