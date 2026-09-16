@@ -1,0 +1,28 @@
+{
+  "tested_commit": "4bdd53a5de2930825ce927a5730c61e08c60fed8",
+  "binary_sha256": "2004af40c6fda635c7ecfd97fcc10b3b1f2c5e0888a960a2cf53513f54b3fd8b",
+  "environment": "Linux X11, Xvfb :912, xdotool native mouse and keyboard",
+  "checks": [
+    "Analyze conflicts completed through the desktop validation page",
+    "Collapsed report displayed one path across two analyzed components",
+    "Expanded destination listed First writer then Last writer",
+    "Last writer was visibly labeled as the winning write",
+    "Changing component selection removed the stale report",
+    "Game directory remained empty",
+    "Mod directory retained only the two original source files"
+  ],
+  "limitations": [
+    "Copy-only two-component fixture",
+    "Copy-to-clipboard output was not inspected",
+    "No Windows or macOS desktop proof",
+    "No patcher or external-process conflict attribution"
+  ],
+  "files": {
+    "guide.json": "93f5eac317038d22abff1dba456366b5ce58ff2654d15cc7500bd8d3dc715c1a",
+    "first-asset.txt": "b640e840b19d378660b32fb51ae18d67dccb4a8596a29e7bd72c1b2ae5928f41",
+    "last-asset.txt": "761d1fb145ca8c7130231412276df60f34dd34554c4d174b973a45e3222475a9",
+    "report-collapsed.png": "63f837cfe17480275ce81a16764e01bb2392ea58ad8436290a81002d3406dc4a",
+    "writers.png": "db7a1cdaea95fba43b8cad41252fc4a248cd881209538fb0798d6455ebcedf96",
+    "stale-cleared.png": "31e1b6049bdee61f345c104592540d415d56fa6e1bf36690cff957be6c2a93e2"
+  }
+}

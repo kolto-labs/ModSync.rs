@@ -525,3 +525,7 @@ The validation page can now run shared conflict analysis in its background worke
 ### C# conflict-service differential fixture
 
 The pinned C# FileConflictAnalyzer was executed in a network-disabled, read-only-root sandbox with only an isolated fixture writable. Its report agrees with Rust on destination, ordered writers, latest instruction index per writer, last writer, per-component counts and analyzed count for repeated Copy instructions, overwrite=false and staging exclusions. The Rust regression consumes the captured C# result; probe source, DLL hash, result and boundaries are recorded in docs/parity/conflict-oracle. Both analyzers leave the fixture game empty. This is one service-level fixture, not full conflict parity or native desktop acceptance.
+
+### Native desktop conflict-report acceptance
+
+At commit 4bdd53a, an isolated Linux X11 run started conflict analysis from the validation page, displayed one conflict across two analyzed components, expanded its destination, and showed both writers in install order with the final writer labeled. Changing the component selection removed the stale report. The game tree remained empty and the mod tree retained only its two source files. Screenshots, fixture inputs, the binary hash, and proof boundaries are recorded in `docs/parity/native-conflicts/receipt.json`. Clipboard contents, other platforms, patchers, and broader instruction combinations remain unverified.
