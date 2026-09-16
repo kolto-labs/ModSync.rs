@@ -2,7 +2,7 @@ mod profile_cli;
 use anyhow::{Context, Result, ensure};
 use clap::{Args, Parser, Subcommand};
 use modsync::{Engine, Guide, Settings, download, paths::Roots, recovery};
-use std::{path::PathBuf, sync::atomic::AtomicBool};
+use std::{ffi::OsString, path::PathBuf, sync::atomic::AtomicBool};
 
 #[cfg(feature = "desktop")]
 mod fomod_ui;
@@ -20,6 +20,8 @@ struct Cli {
 }
 #[derive(Subcommand)]
 enum Action {
+    #[command(external_subcommand)]
+    ProtocolHandoff(Vec<OsString>),
     /// Manage non-destructive staged deployments and their manifests.
     Deployment(DeploymentArgs),
     /// Manage stored install profiles.
@@ -269,6 +271,20 @@ struct InstallArgs {
 
 fn run() -> Result<()> {
     match Cli::parse().command {
+        Some(Action::ProtocolHandoff(arguments)) => {
+            ensure!(
+                arguments.len() == 1,
+                "Protocol handoff accepts exactly one URL"
+            );
+            let raw = arguments[0]
+                .to_str()
+                .context("Protocol URL must be valid UTF-8")?;
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&modsync::protocol::parse(raw)?)?
+            );
+            Ok(())
+        }
         None => gui(None, None, None, None),
         Some(Action::Gui {
             settings_dir,

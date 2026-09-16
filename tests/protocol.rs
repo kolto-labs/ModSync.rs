@@ -132,3 +132,15 @@ fn protocol_resolve_cli_reports_a_read_only_match() {
     assert_eq!(output["Status"], "Matched");
     assert_eq!(output["Match"]["ComponentName"], "Target");
 }
+
+#[test]
+fn bare_protocol_url_is_accepted_like_a_registered_handler_invocation() {
+    let result = Command::new(env!("CARGO_BIN_EXE_modsync"))
+        .arg("nxm://kotor/mods/12/files/34")
+        .output()
+        .unwrap();
+    assert!(result.status.success());
+    let output: serde_json::Value = serde_json::from_slice(&result.stdout).unwrap();
+    assert_eq!(output["scheme"], "nxm");
+    assert_eq!(output["mod_id"], 12);
+}
