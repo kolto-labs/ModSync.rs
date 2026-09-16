@@ -130,3 +130,7 @@ The C# best-effort install flags must be reconciled with the user's explicit rul
 - Fifteen live C# JSON-loader cases: fourteen exact matches and one explicitly retained modern Files-map loss difference. Rust round-trips the resulting data through all four structured formats. These receipts do not certify all URI/format/option behaviors or download/cache integration.
 - An isolated legacy-guide flow reaches local archive inference, validation without game writes, and installation with expected texture bytes. F01/F12 remain partial.
 - Native CI run 35058728745 passed for preceding augmentation commit `78774c295fc00be4be5a4ddc6b62fbf9fdba042b`.
+
+### Duplicate legacy URLs
+
+- Corrected filename-map consolidation before legacy resource insertion: last map wins, first key spelling/order survives, and existing registry/ModLink precedence is unchanged. Expanded the live JSON-loader corpus from 15 to 18 cases. This closes the observed duplicate-URL mismatch; F01/F12 remain partial, including the modern Files-map difference.

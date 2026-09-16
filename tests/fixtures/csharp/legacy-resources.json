@@ -225,5 +225,62 @@
         "FileSize": 0
       }
     ]
+  },
+  {
+    "Name": "duplicate-legacy-url",
+    "ResourceRegistry": [
+      {
+        "Url": "https://example.com/repeated",
+        "ContentKey": "a2d63f2be7694fe0bbc22fab3225e0a0e893c7bc",
+        "MetadataHash": "a2d63f2be7694fe0bbc22fab3225e0a0e893c7bc",
+        "Files": {
+          "Last.zip": false
+        },
+        "HandlerMetadata": {},
+        "FileSize": 0
+      },
+      {
+        "Url": "https://example.com/other",
+        "ContentKey": "f41a86c80075ca22199e6fd2fc102380248872d3",
+        "MetadataHash": "f41a86c80075ca22199e6fd2fc102380248872d3",
+        "Files": {},
+        "HandlerMetadata": {},
+        "FileSize": 0
+      }
+    ]
+  },
+  {
+    "Name": "duplicate-link-precedence",
+    "ResourceRegistry": [
+      {
+        "Url": "https://example.com/repeated",
+        "ContentKey": "a2d63f2be7694fe0bbc22fab3225e0a0e893c7bc",
+        "MetadataHash": "a2d63f2be7694fe0bbc22fab3225e0a0e893c7bc",
+        "Files": {},
+        "HandlerMetadata": {},
+        "FileSize": 0
+      }
+    ]
+  },
+  {
+    "Name": "delimited-links",
+    "ResourceRegistry": [
+      {
+        "Url": "https://example.com/first",
+        "ContentKey": "7d19eba051874eda7517976825be8b47f916d605",
+        "MetadataHash": "7d19eba051874eda7517976825be8b47f916d605",
+        "Files": {},
+        "HandlerMetadata": {},
+        "FileSize": 0
+      },
+      {
+        "Url": "https://example.com/second",
+        "ContentKey": "6d51f7b91527e3a6876c6b7f0aeaa3cb417b702d",
+        "MetadataHash": "6d51f7b91527e3a6876c6b7f0aeaa3cb417b702d",
+        "Files": {},
+        "HandlerMetadata": {},
+        "FileSize": 0
+      }
+    ]
   }
 ]

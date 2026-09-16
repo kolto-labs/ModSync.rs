@@ -113,7 +113,19 @@ pub(crate) fn migrate(component: &mut Map<String, Value>) {
         insert(&mut registry, &url, Map::new());
     }
     if let Some(Value::Object(urls)) = filenames {
+        // C# first materializes a case-insensitive filename dictionary: later
+        // entries replace its value, retaining the first key spelling and order.
+        // Only after that does it apply registry/ModLink precedence.
+        let mut distinct = Map::new();
         for (url, value) in urls {
+            let key = distinct
+                .keys()
+                .find(|key: &&String| key.eq_ignore_ascii_case(&url))
+                .cloned()
+                .unwrap_or(url);
+            distinct.insert(key, value);
+        }
+        for (url, value) in distinct {
             let mut files = Map::new();
             if let Value::Object(entries) = value {
                 for (filename, flag) in entries {

@@ -143,5 +143,42 @@
     ],
     "Guid": "00000000-0000-4000-8000-000000000015",
     "IsSelected": true
+  },
+  {
+    "Name": "duplicate-legacy-url",
+    "ModLinkFilenames": {
+      "https://example.com/repeated": {
+        "first.zip": true
+      },
+      "https://example.com/other": {},
+      "HTTPS://EXAMPLE.COM/REPEATED": {
+        "last.zip": false
+      }
+    },
+    "Guid": "00000000-0000-4000-8000-000000000016",
+    "IsSelected": true
+  },
+  {
+    "Name": "duplicate-link-precedence",
+    "ModLink": [
+      "https://example.com/repeated",
+      "HTTPS://EXAMPLE.COM/REPEATED"
+    ],
+    "ModLinkFilenames": {
+      "https://example.com/repeated": {
+        "first.zip": true
+      },
+      "HTTPS://EXAMPLE.COM/REPEATED": {
+        "last.zip": false
+      }
+    },
+    "Guid": "00000000-0000-4000-8000-000000000017",
+    "IsSelected": true
+  },
+  {
+    "Name": "delimited-links",
+    "ModLink": " https://example.com/first ; https://example.com/second,https://example.com/first ",
+    "Guid": "00000000-0000-4000-8000-000000000018",
+    "IsSelected": true
   }
 ]

@@ -135,3 +135,9 @@ The live JSON-loader comparison covers 15 cases (12 URL normalization variants p
 Rust round-trips migrated data through JSON/TOML/YAML/XML. An isolated flow verifies an empty legacy filename table reaches local archive inference, non-mutating validation and installation through the shared engine. Full URI behavior, modern resource deserialization, host download/cache integration and option-loader parity remain open. Native CI run 35058728745 passed for preceding commit `78774c295fc00be4be5a4ddc6b62fbf9fdba042b`.
 
 This checkpoint passed formatting, clippy with warnings denied, and 42 regular integration tests in both all-target and no-default-feature configurations. The explicit 513 MiB test was not rerun locally for this loader change.
+
+## Duplicate legacy URL checkpoint
+
+Case-insensitive duplicate ModLinkFilenames URLs now use the last filename map while retaining the first URL spelling and insertion position, matching C# dictionary materialization. Existing registry entries and ModLink entries still win over that consolidated map. Three additional live-loader fixtures cover duplicate URL maps, duplicate ModLink precedence and comma/semicolon string splitting. The corpus totals 18 cases; the previously documented modern Files-map difference remains unresolved.
+
+The 18-case comparison has 17 exact matches and the one previously recorded modern Files-map difference. Formatting, clippy and 42 regular integration tests passed in both configurations. Preceding commit `234e7cd3d3c07c0049ad0ce7bf415f985e015283` passed native CI run 35059298226.
