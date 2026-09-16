@@ -103,9 +103,8 @@ impl Engine {
             "Archive scratch directory must be outside game and mod trees"
         );
         settings.archive.scratch_dir = Some(scratch);
-        if let Some(path) = &settings.patcher {
-            settings.patcher = Some(fs::canonicalize(path).context("Patcher path is unavailable")?);
-        }
+        settings.patcher =
+            crate::patcher::resolve(settings.patcher_engine, settings.patcher.as_deref())?;
         let mut engine = Self {
             settings,
             files: BTreeMap::new(),

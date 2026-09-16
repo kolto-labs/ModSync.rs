@@ -10,6 +10,7 @@ pub mod editor;
 pub mod engine;
 pub mod merge;
 pub mod model;
+pub mod patcher;
 pub mod paths;
 pub mod recovery;
 
