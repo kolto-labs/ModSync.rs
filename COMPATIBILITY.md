@@ -461,3 +461,7 @@ Configured copies now require every matched source to be supplied by the current
 ### Saving FOMOD selections
 
 The inspection CLI accepts --save-choices to atomically write the current selection session, including choices applied with --choices, in the reusable version-1 schema. Capture preserves hidden-step selections and rejects invalid or ambiguous named groups by reapplying the generated document before saving. A round-trip regression verifies nondefault selection persistence and ambiguity rejection. Interactive selection editing remains outstanding.
+
+### Choices export archive preservation
+
+A Unix subprocess regression reproduced source-archive replacement when --save-choices named the archive through a symlinked parent directory. Export now compares canonical existing paths before writing and propagates unexpected resolution errors. The regression also reads back a successful choices export and verifies original archive bytes survive the rejected alias write. Concurrent external path replacement is outside this check's guarantee.

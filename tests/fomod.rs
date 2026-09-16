@@ -695,3 +695,48 @@ fn captured_choices_roundtrip_selected_plugins_and_reject_ambiguous_names() {
     assert!(ChoicesFile::capture("package.zip", &ambiguous.steps).is_err());
     assert!(ChoicesFile::capture("", &module.steps).is_err());
 }
+
+#[cfg(unix)]
+#[test]
+fn choices_export_roundtrips_and_cannot_replace_archive_through_directory_alias() {
+    use std::io::Write;
+    let temp = tempfile::tempdir().unwrap();
+    let real = temp.path().join("real");
+    let alias = temp.path().join("alias");
+    std::fs::create_dir(&real).unwrap();
+    std::os::unix::fs::symlink(&real, &alias).unwrap();
+    let archive = real.join("package.zip");
+    let mut zip = zip::ZipWriter::new(std::fs::File::create(&archive).unwrap());
+    zip.start_file(
+        "fomod/ModuleConfig.xml",
+        zip::write::SimpleFileOptions::default(),
+    )
+    .unwrap();
+    zip.write_all(b"<config/>").unwrap();
+    zip.finish().unwrap();
+    let original = std::fs::read(&archive).unwrap();
+    let run = |output: &std::path::Path| {
+        std::process::Command::new(env!("CARGO_BIN_EXE_modsync"))
+            .arg("fomod-inspect")
+            .arg(&archive)
+            .arg("--save-choices")
+            .arg(output)
+            .output()
+            .unwrap()
+    };
+    let saved = temp.path().join("saved.json");
+    assert!(run(&saved).status.success());
+    let choices =
+        modsync::fomod::ChoicesFile::parse(&std::fs::read_to_string(saved).unwrap()).unwrap();
+    assert!(
+        choices
+            .archive("package.zip")
+            .unwrap()
+            .selections
+            .is_empty()
+    );
+    let result = run(&alias.join("package.zip"));
+    assert!(!result.status.success());
+    assert!(String::from_utf8_lossy(&result.stderr).contains("must not overwrite"));
+    assert_eq!(std::fs::read(archive).unwrap(), original);
+}

@@ -207,7 +207,11 @@ fn run() -> Result<()> {
                 .transpose()?;
             if let Some(path) = save_choices {
                 ensure!(
-                    std::path::absolute(&path)? != std::path::absolute(&archive)?,
+                    match path.canonicalize() {
+                        Ok(output) => output != archive.canonicalize()?,
+                        Err(error) if error.kind() == std::io::ErrorKind::NotFound => true,
+                        Err(error) => return Err(error.into()),
+                    },
                     "Choices output must not overwrite the archive"
                 );
                 let module = module
