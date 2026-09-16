@@ -151,3 +151,11 @@ This checkpoint passed formatting, clippy with warnings denied, and 42 regular i
 ## Modern resource metadata investigation
 
 The four-format inspection in `docs/parity/modern-resource-formats.md` broadens the known reference-loader difference: pinned C# JSON/TOML/XML drop both Files and HandlerMetadata; YAML's legacy fallback preserves file flags but regenerates identity hashes and loses size/timestamps. Rust preserves the fixture in JSON/TOML/YAML, but XML changes a nested numeric handler value into text. A regression records that exact XML gap. This is evidence of incomplete metadata fidelity, not a parity pass; earlier field-projected format checks do not certify these fields. No installer behavior changed in this investigation.
+
+## Download filename planning checkpoint
+
+The shared `download_plan` module and read-only `download-plan` CLI implement the reference's URL-enabled decision and filename filtering. Explicit false excludes a known file; true/null allow it. Unknown candidates and empty registries use unsatisfied Extract patterns from top-level and immediate option instructions, including unselected options. Known registry filenames and files found recursively on disk count as available, regardless of registry selection flags. Explicit filtering retains candidate duplicates; auto-discovery deduplicates case-insensitively when Extract instructions exist. Wildcard matching shares the reference helper already used by archive-option inference.
+
+Twelve direct C# consumer cases match the Rust CLI (including the missing-source error); the C# probe restores file maps and Source strings after loading to isolate consumer behavior from known loader losses. An integration test verifies the command leaves the guide and source files unchanged. This does not implement host acquisition, cache persistence, queue integration, desktop controls or full install-readiness validation. Planning rejects source-tree symlinks consistently with Rust's install-tree policy; this safety boundary is not claimed as C# filesystem parity.
+
+This checkpoint passed formatting, clippy with warnings denied, and 45 regular integration tests in both configurations. Preceding commit `a8d00928c41b793c12108e847a513e7a6199ce34` passed native CI run 35060165735.

@@ -14,3 +14,6 @@ mod markdown;
 mod xml;
 
 mod resources;
+
+pub mod download_plan;
+mod reference_paths;

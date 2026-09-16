@@ -1,0 +1,93 @@
+[
+  {
+    "Name": "explicit-no-extract",
+    "UrlEnabled": true,
+    "Filenames": [
+      "a.zip",
+      "c.zip",
+      "unknown.zip"
+    ],
+    "Error": null
+  },
+  {
+    "Name": "all-disabled",
+    "UrlEnabled": false,
+    "Filenames": [],
+    "Error": null
+  },
+  {
+    "Name": "explicit-with-unknown",
+    "UrlEnabled": true,
+    "Filenames": [
+      "a.zip",
+      "c.zip",
+      "unknown.zip"
+    ],
+    "Error": null
+  },
+  {
+    "Name": "registry-satisfies-pattern",
+    "UrlEnabled": false,
+    "Filenames": [],
+    "Error": null
+  },
+  {
+    "Name": "auto-patterns",
+    "UrlEnabled": true,
+    "Filenames": [
+      "a.zip"
+    ],
+    "Error": null
+  },
+  {
+    "Name": "disk-satisfies-pattern",
+    "UrlEnabled": true,
+    "Filenames": [],
+    "Error": null
+  },
+  {
+    "Name": "empty-extract",
+    "UrlEnabled": true,
+    "Filenames": [],
+    "Error": null
+  },
+  {
+    "Name": "auto-without-source",
+    "UrlEnabled": true,
+    "Filenames": [
+      "a.zip",
+      "b.zip",
+      "c.zip",
+      "unknown.zip"
+    ],
+    "Error": null
+  },
+  {
+    "Name": "explicit-without-source",
+    "UrlEnabled": true,
+    "Filenames": [],
+    "Error": "MainConfig.SourcePath not set"
+  },
+  {
+    "Name": "unknown-url",
+    "UrlEnabled": true,
+    "Filenames": [
+      "b.zip"
+    ],
+    "Error": null
+  },
+  {
+    "Name": "empty-url",
+    "UrlEnabled": true,
+    "Filenames": [],
+    "Error": null
+  },
+  {
+    "Name": "option-extract",
+    "UrlEnabled": true,
+    "Filenames": [
+      "b.zip"
+    ],
+    "Error": null
+  }
+]

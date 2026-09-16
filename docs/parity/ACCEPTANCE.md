@@ -145,3 +145,9 @@ The C# best-effort install flags must be reconciled with the user's explicit rul
 - Added a four-format live loader inspection with raw outputs and input/DLL hashes in `modern-resource-formats.json`; analysis is in `modern-resource-formats.md`.
 - C# map loss extends beyond the earlier JSON fixture. YAML fallback also loses original resource identity, size and timestamps. Rust has an independent XML nested-number-to-string round-trip gap.
 - Added regression coverage for JSON/TOML/YAML metadata preservation and the exact remaining XML gap. F01/F12 remain partial; URL-order and component/instruction projections are insufficient evidence for resource metadata or consumer behavior.
+
+### Download filename consumer checkpoint
+
+- F12/F26: added shared URL-enabled and filename-selection logic plus read-only `download-plan` JSON output. Selection follows explicit file flags and the C# unsatisfied-Extract-pattern consumer, including immediate option instructions.
+- Twelve live direct-consumer fixtures match. Probe metadata is restored after C# loading, so this proves consumer behavior separately from known loader loss. `download-plan-check.json` records the scope and pinned reference identity.
+- Added CLI non-mutation coverage; shared wildcard extraction retains archive-generation regression coverage. F12/F26 remain partial: no host/queue/cache/desktop integration or complete readiness contract is implied.

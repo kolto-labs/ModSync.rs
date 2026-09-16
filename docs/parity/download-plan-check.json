@@ -1,0 +1,8 @@
+{
+  "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+  "reference_dll_sha256": "8f3b1e3f8fe47b2cc6f8e3f281912506721c7367218381bb2a35cf86dc5768f0",
+  "fixture_sha256": "52c7938f69f22337eea5b049ea1ea8576a8340abe66be1339fb11bb53ffa10f5",
+  "cases": 12,
+  "differences": [],
+  "scope": "Direct C# consumer with raw file selections and Source strings restored after loading. Rust CLI plans on isolated disk fixtures. Error cases compare error text only, not URL-enabled result. Not host acquisition, UI, cache persistence or full readiness validation."
+}

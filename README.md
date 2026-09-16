@@ -135,3 +135,13 @@ cargo run -- convert guide.toml generated.toml --auto-generate-local --source-pa
 This infers extraction, loose-file moves, folder choices and patcher steps, then writes a per-component JSON report to stderr. Inspect the generated guide and validate it before installation. Existing top-level instructions are preserved; matching authored options are reused, and overlapping options are consolidated while retaining the first option's identity and selection. Archive matching uses the first resource link in guide order, as C# does; it does not fall back to later links when the first has no matching archive. EXEs that cannot be read as archives produce Execute instructions; running those steps requires the existing external-program trust setting. Desktop controls for archive inference are still in progress. Input archives are never deleted by inference.
 
 Inspect every generated action/path before accepting it. Components with unparsed gaps, conditional drafts or rejected paths remain blocked from acceptance. The desktop provides the same drafting and review operations. A generated draft is not proof that the prose was interpreted correctly; see the compatibility document for known reference-parser limitations.
+
+To inspect which filenames a host response would select for a component:
+
+```sh
+modsync download-plan guide.toml --component <GUID> \
+  --url https://example.com/mod --source-dir /path/to/mods \
+  --filename first.zip --filename alternative.zip
+```
+
+The JSON result reports `UrlEnabled` and `Filenames`. The command applies resource file flags and the reference's unsatisfied-Extract-pattern filter without downloading or modifying files. It is a filename-selection plan, not an install-readiness result: the reference also counts known registry filenames as satisfying patterns. Direct `download` remains a separate explicit action; host scraping, download queues and desktop plan controls remain unfinished.

@@ -64,6 +64,18 @@ enum Action {
         #[arg(long)]
         review_draft: Vec<String>,
     },
+    /// Report which host-provided filenames the guide would request; no downloads.
+    DownloadPlan {
+        input: PathBuf,
+        #[arg(long)]
+        component: String,
+        #[arg(long)]
+        url: String,
+        #[arg(long = "filename")]
+        filenames: Vec<String>,
+        #[arg(long)]
+        source_dir: Option<PathBuf>,
+    },
     /// Fetch and verify a direct HTTPS archive URL.
     Download {
         url: String,
@@ -182,6 +194,33 @@ fn run() -> Result<()> {
             game_dir,
             source_dir,
         }) => recovery::restore(&Roots::new(&source_dir, &game_dir)?),
+        Some(Action::DownloadPlan {
+            input,
+            component,
+            url,
+            filenames,
+            source_dir,
+        }) => {
+            let guide = Guide::load(&input)?;
+            let c = guide
+                .components
+                .iter()
+                .find(|c| c.guid.eq_ignore_ascii_case(&component))
+                .context("Unknown component GUID")?;
+            let selected = modsync::download_plan::select_filenames(
+                c,
+                &url,
+                &filenames,
+                source_dir.as_deref(),
+            )?;
+            println!(
+                "{}",
+                serde_json::to_string_pretty(
+                    &serde_json::json!({"UrlEnabled": modsync::download_plan::url_enabled(c, &url), "Filenames": selected})
+                )?
+            );
+            Ok(())
+        }
         Some(Action::Download {
             url,
             output,

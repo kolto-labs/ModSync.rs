@@ -1,0 +1,334 @@
+[
+  {
+    "Name": "explicit-no-extract",
+    "Component": {
+      "Guid": "00000000-0000-4000-8000-000000000001",
+      "Name": "explicit-no-extract",
+      "ResourceRegistry": {
+        "https://example.com/mod": {
+          "Files": {
+            "a.zip": true,
+            "b.zip": false,
+            "c.zip": null
+          }
+        }
+      },
+      "Instructions": []
+    },
+    "Url": "https://example.com/mod",
+    "Candidates": [
+      "a.zip",
+      "b.zip",
+      "c.zip",
+      "unknown.zip"
+    ],
+    "SourceConfigured": true
+  },
+  {
+    "Name": "all-disabled",
+    "Component": {
+      "Guid": "00000000-0000-4000-8000-000000000002",
+      "Name": "all-disabled",
+      "ResourceRegistry": {
+        "https://example.com/mod": {
+          "Files": {
+            "a.zip": false,
+            "b.zip": false
+          }
+        }
+      },
+      "Instructions": []
+    },
+    "Url": "https://example.com/mod",
+    "Candidates": [
+      "a.zip",
+      "b.zip"
+    ],
+    "SourceConfigured": true
+  },
+  {
+    "Name": "explicit-with-unknown",
+    "Component": {
+      "Guid": "00000000-0000-4000-8000-000000000003",
+      "Name": "explicit-with-unknown",
+      "ResourceRegistry": {
+        "https://example.com/mod": {
+          "Files": {
+            "a.zip": true,
+            "b.zip": false,
+            "c.zip": null
+          }
+        }
+      },
+      "Instructions": [
+        {
+          "Action": "Extract",
+          "Source": [
+            "<<modDirectory>>/unknown*.zip"
+          ]
+        }
+      ]
+    },
+    "Url": "https://example.com/mod",
+    "Candidates": [
+      "a.zip",
+      "b.zip",
+      "c.zip",
+      "unknown.zip"
+    ],
+    "SourceConfigured": true
+  },
+  {
+    "Name": "registry-satisfies-pattern",
+    "Component": {
+      "Guid": "00000000-0000-4000-8000-000000000004",
+      "Name": "registry-satisfies-pattern",
+      "ResourceRegistry": {
+        "https://example.com/mod": {
+          "Files": {
+            "a.zip": false
+          }
+        }
+      },
+      "Instructions": [
+        {
+          "Action": "Extract",
+          "Source": [
+            "<<modDirectory>>/*.zip"
+          ]
+        }
+      ]
+    },
+    "Url": "https://example.com/mod",
+    "Candidates": [
+      "a.zip",
+      "b.zip",
+      "c.zip",
+      "unknown.zip"
+    ],
+    "SourceConfigured": true
+  },
+  {
+    "Name": "auto-patterns",
+    "Component": {
+      "Guid": "00000000-0000-4000-8000-000000000005",
+      "Name": "auto-patterns",
+      "ResourceRegistry": {
+        "https://example.com/mod": {
+          "Files": {}
+        }
+      },
+      "Instructions": [
+        {
+          "Action": "Extract",
+          "Source": [
+            "<<modDirectory>>/a*.zip"
+          ]
+        }
+      ]
+    },
+    "Url": "https://example.com/mod",
+    "Candidates": [
+      "a.zip",
+      "a.zip",
+      "A.ZIP",
+      "b.zip"
+    ],
+    "SourceConfigured": true
+  },
+  {
+    "Name": "disk-satisfies-pattern",
+    "Component": {
+      "Guid": "00000000-0000-4000-8000-000000000006",
+      "Name": "disk-satisfies-pattern",
+      "ResourceRegistry": {
+        "https://example.com/mod": {
+          "Files": {}
+        }
+      },
+      "Instructions": [
+        {
+          "Action": "Extract",
+          "Source": [
+            "<<modDirectory>>/a*.zip"
+          ]
+        }
+      ]
+    },
+    "Url": "https://example.com/mod",
+    "Candidates": [
+      "a.zip",
+      "b.zip",
+      "c.zip",
+      "unknown.zip"
+    ],
+    "SourceConfigured": true,
+    "DiskFiles": [
+      "nested/a.zip"
+    ]
+  },
+  {
+    "Name": "empty-extract",
+    "Component": {
+      "Guid": "00000000-0000-4000-8000-000000000007",
+      "Name": "empty-extract",
+      "ResourceRegistry": {
+        "https://example.com/mod": {
+          "Files": {}
+        }
+      },
+      "Instructions": [
+        {
+          "Action": "Extract",
+          "Source": [
+            " "
+          ]
+        }
+      ]
+    },
+    "Url": "https://example.com/mod",
+    "Candidates": [
+      "a.zip",
+      "b.zip",
+      "c.zip",
+      "unknown.zip"
+    ],
+    "SourceConfigured": true
+  },
+  {
+    "Name": "auto-without-source",
+    "Component": {
+      "Guid": "00000000-0000-4000-8000-000000000008",
+      "Name": "auto-without-source",
+      "ResourceRegistry": {
+        "https://example.com/mod": {
+          "Files": {}
+        }
+      },
+      "Instructions": [
+        {
+          "Action": "Extract",
+          "Source": [
+            "<<modDirectory>>/a*.zip"
+          ]
+        }
+      ]
+    },
+    "Url": "https://example.com/mod",
+    "Candidates": [
+      "a.zip",
+      "b.zip",
+      "c.zip",
+      "unknown.zip"
+    ],
+    "SourceConfigured": false
+  },
+  {
+    "Name": "explicit-without-source",
+    "Component": {
+      "Guid": "00000000-0000-4000-8000-000000000009",
+      "Name": "explicit-without-source",
+      "ResourceRegistry": {
+        "https://example.com/mod": {
+          "Files": {
+            "a.zip": true
+          }
+        }
+      },
+      "Instructions": []
+    },
+    "Url": "https://example.com/mod",
+    "Candidates": [
+      "a.zip",
+      "b.zip",
+      "c.zip",
+      "unknown.zip"
+    ],
+    "SourceConfigured": false
+  },
+  {
+    "Name": "unknown-url",
+    "Component": {
+      "Guid": "00000000-0000-4000-8000-000000000010",
+      "Name": "unknown-url",
+      "ResourceRegistry": {
+        "https://example.com/mod": {
+          "Files": {}
+        }
+      },
+      "Instructions": [
+        {
+          "Action": "Extract",
+          "Source": [
+            "<<modDirectory>>/b*.zip"
+          ]
+        }
+      ]
+    },
+    "Url": "https://example.com/unknown",
+    "Candidates": [
+      "a.zip",
+      "b.zip",
+      "c.zip",
+      "unknown.zip"
+    ],
+    "SourceConfigured": true
+  },
+  {
+    "Name": "empty-url",
+    "Component": {
+      "Guid": "00000000-0000-4000-8000-000000000011",
+      "Name": "empty-url",
+      "ResourceRegistry": {
+        "https://example.com/mod": {
+          "Files": {
+            "a.zip": false
+          }
+        }
+      },
+      "Instructions": []
+    },
+    "Url": " ",
+    "Candidates": [
+      "a.zip",
+      "b.zip",
+      "c.zip",
+      "unknown.zip"
+    ],
+    "SourceConfigured": true
+  },
+  {
+    "Name": "option-extract",
+    "Component": {
+      "Guid": "00000000-0000-4000-8000-000000000012",
+      "Name": "option-extract",
+      "ResourceRegistry": {
+        "https://example.com/mod": {
+          "Files": {}
+        }
+      },
+      "Instructions": [],
+      "Options": [
+        {
+          "Guid": "10000000-0000-4000-8000-000000000001",
+          "Name": "Unselected",
+          "IsSelected": false,
+          "Instructions": [
+            {
+              "Action": "Extract",
+              "Source": [
+                "<<modDirectory>>/b*.zip"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "Url": "https://example.com/mod",
+    "Candidates": [
+      "a.zip",
+      "b.zip"
+    ],
+    "SourceConfigured": true
+  }
+]
