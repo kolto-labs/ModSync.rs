@@ -8,6 +8,7 @@ pub mod download_queue;
 pub mod draft;
 pub mod editor;
 pub mod engine;
+pub mod game;
 pub mod merge;
 pub mod model;
 pub mod p2p;

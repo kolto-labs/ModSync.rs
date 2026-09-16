@@ -37,8 +37,9 @@ pub struct Settings {
 }
 impl Settings {
     pub fn new(mods: &Path, game: &Path) -> Result<Self> {
+        let game = crate::game::resolve_install_root(game);
         Ok(Self {
-            roots: Roots::new(mods, game)?,
+            roots: Roots::new(mods, &game)?,
             allow_processes: false,
             patcher: None,
             patcher_engine: PatcherEngine::default(),

@@ -1129,6 +1129,8 @@ impl eframe::App for App {
                     }
                     ui.separator();
                     if Self::path_row(ui, "Game directory", &mut self.game, true) | Self::path_row(ui, "Mod directory", &mut self.mods, true) { self.validated = false; self.conflicts = None; self.validation_report = None; }
+                    let game_root = modsync::game::resolve_install_root(Path::new(&self.game));
+                    ui.label(format!("Detected game: {:?}", modsync::game::detect(&game_root)));
                     ui.label("Use separate folders. Put downloaded archives in the mod directory.");
                     if ui.button("Save directories for next launch").clicked() {
                         let result = (|| -> Result<()> {
@@ -1157,9 +1159,11 @@ impl eframe::App for App {
                     if ui.add_enabled(self.guide.is_some(), egui::Button::new("Check Nexus updates")).clicked() {
                         self.start_update_check(ctx);
                     }
+                    let detected_game = modsync::game::detect(&modsync::game::resolve_install_root(Path::new(&self.game)));
                     let Some(g) = &mut self.guide else { ui.label("Load a guide first."); return; };
+                    modsync::game::enforce_selectable(&mut g.components, detected_game);
                     ui.horizontal(|ui| {
-                        if ui.button("Select all").clicked() { modsync::selection::select_visible(&mut g.components, &self.search, &self.tier_filter, &self.category_filter, self.spoiler_free); modsync::selection::resolve_selected(&mut g.components); self.validated = false; self.conflicts = None; self.validation_report = None; self.confirm_install = false; }
+                        if ui.button("Select all").clicked() { modsync::selection::select_visible(&mut g.components, &self.search, &self.tier_filter, &self.category_filter, self.spoiler_free); modsync::selection::resolve_selected(&mut g.components); modsync::game::enforce_selectable(&mut g.components, detected_game); self.validated = false; self.conflicts = None; self.validation_report = None; self.confirm_install = false; }
                         if ui.button("Deselect all").clicked() { modsync::selection::deselect_base(&mut g.components); self.validated = false; self.conflicts = None; self.validation_report = None; self.confirm_install = false; }
                         ui.add(egui::TextEdit::singleline(&mut self.search).hint_text("Search displayed name or description"));
                         if ui.add_enabled(!self.search.is_empty() || !self.tier_filter.is_empty() || !self.category_filter.is_empty(), egui::Button::new("Clear filters")).clicked() {
@@ -1187,6 +1191,7 @@ impl eframe::App for App {
                         if ui.add_enabled(!self.tier_filter.is_empty(), egui::Button::new("Select through tier")).clicked() {
                             modsync::selection::select_tier(&mut g.components, &self.tier_filter);
                             modsync::selection::resolve_selected(&mut g.components);
+                            modsync::game::enforce_selectable(&mut g.components, detected_game);
                             self.validated = false; self.conflicts = None; self.validation_report = None; self.confirm_install = false;
                         }
                         egui::ComboBox::from_id_salt("category_filter").selected_text(if self.category_filter.is_empty() { "All categories" } else { &self.category_filter }).show_ui(ui, |ui| {
@@ -1196,6 +1201,7 @@ impl eframe::App for App {
                         if ui.add_enabled(!self.category_filter.is_empty(), egui::Button::new("Select category")).clicked() {
                             modsync::selection::select_categories(&mut g.components, std::slice::from_ref(&self.category_filter));
                             modsync::selection::resolve_selected(&mut g.components);
+                            modsync::game::enforce_selectable(&mut g.components, detected_game);
                             self.validated = false; self.conflicts = None; self.validation_report = None; self.confirm_install = false;
                         }
                     });
@@ -1231,6 +1237,7 @@ impl eframe::App for App {
                                     if ui.small_button(if selected_count == indices.len() { "Deselect group" } else { "Select group" }).clicked() {
                                         let selected = selected_count < indices.len();
                                         for index in indices { modsync::selection::set_component_selected(&mut g.components, *index, selected); }
+                                        modsync::game::enforce_selectable(&mut g.components, detected_game);
                                         self.validated = false; self.conflicts = None; self.validation_report = None; self.confirm_install = false;
                                     }
                                     ui.label(format!("{selected_count} / {} selected", indices.len()));
@@ -1242,11 +1249,11 @@ impl eframe::App for App {
                                             let c = &mut g.components[*index];
                                             let mut toggled = None;
                                             ui.horizontal(|ui| {
-                                                if ui.checkbox(&mut c.is_selected, "").on_hover_text("Select component").changed() { toggled = Some(c.is_selected); self.validated = false; self.conflicts = None; self.validation_report = None; }
+                                                if ui.add_enabled(modsync::game::selectable(c, detected_game), egui::Checkbox::new(&mut c.is_selected, "")).on_hover_text("Select component").changed() { toggled = Some(c.is_selected); self.validated = false; self.conflicts = None; self.validation_report = None; }
                                                 if ui.selectable_label(self.selected == *index, modsync::selection::display_name(c, self.spoiler_free)).on_hover_text(modsync::selection::tooltip(c, self.spoiler_free)).clicked() { self.selected = *index; }
                                                 if modsync::updates::component_update_available(c) { ui.label("Update").on_hover_text("A newer version is available on Nexus Mods"); }
                                             });
-                                            if let Some(selected) = toggled { modsync::selection::set_component_selected(&mut g.components, *index, selected); }
+                                            if let Some(selected) = toggled { modsync::selection::set_component_selected(&mut g.components, *index, selected); modsync::game::enforce_selectable(&mut g.components, detected_game); }
                                         }
                                     });
                             }
@@ -1281,7 +1288,7 @@ impl eframe::App for App {
                                     }
                                 }
                             }
-                            if let Some((option, selected)) = option_change { modsync::selection::set_option_selected(&mut g.components, self.selected, option, selected); }
+                            if let Some((option, selected)) = option_change { modsync::selection::set_option_selected(&mut g.components, self.selected, option, selected); modsync::game::enforce_selectable(&mut g.components, detected_game); }
                         });
                     });
                 }
