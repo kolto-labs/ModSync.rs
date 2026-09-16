@@ -1,0 +1,33 @@
+{
+  "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+  "reference_dll_sha256": "8f3b1e3f8fe47b2cc6f8e3f281912506721c7367218381bb2a35cf86dc5768f0",
+  "results": [
+    {
+      "implementation": "csharp",
+      "settings_after_fallback": {
+        "managedDeploymentEnabled": true,
+        "activeProfileName": "Loadout"
+      },
+      "settings_after_current_override": {
+        "managedDeploymentEnabled": false,
+        "theme": "light",
+        "activeProfileName": "Loadout"
+      },
+      "legacy_unchanged": true
+    },
+    {
+      "implementation": "rust",
+      "settings_after_fallback": {
+        "activeProfileName": "Loadout",
+        "managedDeploymentEnabled": true
+      },
+      "settings_after_current_override": {
+        "managedDeploymentEnabled": false,
+        "theme": "light",
+        "activeProfileName": "Loadout"
+      },
+      "legacy_unchanged": true
+    }
+  ],
+  "scope": "Linux profile CLI activation with legacy settings and explicit storage; current-file precedence. No general GUI settings migration or malformed-settings parity."
+}

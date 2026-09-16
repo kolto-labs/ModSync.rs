@@ -403,3 +403,53 @@ fn default_profile_directory_uses_xdg_and_explicit_override_without_touching_hom
     let result = run(&["validate", "--profile", "Default"]);
     assert!(String::from_utf8_lossy(&result.stderr).contains("Profile has no input"));
 }
+
+#[cfg(target_os = "linux")]
+#[test]
+fn legacy_settings_fallback_imports_managed_fields_and_current_settings_take_precedence() {
+    let dir = tempfile::tempdir().unwrap();
+    let config = dir.path().join("config");
+    let legacy = config.join("KOTORModSync");
+    fs::create_dir_all(&legacy).unwrap();
+    let bytes = br#"{"activeProfileName":"Old","managedDeploymentEnabled":true,"theme":"dark"}"#;
+    fs::write(legacy.join("settings.json"), bytes).unwrap();
+    let storage = dir.path().join("explicit");
+    let store = Store::new(&storage).unwrap();
+    store.create("New").unwrap();
+    let run = || {
+        std::process::Command::new(env!("CARGO_BIN_EXE_modsync"))
+            .env("XDG_CONFIG_HOME", &config)
+            .args(["profile", "--settings-dir"])
+            .arg(&storage)
+            .args(["--action", "activate", "--name", "New"])
+            .output()
+            .unwrap()
+    };
+    let result = run();
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    let read = || {
+        serde_json::from_slice::<Value>(&fs::read(storage.join("settings.json")).unwrap()).unwrap()
+    };
+    assert_eq!(
+        read(),
+        json!({"managedDeploymentEnabled":true,"activeProfileName":"New"})
+    );
+    assert_eq!(fs::read(legacy.join("settings.json")).unwrap(), bytes);
+    fs::write(
+        storage.join("settings.json"),
+        br#"{"managedDeploymentEnabled":false,"theme":"light"}"#,
+    )
+    .unwrap();
+    assert!(run().status.success());
+    assert_eq!(
+        read(),
+        json!({"managedDeploymentEnabled":false,"theme":"light","activeProfileName":"New"})
+    );
+    fs::write(storage.join("settings.json"), "corrupt").unwrap();
+    assert!(!run().status.success());
+    assert_eq!(fs::read(storage.join("settings.json")).unwrap(), b"corrupt");
+}

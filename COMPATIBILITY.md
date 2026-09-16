@@ -201,3 +201,9 @@ A live Linux comparison with the pinned C# CLI created `ModSync/profiles/Default
 Correction to earlier checkpoint notes: pinned-source caller inspection found ProfileService.ApplyProfile invoked by ProfileManagerDialog, not automatically at startup. Automatic startup reapplication is therefore not established as a C# parity requirement; the saved active name and explicit activation behavior remain supported. Broader settings restoration is still F17 work.
 
 Native CI for `97b473bd280e138fdbdebdd0f191574d27ae481e` passed (35062691840). Run 35062899570 for `9e586aec491170a6b597bb4ae4950dfe0ed5100f` failed before all three jobs started; GitHub's annotation reports failed account payments or an insufficient spending limit. This is an infrastructure block, not a test result; further native proof remains outstanding.
+
+## Legacy profile settings fallback checkpoint
+
+Profile settings reads now fall back to the platform configuration directory's `KOTORModSync/settings.json` only when the requested current settings file is absent, including when storage was explicitly supplied. The profile CLI imports its two managed-deployment fields, writes subsequent activation to the current store, and leaves the legacy file unchanged. Current settings take precedence. Corrupt current or legacy JSON is rejected, retaining the documented difference from C#'s reset-to-default error behavior.
+
+A live pinned C#/Rust CLI comparison matched resulting JSON for legacy activation and current-file precedence, with unchanged legacy bytes (`legacy-settings-check.json`). Formatting, clippy, 55 regular integration tests in both configurations and two desktop-state tests passed. General GUI settings migration, schema/casing edge cases and native UI interaction remain open; F16/F17 are not complete. This change does not migrate profile files from a legacy directory.

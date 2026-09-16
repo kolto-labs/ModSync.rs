@@ -175,3 +175,7 @@ F16/F24: explicit listing/selection, clone, rename and confirmed delete controls
 ### Default profile storage and startup requirement correction
 
 F16: shared default settings-directory lookup now serves profile CLI, profile-backed install/validate and the desktop field. Live Linux C#/Rust create operations chose the same path under an isolated existing XDG_CONFIG_HOME. Native macOS/Windows folder comparison, missing/unreadable bases and legacy settings fallback remain open. Earlier automatic-startup-activation notes overstated the pinned reference: ApplyProfile's only concrete caller is the profile manager dialog. General settings restoration remains in F17; no automatic profile reapplication requirement has been established by current source evidence.
+
+### Legacy profile settings lookup
+
+F16/F17: profile settings now honor the reference's legacy KOTORModSync fallback and current-file precedence. A live CLI comparison matched activation's managed fields and confirmed legacy input preservation. General GUI settings restoration/migration and malformed-schema equivalence remain incomplete.

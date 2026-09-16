@@ -253,12 +253,24 @@ impl Store {
         Ok(true)
     }
     fn settings(&self) -> Result<Value> {
-        let path = self.root.join("settings.json");
-        if !path.exists() {
+        let current = self.root.join("settings.json");
+        let legacy = dirs::config_dir().map(|p| p.join("KOTORModSync/settings.json"));
+        let path = if current.exists() {
+            &current
+        } else if let Some(path) = legacy.as_ref().filter(|p| p.is_file()) {
+            path
+        } else {
             return Ok(json!({}));
-        }
-        let value: Value = serde_json::from_slice(&fs::read(path)?)?;
+        };
+        let mut value: Value = serde_json::from_slice(&fs::read(path)?)?;
         ensure!(value.is_object(), "Settings must be an object");
+        if path != &current {
+            // The C# profile CLI imports only its two managed-deployment fields.
+            value
+                .as_object_mut()
+                .unwrap()
+                .retain(|key, _| key == "activeProfileName" || key == "managedDeploymentEnabled");
+        }
         Ok(value)
     }
     pub fn active_name(&self) -> Result<Option<String>> {
