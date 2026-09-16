@@ -27,7 +27,7 @@ Reference: the local ModSync C# source at `d31ccbd3bfcddb4705917eafa6483715c166d
 | Protocol links | `protocol-parse` parses `nxm://` and `modsync://` links into typed JSON and rejects local instruction paths | No safe fetcher, component resolution, single-instance handoff, or OS registration |
 | Updates | `update-apply` records supplied Nexus game/mod versions on resource metadata and emits a summary | No Nexus API client, rate-limit behavior, stored-result loading, or GUI badges |
 | Widescreen, Aspyr, game-specific notices | Retained as metadata | No dynamic wizard stages or automatic game/version detection |
-| Editor, telemetry | Not implemented | Edit instruction files externally |
+| Editor | Shared component and instruction reorder/insert/removal functions | No editor CLI or GUI, option editing, raw text replacement, URL/regex import, or file browser |
 
 Unknown instruction fields and actions fail rather than being ignored. Components with no executable instructions cannot be installed. External program permission is off by default.
 
