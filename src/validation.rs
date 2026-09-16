@@ -2,11 +2,14 @@ use crate::conflicts::Report as ConflictReport;
 use serde::Serialize;
 
 #[derive(Clone, Copy, Debug, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
 pub enum Stage {
+    #[serde(rename = "Environment")]
     Environment,
+    #[serde(rename = "Conflicts")]
     Conflicts,
+    #[serde(rename = "InstallOrder")]
     InstallOrder,
+    #[serde(rename = "ComponentValidation")]
     ComponentValidation,
 }
 #[derive(Clone, Debug, Serialize)]

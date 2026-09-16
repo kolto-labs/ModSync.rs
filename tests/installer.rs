@@ -1245,6 +1245,10 @@ fn validation_report_has_ordered_shared_engine_stages() {
     assert!(report.success);
     assert_eq!(report.error_count, 0);
     assert_eq!(
+        serde_json::to_value(&report).unwrap()["stages"][0]["stage"],
+        "Environment"
+    );
+    assert_eq!(
         report
             .stages
             .iter()
