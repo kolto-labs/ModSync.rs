@@ -25,6 +25,9 @@ enum Job {
 
 pub struct App {
     input: String,
+    loaded_input: Option<PathBuf>,
+    profile_directory: String,
+    profile_name: String,
     game: String,
     mods: String,
     patcher: String,
@@ -54,6 +57,9 @@ impl App {
         };
         let mut app = Self {
             input: string(input),
+            loaded_input: None,
+            profile_directory: String::new(),
+            profile_name: String::new(),
             game: string(game),
             mods: string(mods),
             patcher: String::new(),
@@ -86,14 +92,74 @@ impl App {
             Ok(g) => {
                 self.logs
                     .push(format!("Loaded {} components", g.components.len()));
+                self.loaded_input = Some(PathBuf::from(&self.input));
                 self.guide = Some(g);
                 self.selected = 0;
             }
             Err(e) => {
+                self.loaded_input = None;
                 self.guide = None;
                 self.logs.push(format!("Load failed: {e:#}"));
             }
         }
+    }
+
+    fn profile_action(&mut self, activate: bool) -> Result<()> {
+        anyhow::ensure!(
+            !self.profile_directory.trim().is_empty(),
+            "Choose a profile settings directory"
+        );
+        let store = modsync::profiles::Store::new(Path::new(&self.profile_directory))?;
+        let guide = self
+            .guide
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("Load a guide first"))?;
+        if activate {
+            // Persist activation before changing the displayed install state.
+            let profile = store.activate(&self.profile_name)?;
+            let mut guide = guide.clone();
+            profile.apply(&mut guide);
+            if let Some(game) = profile.kotor_directory.filter(|p| !p.is_empty()) {
+                self.game = game;
+            }
+            if let Some(mods) = profile.mod_directory.filter(|p| !p.is_empty()) {
+                self.mods = mods;
+            }
+            self.guide = Some(guide);
+            self.validated = false;
+            self.confirm_install = false;
+        } else {
+            store.capture(
+                &self.profile_name,
+                guide,
+                self.loaded_input.as_deref(),
+                (!self.game.is_empty()).then(|| Path::new(&self.game)),
+                (!self.mods.is_empty()).then(|| Path::new(&self.mods)),
+            )?;
+        }
+        Ok(())
+    }
+
+    fn profiles(&mut self, ui: &mut egui::Ui) {
+        ui.collapsing("Install profiles", |ui| {
+            Self::path_row(ui, "Settings directory", &mut self.profile_directory, true);
+            ui.horizontal(|ui| {
+                ui.label("Profile name");
+                ui.text_edit_singleline(&mut self.profile_name);
+            });
+            ui.label("Activation applies selections to the loaded guide and restores stored game/mod directories.");
+            ui.horizontal(|ui| {
+                for (label, activate) in [("Save current profile", false), ("Activate profile", true)] {
+                    if ui.add_enabled(self.guide.is_some(), egui::Button::new(label)).clicked() {
+                        let result = self.profile_action(activate);
+                        self.logs.push(match result {
+                            Ok(()) => format!("Profile '{}' {}.", self.profile_name, if activate { "activated" } else { "saved" }),
+                            Err(e) => format!("Profile failed: {e:#}"),
+                        });
+                    }
+                }
+            });
+        });
     }
 
     fn start(&mut self, job: Job, ctx: &egui::Context) {
@@ -268,6 +334,7 @@ impl eframe::App for App {
                 });
             });
             ui.add_enabled_ui(!busy, |ui| {
+                self.profiles(ui);
                 ui.horizontal(|ui| {
                     for (n, title) in ["1  Load guide", "2  Choose mods", "3  Validate and install"]
                         .iter()
@@ -441,4 +508,56 @@ pub fn launch(input: Option<PathBuf>, game: Option<PathBuf>, mods: Option<PathBu
         Box::new(move |_| Ok(Box::new(App::new(input, game, mods)))),
     )
     .map_err(|e| anyhow::anyhow!("Desktop startup failed: {e}"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn desktop_profile_capture_and_activation_preserve_loaded_guide_and_reset_validation() {
+        let dir = tempfile::tempdir().unwrap();
+        let input = dir.path().join("guide.json");
+        std::fs::write(
+            &input,
+            r#"[{"Guid":"11111111-1111-4111-8111-111111111111","Name":"Mod","IsSelected":true}]"#,
+        )
+        .unwrap();
+        let mut app = App::new(
+            Some(input.clone()),
+            Some(dir.path().join("game")),
+            Some(dir.path().join("mods")),
+        );
+        app.profile_directory = dir.path().join("settings").to_string_lossy().into_owned();
+        app.profile_name = "Desktop".into();
+        app.guide.as_mut().unwrap().components[0].is_selected = false;
+        app.input = "edited-but-not-loaded.json".into();
+        app.profile_action(false).unwrap();
+        let store = modsync::profiles::Store::new(Path::new(&app.profile_directory)).unwrap();
+        assert_eq!(
+            store
+                .require("Desktop")
+                .unwrap()
+                .instruction_file_path
+                .as_deref(),
+            input.to_str()
+        );
+        app.guide.as_mut().unwrap().components[0].is_selected = true;
+        app.game = "different".into();
+        app.mods = "different".into();
+        app.validated = true;
+        app.confirm_install = true;
+        app.profile_action(true).unwrap();
+        assert!(!app.guide.as_ref().unwrap().components[0].is_selected);
+        assert_eq!(Path::new(&app.game), dir.path().join("game"));
+        assert_eq!(Path::new(&app.mods), dir.path().join("mods"));
+        assert!(!app.validated && !app.confirm_install);
+        assert_eq!(store.active_name().unwrap().as_deref(), Some("Desktop"));
+        std::fs::write(dir.path().join("settings/settings.json"), "broken").unwrap();
+        app.guide.as_mut().unwrap().components[0].is_selected = true;
+        app.game = "unchanged".into();
+        assert!(app.profile_action(true).is_err());
+        assert!(app.guide.as_ref().unwrap().components[0].is_selected);
+        assert_eq!(app.game, "unchanged");
+    }
 }

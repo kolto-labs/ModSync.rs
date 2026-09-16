@@ -170,3 +170,5 @@ modsync install --settings-dir /path/to/settings --active-profile
 ```
 
 The profile supplies the guide path, game directory, mod directory, and selection state. Explicit `--input`, `--game-dir`, `--source-dir`, `--select`, and `--option` flags override those defaults. Profile selections are applied after loading, so an all-unselected profile stops with “Select at least one component” instead of installing everything. Validation and installation read the profile and settings without changing their activation timestamps. `--active-profile` requires an existing `activeProfileName`; it never silently falls back to another profile.
+
+In the desktop, expand **Install profiles**, choose a settings directory and enter a profile name. **Save current profile** captures the loaded guide's selections and current directories. **Activate profile** applies that profile to the currently loaded guide and restores its game/mod directories; run validation again before installing. Profile management commands also support listing, cloning, renaming and deleting profiles.

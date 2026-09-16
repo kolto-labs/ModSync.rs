@@ -163,3 +163,7 @@ The C# best-effort install flags must be reconciled with the user's explicit rul
 - Connected stored profile paths and selections to CLI validation/install through the existing shared engine. Explicit arguments override defaults; named and active-profile modes are mutually exclusive and require a settings directory.
 - Isolated installs prove selected option file bytes, disabled-component exclusion, explicit overrides and preservation of profile/settings/input files. All-unselected profiles stop before snapshot creation and game mutation; missing profile defaults produce explicit errors.
 - F16 remains partial: these are Rust CLI integration tests, not C# full-install or desktop proof. Settings defaults, automatic desktop activation, malformed schema and all platform/Unicode cases remain outstanding.
+
+### Desktop profile activation progress
+
+F16/F24: the desktop now exposes capture and activation through the shared profile store, applying selections to the loaded guide and restoring game/mod directories. Activation invalidates validation and install confirmation. A state test covers successful capture/activation and malformed settings without displayed-state mutation. Native interaction proof, remaining profile manager controls and startup/default storage behavior remain unverified or missing. Neither domain is complete.
