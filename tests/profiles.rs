@@ -47,6 +47,27 @@ fn nexus_api_key_reads_the_existing_settings_schema_and_cli_requires_one() {
 }
 
 #[test]
+fn saving_nexus_api_key_preserves_other_settings_and_allows_clearing() {
+    let dir = tempfile::tempdir().unwrap();
+    fs::write(
+        dir.path().join("settings.json"),
+        r#"{"NexusModsApiKey":"old","nested":{"keep":7}}"#,
+    )
+    .unwrap();
+    let store = Store::new(dir.path()).unwrap();
+    store.save_nexus_api_key(" new-key ").unwrap();
+    let saved: Value =
+        serde_json::from_slice(&fs::read(dir.path().join("settings.json")).unwrap()).unwrap();
+    assert_eq!(
+        saved,
+        json!({"nested":{"keep":7},"nexusModsApiKey":"new-key"})
+    );
+    assert_eq!(store.nexus_api_key().unwrap(), Some("new-key".into()));
+    store.save_nexus_api_key(" ").unwrap();
+    assert!(store.nexus_api_key().unwrap().is_none());
+}
+
+#[test]
 fn profile_crud_preserves_schema_and_clone_independence() {
     let dir = tempfile::tempdir().unwrap();
     let store = Store::new(dir.path()).unwrap();

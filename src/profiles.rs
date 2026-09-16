@@ -301,6 +301,21 @@ impl Store {
     pub fn nexus_api_key(&self) -> Result<Option<String>> {
         setting_text(&self.read_settings(false)?, "nexusModsApiKey")
     }
+    pub fn save_nexus_api_key(&self, key: &str) -> Result<()> {
+        let _lock = self.lock()?;
+        let mut settings = self.read_settings(false)?;
+        settings
+            .as_object_mut()
+            .unwrap()
+            .retain(|name, _| !name.eq_ignore_ascii_case("nexusModsApiKey"));
+        if !key.trim().is_empty() {
+            settings["nexusModsApiKey"] = key.trim().into();
+        }
+        recovery::atomic_write(
+            &self.root.join("settings.json"),
+            &serde_json::to_vec_pretty(&settings)?,
+        )
+    }
     pub fn spoiler_free_preference(&self) -> Result<bool> {
         let settings = self.read_settings(false)?;
         match settings

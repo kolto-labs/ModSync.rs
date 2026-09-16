@@ -37,6 +37,7 @@ pub struct App {
     profile_names: Vec<String>,
     profile_target: String,
     profile_delete: Option<(String, String)>,
+    nexus_api_key: String,
     game: String,
     mods: String,
     patcher: String,
@@ -89,6 +90,7 @@ impl App {
             profile_names: Vec::new(),
             profile_target: String::new(),
             profile_delete: None,
+            nexus_api_key: String::new(),
             game: string(game),
             mods: string(mods),
             patcher: String::new(),
@@ -125,6 +127,9 @@ impl App {
         };
         if !app.input.is_empty() {
             app.load();
+        }
+        if let Ok(store) = modsync::profiles::Store::new(Path::new(&app.profile_directory)) {
+            app.nexus_api_key = store.nexus_api_key().ok().flatten().unwrap_or_default();
         }
         app
     }
@@ -308,6 +313,11 @@ impl App {
             if Self::path_row(ui, "Settings directory", &mut self.profile_directory, true) {
                 self.profile_names.clear();
                 self.profile_delete = None;
+                self.nexus_api_key = modsync::profiles::Store::new(Path::new(&self.profile_directory))
+                    .and_then(|store| store.nexus_api_key())
+                    .ok()
+                    .flatten()
+                    .unwrap_or_default();
             }
             ui.horizontal(|ui| {
                 if ui.button("Refresh profiles").clicked() && let Err(e) = self.manage_profile("Refresh") {
@@ -859,6 +869,18 @@ impl eframe::App for App {
                         })();
                         self.logs.push(match result { Ok(()) => "Directories saved in the selected settings directory.".into(), Err(e) => format!("Settings save failed: {e:#}") });
                     }
+                    ui.horizontal(|ui| {
+                        ui.label("Nexus API key");
+                        ui.add(egui::TextEdit::singleline(&mut self.nexus_api_key).password(true).desired_width(220.0));
+                        if ui.button("Save key").clicked() {
+                            let result = (|| -> Result<()> {
+                                anyhow::ensure!(!self.profile_directory.is_empty(), "Choose a settings directory");
+                                modsync::profiles::Store::new(Path::new(&self.profile_directory))?
+                                    .save_nexus_api_key(&self.nexus_api_key)
+                            })();
+                            self.logs.push(match result { Ok(()) => "Nexus API key saved.".into(), Err(e) => format!("Nexus key save failed: {e:#}") });
+                        }
+                    });
                     if let Some(g) = &self.guide { ui.label(format!("{} components loaded", g.components.len())); }
                     if ui.add_enabled(self.guide.is_some(), egui::Button::new("Choose mods →")).clicked() { self.page = 1; }
                 }
