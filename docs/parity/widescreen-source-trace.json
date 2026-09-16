@@ -1,0 +1,13 @@
+{
+  "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+  "source_sha256": {
+    "src/ModSync.GUI/Dialogs/InstallWizardDialog.axaml.cs": "d4444da055cb7fbcfca0ae0eb169ab89cda1033ed07fc026cb5fe0ee4ad58d5b",
+    "src/ModSync.GUI/Dialogs/WizardPages/InstallingPage.axaml.cs": "33556174fee7c465d6009a8eca66164ed18bf0402c3a60424aec24999d92e5db",
+    "src/ModSync.GUI/Dialogs/WizardPages/WidescreenInstallingPage.axaml.cs": "ef7c1eab5e128da9457ccda123310c4b52fe83ca585919591a59eb028341f933",
+    "src/ModSync.GUI/Dialogs/WizardPages/WidescreenModSelectionPage.axaml.cs": "ec7f52b1f19b39622f051d884bbfca60cad8d6b0ee7d0d2a1c94a832fc717c06",
+    "src/ModSync.Core/Services/InstallationService.cs": "3989b0e267edcd80eda4a1f8aea9b9c349a5322fbdac6dbd34b8d9651d713230",
+    "src/ModSync.Core/Installation/InstallCoordinator.cs": "ee61b77906fc2b4d20bc1c79c4aab58f71ff22d295a11d502f2aff6c3786563c",
+    "src/ModSync.Core/ModComponent.cs": "52a36fcefea7110612c794d734acd01921015bc91d13029a8a785a8530c9b0bb"
+  },
+  "evidence_level": "source trace only; no live double-install reproduction"
+}

@@ -227,3 +227,5 @@ F04/F24 empty-state checkpoint: no-results messaging and filtered detail visibil
 F04/F24 grouping checkpoint: category headers, ordered rows, per-group selection and expand/collapse controls added. Shared display-order regression passes without changing guide order. Native interaction, expansion-state lifecycle and separate widescreen flow remain open.
 
 F04/F24 native group checkpoint: expand/collapse, filtered group selection and counts verified on Linux; see `native-groups/receipt.json`. Full expansion lifecycle, separate widescreen flow and other platforms remain open.
+
+F10/F24 widescreen investigation: `WIDESCREEN.md` and source hashes distinguish base UI counts from actual reference execution. A possible duplicate invocation requires live reproduction before implementing phase splitting; this is new source evidence, not phase completion.

@@ -303,3 +303,7 @@ Filtered selection rows now group by the first category (Other when absent), usi
 ### Native group controls
 
 Linux native input at commit `8ba677c` verified initial collapse, expand/collapse all, counts, filtered group deselection, restored selection and retained expansion through the exercised search/clear cycle. Evidence and binary hash: `docs/parity/native-groups/receipt.json`. This supersedes native-unverified notes for these paths only. Exact C# state lifecycle, separate widescreen handling, accessibility and other platforms remain unverified or incomplete. Installation order was not exercised in this GUI session; the shared grouping regression remains its current proof.
+
+### Widescreen execution boundary investigation
+
+`docs/parity/WIDESCREEN.md` records a pinned-source inconsistency: the reference base UI counts exclude widescreen, but its bulk execution receives all components and filters only by selection. The later widescreen single-component path lacks the bulk completed-state skip. Double execution is a source-grounded risk, not a live reproduction. A phased Rust port requires the isolated service oracle and recovery checks in that document. No Rust execution behavior changed in this investigation.
