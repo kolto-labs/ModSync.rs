@@ -353,6 +353,7 @@ impl App {
         let metadata = guide.metadata.get("metadata");
         let content = metadata
             .and_then(|m| m.get("widescreenWarningContent").or_else(|| m.get("WidescreenWarningContent")))
+            .or_else(|| guide.metadata.get("widescreenWarningContent"))
             .map(|v| v.as_str().unwrap_or_default())
             .unwrap_or(":::note\nWidescreen Support\n:   This build includes optional widescreen support. Widescreen mods must be installed before applying the 4GB patcher. Please see the widescreen section below for details.\n:::");
         (!content.trim().is_empty()).then_some(content)
@@ -971,6 +972,11 @@ mod tests {
             }
         }
         app.guide.as_mut().unwrap().metadata.clear();
+        app.guide.as_mut().unwrap().metadata.insert(
+            "widescreenWarningContent".into(),
+            "Markdown guidance".into(),
+        );
+        assert_eq!(app.widescreen_notice(), Some("Markdown guidance"));
         app.widescreen_notice_seen = true;
         assert!(app.widescreen_notice().is_none());
         app.widescreen_notice_seen = false;

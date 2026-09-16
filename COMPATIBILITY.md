@@ -339,3 +339,7 @@ Native Linux input at `7918409` verified base validation/confirmation, base-only
 ### Optional widescreen notice
 
 After base success, the desktop shows the reference default warning or authored metadata.widescreenWarningContent (also WidescreenWarningContent) before widescreen selection. Explicit blank/null content skips it; Continue dismisses it for this guide session. Text is displayed literally, matching the reference notice control. A desktop regression covers phase gating, default/authored/blank/null content and dismissal. Native notice interaction and Markdown warning extraction remain unverified/incomplete.
+
+### Markdown widescreen guidance
+
+Markdown now extracts the optional widescreen warning from its case-insensitive heading through the first following level-three heading and starts epilogue content at the subsequent level-two section. The desktop consumes this extracted warning. The isolated C# parser fixture in `docs/parity/markdown-warning-oracle/` confirms exact warning/epilogue text and the reference Mod List boundary excluding later widescreen components. Rust regressions cover CRLF normalization, missing first mod, absent post-widescreen section and desktop metadata consumption. This supersedes the missing warning-extraction status above; widescreen component inclusion/classification outside Mod List, native notice interaction and complete Markdown fidelity remain open.

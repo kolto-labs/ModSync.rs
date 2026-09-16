@@ -450,3 +450,29 @@ fn modern_resource_roundtrips_track_nested_xml_type_gap() {
     observed_xml["https://example.com/archive"]["HandlerMetadata"]["Nested"]["Id"] = "17".into();
     assert_eq!(reloaded.components[0].resource_registry, observed_xml);
 }
+
+#[test]
+fn markdown_widescreen_warning_and_epilogue_follow_reference_boundaries() {
+    let base = include_str!("fixtures/guide.md");
+    let notice =
+        "## oPtIoNaL WiDeScReEn Support\n\nApply résumé textures before the 4GB patch.\n\n";
+    let text = format!("{base}\n{notice}### Wide\n**Name:** Wide\n\n## Misc.\nFinal guidance.\n");
+    for input in [text.clone(), text.replace('\n', "\r\n")] {
+        let guide = Guide::parse(&input, "md").unwrap();
+        assert_eq!(guide.metadata["widescreenWarningContent"], notice.trim());
+        assert_eq!(
+            guide.metadata["epilogueContent"],
+            "## Misc.\nFinal guidance.\n"
+        );
+        // The reference Mod List boundary still excludes later widescreen mods.
+        assert_eq!(guide.components.len(), 2);
+    }
+    let no_mod = Guide::parse(&format!("{base}\n{notice}"), "md").unwrap();
+    assert!(!no_mod.metadata.contains_key("widescreenWarningContent"));
+    let no_epilogue =
+        Guide::parse(&format!("{base}\n{notice}### Wide\n**Name:** Wide\n"), "md").unwrap();
+    assert_eq!(
+        no_epilogue.metadata["widescreenWarningContent"],
+        notice.trim()
+    );
+}

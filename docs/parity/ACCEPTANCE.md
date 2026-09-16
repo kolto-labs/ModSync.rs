@@ -247,3 +247,5 @@ F24 phase wiring checkpoint: desktop base-only jobs transition to widescreen sel
 F10/F24 native phased-install checkpoint: two-phase success, deferred wide writes, base dependency context and no base replay verified with native input and exact-byte checks. Evidence in `native-phases/`; failure/restore/skip/restart and full builds remain open.
 
 F24 notice checkpoint: optional widescreen guidance now precedes selection after base completion, with metadata aliases, default/blank/null semantics and one-session dismissal covered by a desktop regression. Native notice interaction and Markdown warning extraction remain open.
+
+F02/F24 Markdown warning checkpoint: warning and post-widescreen epilogue extraction match an isolated pinned C# parser fixture (`markdown-warning-oracle/`); desktop consumes extracted metadata. Missing-heading and CRLF regressions pass. Widescreen component inclusion/classification and native notice proof remain open.

@@ -141,6 +141,40 @@ pub(crate) fn parse(text: &str) -> Result<Guide> {
             .metadata
             .insert("preambleContent".into(), text[..index].trim_end().into());
     }
+    // The reference extracts this from the complete document, even when its
+    // Mod List boundary excludes widescreen components from parsing.
+    if let Some(header) = text.to_ascii_lowercase().find("## optional widescreen") {
+        let mut position = header;
+        let mut first_mod = None;
+        let mut next_section = None;
+        for line in text[header..].split_inclusive('\n') {
+            if first_mod.is_none()
+                && line
+                    .strip_prefix("###")
+                    .is_some_and(|s| s.starts_with(char::is_whitespace))
+            {
+                first_mod = Some(position);
+            }
+            if position > header
+                && line.strip_prefix("##").is_some_and(|s| {
+                    s.starts_with(char::is_whitespace) && !s.trim_start().starts_with('#')
+                })
+                && next_section.is_none()
+            {
+                next_section = Some(position);
+            }
+            position += line.len();
+        }
+        if let Some(first_mod) = first_mod {
+            guide.metadata.insert(
+                "widescreenWarningContent".into(),
+                text[header..first_mod].trim().into(),
+            );
+        }
+        if let Some(next_section) = next_section {
+            end = next_section;
+        }
+    }
     if end < text.len() {
         guide
             .metadata
