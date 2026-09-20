@@ -263,19 +263,56 @@ impl Engine {
                 continue;
             }
             self.validation_target = Some((component.name.clone(), component.guid.clone(), None));
-            let result = if component.instructions.is_empty() {
-                Err(anyhow::anyhow!(
-                    "{} has no executable instructions; review the guide",
-                    component.name
-                ))
-            } else {
-                self.component(component, &mut |_| {})
-            };
-            if let Err(error) = result {
+            if component.instructions.is_empty() {
+                issues.push(crate::validation::DryRunIssue::engine(
+                    format!(
+                        "{} has no executable instructions; review the guide",
+                        component.name
+                    ),
+                    self.validation_target.clone(),
+                ));
+                continue;
+            }
+            if let Err(error) = self.check_component(component) {
                 issues.push(crate::validation::DryRunIssue::engine(
                     format!("{error:#}"),
                     self.validation_target.clone(),
                 ));
+                continue;
+            }
+            for (index, instruction) in component.instructions.iter().enumerate() {
+                self.validation_target = Some((
+                    component.name.clone(),
+                    component.guid.clone(),
+                    Some(index + 1),
+                ));
+                if !self.instruction_applies(instruction) {
+                    continue;
+                }
+                if let Err(error) = self
+                    .execute(component, instruction, &mut |_| {})
+                    .with_context(|| {
+                        format!(
+                            "{} / step {} ({})",
+                            component.name,
+                            index + 1,
+                            instruction.action
+                        )
+                    })
+                {
+                    let message = format!("{error:#}");
+                    let mut issue = crate::validation::DryRunIssue::engine(
+                        message.clone(),
+                        self.validation_target.clone(),
+                    );
+                    if message.contains("Source matches no files") {
+                        issue.affected_path = instruction.source.first().cloned();
+                    }
+                    issues.push(issue);
+                    if self.settings.cancelled.load(Ordering::Relaxed) {
+                        return issues;
+                    }
+                }
             }
         }
         issues
@@ -517,45 +554,11 @@ impl Engine {
 
     fn component(&mut self, c: &Component, emit: &mut impl FnMut(Event)) -> Result<()> {
         self.validation_target = Some((c.name.clone(), c.guid.clone(), None));
-        self.check_cancelled()?;
-        ensure!(
-            !crate::draft::requires_review(c),
-            "{} has unreviewed draft instructions; review them before installation",
-            c.name
-        );
-        ensure!(
-            c.metadata
-                .get("UnresolvedMasters")
-                .is_none_or(|v| v.as_array().is_some_and(Vec::is_empty)),
-            "{} has unresolved Markdown masters; review its dependencies",
-            c.name
-        );
-        for dependency in &c.dependencies {
-            ensure!(
-                self.selected.contains(&dependency.to_ascii_lowercase()),
-                "{} requires {dependency}",
-                c.name
-            );
-        }
-        for restriction in &c.restrictions {
-            ensure!(
-                !self.selected.contains(&restriction.to_ascii_lowercase()),
-                "{} conflicts with {restriction}",
-                c.name
-            );
-        }
+        self.check_component(c)?;
         for (n, instruction) in c.instructions.iter().enumerate() {
             self.validation_target = Some((c.name.clone(), c.guid.clone(), Some(n + 1)));
             self.check_cancelled()?;
-            if !instruction
-                .dependencies
-                .iter()
-                .all(|id| self.selected.contains(&id.to_ascii_lowercase()))
-                || instruction
-                    .restrictions
-                    .iter()
-                    .any(|id| self.selected.contains(&id.to_ascii_lowercase()))
-            {
+            if !self.instruction_applies(instruction) {
                 emit(Event {
                     component: c.name.clone(),
                     step: n + 1,
@@ -591,6 +594,48 @@ impl Engine {
             });
         }
         Ok(())
+    }
+
+    fn check_component(&self, c: &Component) -> Result<()> {
+        self.check_cancelled()?;
+        ensure!(
+            !crate::draft::requires_review(c),
+            "{} has unreviewed draft instructions; review them before installation",
+            c.name
+        );
+        ensure!(
+            c.metadata
+                .get("UnresolvedMasters")
+                .is_none_or(|v| v.as_array().is_some_and(Vec::is_empty)),
+            "{} has unresolved Markdown masters; review its dependencies",
+            c.name
+        );
+        for dependency in &c.dependencies {
+            ensure!(
+                self.selected.contains(&dependency.to_ascii_lowercase()),
+                "{} requires {dependency}",
+                c.name
+            );
+        }
+        for restriction in &c.restrictions {
+            ensure!(
+                !self.selected.contains(&restriction.to_ascii_lowercase()),
+                "{} conflicts with {restriction}",
+                c.name
+            );
+        }
+        Ok(())
+    }
+
+    fn instruction_applies(&self, instruction: &Instruction) -> bool {
+        instruction
+            .dependencies
+            .iter()
+            .all(|id| self.selected.contains(&id.to_ascii_lowercase()))
+            && !instruction
+                .restrictions
+                .iter()
+                .any(|id| self.selected.contains(&id.to_ascii_lowercase()))
     }
 
     fn path(&self, raw: &str, wildcard: bool) -> Result<PathBuf> {

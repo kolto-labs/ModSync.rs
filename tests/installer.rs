@@ -1468,7 +1468,7 @@ fn validation_report_dry_run_identifies_the_failing_instruction() {
     assert_eq!(json["componentName"], "Test");
     assert_eq!(json["componentGuid"], "a");
     assert_eq!(json["instructionIndex"], 1);
-    assert!(json.get("affectedPath").is_none());
+    assert_eq!(json["affectedPath"], "<<modDirectory>>/missing.tga");
     assert!(json.get("solution").is_none());
 }
 
@@ -1493,6 +1493,31 @@ fn validation_report_dry_run_collects_failures_across_components() {
     assert_eq!(issues[1].component_name.as_deref(), Some("Second"));
     assert_eq!(issues[0].instruction_index, Some(1));
     assert_eq!(issues[1].instruction_index, Some(1));
+}
+
+#[test]
+fn validation_report_dry_run_collects_failures_across_instructions() {
+    let (_dir, settings) = setup();
+    let report = Engine::new(settings).unwrap().validate_report_with_dry_run(
+        &guide(serde_json::json!([
+            {"Action":"Copy", "Source":"<<modDirectory>>/missing-a.tga", "Destination":"<<kotorDirectory>>/Override"},
+            {"Action":"Copy", "Source":"<<modDirectory>>/missing-b.tga", "Destination":"<<kotorDirectory>>/Override"}
+        ])),
+        |_| {},
+        true,
+    );
+    let issues = &report.dry_run.as_ref().unwrap().issues;
+    assert_eq!(issues.len(), 2);
+    assert_eq!(issues[0].instruction_index, Some(1));
+    assert_eq!(issues[1].instruction_index, Some(2));
+    assert_eq!(
+        issues[0].affected_path.as_deref(),
+        Some("<<modDirectory>>/missing-a.tga")
+    );
+    assert_eq!(
+        issues[1].affected_path.as_deref(),
+        Some("<<modDirectory>>/missing-b.tga")
+    );
 }
 
 #[test]
