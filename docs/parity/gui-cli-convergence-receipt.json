@@ -1,0 +1,32 @@
+{
+  "implementation_commit": "a98487d3f67360fe0d1364adf913703aa3a99f6d",
+  "base_commit": "a035b1b",
+  "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+  "changes": [
+    "GUI and CLI selection policies reside in the shared selection library, with actual reference wizard and CLI tier distinctions preserved",
+    "Exact names and GUIDs take precedence over filter syntax, including colon-containing names",
+    "Remaining-phase report counts and OK messages identify only the uninstalled suffix while business checks retain the full guide",
+    "Source-based GUI inventory documents open routes, controls, layout, interaction and native proof requirements"
+  ],
+  "verification": {
+    "cargo_test_all_targets": {"passed": 206, "failed": 0, "ignored": 1},
+    "cargo_test_no_default_features": {"passed": 184, "failed": 0, "ignored": 1},
+    "cargo_fmt_check": "passed",
+    "cargo_clippy_all_targets_all_features_deny_warnings": "passed",
+    "git_diff_check": "passed",
+    "ignored_test": "Explicit 513 MiB streaming regression"
+  },
+  "review": {
+    "selection_task": "Spec and quality reviewed; empty filters, numeric CLI tiers and machine-output coverage corrected",
+    "inventory_task": "Source fidelity reviewed; exact page labels corrected",
+    "report_scope_task": "Spec and quality approved",
+    "final_review": "Colon-name broadening and wrong wizard tier oracle identified, fixed, and approved on scoped re-review",
+    "open_package_findings": 0
+  },
+  "limits": [
+    "No native GUI comparison performed in this package",
+    "Source and executable Rust regressions do not prove full C# runtime equivalence",
+    "Exact GUI routes, layouts, styling, accessibility and native interactions remain open in GUI-INVENTORY.md",
+    "Full C# parity objective remains active"
+  ]
+}
