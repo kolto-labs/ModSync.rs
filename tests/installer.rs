@@ -901,6 +901,13 @@ fn remaining_validation_skips_consumed_base_sources_and_does_not_write() {
         .validate_report_remaining(&g, &["base".into()], |_| {})
         .unwrap();
     assert!(report.success, "{report:?}");
+    assert_eq!(report.component_count, 1);
+    let component_stage = report
+        .stages
+        .iter()
+        .find(|stage| stage.stage == modsync::validation::Stage::ComponentValidation)
+        .unwrap();
+    assert_eq!(component_stage.messages, ["OK: Wide"]);
     assert!(report.dry_run.unwrap().is_valid);
     assert!(!settings.roots.game.join("wide").exists());
     assert!(!settings.roots.mods.join("base.txt").exists());

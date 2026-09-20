@@ -179,7 +179,7 @@ impl Report {
     }
     pub(crate) fn component_validation(
         &mut self,
-        guide: &crate::Guide,
+        components: &[&crate::Component],
         outcome: Result<(), String>,
     ) {
         let passed = outcome.is_ok();
@@ -198,10 +198,8 @@ impl Report {
                 "1 component error(s)".into()
             },
             messages: match outcome {
-                Ok(()) => guide
-                    .components
+                Ok(()) => components
                     .iter()
-                    .filter(|component| component.is_selected)
                     .map(|component| format!("OK: {}", component.name))
                     .collect(),
                 Err(error) => vec![error],

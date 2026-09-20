@@ -198,12 +198,17 @@ impl Engine {
             engine.completed = self.completed.clone();
             Ok(engine)
         };
-        let component_count = guide
+        let validated_components: Vec<_> = guide
             .components
             .iter()
-            .filter(|component| component.is_selected)
-            .count();
-        let mut report = crate::validation::Report::new(component_count);
+            .filter(|component| {
+                component.is_selected
+                    && !self
+                        .completed
+                        .contains(&component.guid.to_ascii_lowercase())
+            })
+            .collect();
+        let mut report = crate::validation::Report::new(validated_components.len());
         if full_validation {
             let environment = (|| -> Result<()> {
                 recovery::ensure_clean(&self.settings.roots)?;
@@ -232,7 +237,7 @@ impl Engine {
             let component = fresh_engine()
                 .and_then(|engine| engine.validate(guide, emit))
                 .map_err(|error| format!("{error:#}"));
-            report.component_validation(guide, component);
+            report.component_validation(&validated_components, component);
         }
         let fomod = fresh_engine()
             .and_then(|engine| engine.validate_fomod_configuration(guide))
