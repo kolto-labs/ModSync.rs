@@ -796,7 +796,9 @@ impl App {
                         return Ok(());
                     }
                     if job == Job::Validate && completed.is_none() {
-                        let report = engine.validate_report(&guide, emit);
+                        // C# ValidatePage uses WizardFull: the same full pipeline
+                        // and dry run requested by CLI --full --dry-run.
+                        let report = engine.validate_report_with_dry_run(&guide, emit, true);
                         let success = report.success;
                         let _ = tx.send(Message::ValidationReport(report));
                         anyhow::ensure!(success, "Validation pipeline reported errors");
@@ -1930,6 +1932,47 @@ mod tests {
         assert_eq!(saved["archives"].as_array().unwrap().len(), 2);
         assert!(!app.validated && !app.confirm_install);
         assert!(app.fomod_choices.is_empty());
+    }
+
+    #[test]
+    fn desktop_validation_uses_the_shared_full_dry_run_pipeline() {
+        let root = tempfile::tempdir().unwrap();
+        let mods = root.path().join("mods");
+        let game = root.path().join("game");
+        std::fs::create_dir(&mods).unwrap();
+        std::fs::create_dir(&game).unwrap();
+        std::fs::write(mods.join("sample.tga"), b"fixture").unwrap();
+        let guide = Guide::parse(
+            include_str!("../docs/parity/validation-pipeline-oracle/guide.json"),
+            "json",
+        )
+        .unwrap();
+        let expected = Engine::new(Settings::new(&mods, &game).unwrap())
+            .unwrap()
+            .validate_report_with_options(&guide, |_| {}, true, true, false);
+        let mut app = App::new(None, Some(game.clone()), Some(mods));
+        app.guide = Some(guide);
+        app.start(Job::Validate, &egui::Context::default());
+        let receiver = app.receiver.take().unwrap();
+        let mut actual = None;
+        loop {
+            match receiver.recv_timeout(Duration::from_secs(10)).unwrap() {
+                Message::ValidationReport(report) => actual = Some(report),
+                Message::Done(result) => {
+                    result.unwrap();
+                    break;
+                }
+                Message::Log(_) => {}
+                _ => panic!("unexpected validation message"),
+            }
+        }
+        let actual = actual.unwrap();
+        assert!(actual.dry_run.as_ref().unwrap().is_valid);
+        assert_eq!(
+            serde_json::to_value(actual).unwrap(),
+            serde_json::to_value(expected).unwrap()
+        );
+        assert_eq!(std::fs::read_dir(game).unwrap().count(), 0);
     }
 
     #[test]

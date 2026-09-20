@@ -1,5 +1,7 @@
 # Compatibility and proof boundaries
 
+GUI/CLI convergence and exact C# GUI acceptance are tracked in `docs/parity/GUI-CLI.md`. The desktop base validation worker now requests full validation plus dry run, matching the C# WizardFull preset through the same engine used by CLI. A worker regression compares complete reports and verifies no game writes; native visual and interaction equivalence remains open.
+
 Dry-run aggregate counters now count individual errors (including Critical) or warnings, matching C# pipeline precedence: when a dry run contains errors, its warnings remain visible in the issues but do not increment the aggregate warning counter. Regression cases cover mixed severities, multiple warnings, and a clean run. This corrects counters only; diagnostic content equivalence remains incomplete.
 
 The live validation oracle in `docs/parity/validation-pipeline-oracle/` compares both CLIs on one successful Copy fixture with read-only game/mod trees. Parsed JSON, exit status, and empty stderr match. Rust structured CLI reports now require `--full` for Environment/Conflicts/InstallOrder and support `--dry-run-only` to skip ComponentValidation. Desktop reports retain their full-stage default. Full-stage semantics, failing reports, warning counts, and the complete C# component archive validator remain partial; matching the successful fixture does not close those gaps.
