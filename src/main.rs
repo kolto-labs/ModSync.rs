@@ -309,7 +309,7 @@ struct InstallArgs {
     /// Honor IsSelected flags; by default select all top-level components.
     #[arg(long)]
     use_file_selection: bool,
-    /// Select only these component names or GUIDs (repeat the flag).
+    /// Select component names/GUIDs or category:Name/tier:Name filters (repeat the flag).
     #[arg(long)]
     select: Vec<String>,
     /// Select option GUIDs (repeat the flag). Existing option selections are retained.
@@ -940,23 +940,18 @@ fn run() -> Result<()> {
                 if let Some(profile) = &profile {
                     profile.apply(&mut guide);
                 }
-                for requested in &args.select {
-                    ensure!(
-                        guide
-                            .components
-                            .iter()
-                            .any(|c| c.guid.eq_ignore_ascii_case(requested)
-                                || c.name.eq_ignore_ascii_case(requested)),
-                        "Unknown component: {requested}"
-                    );
-                }
-                for c in &mut guide.components {
-                    if !args.select.is_empty() {
-                        c.is_selected = args.select.iter().any(|s| {
-                            c.guid.eq_ignore_ascii_case(s) || c.name.eq_ignore_ascii_case(s)
-                        });
-                    } else if !args.use_file_selection && profile.is_none() {
-                        c.is_selected = true;
+                if !args.select.is_empty() {
+                    for warning in modsync::selection::apply_cli_selection(
+                        &mut guide.components,
+                        &args.select,
+                    )? {
+                        eprintln!("Selection warning: {warning}");
+                    }
+                } else {
+                    for c in &mut guide.components {
+                        if !args.use_file_selection && profile.is_none() {
+                            c.is_selected = true;
+                        }
                     }
                 }
                 fn select_option(c: &mut modsync::Component, id: &str) -> bool {

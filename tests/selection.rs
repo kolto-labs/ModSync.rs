@@ -84,6 +84,97 @@ fn tier_and_category_selection_are_additive_and_exclude_widescreen_components() 
 }
 
 #[test]
+fn shared_category_tier_predicate_normalizes_tiers_and_ands_filter_groups() {
+    let component = Component {
+        tier: "2 - Recommended".into(),
+        category: vec!["Graphics".into(), "UI".into()],
+        ..Default::default()
+    };
+    assert!(selection::matches_category_tier(
+        &component,
+        &["graphics".into(), "Audio".into()],
+        &["3 - Suggested".into()]
+    ));
+    assert!(!selection::matches_category_tier(
+        &component,
+        &["Audio".into()],
+        &["Optional".into()]
+    ));
+    assert!(selection::matches_category_tier(
+        &component,
+        &[],
+        &["RECOMMENDED".into()]
+    ));
+}
+
+#[test]
+fn cli_filters_reset_selection_while_gui_helpers_remain_additive() {
+    let make = |name: &str, tier: &str, category: &str, selected: bool| Component {
+        name: name.into(),
+        guid: format!("{name}-id"),
+        tier: tier.into(),
+        category: vec![category.into()],
+        is_selected: selected,
+        ..Default::default()
+    };
+    let original = vec![
+        make("Existing", "4 - Optional", "Audio", true),
+        make("Match", "2 - Recommended", "Graphics", false),
+        make("Wrong tier", "4 - Optional", "Graphics", true),
+        make("Named", "4 - Optional", "Audio", false),
+    ];
+
+    let mut gui = original.clone();
+    selection::select_categories(&mut gui, &["graphics".into()]);
+    assert_eq!(
+        gui.iter().map(|c| c.is_selected).collect::<Vec<_>>(),
+        [true, true, true, false]
+    );
+
+    let mut cli = original;
+    let warnings = selection::apply_cli_selection(
+        &mut cli,
+        &[
+            "category:GRAPHICS".into(),
+            "tier:recommended".into(),
+            "named-id".into(),
+        ],
+    )
+    .unwrap();
+    assert!(warnings.is_empty());
+    assert_eq!(
+        cli.iter().map(|c| c.is_selected).collect::<Vec<_>>(),
+        [false, true, false, true]
+    );
+}
+
+#[test]
+fn cli_selection_reports_and_ignores_malformed_or_unknown_selectors() {
+    let mut components = vec![Component {
+        name: "One".into(),
+        category: vec!["Fix".into()],
+        is_selected: true,
+        ..Default::default()
+    }];
+    let warnings =
+        selection::apply_cli_selection(&mut components, &["kind:value".into(), "tier:".into()])
+            .unwrap();
+    assert_eq!(warnings.len(), 2);
+    assert!(components[0].is_selected);
+
+    let error = selection::apply_cli_selection(&mut components, &["Missing".into()])
+        .unwrap_err()
+        .to_string();
+    assert_eq!(error, "Unknown component: Missing");
+    assert!(components[0].is_selected);
+
+    let warnings =
+        selection::apply_cli_selection(&mut components, &["category:Missing".into()]).unwrap();
+    assert!(warnings.is_empty());
+    assert!(!components[0].is_selected);
+}
+
+#[test]
 fn spoiler_display_prefers_authored_text_and_searches_only_displayed_content() {
     let mut c = Component {
         name: "Sith assassins With Lightsabers".into(),

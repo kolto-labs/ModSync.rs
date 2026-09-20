@@ -305,33 +305,96 @@ fn base(component: &Component) -> bool {
         .unwrap_or(false)
 }
 fn priority(tier: &str) -> Option<u8> {
-    match tier {
-        "1" => Some(1),
-        "2" => Some(2),
-        "3" => Some(3),
-        "4" => Some(4),
-        s if s.eq_ignore_ascii_case("Optional") => Some(5),
-        _ => None,
+    let normalized = tier.trim().to_ascii_lowercase();
+    if normalized == "1" || normalized.contains("essential") {
+        Some(1)
+    } else if normalized == "2" || normalized.contains("recommend") {
+        Some(2)
+    } else if normalized == "3" || normalized.contains("suggest") {
+        Some(3)
+    } else if normalized == "4" || normalized.contains("option") {
+        Some(4)
+    } else {
+        None
     }
 }
+
+/// C# CLI semantics: categories OR together, tiers OR together, and the two groups AND.
+pub fn matches_category_tier(c: &Component, categories: &[String], tiers: &[String]) -> bool {
+    (categories.is_empty()
+        || c.category.iter().any(|category| {
+            categories
+                .iter()
+                .any(|selected| category.eq_ignore_ascii_case(selected))
+        }))
+        && (tiers.is_empty()
+            || tiers.iter().any(|tier| match priority(tier) {
+                Some(selected) => priority(&c.tier).is_some_and(|component| component <= selected),
+                None => c.tier.eq_ignore_ascii_case(tier),
+            }))
+}
+
+/// Reset top-level selections from CLI selectors. Bare values retain Rust's exact
+/// name/GUID support; malformed prefixed selectors are ignored like the C# CLI.
+pub fn apply_cli_selection(
+    components: &mut [Component],
+    selectors: &[String],
+) -> anyhow::Result<Vec<String>> {
+    let mut categories = Vec::new();
+    let mut tiers = Vec::new();
+    let mut exact = Vec::new();
+    let mut warnings = Vec::new();
+
+    for selector in selectors {
+        let selector = selector.trim();
+        if selector.is_empty() {
+            warnings.push("Invalid empty selection; expected a component name/GUID, category:Name, or tier:Name".into());
+        } else if let Some((kind, value)) = selector.split_once(':') {
+            let value = value.trim();
+            if value.is_empty() {
+                warnings.push(format!("Invalid selection format: '{selector}'"));
+            } else if kind.trim().eq_ignore_ascii_case("category") {
+                categories.push(value.to_owned());
+            } else if kind.trim().eq_ignore_ascii_case("tier") {
+                tiers.push(value.to_owned());
+            } else {
+                warnings.push(format!("Unknown selection type: '{}'", kind.trim()));
+            }
+        } else {
+            exact.push(selector.to_owned());
+        }
+    }
+
+    for value in &exact {
+        anyhow::ensure!(
+            components
+                .iter()
+                .any(|c| c.guid.eq_ignore_ascii_case(value) || c.name.eq_ignore_ascii_case(value)),
+            "Unknown component: {value}"
+        );
+    }
+    let has_filter = !categories.is_empty() || !tiers.is_empty();
+    let has_valid_selector = has_filter || !exact.is_empty();
+    for c in components.iter_mut() {
+        let exact_match = exact
+            .iter()
+            .any(|value| c.guid.eq_ignore_ascii_case(value) || c.name.eq_ignore_ascii_case(value));
+        let filtered = has_filter && matches_category_tier(c, &categories, &tiers);
+        c.is_selected = !has_valid_selector || exact_match || filtered;
+    }
+    Ok(warnings)
+}
+
 pub fn select_tier(components: &mut [Component], tier: &str) {
     for component in components.iter_mut().filter(|c| base(c)) {
-        let matches = match priority(tier) {
-            Some(selected) => priority(&component.tier).is_some_and(|p| p <= selected),
-            None => component.tier.eq_ignore_ascii_case(tier),
-        };
-        if matches {
+        if matches_category_tier(component, &[], &[tier.to_owned()]) {
             component.is_selected = true;
         }
     }
 }
 pub fn select_categories(components: &mut [Component], categories: &[String]) {
     for component in components.iter_mut().filter(|c| base(c)) {
-        if component.category.iter().any(|cat| {
-            categories
-                .iter()
-                .any(|selected| cat.eq_ignore_ascii_case(selected))
-        }) {
+        if matches_category_tier(component, categories, &[]) {
             component.is_selected = true;
         }
     }
