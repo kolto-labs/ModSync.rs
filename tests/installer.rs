@@ -896,6 +896,12 @@ fn remaining_validation_skips_consumed_base_sources_and_does_not_write() {
         .unwrap();
     assert_eq!(events.len(), 1);
     assert_eq!(events[0].component, "Wide");
+    let report = Engine::new(settings.clone())
+        .unwrap()
+        .validate_report_remaining(&g, &["base".into()], |_| {})
+        .unwrap();
+    assert!(report.success, "{report:?}");
+    assert!(report.dry_run.unwrap().is_valid);
     assert!(!settings.roots.game.join("wide").exists());
     assert!(!settings.roots.mods.join("base.txt").exists());
     assert_eq!(

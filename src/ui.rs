@@ -795,10 +795,13 @@ impl App {
                         let _ = tx.send(Message::Conflicts(report));
                         return Ok(());
                     }
-                    if job == Job::Validate && completed.is_none() {
+                    if job == Job::Validate {
                         // C# ValidatePage uses WizardFull: the same full pipeline
                         // and dry run requested by CLI --full --dry-run.
-                        let report = engine.validate_report_with_dry_run(&guide, emit, true);
+                        let report = match completed {
+                            Some(ids) => engine.validate_report_remaining(&guide, &ids, emit)?,
+                            None => engine.validate_report_with_dry_run(&guide, emit, true),
+                        };
                         let success = report.success;
                         let _ = tx.send(Message::ValidationReport(report));
                         anyhow::ensure!(success, "Validation pipeline reported errors");

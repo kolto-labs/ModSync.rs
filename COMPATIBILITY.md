@@ -1,5 +1,7 @@
 # Compatibility and proof boundaries
 
+Remaining-phase desktop validation now returns the same structured full report as base validation. Each stage retains the verified completed-prefix context, and FOMOD inspection skips completed components. The consumed-base-source regression covers report success without replaying a destructive Move or mutating either tree or recovery snapshot. Native remaining-phase presentation and exact C# report semantics remain open.
+
 GUI/CLI convergence and exact C# GUI acceptance are tracked in `docs/parity/GUI-CLI.md`. The desktop base validation worker now requests full validation plus dry run, matching the C# WizardFull preset through the same engine used by CLI. A worker regression compares complete reports and verifies no game writes; native visual and interaction equivalence remains open.
 
 Dry-run aggregate counters now count individual errors (including Critical) or warnings, matching C# pipeline precedence: when a dry run contains errors, its warnings remain visible in the issues but do not increment the aggregate warning counter. Regression cases cover mixed severities, multiple warnings, and a clean run. This corrects counters only; diagnostic content equivalence remains incomplete.

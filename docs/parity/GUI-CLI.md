@@ -5,7 +5,7 @@ The target is the C# GUI's controls, layouts, text, conditional pages, interacti
 | Flow | Current shared implementation | Remaining evidence or correction |
 |---|---|---|
 | Base validation | `Engine::validate_report_with_options`; desktop selects full validation with dry run, CLI supplies flags | C# environment, dependency conflicts, archive validation, issue presentation; native comparison |
-| Remaining-phase validation | `Engine::validate_remaining` | Desktop currently receives logs instead of the same structured report; preserve completed-prefix semantics when unifying |
+| Remaining-phase validation | `Engine::validate_report_remaining` enters the same report pipeline as base validation | Completed prefix survives every fresh stage engine; consumed-source regression verifies no replay or writes. Native remaining-phase rendering remains open |
 | Installation | `Engine::install` / `install_remaining` | Equivalent selection/preflight preparation and full-build output |
 | Selection | Desktop uses `selection` helpers; CLI prepares selections in `main.rs` | Audit explicit selection, dependency/option behavior, category/tier filters; centralize matching rules without erasing intentional CLI options |
 | Downloads | Shared download/provider modules with separate frontend orchestration | Queue, cancellation, progress, filename selection and host behavior through both entry points |

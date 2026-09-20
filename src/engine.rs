@@ -193,6 +193,11 @@ impl Engine {
         dry_run_only: bool,
     ) -> crate::validation::Report {
         let settings = self.settings.clone();
+        let fresh_engine = || -> Result<Engine> {
+            let mut engine = Engine::new(settings.clone())?;
+            engine.completed = self.completed.clone();
+            Ok(engine)
+        };
         let component_count = guide
             .components
             .iter()
@@ -208,7 +213,7 @@ impl Engine {
             if !report.push(crate::validation::Stage::Environment, environment) {
                 return report.finish();
             }
-            match Engine::new(settings.clone()).and_then(|engine| engine.analyze_conflicts(guide)) {
+            match fresh_engine().and_then(|engine| engine.analyze_conflicts(guide)) {
                 Ok(conflicts) => report.conflicts(&conflicts),
                 Err(error) => {
                     report.push(
@@ -224,17 +229,17 @@ impl Engine {
             report.install_order(order);
         }
         if !dry_run_only {
-            let component = Engine::new(settings.clone())
+            let component = fresh_engine()
                 .and_then(|engine| engine.validate(guide, emit))
                 .map_err(|error| format!("{error:#}"));
             report.component_validation(guide, component);
         }
-        let fomod = Engine::new(settings.clone())
+        let fomod = fresh_engine()
             .and_then(|engine| engine.validate_fomod_configuration(guide))
             .map_err(|error| format!("{error:#}"));
         report.fomod_configuration(fomod);
         if dry_run {
-            let issues = match Engine::new(settings) {
+            let issues = match fresh_engine() {
                 Ok(engine) => engine.validate_dry_run(guide),
                 Err(error) => vec![crate::validation::DryRunIssue::engine(
                     format!("{error:#}"),
@@ -362,6 +367,12 @@ impl Engine {
         // A previously recorded prompt state makes a missing artifact fail closed.
         let selected = guide.selected_ids();
         for component in guide.ordered()? {
+            if self
+                .completed
+                .contains(&component.guid.to_ascii_lowercase())
+            {
+                continue;
+            }
             let mut registered = BTreeSet::new();
             for resource in component.resource_registry.values() {
                 let Some(files) = resource
@@ -407,6 +418,12 @@ impl Engine {
             }
         }
         for component in guide.ordered()? {
+            if self
+                .completed
+                .contains(&component.guid.to_ascii_lowercase())
+            {
+                continue;
+            }
             for instruction in &component.instructions {
                 if instruction.action != "Extract"
                     || !instruction
@@ -500,6 +517,18 @@ impl Engine {
     ) -> Result<()> {
         self.set_completed_prefix(guide, completed)?;
         self.validate(guide, emit)
+    }
+
+    /// Run the shared wizard report on the uninstalled suffix while retaining
+    /// completed components as dependency context and verifying their receipt.
+    pub fn validate_report_remaining(
+        mut self,
+        guide: &Guide,
+        completed: &[String],
+        emit: impl FnMut(Event),
+    ) -> Result<crate::validation::Report> {
+        self.set_completed_prefix(guide, completed)?;
+        Ok(self.validate_report_with_dry_run(guide, emit, true))
     }
 
     /// Analyze only the uninstalled suffix under the same verified completion
