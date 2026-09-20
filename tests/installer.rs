@@ -1445,7 +1445,31 @@ fn validation_report_dry_run_is_structured_and_does_not_write() {
         serde_json::to_value(&report).unwrap()["dryRun"]["isValid"],
         true
     );
+    assert_eq!(
+        serde_json::to_value(&report).unwrap()["dryRun"]["issues"],
+        serde_json::json!([])
+    );
     assert!(fs::read_dir(game).unwrap().next().is_none());
+}
+
+#[test]
+fn validation_report_dry_run_identifies_the_failing_instruction() {
+    let (_dir, settings) = setup();
+    let report = Engine::new(settings).unwrap().validate_report_with_dry_run(
+        &guide(serde_json::json!([{"Action":"Copy", "Source":"<<modDirectory>>/missing.tga", "Destination":"<<kotorDirectory>>/Override"}])),
+        |_| {},
+        true,
+    );
+    let issue = &report.dry_run.unwrap().issues[0];
+    assert_eq!(issue.component_name.as_deref(), Some("Test"));
+    assert_eq!(issue.component_guid.as_deref(), Some("a"));
+    assert_eq!(issue.instruction_index, Some(1));
+    let json = serde_json::to_value(issue).unwrap();
+    assert_eq!(json["componentName"], "Test");
+    assert_eq!(json["componentGuid"], "a");
+    assert_eq!(json["instructionIndex"], 1);
+    assert!(json.get("affectedPath").is_none());
+    assert!(json.get("solution").is_none());
 }
 
 #[test]

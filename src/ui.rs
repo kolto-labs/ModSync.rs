@@ -1663,6 +1663,8 @@ impl eframe::App for App {
                     ui.separator();
                     if let Some(report) = &self.validation_report {
                         ui.collapsing("Validation report", |ui| {
+                            let first_issue = report.first_issue();
+                            let mut scroll_to_issue = false;
                             ui.horizontal(|ui| {
                                 ui.strong(format!("Errors: {}", report.error_count));
                                 ui.strong(format!("Warnings: {}", report.warning_count));
@@ -1674,9 +1676,10 @@ impl eframe::App for App {
                                     }
                                 }
                             });
-                            if report.first_issue().is_some()
+                            if first_issue.is_some()
                                 && ui.button("Go to first issue").clicked()
-                                && let Some(message) = report.first_issue() {
+                                && let Some(message) = first_issue {
+                                scroll_to_issue = true;
                                 self.logs.push(format!("First validation issue: {message}"));
                             }
                             for stage in &report.stages {
@@ -1684,7 +1687,13 @@ impl eframe::App for App {
                                     else if stage.has_warnings { egui::Color32::YELLOW }
                                     else { egui::Color32::GREEN };
                                 ui.colored_label(color, format!("{:?}: {}", stage.stage, stage.summary));
-                                for message in &stage.messages { ui.label(message); }
+                                for message in &stage.messages {
+                                    let response = ui.label(message);
+                                    if scroll_to_issue && Some(message.as_str()) == first_issue {
+                                        response.scroll_to_me(Some(egui::Align::Center));
+                                        scroll_to_issue = false;
+                                    }
+                                }
                             }
                         });
                     }

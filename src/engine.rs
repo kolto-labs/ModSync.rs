@@ -86,6 +86,7 @@ pub struct Engine {
     completed: BTreeSet<String>,
     selected_names: BTreeSet<String>,
     conflicts: Option<crate::conflicts::Tracker>,
+    validation_target: Option<(String, String, Option<usize>)>,
 }
 
 impl Engine {
@@ -115,6 +116,7 @@ impl Engine {
             completed: BTreeSet::new(),
             selected_names: BTreeSet::new(),
             conflicts: None,
+            validation_target: None,
         };
         engine.scan()?;
         Ok(engine)
@@ -215,12 +217,33 @@ impl Engine {
             .map_err(|error| format!("{error:#}"));
         report.push(crate::validation::Stage::FomodConfiguration, fomod);
         if dry_run {
-            let result = Engine::new(settings)
-                .and_then(|engine| engine.validate(guide, |_| {}))
-                .map_err(|error| format!("{error:#}"));
-            report.dry_run(result);
+            let result = match Engine::new(settings) {
+                Ok(engine) => engine.validate_dry_run(guide),
+                Err(error) => Err(Box::new(crate::validation::DryRunIssue::engine(
+                    format!("{error:#}"),
+                    None,
+                ))),
+            };
+            report.dry_run(result.map_err(|issue| *issue));
         }
         report.finish()
+    }
+
+    fn validate_dry_run(
+        mut self,
+        guide: &Guide,
+    ) -> std::result::Result<(), Box<crate::validation::DryRunIssue>> {
+        let result = recovery::ensure_clean(&self.settings.roots)
+            .and_then(|_| {
+                recovery::verify_completion(&self.settings.roots, guide, self.completed.len())
+            })
+            .and_then(|_| self.run(guide, &mut |_| {}));
+        result.map_err(|error| {
+            Box::new(crate::validation::DryRunIssue::engine(
+                format!("{error:#}"),
+                self.validation_target,
+            ))
+        })
     }
 
     fn validate_fomod_configuration(&self, guide: &Guide) -> Result<()> {
@@ -458,6 +481,7 @@ impl Engine {
     }
 
     fn component(&mut self, c: &Component, emit: &mut impl FnMut(Event)) -> Result<()> {
+        self.validation_target = Some((c.name.clone(), c.guid.clone(), None));
         self.check_cancelled()?;
         ensure!(
             !crate::draft::requires_review(c),
@@ -486,6 +510,7 @@ impl Engine {
             );
         }
         for (n, instruction) in c.instructions.iter().enumerate() {
+            self.validation_target = Some((c.name.clone(), c.guid.clone(), Some(n + 1)));
             self.check_cancelled()?;
             if !instruction
                 .dependencies

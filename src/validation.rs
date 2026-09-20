@@ -22,13 +22,39 @@ pub struct DryRunIssue {
     pub severity: String,
     pub category: String,
     pub message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub affected_path: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub component_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub component_guid: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub instruction_index: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub solution: Option<String>,
+}
+impl DryRunIssue {
+    pub(crate) fn engine(message: String, target: Option<(String, String, Option<usize>)>) -> Self {
+        let (component_name, component_guid, instruction_index) = target
+            .map(|(name, guid, index)| (Some(name), Some(guid), index))
+            .unwrap_or_default();
+        Self {
+            severity: "Error".into(),
+            category: "EngineSimulation".into(),
+            message,
+            affected_path: None,
+            component_name,
+            component_guid,
+            instruction_index,
+            solution: None,
+        }
+    }
 }
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DryRun {
     pub is_valid: bool,
     pub has_warnings: bool,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub issues: Vec<DryRunIssue>,
 }
 #[derive(Clone, Debug, Serialize)]
@@ -86,7 +112,7 @@ impl ErrorReport {
     }
 }
 impl Report {
-    /// Returns the first actionable error or warning in pipeline order.
+    /// Returns the first error, or the first warning when there are no errors.
     ///
     /// The desktop uses this for its "Go to first issue" control, matching
     /// the reference wizard which makes the control available for warnings as
@@ -94,7 +120,8 @@ impl Report {
     pub fn first_issue(&self) -> Option<&str> {
         self.stages
             .iter()
-            .find(|stage| !stage.passed || stage.has_warnings)
+            .find(|stage| !stage.passed)
+            .or_else(|| self.stages.iter().find(|stage| stage.has_warnings))
             .and_then(|stage| stage.messages.first().map(String::as_str))
     }
 
@@ -137,7 +164,7 @@ impl Report {
             }
         }
     }
-    pub(crate) fn dry_run(&mut self, outcome: Result<(), String>) {
+    pub(crate) fn dry_run(&mut self, outcome: Result<(), DryRunIssue>) {
         match outcome {
             Ok(()) => {
                 self.passed_count += 1;
@@ -154,23 +181,19 @@ impl Report {
                     issues: Vec::new(),
                 });
             }
-            Err(error) => {
+            Err(issue) => {
                 self.error_count += 1;
                 self.stages.push(StageResult {
                     stage: Stage::DryRun,
                     passed: false,
                     has_warnings: false,
                     summary: "Dry-run validation failed.".into(),
-                    messages: vec![format!("ERROR: [EngineSimulation] {error}")],
+                    messages: vec![format!("ERROR: [{}] {}", issue.category, issue.message)],
                 });
                 self.dry_run = Some(DryRun {
                     is_valid: false,
                     has_warnings: false,
-                    issues: vec![DryRunIssue {
-                        severity: "Error".into(),
-                        category: "EngineSimulation".into(),
-                        message: error,
-                    }],
+                    issues: vec![issue],
                 });
             }
         }
@@ -214,7 +237,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn first_issue_includes_warnings_in_pipeline_order() {
+    fn first_issue_prefers_errors_then_falls_back_to_warnings() {
         let mut report = Report::new(0);
         report.stages = vec![
             StageResult {
@@ -233,6 +256,8 @@ mod tests {
             },
         ];
 
+        assert_eq!(report.first_issue(), Some("later error"));
+        report.stages[1].passed = true;
         assert_eq!(report.first_issue(), Some("first warning"));
     }
 }
