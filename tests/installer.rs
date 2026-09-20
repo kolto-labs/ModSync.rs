@@ -1521,6 +1521,63 @@ fn validation_report_dry_run_collects_failures_across_instructions() {
 }
 
 #[test]
+fn validation_report_dry_run_collects_reference_file_warnings() {
+    let (_dir, settings) = setup();
+    fs::write(settings.roots.mods.join("sample.tga"), b"new").unwrap();
+    fs::create_dir(settings.roots.game.join("Override")).unwrap();
+    fs::write(settings.roots.game.join("Override/sample.tga"), b"existing").unwrap();
+    let report = Engine::new(settings.clone())
+        .unwrap()
+        .validate_report_with_dry_run(
+            &guide(serde_json::json!([
+                {"Action":"Copy", "Source":"<<modDirectory>>/sample.tga", "Destination":"<<kotorDirectory>>/Override", "Overwrite":false},
+                {"Action":"Delete", "Source":"<<kotorDirectory>>/missing.tga"}
+            ])),
+            |_| {},
+            true,
+        );
+    let dry_run = report.dry_run.unwrap();
+    assert!(dry_run.is_valid && dry_run.has_warnings);
+    assert_eq!(dry_run.issues.len(), 2);
+    assert_eq!(dry_run.issues[0].severity, "Warning");
+    assert_eq!(dry_run.issues[0].category, "CopyFile");
+    assert!(dry_run.issues[0].message.contains("overwrite is false"));
+    assert_eq!(dry_run.issues[1].category, "DeleteFile");
+    assert!(dry_run.issues[1].message.contains("non-existent file"));
+    assert_eq!(
+        fs::read(settings.roots.game.join("Override/sample.tga")).unwrap(),
+        b"existing"
+    );
+}
+
+#[test]
+fn overwrite_false_and_missing_delete_remain_nonfatal_noops() {
+    let (_dir, settings) = setup();
+    fs::write(settings.roots.mods.join("source.txt"), b"source").unwrap();
+    fs::write(settings.roots.mods.join("target.txt"), b"target").unwrap();
+    let guide = guide(serde_json::json!([
+        {"Action":"Rename", "Source":"<<modDirectory>>/source.txt", "Destination":"target.txt", "Overwrite":false},
+        {"Action":"Delete", "Source":"<<kotorDirectory>>/missing.txt"}
+    ]));
+    Engine::new(settings.clone())
+        .unwrap()
+        .validate(&guide, |_| {})
+        .unwrap();
+    Engine::new(settings.clone())
+        .unwrap()
+        .install(&guide, |_| {})
+        .unwrap();
+    assert_eq!(
+        fs::read(settings.roots.mods.join("source.txt")).unwrap(),
+        b"source"
+    );
+    assert_eq!(
+        fs::read(settings.roots.mods.join("target.txt")).unwrap(),
+        b"target"
+    );
+}
+
+#[test]
 fn cli_validation_report_emits_structured_error_when_setup_fails() {
     let (dir, settings) = setup();
     // A guide path that does not exist fails before any pipeline stage runs.

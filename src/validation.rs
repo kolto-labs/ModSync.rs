@@ -49,6 +49,19 @@ impl DryRunIssue {
             solution: None,
         }
     }
+
+    pub(crate) fn warning(
+        category: String,
+        message: String,
+        affected_path: String,
+        target: Option<(String, String, Option<usize>)>,
+    ) -> Self {
+        let mut issue = Self::engine(message, target);
+        issue.severity = "Warning".into();
+        issue.category = category;
+        issue.affected_path = Some(affected_path);
+        issue
+    }
 }
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]

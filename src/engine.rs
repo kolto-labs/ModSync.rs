@@ -87,6 +87,7 @@ pub struct Engine {
     selected_names: BTreeSet<String>,
     conflicts: Option<crate::conflicts::Tracker>,
     validation_target: Option<(String, String, Option<usize>)>,
+    validation_warnings: Vec<crate::validation::DryRunIssue>,
 }
 
 impl Engine {
@@ -117,6 +118,7 @@ impl Engine {
             selected_names: BTreeSet::new(),
             conflicts: None,
             validation_target: None,
+            validation_warnings: Vec::new(),
         };
         engine.scan()?;
         Ok(engine)
@@ -289,7 +291,7 @@ impl Engine {
                 if !self.instruction_applies(instruction) {
                     continue;
                 }
-                if let Err(error) = self
+                let result = self
                     .execute(component, instruction, &mut |_| {})
                     .with_context(|| {
                         format!(
@@ -298,8 +300,9 @@ impl Engine {
                             index + 1,
                             instruction.action
                         )
-                    })
-                {
+                    });
+                issues.append(&mut self.validation_warnings);
+                if let Err(error) = result {
                     let message = format!("{error:#}");
                     let mut issue = crate::validation::DryRunIssue::engine(
                         message.clone(),
@@ -638,6 +641,18 @@ impl Engine {
                 .any(|id| self.selected.contains(&id.to_ascii_lowercase()))
     }
 
+    fn validation_warning(&mut self, category: &str, message: String, path: &Path) {
+        if !self.install {
+            self.validation_warnings
+                .push(crate::validation::DryRunIssue::warning(
+                    category.into(),
+                    message,
+                    path.to_string_lossy().into_owned(),
+                    self.validation_target.clone(),
+                ));
+        }
+    }
+
     fn path(&self, raw: &str, wildcard: bool) -> Result<PathBuf> {
         self.settings.roots.resolve(raw, wildcard)
     }
@@ -890,10 +905,13 @@ impl Engine {
                     );
                     let exists = self.files.contains_key(&key(&target));
                     if exists && !i.overwrite {
-                        ensure!(
-                            i.action != "Rename",
-                            "Rename target exists: {}",
-                            target.display()
+                        self.validation_warning(
+                            &format!("{}File", i.action),
+                            format!(
+                                "Destination file already exists and overwrite is false: {}",
+                                target.display()
+                            ),
+                            &target,
                         );
                         continue;
                     }
@@ -905,7 +923,18 @@ impl Engine {
                 }
             }
             "Delete" => {
-                for source in self.matches(&i.source, !i.overwrite)? {
+                let sources = self.matches(&i.source, true)?;
+                if sources.is_empty() {
+                    for source in &i.source {
+                        let path = self.path(source, true)?;
+                        self.validation_warning(
+                            "DeleteFile",
+                            format!("Attempting to delete non-existent file: {}", path.display()),
+                            &path,
+                        );
+                    }
+                }
+                for source in sources {
                     self.delete(&source)?;
                 }
             }
