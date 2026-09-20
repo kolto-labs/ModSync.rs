@@ -1,5 +1,7 @@
 # Compatibility and proof boundaries
 
+GUI and CLI category/tier matching now share the selection module. CLI filters reset selection, OR values within each group, and AND category/tier groups; GUI actions retain their additive behavior. Empty category/tier values match no components, and numeric tiers are custom exact values rather than named priority bands. An executable CLI regression preserves parseable JSON stdout when malformed-selector warnings go to stderr. Rust's existing exact name/GUID selector extension remains supported. `docs/parity/GUI-INVENTORY.md` records the open exact-GUI requirements from source comparison; it does not establish native equivalence.
+
 Remaining-phase desktop validation now returns the same structured full report as base validation. Each stage retains the verified completed-prefix context, and FOMOD inspection skips completed components. The consumed-base-source regression covers report success without replaying a destructive Move or mutating either tree or recovery snapshot. Native remaining-phase presentation and exact C# report semantics remain open.
 
 GUI/CLI convergence and exact C# GUI acceptance are tracked in `docs/parity/GUI-CLI.md`. The desktop base validation worker now requests full validation plus dry run, matching the C# WizardFull preset through the same engine used by CLI. A worker regression compares complete reports and verifies no game writes; native visual and interaction equivalence remains open.
