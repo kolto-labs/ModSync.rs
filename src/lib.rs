@@ -40,3 +40,4 @@ pub mod updates;
 pub mod fomod;
 
 pub mod conflicts;
+pub mod wizard;
