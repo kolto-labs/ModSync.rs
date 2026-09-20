@@ -285,4 +285,74 @@ mod tests {
         report.stages[1].passed = true;
         assert_eq!(report.first_issue(), Some("first warning"));
     }
+
+    #[test]
+    fn json_shapes_match_the_pinned_csharp_formatter_oracle() {
+        let oracle: serde_json::Value = serde_json::from_str(include_str!(
+            "../docs/parity/validation-json-oracle/result.json"
+        ))
+        .unwrap();
+        let report = Report {
+            success: false,
+            exit_code: 1,
+            error_count: 1,
+            warning_count: 1,
+            passed_count: 1,
+            component_count: 1,
+            input_path: Some("/guides/fixture.json".into()),
+            stages: vec![
+                StageResult {
+                    stage: Stage::Environment,
+                    passed: true,
+                    has_warnings: false,
+                    summary: "Passed".into(),
+                    messages: Vec::new(),
+                },
+                StageResult {
+                    stage: Stage::DryRun,
+                    passed: false,
+                    has_warnings: true,
+                    summary: "Dry-run validation failed.".into(),
+                    messages: vec!["ERROR: [CopyFile] Source file does not exist".into()],
+                },
+            ],
+            dry_run: Some(DryRun {
+                is_valid: false,
+                has_warnings: true,
+                issues: vec![
+                    DryRunIssue {
+                        severity: "Error".into(),
+                        category: "CopyFile".into(),
+                        message: "Source file does not exist".into(),
+                        affected_path: Some("/mods/missing.tga".into()),
+                        component_name: Some("Fixture".into()),
+                        component_guid: Some("11111111-1111-1111-1111-111111111111".into()),
+                        instruction_index: Some(2),
+                        solution: Some("Restore the source file".into()),
+                    },
+                    DryRunIssue {
+                        severity: "Warning".into(),
+                        category: "DeleteFile".into(),
+                        message: "Attempting to delete non-existent file".into(),
+                        affected_path: Some("/game/missing.tga".into()),
+                        component_name: Some("Fixture".into()),
+                        component_guid: Some("11111111-1111-1111-1111-111111111111".into()),
+                        instruction_index: None,
+                        solution: None,
+                    },
+                ],
+            }),
+        };
+        let error = ErrorReport {
+            success: false,
+            exit_code: 7,
+            error_count: 0,
+            warning_count: 0,
+            passed_count: 0,
+            component_count: 0,
+            error: "fixture failure".into(),
+        };
+        assert_eq!(serde_json::to_value(report).unwrap(), oracle["report"]);
+        assert_eq!(serde_json::to_value(error).unwrap(), oracle["error"]);
+    }
 }

@@ -1,0 +1,61 @@
+{
+  "report": {
+    "success": false,
+    "exitCode": 1,
+    "errorCount": 1,
+    "warningCount": 1,
+    "passedCount": 1,
+    "componentCount": 1,
+    "inputPath": "/guides/fixture.json",
+    "stages": [
+      {
+        "stage": "Environment",
+        "passed": true,
+        "hasWarnings": false,
+        "summary": "Passed"
+      },
+      {
+        "stage": "DryRun",
+        "passed": false,
+        "hasWarnings": true,
+        "summary": "Dry-run validation failed.",
+        "messages": [
+          "ERROR: [CopyFile] Source file does not exist"
+        ]
+      }
+    ],
+    "dryRun": {
+      "isValid": false,
+      "hasWarnings": true,
+      "issues": [
+        {
+          "severity": "Error",
+          "category": "CopyFile",
+          "message": "Source file does not exist",
+          "affectedPath": "/mods/missing.tga",
+          "componentName": "Fixture",
+          "componentGuid": "11111111-1111-1111-1111-111111111111",
+          "instructionIndex": 2,
+          "solution": "Restore the source file"
+        },
+        {
+          "severity": "Warning",
+          "category": "DeleteFile",
+          "message": "Attempting to delete non-existent file",
+          "affectedPath": "/game/missing.tga",
+          "componentName": "Fixture",
+          "componentGuid": "11111111-1111-1111-1111-111111111111"
+        }
+      ]
+    }
+  },
+  "error": {
+    "success": false,
+    "exitCode": 7,
+    "errorCount": 0,
+    "warningCount": 0,
+    "passedCount": 0,
+    "componentCount": 0,
+    "error": "fixture failure"
+  }
+}

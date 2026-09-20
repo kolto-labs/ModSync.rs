@@ -1,0 +1,24 @@
+{
+  "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+  "reference_dll_sha256": "8f3b1e3f8fe47b2cc6f8e3f281912506721c7367218381bb2a35cf86dc5768f0",
+  "runtime": "dotnet 10.0.111; probe targets net9.0",
+  "isolation": "bubblewrap: read-only root, private /tmp and user config/data, network unshared; only oracle output directory writable",
+  "checks": [
+    "C# report and early-error JSON captured from ValidationPipelineJsonFormatter",
+    "Stage messages are omitted when empty",
+    "Dry-run issues retain error and warning severity plus every optional detail field",
+    "Null issue fields are omitted",
+    "Nondefault early-error exit code and zero counters are retained",
+    "Rust serde output equals the captured C# JSON values"
+  ],
+  "limitations": [
+    "Constructed formatter objects, not a full C# filesystem-validation run",
+    "One error issue, one warning issue, two stages, and one early-error object",
+    "Build emitted a DiagnosticSource version-unification warning; the isolated probe executed successfully"
+  ],
+  "files": {
+    "Program.cs": "b4523109b03002ac949400dfa9e5a09a42b11389e7672494db32aa8fed2d3b27",
+    "probe.csproj": "deafe2f16f2047ea45e36d05bc5b10092f293a97b4209a71dde3f85759a63a4f",
+    "result.json": "158bfcac9f87a6001f21343a046c7c27dd1de65a6926d893e0475cca48ef94a0"
+  }
+}
