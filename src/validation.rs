@@ -222,13 +222,19 @@ impl Report {
         }
     }
     pub(crate) fn dry_run(&mut self, issues: Vec<DryRunIssue>) {
-        let has_errors = issues.iter().any(|issue| {
-            issue.severity.eq_ignore_ascii_case("error")
-                || issue.severity.eq_ignore_ascii_case("critical")
-        });
-        let has_warnings = issues
+        let errors = issues
             .iter()
-            .any(|issue| issue.severity.eq_ignore_ascii_case("warning"));
+            .filter(|issue| {
+                issue.severity.eq_ignore_ascii_case("error")
+                    || issue.severity.eq_ignore_ascii_case("critical")
+            })
+            .count();
+        let warnings = issues
+            .iter()
+            .filter(|issue| issue.severity.eq_ignore_ascii_case("warning"))
+            .count();
+        let has_errors = errors > 0;
+        let has_warnings = warnings > 0;
         let messages = issues
             .iter()
             .map(|issue| {
@@ -241,9 +247,9 @@ impl Report {
             })
             .collect();
         if has_errors {
-            self.error_count += 1;
+            self.error_count += errors;
         } else if has_warnings {
-            self.warning_count += 1;
+            self.warning_count += warnings;
         } else {
             self.passed_count += 1;
         }
@@ -252,25 +258,10 @@ impl Report {
             passed: !has_errors,
             has_warnings,
             summary: if has_errors {
-                let errors = issues
-                    .iter()
-                    .filter(|issue| {
-                        issue.severity.eq_ignore_ascii_case("error")
-                            || issue.severity.eq_ignore_ascii_case("critical")
-                    })
-                    .count();
-                let warnings = issues
-                    .iter()
-                    .filter(|issue| issue.severity.eq_ignore_ascii_case("warning"))
-                    .count();
                 format!(
                     "✗ Validation failed with {errors} error(s) and {warnings} warning(s).\n\nThe following issues must be resolved before installation:\n"
                 )
             } else if has_warnings {
-                let warnings = issues
-                    .iter()
-                    .filter(|issue| issue.severity.eq_ignore_ascii_case("warning"))
-                    .count();
                 format!(
                     "⚠ Validation passed with {warnings} warning(s).\n\nYou may proceed, but review the following warnings:\n"
                 )
@@ -323,6 +314,39 @@ impl Report {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn dry_run_counts_individual_issues_with_reference_error_precedence() {
+        for (severities, counts) in [
+            (vec!["Error", "Critical", "Warning"], (2, 0, 0)),
+            (vec!["Warning", "Warning"], (0, 2, 0)),
+            (vec![], (0, 0, 1)),
+        ] {
+            let mut report = Report::new(1);
+            report.dry_run(
+                severities
+                    .iter()
+                    .map(|severity| {
+                        let mut issue = DryRunIssue::engine("fixture".into(), None);
+                        issue.severity = (*severity).into();
+                        issue
+                    })
+                    .collect(),
+            );
+            assert_eq!(
+                (
+                    report.error_count,
+                    report.warning_count,
+                    report.passed_count
+                ),
+                counts
+            );
+            assert_eq!(
+                report.dry_run.unwrap().has_warnings,
+                severities.contains(&"Warning")
+            );
+        }
+    }
 
     #[test]
     fn first_issue_prefers_errors_then_falls_back_to_warnings() {
