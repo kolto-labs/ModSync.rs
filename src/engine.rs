@@ -217,33 +217,68 @@ impl Engine {
             .map_err(|error| format!("{error:#}"));
         report.push(crate::validation::Stage::FomodConfiguration, fomod);
         if dry_run {
-            let result = match Engine::new(settings) {
+            let issues = match Engine::new(settings) {
                 Ok(engine) => engine.validate_dry_run(guide),
-                Err(error) => Err(Box::new(crate::validation::DryRunIssue::engine(
+                Err(error) => vec![crate::validation::DryRunIssue::engine(
                     format!("{error:#}"),
                     None,
-                ))),
+                )],
             };
-            report.dry_run(result.map_err(|issue| *issue));
+            report.dry_run(issues);
         }
         report.finish()
     }
 
-    fn validate_dry_run(
-        mut self,
-        guide: &Guide,
-    ) -> std::result::Result<(), Box<crate::validation::DryRunIssue>> {
-        let result = recovery::ensure_clean(&self.settings.roots)
-            .and_then(|_| {
-                recovery::verify_completion(&self.settings.roots, guide, self.completed.len())
-            })
-            .and_then(|_| self.run(guide, &mut |_| {}));
-        result.map_err(|error| {
-            Box::new(crate::validation::DryRunIssue::engine(
+    fn validate_dry_run(mut self, guide: &Guide) -> Vec<crate::validation::DryRunIssue> {
+        if let Err(error) = recovery::ensure_clean(&self.settings.roots).and_then(|_| {
+            recovery::verify_completion(&self.settings.roots, guide, self.completed.len())
+        }) {
+            return vec![crate::validation::DryRunIssue::engine(
                 format!("{error:#}"),
-                self.validation_target,
-            ))
-        })
+                None,
+            )];
+        }
+        let ordered = match guide.ordered() {
+            Ok(ordered) => ordered,
+            Err(error) => {
+                return vec![crate::validation::DryRunIssue::engine(
+                    format!("{error:#}"),
+                    None,
+                )];
+            }
+        };
+        self.selected = guide.selected_ids();
+        self.selected_names = guide
+            .components
+            .iter()
+            .filter(|component| component.is_selected)
+            .map(|component| component.name.to_lowercase())
+            .collect();
+        let mut issues = Vec::new();
+        for component in ordered {
+            if self
+                .completed
+                .contains(&component.guid.to_ascii_lowercase())
+            {
+                continue;
+            }
+            self.validation_target = Some((component.name.clone(), component.guid.clone(), None));
+            let result = if component.instructions.is_empty() {
+                Err(anyhow::anyhow!(
+                    "{} has no executable instructions; review the guide",
+                    component.name
+                ))
+            } else {
+                self.component(component, &mut |_| {})
+            };
+            if let Err(error) = result {
+                issues.push(crate::validation::DryRunIssue::engine(
+                    format!("{error:#}"),
+                    self.validation_target.clone(),
+                ));
+            }
+        }
+        issues
     }
 
     fn validate_fomod_configuration(&self, guide: &Guide) -> Result<()> {

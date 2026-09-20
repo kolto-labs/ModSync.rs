@@ -164,39 +164,51 @@ impl Report {
             }
         }
     }
-    pub(crate) fn dry_run(&mut self, outcome: Result<(), DryRunIssue>) {
-        match outcome {
-            Ok(()) => {
-                self.passed_count += 1;
-                self.stages.push(StageResult {
-                    stage: Stage::DryRun,
-                    passed: true,
-                    has_warnings: false,
-                    summary: "Dry-run validation passed.".into(),
-                    messages: Vec::new(),
-                });
-                self.dry_run = Some(DryRun {
-                    is_valid: true,
-                    has_warnings: false,
-                    issues: Vec::new(),
-                });
-            }
-            Err(issue) => {
-                self.error_count += 1;
-                self.stages.push(StageResult {
-                    stage: Stage::DryRun,
-                    passed: false,
-                    has_warnings: false,
-                    summary: "Dry-run validation failed.".into(),
-                    messages: vec![format!("ERROR: [{}] {}", issue.category, issue.message)],
-                });
-                self.dry_run = Some(DryRun {
-                    is_valid: false,
-                    has_warnings: false,
-                    issues: vec![issue],
-                });
-            }
+    pub(crate) fn dry_run(&mut self, issues: Vec<DryRunIssue>) {
+        let has_errors = issues.iter().any(|issue| {
+            issue.severity.eq_ignore_ascii_case("error")
+                || issue.severity.eq_ignore_ascii_case("critical")
+        });
+        let has_warnings = issues
+            .iter()
+            .any(|issue| issue.severity.eq_ignore_ascii_case("warning"));
+        let messages = issues
+            .iter()
+            .map(|issue| {
+                format!(
+                    "{}: [{}] {}",
+                    issue.severity.to_ascii_uppercase(),
+                    issue.category,
+                    issue.message
+                )
+            })
+            .collect();
+        if has_errors {
+            self.error_count += 1;
+        } else if has_warnings {
+            self.warning_count += 1;
+        } else {
+            self.passed_count += 1;
         }
+        self.stages.push(StageResult {
+            stage: Stage::DryRun,
+            passed: !has_errors,
+            has_warnings,
+            summary: if has_errors {
+                "Dry-run validation failed."
+            } else if has_warnings {
+                "Dry-run validation passed with warnings."
+            } else {
+                "Dry-run validation passed."
+            }
+            .into(),
+            messages,
+        });
+        self.dry_run = Some(DryRun {
+            is_valid: !has_errors,
+            has_warnings,
+            issues,
+        });
     }
     pub(crate) fn conflicts(&mut self, conflicts: &ConflictReport) {
         let count = conflicts.conflicts.len();

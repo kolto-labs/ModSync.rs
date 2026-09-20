@@ -1473,6 +1473,29 @@ fn validation_report_dry_run_identifies_the_failing_instruction() {
 }
 
 #[test]
+fn validation_report_dry_run_collects_failures_across_components() {
+    let (_dir, settings) = setup();
+    let guide = Guide::parse(
+        &serde_json::json!({"thisMod": [
+            {"Guid":"a", "Name":"First", "IsSelected":true, "Instructions":[{"Action":"Copy", "Source":"<<modDirectory>>/missing-a.tga", "Destination":"<<kotorDirectory>>/Override"}]},
+            {"Guid":"b", "Name":"Second", "IsSelected":true, "Instructions":[{"Action":"Copy", "Source":"<<modDirectory>>/missing-b.tga", "Destination":"<<kotorDirectory>>/Override"}]}
+        ]})
+        .to_string(),
+        "json",
+    )
+    .unwrap();
+    let report = Engine::new(settings)
+        .unwrap()
+        .validate_report_with_dry_run(&guide, |_| {}, true);
+    let issues = &report.dry_run.as_ref().unwrap().issues;
+    assert_eq!(issues.len(), 2);
+    assert_eq!(issues[0].component_name.as_deref(), Some("First"));
+    assert_eq!(issues[1].component_name.as_deref(), Some("Second"));
+    assert_eq!(issues[0].instruction_index, Some(1));
+    assert_eq!(issues[1].instruction_index, Some(1));
+}
+
+#[test]
 fn cli_validation_report_emits_structured_error_when_setup_fails() {
     let (dir, settings) = setup();
     // A guide path that does not exist fails before any pipeline stage runs.
