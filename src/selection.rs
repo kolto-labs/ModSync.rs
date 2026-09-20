@@ -304,7 +304,7 @@ fn base(component: &Component) -> bool {
         .and_then(serde_json::Value::as_bool)
         .unwrap_or(false)
 }
-fn priority(tier: &str) -> Option<u8> {
+fn cli_tier_priority(tier: &str) -> Option<u8> {
     let normalized = tier.trim().to_ascii_lowercase();
     if normalized.contains("essential") {
         Some(1)
@@ -329,16 +329,17 @@ pub fn matches_category_tier(c: &Component, categories: &[String], tiers: &[Stri
         }))
         && (tiers.is_empty()
             || (!c.tier.is_empty()
-                && tiers.iter().any(|tier| match priority(tier) {
+                && tiers.iter().any(|tier| match cli_tier_priority(tier) {
                     Some(selected) => {
-                        priority(&c.tier).is_some_and(|component| component <= selected)
+                        cli_tier_priority(&c.tier).is_some_and(|component| component <= selected)
                     }
                     None => c.tier.eq_ignore_ascii_case(tier),
                 })))
 }
 
-/// Reset top-level selections from CLI selectors. Bare values retain Rust's exact
-/// name/GUID support; malformed prefixed selectors are ignored like the C# CLI.
+/// Reset top-level selections from CLI selectors. An exact component name/GUID
+/// takes precedence over `category:`/`tier:` parsing, preserving names containing
+/// colons. Malformed prefixed selectors are ignored like the C# CLI.
 pub fn apply_cli_selection(
     components: &mut [Component],
     selectors: &[String],
@@ -352,6 +353,11 @@ pub fn apply_cli_selection(
         let selector = selector.trim();
         if selector.is_empty() {
             warnings.push("Invalid empty selection; expected a component name/GUID, category:Name, or tier:Name".into());
+        } else if components
+            .iter()
+            .any(|c| c.guid.eq_ignore_ascii_case(selector) || c.name.eq_ignore_ascii_case(selector))
+        {
+            exact.push(selector.to_owned());
         } else if let Some((kind, value)) = selector.split_once(':') {
             let value = value.trim();
             if kind.trim().eq_ignore_ascii_case("category") {
@@ -387,8 +393,20 @@ pub fn apply_cli_selection(
 }
 
 pub fn select_tier(components: &mut [Component], tier: &str) {
+    let priority = |value: &str| match value.to_ascii_lowercase().as_str() {
+        "1" => Some(1),
+        "2" => Some(2),
+        "3" => Some(3),
+        "4" => Some(4),
+        "optional" => Some(5),
+        _ => None,
+    };
+    let selected_priority = priority(tier);
     for component in components.iter_mut().filter(|c| base(c)) {
-        if matches_category_tier(component, &[], &[tier.to_owned()]) {
+        if selected_priority.map_or_else(
+            || component.tier.eq_ignore_ascii_case(tier),
+            |selected| priority(&component.tier).is_some_and(|value| value <= selected),
+        ) {
             component.is_selected = true;
         }
     }

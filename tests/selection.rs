@@ -50,13 +50,15 @@ fn interactive_selection_resolves_component_and_option_relationships() {
 }
 
 #[test]
-fn tier_and_category_selection_are_additive_and_exclude_widescreen_components() {
+fn wizard_tier_and_category_selection_are_additive_and_exclude_widescreen_components() {
     let make = |tier: &str, category: &str| Component {
         tier: tier.into(),
         category: vec![category.into()],
         ..Default::default()
     };
     let mut components = vec![
+        make("1", "Fix"),
+        make("2", "Texture"),
         make("1 - Essential", "Fix"),
         make("2 - Recommended", "Texture"),
         make("4 - Optional", "Fix"),
@@ -64,23 +66,30 @@ fn tier_and_category_selection_are_additive_and_exclude_widescreen_components() 
         make("Custom", "Fix"),
         make("1 - Essential", "Fix"),
     ];
-    components[5]
+    components[7]
         .metadata
         .insert("WidescreenOnly".into(), true.into());
-    selection::select_tier(&mut components, "2 - Recommended");
+    selection::select_tier(&mut components, "2");
     assert_eq!(
         components.iter().map(|c| c.is_selected).collect::<Vec<_>>(),
-        [true, true, false, false, false, false]
+        [true, true, false, false, false, false, false, false]
     );
-    selection::select_tier(&mut components, "CUSTOM");
-    assert!(components[4].is_selected);
-    selection::select_categories(&mut components, &["fix".into()]);
-    assert!(components[2].is_selected);
-    assert!(components[1].is_selected); // additive: unrelated existing selections survive
-    assert!(!components[5].is_selected);
-    selection::select_tier(&mut components, "optional");
+    selection::select_tier(&mut components, "2 - Recommended");
+    assert!(!components[2].is_selected);
     assert!(components[3].is_selected);
-    assert!(!components[5].is_selected);
+    selection::select_tier(&mut components, "CUSTOM");
+    assert!(components[6].is_selected);
+    selection::select_categories(&mut components, &["fix".into()]);
+    assert!(components[4].is_selected);
+    assert!(components[1].is_selected); // additive: unrelated existing selections survive
+    assert!(!components[7].is_selected);
+    selection::select_tier(&mut components, " optional ");
+    assert!(!components[5].is_selected); // wizard does not trim authored tier labels
+    selection::select_tier(&mut components, "optional");
+    assert!(components[0].is_selected);
+    assert!(components[1].is_selected);
+    assert!(components[5].is_selected);
+    assert!(!components[7].is_selected);
 }
 
 #[test]
@@ -228,6 +237,54 @@ fn cli_malformed_filter_warning_stays_on_stderr_in_json_mode() {
         String::from_utf8_lossy(&output.stderr)
             .contains("Selection warning: Unknown selection type: 'kind'")
     );
+}
+
+#[test]
+fn cli_exact_colon_names_take_precedence_over_filter_syntax() {
+    let dir = tempfile::tempdir().unwrap();
+    let input = dir.path().join("guide.json");
+    let game = dir.path().join("game");
+    let source = dir.path().join("mods");
+    std::fs::create_dir(&game).unwrap();
+    std::fs::create_dir(&source).unwrap();
+    std::fs::write(source.join("sample.tga"), b"sample").unwrap();
+    std::fs::write(
+        &input,
+        r#"[
+          {"Guid":"colon","Name":"Foo: Bar","Instructions":[{"Action":"Copy","Source":["<<modDirectory>>/sample.tga"],"Destination":"<<kotorDirectory>>/Override"}]},
+          {"Guid":"collision","Name":"category:Foo","Instructions":[{"Action":"Copy","Source":["<<modDirectory>>/sample.tga"],"Destination":"<<kotorDirectory>>/Override"}]},
+          {"Guid":"other","Name":"Unrelated","Category":["Foo"],"Instructions":[{"Action":"Copy","Source":["<<modDirectory>>/sample.tga"],"Destination":"<<kotorDirectory>>/Override"}]}
+        ]"#,
+    )
+    .unwrap();
+
+    for (selector, expected) in [
+        ("Foo: Bar", "OK: Foo: Bar"),
+        ("category:Foo", "OK: category:Foo"),
+    ] {
+        let output = std::process::Command::new(env!("CARGO_BIN_EXE_modsync"))
+            .args(["validate", "--input"])
+            .arg(&input)
+            .arg("--game-dir")
+            .arg(&game)
+            .arg("--source-dir")
+            .arg(&source)
+            .args(["--select", selector, "--validation-report"])
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert!(output.stderr.is_empty());
+        let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+        assert_eq!(report["componentCount"], 1);
+        assert_eq!(
+            report["stages"][0]["messages"],
+            serde_json::json!([expected])
+        );
+    }
 }
 
 #[test]
