@@ -181,6 +181,17 @@ impl Engine {
         emit: impl FnMut(Event),
         dry_run: bool,
     ) -> crate::validation::Report {
+        self.validate_report_with_options(guide, emit, true, dry_run, false)
+    }
+
+    pub fn validate_report_with_options(
+        self,
+        guide: &Guide,
+        emit: impl FnMut(Event),
+        full_validation: bool,
+        dry_run: bool,
+        dry_run_only: bool,
+    ) -> crate::validation::Report {
         let settings = self.settings.clone();
         let component_count = guide
             .components
@@ -188,36 +199,40 @@ impl Engine {
             .filter(|component| component.is_selected)
             .count();
         let mut report = crate::validation::Report::new(component_count);
-        let environment = (|| -> Result<()> {
-            recovery::ensure_clean(&self.settings.roots)?;
-            recovery::verify_completion(&self.settings.roots, guide, self.completed.len())
-        })()
-        .map_err(|error| format!("{error:#}"));
-        if !report.push(crate::validation::Stage::Environment, environment) {
-            return report.finish();
-        }
-        match Engine::new(settings.clone()).and_then(|engine| engine.analyze_conflicts(guide)) {
-            Ok(conflicts) => report.conflicts(&conflicts),
-            Err(error) => {
-                report.push(
-                    crate::validation::Stage::Conflicts,
-                    Err(format!("{error:#}")),
-                );
+        if full_validation {
+            let environment = (|| -> Result<()> {
+                recovery::ensure_clean(&self.settings.roots)?;
+                recovery::verify_completion(&self.settings.roots, guide, self.completed.len())
+            })()
+            .map_err(|error| format!("{error:#}"));
+            if !report.push(crate::validation::Stage::Environment, environment) {
+                return report.finish();
             }
+            match Engine::new(settings.clone()).and_then(|engine| engine.analyze_conflicts(guide)) {
+                Ok(conflicts) => report.conflicts(&conflicts),
+                Err(error) => {
+                    report.push(
+                        crate::validation::Stage::Conflicts,
+                        Err(format!("{error:#}")),
+                    );
+                }
+            }
+            let order = guide
+                .ordered()
+                .map(|_| ())
+                .map_err(|error| format!("{error:#}"));
+            report.install_order(order);
         }
-        let order = guide
-            .ordered()
-            .map(|_| ())
-            .map_err(|error| format!("{error:#}"));
-        report.push(crate::validation::Stage::InstallOrder, order);
-        let component = Engine::new(settings.clone())
-            .and_then(|engine| engine.validate(guide, emit))
-            .map_err(|error| format!("{error:#}"));
-        report.push(crate::validation::Stage::ComponentValidation, component);
+        if !dry_run_only {
+            let component = Engine::new(settings.clone())
+                .and_then(|engine| engine.validate(guide, emit))
+                .map_err(|error| format!("{error:#}"));
+            report.component_validation(guide, component);
+        }
         let fomod = Engine::new(settings.clone())
             .and_then(|engine| engine.validate_fomod_configuration(guide))
             .map_err(|error| format!("{error:#}"));
-        report.push(crate::validation::Stage::FomodConfiguration, fomod);
+        report.fomod_configuration(fomod);
         if dry_run {
             let issues = match Engine::new(settings) {
                 Ok(engine) => engine.validate_dry_run(guide),

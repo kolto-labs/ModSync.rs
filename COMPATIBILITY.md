@@ -1,5 +1,7 @@
 # Compatibility and proof boundaries
 
+The live validation oracle in `docs/parity/validation-pipeline-oracle/` compares both CLIs on one successful Copy fixture with read-only game/mod trees. Parsed JSON, exit status, and empty stderr match. Rust structured CLI reports now require `--full` for Environment/Conflicts/InstallOrder and support `--dry-run-only` to skip ComponentValidation. Desktop reports retain their full-stage default. Full-stage semantics, failing reports, warning counts, and the complete C# component archive validator remain partial; matching the successful fixture does not close those gaps.
+
 Reference: the local ModSync C# source at `d31ccbd3bfcddb4705917eafa6483715c166de3b`. This is a Rust implementation of the instruction workflow, not a source-to-source conversion of the entire application.
 
 | Area | Implemented behavior | Limits |

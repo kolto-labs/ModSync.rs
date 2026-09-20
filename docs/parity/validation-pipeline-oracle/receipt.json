@@ -1,0 +1,26 @@
+{
+  "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+  "reference_dll_sha256": "8f3b1e3f8fe47b2cc6f8e3f281912506721c7367218381bb2a35cf86dc5768f0",
+  "rust_binary_sha256": "4587dc16d364ad973ebd1b9818fdef42c851ed96bb6588d386b729c469e0e340",
+  "runtime": "dotnet 10.0.111; bubblewrap 0.11.0",
+  "isolation": "Both CLIs ran separately in bubblewrap with a read-only root and fixture, private tmp and user config/data, and no network.",
+  "commands": {
+    "csharp": "dotnet ModSync.Core.dll validate --input /tmp/fixture/guide.json --game-dir /tmp/fixture/game --source-dir /tmp/fixture/mods --use-file-selection --dry-run --output json",
+    "rust": "modsync validate --input /tmp/fixture/guide.json --game-dir /tmp/fixture/game --source-dir /tmp/fixture/mods --use-file-selection --validation-report --dry-run"
+  },
+  "checks": [
+    "Both processes exited 0 with empty stderr",
+    "Both stdout documents exactly equal expected.json after JSON parsing",
+    "Stage order, counters, summaries, messages, input path, and dry-run result match",
+    "Read-only fixture mounts prove validation did not mutate the guide, mod tree, or game tree"
+  ],
+  "limitations": [
+    "One selected component with one successful Copy instruction",
+    "Failure, warning, full-validation, selection-filter, and dry-run-only live comparisons remain open"
+  ],
+  "files": {
+    "guide.json": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b",
+    "mods/sample.tga": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be",
+    "expected.json": "1d484b8fcfdd5eb81a02eda1077df1d0b420293eddc22b080e731718a1661593"
+  }
+}

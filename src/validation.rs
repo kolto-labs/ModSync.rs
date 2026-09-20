@@ -177,6 +177,50 @@ impl Report {
             }
         }
     }
+    pub(crate) fn component_validation(
+        &mut self,
+        guide: &crate::Guide,
+        outcome: Result<(), String>,
+    ) {
+        let passed = outcome.is_ok();
+        if passed {
+            self.passed_count += 1;
+        } else {
+            self.error_count += 1;
+        }
+        self.stages.push(StageResult {
+            stage: Stage::ComponentValidation,
+            passed,
+            has_warnings: false,
+            summary: if passed {
+                "All components passed archive validation.".into()
+            } else {
+                "1 component error(s)".into()
+            },
+            messages: match outcome {
+                Ok(()) => guide
+                    .components
+                    .iter()
+                    .filter(|component| component.is_selected)
+                    .map(|component| format!("OK: {}", component.name))
+                    .collect(),
+                Err(error) => vec![error],
+            },
+        });
+    }
+    pub(crate) fn install_order(&mut self, outcome: Result<(), String>) {
+        let passed = self.push(Stage::InstallOrder, outcome);
+        if passed {
+            self.stages.last_mut().unwrap().summary = "Install order is correct.".into();
+        }
+    }
+    pub(crate) fn fomod_configuration(&mut self, outcome: Result<(), String>) {
+        let passed = self.push(Stage::FomodConfiguration, outcome);
+        if passed {
+            self.stages.last_mut().unwrap().summary =
+                "All detected FOMOD archives are configured.".into();
+        }
+    }
     pub(crate) fn dry_run(&mut self, issues: Vec<DryRunIssue>) {
         let has_errors = issues.iter().any(|issue| {
             issue.severity.eq_ignore_ascii_case("error")
@@ -208,13 +252,32 @@ impl Report {
             passed: !has_errors,
             has_warnings,
             summary: if has_errors {
-                "Dry-run validation failed."
+                let errors = issues
+                    .iter()
+                    .filter(|issue| {
+                        issue.severity.eq_ignore_ascii_case("error")
+                            || issue.severity.eq_ignore_ascii_case("critical")
+                    })
+                    .count();
+                let warnings = issues
+                    .iter()
+                    .filter(|issue| issue.severity.eq_ignore_ascii_case("warning"))
+                    .count();
+                format!(
+                    "✗ Validation failed with {errors} error(s) and {warnings} warning(s).\n\nThe following issues must be resolved before installation:\n"
+                )
             } else if has_warnings {
-                "Dry-run validation passed with warnings."
+                let warnings = issues
+                    .iter()
+                    .filter(|issue| issue.severity.eq_ignore_ascii_case("warning"))
+                    .count();
+                format!(
+                    "⚠ Validation passed with {warnings} warning(s).\n\nYou may proceed, but review the following warnings:\n"
+                )
             } else {
-                "Dry-run validation passed."
-            }
-            .into(),
+                "✓ Dry-run validation passed successfully. All instructions appear to be correct."
+                    .into()
+            },
             messages,
         });
         self.dry_run = Some(DryRun {

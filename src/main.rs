@@ -343,6 +343,12 @@ struct InstallArgs {
     /// Include a non-mutating engine dry-run result in the validation report.
     #[arg(long, requires = "validation_report")]
     dry_run: bool,
+    /// Include environment, conflict, and install-order validation stages.
+    #[arg(long, requires = "validation_report")]
+    full: bool,
+    /// Run only FOMOD configuration and VFS dry-run validation.
+    #[arg(long, requires = "validation_report")]
+    dry_run_only: bool,
 }
 
 #[derive(Clone, Copy, Debug, ValueEnum)]
@@ -1031,8 +1037,13 @@ fn run() -> Result<()> {
                 } else if install {
                     engine.install(&guide, emit)
                 } else if args.validation_report {
-                    let mut report =
-                        engine.validate_report_with_dry_run(&guide, emit, args.dry_run);
+                    let mut report = engine.validate_report_with_options(
+                        &guide,
+                        emit,
+                        args.full,
+                        args.dry_run || args.dry_run_only,
+                        args.dry_run_only,
+                    );
                     report.input_path = Some(paths.input.to_string_lossy().into_owned());
                     println!("{}", serde_json::to_string_pretty(&report)?);
                     if !report.success {

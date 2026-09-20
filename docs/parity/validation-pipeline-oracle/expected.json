@@ -1,0 +1,35 @@
+{
+  "success": true,
+  "exitCode": 0,
+  "errorCount": 0,
+  "warningCount": 0,
+  "passedCount": 3,
+  "componentCount": 1,
+  "inputPath": "/tmp/fixture/guide.json",
+  "stages": [
+    {
+      "stage": "ComponentValidation",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "All components passed archive validation.",
+      "messages": ["OK: Fixture"]
+    },
+    {
+      "stage": "FomodConfiguration",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "All detected FOMOD archives are configured."
+    },
+    {
+      "stage": "DryRun",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "✓ Dry-run validation passed successfully. All instructions appear to be correct."
+    }
+  ],
+  "dryRun": {
+    "isValid": true,
+    "hasWarnings": false,
+    "issues": []
+  }
+}

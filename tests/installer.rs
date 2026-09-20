@@ -68,7 +68,11 @@ fn cli_validation_report_is_one_json_document_with_dry_run() {
     let (dir, settings) = setup();
     fs::write(settings.roots.mods.join("sample.tga"), b"source").unwrap();
     let input = dir.path().join("guide.json");
-    guide(serde_json::json!([copy()])).save(&input).unwrap();
+    fs::write(
+        &input,
+        include_str!("../docs/parity/validation-pipeline-oracle/guide.json"),
+    )
+    .unwrap();
     let output = std::process::Command::new(env!("CARGO_BIN_EXE_modsync"))
         .arg("validate")
         .arg("--input")
@@ -86,9 +90,30 @@ fn cli_validation_report_is_one_json_document_with_dry_run() {
         String::from_utf8_lossy(&output.stderr)
     );
     let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    let mut expected: serde_json::Value = serde_json::from_str(include_str!(
+        "../docs/parity/validation-pipeline-oracle/expected.json"
+    ))
+    .unwrap();
+    expected["inputPath"] = serde_json::json!(input);
+    assert_eq!(report, expected);
+    assert!(output.stderr.is_empty());
     assert_eq!(
-        report["stages"].as_array().unwrap().last().unwrap()["stage"],
-        "DryRun"
+        report["stages"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|stage| stage["stage"].as_str().unwrap())
+            .collect::<Vec<_>>(),
+        ["ComponentValidation", "FomodConfiguration", "DryRun"]
+    );
+    assert_eq!(report["passedCount"], 3);
+    assert_eq!(
+        report["stages"][0]["summary"],
+        "All components passed archive validation."
+    );
+    assert_eq!(
+        report["stages"][2]["summary"],
+        "✓ Dry-run validation passed successfully. All instructions appear to be correct."
     );
     assert_eq!(report["dryRun"]["isValid"], true);
     assert!(!settings.roots.game.join("Override/sample.tga").exists());
