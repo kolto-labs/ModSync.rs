@@ -1674,9 +1674,9 @@ impl eframe::App for App {
                                     }
                                 }
                             });
-                            if ui.button("Show first issue").clicked()
-                                && let Some(message) = report.stages.iter().find(|stage| !stage.passed)
-                                    .and_then(|stage| stage.messages.first()) {
+                            if report.first_issue().is_some()
+                                && ui.button("Go to first issue").clicked()
+                                && let Some(message) = report.first_issue() {
                                 self.logs.push(format!("First validation issue: {message}"));
                             }
                             for stage in &report.stages {

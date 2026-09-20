@@ -86,6 +86,18 @@ impl ErrorReport {
     }
 }
 impl Report {
+    /// Returns the first actionable error or warning in pipeline order.
+    ///
+    /// The desktop uses this for its "Go to first issue" control, matching
+    /// the reference wizard which makes the control available for warnings as
+    /// well as errors.
+    pub fn first_issue(&self) -> Option<&str> {
+        self.stages
+            .iter()
+            .find(|stage| !stage.passed || stage.has_warnings)
+            .and_then(|stage| stage.messages.first().map(String::as_str))
+    }
+
     pub fn new(component_count: usize) -> Self {
         Self {
             success: false,
@@ -194,5 +206,33 @@ impl Report {
         self.success = self.error_count == 0;
         self.exit_code = u8::from(!self.success);
         self
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn first_issue_includes_warnings_in_pipeline_order() {
+        let mut report = Report::new(0);
+        report.stages = vec![
+            StageResult {
+                stage: Stage::Environment,
+                passed: true,
+                has_warnings: true,
+                summary: "Warning".into(),
+                messages: vec!["first warning".into()],
+            },
+            StageResult {
+                stage: Stage::Conflicts,
+                passed: false,
+                has_warnings: false,
+                summary: "Failed".into(),
+                messages: vec!["later error".into()],
+            },
+        ];
+
+        assert_eq!(report.first_issue(), Some("first warning"));
     }
 }
