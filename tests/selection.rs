@@ -57,17 +57,17 @@ fn tier_and_category_selection_are_additive_and_exclude_widescreen_components() 
         ..Default::default()
     };
     let mut components = vec![
-        make("1", "Fix"),
-        make("2", "Texture"),
-        make("4", "Fix"),
+        make("1 - Essential", "Fix"),
+        make("2 - Recommended", "Texture"),
+        make("4 - Optional", "Fix"),
         make("Optional", "Extra"),
         make("Custom", "Fix"),
-        make("1", "Fix"),
+        make("1 - Essential", "Fix"),
     ];
     components[5]
         .metadata
         .insert("WidescreenOnly".into(), true.into());
-    selection::select_tier(&mut components, "2");
+    selection::select_tier(&mut components, "2 - Recommended");
     assert_eq!(
         components.iter().map(|c| c.is_selected).collect::<Vec<_>>(),
         [true, true, false, false, false, false]
@@ -104,6 +104,22 @@ fn shared_category_tier_predicate_normalizes_tiers_and_ands_filter_groups() {
         &component,
         &[],
         &["RECOMMENDED".into()]
+    ));
+    assert!(!selection::matches_category_tier(
+        &Component {
+            tier: "1 - Essential".into(),
+            ..Default::default()
+        },
+        &[],
+        &["2".into()]
+    ));
+    assert!(selection::matches_category_tier(
+        &Component {
+            tier: "2".into(),
+            ..Default::default()
+        },
+        &[],
+        &["2".into()]
     ));
 }
 
@@ -159,19 +175,59 @@ fn cli_selection_reports_and_ignores_malformed_or_unknown_selectors() {
     let warnings =
         selection::apply_cli_selection(&mut components, &["kind:value".into(), "tier:".into()])
             .unwrap();
-    assert_eq!(warnings.len(), 2);
-    assert!(components[0].is_selected);
+    assert_eq!(warnings.len(), 1);
+    assert!(!components[0].is_selected);
 
     let error = selection::apply_cli_selection(&mut components, &["Missing".into()])
         .unwrap_err()
         .to_string();
     assert_eq!(error, "Unknown component: Missing");
-    assert!(components[0].is_selected);
+    assert!(!components[0].is_selected);
 
     let warnings =
         selection::apply_cli_selection(&mut components, &["category:Missing".into()]).unwrap();
     assert!(warnings.is_empty());
     assert!(!components[0].is_selected);
+}
+
+#[test]
+fn cli_malformed_filter_warning_stays_on_stderr_in_json_mode() {
+    let dir = tempfile::tempdir().unwrap();
+    let input = dir.path().join("guide.json");
+    let game = dir.path().join("game");
+    let source = dir.path().join("mods");
+    std::fs::create_dir(&game).unwrap();
+    std::fs::create_dir(&source).unwrap();
+    std::fs::write(source.join("sample.tga"), b"sample").unwrap();
+    std::fs::write(
+        &input,
+        r#"[{"Guid":"one","Name":"One","IsSelected":true,"Instructions":[{"Action":"Copy","Source":["<<modDirectory>>/sample.tga"],"Destination":"<<kotorDirectory>>/Override"}]}]"#,
+    )
+    .unwrap();
+
+    let output = std::process::Command::new(env!("CARGO_BIN_EXE_modsync"))
+        .args(["validate", "--input"])
+        .arg(&input)
+        .arg("--game-dir")
+        .arg(&game)
+        .arg("--source-dir")
+        .arg(&source)
+        .args(["--select", "kind:value", "--json"])
+        .output()
+        .unwrap();
+
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    for line in String::from_utf8(output.stdout).unwrap().lines() {
+        serde_json::from_str::<serde_json::Value>(line).unwrap();
+    }
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("Selection warning: Unknown selection type: 'kind'")
+    );
 }
 
 #[test]

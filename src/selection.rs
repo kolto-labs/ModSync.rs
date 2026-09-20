@@ -306,13 +306,13 @@ fn base(component: &Component) -> bool {
 }
 fn priority(tier: &str) -> Option<u8> {
     let normalized = tier.trim().to_ascii_lowercase();
-    if normalized == "1" || normalized.contains("essential") {
+    if normalized.contains("essential") {
         Some(1)
-    } else if normalized == "2" || normalized.contains("recommend") {
+    } else if normalized.contains("recommend") {
         Some(2)
-    } else if normalized == "3" || normalized.contains("suggest") {
+    } else if normalized.contains("suggest") {
         Some(3)
-    } else if normalized == "4" || normalized.contains("option") {
+    } else if normalized.contains("option") {
         Some(4)
     } else {
         None
@@ -328,10 +328,13 @@ pub fn matches_category_tier(c: &Component, categories: &[String], tiers: &[Stri
                 .any(|selected| category.eq_ignore_ascii_case(selected))
         }))
         && (tiers.is_empty()
-            || tiers.iter().any(|tier| match priority(tier) {
-                Some(selected) => priority(&c.tier).is_some_and(|component| component <= selected),
-                None => c.tier.eq_ignore_ascii_case(tier),
-            }))
+            || (!c.tier.is_empty()
+                && tiers.iter().any(|tier| match priority(tier) {
+                    Some(selected) => {
+                        priority(&c.tier).is_some_and(|component| component <= selected)
+                    }
+                    None => c.tier.eq_ignore_ascii_case(tier),
+                })))
 }
 
 /// Reset top-level selections from CLI selectors. Bare values retain Rust's exact
@@ -351,9 +354,7 @@ pub fn apply_cli_selection(
             warnings.push("Invalid empty selection; expected a component name/GUID, category:Name, or tier:Name".into());
         } else if let Some((kind, value)) = selector.split_once(':') {
             let value = value.trim();
-            if value.is_empty() {
-                warnings.push(format!("Invalid selection format: '{selector}'"));
-            } else if kind.trim().eq_ignore_ascii_case("category") {
+            if kind.trim().eq_ignore_ascii_case("category") {
                 categories.push(value.to_owned());
             } else if kind.trim().eq_ignore_ascii_case("tier") {
                 tiers.push(value.to_owned());
