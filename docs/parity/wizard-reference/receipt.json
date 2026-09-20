@@ -1,0 +1,19 @@
+{
+  "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+  "reference_dll_sha256": "3bc6905cff980bef9df2ab806cb6dc29881571a6807b822f80687b3690aec2ef",
+  "guide": "../validation-pipeline-oracle/guide.json",
+  "guide_sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b",
+  "environment": "Linux X11, Xvfb :913 at 1280x900, xdotool mouse input",
+  "build": { "errors": 0, "warnings": 20 },
+  "validation": "Succeeded after linking bundled Linux HoloPatcher; game contained only original detection marker before install",
+  "install": "One Copy component succeeded; source and destination SHA-256 equal",
+  "copied_file_sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be",
+  "completion_navigation": "Continue remained disabled at Step 9 of 11 after successful install; click did not advance",
+  "rust_equivalence": "Not established by this reference run",
+  "limitations": [
+    "Synthetic detected game and Copy-only fixture",
+    "No wide phase or final completion screens reached",
+    "No keyboard, accessibility, other theme or other platform proof",
+    "Missing JSON metadata inherits C# default preamble; Rust loader parity remains open"
+  ]
+}
