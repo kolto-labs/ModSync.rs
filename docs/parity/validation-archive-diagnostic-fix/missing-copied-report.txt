@@ -1,0 +1,49 @@
+ModSync — Validation Report
+Generated (UTC): 2026-09-27 13:00:36
+
+❌ Validation Failed
+Please resolve all critical errors before continuing. Check the results above for details.
+
+Errors: 1  Warnings: 1  Passed checks: 4
+
+--- Results ---
+✅ Environment
+Passed
+
+✅ Conflicts
+No dependency or restriction conflicts.
+
+✅ Install Order
+Install order is correct.
+
+❌ Fixture
+Fixture: archive/destination validation: Source matches no files: <<modDirectory>>/package.zip
+
+❌ Archive Validation
+1 component error(s)
+
+✅ FOMOD Configuration
+All detected FOMOD archives are configured.
+
+⚠️ Fixture (DryRunSkipped)
+Skipped 'Fixture' during dry-run: source archives or files are not available.
+
+⚠️ Instruction Execution
+Dry-run validation passed with 1 warning(s).
+
+--- Log ---
+Starting validation...
+Step 1: Validating installation environment
+  ✅ Environment validation passed
+Step 2: Checking conflicts for 1 selected mod(s)
+  ✅ No conflicts
+Step 3: Validating mod installation order
+  ✅ Install order is correct
+Step 4: Validating mod archives
+  ERROR: Fixture: archive/destination validation: Source matches no files: <<modDirectory>>/package.zip
+Step 5: Checking FOMOD configuration
+Step 6: Running instruction execution validation (dry-run)
+  Found 0 error(s) and 1 warning(s)
+    ⚠️ [DryRunSkipped] Skipped 'Fixture' during dry-run: source archives or files are not available.
+Validation completed in 0.0 seconds
+❌ Validation failed

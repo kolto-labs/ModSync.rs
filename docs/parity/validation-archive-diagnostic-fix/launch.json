@@ -1,0 +1,25 @@
+{
+  "command": [
+    "/usr/bin/dbus-run-session",
+    "--",
+    "/tmp/modsync-validation-archive-fix/modsync-gui",
+    "gui",
+    "--allow-multiple-instances",
+    "--settings-dir",
+    "/tmp/modsync-validation-archive-fix/settings",
+    "--input",
+    "/tmp/modsync-validation-archive-fix/extract-missing/guide.json",
+    "--game-dir",
+    "/tmp/modsync-validation-archive-fix/extract-missing/game",
+    "--source-dir",
+    "/tmp/modsync-validation-archive-fix/extract-missing/mods"
+  ],
+  "env": {
+    "DISPLAY": ":1",
+    "XDG_SESSION_TYPE": "x11",
+    "XDG_CONFIG_HOME": "/tmp/modsync-validation-archive-fix/config",
+    "XDG_DATA_HOME": "/tmp/modsync-validation-archive-fix/data",
+    "XDG_RUNTIME_DIR": "/tmp/modsync-validation-archive-fix/runtime"
+  },
+  "wrapper_pid": 2209919
+}

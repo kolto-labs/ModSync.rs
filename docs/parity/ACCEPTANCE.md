@@ -1,10 +1,16 @@
 # Full C# feature parity — active acceptance ledger
 
+## Final archive diagnostic correction — 2026-09-27
+
+Whole-package review found one P2 combined-path defect: known component archive errors lacked a severity marker, so the shared presentation displayed only an aggregate card and first-issue navigation could select the final generic failure. Scoped specification/quality review approves `099834c` and closes F1. That commit fixes the shared failed-outcome mapping with an idempotent `ERROR:` prefix, preserving component identity/detail. **Raw Report message values now include that prefix; serialized schema, stages, counters and warning behavior are unchanged.** This qualifies earlier transport-compatibility statements: schema stability does not imply unchanged diagnostic text.
+
+Separate [focused archive-fix evidence](validation-archive-diagnostic-fix/README.md) records missing Extract **1/1/4**, corrupt Extract **3/0/3**, unchanged missing Copy **0/1/5**, native actionable cards, automatic/manual first-issue targeting and actual clipboard readback. Strict installs reject before snapshots/pending/game/mod content writes; expected lock files and empty state directories outside content roots are recorded, not hidden. The earlier47c3e67 native package retains its original binding. No Rust tests were created/adapted/run, and no full-parity or all-target compilation claim follows.
+
 ## Validation slice checkpoint — 2026-09-27
 
 F08/F24/F25/F26 remain **partial**. Task 1 shared projection/progress and Task 1b availability/reached-option correction are independently approved through9d77f4b and88b2dd9 respectively. Renderer implementation is through47c3e67 in `src/ui/validation_page.rs`. Shared missing Copy now matches native C#0/1/5; strict install, standalone file-conflicts and completed-prefix safeguards remain intact. Pre-fix full3/0/3 replaces the earlier unsupported inferred2/0/4; partial2/0/1 remains historical measured evidence.
 
-Latest small-window Stop/cancel interaction is confirmed at47c3e67, but **the final bounded native matrix and artifacts are archived, with integrated review still pending**. Do not close page or domain acceptance from source review or old captures. [Integration checkpoint](validation-page-integration.md) records source-bound evidence, raw-versus-projected report rules, truthful warning copy, proactive Next gating, font deviations and remaining backend/UI gaps.
+Latest small-window Stop/cancel interaction is confirmed at47c3e67, but **the final bounded native matrix and artifacts are archived, with the sole integrated review finding now closed by approved099834c**. Do not close page or domain acceptance from source review or old captures. [Integration checkpoint](validation-page-integration.md) records source-bound evidence, raw-versus-projected report rules, truthful warning copy, proactive Next gating, font deviations and remaining backend/UI gaps.
 
 The latest user ordering defers every new, expanded or ported Rust test, including inline/temporary/custom Rust harnesses, until full C# feature parity. Preserve existing tests and historical evidence; obsolete worker fixture API adaptation is deferred. Earlier ledger references to future test creation do not override this ruling. Use authorized production builds and direct disposable CLI/native evidence now; production-only builds do not prove test-target compilation.
 

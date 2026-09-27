@@ -1,5 +1,9 @@
 # Native validation comparison plan
 
+## Final corrective review checkpoint
+
+The bounded package review found one P2 archive diagnostic/card/first-issue issue. Shared source correction `099834c` is now independently approved; [separate archive-fix evidence and reviews](validation-archive-diagnostic-fix/README.md) preserve the original finding and its closure. Failed raw message values gain an idempotent `ERROR:` prefix; JSON schema, stage counters and missing-Copy warning behavior remain unchanged. Earlier47c3e67 native evidence retains its binding. Full exact C# parity and the listed unproven native cells remain open; historical pending statements below describe earlier checkpoints. No new Rust tests or test adaptations were made.
+
 ## Current execution handoff — 2026-09-27
 
 Pinned C# native reference already exists at [validation-reference/README.md](validation-reference/README.md). Shared Rust backend is approved through `88b2dd9`; renderer source is through `47c3e67`. Do not infer compiler availability from historical slot-release notes. This documentation task performs no builds, tests, launches or interaction with worker-owned sessions.

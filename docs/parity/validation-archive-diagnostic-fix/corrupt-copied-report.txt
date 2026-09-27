@@ -1,0 +1,50 @@
+ModSync — Validation Report
+Generated (UTC): 2026-09-27 13:00:39
+
+❌ Validation Failed
+Please resolve all critical errors before continuing. Check the results above for details.
+
+Errors: 3  Warnings: 0  Passed checks: 3
+
+--- Results ---
+✅ Environment
+Passed
+
+✅ Conflicts
+No dependency or restriction conflicts.
+
+✅ Install Order
+Install order is correct.
+
+❌ Fixture
+Fixture: archive/destination validation: Cannot inspect archive /tmp/modsync-validation-archive-fix/extract-missing/mods/package.zip: Unsupported archive signature. ZIP, 7z, RAR, TAR and GZip are supported. Only embedded 7z SFX payloads are decoded; executables are never run as archives.
+
+❌ Archive Validation
+1 component error(s)
+
+❌ FOMOD Configuration
+Failed
+
+❌ Fixture (EngineSimulation)
+Fixture / step 1 (Extract): Unsupported archive signature. ZIP, 7z, RAR, TAR and GZip are supported. Only embedded 7z SFX payloads are decoded; executables are never run as archives.
+
+❌ Instruction Execution
+Dry-run validation failed with 1 error(s).
+
+--- Log ---
+Starting validation...
+Step 1: Validating installation environment
+  ✅ Environment validation passed
+Step 2: Checking conflicts for 1 selected mod(s)
+  ✅ No conflicts
+Step 3: Validating mod installation order
+  ✅ Install order is correct
+Step 4: Validating mod archives
+  ERROR: Fixture: archive/destination validation: Cannot inspect archive /tmp/modsync-validation-archive-fix/extract-missing/mods/package.zip: Unsupported archive signature. ZIP, 7z, RAR, TAR and GZip are supported. Only embedded 7z SFX payloads are decoded; executables are never run as archives.
+Step 5: Checking FOMOD configuration
+  Unsupported archive signature. ZIP, 7z, RAR, TAR and GZip are supported. Only embedded 7z SFX payloads are decoded; executables are never run as archives.
+Step 6: Running instruction execution validation (dry-run)
+  Found 1 error(s) and 0 warning(s)
+    ❌ [EngineSimulation] Fixture / step 1 (Extract): Unsupported archive signature. ZIP, 7z, RAR, TAR and GZip are supported. Only embedded 7z SFX payloads are decoded; executables are never run as archives.
+Validation completed in 0.0 seconds
+❌ Validation failed

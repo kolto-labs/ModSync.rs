@@ -1,0 +1,101 @@
+[
+  {
+    "fixture": "extract-missing",
+    "command": [
+      "/tmp/modsync-validation-archive-fix/modsync-gui",
+      "validate",
+      "--input",
+      "/tmp/modsync-validation-archive-fix/extract-missing/guide.json",
+      "--game-dir",
+      "/tmp/modsync-validation-archive-fix/extract-missing/game",
+      "--source-dir",
+      "/tmp/modsync-validation-archive-fix/extract-missing/mods",
+      "--use-file-selection",
+      "--validation-report",
+      "--full",
+      "--dry-run"
+    ],
+    "exit": 1
+  },
+  {
+    "fixture": "extract-missing",
+    "command": [
+      "/tmp/modsync-validation-archive-fix/modsync-gui",
+      "install",
+      "--input",
+      "/tmp/modsync-validation-archive-fix/extract-missing/guide.json",
+      "--game-dir",
+      "/tmp/modsync-validation-archive-fix/extract-missing/game",
+      "--source-dir",
+      "/tmp/modsync-validation-archive-fix/extract-missing/mods",
+      "--use-file-selection"
+    ],
+    "exit": 1
+  },
+  {
+    "fixture": "extract-corrupt",
+    "command": [
+      "/tmp/modsync-validation-archive-fix/modsync-gui",
+      "validate",
+      "--input",
+      "/tmp/modsync-validation-archive-fix/extract-corrupt/guide.json",
+      "--game-dir",
+      "/tmp/modsync-validation-archive-fix/extract-corrupt/game",
+      "--source-dir",
+      "/tmp/modsync-validation-archive-fix/extract-corrupt/mods",
+      "--use-file-selection",
+      "--validation-report",
+      "--full",
+      "--dry-run"
+    ],
+    "exit": 1
+  },
+  {
+    "fixture": "extract-corrupt",
+    "command": [
+      "/tmp/modsync-validation-archive-fix/modsync-gui",
+      "install",
+      "--input",
+      "/tmp/modsync-validation-archive-fix/extract-corrupt/guide.json",
+      "--game-dir",
+      "/tmp/modsync-validation-archive-fix/extract-corrupt/game",
+      "--source-dir",
+      "/tmp/modsync-validation-archive-fix/extract-corrupt/mods",
+      "--use-file-selection"
+    ],
+    "exit": 1
+  },
+  {
+    "fixture": "copy-missing",
+    "command": [
+      "/tmp/modsync-validation-archive-fix/modsync-gui",
+      "validate",
+      "--input",
+      "/tmp/modsync-validation-archive-fix/copy-missing/guide.json",
+      "--game-dir",
+      "/tmp/modsync-validation-archive-fix/copy-missing/game",
+      "--source-dir",
+      "/tmp/modsync-validation-archive-fix/copy-missing/mods",
+      "--use-file-selection",
+      "--validation-report",
+      "--full",
+      "--dry-run"
+    ],
+    "exit": 0
+  },
+  {
+    "fixture": "copy-missing",
+    "command": [
+      "/tmp/modsync-validation-archive-fix/modsync-gui",
+      "install",
+      "--input",
+      "/tmp/modsync-validation-archive-fix/copy-missing/guide.json",
+      "--game-dir",
+      "/tmp/modsync-validation-archive-fix/copy-missing/game",
+      "--source-dir",
+      "/tmp/modsync-validation-archive-fix/copy-missing/mods",
+      "--use-file-selection"
+    ],
+    "exit": 1
+  }
+]

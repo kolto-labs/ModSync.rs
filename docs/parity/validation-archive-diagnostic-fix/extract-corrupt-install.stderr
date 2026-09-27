@@ -1,0 +1,1 @@
+Error: Fixture / step 1 (Extract): Unsupported archive signature. ZIP, 7z, RAR, TAR and GZip are supported. Only embedded 7z SFX payloads are decoded; executables are never run as archives.

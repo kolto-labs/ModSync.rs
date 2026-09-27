@@ -1,0 +1,1 @@
+Verified live GUI executable atPID2210322 and owned Xvfb2207483; SIGTERM both. Original fixture files unchanged; temporary native corrupt archive removed; six lock files outside game/mod roots and empty recovery dirs preserved. No snapshots/pending markers.

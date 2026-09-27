@@ -1,0 +1,12 @@
+{
+  "extract-missing/game/dialog.tlk": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "extract-missing/game/swkotor.exe": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "extract-missing/guide.json": "b546d95f6b7f3c65b0327459bad6b3d75eaa3d73cb5112dc5b29ede5178fd7e5",
+  "extract-corrupt/game/dialog.tlk": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "extract-corrupt/game/swkotor.exe": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "extract-corrupt/guide.json": "b546d95f6b7f3c65b0327459bad6b3d75eaa3d73cb5112dc5b29ede5178fd7e5",
+  "extract-corrupt/mods/package.zip": "136ee2ab241475ef1f076c4d13f0b54437ff8656be8004a4af23df15c0968277",
+  "copy-missing/game/dialog.tlk": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "copy-missing/game/swkotor.exe": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "copy-missing/guide.json": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b"
+}

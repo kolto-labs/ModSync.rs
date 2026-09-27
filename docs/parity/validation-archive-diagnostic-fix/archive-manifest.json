@@ -1,0 +1,391 @@
+{
+  "product_commit": "099834c108696cec3f413a003e13bb869d9ea73a",
+  "binary_sha256": "66d1a3cf129bbd930fdb30a20de09bdf80f8d1d57a1dd37dda1d0cc6689c25bf",
+  "method": "Byte-for-byte evidence copies. Executable omitted; independently hashed. Older47c3e67 archive unchanged.",
+  "files": [
+    {
+      "original": "/tmp/modsync-validation-archive-fix/app.log",
+      "archived": "app.log",
+      "sha256": "a3aee8c378ce965e1295f4e56c5b8c2992c1d9a78a5d5f1ce6576feeb2624dae",
+      "bytes": 370
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/build.log",
+      "archived": "build.log",
+      "sha256": "a87becbaf1acc0c857b6ad213c986e479c0a41f64abed9cb53731c423f5ada26",
+      "bytes": 129
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/cli-commands.json",
+      "archived": "cli-commands.json",
+      "sha256": "93056192ef06aa2ce1291c167b124ef100d3749148d2f91cdfdebc31648454d0",
+      "bytes": 2855
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/clippy.log",
+      "archived": "clippy.log",
+      "sha256": "17b57e03395da3c995ee645ffbfe36a73a06d3b598a78deb8e1c91f6efa2f5b8",
+      "bytes": 128
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/copy-missing-install.stderr",
+      "archived": "copy-missing-install.stderr",
+      "sha256": "ff33e65c144365e6c40bdd9a154e7ed2bdbb5c10f6d2d56a67a40e67eff0a482",
+      "bytes": 85
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/copy-missing-install.stdout",
+      "archived": "copy-missing-install.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/copy-missing-validate.stderr",
+      "archived": "copy-missing-validate.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/copy-missing-validate.stdout",
+      "archived": "copy-missing-validate.stdout",
+      "sha256": "138de9200ed96edef23851b190fa4494046d9a0a60cdfe7ffc2efb1ddfb2d772",
+      "bytes": 1719
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/corrupt-auto-first.png",
+      "archived": "corrupt-auto-first.png",
+      "sha256": "6b103ece7581625873bcc508442604fd63dfd0590de5e8ec41afbac77813da35",
+      "bytes": 104148
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/corrupt-card-expanded-area.png",
+      "archived": "corrupt-card-expanded-area.png",
+      "sha256": "2401fdcb61ced4a0cf6da859855e709152af05753841b637df4273861eb51bee",
+      "bytes": 86702
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/corrupt-copied-report.txt",
+      "archived": "corrupt-copied-report.txt",
+      "sha256": "cabb66d004cd7e4bafd4f9bbcae7fcccc122d2ee8b744eb459f6cbe109fecc6f",
+      "bytes": 2170
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/corrupt-manual-first.png",
+      "archived": "corrupt-manual-first.png",
+      "sha256": "fdd4c1769ebe61de4c5c540f6b25c1ec74b386b0c2947bbe42be240a4d19e867",
+      "bytes": 104370
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/corrupt-scrolled-away.png",
+      "archived": "corrupt-scrolled-away.png",
+      "sha256": "461e415afd72226a8cf9ab06072f184c2e748699123e495f33f48b93419c642f",
+      "bytes": 94285
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/display",
+      "archived": "display",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "bytes": 2
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/extract-corrupt-install.stderr",
+      "archived": "extract-corrupt-install.stderr",
+      "sha256": "e0f099fe008a40cfa442bb8dd5ddb9c5841750fafbe46237e6c3cdb48c42509b",
+      "bytes": 190
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/extract-corrupt-install.stdout",
+      "archived": "extract-corrupt-install.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/extract-corrupt-validate.stderr",
+      "archived": "extract-corrupt-validate.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/extract-corrupt-validate.stdout",
+      "archived": "extract-corrupt-validate.stdout",
+      "sha256": "2c5ef97a0545798ee4013b8d6633e35c9383a2f669ff3d709097e5b8da9af9ad",
+      "bytes": 2414
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/extract-missing-install.stderr",
+      "archived": "extract-missing-install.stderr",
+      "sha256": "0824c3172a4c7c049d2a40adfd842be0389237f916cb1980604cbc6bc4d89c8d",
+      "bytes": 89
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/extract-missing-install.stdout",
+      "archived": "extract-missing-install.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/extract-missing-validate.stderr",
+      "archived": "extract-missing-validate.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/extract-missing-validate.stdout",
+      "archived": "extract-missing-validate.stdout",
+      "sha256": "cbfffeb7bf32627d6845095ac364218e507a3ceed6563a1e7c22e914c5bf55c5",
+      "bytes": 1793
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/fmt.log",
+      "archived": "fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/launch.json",
+      "archived": "launch.json",
+      "sha256": "4ca84f1ada07cc3fd89f43acb65d72980e813edc792913a75bed8cc0746406c8",
+      "bytes": 786
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/missing-auto-first.png",
+      "archived": "missing-auto-first.png",
+      "sha256": "5d7bdcbc3b1fb7d4de716a51aa65311f0dc705f2e79561f5752a4ffa74b74e13",
+      "bytes": 98603
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/missing-copied-report.txt",
+      "archived": "missing-copied-report.txt",
+      "sha256": "f41df5914a6a97e26cb6b3b5606a92f838443847e74eb3249832240a22c7bcc7",
+      "bytes": 1457
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/missing-manual-first.png",
+      "archived": "missing-manual-first.png",
+      "sha256": "f5a474510369edac95bc7773b3394ac2331e435f7dd4bd7e5412fd75e7b54dc5",
+      "bytes": 98886
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/missing-scrolled-away.png",
+      "archived": "missing-scrolled-away.png",
+      "sha256": "340aa0c22d2df7f6429c245e0ff393ec2bcd9d30852109e12f7c0b0f32dbe70e",
+      "bytes": 94700
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/native-start.png",
+      "archived": "native-start.png",
+      "sha256": "b2d2c4a3f3544c64f2f4cfecd5e00e090a3af7ccbae61bb65c145c933d265948",
+      "bytes": 80357
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/tree-after-cli.json",
+      "archived": "tree-after-cli.json",
+      "sha256": "be7478871947c4776c300e0f3bcb7b723c3383f3f474b9be46dfd5cd39e452a3",
+      "bytes": 1746
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/tree-after-native.json",
+      "archived": "tree-after-native.json",
+      "sha256": "be7478871947c4776c300e0f3bcb7b723c3383f3f474b9be46dfd5cd39e452a3",
+      "bytes": 1746
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/tree-before.json",
+      "archived": "tree-before.json",
+      "sha256": "62cc74c90ce2273c798a06468d50c70538000eef974ad698c39eec93afb9cd5f",
+      "bytes": 1032
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/wrapper.pid",
+      "archived": "wrapper.pid",
+      "sha256": "bd087659daaa2a53aba2671373a4088f6f80ca98f4a47e503d78a47d0f05c385",
+      "bytes": 7
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/xvfb.log",
+      "archived": "xvfb.log",
+      "sha256": "d8ba85d69afc3d837ec84ced1a996aaf67e2aab1c8c343df19977ac331e6d139",
+      "bytes": 673
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/xvfb.pid",
+      "archived": "xvfb.pid",
+      "sha256": "901329e32d23a73ffa2de369f59ea10f252ca9c2404ccd1c7af8bef5de653744",
+      "bytes": 7
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/receipt.json",
+      "archived": "receipt.json",
+      "sha256": "dd970981deffbbe4338b3c777eb9e7d1a04b007fe441ade2b1a8771001295dab",
+      "bytes": 7298
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/cleanup.txt",
+      "archived": "cleanup.txt",
+      "sha256": "b429723a0f2c820a76c6116ba9e639ac0e13547e6a5d6dee52f86021be470f44",
+      "bytes": 258
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/extract-missing/guide.json",
+      "archived": "fixtures/extract-missing/guide.json",
+      "sha256": "b546d95f6b7f3c65b0327459bad6b3d75eaa3d73cb5112dc5b29ede5178fd7e5",
+      "bytes": 575
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/extract-corrupt/guide.json",
+      "archived": "fixtures/extract-corrupt/guide.json",
+      "sha256": "b546d95f6b7f3c65b0327459bad6b3d75eaa3d73cb5112dc5b29ede5178fd7e5",
+      "bytes": 575
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/copy-missing/guide.json",
+      "archived": "fixtures/copy-missing/guide.json",
+      "sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b",
+      "bytes": 635
+    },
+    {
+      "original": "/tmp/modsync-validation-archive-fix/extract-corrupt/mods/package.zip",
+      "archived": "fixtures/extract-corrupt/package.zip",
+      "sha256": "136ee2ab241475ef1f076c4d13f0b54437ff8656be8004a4af23df15c0968277",
+      "bytes": 24
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/final-package-fix-review.md",
+      "archived": "reviews-and-rulings/final-package-fix-review.md",
+      "sha256": "e50deabbf61496e63e9395edff7b399729d953043c024e5cc4e6c5c87b6a8572",
+      "bytes": 2808
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/final-package-review.md",
+      "archived": "reviews-and-rulings/final-package-review.md",
+      "sha256": "adac1ba1884453199bfb408885f1e4d907b25c12553dc591b5f0b81ebb874b8d",
+      "bytes": 5633
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/progress.md",
+      "archived": "reviews-and-rulings/progress.md",
+      "sha256": "4b65d7e2bd48eb9e7e5df1eba5be400d557a8af9f297330ae185c96779fa26a4",
+      "bytes": 10114
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-1-brief.md",
+      "archived": "reviews-and-rulings/task-1-brief.md",
+      "sha256": "d8cdb786def57e6d90b94255fb79de767038ba4b9fe49c446afcf70cbba909d2",
+      "bytes": 8033
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-1-fix1-report.md",
+      "archived": "reviews-and-rulings/task-1-fix1-report.md",
+      "sha256": "c0292c1c90c75da4431576b3c751aa74b9ccfa7a48c8979281aaf70138796691",
+      "bytes": 1908
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-1-fix1-review.md",
+      "archived": "reviews-and-rulings/task-1-fix1-review.md",
+      "sha256": "44a4460eeeef62cf9fc59e18f9be2d5cd773f7c911fef48940f0b940e60f5623",
+      "bytes": 3052
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-1-report.md",
+      "archived": "reviews-and-rulings/task-1-report.md",
+      "sha256": "341675e9fa11e6ab16768847315221e8aaffe824fc931104b929d06208cbfe6e",
+      "bytes": 6808
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-1-review.md",
+      "archived": "reviews-and-rulings/task-1-review.md",
+      "sha256": "2819b3dacd480dbd28024dd0fa9e213e1b8da08abd1efead8fe601e50b9af522",
+      "bytes": 7901
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-1b-brief.md",
+      "archived": "reviews-and-rulings/task-1b-brief.md",
+      "sha256": "05e63211dd53ff01b096b7380eb9650f8cfd54296895b9e0fc8cd60b1483d439",
+      "bytes": 13106
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-1b-fix1-review.md",
+      "archived": "reviews-and-rulings/task-1b-fix1-review.md",
+      "sha256": "ce46706addbcee1a4e6e481adfb79baddd8c31729b43c83a84240d72a3096732",
+      "bytes": 5030
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-1b-report.md",
+      "archived": "reviews-and-rulings/task-1b-report.md",
+      "sha256": "43a978b9dc04b3caf11f9b27bf17556d8a1248e5966adc6b52266f9f0668724c",
+      "bytes": 20707
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-1b-review.md",
+      "archived": "reviews-and-rulings/task-1b-review.md",
+      "sha256": "2bcfea70a0d28f937bf78ffd98910e05ccfe082cff8045a21e8a40e1ebfb9207",
+      "bytes": 12436
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-2-archive-fix-report.md",
+      "archived": "reviews-and-rulings/task-2-archive-fix-report.md",
+      "sha256": "925676697e4d686877b0dc44d07bea6d40d58d4d37805e20f4b465f08ac0cb05",
+      "bytes": 6452
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-2-brief.md",
+      "archived": "reviews-and-rulings/task-2-brief.md",
+      "sha256": "bf06ccd7f13357bc3ca0c1d01206025a47c5e9496bee36f2b25793794787c046",
+      "bytes": 7045
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-2-fix1-report.md",
+      "archived": "reviews-and-rulings/task-2-fix1-report.md",
+      "sha256": "33ce005c37c0565fe84dce34e340211e19360e5933106eb62c677e19d8aa722b",
+      "bytes": 2431
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-2-fix1-review.md",
+      "archived": "reviews-and-rulings/task-2-fix1-review.md",
+      "sha256": "62d1040fc452e2c3f0213e045f6b88deea7b10ef2710705bcfc89c9f17be18d2",
+      "bytes": 9902
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-2-fix2-report.md",
+      "archived": "reviews-and-rulings/task-2-fix2-report.md",
+      "sha256": "7699ca67d69474e7ebbf9ad3b3e57def97a0072b04bf3f50111085b0191a522b",
+      "bytes": 990
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-2-fix3-report.md",
+      "archived": "reviews-and-rulings/task-2-fix3-report.md",
+      "sha256": "9020e0c40f604da04ec0ecd1feb190b7c09cfc456223e4fdbcc3a3c95674766e",
+      "bytes": 1349
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-2-report.md",
+      "archived": "reviews-and-rulings/task-2-report.md",
+      "sha256": "b942b6b563f1cc8ff1916bfc7e5fba905de3aaf5f03637da7b4270c9c9790394",
+      "bytes": 10384
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-2-review.md",
+      "archived": "reviews-and-rulings/task-2-review.md",
+      "sha256": "a7bf8d6f0cf3d3a728750b5be390304f3f0c5b3771e737cf6d064bd89d11cf90",
+      "bytes": 9642
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-2-tools-report.md",
+      "archived": "reviews-and-rulings/task-2-tools-report.md",
+      "sha256": "288b3af1f0a5764d84e46b99d334d19f20e146a8994d15d08e3a4f87d5a661eb",
+      "bytes": 1210
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-3-brief.md",
+      "archived": "reviews-and-rulings/task-3-brief.md",
+      "sha256": "1c6e9d7b14f3e5c5c420b7a17a96fbae156e60a6add0bfe2d2cc4e21169272e8",
+      "bytes": 7481
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/final-package-fix-review.md",
+      "archived": "reviews-and-rulings/final-package-fix-review.md",
+      "sha256": "e50deabbf61496e63e9395edff7b399729d953043c024e5cc4e6c5c87b6a8572",
+      "bytes": 2808
+    }
+  ]
+}

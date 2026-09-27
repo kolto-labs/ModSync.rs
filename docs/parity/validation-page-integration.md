@@ -1,6 +1,12 @@
 # Validation page integration checkpoint
 
-Documentation preparation, 2026-09-27. **Final native handoff is archived; final integrated specification/quality review remains pending.** This checkpoint records reviewed production contracts and evidence ownership; it does not declare exact C# GUI or full feature parity.
+## Final archive diagnostic correction — 2026-09-27
+
+Whole-package review found one P2 combined-path defect: known component archive errors lacked a severity marker, so the shared presentation displayed only an aggregate card and first-issue navigation could select the final generic failure. Scoped specification/quality review approves `099834c` and closes F1. That commit fixes the shared failed-outcome mapping with an idempotent `ERROR:` prefix, preserving component identity/detail. **Raw Report message values now include that prefix; serialized schema, stages, counters and warning behavior are unchanged.** This qualifies earlier transport-compatibility statements: schema stability does not imply unchanged diagnostic text.
+
+Separate [focused archive-fix evidence](validation-archive-diagnostic-fix/README.md) records missing Extract **1/1/4**, corrupt Extract **3/0/3**, unchanged missing Copy **0/1/5**, native actionable cards, automatic/manual first-issue targeting and actual clipboard readback. Strict installs reject before snapshots/pending/game/mod content writes; expected lock files and empty state directories outside content roots are recorded, not hidden. The earlier47c3e67 native package retains its original binding. No Rust tests were created/adapted/run, and no full-parity or all-target compilation claim follows.
+
+Documentation preparation, 2026-09-27. **Final native handoff is archived; whole-package review and its sole corrective scoped review are complete; full C# parity remains open.** This checkpoint records reviewed production contracts and evidence ownership; it does not declare exact C# GUI or full feature parity.
 
 ## Delivered shared contracts
 

@@ -1,5 +1,9 @@
 # C# validation page parity implementation plan
 
+## Final corrective review checkpoint
+
+The bounded package review found one P2 archive diagnostic/card/first-issue issue. Shared source correction `099834c` is now independently approved; [separate archive-fix evidence and reviews](validation-archive-diagnostic-fix/README.md) preserve the original finding and its closure. Failed raw message values gain an idempotent `ERROR:` prefix; JSON schema, stage counters and missing-Copy warning behavior remain unchanged. Earlier47c3e67 native evidence retains its binding. Full exact C# parity and the listed unproven native cells remain open; historical pending statements below describe earlier checkpoints. No new Rust tests or test adaptations were made.
+
 > **For agentic workers:** Use `superpowers:subagent-driven-development`, with fresh implementer, specification reviewer, then code-quality reviewer per task. Parent supplies complete task brief, Global Constraints and the audit reference. Execute serially; do not create nested subagents.
 
 **Goal:** Reproduce the active C# ValidatePage's control composition, text, result mapping and interactions using shared Rust validation outcomes and real pipeline progress, then verify the actual native page.

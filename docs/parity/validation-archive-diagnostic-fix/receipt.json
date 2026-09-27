@@ -1,0 +1,124 @@
+{
+  "commit": "099834c108696cec3f413a003e13bb869d9ea73a",
+  "base": "63c8bc63efd517b48d207ccd6cb82867aad8c1fe",
+  "binary_sha256": "66d1a3cf129bbd930fdb30a20de09bdf80f8d1d57a1dd37dda1d0cc6689c25bf",
+  "live_pid": 2210322,
+  "live_executable_sha256": "66d1a3cf129bbd930fdb30a20de09bdf80f8d1d57a1dd37dda1d0cc6689c25bf",
+  "default_target_sha256": "66d1a3cf129bbd930fdb30a20de09bdf80f8d1d57a1dd37dda1d0cc6689c25bf",
+  "source_sha256": {
+    "src/validation.rs": "bbd556c532581626927930382bc624f11395857cf0fe34af37ac2bb382ad4400",
+    "src/validation/presentation.rs": "3d28c2acbf3883178bf287a4c452aa61974284dfde449957526cdff7a6cfd034",
+    "src/ui.rs": "fcc500890929441bf59f99d472a48fe5eb8890bba8b717b5b5c70ab8916ca31d",
+    "src/ui/validation_page.rs": "9f6f25a3c20e241a4a03bb8cecb0756c81b923501788e14e800cbc1df93404a5"
+  },
+  "display": ":1",
+  "xvfb_pid": 2207483,
+  "test_tails_unchanged": {
+    "src/validation.rs": true,
+    "src/ui.rs": true
+  },
+  "cli": {
+    "extract-missing": {
+      "counts": [
+        1,
+        1,
+        4
+      ],
+      "success": false,
+      "exitCode": 1
+    },
+    "extract-corrupt": {
+      "counts": [
+        3,
+        0,
+        3
+      ],
+      "success": false,
+      "exitCode": 1
+    },
+    "copy-missing": {
+      "counts": [
+        0,
+        1,
+        5
+      ],
+      "success": true,
+      "exitCode": 0
+    }
+  },
+  "missing_clipboard": {
+    "sha256": "f41df5914a6a97e26cb6b3b5606a92f838443847e74eb3249832240a22c7bcc7",
+    "first_error_log_line": "  ERROR: Fixture: archive/destination validation: Source matches no files: <<modDirectory>>/package.zip",
+    "component_card_contains_actionable_detail": true,
+    "readback": "independent X11 xclip -selection clipboard -o"
+  },
+  "corrupt_clipboard": {
+    "sha256": "cabb66d004cd7e4bafd4f9bbcae7fcccc122d2ee8b744eb459f6cbe109fecc6f",
+    "first_error_log_line": "  ERROR: Fixture: archive/destination validation: Cannot inspect archive /tmp/modsync-validation-archive-fix/extract-missing/mods/package.zip: Unsupported archive signature. ZIP, 7z, RAR, TAR and GZip are supported. Only embedded 7z SFX payloads are decoded; executables are never run as archives.",
+    "component_card_contains_actionable_detail": true,
+    "readback": "independent X11 xclip -selection clipboard -o"
+  },
+  "unchanged_original_files": true,
+  "added_files": [
+    "copy-missing/.modsync-lock-327af15d1227e6b2",
+    "copy-missing/.modsync-lock-7a56fdf68ce7a11e",
+    "extract-corrupt/.modsync-lock-2b8bffc7a910cb06",
+    "extract-corrupt/.modsync-lock-2f8fce996626fc16",
+    "extract-missing/.modsync-lock-b6cb6f1db418be61",
+    "extract-missing/.modsync-lock-cb9fc0e0aa627f4e"
+  ],
+  "state_directories": [
+    "copy-missing/.modsync-327af15d1227e6b2",
+    "extract-corrupt/.modsync-2b8bffc7a910cb06",
+    "extract-missing/.modsync-cb9fc0e0aa627f4e"
+  ],
+  "snapshots_or_pending": [],
+  "native_fixture_note": "GUI loaded extract-missing fixture; corrupt run wrote exactly the same23-byte invalid archive as extract-corrupt into its mods/package.zip, then reran. Temporary native archive removed after idle.",
+  "native_outcomes": [
+    "missing1/1/4 actionable Fixture card with missing path",
+    "corrupt3/0/3 actionable Fixture card with unsupported signature and actual path",
+    "both automatic and manual first issue after deliberate log/results scroll-away return to actual archive error/card",
+    "both full human reports independently read from X clipboard",
+    "Next blocked in both hard failures"
+  ],
+  "proof_limits": "Only focused archive regression rerun. No new tests/harnesses. Broader matrix and full exact C# parity remain open as prior reports. Idempotent preexisting ERROR branch source-reviewed; not a synthetic runtime injection.",
+  "artifacts_sha256": {
+    "app.log": "a3aee8c378ce965e1295f4e56c5b8c2992c1d9a78a5d5f1ce6576feeb2624dae",
+    "build.log": "a87becbaf1acc0c857b6ad213c986e479c0a41f64abed9cb53731c423f5ada26",
+    "cli-commands.json": "93056192ef06aa2ce1291c167b124ef100d3749148d2f91cdfdebc31648454d0",
+    "clippy.log": "17b57e03395da3c995ee645ffbfe36a73a06d3b598a78deb8e1c91f6efa2f5b8",
+    "copy-missing-install.stderr": "ff33e65c144365e6c40bdd9a154e7ed2bdbb5c10f6d2d56a67a40e67eff0a482",
+    "copy-missing-install.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "copy-missing-validate.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "copy-missing-validate.stdout": "138de9200ed96edef23851b190fa4494046d9a0a60cdfe7ffc2efb1ddfb2d772",
+    "corrupt-auto-first.png": "6b103ece7581625873bcc508442604fd63dfd0590de5e8ec41afbac77813da35",
+    "corrupt-card-expanded-area.png": "2401fdcb61ced4a0cf6da859855e709152af05753841b637df4273861eb51bee",
+    "corrupt-copied-report.txt": "cabb66d004cd7e4bafd4f9bbcae7fcccc122d2ee8b744eb459f6cbe109fecc6f",
+    "corrupt-manual-first.png": "fdd4c1769ebe61de4c5c540f6b25c1ec74b386b0c2947bbe42be240a4d19e867",
+    "corrupt-scrolled-away.png": "461e415afd72226a8cf9ab06072f184c2e748699123e495f33f48b93419c642f",
+    "display": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+    "extract-corrupt-install.stderr": "e0f099fe008a40cfa442bb8dd5ddb9c5841750fafbe46237e6c3cdb48c42509b",
+    "extract-corrupt-install.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "extract-corrupt-validate.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "extract-corrupt-validate.stdout": "2c5ef97a0545798ee4013b8d6633e35c9383a2f669ff3d709097e5b8da9af9ad",
+    "extract-missing-install.stderr": "0824c3172a4c7c049d2a40adfd842be0389237f916cb1980604cbc6bc4d89c8d",
+    "extract-missing-install.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "extract-missing-validate.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "extract-missing-validate.stdout": "cbfffeb7bf32627d6845095ac364218e507a3ceed6563a1e7c22e914c5bf55c5",
+    "fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "launch.json": "4ca84f1ada07cc3fd89f43acb65d72980e813edc792913a75bed8cc0746406c8",
+    "missing-auto-first.png": "5d7bdcbc3b1fb7d4de716a51aa65311f0dc705f2e79561f5752a4ffa74b74e13",
+    "missing-copied-report.txt": "f41df5914a6a97e26cb6b3b5606a92f838443847e74eb3249832240a22c7bcc7",
+    "missing-manual-first.png": "f5a474510369edac95bc7773b3394ac2331e435f7dd4bd7e5412fd75e7b54dc5",
+    "missing-scrolled-away.png": "340aa0c22d2df7f6429c245e0ff393ec2bcd9d30852109e12f7c0b0f32dbe70e",
+    "native-start.png": "b2d2c4a3f3544c64f2f4cfecd5e00e090a3af7ccbae61bb65c145c933d265948",
+    "tree-after-cli.json": "be7478871947c4776c300e0f3bcb7b723c3383f3f474b9be46dfd5cd39e452a3",
+    "tree-after-native.json": "be7478871947c4776c300e0f3bcb7b723c3383f3f474b9be46dfd5cd39e452a3",
+    "tree-before.json": "62cc74c90ce2273c798a06468d50c70538000eef974ad698c39eec93afb9cd5f",
+    "wrapper.pid": "bd087659daaa2a53aba2671373a4088f6f80ca98f4a47e503d78a47d0f05c385",
+    "xvfb.log": "d8ba85d69afc3d837ec84ced1a996aaf67e2aab1c8c343df19977ac331e6d139",
+    "xvfb.pid": "901329e32d23a73ffa2de369f59ea10f252ca9c2404ccd1c7af8bef5de653744",
+    "cleanup.txt": "b429723a0f2c820a76c6116ba9e639ac0e13547e6a5d6dee52f86021be470f44"
+  },
+  "owned_processes_gone": true
+}
