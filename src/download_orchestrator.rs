@@ -819,17 +819,85 @@ fn discard(acquired: &Acquired, notes: &mut Vec<String>) {
     }
 }
 
+/// Peer's private staging directory for one race, created beside the final path.
+///
+/// Peer publishes only inside it, so nothing Peer writes is visible at the final path
+/// until the race accepts it. Origin's retries therefore never trip the "destination
+/// already exists" check on a Peer copy and always reach the host, where a gate shows up.
+struct PeerStaging {
+    directory: PathBuf,
+    /// What Peer is handed: the staged file path when the name is known, else the directory.
+    destination: PathBuf,
+}
+
+impl PeerStaging {
+    fn create(target: &ArchiveTarget, source_dir: &Path) -> Result<Self> {
+        // Short and fixed-length, so a long archive name cannot push it past a name limit.
+        let directory = source_dir.join(format!(".peer-{}.part", uuid::Uuid::new_v4().simple()));
+        std::fs::create_dir(&directory)
+            .with_context(|| format!("Could not create {}", directory.display()))?;
+        let destination = match &target.filename {
+            Some(name) => directory.join(download::one_component(name)?),
+            None => directory.clone(),
+        };
+        Ok(Self {
+            directory,
+            destination,
+        })
+    }
+
+    /// Moves an accepted, already verified Peer copy to the final path without clobbering.
+    fn publish(&self, staged: Acquired, source_dir: &Path) -> Result<Acquired> {
+        ensure!(
+            staged.path.parent() == Some(self.directory.as_path()),
+            "Peer published outside its staging folder: {}",
+            staged.path.display()
+        );
+        let name = staged
+            .path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .context("Peer copy has no file name")?;
+        let path = source_dir.join(download::one_component(name)?);
+        tempfile::TempPath::try_from_path(&staged.path)?
+            .persist_noclobber(&path)
+            .map_err(|error| error.error)
+            .with_context(|| format!("Could not publish the peer copy to {}", path.display()))?;
+        Ok(Acquired {
+            path,
+            sha256: staged.sha256,
+        })
+    }
+
+    /// Runs after both racers are joined. Removal failures go into the notes.
+    fn remove(&self, notes: &mut Vec<String>) {
+        if let Err(error) = std::fs::remove_dir_all(&self.directory)
+            && error.kind() != std::io::ErrorKind::NotFound
+        {
+            notes.push(format!(
+                "Could not remove {}: {error}",
+                self.directory.display()
+            ));
+        }
+    }
+}
+
 /// Origin races Peer.
 ///
 /// - Each racer has its own stop flag. This thread copies the parent cancel into both on
 ///   every pass, and re-checks the parent before accepting any result, so nothing is
 ///   accepted after a cancel; a file published in that window is removed.
+/// - Peer writes only into a private staging folder ([`PeerStaging`]). Origin never sees
+///   a Peer file, so every Origin retry reaches the host.
 /// - Peer may win only after Origin has passed gate classification (its first
 ///   `Transferring` event, sent after the status/body checks) or has failed with a non-gate
-///   error. Until then a finished Peer copy is held. If Origin then reveals a gate, the copy
-///   is removed and the target ends `ManualRequired`: a peer copy never satisfies a gate (R2).
+///   error. Until then a finished Peer copy is held in staging. If Origin then reveals a
+///   gate, the copy is removed and the target ends `ManualRequired`: a peer copy never
+///   satisfies a gate (R2). An accepted copy is moved to the final path before Origin is
+///   stopped; if that move fails, Origin keeps running.
 /// - The first accepted `Ok` wins. The loser is stopped, joined, has any published file
-///   removed, and is reported `Superseded`. Removal failures go into the returned notes.
+///   removed, and is reported `Superseded`. The staging folder is removed after the join.
+///   Removal failures go into the returned notes.
 fn race_origin_peer(
     context: &RunContext<'_>,
     index: usize,
@@ -845,9 +913,17 @@ fn race_origin_peer(
         .as_ref()
         .expect("race requires a peer source");
     let origin_kind = origin.kind();
-    let destination = match target.destination(&context.plan.source_dir) {
-        Ok(destination) => destination,
-        Err(error) => return (Step::Failed(format!("{error:#}"), origin_kind), notes),
+    if let Err(error) = target.destination(&context.plan.source_dir) {
+        return (Step::Failed(format!("{error:#}"), origin_kind), notes);
+    }
+    let source_dir = context.plan.source_dir.as_path();
+    let staging = match PeerStaging::create(target, source_dir) {
+        Ok(staging) => staging,
+        Err(error) => {
+            // No private place for Peer means no race: Origin runs alone.
+            notes.push(format!("Peer skipped: {error:#}"));
+            return (single_source(context, index, target, origin), notes);
+        }
     };
     let flags = [AtomicBool::new(false), AtomicBool::new(false)];
     let origin_cleared = AtomicBool::new(false);
@@ -872,7 +948,7 @@ fn race_origin_peer(
         }
         {
             let flag = &flags[PEER];
-            let destination = &destination;
+            let destination = staging.destination.as_path();
             scope.spawn(move || {
                 let mut on = |event: AcquisitionEvent| {
                     let _ = context.events.send(event);
@@ -905,10 +981,28 @@ fn race_origin_peer(
                 && held_peer.is_some()
                 && (origin_cleared.load(Ordering::SeqCst) || origin_failed)
             {
-                stop(ORIGIN);
-                let held = held_peer.take().unwrap();
-                winner_path = Some(held.path.clone());
-                decided = Some(Step::Done(held, SourceKind::Peer));
+                // Publish first: if the move fails, Origin is still running and may finish.
+                match staging.publish(held_peer.take().unwrap(), source_dir) {
+                    Ok(published) => {
+                        stop(ORIGIN);
+                        winner_path = Some(published.path.clone());
+                        decided = Some(Step::Done(published, SourceKind::Peer));
+                    }
+                    Err(error) => {
+                        let message = format!("{error:#}");
+                        emit(
+                            context,
+                            index,
+                            target,
+                            SourceKind::Peer,
+                            Phase::SourceFailed {
+                                error: message.clone(),
+                                will_fallback: running[ORIGIN],
+                            },
+                        );
+                        last_error = Some((message, SourceKind::Peer));
+                    }
+                }
             }
             let (racer, result) = match receiver.recv_timeout(Duration::from_millis(20)) {
                 Ok(message) => message,
@@ -947,14 +1041,10 @@ fn race_origin_peer(
                     decided = Some(Step::Done(acquired, origin_kind));
                 }
                 (_, Ok(acquired)) => {
-                    if origin_cleared.load(Ordering::SeqCst) || origin_failed {
-                        stop(ORIGIN);
-                        winner_path = Some(acquired.path.clone());
-                        decided = Some(Step::Done(acquired, SourceKind::Peer));
-                    } else {
-                        // Origin has not yet shown it is not a gate: hold the copy.
-                        held_peer = Some(acquired);
-                    }
+                    // Held in staging. It is published at the top of the next pass once
+                    // Origin has cleared its gate checks, or after the loop once Origin
+                    // has failed without a gate. A gate discards it.
+                    held_peer = Some(acquired);
                 }
                 (_, Err(error)) => match step_from_error(error, kinds[racer]) {
                     gate @ Step::Manual(_, reason, _) if racer == ORIGIN && reason.is_gate() => {
@@ -1002,7 +1092,10 @@ fn race_origin_peer(
                 decided = Some(Step::Cancelled(SourceKind::Peer));
             } else {
                 // Origin ended without a gate: the held copy is accepted.
-                decided = Some(Step::Done(held, SourceKind::Peer));
+                match staging.publish(held, source_dir) {
+                    Ok(published) => decided = Some(Step::Done(published, SourceKind::Peer)),
+                    Err(error) => last_error = Some((format!("{error:#}"), SourceKind::Peer)),
+                }
             }
         }
         decided.unwrap_or_else(|| {
@@ -1011,6 +1104,8 @@ fn race_origin_peer(
             Step::Failed(message, kind)
         })
     });
+    // Both racers are joined: nothing writes into staging any more.
+    staging.remove(&mut notes);
     (step, notes)
 }
 
