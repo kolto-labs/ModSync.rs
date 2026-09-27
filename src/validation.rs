@@ -1,4 +1,3 @@
-use crate::conflicts::Report as ConflictReport;
 use serde::Serialize;
 
 pub mod presentation;
@@ -46,6 +45,19 @@ pub struct DryRunIssue {
     pub solution: Option<String>,
 }
 impl DryRunIssue {
+    pub(crate) fn skipped(component: &crate::Component) -> Self {
+        let mut issue = Self::engine(
+            format!(
+                "Skipped '{}' during dry-run: source archives or files are not available.",
+                component.name
+            ),
+            Some((component.name.clone(), component.guid.clone(), None)),
+        );
+        issue.severity = "Warning".into();
+        issue.category = "DryRunSkipped".into();
+        issue
+    }
+
     pub(crate) fn engine(message: String, target: Option<(String, String, Option<usize>)>) -> Self {
         let (component_name, component_guid, instruction_index) = target
             .map(|(name, guid, index)| (Some(name), Some(guid), index))
@@ -192,13 +204,15 @@ impl Report {
     pub(crate) fn component_validation(
         &mut self,
         components: &[&crate::Component],
-        outcome: Result<(), String>,
+        outcome: Result<Vec<Result<(), String>>, String>,
     ) {
-        let passed = outcome.is_ok();
+        let outcomes = outcome.unwrap_or_else(|error| vec![Err(error)]);
+        let errors = outcomes.iter().filter(|result| result.is_err()).count();
+        let passed = errors == 0;
         if passed {
             self.passed_count += 1;
         } else {
-            self.error_count += 1;
+            self.error_count += errors;
         }
         self.stages.push(StageResult {
             stage: Stage::ComponentValidation,
@@ -207,15 +221,18 @@ impl Report {
             summary: if passed {
                 "All components passed archive validation.".into()
             } else {
-                "1 component error(s)".into()
+                format!("{errors} component error(s)")
             },
-            messages: match outcome {
-                Ok(()) => components
-                    .iter()
-                    .map(|component| format!("OK: {}", component.name))
-                    .collect(),
-                Err(error) => vec![error],
-            },
+            messages: outcomes
+                .into_iter()
+                .enumerate()
+                .map(|(index, outcome)| {
+                    outcome.map_or_else(
+                        |error| error,
+                        |()| format!("OK: {}", components[index].name),
+                    )
+                })
+                .collect(),
         });
     }
     pub(crate) fn install_order(&mut self, outcome: Result<(), String>) {
@@ -287,32 +304,73 @@ impl Report {
             issues,
         });
     }
-    pub(crate) fn conflicts(&mut self, conflicts: &ConflictReport) {
-        let count = conflicts.conflicts.len();
-        let mut messages = conflicts.limitations.clone();
-        messages.extend(conflicts.conflicts.iter().map(|conflict| {
-            format!(
-                "WARNING: {} has {} writers",
-                conflict.destination_path,
-                conflict.writers.len()
-            )
-        }));
-        let warnings = messages.len();
-        self.warning_count += warnings;
+    pub(crate) fn declared_conflicts(
+        &mut self,
+        guide: &crate::Guide,
+        components: &[&crate::Component],
+        selected: &std::collections::BTreeSet<String>,
+    ) {
+        let name = |id: &String| {
+            guide
+                .components
+                .iter()
+                .find(|component| component.guid.eq_ignore_ascii_case(id))
+                .map_or_else(|| id.clone(), |component| component.name.clone())
+        };
+        let mut messages = Vec::new();
+        let mut errors = 0;
+        let mut warnings = 0;
+        for component in components {
+            let missing: Vec<_> = component
+                .dependencies
+                .iter()
+                .filter(|id| !selected.contains(&id.to_ascii_lowercase()))
+                .map(&name)
+                .collect();
+            if !missing.is_empty() {
+                warnings += 1;
+                messages.push(format!(
+                    "WARNING: {}: missing dependencies: {}",
+                    component.name,
+                    missing.join(", ")
+                ));
+            }
+            let incompatible: Vec<_> = component
+                .restrictions
+                .iter()
+                .filter(|id| selected.contains(&id.to_ascii_lowercase()))
+                .map(&name)
+                .collect();
+            if !incompatible.is_empty() {
+                errors += 1;
+                messages.push(format!(
+                    "ERROR: {}: incompatible with: {}",
+                    component.name,
+                    incompatible.join(", ")
+                ));
+            }
+        }
+        // The reference counts component diagnostics, with errors taking precedence.
+        if errors > 0 {
+            self.error_count += errors;
+        } else if warnings > 0 {
+            self.warning_count += warnings;
+        } else {
+            self.passed_count += 1;
+        }
         self.stages.push(StageResult {
             stage: Stage::Conflicts,
-            passed: true,
+            passed: errors == 0,
             has_warnings: warnings > 0,
-            summary: if count == 0 {
-                "No simulated file conflicts".into()
+            summary: if errors > 0 {
+                format!("{errors} restriction conflict(s)")
+            } else if warnings > 0 {
+                format!("{warnings} dependency warning(s)")
             } else {
-                format!("{count} simulated file conflicts")
+                "No dependency or restriction conflicts.".into()
             },
             messages,
         });
-        if warnings == 0 {
-            self.passed_count += 1;
-        }
     }
     pub(crate) fn finish(mut self) -> Self {
         self.success = self.error_count == 0;

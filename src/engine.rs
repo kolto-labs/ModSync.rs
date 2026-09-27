@@ -77,6 +77,27 @@ fn key(path: &Path) -> String {
     path.to_string_lossy().replace('\\', "/").to_lowercase()
 }
 
+/// A resolver miss remains an error for strict validation and installation.
+#[derive(Debug)]
+struct MissingSource(String);
+impl std::fmt::Display for MissingSource {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Source matches no files: {}", self.0)
+    }
+}
+impl std::error::Error for MissingSource {}
+
+/// Only the Copy/Move/Extract source-resolution boundary produces this cause.
+/// In particular, Rename and configured FOMOD member failures stay hard errors.
+#[derive(Debug)]
+struct MissingSourceFiles(anyhow::Error);
+impl std::fmt::Display for MissingSourceFiles {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+impl std::error::Error for MissingSourceFiles {}
+
 pub struct Engine {
     pub settings: Settings,
     files: BTreeMap<String, (PathBuf, Content)>,
@@ -207,7 +228,7 @@ impl Engine {
     pub fn validate_report_with_options_observed(
         self,
         guide: &Guide,
-        emit: impl FnMut(Event),
+        mut emit: impl FnMut(Event),
         full_validation: bool,
         dry_run: bool,
         dry_run_only: bool,
@@ -272,15 +293,9 @@ impl Engine {
                 return report.finish();
             }
             boundary(Stage::Conflicts, "Checking conflicts", false);
-            match fresh_engine().and_then(|engine| engine.analyze_conflicts(guide)) {
-                Ok(conflicts) => report.conflicts(&conflicts),
-                Err(error) => {
-                    report.push(
-                        crate::validation::Stage::Conflicts,
-                        Err(format!("{error:#}")),
-                    );
-                }
-            }
+            let mut selected = guide.selected_ids();
+            selected.extend(self.completed.iter().cloned());
+            report.declared_conflicts(guide, &validated_components, &selected);
             boundary(Stage::Conflicts, "Checking conflicts", true);
             boundary(
                 Stage::InstallOrder,
@@ -301,7 +316,7 @@ impl Engine {
         if !dry_run_only {
             boundary(Stage::ComponentValidation, "Validating mod archives", false);
             let component = fresh_engine()
-                .and_then(|engine| engine.validate(guide, emit))
+                .and_then(|engine| engine.validate_archives(guide, &mut emit))
                 .map_err(|error| format!("{error:#}"));
             report.component_validation(&validated_components, component);
             boundary(Stage::ComponentValidation, "Validating mod archives", true);
@@ -377,6 +392,7 @@ impl Engine {
                 continue;
             }
             self.validation_target = Some((component.name.clone(), component.guid.clone(), None));
+            let component_issue_start = issues.len();
             if component.instructions.is_empty() {
                 issues.push(crate::validation::DryRunIssue::engine(
                     format!(
@@ -404,7 +420,8 @@ impl Engine {
                     continue;
                 }
                 let result = self
-                    .execute(component, instruction, &mut |_| {})
+                    .check_cancelled()
+                    .and_then(|_| self.execute(component, instruction, &mut |_| {}))
                     .with_context(|| {
                         format!(
                             "{} / step {} ({})",
@@ -415,22 +432,162 @@ impl Engine {
                     });
                 issues.append(&mut self.validation_warnings);
                 if let Err(error) = result {
+                    if error.is::<MissingSourceFiles>() {
+                        // Keep successful virtual effects, but replace this component's
+                        // provisional warnings with its single component-level outcome.
+                        issues.truncate(component_issue_start);
+                        issues.push(crate::validation::DryRunIssue::skipped(component));
+                        break;
+                    }
                     let message = format!("{error:#}");
                     let mut issue = crate::validation::DryRunIssue::engine(
                         message.clone(),
                         self.validation_target.clone(),
                     );
-                    if message.contains("Source matches no files") {
-                        issue.affected_path = instruction.source.first().cloned();
+                    if let Some(missing) = error.downcast_ref::<MissingSource>() {
+                        issue.affected_path = Some(missing.0.clone());
                     }
                     issues.push(issue);
                     if self.settings.cancelled.load(Ordering::Relaxed) {
                         return issues;
                     }
+                    break;
                 }
             }
         }
         issues
+    }
+
+    /// Read-only archive/destination checks; never execute installation instructions.
+    fn validate_archives(
+        mut self,
+        guide: &Guide,
+        emit: &mut impl FnMut(Event),
+    ) -> Result<Vec<Result<(), String>>> {
+        recovery::ensure_clean(&self.settings.roots)?;
+        recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
+        self.selected = guide.selected_ids();
+        self.selected.extend(self.completed.iter().cloned());
+        let mut outcomes = Vec::new();
+        for component in guide.components.iter().filter(|component| {
+            component.is_selected
+                && !self
+                    .completed
+                    .contains(&component.guid.to_ascii_lowercase())
+        }) {
+            let outcome = self
+                .validate_component_archives(component)
+                .with_context(|| format!("{}: archive/destination validation", component.name))
+                .map_err(|error| format!("{error:#}"));
+            emit(Event {
+                component: component.name.clone(),
+                step: 0,
+                message: "Archive and destination checks completed".into(),
+            });
+            outcomes.push(outcome);
+        }
+        Ok(outcomes)
+    }
+
+    fn validate_component_archives(&self, component: &Component) -> Result<()> {
+        self.check_cancelled()?;
+        // The reference archive stage includes immediate option instructions.
+        let instructions: Vec<_> = component
+            .instructions
+            .iter()
+            .chain(
+                component
+                    .options
+                    .iter()
+                    .flat_map(|option| &option.instructions),
+            )
+            .filter(|instruction| self.instruction_applies(instruction))
+            .collect();
+        let mut members = BTreeSet::new();
+        let mut has_archives = false;
+        for instruction in &instructions {
+            self.check_cancelled()?;
+            if instruction.action != "Extract" {
+                continue;
+            }
+            for source in self.matches(&instruction.source, false)? {
+                has_archives = true;
+                let dest = self.extraction_destination(instruction, &source)?;
+                self.settings.roots.check(&dest)?;
+                ensure!(
+                    !self.files.contains_key(&key(&dest)),
+                    "File blocks extraction destination: {}",
+                    dest.display()
+                );
+                let entries = archive::unpack(
+                    self.files[&key(&source)].1.path(),
+                    &source,
+                    &self.settings.archive,
+                    &self.settings.cancelled,
+                )
+                .with_context(|| format!("Cannot inspect archive {}", source.display()))?;
+                for entry in entries {
+                    let path = dest.join(entry.path);
+                    self.settings.roots.check(&path)?;
+                    members.insert(key(&path));
+                }
+            }
+        }
+        for instruction in instructions {
+            self.check_cancelled()?;
+            match instruction.action.as_str() {
+                "Copy" | "Move" | "CleanList" | "DelDuplicate" => {
+                    let dest = self.path(&instruction.destination, false)?;
+                    ensure!(
+                        self.directories.contains_key(&key(&dest)),
+                        "Destination cannot be found: {}",
+                        instruction.destination
+                    );
+                }
+                "Rename" if !instruction.destination.starts_with("<<") => {
+                    ensure!(
+                        relative(&instruction.destination, false)?
+                            .components()
+                            .count()
+                            == 1,
+                        "Rename needs one filename or a placeholder path"
+                    );
+                }
+                "Rename" | "Patcher" => {
+                    let dest = self.path(&instruction.destination, false)?;
+                    if instruction.action == "Patcher" {
+                        ensure!(
+                            dest == self.settings.roots.game,
+                            "Patcher destination must be the game directory"
+                        );
+                    }
+                }
+                "Extract" | "Choose" | "Delete" | "Execute" | "Run" => {}
+                other => bail!("Unsupported action {other}; refusing to skip it"),
+            }
+            // Source existence is deliberately not a loose-file check here.
+            // When Extract archives exist, check their actual safe member paths.
+            if matches!(
+                instruction.action.as_str(),
+                "Choose" | "DelDuplicate" | "Extract"
+            ) {
+                continue;
+            }
+            for source in &instruction.source {
+                let (path, pattern) = self.source_pattern(source)?;
+                if !has_archives || path.starts_with(&self.settings.roots.game) {
+                    continue;
+                }
+                let prefix = format!("{}/", key(&path));
+                ensure!(
+                    members
+                        .iter()
+                        .any(|member| Self::source_matches(&prefix, &pattern, member)),
+                    "Failed to find '{source}' in any archives"
+                );
+            }
+        }
+        Ok(())
     }
 
     fn validate_fomod_configuration(&self, guide: &Guide) -> Result<()> {
@@ -529,7 +686,9 @@ impl Engine {
                 {
                     continue;
                 }
-                for source in self.matches(&instruction.source, false)? {
+                // Missing generic Extract inputs belong to archive validation and
+                // dry-run availability, not the independent FOMOD state gate.
+                for source in self.matches(&instruction.source, true)? {
                     let content = &self.files[&key(&source)].1;
                     let entries = archive::unpack(
                         content.path(),
@@ -808,41 +967,80 @@ impl Engine {
         ensure!(!sources.is_empty(), "Instruction has no Source");
         let mut found = BTreeMap::new();
         for source in sources {
-            let path = self.path(source, true)?;
-            let root = [&self.settings.roots.mods, &self.settings.roots.game]
-                .into_iter()
-                .find(|root| path.starts_with(root))
-                .unwrap();
-            let pattern = glob::Pattern::new(&format!(
-                "{}/{}",
-                glob::Pattern::escape(&key(root)),
-                key(path.strip_prefix(root)?)
-            ))?;
+            let (path, pattern) = self.source_pattern(source)?;
             let prefix = format!("{}/", key(&path));
             let matches: Vec<_> = self
                 .files
                 .iter()
-                .filter(|(k, _)| {
-                    pattern.matches_with(
-                        k,
-                        glob::MatchOptions {
-                            case_sensitive: false,
-                            require_literal_separator: true,
-                            require_literal_leading_dot: false,
-                        },
-                    ) || k.starts_with(&prefix)
-                })
+                .filter(|(k, _)| Self::source_matches(&prefix, &pattern, k))
                 .collect();
-            ensure!(
-                missing_ok || !matches.is_empty(),
-                "Source matches no files: {source}"
-            );
+            if !missing_ok && matches.is_empty() {
+                return Err(MissingSource(source.clone()).into());
+            }
             for (k, (p, _)) in matches {
                 self.settings.roots.check(p)?;
                 found.insert(k.clone(), p.clone());
             }
         }
         Ok(found.into_values().collect())
+    }
+
+    fn source_pattern(&self, source: &str) -> Result<(PathBuf, glob::Pattern)> {
+        let path = self.path(source, true)?;
+        let root = [&self.settings.roots.mods, &self.settings.roots.game]
+            .into_iter()
+            .find(|root| path.starts_with(root))
+            .unwrap();
+        let pattern = glob::Pattern::new(&format!(
+            "{}/{}",
+            glob::Pattern::escape(&key(root)),
+            key(path.strip_prefix(root)?)
+        ))?;
+        Ok((path, pattern))
+    }
+
+    fn source_matches(prefix: &str, pattern: &glob::Pattern, candidate: &str) -> bool {
+        pattern.matches_with(
+            candidate,
+            glob::MatchOptions {
+                case_sensitive: false,
+                require_literal_separator: true,
+                require_literal_leading_dot: false,
+            },
+        ) || candidate.starts_with(prefix)
+    }
+
+    fn instruction_sources(&self, sources: &[String]) -> Result<Vec<PathBuf>> {
+        // A miss in one pattern must not hide an unsafe/malformed later pattern.
+        for source in sources {
+            self.source_pattern(source)?;
+        }
+        let paths = self.matches(sources, false).map_err(|error| {
+            if error.is::<MissingSource>() {
+                anyhow::Error::new(MissingSourceFiles(error))
+            } else {
+                error
+            }
+        })?;
+        for path in &paths {
+            // Reading must be possible even when virtual copying needs no bytes.
+            self.files[&key(path)].1.open()?;
+        }
+        Ok(paths)
+    }
+
+    fn extraction_destination(&self, instruction: &Instruction, source: &Path) -> Result<PathBuf> {
+        let default = source.parent().unwrap().join(source.file_stem().unwrap());
+        if instruction.destination.is_empty() {
+            Ok(default)
+        } else {
+            let path = self.path(&instruction.destination, false)?;
+            Ok(if key(&path) == key(source.parent().unwrap()) {
+                default
+            } else {
+                path
+            })
+        }
     }
 
     fn actual(&self, path: &Path) -> PathBuf {
@@ -950,19 +1148,12 @@ impl Engine {
                 }
             }
             "Extract" => {
-                for source in self.matches(&i.source, false)? {
+                if !i.destination.is_empty() {
+                    self.path(&i.destination, false)?;
+                }
+                for source in self.instruction_sources(&i.source)? {
                     let content = self.files[&key(&source)].1.clone();
-                    let default = source.parent().unwrap().join(source.file_stem().unwrap());
-                    let dest = if i.destination.is_empty() {
-                        default
-                    } else {
-                        let p = self.path(&i.destination, false)?;
-                        if key(&p) == key(source.parent().unwrap()) {
-                            default
-                        } else {
-                            p
-                        }
-                    };
+                    let dest = self.extraction_destination(i, &source)?;
                     let entries = archive::unpack(
                         content.path(),
                         &source,
@@ -1034,7 +1225,12 @@ impl Engine {
                 } else {
                     self.path(&i.destination, false)?
                 };
-                for source in self.matches(&i.source, false)? {
+                let sources = if i.action == "Rename" {
+                    self.matches(&i.source, false)?
+                } else {
+                    self.instruction_sources(&i.source)?
+                };
+                for source in sources {
                     self.check_cancelled()?;
                     let target = if i.action == "Rename" {
                         if dest.is_absolute() {
