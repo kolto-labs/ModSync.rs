@@ -146,7 +146,10 @@ impl App {
                     result
                 };
                 let result = if self.job == Job::Install {
-                    result.and_then(|()| self.installed_phase())
+                    let result = result.and_then(|()| self.installed_phase());
+                    self.pending_base.clear();
+                    self.install_context = None;
+                    result
                 } else {
                     result
                 };
@@ -1855,19 +1858,25 @@ impl App {
     }
 
     fn phase_guide(&self) -> Option<Guide> {
-        let mut guide = self.guide.clone()?;
-        if self.completed_base.is_none() {
-            for c in &mut guide.components {
-                if c.metadata
-                    .get("WidescreenOnly")
-                    .and_then(serde_json::Value::as_bool)
-                    == Some(true)
-                {
-                    c.is_selected = false;
-                }
-            }
-        }
-        Some(guide)
+        self.prepare_phase(Job::Install, None).ok().map(|p| p.guide)
+    }
+
+    fn prepare_phase(
+        &self,
+        job: Job,
+        choices: Option<&modsync::fomod::ChoicesFile>,
+    ) -> Result<modsync::phase::PreparedPhase> {
+        use modsync::phase::{CompletionContext, Phase};
+        let guide = self
+            .guide
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("Load a guide first"))?;
+        let (phase, context) = match self.completed_base.as_deref() {
+            Some(ids) => (Phase::Remaining, CompletionContext::Retained { ids }),
+            None if job == Job::Validate => (Phase::All, CompletionContext::None),
+            None => (Phase::Base, CompletionContext::None),
+        };
+        modsync::phase::prepare(guide, phase, context, choices)
     }
 
     fn installed_phase(&mut self) -> Result<()> {
@@ -2038,32 +2047,37 @@ impl App {
             }
         };
         self.cancelled = settings.cancelled.clone();
-        let mut guide = if job == Job::Validate {
-            self.guide.clone()
-        } else {
-            self.phase_guide()
-        };
-        if matches!(job, Job::Validate | Job::Install | Job::Conflicts)
-            && !self.fomod_choices.trim().is_empty()
-        {
-            let result = (|| -> anyhow::Result<()> {
-                let choices = modsync::fomod::ChoicesFile::parse(&std::fs::read_to_string(
-                    &self.fomod_choices,
-                )?)?;
-                if let Some(guide) = &mut guide {
-                    choices.apply_to_remaining(
-                        guide,
-                        self.completed_base.as_deref().unwrap_or_default(),
-                    )?;
+        let (guide, completed) = if matches!(job, Job::Validate | Job::Install | Job::Conflicts) {
+            let choices = (|| -> Result<_> {
+                if self.fomod_choices.trim().is_empty() {
+                    Ok(None)
+                } else {
+                    Ok(Some(modsync::fomod::ChoicesFile::parse(
+                        &std::fs::read_to_string(&self.fomod_choices)?,
+                    )?))
                 }
-                Ok(())
             })();
-            if let Err(error) = result {
-                self.logs.push(format!("FOMOD choices: {error:#}"));
-                return;
+            let choices = match choices {
+                Ok(choices) => choices,
+                Err(error) => {
+                    self.logs.push(format!("FOMOD choices: {error:#}"));
+                    return;
+                }
+            };
+            match self.prepare_phase(job, choices.as_ref()) {
+                Ok(prepared) => (
+                    Some(prepared.guide),
+                    self.completed_base.as_ref().map(|_| prepared.completed),
+                ),
+                Err(error) => {
+                    self.job = job;
+                    self.handle_message(Message::Done(Err(error)));
+                    return;
+                }
             }
-        }
-        let completed = self.completed_base.clone();
+        } else {
+            (self.guide.clone(), self.completed_base.clone())
+        };
         if job == Job::Install {
             self.install_context = Some((
                 serde_json::to_string(&self.guide).expect("guide serializes"),
@@ -2875,6 +2889,244 @@ mod tests {
         (root, app)
     }
 
+    fn phase_manifest(root: &Path) -> std::collections::BTreeMap<PathBuf, Vec<u8>> {
+        walkdir::WalkDir::new(root)
+            .into_iter()
+            .map(Result::unwrap)
+            .map(|entry| {
+                let bytes = if entry.file_type().is_file() {
+                    std::fs::read(entry.path()).unwrap()
+                } else {
+                    Vec::new()
+                };
+                (entry.path().strip_prefix(root).unwrap().to_owned(), bytes)
+            })
+            .collect()
+    }
+
+    #[test]
+    fn desktop_preparation_matches_cli_all_and_base_after_selection() {
+        use modsync::phase::{self, CompletionContext, Phase};
+        let (root, mut app) = route_fixture(true);
+        let choices =
+            modsync::fomod::ChoicesFile::parse(r#"{"archives":[{"archiveFileName":"wide.zip"}]}"#)
+                .unwrap();
+        let before = phase_manifest(root.path());
+        let selected = serde_json::to_value(&app.guide).unwrap();
+        for (job, phase, expected) in [
+            (Job::Validate, Phase::All, vec!["base", "wide"]),
+            (Job::Conflicts, Phase::Base, vec!["base"]),
+            (Job::Install, Phase::Base, vec!["base"]),
+        ] {
+            let desktop = app.prepare_phase(job, Some(&choices)).unwrap();
+            let cli = phase::prepare(
+                app.guide.as_ref().unwrap(),
+                phase,
+                CompletionContext::None,
+                Some(&choices),
+            )
+            .unwrap();
+            assert_eq!(
+                serde_json::to_value(&desktop.guide).unwrap(),
+                serde_json::to_value(cli.guide).unwrap()
+            );
+            assert!(desktop.completed.is_empty() && cli.completed.is_empty());
+            assert_eq!(
+                desktop
+                    .guide
+                    .ordered()
+                    .unwrap()
+                    .iter()
+                    .map(|c| c.guid.as_str())
+                    .collect::<Vec<_>>(),
+                expected
+            );
+        }
+        assert_eq!(serde_json::to_value(&app.guide).unwrap(), selected);
+        assert_eq!(phase_manifest(root.path()), before);
+
+        // All leaves invalid ordering to the full report pipeline.
+        app.guide.as_mut().unwrap().components[0].dependencies = vec!["missing".into()];
+        assert!(app.prepare_phase(Job::Validate, None).is_ok());
+        app.start(Job::Validate, &egui::Context::default());
+        finish_worker(&mut app);
+        assert!(!app.validated);
+        assert!(!app.validation_report.as_ref().unwrap().success);
+        assert_eq!(phase_manifest(root.path()), before);
+    }
+
+    #[test]
+    fn desktop_retained_and_cli_reconstructed_choices_verify_real_completion() {
+        use modsync::phase::{self, CompletionContext, Phase};
+        fn choices(base: &str, wide: &str) -> modsync::fomod::ChoicesFile {
+            modsync::fomod::ChoicesFile::parse(&serde_json::json!({"archives":[
+                {"archiveFileName":"base.zip","selections":[{"stepName":"S","groupName":"G","plugins":[base]}]},
+                {"archiveFileName":"wide.zip","selections":[{"stepName":"S","groupName":"G","plugins":[wide]}]}
+            ]}).to_string()).unwrap()
+        }
+        for (base_choice, wide_choice, equal) in [
+            ("original", "original", true),
+            ("changed", "original", false),
+            ("original", "changed", false),
+        ] {
+            let (root, mut app) = route_fixture(true);
+            let selected = app.guide.clone().unwrap();
+            let path = root.path().join("choices.json");
+            std::fs::write(
+                &path,
+                serde_json::to_vec(&choices("original", "original")).unwrap(),
+            )
+            .unwrap();
+            app.fomod_choices = path.to_string_lossy().into_owned();
+            let ctx = egui::Context::default();
+            app.start(Job::Install, &ctx);
+            assert_eq!(app.pending_base.len(), 1);
+            finish_worker(&mut app);
+            assert_eq!(app.completed_base.as_deref().unwrap(), ["base"]);
+            assert!(app.pending_base.is_empty() && app.install_context.is_none());
+            assert!(!Path::new(&app.mods).join("base.txt").exists());
+            let settings = Settings::new(Path::new(&app.mods), Path::new(&app.game)).unwrap();
+            let receipt_path = recovery::state_dir(&settings.roots).join("completion.json");
+            let base_receipt: serde_json::Value =
+                serde_json::from_slice(&std::fs::read(&receipt_path).unwrap()).unwrap();
+            let historical =
+                serde_json::to_value(&app.guide.as_ref().unwrap().components[0]).unwrap();
+            assert_eq!(base_receipt["components"][0], historical);
+            let current = choices(base_choice, wide_choice);
+            std::fs::write(&path, serde_json::to_vec(&current).unwrap()).unwrap();
+            let gui = app.prepare_phase(Job::Validate, Some(&current)).unwrap();
+            let cli = phase::prepare(
+                &selected,
+                Phase::Remaining,
+                CompletionContext::Reconstruct,
+                Some(&current),
+            )
+            .unwrap();
+            assert_eq!(gui.completed, cli.completed);
+            assert_eq!(
+                serde_json::to_value(&gui.guide.components[0]).unwrap(),
+                historical
+            );
+            assert_eq!(
+                serde_json::to_value(&gui.guide).unwrap()
+                    == serde_json::to_value(&cli.guide).unwrap(),
+                equal
+            );
+            let before = phase_manifest(root.path());
+            let cli_report = Engine::new(settings.clone())
+                .unwrap()
+                .validate_report_remaining(&cli.guide, &cli.completed, |_| {});
+            if equal {
+                assert!(cli_report.as_ref().unwrap().success);
+            } else {
+                let report = cli_report.as_ref().unwrap();
+                assert!(!report.success);
+                assert!(
+                    report
+                        .stages
+                        .iter()
+                        .flat_map(|stage| &stage.messages)
+                        .any(|message| message.contains("definitions differ"))
+                );
+                assert!(
+                    Engine::new(settings.clone())
+                        .unwrap()
+                        .install_remaining(&cli.guide, &cli.completed, |_| {})
+                        .is_err()
+                );
+            }
+            app.start(Job::Validate, &ctx);
+            finish_worker(&mut app);
+            assert!(app.validated, "{:?}", app.logs);
+            if equal {
+                assert_eq!(
+                    serde_json::to_value(app.validation_report.as_ref().unwrap()).unwrap(),
+                    serde_json::to_value(cli_report.unwrap()).unwrap()
+                );
+            }
+            app.start(Job::Conflicts, &ctx);
+            finish_worker(&mut app);
+            assert_eq!(app.conflicts.as_ref().unwrap().analyzed_component_count, 1);
+            assert_eq!(phase_manifest(root.path()), before);
+            app.start(Job::Install, &ctx);
+            finish_worker(&mut app);
+            assert!(app.finished, "{:?}", app.logs);
+            assert_eq!(
+                std::fs::read(Path::new(&app.game).join("Override/base.txt")).unwrap(),
+                b"base fixture"
+            );
+            assert_eq!(
+                std::fs::read(Path::new(&app.game).join("Override/wide.txt")).unwrap(),
+                b"wide fixture"
+            );
+            assert!(!Path::new(&app.mods).join("base.txt").exists());
+            let final_receipt: serde_json::Value =
+                serde_json::from_slice(&std::fs::read(receipt_path).unwrap()).unwrap();
+            assert_eq!(final_receipt["components"][0], historical);
+            assert_eq!(final_receipt["components"].as_array().unwrap().len(), 2);
+            assert!(
+                !recovery::state_dir(&settings.roots)
+                    .join("pending")
+                    .exists()
+            );
+        }
+    }
+
+    #[test]
+    fn desktop_invalid_retained_ids_and_failed_base_never_promote_or_mutate() {
+        let (root, mut app) = route_fixture(true);
+        let mut third = app.guide.as_ref().unwrap().components[1].clone();
+        third.guid = "third".into();
+        app.guide.as_mut().unwrap().components.push(third);
+        let before = phase_manifest(root.path());
+        for (ids, diagnostic) in [
+            (vec![], "nonempty completed prefix"),
+            (vec!["base", "BASE"], "Duplicate completed component ID"),
+            (vec!["missing"], "selected installation prefix"),
+            (vec!["wide"], "selected installation prefix"),
+        ] {
+            app.completed_base = Some(ids.into_iter().map(str::to_owned).collect());
+            let completed = app.completed_base.clone();
+            let guide = serde_json::to_value(&app.guide).unwrap();
+            for job in [Job::Validate, Job::Conflicts, Job::Install] {
+                app.start(job, &egui::Context::default());
+                assert!(app.receiver.is_none());
+                assert!(
+                    app.logs.last().unwrap().contains(diagnostic),
+                    "{:?}",
+                    app.logs
+                );
+                assert_eq!(app.completed_base, completed);
+                assert_eq!(serde_json::to_value(&app.guide).unwrap(), guide);
+                assert!(app.pending_base.is_empty() && app.install_context.is_none());
+                assert!(!app.finished && !app.validated);
+                assert_eq!(phase_manifest(root.path()), before);
+            }
+        }
+        app.completed_base = None;
+        std::fs::remove_file(Path::new(&app.mods).join("base.txt")).unwrap();
+        let game_before = phase_manifest(Path::new(&app.game));
+        let mods_before = phase_manifest(Path::new(&app.mods));
+        app.start(Job::Install, &egui::Context::default());
+        assert_eq!(app.pending_base.len(), 1);
+        finish_worker(&mut app);
+        assert!(app.completed_base.is_none());
+        assert!(app.pending_base.is_empty() && app.install_context.is_none());
+        assert_eq!(phase_manifest(Path::new(&app.game)), game_before);
+        assert_eq!(phase_manifest(Path::new(&app.mods)), mods_before);
+        let settings = Settings::new(Path::new(&app.mods), Path::new(&app.game)).unwrap();
+        assert!(
+            !recovery::state_dir(&settings.roots)
+                .join("completion.json")
+                .exists()
+        );
+        assert!(
+            !recovery::state_dir(&settings.roots)
+                .join("pending")
+                .exists()
+        );
+    }
+
     fn reach(app: &mut App, page: Page) {
         let ctx = egui::Context::default();
         for _ in 0..20 {
@@ -3106,19 +3358,22 @@ mod tests {
 
     #[test]
     fn stale_install_completion_cannot_promote_effective_definitions() {
-        for reset in [false, true] {
+        for mutation in 0..3 {
             let (_root, mut app) = route_fixture(true);
             app.start(Job::Install, &egui::Context::default());
-            if reset {
+            if mutation == 0 {
                 // Even a replacement with identical contents clears dispatch context.
                 app.reset_installation();
-            } else {
+            } else if mutation == 1 {
                 app.guide.as_mut().unwrap().components[0].name = "Replacement".into();
+            } else {
+                app.game = app.mods.clone();
             }
             let current = serde_json::to_value(&app.guide).unwrap();
             finish_worker(&mut app);
             assert_eq!(serde_json::to_value(&app.guide).unwrap(), current);
             assert!(app.completed_base.is_none());
+            assert!(app.pending_base.is_empty() && app.install_context.is_none());
             assert!(!app.finished);
             assert!(
                 app.logs
