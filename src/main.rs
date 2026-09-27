@@ -2,7 +2,7 @@ mod profile_cli;
 use anyhow::{Context, Result, ensure};
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use modsync::{Engine, Guide, PatcherEngine, Settings, download, paths::Roots, recovery};
-use std::{ffi::OsString, path::PathBuf, sync::atomic::AtomicBool};
+use std::{ffi::OsString, io::Write, path::PathBuf, sync::atomic::AtomicBool};
 
 #[cfg(feature = "desktop")]
 mod fomod_ui;
@@ -340,6 +340,9 @@ struct InstallArgs {
     /// Emit newline-delimited JSON events.
     #[arg(long)]
     json: bool,
+    /// Emit newline-delimited typed installation progress.
+    #[arg(long, conflicts_with_all = ["json", "validation_report"])]
+    install_progress_json: bool,
     /// Emit the structured validation pipeline report instead of validation events.
     #[arg(long, conflicts_with = "json")]
     validation_report: bool,
@@ -892,6 +895,10 @@ fn run() -> Result<()> {
             else {
                 unreachable!()
             };
+            ensure!(
+                !args.install_progress_json || install,
+                "--install-progress-json is only supported by install"
+            );
             let report_mode = args.validation_report && !install && !conflicts;
             let dispatch = (|| -> Result<()> {
                 ensure!(
@@ -1057,7 +1064,7 @@ fn run() -> Result<()> {
                 settings.archive.max_expanded_bytes = args.max_expanded_bytes;
                 let engine = Engine::new(settings)?;
                 let emit = |event: modsync::Event| {
-                    if args.validation_report {
+                    if args.validation_report || args.install_progress_json {
                         return;
                     }
                     if args.json {
@@ -1075,7 +1082,28 @@ fn run() -> Result<()> {
                     println!("{}", serde_json::to_string_pretty(&report)?);
                     Ok(())
                 } else if install {
-                    if args.phase == PhaseArg::Remaining {
+                    if args.install_progress_json {
+                        let progress = |progress: modsync::install_progress::Progress| {
+                            let envelope = serde_json::json!({
+                                "type": "installProgress",
+                                "progress": progress,
+                            });
+                            if let Ok(mut line) = serde_json::to_vec(&envelope) {
+                                line.push(b'\n');
+                                let _ = std::io::stdout().lock().write_all(&line);
+                            }
+                        };
+                        if args.phase == PhaseArg::Remaining {
+                            engine.install_remaining_observed(
+                                &guide,
+                                &prepared.completed,
+                                emit,
+                                progress,
+                            )
+                        } else {
+                            engine.install_observed(&guide, emit, progress)
+                        }
+                    } else if args.phase == PhaseArg::Remaining {
                         engine.install_remaining(&guide, &prepared.completed, emit)
                     } else {
                         engine.install(&guide, emit)
