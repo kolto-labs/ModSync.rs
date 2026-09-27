@@ -226,11 +226,13 @@ impl Service {
     fn manifests(&self) -> PathBuf {
         self.root.join("manifests")
     }
+    /// Earlier builds named files after the ID as typed, so an uppercase GUID
+    /// file is still found after IDs were normalized to lowercase.
     fn backup(&self, id: &str) -> PathBuf {
-        self.root.join("backups").join(id)
+        existing_ignoring_case(&self.root.join("backups"), id)
     }
     fn manifest_path(&self, id: &str) -> PathBuf {
-        self.manifests().join(format!("{id}.json"))
+        existing_ignoring_case(&self.manifests(), &format!("{id}.json"))
     }
 
     /// Manifests oldest first. Unreadable manifests are skipped, as in C#.
@@ -555,7 +557,12 @@ impl Service {
                 prune(&self.game, destination.parent());
                 continue;
             }
-            if let Some((owner, index)) = self.later_owner(&others, &relative, &entry.source_hash) {
+            if let Some((owner, index)) = self.later_owner(
+                &others,
+                manifest.deployed_utc,
+                &relative,
+                &entry.source_hash,
+            ) {
                 let owner_id = component_id(&others[owner].component_guid)?;
                 let owner_entry = &mut others[owner].entries[index];
                 let owner_backup = self.backup(&owner_id).join(relative_parts(
@@ -600,10 +607,11 @@ impl Service {
         Ok(report)
     }
 
-    /// The newest other deployment whose backup of `relative` holds exactly `hash`.
+    /// The newest later deployment whose backup of `relative` holds exactly `hash`.
     fn later_owner(
         &self,
         others: &[Manifest],
+        deployed: DateTime<Utc>,
         relative: &str,
         hash_value: &str,
     ) -> Option<(usize, usize)> {
@@ -611,6 +619,7 @@ impl Service {
             .iter()
             .enumerate()
             .rev()
+            .filter(|(_, manifest)| manifest.deployed_utc > deployed)
             .find_map(|(owner, manifest)| {
                 let index = manifest.entries.iter().position(|entry| {
                     entry.overwrote_existing && entry.relative_path.eq_ignore_ascii_case(relative)
@@ -888,6 +897,22 @@ fn check_ancestors(root: &Path, relative: &str) -> Result<()> {
     Ok(())
 }
 
+fn existing_ignoring_case(directory: &Path, name: &str) -> PathBuf {
+    let exact = directory.join(name);
+    if fs::symlink_metadata(&exact).is_ok() {
+        return exact;
+    }
+    fs::read_dir(directory)
+        .ok()
+        .and_then(|entries| {
+            entries
+                .filter_map(Result::ok)
+                .map(|entry| entry.file_name())
+                .filter(|found| found.to_string_lossy().eq_ignore_ascii_case(name))
+                .min()
+        })
+        .map_or(exact, |found| directory.join(found))
+}
 fn hash(path: &Path) -> Result<String> {
     let mut file = fs::File::open(path)?;
     let mut digest = Sha256::new();

@@ -544,16 +544,25 @@ fn run() -> Result<()> {
                     store.require(&to)?;
                     let from = store.active_name()?;
                     let mut purged = Vec::new();
-                    if purge_current
-                        && let Some(current) = from.as_deref()
+                    if let Some(current) = from.as_deref()
                         && !current.eq_ignore_ascii_case(to.trim())
                     {
-                        purged = modsync::deployment::Service::for_profile(
+                        let service = modsync::deployment::Service::for_profile(
                             &settings, current, &game_dir,
-                        )?
-                        .purge_report()?;
-                        for report in &purged {
-                            warn(&report.warnings);
+                        );
+                        if purge_current {
+                            let service = service?;
+                            purged = service.purge_report()?;
+                            for report in &purged {
+                                warn(&report.warnings);
+                            }
+                        } else if let Ok(service) = service {
+                            let live = service.deployed()?.len();
+                            if live > 0 {
+                                warn(&[format!(
+                                    "Profile '{current}' still has {live} deployment(s) in this game directory. They stay in place; pass --purge-current to remove them first."
+                                )]);
+                            }
                         }
                     }
                     let profile = store.activate(&to)?;
