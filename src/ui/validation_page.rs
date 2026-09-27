@@ -160,6 +160,25 @@ fn frame(radius: u8, x: i8, y: i8) -> egui::Frame {
         .corner_radius(radius)
         .inner_margin(egui::Margin::symmetric(x, y))
 }
+fn indeterminate_progress(
+    ui: &mut egui::Ui,
+    ctx: &egui::Context,
+    border: Color32,
+    foreground: Color32,
+) {
+    let (rect, _) = ui.allocate_exact_size(
+        egui::vec2(ui.available_width().clamp(1.0, 200.0), 8.0),
+        egui::Sense::hover(),
+    );
+    ui.painter().rect_filled(rect, 4.0, border);
+    let phase = ((ctx.input(|i| i.time) * 1.5).sin() as f32 + 1.0) * 0.5;
+    let segment = egui::Rect::from_min_size(
+        rect.min + egui::vec2(phase * rect.width() * 0.75, 0.0),
+        egui::vec2(rect.width() * 0.25, 8.0),
+    );
+    ui.painter().rect_filled(segment, 4.0, foreground);
+}
+
 impl App {
     pub(super) fn validation_content(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
         let total = self.guide.as_ref().map_or(0, |g| g.components.len());
@@ -254,6 +273,7 @@ impl App {
         let mut run = false;
         frame(8, 16, 12).show(ui, |ui| {
             ui.set_width((width - 32.0).max(1.0));
+            let compact = width < 560.0;
             ui.horizontal_wrapped(|ui| {
                 ui.spacing_mut().button_padding = egui::vec2(16.0, 10.0);
                 run = ui
@@ -263,30 +283,38 @@ impl App {
                     )
                     .on_hover_text("Check for compatibility issues and missing files")
                     .clicked();
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                if compact {
+                    if self.validation_page.active && ui.button("Stop").clicked() {
+                        self.stop_confirmation = true;
+                    }
+                } else {
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        ui.label(
+                            RichText::new(&self.validation_page.view.status)
+                                .size(14.0)
+                                .strong(),
+                        );
+                        if self.validation_page.active {
+                            indeterminate_progress(ui, ctx, border, foreground);
+                            if ui.button("Stop").clicked() {
+                                self.stop_confirmation = true;
+                            }
+                        }
+                    });
+                }
+            });
+            if compact {
+                if !self.validation_page.view.status.is_empty() {
                     ui.label(
                         RichText::new(&self.validation_page.view.status)
                             .size(14.0)
                             .strong(),
                     );
-                    if self.validation_page.active {
-                        let (rect, _) = ui.allocate_exact_size(
-                            egui::vec2(200.0_f32.min(ui.available_width()), 8.0),
-                            egui::Sense::hover(),
-                        );
-                        ui.painter().rect_filled(rect, 4.0, border);
-                        let phase = ((ctx.input(|i| i.time) * 1.5).sin() as f32 + 1.0) * 0.5;
-                        let segment = egui::Rect::from_min_size(
-                            rect.min + egui::vec2(phase * rect.width() * 0.75, 0.0),
-                            egui::vec2(rect.width() * 0.25, 8.0),
-                        );
-                        ui.painter().rect_filled(segment, 4.0, foreground);
-                        if ui.button("Stop").clicked() {
-                            self.stop_confirmation = true;
-                        }
-                    }
-                });
-            });
+                }
+                if self.validation_page.active {
+                    indeterminate_progress(ui, ctx, border, foreground);
+                }
+            }
         });
         if run {
             self.start(Job::Validate, ctx);
