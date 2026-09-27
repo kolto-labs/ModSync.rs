@@ -146,6 +146,8 @@ enum Action {
         #[arg(long)]
         exclude_incoming_only: bool,
     },
+    /// Print the resolved selection without downloading or installing.
+    Selection(SelectionArgs),
     /// Simulate instructions without changing the game or mod directory.
     Validate(InstallArgs),
     /// Report conflicting simulated game-file writes as JSON, without installing.
@@ -298,7 +300,7 @@ struct InstallArgs {
     #[arg(long, value_enum, default_value = "all")]
     phase: PhaseArg,
     /// Install a Markdown guide in source order after direct-Markdown preflight.
-    #[arg(long, conflicts_with_all = ["fomod_choices", "profile", "active_profile", "use_file_selection", "select", "option"])]
+    #[arg(long, conflicts_with_all = ["fomod_choices", "profile", "active_profile", "use_file_selection", "select", "option", "deselect", "deselect_option", "select_through_tier", "add_category", "select_visible_search", "spoiler_free"])]
     direct_markdown: bool,
     /// Version-1 FOMOD choices JSON; overrides embedded choices for this run.
     #[arg(long)]
@@ -323,9 +325,11 @@ struct InstallArgs {
     /// Select component names/GUIDs or category:Name/tier:Name filters (repeat the flag).
     #[arg(long)]
     select: Vec<String>,
-    /// Select option GUIDs (repeat the flag). Existing option selections are retained.
+    /// Select option GUIDs and their parent mods (repeat the flag). Existing option selections are retained.
     #[arg(long)]
     option: Vec<String>,
+    #[command(flatten)]
+    selection_flags: SelectionFlags,
     /// Trust this guide to run programs with your user permissions.
     #[arg(long)]
     allow_processes: bool,
@@ -369,6 +373,148 @@ struct InstallArgs {
     /// Run only FOMOD configuration and VFS dry-run validation.
     #[arg(long, requires = "validation_report")]
     dry_run_only: bool,
+}
+
+/// Selection changes applied after --select, in command-line order together with --option.
+#[derive(Args)]
+struct SelectionFlags {
+    /// Deselect a mod by name or GUID; mods that depend on it are deselected too (repeat the flag).
+    #[arg(long, value_name = "NAME|GUID")]
+    deselect: Vec<String>,
+    /// Deselect an option GUID; whatever depends on it is deselected too (repeat the flag).
+    #[arg(long, value_name = "GUID")]
+    deselect_option: Vec<String>,
+    /// Add base mods in this tier and every higher tier (repeat the flag).
+    #[arg(long, value_name = "TIER")]
+    select_through_tier: Vec<String>,
+    /// Add base mods in this category, ignoring case (repeat the flag).
+    #[arg(long, value_name = "CATEGORY")]
+    add_category: Vec<String>,
+    /// Add base mods whose shown name or description contains this text (repeat the flag).
+    #[arg(long, value_name = "TEXT")]
+    select_visible_search: Vec<String>,
+    /// Match --select-visible-search against spoiler-free names and descriptions.
+    #[arg(long)]
+    spoiler_free: bool,
+}
+
+#[derive(Args)]
+struct SelectionArgs {
+    #[arg(long, short)]
+    input: PathBuf,
+    /// Detect the game here to apply Aspyr-only rules. Without it they are only reported.
+    #[arg(long)]
+    game_dir: Option<PathBuf>,
+    /// Honor IsSelected flags; by default select all top-level components.
+    #[arg(long)]
+    use_file_selection: bool,
+    /// Select component names/GUIDs or category:Name/tier:Name filters (repeat the flag).
+    #[arg(long)]
+    select: Vec<String>,
+    /// Select option GUIDs and their parent mods (repeat the flag).
+    #[arg(long)]
+    option: Vec<String>,
+    #[command(flatten)]
+    selection_flags: SelectionFlags,
+    /// Print JSON instead of text.
+    #[arg(long)]
+    json: bool,
+}
+
+/// --option and the SelectionFlags as shared actions, in command-line order.
+fn ordered_selection_steps(
+    option: &[String],
+    flags: &SelectionFlags,
+) -> Vec<modsync::selection::Action> {
+    use modsync::selection::{Action as Step, Filter};
+    let matches = <Cli as clap::CommandFactory>::command()
+        .try_get_matches_from(std::env::args_os())
+        .ok();
+    let sub = matches
+        .as_ref()
+        .and_then(|m| m.subcommand())
+        .map(|(_, s)| s);
+    let mut steps = Vec::new();
+    let mut push = |id: &str, values: &[String], make: &dyn Fn(&str) -> Step| {
+        let indices: Vec<usize> = sub
+            .and_then(|s| s.indices_of(id))
+            .map(Iterator::collect)
+            .unwrap_or_default();
+        for (position, value) in values.iter().enumerate() {
+            let order = indices.get(position).copied().unwrap_or(usize::MAX);
+            steps.push((order, make(value)));
+        }
+    };
+    push("option", option, &|guid| Step::SetOption {
+        guid: guid.into(),
+        selected: true,
+    });
+    push("deselect", &flags.deselect, &|guid| Step::SetComponent {
+        guid: guid.into(),
+        selected: false,
+    });
+    push("deselect_option", &flags.deselect_option, &|guid| {
+        Step::SetOption {
+            guid: guid.into(),
+            selected: false,
+        }
+    });
+    push("select_through_tier", &flags.select_through_tier, &|tier| {
+        Step::SelectThroughTier(tier.into())
+    });
+    push("add_category", &flags.add_category, &|category| {
+        Step::SelectCategories(vec![category.into()])
+    });
+    push(
+        "select_visible_search",
+        &flags.select_visible_search,
+        &|search| {
+            Step::SelectVisible(Filter {
+                search: search.into(),
+                spoiler_free: flags.spoiler_free,
+                ..Filter::default()
+            })
+        },
+    );
+    steps.sort_by_key(|(order, _)| *order);
+    steps.into_iter().map(|(_, step)| step).collect()
+}
+
+/// Explicit selection flags go through the shared actions; default-all, file and
+/// profile selections are left as loaded. Game rules run once at the end.
+/// Warnings and every resolution change go to stderr when `report` is set.
+fn apply_selection(
+    components: &mut [modsync::Component],
+    game: Option<modsync::game::Detected>,
+    select: &[String],
+    option: &[String],
+    flags: &SelectionFlags,
+    report: bool,
+) -> Result<Vec<modsync::selection::Outcome>> {
+    use modsync::selection::{Action as Step, apply, describe};
+    let mut steps = Vec::new();
+    if !select.is_empty() {
+        steps.push(Step::ResetFromSelectors(select.to_vec()));
+    }
+    steps.extend(ordered_selection_steps(option, flags));
+    steps.push(Step::EnforceGame);
+    let mut outcomes = Vec::new();
+    for step in steps {
+        let outcome = apply(components, game, step)?;
+        if report {
+            for warning in &outcome.warnings {
+                eprintln!("Selection warning: {warning}");
+            }
+            for guid in &outcome.auto_selected {
+                eprintln!("Selection: auto-selected {}", describe(components, guid));
+            }
+            for guid in &outcome.auto_deselected {
+                eprintln!("Selection: auto-deselected {}", describe(components, guid));
+            }
+        }
+        outcomes.push(outcome);
+    }
+    Ok(outcomes)
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
@@ -914,6 +1060,75 @@ fn run() -> Result<()> {
             );
             Ok(())
         }
+        Some(Action::Selection(args)) => {
+            use modsync::selection;
+            let mut guide = Guide::load_for_install(&args.input)?;
+            if args.select.is_empty() && !args.use_file_selection {
+                for c in &mut guide.components {
+                    c.is_selected = true;
+                }
+            }
+            let detected = args
+                .game_dir
+                .as_deref()
+                .map(|dir| modsync::game::detect(&modsync::game::resolve_install_root(dir)));
+            let outcomes = apply_selection(
+                &mut guide.components,
+                detected,
+                &args.select,
+                &args.option,
+                &args.selection_flags,
+                true,
+            )?;
+            let components = &guide.components;
+            let counts = selection::counts(components);
+            let search = args
+                .selection_flags
+                .select_visible_search
+                .last()
+                .map_or("", String::as_str);
+            let summary = selection::filter_summary(
+                components,
+                search,
+                "",
+                "",
+                args.selection_flags.spoiler_free,
+            );
+            let selected = selection::selected_guids(components);
+            if args.json {
+                let candidates = |scope| selection::download_candidates(components, scope);
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&serde_json::json!({
+                        "game": detected.map(|game| format!("{game:?}")),
+                        "counts": counts,
+                        "filterSummary": summary,
+                        "selected": selected,
+                        "outcomes": outcomes,
+                        "downloadCandidates": {
+                            "base": candidates(selection::Scope::Base),
+                            "widescreen": candidates(selection::Scope::Widescreen),
+                            "all": candidates(selection::Scope::All),
+                        },
+                    }))?
+                );
+            } else {
+                println!(
+                    "{} — {}",
+                    selection::summary_count(&counts),
+                    selection::summary_detail(&counts)
+                );
+                println!(
+                    "SELECTED {}  REQUIRED {}  OPTIONAL {}",
+                    counts.selected, counts.required, counts.optional
+                );
+                println!("{summary}");
+                for guid in &selected {
+                    println!("{}", selection::describe(components, guid));
+                }
+            }
+            Ok(())
+        }
         Some(action @ (Action::Install(_) | Action::Validate(_) | Action::Conflicts(_))) => {
             let install = matches!(action, Action::Install(_));
             let conflicts = matches!(action, Action::Conflicts(_));
@@ -1006,40 +1221,23 @@ fn run() -> Result<()> {
                 if let Some(profile) = &profile {
                     profile.apply(&mut guide);
                 }
-                if !args.select.is_empty() {
-                    for warning in modsync::selection::apply_cli_selection(
-                        &mut guide.components,
-                        &args.select,
-                    )? {
-                        if !report_mode || args.phase == PhaseArg::All {
-                            eprintln!("Selection warning: {warning}");
-                        }
-                    }
-                } else {
+                if args.select.is_empty() {
                     for c in &mut guide.components {
                         if !args.use_file_selection && profile.is_none() {
                             c.is_selected = true;
                         }
                     }
                 }
-                fn select_option(c: &mut modsync::Component, id: &str) -> bool {
-                    for o in &mut c.options {
-                        if o.guid.eq_ignore_ascii_case(id) {
-                            o.is_selected = true;
-                            return true;
-                        }
-                        if select_option(o, id) {
-                            return true;
-                        }
-                    }
-                    false
-                }
-                for id in &args.option {
-                    ensure!(
-                        guide.components.iter_mut().any(|c| select_option(c, id)),
-                        "Unknown option: {id}"
-                    );
-                }
+                let detected =
+                    modsync::game::detect(&modsync::game::resolve_install_root(&paths.game));
+                apply_selection(
+                    &mut guide.components,
+                    Some(detected),
+                    &args.select,
+                    &args.option,
+                    &args.selection_flags,
+                    !report_mode || args.phase == PhaseArg::All,
+                )?;
                 if args.direct_markdown {
                     ensure!(
                         patcher_engine == PatcherEngine::OdyPatcher,
