@@ -669,6 +669,15 @@ impl App {
         match surface {
             0 => {
                 ui.heading("Load an instruction file");
+                if ui
+                    .button("Validation tools")
+                    .on_hover_text(
+                        "Trust, FOMOD choices, patcher settings, conflict analysis and recovery",
+                    )
+                    .clicked()
+                {
+                    self.page = 2;
+                }
                 ui.label("Read ModSync TOML, JSON, YAML, XML, or Markdown. Review generated instructions before installing.");
                 if Self::path_row(ui, "Guide", &mut self.input, false) {
                     self.validated = false;
