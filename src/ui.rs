@@ -79,7 +79,8 @@ pub struct App {
     validation_report: Option<modsync::validation::Report>,
     confirm_install: bool,
     completed_base: Option<Vec<String>>,
-    pending_base: Vec<String>,
+    pending_base: Vec<Component>,
+    install_context: Option<(String, String, String)>,
     finished: bool,
     phase_failed: bool,
     download_url: String,
@@ -144,6 +145,11 @@ impl App {
                 } else {
                     result
                 };
+                let result = if self.job == Job::Install {
+                    result.and_then(|()| self.installed_phase())
+                } else {
+                    result
+                };
                 let succeeded = result.is_ok();
                 if self.job == Job::Install {
                     self.phase_failed = result.is_err()
@@ -152,9 +158,6 @@ impl App {
                 }
                 if result.is_ok() && self.job == Job::Restore {
                     self.phase_failed = false;
-                }
-                if result.is_ok() && self.job == Job::Install {
-                    self.installed_phase();
                 }
                 self.refresh_input_stamp();
                 self.validated = result.is_ok()
@@ -1447,6 +1450,7 @@ impl App {
             confirm_install: false,
             completed_base: None,
             pending_base: Vec::new(),
+            install_context: None,
             finished: false,
             phase_failed: false,
             download_url: String::new(),
@@ -1475,6 +1479,7 @@ impl App {
     fn reset_installation(&mut self) {
         self.completed_base = None;
         self.pending_base.clear();
+        self.install_context = None;
         self.confirm_install = false;
         self.finished = false;
         self.phase_failed = false;
@@ -1865,12 +1870,41 @@ impl App {
         Some(guide)
     }
 
-    fn installed_phase(&mut self) {
+    fn installed_phase(&mut self) -> Result<()> {
+        // Keep the exact effective worker definitions, not a reconstruction from
+        // an external choices file that may already have changed. A replacement
+        // guide/reset or changed roots must never receive the old completion.
+        let context = self.install_context.take();
+        anyhow::ensure!(
+            context
+                == Some((
+                    serde_json::to_string(&self.guide)?,
+                    self.game.clone(),
+                    self.mods.clone()
+                )),
+            "Install completed for a previous guide or directories; completion was not applied to the current project"
+        );
         if self.completed_base.is_none() {
-            self.completed_base = Some(self.pending_base.clone());
+            let guide = self
+                .guide
+                .as_mut()
+                .ok_or_else(|| anyhow::anyhow!("Loaded guide is missing"))?;
+            for effective in &self.pending_base {
+                let component = guide
+                    .components
+                    .iter_mut()
+                    .find(|c| c.guid == effective.guid)
+                    .ok_or_else(|| {
+                        anyhow::anyhow!("Completed component is missing from loaded guide")
+                    })?;
+                *component = effective.clone();
+            }
+            self.completed_base = Some(self.pending_base.iter().map(|c| c.guid.clone()).collect());
+            self.pending_base.clear();
         } else {
             self.finished = true;
         }
+        Ok(())
     }
 
     fn saved_fomod_choices(&self, path: &Path) -> Result<Option<modsync::fomod::ArchiveChoices>> {
@@ -2030,13 +2064,20 @@ impl App {
             }
         }
         let completed = self.completed_base.clone();
+        if job == Job::Install {
+            self.install_context = Some((
+                serde_json::to_string(&self.guide).expect("guide serializes"),
+                self.game.clone(),
+                self.mods.clone(),
+            ));
+        }
         if job == Job::Install && completed.is_none() {
             self.pending_base = guide
                 .as_ref()
                 .and_then(|g| g.ordered().ok())
                 .unwrap_or_default()
                 .iter()
-                .map(|c| c.guid.clone())
+                .map(|c| (**c).clone())
                 .collect();
         }
         let url = self.download_url.clone();
@@ -3064,9 +3105,41 @@ mod tests {
     }
 
     #[test]
+    fn stale_install_completion_cannot_promote_effective_definitions() {
+        for reset in [false, true] {
+            let (_root, mut app) = route_fixture(true);
+            app.start(Job::Install, &egui::Context::default());
+            if reset {
+                // Even a replacement with identical contents clears dispatch context.
+                app.reset_installation();
+            } else {
+                app.guide.as_mut().unwrap().components[0].name = "Replacement".into();
+            }
+            let current = serde_json::to_value(&app.guide).unwrap();
+            finish_worker(&mut app);
+            assert_eq!(serde_json::to_value(&app.guide).unwrap(), current);
+            assert!(app.completed_base.is_none());
+            assert!(!app.finished);
+            assert!(
+                app.logs
+                    .iter()
+                    .any(|line| line.contains("completion was not applied"))
+            );
+        }
+    }
+
+    #[test]
     fn remaining_fomod_editor_and_external_choices_preserve_consumed_base() {
         use std::io::Write;
-        for external in [false, true] {
+        // Existing post-base paths plus unchanged, editor-edited, and file-edited
+        // external choices supplied before the base worker.
+        for (before_base, external, unchanged) in [
+            (false, false, false),
+            (false, true, false),
+            (true, true, true),
+            (true, false, false),
+            (true, true, false),
+        ] {
             let (root, mut app) = route_fixture(false);
             let archive = Path::new(&app.mods).join("wide.zip");
             let mut zip = zip::ZipWriter::new(std::fs::File::create(&archive).unwrap());
@@ -3090,7 +3163,25 @@ mod tests {
                 guid: "base-option".into(),
                 ..Default::default()
             });
-            let base_definition = serde_json::to_value(&guide.components[0]).unwrap();
+            let choices = modsync::fomod::ChoicesFile::parse(r#"{"archives":[{"archiveFileName":"wide.zip","selections":[{"stepName":"Style","groupName":"Texture","plugins":["Alternate"]}]}]}"#).unwrap();
+            let mut expected = guide.clone();
+            let choices_path = root.path().join("remaining-choices.json");
+            if before_base {
+                let initial = if unchanged {
+                    choices.clone()
+                } else {
+                    modsync::fomod::ChoicesFile::parse(
+                        &serde_json::to_string(&choices)
+                            .unwrap()
+                            .replace("Alternate", "Default"),
+                    )
+                    .unwrap()
+                };
+                initial.apply_to_guide(&mut expected).unwrap();
+                std::fs::write(&choices_path, serde_json::to_vec(&initial).unwrap()).unwrap();
+                app.fomod_choices = choices_path.to_string_lossy().into_owned();
+            }
+            let base_definition = serde_json::to_value(&expected.components[0]).unwrap();
             let ctx = egui::Context::default();
             reach(&mut app, Page::Validate);
             app.start(Job::Validate, &ctx);
@@ -3099,17 +3190,28 @@ mod tests {
             reach(&mut app, Page::Installing);
             finish_worker(&mut app);
             assert!(!Path::new(&app.mods).join("base.txt").exists());
+            assert_eq!(
+                serde_json::to_value(&app.guide.as_ref().unwrap().components[0]).unwrap(),
+                base_definition
+            );
+            let settings = Settings::new(Path::new(&app.mods), Path::new(&app.game)).unwrap();
+            let receipt: serde_json::Value = serde_json::from_slice(
+                &std::fs::read(recovery::state_dir(&settings.roots).join("completion.json"))
+                    .unwrap(),
+            )
+            .unwrap();
+            assert_eq!(receipt["components"][0], base_definition);
             reach(&mut app, Page::WidescreenModSelection);
             modsync::selection::set_component_selected(
                 &mut app.guide.as_mut().unwrap().components,
                 1,
                 true,
             );
-            let choices = modsync::fomod::ChoicesFile::parse(r#"{"archives":[{"archiveFileName":"wide.zip","selections":[{"stepName":"Style","groupName":"Texture","plugins":["Alternate"]}]}]}"#).unwrap();
-            if external {
-                let path = root.path().join("remaining-choices.json");
-                std::fs::write(&path, serde_json::to_vec(&choices).unwrap()).unwrap();
-                app.fomod_choices = path.to_string_lossy().into_owned();
+            if unchanged {
+                // Leave the original external choices path and bytes untouched.
+            } else if external {
+                std::fs::write(&choices_path, serde_json::to_vec(&choices).unwrap()).unwrap();
+                app.fomod_choices = choices_path.to_string_lossy().into_owned();
             } else {
                 // Same handler as the native editor's committed Choices outcome.
                 app.apply_fomod_choices(&choices).unwrap();

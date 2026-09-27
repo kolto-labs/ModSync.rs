@@ -3,7 +3,11 @@
 Remaining-phase FOMOD configuration now uses shared choices application/merge and
 prompt-status helpers that preserve completed component definitions and nested
 options. The desktop editor and external choices file both feed the same remaining
-operation; receipt verification is unchanged. Regressions configure an initially
+operation; receipt verification is unchanged. Successful base workers retain their
+exact effective definitions in the resident guide, including external choices
+supplied before installation. Completion is rejected after a project reset, guide
+change, or directory change; historical definitions are never reconstructed from a
+subsequently edited choices file. Regressions configure an initially
 unselected widescreen archive after a base Move consumes its source, then validate
 and install only the remaining component. The native wizard receipt below predates
 this fix and is evidence for its recorded source hashes only; the new FOMOD boundary
