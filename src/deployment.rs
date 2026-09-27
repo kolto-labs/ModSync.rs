@@ -484,6 +484,292 @@ impl Service {
         remove_empty_tree(backup);
     }
 
+    /// Deploy what is staged so far for a component that may already have a
+    /// manifest, without finishing it: the barrier before a Patcher, Execute or
+    /// Run step, so the process sees the staged bytes in the live game tree.
+    ///
+    /// - With no manifest this is `deploy_report`.
+    /// - A staged file the manifest does not own is deployed as in `deploy_report`
+    ///   (a displaced game file is backed up).
+    /// - An owned file whose staged bytes still equal the manifest hash is skipped.
+    /// - An owned file whose staged bytes changed replaces the live file only when
+    ///   the live bytes still equal the manifest hash; the entry keeps its original
+    ///   backup. Anything else fails closed before the game tree changes.
+    /// - Owned entries with no staged file stay untouched.
+    ///
+    /// The whole batch rolls back on failure and the manifest is saved once, with
+    /// `DeployedUtc` moved to now so purge still unwinds it after earlier components.
+    pub fn deploy_append(
+        &self,
+        component: &str,
+        name: Option<String>,
+    ) -> Result<(Manifest, Vec<String>)> {
+        let id = component_id(component)?;
+        let Some(mut manifest) = self.manifest(&id)? else {
+            return self.deploy_report(component, name);
+        };
+        let staged = self.staged_directory(component, &id)?;
+        let backup = self.backup(&id);
+        let foreign = self.foreign_index(&id)?;
+        let label = name
+            .clone()
+            .or_else(|| manifest.component_name.clone())
+            .unwrap_or_else(|| id.clone());
+        let owned: BTreeMap<String, usize> = manifest
+            .entries
+            .iter()
+            .enumerate()
+            .map(|(index, entry)| (entry.relative_path.to_lowercase(), index))
+            .collect();
+        let mut warnings = Vec::new();
+
+        // Preflight: (plan, owned entry index when it replaces a live owned file).
+        let mut plans: Vec<(Planned, Option<usize>)> = Vec::new();
+        let mut seen = BTreeSet::new();
+        for item in walkdir::WalkDir::new(&staged)
+            .min_depth(1)
+            .sort_by_file_name()
+        {
+            let item = item?;
+            let kind = item.file_type();
+            if kind.is_dir() {
+                continue;
+            }
+            ensure!(
+                !kind.is_symlink(),
+                "Symlinks are unsupported in staged trees: {}",
+                item.path().display()
+            );
+            ensure!(
+                kind.is_file(),
+                "Unsupported special file in staged tree: {}",
+                item.path().display()
+            );
+            let raw = item
+                .path()
+                .strip_prefix(&staged)?
+                .to_string_lossy()
+                .replace('\\', "/");
+            let (destination, relative) = resolve_case(&self.game, &relative_parts(&raw)?)?;
+            ensure!(
+                seen.insert(relative.to_lowercase()),
+                "Staged files differ only by case and would both deploy to {relative}"
+            );
+            check_ancestors(&self.game, &relative)?;
+            if let Some(&index) = owned.get(&relative.to_lowercase()) {
+                let entry = &manifest.entries[index];
+                if hash(item.path())?.eq_ignore_ascii_case(&entry.source_hash) {
+                    continue;
+                }
+                let live_matches = fs::symlink_metadata(&destination)
+                    .is_ok_and(|meta| meta.is_file())
+                    && hash(&destination)?.eq_ignore_ascii_case(&entry.source_hash);
+                ensure!(
+                    live_matches,
+                    "'{relative}' is owned by {label} but the live file changed since it was deployed; refusing to replace it"
+                );
+                plans.push((
+                    Planned {
+                        source: item.path().to_path_buf(),
+                        destination,
+                        relative,
+                        backup: None,
+                    },
+                    Some(index),
+                ));
+                continue;
+            }
+            let backup_path = match fs::symlink_metadata(&destination) {
+                Ok(meta) if meta.is_file() => {
+                    let path = backup.join(relative_parts(&relative)?);
+                    ensure!(
+                        fs::symlink_metadata(&path).is_err(),
+                        "An earlier backup for this component is still present at {}. Restore or remove it before deploying again.",
+                        path.display()
+                    );
+                    Some(path)
+                }
+                Ok(_) => bail!(
+                    "Deployment target is not a regular file: {}",
+                    destination.display()
+                ),
+                Err(error) if error.kind() == ErrorKind::NotFound => None,
+                Err(error) => return Err(error.into()),
+            };
+            if let Some(owner) = foreign.get(&relative.to_lowercase()) {
+                warnings.push(format!(
+                    "Conflict: '{relative}' from component '{label}' is already deployed by component '{owner}'. The new file will overwrite it."
+                ));
+            }
+            plans.push((
+                Planned {
+                    source: item.path().to_path_buf(),
+                    destination,
+                    relative,
+                    backup: backup_path,
+                },
+                None,
+            ));
+        }
+
+        // Replaced owned files are parked here so a failed batch can put them back.
+        let parking = self.root.join("append-pending").join(&id);
+        ensure!(
+            fs::symlink_metadata(&parking).is_err(),
+            "An interrupted append left files in {}. Move them back or remove them first.",
+            parking.display()
+        );
+        let mut done: Vec<&Planned> = Vec::new();
+        let mut parked: Vec<(PathBuf, PathBuf)> = Vec::new();
+        let mut updates: Vec<(Option<usize>, Entry)> = Vec::new();
+        let mut failure = None;
+        for (plan, replaces) in &plans {
+            if replaces.is_some() {
+                let park = parking.join(relative_parts(&plan.relative)?);
+                let moved = park
+                    .parent()
+                    .context("Parking path needs a parent")
+                    .and_then(|parent| Ok(fs::create_dir_all(parent)?))
+                    .and_then(|()| Ok(fs::rename(&plan.destination, &park)?));
+                if let Err(error) = moved {
+                    failure = Some((plan.relative.clone(), error));
+                    break;
+                }
+                parked.push((park, plan.destination.clone()));
+            }
+            match self.apply(plan) {
+                Ok(entry) => {
+                    done.push(plan);
+                    updates.push((*replaces, entry));
+                }
+                Err(error) => {
+                    failure = Some((plan.relative.clone(), error));
+                    break;
+                }
+            }
+        }
+        let undo = |parked: &[(PathBuf, PathBuf)]| {
+            self.roll_back(&done, &backup);
+            for (park, destination) in parked.iter().rev() {
+                let _ = fs::remove_file(destination);
+                if let Some(parent) = destination.parent() {
+                    let _ = fs::create_dir_all(parent);
+                }
+                let _ = fs::rename(park, destination);
+            }
+            remove_empty_tree(&self.root.join("append-pending"));
+        };
+        if let Some((relative, error)) = failure {
+            undo(&parked);
+            return Err(error.context(format!(
+                "Append deploy of {label} failed at {relative}; this batch was rolled back"
+            )));
+        }
+        for (replaces, entry) in updates {
+            match replaces {
+                Some(index) => {
+                    let old = &mut manifest.entries[index];
+                    old.source_hash = entry.source_hash;
+                    old.size = entry.size;
+                    old.deployment_method = entry.deployment_method;
+                }
+                None => manifest.entries.push(entry),
+            }
+        }
+        if name.as_deref().is_some_and(|name| !name.trim().is_empty()) {
+            manifest.component_name = name;
+        }
+        manifest.deployed_utc = Utc::now();
+        if let Err(error) = self.save(&manifest) {
+            undo(&parked);
+            return Err(
+                error.context("Deployment manifest could not be saved; this batch was rolled back")
+            );
+        }
+        let _ = fs::remove_dir_all(&parking);
+        remove_empty_tree(&self.root.join("append-pending"));
+        Ok((manifest, warnings))
+    }
+
+    /// Owned paths that would stop a clean uninstall: unsafe or non-file game
+    /// paths, and changed files no later deployment has backed up. Read-only.
+    pub fn reinstall_blockers(&self, component: &str) -> Result<Vec<String>> {
+        let id = component_id(component)?;
+        let Some(manifest) = self.manifest(&id)? else {
+            return Ok(Vec::new());
+        };
+        let (mut others, _) = self.deployed_with_warnings()?;
+        others.retain(|other| !other.component_guid.eq_ignore_ascii_case(&id));
+        let mut blockers = Vec::new();
+        for entry in &manifest.entries {
+            let resolved = relative_parts(&entry.relative_path)
+                .and_then(|parts| resolve_case(&self.game, &parts))
+                .and_then(|(path, relative)| {
+                    check_ancestors(&self.game, &relative)?;
+                    Ok((path, relative))
+                });
+            let Ok((destination, relative)) = resolved else {
+                blockers.push(format!("unsafe path '{}'", entry.relative_path));
+                continue;
+            };
+            match fs::symlink_metadata(&destination) {
+                Ok(meta) if meta.is_file() => {
+                    if !hash(&destination)?.eq_ignore_ascii_case(&entry.source_hash)
+                        && self
+                            .later_owner(
+                                &others,
+                                manifest.deployed_utc,
+                                &relative,
+                                &entry.source_hash,
+                            )
+                            .is_none()
+                    {
+                        blockers.push(format!("'{relative}' was modified after deployment"));
+                    }
+                }
+                Ok(_) => blockers.push(format!("'{relative}' is no longer a regular file")),
+                Err(error) if error.kind() == ErrorKind::NotFound => {}
+                Err(error) => return Err(error.into()),
+            }
+        }
+        Ok(blockers)
+    }
+
+    /// Clear a component for a managed reinstall: refuse if any owned file would
+    /// be skipped, otherwise uninstall it and empty its staging tree so the next
+    /// install stages from scratch. With no manifest only the staging tree is
+    /// cleared. The returned report is `removed == false` in that case.
+    pub fn prepare_reinstall(&self, component: &str) -> Result<UninstallReport> {
+        let id = component_id(component)?;
+        let blockers = self.reinstall_blockers(&id)?;
+        ensure!(
+            blockers.is_empty(),
+            "Cannot reinstall {id}: {}. Resolve these files, then retry; nothing was changed.",
+            blockers.join("; ")
+        );
+        let report = if self.manifest(&id)?.is_some() {
+            let report = self.uninstall_report(&id)?;
+            ensure!(
+                report.skipped.is_empty(),
+                "Reinstall of {id} stopped: the game tree changed during uninstall and {} file(s) were left in place ({}). The manifest is gone; their originals remain under the component backup.",
+                report.skipped.len(),
+                report.skipped.join(", ")
+            );
+            report
+        } else {
+            UninstallReport {
+                component: id.clone(),
+                ..UninstallReport::default()
+            }
+        };
+        if let Ok(staged) = self.staged_directory(component, &id)
+            && fs::symlink_metadata(&staged).is_ok_and(|meta| meta.is_dir())
+        {
+            fs::remove_dir_all(&staged)?;
+        }
+        Ok(report)
+    }
+
     pub fn uninstall(&self, component: &str) -> Result<bool> {
         Ok(self.uninstall_report(component)?.removed)
     }

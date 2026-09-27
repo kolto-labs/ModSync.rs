@@ -128,11 +128,11 @@ current_component: Option<String /*normalized guid*/>,
    - a per-barrier sub-ID (`<guid>` for the first segment, then `<guid>-2`, and so on), or
    - an append mode on `Service`
 
-   Preferred: add `Service::deploy_append(component, name)`, which merges into the existing manifest and refuses paths it already owns. **It does not exist yet.** Rule 5 depends on it, and it belongs in `deployment.rs`, so ask this lane for it.
+   Use `Service::deploy_append(component, name)` for each barrier and for the end of the component (section 6). The staged tree keeps its earlier files, and `deploy_append` skips the ones already deployed unchanged.
 6. **End of component.** If `staged` is non-empty, call `deploy_report`, then `scan()`. The deployed hardlinks become ordinary game keys for later components. Conflict-tracker writes are recorded by logical game path (`put` already does this), so conflict analysis is identical in classic and managed mode.
 7. **FOMOD.** Extract and Choose resolve member paths before `put`, so FOMOD output is staged by rule 2 without FOMOD-specific code. The FOMOD fail-closed gates run first, as in C#.
 8. **Recovery.** `recovery::begin` snapshots only the game and mod directories. A failed managed run restored from that snapshot would leave stale manifests and backups behind. Add the profile artifact directory to the snapshot, or journal the manifest IDs written during the run and uninstall them in reverse on restore. The journal is smaller and composes with purge.
-9. **Reinstall of a deployed component.** `deploy_report` refuses when the component already has a manifest (rank 2). Before running a managed component, the engine must call `uninstall_report` on it. If the report has any `skipped` entry, the reinstall must fail closed: those files were user-modified, and their originals remain in the old backup. Refusing outright is the alternative. Do not bypass the guard.
+9. **Reinstall of a deployed component.** `deploy_report` refuses when the component already has a manifest (rank 2). Before running a managed component, the engine calls `Service::prepare_reinstall(guid)` (section 6). It fails closed without changing anything when an owned file would be skipped. Otherwise it uninstalls and clears the component's staging tree. Do not bypass the guard.
 10. **Recovery state is outside the game tree.** `recovery::state_dir` is a sibling of the game directory (`.modsync-<hash>` next to it, `recovery.rs:23-33`). So `capture_index` and `record_live` never see the snapshot, pending or completion files. Keep it that way. If the state directory ever moves under the game root, exclude it from the index.
 11. **Validation and dry-run** stay virtual. With `install == false`, rules 2-6 only update `staged` and the conflict tracker. Nothing touches staging or the manifest root.
 12. **Parity receipt.** Record `ManagedInstallResult` fields (`ManagedModeUsed`, `ManifestsWritten`, `ActiveProfileName`, `PatcherComponentNames`, `PatcherProvenanceRecorded`) for the completion page.
@@ -172,3 +172,54 @@ The real CLI binary was run: `target-dep/debug/modsync deployment …` (no-defau
 | D3 C# redeploy of the same component | Run 1: backup=`ORIG`. Run 2: backup=`CSNEW` (C# `DeploymentService.cs:150-155`). Purge leaves `CSNEW`, so the original is lost. Rust refuses this case (P3). |
 
 Not covered: a C# purge or uninstall of a Rust-written manifest, because C# exposes no CLI verb for it (GUI only). Windows and macOS filesystem behavior was not checked.
+
+## 6. Engine-facing API added after review of `68adc4d`
+
+These are library-only additions, with no CLI verb yet. They are **unverified at runtime**: no existing verb reaches them, and the test freeze rules out tests. The walkthrough below is from the code.
+
+### `Service::deploy_append(component, name)` (`src/deployment.rs:502`)
+
+This is the barrier deploy for rule 5. It deploys what is staged so far for a component. It leaves the component open, so later steps can stage more and call it again.
+
+1. **No manifest yet.** It delegates to `deploy_report` (`:508-510`), so the first barrier behaves like a normal deploy.
+2. **Preflight the whole staged tree** before the game tree changes (`:529-614`). The checks match `deploy_report`: staged symlinks are refused, destinations are resolved case-aware, case-duplicate staged files are refused, and symlinked ancestors are refused.
+3. **Owned path with an unchanged staged hash** is skipped (`:561-563`). This covers files already deployed by an earlier barrier.
+4. **Owned path with a changed staged hash.** The live file is replaced only if its bytes still equal the manifest hash. Otherwise the call fails before anything changes (`:564-580`). The entry keeps its original backup. This covers:
+   - a later Copy over a file staged earlier;
+   - a staged Copy over patcher output that `record_live` recorded.
+   In both cases uninstall still restores the pre-install original.
+5. **Unowned path** is backed up and deployed exactly as in `deploy_report`, with the same conflict warning and stale-backup guard (`:582-614`).
+6. **Execution.** Replaced live files are parked under `<manifest root>/append-pending/<id>` before they are overwritten (`:616-649`). A leftover parking directory from an interrupted run blocks the call.
+7. **Failure.** Any error, including a failed manifest save, rolls back the batch (`:651-667`):
+   - new files are removed and their backups restored (`roll_back`);
+   - parked files are moved back.
+   Earlier batches stay deployed and recorded.
+8. **Save.** The manifest is saved once per batch (`:668-691`):
+   - replaced entries get the new hash, size and method;
+   - new entries are appended;
+   - `DeployedUtc` moves to now, so purge unwinds the component after anything deployed before it.
+   Then the parking directory is removed.
+
+### `Service::reinstall_blockers(component)` (`:696`) and `prepare_reinstall(component)` (`:742`)
+
+- **`reinstall_blockers`** is read-only. It uses the same resolution as `uninstall_report` and returns owned paths that uninstall would skip:
+  - unsafe paths;
+  - paths that are no longer regular files;
+  - files with a hash mismatch that no later deployment has backed up (`later_owner`).
+- **`prepare_reinstall`**:
+  1. Fails closed on any blocker, before any change (`:744-749`).
+  2. Runs `uninstall_report`. As a defensive check, it errors if the tree changed in between and something was still skipped (`:750-763`).
+  3. Removes the component's staging directory, only if it is a real directory, so the reinstall stages from scratch (`:765-769`).
+  4. With no manifest, it only clears staging.
+
+### Engine call order (for the engine owner)
+
+1. `prepare_reinstall(guid)` before the component's first instruction, in managed installs only.
+2. Stage Extract/Copy/Move/Rename per rules 2-4.
+3. At each Patcher/Execute/Run step:
+   - `deploy_append(guid, name)`;
+   - `capture_index()`;
+   - run the process;
+   - `record_live(guid, name, &before, Some(snapshot_game))`;
+   - `scan()`.
+4. At the end of the component: `deploy_append(guid, name)`, then `scan()`.
