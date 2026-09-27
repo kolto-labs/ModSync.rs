@@ -6,7 +6,28 @@ Reference: pinned C# `d31ccbd3` (`ModSync.Core.dll` sha256 `8f3b1e3f…5768f0`, 
 
 - The reference ran `dotnet ModSync.Core.dll convert --input <guide> --output <json> --format json --plaintext --non-interactive` inside bubblewrap with no network, as in `tools/check_formats.py`. No C# was compiled.
 - The Rust CLI ran `convert <guide> <json>` for each guide.
-- `tools/check_markdown_corpus.py` compares every key the reference emits for each component. The random component GUID is excluded. Dependency GUIDs are compared as component indices, and ResourceRegistry as ordered URL keys. That gives 33 keys per component, including Name, Heading, Author, Category, Tier, Language, all prose fields, resource links, Dependencies, DependencyNames, WidescreenOnly, IsSelected, Instructions and Options.
+- `tools/check_markdown_corpus.py` compares every key the reference emits for each component. The random component GUID is excluded. Dependency GUIDs are compared as component indices, and ResourceRegistry as ordered URL keys. That gives 33 keys per component.
+
+### What the check proves
+
+- Only 11038 of the 35640 compared values are non-empty on the C# side. The other 24602 are empty strings, empty lists or `false`.
+- Rust omits empty keys. When a key is missing from the Rust output, the checker compares the empty value of the C# type. So the empty-value matches show only that Rust did not produce a non-empty value where the reference had none. The receipt records these substitutions per field as `rust_missing_keys_filled_empty`.
+- A key absent from both outputs counts as a difference. None occur in this corpus.
+- Rust-only keys, `NameFieldContent` and `UnresolvedMasters`, are not compared.
+- Some fields are always empty in the reference output for these guides, so they carry no evidence:
+  - Instructions, Options and Restrictions
+  - the seven `*SpoilerFree` fields
+  - ExcludedDownloads, InstallBefore and InstallAfter
+  - WidescreenOnly: the widescreen components sit outside the Mod List, so none reach the output
+- Some fields are mostly empty:
+  - SteamNotes, UsageWarning and CompatibilityWarning: 2 non-empty values each
+  - InstallationWarning: 3
+  - KnownBugs: 20
+  - Screenshots: 56
+  - Dependencies and DependencyNames: 84 each
+  - DownloadInstructions: 93
+- The fields with real coverage are Name, Author, Description, Category, Tier, IsSelected and ResourceRegistry (all 1080), plus InstallationMethod (1076), Language (1064), Heading (515) and Directions (477).
+- Parity is shown for this corpus only. Inputs that exercise other paths are not covered (see open gaps).
 
 ## Full-corpus result
 
@@ -22,13 +43,17 @@ Reference: pinned C# `d31ccbd3` (`ModSync.Core.dll` sha256 `8f3b1e3f…5768f0`, 
 | k2/spoiler-free_mobile | 103 | 103 | 82 | 103 | 3378/3399 | 3399/3399 |
 | Total | 1080 | 1080 | 954 | 1080 | 35510/35640 | 35640/35640 |
 
+Non-empty C# values per guide: k1/full 1887, k1/spoiler-free 1819, k2/full 1518, k2/spoiler-free 1442, k1/full_mobile 1119, k1/spoiler-free_mobile 1060, k2/full_mobile 1130, k2/spoiler-free_mobile 1063. Total 11038.
+
 Before the change, these fields differed:
 - Screenshots: 40 values.
 - DependencyNames: 84 values. Rust did not emit them.
 - Dependencies: 4 values, from the author-possessive master form.
 - Heading: 2 values. The reference strips a trailing `[…]` from the heading.
 
-The other ten guides have no `###` component sections. They cover android, ios, widescreen, delete and the redrob deletion lists. The reference returns `[]` with exit 0. Rust exits 1 with "Markdown has no component sections or structured guide blocks." This is kept on purpose: it stops an empty guide from reaching install. It is an open behaviour difference, not parity.
+The other ten guides have no `###` component sections. They cover android, ios, widescreen, delete and the redrob deletion lists. The reference returns `[]` with exit 0. Rust exits 1 with "Markdown has no component sections or structured guide blocks" (`src/markdown.rs`).
+
+That check is not needed for install safety. `Guide::parse` in `src/model.rs` already rejects a guide with no components, in every format (`ensure!(!guide.components.is_empty())`). This is an open item. The rule: for `convert` with an explicit Markdown format, match the reference. Relaxing the check in `model.rs` is out of scope for this lane.
 
 ## What changed
 
@@ -52,11 +77,16 @@ The other ten guides have no `###` component sections. They cover android, ios, 
 
 1. The component-list JSON from the reference does not include preamble, epilogue, widescreen-warning or Aspyr warning content. This differential does not cover them. The fixture oracles `markdown-warning-oracle/` and `markdown-phase-oracle/` remain their evidence.
 2. Component GUIDs differ by design. The reference uses random GUIDs; Rust uses deterministic UUIDv8. Tests or tools that compare GUIDs across implementations must map by index.
-3. When a guide has no components, the reference returns an empty list and Rust returns an error (above).
+3. When a guide has no components, the reference returns an empty list and Rust returns an error (see the open item above).
 4. Section splitting still differs in two ways. Rust skips `###`, `##` and `___` lines inside HTML comments and code fences; the reference `ComponentSectionPattern` does not. The reference `^###\s*` start also accepts `####` lines as section starts. Neither case occurs in the current corpus, since all 1080 components align. No reference fixture covers it yet.
 5. Custom `MarkdownImportProfile` patterns (Raw mode), legacy bullet metadata and prose export are not implemented.
 6. GUI paste import has no differential.
-7. The pattern emulation is hand-written, not a regex engine. It is proven on this corpus and the existing fixtures. Unusual inputs may still expose differences in backtracking, for example a Name link that spans lines, or Unicode case folding beyond ASCII.
+7. The pattern emulation is hand-written, not a regex engine. Its equivalence is shown only by this corpus differential. Unusual inputs may still expose differences in backtracking, for example a Name link that spans lines, or Unicode case folding beyond ASCII.
+8. These changed code paths are not exercised by the corpus or any reference fixture:
+   - **WidescreenOnly positions.** Positions now come from kept sections only. No corpus section is skipped, and no widescreen component reaches the output, so the change is untested.
+   - **DependencyNames de-duplication.** The reference calls `List.Add` for every resolved master, repeats included. Rust adds a dependency and its name only once. A guide that lists the same master twice would differ.
+   - **Rejected sections.** Some sections have component fields but no Name value. For those, the reference adds a warning ("missing a **Name:** field") to its parse result. Rust skips the section with no warning.
+   - **Empty category before `/`.** In the reference `CategoryTierPattern`, `\s*` can give a space back to the category group. So `Category & Tier: / Tier` matches there with an empty category list. Rust requires a non-space category and records no Category or Tier.
 
 ### F03
 
