@@ -63,9 +63,12 @@ pub fn prepare(
                 component.is_selected = false;
             }
         }
+        guide.ordered()?;
     }
-    let ordered = guide.ordered()?;
+    // All preserves ordinary engine validation, including pipeline Report errors.
+    // Only phased operations need eager selection/prefix checks here.
     if phase == Phase::Remaining {
+        let ordered = guide.ordered()?;
         ensure!(
             !completed.is_empty(),
             "Remaining requires a nonempty completed prefix"

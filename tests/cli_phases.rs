@@ -159,6 +159,49 @@ fn hash(bytes: &[u8]) -> String {
 }
 
 #[test]
+fn executable_all_invalid_guides_keep_pipeline_report_shape() {
+    for empty in [false, true] {
+        let mut f = Fixture::new();
+        f.guide["thisMod"] = if empty {
+            json!([{"Guid":"base","Name":"Base","IsSelected":false,"Instructions":[]}])
+        } else {
+            json!([{"Guid":"base","Name":"Base","IsSelected":true,"Dependencies":["missing"],"Instructions":[]}])
+        };
+        f.save();
+        for explicit_all in [false, true] {
+            let mut flags = vec!["--validation-report", "--full", "--use-file-selection"];
+            if empty {
+                // Loading defaults an entirely unselected file to all selected;
+                // use the existing CLI filter to produce an empty selection.
+                flags.extend(["--select", "category:absent"]);
+            }
+            if explicit_all {
+                flags.extend(["--phase", "all"]);
+            }
+            let before = manifest(f.root.path());
+            let output = f.run("validate", &flags);
+            assert_eq!(output.status.code(), Some(1));
+            assert!(output.stderr.is_empty(), "{output:?}");
+            let report: Value = serde_json::from_slice(&output.stdout).unwrap();
+            assert_eq!(report["success"], false);
+            assert_eq!(report["inputPath"], json!(f.root.path().join("guide.json")));
+            assert_eq!(report["componentCount"], usize::from(!empty));
+            assert!(report.get("error").is_none(), "{report}");
+            let stages = report["stages"].as_array().unwrap();
+            for stage in ["Conflicts", "InstallOrder", "ComponentValidation"] {
+                assert!(
+                    stages
+                        .iter()
+                        .any(|result| result["stage"] == stage && result["passed"] == false),
+                    "{report}"
+                );
+            }
+            assert_eq!(manifest(f.root.path()), before);
+        }
+    }
+}
+
+#[test]
 fn executable_phases_consume_base_then_validate_conflict_and_install_only_suffix() {
     let f = Fixture::new();
     let original = manifest(f.root.path());

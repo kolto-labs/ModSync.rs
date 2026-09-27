@@ -80,7 +80,20 @@ fn preparation_matrix_preserves_selection_and_rejects_invalid_contexts() {
     assert!(phase::prepare(&no_base, P::Remaining, C::Reconstruct, None).is_err());
     assert!(phase::prepare(&no_base, P::Remaining, C::Retained { ids: &ids }, None).is_err());
     no_base.components[1].is_selected = false;
-    assert!(phase::prepare(&no_base, P::All, C::None, None).is_err());
+    let empty_all = phase::prepare(&no_base, P::All, C::None, None).unwrap();
+    assert!(empty_all.guide.ordered().is_err());
+    let mut invalid_all = guide.clone();
+    invalid_all.components[0].dependencies = vec!["missing".into()];
+    let choices = choices("base-choice", "wide-choice");
+    let mut expected = invalid_all.clone();
+    choices.apply_to_guide(&mut expected).unwrap();
+    let prepared = phase::prepare(&invalid_all, P::All, C::None, Some(&choices)).unwrap();
+    assert_eq!(
+        serde_json::to_value(&prepared.guide).unwrap(),
+        serde_json::to_value(&expected).unwrap()
+    );
+    assert!(prepared.guide.ordered().is_err());
+    assert!(phase::prepare(&invalid_all, P::Base, C::None, None).is_err());
 }
 
 #[test]
