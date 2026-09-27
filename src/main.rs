@@ -286,6 +286,9 @@ enum DeploymentAction {
 }
 #[derive(Args)]
 struct InstallArgs {
+    /// Run all selected components, the base, or the verified remaining suffix.
+    #[arg(long, value_enum, default_value = "all")]
+    phase: PhaseArg,
     /// Install a Markdown guide in source order after direct-Markdown preflight.
     #[arg(long, conflicts_with_all = ["fomod_choices", "profile", "active_profile", "use_file_selection", "select", "option"])]
     direct_markdown: bool,
@@ -349,6 +352,22 @@ struct InstallArgs {
     /// Run only FOMOD configuration and VFS dry-run validation.
     #[arg(long, requires = "validation_report")]
     dry_run_only: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
+enum PhaseArg {
+    All,
+    Base,
+    Remaining,
+}
+impl From<PhaseArg> for modsync::phase::Phase {
+    fn from(value: PhaseArg) -> Self {
+        match value {
+            PhaseArg::All => Self::All,
+            PhaseArg::Base => Self::Base,
+            PhaseArg::Remaining => Self::Remaining,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, ValueEnum)]
@@ -875,6 +894,20 @@ fn run() -> Result<()> {
             };
             let report_mode = args.validation_report && !install && !conflicts;
             let dispatch = (|| -> Result<()> {
+                ensure!(
+                    args.phase == PhaseArg::All || !args.direct_markdown,
+                    "Phased Direct Markdown is unsupported: separate-invocation definitions are not stable"
+                );
+                ensure!(
+                    args.phase == PhaseArg::All
+                        || !(install || conflicts)
+                        || !args.validation_report,
+                    "Validation-report flags are only supported by phased validate"
+                );
+                ensure!(
+                    args.phase != PhaseArg::Remaining || !args.dry_run_only,
+                    "Remaining reports always run full validation and dry run; --dry-run-only is incompatible"
+                );
                 let settings_directory =
                     if args.settings_dir.is_some() || args.profile.is_some() || args.active_profile
                     {
@@ -945,7 +978,9 @@ fn run() -> Result<()> {
                         &mut guide.components,
                         &args.select,
                     )? {
-                        eprintln!("Selection warning: {warning}");
+                        if !report_mode || args.phase == PhaseArg::All {
+                            eprintln!("Selection warning: {warning}");
+                        }
                     }
                 } else {
                     for c in &mut guide.components {
@@ -997,11 +1032,19 @@ fn run() -> Result<()> {
                             .join(", ")
                     );
                 }
-                if let Some(path) = &args.fomod_choices {
-                    let choices =
-                        modsync::fomod::ChoicesFile::parse(&std::fs::read_to_string(path)?)?;
-                    choices.apply_to_guide(&mut guide)?;
-                }
+                let choices = args
+                    .fomod_choices
+                    .as_ref()
+                    .map(|path| modsync::fomod::ChoicesFile::parse(&std::fs::read_to_string(path)?))
+                    .transpose()?;
+                let context = if args.phase == PhaseArg::Remaining {
+                    modsync::phase::CompletionContext::Reconstruct
+                } else {
+                    modsync::phase::CompletionContext::None
+                };
+                let prepared =
+                    modsync::phase::prepare(&guide, args.phase.into(), context, choices.as_ref())?;
+                let guide = prepared.guide;
                 let mut settings = Settings::new(&paths.source, &paths.game)?;
                 settings.allow_processes = args.allow_processes;
                 settings.patcher = args.patcher.or_else(|| {
@@ -1024,21 +1067,31 @@ fn run() -> Result<()> {
                     }
                 };
                 if conflicts {
-                    println!(
-                        "{}",
-                        serde_json::to_string_pretty(&engine.analyze_conflicts(&guide)?)?
-                    );
+                    let report = if args.phase == PhaseArg::Remaining {
+                        engine.analyze_conflicts_remaining(&guide, &prepared.completed)?
+                    } else {
+                        engine.analyze_conflicts(&guide)?
+                    };
+                    println!("{}", serde_json::to_string_pretty(&report)?);
                     Ok(())
                 } else if install {
-                    engine.install(&guide, emit)
+                    if args.phase == PhaseArg::Remaining {
+                        engine.install_remaining(&guide, &prepared.completed, emit)
+                    } else {
+                        engine.install(&guide, emit)
+                    }
                 } else if args.validation_report {
-                    let mut report = engine.validate_report_with_options(
-                        &guide,
-                        emit,
-                        args.full,
-                        args.dry_run || args.dry_run_only,
-                        args.dry_run_only,
-                    );
+                    let mut report = if args.phase == PhaseArg::Remaining {
+                        engine.validate_report_remaining(&guide, &prepared.completed, emit)?
+                    } else {
+                        engine.validate_report_with_options(
+                            &guide,
+                            emit,
+                            args.full,
+                            args.dry_run || args.dry_run_only,
+                            args.dry_run_only,
+                        )
+                    };
                     report.input_path = Some(paths.input.to_string_lossy().into_owned());
                     println!("{}", serde_json::to_string_pretty(&report)?);
                     if !report.success {
@@ -1047,6 +1100,8 @@ fn run() -> Result<()> {
                         std::process::exit(1);
                     }
                     Ok(())
+                } else if args.phase == PhaseArg::Remaining {
+                    engine.validate_remaining(&guide, &prepared.completed, emit)
                 } else {
                     engine.validate(&guide, emit)
                 }
