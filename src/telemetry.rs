@@ -9,7 +9,11 @@
 //! - No consent, no endpoint, or no signing secret means no exporter thread, no
 //!   HTTP client and no socket. Every `record_*` call drops its data in the
 //!   calling thread.
-//! - Revoking consent drops buffered data without a final send.
+//! - Revoking consent (`configure` with a non-ready config) drops buffered
+//!   data without a send, then joins the exporter thread. Once it returns,
+//!   no telemetry thread, client or connection exists.
+//! - Producers never block and memory is bounded: a fixed-size queue (full
+//!   means drop and count), a span cap, and a per-instrument series cap.
 //! - The signing secret is never serialized and never printed by `Debug`.
 //! - Names, messages, paths and stack traces leave the process only as
 //!   truncated SHA-256 hashes.
@@ -20,7 +24,7 @@ use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 use std::path::Path;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard, OnceLock, mpsc};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
@@ -558,6 +562,12 @@ enum Point {
     },
 }
 
+/// Distinct attribute sets kept per instrument before new ones fold into the
+/// overflow series (the OTel SDK default cardinality limit).
+pub const MAX_SERIES_PER_METRIC: usize = 2000;
+/// Attribute marking the overflow series (OTel SDK convention).
+pub const OVERFLOW_ATTRIBUTE: &str = "otel.metric.overflow";
+
 /// Cumulative in-process aggregation, the C# OTLP exporter's default
 /// temporality. Series are keyed by metric name, then attribute set.
 #[derive(Clone, Debug)]
@@ -578,29 +588,33 @@ impl Metrics {
         self.series.is_empty()
     }
 
-    fn add(&mut self, name: &'static str, value: f64, tags: Attributes) {
+    fn add(&mut self, name: &'static str, value: f64, mut tags: Attributes) {
         let Some(spec) = METRICS.iter().find(|spec| spec.name == name) else {
             return;
         };
-        let key = serde_json::to_string(&tags).unwrap_or_default();
-        let entry = self
-            .series
-            .entry(spec.name)
-            .or_default()
-            .entry(key)
-            .or_insert_with(|| {
-                let point = match spec.instrument {
-                    Instrument::Counter => Point::Sum(0),
-                    Instrument::Histogram => Point::Histogram {
-                        count: 0,
-                        sum: 0.0,
-                        min: f64::INFINITY,
-                        max: f64::NEG_INFINITY,
-                        buckets: vec![0; DEFAULT_BOUNDS.len() + 1],
-                    },
-                };
-                (tags, point)
-            });
+        let mut key = serde_json::to_string(&tags).unwrap_or_default();
+        let series = self.series.entry(spec.name).or_default();
+        if !series.contains_key(&key) && series.len() >= MAX_SERIES_PER_METRIC {
+            // OTel SDK cardinality-limit behaviour: fold new attribute sets
+            // into one overflow series instead of growing without bound.
+            tags = attributes([(OVERFLOW_ATTRIBUTE, json!(true))]);
+            key = serde_json::to_string(&tags).unwrap_or_default();
+            // The value is kept, its attributes are not: count the loss.
+            count_dropped(1);
+        }
+        let entry = series.entry(key).or_insert_with(|| {
+            let point = match spec.instrument {
+                Instrument::Counter => Point::Sum(0),
+                Instrument::Histogram => Point::Histogram {
+                    count: 0,
+                    sum: 0.0,
+                    min: f64::INFINITY,
+                    max: f64::NEG_INFINITY,
+                    buckets: vec![0; DEFAULT_BOUNDS.len() + 1],
+                },
+            };
+            (tags, point)
+        });
         match &mut entry.1 {
             Point::Sum(total) => *total = total.saturating_add(value as i64),
             Point::Histogram {
@@ -739,13 +753,28 @@ fn random_hex(len: usize) -> String {
 /// reader default).
 pub const EXPORT_INTERVAL: Duration = Duration::from_secs(60);
 const MAX_BUFFERED_SPANS: usize = 2048;
-const REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
+/// Commands that may wait for the exporter thread. Producers never block:
+/// when the queue is full the record is dropped and counted.
+pub const QUEUE_CAPACITY: usize = 4096;
+/// Whole-request timeout. Revocation and shutdown join the exporter, so this
+/// bounds how long they can block on a POST that is already on the wire.
+pub const REQUEST_TIMEOUT: Duration = Duration::from_secs(3);
+const CONNECT_TIMEOUT: Duration = Duration::from_secs(2);
+/// How often an idle exporter re-checks its cancel flag.
+const CANCEL_POLL: Duration = Duration::from_millis(200);
+
+static DROPPED: AtomicU64 = AtomicU64::new(0);
+
+fn count_dropped(count: u64) {
+    DROPPED.fetch_add(count, Ordering::Relaxed);
+}
 
 enum Command {
     Metric(&'static str, f64, Attributes),
     Span(SpanData),
     Flush(mpsc::Sender<Export>),
-    Stop,
+    /// Replace the exporter's config (secret, endpoint, resource) in place.
+    Reconfigure(Box<Config>),
 }
 
 #[derive(Clone, Copy, Default)]
@@ -756,10 +785,30 @@ struct Gates {
 }
 
 struct Worker {
-    sender: mpsc::Sender<Command>,
+    sender: mpsc::SyncSender<Command>,
     cancelled: Arc<AtomicBool>,
     gates: Gates,
-    signature_key: (String, String),
+    handle: std::thread::JoinHandle<()>,
+}
+
+impl Worker {
+    /// Cancel and wait for the thread. On return the thread has exited and
+    /// its HTTP client (and pooled connections) are dropped. Blocks at most
+    /// about `REQUEST_TIMEOUT` when a POST is already on the wire.
+    fn stop(self) {
+        self.cancelled.store(true, Ordering::SeqCst);
+        drop(self.sender);
+        if self.handle.join().is_err() {
+            crate::logging::warning("[Telemetry] Exporter thread panicked");
+        }
+    }
+}
+
+/// Never blocks the caller. A full queue drops the record and counts it.
+fn enqueue(sender: &mpsc::SyncSender<Command>, command: Command) {
+    if let Err(mpsc::TrySendError::Full(_)) = sender.try_send(command) {
+        count_dropped(1);
+    }
 }
 
 /// Process-wide recorder. Starts inactive: no thread, no client.
@@ -792,74 +841,106 @@ impl Telemetry {
             .unwrap_or_else(|poisoned| poisoned.into_inner())
     }
 
-    /// Whether an exporter thread is running.
+    /// Whether an exporter thread is alive.
     pub fn is_running(&self) -> bool {
-        self.lock().is_some()
+        self.lock()
+            .as_ref()
+            .is_some_and(|worker| !worker.handle.is_finished())
+    }
+
+    /// Records dropped since process start: queue full, span buffer full, or
+    /// a metric attribute set folded into the overflow series.
+    pub fn dropped_records(&self) -> u64 {
+        DROPPED.load(Ordering::Relaxed)
     }
 
     /// Apply a configuration (C# `Initialize` + `UpdateConfiguration`).
     ///
-    /// Starts the exporter only when `config.exporter_ready()`. Otherwise any
-    /// running exporter is cancelled and its buffer dropped without a send.
-    /// Returns whether the exporter is running afterwards.
+    /// When `config.exporter_ready()` is false, any running exporter is
+    /// cancelled and joined before this returns, and its buffer is dropped
+    /// without a send: after return there is no telemetry thread, client or
+    /// socket. This can block up to about `REQUEST_TIMEOUT`, so frontends
+    /// should call it off the UI thread.
+    ///
+    /// When ready, a running exporter is refreshed in place (new secret,
+    /// endpoint, session and resource take effect for the next POST, and
+    /// buffered data is kept). A dead exporter is replaced. Returns whether
+    /// an exporter is running afterwards.
     pub fn configure(&self, config: &Config) -> bool {
-        let mut slot = self.lock();
-        if !config.exporter_ready() {
-            if let Some(worker) = slot.take() {
-                worker.cancelled.store(true, Ordering::SeqCst);
-                crate::logging::verbose("[Telemetry] Exporter stopped; buffered data dropped");
-            }
-            return false;
-        }
         let gates = Gates {
             usage: config.collect_usage_data,
             performance: config.collect_performance_metrics,
             crash: config.collect_crash_reports,
         };
-        let key = (config.endpoint.trim().to_owned(), config.session_id.clone());
-        if let Some(worker) = slot.as_mut()
-            && worker.signature_key == key
+        let mut slot = self.lock();
+        if !config.exporter_ready() {
+            let previous = slot.take();
+            drop(slot);
+            if let Some(worker) = previous {
+                worker.stop();
+                crate::logging::verbose("[Telemetry] Exporter stopped; buffered data dropped");
+            }
+            return false;
+        }
+        if slot
+            .as_ref()
+            .is_some_and(|worker| !worker.handle.is_finished())
         {
+            let Some(worker) = slot.as_mut() else {
+                return false;
+            };
             worker.gates = gates;
-            return true;
+            let sender = worker.sender.clone();
+            drop(slot);
+            // Blocking send: a refresh must not be dropped. The exporter
+            // drains the queue unless a POST is in flight (bounded by
+            // REQUEST_TIMEOUT). FIFO order means every later POST sees it.
+            return sender
+                .send(Command::Reconfigure(Box::new(config.clone())))
+                .is_ok();
         }
-        if let Some(previous) = slot.take() {
-            // Same consent, new endpoint or session: send what the old
-            // exporter holds, then retire it.
-            let _ = previous.sender.send(Command::Stop);
-        }
-        let (sender, receiver) = mpsc::channel();
+        let dead = slot.take();
+        let (sender, receiver) = mpsc::sync_channel(QUEUE_CAPACITY);
         let cancelled = Arc::new(AtomicBool::new(false));
         let thread_config = config.clone();
         let thread_cancelled = cancelled.clone();
         let spawned = std::thread::Builder::new()
             .name("modsync-telemetry".into())
             .spawn(move || run_exporter(thread_config, receiver, thread_cancelled));
-        if let Err(error) = spawned {
-            crate::logging::warning(format!("[Telemetry] Could not start exporter: {error}"));
-            return false;
-        }
+        let handle = match spawned {
+            Ok(handle) => handle,
+            Err(error) => {
+                drop(slot);
+                crate::logging::warning(format!("[Telemetry] Could not start exporter: {error}"));
+                return false;
+            }
+        };
         *slot = Some(Worker {
             sender,
             cancelled,
             gates,
-            signature_key: key,
+            handle,
         });
+        drop(slot);
+        if let Some(worker) = dead {
+            worker.stop();
+        }
         crate::logging::info("[Telemetry] Telemetry exporter started");
         true
     }
 
-    /// Stop the exporter. With `flush`, buffered data is sent first, waiting
-    /// at most `timeout`. Call at app exit after `record_session_end`.
+    /// Stop the exporter and join it. With `flush`, buffered data is sent
+    /// first, waiting at most `timeout`. Call at app exit after
+    /// `record_session_end`.
     pub fn shutdown(&self, flush: bool, timeout: Duration) -> Export {
         let result = if flush {
             self.flush(timeout)
         } else {
             Export::Disabled
         };
-        if let Some(worker) = self.lock().take() {
-            worker.cancelled.store(true, Ordering::SeqCst);
-            let _ = worker.sender.send(Command::Stop);
+        let worker = self.lock().take();
+        if let Some(worker) = worker {
+            worker.stop();
         }
         result
     }
@@ -868,14 +949,15 @@ impl Telemetry {
     /// never call from a UI thread or inside an async runtime.
     pub fn flush(&self, timeout: Duration) -> Export {
         let (reply, answer) = mpsc::channel();
-        {
+        let sender = {
             let slot = self.lock();
             let Some(worker) = slot.as_ref() else {
                 return Export::Disabled;
             };
-            if worker.sender.send(Command::Flush(reply)).is_err() {
-                return Export::Failed;
-            }
+            worker.sender.clone()
+        };
+        if sender.try_send(Command::Flush(reply)).is_err() {
+            return Export::Failed;
         }
         answer.recv_timeout(timeout).unwrap_or(Export::Failed)
     }
@@ -883,7 +965,7 @@ impl Telemetry {
     fn metric(&self, gate: fn(Gates) -> bool, name: &'static str, value: f64, tags: Attributes) {
         let slot = self.lock();
         if let Some(worker) = slot.as_ref().filter(|worker| gate(worker.gates)) {
-            let _ = worker.sender.send(Command::Metric(name, value, tags));
+            enqueue(&worker.sender, Command::Metric(name, value, tags));
         }
     }
 
@@ -1194,7 +1276,7 @@ impl Telemetry {
 
 /// A running span. Cheap and inert when telemetry is inactive.
 pub struct Span {
-    sender: Option<mpsc::Sender<Command>>,
+    sender: Option<mpsc::SyncSender<Command>>,
     data: SpanData,
     started: Instant,
 }
@@ -1237,7 +1319,7 @@ impl Span {
             data.end_unix_nano = data
                 .start_unix_nano
                 .saturating_add(self.started.elapsed().as_nanos() as u64);
-            let _ = sender.send(Command::Span(data));
+            enqueue(&sender, Command::Span(data));
         }
     }
 }
@@ -1273,8 +1355,15 @@ fn run_exporter(config: Config, receiver: mpsc::Receiver<Command>, cancelled: Ar
         if exporter.cancelled.load(Ordering::SeqCst) {
             return;
         }
-        let wait = EXPORT_INTERVAL.saturating_sub(last_export.elapsed());
-        match receiver.recv_timeout(wait) {
+        let until_export = EXPORT_INTERVAL.saturating_sub(last_export.elapsed());
+        if until_export.is_zero() {
+            exporter.export();
+            last_export = Instant::now();
+            continue;
+        }
+        // Short waits so a revoke is seen even while live `Span`s keep a
+        // sender clone alive and the channel never disconnects.
+        match receiver.recv_timeout(until_export.min(CANCEL_POLL)) {
             Ok(Command::Metric(name, value, tags)) => {
                 exporter.metrics.add(name, value, tags);
                 exporter.metrics_dirty = true;
@@ -1282,20 +1371,21 @@ fn run_exporter(config: Config, receiver: mpsc::Receiver<Command>, cancelled: Ar
             Ok(Command::Span(span)) => {
                 if exporter.spans.len() < MAX_BUFFERED_SPANS {
                     exporter.spans.push(span);
+                } else {
+                    count_dropped(1);
                 }
             }
             Ok(Command::Flush(reply)) => {
                 let _ = reply.send(exporter.export());
                 last_export = Instant::now();
             }
-            Ok(Command::Stop) => {
-                exporter.export();
-                return;
+            Ok(Command::Reconfigure(config)) => {
+                // Secret rotation, endpoint or session change: the next POST
+                // signs with the new values. The HTTP client is config-free.
+                exporter.resource = resource_attributes(&config);
+                exporter.config = *config;
             }
-            Err(mpsc::RecvTimeoutError::Timeout) => {
-                exporter.export();
-                last_export = Instant::now();
-            }
+            Err(mpsc::RecvTimeoutError::Timeout) => {}
             Err(mpsc::RecvTimeoutError::Disconnected) => return,
         }
     }
@@ -1351,6 +1441,7 @@ impl Exporter {
             self.client = Some(
                 reqwest::blocking::Client::builder()
                     .timeout(REQUEST_TIMEOUT)
+                    .connect_timeout(CONNECT_TIMEOUT)
                     .build()
                     .context("Build telemetry HTTP client")?,
             );
@@ -1359,6 +1450,10 @@ impl Exporter {
             .duration_since(UNIX_EPOCH)
             .context("System clock predates Unix epoch")?
             .as_secs() as i64;
+        anyhow::ensure!(
+            !self.cancelled.load(Ordering::SeqCst),
+            "Telemetry was turned off"
+        );
         let response = self
             .client
             .as_ref()

@@ -73,26 +73,30 @@ relative to this repo.
 
 | # | Gap | Impact | Status after this lane |
 |---|---|---|---|
-| 1 | No OTLP export. `/v1/events` is not an OTLP route, so even consented Rust telemetry cannot reach the C# backend. | Telemetry is dead end-to-end | **Closed in library.** OTLP/HTTP JSON traces and metrics, signed per request (`telemetry.rs` `encode_traces` :517, `encode_metrics` :628, `Exporter::post` :1338). The frontend must migrate (§5). |
-| 2 | No persistent log file (C# `Logs/`) | Support has no logs to ask for | **Closed in library.** `logging.rs` `init` :95 writes `<settings>/Logs/modsync_YYYY-MM-DD.log`, keeps 30 files (`prune` :348) and holds 200 lines in memory (`recent` :206). |
-| 3 | No automatic lifecycle, install or download emission | No data even when consented | **Recorders ported** (`record_*` :917-1171). Wiring is frontend work (§5): ui.rs and main.rs are out of scope for this lane. |
-| 4 | Derived `Debug` on `Config` leaked the signing secret | Secret could reach logs | **Closed.** Manual `Debug` redacts it (`telemetry.rs:96-122`). |
-| 5 | No exception-to-telemetry bridge or panic logging | Crashes go unrecorded | **Closed in library.** `logging::log_error` :193 hashes and forwards. `install_panic_hook` :219 chains the previous hook. |
-| 6 | No diagnostics snapshot or privacy summary | Weak support workflow | **Closed in library.** `logging::diagnostics_report` :241 reports only whether a secret is present. `Config::privacy_summary` :183. |
-| 7 | No first-run flag, so the frontend cannot tell when to ask for consent | Consent prompt never shown | **Closed.** `Config::is_first_run` (set in `load` :134). |
-| 8 | C# config keys missing (`otlp_endpoint`, `environment`, `collect_crash_reports`, `enable_otlp_exporter`) | Migrated C# configs lose settings | **Closed.** Fields added. `otlp_endpoint` is a serde alias of `endpoint` (:52). |
+| 1 | No OTLP export. `/v1/events` is not an OTLP route, so even consented Rust telemetry cannot reach the C# backend. | Telemetry is dead end-to-end | **Closed in library.** OTLP/HTTP JSON traces and metrics, signed per request (`telemetry.rs` `encode_traces` :521, `encode_metrics` :642, `Exporter::post` :1428). The frontend must migrate (§5). |
+| 2 | No persistent log file (C# `Logs/`) | Support has no logs to ask for | **Closed in library.** `logging.rs` `init` :97 writes `<settings>/Logs/kotormodsync_YYYY-MM-DD.log` (the NLog target name), keeps 30 files (`prune` :351) and holds 200 lines in memory (`recent` :208). |
+| 3 | No automatic lifecycle, install or download emission | No data even when consented | **Recorders ported** (`record_*` :999-1253). Wiring is frontend work (§5): ui.rs and main.rs are out of scope for this lane. |
+| 4 | Derived `Debug` on `Config` leaked the signing secret | Secret could reach logs | **Closed.** Manual `Debug` redacts it (`telemetry.rs:100-126`). |
+| 5 | No exception-to-telemetry bridge or panic logging | Crashes go unrecorded | **Closed in library.** `logging::log_error` :195 hashes and forwards. `install_panic_hook` :221 chains the previous hook. |
+| 6 | No diagnostics snapshot or privacy summary | Weak support workflow | **Closed in library.** `logging::diagnostics_report` :243 reports only whether a secret is present. `Config::privacy_summary` :187. |
+| 7 | No first-run flag, so the frontend cannot tell when to ask for consent | Consent prompt never shown | **Closed.** `Config::is_first_run` (set in `load` :138). |
+| 8 | C# config keys missing (`otlp_endpoint`, `environment`, `collect_crash_reports`, `enable_otlp_exporter`) | Migrated C# configs lose settings | **Closed.** Fields added. `otlp_endpoint` is a serde alias of `endpoint` (:56). |
 | 9 | No legacy `KOTORModSync/` config and key fallback | Minor migration gap | Open. The caller can pass the legacy directory to `Config::load`. |
 | 10 | No Prometheus listener or console exporter | Dev-only in C# | Open on purpose. The Prometheus listener is local-only, dev-only in C#. |
 | 11 | `CleanupOldData` of telemetry files | C# file exporter never existed | Not applicable. Log pruning covers `Logs/`. |
+| 12 | Unbounded telemetry memory (review of 72c3b86, finding 2): unbounded producer channel, span cap applied only after dequeue, metric series never capped | Slow or dead collector grows memory without limit | **Closed.** Bounded `sync_channel(QUEUE_CAPACITY=4096)` (:758, :903); producers use `try_send` and count drops (`enqueue` :808). Span cap drops are counted (:1372). Per-instrument cap `MAX_SERIES_PER_METRIC=2000` folds new attribute sets into an `otel.metric.overflow=true` series and counts them (:567, `Metrics::add` :591). `Telemetry::dropped_records` :853 and the diagnostics report expose the count. |
+| 13 | Revocation did not stop an in-flight POST or join the worker (review finding 3) | "Zero network after revoke" did not hold at return | **Closed in library.** `configure(off)` sets the cancel flag, drops the sender and joins the thread (`Worker::stop` :798, :876-883). `post` re-checks the flag right before sending (:1455). A POST already on the wire is bounded by `REQUEST_TIMEOUT=3s` with a 2 s connect timeout (:761, :1442-1446). The idle loop polls the flag every 200 ms (:1366), so live `Span` sender clones cannot keep it waiting. After `configure(off)` returns, the thread has exited and its client and connections are dropped. |
+| 14 | Secret rotation left the exporter on the old secret (review finding 4) | 403s until restart | **Closed.** A ready `configure` sends `Command::Reconfigure(config)` to a live exporter (:885-900). The exporter swaps its config and resource (:1382), so the next POST signs with the new secret, endpoint and session. A dead exporter (`handle.is_finished()`) is replaced instead of reported as running (:885-887, `is_running` :846-850). |
+| 15 | Legacy GUI path spawns a thread per event before the consent check (review finding 1) | Consent-off still creates an OS thread (no client, no socket) | **Deferred to the ui.rs wiring task.** `ui.rs:1582` runs `std::thread::spawn` before `export()` checks consent at `telemetry.rs:268`. Fixed by F5, which removes the legacy call. |
 
 ## 4. Deliberate divergences from the oracle (Rust is stricter)
 
 1. **Signing per request.** C# builds the header string once, in `Initialize` (`TelemetryService.cs:131, 152`). Every export after 300 s then fails the sidecar drift check (`auth_service.py:88`). Rust signs every POST with a fresh timestamp (`Exporter::post`).
-2. **The signed path is the requested path.** Rust signs `Url::parse(url).path()`, so an endpoint with a path prefix still verifies. C# signs a bare `/v1/traces` and `/v1/metrics`. *Unverified at runtime:* the OpenTelemetry .NET 1.15.3 exporter (`ModSync.Core.csproj:95`) documents that an `Endpoint` set in code with `HttpProtobuf` is used verbatim, with no `/v1/{signal}` appended. If so, C# POSTs both signals to `/` while signing `/v1/traces` and `/v1/metrics`, and never passes ForwardAuth.
-3. **Revocation sends nothing.** C# `UpdateConfiguration` then `Dispose` then `Flush` sends buffered data after the user opts out (`TelemetryService.cs:204-206, 812`). Rust `Telemetry::configure` sets a cancel flag that the exporter checks before each POST, and drops the buffer (:805-812, :1273, :1306, :1324).
+2. **The signed path is the requested path.** Rust signs `Url::parse(url).path()`, so an endpoint with a path prefix still verifies. C# signs a bare `/v1/traces` and `/v1/metrics`. The OpenTelemetry .NET 1.15.3 exporter (`ModSync.Core.csproj:95`) requires the full signal URL for `HttpProtobuf` (`~/.nuget/packages/opentelemetry.exporter.opentelemetryprotocol/1.15.3/README.md:340-342`). C# sets the bare base endpoint, so it POSTs both signals to that base URL while signing `/v1/traces` and `/v1/metrics`, and cannot pass ForwardAuth. This comes from the documentation plus the C# source, not from a runtime capture.
+3. **Revocation sends nothing.** C# `UpdateConfiguration` then `Dispose` then `Flush` sends buffered data after the user opts out (`TelemetryService.cs:204-206, 812`). Rust `Telemetry::configure` with a non-ready config sets a cancel flag, drops the buffer and joins the exporter before returning (:876-883, `Worker::stop` :798). The exporter checks the flag at its loop head (:1355), before each export (:1395, :1414) and right before each send (:1455).
 4. **No default host.** C# defaults `otlp_endpoint` to a real server. Rust leaves `endpoint` empty. A migrated C# file still carries its value through the alias.
 5. **`RecordCacheOperation` error text.** C# sends it raw. Rust sends `error.hash`.
-6. **Log location.** C# writes under `${basedir}` (the install directory, possibly read-only). Rust writes under the settings directory. The file prefix is `modsync_` (C# `Logger.LogFileName`), not NLog's `kotormodsync_`.
+6. **Log location.** C# writes under `${basedir}` (the install directory, possibly read-only). Rust writes under the settings directory. The file name matches the NLog target, `kotormodsync_${shortdate}.log` (`NLog.config:12`). C#'s `Logger.LogFileName = "modsync_"` (`Logger.cs:17`) is not what NLog uses.
 7. **Stdout.** Rust never writes logs to stdout. The stderr mirror is opt-in, so CLI JSON output stays clean.
 8. **Metrics temporality.** Rust uses CUMULATIVE, the C# OTLP exporter default. Histogram bounds are the OTel SDK defaults.
 9. **Spans have no parent context.** Each span is its own trace. C# `Activity.Current` nesting is not modelled.
@@ -104,8 +108,8 @@ relative to this repo.
 | F1 | `ui.rs` `App::new` (:1660) and `main.rs` `gui()` | Load `telemetry::Config` **after** `--settings-dir` is applied. Today it loads from the default directory before `settings_dir` overrides `profile_directory` (`ui.rs:3155-3168`). Then call `telemetry::global().configure(&config)`. |
 | F2 | same | Load telemetry before `app.load()`. Today `load()` runs first (`ui.rs:1654-1655` vs :1660), so the `guide.loaded` event for a `--input` guide is always dropped. |
 | F3 | `ui.rs` startup | If `config.is_first_run`, show the consent prompt. On answer, `set_consent`, `save`, then `global().configure`. |
-| F4 | `ui.rs:885-897` (consent checkbox and endpoint save) | After `save`, call `telemetry::global().configure(&self.telemetry)`. Unchecking must reach `configure` so buffered data is dropped. |
-| F5 | `ui.rs:1575-1585` `emit_telemetry` | Replace `export(&config, "/v1/events", ..)` with `global().record_event(name, attrs)`, or with `record_operation(job, success, elapsed)` for `operation.completed`. |
+| F4 | `ui.rs:885-897` (consent checkbox and endpoint save) | After `save`, call `telemetry::global().configure(&self.telemetry)`. Unchecking must reach `configure` so buffered data is dropped. `configure(off)` joins the exporter and can block up to about 3 s (`REQUEST_TIMEOUT`), so call it off the egui thread. At `ui.rs:902`, show readiness from `exporter_ready()`, not `active()`. `active()` ignores the endpoint and the exporter switch. |
+| F5 | `ui.rs:1575-1585` `emit_telemetry` | Remove the per-event `std::thread::spawn` at :1582, which runs before the consent check (gap 15). Replace `export(&config, "/v1/events", ..)` with `global().record_event(name, attrs)`, or with `record_operation(job, success, elapsed)` for `operation.completed`. |
 | F6 | `ui.rs` job start and finish (:182, :278) | Measure job duration, then call `record_operation`. Install, download and validate map to `record_mod_installation`, `record_download` and `record_validation`, fed from engine `Event`s and `InstallProgress`. |
 | F7 | `main.rs` before the GUI or CLI dispatch | Call `logging::init(&settings_dir, Options { debug_logging, mirror_stderr: !json_output, .. })` and `logging::install_panic_hook()`. Then call `global().record_session_start(total, selected)`. |
 | F8 | GUI exit (eframe `on_exit`) and CLI end | `record_session_end(elapsed, completed)`, then `global().shutdown(true, 5s)`. Run this off the egui thread, or accept up to 5 s of blocking at exit. |
@@ -135,15 +139,27 @@ run the GUI with `XDG_CONFIG_HOME=<tmp>`, `MODSYNC_SIGNING_SECRET=<test>` and
 **Source walkthrough.**
 
 - *Consent off means zero network.* `configure` returns before spawning when
-  `!exporter_ready()` (:807-812). `exporter_ready` needs `active()`, which needs
+  `!exporter_ready()` (:876-883). `exporter_ready` needs `active()`, which needs
   enabled, consented and a secret, plus `enable_otlp_exporter` and an http(s)
-  endpoint (:178). With no worker, `metric()` and `start_span` find `None` and
+  endpoint (:182). With no worker, `metric()` and `start_span` find `None` and
   send nothing. `flush` returns `Disabled`. The `reqwest` client is built only
-  inside `Exporter::post`, on the exporter thread (:1350-1357).
-- *Revocation.* `configure(off)` sets `cancelled` and drops the sender. The
-  worker exits at its loop head (:1273), and `export` checks the flag before
-  each POST (:1306, :1324). A POST already in flight when the user revokes will
-  finish.
+  inside `Exporter::post`, on the exporter thread (:1440-1448).
+- *Revocation.* `configure(off)` takes the worker out of the slot, releases the
+  lock, sets `cancelled`, drops the sender and joins (`Worker::stop` :798).
+  Nothing new is sent: the flag is checked at the loop head (:1355), before each
+  export (:1395, :1414) and right before `send()` (:1455). A POST already on the
+  wire ends within `REQUEST_TIMEOUT` (3 s). The join waits for it. The exporter
+  owns the client, so the client and its pooled connections drop when the thread
+  exits. Once `configure` returns, no telemetry thread, client or connection
+  exists. The legacy `export` path in ui.rs is outside this guarantee (gap 15).
+- *Bounded memory.* Queue capacity 4096 (:758). `try_send` never blocks and
+  counts a full queue (:808). Spans are capped at 2048 after dequeue (:1372).
+  Metric series are capped at 2000 per instrument plus one overflow series
+  (:591). `Reconfigure` is the only blocking send, and it is bounded by the
+  exporter draining the queue.
+- *Rotation.* A second `configure` with a new secret and the same endpoint
+  queues `Reconfigure` (:898-900). FIFO order puts it ahead of any later POST,
+  and `post` reads the secret from the swapped config (:1382).
 - *Signing.* `post` computes the timestamp per request and signs
   `POST|<URL path>|<ts>|<session>` with `signature()`. That is RFC 2104 HMAC:
   keys over 64 bytes are hashed, then zero-padded, with ipad 0x36 and opad 0x5c.

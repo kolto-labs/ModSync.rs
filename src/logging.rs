@@ -16,8 +16,10 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard, OnceLock};
 
-/// File name prefix. The dated file is `modsync_YYYY-MM-DD.log`.
-pub const LOG_FILE_PREFIX: &str = "modsync_";
+/// File name prefix. The dated file is `kotormodsync_YYYY-MM-DD.log`, the
+/// name the C# NLog file target writes (`NLog.config:12`). C#'s unused
+/// `Logger.LogFileName = "modsync_"` constant does not control that target.
+pub const LOG_FILE_PREFIX: &str = "kotormodsync_";
 /// Directory created under the settings directory.
 pub const LOG_DIRECTORY_NAME: &str = "Logs";
 
@@ -293,8 +295,9 @@ pub fn diagnostics_report(
             }
         ));
         line(format!(
-            "Telemetry exporter running: {}",
-            crate::telemetry::global().is_running()
+            "Telemetry exporter running: {} (records dropped: {})",
+            crate::telemetry::global().is_running(),
+            crate::telemetry::global().dropped_records()
         ));
     }
     let lines = recent(recent_lines);
