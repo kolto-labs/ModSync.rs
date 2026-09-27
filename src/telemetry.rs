@@ -793,8 +793,11 @@ struct Worker {
 
 impl Worker {
     /// Cancel and wait for the thread. On return the thread has exited and
-    /// its HTTP client (and pooled connections) are dropped. Blocks at most
-    /// about `REQUEST_TIMEOUT` when a POST is already on the wire.
+    /// its HTTP client (and pooled connections) are dropped. Blocks for up to
+    /// `REQUEST_TIMEOUT` when a POST is already on the wire, or until the
+    /// system resolver gives up on a stalled lookup: dropping the blocking
+    /// reqwest client joins its runtime, which waits for a pending
+    /// `getaddrinfo` call.
     fn stop(self) {
         self.cancelled.store(true, Ordering::SeqCst);
         drop(self.sender);
@@ -859,13 +862,18 @@ impl Telemetry {
     /// When `config.exporter_ready()` is false, any running exporter is
     /// cancelled and joined before this returns, and its buffer is dropped
     /// without a send: after return there is no telemetry thread, client or
-    /// socket. This can block up to about `REQUEST_TIMEOUT`, so frontends
-    /// should call it off the UI thread.
+    /// socket. That can block for up to `REQUEST_TIMEOUT`, or until the system
+    /// resolver gives up on a stalled lookup.
     ///
-    /// When ready, a running exporter is refreshed in place (new secret,
-    /// endpoint, session and resource take effect for the next POST, and
-    /// buffered data is kept). A dead exporter is replaced. Returns whether
+    /// When ready, a running exporter is refreshed in place: the new secret,
+    /// endpoint and resource take effect for the next POST and buffered data
+    /// is kept. A new session first sends the old session's data under the
+    /// old config, then starts empty. The refresh is a blocking send, so with
+    /// a full queue it can wait for an export in progress (two POSTs, about
+    /// `2 * REQUEST_TIMEOUT`). A dead exporter is replaced. Returns whether
     /// an exporter is running afterwards.
+    ///
+    /// Every call can block, so frontends must call it off the UI thread.
     pub fn configure(&self, config: &Config) -> bool {
         let gates = Gates {
             usage: config.collect_usage_data,
@@ -1380,6 +1388,9 @@ fn run_exporter(config: Config, receiver: mpsc::Receiver<Command>, cancelled: Ar
                 last_export = Instant::now();
             }
             Ok(Command::Reconfigure(config)) => {
+                if config.session_id != exporter.config.session_id {
+                    exporter.retire_session();
+                }
                 // Secret rotation, endpoint or session change: the next POST
                 // signs with the new values. The HTTP client is config-free.
                 exporter.resource = resource_attributes(&config);
@@ -1392,6 +1403,27 @@ fn run_exporter(config: Config, receiver: mpsc::Receiver<Command>, cancelled: Ar
 }
 
 impl Exporter {
+    /// Before a session change: send what was recorded under the old session
+    /// with the old config, then start fresh, so no old-session data goes
+    /// out labelled with the new `session.id`. Whatever fails to send (for
+    /// example because the old secret was rotated away) is dropped and counted.
+    fn retire_session(&mut self) {
+        self.export();
+        let mut lost = self.spans.len() as u64;
+        if self.metrics_dirty {
+            lost += self
+                .metrics
+                .series
+                .values()
+                .map(|s| s.len() as u64)
+                .sum::<u64>();
+        }
+        count_dropped(lost);
+        self.spans.clear();
+        self.metrics = Metrics::new(now_unix_nano());
+        self.metrics_dirty = false;
+    }
+
     fn export(&mut self) -> Export {
         if self.cancelled.load(Ordering::SeqCst) {
             return Export::Disabled;

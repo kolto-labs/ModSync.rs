@@ -73,9 +73,9 @@ relative to this repo.
 
 | # | Gap | Impact | Status after this lane |
 |---|---|---|---|
-| 1 | No OTLP export. `/v1/events` is not an OTLP route, so even consented Rust telemetry cannot reach the C# backend. | Telemetry is dead end-to-end | **Closed in library.** OTLP/HTTP JSON traces and metrics, signed per request (`telemetry.rs` `encode_traces` :521, `encode_metrics` :642, `Exporter::post` :1428). The frontend must migrate (§5). |
+| 1 | No OTLP export. `/v1/events` is not an OTLP route, so even consented Rust telemetry cannot reach the C# backend. | Telemetry is dead end-to-end | **Closed in library.** OTLP/HTTP JSON traces and metrics, signed per request (`telemetry.rs` `encode_traces` :521, `encode_metrics` :642, `Exporter::post` :1460). The frontend must migrate (§5). |
 | 2 | No persistent log file (C# `Logs/`) | Support has no logs to ask for | **Closed in library.** `logging.rs` `init` :97 writes `<settings>/Logs/kotormodsync_YYYY-MM-DD.log` (the NLog target name), keeps 30 files (`prune` :351) and holds 200 lines in memory (`recent` :208). |
-| 3 | No automatic lifecycle, install or download emission | No data even when consented | **Recorders ported** (`record_*` :999-1253). Wiring is frontend work (§5): ui.rs and main.rs are out of scope for this lane. |
+| 3 | No automatic lifecycle, install or download emission | No data even when consented | **Recorders ported** (`record_*` :1007-1261). Wiring is frontend work (§5): ui.rs and main.rs are out of scope for this lane. |
 | 4 | Derived `Debug` on `Config` leaked the signing secret | Secret could reach logs | **Closed.** Manual `Debug` redacts it (`telemetry.rs:100-126`). |
 | 5 | No exception-to-telemetry bridge or panic logging | Crashes go unrecorded | **Closed in library.** `logging::log_error` :195 hashes and forwards. `install_panic_hook` :221 chains the previous hook. |
 | 6 | No diagnostics snapshot or privacy summary | Weak support workflow | **Closed in library.** `logging::diagnostics_report` :243 reports only whether a secret is present. `Config::privacy_summary` :187. |
@@ -84,10 +84,10 @@ relative to this repo.
 | 9 | No legacy `KOTORModSync/` config and key fallback | Minor migration gap | Open. The caller can pass the legacy directory to `Config::load`. |
 | 10 | No Prometheus listener or console exporter | Dev-only in C# | Open on purpose. The Prometheus listener is local-only, dev-only in C#. |
 | 11 | `CleanupOldData` of telemetry files | C# file exporter never existed | Not applicable. Log pruning covers `Logs/`. |
-| 12 | Unbounded telemetry memory (review of 72c3b86, finding 2): unbounded producer channel, span cap applied only after dequeue, metric series never capped | Slow or dead collector grows memory without limit | **Closed.** Bounded `sync_channel(QUEUE_CAPACITY=4096)` (:758, :903); producers use `try_send` and count drops (`enqueue` :808). Span cap drops are counted (:1372). Per-instrument cap `MAX_SERIES_PER_METRIC=2000` folds new attribute sets into an `otel.metric.overflow=true` series and counts them (:567, `Metrics::add` :591). `Telemetry::dropped_records` :853 and the diagnostics report expose the count. |
-| 13 | Revocation did not stop an in-flight POST or join the worker (review finding 3) | "Zero network after revoke" did not hold at return | **Closed in library.** `configure(off)` sets the cancel flag, drops the sender and joins the thread (`Worker::stop` :798, :876-883). `post` re-checks the flag right before sending (:1455). A POST already on the wire is bounded by `REQUEST_TIMEOUT=3s` with a 2 s connect timeout (:761, :1442-1446). The idle loop polls the flag every 200 ms (:1366), so live `Span` sender clones cannot keep it waiting. After `configure(off)` returns, the thread has exited and its client and connections are dropped. |
-| 14 | Secret rotation left the exporter on the old secret (review finding 4) | 403s until restart | **Closed.** A ready `configure` sends `Command::Reconfigure(config)` to a live exporter (:885-900). The exporter swaps its config and resource (:1382), so the next POST signs with the new secret, endpoint and session. A dead exporter (`handle.is_finished()`) is replaced instead of reported as running (:885-887, `is_running` :846-850). |
-| 15 | Legacy GUI path spawns a thread per event before the consent check (review finding 1) | Consent-off still creates an OS thread (no client, no socket) | **Deferred to the ui.rs wiring task.** `ui.rs:1582` runs `std::thread::spawn` before `export()` checks consent at `telemetry.rs:268`. Fixed by F5, which removes the legacy call. |
+| 12 | Unbounded telemetry memory (review of 72c3b86, finding 2): unbounded producer channel, span cap applied only after dequeue, metric series never capped | Slow or dead collector grows memory without limit | **Closed.** Bounded `sync_channel(QUEUE_CAPACITY=4096)` (:758, :911); producers use `try_send` and count drops (`enqueue` :811). Span cap drops are counted (:1380). Per-instrument cap `MAX_SERIES_PER_METRIC=2000` folds new attribute sets into an `otel.metric.overflow=true` series and counts them (:567, `Metrics::add` :591). `Telemetry::dropped_records` :856 and the diagnostics report expose the count. |
+| 13 | Revocation did not stop an in-flight POST or join the worker (review finding 3) | "Zero network after revoke" did not hold at return | **Closed in library.** `configure(off)` sets the cancel flag, drops the sender and joins the thread (`Worker::stop` :801, :884-891). `post` re-checks the flag right before sending (:1487). A POST already on the wire is bounded by `REQUEST_TIMEOUT=3s` with a 2 s connect timeout (:761, :1474-1478), except during DNS resolution: dropping the blocking reqwest client joins its tokio runtime (reqwest 0.12.28 `blocking/client.rs:1354`), and that runtime waits for pending `spawn_blocking` work, including hyper-util's `getaddrinfo` (`dns.rs:119`). So the join takes up to `REQUEST_TIMEOUT`, or until the system resolver gives up on a stalled lookup. The idle loop polls the flag every 200 ms (:1374), so live `Span` sender clones cannot keep it waiting. After `configure(off)` returns, the thread has exited and its client and connections are dropped. |
+| 14 | Secret rotation left the exporter on the old secret (review finding 4) | 403s until restart | **Closed.** A ready `configure` sends `Command::Reconfigure(config)` to a live exporter (:893-908). The exporter swaps its config and resource (:1390), so the next POST signs with the new secret, endpoint and session. A dead exporter (`handle.is_finished()`) is replaced instead of reported as running (:893-895, `is_running` :848-852). |
+| 15 | Legacy GUI path spawns a thread per event before the consent check (review finding 1) | Consent-off still creates an OS thread (no client, no socket) | **Deferred to the ui.rs wiring task.** `ui.rs:1582` runs `std::thread::spawn` before `export()` checks consent at `telemetry.rs:269`. Fixed by F5, which removes the legacy call. |
 
 ## 4. Deliberate divergences from the oracle (Rust is stricter)
 
@@ -108,11 +108,11 @@ relative to this repo.
 | F1 | `ui.rs` `App::new` (:1660) and `main.rs` `gui()` | Load `telemetry::Config` **after** `--settings-dir` is applied. Today it loads from the default directory before `settings_dir` overrides `profile_directory` (`ui.rs:3155-3168`). Then call `telemetry::global().configure(&config)`. |
 | F2 | same | Load telemetry before `app.load()`. Today `load()` runs first (`ui.rs:1654-1655` vs :1660), so the `guide.loaded` event for a `--input` guide is always dropped. |
 | F3 | `ui.rs` startup | If `config.is_first_run`, show the consent prompt. On answer, `set_consent`, `save`, then `global().configure`. |
-| F4 | `ui.rs:885-897` (consent checkbox and endpoint save) | After `save`, call `telemetry::global().configure(&self.telemetry)`. Unchecking must reach `configure` so buffered data is dropped. `configure(off)` joins the exporter and can block up to about 3 s (`REQUEST_TIMEOUT`), so call it off the egui thread. At `ui.rs:902`, show readiness from `exporter_ready()`, not `active()`. `active()` ignores the endpoint and the exporter switch. |
+| F4 | `ui.rs:885-897` (consent checkbox and endpoint save) | After `save`, call `telemetry::global().configure(&self.telemetry)`. Unchecking must reach `configure` so buffered data is dropped. Run **every** `configure` call off the egui thread. `configure(off)` joins the exporter and can block for up to `REQUEST_TIMEOUT` (3 s), or until the system resolver gives up on a stalled lookup. `configure(ready)` sends a blocking `Reconfigure`: with a full queue during an export it can wait about 6 s (two 3 s POSTs). At `ui.rs:902`, show readiness from `exporter_ready()`, not `active()`. `active()` ignores the endpoint and the exporter switch. |
 | F5 | `ui.rs:1575-1585` `emit_telemetry` | Remove the per-event `std::thread::spawn` at :1582, which runs before the consent check (gap 15). Replace `export(&config, "/v1/events", ..)` with `global().record_event(name, attrs)`, or with `record_operation(job, success, elapsed)` for `operation.completed`. |
 | F6 | `ui.rs` job start and finish (:182, :278) | Measure job duration, then call `record_operation`. Install, download and validate map to `record_mod_installation`, `record_download` and `record_validation`, fed from engine `Event`s and `InstallProgress`. |
 | F7 | `main.rs` before the GUI or CLI dispatch | Call `logging::init(&settings_dir, Options { debug_logging, mirror_stderr: !json_output, .. })` and `logging::install_panic_hook()`. Then call `global().record_session_start(total, selected)`. |
-| F8 | GUI exit (eframe `on_exit`) and CLI end | `record_session_end(elapsed, completed)`, then `global().shutdown(true, 5s)`. Run this off the egui thread, or accept up to 5 s of blocking at exit. |
+| F8 | GUI exit (eframe `on_exit`) and CLI end | `record_session_end(elapsed, completed)`, then `global().shutdown(true, timeout)`, off the egui thread. Shutdown costs the flush wait (up to `timeout`) plus the join, which takes up to `REQUEST_TIMEOUT` or longer during a DNS stall. `flush` uses `try_send`, so with a full queue `shutdown(true, ..)` returns `Failed` and sends nothing. |
 | F9 | `ui.rs` log pane and `Stopped:` error paths | Mirror `self.logs.push` into `logging::info` or `logging::error`, and use `logging::log_error(&e, ctx)` for `Err(e)` terminals. |
 | F10 | Settings page | Add "Copy diagnostics", which puts `logging::diagnostics_report(Some(dir), Some(&cfg), 50)` on the clipboard. Add "Privacy details", which shows `cfg.privacy_summary()`. Add "Open log folder", which opens `logging::log_directory()`. |
 
@@ -139,27 +139,35 @@ run the GUI with `XDG_CONFIG_HOME=<tmp>`, `MODSYNC_SIGNING_SECRET=<test>` and
 **Source walkthrough.**
 
 - *Consent off means zero network.* `configure` returns before spawning when
-  `!exporter_ready()` (:876-883). `exporter_ready` needs `active()`, which needs
+  `!exporter_ready()` (:884-891). `exporter_ready` needs `active()`, which needs
   enabled, consented and a secret, plus `enable_otlp_exporter` and an http(s)
   endpoint (:182). With no worker, `metric()` and `start_span` find `None` and
   send nothing. `flush` returns `Disabled`. The `reqwest` client is built only
-  inside `Exporter::post`, on the exporter thread (:1440-1448).
+  inside `Exporter::post`, on the exporter thread (:1472-1480).
 - *Revocation.* `configure(off)` takes the worker out of the slot, releases the
-  lock, sets `cancelled`, drops the sender and joins (`Worker::stop` :798).
-  Nothing new is sent: the flag is checked at the loop head (:1355), before each
-  export (:1395, :1414) and right before `send()` (:1455). A POST already on the
-  wire ends within `REQUEST_TIMEOUT` (3 s). The join waits for it. The exporter
+  lock, sets `cancelled`, drops the sender and joins (`Worker::stop` :801).
+  Nothing new is sent: the flag is checked at the loop head (:1363), before each
+  export (:1427, :1446) and right before `send()` (:1487). A POST already on the
+  wire ends within `REQUEST_TIMEOUT` (3 s), or when the system resolver gives up
+  on a stalled lookup (see gap 13). The join waits for it. The exporter
   owns the client, so the client and its pooled connections drop when the thread
   exits. Once `configure` returns, no telemetry thread, client or connection
   exists. The legacy `export` path in ui.rs is outside this guarantee (gap 15).
 - *Bounded memory.* Queue capacity 4096 (:758). `try_send` never blocks and
-  counts a full queue (:808). Spans are capped at 2048 after dequeue (:1372).
+  counts a full queue (:811). Spans are capped at 2048 after dequeue (:1380).
   Metric series are capped at 2000 per instrument plus one overflow series
   (:591). `Reconfigure` is the only blocking send, and it is bounded by the
   exporter draining the queue.
 - *Rotation.* A second `configure` with a new secret and the same endpoint
-  queues `Reconfigure` (:898-900). FIFO order puts it ahead of any later POST,
-  and `post` reads the secret from the swapped config (:1382).
+  queues `Reconfigure`. FIFO order puts it ahead of any later POST, and `post`
+  reads the secret from the swapped config.
+- *Session change.* When `Reconfigure` carries a new `session_id`,
+  `Exporter::retire_session` first exports the buffer under the old config,
+  then clears spans and resets metrics. Anything unsent is counted as dropped.
+  So old-session data never goes out labelled with the new `session.id` or
+  `service.instance.id` (resource attributes, `telemetry.rs:499, 502`). If the
+  same call also rotates the secret, the old-session send is signed with the
+  old secret. If the collector rejects it, that data is dropped.
 - *Signing.* `post` computes the timestamp per request and signs
   `POST|<URL path>|<ts>|<session>` with `signature()`. That is RFC 2104 HMAC:
   keys over 64 bytes are hashed, then zero-padded, with ipad 0x36 and opad 0x5c.
