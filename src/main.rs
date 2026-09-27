@@ -239,25 +239,45 @@ struct DeploymentArgs {
     #[command(subcommand)]
     action: DeploymentAction,
 }
+/// Deployment roots: explicit staging and manifest directories, or a profile's
+/// `profiles/<name>/{staging,deployment}` (the active profile when none is named).
+#[derive(Args)]
+struct DeploymentRoots {
+    #[arg(long)]
+    game_dir: PathBuf,
+    #[arg(long)]
+    staging_dir: Option<PathBuf>,
+    #[arg(long)]
+    manifest_dir: Option<PathBuf>,
+    /// Profile whose staging and manifest roots to use.
+    #[arg(long)]
+    profile: Option<String>,
+    /// Settings directory holding profiles/ and settings.json.
+    #[arg(long)]
+    settings_dir: Option<PathBuf>,
+}
+impl DeploymentRoots {
+    fn service(&self) -> Result<modsync::deployment::Service> {
+        modsync::deployment::Service::resolve(
+            &self.game_dir,
+            self.staging_dir.as_deref(),
+            self.manifest_dir.as_deref(),
+            self.settings_dir.as_deref(),
+            self.profile.as_deref(),
+        )
+    }
+}
 #[derive(Subcommand)]
 enum DeploymentAction {
     /// List deployed component manifests, oldest first.
     Status {
-        #[arg(long)]
-        game_dir: PathBuf,
-        #[arg(long)]
-        staging_dir: PathBuf,
-        #[arg(long)]
-        manifest_dir: PathBuf,
+        #[command(flatten)]
+        roots: DeploymentRoots,
     },
     /// Deploy staging-dir/<component> into the game directory.
     Deploy {
-        #[arg(long)]
-        game_dir: PathBuf,
-        #[arg(long)]
-        staging_dir: PathBuf,
-        #[arg(long)]
-        manifest_dir: PathBuf,
+        #[command(flatten)]
+        roots: DeploymentRoots,
         #[arg(long)]
         component: String,
         #[arg(long)]
@@ -265,23 +285,50 @@ enum DeploymentAction {
     },
     /// Remove files owned by one manifest and restore its displaced files.
     Uninstall {
-        #[arg(long)]
-        game_dir: PathBuf,
-        #[arg(long)]
-        staging_dir: PathBuf,
-        #[arg(long)]
-        manifest_dir: PathBuf,
+        #[command(flatten)]
+        roots: DeploymentRoots,
         #[arg(long)]
         component: String,
     },
     /// Uninstall all manifests newest first.
     Purge {
+        #[command(flatten)]
+        roots: DeploymentRoots,
+    },
+    /// Write a hash index of the game directory (run before a patcher).
+    Snapshot {
+        #[command(flatten)]
+        roots: DeploymentRoots,
+        #[arg(long)]
+        out: PathBuf,
+    },
+    /// Record game files changed since a snapshot into a component manifest.
+    Record {
+        #[command(flatten)]
+        roots: DeploymentRoots,
+        #[arg(long)]
+        component: String,
+        #[arg(long)]
+        name: Option<String>,
+        /// Hash index written by `deployment snapshot`.
+        #[arg(long)]
+        before: PathBuf,
+        /// Tree mirroring the game directory before the patcher ran; supplies backups for changed files.
+        #[arg(long)]
+        backup_source: Option<PathBuf>,
+    },
+    /// Activate another profile, optionally purging the current profile's deployments first.
+    Switch {
         #[arg(long)]
         game_dir: PathBuf,
         #[arg(long)]
-        staging_dir: PathBuf,
+        settings_dir: Option<PathBuf>,
+        /// Profile to activate.
         #[arg(long)]
-        manifest_dir: PathBuf,
+        to: String,
+        /// Purge the active profile's deployments before switching.
+        #[arg(long)]
+        purge_current: bool,
     },
 }
 #[derive(Args)]
@@ -425,53 +472,105 @@ fn run() -> Result<()> {
             allow_multiple_instances,
         ),
         Some(Action::Deployment(args)) => {
-            let (game, staging, manifests) = match &args.action {
-                DeploymentAction::Status {
-                    game_dir,
-                    staging_dir,
-                    manifest_dir,
-                }
-                | DeploymentAction::Deploy {
-                    game_dir,
-                    staging_dir,
-                    manifest_dir,
-                    ..
-                }
-                | DeploymentAction::Uninstall {
-                    game_dir,
-                    staging_dir,
-                    manifest_dir,
-                    ..
-                }
-                | DeploymentAction::Purge {
-                    game_dir,
-                    staging_dir,
-                    manifest_dir,
-                } => (game_dir, staging_dir, manifest_dir),
+            let print = |value: serde_json::Value| -> Result<()> {
+                println!("{}", serde_json::to_string_pretty(&value)?);
+                Ok(())
             };
-            let service = modsync::deployment::Service::new(game, staging, manifests)?;
+            let warn = |warnings: &[String]| {
+                for warning in warnings {
+                    eprintln!("warning: {warning}");
+                }
+            };
             match args.action {
-                DeploymentAction::Status { .. } => {
-                    println!("{}", serde_json::to_string_pretty(&service.deployed()?)?)
+                DeploymentAction::Status { roots } => {
+                    let (manifests, warnings) = roots.service()?.deployed_with_warnings()?;
+                    warn(&warnings);
+                    print(serde_json::to_value(manifests)?)
                 }
                 DeploymentAction::Deploy {
-                    component, name, ..
-                } => println!(
-                    "{}",
-                    serde_json::to_string_pretty(&service.deploy(&component, name)?)?
-                ),
-                DeploymentAction::Uninstall { component, .. } => println!(
-                    "{}",
-                    serde_json::to_string_pretty(
-                        &serde_json::json!({"removed": service.uninstall(&component)?})
-                    )?
-                ),
-                DeploymentAction::Purge { .. } => println!(
-                    "{}",
-                    serde_json::to_string_pretty(&serde_json::json!({"purged": service.purge()?}))?
-                ),
+                    roots,
+                    component,
+                    name,
+                } => {
+                    let (manifest, warnings) = roots.service()?.deploy_report(&component, name)?;
+                    warn(&warnings);
+                    print(serde_json::to_value(manifest)?)
+                }
+                DeploymentAction::Uninstall { roots, component } => {
+                    let report = roots.service()?.uninstall_report(&component)?;
+                    warn(&report.warnings);
+                    print(serde_json::to_value(report)?)
+                }
+                DeploymentAction::Purge { roots } => {
+                    let service = roots.service()?;
+                    warn(&service.deployed_with_warnings()?.1);
+                    let reports = service.purge_report()?;
+                    for report in &reports {
+                        warn(&report.warnings);
+                    }
+                    print(serde_json::json!({"purged": reports.len(), "components": reports}))
+                }
+                DeploymentAction::Snapshot { roots, out } => {
+                    let index = roots.service()?.capture_index()?;
+                    recovery::atomic_write(&out, &serde_json::to_vec_pretty(&index)?)?;
+                    print(serde_json::json!({"files": index.len(), "out": out}))
+                }
+                DeploymentAction::Record {
+                    roots,
+                    component,
+                    name,
+                    before,
+                    backup_source,
+                } => {
+                    let before: modsync::deployment::HashIndex =
+                        serde_json::from_slice(&std::fs::read(&before)?)?;
+                    let (manifest, report) = roots.service()?.record_live(
+                        &component,
+                        name,
+                        &before,
+                        backup_source.as_deref(),
+                    )?;
+                    warn(&report.warnings);
+                    print(serde_json::json!({"provenance": report, "manifest": manifest}))
+                }
+                DeploymentAction::Switch {
+                    game_dir,
+                    settings_dir,
+                    to,
+                    purge_current,
+                } => {
+                    let settings = modsync::profiles::settings_directory(settings_dir.as_deref())?;
+                    let store = modsync::profiles::Store::new(&settings)?;
+                    store.require(&to)?;
+                    let from = store.active_name()?;
+                    let mut purged = Vec::new();
+                    if purge_current
+                        && let Some(current) = from.as_deref()
+                        && !current.eq_ignore_ascii_case(to.trim())
+                    {
+                        purged = modsync::deployment::Service::for_profile(
+                            &settings, current, &game_dir,
+                        )?
+                        .purge_report()?;
+                        for report in &purged {
+                            warn(&report.warnings);
+                        }
+                    }
+                    let profile = store.activate(&to)?;
+                    let target = modsync::deployment::Service::for_profile(
+                        &settings,
+                        &profile.name,
+                        &game_dir,
+                    )?;
+                    print(serde_json::json!({
+                        "from": from,
+                        "to": profile.name,
+                        "purged": purged,
+                        "deployed": target.deployed()?.len(),
+                        "stagedNotDeployed": target.staged_not_deployed()?,
+                    }))
+                }
             }
-            Ok(())
         }
         Some(Action::FomodInspect {
             archive,
