@@ -154,6 +154,16 @@ enum Action {
         #[arg(long)]
         source_dir: PathBuf,
     },
+    /// Print the saved completion receipt summary as JSON, or null when there is none.
+    CompletionSummary {
+        #[arg(long)]
+        game_dir: PathBuf,
+        #[arg(long)]
+        source_dir: PathBuf,
+        /// JSON is the only output format.
+        #[arg(long, required = true)]
+        json: bool,
+    },
     /// Convert TOML, JSON, YAML, XML, or Markdown input.
     Convert {
         input: Option<PathBuf>,
@@ -802,6 +812,15 @@ fn run() -> Result<()> {
             game_dir,
             source_dir,
         }) => recovery::restore(&Roots::new(&source_dir, &game_dir)?),
+        Some(Action::CompletionSummary {
+            game_dir,
+            source_dir,
+            json: _,
+        }) => {
+            let summary = recovery::completion_summary(&Roots::new(&source_dir, &game_dir)?)?;
+            println!("{}", serde_json::to_string_pretty(&summary)?);
+            Ok(())
+        }
         Some(Action::Profile(args)) => args.run(),
         Some(Action::DownloadPlan {
             input,
