@@ -1556,15 +1556,15 @@ pub fn apply(
         for (index, c) in components.iter().enumerate() {
             // Outside EnforceGame, warn only for an Aspyr-only mod this action
             // brought in: unselected before, or assigned false by the action and
-            // re-selected by its cascade. Pre-existing selections are removed
-            // silently here and reported by EnforceGame at the boundary.
+            // re-selected by its cascade. Pre-existing selections get no warning;
+            // their removal is listed in this action's own `auto_deselected`.
             let brought_in =
                 !before_top[index] || direct.get(&c.guid.to_ascii_lowercase()) == Some(&false);
             if c.is_selected && !game::selectable(c, detected) && !enforcing && brought_in {
                 outcome.warnings.push(refusal(c));
             }
         }
-        game::enforce_selectable(components, detected);
+        enforce_game(components, detected);
     }
 
     let after = snapshot(components, &nodes);
@@ -1624,6 +1624,35 @@ fn select_direct(
     }
     c.is_selected = true;
     direct.insert(c.guid.to_ascii_lowercase(), true);
+}
+
+/// `game::enforce_selectable`, then clear the options of every component it
+/// removed and run the option-uncheck rule on them, so anything depending on
+/// those options is deselected too. Repeats until no removed component keeps a
+/// selected option.
+fn enforce_game(components: &mut [Component], detected: game::Detected) {
+    let before: Vec<bool> = components.iter().map(|c| c.is_selected).collect();
+    game::enforce_selectable(components, detected);
+    loop {
+        let stale: Vec<NodePath> = all_nodes(components)
+            .into_iter()
+            .filter(|path| {
+                path.len() > 1
+                    && before[path[0]]
+                    && !components[path[0]].is_selected
+                    && node(components, path).is_selected
+            })
+            .collect();
+        if stale.is_empty() {
+            break;
+        }
+        let mut visited = Visited::default();
+        for path in stale {
+            if node(components, &path).is_selected {
+                cascade_option_unchecked(components, &path, &mut visited);
+            }
+        }
+    }
 }
 
 fn set_single(
