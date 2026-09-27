@@ -1,0 +1,15 @@
+[
+ {
+  "Guid": "00000031-0000-0000-0000-000000000000",
+  "Name": "Robes Upscaled HD Pack Extra",
+  "Author": "X",
+  "IsSelected": true,
+  "ResourceRegistry": {
+   "https://deadlystream.com/files/file/1-robes/": {
+    "Files": {
+     "a.zip": true
+    }
+   }
+  }
+ }
+]

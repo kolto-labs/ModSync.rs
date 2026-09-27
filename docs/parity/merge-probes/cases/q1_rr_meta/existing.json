@@ -1,0 +1,2 @@
+[{"Guid":"00000001-0000-0000-0000-000000000000","Name":"Alpha","Author":"","IsSelected":true,
+ "ResourceRegistry":{"https://a.example/one":{"FileSize":123,"HandlerMetadata":{"k":"v"},"Files":{"a.zip":true}}}}]

@@ -1,0 +1,15 @@
+[
+ {
+  "Guid": "00000041-0000-0000-0000-000000000000",
+  "Name": "Robes HD",
+  "Author": "Y",
+  "IsSelected": true,
+  "ResourceRegistry": {
+   "https://deadlystream.com/files/file/2-other/": {
+    "Files": {
+     "a.zip": true
+    }
+   }
+  }
+ }
+]

@@ -1,0 +1,20 @@
+[
+ {
+  "Guid": "00000003-0000-0000-0000-000000000000",
+  "Name": "New First",
+  "Author": "",
+  "IsSelected": true
+ },
+ {
+  "Guid": "00000002-0000-0000-0000-000000000000",
+  "Name": "New B",
+  "Author": "",
+  "IsSelected": true
+ },
+ {
+  "Guid": "00000001-0000-0000-0000-000000000000",
+  "Name": "New A",
+  "Author": "",
+  "IsSelected": true
+ }
+]

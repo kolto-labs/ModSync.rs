@@ -131,11 +131,16 @@ enum Action {
         #[arg(long)]
         prefer_existing_tier: bool,
         #[arg(long)]
+        prefer_existing_installation_method: bool,
+        #[arg(long)]
         prefer_existing_instructions: bool,
         #[arg(long)]
         prefer_existing_options: bool,
-        #[arg(long)]
+        #[arg(long, alias = "prefer-existing-modlinks")]
         prefer_existing_resource_registry: bool,
+        /// Accepted for C# CLI compatibility. Incoming values already win by default.
+        #[arg(long)]
+        prefer_incoming_fields: bool,
         #[arg(long)]
         exclude_existing_only: bool,
         #[arg(long)]
@@ -717,9 +722,11 @@ fn run() -> Result<()> {
             prefer_existing_directions,
             prefer_existing_category,
             prefer_existing_tier,
+            prefer_existing_installation_method,
             prefer_existing_instructions,
             prefer_existing_options,
             prefer_existing_resource_registry,
+            prefer_incoming_fields: _,
             exclude_existing_only,
             exclude_incoming_only,
         }) => {
@@ -737,6 +744,7 @@ fn run() -> Result<()> {
                     prefer_existing_directions,
                     prefer_existing_category,
                     prefer_existing_tier,
+                    prefer_existing_installation_method,
                     prefer_existing_instructions,
                     prefer_existing_options,
                     prefer_existing_resource_registry,
