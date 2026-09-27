@@ -3,7 +3,7 @@ use librqbit::{AddTorrent, Session};
 use sha2::{Digest, Sha256};
 use std::{
     collections::HashSet,
-    fs::File,
+    fs::{File, OpenOptions},
     io::{Read, Write},
     net::{IpAddr, SocketAddr, TcpStream, UdpSocket},
     num::NonZeroU32,
@@ -37,6 +37,7 @@ pub fn seed(archive: &Path, trackers: Vec<String>) -> Result<SeedInfo> {
         &AtomicBool::new(false),
     )?;
     let sha256 = file_sha256(archive)?;
+    let cancelled = stop_signal_flag()?;
     // librqbit opens served files for writing, so it gets a verified copy
     // under the same name, never the user's file.
     let name = archive
@@ -45,6 +46,7 @@ pub fn seed(archive: &Path, trackers: Vec<String>) -> Result<SeedInfo> {
         .context("Seed archive needs a UTF-8 file name")?;
     let copy = ShareCopy::create(archive, name, &default_share_root(), &sha256)?
         .context("Seed archive changed while it was copied")?;
+    ensure!(!cancelled.load(Ordering::Relaxed), "Seeding cancelled");
     let runtime = tokio::runtime::Runtime::new()?;
     let magnet = runtime.block_on(async {
         let session = session(copy.dir.path().to_path_buf()).await?;
@@ -70,7 +72,7 @@ pub fn seed(archive: &Path, trackers: Vec<String>) -> Result<SeedInfo> {
                 torrent_info: None,
             })?
         );
-        tokio::signal::ctrl_c().await?;
+        wait_for_cancel(&cancelled).await;
         session.stop().await;
         Ok::<_, anyhow::Error>((magnet, peer))
     })?;
@@ -326,6 +328,9 @@ pub struct PeerSettings {
     pub sharing: bool,
     /// `peerKeepSharing`: share finished, verified downloads. Default on.
     pub keep_sharing: bool,
+    /// `peerUploadWhileDownloading`: upload pieces during a peer download.
+    /// Default on.
+    pub upload_while_downloading: bool,
     /// `peerUploadKiBps`: upload cap. Default 100 KiB/s.
     pub upload_kibps: u32,
     /// `peerMode`. Default `Race`.
@@ -347,6 +352,7 @@ impl Default for PeerSettings {
         Self {
             sharing: true,
             keep_sharing: true,
+            upload_while_downloading: true,
             upload_kibps: DEFAULT_UPLOAD_KIBPS,
             mode: PeerMode::Race,
             proxies: Vec::new(),
@@ -395,6 +401,9 @@ impl PeerSettings {
         }
         if let Some(v) = get("peerKeepSharing").and_then(|v| v.as_bool()) {
             out.keep_sharing = v;
+        }
+        if let Some(v) = get("peerUploadWhileDownloading").and_then(|v| v.as_bool()) {
+            out.upload_while_downloading = v;
         }
         if let Some(v) = get("peerUploadKiBps").and_then(|v| v.as_u64()) {
             out.upload_kibps = u32::try_from(v).unwrap_or(u32::MAX);
@@ -469,7 +478,8 @@ impl PeerSettings {
                 self.proxy_list_url.clone(),
                 cache_dir,
             ),
-            upload_while_downloading: true,
+            upload_while_downloading: self.upload_while_downloading,
+            keep_sharing: self.keep_sharing,
             upload_bps: self.upload_bps(),
             trackers: http_trackers(trackers),
             extra_peers: self
@@ -792,7 +802,11 @@ fn fetch_list(url: &str, cache_name: &str, cache_dir: Option<&Path>) -> Result<S
                 Ok(text)
             }
             "http" | "https" => {
+                // No system or environment proxy: list fetches are direct
+                // requests for public data, and ALL_PROXY/HTTPS_PROXY must not
+                // silently reroute them.
                 let client = reqwest::blocking::Client::builder()
+                    .no_proxy()
                     .timeout(Duration::from_secs(20))
                     .build()?;
                 let response = client.get(parsed).send()?.error_for_status()?;
@@ -846,7 +860,10 @@ pub struct SanitizedMagnet {
 /// Rebuild a magnet from its BTv1 `xt`, its `dn`, and http(s) trackers from
 /// the magnet plus `extra_trackers`. Everything else is dropped, including
 /// UDP trackers, `x.pe` peer hints and web seeds, so a guide cannot choose
-/// endpoints the client dials outside the tracker set.
+/// endpoints the client dials outside the tracker set. Magnet trackers with
+/// a host name are kept only if `extra_trackers` also lists them, so no
+/// guide-chosen name reaches the local resolver. `all_trackers` keeps every
+/// `tr=` for the direct path.
 pub fn sanitize_magnet(magnet: &str, extra_trackers: &[String]) -> Result<SanitizedMagnet> {
     ensure!(magnet.starts_with("magnet:?"), "A magnet URI is required");
     let parsed = reqwest::Url::parse(magnet).context("Invalid magnet URI")?;
@@ -871,6 +888,17 @@ pub fn sanitize_magnet(magnet: &str, extra_trackers: &[String]) -> Result<Saniti
     }
     let info_hash = info_hash.context("The magnet needs a BTv1 infohash")?;
     let all_trackers = trackers.clone();
+    // A guide-authored tracker host name would be resolved by the user's
+    // own DNS resolver (reqwest resolves `socks5://` proxy targets locally),
+    // telling it which guide resource is being fetched. Keep magnet trackers
+    // only when the host is a literal IP, or when the same tracker is in the
+    // fetched public list or the user's own trackers.
+    trackers.retain(|tracker| {
+        reqwest::Url::parse(tracker).is_ok_and(|url| {
+            url.host_str()
+                .is_some_and(|host| host.trim_matches(['[', ']']).parse::<IpAddr>().is_ok())
+        }) || extra_trackers.iter().any(|t| t.trim() == tracker.trim())
+    });
     trackers.extend(extra_trackers.iter().cloned());
     let trackers = http_trackers(trackers);
     let mut uri = reqwest::Url::parse("magnet:?").unwrap();
@@ -943,11 +971,14 @@ pub fn base64_decode(text: &str) -> Result<Vec<u8>> {
 /// A file name that is safe to create inside a ModSync folder: one path
 /// component, no separators, no drive or parent references.
 fn safe_file_name(name: &str) -> bool {
+    // One component that passes the guide path rules (`paths::relative`):
+    // no separators, `..`, drive colons, trailing dots or spaces, or Windows
+    // reserved names such as CON.zip, on every host.
     !name.is_empty()
         && name.len() <= 255
-        && name != "."
-        && name != ".."
-        && !name.contains(['/', '\\', ':', '\0'])
+        && !name.contains(['/', '\\'])
+        && crate::paths::relative(name, false)
+            .is_ok_and(|path| path.as_os_str() == std::ffi::OsStr::new(name))
 }
 
 /// An authored info dictionary that matched its magnet.
@@ -974,6 +1005,13 @@ pub fn check_torrent_info(info: &[u8], info_hash: &str) -> Result<CheckedInfo> {
     torrent.push(b'e');
     let parsed = librqbit::torrent_from_bytes(&torrent)
         .map_err(|error| anyhow::anyhow!("TorrentInfo is not a valid info dictionary: {error}"))?;
+    // librqbit identifies the torrent by the SHA-1 of the parsed info span,
+    // which can differ from the raw input (for example trailing bytes).
+    ensure!(
+        parsed.info_hash.as_string().eq_ignore_ascii_case(info_hash),
+        "TorrentInfo parses to infohash {}, not the magnet's {info_hash}",
+        parsed.info_hash.as_string()
+    );
     let data = &parsed.info.data;
     ensure!(
         data.files.is_none(),
@@ -1017,28 +1055,97 @@ pub fn default_share_root() -> PathBuf {
 /// (`storage/filesystem/fs.rs:161`), so it never gets the user's file. The
 /// folder is removed when this is dropped.
 struct ShareCopy {
+    // Dropped first: the lock must be released (and the file closed) before
+    // the folder is removed, or Windows refuses the delete.
+    _owner: File,
     dir: tempfile::TempDir,
     path: PathBuf,
 }
 
+const SHARE_PREFIX: &str = ".modsync-share-";
+const SHARE_OWNER: &str = ".modsync-share-owner";
+const SHARE_ROOT_LOCK: &str = ".modsync-share.lock";
+
+/// Hold the share root's lock while folders are created or swept, so a sweep
+/// never sees a folder whose owner lock is not taken yet.
+fn lock_share_root(root: &Path) -> Result<File> {
+    use fs2::FileExt;
+    std::fs::create_dir_all(root)?;
+    let lock = OpenOptions::new()
+        .create(true)
+        .truncate(false)
+        .write(true)
+        .open(root.join(SHARE_ROOT_LOCK))?;
+    lock.lock_exclusive()?;
+    Ok(lock)
+}
+
+fn sweep_locked(root: &Path) -> usize {
+    use fs2::FileExt;
+    let Ok(entries) = std::fs::read_dir(root) else {
+        return 0;
+    };
+    let mut removed = 0;
+    for entry in entries.flatten() {
+        let name = entry.file_name();
+        if !name.to_string_lossy().starts_with(SHARE_PREFIX)
+            || !entry.file_type().is_ok_and(|t| t.is_dir())
+        {
+            continue;
+        }
+        let owner = entry.path().join(SHARE_OWNER);
+        // A live process holds its owner lock for as long as it shares. A
+        // folder without an owner file cannot be mid-creation, because
+        // creation holds the root lock that this sweep holds now.
+        let stale = match OpenOptions::new().write(true).open(&owner) {
+            Ok(file) => file.try_lock_exclusive().is_ok(),
+            Err(error) => error.kind() == std::io::ErrorKind::NotFound,
+        };
+        if stale && std::fs::remove_dir_all(entry.path()).is_ok() {
+            removed += 1;
+        }
+    }
+    removed
+}
+
+/// Remove sharing folders left by processes that died (SIGKILL, power loss).
+/// Folders of live processes, in this or another process, are kept.
+pub fn sweep_stale_shares(root: &Path) -> Result<usize> {
+    let _lock = lock_share_root(root)?;
+    Ok(sweep_locked(root))
+}
+
 impl ShareCopy {
     /// Copy `archive` to `<root>/.modsync-share-*/<name>` and check the copy's
-    /// SHA-256. `std::fs::copy` clones where the platform can (clonefile on
-    /// macOS; copy_file_range on Linux, which the kernel may serve as a
-    /// reflink on the same filesystem) and copies bytes otherwise. Returns
-    /// `None` when the copy does not hash to `sha256`.
+    /// SHA-256. Stale folders from dead processes are swept first. The
+    /// folder carries an owner lock for as long as this value lives.
+    /// `std::fs::copy` clones where the platform can (clonefile on macOS;
+    /// copy_file_range on Linux, which the kernel may serve as a reflink on
+    /// the same filesystem) and copies bytes otherwise. Returns `None` when
+    /// the copy does not hash to `sha256`.
     fn create(archive: &Path, name: &str, root: &Path, sha256: &str) -> Result<Option<Self>> {
+        use fs2::FileExt;
         ensure!(safe_file_name(name), "Unsafe torrent file name");
-        std::fs::create_dir_all(root)?;
-        let dir = tempfile::Builder::new()
-            .prefix(".modsync-share-")
-            .tempdir_in(root)?;
+        let (owner, dir) = {
+            let _root = lock_share_root(root)?;
+            sweep_locked(root);
+            let dir = tempfile::Builder::new()
+                .prefix(SHARE_PREFIX)
+                .tempdir_in(root)?;
+            let owner = File::create(dir.path().join(SHARE_OWNER))?;
+            owner.lock_exclusive()?;
+            (owner, dir)
+        };
         let path = dir.path().join(name);
         std::fs::copy(archive, &path)?;
         if !file_sha256(&path)?.eq_ignore_ascii_case(sha256) {
             return Ok(None);
         }
-        Ok(Some(Self { dir, path }))
+        Ok(Some(Self {
+            _owner: owner,
+            dir,
+            path,
+        }))
     }
 }
 
@@ -1050,6 +1157,9 @@ pub struct PeerPolicy {
     /// Upload pieces while a peer download runs (default true, needed for
     /// 90548). `false` sets librqbit's `disable_upload` on download sessions.
     pub upload_while_downloading: bool,
+    /// Share finished, verified downloads (`peerKeepSharing`). When false,
+    /// `share_verified*` returns `SharingOff` and opens nothing.
+    pub keep_sharing: bool,
     /// Upload cap. Values under `MIN_UPLOAD_BPS` are raised to it.
     pub upload_bps: Option<NonZeroU32>,
     /// http(s) trackers: list-fetched plus user-entered. Magnet `tr=` entries
@@ -1352,6 +1462,8 @@ pub enum ShareStop {
     tag = "outcome"
 )]
 pub enum ShareOutcome {
+    /// "Keep sharing finished downloads" is off. Nothing was opened.
+    SharingOff,
     /// The authored name is not a single safe file name. Nothing was shared.
     UnsafeName { name: String },
     /// The file (or its private copy) does not match the authored SHA-256.
@@ -1423,6 +1535,9 @@ pub fn share_verified_authored(
     until: ShareUntil,
     cancelled: &AtomicBool,
 ) -> Result<ShareOutcome> {
+    if !policy.keep_sharing {
+        return Ok(ShareOutcome::SharingOff);
+    }
     share_authored(
         archive,
         authored,
@@ -1498,6 +1613,14 @@ fn share_authored(
             actual: "copy differs".to_owned(),
         });
     };
+    if cancelled.load(Ordering::Relaxed) {
+        return Ok(ShareOutcome::Stopped {
+            reason: ShareStop::Cancelled,
+            info_hash: magnet.info_hash,
+            uploaded_bytes: 0,
+            seconds: 0,
+        });
+    }
     let runtime = tokio::runtime::Runtime::new()?;
     let torrent_bytes: Vec<u8> = match &info {
         Some(info) => info.torrent.clone(),
@@ -1762,6 +1885,16 @@ pub struct CliProxyOptions {
     pub proxy_list_url: Option<String>,
     /// `--tracker-list-url`. Empty means the default ngosang lists.
     pub tracker_list_urls: Vec<String>,
+    /// `--upload-kibps`. `None` means the default 100 KiB/s.
+    pub upload_kibps: Option<u32>,
+    /// `--no-upload-while-downloading`.
+    pub no_upload_while_downloading: bool,
+    /// `--share-hours`: stop sharing an authored archive after this long.
+    /// `None` means 24; 0 means no limit.
+    pub share_hours: Option<f64>,
+    /// `--share-ratio`: stop at this upload ratio. `None` means 1.0; 0 means
+    /// no limit.
+    pub share_ratio: Option<f64>,
 }
 
 fn cli_cache_dir() -> Option<PathBuf> {
@@ -1771,6 +1904,28 @@ fn cli_cache_dir() -> Option<PathBuf> {
 }
 
 impl CliProxyOptions {
+    fn upload_bps(&self) -> Option<NonZeroU32> {
+        let kibps = self.upload_kibps.unwrap_or(DEFAULT_UPLOAD_KIBPS);
+        NonZeroU32::new(kibps.saturating_mul(1024).max(MIN_UPLOAD_BPS))
+    }
+
+    /// The plan's stop rules (24 h, ratio 1.0), overridable; 0 disables one.
+    fn share_until(&self) -> ShareUntil {
+        let defaults = ShareUntil::default();
+        ShareUntil {
+            max_duration: match self.share_hours {
+                None => defaults.max_duration,
+                Some(h) if h > 0.0 => Some(Duration::from_secs_f64(h * 3600.0)),
+                Some(_) => None,
+            },
+            max_ratio: match self.share_ratio {
+                None => defaults.max_ratio,
+                Some(r) if r > 0.0 => Some(r),
+                Some(_) => None,
+            },
+        }
+    }
+
     fn policy(
         &self,
         extra_trackers: Vec<String>,
@@ -1801,8 +1956,9 @@ impl CliProxyOptions {
         trackers.extend(fetch_tracker_lists(&list_urls, cache.as_deref()));
         Ok(PeerPolicy {
             proxy: ProxyPool::new(proxies, list_url, cache),
-            upload_while_downloading: true,
-            upload_bps: NonZeroU32::new(DEFAULT_UPLOAD_KIBPS * 1024),
+            upload_while_downloading: !self.no_upload_while_downloading,
+            keep_sharing: true,
+            upload_bps: self.upload_bps(),
             trackers: http_trackers(trackers),
             extra_peers,
             stall_timeout: Duration::from_secs(120),
@@ -1812,21 +1968,56 @@ impl CliProxyOptions {
     }
 }
 
-/// Set the returned flag on Ctrl+C (SIGINT), so sessions stop cleanly and
-/// temp folders are removed.
-fn ctrl_c_flag() -> std::sync::Arc<AtomicBool> {
+/// Return a flag that is set on SIGINT or SIGTERM (Ctrl+C, Ctrl+Break or
+/// console close on Windows), so sessions stop cleanly and temp and share
+/// folders are removed. The handlers are registered before this returns, so
+/// call it before creating anything that needs cleanup.
+fn stop_signal_flag() -> Result<std::sync::Arc<AtomicBool>> {
     let flag = std::sync::Arc::new(AtomicBool::new(false));
+    let runtime = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()?;
+    #[cfg(unix)]
+    let wait = {
+        use tokio::signal::unix::{SignalKind, signal};
+        let _guard = runtime.enter();
+        let mut interrupt = signal(SignalKind::interrupt())?;
+        let mut terminate = signal(SignalKind::terminate())?;
+        async move {
+            tokio::select! {
+                _ = interrupt.recv() => {}
+                _ = terminate.recv() => {}
+            }
+        }
+    };
+    #[cfg(windows)]
+    let wait = {
+        use tokio::signal::windows;
+        let _guard = runtime.enter();
+        let mut c = windows::ctrl_c()?;
+        let mut brk = windows::ctrl_break()?;
+        let mut close = windows::ctrl_close()?;
+        async move {
+            tokio::select! {
+                _ = c.recv() => {}
+                _ = brk.recv() => {}
+                _ = close.recv() => {}
+            }
+        }
+    };
+    #[cfg(not(any(unix, windows)))]
+    let wait = {
+        let _guard = runtime.enter();
+        async move {
+            let _ = tokio::signal::ctrl_c().await;
+        }
+    };
     let set = flag.clone();
     std::thread::spawn(move || {
-        if let Ok(runtime) = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-        {
-            let _ = runtime.block_on(tokio::signal::ctrl_c());
-            set.store(true, Ordering::Relaxed);
-        }
+        runtime.block_on(wait);
+        set.store(true, Ordering::Relaxed);
     });
-    flag
+    Ok(flag)
 }
 
 fn decode_cli_info(torrent_info: Option<&str>) -> Result<Option<Vec<u8>>> {
@@ -1866,7 +2057,7 @@ pub fn cli_download(
         );
     }
     let policy = proxy.policy(Vec::new(), peers)?;
-    let cancelled = ctrl_c_flag();
+    let cancelled = stop_signal_flag()?;
     fetch_authored(
         AuthoredTorrent {
             magnet,
@@ -1894,6 +2085,7 @@ pub fn cli_seed(
     proxy: &CliProxyOptions,
 ) -> Result<()> {
     let info = decode_cli_info(torrent_info)?;
+    let until = proxy.share_until();
     match (authored_magnet, proxy.no_proxy) {
         (None, true) => {
             ensure!(info.is_none(), "--torrent-info needs --authored-magnet");
@@ -1904,6 +2096,8 @@ pub fn cli_seed(
             seed_minted_proxied(archive, trackers, proxy)
         }
         (Some(magnet), no_proxy) => {
+            // Handlers first, so a signal during the copy still cleans up.
+            let cancelled = stop_signal_flag()?;
             ensure!(archive.is_file(), "Seed archive does not exist");
             crate::archive::verify(
                 archive,
@@ -1912,12 +2106,11 @@ pub fn cli_seed(
                 &AtomicBool::new(false),
             )?;
             let sha256 = file_sha256(archive)?;
-            let cancelled = ctrl_c_flag();
             let policy;
             let share_root = default_share_root();
             let transport = if no_proxy {
                 ShareTransport::Direct {
-                    upload_bps: NonZeroU32::new(DEFAULT_UPLOAD_KIBPS * 1024),
+                    upload_bps: proxy.upload_bps(),
                     share_root: &share_root,
                 }
             } else {
@@ -1934,10 +2127,7 @@ pub fn cli_seed(
                 },
                 &sha256,
                 transport,
-                ShareUntil {
-                    max_duration: None,
-                    max_ratio: None,
-                },
+                until,
                 &cancelled,
                 |peer| {
                     // Same line as legacy `torrent-seed`, printed once sharing starts.
@@ -1973,6 +2163,7 @@ fn seed_minted_proxied(
         &AtomicBool::new(false),
     )?;
     let sha256 = file_sha256(archive)?;
+    let cancelled = stop_signal_flag()?;
     let policy = proxy.policy(trackers, Vec::new())?;
     let targets = HealthTarget::from_sources(&policy.trackers, &[]);
     if targets.is_empty() {
@@ -1988,7 +2179,7 @@ fn seed_minted_proxied(
         .context("Seed archive needs a UTF-8 file name")?;
     let copy = ShareCopy::create(archive, name, &policy.share_root, &sha256)?
         .context("Seed archive changed while it was copied")?;
-    let cancelled = ctrl_c_flag();
+    ensure!(!cancelled.load(Ordering::Relaxed), "Seeding cancelled");
     let runtime = tokio::runtime::Runtime::new()?;
     runtime.block_on(async {
         let session = proxied_session(

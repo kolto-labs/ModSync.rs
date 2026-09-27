@@ -420,6 +420,18 @@ struct TorrentProxyArgs {
     /// Connect to peers directly, with DHT, a listener and UPnP. Peers will see your IP address.
     #[arg(long)]
     no_proxy: bool,
+    /// Upload cap in KiB/s (default 100, minimum 16).
+    #[arg(long)]
+    upload_kibps: Option<u32>,
+    /// Download from peers without uploading to them.
+    #[arg(long)]
+    no_upload_while_downloading: bool,
+    /// With --authored-magnet: stop sharing after this many hours (default 24; 0 = no limit).
+    #[arg(long)]
+    share_hours: Option<f64>,
+    /// With --authored-magnet: stop sharing at this upload ratio (default 1.0; 0 = no limit).
+    #[arg(long)]
+    share_ratio: Option<f64>,
 }
 
 impl From<TorrentProxyArgs> for modsync::p2p::CliProxyOptions {
@@ -429,6 +441,10 @@ impl From<TorrentProxyArgs> for modsync::p2p::CliProxyOptions {
             proxies: args.peer_proxy,
             proxy_list_url: args.peer_proxy_list_url,
             tracker_list_urls: args.tracker_list_url,
+            upload_kibps: args.upload_kibps,
+            no_upload_while_downloading: args.no_upload_while_downloading,
+            share_hours: args.share_hours,
+            share_ratio: args.share_ratio,
         }
     }
 }
