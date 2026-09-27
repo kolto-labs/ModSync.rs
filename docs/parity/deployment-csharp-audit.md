@@ -63,17 +63,17 @@ Row: `docs/parity/ACCEPTANCE.md` F18 (partial). Notes: `COMPATIBILITY.md` "Manag
 | 3 | **Partial deploy leaves files nobody owns.** Rust rejected legal filenames (`[`, `]`, trailing dot) partway through the loop. Any I/O error after earlier files were linked left them live, left backups moved, and wrote no manifest. C# has the same no-rollback shape. | Old `confined()` used `paths::relative(rel, false)` | Fixed. The whole staged tree is preflighted before the game directory changes. Deploy-path rules follow C# (relative, no `..`, no NUL, no drive on Windows). Failures roll back and no manifest is written (probes P7, P10). |
 | 4 | **Symlink escape.** `exists()` and `fs::copy` followed symlinks, so a symlinked `Override` would write outside the game tree. C# behaves the same. | Probe P8 | Fixed. Symlinked or non-directory ancestors and non-file targets are refused. Staged symlinks are refused, matching `engine::scan`. Copy fallback uses `create_new`. |
 | 5 | **Patcher provenance missing.** | C# `:184-329` | Ported: `capture_index`, `diff_index`, `record_live`. One deliberate difference: a pre-existing file changed by the patcher is recorded only when a prior copy with the old hash is supplied. That copy becomes its backup. C# records such a file without a backup, so its uninstall deletes, for example, `dialog.tlk`. CLI: `deployment snapshot` and `deployment record` (P15). |
-| 6 | **Out-of-order uninstall orphans the original.** Uninstall A while a later B still overwrites the same path. A's file hash mismatches, so it is skipped, and A's backup holding the original is abandoned. B's uninstall later restores A's bytes, which nobody owns. C# behaves the same. | Probe P6 | Fixed (deliberate difference). If the newest manifest deployed *after* A has a backup whose hash equals A's deployed hash, A's original moves into that backup slot (or that entry's backup is dropped when A displaced nothing). Reported as `transferred`. |
-| 7 | **Profile roots and switching.** | C# `ManagedInstallSession.cs:152-156` | `Service::for_profile` and `Service::resolve`. The CLI accepts `--profile`/`--settings-dir`, or uses the active profile, with the C# missing-profile message. `deployment switch --to <p> [--purge-current]` is new behavior. It optionally purges the active profile's deployments, then activates the target through the existing `profiles::Store` API and reports its staged-but-undeployed components. It does not redeploy them, because install order lives in the install run, not the staging tree (P14). Without `--purge-current`, it warns when the current profile still has deployments in that game directory (P17). |
+| 6 | **Out-of-order uninstall orphans the original.** Uninstall A while a later B still overwrites the same path. A's file hash mismatches, so it is skipped, and A's backup holding the original is abandoned. B's uninstall later restores A's bytes, which nobody owns. C# behaves the same. | Probe P6 | Fixed (deliberate difference). If the newest manifest deployed *after* A has a backup whose hash equals A's deployed hash, A's original moves into that backup slot (or that entry's backup is dropped when A displaced nothing). Reported as `transferred`. The move is one `rename` inside the manifest root, which replaces the later owner's slot atomically, so a failure leaves both backups and both manifests as they were (P26). The match is on backup hashes plus later `DeployedUtc`, so `DeployedUtc` is never rewritten after creation (P21). |
+| 7 | **Profile roots and switching.** | C# `ManagedInstallSession.cs:152-156` | `Service::for_profile` and `Service::resolve`. The CLI accepts `--profile`/`--settings-dir`, or uses the active profile, with the C# missing-profile message. `deployment switch --to <p> [--purge-current]` is new behavior. It optionally purges the active profile's deployments, then activates the target through the existing `profiles::Store` API and reports its staged-but-undeployed components. It does not redeploy them, because install order lives in the install run, not the staging tree (P14). Without `--purge-current`, it is refused while the current profile still has deployments (P17). |
 | 8 | **One corrupt manifest blocked status and purge.** C# skips it with a warning. | Probe P12 | Fixed: `deployed_with_warnings`; the CLI prints warnings on stderr. |
 | 9 | **Backup tree not pruned recursively.** An empty `backups/<guid>/Override/` stayed behind. | Old `prune(&backups, Some(&backup))` | Fixed: `remove_empty_tree`, the equivalent of C# `DeleteDirectoryIfEmptyRecursive` (P2). |
 | 10 | **Hash comparison was case-sensitive, and backups were restored without checking `OverwroteExisting`.** | C# `:370`, `:387` | Fixed. |
 | 11 | **GUID casing.** C# names manifests `Guid.ToString("D")`. Rust used the raw ID. | Probes P13, P16 | GUID-shaped IDs are unbraced and lowercased for the manifest name and `ComponentGuid`. Manifest and backup lookups fall back to a case-insensitive filename match, so manifests written by the earlier CLI under an uppercase name are still found by uninstall, purge and the redeploy guard (P16). The staging lookup falls back to the raw name. |
 | 12 | **DeployedUtc precision.** chrono wrote nine fractional digits. | C# manifest shows `2026-09-27T17:01:49.3313133Z` | Now written with seven digits plus `Z`. Reading accepts RFC 3339 or offset-less text. |
-| 13 | **Case-aware destinations on case-sensitive filesystems.** `override/a.tga` created a second `override/` next to `Override/`. C# on Linux does the same. | Probe P11 | Fixed (Linux-only difference). Existing case variants are reused. The manifest records the on-disk path. Case-colliding entries are refused. |
+| 13 | **Case-aware destinations on case-sensitive filesystems.** `override/a.tga` created a second `override/` next to `Override/`. C# on Linux does the same. | Probe P11 | Fixed (Linux-only difference). Existing case variants are reused. The manifest records the on-disk path. Deploy always scans each directory and refuses case-colliding entries, even when the exact spelling exists (P19). Uninstall uses the recorded spelling first, so a case variant created later does not hide a deployed file (P24). An entry that cannot be resolved safely stays in the manifest instead of being dropped. |
 | 14 | Conflict (ownership) warnings | C# `:122-126` | Ported. They go to stderr, and deploy stdout stays manifest-shaped. |
 | 15 | GUI management: status indicator, per-component uninstall, purge, deployed badge, install-in-progress guard | `ManagedDeploymentActions.cs` | Open. `ui.rs` is out of scope for this lane. The library now returns the reports a GUI needs. |
-| 16 | **Two live profiles over one game directory.** The ownership handoff (rank 6) and conflict warnings search only one profile's manifest root. Manifests do not record which game directory they target. Out-of-order uninstalls *across* profiles can therefore still orphan an original backup, as in C#. | Code reading; P14 covers only the purge path | Open. The switch warning (P17) is the only guard. A full fix needs a game-directory field or a shared ownership index, which changes the C# manifest shape. |
+| 16 | **Two live profiles over one game directory.** The ownership handoff (rank 6) and conflict warnings search only one profile's manifest root, so out-of-order uninstalls across profiles orphaned an original (reproduced by the independent review). | Review finding 1; probes P17, P18 | Fixed by exclusivity, not by a shared index. Each manifest root records its game directory in a `game-directory` marker file. The manifest shape is unchanged. Deploy, append and record refuse while any other profile under the same settings directory has manifests for this game, or has manifests and no marker. `switch` without `--purge-current` is now refused while the current profile is live. A root with manifests also refuses every other game directory, for uninstall and purge too (P28). Explicit `--manifest-dir` roots have no peers to check; that path is for tooling and tests. |
 | 17 | In-place edit of a hardlinked deployed file also edits the staged copy | Hardlink semantics, in both implementations | Documented. Uninstall still detects the edit because the manifest hash was taken at deploy time. The staged tree is then no longer pristine. |
 
 ### Not changed on purpose
@@ -139,7 +139,7 @@ current_component: Option<String /*normalized guid*/>,
 
 ## 5. Verification
 
-The real CLI binary was run: `target-dep/debug/modsync deployment …` (no-default-features build) against disposable trees in `/tmp/depprobe/run/*`. Script: `docs/parity/deployment-probe.sh`. Result: **45 pass, 0 fail**. Manifest notation: `path+bk` means a backup exists, `/hl` means hardlink, `/cp` means copy.
+The real CLI binary was run: `target-dep/debug/modsync deployment …` (no-default-features build) against disposable trees in `/tmp/depprobe/run/*`. Script: `docs/parity/deployment-probe.sh`. Result at `b1c60b1`: **63 pass, 0 fail**, exit 0. Binary: `--no-default-features` build copied to `/tmp/depprobe/modsync-nodefault-b1c60b1`, sha256 `838c24e64288424a1337d1b2f67aca54168619fbf4cd813678314a633aad3f89`. The script prints that hash and `source: b1c60b1…` with no uncommitted-source flag. Receipt: `~/.cache/modsync-codex/runs/deploy-fix/probe-b1c60b1.log` (copy in `/tmp/depprobe`). The script exits 1 on any failed probe and 2 on setup errors: with `B=/bin/false` it reports 28/35 and exits 1 (`probe-failclosed.log` in the same directory), and with a missing binary it exits 2. Manifest notation: `path+bk` means a backup exists, `/hl` means hardlink, `/cp` means copy.
 
 | Probe | Before manifests | After manifests | Result |
 |---|---|---|---|
@@ -158,7 +158,18 @@ The real CLI binary was run: `target-dep/debug/modsync deployment …` (no-defau
 | P13 `{AAAAAAAA-…}` then `AAAAAAAA-…` | (none) | `aaaaaaaa….json` | lowercase manifest name; uppercase uninstall finds it |
 | P14 profiles One and Two, one game dir | One: `aaaaaaaa[x+bk]` | One: (none); Two: `bbbbbbbb[x+bk]` | `switch --to Two --purge-current` restored `ORIG`; the active profile resolves roots; `purge --profile Two` gives `ORIG` |
 | P16 legacy `AAAAAAAA-….json` and `backups/AAAAAAAA-…/` (earlier CLI naming) | `AAAAAAAA-…[Override/a.tga+bk]` | (none) | redeploy refused; purge restores `ORIG` and removes the backup directory |
-| P17 `switch --to Two` with One still deployed, no purge | One: `aaaaaaaa[x.txt]` | unchanged | stderr warning "still has 1 deployment(s)"; files stay |
+| P17 `switch --to Two` with One still deployed, no purge | One: `aaaaaaaa[x.txt]` | unchanged | exit 1 "still has 1 deployment(s)"; One stays active; files stay |
+| P18 profile Two deploys while One owns the game | One: `aaaaaaaa[x+bk]` | unchanged | Two refused, `ONE` live; after One's purge Two deploys and its purge gives `ORIG` |
+| P19 game has `Override/` and `override/`, staged `Override/a.tga` | (none) | (none) | exit 1 "Case-colliding entries"; nothing deployed |
+| P20 patcher replaces `dialog.tlk`, which A deployed | `aaaaaaaa[dialog.tlk+bk/hl]` | `aaaaaaaa[dialog.tlk+bk/cp]` | `updated=[dialog.tlk]`; staged copy now `PATCHED`; uninstall restores `ORIG` |
+| P21 record on older A after B overwrote it | `aaaaaaaa[x+bk] bbbbbbbb[x+bk]` | A gains `new.2da` | A's `DeployedUtc` unchanged; uninstall A then B gives `ORIG`, no orphan backups |
+| P22 another process holds the game lock | (none) | (none) | exit 1 "Another ModSync process"; deploys once free |
+| P23 prior copy does not match the snapshot | (none) | (none) | `skipped=[dialog.tlk]`; no backup file left |
+| P24 `override/` created after deploying into `Override/` | `aaaaaaaa[Override/a.tga+bk]` | (none) | uninstall restores `ORIG`; no orphan backup |
+| P25 record A after the patcher changes B's newer `y.2da` | `aaaaaaaa[x+bk] bbbbbbbb[y+bk]` | unchanged | `skipped=[Override/y.2da]`; nothing recorded in A; no backup made |
+| P26 handoff rename fails (B's backup dir mode 555) | `aaaaaaaa[x+bk] bbbbbbbb[x+bk]` | unchanged | exit 1 "Could not hand the original…"; B's slot still `A`, A's still `ORIG`; retry gives `ORIG` |
+| P27 record fails on the second backup (dir mode 555) | (none) | (none) | exit 1; the first backup was removed; retry records both; uninstall restores both |
+| P28 uninstall with another `--game-dir` | `aaaaaaaa[a.txt]` | unchanged | exit 1 "These deployments belong to game directory…"; marker unchanged |
 | P15 snapshot, "patcher" edits `dialog.tlk` and adds `new.2da`, record with `--backup-source` | (none) | `aaaaaaaa[Override/new.2da/cp, dialog.tlk+bk/cp]` | uninstall restores `DIALOG0` and removes `new.2da`; without a backup source the changed `dialog.tlk` is skipped |
 
 ### C# differential (built DLL, nothing compiled)
@@ -171,45 +182,47 @@ The real CLI binary was run: `target-dep/debug/modsync deployment …` (no-defau
 | D2 mixed writers, Rust purge | Rust deployed `RustB` into the same profile, then C# installed A over it. C# logged `Conflict: 'Override/x.2da' … already deployed by component 'RustB'`, so C# parsed the Rust-written manifest. It backed up the Rust hardlink. Rust purge order was A (C#), then B (Rust), and the live file is `ORIG` with no leftovers. |
 | D3 C# redeploy of the same component | Run 1: backup=`ORIG`. Run 2: backup=`CSNEW` (C# `DeploymentService.cs:150-155`). Purge leaves `CSNEW`, so the original is lost. Rust refuses this case (P3). |
 
+Re-run at `b1c60b1` on the host: 8 assertions, `TOTAL fail=0`, exit 0. DLL sha256 `2c8cb17a6048127f051faf941b840f2e43c65476ac7a018247f383c5bffac270`; Rust binary sha256 `838c24e6…` as above. Receipt: `~/.cache/modsync-codex/runs/deploy-fix/differential-b1c60b1.log`. The C# DLL neither writes nor reads the `game-directory` marker; D2 shows both still share the same roots.
+
 Not covered: a C# purge or uninstall of a Rust-written manifest, because C# exposes no CLI verb for it (GUI only). Windows and macOS filesystem behavior was not checked.
 
 ## 6. Engine-facing API added after review of `68adc4d`
 
 These are library-only additions, with no CLI verb yet. They are **unverified at runtime**: no existing verb reaches them, and the test freeze rules out tests. The walkthrough below is from the code.
 
-### `Service::deploy_append(component, name)` (`src/deployment.rs:502`)
+### `Service::deploy_append(component, name)`
 
 This is the barrier deploy for rule 5. It deploys what is staged so far for a component. It leaves the component open, so later steps can stage more and call it again.
 
-1. **No manifest yet.** It delegates to `deploy_report` (`:508-510`), so the first barrier behaves like a normal deploy.
-2. **Preflight the whole staged tree** before the game tree changes (`:529-614`). The checks match `deploy_report`: staged symlinks are refused, destinations are resolved case-aware, case-duplicate staged files are refused, and symlinked ancestors are refused.
-3. **Owned path with an unchanged staged hash** is skipped (`:561-563`). This covers files already deployed by an earlier barrier.
-4. **Owned path with a changed staged hash.** The live file is replaced only if its bytes still equal the manifest hash. Otherwise the call fails before anything changes (`:564-580`). The entry keeps its original backup. This covers:
+1. **No manifest yet.** It delegates to `deploy_report`, so the first barrier behaves like a normal deploy.
+2. **Preflight the whole staged tree** before the game tree changes. The checks match `deploy_report`: staged symlinks are refused, destinations are resolved case-aware, case-duplicate staged files are refused, and symlinked ancestors are refused.
+3. **Owned path with an unchanged staged hash** is skipped. This covers files already deployed by an earlier barrier.
+4. **Owned path with a changed staged hash.** The live file is replaced only if its bytes still equal the manifest hash. Otherwise the call fails before anything changes. The entry keeps its original backup. This covers:
    - a later Copy over a file staged earlier;
    - a staged Copy over patcher output that `record_live` recorded.
    In both cases uninstall still restores the pre-install original.
-5. **Unowned path** is backed up and deployed exactly as in `deploy_report`, with the same conflict warning and stale-backup guard (`:582-614`).
-6. **Execution.** Replaced live files are parked under `<manifest root>/append-pending/<id>` before they are overwritten (`:616-649`). A leftover parking directory from an interrupted run blocks the call.
-7. **Failure.** Any error, including a failed manifest save, rolls back the batch (`:651-667`):
+5. **Unowned path** is backed up and deployed exactly as in `deploy_report`, with the same conflict warning and stale-backup guard. A path owned by a component deployed *after* this one is refused: this manifest keeps its older `DeployedUtc`, so taking the path would invert that owner's backup chain.
+6. **Execution.** Replaced live files are parked under `<manifest root>/append-pending/<id>` before they are overwritten. A leftover parking directory from an interrupted run blocks the call.
+7. **Failure.** Any error, including a failed manifest save, rolls back the batch:
    - new files are removed and their backups restored (`roll_back`);
    - parked files are moved back.
    Earlier batches stay deployed and recorded.
-8. **Save.** The manifest is saved once per batch (`:668-691`):
+8. **Save.** The manifest is saved once per batch:
    - replaced entries get the new hash, size and method;
    - new entries are appended;
-   - `DeployedUtc` moves to now, so purge unwinds the component after anything deployed before it.
+   - `DeployedUtc` is kept. It is ownership and purge order, and moving it broke the handoff (review finding 4).
    Then the parking directory is removed.
 
-### `Service::reinstall_blockers(component)` (`:696`) and `prepare_reinstall(component)` (`:742`)
+### `Service::reinstall_blockers(component)` and `prepare_reinstall(component)`
 
 - **`reinstall_blockers`** is read-only. It uses the same resolution as `uninstall_report` and returns owned paths that uninstall would skip:
-  - unsafe paths;
+  - unsafe paths, and paths that cannot be resolved safely (case collisions, symlink or file ancestors);
   - paths that are no longer regular files;
   - files with a hash mismatch that no later deployment has backed up (`later_owner`).
 - **`prepare_reinstall`**:
-  1. Fails closed on any blocker, before any change (`:744-749`).
-  2. Runs `uninstall_report`. As a defensive check, it errors if the tree changed in between and something was still skipped (`:750-763`).
-  3. Removes the component's staging directory, only if it is a real directory, so the reinstall stages from scratch (`:765-769`).
+  1. Fails closed on any blocker, before any change.
+  2. Runs `uninstall_report`. As a defensive check, it errors if the tree changed in between and something was still skipped.
+  3. Removes the component's staging directory, only if it is a real directory, so the reinstall stages from scratch.
   4. With no manifest, it only clears staging.
 
 ### Engine call order (for the engine owner)
@@ -223,3 +236,26 @@ This is the barrier deploy for rule 5. It deploys what is staged so far for a co
    - `record_live(guid, name, &before, Some(snapshot_game))`;
    - `scan()`.
 4. At the end of the component: `deploy_append(guid, name)`, then `scan()`.
+
+## 7. Independent review of `68adc4d` and what changed
+
+Review: `/home/brunner56/.cache/modsync-codex/runs/review-deploy/report.md` (CHANGES_REQUIRED). It approved these deviations: redeploy refusal, backup-required provenance, stable-tree symlink refusal, single-variant case reuse, lowercase manifests with legacy discovery, and the same-profile handoff happy path. They stay. Fixes landed in `b1c60b1`.
+
+| # | Finding | Answer | Change and referent |
+|---|---|---|---|
+| 1 | Two live profiles strand bytes | concede | Each manifest root records its game directory in a `game-directory` marker. Deploy, append and record refuse while another profile has manifests for this game, or has manifests and no marker (`ensure_exclusive_game`, P18). A root refuses any other game directory, for uninstall and purge too (`ensure_own_game`, P28). `switch` without `--purge-current` is refused while the current profile is live (P17). The manifest shape is unchanged. |
+| 2 | Rollback not race-safe | concede for scenarios 1, 3 and 4; defend the residual of scenario 2 | (1) A write never replaces an existing file: it hardlinks, or publishes a temp copy with `persist_noclobber`. A file that appears after preflight makes the write fail and is left alone (`place`). (3) Undo deletes a file only while its hash equals the bytes this run deployed. It moves originals back with no clobber (`undo_one`, `move_no_clobber`). (4) Undo reports every failure. Entries it could not undo are saved in the manifest so uninstall can finish (`abort`). CLI mutations take the per-game lock that `recovery::Lock` takes, so ModSync writers are serialized (P22). Both paths are canonical (`paths::Roots::new`, `Service::new`). (2) Ancestors are re-checked right before each write. A write whose parent resolves outside the game tree is removed and reported (`place`). **Defended residual:** a non-ModSync process that swaps an ancestor for a symlink between that re-check and `create_dir_all`/`hard_link` can still cause a brief write outside the tree. Closing it needs descriptor-relative `openat`/`O_NOFOLLOW` walking. That means a new crate in `Cargo.toml`, which this lane does not own, and std has no Windows equivalent. No shell probe can hit these windows reliably, so the evidence for scenarios 1-4 is the code above, not a probe. |
+| 3 | Provenance skips owned paths | concede | `record_live` adopts patcher output for an owned path when the pre-patcher bytes were this component's. It updates the entry hash, keeps the original backup, and syncs the staged copy before saving, so `deploy_append` does not redeploy stale bytes. If something else changed the path before the patcher, it skips with a warning. P20. |
+| 4 | `record_live` rewrites ordering | concede | `DeployedUtc` is set only when a manifest is created. `record_live` and `deploy_append` (`fa3eab3` had the same bug) keep it (P21). Both also refuse to take a path a *newer* component owns, which would invert the chain through a different door (`deploy_append` refuses; `record_live` skips with a warning, P25). |
+| 5 | Handoff not failure-atomic | concede | The original moves into the later owner's slot with one `rename` inside the manifest root, which replaces the slot atomically. The slot is never empty. A failed rename leaves both backups and both manifests unchanged (P26). When A displaced nothing, B's manifest is saved before B's backup is deleted. |
+| 6 | Provenance backup not transactional | concede | The copy goes to a temp file. The hash of that exact file must equal the snapshot hash (P23). It is synced, then published with no clobber. Any later error, including a failed manifest save, removes every backup this call created, and names any it could not remove (P27). |
+| 7 | Exact spelling hides case collisions | concede | `resolve_case` always scans the directory and refuses more than one case-equivalent entry (P19). Uninstall and `reinstall_blockers` resolve the recorded spelling first (`locate`), so a variant created after deploy cannot make uninstall drop an entry (P24). An entry that cannot be resolved safely stays in the manifest. |
+| 8 | Probes are observations | concede | Both scripts run under `bash` with `set -u`. They check their setup, print the binary hash and source commit, assert every result, and exit nonzero on any mismatch (1 on a failed assertion, 2 on setup). With `B=/bin/false` the probe exits 1. The C# DLL is identified by hash only; its source provenance stays unresolved without a pinned rebuild. |
+
+`fa3eab3` re-check against findings 3 and 5:
+
+- `deploy_append` shared finding 4 (it moved `DeployedUtc`); now fixed.
+- For finding 3, `deploy_append` relies on `record_live` keeping staging in step. It still refuses to replace an owned live file whose bytes changed.
+- It does not use the handoff (finding 5). Its parking and undo use the no-clobber move and hash-guarded undo. It now refuses paths a newer component owns.
+- `prepare_reinstall` runs `reinstall_blockers` first. That refuses when a patcher changed an owned file that `record_live` did not adopt (finding 3). It then runs `uninstall_report`, which uses the atomic handoff (finding 5).
+- Neither `deploy_append` nor `prepare_reinstall` has a CLI verb. Both are unverified at runtime.
