@@ -192,6 +192,48 @@ impl Engine {
         dry_run: bool,
         dry_run_only: bool,
     ) -> crate::validation::Report {
+        self.validate_report_with_options_observed(
+            guide,
+            emit,
+            full_validation,
+            dry_run,
+            dry_run_only,
+            |_| {},
+        )
+    }
+
+    /// Observe actual stage starts and completions without changing ordinary events.
+    #[allow(clippy::too_many_arguments)]
+    pub fn validate_report_with_options_observed(
+        self,
+        guide: &Guide,
+        emit: impl FnMut(Event),
+        full_validation: bool,
+        dry_run: bool,
+        dry_run_only: bool,
+        mut progress: impl FnMut(crate::validation::StageProgress),
+    ) -> crate::validation::Report {
+        use crate::validation::{Stage, StageProgress};
+        let total = usize::from(full_validation) * 3
+            + usize::from(!dry_run_only)
+            + 1
+            + usize::from(dry_run);
+        let mut step = 0;
+        let mut boundary = |stage, message: &str, complete: bool| {
+            if !complete {
+                step += 1;
+            }
+            progress(StageProgress {
+                stage,
+                step,
+                total,
+                message: if complete {
+                    format!("Completed: {message}")
+                } else {
+                    message.into()
+                },
+            });
+        };
         let settings = self.settings.clone();
         let fresh_engine = || -> Result<Engine> {
             let mut engine = Engine::new(settings.clone())?;
@@ -210,14 +252,26 @@ impl Engine {
             .collect();
         let mut report = crate::validation::Report::new(validated_components.len());
         if full_validation {
+            boundary(
+                Stage::Environment,
+                "Validating installation environment",
+                false,
+            );
             let environment = (|| -> Result<()> {
                 recovery::ensure_clean(&self.settings.roots)?;
                 recovery::verify_completion(&self.settings.roots, guide, self.completed.len())
             })()
             .map_err(|error| format!("{error:#}"));
-            if !report.push(crate::validation::Stage::Environment, environment) {
+            let passed = report.push(crate::validation::Stage::Environment, environment);
+            boundary(
+                Stage::Environment,
+                "Validating installation environment",
+                true,
+            );
+            if !passed {
                 return report.finish();
             }
+            boundary(Stage::Conflicts, "Checking conflicts", false);
             match fresh_engine().and_then(|engine| engine.analyze_conflicts(guide)) {
                 Ok(conflicts) => report.conflicts(&conflicts),
                 Err(error) => {
@@ -227,23 +281,51 @@ impl Engine {
                     );
                 }
             }
+            boundary(Stage::Conflicts, "Checking conflicts", true);
+            boundary(
+                Stage::InstallOrder,
+                "Validating mod installation order",
+                false,
+            );
             let order = guide
                 .ordered()
                 .map(|_| ())
                 .map_err(|error| format!("{error:#}"));
             report.install_order(order);
+            boundary(
+                Stage::InstallOrder,
+                "Validating mod installation order",
+                true,
+            );
         }
         if !dry_run_only {
+            boundary(Stage::ComponentValidation, "Validating mod archives", false);
             let component = fresh_engine()
                 .and_then(|engine| engine.validate(guide, emit))
                 .map_err(|error| format!("{error:#}"));
             report.component_validation(&validated_components, component);
+            boundary(Stage::ComponentValidation, "Validating mod archives", true);
         }
+        boundary(
+            Stage::FomodConfiguration,
+            "Checking FOMOD configuration",
+            false,
+        );
         let fomod = fresh_engine()
             .and_then(|engine| engine.validate_fomod_configuration(guide))
             .map_err(|error| format!("{error:#}"));
         report.fomod_configuration(fomod);
+        boundary(
+            Stage::FomodConfiguration,
+            "Checking FOMOD configuration",
+            true,
+        );
         if dry_run {
+            boundary(
+                Stage::DryRun,
+                "Running instruction execution validation (dry-run)",
+                false,
+            );
             let issues = match fresh_engine() {
                 Ok(engine) => engine.validate_dry_run(guide),
                 Err(error) => vec![crate::validation::DryRunIssue::engine(
@@ -252,6 +334,11 @@ impl Engine {
                 )],
             };
             report.dry_run(issues);
+            boundary(
+                Stage::DryRun,
+                "Running instruction execution validation (dry-run)",
+                true,
+            );
         }
         report.finish()
     }
@@ -527,13 +614,23 @@ impl Engine {
     /// Run the shared wizard report on the uninstalled suffix while retaining
     /// completed components as dependency context and verifying their receipt.
     pub fn validate_report_remaining(
-        mut self,
+        self,
         guide: &Guide,
         completed: &[String],
         emit: impl FnMut(Event),
     ) -> Result<crate::validation::Report> {
+        self.validate_report_remaining_observed(guide, completed, emit, |_| {})
+    }
+
+    pub fn validate_report_remaining_observed(
+        mut self,
+        guide: &Guide,
+        completed: &[String],
+        emit: impl FnMut(Event),
+        progress: impl FnMut(crate::validation::StageProgress),
+    ) -> Result<crate::validation::Report> {
         self.set_completed_prefix(guide, completed)?;
-        Ok(self.validate_report_with_dry_run(guide, emit, true))
+        Ok(self.validate_report_with_options_observed(guide, emit, true, true, false, progress))
     }
 
     /// Analyze only the uninstalled suffix under the same verified completion

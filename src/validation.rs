@@ -1,6 +1,18 @@
 use crate::conflicts::Report as ConflictReport;
 use serde::Serialize;
 
+pub mod presentation;
+
+/// Actual stage boundaries; start and completion share the one-based step.
+/// Completion messages start with `Completed: `, including failed outcomes.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct StageProgress {
+    pub stage: Stage,
+    pub step: usize,
+    pub total: usize,
+    pub message: String,
+}
+
 #[derive(Clone, Copy, Debug, Serialize, PartialEq, Eq)]
 pub enum Stage {
     #[serde(rename = "Environment")]
