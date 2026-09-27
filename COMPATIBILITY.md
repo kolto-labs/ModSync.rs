@@ -11,8 +11,8 @@ Copy/Overwrite Base can repeat; consumed Move inputs reject. Explicit phased
 `--direct-markdown` is unsupported; ordinary Markdown ingestion remains allowed.
 Commands, output/error contracts, reviews and source-bound evidence are in
 [cli-phases-integration.md](docs/parity/cli-phases-integration.md). Tasks 1–3 passed
-review; whole-package final review remains pending. This adds no native GUI or
-full-build proof; the existing pre-fix native evidence retains its original scope.
+review; whole-package final review passed with nonblocking P3 notes. This adds no
+native GUI or full-build proof; the existing pre-fix native evidence retains its original scope.
 
 Remaining-phase FOMOD configuration now uses shared choices application/merge and
 prompt-status helpers that preserve completed component definitions and nested

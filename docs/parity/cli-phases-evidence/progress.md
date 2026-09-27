@@ -3,16 +3,18 @@
 Source plan: `docs/parity/cli-phases-plan.md`
 Preflight: `docs/parity/cli-phases-preflight.md`
 Plan baseline: `872b1de` (Task 1 dispatched from this commit)
-Status: Tasks 1–3 independently reviewed PASS; Task 4 documentation in progress; final whole-package review pending.
+Status: Tasks 1–4 complete. Whole-package final review PASS with nonblocking P3 notes; ready to integrate.
 
 | Task | Status | Ownership | Evidence |
 |---|---|---|---|
 | 1. Verify remaining conflicts and extract shared preparation | complete; reviewed PASS | `src/engine.rs`, new phase-preparation module, `src/lib.rs`, focused engine/preparation tests | `.superpowers/sdd/cli-phases-plan/task-1-brief.md` |
 | 2. Wire CLI phases and executable regressions | complete; reviewed PASS | `src/main.rs`, CLI-focused tests | `.superpowers/sdd/cli-phases-plan/task-2-brief.md` |
 | 3. Migrate desktop adapter and differential tests | complete; reviewed PASS | bounded `src/ui.rs`, focused differential tests | `.superpowers/sdd/cli-phases-plan/task-3-brief.md` |
-| 4. Integration review and durable status | in progress; final review pending | review, checks, `GUI-CLI.md`, `ACCEPTANCE.md` | not extracted |
+| 4. Integration review and durable status | complete; final review PASS | review, checks, `GUI-CLI.md`, `ACCEPTANCE.md` | `final-review.md`; durable `docs/parity/cli-phases-integration.md` |
 
 ## Provisional decisions
+
+- Task 4 COMPLETE: whole-package `872b1de..e157021` independent Specification PASS, Quality PASS with nonblocking P3 notes, ready to integrate. `final-review.md` archived durably. Original Task 1 duplicate fixture remains unchanged; Task 3 three-component test specifically covers the shared duplicate guard. Base preparation-order prose corrected to filter/check before choices. No product fix wave, tests, or builds needed. Historical pending entries below are superseded by this completion.
 
 - Task 3 COMPLETE after independent spec/quality PASS: `312ee167a4732f4095f8c966595fd3b2185396d9..3d106ef0c3cc9687864bcdf0a3c988bbd2c6d7c2`; see `task-3-review.md`. Earlier awaiting-review entries below are historical.
 - Task 4 START at `3d106ef0c3cc9687864bcdf0a3c988bbd2c6d7c2`: documentation/evidence only; reuse final Task 3 checks, preserve every ruling, archive source-bound evidence, and prepare full `872b1de..HEAD` review. Final package review remains pending. No product edits, new builds, push, or scratch deletion.
@@ -59,4 +61,6 @@ Status: Tasks 1–3 independently reviewed PASS; Task 4 documentation in progres
 
 ## Next action
 
-Finish Task 4 documentation and independently review the complete `872b1de..HEAD` package. Keep this scratch ledger until final review is approved. Flag the Task 1 P3 duplicate-ID test isolation note; Task 3 adds independent three-component duplicate coverage but does not edit the original test.
+Parent performs scoped factual review of the final documentation-only status update, then delivery. No push or scratch cleanup until parent authorization. Preserve the accepted deferred P3 disclosure and all proof boundaries.
+
+- Task 4 documentation committed `e157021af3b32a510d5657ddfcaf6e7d87ebeb73`; full package `integration-review.diff` binds `872b1dec4b5a120661aa604374c38cf043a11943..e157021af3b32a510d5657ddfcaf6e7d87ebeb73`. Final review PENDING. Archived logs normalize trailing whitespace/EOF only; raw originals retained here. Full package diff-check passed; no builds repeated.

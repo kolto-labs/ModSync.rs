@@ -299,8 +299,8 @@ F08 error-report checkpoint: `--validation-report` now emits the C# `ValidationP
 ## Shared GUI/CLI phases checkpoint
 
 Tasks 1–3 independently passed specification/quality review through `3d106ef`.
-Whole-package final review remains pending. `phase::prepare` now supplies both
-frontends; CLI `validate`, `conflicts`, and `install` accept default All, Base and
+Whole-package final review passed with nonblocking P3 notes; Task 4 is complete.
+`phase::prepare` now supplies both frontends; CLI `validate`, `conflicts`, and `install` accept default All, Base and
 Remaining. Shared remaining conflicts verify receipt roots, definitions and game
 hashes. All-mode pipeline reports retain existing failure stages and inputPath.
 [Integration evidence](cli-phases-integration.md) archives raw executable outputs,
@@ -315,7 +315,7 @@ choices payload. Explicit Base uses ordinary repeat semantics (Copy can repeat,
 consumed Move rejects); Remaining cannot replay an exhausted suffix. Pending failure
 requires verified restore before ordered retry. Explicit phased `--direct-markdown`
 is excluded; ordinary Markdown retains receipt verification. Task 1's original P3
-duplicate-test isolation note remains for final review, with independent specific
-coverage added in Task 3. No feature row is promoted to complete: native pre-fix
-wizard evidence is unchanged, and full C# parity, real full builds, restart behavior,
+duplicate-test isolation cleanup is accepted as deferred nonblocking P3; Task 3
+independently covers the specific duplicate guard. No feature row is promoted to
+complete: native pre-fix wizard evidence is unchanged, and full C# parity, real full builds, restart behavior,
 accessibility and cross-platform acceptance remain open.

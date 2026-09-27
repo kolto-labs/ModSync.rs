@@ -2,8 +2,10 @@
 
 Implementation HEAD: `3d106ef0c3cc9687864bcdf0a3c988bbd2c6d7c2`.
 Package BASE: `872b1dec4b5a120661aa604374c38cf043a11943`.
-Tasks 1–3 passed independent specification and quality review. Task 4 records
-integration evidence; **whole-package final review is pending**. No full-build,
+Tasks 1–3 passed independent specification and quality review. Task 4 is complete:
+[whole-package final review](cli-phases-evidence/final-review.md) returned
+**Specification: PASS; Quality: PASS with nonblocking P3 notes; ready to integrate**
+for `872b1de..e157021`. This status update changes documentation only. No full-build,
 exact C# GUI parity, new native interaction, or cross-platform proof is claimed.
 The original [plan](cli-phases-plan.md) and [preflight](cli-phases-preflight.md)
 are historical design inputs. The accepted rulings below supersede their universal
@@ -59,9 +61,11 @@ do not invent a successful completion.
 
 ## Completion, choices, repeats and recovery
 
-Base deselects top-level widescreen components after choices application and
-requires nonempty work. Remaining requires a nonempty, unique, selected exact
-ordered prefix and a nonempty suffix. Remaining conflict analysis now verifies
+Base deselects top-level widescreen components, requires nonempty work, and applies
+external choices. Filtering/checking precedes choices application; the current
+choices API changes metadata without changing top-level selection or ordering, so
+this is behaviorally equivalent to the plan’s provisional order. Remaining requires
+a nonempty, unique, selected exact ordered prefix and a nonempty suffix. Remaining conflict analysis now verifies
 completion roots, exact serialized completed definitions and completed game hashes
 in the shared engine, as validation/install already do. Missing/corrupt receipts,
 wrong roots, changed definitions and tampered output reject without further work.
@@ -135,10 +139,13 @@ Wide bytes: `11c1ff87f61267fc5ee6d4c4127ac313b9a9570f8f49e4dda32ffc630c9d2ec2`.
 Base on-disk receipt: `fd1c0cb7e332131199a28180aa431629c7cd01b100b4dd7de2b38e3aaec3cbdc`.
 Final on-disk receipt: `9cf3b756e5d7eaf896ad463a7bfe025ef8c53d16c8f60f53d27724be87403077`.
 
-Task 1's nonblocking P3 remains flagged for final review: its original duplicate-ID
-fixture also reaches exhausted-suffix rejection. Task 3 independently tests the
-specific duplicate diagnostic with three selected components; the original test
-was not changed. Existing [wizard integration](wizard-integration.md) and
+Final review accepts Task 1’s original duplicate-ID test isolation as deferred
+nonblocking P3: that fixture also reaches exhausted-suffix rejection and was not
+changed. Task 3 independently covers the specific shared duplicate guard with three
+selected components across Validate/Conflicts/Install. There is no outstanding
+package-level guard-coverage or product safety issue. The reviewer’s minor Base
+preparation-order prose correction is incorporated above; no product fix was needed.
+Existing [wizard integration](wizard-integration.md) and
 [wizard native](wizard-native/README.md) receipts retain their original source and
 pre-fix scope. No new native session is implied by automated adapter regressions.
 

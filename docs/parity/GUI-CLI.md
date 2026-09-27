@@ -18,9 +18,10 @@ This regression establishes shared Rust behavior only. Exact C# GUI equivalence 
 Shared phase preparation and CLI phase dispatch are implemented and independently
 reviewed through `3d106ef`. [Integration evidence](cli-phases-integration.md) records
 the exact commands, report/error contracts, receipt verification, repeats/recovery,
-raw output archive and final-source checks (229 passing all-target tests; 199 passing
+normalized output archive and final-source checks (229 passing all-target tests; 199 passing
 headless tests; one intentional ignored fixture in each). Whole-package final review
-is pending. All validation retains its existing pipeline-report failure timing.
+passed with nonblocking P3 notes; this bounded phase slice is approved. All validation
+retains its existing pipeline-report failure timing.
 Remaining conflicts now verify receipts in the shared engine before suffix analysis.
 
 GUI/CLI All and Base preparation compare equal for identical post-selection guides;
