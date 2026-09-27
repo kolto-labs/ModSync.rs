@@ -1,6 +1,6 @@
 # Install progress native and CLI evidence
 
-Packaged 2026-09-27 for the install-progress slice. Reviewed source head is `ac9cf3ac45092bbeea3b650b180ab2df5da003af` (base `659027e`). This is bounded evidence for F10/F24/F26. It is not full C# parity, not F29, and not per-component checkpoint parity.
+Packaged 2026-09-27 for the install-progress slice. Reviewed product source runs through `9df6c3b` (base `659027e`); the earlier packages bind `ac9cf3a` and older commits. This is bounded evidence for F10/F24/F26. It is not full C# parity, not F29, and not per-component checkpoint parity.
 
 [receipt.json](receipt.json) lists every copied file with its original path, byte count and SHA256. Each hash was recomputed from the source file and again from the copy, and compared with the hash the original receipt claimed, where it had one. One claim did not match (see Gaps). Executables (about 95 MB each) and fixture trees are not copied; their hashes are in the receipt. Product source hashes per commit are in `receipt.json` → `sources`.
 
@@ -16,6 +16,7 @@ No Rust tests, inline tests or Rust harnesses were created, changed or run for a
 | [cli-ac9cf3a/](cli-ac9cf3a/) | clean `git archive ac9cf3a`, headless build | `b6097a79…9fa8` | Typed-mode legacy Event text on stderr (`cd8f0b0`); success/failure/preflight contract; clap conflict with `--json` and `--validation-report`; `--help` text as of `ac9cf3a` |
 | [gui-r2-ac9cf3a/](gui-r2-ac9cf3a/) | `ac9cf3a` desktop build | `9429089d…dcce6` | 600×400 Stop Install and Continue; close request during install; Stop confirmation, cancel and exact restore; failure then restore of captured roots after the folders changed |
 | [gui-r1-c28f4fc/](gui-r1-c28f4fc/) | `c28f4fc` desktop build, before review fixes F1–F7 | `35b3b1b7…a0d4` (receipt only) | Light success and widescreen skip; K1 failure, small-window failure and restore; K2 Stop, restore, retry and widescreen phase on the same page; close attempt at `f598129` |
+| [gui-r2-review-fixes/](gui-r2-review-fixes/) | `a24e96b` (k1-review2), `9df6c3b` (light-review9) | `f233685f…` (a24e96b, seen by Task 3 at about 11:14, can't be re-checked now); `4c9d49d3…` (9df6c3b, re-hashed, matches) | Review fixes #2, #10 and #9. The scoped frontend-races re-review approved them |
 | [scripts/](scripts/) | — | — | Fixture generator, launcher and input helpers used by both GUI rounds |
 
 Pinned C# captures are separate: [../install-progress-reference/](../install-progress-reference/README.md), bound to `d31ccbd3`.
@@ -47,17 +48,28 @@ Display: private Xvfb `:93`, 1280×800×24, 96 dpi, no window manager, scale 1:1
 | k2-cancel | `10-active`, `11-stop-confirm`, `20-cancelled`, `22-install-steps`, `30-restored` | Confirm at 10:27:29.303; elapsed freezes at 4 s inside Alpha step 2 (Run). 0 of 3 installed, snapshot active. Footer Restore: after-restore manifest equals before |
 | k1-f1 | `20-g1-failed`, `32-folders-changed`, `40-restored-g1`, `41-folders-back-retry`, `g2-cli.out` | G1 fails at 33%. The folders are pointed at G2, which has its own pending snapshot. Footer Restore restores G1 exactly and leaves G2 pending. Retry stays disabled until the folders point back at G1 |
 
+## Review fixes at a24e96b and 9df6c3b
+
+Same private Xvfb setup (pid 3602536). The original receipt is [gui-r2-review-fixes/receipt.md](gui-r2-review-fixes/receipt.md), section "Whole-package review fixes". Every copied file matched the hash that section claims. Two discarded runs are not copied and make no claim. One of them shows the rate defect that `9df6c3b` fixed.
+
+| Scenario | Captures | Observed |
+|---|---|---|
+| k1-review2 (#2) | `20-g1-failed`, `30-settings-g2`, `32-utility-restore-hover`, `33-after-utility-restore`, `34-page-after-restore` | G1 fails, and the folders are pointed at G2, which has its own pending snapshot. The utility "Restore failed install" names G1's game folder. After the click, G1 equals its before manifest, and G2 is unchanged and still pending. The page says restored, and Retry is disabled while the folders differ |
+| k1-review2 (#10) | `40-folders-back`, `41-bad-dir-retry-enabled`, `43-retry-running`, `44-retry-terminal` | Folders are set back and mods moved away. Retry gives "Install stopped before changing files / Check directories" and stays enabled. With mods restored, Retry runs at 0/3 with a new recovery snapshot. `42-dir-fixed.png` is byte-identical to 41, so the fix rests on the transcript and 43 |
+| light-review9 (#9) | `10-active`, `20-stale-success`, `30-restarted` | `choices.json` is touched mid-install, so the input stamp changes. The terminal shows "Installed, but not applied here" at 100%, with the rate frozen at 9.6 mods/min and Continue blocked. The footer Restart wizard goes to Welcome, step 1 of 10. The engine's bytes are in game/Override. This was a first-phase install (no widescreen components), not a Remaining one |
+
 ## GUI round 1 at c28f4fc
 
 Kept for the paths round 2 did not repeat: widescreen phase reuse (`k2/51-wide-mid`, `k2/52-wide-success`, `light/23-wide-skipped`), K1 failure at 600×400 (`k1-fail/30-small-failed`), K2 retry after restore (`k2/41-retry-success`). This binary predates fixes F1–F7, so the footer layout, percent rounding and restore routing differ from `ac9cf3a`. In this round the K2 stop landed in the second Beta Patch, because the confirmation was clicked several seconds after the dialog opened.
 
 ## Gaps
 
+- **a24e96b binary.** `f233685f…` was seen by Task 3 at about 11:14. The file has since been rebuilt (it is now `4c9d49d3…`, the 9df6c3b build), so it can't be re-checked.
 - **Round-2 binary.** `9429089d…` matched `/tmp/modsync-2b-native/modsync` when Task 3 hashed it at about 11:12. By 11:14 another build had overwritten that path (`f233685f…`), so it cannot be re-checked now.
 - **Round-1 binary.** `35b3b1b7…` comes from the original receipt only. The file was replaced before Task 3 started.
-- **Hash mismatch.** The round-2 receipt claims `90e9d7d3…` for `r2/lib.sh`; the file on disk is `5af056fd…`. It was copied as found. The scenario claims rest on the transcripts and manifests, not on that hash.
+- **lib.sh version.** `r2/lib.sh` was rewritten at 11:16 for the review-fix runs, so both copies are the new version, `5af056fd…`, which the review-fix section claims. The `ac9cf3a` scenarios ran with the earlier version, `90e9d7d3…`, which no longer exists. Those claims rest on transcripts and manifests.
 - **Older script hash.** The round-1 receipt claims `caf0966c…` for `wm_delete.py`, which is an earlier version. The copy matches the round-2 claim.
 - **Task 2a receipt error.** `typedStreams.failure.completedFacts` is 0, but `failure.stdout` holds one `componentCompleted` line. The raw stream is correct; the summary field is wrong.
 - **Not run natively.** Nested Choose owner paths and directions; silent preflight with the desktop; empty Remaining; late cancellation beyond the close-request case.
 - **Not covered.** DPI, keyboard, screen reader, and Windows/macOS were not tested. No full-build guides were used.
-- **Open fixes.** Review findings #2, #9 and #10 were being fixed in the `src/ui.rs` working tree during packaging. None of this evidence covers those fixes.
+- **Review fixes.** #2, #9 and #10 are covered only by the `gui-r2-review-fixes` scenarios above. A stale success in the Remaining phase was not driven natively.

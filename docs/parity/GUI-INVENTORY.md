@@ -2,7 +2,7 @@
 
 ## Installing page checkpoint — 2026-09-27
 
-Status: **partial**. `src/ui/installing_page.rs` renders both Installing Mods and Installing Widescreen Mods from shared `install_progress::Progress` facts, through `ac9cf3a`. `src/ui.rs` owns the run-ID/input-stamp-bound worker channel. This replaces the "P1 — installation progress" gap row below (spinner, global logs, terminal `Done`), which is kept as history. Native evidence: [install-progress-native/](install-progress-native/README.md). C# reference: [install-progress-reference/](install-progress-reference/README.md) and [the source audit](install-progress-csharp-audit.md). Rulings: [install-progress-integration.md](install-progress-integration.md).
+Status: **partial**. `src/ui/installing_page.rs` renders both Installing Mods and Installing Widescreen Mods from shared `install_progress::Progress` facts, through `ac9cf3a`. `src/ui.rs` owns the run-ID/input-stamp-bound worker channel. Review fixes `a24e96b` and `9df6c3b` follow. This replaces the "P1 — installation progress" gap row below (spinner, global logs, terminal `Done`), which is kept as history. Native evidence: [install-progress-native/](install-progress-native/README.md). C# reference: [install-progress-reference/](install-progress-reference/README.md) and [the source audit](install-progress-csharp-audit.md). Rulings: [install-progress-integration.md](install-progress-integration.md).
 
 What matches the pinned C# composition: outer page scroll; a top card with percent, `N/M mods installed`, overall bar, current mod, directions and current operation with an indeterminate bar; statistics and "Installing Your Mods" cards side by side; a "What's Happening?" card; a footer warning. Directions come from the prepared guide given to the engine, looked up by GUID, never by first name match.
 
@@ -21,17 +21,18 @@ Other deliberate differences:
 - **Percent.** Moves only on `componentCompleted`. Rounds half-to-even like .NET `Math.Round` (2/3 shows 67%). Capped at 99 until `completed`. While component *i* runs the count stays *i − 1*.
 - **Operation label** names the last finished step, because facts arrive after each step succeeds.
 - **Stop Install.** Footer button, then a confirmation. Cancels at the next safe boundary (between instructions, or the 100 ms poll inside a running external program). Restore is required when a snapshot is pending. It does not promise to finish the current mod. A window close while installing opens the same confirmation.
-- **Recovery actions.** Restore and Retry live only in the footer and act on the roots captured at dispatch. Retry is disabled while the current folders differ from those roots.
+- **Recovery actions.** Page Restore and Retry live in the footer and act on the roots captured at dispatch. Retry is disabled while the current folders differ from those roots. Since `a24e96b`, the utility "Restore failed install" also targets the failed run's roots while one exists. Folders are bound before setup can fail, so Retry comes back once the directories are fixed.
+- **Stale success.** If the inputs changed during a run, the page says "Installed, but not applied here". It blocks Continue and offers "Restart wizard" in the footer (`a24e96b`). Since `9df6c3b`, the rate freezes at the terminal.
 - **Copy.** The explanation card says what Rust does ("Creating one recovery snapshot", "Checking steps before writing", "Following guide order"). The footer reads "Do not close ModSync while the install runs". The error shows in the directions slot. ETA reads `--:--:--` after a failure.
 - **Extra.** A collapsed page-local "Install steps" log keeps the newest 2000 lines. Colors come from egui theme visuals.
 
-Verified natively on Linux/Xvfb (1280×800 and 600×400, 96 dpi, Light/K1/K2): active progress, 600×400 Stop Install and Continue, Stop confirmation with cancel inside the running step and exact restore, a close request during install where the commit wins over the open modal, failure then restore of the captured roots while the folders pointed elsewhere, and widescreen phase reuse (round 1, `c28f4fc`).
+Verified natively on Linux/Xvfb (1280×800 and 600×400, 96 dpi, Light/K1/K2): active progress, 600×400 Stop Install and Continue, Stop confirmation with cancel inside the running step and exact restore, a close request during install where the commit wins over the open modal, failure then restore of the captured roots while the folders pointed elsewhere, and widescreen phase reuse (round 1, `c28f4fc`). Review fixes: utility Restore targets the failed run's roots, and Retry works after a directory failure (`a24e96b`, `k1-review2`); a stale success leads to Restart wizard (`9df6c3b`, `light-review9`).
 
 Open:
 
 - **600×400 host chrome.** At 600×400 the page body is about 280×50 px, because the downloads sidebar, header and activity panel take the rest. Footer controls stay reachable (`gui-r2-ac9cf3a/light-small`), but the page itself is barely usable. This belongs to the shell, not the page, and is not fixed.
 - Nested Choose directions and owner paths are checked from source only, not natively.
-- Review findings #2 (utility Restore uses live paths), #9 (stale Remaining success has no route out) and #10 (Retry disabled after a `Settings::new` failure) were open at this checkpoint.
+- Review findings #2, #9 and #10 are fixed by `a24e96b` (#2, #10) and `9df6c3b` (#9); the scoped frontend-races re-review approved them. The #9 native run forced a stale success by touching the choices file during a first-phase install; the guide has no widescreen components. A stale success in the Remaining phase was not driven natively.
 - Validation page Run/Stop at 600×400 was not rechecked with this build.
 - No DPI, keyboard, screen-reader, Windows or macOS evidence. No exact Avalonia metrics or font claim.
 

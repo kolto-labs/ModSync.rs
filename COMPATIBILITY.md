@@ -2,7 +2,7 @@
 
 ## Typed install progress and Installing page — 2026-09-27
 
-Commits `065ffee` (shared contract), `57f198f` and `cd8f0b0` (CLI adapter), `dcd1373`..`ac9cf3a` (desktop page). Rulings, commit map and open review findings are in [install-progress-integration.md](docs/parity/install-progress-integration.md). Evidence is in [install-progress-native/](docs/parity/install-progress-native/README.md).
+Commits `065ffee` (shared contract), `57f198f`, `cd8f0b0` and `33de7f6` (CLI adapter and help text), `dcd1373`..`ac9cf3a`, `a24e96b` and `9df6c3b` (desktop page). Rulings, commit map and review findings are in [install-progress-integration.md](docs/parity/install-progress-integration.md). Evidence is in [install-progress-native/](docs/parity/install-progress-native/README.md).
 
 **Library API (additive).** `Engine::install_observed(guide, emit, progress)` and `Engine::install_remaining_observed(guide, completed, emit, progress)` take a second observer, `FnMut(install_progress::Progress)`. `Engine::install` and `Engine::install_remaining` still exist and pass a no-op observer. The observer cannot return an error. A dropped receiver does not change execution. The legacy `Event { component, step, message }` callback and its serialization are unchanged.
 
@@ -29,7 +29,7 @@ Commits `065ffee` (shared contract), `57f198f` and `cd8f0b0` (CLI adapter), `dcd
 
 **Desktop.** Base and Retained Remaining installs render one Installing page from these facts (`src/ui/installing_page.rs`). The percentage moves only on `componentCompleted`, stays at 99% or less until `completed`, and uses round-half-to-even like .NET `Math.Round`. The page shows one recovery snapshot row instead of C# checkpoint counts. Issue counts read "Not counted". Stop Install asks for confirmation and then cancels at the next safe boundary. Restore and Retry act on the roots captured when the run started. The deliberate differences from C# are listed in `docs/parity/GUI-INVENTORY.md`.
 
-**Limits.** This does not close F10, F24 or F26, and it adds no F29 full-build proof. There is still one whole-run recovery snapshot, no per-component checkpoint and no automatic rollback. The review findings #2, #9 and #10 (`src/ui.rs` restore routing, stale Remaining dead end, Retry after a `Settings::new` failure) were still open when this was written. Frozen inline tests in `src/ui.rs` will hang on `finish_worker`; see the integration doc. No Rust tests were created, changed or run.
+**Limits.** This does not close F10, F24 or F26, and it adds no F29 full-build proof. There is still one whole-run recovery snapshot, no per-component checkpoint and no automatic rollback. Review findings #2, #9 and #10 (`src/ui.rs` restore routing, stale Remaining dead end, Retry after a `Settings::new` failure) are fixed by `a24e96b` (#2, #10) and `9df6c3b` (#9); the scoped frontend-races re-review approved them. Frozen inline tests in `src/ui.rs` will hang on `finish_worker`; see the integration doc. No Rust tests were created, changed or run.
 
 ## Final archive diagnostic correction — 2026-09-27
 

@@ -1,6 +1,6 @@
 # Install progress integration checkpoint
 
-Documentation checkpoint, 2026-09-27. Product source is reviewed through `ac9cf3a` on `codex/rust-port` (base `659027e7eef54bb489039e3062b36ddd232b5c7d`, pinned C# oracle `d31ccbd3bfcddb4705917eafa6483715c166de3b`). This slice advances F10, F24 and F26. It does **not** close full C# parity, F29 full-build equivalence, per-component checkpoint parity, automatic rollback, or accessibility/platform equivalence.
+Documentation checkpoint, 2026-09-27. Product source is reviewed through `9df6c3b` (plus help text `33de7f6`; evidence packages bind `57f198f`, `c28f4fc`, `ac9cf3a`, `a24e96b` and `9df6c3b`) on `codex/rust-port` (base `659027e7eef54bb489039e3062b36ddd232b5c7d`, pinned C# oracle `d31ccbd3bfcddb4705917eafa6483715c166de3b`). This slice advances F10, F24 and F26. It does **not** close full C# parity, F29 full-build equivalence, per-component checkpoint parity, automatic rollback, or accessibility/platform equivalence.
 
 - Plan: [install-progress-plan.md](install-progress-plan.md)
 - C# source audit: [install-progress-csharp-audit.md](install-progress-csharp-audit.md)
@@ -12,8 +12,8 @@ Documentation checkpoint, 2026-09-27. Product source is reviewed through `ac9cf3
 | Task | Commit(s) | Scope |
 |---|---|---|
 | 1 shared contract | `065ffee` (supersedes `599df2c`) | `src/install_progress.rs`, `src/lib.rs`, `src/engine.rs`: `Progress`/`Phase`/`OwnerFrame`, `Engine::install_observed`, `Engine::install_remaining_observed` |
-| 2a CLI adapter | `57f198f`, `cd8f0b0` | `src/main.rs`: `install --install-progress-json` NDJSON; typed mode sends legacy Event text to stderr |
-| 2b desktop page | `dcd1373`, `733bffb`, `f598129`, `c28f4fc`, `ac9cf3a` | `src/ui.rs`, `src/ui/installing_page.rs` |
+| 2a CLI adapter | `57f198f`, `cd8f0b0`, help text `33de7f6` | `src/main.rs`: `install --install-progress-json` NDJSON; typed mode sends legacy Event text to stderr |
+| 2b desktop page | `dcd1373`, `733bffb`, `f598129`, `c28f4fc`, `ac9cf3a`, review fixes `a24e96b`, `9df6c3b` | `src/ui.rs`, `src/ui/installing_page.rs` |
 | 3 docs/evidence | this commit | docs only |
 
 ## Rulings
@@ -42,7 +42,7 @@ Copied verbatim from the SDD ledger `.superpowers/sdd/install-progress-plan/prog
 - (L81) Ruling: typed CLI mode routes legacy Event text to stderr so external-program output is never silently lost.
 - (L82) Ruling: build via host-spawn (container lacks cc); separate CARGO_TARGET_DIR per concurrent builder.
 
-## Open review findings at hand-off
+## Review findings
 
 From the whole-package review (`/tmp/compound-engineering-1000/ce-code-review/20260927-103346-384f6429/report.md`, range `659027e..ac9cf3a`):
 
@@ -50,9 +50,10 @@ From the whole-package review (`/tmp/compound-engineering-1000/ce-code-review/20
 |---|---|
 | 1 — no COMPATIBILITY.md entry for the typed stream | Closed by this docs commit (COMPATIBILITY.md "Typed install progress and Installing page — 2026-09-27") |
 | 5 — typed-stream success/failure contract undocumented | Documented here, in COMPATIBILITY.md and GUI-CLI.md. The `--install-progress-json` help text states the contract since `33de7f6` (source only; not rebuilt or probed here) |
-| 2 — utility "Restore failed install" uses live paths | Open; source fix in progress in `src/ui.rs` by another worker, not bound by this checkpoint |
-| 9 — stale Remaining success dead-ends | Open; same |
-| 10 — Retry disabled after `Settings::new` failure | Open; same |
+| 2 — utility "Restore failed install" uses live paths | Fixed by `a24e96b` (route every restore through a failed run's roots). Native: `install-progress-native/gui-r2-review-fixes/k1-review2`: G1 restored exactly, G2 unchanged and still pending |
+| 9 — stale Remaining success dead-ends | Fixed by `a24e96b` (Restart wizard route) and `9df6c3b` (rate freezes at the terminal for stale successes). Native: `light-review9`: "Installed, but not applied here", Continue blocked, Restart wizard goes to Welcome. Driven as a first-phase stale success (no widescreen components), not a Remaining one |
+| 10 — Retry disabled after `Settings::new` failure | Fixed by `a24e96b` (folders bound before setup can fail). Native: `k1-review2` 41–43: Retry stays enabled after "Check directories" and runs once the directory is back |
+| — scoped re-review | The frontend-races reviewer approved #2, #9 and #10 (reported by the lead; no reviewer file was handed to Task 3) |
 | 3 — frozen test helper waits for `Message::Done` | Recorded; waits for the user's test freeze to lift (see below) |
 
 ## Frozen-test drift (recorded, not fixed, not compiled)

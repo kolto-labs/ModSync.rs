@@ -1,0 +1,7 @@
+ / 0: Creating recovery snapshot of game and mod directories
+Alpha Textures / 1: Copy
+Alpha Textures / 2: Run
+Beta Patch / 1: Copy
+Run / 0: fixture failure
+
+Error: Install stopped. Restore before retrying; snapshot: /tmp/modsync-2b-native/r2/k1-review2-g2/.modsync-6c6e9e8642caa7dc: Beta Patch / step 2 (Run): External program failed with exit status: 3

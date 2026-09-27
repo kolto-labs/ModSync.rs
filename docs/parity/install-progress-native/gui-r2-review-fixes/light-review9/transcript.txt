@@ -1,0 +1,49 @@
+11:33:43.706 fixture /tmp/modsync-2b-native/r2/light-review9 ok Light
+11:33:43.714 wrote empty version-1 FOMOD choices /tmp/modsync-2b-native/r2/light-review9/choices.json
+11:33:44.171 manifest before.sha256
+11:33:44.180 launch: /tmp/modsync-2b-native/launch.sh /tmp/modsync-2b-native/r2/light-review9  (modsync gui --settings-dir /tmp/modsync-2b-native/r2/light-review9/settings --input /tmp/modsync-2b-native/r2/light-review9/guide.json --game-dir /tmp/modsync-2b-native/r2/light-review9/game --source-dir /tmp/modsync-2b-native/r2/light-review9/mods --allow-multiple-instances)
+11:34:30.811 app pgid 3760829 window 
+11:34:30.831 click 700,12 warm-up click on title bar text
+11:34:32.224 click 62,34 Guide and settings
+11:34:34.099 click 62,115 Validation tools
+11:34:35.762 click 23,142 Trust external programs
+11:34:37.928 windowfocus
+11:34:38.023 click 450,206 FOMOD choices file field
+11:34:42.255 typed choices path
+11:34:45.369 screenshot 02-trust-choices.png
+11:34:45.431 click 262,34 Return to wizard
+11:34:47.324 click 1206,728 Next
+11:34:49.028 click 1206,728 Next
+11:34:50.740 click 1206,728 Next
+11:34:52.556 click 1206,728 Next
+11:34:54.350 click 1206,728 Next
+11:34:56.055 click 95,303 Run Validation
+11:35:00.393 click 1206,767 Next
+11:35:02.049 click 1206,678 Next
+11:35:04.661 screenshot 06-confirm.png
+11:35:04.664 click 504,428 Create snapshot and install
+11:35:08.341 screenshot 10-active.png
+11:35:08.665 touch /tmp/modsync-2b-native/r2/light-review9/choices.json (changes ctime, so the input stamp changes)
+11:35:30.197 screenshot 20-stale-success.png
+11:35:30.369 manifest after.sha256
+11:35:43.679 recovery: launch clicks were not delivered (validation failed without trust); redo from the Validate page
+11:35:43.712 click 62,34 Guide and settings
+11:35:45.836 click 62,115 Validation tools
+11:35:47.508 click 23,142 Trust external programs
+11:35:49.519 windowfocus
+11:35:49.533 click 450,206 FOMOD choices file field
+11:35:51.414 typed choices path
+11:35:53.661 screenshot 02b-trust-choices.png
+11:35:53.678 click 262,34 Return to wizard
+11:35:55.395 click 95,303 Run Validation
+11:35:59.672 click 1206,767 Next
+11:36:01.057 click 1206,678 Next
+11:36:02.696 screenshot 06b-confirm.png
+11:36:02.704 click 504,428 Create snapshot and install
+11:36:06.572 screenshot 10-active.png
+11:36:07.017 touch /tmp/modsync-2b-native/r2/light-review9/choices.json (changes ctime, so the input stamp changes)
+11:36:28.213 screenshot 20-stale-success.png
+11:36:28.395 manifest after.sha256
+11:36:33.929 click 987,678 Restart wizard (footer)
+11:36:36.223 screenshot 30-restarted.png
+11:36:36.428 game Override after restart: alpha.txt beta.txt gamma.txt 
