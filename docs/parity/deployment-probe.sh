@@ -1,7 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Disposable deployment probes against the real `modsync deployment` CLI.
-# Usage: B=<path to modsync binary> sh docs/parity/deployment-probe.sh  (writes only under /tmp/depprobe/run)
+# Usage: B=<path to modsync binary> bash docs/parity/deployment-probe.sh
+# Writes only under /tmp/depprobe/run. Exits 1 if any probe fails, 2 on setup errors.
+set -u
 B=${B:-/home/brunner56/.cache/modsync-rs-target-dep/debug/modsync}
+[ -x "$B" ] || { echo "binary not found: $B" >&2; exit 2; }
+command -v python3 >/dev/null || { echo "python3 is required" >&2; exit 2; }
+echo "binary: $B sha256=$(sha256sum "$B" | cut -d' ' -f1) mtime=$(stat -c %y "$B")"
+echo "source: $(git -C "$(dirname "$0")" rev-parse HEAD 2>/dev/null)$(git -C "$(dirname "$0")" diff --quiet HEAD -- ../../src 2>/dev/null || echo ' +uncommitted src changes')"
 R=/tmp/depprobe/run; rm -rf "$R"; mkdir -p "$R"
 A=aaaaaaaa-0000-0000-0000-000000000001; Bc=bbbbbbbb-0000-0000-0000-000000000002; C=cccccccc-0000-0000-0000-000000000003
 pass=0; fail=0
@@ -168,12 +174,109 @@ ok "redeploy over legacy manifest refused" '[ $rc -ne 0 ] && [ "$(ls $M/manifest
 dep purge >$W/out 2>$W/err; echo "  after purge: $(man $M) live=$(cat $G/Override/a.tga)"
 ok "purge finds legacy manifest and restores" '[ "$(cat $G/Override/a.tga)" = ORIG ] && [ -z "$(ls $M/manifests)" ] && [ ! -e $M/backups/$U ]'
 
-echo "P17 switch without --purge-current warns about live deployments"; new p17
+echo "P17 switch without --purge-current is refused while the current profile is live"; new p17
 CFG=$W/cfg; $B profile --action create --settings-dir $CFG --name One >/dev/null; $B profile --action create --settings-dir $CFG --name Two >/dev/null
 mkdir -p $CFG/profiles/One/staging/$A; printf X > $CFG/profiles/One/staging/$A/x.txt
 $B deployment switch --game-dir $G --settings-dir $CFG --to One >/dev/null
 $B deployment deploy --game-dir $G --settings-dir $CFG --component $A >/dev/null
-$B deployment switch --game-dir $G --settings-dir $CFG --to Two >$W/out 2>$W/err; echo "  $(cat $W/err)"
-ok "warned, files left in place" 'grep -q "still has 1 deployment" $W/err && [ -e $G/x.txt ]'
+$B deployment switch --game-dir $G --settings-dir $CFG --to Two >$W/out 2>$W/err; rc=$?; echo "  rc=$rc: $(tail -1 $W/err | cut -c1-120)"
+ok "refused, One still active, files in place" '[ $rc -ne 0 ] && grep -q "\"activeProfileName\": \"One\"" $CFG/settings.json && [ -e $G/x.txt ]'
+
+echo "P18 a second profile cannot deploy into a game dir another profile still owns"; new p18
+CFG=$W/cfg; $B profile --action create --settings-dir $CFG --name One >/dev/null; $B profile --action create --settings-dir $CFG --name Two >/dev/null
+mkdir -p $G/Override $CFG/profiles/One/staging/$A/Override $CFG/profiles/Two/staging/$Bc/Override
+printf ORIG > $G/Override/x.2da; printf ONE > $CFG/profiles/One/staging/$A/Override/x.2da; printf TWO > $CFG/profiles/Two/staging/$Bc/Override/x.2da
+$B deployment deploy --game-dir $G --settings-dir $CFG --profile One --component $A >/dev/null
+$B deployment deploy --game-dir $G --settings-dir $CFG --profile Two --component $Bc >$W/out 2>$W/err; rc=$?; echo "  rc=$rc: $(tail -1 $W/err | cut -c1-120)"
+ok "Two refused, ONE live" '[ $rc -ne 0 ] && [ "$(cat $G/Override/x.2da)" = ONE ]'
+$B deployment purge --game-dir $G --settings-dir $CFG --profile One >/dev/null
+$B deployment deploy --game-dir $G --settings-dir $CFG --profile Two --component $Bc >/dev/null; rc=$?
+$B deployment purge --game-dir $G --settings-dir $CFG --profile Two >/dev/null
+ok "after One is purged Two deploys, and purge gives ORIG" '[ $rc -eq 0 ] && [ "$(cat $G/Override/x.2da)" = ORIG ]'
+
+echo "P19 case-colliding game directories are refused even with an exact spelling"; new p19
+mkdir -p $G/Override $G/override; stage $A Override/a.tga A
+dep deploy --component $A >$W/out 2>$W/err; rc=$?; echo "  rc=$rc: $(tail -1 $W/err | cut -c1-120)"
+ok "refused, nothing deployed" '[ $rc -ne 0 ] && [ -z "$(find $G -type f)" ] && [ -z "$(ls $M/manifests)" ]'
+
+echo "P20 patcher changes a file the component already deployed"; new p20
+printf ORIG > $G/dialog.tlk; stage $A dialog.tlk STAGED
+dep deploy --component $A >/dev/null; dep snapshot --out $W/before.json >/dev/null; cp -a $G $W/pre
+rm $G/dialog.tlk; printf PATCHED > $G/dialog.tlk      # patcher replaces the file
+dep record --component $A --before $W/before.json --backup-source $W/pre >$W/out 2>$W/err
+echo "  after record: $(man $M) staged=$(cat $S/$A/dialog.tlk)"
+ok "owned path updated, staging kept in step" 'python3 -c "import json,sys;r=json.load(open(sys.argv[1]))[\"provenance\"];sys.exit(0 if r[\"updated\"]==[\"dialog.tlk\"] else 1)" $W/out && [ "$(cat $S/$A/dialog.tlk)" = PATCHED ]'
+dep uninstall --component $A >/dev/null
+ok "uninstall removes patcher output and restores ORIG" '[ "$(cat $G/dialog.tlk)" = ORIG ] && [ -z "$(ls $M/manifests)" ]'
+
+echo "P21 provenance on an older component keeps ownership order"; new p21
+mkdir -p $G/Override; printf ORIG > $G/Override/x.2da; stage $A Override/x.2da A; stage $Bc Override/x.2da B
+dep deploy --component $A >/dev/null; sleep 0.05; dep deploy --component $Bc >/dev/null 2>&1
+before=$(grep -h DeployedUtc $M/manifests/$A.json)
+dep snapshot --out $W/before.json >/dev/null; printf NEW > $G/Override/new.2da
+dep record --component $A --before $W/before.json >/dev/null 2>&1
+ok "record_live left A's DeployedUtc unchanged" '[ "$(grep -h DeployedUtc $M/manifests/$A.json)" = "$before" ]'
+dep uninstall --component $A >$W/out 2>&1; dep uninstall --component $Bc >/dev/null
+ok "handoff still works: final bytes ORIG, no orphan backups" '[ "$(cat $G/Override/x.2da)" = ORIG ] && [ -z "$(find $M/backups -type f)" ]'
+
+echo "P22 deployment refuses while another ModSync process holds the game lock"; new p22
+stage $A a.txt A
+LOCK=$(dirname $G)/.modsync-lock-$(printf %s "$(realpath $G)" | sha256sum | cut -c1-16)
+flock "$LOCK" sleep 3 & sleep 0.5
+dep deploy --component $A >$W/out 2>$W/err; rc=$?; wait
+echo "  rc=$rc: $(tail -1 $W/err | cut -c1-120)"
+ok "refused while locked, nothing deployed" '[ $rc -ne 0 ] && [ ! -e $G/a.txt ]'
+dep deploy --component $A >/dev/null; ok "deploys once the lock is free" '[ -e $G/a.txt ]'
+
+echo "P23 a pre-patcher copy that does not match the snapshot is not used as a backup"; new p23
+printf DIALOG0 > $G/dialog.tlk; dep snapshot --out $W/before.json >/dev/null
+mkdir -p $W/pre; printf WRONG > $W/pre/dialog.tlk; printf DIALOG1 > $G/dialog.tlk
+dep record --component $A --before $W/before.json --backup-source $W/pre >$W/out 2>$W/err; rc=$?
+ok "skipped, no backup left behind" '[ $rc -eq 0 ] && python3 -c "import json,sys;r=json.load(open(sys.argv[1]))[\"provenance\"];sys.exit(0 if r[\"skipped\"]==[\"dialog.tlk\"] else 1)" $W/out && [ -z "$(find $M/backups -type f)" ]'
+
+echo "P24 uninstall uses the recorded spelling after a case variant appears"; new p24
+mkdir -p $G/Override; printf ORIG > $G/Override/a.tga; stage $A Override/a.tga A
+dep deploy --component $A >/dev/null; mkdir $G/override
+dep uninstall --component $A >$W/out 2>$W/err; rc=$?
+ok "original restored, manifest removed" '[ $rc -eq 0 ] && [ "$(cat $G/Override/a.tga)" = ORIG ] && [ -z "$(ls $M/manifests)" ] && [ -z "$(find $M/backups -type f)" ]'
+
+echo "P25 provenance does not claim a path a newer component owns"; new p25
+mkdir -p $G/Override; printf ORIGX > $G/Override/x.2da; printf ORIGY > $G/Override/y.2da
+stage $A Override/x.2da A; stage $Bc Override/y.2da B
+dep deploy --component $A >/dev/null; sleep 0.05; dep deploy --component $Bc >/dev/null
+dep snapshot --out $W/before.json >/dev/null; cp -a $G $W/pre
+rm $G/Override/y.2da; printf PATCHED > $G/Override/y.2da
+dep record --component $A --before $W/before.json --backup-source $W/pre >$W/out 2>$W/err; rc=$?
+echo "  after record: $(man $M)"
+ok "skipped, not recorded in A, no backup made" '[ $rc -eq 0 ] && python3 -c "import json,sys;r=json.load(open(sys.argv[1]))[\"provenance\"];sys.exit(0 if r[\"skipped\"]==[\"Override/y.2da\"] and not r[\"recorded\"] else 1)" $W/out && ! grep -q y.2da $M/manifests/$A.json && [ ! -e $M/backups/$A/Override/y.2da ]'
+
+echo "P26 a failed backup handoff leaves both backups and both manifests"; new p26
+mkdir -p $G/Override; printf ORIG > $G/Override/x.2da; stage $A Override/x.2da A; stage $Bc Override/x.2da B
+dep deploy --component $A >/dev/null; sleep 0.05; dep deploy --component $Bc >/dev/null 2>&1
+chmod 555 $M/backups/$Bc/Override
+dep uninstall --component $A >$W/out 2>$W/err; rc=$?; chmod 755 $M/backups/$Bc/Override
+echo "  rc=$rc: $(tail -1 $W/err | cut -c1-120)"
+ok "refused; B's slot still holds A, A still holds ORIG" '[ $rc -ne 0 ] && [ "$(cat $M/backups/$Bc/Override/x.2da)" = A ] && [ "$(cat $M/backups/$A/Override/x.2da)" = ORIG ] && [ -e $M/manifests/$A.json ] && [ -e $M/manifests/$Bc.json ]'
+dep uninstall --component $A >/dev/null; dep uninstall --component $Bc >/dev/null
+ok "retry hands off; final bytes ORIG" '[ "$(cat $G/Override/x.2da)" = ORIG ] && [ -z "$(ls $M/manifests)" ] && [ -z "$(find $M/backups -type f)" ]'
+
+echo "P27 a failed provenance record removes the backups it made"; new p27
+mkdir -p $G/sub; printf A0 > $G/a.2da; printf X0 > $G/sub/x.2da
+dep snapshot --out $W/before.json >/dev/null; cp -a $G $W/pre; printf A1 > $G/a.2da; printf X1 > $G/sub/x.2da
+mkdir -p $M/backups/$A/sub; chmod 555 $M/backups/$A/sub
+dep record --component $A --before $W/before.json --backup-source $W/pre >$W/out 2>$W/err; rc=$?
+chmod -R u+w $M 2>/dev/null; echo "  rc=$rc: $(tail -1 $W/err | cut -c1-120)"
+ok "failed, no backup files, no manifest" '[ $rc -ne 0 ] && [ -z "$(find $M/backups -type f)" ] && [ ! -e $M/manifests/$A.json ]'
+dep record --component $A --before $W/before.json --backup-source $W/pre >$W/out 2>$W/err; rc=$?
+ok "retry records both with backups" '[ $rc -eq 0 ] && python3 -c "import json,sys;r=json.load(open(sys.argv[1]))[\"provenance\"];sys.exit(0 if sorted(r[\"backedUp\"])==[\"a.2da\",\"sub/x.2da\"] else 1)" $W/out'
+dep uninstall --component $A >/dev/null
+ok "uninstall restores both originals" '[ "$(cat $G/a.2da)" = A0 ] && [ "$(cat $G/sub/x.2da)" = X0 ]'
+
+echo "P28 a manifest root refuses a different game directory"; new p28
+stage $A a.txt A; dep deploy --component $A >/dev/null; mkdir -p $W/game2
+$B deployment uninstall --component $A --game-dir $W/game2 --staging-dir $S --manifest-dir $M >$W/out 2>$W/err; rc=$?
+echo "  rc=$rc: $(tail -1 $W/err | cut -c1-120)"
+ok "refused, manifest and file kept" '[ $rc -ne 0 ] && [ -e $M/manifests/$A.json ] && [ -e $G/a.txt ] && [ "$(cat $M/game-directory)" = "$(realpath $G)" ]'
 
 echo; echo "TOTAL pass=$pass fail=$fail"
+[ "$fail" -eq 0 ] || exit 1

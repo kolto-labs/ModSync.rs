@@ -317,7 +317,7 @@ enum DeploymentAction {
         #[arg(long)]
         backup_source: Option<PathBuf>,
     },
-    /// Activate another profile, optionally purging the current profile's deployments first.
+    /// Activate another profile. Refused while the current profile has deployments unless --purge-current removes them first.
     Switch {
         #[arg(long)]
         game_dir: PathBuf,
@@ -492,17 +492,22 @@ fn run() -> Result<()> {
                     component,
                     name,
                 } => {
-                    let (manifest, warnings) = roots.service()?.deploy_report(&component, name)?;
+                    let service = roots.service()?;
+                    let _lock = service.lock()?;
+                    let (manifest, warnings) = service.deploy_report(&component, name)?;
                     warn(&warnings);
                     print(serde_json::to_value(manifest)?)
                 }
                 DeploymentAction::Uninstall { roots, component } => {
-                    let report = roots.service()?.uninstall_report(&component)?;
+                    let service = roots.service()?;
+                    let _lock = service.lock()?;
+                    let report = service.uninstall_report(&component)?;
                     warn(&report.warnings);
                     print(serde_json::to_value(report)?)
                 }
                 DeploymentAction::Purge { roots } => {
                     let service = roots.service()?;
+                    let _lock = service.lock()?;
                     warn(&service.deployed_with_warnings()?.1);
                     let reports = service.purge_report()?;
                     for report in &reports {
@@ -524,12 +529,10 @@ fn run() -> Result<()> {
                 } => {
                     let before: modsync::deployment::HashIndex =
                         serde_json::from_slice(&std::fs::read(&before)?)?;
-                    let (manifest, report) = roots.service()?.record_live(
-                        &component,
-                        name,
-                        &before,
-                        backup_source.as_deref(),
-                    )?;
+                    let service = roots.service()?;
+                    let _lock = service.lock()?;
+                    let (manifest, report) =
+                        service.record_live(&component, name, &before, backup_source.as_deref())?;
                     warn(&report.warnings);
                     print(serde_json::json!({"provenance": report, "manifest": manifest}))
                 }
@@ -552,17 +555,17 @@ fn run() -> Result<()> {
                         );
                         if purge_current {
                             let service = service?;
+                            let _lock = service.lock()?;
                             purged = service.purge_report()?;
                             for report in &purged {
                                 warn(&report.warnings);
                             }
                         } else if let Ok(service) = service {
                             let live = service.deployed()?.len();
-                            if live > 0 {
-                                warn(&[format!(
-                                    "Profile '{current}' still has {live} deployment(s) in this game directory. They stay in place; pass --purge-current to remove them first."
-                                )]);
-                            }
+                            ensure!(
+                                live == 0,
+                                "Profile '{current}' still has {live} deployment(s) in this game directory. Two live profiles cannot share one game tree; pass --purge-current to remove them first."
+                            );
                         }
                     }
                     let profile = store.activate(&to)?;
