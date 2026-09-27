@@ -186,7 +186,10 @@ impl App {
                 self.refresh_input_stamp();
                 if self.job == Job::Validate {
                     if self.cancelled.load(Ordering::Relaxed) {
-                        self.validation_report = None;
+                        validation_page::clear_report(
+                            &mut self.validation_report,
+                            &mut self.validation_page,
+                        );
                         self.validation_page
                             .fail("Validation cancelled. Run validation again.");
                     } else if self.validation_input_stamp.as_ref() != Some(&self.input_stamp) {
@@ -207,7 +210,10 @@ impl App {
                     && self.job == Job::Validate
                     && self.validation_input_stamp.as_ref() == Some(&self.input_stamp);
                 if self.job == Job::Validate && result.is_ok() && !self.validated {
-                    self.validation_report = None;
+                    validation_page::clear_report(
+                        &mut self.validation_report,
+                        &mut self.validation_page,
+                    );
                     self.logs
                         .push("Inputs changed during validation; run validation again.".into());
                 }
@@ -235,9 +241,8 @@ impl App {
     }
 
     fn invalidate_validation(&mut self) {
-        self.validation_page.invalidate();
         self.validated = false;
-        self.validation_report = None;
+        validation_page::clear_report(&mut self.validation_report, &mut self.validation_page);
         self.conflicts = None;
         self.confirm_install = false;
     }
@@ -533,6 +538,10 @@ impl App {
 
     fn wizard_content(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
         let page = self.wizard.as_ref().unwrap().current();
+        if page == Page::Validate {
+            self.validation_content(ui, ctx);
+            return;
+        }
         let idle = self.receiver.is_none();
         ui.add_enabled_ui(idle, |ui| match page {
             Page::Welcome => {
@@ -668,7 +677,10 @@ impl App {
                 if Self::path_row(ui, "Guide", &mut self.input, false) {
                     self.validated = false;
                     self.conflicts = None;
-                    self.validation_report = None;
+                    validation_page::clear_report(
+                        &mut self.validation_report,
+                        &mut self.validation_page,
+                    );
                 }
                 if ui.button("Load guide").clicked() {
                     self.load();
@@ -717,7 +729,10 @@ impl App {
                     self.logs.push(format!("Drafted {} instructions; inspect each component before accepting its draft.", results.iter().map(|r| r.draft_instruction_count).sum::<usize>()));
                     self.validated = false;
                     self.conflicts = None;
-                    self.validation_report = None;
+                    validation_page::clear_report(
+                        &mut self.validation_report,
+                        &mut self.validation_page,
+                    );
                 }
                 ui.separator();
                 if Self::path_row(ui, "Game directory", &mut self.game, true)
@@ -725,7 +740,10 @@ impl App {
                 {
                     self.validated = false;
                     self.conflicts = None;
-                    self.validation_report = None;
+                    validation_page::clear_report(
+                        &mut self.validation_report,
+                        &mut self.validation_page,
+                    );
                 }
                 let game_root = modsync::game::resolve_install_root(Path::new(&self.game));
                 ui.label(format!(
@@ -826,14 +844,20 @@ impl App {
                         modsync::game::enforce_selectable(&mut g.components, detected_game);
                         self.validated = false;
                         self.conflicts = None;
-                        self.validation_report = None;
+                        validation_page::clear_report(
+                            &mut self.validation_report,
+                            &mut self.validation_page,
+                        );
                         self.confirm_install = false;
                     }
                     if ui.button("Deselect all").clicked() {
                         modsync::selection::deselect_base(&mut g.components);
                         self.validated = false;
                         self.conflicts = None;
-                        self.validation_report = None;
+                        validation_page::clear_report(
+                            &mut self.validation_report,
+                            &mut self.validation_page,
+                        );
                         self.confirm_install = false;
                     }
                     ui.add(
@@ -910,7 +934,10 @@ impl App {
                         modsync::game::enforce_selectable(&mut g.components, detected_game);
                         self.validated = false;
                         self.conflicts = None;
-                        self.validation_report = None;
+                        validation_page::clear_report(
+                            &mut self.validation_report,
+                            &mut self.validation_page,
+                        );
                         self.confirm_install = false;
                     }
                     egui::ComboBox::from_id_salt("category_filter")
@@ -948,7 +975,10 @@ impl App {
                         modsync::game::enforce_selectable(&mut g.components, detected_game);
                         self.validated = false;
                         self.conflicts = None;
-                        self.validation_report = None;
+                        validation_page::clear_report(
+                            &mut self.validation_report,
+                            &mut self.validation_page,
+                        );
                         self.confirm_install = false;
                     }
                 });
@@ -1055,7 +1085,10 @@ impl App {
                                         );
                                         self.validated = false;
                                         self.conflicts = None;
-                                        self.validation_report = None;
+                                        validation_page::clear_report(
+                                            &mut self.validation_report,
+                                            &mut self.validation_page,
+                                        );
                                         self.confirm_install = false;
                                     }
                                     ui.label(format!(
@@ -1086,7 +1119,10 @@ impl App {
                                                 toggled = Some(c.is_selected);
                                                 self.validated = false;
                                                 self.conflicts = None;
-                                                self.validation_report = None;
+                                                validation_page::clear_report(
+                                                    &mut self.validation_report,
+                                                    &mut self.validation_page,
+                                                );
                                             }
                                             if ui
                                                 .selectable_label(
@@ -1163,7 +1199,10 @@ impl App {
                                 if option_change.is_some() {
                                     self.validated = false;
                                     self.conflicts = None;
-                                    self.validation_report = None;
+                                    validation_page::clear_report(
+                                        &mut self.validation_report,
+                                        &mut self.validation_page,
+                                    );
                                 }
                                 ui.separator();
                                 ui.strong("Download links");
@@ -1204,7 +1243,10 @@ impl App {
                                         }
                                         self.validated = false;
                                         self.conflicts = None;
-                                        self.validation_report = None;
+                                        validation_page::clear_report(
+                                            &mut self.validation_report,
+                                            &mut self.validation_page,
+                                        );
                                     }
                                 }
                             }
@@ -1233,7 +1275,10 @@ impl App {
                 {
                     self.validated = false;
                     self.conflicts = None;
-                    self.validation_report = None;
+                    validation_page::clear_report(
+                        &mut self.validation_report,
+                        &mut self.validation_page,
+                    );
                 }
                 Self::path_row(ui, "FOMOD archive", &mut self.fomod_archive, false);
                 if ui
@@ -1282,15 +1327,18 @@ impl App {
                 ) {
                     self.validated = false;
                     self.conflicts = None;
-                    self.validation_report = None;
+                    validation_page::clear_report(
+                        &mut self.validation_report,
+                        &mut self.validation_page,
+                    );
                     self.confirm_install = false;
                 }
                 ui.collapsing("Archive storage", |ui| {
-                        if Self::path_row(ui, "Scratch folder (optional)", &mut self.scratch, true) { self.validated = false; self.conflicts = None; self.validation_report = None; }
+                        if Self::path_row(ui, "Scratch folder (optional)", &mut self.scratch, true) { self.validated = false; self.conflicts = None; validation_page::clear_report(&mut self.validation_report, &mut self.validation_page); }
                         ui.label("Use an existing folder outside the game and mod folders. Blank uses system temp.");
                         ui.horizontal(|ui| {
                             ui.label("Maximum expanded bytes per archive (optional)");
-                            if ui.text_edit_singleline(&mut self.expanded_budget).changed() { self.validated = false; self.conflicts = None; self.validation_report = None; }
+                            if ui.text_edit_singleline(&mut self.expanded_budget).changed() { self.validated = false; self.conflicts = None; validation_page::clear_report(&mut self.validation_report, &mut self.validation_page); }
                         });
                     });
                 if self.allow_processes {
@@ -1323,7 +1371,10 @@ impl App {
                     if Self::path_row(ui, "Patcher executable", &mut self.patcher, false) {
                         self.validated = false;
                         self.conflicts = None;
-                        self.validation_report = None;
+                        validation_page::clear_report(
+                            &mut self.validation_report,
+                            &mut self.validation_page,
+                        );
                     }
                     if ui.button("Save patcher setting").clicked() {
                         match modsync::profiles::Store::new(Path::new(&self.profile_directory))
@@ -1530,7 +1581,7 @@ impl App {
         self.phase_failed = false;
         self.validated = false;
         self.conflicts = None;
-        self.validation_report = None;
+        validation_page::clear_report(&mut self.validation_report, &mut self.validation_page);
     }
 
     fn finish_wizard(&mut self) {
@@ -1715,7 +1766,7 @@ impl App {
             modsync::selection::resolve_selected(&mut guide.components);
             self.validated = false;
             self.conflicts = None;
-            self.validation_report = None;
+            validation_page::clear_report(&mut self.validation_report, &mut self.validation_page);
             self.confirm_install = false;
         }
     }
@@ -1773,7 +1824,7 @@ impl App {
         }
         self.validated = false;
         self.conflicts = None;
-        self.validation_report = None;
+        validation_page::clear_report(&mut self.validation_report, &mut self.validation_page);
         self.confirm_install = false;
         Ok(())
     }
@@ -1802,7 +1853,7 @@ impl App {
             self.guide = Some(guide);
             self.validated = false;
             self.conflicts = None;
-            self.validation_report = None;
+            validation_page::clear_report(&mut self.validation_report, &mut self.validation_page);
             self.confirm_install = false;
         } else {
             store.capture(
@@ -2035,7 +2086,7 @@ impl App {
         self.fomod_choices.clear();
         self.validated = false;
         self.conflicts = None;
-        self.validation_report = None;
+        validation_page::clear_report(&mut self.validation_report, &mut self.validation_page);
         self.confirm_install = false;
         self.logs
             .push("FOMOD choices applied. Run validation before installing.".into());
@@ -2060,6 +2111,9 @@ impl App {
     fn start(&mut self, job: Job, ctx: &egui::Context) {
         self.refresh_input_stamp();
         self.validation_input_stamp = (job == Job::Validate).then(|| self.input_stamp.clone());
+        self.validated = false;
+        self.conflicts = None;
+        validation_page::clear_report(&mut self.validation_report, &mut self.validation_page);
         if job == Job::Validate {
             self.validation_page.begin(
                 self.guide
@@ -2068,9 +2122,6 @@ impl App {
             );
         }
         let validation_run = self.validation_page.run;
-        self.validated = false;
-        self.conflicts = None;
-        self.validation_report = None;
         self.confirm_install = false;
         let settings = Settings::new(Path::new(&self.mods), Path::new(&self.game));
         let mut settings = match settings {
@@ -2553,7 +2604,7 @@ impl App {
         }
         self.validated = false;
         self.conflicts = None;
-        self.validation_report = None;
+        validation_page::clear_report(&mut self.validation_report, &mut self.validation_page);
         self.confirm_install = false;
     }
 }

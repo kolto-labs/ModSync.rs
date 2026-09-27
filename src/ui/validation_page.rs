@@ -70,14 +70,10 @@ impl State {
     }
     pub fn invalidate(&mut self) {
         let run = self.run;
-        let was_active = self.active;
         *self = Self {
             run,
             ..Self::default()
         };
-        if was_active {
-            self.fail("Inputs changed during validation; run validation again.");
-        }
     }
     pub fn fail(&mut self, message: &str) {
         self.active = false;
@@ -153,6 +149,12 @@ impl State {
     }
 }
 
+/// Clear both representations together so utility jobs and resets cannot leave stale cards.
+pub(super) fn clear_report(report: &mut Option<Report>, state: &mut State) {
+    *report = None;
+    state.invalidate();
+}
+
 fn frame(radius: u8, x: i8, y: i8) -> egui::Frame {
     egui::Frame::default()
         .corner_radius(radius)
@@ -177,10 +179,8 @@ impl App {
         };
         let border = if is_light {
             Color32::from_rgb(208, 208, 208)
-        } else if k2 {
-            Color32::from_rgb(10, 42, 34)
         } else {
-            Color32::from_rgb(6, 39, 102)
+            foreground
         };
         let button_fill = if is_light {
             Color32::from_rgb(240, 240, 240)
@@ -189,29 +189,58 @@ impl App {
         } else {
             Color32::from_rgb(1, 1, 22)
         };
-        ui.visuals_mut().override_text_color = Some(foreground);
-        ui.visuals_mut().widgets.inactive.weak_bg_fill = button_fill;
-        ui.visuals_mut().widgets.inactive.bg_stroke = egui::Stroke::new(
+        let button_border = if is_light {
+            Color32::from_rgb(173, 173, 173)
+        } else if k2 {
+            Color32::from_rgb(13, 89, 69)
+        } else {
+            Color32::from_rgb(6, 39, 102)
+        };
+        let hover_border = if is_light {
+            Color32::from_rgb(0, 120, 212)
+        } else if k2 {
+            Color32::from_rgb(224, 242, 241)
+        } else {
+            Color32::from_rgb(168, 179, 72)
+        };
+        let hover_text = if is_light {
+            foreground
+        } else if k2 {
+            Color32::from_rgb(242, 242, 242)
+        } else {
+            Color32::from_rgb(168, 179, 72)
+        };
+        let visuals = ui.visuals_mut();
+        visuals.override_text_color = None;
+        visuals.widgets.noninteractive.fg_stroke.color = foreground;
+        visuals.widgets.inactive.fg_stroke.color = foreground;
+        visuals.widgets.active.fg_stroke.color = foreground;
+        visuals.widgets.hovered.fg_stroke.color = hover_text;
+        visuals.widgets.inactive.weak_bg_fill = button_fill;
+        visuals.widgets.inactive.bg_stroke =
+            egui::Stroke::new(if is_light { 1.0 } else { 2.0 }, button_border);
+        visuals.widgets.hovered.weak_bg_fill = if is_light {
+            Color32::from_rgb(225, 225, 225)
+        } else if k2 {
+            button_fill
+        } else {
+            Color32::from_rgb(0, 1, 22)
+        };
+        visuals.widgets.hovered.bg_stroke =
+            egui::Stroke::new(if is_light { 1.0 } else { 2.0 }, hover_border);
+        visuals.widgets.active.weak_bg_fill = if is_light {
+            Color32::from_rgb(208, 208, 208)
+        } else {
+            visuals.widgets.hovered.weak_bg_fill
+        };
+        visuals.widgets.active.bg_stroke = egui::Stroke::new(
             if is_light { 1.0 } else { 2.0 },
             if is_light {
-                Color32::from_rgb(173, 173, 173)
-            } else {
-                border
-            },
-        );
-        ui.visuals_mut().widgets.hovered.weak_bg_fill = if is_light {
-            Color32::from_rgb(225, 225, 225)
-        } else {
-            border
-        };
-        ui.visuals_mut().widgets.hovered.bg_stroke = egui::Stroke::new(
-            1.0,
-            if is_light {
-                Color32::from_rgb(0, 120, 212)
+                Color32::from_rgb(0, 90, 158)
             } else if k2 {
                 Color32::from_rgb(63, 230, 192)
             } else {
-                Color32::from_rgb(168, 179, 72)
+                foreground
             },
         );
         ui.spacing_mut().item_spacing.y = 8.0;
@@ -277,7 +306,8 @@ impl App {
                 ui.horizontal_wrapped(|ui| {
                     let arrow = if state.expanded { "▼" } else { "▶" };
                     if ui.button(RichText::new(format!("{arrow} 📋 Validation Log")).size(13.0).strong()).clicked() { state.expanded = !state.expanded; }
-                    ui.label(RichText::new(state.progress_text()).size(12.0).color(foreground.gamma_multiply(0.7)));
+                    let progress_text = state.progress_text();
+                    if !progress_text.is_empty() { ui.label(RichText::new(progress_text).size(12.0).color(foreground.gamma_multiply(0.7))); }
                     if state.completed && (errors > 0 || warnings > 0) && ui.button("Go to first issue").on_hover_text("Expand the log, flush pending lines, and scroll to the first error or warning in the log and results").clicked() {
                         state.expanded = true;
                         state.log_offset = presentation::first_issue_log(&state.log.join("\n"), warnings).map_or(0.0, |line| (line as f32 * 15.0 - 30.0).max(0.0));
