@@ -99,15 +99,47 @@ pub struct NxmDownloadLink {
     pub uri: String,
 }
 
+/// Checks that a server-supplied download filename is exactly one normal path
+/// component, so joining it onto a directory cannot escape that directory.
+/// Both `/` and `\\` count as separators on every platform.
+pub fn validate_download_file_name(file_name: &str) -> Result<&str> {
+    anyhow::ensure!(
+        !file_name.trim().is_empty(),
+        "Downloaded filename is required"
+    );
+    anyhow::ensure!(
+        !file_name.contains('\0'),
+        "Downloaded filename contains a NUL byte"
+    );
+    anyhow::ensure!(
+        !file_name.contains(['/', '\\']),
+        "Downloaded filename {file_name:?} contains a path separator"
+    );
+    anyhow::ensure!(
+        file_name != "." && file_name != "..",
+        "Downloaded filename {file_name:?} is a relative directory reference"
+    );
+    anyhow::ensure!(
+        !file_name.contains(':'),
+        "Downloaded filename {file_name:?} contains a drive prefix or stream separator"
+    );
+    let mut components = std::path::Path::new(file_name).components();
+    anyhow::ensure!(
+        matches!(
+            (components.next(), components.next()),
+            (Some(std::path::Component::Normal(part)), None) if part == file_name
+        ),
+        "Downloaded filename {file_name:?} is not a single file name"
+    );
+    Ok(file_name)
+}
+
 pub fn record_nxm_download(
     component: &mut Component,
     registry_url: &str,
     file_name: &str,
 ) -> Result<()> {
-    anyhow::ensure!(
-        !file_name.trim().is_empty(),
-        "Downloaded filename is required"
-    );
+    validate_download_file_name(file_name)?;
     let metadata = component
         .resource_registry
         .get_mut(registry_url)
@@ -128,12 +160,27 @@ impl NexusClient {
         Self::with_base_url(api_key, "https://api.nexusmods.com/v1/")
     }
 
+    /// Requires https, except for loopback hosts, which may use http so a
+    /// local fake API can be used without a certificate authority.
     pub fn with_base_url(api_key: Option<String>, base_url: &str) -> Result<Self> {
+        let base_url = reqwest::Url::parse(base_url)?.join("./")?;
+        let loopback = base_url.host_str().is_some_and(|host| {
+            host.eq_ignore_ascii_case("localhost")
+                || host
+                    .trim_start_matches('[')
+                    .trim_end_matches(']')
+                    .parse::<std::net::IpAddr>()
+                    .is_ok_and(|ip| ip.is_loopback())
+        });
+        anyhow::ensure!(
+            base_url.scheme() == "https" || (loopback && base_url.scheme() == "http"),
+            "Nexus API base URL must use https (http is allowed only for loopback hosts)"
+        );
         Ok(Self {
             client: reqwest::blocking::Client::builder()
                 .timeout(Duration::from_secs(60))
                 .build()?,
-            base_url: reqwest::Url::parse(base_url)?.join("./")?,
+            base_url,
             api_key,
             daily_remaining: None,
             hourly_remaining: None,
@@ -211,6 +258,7 @@ impl NexusClient {
             })
             .filter(|name| !name.is_empty())
             .unwrap_or_else(|| format!("nexus_{game_domain}_{mod_id}_{file_id}"));
+        validate_download_file_name(&file_name)?;
         Ok(NxmDownloadLink {
             file_name,
             uri: uri.into(),
