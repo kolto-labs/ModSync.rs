@@ -37,7 +37,8 @@
     "task-3-focused.log": "77a55de9492a40157b0e90afa721bf6431b7fa378a1c305cf2f44680e73c7831",
     "task-3-no-default.log": "7cfaad9a91f390c214be425464e5c76877dfdd8f32567d36a93f8ec415fa1b88",
     "task-3-report.md": "989e09e58b650a31e8fe6b81c39ecf88a2225622fc28ed46a29e3488bf83de85",
-    "task-3-review.md": "133c252dd4819efca513ca4287b3ac4536b4cdde290b84c8c16f1a668bd36186"
+    "task-3-review.md": "133c252dd4819efca513ca4287b3ac4536b4cdde290b84c8c16f1a668bd36186",
+    "final-status-review.md": "9b70af1fbe04ada527c60c0c394e229a80b23a950cffe38bdde15af9b767222d"
   },
   "bindings": {
     "task-1-*": "4010aece72e901203c71ddc5ed6b61a0005f2ca5",
@@ -56,5 +57,11 @@
     "head": "e157021af3b32a510d5657ddfcaf6e7d87ebeb73",
     "verdict": "Specification PASS; Quality PASS with nonblocking P3 notes; ready to integrate",
     "artifact": "final-review.md"
+  },
+  "finalStatusReview": {
+    "base": "e157021af3b32a510d5657ddfcaf6e7d87ebeb73",
+    "head": "bb84ad93dff7079eb9407161b04640290a9f9101",
+    "verdict": "PASS; no actionable findings",
+    "artifact": "final-status-review.md"
   }
 }
