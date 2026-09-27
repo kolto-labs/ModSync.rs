@@ -815,7 +815,6 @@ impl Engine {
             InstallPhase::CreatingSnapshot,
             "Creating recovery snapshot of game and mod directories",
         );
-        self.check_cancelled()?;
         recovery::begin(&self.settings.roots)?;
         observer.current.snapshot_pending = true;
         observer.emit(InstallPhase::CreatingSnapshot, "Recovery snapshot active");
@@ -827,15 +826,12 @@ impl Engine {
                     recovery::state_dir(&self.settings.roots).display()
                 )
             })?;
-        self.check_cancelled()?;
         observer.clear_component();
         observer.emit(
             InstallPhase::RecordingCompletion,
             "Recording installation completion",
         );
-        self.check_cancelled()?;
         recovery::record_completion(&self.settings.roots, guide)?;
-        self.check_cancelled()?;
         recovery::finish(&self.settings.roots)?;
         observer.current.snapshot_pending = false;
         observer.emit(InstallPhase::Completed, "Installation complete");
