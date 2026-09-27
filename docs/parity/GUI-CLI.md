@@ -49,6 +49,6 @@ How a consumer reads the result:
 | Failure or cancel after the snapshot | nonzero | No `completed` line. The last line is the last fact that happened, e.g. an earlier `componentCompleted` or `installingComponent` | Legacy Event text, then `Error: …` with the real error and the restore-before-retry snapshot path |
 | Preflight failure | nonzero | Zero lines | `Error: …`; no snapshot is created |
 
-There is no failure envelope. The flag's `--help` text does not yet describe this table; the lead updates `src/main.rs` separately. The CLI has no cancellation input, so cancellation is exercised only through the desktop Stop Install path.
+There is no failure envelope. `33de7f6` updated the flag's `--help` text (`src/main.rs`) to state this contract. That is a source-only change; the `ac9cf3a` probe's `help.stdout` predates it. The CLI has no cancellation input, so cancellation is exercised only through the desktop Stop Install path.
 
 Evidence: [install-progress-native/](install-progress-native/README.md) binds the Task 2a CLI probes to `57f198f` and a typed-mode stderr/contract probe to a clean `ac9cf3a` build. This is shared-contract evidence only. No C# CLI install-stream comparison was made, and it proves nothing about C# GUI parity.

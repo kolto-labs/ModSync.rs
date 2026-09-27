@@ -25,7 +25,7 @@ Commits `065ffee` (shared contract), `57f198f` and `cd8f0b0` (CLI adapter), `dcd
 - Success: exit 0, and the last stdout line has `"phase":"completed"` with `snapshotPending:false`. `completed` is emitted only after the completion receipt is recorded and `recovery::finish` succeeds.
 - Failure or cancellation after the stream started: nonzero exit, no `completed` line, and the real error text on stderr (`Error: …`). The last line is the last fact that really happened; it may be `componentCompleted` for an earlier component. No failure envelope is emitted.
 - Preflight failure (lock, receipt check, scan, non-mutating preflight): zero stdout lines, nonzero exit, error on stderr, and no recovery snapshot.
-- The flag's `--help` text (`src/main.rs:343`) does not yet state this contract. The lead updates it separately.
+- `33de7f6` updated the flag's `--help` text (`src/main.rs`) to state this contract. That is a source-only change; the `ac9cf3a` probe's `help.stdout` predates it.
 
 **Desktop.** Base and Retained Remaining installs render one Installing page from these facts (`src/ui/installing_page.rs`). The percentage moves only on `componentCompleted`, stays at 99% or less until `completed`, and uses round-half-to-even like .NET `Math.Round`. The page shows one recovery snapshot row instead of C# checkpoint counts. Issue counts read "Not counted". Stop Install asks for confirmation and then cancels at the next safe boundary. Restore and Retry act on the roots captured when the run started. The deliberate differences from C# are listed in `docs/parity/GUI-INVENTORY.md`.
 

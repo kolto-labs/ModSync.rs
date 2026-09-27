@@ -13,7 +13,7 @@ No Rust tests, inline tests or Rust harnesses were created, changed or run for a
 | Folder | Source | Binary SHA256 | What it shows |
 |---|---|---|---|
 | [cli-57f198f/](cli-57f198f/) | `57f198f` (Task 2a) | `16d2d2a2…5887` (re-hashed, matches) | Typed All/Base/Remaining streams, runtime failure, preflight failure with zero lines, `validate`/`conflicts` rejection, clap conflict with `--json` (exit 2), legacy `--json` byte-identical to the Task 1 baseline (639 bytes, `9ea418cf…`), dropped consumer on success and failure |
-| [cli-ac9cf3a/](cli-ac9cf3a/) | clean `git archive ac9cf3a`, headless build | `b6097a79…9fa8` | Typed-mode legacy Event text on stderr (`cd8f0b0`); success/failure/preflight contract; clap conflict with `--json` and `--validation-report`; current `--help` text |
+| [cli-ac9cf3a/](cli-ac9cf3a/) | clean `git archive ac9cf3a`, headless build | `b6097a79…9fa8` | Typed-mode legacy Event text on stderr (`cd8f0b0`); success/failure/preflight contract; clap conflict with `--json` and `--validation-report`; `--help` text as of `ac9cf3a` |
 | [gui-r2-ac9cf3a/](gui-r2-ac9cf3a/) | `ac9cf3a` desktop build | `9429089d…dcce6` | 600×400 Stop Install and Continue; close request during install; Stop confirmation, cancel and exact restore; failure then restore of captured roots after the folders changed |
 | [gui-r1-c28f4fc/](gui-r1-c28f4fc/) | `c28f4fc` desktop build, before review fixes F1–F7 | `35b3b1b7…a0d4` (receipt only) | Light success and widescreen skip; K1 failure, small-window failure and restore; K2 Stop, restore, retry and widescreen phase on the same page; close attempt at `f598129` |
 | [scripts/](scripts/) | — | — | Fixture generator, launcher and input helpers used by both GUI rounds |
@@ -34,7 +34,7 @@ Probe: [cli-ac9cf3a/probe.sh](cli-ac9cf3a/probe.sh), run on the host with dispos
 
 After `typed-preflight`, the game and mod content manifests are unchanged and no snapshot exists. An empty `.modsync-*` state directory and two lock files were created next to the content roots. After `typed-fail`, a pending snapshot exists (`fail.recovery.ls`).
 
-The `--help` text for the flag reads only "Emit newline-delimited typed installation progress". It does not yet state the contract above.
+At `ac9cf3a` the `--help` text for the flag read only "Emit newline-delimited typed installation progress". `33de7f6` later added the contract to the help text. That change was not rebuilt or probed here.
 
 ## GUI round 2 at ac9cf3a
 

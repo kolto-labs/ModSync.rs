@@ -49,7 +49,7 @@ From the whole-package review (`/tmp/compound-engineering-1000/ce-code-review/20
 | # | Status in this checkpoint |
 |---|---|
 | 1 — no COMPATIBILITY.md entry for the typed stream | Closed by this docs commit (COMPATIBILITY.md "Typed install progress and Installing page — 2026-09-27") |
-| 5 — typed-stream success/failure contract undocumented | Documented here, in COMPATIBILITY.md and GUI-CLI.md. The `--install-progress-json` help text in `src/main.rs:343` still reads only "Emit newline-delimited typed installation progress."; the lead updates it separately |
+| 5 — typed-stream success/failure contract undocumented | Documented here, in COMPATIBILITY.md and GUI-CLI.md. The `--install-progress-json` help text states the contract since `33de7f6` (source only; not rebuilt or probed here) |
 | 2 — utility "Restore failed install" uses live paths | Open; source fix in progress in `src/ui.rs` by another worker, not bound by this checkpoint |
 | 9 — stale Remaining success dead-ends | Open; same |
 | 10 — Retry disabled after `Settings::new` failure | Open; same |
