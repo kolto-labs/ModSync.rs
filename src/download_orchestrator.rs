@@ -1059,8 +1059,9 @@ fn origin_once(
                 Some(Ok(true)) => {}
                 // A free or invalid key: manual, with no download request (gate, R2).
                 Some(Ok(false)) | None => {
+                    // The mod page, not an nxm link, is what a person can open.
                     return Err(download::manual_required(
-                        url,
+                        &target.registry_url,
                         ManualReason::FreeUserWait,
                         "Nexus Mods needs a premium account for automatic downloads; download it on the website.",
                     ));
