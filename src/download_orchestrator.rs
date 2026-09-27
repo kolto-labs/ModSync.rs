@@ -12,6 +12,7 @@ use crate::{
     download::{self, Destination, FailureClass, FetchProgress},
     download_hosts::{self, Provider},
     download_plan, download_queue, protocol,
+    selection::DownloadCandidate,
     updates::NexusClient,
 };
 use anyhow::{Context, Result, bail, ensure};
@@ -78,17 +79,22 @@ pub struct AcquisitionPlan {
     pub peer_mode: PeerMode,
     pub targets: Vec<ArchiveTarget>,
     pub skipped: Vec<PlannedSkip>,
+    /// Authoring problems that do not stop the plan, e.g. malformed peer metadata.
+    pub warnings: Vec<String>,
 }
 
 impl AcquisitionPlan {
-    /// A one-target plan, as used by the nxm handoff.
-    pub fn single(target: ArchiveTarget, source_dir: &Path) -> Self {
-        Self {
+    /// A one-target plan, as used by the nxm handoff. The target's filename must already
+    /// satisfy the one-component rule.
+    pub fn single(target: ArchiveTarget, source_dir: &Path) -> Result<Self> {
+        target.destination(source_dir)?;
+        Ok(Self {
             source_dir: source_dir.to_path_buf(),
             peer_mode: PeerMode::Off,
             targets: vec![target],
             skipped: Vec::new(),
-        }
+            warnings: Vec::new(),
+        })
     }
 }
 
@@ -193,24 +199,91 @@ fn sources_for(
     }
 }
 
-/// Plans acquisition for `candidates` (indexes into `guide.components`, in guide order).
-///
-/// Merge-time follow-up: switch `candidates` to `&[selection::DownloadCandidate]` when the
-/// selection branch lands. Only `ResourceRegistry` keys are acquisition input; metadata
-/// `Link`/`DownloadLink` never are.
-pub fn plan(guide: &Guide, candidates: &[usize], options: &PlanOptions) -> Result<AcquisitionPlan> {
+/// Share-eligible only with a 64-hex `ContentHashSHA256`, a `magnet:?xt=urn:btih:` magnet
+/// and at most one archive under `Files`, since a torrent holds exactly one archive.
+/// Anything malformed is a warning and the resource stays Origin-only.
+fn peer_metadata(
+    url: &str,
+    metadata: &Value,
+    file_count: usize,
+    warnings: &mut Vec<String>,
+) -> Option<(String, String)> {
+    let sha256 = metadata_str(metadata, "ContentHashSHA256");
+    let magnet = metadata_str(metadata, "Magnet")?;
+    let Some(sha256) = sha256 else {
+        warnings.push(format!(
+            "{url}: Magnet without ContentHashSHA256; peers not used"
+        ));
+        return None;
+    };
+    if sha256.len() != 64 || !sha256.bytes().all(|b| b.is_ascii_hexdigit()) {
+        warnings.push(format!(
+            "{url}: ContentHashSHA256 is not 64 hex digits; peers not used"
+        ));
+        return None;
+    }
+    let lower = magnet.to_ascii_lowercase();
+    let btih = lower.strip_prefix("magnet:?").and_then(|query| {
+        query
+            .split('&')
+            .find_map(|pair| pair.strip_prefix("xt=urn:btih:"))
+    });
+    let valid_btih = btih.is_some_and(|hash| {
+        (hash.len() == 40 && hash.bytes().all(|b| b.is_ascii_hexdigit()))
+            || (hash.len() == 32
+                && hash
+                    .bytes()
+                    .all(|b| b.is_ascii_lowercase() || (b'2'..=b'7').contains(&b)))
+    });
+    if !valid_btih {
+        warnings.push(format!(
+            "{url}: Magnet is not a magnet:?xt=urn:btih: link; peers not used"
+        ));
+        return None;
+    }
+    if file_count > 1 {
+        warnings.push(format!(
+            "{url}: Files lists {file_count} archives but a torrent holds one; peers not used"
+        ));
+        return None;
+    }
+    Some((sha256.to_ascii_lowercase(), magnet.to_owned()))
+}
+
+/// Plans acquisition for `candidates`, which come only from
+/// `selection::download_candidates(&guide.components, Scope::All)`. Each candidate must still
+/// name the same selected component (index and GUID), so a stale or hand-built list cannot
+/// download an unselected or reordered component. Only `ResourceRegistry` keys are
+/// acquisition input; metadata `Link`/`DownloadLink` never are.
+pub fn plan(
+    guide: &Guide,
+    candidates: &[DownloadCandidate],
+    options: &PlanOptions,
+) -> Result<AcquisitionPlan> {
     let mut result = AcquisitionPlan {
         source_dir: options.source_dir.clone(),
         peer_mode: options.peer_mode,
         targets: Vec::new(),
         skipped: Vec::new(),
+        warnings: Vec::new(),
     };
     let mut seen = BTreeSet::new();
-    for &index in candidates {
+    for candidate in candidates {
+        let index = candidate.index;
         let component = guide
             .components
             .get(index)
             .with_context(|| format!("Download candidate {index} is not a guide component"))?;
+        ensure!(
+            component.guid == candidate.guid,
+            "Download candidate {index} no longer names component {}",
+            candidate.guid
+        );
+        ensure!(
+            component.is_selected,
+            "Download candidate {} is not selected",
+            candidate.guid
+        );
         if !seen.insert(index) {
             continue;
         }
@@ -290,12 +363,11 @@ fn plan_url(
     let expected = metadata_str(metadata, "ContentHashSHA256").map(str::to_owned);
     let peer = match (
         options.peer_mode,
-        &expected,
-        metadata_str(metadata, "Magnet"),
+        peer_metadata(url, metadata, keys.len(), &mut plan.warnings),
     ) {
-        (PeerMode::Race | PeerMode::Fallback, Some(sha256), Some(magnet)) => Some(Source::Peer {
-            magnet: magnet.to_owned(),
-            sha256: sha256.clone(),
+        (PeerMode::Race | PeerMode::Fallback, Some((sha256, magnet))) => Some(Source::Peer {
+            magnet,
+            sha256,
             peers: options.user_peers.clone(),
         }),
         _ => None,
@@ -536,6 +608,28 @@ enum Step {
 }
 
 fn acquire_target(context: &RunContext<'_>, index: usize, target: &ArchiveTarget) -> TargetOutcome {
+    // Cleanup failures from a race; reported on whatever outcome the target reaches.
+    let mut notes = Vec::new();
+    let mut outcome = acquire_sources(context, index, target, &mut notes);
+    if !notes.is_empty() {
+        outcome.error = Some(
+            outcome
+                .error
+                .into_iter()
+                .chain(notes)
+                .collect::<Vec<_>>()
+                .join("; "),
+        );
+    }
+    outcome
+}
+
+fn acquire_sources(
+    context: &RunContext<'_>,
+    index: usize,
+    target: &ArchiveTarget,
+    notes: &mut Vec<String>,
+) -> TargetOutcome {
     let first = target
         .sources
         .first()
@@ -559,7 +653,9 @@ fn acquire_target(context: &RunContext<'_>, index: usize, target: &ArchiveTarget
             Step::Cancelled(source.kind())
         } else if race {
             position += 1;
-            race_origin_peer(context, index, target, source)
+            let (step, race_notes) = race_origin_peer(context, index, target, source);
+            notes.extend(race_notes);
+            step
         } else {
             single_source(context, index, target, source)
         };
@@ -658,13 +754,22 @@ fn single_source(
 ) -> Step {
     let kind = source.kind();
     match source {
-        Source::Existing { path } => Step::Done(
-            Acquired {
-                path: path.clone(),
-                sha256: sha256_file(path).unwrap_or_default(),
-            },
-            kind,
-        ),
+        Source::Existing { path } => match sha256_file(path) {
+            Ok(sha256) => Step::Done(
+                Acquired {
+                    path: path.clone(),
+                    sha256,
+                },
+                kind,
+            ),
+            Err(error) => Step::Failed(
+                format!(
+                    "Existing archive {} is unreadable: {error:#}",
+                    path.display()
+                ),
+                kind,
+            ),
+        },
         Source::Manual { url, reason } => Step::Manual(url.clone(), *reason, kind),
         Source::Origin { .. } => {
             let mut on = |event: AcquisitionEvent| {
@@ -685,12 +790,11 @@ fn single_source(
                 let mut on = |event: AcquisitionEvent| {
                     let _ = context.events.send(event);
                 };
-                match peer.acquire(
-                    target,
-                    &target.destination(&context.plan.source_dir),
-                    context.cancelled,
-                    &mut on,
-                ) {
+                let destination = match target.destination(&context.plan.source_dir) {
+                    Ok(destination) => destination,
+                    Err(error) => return Step::Failed(format!("{error:#}"), kind),
+                };
+                match peer.acquire(target, &destination, context.cancelled, &mut on) {
                     Ok(acquired) => Step::Done(acquired, kind),
                     Err(error) => step_from_error(error, kind),
                 }
@@ -699,102 +803,177 @@ fn single_source(
     }
 }
 
-/// Origin races Peer. Each racer has its own flag, linked to the parent cancel by this
-/// thread. The first `Ok` wins; the loser is stopped, joined, and reported `Superseded`.
-/// An Origin gate stops the Peer and ends the target: a peer copy never satisfies a gate.
+/// Removes a racer's published file. The error is kept for the report, never dropped.
+fn discard(acquired: &Acquired, notes: &mut Vec<String>) {
+    if let Err(error) = std::fs::remove_file(&acquired.path)
+        && error.kind() != std::io::ErrorKind::NotFound
+    {
+        notes.push(format!(
+            "Could not remove {}: {error}",
+            acquired.path.display()
+        ));
+    }
+}
+
+/// Origin races Peer.
+///
+/// - Each racer has its own stop flag. This thread copies the parent cancel into both on
+///   every pass, and re-checks the parent before accepting any result, so nothing is
+///   accepted after a cancel; a file published in that window is removed.
+/// - Peer may win only after Origin has passed gate classification (its first
+///   `Transferring` event, sent after the status/body checks) or has failed with a non-gate
+///   error. Until then a finished Peer copy is held. If Origin then reveals a gate, the copy
+///   is removed and the target ends `ManualRequired`: a peer copy never satisfies a gate (R2).
+/// - The first accepted `Ok` wins. The loser is stopped, joined, has any published file
+///   removed, and is reported `Superseded`. Removal failures go into the returned notes.
 fn race_origin_peer(
     context: &RunContext<'_>,
     index: usize,
     target: &ArchiveTarget,
     origin: &Source,
-) -> Step {
+) -> (Step, Vec<String>) {
+    const ORIGIN: usize = 0;
+    const PEER: usize = 1;
+    let mut notes = Vec::new();
     let peer = context
         .settings
         .peer
         .as_ref()
         .expect("race requires a peer source");
     let origin_kind = origin.kind();
+    let destination = match target.destination(&context.plan.source_dir) {
+        Ok(destination) => destination,
+        Err(error) => return (Step::Failed(format!("{error:#}"), origin_kind), notes),
+    };
     let flags = [AtomicBool::new(false), AtomicBool::new(false)];
+    let origin_cleared = AtomicBool::new(false);
     let (results, receiver) = mpsc::channel::<(usize, Result<Acquired>)>();
-    let destination = target.destination(&context.plan.source_dir);
-    thread::scope(|scope| {
+    let step = thread::scope(|scope| {
         {
             let results = results.clone();
-            let flag = &flags[0];
+            let flag = &flags[ORIGIN];
+            let origin_cleared = &origin_cleared;
             scope.spawn(move || {
                 let mut on = |event: AcquisitionEvent| {
+                    if matches!(event.phase, Phase::Transferring { .. }) {
+                        origin_cleared.store(true, Ordering::SeqCst);
+                    }
                     let _ = context.events.send(event);
                 };
                 let _ = results.send((
-                    0,
+                    ORIGIN,
                     origin_with_retries(context, index, target, origin, flag, &mut on),
                 ));
             });
         }
         {
-            let flag = &flags[1];
+            let flag = &flags[PEER];
             let destination = &destination;
             scope.spawn(move || {
                 let mut on = |event: AcquisitionEvent| {
                     let _ = context.events.send(event);
                 };
-                let _ = results.send((1, peer.acquire(target, destination, flag, &mut on)));
+                let _ = results.send((PEER, peer.acquire(target, destination, flag, &mut on)));
             });
         }
         let kinds = [origin_kind, SourceKind::Peer];
-        let mut finished: [Option<Result<Acquired>>; 2] = [None, None];
+        let stop = |racer: usize| flags[racer].store(true, Ordering::SeqCst);
+        let parent_cancelled = || context.cancelled.load(Ordering::SeqCst);
+        let mut running = [true, true];
+        let mut origin_failed = false;
+        let mut held_peer: Option<Acquired> = None;
         let mut decided: Option<Step> = None;
-        let mut received = 0;
-        while received < 2 {
-            let (racer, result) = match receiver.recv_timeout(Duration::from_millis(50)) {
-                Ok(message) => message,
-                Err(mpsc::RecvTimeoutError::Timeout) => {
-                    if context.cancelled.load(Ordering::Relaxed) {
-                        flags.iter().for_each(|f| f.store(true, Ordering::Relaxed));
+        let mut superseded = [false, false];
+        let mut last_error: Option<(String, SourceKind)> = None;
+        let mut winner_path: Option<PathBuf> = None;
+        while running.iter().any(|r| *r) {
+            if parent_cancelled() {
+                stop(ORIGIN);
+                stop(PEER);
+                if decided.is_none() {
+                    if let Some(held) = held_peer.take() {
+                        discard(&held, &mut notes);
                     }
-                    continue;
+                    decided = Some(Step::Cancelled(origin_kind));
                 }
+            }
+            if decided.is_none()
+                && held_peer.is_some()
+                && (origin_cleared.load(Ordering::SeqCst) || origin_failed)
+            {
+                stop(ORIGIN);
+                let held = held_peer.take().unwrap();
+                winner_path = Some(held.path.clone());
+                decided = Some(Step::Done(held, SourceKind::Peer));
+            }
+            let (racer, result) = match receiver.recv_timeout(Duration::from_millis(20)) {
+                Ok(message) => message,
+                Err(mpsc::RecvTimeoutError::Timeout) => continue,
                 Err(mpsc::RecvTimeoutError::Disconnected) => break,
             };
-            received += 1;
+            running[racer] = false;
             let other = 1 - racer;
-            if decided.is_some() {
-                // The loser after a decision, joined here by receiving its result.
-                match (&result, &decided) {
-                    (Ok(acquired), Some(Step::Manual(..))) => {
-                        // Published before the gate stop reached it; a gated target keeps
-                        // no peer copy.
-                        let _ = std::fs::remove_file(&acquired.path);
-                    }
-                    (_, Some(Step::Done(..))) => {
-                        emit(context, index, target, kinds[racer], Phase::Superseded);
-                    }
-                    _ => {}
+            if decided.is_some() || parent_cancelled() {
+                // A loser, or a result that arrived after a cancel: never accepted.
+                if let Ok(acquired) = &result
+                    && winner_path.as_deref() != Some(acquired.path.as_path())
+                {
+                    discard(acquired, &mut notes);
                 }
-                finished[racer] = Some(result);
+                if matches!(decided, Some(Step::Done(..) | Step::Manual(..))) && !superseded[racer]
+                {
+                    superseded[racer] = true;
+                    emit(context, index, target, kinds[racer], Phase::Superseded);
+                }
+                if decided.is_none() {
+                    stop(other);
+                    decided = Some(Step::Cancelled(kinds[racer]));
+                }
                 continue;
             }
-            match result {
-                Ok(acquired) => {
-                    flags[other].store(true, Ordering::Relaxed);
-                    decided = Some(Step::Done(acquired, kinds[racer]));
+            match (racer, result) {
+                (ORIGIN, Ok(acquired)) => {
+                    stop(PEER);
+                    if let Some(held) = held_peer.take() {
+                        discard(&held, &mut notes);
+                        superseded[PEER] = true;
+                        emit(context, index, target, SourceKind::Peer, Phase::Superseded);
+                    }
+                    winner_path = Some(acquired.path.clone());
+                    decided = Some(Step::Done(acquired, origin_kind));
                 }
-                Err(error) => match step_from_error(error, kinds[racer]) {
-                    gate @ Step::Manual(_, reason, _) if racer == 0 && reason.is_gate() => {
-                        flags[other].store(true, Ordering::Relaxed);
+                (_, Ok(acquired)) => {
+                    if origin_cleared.load(Ordering::SeqCst) || origin_failed {
+                        stop(ORIGIN);
+                        winner_path = Some(acquired.path.clone());
+                        decided = Some(Step::Done(acquired, SourceKind::Peer));
+                    } else {
+                        // Origin has not yet shown it is not a gate: hold the copy.
+                        held_peer = Some(acquired);
+                    }
+                }
+                (_, Err(error)) => match step_from_error(error, kinds[racer]) {
+                    gate @ Step::Manual(_, reason, _) if racer == ORIGIN && reason.is_gate() => {
+                        stop(PEER);
+                        if let Some(held) = held_peer.take() {
+                            discard(&held, &mut notes);
+                        }
+                        if !superseded[PEER] {
+                            superseded[PEER] = true;
+                            emit(context, index, target, SourceKind::Peer, Phase::Superseded);
+                        }
                         decided = Some(gate);
                     }
-                    Step::Cancelled(kind) if context.cancelled.load(Ordering::Relaxed) => {
-                        flags[other].store(true, Ordering::Relaxed);
-                        decided = Some(Step::Cancelled(kind));
-                    }
                     step => {
-                        let message = match &step {
-                            Step::Failed(message, _) => message.clone(),
+                        let message = match step {
+                            Step::Failed(message, _) => message,
+                            Step::Manual(_, reason, _) => format!("{reason:?}"),
                             _ => "Source stopped".into(),
                         };
-                        if finished[other].is_none() {
-                            // The other racer is still running; the caller reports the last.
+                        if racer == ORIGIN {
+                            origin_failed = true;
+                        }
+                        if running[other] || held_peer.is_some() {
                             emit(
                                 context,
                                 index,
@@ -805,18 +984,30 @@ fn race_origin_peer(
                                     will_fallback: true,
                                 },
                             );
-                            finished[racer] = Some(Err(anyhow::anyhow!(message)));
-                        } else {
-                            decided = Some(Step::Failed(message, kinds[racer]));
                         }
+                        last_error = Some((message, kinds[racer]));
                     }
                 },
             }
         }
+        if decided.is_none()
+            && let Some(held) = held_peer.take()
+        {
+            if parent_cancelled() {
+                discard(&held, &mut notes);
+                decided = Some(Step::Cancelled(SourceKind::Peer));
+            } else {
+                // Origin ended without a gate: the held copy is accepted.
+                decided = Some(Step::Done(held, SourceKind::Peer));
+            }
+        }
         decided.unwrap_or_else(|| {
-            Step::Failed("Download race ended without a result".into(), origin_kind)
+            let (message, kind) = last_error
+                .unwrap_or_else(|| ("Download race ended without a result".into(), origin_kind));
+            Step::Failed(message, kind)
         })
-    })
+    });
+    (step, notes)
 }
 
 fn origin_with_retries(
@@ -881,13 +1072,18 @@ fn origin_once(
             .nexus
             .as_ref()
             .context("Nexus client missing for a Nexus origin")?;
-        let link = nexus_link(url, target, nexus)?;
-        let resolved = nexus.lock().unwrap().nxm_download_link(&link)?;
+        // API failures take the same typed retry policy as transfers.
+        let link = nexus_link(url, target, nexus).map_err(download::request_failure)?;
+        let resolved = nexus
+            .lock()
+            .unwrap()
+            .nxm_download_link(&link)
+            .map_err(download::request_failure)?;
         (resolved.uri, Some(resolved.file_name))
     } else {
         (url.clone(), None)
     };
-    let destination = target.destination(&context.plan.source_dir);
+    let destination = target.destination(&context.plan.source_dir)?;
     let destination = match &target.filename {
         Some(_) => Destination::File(&destination),
         None => Destination::Directory {
@@ -1176,8 +1372,23 @@ pub fn record_with(
 pub struct FomodFollowup {
     pub component_guid: String,
     pub archive: PathBuf,
-    /// Set when inspection failed; the archive still needs a person's attention.
-    pub error: Option<String>,
+}
+
+/// An archive that could not be inspected. It is not a follow-up: C# offers only archives
+/// it positively detects as FOMOD. Frontends may log these.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FomodInspectionError {
+    pub component_guid: String,
+    pub archive: PathBuf,
+    pub error: String,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FomodFollowups {
+    pub followups: Vec<FomodFollowup>,
+    pub inspection_errors: Vec<FomodInspectionError>,
 }
 
 /// Mirrors C# `FomodPostDownloadOrchestrator`: selected components only, archives
@@ -1188,9 +1399,10 @@ pub fn fomod_followups(
     report: &RunReport,
     options: &archive::Options,
     cancelled: &AtomicBool,
-) -> Vec<FomodFollowup> {
+) -> FomodFollowups {
+    let mut result = FomodFollowups::default();
     if report.cancelled {
-        return Vec::new();
+        return result;
     }
     let archives = report
         .outcomes
@@ -1205,10 +1417,9 @@ pub fn fomod_followups(
                 .filter_map(|s| Some((&s.component_guid, s.path.as_ref()?))),
         );
     let mut seen = BTreeSet::new();
-    let mut followups = Vec::new();
     for (guid, path) in archives {
         if cancelled.load(Ordering::Relaxed) {
-            return Vec::new();
+            return FomodFollowups::default();
         }
         if !seen.insert(path.clone()) {
             continue;
@@ -1224,20 +1435,19 @@ pub fn fomod_followups(
             continue;
         }
         match crate::fomod::inspect_archive(path, options, cancelled) {
-            Ok(Some(_)) => followups.push(FomodFollowup {
+            Ok(Some(_)) => result.followups.push(FomodFollowup {
                 component_guid: guid.clone(),
                 archive: path.clone(),
-                error: None,
             }),
             Ok(None) => {}
-            Err(error) => followups.push(FomodFollowup {
+            Err(error) => result.inspection_errors.push(FomodInspectionError {
                 component_guid: guid.clone(),
                 archive: path.clone(),
-                error: Some(format!("{error:#}")),
+                error: format!("{error:#}"),
             }),
         }
     }
-    followups
+    result
 }
 
 /// Lifted from the GUI's `should_offer_fomod_editor`: an archive no registry entry names

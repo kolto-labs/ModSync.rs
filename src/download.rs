@@ -235,13 +235,29 @@ fn fetch_inner(
         .get(reqwest::header::CONTENT_DISPOSITION)
         .and_then(|v| v.to_str().ok())
         .map(str::to_owned);
-    // Gate classification runs before status classification, so a challenge served as
-    // 403 or 503 is a manual boundary and never a retryable 5xx.
-    if html || challenge_header {
-        let mut prefix = Vec::new();
-        let _ = (&mut response).take(SNIFF_LIMIT).read_to_end(&mut prefix);
-        let body = String::from_utf8_lossy(&prefix).to_ascii_lowercase();
-        let reason = gate_reason(challenge_header, &body);
+    // Every response's bounded prefix is read before any status decision, so a challenge,
+    // login or countdown page is a manual boundary whatever its status or content type.
+    // For an archive the prefix is kept and becomes the first bytes of the file.
+    let mut prefix = Vec::new();
+    if let Err(error) = (&mut response).take(SNIFF_LIMIT).read_to_end(&mut prefix)
+        && status.is_success()
+    {
+        return Err(network_failure(error.into()));
+    }
+    let body = text_prefix(&prefix);
+    let markers = body
+        .as_deref()
+        .map_or(ManualReason::HtmlLanding, |body| gate_reason(false, body));
+    let page = html
+        || challenge_header
+        || markers != ManualReason::HtmlLanding
+        || body.as_deref().is_some_and(looks_like_page);
+    if page {
+        let reason = if challenge_header {
+            ManualReason::Captcha
+        } else {
+            markers
+        };
         // A dead link's HTML error page is a broken URL, not a gate.
         if reason == ManualReason::HtmlLanding
             && matches!(
@@ -249,12 +265,10 @@ fn fetch_inner(
                 reqwest::StatusCode::NOT_FOUND | reqwest::StatusCode::GONE
             )
         {
-            let error = response
-                .error_for_status()
-                .err()
-                .map(anyhow::Error::from)
-                .unwrap_or_else(|| anyhow::anyhow!("HTTP status {status}"));
-            return Err(fail(FailureClass::Permanent, error));
+            return Err(fail(
+                FailureClass::Permanent,
+                anyhow::anyhow!("HTTP status {status}"),
+            ));
         }
         let message = match reason {
             ManualReason::HtmlLanding => {
@@ -294,18 +308,15 @@ fn fetch_inner(
         } else {
             FailureClass::Permanent
         };
-        let error = response
-            .error_for_status()
-            .err()
-            .map(anyhow::Error::from)
-            .unwrap_or_else(|| anyhow::anyhow!("HTTP status {status}"));
-        return Err(fail(class, error));
+        return Err(fail(class, anyhow::anyhow!("HTTP status {status}")));
     }
     let total = response.content_length();
     let mut temp = tempfile::NamedTempFile::new_in(directory)?;
     let mut hash = Sha256::new();
     let mut buffer = [0u8; 64 * 1024];
-    let mut bytes = 0u64;
+    hash.update(&prefix);
+    temp.write_all(&prefix)?;
+    let mut bytes = prefix.len() as u64;
     progress(FetchProgress::Transferring { bytes, total });
     loop {
         if cancelled.load(Ordering::Relaxed) {
@@ -412,6 +423,58 @@ fn network_failure(error: anyhow::Error) -> anyhow::Error {
         },
         error,
     )
+}
+
+/// The lower-cased prefix when it is text (valid UTF-8, allowing a cut final character).
+/// Archive formats are binary and never pass this check.
+fn text_prefix(prefix: &[u8]) -> Option<String> {
+    let text = match std::str::from_utf8(prefix) {
+        Ok(text) => text,
+        Err(error) if error.error_len().is_none() => {
+            std::str::from_utf8(&prefix[..error.valid_up_to()]).ok()?
+        }
+        Err(_) => return None,
+    };
+    Some(text.to_ascii_lowercase())
+}
+
+/// An HTML document whatever the Content-Type header says.
+fn looks_like_page(body: &str) -> bool {
+    let body = body.trim_start_matches('\u{feff}').trim_start();
+    body.starts_with("<!doctype html")
+        || body.starts_with("<html")
+        || (body.starts_with('<')
+            && ["<head", "<body", "<title", "<form", "<script"]
+                .iter()
+                .any(|tag| body.contains(tag)))
+}
+
+/// Classifies a failed host API request (for example Nexus link resolution) with the same
+/// transient rules as a transfer: connect/reset/timeout and HTTP 408/429/5xx retry.
+pub fn request_failure(error: anyhow::Error) -> anyhow::Error {
+    if classify(&error).is_some() {
+        return error;
+    }
+    let status = error
+        .chain()
+        .find_map(|e| e.downcast_ref::<reqwest::Error>())
+        .and_then(reqwest::Error::status);
+    match status {
+        Some(status)
+            if status.is_server_error()
+                || status == reqwest::StatusCode::REQUEST_TIMEOUT
+                || status == reqwest::StatusCode::TOO_MANY_REQUESTS =>
+        {
+            fail(
+                FailureClass::Transient {
+                    retry_after_secs: None,
+                },
+                error,
+            )
+        }
+        Some(_) => fail(FailureClass::Permanent, error),
+        None => network_failure(error),
+    }
 }
 
 /// Marker-based gate reason for an HTML (or challenge-flagged) response body prefix.

@@ -105,12 +105,14 @@ pub struct ArchiveTarget {
 impl ArchiveTarget {
     /// Where an acquirer publishes: the file path when the name is known, otherwise the
     /// directory itself. In the directory case the acquirer names the file after transfer
-    /// and applies `download::one_component` before publish.
-    pub fn destination(&self, source_dir: &Path) -> PathBuf {
-        match &self.filename {
-            Some(name) => source_dir.join(name),
+    /// and applies `download::one_component` before publish. A known name that is not
+    /// exactly one normal path component is refused here, before any join, whoever built
+    /// the target.
+    pub fn destination(&self, source_dir: &Path) -> Result<PathBuf> {
+        Ok(match &self.filename {
+            Some(name) => source_dir.join(crate::download::one_component(name)?),
             None => source_dir.to_path_buf(),
-        }
+        })
     }
 }
 
