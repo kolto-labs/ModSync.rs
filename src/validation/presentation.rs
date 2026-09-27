@@ -319,5 +319,5 @@ pub fn format_report(
         text.push_str("--- Log ---\n");
         text.push_str(full_log);
     }
-    text
+    text.trim_end().to_owned()
 }

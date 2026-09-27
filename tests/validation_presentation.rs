@@ -232,7 +232,7 @@ fn exact_human_report_uses_aggregate_counts_and_full_flushed_log() {
             "2026-09-27 12:34:56",
             "Starting validation...\nERROR: full log\n"
         ),
-        "ModSync — Validation Report\nGenerated (UTC): 2026-09-27 12:34:56\n\n❌ Validation Failed\nPlease resolve all critical errors before continuing. Check the results above for details.\n\nErrors: 7  Warnings: 2  Passed checks: 4\n\n--- Results ---\n❌ Environment Error\nSummary\n\n--- Log ---\nStarting validation...\nERROR: full log\n"
+        "ModSync — Validation Report\nGenerated (UTC): 2026-09-27 12:34:56\n\n❌ Validation Failed\nPlease resolve all critical errors before continuing. Check the results above for details.\n\nErrors: 7  Warnings: 2  Passed checks: 4\n\n--- Results ---\n❌ Environment Error\nSummary\n\n--- Log ---\nStarting validation...\nERROR: full log"
     );
     report.success = true;
     let warned = project(&report, 9);
@@ -264,6 +264,38 @@ fn clean_archive_has_log_but_no_card() {
     );
     assert_eq!(
         format_report(&view, &report, "2026-09-27 12:34:56", ""),
-        "ModSync — Validation Report\nGenerated (UTC): 2026-09-27 12:34:56\n\n✅ Validation Passed\nEverything looks good! You're ready to proceed with the installation.\n\nErrors: 0  Warnings: 0  Passed checks: 0\n"
+        "ModSync — Validation Report\nGenerated (UTC): 2026-09-27 12:34:56\n\n✅ Validation Passed\nEverything looks good! You're ready to proceed with the installation.\n\nErrors: 0  Warnings: 0  Passed checks: 0"
+    );
+}
+
+#[test]
+fn report_trims_only_final_whitespace_with_or_without_log() {
+    use modsync::validation::presentation::{Card, Presentation};
+    let report = Report::new(0);
+    let view = Presentation {
+        cards: vec![Card {
+            title: "Card title  ".into(),
+            message: "  First line \t\n\nLast line \t".into(),
+        }],
+        summary: "Summary".into(),
+        details: "Details".into(),
+        ..Presentation::default()
+    };
+    assert_eq!(
+        format_report(&view, &report, "2026-09-27 12:34:56", ""),
+        "ModSync — Validation Report\nGenerated (UTC): 2026-09-27 12:34:56\n\nSummary\nDetails\n\nErrors: 0  Warnings: 0  Passed checks: 0\n\n--- Results ---\nCard title  \n  First line \t\n\nLast line"
+    );
+    assert_eq!(
+        format_report(
+            &view,
+            &report,
+            "2026-09-27 12:34:56",
+            "  First log line \t\n\nLast log line\n \t\r\n\u{a0}\u{2003}"
+        ),
+        "ModSync — Validation Report\nGenerated (UTC): 2026-09-27 12:34:56\n\nSummary\nDetails\n\nErrors: 0  Warnings: 0  Passed checks: 0\n\n--- Results ---\nCard title  \n  First line \t\n\nLast line \t\n\n--- Log ---\n  First log line \t\n\nLast log line"
+    );
+    assert_eq!(
+        format_report(&view, &report, "2026-09-27 12:34:56", " \t\r\n"),
+        "ModSync — Validation Report\nGenerated (UTC): 2026-09-27 12:34:56\n\nSummary\nDetails\n\nErrors: 0  Warnings: 0  Passed checks: 0\n\n--- Results ---\nCard title  \n  First line \t\n\nLast line \t\n\n--- Log ---"
     );
 }
