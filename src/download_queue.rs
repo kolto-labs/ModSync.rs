@@ -113,9 +113,30 @@ where
                                     error: Some(error.to_string()),
                                 };
                             }
-                            Err(_error) if attempts <= retries => {
-                                thread::sleep(Duration::from_millis(25));
-                                continue;
+                            Err(error) if attempts <= retries => {
+                                match retry_delay(&error, attempts) {
+                                    Some(delay) if sleep_unless_cancelled(delay, cancelled) => {
+                                        continue;
+                                    }
+                                    Some(_) => {
+                                        break ResultItem {
+                                            url: job.url.clone(),
+                                            destination: job.destination.clone(),
+                                            status: Status::Cancelled,
+                                            attempts,
+                                            error: Some(error.to_string()),
+                                        };
+                                    }
+                                    None => {
+                                        break ResultItem {
+                                            url: job.url.clone(),
+                                            destination: job.destination.clone(),
+                                            status: Status::Failed,
+                                            attempts,
+                                            error: Some(error.to_string()),
+                                        };
+                                    }
+                                }
                             }
                             Err(error) => {
                                 break ResultItem {
@@ -134,6 +155,64 @@ where
         }
     });
     let mut results = Arc::try_unwrap(results).unwrap().into_inner().unwrap();
+    results.sort_by_key(|(index, _)| *index);
+    Ok(results.into_iter().map(|(_, result)| result).collect())
+}
+
+/// Retry policy shared by the queue and the orchestrator.
+///
+/// Errors classified by `download::fetch_to` retry only when transient: connect, reset or
+/// timeout, and HTTP 408/429/5xx that are not web pages. 429/503 honor `Retry-After`
+/// up to `download::RETRY_AFTER_CAP`. Web pages (challenge, login, landing), other 4xx,
+/// hash and verify failures are never retried. An error with no class attached comes
+/// from a caller-supplied `run_with` executor and keeps the original fixed 25 ms retry.
+pub fn retry_delay(error: &anyhow::Error, attempt: usize) -> Option<Duration> {
+    match crate::download::classify(error) {
+        None => Some(Duration::from_millis(25)),
+        Some(_) => crate::download::transient_delay(error, attempt),
+    }
+}
+
+/// Sleeps in short slices; returns false as soon as `cancelled` is set.
+pub fn sleep_unless_cancelled(delay: Duration, cancelled: &AtomicBool) -> bool {
+    let deadline = std::time::Instant::now() + delay;
+    loop {
+        if cancelled.load(Ordering::Relaxed) {
+            return false;
+        }
+        let now = std::time::Instant::now();
+        if now >= deadline {
+            return true;
+        }
+        thread::sleep((deadline - now).min(Duration::from_millis(50)));
+    }
+}
+
+/// Bounded worker pool with `run_with`'s ordering: results come back in input order
+/// whatever order workers finish in. Cancellation is the executor's job.
+pub fn run_ordered<T, R, F>(items: Vec<T>, workers: usize, execute: F) -> Result<Vec<R>>
+where
+    T: Send,
+    R: Send,
+    F: Fn(usize, T) -> R + Sync,
+{
+    ensure!(workers > 0, "Download worker count must be positive");
+    let queued = Mutex::new(items.into_iter().enumerate().collect::<VecDeque<_>>());
+    let results = Mutex::new(Vec::new());
+    thread::scope(|scope| {
+        for _ in 0..workers {
+            scope.spawn(|| {
+                loop {
+                    let Some((index, item)) = queued.lock().unwrap().pop_front() else {
+                        return;
+                    };
+                    let result = execute(index, item);
+                    results.lock().unwrap().push((index, result));
+                }
+            });
+        }
+    });
+    let mut results = results.into_inner().unwrap();
     results.sort_by_key(|(index, _)| *index);
     Ok(results.into_iter().map(|(_, result)| result).collect())
 }
