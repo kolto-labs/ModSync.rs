@@ -202,8 +202,10 @@ impl State {
             (false, Ok(())) => Outcome::Failed("The install did not report a result.".into()),
         };
         if engine_ok {
+            // Stale runs stop accepting facts, so the terminal is the last boundary.
             self.committed = true;
             self.completed = self.total;
+            self.boundary = self.elapsed();
         }
         if let Some(progress) = &mut self.progress {
             progress.snapshot_pending = pending;
