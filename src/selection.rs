@@ -1409,6 +1409,7 @@ pub fn apply(
 ) -> anyhow::Result<Outcome> {
     let nodes = all_nodes(components);
     let before = snapshot(components, &nodes);
+    let before_top: Vec<bool> = components.iter().map(|c| c.is_selected).collect();
     let mut outcome = Outcome::default();
     // GUID (lowercase) -> the value the action itself assigned.
     let mut direct = BTreeMap::<String, bool>::new();
@@ -1453,15 +1454,16 @@ pub fn apply(
             let path = find_option(components, &guid)
                 .ok_or_else(|| anyhow::anyhow!("Unknown option: {guid}"))?;
             if selected && refused(game, &components[path[0]]) {
+                // Refused without mutation; enforcement and the diff still run.
                 outcome.warnings.push(refusal(&components[path[0]]));
-                return Ok(outcome);
-            }
-            direct.insert(guid.to_ascii_lowercase(), selected);
-            let mut visited = Visited::default();
-            if selected {
-                cascade_option_chain_checked(components, &path, &mut visited);
             } else {
-                cascade_option_unchecked(components, &path, &mut visited);
+                direct.insert(guid.to_ascii_lowercase(), selected);
+                let mut visited = Visited::default();
+                if selected {
+                    cascade_option_chain_checked(components, &path, &mut visited);
+                } else {
+                    cascade_option_unchecked(components, &path, &mut visited);
+                }
             }
         }
         Action::SelectVisible(filter) => {
@@ -1551,10 +1553,14 @@ pub fn apply(
     }
 
     if let Some(detected) = game.filter(|detected| *detected != game::Detected::Unknown) {
-        for c in components.iter() {
-            // Outside EnforceGame, a selected Aspyr-only mod here was pulled in
-            // by this action's closure or cascade; say why it and its dependents go.
-            if c.is_selected && !game::selectable(c, detected) && !enforcing {
+        for (index, c) in components.iter().enumerate() {
+            // Outside EnforceGame, warn only for an Aspyr-only mod this action
+            // brought in: unselected before, or assigned false by the action and
+            // re-selected by its cascade. Pre-existing selections are removed
+            // silently here and reported by EnforceGame at the boundary.
+            let brought_in =
+                !before_top[index] || direct.get(&c.guid.to_ascii_lowercase()) == Some(&false);
+            if c.is_selected && !game::selectable(c, detected) && !enforcing && brought_in {
                 outcome.warnings.push(refusal(c));
             }
         }
