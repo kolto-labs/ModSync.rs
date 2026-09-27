@@ -1,0 +1,121 @@
+[metadata]
+fileFormatVersion = "2.0"
+
+[[thisMod]]
+Guid = "00000000-0000-0000-0000-000000000001"
+Name = "Alpha Core"
+Tier = "1 - Essential"
+Category = ["Patch"]
+IsSelected = true
+[thisMod.ResourceRegistry."https://example.invalid/Alpha_Core.zip"]
+[thisMod.ResourceRegistry."https://example.invalid/Alpha_Core.zip".Files]
+"Alpha_Core.zip" = true
+
+[[thisMod]]
+Guid = "00000000-0000-0000-0000-000000000002"
+Name = "Beta Addon"
+Tier = "2 - Recommended"
+Category = ["Graphics Improvement"]
+Dependencies = ["00000000-0000-0000-0000-000000000001"]
+IsSelected = false
+
+[[thisMod]]
+Guid = "00000000-0000-0000-0000-000000000003"
+Name = "Gamma Fix"
+Tier = "3 - Suggested"
+Category = ["bugfix"]
+Dependencies = ["00000000-0000-0000-0000-000000000013"]
+IsSelected = false
+
+[[thisMod]]
+Guid = "00000000-0000-0000-0000-000000000004"
+Name = "Delta: Colon Mod"
+Tier = "4 - Optional"
+Category = []
+IsSelected = false
+[[thisMod.Options]]
+Guid = "00000000-0000-0000-0000-000000000012"
+Name = "Standard"
+IsSelected = false
+[[thisMod.Options.Options]]
+Guid = "00000000-0000-0000-0000-000000000014"
+Name = "Standard"
+IsSelected = false
+Dependencies = ["00000000-0000-0000-0000-000000000005"]
+[[thisMod.Options]]
+Guid = "00000000-0000-0000-0000-000000000013"
+Name = "Revised"
+IsSelected = false
+Restrictions = ["00000000-0000-0000-0000-000000000012"]
+
+[[thisMod]]
+Guid = "00000000-0000-0000-0000-000000000005"
+Name = "Epsilon"
+Tier = "2"
+Category = ["Patch", "Immersion"]
+IsSelected = false
+
+[[thisMod]]
+Guid = "00000000-0000-0000-0000-000000000006"
+Name = "Mutual One"
+Tier = "3 - Suggested"
+Category = ["Immersion"]
+Restrictions = ["00000000-0000-0000-0000-000000000007"]
+IsSelected = false
+
+[[thisMod]]
+Guid = "00000000-0000-0000-0000-000000000007"
+Name = "Mutual Two"
+Tier = "3 - Suggested"
+Category = ["Immersion"]
+Restrictions = ["00000000-0000-0000-0000-000000000006"]
+IsSelected = false
+
+[[thisMod]]
+Guid = "00000000-0000-0000-0000-000000000008"
+Name = "Aspyr Only Mod"
+Tier = "1 - Essential"
+Category = ["Patch"]
+AspyrExclusive = true
+IsSelected = true
+[[thisMod.Options]]
+Guid = "00000000-0000-0000-0000-000000000015"
+Name = "Aspyr Option"
+IsSelected = true
+
+[[thisMod]]
+Guid = "00000000-0000-0000-0000-000000000009"
+Name = "Needs Aspyr"
+Tier = "4 - Optional"
+Category = ["UI"]
+Dependencies = ["00000000-0000-0000-0000-000000000008"]
+IsSelected = false
+
+[[thisMod]]
+Guid = "00000000-0000-0000-0000-000000000010"
+Name = "Wide Screen Mod"
+Tier = "1 - Essential"
+Category = ["UI"]
+WidescreenOnly = true
+Dependencies = ["00000000-0000-0000-0000-000000000001"]
+IsSelected = false
+[thisMod.ResourceRegistry."https://example.invalid/Wide_Screen_Mod.zip"]
+[thisMod.ResourceRegistry."https://example.invalid/Wide_Screen_Mod.zip".Files]
+"Wide_Screen_Mod.zip" = true
+
+[[thisMod]]
+Guid = "00000000-0000-0000-0000-000000000011"
+Name = "Spoilery Revan Name"
+Tier = "Optional"
+Category = ["Story"]
+NameSpoilerFree = "Harmless Name"
+Description = "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé"
+IsSelected = false
+
+[[thisMod]]
+Guid = "00000000-0000-0000-0000-000000000016"
+Name = "Needs Aspyr Option"
+Tier = "4 - Optional"
+Category = ["UI"]
+Dependencies = ["00000000-0000-0000-0000-000000000015"]
+IsSelected = true

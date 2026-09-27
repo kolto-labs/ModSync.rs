@@ -1,0 +1,29 @@
+p1a-tier2	0	selection -i /tmp/selection-probes/fixtures/synthetic.toml --game-dir /tmp/selection-probes/fixtures/games/k2aspyr --select tier:2 - Recommended --json
+p1b-closure	0	selection -i /tmp/selection-probes/fixtures/synthetic.toml --game-dir /tmp/selection-probes/fixtures/games/k2aspyr --select Beta Addon --json
+p2-deselect-dep	0	selection -i /tmp/selection-probes/fixtures/synthetic.toml --game-dir /tmp/selection-probes/fixtures/games/k2aspyr --select Beta Addon --deselect Alpha Core --json
+p3-nested-option	0	selection -i /tmp/selection-probes/fixtures/synthetic.toml --game-dir /tmp/selection-probes/fixtures/games/k2aspyr --select Alpha Core --option 00000000-0000-0000-0000-000000000014 --json
+p4a-legacy-default	0	selection -i /tmp/selection-probes/fixtures/synthetic.toml --game-dir /tmp/selection-probes/fixtures/games/k2legacy --json
+p4b-k1-default	0	selection -i /tmp/selection-probes/fixtures/synthetic.toml --game-dir /tmp/selection-probes/fixtures/games/k1 --json
+p4c-unknown-default	0	selection -i /tmp/selection-probes/fixtures/synthetic.toml --game-dir /tmp/selection-probes/fixtures/games/unknown --json
+p4d-refuse-direct	0	selection -i /tmp/selection-probes/fixtures/synthetic.toml --game-dir /tmp/selection-probes/fixtures/games/k2legacy --select Aspyr Only Mod --json
+p4e-refuse-closure	0	selection -i /tmp/selection-probes/fixtures/synthetic.toml --game-dir /tmp/selection-probes/fixtures/games/k2legacy --select Needs Aspyr --json
+p5a-add-category	0	selection -i /tmp/selection-probes/fixtures/synthetic.toml --game-dir /tmp/selection-probes/fixtures/games/k2aspyr --select Alpha Core --add-category PATCH --json
+p5b-reset-category	0	selection -i /tmp/selection-probes/fixtures/synthetic.toml --game-dir /tmp/selection-probes/fixtures/games/k2aspyr --select category:patch --json
+p6-candidates	0	selection -i /tmp/selection-probes/fixtures/synthetic.toml --game-dir /tmp/selection-probes/fixtures/games/k2aspyr --json
+p7a-mutual	0	selection -i /tmp/selection-probes/fixtures/synthetic.toml --game-dir /tmp/selection-probes/fixtures/games/k2aspyr --select Mutual One --select Mutual Two --json
+p7b-default-quiet	0	selection -i /tmp/selection-probes/fixtures/synthetic.toml --game-dir /tmp/selection-probes/fixtures/games/k2aspyr --json
+p9-argv-order-a	0	selection -i /tmp/selection-probes/fixtures/synthetic.toml --game-dir /tmp/selection-probes/fixtures/games/k2aspyr --select Alpha Core --deselect Beta Addon --select-through-tier 2 - Recommended --json
+p9-argv-order-b	0	selection -i /tmp/selection-probes/fixtures/synthetic.toml --game-dir /tmp/selection-probes/fixtures/games/k2aspyr --select Alpha Core --select-through-tier 2 - Recommended --deselect Beta Addon --json
+p10-search-spoiler	0	selection -i /tmp/selection-probes/fixtures/synthetic.toml --game-dir /tmp/selection-probes/fixtures/games/k2aspyr --select Alpha Core --select-visible-search harmless --spoiler-free
+p10-search-plain	0	selection -i /tmp/selection-probes/fixtures/synthetic.toml --game-dir /tmp/selection-probes/fixtures/games/k2aspyr --select Alpha Core --select-visible-search harmless
+p11-numeric-tier	0	selection -i /tmp/selection-probes/fixtures/synthetic.toml --game-dir /tmp/selection-probes/fixtures/games/k2aspyr --select Alpha Core --select-through-tier 2 --json
+p12-bare-optional	0	selection -i /tmp/selection-probes/fixtures/synthetic.toml --game-dir /tmp/selection-probes/fixtures/games/k2aspyr --select Alpha Core --select-through-tier Optional --json
+p13-unknown-comp	1	selection -i /tmp/selection-probes/fixtures/synthetic.toml --select Missing
+p13-unknown-option	1	selection -i /tmp/selection-probes/fixtures/synthetic.toml --option Missing
+p14-direct-md-conflict	2	validate --direct-markdown --deselect x -i /tmp/selection-probes/fixtures/synthetic.toml --game-dir /tmp/selection-probes/fixtures/games/k1 --source-dir /tmp/selection-probes
+p15-text	0	selection -i /tmp/selection-probes/fixtures/synthetic.toml --game-dir /tmp/selection-probes/fixtures/games/k2aspyr --select Beta Addon
+p16-default-plus-flag-legacy	0	selection -i /tmp/selection-probes/fixtures/synthetic.toml --game-dir /tmp/selection-probes/fixtures/games/k2legacy --deselect Beta Addon --json
+p17-option-refused	0	selection -i /tmp/selection-probes/fixtures/synthetic-aspyr-option.toml --game-dir /tmp/selection-probes/fixtures/games/k2legacy --select Alpha Core --option 00000000-0000-0000-0000-000000000015 --json
+p18-option-refused-default	0	selection -i /tmp/selection-probes/fixtures/synthetic-aspyr-option.toml --game-dir /tmp/selection-probes/fixtures/games/k2legacy --option 00000000-0000-0000-0000-000000000015 --json
+p19-option-dep-legacy	0	selection -i /tmp/selection-probes/fixtures/synthetic-aspyr-option-dep.toml --game-dir /tmp/selection-probes/fixtures/games/k2legacy --use-file-selection --json
+p19-option-dep-aspyr	0	selection -i /tmp/selection-probes/fixtures/synthetic-aspyr-option-dep.toml --game-dir /tmp/selection-probes/fixtures/games/k2aspyr --use-file-selection --json

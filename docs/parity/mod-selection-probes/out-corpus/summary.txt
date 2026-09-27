@@ -1,0 +1,6 @@
+k1-default game Kotor1 counts {'selected': 189, 'total': 189, 'required': 5, 'optional': 184} cli_selected_nodes 190 oracle 190 EQUAL conflicts cli 0 oracle 0 autoSelected 0 dl {'base': 189, 'widescreen': 0, 'all': 189}
+k1-tier1-add-bugfix game Kotor1 counts {'selected': 38, 'total': 189, 'required': 2, 'optional': 36} cli_selected_nodes 39 oracle 39 EQUAL conflicts cli 0 oracle 0 autoSelected 0 dl {'base': 38, 'widescreen': 0, 'all': 38}
+k1-tier2 game Kotor1 counts {'selected': 107, 'total': 189, 'required': 4, 'optional': 103} cli_selected_nodes 108 oracle 108 EQUAL conflicts cli 0 oracle 0 autoSelected 0 dl {'base': 107, 'widescreen': 0, 'all': 107}
+k2-default game Kotor2Aspyr counts {'selected': 145, 'total': 145, 'required': 22, 'optional': 123} cli_selected_nodes 160 oracle 160 EQUAL conflicts cli 0 oracle 0 autoSelected 0 dl {'base': 130, 'widescreen': 0, 'all': 130}
+k2-tier1-add-bugfix game Kotor2Aspyr counts {'selected': 41, 'total': 145, 'required': 9, 'optional': 32} cli_selected_nodes 56 oracle 56 EQUAL conflicts cli 0 oracle 0 autoSelected 0 dl {'base': 32, 'widescreen': 0, 'all': 32}
+k2-tier2 game Kotor2Aspyr counts {'selected': 102, 'total': 145, 'required': 18, 'optional': 84} cli_selected_nodes 117 oracle 117 EQUAL conflicts cli 0 oracle 0 autoSelected 0 dl {'base': 89, 'widescreen': 0, 'all': 89}

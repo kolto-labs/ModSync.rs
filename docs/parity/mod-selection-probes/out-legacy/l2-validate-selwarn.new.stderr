@@ -1,0 +1,3 @@
+Selection warning: Unknown selection type: 'bogus'
+Selection warning: Invalid empty selection; expected a component name/GUID, category:Name, or tier:Name
+Error: Alpha Core has no executable instructions; review the guide

@@ -1,0 +1,40 @@
+{
+  "game": "Kotor2Aspyr",
+  "counts": {
+    "selected": 3,
+    "total": 11,
+    "required": 1,
+    "optional": 2
+  },
+  "filterSummary": "Showing all 11 mods",
+  "selected": [
+    "00000000-0000-0000-0000-000000000001",
+    "00000000-0000-0000-0000-000000000008",
+    "00000000-0000-0000-0000-000000000015",
+    "00000000-0000-0000-0000-000000000016"
+  ],
+  "outcomes": [
+    {
+      "selected": [],
+      "deselected": [],
+      "autoSelected": [],
+      "autoDeselected": [],
+      "warnings": []
+    }
+  ],
+  "downloadCandidates": {
+    "base": [
+      {
+        "index": 0,
+        "guid": "00000000-0000-0000-0000-000000000001"
+      }
+    ],
+    "widescreen": [],
+    "all": [
+      {
+        "index": 0,
+        "guid": "00000000-0000-0000-0000-000000000001"
+      }
+    ]
+  }
+}
