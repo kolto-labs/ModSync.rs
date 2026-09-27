@@ -211,6 +211,9 @@ enum Action {
         /// Optional expanded-byte budget for the integrity check.
         #[arg(long)]
         max_expanded_bytes: Option<u64>,
+        /// Authored info dictionary (base64), from the guide's TorrentInfo or torrent-seed's torrentInfo.
+        #[arg(long)]
+        torrent_info: Option<String>,
         #[command(flatten)]
         proxy: TorrentProxyArgs,
     },
@@ -223,6 +226,9 @@ enum Action {
         /// Share under this authored magnet instead of creating a new torrent.
         #[arg(long)]
         authored_magnet: Option<String>,
+        /// Authored info dictionary (base64) to serve as is; needs --authored-magnet.
+        #[arg(long)]
+        torrent_info: Option<String>,
         #[command(flatten)]
         proxy: TorrentProxyArgs,
     },
@@ -881,9 +887,11 @@ fn run() -> Result<()> {
             sha256,
             peer,
             max_expanded_bytes,
+            torrent_info,
             proxy,
         }) => modsync::p2p::cli_download(
             &magnet,
+            torrent_info.as_deref(),
             &output,
             &sha256,
             peer,
@@ -897,8 +905,15 @@ fn run() -> Result<()> {
             archive,
             tracker,
             authored_magnet,
+            torrent_info,
             proxy,
-        }) => modsync::p2p::cli_seed(&archive, tracker, authored_magnet.as_deref(), &proxy.into()),
+        }) => modsync::p2p::cli_seed(
+            &archive,
+            tracker,
+            authored_magnet.as_deref(),
+            torrent_info.as_deref(),
+            &proxy.into(),
+        ),
         Some(Action::DownloadBatch {
             input,
             workers,
