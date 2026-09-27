@@ -4,6 +4,8 @@ use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 
+mod extract;
+
 // Field names used by the reference's default MarkdownImportProfile.
 const FIELDS: &[(&str, &str)] = &[
     ("Name", "Name"),
@@ -102,13 +104,18 @@ pub(crate) fn parse(text: &str) -> Result<Guide> {
     );
     let mut guide = Guide::default();
     let mut masters = Vec::new();
-    for (index, (_, section)) in sections.iter().enumerate() {
-        let (mut component, dependencies) = component(section, index)?;
+    let mut positions = Vec::new();
+    for (index, (position, section)) in sections.iter().enumerate() {
+        // The reference drops sections with neither a Name field nor a heading.
+        let Some((mut component, dependencies)) = component(section, index)? else {
+            continue;
+        };
         component
             .metadata
             .insert("WidescreenOnly".into(), false.into());
         guide.components.push(component);
         masters.push(dependencies);
+        positions.push(*position);
     }
     let mut names = BTreeMap::new();
     for c in &guide.components {
@@ -119,15 +126,59 @@ pub(crate) fn parse(text: &str) -> Result<Guide> {
                 .or_insert(c.guid.clone());
         }
     }
+    // Reference author-possessive fallback: "JC's Cloaked Jedi Robes" resolves
+    // to the component named "Cloaked Jedi Robes" whose author contains "JC".
+    let authored: Vec<_> = guide
+        .components
+        .iter()
+        .map(|c| {
+            (
+                c.name.to_lowercase(),
+                c.author.to_lowercase(),
+                c.guid.clone(),
+            )
+        })
+        .collect();
+    let possessive = |name: &str| {
+        let (author, component) = name.split_once("'s ")?;
+        let (author, component) = (
+            author.trim().to_lowercase(),
+            component.trim().to_lowercase(),
+        );
+        let alias = match author.as_str() {
+            "jc" => Some("jcarter426"),
+            "jcarter426" => Some("jc"),
+            _ => None,
+        };
+        authored
+            .iter()
+            .find(|(name, owner, _)| {
+                *name == component
+                    && !author.is_empty()
+                    && !owner.trim().is_empty()
+                    && (owner.contains(&author) || alias.is_some_and(|a| owner.contains(a)))
+            })
+            .map(|(_, _, id)| id.clone())
+    };
     for (c, masters) in guide.components.iter_mut().zip(masters) {
         for name in masters
             .split([',', ';', '+', '&'])
             .map(str::trim)
             .filter(|s| !s.is_empty())
         {
-            if let Some(id) = names.get(&name.to_lowercase()) {
-                if !c.dependencies.contains(id) {
-                    c.dependencies.push(id.clone());
+            if let Some(id) = names
+                .get(&name.to_lowercase())
+                .cloned()
+                .or_else(|| possessive(name))
+            {
+                if !c.dependencies.contains(&id) {
+                    c.dependencies.push(id);
+                    c.metadata
+                        .entry("DependencyNames".into())
+                        .or_insert(json!([]))
+                        .as_array_mut()
+                        .unwrap()
+                        .push(name.into());
                 }
             } else {
                 c.metadata
@@ -169,7 +220,7 @@ pub(crate) fn parse(text: &str) -> Result<Guide> {
             position += line.len();
         }
         if let Some(first_mod) = first_mod {
-            for (component, (position, _)) in guide.components.iter_mut().zip(&sections) {
+            for (component, position) in guide.components.iter_mut().zip(&positions) {
                 component.metadata.insert(
                     "WidescreenOnly".into(),
                     (*position >= first_mod && next_section.is_none_or(|end| *position < end))
@@ -193,7 +244,7 @@ pub(crate) fn parse(text: &str) -> Result<Guide> {
     Ok(guide)
 }
 
-fn component(section: &str, index: usize) -> Result<(Component, String)> {
+fn component(section: &str, index: usize) -> Result<Option<(Component, String)>> {
     let mut prose = section.to_owned();
     let mut metadata = None;
     if let Some(start) = prose.to_ascii_lowercase().find("<!--<<modsync>>") {
@@ -209,48 +260,48 @@ fn component(section: &str, index: usize) -> Result<(Component, String)> {
             "Multiple ModSync metadata comments in one component"
         );
     }
-    let heading = prose
-        .lines()
-        .next()
-        .context("Missing Markdown heading")?
-        .trim_start_matches('#')
-        .trim();
-    let fields = fields(&prose);
-    let mut value = json!({"Guid": generated_id(section, index), "Name": heading});
+    if metadata.is_some() {
+        prose = prose.trim().to_owned();
+    }
+    let text = prose.as_str();
+    // Each field is the reference's first (leftmost) pattern match in the section.
+    let heading = extract::heading(text);
+    let Some(name) = extract::name(text).or_else(|| heading.clone()) else {
+        return Ok(None);
+    };
+    let mut value = json!({"Guid": generated_id(section, index), "Name": name});
     let object = value.as_object_mut().unwrap();
-    for (key, value) in &fields {
-        if !matches!(*key, "Masters" | "CategoryTier" | "Language") {
-            object.insert((*key).into(), value.clone().into());
+    for (key, title) in [
+        ("Author", "Author"),
+        ("InstallationMethod", "Installation Method"),
+    ] {
+        if let Some(found) = extract::line_field(text, title) {
+            object.insert(key.into(), found.into());
         }
     }
-    if let Some(name) = fields.get("Name") {
-        object.insert("NameFieldContent".into(), name.clone().into());
-        let links = links(name);
-        if let Some((label, _)) = links.first().filter(|_| name.starts_with('[')) {
-            object.insert("Name".into(), (*label).into());
+    for (field, key) in extract::Field::ALL {
+        if let Some(found) = extract::field(text, field) {
+            object.insert(key.into(), found.into());
         }
-        let registry: serde_json::Map<_, _> = links
+    }
+    if let Some(content) = extract::name_field(text) {
+        if extract::name(text).is_some() {
+            object.insert("NameFieldContent".into(), content.into());
+        }
+        let registry: serde_json::Map<_, _> = links(content)
             .into_iter()
-            .map(|(_, url)| (url.to_owned(), json!({"Files": {}, "HandlerMetadata": {}})))
+            .map(|url| (url, json!({"Files": {}, "HandlerMetadata": {}})))
             .collect();
         object.insert("ResourceRegistry".into(), serde_json::to_value(registry)?);
     }
-    if object["Name"].as_str() != Some(heading) {
+    if let Some(heading) = heading.filter(|heading| *heading != name) {
         object.insert("Heading".into(), heading.into());
     }
-    if let Some((category, tier)) = fields.get("CategoryTier").and_then(|s| s.split_once('/')) {
-        object.insert(
-            "Category".into(),
-            category
-                .split([',', '&'])
-                .map(str::trim)
-                .filter(|s| !s.is_empty())
-                .collect::<Vec<_>>()
-                .into(),
-        );
-        object.insert("Tier".into(), tier.trim().into());
+    if let Some((category, tier)) = extract::category_tier(text) {
+        object.insert("Category".into(), category.into());
+        object.insert("Tier".into(), tier.into());
     }
-    if let Some(language) = fields.get("Language") {
+    if let Some(language) = extract::line_field(text, "Non-English Functionality") {
         object.insert("Language".into(), json!([language]));
     }
     if let Some(metadata) = metadata {
@@ -307,10 +358,10 @@ fn component(section: &str, index: usize) -> Result<(Component, String)> {
     if let Some(language) = language {
         component.metadata.insert("Language".into(), language);
     }
-    Ok((
+    Ok(Some((
         component,
-        fields.get("Masters").cloned().unwrap_or_default(),
-    ))
+        extract::line_field(text, "Masters").unwrap_or_default(),
+    )))
 }
 
 fn fields(prose: &str) -> BTreeMap<&'static str, String> {
@@ -380,18 +431,30 @@ fn fields(prose: &str) -> BTreeMap<&'static str, String> {
     result
 }
 
-fn links(mut text: &str) -> Vec<(&str, &str)> {
-    let mut result = Vec::new();
-    while let Some(start) = text.find('[') {
-        text = &text[start + 1..];
-        let Some((label, rest)) = text.split_once("](") else {
+/// Reference `ModLinkPattern` matches: `[label](link)`, trimmed, non-empty,
+/// case-insensitively distinct in first-seen order.
+fn links(text: &str) -> Vec<String> {
+    let mut result: Vec<String> = Vec::new();
+    let mut at = 0;
+    while let Some(open) = text[at..].find('[').map(|i| at + i) {
+        at = open + 1;
+        let Some(close) = text[at..].find(']').map(|i| at + i) else {
             break;
         };
-        let Some((url, rest)) = rest.split_once(')') else {
-            break;
+        if close == at || !text[close..].starts_with("](") {
+            continue;
+        }
+        let Some(end) = text[close + 2..].find(')').map(|i| close + 2 + i) else {
+            continue;
         };
-        result.push((label, url.trim()));
-        text = rest;
+        if end == close + 2 {
+            continue;
+        }
+        let url = text[close + 2..end].trim();
+        if !url.is_empty() && !result.iter().any(|seen| seen.eq_ignore_ascii_case(url)) {
+            result.push(url.to_owned());
+        }
+        at = end + 1;
     }
     result
 }

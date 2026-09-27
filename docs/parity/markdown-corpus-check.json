@@ -1,0 +1,292 @@
+{
+ "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+ "reference_dll_sha256": "8f3b1e3f8fe47b2cc6f8e3f281912506721c7367218381bb2a35cf86dc5768f0",
+ "corpus": "mod-builds 336b36d911b879b0254da5d08a6cce72c28607e5 content/k1/*.md content/k2/*.md",
+ "rust_source_sha256": {
+  "src/markdown.rs": "059b55ac924c86ed69f964c7e2a492fb625183094ce15a6bdde351c773041888",
+  "src/markdown/extract.rs": "148e999ab50fe36aeda8c34c276e6a3e9ea23513ac46542b17ce4f0a07547614",
+  "tools/check_markdown_corpus.py": "46cf4933809f1690f7cb6c0576c750ef06f99f3bb305b7d3f8e8bf498e7b3096"
+ },
+ "before": {
+  "rust_commit": "ac9cf3ac45092bbeea3b650b180ab2df5da003af",
+  "guides": {
+   "k1-full": {
+    "csharp_components": 186,
+    "rust_components": 186,
+    "components_fully_matching": 173,
+    "field_values_compared": 6138,
+    "field_values_matching": 6124,
+    "mismatches_per_field": {
+     "Dependencies": 1,
+     "DependencyNames": 4,
+     "Screenshots": 9
+    }
+   },
+   "k1-spoiler-free": {
+    "csharp_components": 180,
+    "rust_components": 180,
+    "components_fully_matching": 166,
+    "field_values_compared": 5940,
+    "field_values_matching": 5925,
+    "mismatches_per_field": {
+     "Dependencies": 1,
+     "DependencyNames": 4,
+     "Screenshots": 10
+    }
+   },
+   "k2-full": {
+    "csharp_components": 145,
+    "rust_components": 145,
+    "components_fully_matching": 122,
+    "field_values_compared": 4785,
+    "field_values_matching": 4762,
+    "mismatches_per_field": {
+     "DependencyNames": 20,
+     "Screenshots": 3
+    }
+   },
+   "k2-spoiler-free": {
+    "csharp_components": 139,
+    "rust_components": 139,
+    "components_fully_matching": 116,
+    "field_values_compared": 4587,
+    "field_values_matching": 4564,
+    "mismatches_per_field": {
+     "DependencyNames": 18,
+     "Heading": 1,
+     "Screenshots": 4
+    }
+   },
+   "k1-full_mobile": {
+    "csharp_components": 112,
+    "rust_components": 112,
+    "components_fully_matching": 107,
+    "field_values_compared": 3696,
+    "field_values_matching": 3690,
+    "mismatches_per_field": {
+     "Dependencies": 1,
+     "DependencyNames": 2,
+     "Screenshots": 3
+    }
+   },
+   "k1-spoiler-free_mobile": {
+    "csharp_components": 107,
+    "rust_components": 107,
+    "components_fully_matching": 102,
+    "field_values_compared": 3531,
+    "field_values_matching": 3525,
+    "mismatches_per_field": {
+     "Dependencies": 1,
+     "DependencyNames": 2,
+     "Screenshots": 3
+    }
+   },
+   "k2-full_mobile": {
+    "csharp_components": 108,
+    "rust_components": 108,
+    "components_fully_matching": 86,
+    "field_values_compared": 3564,
+    "field_values_matching": 3542,
+    "mismatches_per_field": {
+     "DependencyNames": 18,
+     "Screenshots": 4
+    }
+   },
+   "k2-spoiler-free_mobile": {
+    "csharp_components": 103,
+    "rust_components": 103,
+    "components_fully_matching": 82,
+    "field_values_compared": 3399,
+    "field_values_matching": 3378,
+    "mismatches_per_field": {
+     "DependencyNames": 16,
+     "Heading": 1,
+     "Screenshots": 4
+    }
+   }
+  }
+ },
+ "after": {
+  "k1-android": {
+   "sha256": "4bfbf1bb9507b21a6d900dd412254a590deceaab147154e7ce0fe56dc633ffa9",
+   "rust_exit": 1,
+   "csharp_components": 0,
+   "rust_components": null,
+   "components_fully_matching": null,
+   "field_values_compared": null,
+   "field_values_matching": null,
+   "mismatches_per_field": null
+  },
+  "k1-delete": {
+   "sha256": "8b7449ab581c7eb32c42f57fe71ced04988acd16d77e4dd515ab2d6224baa36e",
+   "rust_exit": 1,
+   "csharp_components": 0,
+   "rust_components": null,
+   "components_fully_matching": null,
+   "field_values_compared": null,
+   "field_values_matching": null,
+   "mismatches_per_field": null
+  },
+  "k1-full": {
+   "sha256": "fc81840edb64da1684697dc89d72c9235c6afaa43d4d1e0b1989e4f206ba1cd2",
+   "rust_exit": 0,
+   "csharp_components": 186,
+   "rust_components": 186,
+   "components_fully_matching": 186,
+   "field_values_compared": 6138,
+   "field_values_matching": 6138,
+   "mismatches_per_field": {}
+  },
+  "k1-full_mobile": {
+   "sha256": "e7e3537dd7c3bce85f61d01c25b8226cffc80c8292af17690c0faf9b0a634c83",
+   "rust_exit": 0,
+   "csharp_components": 112,
+   "rust_components": 112,
+   "components_fully_matching": 112,
+   "field_values_compared": 3696,
+   "field_values_matching": 3696,
+   "mismatches_per_field": {}
+  },
+  "k1-ios": {
+   "sha256": "3d30578299949ff2266a3dc1ae3bbb67868912a4838e6f9874fb0bc20af60fdf",
+   "rust_exit": 1,
+   "csharp_components": 0,
+   "rust_components": null,
+   "components_fully_matching": null,
+   "field_values_compared": null,
+   "field_values_matching": null,
+   "mismatches_per_field": null
+  },
+  "k1-redrob_deletions": {
+   "sha256": "91bca678260fd8f6fc87ffc254694c6c9211a8220d5cbf334f5697f17517a088",
+   "rust_exit": 1,
+   "csharp_components": 0,
+   "rust_components": null,
+   "components_fully_matching": null,
+   "field_values_compared": null,
+   "field_values_matching": null,
+   "mismatches_per_field": null
+  },
+  "k1-redrob_deletions_sf": {
+   "sha256": "eb4a5109044b0c6f37349965e3655de9f3f9707ba1dd62fa0a069f0f10b76c37",
+   "rust_exit": 1,
+   "csharp_components": 0,
+   "rust_components": null,
+   "components_fully_matching": null,
+   "field_values_compared": null,
+   "field_values_matching": null,
+   "mismatches_per_field": null
+  },
+  "k1-spoiler-free": {
+   "sha256": "ee2eed5ee19f7dc4356c70f1c3a58533fa48e1b25a434b71bf0cec019466bae8",
+   "rust_exit": 0,
+   "csharp_components": 180,
+   "rust_components": 180,
+   "components_fully_matching": 180,
+   "field_values_compared": 5940,
+   "field_values_matching": 5940,
+   "mismatches_per_field": {}
+  },
+  "k1-spoiler-free_mobile": {
+   "sha256": "b564972a880b1eed370ddb51d7425e6a61efddc13a4f51b73e6d0d392d10538d",
+   "rust_exit": 0,
+   "csharp_components": 107,
+   "rust_components": 107,
+   "components_fully_matching": 107,
+   "field_values_compared": 3531,
+   "field_values_matching": 3531,
+   "mismatches_per_field": {}
+  },
+  "k1-widescreen": {
+   "sha256": "9f9f73b9ce9451294e5f54448ddd1d46068a1baa5d0cf8d111a9bbb3d2e1ef89",
+   "rust_exit": 1,
+   "csharp_components": 0,
+   "rust_components": null,
+   "components_fully_matching": null,
+   "field_values_compared": null,
+   "field_values_matching": null,
+   "mismatches_per_field": null
+  },
+  "k2-delete": {
+   "sha256": "4ef4bb1095a59b4cf3fcd33f031739cb595edf1c24fc4e9bc2adcf6c78b4ce64",
+   "rust_exit": 1,
+   "csharp_components": 0,
+   "rust_components": null,
+   "components_fully_matching": null,
+   "field_values_compared": null,
+   "field_values_matching": null,
+   "mismatches_per_field": null
+  },
+  "k2-full": {
+   "sha256": "4587e4a6a3e5dfde23a9b0f2031f4b56ae62b028b3140f79096135df682d8b0a",
+   "rust_exit": 0,
+   "csharp_components": 145,
+   "rust_components": 145,
+   "components_fully_matching": 145,
+   "field_values_compared": 4785,
+   "field_values_matching": 4785,
+   "mismatches_per_field": {}
+  },
+  "k2-full_mobile": {
+   "sha256": "488b414763784d9e7e9f6d034103ba0a1aa53e1d55b5da815ef29bae3d602644",
+   "rust_exit": 0,
+   "csharp_components": 108,
+   "rust_components": 108,
+   "components_fully_matching": 108,
+   "field_values_compared": 3564,
+   "field_values_matching": 3564,
+   "mismatches_per_field": {}
+  },
+  "k2-redrob_deletionsk2": {
+   "sha256": "4f26f8f6104b07c18178da55fc89e7980a21907ede2ac79ea8e26316ae5c8ff7",
+   "rust_exit": 1,
+   "csharp_components": 0,
+   "rust_components": null,
+   "components_fully_matching": null,
+   "field_values_compared": null,
+   "field_values_matching": null,
+   "mismatches_per_field": null
+  },
+  "k2-redrob_deletionsk2_sf": {
+   "sha256": "60238ec4265b3d2200874189411b79b6d0c61d0180cc9d7152a5c4eb43c42306",
+   "rust_exit": 1,
+   "csharp_components": 0,
+   "rust_components": null,
+   "components_fully_matching": null,
+   "field_values_compared": null,
+   "field_values_matching": null,
+   "mismatches_per_field": null
+  },
+  "k2-spoiler-free": {
+   "sha256": "5b137924f4ba6b883b31abbb496beda323904af4d8f871d4aea42b776302c881",
+   "rust_exit": 0,
+   "csharp_components": 139,
+   "rust_components": 139,
+   "components_fully_matching": 139,
+   "field_values_compared": 4587,
+   "field_values_matching": 4587,
+   "mismatches_per_field": {}
+  },
+  "k2-spoiler-free_mobile": {
+   "sha256": "dd8466cc3515ff1c24a7bf513bf2ca7cd702a17b7241f478d752a0c0919c3d46",
+   "rust_exit": 0,
+   "csharp_components": 103,
+   "rust_components": 103,
+   "components_fully_matching": 103,
+   "field_values_compared": 3399,
+   "field_values_matching": 3399,
+   "mismatches_per_field": {}
+  },
+  "k2-widescreen": {
+   "sha256": "29016058dcc474847a8991d4ca62b3f60297446fb7e2223cba9f6aa1e97e79e1",
+   "rust_exit": 1,
+   "csharp_components": 0,
+   "rust_components": null,
+   "components_fully_matching": null,
+   "field_values_compared": null,
+   "field_values_matching": null,
+   "mismatches_per_field": null
+  }
+ },
+ "scope": "Component-list JSON from reference convert: every emitted component key except random GUIDs. Preamble, epilogue, widescreen-warning metadata, drafted instructions and installs are not covered. Guides without ### sections: reference returns [] (exit 0); Rust exits 1 by design (open difference)."
+}
