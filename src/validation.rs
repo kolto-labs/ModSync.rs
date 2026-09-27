@@ -228,7 +228,15 @@ impl Report {
                 .enumerate()
                 .map(|(index, outcome)| {
                     outcome.map_or_else(
-                        |error| error,
+                        // The engine retains component identity in this diagnostic. Give
+                        // shared cards and first-issue navigation its explicit severity.
+                        |error| {
+                            if error.starts_with("ERROR:") {
+                                error
+                            } else {
+                                format!("ERROR: {error}")
+                            }
+                        },
                         |()| format!("OK: {}", components[index].name),
                     )
                 })
