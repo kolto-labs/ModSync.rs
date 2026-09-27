@@ -590,7 +590,7 @@ impl Engine {
         Ok(())
     }
 
-    fn validate_fomod_configuration(&self, guide: &Guide) -> Result<()> {
+    fn validate_fomod_configuration(mut self, guide: &Guide) -> Result<()> {
         fn is_archive(name: &str) -> bool {
             matches!(
                 std::path::Path::new(name)
@@ -614,7 +614,9 @@ impl Engine {
 
         // C# gates registered download artifacts even when no Extract instruction names them.
         // A previously recorded prompt state makes a missing artifact fail closed.
-        let selected = guide.selected_ids();
+        self.selected = guide.selected_ids();
+        self.selected.extend(self.completed.iter().cloned());
+        let mut scope = Vec::new();
         for component in guide.ordered()? {
             if self
                 .completed
@@ -622,6 +624,9 @@ impl Engine {
             {
                 continue;
             }
+            self.collect_execution_components(component, &mut scope)?;
+        }
+        for component in &scope {
             let mut registered = BTreeSet::new();
             for resource in component.resource_registry.values() {
                 let Some(files) = resource
@@ -666,24 +671,9 @@ impl Engine {
                 }
             }
         }
-        for component in guide.ordered()? {
-            if self
-                .completed
-                .contains(&component.guid.to_ascii_lowercase())
-            {
-                continue;
-            }
+        for component in scope {
             for instruction in &component.instructions {
-                if instruction.action != "Extract"
-                    || !instruction
-                        .dependencies
-                        .iter()
-                        .all(|id| selected.contains(&id.to_ascii_lowercase()))
-                    || instruction
-                        .restrictions
-                        .iter()
-                        .any(|id| selected.contains(&id.to_ascii_lowercase()))
-                {
+                if instruction.action != "Extract" || !self.instruction_applies(instruction) {
                     continue;
                 }
                 // Missing generic Extract inputs belong to archive validation and
@@ -947,6 +937,50 @@ impl Engine {
                 .any(|id| self.selected.contains(&id.to_ascii_lowercase()))
     }
 
+    /// The same immediate-option selection used by execution and read-only gates.
+    fn chosen_options<'a>(
+        component: &'a Component,
+        instruction: &Instruction,
+    ) -> Result<Vec<&'a Component>> {
+        for id in &instruction.source {
+            ensure!(
+                component
+                    .options
+                    .iter()
+                    .any(|option| option.guid.eq_ignore_ascii_case(id)),
+                "Unknown option {id}"
+            );
+        }
+        Ok(component
+            .options
+            .iter()
+            .filter(|option| {
+                option.is_selected
+                    && instruction
+                        .source
+                        .iter()
+                        .any(|id| option.guid.eq_ignore_ascii_case(id))
+            })
+            .collect())
+    }
+
+    fn collect_execution_components<'a>(
+        &self,
+        component: &'a Component,
+        scope: &mut Vec<&'a Component>,
+    ) -> Result<()> {
+        self.check_component(component)?;
+        scope.push(component);
+        for instruction in &component.instructions {
+            if instruction.action == "Choose" && self.instruction_applies(instruction) {
+                for option in Self::chosen_options(component, instruction)? {
+                    self.collect_execution_components(option, scope)?;
+                }
+            }
+        }
+        Ok(())
+    }
+
     fn validation_warning(&mut self, category: &str, message: String, path: &Path) {
         if !self.install {
             self.validation_warnings
@@ -1128,23 +1162,8 @@ impl Engine {
     ) -> Result<()> {
         match i.action.as_str() {
             "Choose" => {
-                for id in &i.source {
-                    ensure!(
-                        component
-                            .options
-                            .iter()
-                            .any(|o| o.guid.eq_ignore_ascii_case(id)),
-                        "Unknown option {id}"
-                    );
-                }
-                for option in &component.options {
-                    if option.is_selected
-                        && i.source
-                            .iter()
-                            .any(|id| option.guid.eq_ignore_ascii_case(id))
-                    {
-                        self.component(option, emit)?;
-                    }
+                for option in Self::chosen_options(component, i)? {
+                    self.component(option, emit)?;
                 }
             }
             "Extract" => {
