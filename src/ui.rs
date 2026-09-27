@@ -1,3 +1,4 @@
+mod validation_page;
 use anyhow::Result;
 use eframe::egui;
 use modsync::wizard::{Gate, Page, Wizard, metadata_text};
@@ -17,7 +18,9 @@ enum Message {
     NxmDownloaded(modsync::protocol::NxmComponentMatch, String),
     ProtocolGuide(Guide),
     Conflicts(modsync::conflicts::Report),
-    ValidationReport(modsync::validation::Report),
+    ValidationProgress(u64, modsync::validation::StageProgress),
+    ValidationTerminal(u64, modsync::validation::Report),
+    ValidationDone(u64, Result<()>),
     Log(String),
     Updates(Guide, modsync::updates::Summary),
     Done(Result<()>),
@@ -60,6 +63,7 @@ pub struct App {
     utility: bool,
     input_stamp: String,
     validation_input_stamp: Option<String>,
+    validation_page: validation_page::State,
     stop_confirmation: bool,
     selected: usize,
     spoiler_free: bool,
@@ -114,7 +118,24 @@ impl App {
             }
             Message::ProtocolGuide(guide) => self.apply_protocol_guide(guide),
             Message::Conflicts(report) => self.conflicts = Some(report),
-            Message::ValidationReport(report) => self.validation_report = Some(report),
+            Message::ValidationProgress(run, progress) => {
+                self.refresh_input_stamp();
+                if self.validation_page.accepts(run) && !self.cancelled.load(Ordering::Relaxed) {
+                    self.validation_page.progress = Some(progress);
+                }
+            }
+            Message::ValidationTerminal(run, report) => {
+                self.refresh_input_stamp();
+                if self.validation_page.accepts(run) && !self.cancelled.load(Ordering::Relaxed) {
+                    self.validation_page.complete(&report);
+                    self.validation_report = Some(report);
+                }
+            }
+            Message::ValidationDone(run, result) => {
+                if self.validation_page.run == run {
+                    self.handle_message(Message::Done(result));
+                }
+            }
             Message::Log(line) => self.logs.push(line),
             Message::Updates(guide, summary) => {
                 self.guide = Some(guide);
@@ -163,7 +184,26 @@ impl App {
                     self.phase_failed = false;
                 }
                 self.refresh_input_stamp();
+                if self.job == Job::Validate {
+                    if self.cancelled.load(Ordering::Relaxed) {
+                        self.validation_report = None;
+                        self.validation_page
+                            .fail("Validation cancelled. Run validation again.");
+                    } else if self.validation_input_stamp.as_ref() != Some(&self.input_stamp) {
+                        self.validation_page
+                            .fail("Inputs changed during validation; run validation again.");
+                    } else if self.validation_report.is_none() {
+                        self.validation_page.fail(&match &result {
+                            Err(error) => format!("Validation could not complete: {error:#}"),
+                            Ok(()) => {
+                                "Validation ended without a report. Run validation again.".into()
+                            }
+                        });
+                    }
+                }
                 self.validated = result.is_ok()
+                    && !self.cancelled.load(Ordering::Relaxed)
+                    && self.validation_report.as_ref().is_some_and(|r| r.success)
                     && self.job == Job::Validate
                     && self.validation_input_stamp.as_ref() == Some(&self.input_stamp);
                 if self.job == Job::Validate && result.is_ok() && !self.validated {
@@ -195,6 +235,7 @@ impl App {
     }
 
     fn invalidate_validation(&mut self) {
+        self.validation_page.invalidate();
         self.validated = false;
         self.validation_report = None;
         self.conflicts = None;
@@ -569,7 +610,7 @@ impl App {
                 ui.label(format!("{} base mods selected", self.selected_base()));
                 ui.label("Use Downloads to acquire archives into your workspace. Downloads can continue while you read later pages. Run validation after downloads finish.");
             }
-            Page::Validate => self.surface(ui, ctx, 2),
+            Page::Validate => self.validation_content(ui, ctx),
             Page::InstallStart => {
                 ui.label(format!("Install {} selected base mods", self.selected_base()));
                 ui.label(format!("Game: {}", self.game)); ui.label(format!("Workspace: {}", self.mods));
@@ -1433,6 +1474,7 @@ impl App {
             utility: false,
             input_stamp: String::new(),
             validation_input_stamp: None,
+            validation_page: validation_page::State::default(),
             stop_confirmation: false,
             selected: 0,
             spoiler_free: false,
@@ -1681,6 +1723,8 @@ impl App {
     fn apply_theme(&self, ctx: &egui::Context) {
         let path = self.theme.to_ascii_lowercase();
         let mut visuals = egui::Visuals::light();
+        visuals.panel_fill = egui::Color32::WHITE;
+        visuals.override_text_color = Some(egui::Color32::BLACK);
         if !path.contains("lightstyle") && path.contains("kotor") {
             visuals = egui::Visuals::dark();
             let accent = if path.contains("kotor2") {
@@ -1688,6 +1732,12 @@ impl App {
             } else {
                 egui::Color32::from_rgb(0x3a, 0xaa, 0xff)
             };
+            visuals.panel_fill = if path.contains("kotor2") {
+                egui::Color32::from_rgb(2, 17, 13)
+            } else {
+                egui::Color32::from_rgb(0, 1, 22)
+            };
+            visuals.override_text_color = Some(accent);
             visuals.hyperlink_color = accent;
             visuals.selection.stroke.color = accent;
             visuals.widgets.active.fg_stroke.color = accent;
@@ -2010,6 +2060,14 @@ impl App {
     fn start(&mut self, job: Job, ctx: &egui::Context) {
         self.refresh_input_stamp();
         self.validation_input_stamp = (job == Job::Validate).then(|| self.input_stamp.clone());
+        if job == Job::Validate {
+            self.validation_page.begin(
+                self.guide
+                    .as_ref()
+                    .map_or(0, |g| g.components.iter().filter(|c| c.is_selected).count()),
+            );
+        }
+        let validation_run = self.validation_page.run;
         self.validated = false;
         self.conflicts = None;
         self.validation_report = None;
@@ -2018,6 +2076,10 @@ impl App {
         let mut settings = match settings {
             Ok(s) => s,
             Err(e) => {
+                if job == Job::Validate {
+                    self.validation_page
+                        .fail(&format!("Check directories: {e:#}"));
+                }
                 self.logs.push(format!("Check directories: {e:#}"));
                 return;
             }
@@ -2040,6 +2102,10 @@ impl App {
             match self.expanded_budget.trim().parse() {
                 Ok(value) => Some(value),
                 Err(_) => {
+                    if job == Job::Validate {
+                        self.validation_page
+                            .fail("Expanded-byte budget must be a nonnegative integer.");
+                    }
                     self.logs
                         .push("Expanded-byte budget must be a nonnegative integer.".into());
                     return;
@@ -2060,6 +2126,10 @@ impl App {
             let choices = match choices {
                 Ok(choices) => choices,
                 Err(error) => {
+                    if job == Job::Validate {
+                        self.validation_page
+                            .fail(&format!("FOMOD choices: {error:#}"));
+                    }
                     self.logs.push(format!("FOMOD choices: {error:#}"));
                     return;
                 }
@@ -2157,12 +2227,19 @@ impl App {
                     if job == Job::Validate {
                         // C# ValidatePage uses WizardFull: the same full pipeline
                         // and dry run requested by CLI --full --dry-run.
+                        let observe = |progress| {
+                            let _ = tx.send(Message::ValidationProgress(validation_run, progress));
+                            ctx.request_repaint();
+                        };
                         let report = match completed {
-                            Some(ids) => engine.validate_report_remaining(&guide, &ids, emit)?,
-                            None => engine.validate_report_with_dry_run(&guide, emit, true),
+                            Some(ids) => engine
+                                .validate_report_remaining_observed(&guide, &ids, emit, observe)?,
+                            None => engine.validate_report_with_options_observed(
+                                &guide, emit, true, true, false, observe,
+                            ),
                         };
                         let success = report.success;
-                        let _ = tx.send(Message::ValidationReport(report));
+                        let _ = tx.send(Message::ValidationTerminal(validation_run, report));
                         anyhow::ensure!(success, "Validation pipeline reported errors");
                         return Ok(());
                     }
@@ -2178,7 +2255,11 @@ impl App {
                         "Worker stopped unexpectedly. Inspect recovery state before retrying."
                     ))
                 });
-            let _ = tx.send(Message::Done(result));
+            let _ = tx.send(if job == Job::Validate {
+                Message::ValidationDone(validation_run, result)
+            } else {
+                Message::Done(result)
+            });
             ctx.request_repaint();
         });
     }
@@ -2655,44 +2736,51 @@ impl eframe::App for App {
                     });
                 });
         }
-        egui::TopBottomPanel::bottom("activity")
-            .resizable(true)
-            .default_height(100.0)
-            .show(ctx, |ui| {
-                ui.horizontal(|ui| {
-                    ui.strong("Activity");
-                    if busy {
-                        ui.spinner();
-                        if self.job == Job::NxmDownload {
-                            ui.label("Downloading linked Nexus file…");
+        let validation_visible = !self.utility
+            && self
+                .wizard
+                .as_ref()
+                .is_some_and(|w| w.current() == Page::Validate);
+        if !validation_visible {
+            egui::TopBottomPanel::bottom("activity")
+                .resizable(true)
+                .default_height(100.0)
+                .show(ctx, |ui| {
+                    ui.horizontal(|ui| {
+                        ui.strong("Activity");
+                        if busy {
+                            ui.spinner();
+                            if self.job == Job::NxmDownload {
+                                ui.label("Downloading linked Nexus file…");
+                            }
+                            if self.job == Job::ProtocolOpen {
+                                ui.label("Downloading ModSync build link…");
+                            }
+                            if ui.button("Stop").clicked() {
+                                self.stop_confirmation = true;
+                            }
                         }
-                        if self.job == Job::ProtocolOpen {
-                            ui.label("Downloading ModSync build link…");
+                        if ui.button("Copy report").clicked() {
+                            ctx.copy_text(self.logs.join("\n"));
                         }
-                        if ui.button("Stop").clicked() {
-                            self.stop_confirmation = true;
-                        }
-                    }
-                    if ui.button("Copy report").clicked() {
-                        ctx.copy_text(self.logs.join("\n"));
-                    }
-                    if ui.button("Save report…").clicked()
-                        && let Some(path) = rfd::FileDialog::new()
-                            .set_file_name("modsync-report.txt")
-                            .save_file()
-                        && let Err(e) = std::fs::write(path, self.logs.join("\n"))
-                    {
-                        self.logs.push(e.to_string());
-                    }
-                });
-                egui::ScrollArea::vertical()
-                    .stick_to_bottom(true)
-                    .show(ui, |ui| {
-                        for line in &self.logs {
-                            ui.monospace(line);
+                        if ui.button("Save report…").clicked()
+                            && let Some(path) = rfd::FileDialog::new()
+                                .set_file_name("modsync-report.txt")
+                                .save_file()
+                            && let Err(e) = std::fs::write(path, self.logs.join("\n"))
+                        {
+                            self.logs.push(e.to_string());
                         }
                     });
-            });
+                    egui::ScrollArea::vertical()
+                        .stick_to_bottom(true)
+                        .show(ui, |ui| {
+                            for line in &self.logs {
+                                ui.monospace(line);
+                            }
+                        });
+                });
+        }
         self.refresh_input_stamp();
         if !self.utility && self.wizard.is_some() {
             egui::TopBottomPanel::bottom("wizard_navigation")
@@ -2712,6 +2800,10 @@ impl eframe::App for App {
             }
         }
         egui::CentralPanel::default().frame(egui::Frame::default().fill(ctx.style().visuals.panel_fill).inner_margin(16)).show(ctx, |ui| {
+            if validation_visible && ui.available_height() > 420.0 && ui.available_width() > 500.0 {
+                self.validation_content(ui, ctx);
+                return;
+            }
             egui::ScrollArea::vertical()
                 .id_salt("wizard_content")
                 .show(ui, |ui| {
@@ -2848,6 +2940,22 @@ pub fn launch(
                     .logs
                     .push(format!("Spoiler preference load failed: {e:#}")),
             }
+            let mut fonts = egui::FontDefinitions::default();
+            fonts.font_data.insert(
+                "validation-symbols".into(),
+                egui::FontData::from_static(include_bytes!(
+                    "../assets/fonts/NotoEmoji-Regular.ttf"
+                ))
+                .into(),
+            );
+            for family in [egui::FontFamily::Proportional, egui::FontFamily::Monospace] {
+                fonts
+                    .families
+                    .entry(family)
+                    .or_default()
+                    .push("validation-symbols".into());
+            }
+            creation.egui_ctx.set_fonts(fonts);
             app.apply_theme(&creation.egui_ctx);
             Ok(Box::new(app))
         }),
