@@ -174,13 +174,13 @@ impl State {
     pub fn stop_warning(&self) -> &'static str {
         match &self.progress {
             Some(p) if p.snapshot_pending => {
-                "A recovery snapshot is active. The install stops at the next safe point. Restore the snapshot before you retry. The window stays open until the install stops."
+                "A recovery snapshot is active. The install stops at the next safe point. Restore the snapshot before you retry."
             }
             Some(p) if p.phase == Phase::CreatingSnapshot => {
-                "The recovery snapshot is being created. The install stops at the next safe point. Check Activity for recovery steps before you retry. The window stays open until the install stops."
+                "The recovery snapshot is being created. The install stops at the next safe point. Check Activity for recovery steps before you retry."
             }
             _ => {
-                "No game or mod files have been changed yet. The install stops at the next safe point. The window stays open until the install stops."
+                "No game or mod files have been changed yet. The install stops at the next safe point."
             }
         }
     }
@@ -267,9 +267,11 @@ impl State {
             Outcome::Failed(_) => return "Stopped".into(),
             Outcome::Skipped => return "Skipped".into(),
         }
-        self.progress
-            .as_ref()
-            .map_or_else(|| "Starting…".into(), step_text)
+        match &self.progress {
+            None => "Starting…".into(),
+            Some(p) if p.phase == Phase::InstallingComponent => "Starting".into(),
+            Some(p) => step_text(p),
+        }
     }
 
     fn animating(&self) -> bool {
@@ -346,7 +348,8 @@ fn step_text(p: &Progress) -> String {
                 String::new()
             };
             format!(
-                "{owner}Step {} of {}: {}",
+                // Emitted after the step succeeds, so it names finished work.
+                "{owner}Finished step {} of {}: {}",
                 p.instruction_index.unwrap_or_default(),
                 p.instruction_total.unwrap_or_default(),
                 p.message
@@ -410,6 +413,11 @@ fn bar(ui: &mut egui::Ui, height: f32, radius: f32, fraction: Option<f32>, hover
             ui.ctx().request_repaint();
         }
     }
+    response.widget_info(|| {
+        let mut info = egui::WidgetInfo::labeled(egui::WidgetType::ProgressIndicator, true, hover);
+        info.value = fraction.map(|f| f64::from(f.clamp(0.0, 1.0)) * 100.0);
+        info
+    });
     response.on_hover_text(hover);
 }
 
@@ -612,11 +620,17 @@ impl App {
                             ui.vertical_centered(|ui| {
                                 ui.spacing_mut().item_spacing.y = 12.0;
                                 ui.label(RichText::new("🎮").size(48.0));
-                                ui.label(RichText::new("Installing Your Mods").size(16.0).strong());
+                                let skipped = matches!(state.outcome, Outcome::Skipped);
+                                let (title, body) = if skipped {
+                                    ("Nothing to install", "No widescreen mods were selected")
+                                } else {
+                                    ("Installing Your Mods", "Sit back and relax while we handle everything")
+                                };
+                                ui.label(RichText::new(title).size(16.0).strong());
                                 let color = faded(ui, 0.7);
                                 ui.add(
                                     egui::Label::new(
-                                        RichText::new("Sit back and relax while we handle everything")
+                                        RichText::new(body)
                                             .size(13.0)
                                             .color(color),
                                     )

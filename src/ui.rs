@@ -172,6 +172,9 @@ impl App {
                 self.logs.push(match &final_result {
                     Ok(()) if accepted => "Installation complete.".into(),
                     Ok(()) => "Installation finished for the captured folders, but the guide or folders changed. Reload the guide before you continue.".into(),
+                    Err(error) if engine_succeeded => {
+                        format!("Installed, but not applied here: {error:#}")
+                    }
                     Err(error) => format!("Stopped: {error:#}"),
                 });
                 self.emit_telemetry(
@@ -592,6 +595,18 @@ impl App {
                     .clicked()
             {
                 self.start(Job::Restore, ctx);
+            }
+            if page.install_phase().is_some()
+                && self.installing_page.failed()
+                && !self.phase_failed
+                && ui
+                    .add_enabled(
+                        self.receiver.is_none(),
+                        egui::Button::new("Retry phase").min_size(egui::vec2(100.0, 32.0)),
+                    )
+                    .clicked()
+            {
+                self.start(Job::Install, ctx);
             }
             if !next && page != Page::Finished {
                 ui.label("Complete this page before continuing.");
