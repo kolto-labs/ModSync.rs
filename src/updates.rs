@@ -91,7 +91,13 @@ pub struct NexusClient {
     api_key: Option<String>,
     daily_remaining: Option<i64>,
     hourly_remaining: Option<i64>,
+    /// When set, a 429 is returned as a typed transient error instead of waited out here,
+    /// so the caller's retry policy owns the wait (and no lock is held while waiting).
+    defer_rate_limits: bool,
 }
+
+/// Longest Nexus `Retry-After` honored, for every caller.
+pub const NEXUS_RETRY_AFTER_CAP: Duration = Duration::from_secs(60);
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct NxmDownloadLink {
@@ -212,7 +218,15 @@ impl NexusClient {
             api_key,
             daily_remaining: None,
             hourly_remaining: None,
+            defer_rate_limits: false,
         })
+    }
+
+    /// Return HTTP 429 as a `download::FailureClass::Transient` error carrying the capped
+    /// `Retry-After`, instead of sleeping inside the client. Used by the download
+    /// orchestrator, whose cancel-aware retry loop then owns the wait.
+    pub fn defer_rate_limits(&mut self) {
+        self.defer_rate_limits = true;
     }
 
     pub fn is_rate_limit_exhausted(&self) -> bool {
@@ -363,10 +377,17 @@ impl NexusClient {
                 .headers()
                 .get(reqwest::header::RETRY_AFTER)
                 .and_then(|value| value.to_str().ok())
-                .and_then(|value| value.parse::<u64>().ok())
-                .unwrap_or(60);
+                .and_then(|value| value.trim().parse::<u64>().ok())
+                .map_or(NEXUS_RETRY_AFTER_CAP, Duration::from_secs)
+                .min(NEXUS_RETRY_AFTER_CAP);
             drop(response);
-            std::thread::sleep(Duration::from_secs(delay));
+            if self.defer_rate_limits {
+                return Err(crate::download::transient(
+                    Some(delay.as_secs()),
+                    anyhow::anyhow!("Nexus Mods rate limit (HTTP 429) for {url}"),
+                ));
+            }
+            std::thread::sleep(delay);
             response = self.request(url)?;
         }
         let response = response.error_for_status()?;

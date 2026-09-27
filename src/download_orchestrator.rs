@@ -508,10 +508,14 @@ pub fn run(
     };
     let nexus = if origins().next().is_some() {
         let key = settings.nexus_api_key.clone();
-        Some(Mutex::new(match &settings.nexus_api_base {
+        let mut client = match &settings.nexus_api_base {
             Some(base) => NexusClient::with_base_url(key, base)?,
             None => NexusClient::new(key)?,
-        }))
+        };
+        // A 429 comes back as a typed transient error; the cancel-aware retry loop waits
+        // outside this mutex, so other workers are never blocked by one rate limit.
+        client.defer_rate_limits();
+        Some(Mutex::new(client))
     } else {
         None
     };

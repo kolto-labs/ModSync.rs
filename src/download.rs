@@ -77,6 +77,11 @@ pub fn manual_required(url: &str, reason: ManualReason, message: &str) -> anyhow
     )
 }
 
+/// A transient failure from a host API, e.g. a rate limit with its `Retry-After` hint.
+pub fn transient(retry_after_secs: Option<u64>, error: anyhow::Error) -> anyhow::Error {
+    fail(FailureClass::Transient { retry_after_secs }, error)
+}
+
 /// The typed class attached by this module, if any.
 pub fn classify(error: &anyhow::Error) -> Option<&FailureClass> {
     error
