@@ -1,3 +1,4 @@
+mod installing_page;
 mod validation_page;
 use anyhow::Result;
 use eframe::egui;
@@ -21,6 +22,8 @@ enum Message {
     ValidationProgress(u64, modsync::validation::StageProgress),
     ValidationTerminal(u64, modsync::validation::Report),
     ValidationDone(u64, Result<()>),
+    InstallProgress(u64, modsync::install_progress::Progress),
+    InstallTerminal(u64, Result<()>, bool),
     Log(String),
     Updates(Guide, modsync::updates::Summary),
     Done(Result<()>),
@@ -64,6 +67,7 @@ pub struct App {
     input_stamp: String,
     validation_input_stamp: Option<String>,
     validation_page: validation_page::State,
+    installing_page: installing_page::State,
     stop_confirmation: bool,
     selected: usize,
     spoiler_free: bool,
@@ -136,6 +140,49 @@ impl App {
                     self.handle_message(Message::Done(result));
                 }
             }
+            Message::InstallProgress(run, progress) => {
+                // The stamp is refreshed every frame; the terminal refreshes it again.
+                if self.installing_page.accepts(run, &self.input_stamp) {
+                    self.installing_page.progress(progress);
+                }
+            }
+            Message::InstallTerminal(run, result, pending) => {
+                // `pending` was read from the roots captured for this run, never
+                // from the editable paths. The engine result wins over a late Stop.
+                self.receiver = None;
+                self.stop_confirmation = false;
+                self.refresh_input_stamp();
+                let accepted = self.installing_page.accepts(run, &self.input_stamp);
+                let engine_succeeded = result.is_ok();
+                let final_result = if accepted && engine_succeeded {
+                    result.and_then(|()| self.installed_phase())
+                } else {
+                    result
+                };
+                self.installing_page.finish(
+                    run,
+                    &self.input_stamp,
+                    engine_succeeded,
+                    &final_result,
+                    pending,
+                );
+                self.pending_base.clear();
+                self.install_context = None;
+                self.phase_failed = !engine_succeeded && pending;
+                self.logs.push(match &final_result {
+                    Ok(()) if accepted => "Installation complete.".into(),
+                    Ok(()) => "Installation finished for the captured folders, but the guide or folders changed. Reload the guide before you continue.".into(),
+                    Err(error) => format!("Stopped: {error:#}"),
+                });
+                self.emit_telemetry(
+                    "operation.completed",
+                    serde_json::Map::from_iter([
+                        ("operation".into(), serde_json::json!("installation")),
+                        ("success".into(), serde_json::json!(engine_succeeded)),
+                    ]),
+                );
+                self.start_pending_nxm_if_ready();
+            }
             Message::Log(line) => self.logs.push(line),
             Message::Updates(guide, summary) => {
                 self.guide = Some(guide);
@@ -175,11 +222,8 @@ impl App {
                     result
                 };
                 let succeeded = result.is_ok();
-                if self.job == Job::Install {
-                    self.phase_failed = result.is_err()
-                        && Settings::new(Path::new(&self.mods), Path::new(&self.game))
-                            .is_ok_and(|s| recovery::state_dir(&s.roots).join("pending").exists());
-                }
+                // Install terminals arrive as InstallTerminal with pending state
+                // read from the captured roots; never recompute it from UI paths.
                 if result.is_ok() && self.job == Job::Restore {
                     self.phase_failed = false;
                 }
@@ -385,6 +429,7 @@ impl App {
             Page::WidescreenModSelection => self.invalidate_validation(),
             Page::WidescreenInstalling if self.selected_widescreen() == 0 => {
                 // An empty phase has no operation to dispatch and no installed mods.
+                self.installing_page.skip();
                 self.finished = true;
                 self.logs
                     .push("Widescreen phase skipped: no widescreen mods selected.".into());
@@ -526,6 +571,14 @@ impl App {
             {
                 self.wizard.as_mut().unwrap().back();
             }
+            if page.install_phase().is_some()
+                && self.installing_page.active()
+                && ui
+                    .add(egui::Button::new("Stop Install").min_size(egui::vec2(100.0, 32.0)))
+                    .clicked()
+            {
+                self.stop_confirmation = true;
+            }
             if !next && page != Page::Finished {
                 ui.label("Complete this page before continuing.");
             }
@@ -536,6 +589,10 @@ impl App {
         let page = self.wizard.as_ref().unwrap().current();
         if page == Page::Validate {
             self.validation_content(ui, ctx);
+            return;
+        }
+        if page.install_phase().is_some() {
+            self.installing_content(ui, ctx);
             return;
         }
         let idle = self.receiver.is_none();
@@ -641,16 +698,8 @@ impl App {
                     self.surface(ui, ctx, 2);
                 } else { ui.label("Next skips the empty widescreen phase. No additional mods will be installed."); }
             }
-            Page::Installing | Page::WidescreenInstalling => {
-                if !idle { ui.spinner(); ui.label("The shared installer is running. Actual operations appear in Activity."); }
-                else if self.wizard_gate().validation_passed {
-                    ui.label(if page == Page::WidescreenInstalling && self.selected_widescreen() == 0 { "No widescreen mods selected; this phase was skipped." } else { "The selected phase completed successfully. Continue to review the result." });
-                } else {
-                    ui.label("Installation has not completed successfully. Review Activity. Restore a pending snapshot before retrying.");
-                    if ui.button("Restore failed install").clicked() { self.start(Job::Restore, ctx); }
-                    if ui.add_enabled(!self.phase_failed, egui::Button::new("Retry phase")).clicked() { self.start(Job::Install, ctx); }
-                }
-            }
+            // Rendered by installing_content before this match.
+            Page::Installing | Page::WidescreenInstalling => {}
             Page::BaseInstallComplete | Page::WidescreenComplete | Page::Finished => {
                 if page == Page::BaseInstallComplete { ui.label(format!("{} base components completed by the shared installer.", self.completed_base.as_ref().map_or(0, Vec::len))); }
                 else if self.finished && self.selected_widescreen() == 0 { ui.label("Base installation completed. No widescreen mods were installed."); }
@@ -1531,6 +1580,7 @@ impl App {
             input_stamp: String::new(),
             validation_input_stamp: None,
             validation_page: validation_page::State::default(),
+            installing_page: installing_page::State::default(),
             stop_confirmation: false,
             selected: 0,
             spoiler_free: false,
@@ -1587,6 +1637,7 @@ impl App {
         self.validated = false;
         self.conflicts = None;
         validation_page::clear_report(&mut self.validation_report, &mut self.validation_page);
+        self.installing_page.reset();
     }
 
     fn finish_wizard(&mut self) {
@@ -2113,8 +2164,31 @@ impl App {
         guide.save(path)
     }
 
+    /// End an install run that failed before the engine was dispatched.
+    /// Pending recovery is read from this run's roots when they exist.
+    fn install_not_started(
+        &mut self,
+        run: u64,
+        error: anyhow::Error,
+        roots: Option<&modsync::paths::Roots>,
+    ) {
+        // Without roots nothing can be read for this run: report no pending
+        // state for it, and keep the app-level state from earlier runs.
+        let earlier = self.phase_failed;
+        let pending =
+            roots.is_some_and(|roots| recovery::state_dir(roots).join("pending").exists());
+        self.job = Job::Install;
+        self.handle_message(Message::InstallTerminal(run, Err(error), pending));
+        if roots.is_none() {
+            self.phase_failed = earlier;
+        }
+    }
+
     fn start(&mut self, job: Job, ctx: &egui::Context) {
         self.refresh_input_stamp();
+        // Bind this run to the exact inputs before anything can fail.
+        let install_run =
+            (job == Job::Install).then(|| self.installing_page.begin(&self.input_stamp));
         self.validation_input_stamp = (job == Job::Validate).then(|| self.input_stamp.clone());
         self.validated = false;
         self.conflicts = None;
@@ -2132,6 +2206,10 @@ impl App {
         let mut settings = match settings {
             Ok(s) => s,
             Err(e) => {
+                if let Some(run) = install_run {
+                    self.install_not_started(run, e.context("Check directories"), None);
+                    return;
+                }
                 if job == Job::Validate {
                     self.validation_page
                         .fail(&format!("Check directories: {e:#}"));
@@ -2158,6 +2236,14 @@ impl App {
             match self.expanded_budget.trim().parse() {
                 Ok(value) => Some(value),
                 Err(_) => {
+                    if let Some(run) = install_run {
+                        self.install_not_started(
+                            run,
+                            anyhow::anyhow!("Expanded-byte budget must be a nonnegative integer."),
+                            Some(&settings.roots),
+                        );
+                        return;
+                    }
                     if job == Job::Validate {
                         self.validation_page
                             .fail("Expanded-byte budget must be a nonnegative integer.");
@@ -2182,6 +2268,14 @@ impl App {
             let choices = match choices {
                 Ok(choices) => choices,
                 Err(error) => {
+                    if let Some(run) = install_run {
+                        self.install_not_started(
+                            run,
+                            error.context("FOMOD choices"),
+                            Some(&settings.roots),
+                        );
+                        return;
+                    }
                     if job == Job::Validate {
                         self.validation_page
                             .fail(&format!("FOMOD choices: {error:#}"));
@@ -2191,11 +2285,21 @@ impl App {
                 }
             };
             match self.prepare_phase(job, choices.as_ref()) {
-                Ok(prepared) => (
-                    Some(prepared.guide),
-                    self.completed_base.as_ref().map(|_| prepared.completed),
-                ),
+                Ok(prepared) => {
+                    if install_run.is_some() {
+                        // Directions come from the exact guide handed to the engine.
+                        self.installing_page.prepared(&prepared.guide);
+                    }
+                    (
+                        Some(prepared.guide),
+                        self.completed_base.as_ref().map(|_| prepared.completed),
+                    )
+                }
                 Err(error) => {
+                    if let Some(run) = install_run {
+                        self.install_not_started(run, error, Some(&settings.roots));
+                        return;
+                    }
                     self.job = job;
                     self.handle_message(Message::Done(Err(error)));
                     return;
@@ -2240,6 +2344,8 @@ impl App {
             .into(),
         );
         let ctx = ctx.clone();
+        // Captured before the engine takes ownership of settings.
+        let install_roots = settings.roots.clone();
         std::thread::spawn(move || {
             let result =
                 std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> Result<()> {
@@ -2299,9 +2405,17 @@ impl App {
                         anyhow::ensure!(success, "Validation pipeline reported errors");
                         return Ok(());
                     }
+                    let observe = |progress| {
+                        if let Some(run) = install_run {
+                            let _ = tx.send(Message::InstallProgress(run, progress));
+                            ctx.request_repaint();
+                        }
+                    };
                     match (job, completed) {
-                        (Job::Install, Some(ids)) => engine.install_remaining(&guide, &ids, emit),
-                        (Job::Install, None) => engine.install(&guide, emit),
+                        (Job::Install, Some(ids)) => {
+                            engine.install_remaining_observed(&guide, &ids, emit, observe)
+                        }
+                        (Job::Install, None) => engine.install_observed(&guide, emit, observe),
                         (_, Some(ids)) => engine.validate_remaining(&guide, &ids, emit),
                         (_, None) => engine.validate(&guide, emit),
                     }
@@ -2311,10 +2425,13 @@ impl App {
                         "Worker stopped unexpectedly. Inspect recovery state before retrying."
                     ))
                 });
-            let _ = tx.send(if job == Job::Validate {
-                Message::ValidationDone(validation_run, result)
-            } else {
-                Message::Done(result)
+            let _ = tx.send(match install_run {
+                Some(run) => {
+                    let pending = recovery::state_dir(&install_roots).join("pending").exists();
+                    Message::InstallTerminal(run, result, pending)
+                }
+                None if job == Job::Validate => Message::ValidationDone(validation_run, result),
+                None => Message::Done(result),
             });
             ctx.request_repaint();
         });
@@ -2907,12 +3024,18 @@ impl eframe::App for App {
             }
         }
         if self.stop_confirmation {
+            let install = self.job == Job::Install && self.installing_page.active();
             egui::Modal::new(egui::Id::new("stop_operation")).show(ctx, |ui| {
-                ui.heading("Stop current operation?");
-                ui.label("Cancellation stops at the next safe engine checkpoint. A failed installation requires restoring its verified snapshot before retrying.");
+                if install {
+                    ui.heading("Stop the install?");
+                    ui.label(self.installing_page.stop_warning());
+                } else {
+                    ui.heading("Stop current operation?");
+                    ui.label("Cancellation stops at the next safe engine checkpoint. A failed installation requires restoring its verified snapshot before retrying.");
+                }
                 ui.horizontal(|ui| {
-                    if ui.button("Stop operation").clicked() { self.cancelled.store(true, Ordering::Relaxed); self.stop_confirmation = false; }
-                    if ui.button("Keep running").clicked() { self.stop_confirmation = false; }
+                    if ui.button(if install { "Stop install" } else { "Stop operation" }).clicked() { self.cancelled.store(true, Ordering::Relaxed); self.stop_confirmation = false; }
+                    if ui.button(if install { "Keep installing" } else { "Keep running" }).clicked() { self.stop_confirmation = false; }
                 });
             });
         }
