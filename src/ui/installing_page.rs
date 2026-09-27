@@ -1,10 +1,11 @@
 //! Native Installing page. Every progress fact comes from the shared engine
 //! observer; this module only keeps run-bound presentation state.
-use super::{App, Job};
+use super::App;
 use eframe::egui::{self, RichText};
 use modsync::install_progress::{Phase, Progress};
+use modsync::paths::Roots;
 use modsync::{Component, Guide};
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::time::{Duration, Instant};
 
 const LOG_LIMIT: usize = 2000;
@@ -39,8 +40,14 @@ pub(super) struct State {
     /// The captured roots held a pending snapshot at the terminal, so writes
     /// may have happened. False means a startup/preflight failure.
     wrote: bool,
+    /// A restore of exactly `roots` succeeded after this failure.
+    restored: bool,
+    /// Roots and path text this run was dispatched with. Restore and Retry
+    /// are bound to these, never to the editable paths.
+    roots: Option<Roots>,
+    folders: (String, String),
     directions: HashMap<Vec<String>, String>,
-    log: Vec<String>,
+    log: VecDeque<String>,
 }
 
 impl State {
@@ -55,6 +62,40 @@ impl State {
             ..Self::default()
         };
         self.run
+    }
+
+    /// Bind the roots and folder text captured before dispatch.
+    pub fn bind_roots(&mut self, roots: &Roots, mods: &str, game: &str) {
+        self.roots = Some(roots.clone());
+        self.folders = (mods.to_owned(), game.to_owned());
+    }
+
+    /// Roots of a failed run whose snapshot is still pending.
+    pub fn restore_target(&self) -> Option<&Roots> {
+        self.roots
+            .as_ref()
+            .filter(|_| self.failed() && self.pending())
+    }
+
+    /// Record a verified restore. Only a restore of this run's own roots counts.
+    pub fn record_restore(&mut self, roots: &Roots) -> bool {
+        let same = self
+            .roots
+            .as_ref()
+            .is_some_and(|own| own.game == roots.game && own.mods == roots.mods);
+        if same && self.failed() {
+            self.restored = true;
+        }
+        same
+    }
+
+    /// True when this run failed and its captured snapshot is not restored yet.
+    pub fn pending(&self) -> bool {
+        self.failed() && self.wrote && !self.restored
+    }
+
+    pub fn same_folders(&self, mods: &str, game: &str) -> bool {
+        self.folders.0 == mods && self.folders.1 == game
     }
 
     /// Bind directions to the prepared guide actually handed to the engine.
@@ -122,10 +163,7 @@ impl State {
             }
             _ => {}
         }
-        if self.log.len() < LOG_LIMIT {
-            self.log
-                .push(format!("[{}] {}", clock(elapsed), step_text(&progress)));
-        }
+        self.push_log(format!("[{}] {}", clock(elapsed), step_text(&progress)));
         self.progress = Some(progress);
     }
 
@@ -166,13 +204,24 @@ impl State {
             Outcome::NotApplied(error) => Some(format!("Not applied: {error}")),
             _ => None,
         } {
-            self.log.push(line);
+            self.push_log(line);
         }
+    }
+
+    /// Keep the newest lines; the oldest drop first.
+    fn push_log(&mut self, line: String) {
+        if self.log.len() == LOG_LIMIT {
+            self.log.pop_front();
+        }
+        self.log.push_back(line);
     }
 
     /// Stop-dialog text from the last shared snapshot fact of this run.
     pub fn stop_warning(&self) -> &'static str {
         match &self.progress {
+            Some(p) if p.phase == Phase::Completed => {
+                "The install has finished and its recovery snapshot is finalized. Nothing is left to stop."
+            }
             Some(p) if p.snapshot_pending => {
                 "A recovery snapshot is active. The install stops at the next safe point. Restore the snapshot before you retry."
             }
@@ -201,7 +250,13 @@ impl State {
             Outcome::Skipped => "0%".into(),
             _ if self.committed => "100%".into(),
             _ if self.total == 0 => "0%".into(),
-            _ => format!("{}%", (self.completed * 100 / self.total).min(99)),
+            // .NET Math.Round rounds half to even; 100% waits for Completed.
+            _ => format!(
+                "{}%",
+                ((self.completed * 100) as f64 / self.total as f64)
+                    .round_ties_even()
+                    .min(99.0)
+            ),
         }
     }
 
@@ -282,15 +337,15 @@ impl State {
                 .is_some_and(|p| p.phase == Phase::Completed)
     }
 
-    fn snapshot_line(&self, phase_failed: bool) -> &'static str {
+    fn snapshot_line(&self) -> &'static str {
         match &self.outcome {
             Outcome::Skipped => "No recovery snapshot needed",
             Outcome::Succeeded | Outcome::NotApplied(_) => "Recovery finalized",
-            // After the terminal, restore results update the app-level pending state.
-            Outcome::Failed(_) if phase_failed => {
+            // Both come from this run's captured roots, not the editable paths.
+            Outcome::Failed(_) if self.pending() => {
                 "Recovery snapshot active. Restore it before you retry."
             }
-            Outcome::Failed(_) if self.wrote => "Recovery snapshot restored",
+            Outcome::Failed(_) if self.restored => "Recovery snapshot restored",
             Outcome::Failed(_) => "No recovery snapshot pending",
             Outcome::Idle | Outcome::Running => match &self.progress {
                 Some(p) if p.phase == Phase::Completed => "Recovery finalized",
@@ -301,12 +356,12 @@ impl State {
         }
     }
 
-    fn snapshot_value(&self, phase_failed: bool) -> &'static str {
+    fn snapshot_value(&self) -> &'static str {
         match &self.outcome {
             Outcome::Skipped => "None",
             Outcome::Succeeded | Outcome::NotApplied(_) => "Finalized",
-            Outcome::Failed(_) if phase_failed => "Active",
-            Outcome::Failed(_) if self.wrote => "Restored",
+            Outcome::Failed(_) if self.pending() => "Active",
+            Outcome::Failed(_) if self.restored => "Restored",
             Outcome::Failed(_) => "None",
             Outcome::Idle | Outcome::Running => match &self.progress {
                 Some(p) if p.phase == Phase::Completed => "Finalized",
@@ -410,7 +465,8 @@ fn bar(ui: &mut egui::Ui, height: f32, radius: f32, fraction: Option<f32>, hover
             if segment.width() > 0.0 {
                 ui.painter().rect_filled(segment, radius, fill);
             }
-            ui.ctx().request_repaint();
+            // Share the page's 100 ms repaint budget instead of every frame.
+            ui.ctx().request_repaint_after(Duration::from_millis(100));
         }
     }
     response.widget_info(|| {
@@ -451,11 +507,8 @@ fn stat_label(ui: &mut egui::Ui, text: &str) {
 
 impl App {
     pub(super) fn installing_content(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
-        let phase_failed = self.phase_failed;
-        let idle = self.receiver.is_none();
+        let same_folders = self.installing_page.same_folders(&self.mods, &self.game);
         let state = &self.installing_page;
-        let mut restore = false;
-        let mut retry = false;
         if state.animating() {
             ctx.request_repaint_after(Duration::from_millis(100));
         }
@@ -540,7 +593,7 @@ impl App {
                         let color = faded(ui, 0.7);
                         ui.label(RichText::new("💾").size(12.0).color(color));
                         ui.label(
-                            RichText::new(state.snapshot_line(phase_failed))
+                            RichText::new(state.snapshot_line())
                                 .size(12.0)
                                 .color(color),
                         );
@@ -552,26 +605,34 @@ impl App {
                         ui.set_width(ui.available_width());
                         ui.spacing_mut().item_spacing.y = 8.0;
                         ui.label(RichText::new("What to do next").size(14.0).strong());
+                        // Text only: the actions live once, in the footer.
                         let guidance = match &state.outcome {
                             Outcome::NotApplied(_) => {
                                 "The engine finished, but this project did not record it. Reload the guide, then check Activity before you install again."
                             }
-                            _ if phase_failed => {
-                                "Files may have changed. Restore the recovery snapshot, then retry this phase."
+                            _ if state.pending() => {
+                                "Files may have changed. Use Restore snapshot below, then retry this phase."
                             }
-                            _ if state.wrote => "The recovery snapshot was restored. You can retry this phase.",
-                            _ => "The install stopped before any game or mod files changed. Fix the error above, then retry this phase.",
+                            _ if state.restored => "The recovery snapshot was restored. Use Retry phase below.",
+                            _ => "The install stopped before any game or mod files changed. Fix the error above, then use Retry phase below.",
                         };
                         ui.label(RichText::new(guidance).size(13.0));
                         if matches!(state.outcome, Outcome::Failed(_)) {
-                            ui.horizontal(|ui| {
-                                restore = ui
-                                    .add_enabled(idle && phase_failed, egui::Button::new("Restore snapshot"))
-                                    .clicked();
-                                retry = ui
-                                    .add_enabled(idle && !phase_failed, egui::Button::new("Retry phase"))
-                                    .clicked();
-                            });
+                            if let Some(roots) = &state.roots {
+                                let color = faded(ui, 0.7);
+                                ui.label(
+                                    RichText::new(format!(
+                                        "Install folders: game {}, mods {}",
+                                        roots.game.display(),
+                                        roots.mods.display()
+                                    ))
+                                    .size(12.0)
+                                    .color(color),
+                                );
+                            }
+                            if !same_folders {
+                                ui.label(RichText::new("The game or mod folder changed after this install. Restore uses the install's own folders. Set the folders back to retry.").size(13.0).strong());
+                            }
                         }
                     });
                 }
@@ -608,7 +669,7 @@ impl App {
                             ui.vertical_centered(|ui| {
                                 stat_label(ui, "RECOVERY SNAPSHOT");
                                 ui.label(
-                                    RichText::new(state.snapshot_value(phase_failed))
+                                    RichText::new(state.snapshot_value())
                                         .size(16.0)
                                         .strong(),
                                 );
@@ -684,7 +745,7 @@ impl App {
                 // Row 2: footer warning while writes or recovery are pending.
                 let footer = if state.active() {
                     Some("⚠ Do not close ModSync while the install runs")
-                } else if phase_failed && matches!(state.outcome, Outcome::Failed(_)) {
+                } else if state.pending() {
                     Some("⚠ Restore the recovery snapshot before you install again")
                 } else {
                     None
@@ -700,11 +761,5 @@ impl App {
                     });
                 }
             });
-        if restore {
-            self.start(Job::Restore, ctx);
-        }
-        if retry {
-            self.start(Job::Install, ctx);
-        }
     }
 }

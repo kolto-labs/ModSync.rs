@@ -91,6 +91,8 @@ pub struct App {
     install_context: Option<(String, String, String)>,
     finished: bool,
     phase_failed: bool,
+    /// Roots of the running restore job, compared against a failed install's roots.
+    restore_roots: Option<modsync::paths::Roots>,
     download_url: String,
     download_name: String,
     download_hash: String,
@@ -216,19 +218,21 @@ impl App {
                 } else {
                     result
                 };
-                let result = if self.job == Job::Install {
-                    let result = result.and_then(|()| self.installed_phase());
-                    self.pending_base.clear();
-                    self.install_context = None;
-                    result
-                } else {
-                    result
-                };
                 let succeeded = result.is_ok();
-                // Install terminals arrive as InstallTerminal with pending state
-                // read from the captured roots; never recompute it from UI paths.
-                if result.is_ok() && self.job == Job::Restore {
-                    self.phase_failed = false;
+                // Install terminals arrive only as InstallTerminal. A restore
+                // clears a failed install's pending state only when it restored
+                // that install's own captured roots.
+                if self.job == Job::Restore {
+                    let roots = self.restore_roots.take();
+                    if result.is_ok() {
+                        let own = self.installing_page.restore_target().is_some();
+                        if !own
+                            || roots
+                                .is_some_and(|roots| self.installing_page.record_restore(&roots))
+                        {
+                            self.phase_failed = false;
+                        }
+                    }
                 }
                 self.refresh_input_stamp();
                 if self.job == Job::Validate {
@@ -260,7 +264,7 @@ impl App {
                     && self.validation_report.as_ref().is_some_and(|r| r.success)
                     && self.job == Job::Validate
                     && self.validation_input_stamp.as_ref() == Some(&self.input_stamp);
-                self.logs.push(match result { Ok(()) => match self.job { Job::Conflicts => "Conflict analysis complete. Review the report and its limitations.", Job::Validate if !self.validated => "Validation result discarded. Run validation again.", Job::Validate => "Validation passed. External program effects, if any, remain unverified.", Job::Install => "Installation complete.", Job::Restore => "Snapshot restored and file hashes verified.", Job::Download => "Archive downloaded and integrity checked.", Job::NxmDownload => "Nexus handoff download complete.", Job::ProtocolOpen => "ModSync build link loaded.", Job::Update => "Nexus update check complete." }.into(), Err(e) => format!("Stopped: {e:#}") });
+                self.logs.push(match result { Ok(()) => match self.job { Job::Conflicts => "Conflict analysis complete. Review the report and its limitations.", Job::Validate if !self.validated => "Validation result discarded. Run validation again.", Job::Validate => "Validation passed. External program effects, if any, remain unverified.", Job::Install => unreachable!("install terminals arrive as InstallTerminal"), Job::Restore => "Snapshot restored and file hashes verified.", Job::Download => "Archive downloaded and integrity checked.", Job::NxmDownload => "Nexus handoff download complete.", Job::ProtocolOpen => "ModSync build link loaded.", Job::Update => "Nexus update check complete." }.into(), Err(e) => format!("Stopped: {e:#}") });
                 let job = match self.job {
                     Job::Conflicts => "conflicts",
                     Job::Validate => "validation",
@@ -582,27 +586,32 @@ impl App {
             {
                 self.stop_confirmation = true;
             }
-            // Keep the recovery action in the always-visible footer so small
-            // windows can reach it without scrolling the page.
+            // The only recovery actions for this page. The footer stays visible
+            // in small windows. Restore targets the failed run's own roots.
             if page.install_phase().is_some()
-                && self.installing_page.failed()
-                && self.phase_failed
+                && self.installing_page.restore_target().is_some()
                 && ui
                     .add_enabled(
                         self.receiver.is_none(),
                         egui::Button::new("Restore snapshot").min_size(egui::vec2(100.0, 32.0)),
                     )
+                    .on_hover_text("Restore the folders this install used")
                     .clicked()
             {
-                self.start(Job::Restore, ctx);
+                self.restore_captured(ctx);
             }
             if page.install_phase().is_some()
                 && self.installing_page.failed()
-                && !self.phase_failed
+                && !self.installing_page.pending()
                 && ui
                     .add_enabled(
-                        self.receiver.is_none(),
+                        self.receiver.is_none()
+                            && !self.phase_failed
+                            && self.installing_page.same_folders(&self.mods, &self.game),
                         egui::Button::new("Retry phase").min_size(egui::vec2(100.0, 32.0)),
+                    )
+                    .on_disabled_hover_text(
+                        "Set the game and mod folders back to the ones this install used",
                     )
                     .clicked()
             {
@@ -1633,6 +1642,7 @@ impl App {
             install_context: None,
             finished: false,
             phase_failed: false,
+            restore_roots: None,
             download_url: String::new(),
             download_name: String::new(),
             download_hash: String::new(),
@@ -2213,6 +2223,34 @@ impl App {
         }
     }
 
+    /// Restore the snapshot of the failed install shown on the page, using the
+    /// roots captured for that run rather than the editable folder paths.
+    fn restore_captured(&mut self, ctx: &egui::Context) {
+        let Some(roots) = self.installing_page.restore_target().cloned() else {
+            return;
+        };
+        if self.receiver.is_some() {
+            return;
+        }
+        let (tx, rx) = mpsc::channel();
+        self.receiver = Some(rx);
+        self.job = Job::Restore;
+        self.restore_roots = Some(roots.clone());
+        self.logs
+            .push(format!("Restoring snapshot for {}…", roots.game.display()));
+        let ctx = ctx.clone();
+        std::thread::spawn(move || {
+            let result =
+                std::panic::catch_unwind(|| recovery::restore(&roots)).unwrap_or_else(|_| {
+                    Err(anyhow::anyhow!(
+                        "Worker stopped unexpectedly. Inspect recovery state before retrying."
+                    ))
+                });
+            let _ = tx.send(Message::Done(result));
+            ctx.request_repaint();
+        });
+    }
+
     fn start(&mut self, job: Job, ctx: &egui::Context) {
         self.refresh_input_stamp();
         // Bind this run to the exact inputs before anything can fail.
@@ -2247,6 +2285,13 @@ impl App {
                 return;
             }
         };
+        if install_run.is_some() {
+            self.installing_page
+                .bind_roots(&settings.roots, &self.mods, &self.game);
+        }
+        if job == Job::Restore {
+            self.restore_roots = Some(settings.roots.clone());
+        }
         settings.allow_processes = self.allow_processes;
         settings.patcher_engine = self.patcher_engine;
         settings.patcher = if self.patcher.is_empty() {
