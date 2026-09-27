@@ -1,18 +1,21 @@
-# Wizard integration evidence — draft, final review pending
+# Wizard integration evidence — bounded package approved
 
 Prior checked implementation: `ff66794b83484ed1a40786a81960456540bbac4e`.
-Final-fix source is committed with this document; scoped final re-review is pending.
+Final-fix source: `0a4f9dd433c7360393a095f4bb7bdef470e1f896`.
+Scoped final re-review approved that correction and the bounded functional package.
 Package base: `6b8fa9c`. Reference: C# `d31ccbd3bfcddb4705917eafa6483715c166de3b`
 in `/home/brunner56/.codex/worktrees/5813/ModSync`.
 
-This is an integration bookkeeping draft, not final acceptance or permission to
-publish. Task-scoped review approved Task 2 after its first FOMOD fix. The completed
+This is acceptance of the bounded wizard integration package, not full C# GUI
+parity. Task-scoped review approved Task 2 after its first FOMOD fix. The completed
 whole-package review rejected external choices applied before base installation only
 to a dispatch clone, leaving the resident guide inconsistent with the base receipt.
 The final fix retains exact effective base definitions on successful completion,
 with context checks rejecting stale completion after reset, guide or root changes.
 It never rereads edited external choices to reconstruct historical definitions.
-Scoped re-review of that fix is pending; final acceptance is not claimed.
+The final whole-package reviewer's scoped re-review of `ff66794..0a4f9dd`
+returned **Original P1: ADDRESSED**, **Spec: PASS**, **Quality: PASS**, with no new
+actionable breakage. Its full report is retained in `wizard-final-review.md`.
 
 ## Ledger rulings, preserved verbatim
 
@@ -24,10 +27,10 @@ Ruling: match the active embedded WizardHostControl instead of the older dialog 
 
 Ruling: preserve failure blocking and refresh Next from current worker state — C# has unsafe or stale completion state here and the user requires working shared logic — cost if wrong is a documented behavior difference from C# defects.
 
-The publication ruling records existing context; this draft performs no push or
-publication. User-owned `AGENTS.md` remains untouched. The current execution request
-requires delegated, hands-off implementation; this bookkeeping task changes no
-product source and waits for the complete final review before further fixes.
+The publication ruling records existing authorization for a normal push to
+`origin/main`; no pull request or release is part of this package. User-owned
+`AGENTS.md` remains untouched. The current execution request requires delegated,
+hands-off implementation; final bookkeeping and delivery change no product source.
 
 ## Implementation and review history
 
@@ -91,7 +94,8 @@ base receipt, requires source consumption, and verifies remaining installation
 without base-byte changes. A separate stale-completion regression changes the guide
 or resets context while the worker runs and rejects promotion into the current
 project. These checks do not update the historical native receipt or establish new
-native FOMOD behavior. Final scoped re-review remains required.
+native FOMOD behavior. The scoped reviewer independently parsed these check totals
+and verified the UI source hash; no passing suites were rerun for final bookkeeping.
 
 ## Native proof is bound to pre-fix d4fdb45
 
@@ -143,6 +147,19 @@ hashing. The committed receipt uses the repeated run, not that ambiguous binding
   an empty-completed-prefix wrapper around the same shared choices implementation;
   adding a CLI remaining workflow remains a separate full-parity obligation.
 - Disposable fixtures only; no user's game is mutated. Preserve dirty user files,
-  existing processes and shared state. No publication from this draft.
+  existing processes and shared state. Delivery uses only the authorized normal
+  push; no force-push, pull request or release.
 
-Final review status: **pending; integration not yet accepted**.
+## Completion and continuation
+
+Task 1 route model, Task 2 desktop integration and both FOMOD correction waves, and
+Task 3 final whole-package/scoped re-review are complete for this bounded package.
+Final review status: **approved for integration; full exact GUI parity open**.
+
+All four ledger Ruling lines appear verbatim above. The next shared GUI/CLI phase
+audit is preserved in the separate `docs/parity/cli-phases-plan.md`: shared phase
+preparation, `--phase all|base|remaining`, retained desktop versus reconstructed CLI
+completion context, unchanged receipt authority, executable CLI/differential tests,
+and explicit non-goals. That next-plan file remains outside this package's commit.
+The package scratch directory may be removed after verified delivery; no other
+worktree cleanup or user-file changes are authorized by this completion.
