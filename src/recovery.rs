@@ -205,6 +205,116 @@ pub(crate) fn verify_completion(roots: &Roots, guide: &crate::Guide, count: usiz
     Ok(())
 }
 
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CompletedComponent {
+    pub guid: String,
+    pub name: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GameFileDelta {
+    pub added: usize,
+    pub changed: usize,
+    pub removed: usize,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CompletionSummary {
+    /// Every component in completion.json, in recorded order (base prefix + suffix).
+    pub components: Vec<CompletedComponent>,
+    /// Game files in the receipt manifest.
+    pub game_files: usize,
+    /// Receipt game manifest vs the retained snapshot.json game/ manifest of the
+    /// run that wrote this receipt. None when the snapshot is absent or from other
+    /// roots, when pending recovery exists, or when snapshot.completion equals the
+    /// current receipt (the receipt predates that snapshot's run, e.g. after restore).
+    pub game_delta_since_run_start: Option<GameFileDelta>,
+}
+
+/// Read-only summary of the saved completion receipt. The lock file is the only
+/// write; nothing is hashed, so current game bytes are not checked here.
+pub fn completion_summary(roots: &Roots) -> Result<Option<CompletionSummary>> {
+    // Lock::acquire creates state and lock files; a query without a receipt must not.
+    if !state_dir(roots).join("completion.json").exists() {
+        return Ok(None);
+    }
+    let _lock = Lock::acquire(roots)?;
+    let Some(value) = read_completion(roots)? else {
+        return Ok(None);
+    };
+    let receipt: Completion = serde_json::from_value(value.clone())?;
+    ensure!(
+        receipt.mods == roots.mods && receipt.game == roots.game,
+        "Completion roots differ"
+    );
+    let components = receipt
+        .components
+        .iter()
+        .map(|component| {
+            let field = |key: &str| {
+                component
+                    .get(key)
+                    .and_then(serde_json::Value::as_str)
+                    .map(str::to_owned)
+                    .with_context(|| format!("Receipt component has no {key}"))
+            };
+            Ok(CompletedComponent {
+                guid: field("Guid")?,
+                name: field("Name")?,
+            })
+        })
+        .collect::<Result<_>>()?;
+    let state = state_dir(roots);
+    let snapshot_path = state.join("snapshot.json");
+    let game_delta_since_run_start = if state.join("pending").exists() || !snapshot_path.exists() {
+        None
+    } else {
+        let saved: Snapshot = serde_json::from_slice(&fs::read(snapshot_path)?)?;
+        if saved.mods != roots.mods
+            || saved.game != roots.game
+            || saved.completion.as_ref() == Some(&value)
+        {
+            None
+        } else {
+            let before: BTreeMap<String, &String> = saved
+                .files
+                .iter()
+                .filter_map(|(file, hash)| {
+                    Path::new(file)
+                        .strip_prefix("game")
+                        .ok()
+                        .map(|rel| (rel.to_string_lossy().into_owned(), hash))
+                })
+                .collect();
+            let mut delta = GameFileDelta {
+                added: 0,
+                changed: 0,
+                removed: 0,
+            };
+            for (file, hash) in &receipt.files {
+                match before.get(file) {
+                    None => delta.added += 1,
+                    Some(old) if *old != hash => delta.changed += 1,
+                    Some(_) => {}
+                }
+            }
+            delta.removed = before
+                .keys()
+                .filter(|file| !receipt.files.contains_key(*file))
+                .count();
+            Some(delta)
+        }
+    };
+    Ok(Some(CompletionSummary {
+        components,
+        game_files: receipt.files.len(),
+        game_delta_since_run_start,
+    }))
+}
+
 pub fn ensure_clean(roots: &Roots) -> Result<()> {
     ensure!(
         !state_dir(roots).join("pending").exists(),
