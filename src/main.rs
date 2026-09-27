@@ -340,7 +340,13 @@ struct InstallArgs {
     /// Emit newline-delimited JSON events.
     #[arg(long)]
     json: bool,
-    /// Emit newline-delimited typed installation progress.
+    /// Emit newline-delimited typed installation progress on stdout.
+    ///
+    /// Each line is {"type":"installProgress","progress":{...}}. Success is exit
+    /// code 0 with a last line whose phase is "completed". Failure or
+    /// cancellation is a nonzero exit, no "completed" line, and the error on
+    /// stderr. A failure before installation starts prints no lines. Legacy
+    /// events and external program output go to stderr in this mode.
     #[arg(long, conflicts_with_all = ["json", "validation_report"])]
     install_progress_json: bool,
     /// Emit the structured validation pipeline report instead of validation events.
