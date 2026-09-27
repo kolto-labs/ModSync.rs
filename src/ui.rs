@@ -185,23 +185,27 @@ impl App {
                 }
                 self.refresh_input_stamp();
                 if self.job == Job::Validate {
-                    if self.cancelled.load(Ordering::Relaxed) {
-                        validation_page::clear_report(
-                            &mut self.validation_report,
-                            &mut self.validation_page,
-                        );
-                        self.validation_page
-                            .fail("Validation cancelled. Run validation again.");
+                    let stopped = if self.cancelled.load(Ordering::Relaxed) {
+                        Some("Validation cancelled. Run validation again.".to_owned())
                     } else if self.validation_input_stamp.as_ref() != Some(&self.input_stamp) {
-                        self.validation_page
-                            .fail("Inputs changed during validation; run validation again.");
+                        Some("Inputs changed during validation; run validation again.".to_owned())
                     } else if self.validation_report.is_none() {
-                        self.validation_page.fail(&match &result {
+                        Some(match &result {
                             Err(error) => format!("Validation could not complete: {error:#}"),
                             Ok(()) => {
                                 "Validation ended without a report. Run validation again.".into()
                             }
-                        });
+                        })
+                    } else {
+                        None
+                    };
+                    if let Some(message) = stopped {
+                        validation_page::clear_report(
+                            &mut self.validation_report,
+                            &mut self.validation_page,
+                        );
+                        self.validation_page.fail(&message);
+                        self.logs.push(message);
                     }
                 }
                 self.validated = result.is_ok()
@@ -209,15 +213,7 @@ impl App {
                     && self.validation_report.as_ref().is_some_and(|r| r.success)
                     && self.job == Job::Validate
                     && self.validation_input_stamp.as_ref() == Some(&self.input_stamp);
-                if self.job == Job::Validate && result.is_ok() && !self.validated {
-                    validation_page::clear_report(
-                        &mut self.validation_report,
-                        &mut self.validation_page,
-                    );
-                    self.logs
-                        .push("Inputs changed during validation; run validation again.".into());
-                }
-                self.logs.push(match result { Ok(()) => match self.job { Job::Conflicts => "Conflict analysis complete. Review the report and its limitations.", Job::Validate if !self.validated => "Validation result discarded because inputs changed.", Job::Validate => "Validation passed. External program effects, if any, remain unverified.", Job::Install => "Installation complete.", Job::Restore => "Snapshot restored and file hashes verified.", Job::Download => "Archive downloaded and integrity checked.", Job::NxmDownload => "Nexus handoff download complete.", Job::ProtocolOpen => "ModSync build link loaded.", Job::Update => "Nexus update check complete." }.into(), Err(e) => format!("Stopped: {e:#}") });
+                self.logs.push(match result { Ok(()) => match self.job { Job::Conflicts => "Conflict analysis complete. Review the report and its limitations.", Job::Validate if !self.validated => "Validation result discarded. Run validation again.", Job::Validate => "Validation passed. External program effects, if any, remain unverified.", Job::Install => "Installation complete.", Job::Restore => "Snapshot restored and file hashes verified.", Job::Download => "Archive downloaded and integrity checked.", Job::NxmDownload => "Nexus handoff download complete.", Job::ProtocolOpen => "ModSync build link loaded.", Job::Update => "Nexus update check complete." }.into(), Err(e) => format!("Stopped: {e:#}") });
                 let job = match self.job {
                     Job::Conflicts => "conflicts",
                     Job::Validate => "validation",
