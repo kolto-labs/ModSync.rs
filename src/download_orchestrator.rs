@@ -927,7 +927,15 @@ fn origin_once(
         cancelled,
         &context.settings.archive,
         &mut progress,
-    )?;
+    )
+    .map_err(|error| match (provider, download::classify(&error)) {
+        // A gate on a resolved Nexus CDN link: point the person at the mod page, not
+        // at a signed, expiring mirror URL.
+        (Provider::Nexus, Some(FailureClass::ManualRequired { reason, .. })) => {
+            download::manual_required(&target.registry_url, *reason, &format!("{error:#}"))
+        }
+        _ => error,
+    })?;
     Ok(Acquired {
         path: fetched.path,
         sha256: fetched.sha256,
@@ -1098,6 +1106,8 @@ pub fn record_with(
     report: &RunReport,
     record_hashes: bool,
 ) -> Result<RecordSummary> {
+    // All-or-nothing: entries apply to a copy that replaces the guide only on success.
+    let mut working = guide.clone();
     let mut summary = RecordSummary::default();
     let completed = report
         .outcomes
@@ -1121,7 +1131,7 @@ pub fn record_with(
             continue;
         };
         let name = download::one_component(name)?;
-        let component = component_mut(&mut guide.components, guid)
+        let component = component_mut(&mut working.components, guid)
             .with_context(|| format!("Component {guid} is no longer in the guide"))?;
         let metadata = component
             .resource_registry
@@ -1157,6 +1167,7 @@ pub fn record_with(
             summary.recorded.push(entry);
         }
     }
+    *guide = working;
     Ok(summary)
 }
 
