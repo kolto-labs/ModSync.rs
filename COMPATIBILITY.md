@@ -1,5 +1,18 @@
 # Compatibility and proof boundaries
 
+The desktop now uses the active C# embedded-host route: separate landing load,
+Welcome, conditional notices, directory/selection/download/validation/review pages,
+worker-driven base and remaining phases, and Finish returning to the loaded guide.
+Shared full validation includes selected widescreen inputs; shared remaining
+validation/install preserve the completed prefix without replaying consumed Move
+sources. Failed installs block progression; input changes during a validation worker
+discard its stale result. Native route evidence and deliberate safety/copy differences
+are recorded in `docs/parity/wizard-native/README.md` and `GUI-INVENTORY.md`.
+Exact rendering, automatic missing-mod downloads, rich markup, accessibility, and
+the metadata-free JSON/TOML default-preamble distinction remain open. FOMOD input
+stamps avoid per-frame payload reads; non-Unix timestamp-preserving edits remain
+an invalidation limitation. This route slice does not establish full C# GUI parity.
+
 GUI and CLI selection rules now live in the shared selection module, with their reference-specific tier behavior kept distinct. CLI filters reset selection, OR values within each group, AND category/tier groups, and normalize named/full tier labels through priority bands; numeric CLI tiers remain custom exact values. Wizard tier selection is additive and cumulative only for `1` through `4` and `Optional`; every other label is an exact case-insensitive match. Exact component names/GUIDs take precedence over selector syntax, including names such as `category:Foo`. Executable CLI regressions cover colon names, collision precedence, and parseable JSON stdout when malformed-selector warnings go to stderr. `docs/parity/GUI-INVENTORY.md` records the open exact-GUI requirements from source comparison; it does not establish native equivalence.
 
 Remaining-phase desktop validation now returns the same structured full report as base validation. Each stage retains the verified completed-prefix context, and FOMOD inspection skips completed components. The consumed-base-source regression covers report success without replaying a destructive Move or mutating either tree or recovery snapshot. Native remaining-phase presentation and exact C# report semantics remain open.

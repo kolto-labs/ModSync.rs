@@ -2,19 +2,61 @@
 
 Status: open. This is a source audit against C# commit `d31ccbd3bfcddb4705917eafa6483715c166de3b`. It does not establish rendered, native-widget, keyboard, screen-reader, or end-to-end behavioral equivalence. Those require driven native comparisons after implementation.
 
+## Desktop route integration status
+
+The active C# entry point is `MainWindow.EnterWizardMode` →
+`Controls/WizardHostControl`, not the older `InstallWizardDialog`. Loading belongs
+to a separate landing surface; the embedded wizard starts at Welcome. Rust now
+consumes `src/wizard.rs` and renders distinct pages, conditional preamble/Aspyr
+pages, dynamically inserted widescreen pages, titles/subtitles, Step N of M,
+Back/Next/Continue/Finish, and a 200×6 progress indicator. The shell requests
+1280×800 with a 600×400 minimum. There is no step-navigation sidebar. A 320px
+download sidebar and footer status appear at Download Process and persist through
+completion. Finish retains the loaded guide and completion context; Start wizard
+creates a fresh route. Settings and editor remain utility surfaces.
+
+Forward gates derive from live UI/worker state. Base validation uses the shared
+full/dry-run pipeline on every selected component, including widescreen; base
+installation excludes widescreen. Remaining validation/install receive the verified
+completed prefix through shared APIs. Consumed base Move sources are not replayed.
+Failed installs do not enable Continue. Inputs changed during validation discard
+the result; changed inputs invalidate readiness before navigation. External FOMOD
+choices use metadata stamps, including ctime/inode on Unix, without payload reads
+each repaint. On non-Unix systems, same-size edits preserving modification/creation
+timestamps can escape this stamp: this is not a content-hash guarantee.
+
+Intentional safety differences: Rust refreshes Continue after worker completion
+(the active C# host can leave it disabled), retains Activity Stop and close-request
+confirmation, requires explicit install confirmation, and blocks retry when recovery
+has a pending snapshot. Download workers allow forward reading navigation but
+serialize other operations and disable Back/input editing. C# has no active host
+wizard Cancel/Stop. Welcome follows the feature row, Problem/Solution columns,
+five-step process, key features, fresh-install warning and closing prompt hierarchy.
+Its download copy explicitly states manual/direct acquisition until the automatic
+missing-mod queue exists, rather than promising unsupported background acquisition.
+
+This closes the four-tab route gap, not exact GUI parity. Remaining work includes
+provider download planning/Fetch Downloads, aggregate progress, rich authored markup,
+exact cards/control composition, theme tokens, accessibility and supported-platform
+validation. See `wizard-native/README.md` for bounded native evidence. Metadata-free
+C# JSON default preamble versus TOML metadata reset remains a shared-loader gap.
+
 ## Compared sources
 
 - Rust desktop: `src/ui.rs` (`App`, especially `eframe::App::update`) and shared operations in the `modsync` library.
-- C# wizard shell and routing: `/home/brunner56/.codex/worktrees/5813/ModSync/src/ModSync.GUI/Dialogs/InstallWizardDialog.axaml` and `.axaml.cs`.
+- C# active shell/routing: `/home/brunner56/.codex/worktrees/5813/ModSync/src/ModSync.GUI/Controls/WizardHostControl.axaml` and `.axaml.cs`; `Dialogs/InstallWizardDialog` is the older host.
 - C# pages: `/home/brunner56/.codex/worktrees/5813/ModSync/src/ModSync.GUI/Dialogs/WizardPages/*`.
 - C# legacy onboarding: `/home/brunner56/.codex/worktrees/5813/ModSync/src/ModSync.GUI/Controls/GettingStartedTab.axaml` and `.axaml.cs`; wizard landing content is `Controls/LandingPageView.axaml` hosted by `LoadInstructionPage`.
 - C# validation presentation: `WizardPages/ValidatePage.axaml` and `.axaml.cs`, `Services/WizardValidationStagePresenter.cs`, and `Services/ValidationPipelineDialogMapper.cs`.
 - C# styles: `App.axaml`, `Styles/LightStyle.axaml`, `Styles/KotorStyle.axaml`, and `Styles/Kotor2Style.axaml`.
 - Behavior/runbook cross-check: `AGENTS.md`, `docs/local_desktop_agent_runbook.md`, and `docs/knowledgebase/gui-validation-surfaces.md` in the C# checkout; `docs/parity/GUI-CLI.md` in this checkout.
 
-## Current parity gaps
+## Original gap inventory (before route integration)
 
-Priority means implementation order, not proof status. Every row remains open until a native driven comparison covers it.
+This historical audit describes the former four-tab UI and older dialog oracle.
+The integration status above supersedes its route, host, geometry and cancellation
+claims. Remaining control/content/theme/accessibility differences remain open until
+a driven native comparison covers them. Priority means implementation order, not proof.
 
 | Priority / group | C# contract and source pointer | Rust source today | Exact current difference | Implementation acceptance |
 |---|---|---|---|---|
@@ -36,12 +78,11 @@ Priority means implementation order, not proof status. Every row remains open un
 | P2 — layout and scrolling | Wizard shell plus every page `.axaml`; headless smoke checks in `GuiSmokeHeadlessTests` | egui panels and automatic layouts | Rust lacks the fixed shell proportions, per-page grids/cards, nested scroll boundaries, validation splitter, list minimum sizes, 600px content caps, typography hierarchy, wrapping/trimming rules, and install/wizard page-specific scrolling. | Port dimensions/spacing from XAML as explicit acceptance values where material. Test 800×600 minimum, 900×650 default, high DPI, long translated/content strings, long mod names, empty/large lists, and splitter resizing. Compare native screenshots at controlled size/theme/font scale. |
 | P2 — themes and visual states | `ThemeManager`, Light/KOTOR/KOTOR2 style files and page-local styles | Rust theme combo stores C# style-path strings and maps only broad egui visuals | The names exist, but exact brushes, fonts, border thickness, padding, minimum control sizes, corner radii, hover/pressed/disabled/focus/current/completed/error/warning/success states are not ported. Selecting a similarly named egui theme is not parity. | Create a token inventory directly from the three XAML styles, then map every wizard state. Capture reference and Rust native screenshots for all three themes and key states; use image comparison plus manual review. Keep platform focus indication and contrast intact. |
 
-## Exact route to implement
+## Active route
 
 Base route:
 
-1. Load Instruction File
-2. Welcome
+1. Welcome (after successful landing load)
 3. Before You Begin — only when `preambleContent` is nonblank
 4. Mod Workspace Directory
 5. KOTOR Game Directory
@@ -61,7 +102,9 @@ After leaving Base Installation Complete, if any component is `WidescreenOnly`, 
 3. Installing Widescreen Mods
 4. Widescreen Installation Complete
 
-The sidebar count and page numbers must update after insertion. The reference implementation sets `IsCompleted` for indices strictly before the current index and `IsAccessible` for indices less than or equal to the current index. Therefore completed pages and the current page are enabled; future pages, including the immediate next page, remain disabled until Next advances the current index.
+Page totals update after insertion. The active host has no step-list navigation;
+only Back, Next/Continue and Finish change the route. The older dialog sidebar's
+`IsCompleted`/`IsAccessible` rules do not describe the active host.
 
 ## Implementation order and proof gates
 

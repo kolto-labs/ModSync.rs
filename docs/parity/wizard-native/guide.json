@@ -1,0 +1,38 @@
+{
+  "targetGame": "KOTOR1",
+  "preambleContent": "Disposable route verification",
+  "widescreenWarningContent": "Verify remaining phase after the base Move consumes its source.",
+  "thisMod": [
+    {
+      "Guid": "base",
+      "Name": "Base Move",
+      "IsSelected": true,
+      "Instructions": [
+        {
+          "Action": "Move",
+          "Source": [
+            "<<modDirectory>>/base.txt"
+          ],
+          "Destination": "<<gameDirectory>>/Override",
+          "Overwrite": true
+        }
+      ]
+    },
+    {
+      "Guid": "wide",
+      "Name": "Wide Copy",
+      "IsSelected": true,
+      "WidescreenOnly": true,
+      "Instructions": [
+        {
+          "Action": "Copy",
+          "Source": [
+            "<<modDirectory>>/wide.txt"
+          ],
+          "Destination": "<<gameDirectory>>/Override",
+          "Overwrite": true
+        }
+      ]
+    }
+  ]
+}

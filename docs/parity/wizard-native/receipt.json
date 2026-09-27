@@ -1,0 +1,79 @@
+{
+  "timestamp_utc": "2026-09-27T09:14:35.487997+00:00",
+  "base_commit": "b7576394c178081dd70803a1b7b13f25b3b12fd3",
+  "source_sha256": {
+    "src/ui.rs": "d9ccc3276c7e1f4739e006612351d554314fd16a6324c439ad6c1cbf55b37186",
+    "src/wizard.rs": "a77e39ac3b1686f3e750365276d900c88c97d3b848332b12aa079d6bea4c29e6",
+    "src/engine.rs": "97db62296f68ea1d1047788fd5a0dedfa57a4af5ec3035e73901e58800c5b86a",
+    "Cargo.lock": "7ff8f003581c5fce3433f9438044b9dc3850adb26f2b05daf8bb908cd6a4dc8f"
+  },
+  "binary_sha256": "31726c462642ad00d580746ac607d8d1895da1edfa5b206971c50c353dd6e943",
+  "fixture_sha256": "d4192a34d1593425bcccb62e0835ee41db245ec270daa25ac24292e86ab50185",
+  "environment": "Fedora Linux, Xvfb :915 1280x800x24, WINIT_UNIX_BACKEND=x11, WAYLAND_DISPLAY unset, software OpenGL",
+  "initial_files_from_recorded_fixture_writes": {
+    "mods/base.txt": "db27e40baf145ac9d69e3304fbce46e43931a71078135b591723358563dee7ea",
+    "mods/wide.txt": "ec5c16eb005762e90a94a5858fb34c516fbf9e2b9812944b7c7d898d8de386d6",
+    "game/swkotor.exe": "0aa3664a0a34289e5ae41919982b0001452750765574d935a574f984d27e3cf2",
+    "game/Override/base.txt": null,
+    "game/Override/wide.txt": null
+  },
+  "after_base": {
+    "mods/base.txt": null,
+    "mods/wide.txt": "ec5c16eb005762e90a94a5858fb34c516fbf9e2b9812944b7c7d898d8de386d6",
+    "game/Override/base.txt": "db27e40baf145ac9d69e3304fbce46e43931a71078135b591723358563dee7ea",
+    "game/Override/wide.txt": null
+  },
+  "after_remaining": {
+    "mods/base.txt": null,
+    "mods/wide.txt": "ec5c16eb005762e90a94a5858fb34c516fbf9e2b9812944b7c7d898d8de386d6",
+    "game/Override/base.txt": "db27e40baf145ac9d69e3304fbce46e43931a71078135b591723358563dee7ea",
+    "game/Override/wide.txt": "ec5c16eb005762e90a94a5858fb34c516fbf9e2b9812944b7c7d898d8de386d6"
+  },
+  "native_checks": [
+    "Welcome at Step 1 of 11",
+    "Download sidebar/footer visible from Download Process",
+    "base validation and confirmed installation through native buttons",
+    "base source absent and base output bytes verified before remaining validation",
+    "widescreen branch inserted: Step 12 of 15",
+    "remaining validation and confirmed installation through native buttons",
+    "remaining output bytes verified and base source remains absent",
+    "Finish returns to Loaded project retaining both component names",
+    "Start wizard returns to Welcome Step 1 of 11",
+    "600x400 client capture retains Back/Next but content space very constrained"
+  ],
+  "limits": [
+    "No native failure/cancellation/download-network test in this run",
+    "No keyboard/screen-reader/theme equivalence",
+    "No full mod-build/gameplay claim"
+  ],
+  "captures_sha256": {
+    "base-complete.png": "36c1af7b4308226cfc575a709a990d7af47a7505a8ffa916a5a0e9e437c7bca5",
+    "base-worker-complete.png": "457ab1af97cb730909fdb2ddb322fa9d86777459f2692dc9b031caab03380c67",
+    "downloads.png": "a2bf1150486d5cc808e7b1fb969ea9c335f1652426f3f25163f15f106c099ad1",
+    "finished.png": "8ed657fe0161274ae7cbfcd42324b5a7463c6f8af1ded9e48119677624221dc3",
+    "game-directory.png": "41726bd1808ec3fbb9af27d1958e79cf0dffb10eafce2ebd8dc775d9de2cc090",
+    "install-confirmation.png": "9b4c9474494d863b122e107b6a0bf9d57d6ea1fbe050c784f0015e9d3842b1c2",
+    "install-review.png": "aeafbff76fde210aff1f066d28ee61bf8804856219206131b7f1df3dc5869973",
+    "loaded-project.png": "d315907025048278c6701a95fb0ec18ecf2ce572e8c57ab31e553001ba104eb1",
+    "minimum-size.png": "143619dc0ff8869a1a82e8277403cd756a80f7c29d1f530bc708a8eb7e6496d3",
+    "mod-directory.png": "5b22112942f8c34607aadd98eab8d9c8634bb728dbab83d8298ca65a45b43e90",
+    "preamble.png": "34c6b287dd312539fd7e447f02e1de8545a6c95fee2a9d451c358f9dc4b28ee2",
+    "reentry.png": "e6e38630cfdaa562d312a8467fdcb6edfe7912fc25170257fbc0cd0ff7d06cc2",
+    "selection.png": "c4145882e739d17a9dc1387534a38c3170443940cdc145ff1c2ad8d349a9e8f3",
+    "validation-success.png": "770ef3cdcd1e18bf97c623f4f969a78b73dae5473ae1efc43c01fd7fd9366470",
+    "validation.png": "a94491776e8786ac00c9ed5493dcb6c2ae4b2d79255f4d50e0e2a0b5d0916e92",
+    "welcome.png": "328e4b2fd5028ab2213f70b3daf2570acb4ca8c461def9f5532ab19120974294",
+    "widescreen-complete.png": "29ae198f8d291ec14260b563bb04fed3953b1b5013b4cec5600e78f64169033d",
+    "widescreen-confirmation.png": "ca793bc527ab8b75d6bdae0b6feea9af69f49b5ac0b640607d92d7b1f38b56ea",
+    "widescreen-notice.png": "ab14a3eb5b6113c87cdf1a9922e066e3491d1f0b248f006489d41b4957d88550",
+    "widescreen-selection.png": "c733ebbc0685495f4ab2f7518a97fe3b7c81f74799fb98f69ad42cf22e4c042e",
+    "widescreen-validation.png": "e69b6d95e7627f0bf3a8f482bf1b821ebedb134240d581b54554f0f81c8022d4",
+    "widescreen-worker-complete.png": "68dfae23068f2a501a59e52e64ce4034da9646c2a14812b207c82a9a5455c09a"
+  },
+  "binary_binding": {
+    "pid": 728991,
+    "executed_exe_target": "/tmp/modsync-rs-target/debug/modsync",
+    "executed_exe_sha256": "31726c462642ad00d580746ac607d8d1895da1edfa5b206971c50c353dd6e943",
+    "artifact_sha256": "31726c462642ad00d580746ac607d8d1895da1edfa5b206971c50c353dd6e943"
+  }
+}

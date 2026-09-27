@@ -1,0 +1,70 @@
+{
+  "mods": "/tmp/modsync-task2-native/mods",
+  "game": "/tmp/modsync-task2-native/game",
+  "components": [
+    {
+      "Guid": "base",
+      "Name": "Base Move",
+      "Author": "",
+      "Description": "",
+      "Directions": "",
+      "Tier": "",
+      "Category": [],
+      "IsSelected": true,
+      "Dependencies": [],
+      "Restrictions": [],
+      "InstallBefore": [],
+      "InstallAfter": [],
+      "Instructions": [
+        {
+          "Action": "Move",
+          "Source": [
+            "<<modDirectory>>/base.txt"
+          ],
+          "Destination": "<<gameDirectory>>/Override",
+          "Arguments": "",
+          "Overwrite": true,
+          "Dependencies": [],
+          "Restrictions": []
+        }
+      ],
+      "Options": [],
+      "ResourceRegistry": {}
+    },
+    {
+      "Guid": "wide",
+      "Name": "Wide Copy",
+      "Author": "",
+      "Description": "",
+      "Directions": "",
+      "Tier": "",
+      "Category": [],
+      "IsSelected": true,
+      "Dependencies": [],
+      "Restrictions": [],
+      "InstallBefore": [],
+      "InstallAfter": [],
+      "Instructions": [
+        {
+          "Action": "Copy",
+          "Source": [
+            "<<modDirectory>>/wide.txt"
+          ],
+          "Destination": "<<gameDirectory>>/Override",
+          "Arguments": "",
+          "Overwrite": true,
+          "Dependencies": [],
+          "Restrictions": []
+        }
+      ],
+      "Options": [],
+      "ResourceRegistry": {},
+      "WidescreenOnly": true
+    }
+  ],
+  "files": {
+    "Override/base.txt": "db27e40baf145ac9d69e3304fbce46e43931a71078135b591723358563dee7ea",
+    "Override/wide.txt": "ec5c16eb005762e90a94a5858fb34c516fbf9e2b9812944b7c7d898d8de386d6",
+    "swkotor.exe": "0aa3664a0a34289e5ae41919982b0001452750765574d935a574f984d27e3cf2"
+  }
+}

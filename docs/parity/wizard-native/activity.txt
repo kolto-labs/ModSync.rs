@@ -1,0 +1,16 @@
+Loaded 2 components
+Validating…
+Base Move / 1: Move
+Wide Copy / 1: Copy
+Validation passed. External program effects, if any, remain unverified.
+Installing…
+ / 0: Creating recovery snapshot of game and mod directories
+Base Move / 1: Move
+Installation complete.
+Validating…
+Wide Copy / 1: Copy
+Validation passed. External program effects, if any, remain unverified.
+Installing…
+ / 0: Creating recovery snapshot of game and mod directories
+Wide Copy / 1: Copy
+Installation complete.
