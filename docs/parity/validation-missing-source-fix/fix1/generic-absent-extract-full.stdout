@@ -1,0 +1,44 @@
+{
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 1,
+  "warningCount": 0,
+  "passedCount": 4,
+  "componentCount": 1,
+  "inputPath": "/tmp/modsync-task1b-fix1-zr4fi9pu/generic-absent-extract/guide.json",
+  "stages": [
+    {
+      "stage": "Environment",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "Passed"
+    },
+    {
+      "stage": "Conflicts",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "No dependency or restriction conflicts."
+    },
+    {
+      "stage": "InstallOrder",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "Install order is correct."
+    },
+    {
+      "stage": "ComponentValidation",
+      "passed": false,
+      "hasWarnings": false,
+      "summary": "1 component error(s)",
+      "messages": [
+        "Fixture: archive/destination validation: Source matches no files: <<modDirectory>>/absent.zip"
+      ]
+    },
+    {
+      "stage": "FomodConfiguration",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "All detected FOMOD archives are configured."
+    }
+  ]
+}

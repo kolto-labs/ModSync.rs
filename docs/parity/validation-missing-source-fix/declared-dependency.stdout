@@ -1,0 +1,73 @@
+{
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 3,
+  "warningCount": 1,
+  "passedCount": 2,
+  "componentCount": 1,
+  "inputPath": "/tmp/modsync-task1b-proof-whg3rfzj/declared-dependency/guide.json",
+  "stages": [
+    {
+      "stage": "Environment",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "Passed"
+    },
+    {
+      "stage": "Conflicts",
+      "passed": true,
+      "hasWarnings": true,
+      "summary": "1 dependency warning(s)",
+      "messages": [
+        "WARNING: Fixture: missing dependencies: Dependency"
+      ]
+    },
+    {
+      "stage": "InstallOrder",
+      "passed": false,
+      "hasWarnings": false,
+      "summary": "Failed",
+      "messages": [
+        "Fixture requires selected component 22222222-2222-2222-2222-222222222222"
+      ]
+    },
+    {
+      "stage": "ComponentValidation",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "All components passed archive validation.",
+      "messages": [
+        "OK: Fixture"
+      ]
+    },
+    {
+      "stage": "FomodConfiguration",
+      "passed": false,
+      "hasWarnings": false,
+      "summary": "Failed",
+      "messages": [
+        "Fixture requires selected component 22222222-2222-2222-2222-222222222222"
+      ]
+    },
+    {
+      "stage": "DryRun",
+      "passed": false,
+      "hasWarnings": false,
+      "summary": "✗ Validation failed with 1 error(s) and 0 warning(s).\n\nThe following issues must be resolved before installation:\n",
+      "messages": [
+        "ERROR: [EngineSimulation] Fixture requires selected component 22222222-2222-2222-2222-222222222222"
+      ]
+    }
+  ],
+  "dryRun": {
+    "isValid": false,
+    "hasWarnings": false,
+    "issues": [
+      {
+        "severity": "Error",
+        "category": "EngineSimulation",
+        "message": "Fixture requires selected component 22222222-2222-2222-2222-222222222222"
+      }
+    ]
+  }
+}

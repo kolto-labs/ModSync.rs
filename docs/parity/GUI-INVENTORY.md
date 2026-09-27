@@ -1,5 +1,11 @@
 # C# GUI parity inventory
 
+## Validation page integration checkpoint — 2026-09-27
+
+Shared projection/progress is approved through9d77f4b and shared source-availability/FOMOD execution-scope corrections through88b2dd9. The dedicated native page is implemented in `src/ui/validation_page.rs`, routed by `src/ui.rs`, through47c3e67. It has page-local log/results, stage progress, splitter, report copy, first-issue navigation and run/input-bound lifecycle handling. Utilities remain separately reachable. This supersedes the old generic-validation-surface gap for source implementation, not native equivalence.
+
+The latest600×400 run/Stop confirmation/cancelled Next-blocked case is parent/reviewer confirmed at47c3e67. The completed bounded core native matrix and durable package are in [validation-native/README.md](validation-native/README.md); final integrated review remains pending. Earlier556b165 and5548736 captures retain those bindings. Missing Copy is now the shared warning0/1/5, not a hard error. C# clipboard readback, exact typography/metrics, broad keyboard/accessibility and complete visual equivalence remain open. See [integration contracts, rulings and evidence boundaries](validation-page-integration.md); whole-GUI status remains open.
+
 Status: open. This is a source audit against C# commit `d31ccbd3bfcddb4705917eafa6483715c166de3b`. It does not establish rendered, native-widget, keyboard, screen-reader, or end-to-end behavioral equivalence. Those require driven native comparisons after implementation.
 
 ## Desktop route integration status

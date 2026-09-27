@@ -1,0 +1,39 @@
+ModSync — Validation Report
+Generated (UTC): 2026-09-27 12:40:51
+
+✅ Validation Passed
+Everything looks good! You're ready to proceed with the installation.
+
+Errors: 0  Warnings: 0  Passed checks: 6
+
+--- Results ---
+✅ Environment
+Passed
+
+✅ Conflicts
+No dependency or restriction conflicts.
+
+✅ Install Order
+Install order is correct.
+
+✅ FOMOD Configuration
+All detected FOMOD archives are configured.
+
+✅ Instruction Execution
+All instructions validated successfully. Dry-run completed without errors.
+
+--- Log ---
+Starting validation...
+Step 1: Validating installation environment
+  ✅ Environment validation passed
+Step 2: Checking conflicts for 1 selected mod(s)
+  ✅ No conflicts
+Step 3: Validating mod installation order
+  ✅ Install order is correct
+Step 4: Validating mod archives
+  ✅ Fixture
+Step 5: Checking FOMOD configuration
+Step 6: Running instruction execution validation (dry-run)
+  ✅ All instructions validated successfully
+Validation completed in 0.8 seconds
+✅ Validation passed

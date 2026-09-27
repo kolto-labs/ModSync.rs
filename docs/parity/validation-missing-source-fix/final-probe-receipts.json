@@ -1,0 +1,2219 @@
+{
+  "runs": [
+    {
+      "name": "final-exact-present",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop-final",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-exact/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-exact/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-exact/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "binary_sha256": "e0579401e4f76538f8c7aea694aefd552264e608b83210f66091b3e344d2b09f",
+      "guide_sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/sample.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "before": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 635,
+          "sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/sample.tga": {
+          "type": "file",
+          "mode": 420,
+          "size": 14,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        }
+      },
+      "after": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 635,
+          "sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/sample.tga": {
+          "type": "file",
+          "mode": 420,
+          "size": 14,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        }
+      },
+      "unchanged": true,
+      "stdout": "final-exact-present.stdout",
+      "stderr": "final-exact-present.stderr",
+      "counts": {
+        "success": true,
+        "errorCount": 0,
+        "warningCount": 0,
+        "passedCount": 6
+      },
+      "issues": [],
+      "stages": [
+        [
+          "Environment",
+          true,
+          false
+        ],
+        [
+          "Conflicts",
+          true,
+          false
+        ],
+        [
+          "InstallOrder",
+          true,
+          false
+        ],
+        [
+          "ComponentValidation",
+          true,
+          false
+        ],
+        [
+          "FomodConfiguration",
+          true,
+          false
+        ],
+        [
+          "DryRun",
+          true,
+          false
+        ]
+      ]
+    },
+    {
+      "name": "final-exact-missing",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop-final",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-exact/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-exact/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-exact/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "binary_sha256": "e0579401e4f76538f8c7aea694aefd552264e608b83210f66091b3e344d2b09f",
+      "guide_sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/sample.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "before": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 635,
+          "sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "after": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 635,
+          "sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "unchanged": true,
+      "stdout": "final-exact-missing.stdout",
+      "stderr": "final-exact-missing.stderr",
+      "counts": {
+        "success": true,
+        "errorCount": 0,
+        "warningCount": 1,
+        "passedCount": 5
+      },
+      "issues": [
+        {
+          "severity": "Warning",
+          "category": "DryRunSkipped",
+          "message": "Skipped 'Fixture' during dry-run: source archives or files are not available.",
+          "componentName": "Fixture",
+          "componentGuid": "11111111-1111-1111-1111-111111111111"
+        }
+      ],
+      "stages": [
+        [
+          "Environment",
+          true,
+          false
+        ],
+        [
+          "Conflicts",
+          true,
+          false
+        ],
+        [
+          "InstallOrder",
+          true,
+          false
+        ],
+        [
+          "ComponentValidation",
+          true,
+          false
+        ],
+        [
+          "FomodConfiguration",
+          true,
+          false
+        ],
+        [
+          "DryRun",
+          true,
+          true
+        ]
+      ]
+    },
+    {
+      "name": "final-exact-headless",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-headless-final",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-exact/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-exact/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-exact/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "binary_sha256": "1c8aa364cbdf2c080c2b23d26253c18bdc7d94a430fb811e1f665a5074780df9",
+      "guide_sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/sample.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "before": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 635,
+          "sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "after": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 635,
+          "sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "unchanged": true,
+      "stdout": "final-exact-headless.stdout",
+      "stderr": "final-exact-headless.stderr",
+      "counts": {
+        "success": true,
+        "errorCount": 0,
+        "warningCount": 1,
+        "passedCount": 5
+      },
+      "issues": [
+        {
+          "severity": "Warning",
+          "category": "DryRunSkipped",
+          "message": "Skipped 'Fixture' during dry-run: source archives or files are not available.",
+          "componentName": "Fixture",
+          "componentGuid": "11111111-1111-1111-1111-111111111111"
+        }
+      ],
+      "stages": [
+        [
+          "Environment",
+          true,
+          false
+        ],
+        [
+          "Conflicts",
+          true,
+          false
+        ],
+        [
+          "InstallOrder",
+          true,
+          false
+        ],
+        [
+          "ComponentValidation",
+          true,
+          false
+        ],
+        [
+          "FomodConfiguration",
+          true,
+          false
+        ],
+        [
+          "DryRun",
+          true,
+          true
+        ]
+      ]
+    },
+    {
+      "name": "final-strict-install",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop-final",
+        "install",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-exact/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-exact/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-exact/mods",
+        "--use-file-selection"
+      ],
+      "exit": 1,
+      "binary_sha256": "e0579401e4f76538f8c7aea694aefd552264e608b83210f66091b3e344d2b09f",
+      "guide_sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/sample.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "before": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 635,
+          "sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "after": {
+        ".modsync-120cc1ff09c8f850": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-lock-120cc1ff09c8f850": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-2f6519b0b6a84979": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 635,
+          "sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "unchanged": false,
+      "stdout": "final-strict-install.stdout",
+      "stderr": "final-strict-install.stderr"
+    },
+    {
+      "name": "final-exact-restored",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop-final",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-exact/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-exact/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-exact/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "binary_sha256": "e0579401e4f76538f8c7aea694aefd552264e608b83210f66091b3e344d2b09f",
+      "guide_sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/sample.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "before": {
+        ".modsync-120cc1ff09c8f850": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-lock-120cc1ff09c8f850": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-2f6519b0b6a84979": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 635,
+          "sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/sample.tga": {
+          "type": "file",
+          "mode": 420,
+          "size": 14,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        }
+      },
+      "after": {
+        ".modsync-120cc1ff09c8f850": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-lock-120cc1ff09c8f850": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-2f6519b0b6a84979": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 635,
+          "sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/sample.tga": {
+          "type": "file",
+          "mode": 420,
+          "size": 14,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        }
+      },
+      "unchanged": true,
+      "stdout": "final-exact-restored.stdout",
+      "stderr": "final-exact-restored.stderr",
+      "counts": {
+        "success": true,
+        "errorCount": 0,
+        "warningCount": 0,
+        "passedCount": 6
+      },
+      "issues": [],
+      "stages": [
+        [
+          "Environment",
+          true,
+          false
+        ],
+        [
+          "Conflicts",
+          true,
+          false
+        ],
+        [
+          "InstallOrder",
+          true,
+          false
+        ],
+        [
+          "ComponentValidation",
+          true,
+          false
+        ],
+        [
+          "FomodConfiguration",
+          true,
+          false
+        ],
+        [
+          "DryRun",
+          true,
+          false
+        ]
+      ]
+    },
+    {
+      "name": "final-glob-present",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop-final",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-glob-present/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-glob-present/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-glob-present/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "binary_sha256": "e0579401e4f76538f8c7aea694aefd552264e608b83210f66091b3e344d2b09f",
+      "guide_sha256": "e6eb775d965aa01ef99ec7c2fcdb65282f97f788748f8377accc18aeb79eb6e3",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/*.dat"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "before": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 650,
+          "sha256": "e6eb775d965aa01ef99ec7c2fcdb65282f97f788748f8377accc18aeb79eb6e3"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/input.dat": {
+          "type": "file",
+          "mode": 420,
+          "size": 15,
+          "sha256": "baccc041ebb50b57fd3b386468fe0c8a742ee6b73d611806e1a19f87855520de"
+        }
+      },
+      "after": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 650,
+          "sha256": "e6eb775d965aa01ef99ec7c2fcdb65282f97f788748f8377accc18aeb79eb6e3"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/input.dat": {
+          "type": "file",
+          "mode": 420,
+          "size": 15,
+          "sha256": "baccc041ebb50b57fd3b386468fe0c8a742ee6b73d611806e1a19f87855520de"
+        }
+      },
+      "unchanged": true,
+      "stdout": "final-glob-present.stdout",
+      "stderr": "final-glob-present.stderr",
+      "counts": {
+        "success": true,
+        "errorCount": 0,
+        "warningCount": 0,
+        "passedCount": 6
+      },
+      "issues": [],
+      "stages": [
+        [
+          "Environment",
+          true,
+          false
+        ],
+        [
+          "Conflicts",
+          true,
+          false
+        ],
+        [
+          "InstallOrder",
+          true,
+          false
+        ],
+        [
+          "ComponentValidation",
+          true,
+          false
+        ],
+        [
+          "FomodConfiguration",
+          true,
+          false
+        ],
+        [
+          "DryRun",
+          true,
+          false
+        ]
+      ]
+    },
+    {
+      "name": "final-glob-missing",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop-final",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-glob-missing/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-glob-missing/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-glob-missing/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "binary_sha256": "e0579401e4f76538f8c7aea694aefd552264e608b83210f66091b3e344d2b09f",
+      "guide_sha256": "bce55cc7f7aa6bfed9bb2ccce4fe58bda3f3963407e6e31c0f26edc68de37545",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/nomatch*.dat"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "before": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 657,
+          "sha256": "bce55cc7f7aa6bfed9bb2ccce4fe58bda3f3963407e6e31c0f26edc68de37545"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/input.dat": {
+          "type": "file",
+          "mode": 420,
+          "size": 15,
+          "sha256": "baccc041ebb50b57fd3b386468fe0c8a742ee6b73d611806e1a19f87855520de"
+        }
+      },
+      "after": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 657,
+          "sha256": "bce55cc7f7aa6bfed9bb2ccce4fe58bda3f3963407e6e31c0f26edc68de37545"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/input.dat": {
+          "type": "file",
+          "mode": 420,
+          "size": 15,
+          "sha256": "baccc041ebb50b57fd3b386468fe0c8a742ee6b73d611806e1a19f87855520de"
+        }
+      },
+      "unchanged": true,
+      "stdout": "final-glob-missing.stdout",
+      "stderr": "final-glob-missing.stderr",
+      "counts": {
+        "success": true,
+        "errorCount": 0,
+        "warningCount": 1,
+        "passedCount": 5
+      },
+      "issues": [
+        {
+          "severity": "Warning",
+          "category": "DryRunSkipped",
+          "message": "Skipped 'Fixture' during dry-run: source archives or files are not available.",
+          "componentName": "Fixture",
+          "componentGuid": "11111111-1111-1111-1111-111111111111"
+        }
+      ],
+      "stages": [
+        [
+          "Environment",
+          true,
+          false
+        ],
+        [
+          "Conflicts",
+          true,
+          false
+        ],
+        [
+          "InstallOrder",
+          true,
+          false
+        ],
+        [
+          "ComponentValidation",
+          true,
+          false
+        ],
+        [
+          "FomodConfiguration",
+          true,
+          false
+        ],
+        [
+          "DryRun",
+          true,
+          true
+        ]
+      ]
+    },
+    {
+      "name": "final-directory-present",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop-final",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-directory-present/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-directory-present/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-directory-present/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "binary_sha256": "e0579401e4f76538f8c7aea694aefd552264e608b83210f66091b3e344d2b09f",
+      "guide_sha256": "517141965d7507e8c6a38aa0016e69e49c2ddfe63821ba2a422b0ae0a3aac221",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Move",
+              "Source": [
+                "<<modDirectory>>/folder"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "before": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 651,
+          "sha256": "517141965d7507e8c6a38aa0016e69e49c2ddfe63821ba2a422b0ae0a3aac221"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/folder": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/folder/child.dat": {
+          "type": "file",
+          "mode": 420,
+          "size": 24,
+          "sha256": "174599fd29ac1aae8ae46480a735174ede80717943ac86fb33238d4d291b79a9"
+        },
+        "mods/input.dat": {
+          "type": "file",
+          "mode": 420,
+          "size": 15,
+          "sha256": "baccc041ebb50b57fd3b386468fe0c8a742ee6b73d611806e1a19f87855520de"
+        }
+      },
+      "after": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 651,
+          "sha256": "517141965d7507e8c6a38aa0016e69e49c2ddfe63821ba2a422b0ae0a3aac221"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/folder": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/folder/child.dat": {
+          "type": "file",
+          "mode": 420,
+          "size": 24,
+          "sha256": "174599fd29ac1aae8ae46480a735174ede80717943ac86fb33238d4d291b79a9"
+        },
+        "mods/input.dat": {
+          "type": "file",
+          "mode": 420,
+          "size": 15,
+          "sha256": "baccc041ebb50b57fd3b386468fe0c8a742ee6b73d611806e1a19f87855520de"
+        }
+      },
+      "unchanged": true,
+      "stdout": "final-directory-present.stdout",
+      "stderr": "final-directory-present.stderr",
+      "counts": {
+        "success": true,
+        "errorCount": 0,
+        "warningCount": 0,
+        "passedCount": 6
+      },
+      "issues": [],
+      "stages": [
+        [
+          "Environment",
+          true,
+          false
+        ],
+        [
+          "Conflicts",
+          true,
+          false
+        ],
+        [
+          "InstallOrder",
+          true,
+          false
+        ],
+        [
+          "ComponentValidation",
+          true,
+          false
+        ],
+        [
+          "FomodConfiguration",
+          true,
+          false
+        ],
+        [
+          "DryRun",
+          true,
+          false
+        ]
+      ]
+    },
+    {
+      "name": "final-game-missing",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop-final",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-game-missing/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-game-missing/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-game-missing/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "binary_sha256": "e0579401e4f76538f8c7aea694aefd552264e608b83210f66091b3e344d2b09f",
+      "guide_sha256": "71b15d08be89d897e34991fa2fb629f75689699930c2b37db167fbb04dad07a6",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Move",
+              "Source": [
+                "<<gameDirectory>>/absent.dat"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "before": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 656,
+          "sha256": "71b15d08be89d897e34991fa2fb629f75689699930c2b37db167fbb04dad07a6"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "after": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 656,
+          "sha256": "71b15d08be89d897e34991fa2fb629f75689699930c2b37db167fbb04dad07a6"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "unchanged": true,
+      "stdout": "final-game-missing.stdout",
+      "stderr": "final-game-missing.stderr",
+      "counts": {
+        "success": true,
+        "errorCount": 0,
+        "warningCount": 1,
+        "passedCount": 5
+      },
+      "issues": [
+        {
+          "severity": "Warning",
+          "category": "DryRunSkipped",
+          "message": "Skipped 'Fixture' during dry-run: source archives or files are not available.",
+          "componentName": "Fixture",
+          "componentGuid": "11111111-1111-1111-1111-111111111111"
+        }
+      ],
+      "stages": [
+        [
+          "Environment",
+          true,
+          false
+        ],
+        [
+          "Conflicts",
+          true,
+          false
+        ],
+        [
+          "InstallOrder",
+          true,
+          false
+        ],
+        [
+          "ComponentValidation",
+          true,
+          false
+        ],
+        [
+          "FomodConfiguration",
+          true,
+          false
+        ],
+        [
+          "DryRun",
+          true,
+          true
+        ]
+      ]
+    },
+    {
+      "name": "final-malformed",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop-final",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-malformed/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-malformed/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-malformed/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run"
+      ],
+      "exit": 1,
+      "binary_sha256": "e0579401e4f76538f8c7aea694aefd552264e608b83210f66091b3e344d2b09f",
+      "guide_sha256": "050ad187838a7c34a3712dbb1b69f8f0049beb894c12a4cd433382e734456a68",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/["
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "before": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 646,
+          "sha256": "050ad187838a7c34a3712dbb1b69f8f0049beb894c12a4cd433382e734456a68"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "after": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 646,
+          "sha256": "050ad187838a7c34a3712dbb1b69f8f0049beb894c12a4cd433382e734456a68"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "unchanged": true,
+      "stdout": "final-malformed.stdout",
+      "stderr": "final-malformed.stderr",
+      "counts": {
+        "success": false,
+        "errorCount": 2,
+        "warningCount": 0,
+        "passedCount": 4
+      },
+      "issues": [
+        {
+          "severity": "Error",
+          "category": "EngineSimulation",
+          "message": "Fixture / step 1 (Copy): Pattern syntax error near position 56: invalid range pattern",
+          "componentName": "Fixture",
+          "componentGuid": "11111111-1111-1111-1111-111111111111",
+          "instructionIndex": 1
+        }
+      ],
+      "stages": [
+        [
+          "Environment",
+          true,
+          false
+        ],
+        [
+          "Conflicts",
+          true,
+          false
+        ],
+        [
+          "InstallOrder",
+          true,
+          false
+        ],
+        [
+          "ComponentValidation",
+          false,
+          false
+        ],
+        [
+          "FomodConfiguration",
+          true,
+          false
+        ],
+        [
+          "DryRun",
+          false,
+          false
+        ]
+      ]
+    },
+    {
+      "name": "final-unsafe",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop-final",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-unsafe/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-unsafe/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-unsafe/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run"
+      ],
+      "exit": 1,
+      "binary_sha256": "e0579401e4f76538f8c7aea694aefd552264e608b83210f66091b3e344d2b09f",
+      "guide_sha256": "d0b44ad4b727bf37bdcb75b93d0c74131a6e6f022afbe80d129069ce7fd6f4c7",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/../bad"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "before": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 651,
+          "sha256": "d0b44ad4b727bf37bdcb75b93d0c74131a6e6f022afbe80d129069ce7fd6f4c7"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "after": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 651,
+          "sha256": "d0b44ad4b727bf37bdcb75b93d0c74131a6e6f022afbe80d129069ce7fd6f4c7"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "unchanged": true,
+      "stdout": "final-unsafe.stdout",
+      "stderr": "final-unsafe.stderr",
+      "counts": {
+        "success": false,
+        "errorCount": 2,
+        "warningCount": 0,
+        "passedCount": 4
+      },
+      "issues": [
+        {
+          "severity": "Error",
+          "category": "EngineSimulation",
+          "message": "Fixture / step 1 (Copy): Unsafe path: ../bad",
+          "componentName": "Fixture",
+          "componentGuid": "11111111-1111-1111-1111-111111111111",
+          "instructionIndex": 1
+        }
+      ],
+      "stages": [
+        [
+          "Environment",
+          true,
+          false
+        ],
+        [
+          "Conflicts",
+          true,
+          false
+        ],
+        [
+          "InstallOrder",
+          true,
+          false
+        ],
+        [
+          "ComponentValidation",
+          false,
+          false
+        ],
+        [
+          "FomodConfiguration",
+          true,
+          false
+        ],
+        [
+          "DryRun",
+          false,
+          false
+        ]
+      ]
+    },
+    {
+      "name": "final-permission",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop-final",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-permission/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-permission/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-permission/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run"
+      ],
+      "exit": 1,
+      "binary_sha256": "e0579401e4f76538f8c7aea694aefd552264e608b83210f66091b3e344d2b09f",
+      "guide_sha256": "ff6eb3930250d3423965eb7e0030f9b1b2726f86dfd3d56a9ed80904eafc8e20",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/input.dat"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "before": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 654,
+          "sha256": "ff6eb3930250d3423965eb7e0030f9b1b2726f86dfd3d56a9ed80904eafc8e20"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/input.dat": {
+          "type": "file",
+          "mode": 0,
+          "size": 15,
+          "read_error": "PermissionDenied"
+        }
+      },
+      "after": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 654,
+          "sha256": "ff6eb3930250d3423965eb7e0030f9b1b2726f86dfd3d56a9ed80904eafc8e20"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/input.dat": {
+          "type": "file",
+          "mode": 0,
+          "size": 15,
+          "read_error": "PermissionDenied"
+        }
+      },
+      "unchanged": true,
+      "stdout": "final-permission.stdout",
+      "stderr": "final-permission.stderr",
+      "counts": {
+        "success": false,
+        "errorCount": 1,
+        "warningCount": 0,
+        "passedCount": 5
+      },
+      "issues": [
+        {
+          "severity": "Error",
+          "category": "EngineSimulation",
+          "message": "Fixture / step 1 (Copy): Permission denied (os error 13)",
+          "componentName": "Fixture",
+          "componentGuid": "11111111-1111-1111-1111-111111111111",
+          "instructionIndex": 1
+        }
+      ],
+      "stages": [
+        [
+          "Environment",
+          true,
+          false
+        ],
+        [
+          "Conflicts",
+          true,
+          false
+        ],
+        [
+          "InstallOrder",
+          true,
+          false
+        ],
+        [
+          "ComponentValidation",
+          true,
+          false
+        ],
+        [
+          "FomodConfiguration",
+          true,
+          false
+        ],
+        [
+          "DryRun",
+          false,
+          false
+        ]
+      ]
+    },
+    {
+      "name": "final-archive-member-present",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop-final",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-archive-member-present/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-archive-member-present/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-archive-member-present/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "binary_sha256": "e0579401e4f76538f8c7aea694aefd552264e608b83210f66091b3e344d2b09f",
+      "guide_sha256": "b74f0be20b44595bc5ef10809fc145d436a2ab79e2580cb1c3ebceb91a74ee27",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Extract",
+              "Source": [
+                "<<modDirectory>>/package.zip"
+              ]
+            },
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/package/*.dat"
+              ],
+              "Destination": "<<gameDirectory>>/Override"
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "before": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 690,
+          "sha256": "b74f0be20b44595bc5ef10809fc145d436a2ab79e2580cb1c3ebceb91a74ee27"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "size": 132,
+          "sha256": "ba02ce8f3366373ee448c99ee523fce23d2f95b398311a7fde8cc39e421a5cc6"
+        }
+      },
+      "after": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 690,
+          "sha256": "b74f0be20b44595bc5ef10809fc145d436a2ab79e2580cb1c3ebceb91a74ee27"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "size": 132,
+          "sha256": "ba02ce8f3366373ee448c99ee523fce23d2f95b398311a7fde8cc39e421a5cc6"
+        }
+      },
+      "unchanged": true,
+      "stdout": "final-archive-member-present.stdout",
+      "stderr": "final-archive-member-present.stderr",
+      "counts": {
+        "success": true,
+        "errorCount": 0,
+        "warningCount": 0,
+        "passedCount": 6
+      },
+      "issues": [],
+      "stages": [
+        [
+          "Environment",
+          true,
+          false
+        ],
+        [
+          "Conflicts",
+          true,
+          false
+        ],
+        [
+          "InstallOrder",
+          true,
+          false
+        ],
+        [
+          "ComponentValidation",
+          true,
+          false
+        ],
+        [
+          "FomodConfiguration",
+          true,
+          false
+        ],
+        [
+          "DryRun",
+          true,
+          false
+        ]
+      ]
+    },
+    {
+      "name": "final-archive-member-missing",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop-final",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-archive-member-missing/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-archive-member-missing/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/final-archive-member-missing/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run"
+      ],
+      "exit": 1,
+      "binary_sha256": "e0579401e4f76538f8c7aea694aefd552264e608b83210f66091b3e344d2b09f",
+      "guide_sha256": "b74f0be20b44595bc5ef10809fc145d436a2ab79e2580cb1c3ebceb91a74ee27",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Extract",
+              "Source": [
+                "<<modDirectory>>/package.zip"
+              ]
+            },
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/package/*.dat"
+              ],
+              "Destination": "<<gameDirectory>>/Override"
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "before": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 690,
+          "sha256": "b74f0be20b44595bc5ef10809fc145d436a2ab79e2580cb1c3ebceb91a74ee27"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "size": 138,
+          "sha256": "1020cb495af52f3e9ce562cab3dcf6e0ced54421af5f87421a0d15c24f21b70b"
+        }
+      },
+      "after": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "size": 690,
+          "sha256": "b74f0be20b44595bc5ef10809fc145d436a2ab79e2580cb1c3ebceb91a74ee27"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "size": 138,
+          "sha256": "1020cb495af52f3e9ce562cab3dcf6e0ced54421af5f87421a0d15c24f21b70b"
+        }
+      },
+      "unchanged": true,
+      "stdout": "final-archive-member-missing.stdout",
+      "stderr": "final-archive-member-missing.stderr",
+      "counts": {
+        "success": false,
+        "errorCount": 1,
+        "warningCount": 1,
+        "passedCount": 4
+      },
+      "issues": [
+        {
+          "severity": "Warning",
+          "category": "DryRunSkipped",
+          "message": "Skipped 'Fixture' during dry-run: source archives or files are not available.",
+          "componentName": "Fixture",
+          "componentGuid": "11111111-1111-1111-1111-111111111111"
+        }
+      ],
+      "stages": [
+        [
+          "Environment",
+          true,
+          false
+        ],
+        [
+          "Conflicts",
+          true,
+          false
+        ],
+        [
+          "InstallOrder",
+          true,
+          false
+        ],
+        [
+          "ComponentValidation",
+          false,
+          false
+        ],
+        [
+          "FomodConfiguration",
+          true,
+          false
+        ],
+        [
+          "DryRun",
+          true,
+          true
+        ]
+      ]
+    }
+  ],
+  "source_hashes_match": true,
+  "binary_hashes_match": true,
+  "all_report_manifests_unchanged": true,
+  "all_build_commands_passed": true
+}

@@ -1,0 +1,30 @@
+{
+  "native_archive_files": 66,
+  "all_owned_evidence_files_tracked": 431,
+  "native_archive_hashes_verified": true,
+  "final_receipt_artifacts_verified": true,
+  "final_source_fonts_binary_verified": true,
+  "core_manifests_equal": true,
+  "whitespace_check_exceptions": [
+    {
+      "path": "docs/parity/validation-missing-source-fix/prefix-hoist.diff",
+      "sha256": "d9fe8f3c50112f9719acfcf40a53b2b22aeade94571d08edb98acea752397f10",
+      "reason": "Original immutable runtime log or raw patch whitespace retained byte-for-byte"
+    },
+    {
+      "path": "docs/parity/validation-reference/app-initial.log",
+      "sha256": "cb191e25fd17071e8b5e53e43cdd1b65a498779a01fff0275e9ead41bf30c180",
+      "reason": "Original immutable runtime log or raw patch whitespace retained byte-for-byte"
+    },
+    {
+      "path": "docs/parity/validation-reference/app-private-bus.log",
+      "sha256": "fade67fce8fd2b4c5aa00d42bdfda9cc9428595daf9463137137d61b9b96ea06",
+      "reason": "Original immutable runtime log or raw patch whitespace retained byte-for-byte"
+    },
+    {
+      "path": "docs/parity/validation-reference/themes/app-native-bus.log",
+      "sha256": "af186a5e61b039aef68cf9be2703e98de78e3fc642f588c30e353b9da44a61f8",
+      "reason": "Original immutable runtime log or raw patch whitespace retained byte-for-byte"
+    }
+  ]
+}

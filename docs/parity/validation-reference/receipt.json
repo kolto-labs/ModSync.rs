@@ -1,0 +1,112 @@
+{
+  "timestamp_utc": "2026-09-27T10:48:43.796977+00:00",
+  "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+  "source_status": "",
+  "source_sha256": {
+    "src/ModSync.GUI/Dialogs/WizardPages/ValidatePage.axaml": "481ce6550143cb5fea2dbfcd6f316649eae3189e63ed47d7985389a3bb0f928f",
+    "src/ModSync.GUI/Dialogs/WizardPages/ValidatePage.axaml.cs": "a996c30536611f80fdbe4f8153715efd6aa6fcfaadc6fcad165cb6fc04cc2721",
+    "src/ModSync.GUI/Services/WizardValidationStagePresenter.cs": "63594ad9e11bfafcbb861a4fed9ad75029284d2d907e1c27b1813b2e66bcd320",
+    "src/ModSync.GUI/Services/ValidationPipelineDialogMapper.cs": "efaf9879bd3a2bae31bd7ce682692722971e5054cbcc8238b76d9be2902910fd",
+    "src/ModSync.Core/Services/Validation/InstallationValidationPipeline.cs": "dbf0ee72bee8fa75c9d96edeb3ffc8476421764489d8b7d19a0ef7bbddd5220a",
+    "src/ModSync.GUI/Controls/WizardHostControl.axaml.cs": "f72cebf61e3dca379710c58f3186e201778032310ee047a215d4c9d4fa4a977b"
+  },
+  "binary_sha256": {
+    "ModSync.dll": "fbd5164771bceb732018b47215490d94f7e8944689c86c015bbf14819c2bfd2d",
+    "ModSync.Core.dll": "89d9b2361aee4364f95151b41db59a4133122a6ad41bc2703e232cf10a4f5a6b",
+    "Resources/holopatcher": "fdd470570a82df58be8913074133ab13ba94a874e69d66b0592ebe3f5af230c5"
+  },
+  "runtime_host_sha256": "3fd639f33f8b3449784e1216b641aba8546bdf1d56a25303bb16fd986a26733e",
+  "native_pid": 1328857,
+  "initial_pid": 1282533,
+  "private_xvfb_pid": 1279212,
+  "display": ":2",
+  "screen": "1280x900x24",
+  "client": "1280x800 at0,0",
+  "theme": "default Light; private config; visually white Light shell",
+  "scale": "1x observed client coordinates",
+  "build": {
+    "errors": 0,
+    "warnings": 22,
+    "artifacts": "/tmp/modsync-validation-reference-20260927-5813/artifacts"
+  },
+  "fixture": {
+    "guide_sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b",
+    "game_marker": "zero-byte swkotor.exe, synthetic detection only",
+    "copy_source_sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be",
+    "absolute_root": "/tmp/modsync-validation-reference-20260927-5813/fixture"
+  },
+  "observations": {
+    "clean": {
+      "errors": 0,
+      "warnings": 0,
+      "passed": 6,
+      "log": "collapsed on completion"
+    },
+    "missing_source": {
+      "errors": 0,
+      "warnings": 1,
+      "passed": 5,
+      "issue": "Skipped 'Fixture' during dry-run: source archives or files are not available.",
+      "highlight": "amber",
+      "log": "expanded on completion"
+    },
+    "missing_patcher": {
+      "errors": 1,
+      "warnings": 0,
+      "passed": 0,
+      "issue": "HoloPatcher could not be found in the Resources directory. Please ensure your AV isn't quarantining it and the files exist.",
+      "highlight": "red",
+      "navigation": "Next remained clickable, then Information modal said Critical errors detected. Please resolve them before continuing."
+    },
+    "rerun": {
+      "errors": 0,
+      "warnings": 0,
+      "passed": 6,
+      "next": "Ready to Install reached; no install started"
+    },
+    "first_issue": "After manually collapsing failed log, clicking Go to first issue visibly expanded it; exact error scroll target not established through nested viewport clipping.",
+    "in_flight": "17 percent Validating environment, ETA text, disabled Run and indeterminate progress captured.",
+    "clipboard": "Copied feedback observed; xclip/xsel failed to retrieve report. Same outcome after private DBus and XDG_SESSION_TYPE=x11. No successful clipboard report evidence.",
+    "nonmutation": "before equals after-clean and restored after-all game/mod file manifests"
+  },
+  "limits": [
+    "One selected Copy fixture, synthetic game marker, Light 1280x800 only",
+    "Missing source is warning-only in pinned C#; not Rust equivalence",
+    "No full native stage/report text comparison because clipboard unavailable",
+    "No exact issue log offset, splitter drag, accessibility, cancellation, other themes/DPI/minimum geometry proof",
+    "No native long dry-run list/conflict/order/archive failure fixture in this bounded run",
+    "Initial run inherited Wayland session type and DBus, second used private DBus/X11 session type; both had WAYLAND_DISPLAY unset and DISPLAY=:2",
+    "Final manifests establish file nonmutation at checkpoints; no per-stage syscall trace"
+  ],
+  "artifacts_sha256": {
+    "README.md": "b83307f5d19d9604a24e0cd934205d9ea94ddd512a1e0defde290205f9bd8921",
+    "app-initial.log": "cb191e25fd17071e8b5e53e43cdd1b65a498779a01fff0275e9ead41bf30c180",
+    "app-private-bus.log": "fade67fce8fd2b4c5aa00d42bdfda9cc9428595daf9463137137d61b9b96ea06",
+    "build.log": "5114584d89bd04d87a02f5cc9f2fedfe3e381ee10bd6d66d11921a734625de8c",
+    "clean-cards.png": "192241e65019e687d0352e902878577d3a6773f9249e7031e623a0714ef7043c",
+    "clean-collapsed-log.png": "b7e5f40403a0d70d18aaadce81e9da98fe96a1260077d9ab5affe0056f1f296e",
+    "clean-summary.png": "6b9894b74127f5d8cf9c7133ed7d5724b5d8d5524a69261345dca6ddad5cda21",
+    "clipboard-readback.error": "9083174a08fbed8c2d77961ab3974cf74f87691195f1c8254525f9762e3334cd",
+    "copy-feedback-initial.png": "4cdb0f9db300a79857a6c611bf36a11cae51fff3c5663e2bab46a413a8fbc346",
+    "copy-feedback-private-bus.png": "ab3ac764276b33be3f9f976ec2abe771e3559ad632f6eabbe8db07048190ce2c",
+    "environment-failure-summary.png": "69eeb80126e2d01ae5ded8761a31c78594ee07820e3a54ba2211452c3c3a1c55",
+    "failure-first-issue.png": "675bc9dc9b8565e373cfdcc1df533d6921fd02c294a13f3424a5053b0e5f5541",
+    "failure-log-collapsed.png": "b012d560844b25a23531c85c8e96edaa16bf2a42b4af1ed264d64a7d40659955",
+    "failure-navigation-blocked.png": "2263b538b22cdda2b1d7ddf5cc05ac7a0df2fd0b6d4676d933aeb865cedd44c3",
+    "guide.json": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b",
+    "idle.png": "658dd6bd04f832beaef5d2fc0e0b2500e8a865a0afa4b48184f70651356f522c",
+    "launch-initial.json": "32cf91aa5812395e06031c143f1b16d80831309ab464f893567fe79c94c305eb",
+    "launch-private-bus.json": "f9d0912e9a62401de2abb22f092df6b49600d63561756159b775874f7c968533",
+    "missing-source-warning-summary.png": "1ca554e81add3b9cc18b511ed320d39232920f1a170767e8aacc4c4968c562cc",
+    "rerun-clean-summary.png": "84da4c4826617359eb41e3ffce82bfa9379dfff984491052f3529e71f2e85ff7",
+    "rerun-clean-top.png": "840d6a20b18ce5f59ea8eb0445f6802145d5f7c253ec28ffca60877caca6945c",
+    "rerun-next-review.png": "9e33123a556e2fd097b53b8512126d5023557e6fe8bdea6fc8e17a88ed0ec0d1",
+    "running-environment.png": "9e1d4d8a15fd061bc4de931f56359bf551198b8345d8861c2de8f35a3a134288",
+    "sample.tga": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be",
+    "tree-after-all.json": "dfa2b3c6082b3605657451d7031f138f609ed2b5dede3ef5d3fb70a88b01bce4",
+    "tree-after-clean.json": "dfa2b3c6082b3605657451d7031f138f609ed2b5dede3ef5d3fb70a88b01bce4",
+    "tree-before.json": "dfa2b3c6082b3605657451d7031f138f609ed2b5dede3ef5d3fb70a88b01bce4",
+    "warning-top.png": "2c3301ced4a19665fe43f385700f683bbc0557705d083e407786245b752a2e96"
+  },
+  "cleanup": "Owned app1328857, Xvfb1279212, DBus wrapper1328133 exited; user sessions untouched"
+}

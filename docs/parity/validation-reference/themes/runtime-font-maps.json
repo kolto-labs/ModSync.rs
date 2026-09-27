@@ -1,0 +1,12 @@
+{
+  "pid": 1808378,
+  "files": [
+    "/usr/share/fonts/bitstream-vera-sans-fonts/Vera.ttf",
+    "/usr/share/fonts/bitstream-vera-sans-fonts/VeraBd.ttf",
+    "/usr/share/fonts/dejavu-sans-fonts/DejaVuSans.ttf",
+    "/usr/share/fonts/fontawesome-6-free-fonts/Font Awesome 6 Free-Regular-400.otf",
+    "/usr/share/fonts/gdouros-symbola/Symbola.ttf",
+    "/usr/share/fonts/liberation-mono-fonts/LiberationMono-Regular.ttf"
+  ],
+  "scope": "Font files mapped in native CSharp process after Light/K1/K2 rendering. Does not attribute each control or glyph to a file."
+}

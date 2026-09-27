@@ -1,0 +1,64 @@
+{
+  "timestamp_utc": "2026-09-27T11:06:44.701726+00:00",
+  "source_head": "9d77f4ba9955ea505d3eb7969afdf5b5aee73b72",
+  "build_receipt": "build-receipt.json",
+  "build_receipt_sha256": "0e1b31088573d0931d12d8f0b5898ae92f28b28d4b93d84d76326ffad46d87dd",
+  "production_diff_from_head_empty": true,
+  "production_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "command": [
+    "/tmp/modsync-source-audit-pinned-klrhf1xw/modsync",
+    "validate",
+    "--input",
+    "/tmp/modsync-source-audit-pinned-klrhf1xw/fixture/guide.json",
+    "--game-dir",
+    "/tmp/modsync-source-audit-pinned-klrhf1xw/fixture/game",
+    "--source-dir",
+    "/tmp/modsync-source-audit-pinned-klrhf1xw/fixture/mods",
+    "--use-file-selection",
+    "--validation-report",
+    "--full",
+    "--dry-run"
+  ],
+  "exit": 1,
+  "copied_binary": "/tmp/modsync-source-audit-pinned-klrhf1xw/modsync",
+  "binary_sha256": "93f0ae8ec686e8858c20976dccf290e236ddd704d54c37a6f89a37f6f70cd984",
+  "binary_mtime_ns": 1790506897155546004,
+  "guide_sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b",
+  "native_guide_sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b",
+  "source_removed_sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be",
+  "stdout_sha256": "926c4c014e3d8d6af849a78f20cc4ba7ae5a78f4f5f27a147bde43ad0dfa43ee",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "manifest_unchanged": true,
+  "counts": {
+    "success": false,
+    "errorCount": 3,
+    "warningCount": 0,
+    "passedCount": 3
+  },
+  "stages": [
+    [
+      "Environment",
+      true
+    ],
+    [
+      "Conflicts",
+      false
+    ],
+    [
+      "InstallOrder",
+      true
+    ],
+    [
+      "ComponentValidation",
+      false
+    ],
+    [
+      "FomodConfiguration",
+      true
+    ],
+    [
+      "DryRun",
+      false
+    ]
+  ]
+}

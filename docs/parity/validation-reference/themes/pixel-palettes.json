@@ -1,0 +1,506 @@
+{
+  "k1-idle.png": [
+    {
+      "hex": "#000116",
+      "pixels": 804056
+    },
+    {
+      "hex": "#031332",
+      "pixels": 120357
+    },
+    {
+      "hex": "#010116",
+      "pixels": 43546
+    },
+    {
+      "hex": "#3AAAFF",
+      "pixels": 8108
+    },
+    {
+      "hex": "#666773",
+      "pixels": 7680
+    },
+    {
+      "hex": "#062766",
+      "pixels": 7067
+    },
+    {
+      "hex": "#00AA00",
+      "pixels": 2363
+    },
+    {
+      "hex": "#3DAEE9",
+      "pixels": 1662
+    },
+    {
+      "hex": "#000112",
+      "pixels": 426
+    },
+    {
+      "hex": "#39A8FD",
+      "pixels": 414
+    }
+  ],
+  "k1-running.png": [
+    {
+      "hex": "#000116",
+      "pixels": 763192
+    },
+    {
+      "hex": "#031332",
+      "pixels": 121403
+    },
+    {
+      "hex": "#062766",
+      "pixels": 46900
+    },
+    {
+      "hex": "#010116",
+      "pixels": 39140
+    },
+    {
+      "hex": "#3AAAFF",
+      "pixels": 8542
+    },
+    {
+      "hex": "#666773",
+      "pixels": 7680
+    },
+    {
+      "hex": "#00AA00",
+      "pixels": 2363
+    },
+    {
+      "hex": "#000112",
+      "pixels": 1956
+    },
+    {
+      "hex": "#3DAEE9",
+      "pixels": 1706
+    },
+    {
+      "hex": "#020F32",
+      "pixels": 646
+    }
+  ],
+  "k1-warning-top-final.png": [
+    {
+      "hex": "#000116",
+      "pixels": 756697
+    },
+    {
+      "hex": "#031332",
+      "pixels": 120725
+    },
+    {
+      "hex": "#010116",
+      "pixels": 49262
+    },
+    {
+      "hex": "#062766",
+      "pixels": 44849
+    },
+    {
+      "hex": "#3AAAFF",
+      "pixels": 8541
+    },
+    {
+      "hex": "#666773",
+      "pixels": 7680
+    },
+    {
+      "hex": "#00AA00",
+      "pixels": 2363
+    },
+    {
+      "hex": "#3DAEE9",
+      "pixels": 1662
+    },
+    {
+      "hex": "#020F32",
+      "pixels": 679
+    },
+    {
+      "hex": "#39A8FD",
+      "pixels": 457
+    }
+  ],
+  "k1-warning-card.png": [
+    {
+      "hex": "#000116",
+      "pixels": 818075
+    },
+    {
+      "hex": "#031332",
+      "pixels": 120530
+    },
+    {
+      "hex": "#010116",
+      "pixels": 30976
+    },
+    {
+      "hex": "#666773",
+      "pixels": 7680
+    },
+    {
+      "hex": "#3AAAFF",
+      "pixels": 6921
+    },
+    {
+      "hex": "#062766",
+      "pixels": 4633
+    },
+    {
+      "hex": "#FB8C00",
+      "pixels": 3748
+    },
+    {
+      "hex": "#00AA00",
+      "pixels": 2363
+    },
+    {
+      "hex": "#3DAEE9",
+      "pixels": 1662
+    },
+    {
+      "hex": "#000112",
+      "pixels": 506
+    }
+  ],
+  "k1-warning-summary.png": [
+    {
+      "hex": "#000116",
+      "pixels": 819756
+    },
+    {
+      "hex": "#031332",
+      "pixels": 120530
+    },
+    {
+      "hex": "#010116",
+      "pixels": 30976
+    },
+    {
+      "hex": "#666773",
+      "pixels": 7680
+    },
+    {
+      "hex": "#3AAAFF",
+      "pixels": 6794
+    },
+    {
+      "hex": "#062766",
+      "pixels": 4633
+    },
+    {
+      "hex": "#00AA00",
+      "pixels": 2363
+    },
+    {
+      "hex": "#FB8C00",
+      "pixels": 1802
+    },
+    {
+      "hex": "#3DAEE9",
+      "pixels": 1662
+    },
+    {
+      "hex": "#2877B8",
+      "pixels": 573
+    }
+  ],
+  "k1-failure-top.png": [
+    {
+      "hex": "#000116",
+      "pixels": 742528
+    },
+    {
+      "hex": "#031332",
+      "pixels": 119931
+    },
+    {
+      "hex": "#062766",
+      "pixels": 58243
+    },
+    {
+      "hex": "#010116",
+      "pixels": 49210
+    },
+    {
+      "hex": "#3AAAFF",
+      "pixels": 8597
+    },
+    {
+      "hex": "#666773",
+      "pixels": 7680
+    },
+    {
+      "hex": "#00AA00",
+      "pixels": 2363
+    },
+    {
+      "hex": "#3DAEE9",
+      "pixels": 1662
+    },
+    {
+      "hex": "#020F32",
+      "pixels": 882
+    },
+    {
+      "hex": "#000112",
+      "pixels": 506
+    }
+  ],
+  "k1-failure-summary.png": [
+    {
+      "hex": "#000116",
+      "pixels": 796326
+    },
+    {
+      "hex": "#031332",
+      "pixels": 120126
+    },
+    {
+      "hex": "#010116",
+      "pixels": 46190
+    },
+    {
+      "hex": "#666773",
+      "pixels": 13104
+    },
+    {
+      "hex": "#3AAAFF",
+      "pixels": 7605
+    },
+    {
+      "hex": "#062766",
+      "pixels": 4389
+    },
+    {
+      "hex": "#E53935",
+      "pixels": 3748
+    },
+    {
+      "hex": "#00AA00",
+      "pixels": 2363
+    },
+    {
+      "hex": "#3DAEE9",
+      "pixels": 1662
+    },
+    {
+      "hex": "#2877B8",
+      "pixels": 465
+    }
+  ],
+  "k2-warning-top.png": [
+    {
+      "hex": "#02110D",
+      "pixels": 798312
+    },
+    {
+      "hex": "#0A2A22",
+      "pixels": 160974
+    },
+    {
+      "hex": "#18AE88",
+      "pixels": 8802
+    },
+    {
+      "hex": "#094737",
+      "pixels": 7912
+    },
+    {
+      "hex": "#67706E",
+      "pixels": 7680
+    },
+    {
+      "hex": "#00AA00",
+      "pixels": 2363
+    },
+    {
+      "hex": "#3DAEE9",
+      "pixels": 1662
+    },
+    {
+      "hex": "#051712",
+      "pixels": 679
+    },
+    {
+      "hex": "#17AA85",
+      "pixels": 555
+    },
+    {
+      "hex": "#0B4D3C",
+      "pixels": 552
+    }
+  ],
+  "k2-warning-card.png": [
+    {
+      "hex": "#02110D",
+      "pixels": 842131
+    },
+    {
+      "hex": "#0A2A22",
+      "pixels": 124568
+    },
+    {
+      "hex": "#67706E",
+      "pixels": 7680
+    },
+    {
+      "hex": "#18AE88",
+      "pixels": 7182
+    },
+    {
+      "hex": "#094737",
+      "pixels": 4695
+    },
+    {
+      "hex": "#FB8C00",
+      "pixels": 3748
+    },
+    {
+      "hex": "#00AA00",
+      "pixels": 2363
+    },
+    {
+      "hex": "#3DAEE9",
+      "pixels": 1662
+    },
+    {
+      "hex": "#149575",
+      "pixels": 557
+    },
+    {
+      "hex": "#17AA85",
+      "pixels": 468
+    }
+  ],
+  "k2-warning-summary.png": [
+    {
+      "hex": "#02110D",
+      "pixels": 843853
+    },
+    {
+      "hex": "#0A2A22",
+      "pixels": 124568
+    },
+    {
+      "hex": "#67706E",
+      "pixels": 7680
+    },
+    {
+      "hex": "#18AE88",
+      "pixels": 7055
+    },
+    {
+      "hex": "#094737",
+      "pixels": 4675
+    },
+    {
+      "hex": "#00AA00",
+      "pixels": 2363
+    },
+    {
+      "hex": "#FB8C00",
+      "pixels": 1802
+    },
+    {
+      "hex": "#3DAEE9",
+      "pixels": 1662
+    },
+    {
+      "hex": "#117E62",
+      "pixels": 569
+    },
+    {
+      "hex": "#17AA85",
+      "pixels": 464
+    }
+  ],
+  "k2-failure-top.png": [
+    {
+      "hex": "#02110D",
+      "pixels": 784089
+    },
+    {
+      "hex": "#0A2A22",
+      "pixels": 178252
+    },
+    {
+      "hex": "#18AE88",
+      "pixels": 8630
+    },
+    {
+      "hex": "#094737",
+      "pixels": 7908
+    },
+    {
+      "hex": "#67706E",
+      "pixels": 7680
+    },
+    {
+      "hex": "#00AA00",
+      "pixels": 2363
+    },
+    {
+      "hex": "#3DAEE9",
+      "pixels": 1662
+    },
+    {
+      "hex": "#051712",
+      "pixels": 881
+    },
+    {
+      "hex": "#0B4D3C",
+      "pixels": 552
+    },
+    {
+      "hex": "#17AA85",
+      "pixels": 505
+    }
+  ],
+  "k2-failure-summary.png": [
+    {
+      "hex": "#02110D",
+      "pixels": 834922
+    },
+    {
+      "hex": "#0A2A22",
+      "pixels": 126121
+    },
+    {
+      "hex": "#67706E",
+      "pixels": 13104
+    },
+    {
+      "hex": "#18AE88",
+      "pixels": 7831
+    },
+    {
+      "hex": "#094737",
+      "pixels": 4698
+    },
+    {
+      "hex": "#E53935",
+      "pixels": 3748
+    },
+    {
+      "hex": "#00AA00",
+      "pixels": 2363
+    },
+    {
+      "hex": "#3DAEE9",
+      "pixels": 1662
+    },
+    {
+      "hex": "#149575",
+      "pixels": 508
+    },
+    {
+      "hex": "#117E62",
+      "pixels": 460
+    }
+  ]
+}

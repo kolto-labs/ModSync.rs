@@ -1,0 +1,23 @@
+{
+  "args": [
+    "/usr/bin/dbus-run-session",
+    "--dbus-daemon=/usr/bin/dbus-daemon",
+    "--",
+    "dotnet",
+    "/tmp/modsync-validation-themes-20260927-5813/app/ModSync.dll",
+    "--instructionFile=/tmp/modsync-validation-themes-20260927-5813/fixture/guide.json",
+    "--kotorPath=/tmp/modsync-validation-themes-20260927-5813/fixture/game",
+    "--modDirectory=/tmp/modsync-validation-themes-20260927-5813/fixture/mods",
+    "--allow-multiple-instances"
+  ],
+  "bus_pid": 1808199,
+  "display": ":1",
+  "private_environment": {
+    "DISPLAY": ":1",
+    "XDG_SESSION_TYPE": "x11",
+    "XDG_CONFIG_HOME": "/tmp/modsync-validation-themes-20260927-5813/fixture/config",
+    "XDG_DATA_HOME": "/tmp/modsync-validation-themes-20260927-5813/fixture/data",
+    "XDG_CACHE_HOME": "/tmp/modsync-validation-themes-20260927-5813/fixture/cache",
+    "XDG_RUNTIME_DIR": "/tmp/modsync-validation-themes-20260927-5813/fixture/runtime"
+  }
+}

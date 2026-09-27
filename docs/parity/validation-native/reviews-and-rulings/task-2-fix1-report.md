@@ -1,0 +1,12 @@
+# Task 2 fix round 1 — production fixes, native reconfirmation in progress
+
+Source commit `7e804fa25f2468ffff23b863b0524fa2085ec7a1`, BASE `556b165f9be33dfe570ecbb31ed2a0070231d2c0`. Only src/ui.rs and src/ui/validation_page.rs committed. Read task-2-review.md and pinned K1/K2 style source. No Rust test creation/changes/runs, no Cargo/font changes, no publication.
+
+- Small fallback route now returns the dedicated Validation renderer before wizard_content's blanket idle-only wrapper, preserving page-local per-action gating at every size.
+- Every production report-clearing path uses `validation_page::clear_report` to clear both authoritative report and page presentation. Begin is deliberately after that clear. Run identity is retained by the clear and active acceptance ends, preventing late progress/report resurrection. Terminal cancellation/setup/stale handling still supplies the actual reason instead of inventing an input-change reason for every reset.
+- Empty progress text does not allocate a wrapping label. Existing log toggle/hint retain their own horizontal allocation in setup-failure and early-running states.
+- Generic border colors, button/template borders, hover/pressed borders and foregrounds are distinct pinned Light/K1/K2 tokens. Page override_text_color is removed in favor of per-widget foregrounds, allowing actual dark-theme hover colors while retaining ordinary themed labels.
+
+Commands: CARGO_TARGET_DIR=/tmp/modsync-rs-target cargo build --manifest-path /home/brunner56/Workspaces/ModSync.rs/Cargo.toml -j2 passed13.13s (/tmp/task2-fix1-final-build.log). Strict production Clippy `--lib --bin modsync -j2 -- -D warnings` passed9.45s (/tmp/task2-fix1-clippy.log). Headless build passed0.82s; headless strict production Clippy passed1.08s (/tmp/task2-fix1-headless.log and /tmp/task2-fix1-headless-clippy.log). No all-target test compilation claimed under preserved obsolete inline message matches.
+
+A default build is explicitly restored after headless verification before the copied GUI executable is accepted. Its source/binary/test-tail binding will be fix1/binding.json under /tmp/modsync-rust-validation-task2. Earlier556b165 native evidence remains under the parent directory and is not relabeled as fix proof. Native reconfirmation for small busyStop, stale-view clearing, setup header, theme hover/disabled, final copy and fail/rerun is still in progress; append actual results below.

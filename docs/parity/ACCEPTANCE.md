@@ -1,5 +1,13 @@
 # Full C# feature parity — active acceptance ledger
 
+## Validation slice checkpoint — 2026-09-27
+
+F08/F24/F25/F26 remain **partial**. Task 1 shared projection/progress and Task 1b availability/reached-option correction are independently approved through9d77f4b and88b2dd9 respectively. Renderer implementation is through47c3e67 in `src/ui/validation_page.rs`. Shared missing Copy now matches native C#0/1/5; strict install, standalone file-conflicts and completed-prefix safeguards remain intact. Pre-fix full3/0/3 replaces the earlier unsupported inferred2/0/4; partial2/0/1 remains historical measured evidence.
+
+Latest small-window Stop/cancel interaction is confirmed at47c3e67, but **the final bounded native matrix and artifacts are archived, with integrated review still pending**. Do not close page or domain acceptance from source review or old captures. [Integration checkpoint](validation-page-integration.md) records source-bound evidence, raw-versus-projected report rules, truthful warning copy, proactive Next gating, font deviations and remaining backend/UI gaps.
+
+The latest user ordering defers every new, expanded or ported Rust test, including inline/temporary/custom Rust harnesses, until full C# feature parity. Preserve existing tests and historical evidence; obsolete worker fixture API adaptation is deferred. Earlier ledger references to future test creation do not override this ruling. Use authorized production builds and direct disposable CLI/native evidence now; production-only builds do not prove test-target compilation.
+
 Objective: **Full C# feature parity**. This ledger does not reduce that objective to the first Rust implementation. No domain is complete merely because it compiles, loads its metadata, or passes a narrow test. New findings expand the ledger.
 
 Reference: ModSync `d31ccbd3bfcddb4705917eafa6483715c166de3b` in the supplied C# worktree. `reference.json` records tracked source, tests, knowledgebase, and integration paths with their Git object IDs. It is a discovery index, not an implementation checklist. Reconcile reference changes before the final audit.

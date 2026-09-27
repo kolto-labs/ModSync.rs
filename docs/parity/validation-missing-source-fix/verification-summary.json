@@ -1,0 +1,222 @@
+{
+  "invocations": 80,
+  "report_invocations": 55,
+  "all_reports_unchanged": true,
+  "strict_rejections": [
+    {
+      "name": "native-strict-install",
+      "exit": 1,
+      "game_mod_unchanged": true,
+      "added": [
+        ".modsync-b15132d86b565ad6",
+        ".modsync-lock-0cb277ad60c64e48",
+        ".modsync-lock-b15132d86b565ad6"
+      ],
+      "no_snapshot_pending_or_promotion": true,
+      "stdout_empty": true
+    },
+    {
+      "name": "copy-modDirectory-literal-install",
+      "exit": 1,
+      "game_mod_unchanged": true,
+      "added": [
+        ".modsync-bc4289af410361c2",
+        ".modsync-lock-bc4289af410361c2",
+        ".modsync-lock-dd8e7371f7dbd55f"
+      ],
+      "no_snapshot_pending_or_promotion": true,
+      "stdout_empty": true
+    },
+    {
+      "name": "copy-modDirectory-glob-install",
+      "exit": 1,
+      "game_mod_unchanged": true,
+      "added": [
+        ".modsync-f86ae8ecf4123b9f",
+        ".modsync-lock-6cad18721992fdc3",
+        ".modsync-lock-f86ae8ecf4123b9f"
+      ],
+      "no_snapshot_pending_or_promotion": true,
+      "stdout_empty": true
+    },
+    {
+      "name": "copy-gameDirectory-literal-install",
+      "exit": 1,
+      "game_mod_unchanged": true,
+      "added": [
+        ".modsync-795a2deb461346ae",
+        ".modsync-lock-795a2deb461346ae",
+        ".modsync-lock-91d183de9484984e"
+      ],
+      "no_snapshot_pending_or_promotion": true,
+      "stdout_empty": true
+    },
+    {
+      "name": "copy-gameDirectory-glob-install",
+      "exit": 1,
+      "game_mod_unchanged": true,
+      "added": [
+        ".modsync-83f24ab76d7a4346",
+        ".modsync-lock-53bc9b3e367b9b16",
+        ".modsync-lock-83f24ab76d7a4346"
+      ],
+      "no_snapshot_pending_or_promotion": true,
+      "stdout_empty": true
+    },
+    {
+      "name": "copy-kotorDirectory-literal-install",
+      "exit": 1,
+      "game_mod_unchanged": true,
+      "added": [
+        ".modsync-bbafe0a986e23a5c",
+        ".modsync-lock-5553d099abe33b8e",
+        ".modsync-lock-bbafe0a986e23a5c"
+      ],
+      "no_snapshot_pending_or_promotion": true,
+      "stdout_empty": true
+    },
+    {
+      "name": "copy-kotorDirectory-glob-install",
+      "exit": 1,
+      "game_mod_unchanged": true,
+      "added": [
+        ".modsync-9616cfd6afbd4a0a",
+        ".modsync-lock-9616cfd6afbd4a0a",
+        ".modsync-lock-b98a0498c16ed627"
+      ],
+      "no_snapshot_pending_or_promotion": true,
+      "stdout_empty": true
+    },
+    {
+      "name": "move-modDirectory-literal-install",
+      "exit": 1,
+      "game_mod_unchanged": true,
+      "added": [
+        ".modsync-79ca35917197b7d5",
+        ".modsync-lock-556348de8ee217c0",
+        ".modsync-lock-79ca35917197b7d5"
+      ],
+      "no_snapshot_pending_or_promotion": true,
+      "stdout_empty": true
+    },
+    {
+      "name": "move-modDirectory-glob-install",
+      "exit": 1,
+      "game_mod_unchanged": true,
+      "added": [
+        ".modsync-6be8371f5c73b501",
+        ".modsync-lock-6be8371f5c73b501",
+        ".modsync-lock-ad358b9cc82f7d33"
+      ],
+      "no_snapshot_pending_or_promotion": true,
+      "stdout_empty": true
+    },
+    {
+      "name": "move-gameDirectory-literal-install",
+      "exit": 1,
+      "game_mod_unchanged": true,
+      "added": [
+        ".modsync-9c7ee4f15ce6b28b",
+        ".modsync-lock-9c7ee4f15ce6b28b",
+        ".modsync-lock-b85f9ac3f8098590"
+      ],
+      "no_snapshot_pending_or_promotion": true,
+      "stdout_empty": true
+    },
+    {
+      "name": "move-gameDirectory-glob-install",
+      "exit": 1,
+      "game_mod_unchanged": true,
+      "added": [
+        ".modsync-47bb9ed3aff5e5cf",
+        ".modsync-lock-47bb9ed3aff5e5cf",
+        ".modsync-lock-8402afdd5376e4a3"
+      ],
+      "no_snapshot_pending_or_promotion": true,
+      "stdout_empty": true
+    },
+    {
+      "name": "move-kotorDirectory-literal-install",
+      "exit": 1,
+      "game_mod_unchanged": true,
+      "added": [
+        ".modsync-63caf7be9b21ba5d",
+        ".modsync-lock-63caf7be9b21ba5d",
+        ".modsync-lock-79bbdf9f5b8a6b3e"
+      ],
+      "no_snapshot_pending_or_promotion": true,
+      "stdout_empty": true
+    },
+    {
+      "name": "move-kotorDirectory-glob-install",
+      "exit": 1,
+      "game_mod_unchanged": true,
+      "added": [
+        ".modsync-0bd7bcd23d859aff",
+        ".modsync-lock-0bd7bcd23d859aff",
+        ".modsync-lock-a620a6be6bfc2944"
+      ],
+      "no_snapshot_pending_or_promotion": true,
+      "stdout_empty": true
+    },
+    {
+      "name": "skip-tail-install",
+      "exit": 1,
+      "game_mod_unchanged": true,
+      "added": [
+        ".modsync-ca62b30b9227fb91",
+        ".modsync-lock-6e284849797077dd",
+        ".modsync-lock-ca62b30b9227fb91"
+      ],
+      "no_snapshot_pending_or_promotion": true,
+      "stdout_empty": true
+    },
+    {
+      "name": "retain-prefix-install",
+      "exit": 1,
+      "game_mod_unchanged": true,
+      "added": [
+        ".modsync-7a614e8a1f57333e",
+        ".modsync-lock-7a614e8a1f57333e",
+        ".modsync-lock-95bce3a2c30ccb26"
+      ],
+      "no_snapshot_pending_or_promotion": true,
+      "stdout_empty": true
+    },
+    {
+      "name": "suppress-provisional-warning-install",
+      "exit": 1,
+      "game_mod_unchanged": true,
+      "added": [
+        ".modsync-ce3b8592771bb832",
+        ".modsync-lock-ce3b8592771bb832",
+        ".modsync-lock-d5b669986e1e3381"
+      ],
+      "no_snapshot_pending_or_promotion": true,
+      "stdout_empty": true
+    },
+    {
+      "name": "exact-install-reject",
+      "exit": 1,
+      "game_mod_unchanged": true,
+      "added": [
+        ".modsync-b04d9eebb94f7623",
+        ".modsync-lock-63ad53fd7b11c35c",
+        ".modsync-lock-b04d9eebb94f7623"
+      ],
+      "no_snapshot_pending_or_promotion": true,
+      "stdout_empty": true
+    },
+    {
+      "name": "remaining-install-reject",
+      "exit": 1,
+      "game_mod_unchanged": true,
+      "added": [],
+      "no_snapshot_pending_or_promotion": true,
+      "stdout_empty": true
+    }
+  ],
+  "source_hashes_unchanged_across_build": true,
+  "source_hashes_current_match": true,
+  "binary_hashes_current_match": true
+}

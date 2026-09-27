@@ -1,0 +1,66 @@
+{
+  "success": true,
+  "exitCode": 0,
+  "errorCount": 0,
+  "warningCount": 1,
+  "passedCount": 5,
+  "componentCount": 1,
+  "inputPath": "/tmp/modsync-task1b-proof-whg3rfzj/final-glob-missing/guide.json",
+  "stages": [
+    {
+      "stage": "Environment",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "Passed"
+    },
+    {
+      "stage": "Conflicts",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "No dependency or restriction conflicts."
+    },
+    {
+      "stage": "InstallOrder",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "Install order is correct."
+    },
+    {
+      "stage": "ComponentValidation",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "All components passed archive validation.",
+      "messages": [
+        "OK: Fixture"
+      ]
+    },
+    {
+      "stage": "FomodConfiguration",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "All detected FOMOD archives are configured."
+    },
+    {
+      "stage": "DryRun",
+      "passed": true,
+      "hasWarnings": true,
+      "summary": "⚠ Validation passed with 1 warning(s).\n\nYou may proceed, but review the following warnings:\n",
+      "messages": [
+        "WARNING: [DryRunSkipped] Skipped 'Fixture' during dry-run: source archives or files are not available."
+      ]
+    }
+  ],
+  "dryRun": {
+    "isValid": true,
+    "hasWarnings": true,
+    "issues": [
+      {
+        "severity": "Warning",
+        "category": "DryRunSkipped",
+        "message": "Skipped 'Fixture' during dry-run: source archives or files are not available.",
+        "componentName": "Fixture",
+        "componentGuid": "11111111-1111-1111-1111-111111111111"
+      }
+    ]
+  }
+}

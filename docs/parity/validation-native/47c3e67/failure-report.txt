@@ -1,0 +1,19 @@
+ModSync — Validation Report
+Generated (UTC): 2026-09-27 12:43:42
+
+❌ Validation Failed
+Please resolve all critical errors before continuing. Check the results above for details.
+
+Errors: 1  Warnings: 0  Passed checks: 0
+
+--- Results ---
+❌ Environment Error
+Failed
+
+--- Log ---
+Starting validation...
+Step 1: Validating installation environment
+  An unfinished install exists. Run restore before retrying. Recovery: /tmp/modsync-rust-validation-task2/.modsync-775e3ebc1dc3ee7e
+  ❌ Environment validation failed: Failed
+Validation completed in 0.2 seconds
+❌ Validation failed

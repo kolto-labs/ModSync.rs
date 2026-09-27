@@ -1,0 +1,47 @@
+{
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 1,
+  "warningCount": 0,
+  "passedCount": 4,
+  "componentCount": 1,
+  "inputPath": "/tmp/modsync-task1b-fix1-zr4fi9pu/configured-parent-only/guide.json",
+  "stages": [
+    {
+      "stage": "Environment",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "Passed"
+    },
+    {
+      "stage": "Conflicts",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "No dependency or restriction conflicts."
+    },
+    {
+      "stage": "InstallOrder",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "Install order is correct."
+    },
+    {
+      "stage": "ComponentValidation",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "All components passed archive validation.",
+      "messages": [
+        "OK: Fixture"
+      ]
+    },
+    {
+      "stage": "FomodConfiguration",
+      "passed": false,
+      "hasWarnings": false,
+      "summary": "Failed",
+      "messages": [
+        "FOMOD archive 'package.zip' has no explicit FomodChoices configuration"
+      ]
+    }
+  ]
+}

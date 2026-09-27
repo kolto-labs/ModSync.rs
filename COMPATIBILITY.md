@@ -1,5 +1,13 @@
 # Compatibility and proof boundaries
 
+## Validation shared pipeline and dedicated page — 2026-09-27
+
+The shared library now exposes pure report presentation and genuine typed stage progress without changing raw Report JSON or ordinary Event contracts. Shared full-report Conflicts checks declared restrictions/dependencies; ComponentValidation checks archive/destination availability; typed ordinary missing Copy/Move/Extract sources become component-scoped dry-run skip warnings. Missing Copy now measures0 errors/1 warning/5 passed, matching pinned native C#, while strict installation, ordinary validate, standalone file conflicts, FOMOD known-state failures and remaining receipt verification retain their guards. Shared corrections are approved through88b2dd9. Registry auto-extraction, Move remapping/fallback and broader resolver parity remain incomplete.
+
+Desktop `src/ui/validation_page.rs` consumes these shared contracts through run/input-bound workers. Dedicated log/results, copy, first-issue, reset/Stop and theme controls are implemented through47c3e67; utilities remain reachable. The bounded final native matrix and source-bound package are now [archived](docs/parity/validation-native/README.md); final integrated review remains pending. Latest600×400 Stop/cancel proof is confirmed for47c3e67; older captures remain tied to556b165 or5548736. Exact C# GUI/clipboard/typography/accessibility parity is not established.
+
+[Integration contracts and evidence boundaries](docs/parity/validation-page-integration.md) record truthful warning footer wording, raw JSON versus pure solution fallback, proactive Next gating and monochrome-font deviations. They also preserve the correction from historically inferred full2/0/4 to actually measured pre-fix full3/0/3 (partial2/0/1). The user has deferred all new/expanded/ported Rust tests, including obsolete inline worker fixture adaptations, until full parity. Existing tests remain; production-only build evidence is not an all-target/test compilation claim.
+
 CLI `validate`, `conflicts`, and `install` now expose `--phase all|base|remaining`
 (default `all`) through the same preparation API used by desktop workers. Remaining
 conflicts verify completion roots, serialized definitions and game hashes in the

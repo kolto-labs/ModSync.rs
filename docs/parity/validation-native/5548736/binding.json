@@ -1,0 +1,9 @@
+{
+  "commit": "554873694a933be3badb02e05b2ce0f1b59ae0b8",
+  "binary_sha256": "0987766e1fd12c6c81aec8437ec45b082805bfae4eabd17d75891b03fcf95446",
+  "source_sha256": {
+    "src/ui.rs": "fcc500890929441bf59f99d472a48fe5eb8890bba8b717b5b5c70ab8916ca31d",
+    "src/ui/validation_page.rs": "0f60df993c1e8918af90e02f4c63376d617fb482bb071ec73fef18b9c068b1e1"
+  },
+  "test_tail_unchanged": true
+}

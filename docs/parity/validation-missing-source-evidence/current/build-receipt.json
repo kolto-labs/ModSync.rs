@@ -1,0 +1,37 @@
+{
+  "head_before": "9d77f4ba9955ea505d3eb7969afdf5b5aee73b72",
+  "source_sha256_before": {
+    "Cargo.toml": "048cdee72040f02acde7431f66ee978843ce005dfebe66d5d2c2ed8774858cb8",
+    "Cargo.lock": "7ff8f003581c5fce3433f9438044b9dc3850adb26f2b05daf8bb908cd6a4dc8f",
+    "src/main.rs": "3890fd2b3736d93849f31839d84c21e0b4f7fb0aafe9af30c4ea9306b9338b4f",
+    "src/engine.rs": "dbb30eee5ca67842c10a0b88db7297cadeedf8517aca0e9cc6f92bafacb54970",
+    "src/validation.rs": "d8f5e35deb08d1b5e89670f095442a030978a19187d1b9481a0cbcfba72045b7",
+    "src/phase.rs": "de3a6a526898c42fc8dad9a48565d7943c20012a6e9cb8d9df176132a4d905a3",
+    "src/paths.rs": "a5c719d40ec7c14770ec4d4a0f367a27fdd0d316db20bf3da25f32a8b09231c3",
+    "src/archive.rs": "c8b9e88416a8a0607c8246f787f791ab562ffe5553019e54362c478acfcd67c2"
+  },
+  "command": [
+    "cargo",
+    "build",
+    "-j2"
+  ],
+  "cwd": "/run/media/brunner56/MyBook/Workspaces/ModSync.rs",
+  "env_overrides": {
+    "CARGO_TARGET_DIR": "/tmp/modsync-rs-target"
+  },
+  "started_utc": "2026-09-27T11:05:20.406501+00:00",
+  "exit": 0,
+  "finished_utc": "2026-09-27T11:05:28.769561+00:00",
+  "head_after": "9d77f4ba9955ea505d3eb7969afdf5b5aee73b72",
+  "source_sha256_after": {
+    "Cargo.toml": "048cdee72040f02acde7431f66ee978843ce005dfebe66d5d2c2ed8774858cb8",
+    "Cargo.lock": "7ff8f003581c5fce3433f9438044b9dc3850adb26f2b05daf8bb908cd6a4dc8f",
+    "src/main.rs": "3890fd2b3736d93849f31839d84c21e0b4f7fb0aafe9af30c4ea9306b9338b4f",
+    "src/engine.rs": "dbb30eee5ca67842c10a0b88db7297cadeedf8517aca0e9cc6f92bafacb54970",
+    "src/validation.rs": "d8f5e35deb08d1b5e89670f095442a030978a19187d1b9481a0cbcfba72045b7",
+    "src/phase.rs": "de3a6a526898c42fc8dad9a48565d7943c20012a6e9cb8d9df176132a4d905a3",
+    "src/paths.rs": "a5c719d40ec7c14770ec4d4a0f367a27fdd0d316db20bf3da25f32a8b09231c3",
+    "src/archive.rs": "c8b9e88416a8a0607c8246f787f791ab562ffe5553019e54362c478acfcd67c2"
+  },
+  "build_log_sha256": "a9155ff9e8345287232c45eb284f00d7779c6516bea29d616aafb9b2db5b80a1"
+}

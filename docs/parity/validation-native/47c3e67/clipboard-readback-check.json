@@ -1,0 +1,23 @@
+{
+  "clean": {
+    "sha256": "741abd57984bac811398cfb1b3d5a0c83a50b68769c2ab0c47ddecd22130a983",
+    "bytes": 1015,
+    "matches_initial_complete_report_except_timestamp_duration": true,
+    "has_no_trailing_newline": true,
+    "valid_utc_header": true
+  },
+  "warning": {
+    "sha256": "a5ab031c0e7f0b182feb8f37ab7bf4779819eb9a26c2b54ff84c10353af73fc9",
+    "bytes": 1198,
+    "matches_initial_complete_report_except_timestamp_duration": true,
+    "has_no_trailing_newline": true,
+    "valid_utc_header": true
+  },
+  "failure": {
+    "sha256": "9e435fdb60648c4a62f03cc85c19fa8b34175bba0af941950b435e347f380e82",
+    "bytes": 582,
+    "matches_initial_complete_report_except_timestamp_duration": true,
+    "has_no_trailing_newline": true,
+    "valid_utc_header": true
+  }
+}

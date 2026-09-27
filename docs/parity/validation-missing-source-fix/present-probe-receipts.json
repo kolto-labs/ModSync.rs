@@ -1,0 +1,617 @@
+{
+  "binary_sha256": "cd73469c04c75fc66c8cb5eccc1580f7696f15544c8671dd94170f281777353b",
+  "runs": [
+    {
+      "name": "present-Copy-modDirectory",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/present-Copy-modDirectory/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/present-Copy-modDirectory/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/present-Copy-modDirectory/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "before": {
+        "game": {
+          "type": "directory"
+        },
+        "game/Override": {
+          "type": "directory"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "sha256": "ff6eb3930250d3423965eb7e0030f9b1b2726f86dfd3d56a9ed80904eafc8e20"
+        },
+        "mods": {
+          "type": "directory"
+        },
+        "mods/input.dat": {
+          "type": "file",
+          "sha256": "6e5b17be6f40cf3544bee844dcca68a03350f367f7fac6833dc859c117d866a4"
+        }
+      },
+      "after": {
+        "game": {
+          "type": "directory"
+        },
+        "game/Override": {
+          "type": "directory"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "sha256": "ff6eb3930250d3423965eb7e0030f9b1b2726f86dfd3d56a9ed80904eafc8e20"
+        },
+        "mods": {
+          "type": "directory"
+        },
+        "mods/input.dat": {
+          "type": "file",
+          "sha256": "6e5b17be6f40cf3544bee844dcca68a03350f367f7fac6833dc859c117d866a4"
+        }
+      },
+      "unchanged": true,
+      "counts": {
+        "success": true,
+        "errorCount": 0,
+        "warningCount": 0,
+        "passedCount": 6
+      },
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/input.dat"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "guide_sha256": "ff6eb3930250d3423965eb7e0030f9b1b2726f86dfd3d56a9ed80904eafc8e20"
+    },
+    {
+      "name": "present-Copy-gameDirectory",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/present-Copy-gameDirectory/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/present-Copy-gameDirectory/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/present-Copy-gameDirectory/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "before": {
+        "game": {
+          "type": "directory"
+        },
+        "game/Override": {
+          "type": "directory"
+        },
+        "game/input.dat": {
+          "type": "file",
+          "sha256": "6e5b17be6f40cf3544bee844dcca68a03350f367f7fac6833dc859c117d866a4"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "sha256": "ff72990c4a41583571f9a6ccad9071e123f3bae054b79e36971c904e2c49dc6b"
+        },
+        "mods": {
+          "type": "directory"
+        }
+      },
+      "after": {
+        "game": {
+          "type": "directory"
+        },
+        "game/Override": {
+          "type": "directory"
+        },
+        "game/input.dat": {
+          "type": "file",
+          "sha256": "6e5b17be6f40cf3544bee844dcca68a03350f367f7fac6833dc859c117d866a4"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "sha256": "ff72990c4a41583571f9a6ccad9071e123f3bae054b79e36971c904e2c49dc6b"
+        },
+        "mods": {
+          "type": "directory"
+        }
+      },
+      "unchanged": true,
+      "counts": {
+        "success": true,
+        "errorCount": 0,
+        "warningCount": 0,
+        "passedCount": 6
+      },
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<gameDirectory>>/input.dat"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "guide_sha256": "ff72990c4a41583571f9a6ccad9071e123f3bae054b79e36971c904e2c49dc6b"
+    },
+    {
+      "name": "present-Copy-kotorDirectory",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/present-Copy-kotorDirectory/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/present-Copy-kotorDirectory/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/present-Copy-kotorDirectory/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "before": {
+        "game": {
+          "type": "directory"
+        },
+        "game/Override": {
+          "type": "directory"
+        },
+        "game/input.dat": {
+          "type": "file",
+          "sha256": "6e5b17be6f40cf3544bee844dcca68a03350f367f7fac6833dc859c117d866a4"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "sha256": "2d4e27ac24f64b8f44eb5c2e378767254d80c49d164df9530b3d77748a18e263"
+        },
+        "mods": {
+          "type": "directory"
+        }
+      },
+      "after": {
+        "game": {
+          "type": "directory"
+        },
+        "game/Override": {
+          "type": "directory"
+        },
+        "game/input.dat": {
+          "type": "file",
+          "sha256": "6e5b17be6f40cf3544bee844dcca68a03350f367f7fac6833dc859c117d866a4"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "sha256": "2d4e27ac24f64b8f44eb5c2e378767254d80c49d164df9530b3d77748a18e263"
+        },
+        "mods": {
+          "type": "directory"
+        }
+      },
+      "unchanged": true,
+      "counts": {
+        "success": true,
+        "errorCount": 0,
+        "warningCount": 0,
+        "passedCount": 6
+      },
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<kotorDirectory>>/input.dat"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "guide_sha256": "2d4e27ac24f64b8f44eb5c2e378767254d80c49d164df9530b3d77748a18e263"
+    },
+    {
+      "name": "present-Move-modDirectory",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/present-Move-modDirectory/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/present-Move-modDirectory/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/present-Move-modDirectory/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "before": {
+        "game": {
+          "type": "directory"
+        },
+        "game/Override": {
+          "type": "directory"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "sha256": "8f9d1f4375da643eba42ad99210fde504fa1ede93bbfd9cd49138fc36efb73d7"
+        },
+        "mods": {
+          "type": "directory"
+        },
+        "mods/input.dat": {
+          "type": "file",
+          "sha256": "6e5b17be6f40cf3544bee844dcca68a03350f367f7fac6833dc859c117d866a4"
+        }
+      },
+      "after": {
+        "game": {
+          "type": "directory"
+        },
+        "game/Override": {
+          "type": "directory"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "sha256": "8f9d1f4375da643eba42ad99210fde504fa1ede93bbfd9cd49138fc36efb73d7"
+        },
+        "mods": {
+          "type": "directory"
+        },
+        "mods/input.dat": {
+          "type": "file",
+          "sha256": "6e5b17be6f40cf3544bee844dcca68a03350f367f7fac6833dc859c117d866a4"
+        }
+      },
+      "unchanged": true,
+      "counts": {
+        "success": true,
+        "errorCount": 0,
+        "warningCount": 0,
+        "passedCount": 6
+      },
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Move",
+              "Source": [
+                "<<modDirectory>>/input.dat"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "guide_sha256": "8f9d1f4375da643eba42ad99210fde504fa1ede93bbfd9cd49138fc36efb73d7"
+    },
+    {
+      "name": "present-Move-gameDirectory",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/present-Move-gameDirectory/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/present-Move-gameDirectory/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/present-Move-gameDirectory/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "before": {
+        "game": {
+          "type": "directory"
+        },
+        "game/Override": {
+          "type": "directory"
+        },
+        "game/input.dat": {
+          "type": "file",
+          "sha256": "6e5b17be6f40cf3544bee844dcca68a03350f367f7fac6833dc859c117d866a4"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "sha256": "e110648edd7ab4c58388ebf75bfc126f22e9e74c8de25e6074b9911e2f3ee8a7"
+        },
+        "mods": {
+          "type": "directory"
+        }
+      },
+      "after": {
+        "game": {
+          "type": "directory"
+        },
+        "game/Override": {
+          "type": "directory"
+        },
+        "game/input.dat": {
+          "type": "file",
+          "sha256": "6e5b17be6f40cf3544bee844dcca68a03350f367f7fac6833dc859c117d866a4"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "sha256": "e110648edd7ab4c58388ebf75bfc126f22e9e74c8de25e6074b9911e2f3ee8a7"
+        },
+        "mods": {
+          "type": "directory"
+        }
+      },
+      "unchanged": true,
+      "counts": {
+        "success": true,
+        "errorCount": 0,
+        "warningCount": 0,
+        "passedCount": 6
+      },
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Move",
+              "Source": [
+                "<<gameDirectory>>/input.dat"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "guide_sha256": "e110648edd7ab4c58388ebf75bfc126f22e9e74c8de25e6074b9911e2f3ee8a7"
+    },
+    {
+      "name": "present-Move-kotorDirectory",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/present-Move-kotorDirectory/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/present-Move-kotorDirectory/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/present-Move-kotorDirectory/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "before": {
+        "game": {
+          "type": "directory"
+        },
+        "game/Override": {
+          "type": "directory"
+        },
+        "game/input.dat": {
+          "type": "file",
+          "sha256": "6e5b17be6f40cf3544bee844dcca68a03350f367f7fac6833dc859c117d866a4"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "sha256": "fbb0c29c46a2ec5ecde6fdb1ee2c04301fbee2c1824bbeb436fc09ae9e7b8727"
+        },
+        "mods": {
+          "type": "directory"
+        }
+      },
+      "after": {
+        "game": {
+          "type": "directory"
+        },
+        "game/Override": {
+          "type": "directory"
+        },
+        "game/input.dat": {
+          "type": "file",
+          "sha256": "6e5b17be6f40cf3544bee844dcca68a03350f367f7fac6833dc859c117d866a4"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "sha256": "fbb0c29c46a2ec5ecde6fdb1ee2c04301fbee2c1824bbeb436fc09ae9e7b8727"
+        },
+        "mods": {
+          "type": "directory"
+        }
+      },
+      "unchanged": true,
+      "counts": {
+        "success": true,
+        "errorCount": 0,
+        "warningCount": 0,
+        "passedCount": 6
+      },
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Move",
+              "Source": [
+                "<<kotorDirectory>>/input.dat"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "guide_sha256": "fbb0c29c46a2ec5ecde6fdb1ee2c04301fbee2c1824bbeb436fc09ae9e7b8727"
+    }
+  ]
+}

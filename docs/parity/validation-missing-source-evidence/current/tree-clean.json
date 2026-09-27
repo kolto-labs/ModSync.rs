@@ -1,0 +1,26 @@
+{
+  "game": {
+    "kind": "directory"
+  },
+  "game/Override": {
+    "kind": "directory"
+  },
+  "game/swkotor.exe": {
+    "kind": "file",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "guide.json": {
+    "kind": "file",
+    "bytes": 635,
+    "sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b"
+  },
+  "mods": {
+    "kind": "directory"
+  },
+  "mods/sample.tga": {
+    "kind": "file",
+    "bytes": 14,
+    "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+  }
+}

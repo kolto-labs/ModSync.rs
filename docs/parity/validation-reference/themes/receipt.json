@@ -1,0 +1,122 @@
+{
+  "timestamp_utc": "2026-09-27T12:02:24.348501+00:00",
+  "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+  "reference_status": "",
+  "source_sha256": {
+    "src/ModSync.GUI/Models/AppSettings.cs": "4967bea5e804e96ed71996df8c5b972c53ddaabd9c2f93a917c3d323762b5d5a",
+    "src/ModSync.GUI/Controls/WizardHostControl.axaml": "6687077f0ab308ee0d3aa7c880179f98d5bfc8209d465c9dfa3ca75a45e9b5db",
+    "src/ModSync.GUI/Controls/WizardHostControl.axaml.cs": "f72cebf61e3dca379710c58f3186e201778032310ee047a215d4c9d4fa4a977b",
+    "src/ModSync.GUI/Services/ThemeService.cs": "44e7750f0cb362899a436b300155053c37d9c5dd8422f156769a54ca14e42d5d",
+    "src/ModSync.GUI/ThemeManager.cs": "f9af32b0fa8881d83abb0570286a9197832bddc7c4899b19cb2f1c4a738464ca",
+    "src/ModSync.GUI/Styles/LightStyle.axaml": "12b2951118906550a67dd02b2cdd37fb3ea6b0c7ce97490eeeec225c89aa1812",
+    "src/ModSync.GUI/Styles/KotorStyle.axaml": "efa1104d95b91c262ff4b87fdcdae8d70c9960f562a30314e274aba0fa4f98ba",
+    "src/ModSync.GUI/Styles/Kotor2Style.axaml": "dfb1875f62fa8f676b7861e69ef315706a874ef6481a5cad35e28c9dab3a6d79",
+    "src/ModSync.GUI/Dialogs/WizardPages/ValidatePage.axaml": "481ce6550143cb5fea2dbfcd6f316649eae3189e63ed47d7985389a3bb0f928f",
+    "src/ModSync.GUI/Dialogs/WizardPages/ValidatePage.axaml.cs": "a996c30536611f80fdbe4f8153715efd6aa6fcfaadc6fcad165cb6fc04cc2721"
+  },
+  "binary_sha256": {
+    "ModSync.dll": "fbd5164771bceb732018b47215490d94f7e8944689c86c015bbf14819c2bfd2d",
+    "ModSync.Core.dll": "89d9b2361aee4364f95151b41db59a4133122a6ad41bc2703e232cf10a4f5a6b",
+    "Resources/holopatcher": "fdd470570a82df58be8913074133ab13ba94a874e69d66b0592ebe3f5af230c5"
+  },
+  "runtime_host_sha256": "3fd639f33f8b3449784e1216b641aba8546bdf1d56a25303bb16fd986a26733e",
+  "native_pid": 1808378,
+  "bus_wrapper_pid": 1808199,
+  "xvfb_pid": 1802139,
+  "launch_cmdline": [
+    "dotnet",
+    "/tmp/modsync-validation-themes-20260927-5813/app/ModSync.dll",
+    "--instructionFile=/tmp/modsync-validation-themes-20260927-5813/fixture/guide.json",
+    "--kotorPath=/tmp/modsync-validation-themes-20260927-5813/fixture/game",
+    "--modDirectory=/tmp/modsync-validation-themes-20260927-5813/fixture/mods",
+    "--allow-multiple-instances"
+  ],
+  "environment": {
+    "DISPLAY": ":1",
+    "XDG_SESSION_TYPE": "x11",
+    "XDG_CONFIG_HOME": "/tmp/modsync-validation-themes-20260927-5813/fixture/config",
+    "XDG_DATA_HOME": "/tmp/modsync-validation-themes-20260927-5813/fixture/data",
+    "XDG_CACHE_HOME": "/tmp/modsync-validation-themes-20260927-5813/fixture/cache",
+    "XDG_RUNTIME_DIR": "/tmp/modsync-validation-themes-20260927-5813/fixture/runtime",
+    "DBUS_SESSION_BUS_ADDRESS": "unix:path=/tmp/dbus-UUiPdUfrhw,guid=19b049b82ec5aafa5b6e7d8b6ab90430"
+  },
+  "window_id": "0x800013",
+  "window_pid_property": 1808378,
+  "screen": "1280x900x24",
+  "client": "1280x800 at0,0",
+  "scale": "default1x; native client geometry confirmed; no highDPI test",
+  "settings_isolation": "Runtime log confirms SettingsManager.LoadSettings from /tmp/modsync-validation-themes-20260927-5813/fixture/config/ModSync/settings.json; no HOME/CODEX_HOME changes. Active WizardHost theme buttons apply ThemeService without saving/reloading page. MainWindow persistence, if invoked, resolves the same isolated ApplicationData path.",
+  "fixture_guide_sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b",
+  "fixture_initial_files": {
+    "game/swkotor.exe": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "warning_fixture": "One selected Copy; sample.tga absent; native0errors1warning5passed",
+  "failure_fixture": "Restored sample.tga then removed only owned runtime copy Resources/holopatcher symlink; native1error0warnings0passed. Symlink restored afterward.",
+  "fixture_source_sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be",
+  "theme_input_route": [
+    "K1 button at1199,87 applied/Styles/KotorStyle.axaml",
+    "Run Validation produced missing-source warning",
+    "K2 button at1234,87 applied/Styles/Kotor2Style.axaml retaining warning result",
+    "Owned fixture restored source, owned app symlink removed; Run Validation produced environment failure inK2",
+    "K1 applied retaining failure result",
+    "K2 applied retaining failure result",
+    "Patcher restored, source removed; K1 applied, Run Validation repeated warning for stable captures"
+  ],
+  "nonmutation": {
+    "warning_initial_equals_after_warning": true,
+    "failure_before_equals_after": true,
+    "final_warning_equals_after_warning": true
+  },
+  "font_evidence": {
+    "scope": "source styles and host fontconfig only; not actual per-glyph runtime font trace",
+    "TextBox/ComboBox": "Light Segoe UI; K1/K2 Verdana",
+    "ValidatePage_log": "Consolas,Courier New,monospace 11",
+    "fc_match": {
+      "Verdana": "NotoSans-Regular.ttf",
+      "Segoe UI": "InterVariable.ttf",
+      "Consolas": "NotoSansMono-Regular.ttf"
+    },
+    "runtime_mapped_font_files": [
+      "/usr/share/fonts/bitstream-vera-sans-fonts/Vera.ttf",
+      "/usr/share/fonts/bitstream-vera-sans-fonts/VeraBd.ttf",
+      "/usr/share/fonts/dejavu-sans-fonts/DejaVuSans.ttf",
+      "/usr/share/fonts/fontawesome-6-free-fonts/Font Awesome 6 Free-Regular-400.otf",
+      "/usr/share/fonts/gdouros-symbola/Symbola.ttf",
+      "/usr/share/fonts/liberation-mono-fonts/LiberationMono-Regular.ttf"
+    ]
+  },
+  "limitations": [
+    "Theme presentation evidence only; no Rust equivalence claim",
+    "Only Light(default prior run), K1 and K2 at1280x800 default1x; no otherDPI/minimumsize/platform/accessibility proof",
+    "Warning/failure results retained across native theme toggles; failure run inK2 and warning runs inK1",
+    "Native clipboard report not retried in this theme-only extension",
+    "Outer host scroll still clips validation log/cards and right download sidebar",
+    "One initial homebrew DBus launch stalled in diskIO; replacement used system /usr/bin/dbus-run-session and /usr/bin/dbus-daemon. The transient owned original app was terminated before navigation/theme actions.",
+    "Severity borders preserved; exact themed font rendering not inferred solely from fc-match"
+  ],
+  "artifacts_sha256": {
+    "README.md": "e4ac1c066c18d52d002a17b4670a29da7531417caa124b3b2b8e821f15e7c787",
+    "app-native-bus.log": "af186a5e61b039aef68cf9be2703e98de78e3fc642f588c30e353b9da44a61f8",
+    "guide.json": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b",
+    "k1-failure-summary.png": "9a2cf83367fd0731f494fc93c4afe79ad7604d7474766035f8c9f7f43b759390",
+    "k1-failure-top.png": "f0fe1655f177b4dec36116b32edc762b5355b6594349c8a87148888eaec6f95e",
+    "k1-idle.png": "49ecf7c8ea88f3a162d6777aaeb1b38dfe44911f970b1e6a7787b6fa1803c08a",
+    "k1-running.png": "aee0a374c6ee5a2a12aead7512a329976369bc6a320f5d8f2e9add0c42219789",
+    "k1-warning-card.png": "1dd6aca20451a621e320cdc77f74bc0db6ae780cc84cacd87725856e6b72d41e",
+    "k1-warning-summary.png": "77398633702e090e8859666ede0a6a948b37bf695562f85852bed7aeeee5daed",
+    "k1-warning-top-final.png": "35d69c577317a81d6dbdd883c58e9a5fc44b351825857a81d453368941b76620",
+    "k2-failure-summary.png": "4baef0fa422b7bc83d25268abc0aad6dadbd323d9389587b4835e82e0fd289b2",
+    "k2-failure-top.png": "a162373555e488aecca7256d0780fa6359ec8bb8c8be21a90863c0f2bac39054",
+    "k2-warning-card.png": "92c7eee9610955cfae71e75e1219e042ecccfd1d9b28d6d556bfc23b2e874a06",
+    "k2-warning-summary.png": "1942f650f044aad0049244ca132a43cd70887868f7fd620b6c31f77cf896afc4",
+    "k2-warning-top.png": "581edfedbae817669eee415fbfc58b678452099d462f79371d2434b90544c3fb",
+    "launch-native-bus.json": "6424b598144d44954498feb4adc62d61e84558b1c8ef08ec2aab24b1e2c24bba",
+    "pixel-palettes.json": "96228782582a8255711ebdf48a6214a507a9914e6563b7506fe90e5c1e0a752c",
+    "runtime-font-maps.json": "fba92d462eed9bf711f95dd678743d035d7db47a1e1d560a2d67738766b3ee7c",
+    "tree-after-failure.json": "dfa2b3c6082b3605657451d7031f138f609ed2b5dede3ef5d3fb70a88b01bce4",
+    "tree-after-warning.json": "55b1fdaa348d0165b4a6487cba1729a69423d280d7372264644589f318ca14f1",
+    "tree-before-failure.json": "dfa2b3c6082b3605657451d7031f138f609ed2b5dede3ef5d3fb70a88b01bce4",
+    "tree-final-warning.json": "55b1fdaa348d0165b4a6487cba1729a69423d280d7372264644589f318ca14f1"
+  },
+  "cleanup": "Verified native app1808378, Xvfb1802139, DBuswrapper1808199, and transient app1807297/DBus1805432/1805433 no longer exist. Only owned processes were stopped; app1808378 needed SIGKILL after SIGTERM/display closure."
+}

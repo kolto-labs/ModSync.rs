@@ -1,0 +1,67 @@
+{
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 1,
+  "warningCount": 0,
+  "passedCount": 5,
+  "componentCount": 1,
+  "inputPath": "/tmp/modsync-task1b-proof-whg3rfzj/permission-file/guide.json",
+  "stages": [
+    {
+      "stage": "Environment",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "Passed"
+    },
+    {
+      "stage": "Conflicts",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "No dependency or restriction conflicts."
+    },
+    {
+      "stage": "InstallOrder",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "Install order is correct."
+    },
+    {
+      "stage": "ComponentValidation",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "All components passed archive validation.",
+      "messages": [
+        "OK: Fixture"
+      ]
+    },
+    {
+      "stage": "FomodConfiguration",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "All detected FOMOD archives are configured."
+    },
+    {
+      "stage": "DryRun",
+      "passed": false,
+      "hasWarnings": false,
+      "summary": "✗ Validation failed with 1 error(s) and 0 warning(s).\n\nThe following issues must be resolved before installation:\n",
+      "messages": [
+        "ERROR: [EngineSimulation] Fixture / step 1 (Copy): Permission denied (os error 13)"
+      ]
+    }
+  ],
+  "dryRun": {
+    "isValid": false,
+    "hasWarnings": false,
+    "issues": [
+      {
+        "severity": "Error",
+        "category": "EngineSimulation",
+        "message": "Fixture / step 1 (Copy): Permission denied (os error 13)",
+        "componentName": "Fixture",
+        "componentGuid": "11111111-1111-1111-1111-111111111111",
+        "instructionIndex": 1
+      }
+    ]
+  }
+}

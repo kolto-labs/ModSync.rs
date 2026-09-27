@@ -1,0 +1,67 @@
+{
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 2,
+  "warningCount": 0,
+  "passedCount": 4,
+  "componentCount": 1,
+  "inputPath": "/tmp/modsync-task1b-proof-whg3rfzj/unsafe-destination/guide.json",
+  "stages": [
+    {
+      "stage": "Environment",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "Passed"
+    },
+    {
+      "stage": "Conflicts",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "No dependency or restriction conflicts."
+    },
+    {
+      "stage": "InstallOrder",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "Install order is correct."
+    },
+    {
+      "stage": "ComponentValidation",
+      "passed": false,
+      "hasWarnings": false,
+      "summary": "1 component error(s)",
+      "messages": [
+        "Fixture: archive/destination validation: Unsafe path: ../bad"
+      ]
+    },
+    {
+      "stage": "FomodConfiguration",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "All detected FOMOD archives are configured."
+    },
+    {
+      "stage": "DryRun",
+      "passed": false,
+      "hasWarnings": false,
+      "summary": "✗ Validation failed with 1 error(s) and 0 warning(s).\n\nThe following issues must be resolved before installation:\n",
+      "messages": [
+        "ERROR: [EngineSimulation] Fixture / step 1 (Copy): Unsafe path: ../bad"
+      ]
+    }
+  ],
+  "dryRun": {
+    "isValid": false,
+    "hasWarnings": false,
+    "issues": [
+      {
+        "severity": "Error",
+        "category": "EngineSimulation",
+        "message": "Fixture / step 1 (Copy): Unsafe path: ../bad",
+        "componentName": "Fixture",
+        "componentGuid": "11111111-1111-1111-1111-111111111111",
+        "instructionIndex": 1
+      }
+    ]
+  }
+}

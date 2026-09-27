@@ -1,0 +1,403 @@
+{
+  "product_commit": "47c3e675b93abcbd8660ad84a0b1fdd74b4aad95",
+  "binary_sha256": "5a77c2c24d9f067a1033f60f765ece53a971955a921c6e437f67b9a73eedb34c",
+  "method": "Byte-for-byte copies; no log or clipboard normalization applied to archived originals. Original absolute paths retained for provenance. Large copied executable intentionally omitted.",
+  "files": [
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/app.log",
+      "archived": "47c3e67/app.log",
+      "sha256": "29adcb25587deeb0b525b7ae3cf847a9fec8654ee403ce368061a958257d4956",
+      "bytes": 370
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/clean-report.txt",
+      "archived": "47c3e67/clean-report.txt",
+      "sha256": "741abd57984bac811398cfb1b3d5a0c83a50b68769c2ab0c47ddecd22130a983",
+      "bytes": 1015
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/clean.png",
+      "archived": "47c3e67/clean.png",
+      "sha256": "37dc54aae96df999048c40578762bdde210ae8ee71cebc10c15835165de074a8",
+      "bytes": 74464
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/clipboard-readback-check.json",
+      "archived": "47c3e67/clipboard-readback-check.json",
+      "sha256": "2e6486116dab4732a675aad16483c8443ed5f8d86db1f401258922bc97230ec8",
+      "bytes": 773
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/copy-feedback-expired.png",
+      "archived": "47c3e67/copy-feedback-expired.png",
+      "sha256": "67be2ebf9334d1e262d324bb9758c866efb7dfdd2176cde7c4ee2d57d0cebfd4",
+      "bytes": 74556
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/copy-feedback.png",
+      "archived": "47c3e67/copy-feedback.png",
+      "sha256": "6806e766877f9128e379b5c4af20dad3196e75ab6e14295122347e51fe83f319",
+      "bytes": 74408
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/failure-report.txt",
+      "archived": "47c3e67/failure-report.txt",
+      "sha256": "9e435fdb60648c4a62f03cc85c19fa8b34175bba0af941950b435e347f380e82",
+      "bytes": 582
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/failure.png",
+      "archived": "47c3e67/failure.png",
+      "sha256": "9b8f9504cb4bc70dbc8f25528b27a89bdacd971d90e750b940048e035dbe8500",
+      "bytes": 89662
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/k1-failure-hover.png",
+      "archived": "47c3e67/k1-failure-hover.png",
+      "sha256": "15481cf1d6894599e3847c908c2c561fcb899efbbbad39873810237582d5eb27",
+      "bytes": 124524
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/k2-failure-hover.png",
+      "archived": "47c3e67/k2-failure-hover.png",
+      "sha256": "ec2579354c1fa63ab31cc11b1896bc81c91c460bd6a3dc244d6be25134659fe0",
+      "bytes": 125157
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/k2-failure.png",
+      "archived": "47c3e67/k2-failure.png",
+      "sha256": "3e036cddd627ada7b27b5534bb8668fe13e9e9c737ccd5dd58e91fd47c4310c1",
+      "bytes": 124900
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/nonvalidation-clears.png",
+      "archived": "47c3e67/nonvalidation-clears.png",
+      "sha256": "fdcd49cc6d9814afff3323c1c877473c1beaeff1198d677d738fef2e573baf14",
+      "bytes": 66071
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/repaired-clean.png",
+      "archived": "47c3e67/repaired-clean.png",
+      "sha256": "9e5ff27fe19c3b0a910fe4ad8d6a0365c5bbb1763163cf54abe32d5f8f3ece86",
+      "bytes": 98679
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/repaired-next.png",
+      "archived": "47c3e67/repaired-next.png",
+      "sha256": "b28424daacaadcd7441d6901ca9dfb20df26c41c61c3cb1d26234620aaeee111",
+      "bytes": 70420
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/repaired-report.txt",
+      "archived": "47c3e67/repaired-report.txt",
+      "sha256": "d869956665f8aea05dde9488b299762d22ea1ebd1f637a0eccc6e49076ec0d95",
+      "bytes": 1015
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/setup-failure.png",
+      "archived": "47c3e67/setup-failure.png",
+      "sha256": "ccd4b8750d38653f1ba8cb42356ce15ea058ea1f181edc00afe92ff07677aaba",
+      "bytes": 74191
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/small-action-position.png",
+      "archived": "47c3e67/small-action-position.png",
+      "sha256": "29bf7af83b44364416cddd1d57c8f0a69e9dc85ff27213e45fd97e6e97addf60",
+      "bytes": 34578
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/small-cancelled-expanded.png",
+      "archived": "47c3e67/small-cancelled-expanded.png",
+      "sha256": "2559735f3b2e492cc5741c441944a87adebc983ca6f17afa1d00e9a6328abdd1",
+      "bytes": 71384
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/small-cancelled-log.png",
+      "archived": "47c3e67/small-cancelled-log.png",
+      "sha256": "e5327c2650e547184c9e3ec9e3d69666c1717184926b1b1caa3ad156cf753f7f",
+      "bytes": 39057
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/small-idle.png",
+      "archived": "47c3e67/small-idle.png",
+      "sha256": "0d3d968048aa606ed520d0bfdaa704edb02cad9a60bcbfe598e58f54e38f667c",
+      "bytes": 35385
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/small-modal-attempt2.png",
+      "archived": "47c3e67/small-modal-attempt2.png",
+      "sha256": "29bf7af83b44364416cddd1d57c8f0a69e9dc85ff27213e45fd97e6e97addf60",
+      "bytes": 34578
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/small-running-visible.png",
+      "archived": "47c3e67/small-running-visible.png",
+      "sha256": "f1c3be0b2e0f47e67cbd322a378d0c776dc5c0ac12b09f1a0aecd8607f125174",
+      "bytes": 37598
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/small-running.png",
+      "archived": "47c3e67/small-running.png",
+      "sha256": "528c27c98abe78ab0aa3265539dcdd694aadca1d3d4502d0937e2a92bb9fc538",
+      "bytes": 38915
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/small-stop-modal.png",
+      "archived": "47c3e67/small-stop-modal.png",
+      "sha256": "303131d98a992e48690e593f7648430157e65d2a8781a43b089cabbfc12dce94",
+      "bytes": 40185
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/tree-after.json",
+      "archived": "47c3e67/tree-after.json",
+      "sha256": "40a77c1c9c8299e71cc8a69cbd11d9d7a11ff45f93b102dbb213f3a08fb8214f",
+      "bytes": 270
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/warning-report.txt",
+      "archived": "47c3e67/warning-report.txt",
+      "sha256": "a5ab031c0e7f0b182feb8f37ab7bf4779819eb9a26c2b54ff84c10353af73fc9",
+      "bytes": 1198
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/warning-settled.png",
+      "archived": "47c3e67/warning-settled.png",
+      "sha256": "e1701dccf75c5f0123c8a7b901e1f17779c768dc0d9066f9cd87ca3ddc1297be",
+      "bytes": 93081
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/warning.png",
+      "archived": "47c3e67/warning.png",
+      "sha256": "b72d4c23e23915d4db1c5f9323e7cd435d883e1e26842d2acc43331a61ac2857",
+      "bytes": 76487
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/cleanup.txt",
+      "archived": "47c3e67/cleanup.txt",
+      "sha256": "71fc30d274e902954451517737f37d2e55a9d8fcac56c00c4adf6914b89b5a51",
+      "bytes": 411
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/fix3/receipt.json",
+      "archived": "47c3e67/receipt.json",
+      "sha256": "13118b9c3012accac3ba50d27b3fa0c9a96139b1489e2aed6da3abe26f576f04",
+      "bytes": 5602
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/final/binding.json",
+      "archived": "5548736/binding.json",
+      "sha256": "970c9bd1803ac1231fd1d427881e57cd008feac8d2d529aeb6ba060ba2364d87",
+      "bytes": 387
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/final/stale-result.png",
+      "archived": "5548736/stale-result.png",
+      "sha256": "21cc45e885a5549b7c350df6974e6307068595ce2fce9413eeb65558254a5096",
+      "bytes": 72324
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/final/cancelled.png",
+      "archived": "5548736/cancelled.png",
+      "sha256": "cf6595615835db8f31404767d6c1e13878ca7d376c89dd3061f2ee82759ef6c7",
+      "bytes": 71384
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/final/settings-route.png",
+      "archived": "5548736/settings-route.png",
+      "sha256": "6afdd44fe5a502d3f1919bcff66dfe47374e2fea444f48e69b1ed95747d570e7",
+      "bytes": 22734
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/final/validation-tools.png",
+      "archived": "5548736/validation-tools.png",
+      "sha256": "9bf801efc7e1e4d3b2de7dafadb746f0acf7692eaf438f246eacdc93aafbb981",
+      "bytes": 18304
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/acceptance-binding.json",
+      "archived": "556b165/acceptance-binding.json",
+      "sha256": "9d3c6feb3a72c94ddeffd270b15ec3caafc8b2989aff19a1cefa7cd0de88e0b3",
+      "bytes": 552
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/acceptance-manual-first-issue.png",
+      "archived": "556b165/acceptance-manual-first-issue.png",
+      "sha256": "1f7ae3bd564a7f3fff25dbe3a8550c5dcf9b4791ab6ce49b36659571d93e1e60",
+      "bytes": 88960
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/acceptance-results-scrolled.png",
+      "archived": "556b165/acceptance-results-scrolled.png",
+      "sha256": "9e2092eb794af2f6341fd660105ebc9b48628e4ca9895ef7f28088f8a02d2378",
+      "bytes": 83772
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/guide.json",
+      "archived": "fixtures/guide.json",
+      "sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b",
+      "bytes": 635
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/tree-before-final.json",
+      "archived": "fixtures/tree-before-final.json",
+      "sha256": "40a77c1c9c8299e71cc8a69cbd11d9d7a11ff45f93b102dbb213f3a08fb8214f",
+      "bytes": 270
+    },
+    {
+      "original": "/tmp/modsync-rust-validation-task2/pending-fixture-path.txt",
+      "archived": "fixtures/pending-fixture-path.txt",
+      "sha256": "baf3c8de63389babaa81e0fb31fd7378d5c61148c0d6014230f0815a7748b593",
+      "bytes": 68
+    },
+    {
+      "original": "/tmp/task2-fix3-build.log",
+      "archived": "build-logs/task2-fix3-build.log",
+      "sha256": "d0e162096cc07cc6caa764fc57d656441242cf830eb352a088259c92c9a1c5f6",
+      "bytes": 129
+    },
+    {
+      "original": "/tmp/task2-fix3-clippy.log",
+      "archived": "build-logs/task2-fix3-clippy.log",
+      "sha256": "617d2545b8f9f199b43d17b632343ca56e2ffa2c6056f9ca46a73a5fdbdeb8be",
+      "bytes": 128
+    },
+    {
+      "original": "/tmp/task2-final-fmt.log",
+      "archived": "build-logs/task2-final-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "original": "/tmp/task2-final-headless-build.log",
+      "archived": "build-logs/task2-final-headless-build.log",
+      "sha256": "4e1a777288a2b4ecdd65c85a55c7b97ac6a1fd19fa0f799db824ab7d8c2efe7c",
+      "bytes": 60
+    },
+    {
+      "original": "/tmp/task2-final-headless-clippy.log",
+      "archived": "build-logs/task2-final-headless-clippy.log",
+      "sha256": "159c95084c74469e58793af212409793e85a7eb33ab10bebe1f7928ea6fcf10f",
+      "bytes": 60
+    },
+    {
+      "original": "/tmp/task2-final-default-restore.log",
+      "archived": "build-logs/task2-final-default-restore.log",
+      "sha256": "3f29f54e9af3d7faaf7c5ba65793168e2a72ff7559b588bb1ac01d3d390a6f7d",
+      "bytes": 60
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/progress.md",
+      "archived": "reviews-and-rulings/progress.md",
+      "sha256": "0357f43d7e6ce69acd69d911dd3f94d0bf75cf99e52dee8a3bf7f9c337c130b5",
+      "bytes": 9359
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-1-brief.md",
+      "archived": "reviews-and-rulings/task-1-brief.md",
+      "sha256": "d8cdb786def57e6d90b94255fb79de767038ba4b9fe49c446afcf70cbba909d2",
+      "bytes": 8033
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-1-fix1-report.md",
+      "archived": "reviews-and-rulings/task-1-fix1-report.md",
+      "sha256": "c0292c1c90c75da4431576b3c751aa74b9ccfa7a48c8979281aaf70138796691",
+      "bytes": 1908
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-1-fix1-review.md",
+      "archived": "reviews-and-rulings/task-1-fix1-review.md",
+      "sha256": "44a4460eeeef62cf9fc59e18f9be2d5cd773f7c911fef48940f0b940e60f5623",
+      "bytes": 3052
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-1-report.md",
+      "archived": "reviews-and-rulings/task-1-report.md",
+      "sha256": "341675e9fa11e6ab16768847315221e8aaffe824fc931104b929d06208cbfe6e",
+      "bytes": 6808
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-1-review.md",
+      "archived": "reviews-and-rulings/task-1-review.md",
+      "sha256": "2819b3dacd480dbd28024dd0fa9e213e1b8da08abd1efead8fe601e50b9af522",
+      "bytes": 7901
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-1b-brief.md",
+      "archived": "reviews-and-rulings/task-1b-brief.md",
+      "sha256": "05e63211dd53ff01b096b7380eb9650f8cfd54296895b9e0fc8cd60b1483d439",
+      "bytes": 13106
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-1b-fix1-review.md",
+      "archived": "reviews-and-rulings/task-1b-fix1-review.md",
+      "sha256": "ce46706addbcee1a4e6e481adfb79baddd8c31729b43c83a84240d72a3096732",
+      "bytes": 5030
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-1b-report.md",
+      "archived": "reviews-and-rulings/task-1b-report.md",
+      "sha256": "43a978b9dc04b3caf11f9b27bf17556d8a1248e5966adc6b52266f9f0668724c",
+      "bytes": 20707
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-1b-review.md",
+      "archived": "reviews-and-rulings/task-1b-review.md",
+      "sha256": "2bcfea70a0d28f937bf78ffd98910e05ccfe082cff8045a21e8a40e1ebfb9207",
+      "bytes": 12436
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-2-brief.md",
+      "archived": "reviews-and-rulings/task-2-brief.md",
+      "sha256": "bf06ccd7f13357bc3ca0c1d01206025a47c5e9496bee36f2b25793794787c046",
+      "bytes": 7045
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-2-fix1-report.md",
+      "archived": "reviews-and-rulings/task-2-fix1-report.md",
+      "sha256": "33ce005c37c0565fe84dce34e340211e19360e5933106eb62c677e19d8aa722b",
+      "bytes": 2431
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-2-fix1-review.md",
+      "archived": "reviews-and-rulings/task-2-fix1-review.md",
+      "sha256": "62d1040fc452e2c3f0213e045f6b88deea7b10ef2710705bcfc89c9f17be18d2",
+      "bytes": 9902
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-2-fix2-report.md",
+      "archived": "reviews-and-rulings/task-2-fix2-report.md",
+      "sha256": "7699ca67d69474e7ebbf9ad3b3e57def97a0072b04bf3f50111085b0191a522b",
+      "bytes": 990
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-2-fix3-report.md",
+      "archived": "reviews-and-rulings/task-2-fix3-report.md",
+      "sha256": "9020e0c40f604da04ec0ecd1feb190b7c09cfc456223e4fdbcc3a3c95674766e",
+      "bytes": 1349
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-2-report.md",
+      "archived": "reviews-and-rulings/task-2-report.md",
+      "sha256": "b942b6b563f1cc8ff1916bfc7e5fba905de3aaf5f03637da7b4270c9c9790394",
+      "bytes": 10384
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-2-review.md",
+      "archived": "reviews-and-rulings/task-2-review.md",
+      "sha256": "a7bf8d6f0cf3d3a728750b5be390304f3f0c5b3771e737cf6d064bd89d11cf90",
+      "bytes": 9642
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-2-tools-report.md",
+      "archived": "reviews-and-rulings/task-2-tools-report.md",
+      "sha256": "288b3af1f0a5764d84e46b99d334d19f20e146a8994d15d08e3a4f87d5a661eb",
+      "bytes": 1210
+    },
+    {
+      "original": "/home/brunner56/Workspaces/ModSync.rs/.superpowers/sdd/validation-page-plan/task-3-brief.md",
+      "archived": "reviews-and-rulings/task-3-brief.md",
+      "sha256": "1c6e9d7b14f3e5c5c420b7a17a96fbae156e60a6add0bfe2d2cc4e21169272e8",
+      "bytes": 7481
+    }
+  ]
+}

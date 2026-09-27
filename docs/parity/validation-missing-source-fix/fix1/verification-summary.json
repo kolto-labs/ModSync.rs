@@ -1,0 +1,10 @@
+{
+  "invocations": 39,
+  "report_invocations": 37,
+  "all_report_manifests_unchanged": true,
+  "all_checks_passed": true,
+  "source_hashes_unchanged_across_build": true,
+  "current_sources_match_build": true,
+  "copied_binary_hashes_match": true,
+  "strict_remaining_rejection_unchanged": true
+}

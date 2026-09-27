@@ -1,0 +1,55 @@
+{
+  "success": true,
+  "exitCode": 0,
+  "errorCount": 0,
+  "warningCount": 0,
+  "passedCount": 6,
+  "componentCount": 1,
+  "inputPath": "/tmp/modsync-task1b-proof-whg3rfzj/present-Copy-kotorDirectory/guide.json",
+  "stages": [
+    {
+      "stage": "Environment",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "Passed"
+    },
+    {
+      "stage": "Conflicts",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "No dependency or restriction conflicts."
+    },
+    {
+      "stage": "InstallOrder",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "Install order is correct."
+    },
+    {
+      "stage": "ComponentValidation",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "All components passed archive validation.",
+      "messages": [
+        "OK: Fixture"
+      ]
+    },
+    {
+      "stage": "FomodConfiguration",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "All detected FOMOD archives are configured."
+    },
+    {
+      "stage": "DryRun",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "✓ Dry-run validation passed successfully. All instructions appear to be correct."
+    }
+  ],
+  "dryRun": {
+    "isValid": true,
+    "hasWarnings": false,
+    "issues": []
+  }
+}

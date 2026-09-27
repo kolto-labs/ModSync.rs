@@ -1,0 +1,3303 @@
+{
+  "runs": [
+    {
+      "name": "exact-present",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/native-exact/guide.json",
+        "--use-file-selection",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/native-exact/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/native-exact/mods",
+        "--validation-report",
+        "--full",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "binary_sha256": "cd73469c04c75fc66c8cb5eccc1580f7696f15544c8671dd94170f281777353b",
+      "guide_sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/sample.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "stdout": "exact-present.stdout",
+      "stderr": "exact-present.stderr",
+      "before": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        }
+      },
+      "after": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        }
+      },
+      "unchanged": true,
+      "counts": {
+        "success": true,
+        "errorCount": 0,
+        "warningCount": 0,
+        "passedCount": 6
+      },
+      "stages": [
+        [
+          "Environment",
+          true,
+          false
+        ],
+        [
+          "Conflicts",
+          true,
+          false
+        ],
+        [
+          "InstallOrder",
+          true,
+          false
+        ],
+        [
+          "ComponentValidation",
+          true,
+          false
+        ],
+        [
+          "FomodConfiguration",
+          true,
+          false
+        ],
+        [
+          "DryRun",
+          true,
+          false
+        ]
+      ],
+      "issues": []
+    },
+    {
+      "name": "exact-missing",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/native-exact/guide.json",
+        "--use-file-selection",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/native-exact/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/native-exact/mods",
+        "--validation-report",
+        "--full",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "binary_sha256": "cd73469c04c75fc66c8cb5eccc1580f7696f15544c8671dd94170f281777353b",
+      "guide_sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/sample.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "stdout": "exact-missing.stdout",
+      "stderr": "exact-missing.stderr",
+      "before": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "after": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "unchanged": true,
+      "counts": {
+        "success": true,
+        "errorCount": 0,
+        "warningCount": 1,
+        "passedCount": 5
+      },
+      "stages": [
+        [
+          "Environment",
+          true,
+          false
+        ],
+        [
+          "Conflicts",
+          true,
+          false
+        ],
+        [
+          "InstallOrder",
+          true,
+          false
+        ],
+        [
+          "ComponentValidation",
+          true,
+          false
+        ],
+        [
+          "FomodConfiguration",
+          true,
+          false
+        ],
+        [
+          "DryRun",
+          true,
+          true
+        ]
+      ],
+      "issues": [
+        {
+          "severity": "Warning",
+          "category": "DryRunSkipped",
+          "message": "Skipped 'Fixture' during dry-run: source archives or files are not available.",
+          "componentName": "Fixture",
+          "componentGuid": "11111111-1111-1111-1111-111111111111"
+        }
+      ]
+    },
+    {
+      "name": "exact-missing-headless",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-headless",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/native-exact/guide.json",
+        "--use-file-selection",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/native-exact/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/native-exact/mods",
+        "--validation-report",
+        "--full",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "binary_sha256": "ce1e09d74b4c364a1053ac6c549b667f226b7be3249f03c12aafcec90eb54c83",
+      "guide_sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/sample.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "stdout": "exact-missing-headless.stdout",
+      "stderr": "exact-missing-headless.stderr",
+      "before": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "after": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "unchanged": true,
+      "counts": {
+        "success": true,
+        "errorCount": 0,
+        "warningCount": 1,
+        "passedCount": 5
+      },
+      "stages": [
+        [
+          "Environment",
+          true,
+          false
+        ],
+        [
+          "Conflicts",
+          true,
+          false
+        ],
+        [
+          "InstallOrder",
+          true,
+          false
+        ],
+        [
+          "ComponentValidation",
+          true,
+          false
+        ],
+        [
+          "FomodConfiguration",
+          true,
+          false
+        ],
+        [
+          "DryRun",
+          true,
+          true
+        ]
+      ],
+      "issues": [
+        {
+          "severity": "Warning",
+          "category": "DryRunSkipped",
+          "message": "Skipped 'Fixture' during dry-run: source archives or files are not available.",
+          "componentName": "Fixture",
+          "componentGuid": "11111111-1111-1111-1111-111111111111"
+        }
+      ]
+    },
+    {
+      "name": "exact-install-reject",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop",
+        "install",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/native-exact/guide.json",
+        "--use-file-selection",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/native-exact/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/native-exact/mods"
+      ],
+      "exit": 1,
+      "binary_sha256": "cd73469c04c75fc66c8cb5eccc1580f7696f15544c8671dd94170f281777353b",
+      "guide_sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/sample.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "stdout": "exact-install-reject.stdout",
+      "stderr": "exact-install-reject.stderr",
+      "before": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "after": {
+        ".modsync-b04d9eebb94f7623": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-lock-63ad53fd7b11c35c": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-b04d9eebb94f7623": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "unchanged": false
+    },
+    {
+      "name": "exact-restored",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/native-exact/guide.json",
+        "--use-file-selection",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/native-exact/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/native-exact/mods",
+        "--validation-report",
+        "--full",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "binary_sha256": "cd73469c04c75fc66c8cb5eccc1580f7696f15544c8671dd94170f281777353b",
+      "guide_sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/sample.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "stdout": "exact-restored.stdout",
+      "stderr": "exact-restored.stderr",
+      "before": {
+        ".modsync-b04d9eebb94f7623": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-lock-63ad53fd7b11c35c": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-b04d9eebb94f7623": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        }
+      },
+      "after": {
+        ".modsync-b04d9eebb94f7623": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-lock-63ad53fd7b11c35c": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-b04d9eebb94f7623": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        }
+      },
+      "unchanged": true,
+      "counts": {
+        "success": true,
+        "errorCount": 0,
+        "warningCount": 0,
+        "passedCount": 6
+      },
+      "stages": [
+        [
+          "Environment",
+          true,
+          false
+        ],
+        [
+          "Conflicts",
+          true,
+          false
+        ],
+        [
+          "InstallOrder",
+          true,
+          false
+        ],
+        [
+          "ComponentValidation",
+          true,
+          false
+        ],
+        [
+          "FomodConfiguration",
+          true,
+          false
+        ],
+        [
+          "DryRun",
+          true,
+          false
+        ]
+      ],
+      "issues": []
+    },
+    {
+      "name": "remaining-base-install",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop",
+        "install",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/remaining/guide.json",
+        "--use-file-selection",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/remaining/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/remaining/mods",
+        "--phase",
+        "base"
+      ],
+      "exit": 0,
+      "binary_sha256": "cd73469c04c75fc66c8cb5eccc1580f7696f15544c8671dd94170f281777353b",
+      "guide_sha256": "c5f8fa50525f27f7ded54b4a8e1aca739d5a9cda40bc48193f328ae163db87ff",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Consumed base",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Move",
+              "Source": [
+                "<<modDirectory>>/sample.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        },
+        {
+          "Guid": "22222222-2222-2222-2222-222222222222",
+          "Name": "Remaining",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [
+            "11111111-1111-1111-1111-111111111111"
+          ],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/missing-suffix.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": true
+        }
+      ],
+      "stdout": "remaining-base-install.stdout",
+      "stderr": "remaining-base-install.stderr",
+      "before": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        }
+      },
+      "after": {
+        ".modsync-06a6df7a392262e9": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/completion.json": {
+          "type": "file",
+          "size": 1157,
+          "mode": 384,
+          "sha256": "218b4d11fea7acf5e043a1b8b863fd716364dc1c4d238f31a8cbbd7a9e6b4d1e"
+        },
+        ".modsync-06a6df7a392262e9/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-06a6df7a392262e9/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        ".modsync-06a6df7a392262e9/snapshot.json": {
+          "type": "file",
+          "size": 350,
+          "mode": 384,
+          "sha256": "177c6da159cde1b97391a22699ae843a6ac0b377d9c97c08b95c717666f9ce1b"
+        },
+        ".modsync-lock-06a6df7a392262e9": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-60db52292ac42b05": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "unchanged": false
+    },
+    {
+      "name": "remaining-report",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/remaining/guide.json",
+        "--use-file-selection",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/remaining/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/remaining/mods",
+        "--validation-report",
+        "--full",
+        "--dry-run",
+        "--phase",
+        "remaining"
+      ],
+      "exit": 0,
+      "binary_sha256": "cd73469c04c75fc66c8cb5eccc1580f7696f15544c8671dd94170f281777353b",
+      "guide_sha256": "c5f8fa50525f27f7ded54b4a8e1aca739d5a9cda40bc48193f328ae163db87ff",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Consumed base",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Move",
+              "Source": [
+                "<<modDirectory>>/sample.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        },
+        {
+          "Guid": "22222222-2222-2222-2222-222222222222",
+          "Name": "Remaining",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [
+            "11111111-1111-1111-1111-111111111111"
+          ],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/missing-suffix.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": true
+        }
+      ],
+      "stdout": "remaining-report.stdout",
+      "stderr": "remaining-report.stderr",
+      "before": {
+        ".modsync-06a6df7a392262e9": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/completion.json": {
+          "type": "file",
+          "size": 1157,
+          "mode": 384,
+          "sha256": "218b4d11fea7acf5e043a1b8b863fd716364dc1c4d238f31a8cbbd7a9e6b4d1e"
+        },
+        ".modsync-06a6df7a392262e9/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-06a6df7a392262e9/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        ".modsync-06a6df7a392262e9/snapshot.json": {
+          "type": "file",
+          "size": 350,
+          "mode": 384,
+          "sha256": "177c6da159cde1b97391a22699ae843a6ac0b377d9c97c08b95c717666f9ce1b"
+        },
+        ".modsync-lock-06a6df7a392262e9": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-60db52292ac42b05": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "after": {
+        ".modsync-06a6df7a392262e9": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/completion.json": {
+          "type": "file",
+          "size": 1157,
+          "mode": 384,
+          "sha256": "218b4d11fea7acf5e043a1b8b863fd716364dc1c4d238f31a8cbbd7a9e6b4d1e"
+        },
+        ".modsync-06a6df7a392262e9/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-06a6df7a392262e9/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        ".modsync-06a6df7a392262e9/snapshot.json": {
+          "type": "file",
+          "size": 350,
+          "mode": 384,
+          "sha256": "177c6da159cde1b97391a22699ae843a6ac0b377d9c97c08b95c717666f9ce1b"
+        },
+        ".modsync-lock-06a6df7a392262e9": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-60db52292ac42b05": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "unchanged": true,
+      "counts": {
+        "success": true,
+        "errorCount": 0,
+        "warningCount": 1,
+        "passedCount": 5
+      },
+      "stages": [
+        [
+          "Environment",
+          true,
+          false
+        ],
+        [
+          "Conflicts",
+          true,
+          false
+        ],
+        [
+          "InstallOrder",
+          true,
+          false
+        ],
+        [
+          "ComponentValidation",
+          true,
+          false
+        ],
+        [
+          "FomodConfiguration",
+          true,
+          false
+        ],
+        [
+          "DryRun",
+          true,
+          true
+        ]
+      ],
+      "issues": [
+        {
+          "severity": "Warning",
+          "category": "DryRunSkipped",
+          "message": "Skipped 'Remaining' during dry-run: source archives or files are not available.",
+          "componentName": "Remaining",
+          "componentGuid": "22222222-2222-2222-2222-222222222222"
+        }
+      ]
+    },
+    {
+      "name": "remaining-install-reject",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop",
+        "install",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/remaining/guide.json",
+        "--use-file-selection",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/remaining/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/remaining/mods",
+        "--phase",
+        "remaining"
+      ],
+      "exit": 1,
+      "binary_sha256": "cd73469c04c75fc66c8cb5eccc1580f7696f15544c8671dd94170f281777353b",
+      "guide_sha256": "c5f8fa50525f27f7ded54b4a8e1aca739d5a9cda40bc48193f328ae163db87ff",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Consumed base",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Move",
+              "Source": [
+                "<<modDirectory>>/sample.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        },
+        {
+          "Guid": "22222222-2222-2222-2222-222222222222",
+          "Name": "Remaining",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [
+            "11111111-1111-1111-1111-111111111111"
+          ],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/missing-suffix.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": true
+        }
+      ],
+      "stdout": "remaining-install-reject.stdout",
+      "stderr": "remaining-install-reject.stderr",
+      "before": {
+        ".modsync-06a6df7a392262e9": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/completion.json": {
+          "type": "file",
+          "size": 1157,
+          "mode": 384,
+          "sha256": "218b4d11fea7acf5e043a1b8b863fd716364dc1c4d238f31a8cbbd7a9e6b4d1e"
+        },
+        ".modsync-06a6df7a392262e9/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-06a6df7a392262e9/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        ".modsync-06a6df7a392262e9/snapshot.json": {
+          "type": "file",
+          "size": 350,
+          "mode": 384,
+          "sha256": "177c6da159cde1b97391a22699ae843a6ac0b377d9c97c08b95c717666f9ce1b"
+        },
+        ".modsync-lock-06a6df7a392262e9": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-60db52292ac42b05": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "after": {
+        ".modsync-06a6df7a392262e9": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/completion.json": {
+          "type": "file",
+          "size": 1157,
+          "mode": 384,
+          "sha256": "218b4d11fea7acf5e043a1b8b863fd716364dc1c4d238f31a8cbbd7a9e6b4d1e"
+        },
+        ".modsync-06a6df7a392262e9/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-06a6df7a392262e9/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        ".modsync-06a6df7a392262e9/snapshot.json": {
+          "type": "file",
+          "size": 350,
+          "mode": 384,
+          "sha256": "177c6da159cde1b97391a22699ae843a6ac0b377d9c97c08b95c717666f9ce1b"
+        },
+        ".modsync-lock-06a6df7a392262e9": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-60db52292ac42b05": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "unchanged": true
+    },
+    {
+      "name": "remaining-conflicts-strict",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop",
+        "conflicts",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/remaining/guide.json",
+        "--use-file-selection",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/remaining/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/remaining/mods",
+        "--phase",
+        "remaining"
+      ],
+      "exit": 1,
+      "binary_sha256": "cd73469c04c75fc66c8cb5eccc1580f7696f15544c8671dd94170f281777353b",
+      "guide_sha256": "c5f8fa50525f27f7ded54b4a8e1aca739d5a9cda40bc48193f328ae163db87ff",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Consumed base",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Move",
+              "Source": [
+                "<<modDirectory>>/sample.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        },
+        {
+          "Guid": "22222222-2222-2222-2222-222222222222",
+          "Name": "Remaining",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [
+            "11111111-1111-1111-1111-111111111111"
+          ],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/missing-suffix.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": true
+        }
+      ],
+      "stdout": "remaining-conflicts-strict.stdout",
+      "stderr": "remaining-conflicts-strict.stderr",
+      "before": {
+        ".modsync-06a6df7a392262e9": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/completion.json": {
+          "type": "file",
+          "size": 1157,
+          "mode": 384,
+          "sha256": "218b4d11fea7acf5e043a1b8b863fd716364dc1c4d238f31a8cbbd7a9e6b4d1e"
+        },
+        ".modsync-06a6df7a392262e9/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-06a6df7a392262e9/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        ".modsync-06a6df7a392262e9/snapshot.json": {
+          "type": "file",
+          "size": 350,
+          "mode": 384,
+          "sha256": "177c6da159cde1b97391a22699ae843a6ac0b377d9c97c08b95c717666f9ce1b"
+        },
+        ".modsync-lock-06a6df7a392262e9": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-60db52292ac42b05": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "after": {
+        ".modsync-06a6df7a392262e9": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/completion.json": {
+          "type": "file",
+          "size": 1157,
+          "mode": 384,
+          "sha256": "218b4d11fea7acf5e043a1b8b863fd716364dc1c4d238f31a8cbbd7a9e6b4d1e"
+        },
+        ".modsync-06a6df7a392262e9/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-06a6df7a392262e9/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        ".modsync-06a6df7a392262e9/snapshot.json": {
+          "type": "file",
+          "size": 350,
+          "mode": 384,
+          "sha256": "177c6da159cde1b97391a22699ae843a6ac0b377d9c97c08b95c717666f9ce1b"
+        },
+        ".modsync-lock-06a6df7a392262e9": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-60db52292ac42b05": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "unchanged": true
+    },
+    {
+      "name": "remaining-definition-mismatch",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/remaining/guide.json",
+        "--use-file-selection",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/remaining/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/remaining/mods",
+        "--validation-report",
+        "--full",
+        "--dry-run",
+        "--phase",
+        "remaining"
+      ],
+      "exit": 1,
+      "binary_sha256": "cd73469c04c75fc66c8cb5eccc1580f7696f15544c8671dd94170f281777353b",
+      "guide_sha256": "b42f7590a759bee9f5e7deb1a1d3dd0ca15fb6f65ec6d6d5f4429822423cb675",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Changed definition",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Move",
+              "Source": [
+                "<<modDirectory>>/sample.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        },
+        {
+          "Guid": "22222222-2222-2222-2222-222222222222",
+          "Name": "Remaining",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [
+            "11111111-1111-1111-1111-111111111111"
+          ],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/missing-suffix.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": true
+        }
+      ],
+      "stdout": "remaining-definition-mismatch.stdout",
+      "stderr": "remaining-definition-mismatch.stderr",
+      "before": {
+        ".modsync-06a6df7a392262e9": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/completion.json": {
+          "type": "file",
+          "size": 1157,
+          "mode": 384,
+          "sha256": "218b4d11fea7acf5e043a1b8b863fd716364dc1c4d238f31a8cbbd7a9e6b4d1e"
+        },
+        ".modsync-06a6df7a392262e9/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-06a6df7a392262e9/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        ".modsync-06a6df7a392262e9/snapshot.json": {
+          "type": "file",
+          "size": 350,
+          "mode": 384,
+          "sha256": "177c6da159cde1b97391a22699ae843a6ac0b377d9c97c08b95c717666f9ce1b"
+        },
+        ".modsync-lock-06a6df7a392262e9": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-60db52292ac42b05": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "after": {
+        ".modsync-06a6df7a392262e9": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/completion.json": {
+          "type": "file",
+          "size": 1157,
+          "mode": 384,
+          "sha256": "218b4d11fea7acf5e043a1b8b863fd716364dc1c4d238f31a8cbbd7a9e6b4d1e"
+        },
+        ".modsync-06a6df7a392262e9/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-06a6df7a392262e9/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        ".modsync-06a6df7a392262e9/snapshot.json": {
+          "type": "file",
+          "size": 350,
+          "mode": 384,
+          "sha256": "177c6da159cde1b97391a22699ae843a6ac0b377d9c97c08b95c717666f9ce1b"
+        },
+        ".modsync-lock-06a6df7a392262e9": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-60db52292ac42b05": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "unchanged": true,
+      "counts": {
+        "success": false,
+        "errorCount": 1,
+        "warningCount": 0,
+        "passedCount": 0
+      },
+      "stages": [
+        [
+          "Environment",
+          false,
+          false
+        ]
+      ],
+      "issues": []
+    },
+    {
+      "name": "remaining-game-mismatch",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/remaining/guide.json",
+        "--use-file-selection",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/remaining/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/remaining/mods",
+        "--validation-report",
+        "--full",
+        "--dry-run",
+        "--phase",
+        "remaining"
+      ],
+      "exit": 1,
+      "binary_sha256": "cd73469c04c75fc66c8cb5eccc1580f7696f15544c8671dd94170f281777353b",
+      "guide_sha256": "c5f8fa50525f27f7ded54b4a8e1aca739d5a9cda40bc48193f328ae163db87ff",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Consumed base",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Move",
+              "Source": [
+                "<<modDirectory>>/sample.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        },
+        {
+          "Guid": "22222222-2222-2222-2222-222222222222",
+          "Name": "Remaining",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [
+            "11111111-1111-1111-1111-111111111111"
+          ],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/missing-suffix.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": true
+        }
+      ],
+      "stdout": "remaining-game-mismatch.stdout",
+      "stderr": "remaining-game-mismatch.stderr",
+      "before": {
+        ".modsync-06a6df7a392262e9": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/completion.json": {
+          "type": "file",
+          "size": 1157,
+          "mode": 384,
+          "sha256": "218b4d11fea7acf5e043a1b8b863fd716364dc1c4d238f31a8cbbd7a9e6b4d1e"
+        },
+        ".modsync-06a6df7a392262e9/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-06a6df7a392262e9/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        ".modsync-06a6df7a392262e9/snapshot.json": {
+          "type": "file",
+          "size": 350,
+          "mode": 384,
+          "sha256": "177c6da159cde1b97391a22699ae843a6ac0b377d9c97c08b95c717666f9ce1b"
+        },
+        ".modsync-lock-06a6df7a392262e9": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-60db52292ac42b05": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/sample.tga": {
+          "type": "file",
+          "size": 18,
+          "mode": 420,
+          "sha256": "45875ef097b272f8ffd0ec1a32438b0dfa9bd61e2ff26ac90ebaf26197e92de9"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "after": {
+        ".modsync-06a6df7a392262e9": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/completion.json": {
+          "type": "file",
+          "size": 1157,
+          "mode": 384,
+          "sha256": "218b4d11fea7acf5e043a1b8b863fd716364dc1c4d238f31a8cbbd7a9e6b4d1e"
+        },
+        ".modsync-06a6df7a392262e9/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-06a6df7a392262e9/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-06a6df7a392262e9/snapshot/mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        ".modsync-06a6df7a392262e9/snapshot.json": {
+          "type": "file",
+          "size": 350,
+          "mode": 384,
+          "sha256": "177c6da159cde1b97391a22699ae843a6ac0b377d9c97c08b95c717666f9ce1b"
+        },
+        ".modsync-lock-06a6df7a392262e9": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-60db52292ac42b05": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/sample.tga": {
+          "type": "file",
+          "size": 18,
+          "mode": 420,
+          "sha256": "45875ef097b272f8ffd0ec1a32438b0dfa9bd61e2ff26ac90ebaf26197e92de9"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "unchanged": true,
+      "counts": {
+        "success": false,
+        "errorCount": 1,
+        "warningCount": 0,
+        "passedCount": 0
+      },
+      "stages": [
+        [
+          "Environment",
+          false,
+          false
+        ]
+      ],
+      "issues": []
+    },
+    {
+      "name": "runtime-late-failure",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop",
+        "install",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/runtime-failure/guide.json",
+        "--use-file-selection",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/runtime-failure/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/runtime-failure/mods",
+        "--allow-processes"
+      ],
+      "exit": 1,
+      "binary_sha256": "cd73469c04c75fc66c8cb5eccc1580f7696f15544c8671dd94170f281777353b",
+      "guide_sha256": "bbce07480089ea2a8892a226587ede2dda043d8425fa7c27f6827d5faf2f0c45",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/sample.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            },
+            {
+              "Action": "Run",
+              "Source": [
+                "<<modDirectory>>/false"
+              ],
+              "Destination": "",
+              "Arguments": ""
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "stdout": "runtime-late-failure.stdout",
+      "stderr": "runtime-late-failure.stderr",
+      "before": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/false": {
+          "type": "file",
+          "size": 32304,
+          "mode": 493,
+          "sha256": "2110833880a67c723cb4296491e51679609ea222ea69b13d993cafb9f70cf78d"
+        },
+        "mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        }
+      },
+      "after": {
+        ".modsync-fbaa12c758594b7c": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/pending": {
+          "type": "file",
+          "size": 60,
+          "mode": 384,
+          "sha256": "2335d937b403ed20b96d7c5a8834029eb96f2ae55b3e659553426f93b8398f41"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/mods/false": {
+          "type": "file",
+          "size": 32304,
+          "mode": 493,
+          "sha256": "2110833880a67c723cb4296491e51679609ea222ea69b13d993cafb9f70cf78d"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot.json": {
+          "type": "file",
+          "size": 448,
+          "mode": 384,
+          "sha256": "e245343720302db92924fafc03c9df7a4155690ec43a07df19a00dbb250656a6"
+        },
+        ".modsync-lock-afdeb331f0eba585": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-fbaa12c758594b7c": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/false": {
+          "type": "file",
+          "size": 32304,
+          "mode": 493,
+          "sha256": "2110833880a67c723cb4296491e51679609ea222ea69b13d993cafb9f70cf78d"
+        },
+        "mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        }
+      },
+      "unchanged": false
+    },
+    {
+      "name": "pending-report-block",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/runtime-failure/guide.json",
+        "--use-file-selection",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/runtime-failure/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/runtime-failure/mods",
+        "--validation-report",
+        "--full",
+        "--dry-run"
+      ],
+      "exit": 1,
+      "binary_sha256": "cd73469c04c75fc66c8cb5eccc1580f7696f15544c8671dd94170f281777353b",
+      "guide_sha256": "bbce07480089ea2a8892a226587ede2dda043d8425fa7c27f6827d5faf2f0c45",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/sample.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            },
+            {
+              "Action": "Run",
+              "Source": [
+                "<<modDirectory>>/false"
+              ],
+              "Destination": "",
+              "Arguments": ""
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "stdout": "pending-report-block.stdout",
+      "stderr": "pending-report-block.stderr",
+      "before": {
+        ".modsync-fbaa12c758594b7c": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/pending": {
+          "type": "file",
+          "size": 60,
+          "mode": 384,
+          "sha256": "2335d937b403ed20b96d7c5a8834029eb96f2ae55b3e659553426f93b8398f41"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/mods/false": {
+          "type": "file",
+          "size": 32304,
+          "mode": 493,
+          "sha256": "2110833880a67c723cb4296491e51679609ea222ea69b13d993cafb9f70cf78d"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot.json": {
+          "type": "file",
+          "size": 448,
+          "mode": 384,
+          "sha256": "e245343720302db92924fafc03c9df7a4155690ec43a07df19a00dbb250656a6"
+        },
+        ".modsync-lock-afdeb331f0eba585": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-fbaa12c758594b7c": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/false": {
+          "type": "file",
+          "size": 32304,
+          "mode": 493,
+          "sha256": "2110833880a67c723cb4296491e51679609ea222ea69b13d993cafb9f70cf78d"
+        },
+        "mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        }
+      },
+      "after": {
+        ".modsync-fbaa12c758594b7c": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/pending": {
+          "type": "file",
+          "size": 60,
+          "mode": 384,
+          "sha256": "2335d937b403ed20b96d7c5a8834029eb96f2ae55b3e659553426f93b8398f41"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/mods/false": {
+          "type": "file",
+          "size": 32304,
+          "mode": 493,
+          "sha256": "2110833880a67c723cb4296491e51679609ea222ea69b13d993cafb9f70cf78d"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot.json": {
+          "type": "file",
+          "size": 448,
+          "mode": 384,
+          "sha256": "e245343720302db92924fafc03c9df7a4155690ec43a07df19a00dbb250656a6"
+        },
+        ".modsync-lock-afdeb331f0eba585": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-fbaa12c758594b7c": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/false": {
+          "type": "file",
+          "size": 32304,
+          "mode": 493,
+          "sha256": "2110833880a67c723cb4296491e51679609ea222ea69b13d993cafb9f70cf78d"
+        },
+        "mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        }
+      },
+      "unchanged": true,
+      "counts": {
+        "success": false,
+        "errorCount": 1,
+        "warningCount": 0,
+        "passedCount": 0
+      },
+      "stages": [
+        [
+          "Environment",
+          false,
+          false
+        ]
+      ],
+      "issues": []
+    },
+    {
+      "name": "pending-install-block",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop",
+        "install",
+        "--input",
+        "/tmp/modsync-task1b-proof-whg3rfzj/runtime-failure/guide.json",
+        "--use-file-selection",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/runtime-failure/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/runtime-failure/mods",
+        "--allow-processes"
+      ],
+      "exit": 1,
+      "binary_sha256": "cd73469c04c75fc66c8cb5eccc1580f7696f15544c8671dd94170f281777353b",
+      "guide_sha256": "bbce07480089ea2a8892a226587ede2dda043d8425fa7c27f6827d5faf2f0c45",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/sample.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            },
+            {
+              "Action": "Run",
+              "Source": [
+                "<<modDirectory>>/false"
+              ],
+              "Destination": "",
+              "Arguments": ""
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "stdout": "pending-install-block.stdout",
+      "stderr": "pending-install-block.stderr",
+      "before": {
+        ".modsync-fbaa12c758594b7c": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/pending": {
+          "type": "file",
+          "size": 60,
+          "mode": 384,
+          "sha256": "2335d937b403ed20b96d7c5a8834029eb96f2ae55b3e659553426f93b8398f41"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/mods/false": {
+          "type": "file",
+          "size": 32304,
+          "mode": 493,
+          "sha256": "2110833880a67c723cb4296491e51679609ea222ea69b13d993cafb9f70cf78d"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot.json": {
+          "type": "file",
+          "size": 448,
+          "mode": 384,
+          "sha256": "e245343720302db92924fafc03c9df7a4155690ec43a07df19a00dbb250656a6"
+        },
+        ".modsync-lock-afdeb331f0eba585": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-fbaa12c758594b7c": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/false": {
+          "type": "file",
+          "size": 32304,
+          "mode": 493,
+          "sha256": "2110833880a67c723cb4296491e51679609ea222ea69b13d993cafb9f70cf78d"
+        },
+        "mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        }
+      },
+      "after": {
+        ".modsync-fbaa12c758594b7c": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/pending": {
+          "type": "file",
+          "size": 60,
+          "mode": 384,
+          "sha256": "2335d937b403ed20b96d7c5a8834029eb96f2ae55b3e659553426f93b8398f41"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/mods/false": {
+          "type": "file",
+          "size": 32304,
+          "mode": 493,
+          "sha256": "2110833880a67c723cb4296491e51679609ea222ea69b13d993cafb9f70cf78d"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot.json": {
+          "type": "file",
+          "size": 448,
+          "mode": 384,
+          "sha256": "e245343720302db92924fafc03c9df7a4155690ec43a07df19a00dbb250656a6"
+        },
+        ".modsync-lock-afdeb331f0eba585": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-fbaa12c758594b7c": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/false": {
+          "type": "file",
+          "size": 32304,
+          "mode": 493,
+          "sha256": "2110833880a67c723cb4296491e51679609ea222ea69b13d993cafb9f70cf78d"
+        },
+        "mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        }
+      },
+      "unchanged": true
+    },
+    {
+      "name": "verified-restore",
+      "argv": [
+        "/tmp/modsync-task1b-proof-whg3rfzj/modsync-desktop",
+        "restore",
+        "--game-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/runtime-failure/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-proof-whg3rfzj/runtime-failure/mods"
+      ],
+      "exit": 0,
+      "binary_sha256": "cd73469c04c75fc66c8cb5eccc1580f7696f15544c8671dd94170f281777353b",
+      "guide_sha256": "bbce07480089ea2a8892a226587ede2dda043d8425fa7c27f6827d5faf2f0c45",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/sample.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            },
+            {
+              "Action": "Run",
+              "Source": [
+                "<<modDirectory>>/false"
+              ],
+              "Destination": "",
+              "Arguments": ""
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "stdout": "verified-restore.stdout",
+      "stderr": "verified-restore.stderr",
+      "before": {
+        ".modsync-fbaa12c758594b7c": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/pending": {
+          "type": "file",
+          "size": 60,
+          "mode": 384,
+          "sha256": "2335d937b403ed20b96d7c5a8834029eb96f2ae55b3e659553426f93b8398f41"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/mods/false": {
+          "type": "file",
+          "size": 32304,
+          "mode": 493,
+          "sha256": "2110833880a67c723cb4296491e51679609ea222ea69b13d993cafb9f70cf78d"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot.json": {
+          "type": "file",
+          "size": 448,
+          "mode": 384,
+          "sha256": "e245343720302db92924fafc03c9df7a4155690ec43a07df19a00dbb250656a6"
+        },
+        ".modsync-lock-afdeb331f0eba585": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-fbaa12c758594b7c": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/false": {
+          "type": "file",
+          "size": 32304,
+          "mode": 493,
+          "sha256": "2110833880a67c723cb4296491e51679609ea222ea69b13d993cafb9f70cf78d"
+        },
+        "mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        }
+      },
+      "after": {
+        ".modsync-fbaa12c758594b7c": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/mods/false": {
+          "type": "file",
+          "size": 32304,
+          "mode": 493,
+          "sha256": "2110833880a67c723cb4296491e51679609ea222ea69b13d993cafb9f70cf78d"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot/mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        },
+        ".modsync-fbaa12c758594b7c/snapshot.json": {
+          "type": "file",
+          "size": 448,
+          "mode": 384,
+          "sha256": "e245343720302db92924fafc03c9df7a4155690ec43a07df19a00dbb250656a6"
+        },
+        ".modsync-lock-afdeb331f0eba585": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-fbaa12c758594b7c": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "size": 0,
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/false": {
+          "type": "file",
+          "size": 32304,
+          "mode": 493,
+          "sha256": "2110833880a67c723cb4296491e51679609ea222ea69b13d993cafb9f70cf78d"
+        },
+        "mods/sample.tga": {
+          "type": "file",
+          "size": 14,
+          "mode": 420,
+          "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+        }
+      },
+      "unchanged": false
+    }
+  ],
+  "runtime_restore_game_mod_equal": true,
+  "runtime_initial": {
+    "game": {
+      "type": "directory",
+      "mode": 493
+    },
+    "game/Override": {
+      "type": "directory",
+      "mode": 493
+    },
+    "game/swkotor.exe": {
+      "type": "file",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "mods": {
+      "type": "directory",
+      "mode": 493
+    },
+    "mods/false": {
+      "type": "file",
+      "size": 32304,
+      "mode": 493,
+      "sha256": "2110833880a67c723cb4296491e51679609ea222ea69b13d993cafb9f70cf78d"
+    },
+    "mods/sample.tga": {
+      "type": "file",
+      "size": 14,
+      "mode": 420,
+      "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+    }
+  },
+  "runtime_final": {
+    ".modsync-fbaa12c758594b7c": {
+      "type": "directory",
+      "mode": 493
+    },
+    ".modsync-fbaa12c758594b7c/snapshot": {
+      "type": "directory",
+      "mode": 493
+    },
+    ".modsync-fbaa12c758594b7c/snapshot/game": {
+      "type": "directory",
+      "mode": 493
+    },
+    ".modsync-fbaa12c758594b7c/snapshot/game/Override": {
+      "type": "directory",
+      "mode": 493
+    },
+    ".modsync-fbaa12c758594b7c/snapshot/game/swkotor.exe": {
+      "type": "file",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    ".modsync-fbaa12c758594b7c/snapshot/mods": {
+      "type": "directory",
+      "mode": 493
+    },
+    ".modsync-fbaa12c758594b7c/snapshot/mods/false": {
+      "type": "file",
+      "size": 32304,
+      "mode": 493,
+      "sha256": "2110833880a67c723cb4296491e51679609ea222ea69b13d993cafb9f70cf78d"
+    },
+    ".modsync-fbaa12c758594b7c/snapshot/mods/sample.tga": {
+      "type": "file",
+      "size": 14,
+      "mode": 420,
+      "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+    },
+    ".modsync-fbaa12c758594b7c/snapshot.json": {
+      "type": "file",
+      "size": 448,
+      "mode": 384,
+      "sha256": "e245343720302db92924fafc03c9df7a4155690ec43a07df19a00dbb250656a6"
+    },
+    ".modsync-lock-afdeb331f0eba585": {
+      "type": "file",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    ".modsync-lock-fbaa12c758594b7c": {
+      "type": "file",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "game": {
+      "type": "directory",
+      "mode": 493
+    },
+    "game/Override": {
+      "type": "directory",
+      "mode": 493
+    },
+    "game/swkotor.exe": {
+      "type": "file",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "mods": {
+      "type": "directory",
+      "mode": 493
+    },
+    "mods/false": {
+      "type": "file",
+      "size": 32304,
+      "mode": 493,
+      "sha256": "2110833880a67c723cb4296491e51679609ea222ea69b13d993cafb9f70cf78d"
+    },
+    "mods/sample.tga": {
+      "type": "file",
+      "size": 14,
+      "mode": 420,
+      "sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be"
+    }
+  }
+}

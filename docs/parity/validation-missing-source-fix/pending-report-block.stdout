@@ -1,0 +1,20 @@
+{
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 1,
+  "warningCount": 0,
+  "passedCount": 0,
+  "componentCount": 1,
+  "inputPath": "/tmp/modsync-task1b-proof-whg3rfzj/runtime-failure/guide.json",
+  "stages": [
+    {
+      "stage": "Environment",
+      "passed": false,
+      "hasWarnings": false,
+      "summary": "Failed",
+      "messages": [
+        "An unfinished install exists. Run restore before retrying. Recovery: /tmp/modsync-task1b-proof-whg3rfzj/runtime-failure/.modsync-fbaa12c758594b7c"
+      ]
+    }
+  ]
+}

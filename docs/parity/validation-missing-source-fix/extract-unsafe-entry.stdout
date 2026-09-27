@@ -1,0 +1,70 @@
+{
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 3,
+  "warningCount": 0,
+  "passedCount": 3,
+  "componentCount": 1,
+  "inputPath": "/tmp/modsync-task1b-proof-whg3rfzj/extract-unsafe-entry/guide.json",
+  "stages": [
+    {
+      "stage": "Environment",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "Passed"
+    },
+    {
+      "stage": "Conflicts",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "No dependency or restriction conflicts."
+    },
+    {
+      "stage": "InstallOrder",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "Install order is correct."
+    },
+    {
+      "stage": "ComponentValidation",
+      "passed": false,
+      "hasWarnings": false,
+      "summary": "1 component error(s)",
+      "messages": [
+        "Fixture: archive/destination validation: Cannot inspect archive /tmp/modsync-task1b-proof-whg3rfzj/extract-unsafe-entry/mods/package.zip: Unsafe path: ../escape.dat"
+      ]
+    },
+    {
+      "stage": "FomodConfiguration",
+      "passed": false,
+      "hasWarnings": false,
+      "summary": "Failed",
+      "messages": [
+        "Unsafe path: ../escape.dat"
+      ]
+    },
+    {
+      "stage": "DryRun",
+      "passed": false,
+      "hasWarnings": false,
+      "summary": "✗ Validation failed with 1 error(s) and 0 warning(s).\n\nThe following issues must be resolved before installation:\n",
+      "messages": [
+        "ERROR: [EngineSimulation] Fixture / step 1 (Extract): Unsafe path: ../escape.dat"
+      ]
+    }
+  ],
+  "dryRun": {
+    "isValid": false,
+    "hasWarnings": false,
+    "issues": [
+      {
+        "severity": "Error",
+        "category": "EngineSimulation",
+        "message": "Fixture / step 1 (Extract): Unsafe path: ../escape.dat",
+        "componentName": "Fixture",
+        "componentGuid": "11111111-1111-1111-1111-111111111111",
+        "instructionIndex": 1
+      }
+    ]
+  }
+}

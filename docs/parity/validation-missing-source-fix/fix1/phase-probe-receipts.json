@@ -1,0 +1,3718 @@
+{
+  "runs": [
+    {
+      "name": "review-exact-headless",
+      "argv": [
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/modsync-headless",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/review-exact/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/review-exact/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/review-exact/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full"
+      ],
+      "exit": 1,
+      "binary_sha256": "62c20f997eabb729eb0681c3b4c891bab1fec9e9d45d9c4d8e2ab2dec4e45d00",
+      "guide_sha256": "20e28f2689dc8ac5e6dc07031bd982cbedb3fd4c7d1c9131f89a42614e0b7792",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Choose",
+              "Source": [
+                "22222222-2222-2222-2222-222222222222"
+              ]
+            }
+          ],
+          "Options": [
+            {
+              "Guid": "22222222-2222-2222-2222-222222222222",
+              "Name": "Selected FOMOD option",
+              "Author": "Wizard",
+              "Category": [],
+              "Language": [],
+              "ResourceRegistry": {},
+              "ExcludedDownloads": [],
+              "Dependencies": [],
+              "Restrictions": [],
+              "InstallBefore": [],
+              "InstallAfter": [],
+              "IsSelected": true,
+              "Instructions": [
+                {
+                  "Action": "Extract",
+                  "Source": [
+                    "<<modDirectory>>/package.zip"
+                  ],
+                  "Destination": "",
+                  "Overwrite": true
+                }
+              ],
+              "Options": [],
+              "WidescreenOnly": false
+            }
+          ],
+          "WidescreenOnly": false
+        }
+      ],
+      "stdout": "review-exact-headless.stdout",
+      "stderr": "review-exact-headless.stderr",
+      "before": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "20e28f2689dc8ac5e6dc07031bd982cbedb3fd4c7d1c9131f89a42614e0b7792"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        "mods/stage": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "after": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "20e28f2689dc8ac5e6dc07031bd982cbedb3fd4c7d1c9131f89a42614e0b7792"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        "mods/stage": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "unchanged": true,
+      "counts": {
+        "success": false,
+        "errorCount": 1,
+        "warningCount": 0,
+        "passedCount": 4
+      },
+      "stages": [
+        {
+          "stage": "Environment",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "Passed"
+        },
+        {
+          "stage": "Conflicts",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "No dependency or restriction conflicts."
+        },
+        {
+          "stage": "InstallOrder",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "Install order is correct."
+        },
+        {
+          "stage": "ComponentValidation",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "All components passed archive validation.",
+          "messages": [
+            "OK: Fixture"
+          ]
+        },
+        {
+          "stage": "FomodConfiguration",
+          "passed": false,
+          "hasWarnings": false,
+          "summary": "Failed",
+          "messages": [
+            "FOMOD archive 'package.zip' has no explicit FomodChoices configuration"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "native-missing",
+      "argv": [
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/modsync-desktop",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/native-missing/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/native-missing/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/native-missing/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "binary_sha256": "0f592b804bc2df5dafd5d58fdcfc25a2f0409451988f72365ae07eb6a2e3fee8",
+      "guide_sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b",
+      "guide": [
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Fixture",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Copy",
+              "Source": [
+                "<<modDirectory>>/sample.tga"
+              ],
+              "Destination": "<<kotorDirectory>>/Override",
+              "Overwrite": false,
+              "Dependencies": [],
+              "Restrictions": []
+            }
+          ],
+          "Options": [],
+          "WidescreenOnly": false
+        }
+      ],
+      "stdout": "native-missing.stdout",
+      "stderr": "native-missing.stderr",
+      "before": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "after": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        }
+      },
+      "unchanged": true,
+      "counts": {
+        "success": true,
+        "errorCount": 0,
+        "warningCount": 1,
+        "passedCount": 5
+      },
+      "stages": [
+        {
+          "stage": "Environment",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "Passed"
+        },
+        {
+          "stage": "Conflicts",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "No dependency or restriction conflicts."
+        },
+        {
+          "stage": "InstallOrder",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "Install order is correct."
+        },
+        {
+          "stage": "ComponentValidation",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "All components passed archive validation.",
+          "messages": [
+            "OK: Fixture"
+          ]
+        },
+        {
+          "stage": "FomodConfiguration",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "All detected FOMOD archives are configured."
+        },
+        {
+          "stage": "DryRun",
+          "passed": true,
+          "hasWarnings": true,
+          "summary": "\u26a0 Validation passed with 1 warning(s).\n\nYou may proceed, but review the following warnings:\n",
+          "messages": [
+            "WARNING: [DryRunSkipped] Skipped 'Fixture' during dry-run: source archives or files are not available."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "remaining-base-report",
+      "argv": [
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/modsync-desktop",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run",
+        "--phase",
+        "base"
+      ],
+      "exit": 0,
+      "binary_sha256": "0f592b804bc2df5dafd5d58fdcfc25a2f0409451988f72365ae07eb6a2e3fee8",
+      "guide_sha256": "b87ff98c85b0c86c39f81f28471ee4f29558b165c30306f1d260d687acf26c38",
+      "guide": [
+        {
+          "Guid": "33333333-3333-3333-3333-333333333333",
+          "Name": "Completed base",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Choose",
+              "Source": [
+                "44444444-4444-4444-4444-444444444444"
+              ]
+            }
+          ],
+          "Options": [
+            {
+              "Guid": "44444444-4444-4444-4444-444444444444",
+              "Name": "Selected FOMOD option",
+              "Author": "Wizard",
+              "Category": [],
+              "Language": [],
+              "ResourceRegistry": {
+                "https://example.invalid/package": {
+                  "Files": {
+                    "package.zip": {}
+                  },
+                  "handlerMetadata": {
+                    "fomodPromptStatus": {
+                      "package.zip": "configured"
+                    }
+                  }
+                }
+              },
+              "ExcludedDownloads": [],
+              "Dependencies": [],
+              "Restrictions": [],
+              "InstallBefore": [],
+              "InstallAfter": [],
+              "IsSelected": true,
+              "Instructions": [
+                {
+                  "Action": "Move",
+                  "Source": [
+                    "<<modDirectory>>/package.zip"
+                  ],
+                  "Destination": "<<gameDirectory>>/Override"
+                }
+              ],
+              "Options": [],
+              "WidescreenOnly": false,
+              "FomodChoices": {
+                "version": 1,
+                "archives": [
+                  {
+                    "archiveFileName": "package.zip",
+                    "selections": []
+                  }
+                ]
+              }
+            }
+          ],
+          "WidescreenOnly": false
+        },
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Remaining parent",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [
+            "33333333-3333-3333-3333-333333333333"
+          ],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Choose",
+              "Source": [
+                "22222222-2222-2222-2222-222222222222"
+              ],
+              "Dependencies": [
+                "33333333-3333-3333-3333-333333333333"
+              ]
+            }
+          ],
+          "Options": [
+            {
+              "Guid": "22222222-2222-2222-2222-222222222222",
+              "Name": "Selected FOMOD option",
+              "Author": "Wizard",
+              "Category": [],
+              "Language": [],
+              "ResourceRegistry": {},
+              "ExcludedDownloads": [],
+              "Dependencies": [],
+              "Restrictions": [],
+              "InstallBefore": [],
+              "InstallAfter": [],
+              "IsSelected": true,
+              "Instructions": [
+                {
+                  "Action": "Extract",
+                  "Source": [
+                    "<<modDirectory>>/suffix.zip"
+                  ],
+                  "Destination": "",
+                  "Overwrite": true
+                }
+              ],
+              "Options": [],
+              "WidescreenOnly": false
+            }
+          ],
+          "WidescreenOnly": true
+        }
+      ],
+      "stdout": "remaining-base-report.stdout",
+      "stderr": "remaining-base-report.stderr",
+      "before": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "b87ff98c85b0c86c39f81f28471ee4f29558b165c30306f1d260d687acf26c38"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        "mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        }
+      },
+      "after": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "b87ff98c85b0c86c39f81f28471ee4f29558b165c30306f1d260d687acf26c38"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        "mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        }
+      },
+      "unchanged": true,
+      "counts": {
+        "success": true,
+        "errorCount": 0,
+        "warningCount": 0,
+        "passedCount": 6
+      },
+      "stages": [
+        {
+          "stage": "Environment",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "Passed"
+        },
+        {
+          "stage": "Conflicts",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "No dependency or restriction conflicts."
+        },
+        {
+          "stage": "InstallOrder",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "Install order is correct."
+        },
+        {
+          "stage": "ComponentValidation",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "All components passed archive validation.",
+          "messages": [
+            "OK: Completed base"
+          ]
+        },
+        {
+          "stage": "FomodConfiguration",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "All detected FOMOD archives are configured."
+        },
+        {
+          "stage": "DryRun",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "\u2713 Dry-run validation passed successfully. All instructions appear to be correct."
+        }
+      ]
+    },
+    {
+      "name": "remaining-base-install",
+      "argv": [
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/modsync-desktop",
+        "install",
+        "--input",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/mods",
+        "--use-file-selection",
+        "--phase",
+        "base"
+      ],
+      "exit": 0,
+      "binary_sha256": "0f592b804bc2df5dafd5d58fdcfc25a2f0409451988f72365ae07eb6a2e3fee8",
+      "guide_sha256": "b87ff98c85b0c86c39f81f28471ee4f29558b165c30306f1d260d687acf26c38",
+      "guide": [
+        {
+          "Guid": "33333333-3333-3333-3333-333333333333",
+          "Name": "Completed base",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Choose",
+              "Source": [
+                "44444444-4444-4444-4444-444444444444"
+              ]
+            }
+          ],
+          "Options": [
+            {
+              "Guid": "44444444-4444-4444-4444-444444444444",
+              "Name": "Selected FOMOD option",
+              "Author": "Wizard",
+              "Category": [],
+              "Language": [],
+              "ResourceRegistry": {
+                "https://example.invalid/package": {
+                  "Files": {
+                    "package.zip": {}
+                  },
+                  "handlerMetadata": {
+                    "fomodPromptStatus": {
+                      "package.zip": "configured"
+                    }
+                  }
+                }
+              },
+              "ExcludedDownloads": [],
+              "Dependencies": [],
+              "Restrictions": [],
+              "InstallBefore": [],
+              "InstallAfter": [],
+              "IsSelected": true,
+              "Instructions": [
+                {
+                  "Action": "Move",
+                  "Source": [
+                    "<<modDirectory>>/package.zip"
+                  ],
+                  "Destination": "<<gameDirectory>>/Override"
+                }
+              ],
+              "Options": [],
+              "WidescreenOnly": false,
+              "FomodChoices": {
+                "version": 1,
+                "archives": [
+                  {
+                    "archiveFileName": "package.zip",
+                    "selections": []
+                  }
+                ]
+              }
+            }
+          ],
+          "WidescreenOnly": false
+        },
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Remaining parent",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [
+            "33333333-3333-3333-3333-333333333333"
+          ],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Choose",
+              "Source": [
+                "22222222-2222-2222-2222-222222222222"
+              ],
+              "Dependencies": [
+                "33333333-3333-3333-3333-333333333333"
+              ]
+            }
+          ],
+          "Options": [
+            {
+              "Guid": "22222222-2222-2222-2222-222222222222",
+              "Name": "Selected FOMOD option",
+              "Author": "Wizard",
+              "Category": [],
+              "Language": [],
+              "ResourceRegistry": {},
+              "ExcludedDownloads": [],
+              "Dependencies": [],
+              "Restrictions": [],
+              "InstallBefore": [],
+              "InstallAfter": [],
+              "IsSelected": true,
+              "Instructions": [
+                {
+                  "Action": "Extract",
+                  "Source": [
+                    "<<modDirectory>>/suffix.zip"
+                  ],
+                  "Destination": "",
+                  "Overwrite": true
+                }
+              ],
+              "Options": [],
+              "WidescreenOnly": false
+            }
+          ],
+          "WidescreenOnly": true
+        }
+      ],
+      "stdout": "remaining-base-install.stdout",
+      "stderr": "remaining-base-install.stderr",
+      "before": {
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "b87ff98c85b0c86c39f81f28471ee4f29558b165c30306f1d260d687acf26c38"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        "mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        }
+      },
+      "after": {
+        ".modsync-39603754814508c8": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/completion.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5e732cb78df3703b0ded37bef1afeaea33fc84df1e23446f2df188e385df8fe5"
+        },
+        ".modsync-39603754814508c8/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-39603754814508c8/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot/mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5ab46a8d6a2516987f20be161f3ed2e0f7a0b863d33df0d0dd973ab518834b4a"
+        },
+        ".modsync-lock-39603754814508c8": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-45440da637f65ae9": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        "game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "b87ff98c85b0c86c39f81f28471ee4f29558b165c30306f1d260d687acf26c38"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        }
+      },
+      "unchanged": false
+    },
+    {
+      "name": "remaining-unconfigured-full",
+      "argv": [
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/modsync-desktop",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--phase",
+        "remaining"
+      ],
+      "exit": 1,
+      "binary_sha256": "0f592b804bc2df5dafd5d58fdcfc25a2f0409451988f72365ae07eb6a2e3fee8",
+      "guide_sha256": "b87ff98c85b0c86c39f81f28471ee4f29558b165c30306f1d260d687acf26c38",
+      "guide": [
+        {
+          "Guid": "33333333-3333-3333-3333-333333333333",
+          "Name": "Completed base",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Choose",
+              "Source": [
+                "44444444-4444-4444-4444-444444444444"
+              ]
+            }
+          ],
+          "Options": [
+            {
+              "Guid": "44444444-4444-4444-4444-444444444444",
+              "Name": "Selected FOMOD option",
+              "Author": "Wizard",
+              "Category": [],
+              "Language": [],
+              "ResourceRegistry": {
+                "https://example.invalid/package": {
+                  "Files": {
+                    "package.zip": {}
+                  },
+                  "handlerMetadata": {
+                    "fomodPromptStatus": {
+                      "package.zip": "configured"
+                    }
+                  }
+                }
+              },
+              "ExcludedDownloads": [],
+              "Dependencies": [],
+              "Restrictions": [],
+              "InstallBefore": [],
+              "InstallAfter": [],
+              "IsSelected": true,
+              "Instructions": [
+                {
+                  "Action": "Move",
+                  "Source": [
+                    "<<modDirectory>>/package.zip"
+                  ],
+                  "Destination": "<<gameDirectory>>/Override"
+                }
+              ],
+              "Options": [],
+              "WidescreenOnly": false,
+              "FomodChoices": {
+                "version": 1,
+                "archives": [
+                  {
+                    "archiveFileName": "package.zip",
+                    "selections": []
+                  }
+                ]
+              }
+            }
+          ],
+          "WidescreenOnly": false
+        },
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Remaining parent",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [
+            "33333333-3333-3333-3333-333333333333"
+          ],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Choose",
+              "Source": [
+                "22222222-2222-2222-2222-222222222222"
+              ],
+              "Dependencies": [
+                "33333333-3333-3333-3333-333333333333"
+              ]
+            }
+          ],
+          "Options": [
+            {
+              "Guid": "22222222-2222-2222-2222-222222222222",
+              "Name": "Selected FOMOD option",
+              "Author": "Wizard",
+              "Category": [],
+              "Language": [],
+              "ResourceRegistry": {},
+              "ExcludedDownloads": [],
+              "Dependencies": [],
+              "Restrictions": [],
+              "InstallBefore": [],
+              "InstallAfter": [],
+              "IsSelected": true,
+              "Instructions": [
+                {
+                  "Action": "Extract",
+                  "Source": [
+                    "<<modDirectory>>/suffix.zip"
+                  ],
+                  "Destination": "",
+                  "Overwrite": true
+                }
+              ],
+              "Options": [],
+              "WidescreenOnly": false
+            }
+          ],
+          "WidescreenOnly": true
+        }
+      ],
+      "stdout": "remaining-unconfigured-full.stdout",
+      "stderr": "remaining-unconfigured-full.stderr",
+      "before": {
+        ".modsync-39603754814508c8": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/completion.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5e732cb78df3703b0ded37bef1afeaea33fc84df1e23446f2df188e385df8fe5"
+        },
+        ".modsync-39603754814508c8/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-39603754814508c8/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot/mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5ab46a8d6a2516987f20be161f3ed2e0f7a0b863d33df0d0dd973ab518834b4a"
+        },
+        ".modsync-lock-39603754814508c8": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-45440da637f65ae9": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        "game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "b87ff98c85b0c86c39f81f28471ee4f29558b165c30306f1d260d687acf26c38"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        }
+      },
+      "after": {
+        ".modsync-39603754814508c8": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/completion.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5e732cb78df3703b0ded37bef1afeaea33fc84df1e23446f2df188e385df8fe5"
+        },
+        ".modsync-39603754814508c8/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-39603754814508c8/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot/mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5ab46a8d6a2516987f20be161f3ed2e0f7a0b863d33df0d0dd973ab518834b4a"
+        },
+        ".modsync-lock-39603754814508c8": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-45440da637f65ae9": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        "game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "b87ff98c85b0c86c39f81f28471ee4f29558b165c30306f1d260d687acf26c38"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        }
+      },
+      "unchanged": true,
+      "counts": {
+        "success": false,
+        "errorCount": 2,
+        "warningCount": 0,
+        "passedCount": 4
+      },
+      "stages": [
+        {
+          "stage": "Environment",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "Passed"
+        },
+        {
+          "stage": "Conflicts",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "No dependency or restriction conflicts."
+        },
+        {
+          "stage": "InstallOrder",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "Install order is correct."
+        },
+        {
+          "stage": "ComponentValidation",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "All components passed archive validation.",
+          "messages": [
+            "OK: Remaining parent"
+          ]
+        },
+        {
+          "stage": "FomodConfiguration",
+          "passed": false,
+          "hasWarnings": false,
+          "summary": "Failed",
+          "messages": [
+            "FOMOD archive 'suffix.zip' has no explicit FomodChoices configuration"
+          ]
+        },
+        {
+          "stage": "DryRun",
+          "passed": false,
+          "hasWarnings": false,
+          "summary": "\u2717 Validation failed with 1 error(s) and 0 warning(s).\n\nThe following issues must be resolved before installation:\n",
+          "messages": [
+            "ERROR: [EngineSimulation] Remaining parent / step 1 (Choose): Selected FOMOD option / step 1 (Extract): FOMOD choices are unsupported without explicit FomodChoices configuration"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "remaining-unconfigured-dry",
+      "argv": [
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/modsync-desktop",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run",
+        "--phase",
+        "remaining"
+      ],
+      "exit": 1,
+      "binary_sha256": "0f592b804bc2df5dafd5d58fdcfc25a2f0409451988f72365ae07eb6a2e3fee8",
+      "guide_sha256": "b87ff98c85b0c86c39f81f28471ee4f29558b165c30306f1d260d687acf26c38",
+      "guide": [
+        {
+          "Guid": "33333333-3333-3333-3333-333333333333",
+          "Name": "Completed base",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Choose",
+              "Source": [
+                "44444444-4444-4444-4444-444444444444"
+              ]
+            }
+          ],
+          "Options": [
+            {
+              "Guid": "44444444-4444-4444-4444-444444444444",
+              "Name": "Selected FOMOD option",
+              "Author": "Wizard",
+              "Category": [],
+              "Language": [],
+              "ResourceRegistry": {
+                "https://example.invalid/package": {
+                  "Files": {
+                    "package.zip": {}
+                  },
+                  "handlerMetadata": {
+                    "fomodPromptStatus": {
+                      "package.zip": "configured"
+                    }
+                  }
+                }
+              },
+              "ExcludedDownloads": [],
+              "Dependencies": [],
+              "Restrictions": [],
+              "InstallBefore": [],
+              "InstallAfter": [],
+              "IsSelected": true,
+              "Instructions": [
+                {
+                  "Action": "Move",
+                  "Source": [
+                    "<<modDirectory>>/package.zip"
+                  ],
+                  "Destination": "<<gameDirectory>>/Override"
+                }
+              ],
+              "Options": [],
+              "WidescreenOnly": false,
+              "FomodChoices": {
+                "version": 1,
+                "archives": [
+                  {
+                    "archiveFileName": "package.zip",
+                    "selections": []
+                  }
+                ]
+              }
+            }
+          ],
+          "WidescreenOnly": false
+        },
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Remaining parent",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [
+            "33333333-3333-3333-3333-333333333333"
+          ],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Choose",
+              "Source": [
+                "22222222-2222-2222-2222-222222222222"
+              ],
+              "Dependencies": [
+                "33333333-3333-3333-3333-333333333333"
+              ]
+            }
+          ],
+          "Options": [
+            {
+              "Guid": "22222222-2222-2222-2222-222222222222",
+              "Name": "Selected FOMOD option",
+              "Author": "Wizard",
+              "Category": [],
+              "Language": [],
+              "ResourceRegistry": {},
+              "ExcludedDownloads": [],
+              "Dependencies": [],
+              "Restrictions": [],
+              "InstallBefore": [],
+              "InstallAfter": [],
+              "IsSelected": true,
+              "Instructions": [
+                {
+                  "Action": "Extract",
+                  "Source": [
+                    "<<modDirectory>>/suffix.zip"
+                  ],
+                  "Destination": "",
+                  "Overwrite": true
+                }
+              ],
+              "Options": [],
+              "WidescreenOnly": false
+            }
+          ],
+          "WidescreenOnly": true
+        }
+      ],
+      "stdout": "remaining-unconfigured-dry.stdout",
+      "stderr": "remaining-unconfigured-dry.stderr",
+      "before": {
+        ".modsync-39603754814508c8": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/completion.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5e732cb78df3703b0ded37bef1afeaea33fc84df1e23446f2df188e385df8fe5"
+        },
+        ".modsync-39603754814508c8/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-39603754814508c8/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot/mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5ab46a8d6a2516987f20be161f3ed2e0f7a0b863d33df0d0dd973ab518834b4a"
+        },
+        ".modsync-lock-39603754814508c8": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-45440da637f65ae9": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        "game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "b87ff98c85b0c86c39f81f28471ee4f29558b165c30306f1d260d687acf26c38"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        }
+      },
+      "after": {
+        ".modsync-39603754814508c8": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/completion.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5e732cb78df3703b0ded37bef1afeaea33fc84df1e23446f2df188e385df8fe5"
+        },
+        ".modsync-39603754814508c8/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-39603754814508c8/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot/mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5ab46a8d6a2516987f20be161f3ed2e0f7a0b863d33df0d0dd973ab518834b4a"
+        },
+        ".modsync-lock-39603754814508c8": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-45440da637f65ae9": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        "game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "b87ff98c85b0c86c39f81f28471ee4f29558b165c30306f1d260d687acf26c38"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        }
+      },
+      "unchanged": true,
+      "counts": {
+        "success": false,
+        "errorCount": 2,
+        "warningCount": 0,
+        "passedCount": 4
+      },
+      "stages": [
+        {
+          "stage": "Environment",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "Passed"
+        },
+        {
+          "stage": "Conflicts",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "No dependency or restriction conflicts."
+        },
+        {
+          "stage": "InstallOrder",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "Install order is correct."
+        },
+        {
+          "stage": "ComponentValidation",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "All components passed archive validation.",
+          "messages": [
+            "OK: Remaining parent"
+          ]
+        },
+        {
+          "stage": "FomodConfiguration",
+          "passed": false,
+          "hasWarnings": false,
+          "summary": "Failed",
+          "messages": [
+            "FOMOD archive 'suffix.zip' has no explicit FomodChoices configuration"
+          ]
+        },
+        {
+          "stage": "DryRun",
+          "passed": false,
+          "hasWarnings": false,
+          "summary": "\u2717 Validation failed with 1 error(s) and 0 warning(s).\n\nThe following issues must be resolved before installation:\n",
+          "messages": [
+            "ERROR: [EngineSimulation] Remaining parent / step 1 (Choose): Selected FOMOD option / step 1 (Extract): FOMOD choices are unsupported without explicit FomodChoices configuration"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "remaining-strict-install",
+      "argv": [
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/modsync-desktop",
+        "install",
+        "--input",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/mods",
+        "--use-file-selection",
+        "--phase",
+        "remaining"
+      ],
+      "exit": 1,
+      "binary_sha256": "0f592b804bc2df5dafd5d58fdcfc25a2f0409451988f72365ae07eb6a2e3fee8",
+      "guide_sha256": "b87ff98c85b0c86c39f81f28471ee4f29558b165c30306f1d260d687acf26c38",
+      "guide": [
+        {
+          "Guid": "33333333-3333-3333-3333-333333333333",
+          "Name": "Completed base",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Choose",
+              "Source": [
+                "44444444-4444-4444-4444-444444444444"
+              ]
+            }
+          ],
+          "Options": [
+            {
+              "Guid": "44444444-4444-4444-4444-444444444444",
+              "Name": "Selected FOMOD option",
+              "Author": "Wizard",
+              "Category": [],
+              "Language": [],
+              "ResourceRegistry": {
+                "https://example.invalid/package": {
+                  "Files": {
+                    "package.zip": {}
+                  },
+                  "handlerMetadata": {
+                    "fomodPromptStatus": {
+                      "package.zip": "configured"
+                    }
+                  }
+                }
+              },
+              "ExcludedDownloads": [],
+              "Dependencies": [],
+              "Restrictions": [],
+              "InstallBefore": [],
+              "InstallAfter": [],
+              "IsSelected": true,
+              "Instructions": [
+                {
+                  "Action": "Move",
+                  "Source": [
+                    "<<modDirectory>>/package.zip"
+                  ],
+                  "Destination": "<<gameDirectory>>/Override"
+                }
+              ],
+              "Options": [],
+              "WidescreenOnly": false,
+              "FomodChoices": {
+                "version": 1,
+                "archives": [
+                  {
+                    "archiveFileName": "package.zip",
+                    "selections": []
+                  }
+                ]
+              }
+            }
+          ],
+          "WidescreenOnly": false
+        },
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Remaining parent",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [
+            "33333333-3333-3333-3333-333333333333"
+          ],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Choose",
+              "Source": [
+                "22222222-2222-2222-2222-222222222222"
+              ],
+              "Dependencies": [
+                "33333333-3333-3333-3333-333333333333"
+              ]
+            }
+          ],
+          "Options": [
+            {
+              "Guid": "22222222-2222-2222-2222-222222222222",
+              "Name": "Selected FOMOD option",
+              "Author": "Wizard",
+              "Category": [],
+              "Language": [],
+              "ResourceRegistry": {},
+              "ExcludedDownloads": [],
+              "Dependencies": [],
+              "Restrictions": [],
+              "InstallBefore": [],
+              "InstallAfter": [],
+              "IsSelected": true,
+              "Instructions": [
+                {
+                  "Action": "Extract",
+                  "Source": [
+                    "<<modDirectory>>/suffix.zip"
+                  ],
+                  "Destination": "",
+                  "Overwrite": true
+                }
+              ],
+              "Options": [],
+              "WidescreenOnly": false
+            }
+          ],
+          "WidescreenOnly": true
+        }
+      ],
+      "stdout": "remaining-strict-install.stdout",
+      "stderr": "remaining-strict-install.stderr",
+      "before": {
+        ".modsync-39603754814508c8": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/completion.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5e732cb78df3703b0ded37bef1afeaea33fc84df1e23446f2df188e385df8fe5"
+        },
+        ".modsync-39603754814508c8/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-39603754814508c8/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot/mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5ab46a8d6a2516987f20be161f3ed2e0f7a0b863d33df0d0dd973ab518834b4a"
+        },
+        ".modsync-lock-39603754814508c8": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-45440da637f65ae9": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        "game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "b87ff98c85b0c86c39f81f28471ee4f29558b165c30306f1d260d687acf26c38"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        }
+      },
+      "after": {
+        ".modsync-39603754814508c8": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/completion.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5e732cb78df3703b0ded37bef1afeaea33fc84df1e23446f2df188e385df8fe5"
+        },
+        ".modsync-39603754814508c8/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-39603754814508c8/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot/mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5ab46a8d6a2516987f20be161f3ed2e0f7a0b863d33df0d0dd973ab518834b4a"
+        },
+        ".modsync-lock-39603754814508c8": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-45440da637f65ae9": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        "game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "b87ff98c85b0c86c39f81f28471ee4f29558b165c30306f1d260d687acf26c38"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        }
+      },
+      "unchanged": true
+    },
+    {
+      "name": "remaining-configured",
+      "argv": [
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/modsync-desktop",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run",
+        "--phase",
+        "remaining"
+      ],
+      "exit": 0,
+      "binary_sha256": "0f592b804bc2df5dafd5d58fdcfc25a2f0409451988f72365ae07eb6a2e3fee8",
+      "guide_sha256": "5a2cdca5fedf616f7ab38a51146e97275de2e2db29fecd2a43054309a1304c6a",
+      "guide": [
+        {
+          "Guid": "33333333-3333-3333-3333-333333333333",
+          "Name": "Completed base",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Choose",
+              "Source": [
+                "44444444-4444-4444-4444-444444444444"
+              ]
+            }
+          ],
+          "Options": [
+            {
+              "Guid": "44444444-4444-4444-4444-444444444444",
+              "Name": "Selected FOMOD option",
+              "Author": "Wizard",
+              "Category": [],
+              "Language": [],
+              "ResourceRegistry": {
+                "https://example.invalid/package": {
+                  "Files": {
+                    "package.zip": {}
+                  },
+                  "handlerMetadata": {
+                    "fomodPromptStatus": {
+                      "package.zip": "configured"
+                    }
+                  }
+                }
+              },
+              "ExcludedDownloads": [],
+              "Dependencies": [],
+              "Restrictions": [],
+              "InstallBefore": [],
+              "InstallAfter": [],
+              "IsSelected": true,
+              "Instructions": [
+                {
+                  "Action": "Move",
+                  "Source": [
+                    "<<modDirectory>>/package.zip"
+                  ],
+                  "Destination": "<<gameDirectory>>/Override"
+                }
+              ],
+              "Options": [],
+              "WidescreenOnly": false,
+              "FomodChoices": {
+                "version": 1,
+                "archives": [
+                  {
+                    "archiveFileName": "package.zip",
+                    "selections": []
+                  }
+                ]
+              }
+            }
+          ],
+          "WidescreenOnly": false
+        },
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Remaining parent",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [
+            "33333333-3333-3333-3333-333333333333"
+          ],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Choose",
+              "Source": [
+                "22222222-2222-2222-2222-222222222222"
+              ],
+              "Dependencies": [
+                "33333333-3333-3333-3333-333333333333"
+              ]
+            }
+          ],
+          "Options": [
+            {
+              "Guid": "22222222-2222-2222-2222-222222222222",
+              "Name": "Selected FOMOD option",
+              "Author": "Wizard",
+              "Category": [],
+              "Language": [],
+              "ResourceRegistry": {},
+              "ExcludedDownloads": [],
+              "Dependencies": [],
+              "Restrictions": [],
+              "InstallBefore": [],
+              "InstallAfter": [],
+              "IsSelected": true,
+              "Instructions": [
+                {
+                  "Action": "Extract",
+                  "Source": [
+                    "<<modDirectory>>/suffix.zip"
+                  ],
+                  "Destination": "",
+                  "Overwrite": true
+                }
+              ],
+              "Options": [],
+              "WidescreenOnly": false,
+              "FomodChoices": {
+                "version": 1,
+                "archives": [
+                  {
+                    "archiveFileName": "suffix.zip",
+                    "selections": []
+                  }
+                ]
+              }
+            }
+          ],
+          "WidescreenOnly": true
+        }
+      ],
+      "stdout": "remaining-configured.stdout",
+      "stderr": "remaining-configured.stderr",
+      "before": {
+        ".modsync-39603754814508c8": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/completion.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5e732cb78df3703b0ded37bef1afeaea33fc84df1e23446f2df188e385df8fe5"
+        },
+        ".modsync-39603754814508c8/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-39603754814508c8/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot/mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5ab46a8d6a2516987f20be161f3ed2e0f7a0b863d33df0d0dd973ab518834b4a"
+        },
+        ".modsync-lock-39603754814508c8": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-45440da637f65ae9": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        "game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "5a2cdca5fedf616f7ab38a51146e97275de2e2db29fecd2a43054309a1304c6a"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        }
+      },
+      "after": {
+        ".modsync-39603754814508c8": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/completion.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5e732cb78df3703b0ded37bef1afeaea33fc84df1e23446f2df188e385df8fe5"
+        },
+        ".modsync-39603754814508c8/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-39603754814508c8/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot/mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5ab46a8d6a2516987f20be161f3ed2e0f7a0b863d33df0d0dd973ab518834b4a"
+        },
+        ".modsync-lock-39603754814508c8": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-45440da637f65ae9": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        "game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "5a2cdca5fedf616f7ab38a51146e97275de2e2db29fecd2a43054309a1304c6a"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        }
+      },
+      "unchanged": true,
+      "counts": {
+        "success": true,
+        "errorCount": 0,
+        "warningCount": 0,
+        "passedCount": 6
+      },
+      "stages": [
+        {
+          "stage": "Environment",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "Passed"
+        },
+        {
+          "stage": "Conflicts",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "No dependency or restriction conflicts."
+        },
+        {
+          "stage": "InstallOrder",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "Install order is correct."
+        },
+        {
+          "stage": "ComponentValidation",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "All components passed archive validation.",
+          "messages": [
+            "OK: Remaining parent"
+          ]
+        },
+        {
+          "stage": "FomodConfiguration",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "All detected FOMOD archives are configured."
+        },
+        {
+          "stage": "DryRun",
+          "passed": true,
+          "hasWarnings": false,
+          "summary": "\u2713 Dry-run validation passed successfully. All instructions appear to be correct."
+        }
+      ]
+    },
+    {
+      "name": "remaining-definition-mismatch",
+      "argv": [
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/modsync-desktop",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run",
+        "--phase",
+        "remaining"
+      ],
+      "exit": 1,
+      "binary_sha256": "0f592b804bc2df5dafd5d58fdcfc25a2f0409451988f72365ae07eb6a2e3fee8",
+      "guide_sha256": "ae796e3813f3ea195b0bcd0a86fbe424e8f6b4619f890dfd424d1ba72a4cabe5",
+      "guide": [
+        {
+          "Guid": "33333333-3333-3333-3333-333333333333",
+          "Name": "Changed base",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Choose",
+              "Source": [
+                "44444444-4444-4444-4444-444444444444"
+              ]
+            }
+          ],
+          "Options": [
+            {
+              "Guid": "44444444-4444-4444-4444-444444444444",
+              "Name": "Selected FOMOD option",
+              "Author": "Wizard",
+              "Category": [],
+              "Language": [],
+              "ResourceRegistry": {
+                "https://example.invalid/package": {
+                  "Files": {
+                    "package.zip": {}
+                  },
+                  "handlerMetadata": {
+                    "fomodPromptStatus": {
+                      "package.zip": "configured"
+                    }
+                  }
+                }
+              },
+              "ExcludedDownloads": [],
+              "Dependencies": [],
+              "Restrictions": [],
+              "InstallBefore": [],
+              "InstallAfter": [],
+              "IsSelected": true,
+              "Instructions": [
+                {
+                  "Action": "Move",
+                  "Source": [
+                    "<<modDirectory>>/package.zip"
+                  ],
+                  "Destination": "<<gameDirectory>>/Override"
+                }
+              ],
+              "Options": [],
+              "WidescreenOnly": false,
+              "FomodChoices": {
+                "version": 1,
+                "archives": [
+                  {
+                    "archiveFileName": "package.zip",
+                    "selections": []
+                  }
+                ]
+              }
+            }
+          ],
+          "WidescreenOnly": false
+        },
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Remaining parent",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [
+            "33333333-3333-3333-3333-333333333333"
+          ],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Choose",
+              "Source": [
+                "22222222-2222-2222-2222-222222222222"
+              ],
+              "Dependencies": [
+                "33333333-3333-3333-3333-333333333333"
+              ]
+            }
+          ],
+          "Options": [
+            {
+              "Guid": "22222222-2222-2222-2222-222222222222",
+              "Name": "Selected FOMOD option",
+              "Author": "Wizard",
+              "Category": [],
+              "Language": [],
+              "ResourceRegistry": {},
+              "ExcludedDownloads": [],
+              "Dependencies": [],
+              "Restrictions": [],
+              "InstallBefore": [],
+              "InstallAfter": [],
+              "IsSelected": true,
+              "Instructions": [
+                {
+                  "Action": "Extract",
+                  "Source": [
+                    "<<modDirectory>>/suffix.zip"
+                  ],
+                  "Destination": "",
+                  "Overwrite": true
+                }
+              ],
+              "Options": [],
+              "WidescreenOnly": false,
+              "FomodChoices": {
+                "version": 1,
+                "archives": [
+                  {
+                    "archiveFileName": "suffix.zip",
+                    "selections": []
+                  }
+                ]
+              }
+            }
+          ],
+          "WidescreenOnly": true
+        }
+      ],
+      "stdout": "remaining-definition-mismatch.stdout",
+      "stderr": "remaining-definition-mismatch.stderr",
+      "before": {
+        ".modsync-39603754814508c8": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/completion.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5e732cb78df3703b0ded37bef1afeaea33fc84df1e23446f2df188e385df8fe5"
+        },
+        ".modsync-39603754814508c8/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-39603754814508c8/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot/mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5ab46a8d6a2516987f20be161f3ed2e0f7a0b863d33df0d0dd973ab518834b4a"
+        },
+        ".modsync-lock-39603754814508c8": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-45440da637f65ae9": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        "game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "ae796e3813f3ea195b0bcd0a86fbe424e8f6b4619f890dfd424d1ba72a4cabe5"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        }
+      },
+      "after": {
+        ".modsync-39603754814508c8": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/completion.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5e732cb78df3703b0ded37bef1afeaea33fc84df1e23446f2df188e385df8fe5"
+        },
+        ".modsync-39603754814508c8/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-39603754814508c8/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot/mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5ab46a8d6a2516987f20be161f3ed2e0f7a0b863d33df0d0dd973ab518834b4a"
+        },
+        ".modsync-lock-39603754814508c8": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-45440da637f65ae9": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        "game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "ae796e3813f3ea195b0bcd0a86fbe424e8f6b4619f890dfd424d1ba72a4cabe5"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        }
+      },
+      "unchanged": true,
+      "counts": {
+        "success": false,
+        "errorCount": 1,
+        "warningCount": 0,
+        "passedCount": 0
+      },
+      "stages": [
+        {
+          "stage": "Environment",
+          "passed": false,
+          "hasWarnings": false,
+          "summary": "Failed",
+          "messages": [
+            "Completed component definitions differ from receipt"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "remaining-game-mismatch",
+      "argv": [
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/modsync-desktop",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run",
+        "--phase",
+        "remaining"
+      ],
+      "exit": 1,
+      "binary_sha256": "0f592b804bc2df5dafd5d58fdcfc25a2f0409451988f72365ae07eb6a2e3fee8",
+      "guide_sha256": "5a2cdca5fedf616f7ab38a51146e97275de2e2db29fecd2a43054309a1304c6a",
+      "guide": [
+        {
+          "Guid": "33333333-3333-3333-3333-333333333333",
+          "Name": "Completed base",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Choose",
+              "Source": [
+                "44444444-4444-4444-4444-444444444444"
+              ]
+            }
+          ],
+          "Options": [
+            {
+              "Guid": "44444444-4444-4444-4444-444444444444",
+              "Name": "Selected FOMOD option",
+              "Author": "Wizard",
+              "Category": [],
+              "Language": [],
+              "ResourceRegistry": {
+                "https://example.invalid/package": {
+                  "Files": {
+                    "package.zip": {}
+                  },
+                  "handlerMetadata": {
+                    "fomodPromptStatus": {
+                      "package.zip": "configured"
+                    }
+                  }
+                }
+              },
+              "ExcludedDownloads": [],
+              "Dependencies": [],
+              "Restrictions": [],
+              "InstallBefore": [],
+              "InstallAfter": [],
+              "IsSelected": true,
+              "Instructions": [
+                {
+                  "Action": "Move",
+                  "Source": [
+                    "<<modDirectory>>/package.zip"
+                  ],
+                  "Destination": "<<gameDirectory>>/Override"
+                }
+              ],
+              "Options": [],
+              "WidescreenOnly": false,
+              "FomodChoices": {
+                "version": 1,
+                "archives": [
+                  {
+                    "archiveFileName": "package.zip",
+                    "selections": []
+                  }
+                ]
+              }
+            }
+          ],
+          "WidescreenOnly": false
+        },
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Remaining parent",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [
+            "33333333-3333-3333-3333-333333333333"
+          ],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Choose",
+              "Source": [
+                "22222222-2222-2222-2222-222222222222"
+              ],
+              "Dependencies": [
+                "33333333-3333-3333-3333-333333333333"
+              ]
+            }
+          ],
+          "Options": [
+            {
+              "Guid": "22222222-2222-2222-2222-222222222222",
+              "Name": "Selected FOMOD option",
+              "Author": "Wizard",
+              "Category": [],
+              "Language": [],
+              "ResourceRegistry": {},
+              "ExcludedDownloads": [],
+              "Dependencies": [],
+              "Restrictions": [],
+              "InstallBefore": [],
+              "InstallAfter": [],
+              "IsSelected": true,
+              "Instructions": [
+                {
+                  "Action": "Extract",
+                  "Source": [
+                    "<<modDirectory>>/suffix.zip"
+                  ],
+                  "Destination": "",
+                  "Overwrite": true
+                }
+              ],
+              "Options": [],
+              "WidescreenOnly": false,
+              "FomodChoices": {
+                "version": 1,
+                "archives": [
+                  {
+                    "archiveFileName": "suffix.zip",
+                    "selections": []
+                  }
+                ]
+              }
+            }
+          ],
+          "WidescreenOnly": true
+        }
+      ],
+      "stdout": "remaining-game-mismatch.stdout",
+      "stderr": "remaining-game-mismatch.stderr",
+      "before": {
+        ".modsync-39603754814508c8": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/completion.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5e732cb78df3703b0ded37bef1afeaea33fc84df1e23446f2df188e385df8fe5"
+        },
+        ".modsync-39603754814508c8/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-39603754814508c8/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot/mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5ab46a8d6a2516987f20be161f3ed2e0f7a0b863d33df0d0dd973ab518834b4a"
+        },
+        ".modsync-lock-39603754814508c8": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-45440da637f65ae9": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "45875ef097b272f8ffd0ec1a32438b0dfa9bd61e2ff26ac90ebaf26197e92de9"
+        },
+        "game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "5a2cdca5fedf616f7ab38a51146e97275de2e2db29fecd2a43054309a1304c6a"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        }
+      },
+      "after": {
+        ".modsync-39603754814508c8": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/completion.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5e732cb78df3703b0ded37bef1afeaea33fc84df1e23446f2df188e385df8fe5"
+        },
+        ".modsync-39603754814508c8/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-39603754814508c8/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot/mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5ab46a8d6a2516987f20be161f3ed2e0f7a0b863d33df0d0dd973ab518834b4a"
+        },
+        ".modsync-lock-39603754814508c8": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-45440da637f65ae9": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "45875ef097b272f8ffd0ec1a32438b0dfa9bd61e2ff26ac90ebaf26197e92de9"
+        },
+        "game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "5a2cdca5fedf616f7ab38a51146e97275de2e2db29fecd2a43054309a1304c6a"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        }
+      },
+      "unchanged": true,
+      "counts": {
+        "success": false,
+        "errorCount": 1,
+        "warningCount": 0,
+        "passedCount": 0
+      },
+      "stages": [
+        {
+          "stage": "Environment",
+          "passed": false,
+          "hasWarnings": false,
+          "summary": "Failed",
+          "messages": [
+            "Completed game files differ from receipt"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "remaining-root-mismatch",
+      "argv": [
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/modsync-desktop",
+        "validate",
+        "--input",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/guide.json",
+        "--game-dir",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/game",
+        "--source-dir",
+        "/tmp/modsync-task1b-fix1-zr4fi9pu/remaining/alternate-mods",
+        "--use-file-selection",
+        "--validation-report",
+        "--full",
+        "--dry-run",
+        "--phase",
+        "remaining"
+      ],
+      "exit": 1,
+      "binary_sha256": "0f592b804bc2df5dafd5d58fdcfc25a2f0409451988f72365ae07eb6a2e3fee8",
+      "guide_sha256": "5a2cdca5fedf616f7ab38a51146e97275de2e2db29fecd2a43054309a1304c6a",
+      "guide": [
+        {
+          "Guid": "33333333-3333-3333-3333-333333333333",
+          "Name": "Completed base",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Choose",
+              "Source": [
+                "44444444-4444-4444-4444-444444444444"
+              ]
+            }
+          ],
+          "Options": [
+            {
+              "Guid": "44444444-4444-4444-4444-444444444444",
+              "Name": "Selected FOMOD option",
+              "Author": "Wizard",
+              "Category": [],
+              "Language": [],
+              "ResourceRegistry": {
+                "https://example.invalid/package": {
+                  "Files": {
+                    "package.zip": {}
+                  },
+                  "handlerMetadata": {
+                    "fomodPromptStatus": {
+                      "package.zip": "configured"
+                    }
+                  }
+                }
+              },
+              "ExcludedDownloads": [],
+              "Dependencies": [],
+              "Restrictions": [],
+              "InstallBefore": [],
+              "InstallAfter": [],
+              "IsSelected": true,
+              "Instructions": [
+                {
+                  "Action": "Move",
+                  "Source": [
+                    "<<modDirectory>>/package.zip"
+                  ],
+                  "Destination": "<<gameDirectory>>/Override"
+                }
+              ],
+              "Options": [],
+              "WidescreenOnly": false,
+              "FomodChoices": {
+                "version": 1,
+                "archives": [
+                  {
+                    "archiveFileName": "package.zip",
+                    "selections": []
+                  }
+                ]
+              }
+            }
+          ],
+          "WidescreenOnly": false
+        },
+        {
+          "Guid": "11111111-1111-1111-1111-111111111111",
+          "Name": "Remaining parent",
+          "Author": "Wizard",
+          "Category": [],
+          "Language": [],
+          "ResourceRegistry": {},
+          "ExcludedDownloads": [],
+          "Dependencies": [
+            "33333333-3333-3333-3333-333333333333"
+          ],
+          "Restrictions": [],
+          "InstallBefore": [],
+          "InstallAfter": [],
+          "IsSelected": true,
+          "Instructions": [
+            {
+              "Action": "Choose",
+              "Source": [
+                "22222222-2222-2222-2222-222222222222"
+              ],
+              "Dependencies": [
+                "33333333-3333-3333-3333-333333333333"
+              ]
+            }
+          ],
+          "Options": [
+            {
+              "Guid": "22222222-2222-2222-2222-222222222222",
+              "Name": "Selected FOMOD option",
+              "Author": "Wizard",
+              "Category": [],
+              "Language": [],
+              "ResourceRegistry": {},
+              "ExcludedDownloads": [],
+              "Dependencies": [],
+              "Restrictions": [],
+              "InstallBefore": [],
+              "InstallAfter": [],
+              "IsSelected": true,
+              "Instructions": [
+                {
+                  "Action": "Extract",
+                  "Source": [
+                    "<<modDirectory>>/suffix.zip"
+                  ],
+                  "Destination": "",
+                  "Overwrite": true
+                }
+              ],
+              "Options": [],
+              "WidescreenOnly": false,
+              "FomodChoices": {
+                "version": 1,
+                "archives": [
+                  {
+                    "archiveFileName": "suffix.zip",
+                    "selections": []
+                  }
+                ]
+              }
+            }
+          ],
+          "WidescreenOnly": true
+        }
+      ],
+      "stdout": "remaining-root-mismatch.stdout",
+      "stderr": "remaining-root-mismatch.stderr",
+      "before": {
+        ".modsync-39603754814508c8": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/completion.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5e732cb78df3703b0ded37bef1afeaea33fc84df1e23446f2df188e385df8fe5"
+        },
+        ".modsync-39603754814508c8/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-39603754814508c8/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot/mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5ab46a8d6a2516987f20be161f3ed2e0f7a0b863d33df0d0dd973ab518834b4a"
+        },
+        ".modsync-lock-39603754814508c8": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-45440da637f65ae9": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "alternate-mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        "game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "5a2cdca5fedf616f7ab38a51146e97275de2e2db29fecd2a43054309a1304c6a"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        }
+      },
+      "after": {
+        ".modsync-39603754814508c8": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/completion.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5e732cb78df3703b0ded37bef1afeaea33fc84df1e23446f2df188e385df8fe5"
+        },
+        ".modsync-39603754814508c8/snapshot": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-39603754814508c8/snapshot/mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot/mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        ".modsync-39603754814508c8/snapshot/mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        ".modsync-39603754814508c8/snapshot.json": {
+          "type": "file",
+          "mode": 384,
+          "sha256": "5ab46a8d6a2516987f20be161f3ed2e0f7a0b863d33df0d0dd973ab518834b4a"
+        },
+        ".modsync-lock-39603754814508c8": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        ".modsync-lock-45440da637f65ae9": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "alternate-mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/Override/package.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        },
+        "game/Target": {
+          "type": "directory",
+          "mode": 493
+        },
+        "game/swkotor.exe": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "guide.json": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "5a2cdca5fedf616f7ab38a51146e97275de2e2db29fecd2a43054309a1304c6a"
+        },
+        "mods": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/stage": {
+          "type": "directory",
+          "mode": 493
+        },
+        "mods/suffix.zip": {
+          "type": "file",
+          "mode": 420,
+          "sha256": "062caf1a1893f2a5dada67ab5018d5f84836e34775cefd951350ae80ede43f6d"
+        }
+      },
+      "unchanged": true,
+      "counts": {
+        "success": false,
+        "errorCount": 1,
+        "warningCount": 0,
+        "passedCount": 0
+      },
+      "stages": [
+        {
+          "stage": "Environment",
+          "passed": false,
+          "hasWarnings": false,
+          "summary": "Failed",
+          "messages": [
+            "Completion roots differ"
+          ]
+        }
+      ]
+    }
+  ],
+  "source_hashes": {
+    "src/engine.rs": "48e55fd154dde7dc3763cf3d8e984ff41208ef0c749793733f907543e0325f79",
+    "src/validation.rs": "749160e66d39335bc426d34d9b102cc85000a5cc9165d92d89d21ba22b43405d"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "dotnet",
+    "/tmp/modsync-validation-reference-20260927-5813/artifacts/bin/ModSync/debug_net9.0/ModSync.dll",
+    "--instructionFile=/tmp/modsync-validation-reference-20260927-5813/fixture/guide.json",
+    "--kotorPath=/tmp/modsync-validation-reference-20260927-5813/fixture/game",
+    "--modDirectory=/tmp/modsync-validation-reference-20260927-5813/fixture/mods",
+    "--allow-multiple-instances"
+  ],
+  "pid": 1282533,
+  "display": ":2",
+  "fixture": "/tmp/modsync-validation-reference-20260927-5813/fixture"
+}

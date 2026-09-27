@@ -1,0 +1,47 @@
+{
+  "timestamp_utc": "2026-09-27T11:03:40.438941+00:00",
+  "command": [
+    "/tmp/modsync-source-audit-y9_s638p/modsync",
+    "validate",
+    "--input",
+    "/tmp/modsync-source-audit-y9_s638p/fixture/guide.json",
+    "--game-dir",
+    "/tmp/modsync-source-audit-y9_s638p/fixture/game",
+    "--source-dir",
+    "/tmp/modsync-source-audit-y9_s638p/fixture/mods",
+    "--use-file-selection",
+    "--validation-report",
+    "--full",
+    "--dry-run"
+  ],
+  "exit": 1,
+  "private_root": "/tmp/modsync-source-audit-y9_s638p",
+  "source_binary": "/tmp/modsync-rs-target/debug/modsync",
+  "copied_binary": "/tmp/modsync-source-audit-y9_s638p/modsync",
+  "copied_binary_sha256": "93f0ae8ec686e8858c20976dccf290e236ddd704d54c37a6f89a37f6f70cd984",
+  "copied_binary_mtime_ns": 1790506897155546004,
+  "source_stat_before": {
+    "inode": 1476914,
+    "size": 94040568,
+    "mtime_ns": 1790506897155546004
+  },
+  "source_stat_after": {
+    "inode": 1476914,
+    "size": 94040568,
+    "mtime_ns": 1790506897155546004
+  },
+  "source_metadata_stable_during_copy": true,
+  "guide_sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b",
+  "reference_guide_sha256": "3c184ea3922d6454cc3b18dc26e3a8e7250fc164ca9075ab83723ef78e0c873b",
+  "sample_sha256": "eb3a5fb11d4b50febbbb25d373c55fe6bdcc760640a18ce3c01e3f92ab4ef7be",
+  "stdout_sha256": "b7d9d372036edaac054b0e06949ea067ff9232d5fc2dab5c03c5af2689685fa4",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "manifest_unchanged": true,
+  "counts": {
+    "success": false,
+    "errorCount": 3,
+    "warningCount": 0,
+    "passedCount": 3
+  },
+  "source_provenance": "Copied existing build; no rebuild. Current source audit HEAD 4c1a68dd5ef5805591171bd9d590c653913994cc. Build-log correlation pending; binary hash identifies exact artifact independently."
+}

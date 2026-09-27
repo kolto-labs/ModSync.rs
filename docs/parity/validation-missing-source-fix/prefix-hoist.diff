@@ -1,0 +1,46 @@
+--- initial/src/engine.rs
++++ final/src/engine.rs
+@@ -578,10 +578,11 @@
+                 if !has_archives || path.starts_with(&self.settings.roots.game) {
+                     continue;
+                 }
++                let prefix = format!("{}/", key(&path));
+                 ensure!(
+                     members
+                         .iter()
+-                        .any(|member| Self::source_matches(&path, &pattern, member)),
++                        .any(|member| Self::source_matches(&prefix, &pattern, member)),
+                     "Failed to find '{source}' in any archives"
+                 );
+             }
+@@ -967,10 +968,11 @@
+         let mut found = BTreeMap::new();
+         for source in sources {
+             let (path, pattern) = self.source_pattern(source)?;
++            let prefix = format!("{}/", key(&path));
+             let matches: Vec<_> = self
+                 .files
+                 .iter()
+-                .filter(|(k, _)| Self::source_matches(&path, &pattern, k))
++                .filter(|(k, _)| Self::source_matches(&prefix, &pattern, k))
+                 .collect();
+             if !missing_ok && matches.is_empty() {
+                 return Err(MissingSource(source.clone()).into());
+@@ -997,7 +999,7 @@
+         Ok((path, pattern))
+     }
+ 
+-    fn source_matches(path: &Path, pattern: &glob::Pattern, candidate: &str) -> bool {
++    fn source_matches(prefix: &str, pattern: &glob::Pattern, candidate: &str) -> bool {
+         pattern.matches_with(
+             candidate,
+             glob::MatchOptions {
+@@ -1005,7 +1007,7 @@
+                 require_literal_separator: true,
+                 require_literal_leading_dot: false,
+             },
+-        ) || candidate.starts_with(&format!("{}/", key(path)))
++        ) || candidate.starts_with(prefix)
+     }
+ 
+     fn instruction_sources(&self, sources: &[String]) -> Result<Vec<PathBuf>> {
