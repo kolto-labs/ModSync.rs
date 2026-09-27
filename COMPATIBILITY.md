@@ -1,5 +1,19 @@
 # Compatibility and proof boundaries
 
+CLI `validate`, `conflicts`, and `install` now expose `--phase all|base|remaining`
+(default `all`) through the same preparation API used by desktop workers. Remaining
+conflicts verify completion roots, serialized definitions and game hashes in the
+shared engine. All report compatibility is preserved. CLI Remaining requires stable
+definition-equivalent guide/choices inputs; whole-payload external choices metadata
+means even suffix-only edits may reject, while GUI retained history can preserve
+the completed prefix. Explicit Base reruns use ordinary installer semantics, so a
+Copy/Overwrite Base can repeat; consumed Move inputs reject. Explicit phased
+`--direct-markdown` is unsupported; ordinary Markdown ingestion remains allowed.
+Commands, output/error contracts, reviews and source-bound evidence are in
+[cli-phases-integration.md](docs/parity/cli-phases-integration.md). Tasks 1–3 passed
+review; whole-package final review remains pending. This adds no native GUI or
+full-build proof; the existing pre-fix native evidence retains its original scope.
+
 Remaining-phase FOMOD configuration now uses shared choices application/merge and
 prompt-status helpers that preserve completed component definitions and nested
 options. The desktop editor and external choices file both feed the same remaining

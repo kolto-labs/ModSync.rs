@@ -1,0 +1,34 @@
+   Compiling modsync v0.1.0 (/run/media/brunner56/MyBook/Workspaces/ModSync.rs)
+    Finished `test` profile [unoptimized] target(s) in 5.11s
+     Running tests/cli_phases.rs (/tmp/modsync-rs-target/debug/deps/cli_phases-7d253b34803770ba)
+
+running 1 test
+test executable_all_invalid_guides_keep_pipeline_report_shape ... FAILED
+
+failures:
+
+---- executable_all_invalid_guides_keep_pipeline_report_shape stdout ----
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmptWjvZ2/game" "--source-dir" "/tmp/.tmptWjvZ2/mods" "--input" "/tmp/.tmptWjvZ2/guide.json" "--validation-report" "--full": exit=Some(1), stdout={
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 0,
+  "warningCount": 0,
+  "passedCount": 0,
+  "componentCount": 0,
+  "error": "Base requires selected component missing"
+}
+, stderr=
+
+thread 'executable_all_invalid_guides_keep_pipeline_report_shape' (1075159) panicked at tests/cli_phases.rs:182:13:
+assertion `left == right` failed
+  left: Null
+ right: String("/tmp/.tmptWjvZ2/guide.json")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    executable_all_invalid_guides_keep_pipeline_report_shape
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `--test cli_phases`

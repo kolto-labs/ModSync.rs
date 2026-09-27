@@ -1,0 +1,37 @@
+   Compiling modsync v0.1.0 (/run/media/brunner56/MyBook/Workspaces/ModSync.rs)
+    Finished `test` profile [unoptimized] target(s) in 4.09s
+     Running unittests src/main.rs (/tmp/modsync-rs-target/debug/deps/modsync-e7aaab0cfe066810)
+
+running 30 tests
+test fomod_ui::tests::automatic_cancel_only_records_a_confirmed_fomod ... ok
+test fomod_ui::tests::automatic_inspection_closes_for_ordinary_archives_but_keeps_errors_visible ... ok
+test fomod_ui::tests::navigation_validates_current_step_and_recomputes_flag_visibility ... ok
+test fomod_ui::tests::replacing_inspection_cancels_old_worker_and_rejects_its_late_result ... ok
+test ui::tests::base_validation_includes_selected_widescreen_inputs ... ok
+test ui::tests::choices_metadata_changes_and_inflight_edits_invalidate_validation ... ok
+test ui::tests::choices_stamp_never_opens_a_fifo ... ok
+test ui::tests::desktop_conflict_worker_reports_without_writing_and_clears_stale_results ... ok
+test ui::tests::desktop_connected_route_uses_worker_success_and_verified_remaining_prefix ... ok
+test ui::tests::desktop_empty_widescreen_phase_retains_all_completion_pages_without_replay ... ok
+test ui::tests::desktop_fomod_edits_preserve_choices_file_archives_and_invalidate_readiness ... ok
+test ui::tests::desktop_gates_reject_stale_validation_unknown_game_and_failed_worker ... ok
+test ui::tests::desktop_invalid_retained_ids_and_failed_base_never_promote_or_mutate ... ok
+test ui::tests::desktop_preparation_matches_cli_all_and_base_after_selection ... ok
+test ui::tests::desktop_profile_capture_and_activation_preserve_loaded_guide_and_reset_validation ... ok
+test ui::tests::desktop_profile_management_checks_confirmation_and_refreshes_names ... ok
+test ui::tests::desktop_restores_saved_directories_but_preserves_explicit_launch_paths ... ok
+test ui::tests::desktop_retained_and_cli_reconstructed_choices_verify_real_completion ... ok
+test ui::tests::desktop_validation_uses_the_shared_full_dry_run_pipeline ... ok
+test ui::tests::failed_job_setup_invalidates_validation_and_confirmation ... ok
+test ui::tests::multiple_categories_apply_together_without_clearing_existing_selections ... ok
+test ui::tests::nxm_completion_marks_only_the_resolved_registry_file ... ok
+test ui::tests::option_without_raw_description_renders_spoiler_description ... ok
+test ui::tests::post_download_fomod_prompt_obeys_registered_status ... ok
+test ui::tests::protocol_guide_replaces_stale_wizard_state ... ok
+test ui::tests::queued_nxm_handoffs_keep_arrival_order_until_setup_is_ready ... ok
+test ui::tests::remaining_fomod_editor_and_external_choices_preserve_consumed_base ... ok
+test ui::tests::saved_desktop_selection_embeds_external_fomod_choices_and_reloads ... ok
+test ui::tests::stale_install_completion_cannot_promote_effective_definitions ... ok
+test ui::tests::themes_persist_and_failed_save_keeps_displayed_theme ... ok
+
+test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.42s

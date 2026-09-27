@@ -1,0 +1,363 @@
+   Compiling modsync v0.1.0 (/run/media/brunner56/MyBook/Workspaces/ModSync.rs)
+    Finished `test` profile [unoptimized] target(s) in 7.01s
+     Running unittests src/lib.rs (/tmp/modsync-rs-target/debug/deps/modsync-ea79a83fe8e98f20)
+
+running 9 tests
+test game::tests::detects_reference_game_scores_and_resolves_aspyr_content_root ... ok
+test game::tests::aspyr_components_are_removed_from_non_aspyr_selections ... ok
+test p2p::tests::torrent_payload_must_be_one_archive ... ok
+test patcher::tests::configured_path_then_path_then_resources_follow_csharp_order ... ok
+test validation::tests::dry_run_counts_individual_issues_with_reference_error_precedence ... ok
+test validation::tests::first_issue_prefers_errors_then_falls_back_to_warnings ... ok
+test single_instance::tests::secondary_protocol_launch_reaches_the_primary_receiver ... ok
+test validation::tests::json_shapes_match_the_pinned_csharp_formatter_oracle ... ok
+test direct_markdown::tests::skips_special_components_and_fails_before_an_empty_component_runs ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/main.rs (/tmp/modsync-rs-target/debug/deps/modsync-e7aaab0cfe066810)
+
+running 30 tests
+test fomod_ui::tests::automatic_cancel_only_records_a_confirmed_fomod ... ok
+test fomod_ui::tests::navigation_validates_current_step_and_recomputes_flag_visibility ... ok
+test ui::tests::desktop_fomod_edits_preserve_choices_file_archives_and_invalidate_readiness ... ok
+test fomod_ui::tests::replacing_inspection_cancels_old_worker_and_rejects_its_late_result ... ok
+test ui::tests::desktop_conflict_worker_reports_without_writing_and_clears_stale_results ... ok
+test ui::tests::base_validation_includes_selected_widescreen_inputs ... ok
+test ui::tests::choices_metadata_changes_and_inflight_edits_invalidate_validation ... ok
+test ui::tests::desktop_restores_saved_directories_but_preserves_explicit_launch_paths ... ok
+test ui::tests::failed_job_setup_invalidates_validation_and_confirmation ... ok
+test ui::tests::multiple_categories_apply_together_without_clearing_existing_selections ... ok
+test ui::tests::choices_stamp_never_opens_a_fifo ... ok
+test ui::tests::nxm_completion_marks_only_the_resolved_registry_file ... ok
+test ui::tests::desktop_validation_uses_the_shared_full_dry_run_pipeline ... ok
+test ui::tests::desktop_profile_management_checks_confirmation_and_refreshes_names ... ok
+test ui::tests::desktop_preparation_matches_cli_all_and_base_after_selection ... ok
+test ui::tests::protocol_guide_replaces_stale_wizard_state ... ok
+test ui::tests::queued_nxm_handoffs_keep_arrival_order_until_setup_is_ready ... ok
+test ui::tests::post_download_fomod_prompt_obeys_registered_status ... ok
+test ui::tests::saved_desktop_selection_embeds_external_fomod_choices_and_reloads ... ok
+test ui::tests::desktop_empty_widescreen_phase_retains_all_completion_pages_without_replay ... ok
+test ui::tests::desktop_profile_capture_and_activation_preserve_loaded_guide_and_reset_validation ... ok
+test ui::tests::themes_persist_and_failed_save_keeps_displayed_theme ... ok
+test ui::tests::desktop_gates_reject_stale_validation_unknown_game_and_failed_worker ... ok
+test ui::tests::desktop_invalid_retained_ids_and_failed_base_never_promote_or_mutate ... ok
+test ui::tests::stale_install_completion_cannot_promote_effective_definitions ... ok
+test ui::tests::option_without_raw_description_renders_spoiler_description ... ok
+test ui::tests::desktop_connected_route_uses_worker_success_and_verified_remaining_prefix ... ok
+test fomod_ui::tests::automatic_inspection_closes_for_ordinary_archives_but_keeps_errors_visible ... ok
+test ui::tests::desktop_retained_and_cli_reconstructed_choices_verify_real_completion ... ok
+test ui::tests::remaining_fomod_editor_and_external_choices_preserve_consumed_base ... ok
+
+test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s
+
+     Running tests/archive_generation.rs (/tmp/modsync-rs-target/debug/deps/archive_generation-18aef4314ea668f0)
+
+running 8 tests
+test executable_inference_never_runs_the_input_or_bypasses_engine_trust_and_cancellation ... ok
+test archive_matching_prefers_exact_then_newest_and_preserves_unrelated_options ... ok
+test inferred_choices_reuse_authored_identity_selection_and_install_behavior ... ok
+test augmentation_is_idempotent_and_retains_authored_copy_destination ... ok
+test cli_local_generation_reports_skips_and_requires_source_directory ... ok
+test inference_preserves_inputs_and_model_on_failure_and_installs_chosen_files ... ok
+test legacy_download_links_reach_local_inference_and_shared_install_engine ... ok
+test archive_generation_tracks_reference_outputs_and_unresolved_differences ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running tests/cli_phases.rs (/tmp/modsync-rs-target/debug/deps/cli_phases-7d253b34803770ba)
+
+running 7 tests
+test executable_explicit_base_retains_ordinary_copy_repeat_semantics ... ok
+test executable_all_invalid_guides_keep_pipeline_report_shape ... ok
+test executable_failed_suffix_blocks_operations_until_explicit_restore_then_retries ... ok
+test executable_phases_consume_base_then_validate_conflict_and_install_only_suffix ... ok
+test executable_remaining_rejects_stale_receipts_and_tampering_without_writes ... ok
+test executable_choices_reconstruction_is_stable_and_whole_payload_changes_fail_closed ... ok
+test executable_preparation_rejects_invalid_prefixes_empty_phases_and_report_flags ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.00s
+
+     Running tests/conflicts.rs (/tmp/modsync-rs-target/debug/deps/conflicts-07ead59899fc46de)
+
+running 2 tests
+test failed_or_cancelled_analysis_does_not_return_a_partial_report ... ok
+test conflicts_follow_real_writes_and_cli_is_read_only ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/deployment.rs (/tmp/modsync-rs-target/debug/deps/deployment-38525e401347f2be)
+
+running 4 tests
+test malformed_or_unsafe_manifests_do_not_reach_outside_the_game_tree ... ok
+test uninstall_preserves_user_changed_deployment_and_its_backup ... ok
+test deploy_uninstall_restores_backups_and_removes_only_manifested_files ... ok
+test purge_unwinds_newest_component_first_and_restores_the_original_file ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/download_hosts.rs (/tmp/modsync-rs-target/debug/deps/download_hosts-a65abcda20192a8c)
+
+running 1 test
+test source_order_keeps_specific_hosts_ahead_of_direct_fallback ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/download_plan.rs (/tmp/modsync-rs-target/debug/deps/download_plan-8115562aa673e6cf)
+
+running 2 tests
+test cli_plan_keeps_guide_and_source_unchanged ... ok
+test plans_match_csharp_file_selection_and_unsatisfied_patterns ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running tests/download_queue.rs (/tmp/modsync-rs-target/debug/deps/download_queue-ae6d1411ddaec206)
+
+running 2 tests
+test queue_marks_pending_work_cancelled_without_running_it ... ok
+test queue_retries_preserves_input_order_and_reports_terminal_failures ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/drafts.rs (/tmp/modsync-rs-target/debug/deps/drafts-b932bb97e84e1047)
+
+running 6 tests
+test direct_markdown_requires_odypatcher_before_game_writes ... ok
+test direct_markdown_installs_reviewed_actions_and_skips_special_components ... ok
+test direct_markdown_rejects_unreviewed_drafts_before_game_writes ... ok
+test drafts_match_reference_service_and_preserve_authored_instructions ... ok
+test reviewed_drafts_share_the_engine_and_unsafe_or_incomplete_drafts_stay_blocked ... ok
+test cli_drafts_and_reviews_without_installing ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.06s
+
+     Running tests/editor.rs (/tmp/modsync-rs-target/debug/deps/editor-b79b28301191c946)
+
+running 3 tests
+test instructions_have_checked_insert_and_move_boundaries ... ok
+test shared_editor_reorders_and_rejects_unsafe_deletion ... ok
+test new_components_receive_a_unique_editable_identity ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/fomod.rs (/tmp/modsync-rs-target/debug/deps/fomod-709b61e1021c8c49)
+
+running 26 tests
+test file_and_game_dependencies_match_csharp_satisfied_mapping_behavior ... ok
+test archive_module_mapping_keeps_nested_content_root ... ok
+test console_selection_retries_invalid_choices_and_cancels_atomically ... ok
+test edited_archive_choices_merge_without_losing_other_packages ... ok
+test archive_choices_route_steps_and_commit_only_when_every_group_is_valid ... ok
+test captured_choices_roundtrip_selected_plugins_and_reject_ambiguous_names ... ok
+test console_back_revises_previous_visible_step_and_recomputes_visibility ... ok
+test choices_file_schema_and_named_selections_reject_ambiguous_or_invalid_changes ... ok
+test file_plan_preserves_conditional_attachment_and_skips_unmappable_patterns ... ok
+test info_xml_preserves_reference_metadata_and_rejects_unsafe_xml ... ok
+test module_file_directives_keep_reference_order_paths_and_priority_defaults ... ok
+test module_xml_drives_selection_defaults_flags_and_visibility_without_installing ... ok
+test required_choices_cannot_be_removed_directly_or_through_exclusive_siblings ... ok
+test plugin_type_descriptors_match_csharp_defaults_and_are_retained ... ok
+test prompt_status_preserves_existing_metadata_casing ... ok
+test prompt_status_matches_csharp_resource_metadata_contract ... ok
+test remaining_choices_preserve_completed_subtrees_and_saved_sessions ... ok
+test saved_archive_selection_resolves_nested_components_and_rejects_conflicts ... ok
+test folder_mapping_matches_reference_top_level_only_copy ... ok
+test visibility_uses_ordered_selected_flags_and_only_validates_visible_steps ... ok
+test xml_plugin_details_preserve_authored_text_without_opening_image_paths ... ok
+test selection_modes_match_pinned_csharp_oracle ... ok
+test archive_inspection_reads_nested_metadata_and_cleans_scratch_on_failure ... ok
+test choices_export_roundtrips_and_cannot_replace_archive_through_directory_alias ... ok
+test mapped_file_copies_use_shared_preflight_and_install_without_mutating_sources ... ok
+test inspect_cli_applies_archive_choices_and_reports_invalid_names ... ok
+
+test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/formats.rs (/tmp/modsync-rs-target/debug/deps/formats-caf0e2e173425def)
+
+running 16 tests
+test markdown_widescreen_warning_and_epilogue_follow_reference_boundaries ... ok
+test modern_resource_roundtrips_track_nested_xml_type_gap ... ok
+test xml_legacy_roots_singletons_cdata_entities_and_rejection ... ok
+test prose_import_resolves_masters_but_does_not_invent_executable_instructions ... ok
+test markdown_widescreen_flags_match_reference_section_positions ... ok
+test reads_pinned_csharp_exports_without_losing_components_or_instructions ... ok
+test markdown_wizard_content_survives_reference_metadata_exports ... ok
+test markdown_fields_and_embedded_instructions_match_csharp ... ok
+test yaml_successive_directives_keep_native_parser_document_boundaries ... ok
+test resource_insertion_order_survives_all_formats_and_markdown_links ... ok
+test yaml_documents_metadata_aliases_and_extension_detection ... ok
+test yaml_emits_reference_legacy_resource_map_without_roundtrip_metadata_drift ... ok
+test csharp_shapes_roundtrip_collections_options_paths_and_resources ... ok
+test yaml_metadata_comment_without_version_is_not_a_component ... ok
+test legacy_resources_match_reference_migration_with_documented_modern_files_gap ... ok
+test cli_converts_stdin_and_named_paths_without_changing_inputs ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/installer.rs (/tmp/modsync-rs-target/debug/deps/installer-dbbfcafcab986ea3)
+
+running 47 tests
+test archive_and_copy_above_512_mib ... ignored, Explicit streaming regression writes a 513 MiB file; run with --ignored
+test cancelled_stream_copy_keeps_existing_destination ... ok
+test dependency_order_is_stable_and_cycles_missing_dependencies_conflicts_fail ... ok
+test corrupted_snapshot_never_overwrites_live_files ... ok
+test cleanlist_mandatory_and_selected_names_only ... ok
+test exclusive_game_lock_prevents_concurrent_installs ... ok
+test cli_validation_report_emits_structured_error_when_setup_fails ... ok
+test cleanlist_matches_reference_substrings_tokens_and_stopwords ... ok
+test fomod_detection_requires_exact_directory_segment_before_refusing_extraction ... ok
+test cancellation_stops_later_steps_and_verified_restore_allows_retry ... ok
+test choose_executes_only_selected_options_and_conditions ... ok
+test archive_checks_integrity_names_collisions_and_links ... ok
+test configured_fomod_installs_selected_bytes_through_shared_engine ... ok
+test configured_fomod_never_uses_stale_extraction_sources ... ok
+test dry_run_tracks_extract_move_rename_delete_without_writing ... ok
+test overwrite_false_and_missing_delete_remain_nonfatal_noops ... ok
+test rar_reads_and_checks_crc_without_extracting_paths ... ok
+test cli_validation_report_is_one_json_document_with_dry_run ... ok
+test remaining_conflict_analysis_skips_base_writes_and_keeps_both_trees_unchanged ... ok
+test nested_archive_validation_cleans_scratch_without_mutating_install_trees ... ok
+test real_install_uses_case_insensitive_paths_and_texture_priority ... ok
+test symlinks_cannot_escape_or_hide_inside_install_trees ... ok
+test remaining_phase_failure_restores_completed_base_before_ordered_retry ... ok
+test remaining_install_retains_base_dependencies_without_replaying_base ... ok
+test saved_completion_rejects_missing_changed_or_corrupt_base_evidence ... ok
+test remaining_validation_skips_consumed_base_sources_and_does_not_write ... ok
+test formats_roundtrip_and_cli_use_real_engine ... ok
+test unsafe_paths_and_overlapping_roots_are_rejected ... ok
+test validation_report_dry_run_collects_failures_across_components ... ok
+test validation_report_dry_run_identifies_the_failing_instruction ... ok
+test validation_report_dry_run_is_structured_and_does_not_write ... ok
+test validation_report_dry_run_collects_reference_file_warnings ... ok
+test tar_gzip_streaming_rejects_links_corruption_and_budget_overruns ... ok
+test validation_report_gates_registered_fomod_without_extract_instruction ... ok
+test validation_report_dry_run_collects_failures_across_instructions ... ok
+test validation_report_rejects_missing_registered_archive_after_fomod_state ... ok
+test validation_report_has_ordered_shared_engine_stages ... ok
+test validation_report_keeps_component_failure_as_structured_error ... ok
+test validation_report_rejects_unreadable_registered_archive ... ok
+test validation_report_rejects_unconfigured_fomod_archive ... ok
+test wildcard_sources_keep_root_names_literal_and_check_existing_parents ... ok
+test cli_fomod_choices_validate_and_install_without_rewriting_guide ... ok
+test unsupported_or_missing_inputs_fail_before_mutation ... ok
+test patcher_log_errors_halt_later_components ... ok
+test external_failure_halts_and_named_ini_staging_keeps_original_config ... ok
+test kpatcher_uses_console_without_ody_flags ... ok
+test seven_zip_roundtrip ... ok
+
+test result: ok. 46 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.28s
+
+     Running tests/merge.rs (/tmp/modsync-rs-target/debug/deps/merge-ba172f73a12f1dbf)
+
+running 4 tests
+test per_field_existing_preferences_do_not_replace_unselected_fields ... ok
+test matches_guid_then_normalized_name_author_and_preserves_existing_guid ... ok
+test preserves_unmatched_components_and_honors_exclusion ... ok
+test merges_option_content_and_resource_filenames_by_name ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/phase_preparation.rs (/tmp/modsync-rs-target/debug/deps/phase_preparation-c584772fa9a312f9)
+
+running 4 tests
+test remaining_rejects_empty_duplicate_missing_nonprefix_and_exhausted_ids ... ok
+test preparation_matrix_preserves_selection_and_rejects_invalid_contexts ... ok
+test remaining_conflicts_verify_all_evidence_without_any_tree_or_snapshot_changes ... ok
+test stable_reconstruction_matches_retained_and_changed_choices_fail_receipt_verification ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/profiles.rs (/tmp/modsync-rs-target/debug/deps/profiles-dfdb342669d010ae)
+
+running 18 tests
+test patcher_preferences_preserve_unknown_settings_and_use_csharp_keys ... ok
+test desktop_delete_preserves_settings_and_refuses_corrupt_settings_before_deletion ... ok
+test directory_preferences_preserve_unrelated_settings_and_normalize_casing ... ok
+test saving_nexus_api_key_preserves_other_settings_and_allows_clearing ... ok
+test settings_output_redacts_nexus_key_without_changing_other_values ... ok
+test activation_merges_settings_and_rejects_corrupt_settings ... ok
+test spoiler_preference_persists_with_strict_boolean_type_and_unrelated_fields ... ok
+test profile_crud_preserves_schema_and_clone_independence ... ok
+test concurrent_creates_do_not_replace_an_existing_profile ... ok
+test theme_settings_handle_defaults_casing_and_preserve_other_fields ... ok
+test capture_apply_preserves_absent_components_and_creation_time ... ok
+test standalone_settings_dir_supplies_saved_patcher_configuration ... ok
+test nexus_api_key_reads_the_existing_settings_schema_and_cli_requires_one ... ok
+test default_profile_directory_uses_xdg_and_explicit_override_without_touching_home ... ok
+test profile_all_unselected_and_missing_defaults_fail_without_installing ... ok
+test legacy_settings_fallback_imports_managed_fields_and_current_settings_take_precedence ... ok
+test stored_profile_controls_validation_install_paths_and_option_files ... ok
+test profile_cli_manages_storage_and_applies_selections ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.29s
+
+     Running tests/protocol.rs (/tmp/modsync-rs-target/debug/deps/protocol-0c1305a65cc9116f)
+
+running 11 tests
+test linux_protocol_registration_writes_a_gui_handoff_entry ... ok
+test rejects_unsafe_or_ambiguous_protocol_shapes_before_fetching ... ok
+test platform_registration_builders_match_the_modsync_scheme_contract ... ok
+test nxm_resolution_matches_one_top_level_registry_component_and_rejects_ambiguity ... ok
+test parses_reference_nxm_and_modsync_forms_without_fetching ... ok
+test bare_protocol_url_is_accepted_like_a_registered_handler_invocation ... ok
+test nxm_download_cli_rejects_non_nxm_urls_before_network_or_output ... ok
+test instruction_urls_reject_local_targets_before_fetching ... ok
+test protocol_open_rejects_unsafe_modsync_instruction_urls_before_fetching ... ok
+test protocol_fetch_cli_rejects_unsafe_urls_without_creating_output ... ok
+test protocol_resolve_cli_reports_a_read_only_match ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running tests/selection.rs (/tmp/modsync-rs-target/debug/deps/selection-eccaa3db8310650e)
+
+running 15 tests
+test cli_selection_reports_and_ignores_malformed_or_unknown_selectors ... ok
+test spoiler_display_prefers_authored_text_and_searches_only_displayed_content ... ok
+test category_groups_sort_display_without_reordering_guide_or_using_safe_names ... ok
+test spoiler_acronyms_follow_reference_algorithm_instead_of_comment_examples ... ok
+test interactive_selection_resolves_component_and_option_relationships ... ok
+test required_badge_counts_selected_dependency_declarations_not_targets_or_tiers ... ok
+test complete_tooltip_preserves_reference_sections_and_spoiler_boundary ... ok
+test shared_category_tier_predicate_normalizes_tiers_and_ands_filter_groups ... ok
+test selection_and_filter_summaries_keep_hidden_selections_and_exclude_widescreen ... ok
+test cli_filters_reset_selection_while_gui_helpers_remain_additive ... ok
+test tooltip_keeps_full_normal_description_without_leaking_it_in_spoiler_mode ... ok
+test visible_selection_combines_filters_and_deselect_preserves_widescreen ... ok
+test cli_malformed_filter_warning_stays_on_stderr_in_json_mode ... ok
+test wizard_tier_and_category_selection_are_additive_and_exclude_widescreen_components ... ok
+test cli_exact_colon_names_take_precedence_over_filter_syntax ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/telemetry.rs (/tmp/modsync-rs-target/debug/deps/telemetry-83edf7c2252205ae)
+
+running 3 tests
+test telemetry_configuration_persists_consent_but_not_secret_and_rotates_sessions ... ok
+test telemetry_stays_off_without_consent_and_never_serializes_secret ... ok
+test telemetry_export_requires_consent_and_signs_the_sent_event ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/updates.rs (/tmp/modsync-rs-target/debug/deps/updates-364e03aa23c697e2)
+
+running 9 tests
+test component_badge_reflects_any_resource_update_flag ... ok
+test applies_versions_once_and_preserves_first_check_baseline ... ok
+test nxm_download_record_marks_the_resolved_file_available ... ok
+test stores_and_loads_the_last_update_summary ... ok
+test nexus_validation_and_md5_inputs_fail_closed_without_a_request ... ok
+test nexus_check_deduplicates_resources_and_applies_provider_versions ... ok
+test nexus_client_parses_files_md5_matches_and_key_validation ... ok
+test nexus_check_stops_before_a_new_request_when_the_api_budget_is_empty ... ok
+test nxm_link_resolves_metadata_and_authorized_https_mirror ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/wizard.rs (/tmp/modsync-rs-target/debug/deps/wizard-1fbe87a4860a1fbb)
+
+running 3 tests
+test navigation_gates_bounds_history_and_new_guide_reset ... ok
+test widescreen_insertion_requires_leaving_base_and_never_duplicates ... ok
+test exact_base_sequence_titles_and_metadata_predicates ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

@@ -1,0 +1,745 @@
+   Compiling modsync v0.1.0 (/run/media/brunner56/MyBook/Workspaces/ModSync.rs)
+    Finished `test` profile [unoptimized] target(s) in 8.92s
+     Running tests/cli_phases.rs (/tmp/modsync-rs-target/debug/deps/cli_phases-7d253b34803770ba)
+
+running 6 tests
+test executable_choices_reconstruction_is_stable_and_whole_payload_changes_fail_closed ... CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpwwLt89/game" "--source-dir" "/tmp/.tmpwwLt89/mods" "--input" "/tmp/.tmpwwLt89/guide.json" "--phase" "base" "--json" "--fomod-choices" "/tmp/.tmpwwLt89/choices.json": exit=Some(0), stdout={"component":"","step":0,"message":"Creating recovery snapshot of game and mod directories"}
+{"component":"Base","step":1,"message":"Move"}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpwwLt89/game" "--source-dir" "/tmp/.tmpwwLt89/mods" "--input" "/tmp/.tmpwwLt89/guide.json" "--phase" "remaining" "--fomod-choices" "/tmp/.tmpwwLt89/choices.json" "--validation-report": exit=Some(1), stdout={
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 0,
+  "warningCount": 0,
+  "passedCount": 0,
+  "componentCount": 0,
+  "error": "No such file or directory (os error 2)"
+}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "conflicts" "--game-dir" "/tmp/.tmpwwLt89/game" "--source-dir" "/tmp/.tmpwwLt89/mods" "--input" "/tmp/.tmpwwLt89/guide.json" "--phase" "remaining" "--fomod-choices" "/tmp/.tmpwwLt89/choices.json": exit=Some(1), stdout=, stderr=Error: No such file or directory (os error 2)
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpwwLt89/game" "--source-dir" "/tmp/.tmpwwLt89/mods" "--input" "/tmp/.tmpwwLt89/guide.json" "--phase" "remaining" "--fomod-choices" "/tmp/.tmpwwLt89/choices.json" "--json": exit=Some(1), stdout=, stderr=Error: No such file or directory (os error 2)
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpwwLt89/game" "--source-dir" "/tmp/.tmpwwLt89/mods" "--input" "/tmp/.tmpwwLt89/guide.json" "--phase" "remaining" "--json" "--fomod-choices" "/tmp/.tmpwwLt89/choices.json": exit=Some(1), stdout=, stderr=Error: No such file or directory (os error 2)
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpyhdHcT/game" "--source-dir" "/tmp/.tmpyhdHcT/mods" "--input" "/tmp/.tmpyhdHcT/guide.json" "--phase" "base" "--json" "--fomod-choices" "/tmp/.tmpyhdHcT/choices.json": exit=Some(0), stdout={"component":"","step":0,"message":"Creating recovery snapshot of game and mod directories"}
+{"component":"Base","step":1,"message":"Move"}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpyhdHcT/game" "--source-dir" "/tmp/.tmpyhdHcT/mods" "--input" "/tmp/.tmpyhdHcT/guide.json" "--phase" "remaining" "--fomod-choices" "/tmp/.tmpyhdHcT/choices.json" "--validation-report": exit=Some(1), stdout={
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 0,
+  "warningCount": 0,
+  "passedCount": 0,
+  "componentCount": 0,
+  "error": "expected value at line 1 column 1"
+}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "conflicts" "--game-dir" "/tmp/.tmpyhdHcT/game" "--source-dir" "/tmp/.tmpyhdHcT/mods" "--input" "/tmp/.tmpyhdHcT/guide.json" "--phase" "remaining" "--fomod-choices" "/tmp/.tmpyhdHcT/choices.json": exit=Some(1), stdout=, stderr=Error: expected value at line 1 column 1
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpyhdHcT/game" "--source-dir" "/tmp/.tmpyhdHcT/mods" "--input" "/tmp/.tmpyhdHcT/guide.json" "--phase" "remaining" "--fomod-choices" "/tmp/.tmpyhdHcT/choices.json" "--json": exit=Some(1), stdout=, stderr=Error: expected value at line 1 column 1
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpyhdHcT/game" "--source-dir" "/tmp/.tmpyhdHcT/mods" "--input" "/tmp/.tmpyhdHcT/guide.json" "--phase" "remaining" "--json" "--fomod-choices" "/tmp/.tmpyhdHcT/choices.json": exit=Some(1), stdout=, stderr=Error: expected value at line 1 column 1
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpXMsYU2/game" "--source-dir" "/tmp/.tmpXMsYU2/mods" "--input" "/tmp/.tmpXMsYU2/guide.json" "--phase" "base" "--json" "--fomod-choices" "/tmp/.tmpXMsYU2/choices.json": exit=Some(0), stdout={"component":"","step":0,"message":"Creating recovery snapshot of game and mod directories"}
+{"component":"Base","step":1,"message":"Move"}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpXMsYU2/game" "--source-dir" "/tmp/.tmpXMsYU2/mods" "--input" "/tmp/.tmpXMsYU2/guide.json" "--phase" "remaining" "--validation-report": exit=Some(1), stdout={
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 1,
+  "warningCount": 0,
+  "passedCount": 0,
+  "componentCount": 1,
+  "inputPath": "/tmp/.tmpXMsYU2/guide.json",
+  "stages": [
+    {
+      "stage": "Environment",
+      "passed": false,
+      "hasWarnings": false,
+      "summary": "Failed",
+      "messages": [
+        "Completed component definitions differ from receipt"
+      ]
+    }
+  ]
+}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "conflicts" "--game-dir" "/tmp/.tmpXMsYU2/game" "--source-dir" "/tmp/.tmpXMsYU2/mods" "--input" "/tmp/.tmpXMsYU2/guide.json" "--phase" "remaining": exit=Some(1), stdout=, stderr=Error: Completed component definitions differ from receipt
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpXMsYU2/game" "--source-dir" "/tmp/.tmpXMsYU2/mods" "--input" "/tmp/.tmpXMsYU2/guide.json" "--phase" "remaining" "--json": exit=Some(1), stdout=, stderr=Error: Completed component definitions differ from receipt
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpXMsYU2/game" "--source-dir" "/tmp/.tmpXMsYU2/mods" "--input" "/tmp/.tmpXMsYU2/guide.json" "--phase" "remaining" "--json": exit=Some(1), stdout=, stderr=Error: Completed component definitions differ from receipt
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpCPQB2O/game" "--source-dir" "/tmp/.tmpCPQB2O/mods" "--input" "/tmp/.tmpCPQB2O/guide.json" "--phase" "base" "--json" "--fomod-choices" "/tmp/.tmpCPQB2O/choices.json": exit=Some(0), stdout={"component":"","step":0,"message":"Creating recovery snapshot of game and mod directories"}
+{"component":"Base","step":1,"message":"Move"}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpCPQB2O/game" "--source-dir" "/tmp/.tmpCPQB2O/mods" "--input" "/tmp/.tmpCPQB2O/guide.json" "--phase" "remaining" "--fomod-choices" "/tmp/.tmpCPQB2O/choices.json" "--validation-report": exit=Some(1), stdout={
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 1,
+  "warningCount": 0,
+  "passedCount": 0,
+  "componentCount": 1,
+  "inputPath": "/tmp/.tmpCPQB2O/guide.json",
+  "stages": [
+    {
+      "stage": "Environment",
+      "passed": false,
+      "hasWarnings": false,
+      "summary": "Failed",
+      "messages": [
+        "Completed component definitions differ from receipt"
+      ]
+    }
+  ]
+}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "conflicts" "--game-dir" "/tmp/.tmpCPQB2O/game" "--source-dir" "/tmp/.tmpCPQB2O/mods" "--input" "/tmp/.tmpCPQB2O/guide.json" "--phase" "remaining" "--fomod-choices" "/tmp/.tmpCPQB2O/choices.json": exit=Some(1), stdout=, stderr=Error: Completed component definitions differ from receipt
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpCPQB2O/game" "--source-dir" "/tmp/.tmpCPQB2O/mods" "--input" "/tmp/.tmpCPQB2O/guide.json" "--phase" "remaining" "--fomod-choices" "/tmp/.tmpCPQB2O/choices.json" "--json": exit=Some(1), stdout=, stderr=Error: Completed component definitions differ from receipt
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpCPQB2O/game" "--source-dir" "/tmp/.tmpCPQB2O/mods" "--input" "/tmp/.tmpCPQB2O/guide.json" "--phase" "remaining" "--json" "--fomod-choices" "/tmp/.tmpCPQB2O/choices.json": exit=Some(1), stdout=, stderr=Error: Completed component definitions differ from receipt
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmp2tjbyM/game" "--source-dir" "/tmp/.tmp2tjbyM/mods" "--input" "/tmp/.tmp2tjbyM/guide.json" "--phase" "base" "--json" "--fomod-choices" "/tmp/.tmp2tjbyM/choices.json": exit=Some(0), stdout={"component":"","step":0,"message":"Creating recovery snapshot of game and mod directories"}
+{"component":"Base","step":1,"message":"Move"}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmp2tjbyM/game" "--source-dir" "/tmp/.tmp2tjbyM/mods" "--input" "/tmp/.tmp2tjbyM/guide.json" "--phase" "remaining" "--fomod-choices" "/tmp/.tmp2tjbyM/choices.json" "--validation-report": exit=Some(1), stdout={
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 1,
+  "warningCount": 0,
+  "passedCount": 0,
+  "componentCount": 1,
+  "inputPath": "/tmp/.tmp2tjbyM/guide.json",
+  "stages": [
+    {
+      "stage": "Environment",
+      "passed": false,
+      "hasWarnings": false,
+      "summary": "Failed",
+      "messages": [
+        "Completed component definitions differ from receipt"
+      ]
+    }
+  ]
+}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "conflicts" "--game-dir" "/tmp/.tmp2tjbyM/game" "--source-dir" "/tmp/.tmp2tjbyM/mods" "--input" "/tmp/.tmp2tjbyM/guide.json" "--phase" "remaining" "--fomod-choices" "/tmp/.tmp2tjbyM/choices.json": exit=Some(1), stdout=, stderr=Error: Completed component definitions differ from receipt
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmp2tjbyM/game" "--source-dir" "/tmp/.tmp2tjbyM/mods" "--input" "/tmp/.tmp2tjbyM/guide.json" "--phase" "remaining" "--fomod-choices" "/tmp/.tmp2tjbyM/choices.json" "--json": exit=Some(1), stdout=, stderr=Error: Completed component definitions differ from receipt
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmp2tjbyM/game" "--source-dir" "/tmp/.tmp2tjbyM/mods" "--input" "/tmp/.tmp2tjbyM/guide.json" "--phase" "remaining" "--json" "--fomod-choices" "/tmp/.tmp2tjbyM/choices.json": exit=Some(1), stdout=, stderr=Error: Completed component definitions differ from receipt
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpRPb2N2/game" "--source-dir" "/tmp/.tmpRPb2N2/mods" "--input" "/tmp/.tmpRPb2N2/guide.json" "--phase" "base" "--json" "--fomod-choices" "/tmp/.tmpRPb2N2/choices.json": exit=Some(0), stdout={"component":"","step":0,"message":"Creating recovery snapshot of game and mod directories"}
+{"component":"Base","step":1,"message":"Move"}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpRPb2N2/game" "--source-dir" "/tmp/.tmpRPb2N2/mods" "--input" "/tmp/.tmpRPb2N2/guide.json" "--phase" "remaining" "--validation-report" "--fomod-choices" "/tmp/.tmpRPb2N2/choices.json": exit=Some(0), stdout={
+  "success": true,
+  "exitCode": 0,
+  "errorCount": 0,
+  "warningCount": 0,
+  "passedCount": 6,
+  "componentCount": 1,
+  "inputPath": "/tmp/.tmpRPb2N2/guide.json",
+  "stages": [
+    {
+      "stage": "Environment",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "Passed"
+    },
+    {
+      "stage": "Conflicts",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "No simulated file conflicts"
+    },
+    {
+      "stage": "InstallOrder",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "Install order is correct."
+    },
+    {
+      "stage": "ComponentValidation",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "All components passed archive validation.",
+      "messages": [
+        "OK: Wide"
+      ]
+    },
+    {
+      "stage": "FomodConfiguration",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "All detected FOMOD archives are configured."
+    },
+    {
+      "stage": "DryRun",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "✓ Dry-run validation passed successfully. All instructions appear to be correct."
+    }
+  ],
+  "dryRun": {
+    "isValid": true,
+    "hasWarnings": false,
+    "issues": []
+  }
+}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpRPb2N2/game" "--source-dir" "/tmp/.tmpRPb2N2/mods" "--input" "/tmp/.tmpRPb2N2/guide.json" "--phase" "remaining" "--json" "--fomod-choices" "/tmp/.tmpRPb2N2/choices.json": exit=Some(0), stdout={"component":"","step":0,"message":"Creating recovery snapshot of game and mod directories"}
+{"component":"Wide","step":1,"message":"Copy"}
+, stderr=
+stable choices sha256=5906940f66b9d3fc9e31586f539a9c3511a0b4127b90ad02d48a6201f83e9abf
+ok
+test executable_explicit_base_retains_ordinary_copy_repeat_semantics ... CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpY53xOT/game" "--source-dir" "/tmp/.tmpY53xOT/mods" "--input" "/tmp/.tmpY53xOT/guide.json" "--phase" "base" "--json": exit=Some(0), stdout={"component":"","step":0,"message":"Creating recovery snapshot of game and mod directories"}
+{"component":"Base","step":1,"message":"Copy"}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpY53xOT/game" "--source-dir" "/tmp/.tmpY53xOT/mods" "--input" "/tmp/.tmpY53xOT/guide.json" "--phase" "base" "--json": exit=Some(0), stdout={"component":"","step":0,"message":"Creating recovery snapshot of game and mod directories"}
+{"component":"Base","step":1,"message":"Copy"}
+, stderr=
+ok
+test executable_failed_suffix_blocks_operations_until_explicit_restore_then_retries ... CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpFoWgtm/game" "--source-dir" "/tmp/.tmpFoWgtm/mods" "--input" "/tmp/.tmpFoWgtm/guide.json" "--phase" "base" "--json": exit=Some(0), stdout={"component":"","step":0,"message":"Creating recovery snapshot of game and mod directories"}
+{"component":"Base","step":1,"message":"Move"}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpFoWgtm/game" "--source-dir" "/tmp/.tmpFoWgtm/mods" "--input" "/tmp/.tmpFoWgtm/guide.json" "--phase" "remaining" "--json" "--allow-processes" "--patcher" "/tmp/.tmpFoWgtm/patcher": exit=Some(1), stdout={"component":"","step":0,"message":"Creating recovery snapshot of game and mod directories"}
+{"component":"Wide","step":1,"message":"Copy"}
+, stderr=Error: Install stopped. Restore before retrying; snapshot: /tmp/.tmpFoWgtm/.modsync-bc450a7e389738f7: Wide / step 2 (Patcher): External program failed with exit status: 7
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpFoWgtm/game" "--source-dir" "/tmp/.tmpFoWgtm/mods" "--input" "/tmp/.tmpFoWgtm/guide.json" "--phase" "remaining" "--allow-processes" "--patcher" "/tmp/.tmpFoWgtm/patcher" "--validation-report": exit=Some(1), stdout={
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 1,
+  "warningCount": 0,
+  "passedCount": 0,
+  "componentCount": 1,
+  "inputPath": "/tmp/.tmpFoWgtm/guide.json",
+  "stages": [
+    {
+      "stage": "Environment",
+      "passed": false,
+      "hasWarnings": false,
+      "summary": "Failed",
+      "messages": [
+        "An unfinished install exists. Run restore before retrying. Recovery: /tmp/.tmpFoWgtm/.modsync-bc450a7e389738f7"
+      ]
+    }
+  ]
+}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "conflicts" "--game-dir" "/tmp/.tmpFoWgtm/game" "--source-dir" "/tmp/.tmpFoWgtm/mods" "--input" "/tmp/.tmpFoWgtm/guide.json" "--phase" "remaining" "--allow-processes" "--patcher" "/tmp/.tmpFoWgtm/patcher": exit=Some(1), stdout=, stderr=Error: Completed game files differ from receipt
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpFoWgtm/game" "--source-dir" "/tmp/.tmpFoWgtm/mods" "--input" "/tmp/.tmpFoWgtm/guide.json" "--phase" "remaining" "--allow-processes" "--patcher" "/tmp/.tmpFoWgtm/patcher" "--json": exit=Some(1), stdout=, stderr=Error: An unfinished install exists. Run restore before retrying. Recovery: /tmp/.tmpFoWgtm/.modsync-bc450a7e389738f7
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpFoWgtm/game" "--source-dir" "/tmp/.tmpFoWgtm/mods" "--input" "/tmp/.tmpFoWgtm/guide.json" "--phase" "remaining" "--json" "--allow-processes" "--patcher" "/tmp/.tmpFoWgtm/patcher": exit=Some(1), stdout=, stderr=Error: An unfinished install exists. Run restore before retrying. Recovery: /tmp/.tmpFoWgtm/.modsync-bc450a7e389738f7
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "restore" "--game-dir" "/tmp/.tmpFoWgtm/game" "--source-dir" "/tmp/.tmpFoWgtm/mods": exit=Some(0), stdout=, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpFoWgtm/game" "--source-dir" "/tmp/.tmpFoWgtm/mods" "--input" "/tmp/.tmpFoWgtm/guide.json" "--phase" "remaining" "--json" "--allow-processes" "--patcher" "/tmp/.tmpFoWgtm/patcher": exit=Some(0), stdout={"component":"","step":0,"message":"Creating recovery snapshot of game and mod directories"}
+{"component":"Wide","step":1,"message":"Copy"}
+{"component":"Wide","step":2,"message":"Patcher"}
+, stderr=
+ok
+test executable_phases_consume_base_then_validate_conflict_and_install_only_suffix ... CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpiA6pxj/game" "--source-dir" "/tmp/.tmpiA6pxj/mods" "--input" "/tmp/.tmpiA6pxj/guide.json" "--phase" "all" "--validation-report" "--full" "--dry-run": exit=Some(0), stdout={
+  "success": true,
+  "exitCode": 0,
+  "errorCount": 0,
+  "warningCount": 0,
+  "passedCount": 6,
+  "componentCount": 2,
+  "inputPath": "/tmp/.tmpiA6pxj/guide.json",
+  "stages": [
+    {
+      "stage": "Environment",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "Passed"
+    },
+    {
+      "stage": "Conflicts",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "No simulated file conflicts"
+    },
+    {
+      "stage": "InstallOrder",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "Install order is correct."
+    },
+    {
+      "stage": "ComponentValidation",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "All components passed archive validation.",
+      "messages": [
+        "OK: Base",
+        "OK: Wide"
+      ]
+    },
+    {
+      "stage": "FomodConfiguration",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "All detected FOMOD archives are configured."
+    },
+    {
+      "stage": "DryRun",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "✓ Dry-run validation passed successfully. All instructions appear to be correct."
+    }
+  ],
+  "dryRun": {
+    "isValid": true,
+    "hasWarnings": false,
+    "issues": []
+  }
+}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpiA6pxj/game" "--source-dir" "/tmp/.tmpiA6pxj/mods" "--input" "/tmp/.tmpiA6pxj/guide.json" "--phase" "base" "--json": exit=Some(0), stdout={"component":"","step":0,"message":"Creating recovery snapshot of game and mod directories"}
+{"component":"Base","step":1,"message":"Move"}
+, stderr=
+base manifest sha256 by path: {"": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", ".modsync-e25410674128ea58": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", ".modsync-e25410674128ea58/completion.json": "fd1c0cb7e332131199a28180aa431629c7cd01b100b4dd7de2b38e3aaec3cbdc", ".modsync-e25410674128ea58/snapshot": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", ".modsync-e25410674128ea58/snapshot.json": "bc11827ba05e6e720a36c9a36cc29a0000e1f69e8d757c3d2fe843c9ef5b8e81", ".modsync-e25410674128ea58/snapshot/game": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", ".modsync-e25410674128ea58/snapshot/mods": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", ".modsync-e25410674128ea58/snapshot/mods/base.txt": "210a9a455deff70fd7382d26b3d8417400573738a4cff04743b2becf3caf567d", ".modsync-e25410674128ea58/snapshot/mods/wide.txt": "11c1ff87f61267fc5ee6d4c4127ac313b9a9570f8f49e4dda32ffc630c9d2ec2", ".modsync-lock-6cd41652a5caef8d": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", ".modsync-lock-e25410674128ea58": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "game": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "game/Override": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "game/Override/base.txt": "210a9a455deff70fd7382d26b3d8417400573738a4cff04743b2becf3caf567d", "guide.json": "7d566414266c1486512afc8eeee9a128a02d6c08f87ba4129e553143b0a95bad", "mods": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "mods/wide.txt": "11c1ff87f61267fc5ee6d4c4127ac313b9a9570f8f49e4dda32ffc630c9d2ec2"}
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpiA6pxj/game" "--source-dir" "/tmp/.tmpiA6pxj/mods" "--input" "/tmp/.tmpiA6pxj/guide.json" "--phase" "remaining" "--validation-report": exit=Some(0), stdout={
+  "success": true,
+  "exitCode": 0,
+  "errorCount": 0,
+  "warningCount": 0,
+  "passedCount": 6,
+  "componentCount": 1,
+  "inputPath": "/tmp/.tmpiA6pxj/guide.json",
+  "stages": [
+    {
+      "stage": "Environment",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "Passed"
+    },
+    {
+      "stage": "Conflicts",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "No simulated file conflicts"
+    },
+    {
+      "stage": "InstallOrder",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "Install order is correct."
+    },
+    {
+      "stage": "ComponentValidation",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "All components passed archive validation.",
+      "messages": [
+        "OK: Wide"
+      ]
+    },
+    {
+      "stage": "FomodConfiguration",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "All detected FOMOD archives are configured."
+    },
+    {
+      "stage": "DryRun",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "✓ Dry-run validation passed successfully. All instructions appear to be correct."
+    }
+  ],
+  "dryRun": {
+    "isValid": true,
+    "hasWarnings": false,
+    "issues": []
+  }
+}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpiA6pxj/game" "--source-dir" "/tmp/.tmpiA6pxj/mods" "--input" "/tmp/.tmpiA6pxj/guide.json" "--phase" "remaining" "--validation-report" "--full" "--dry-run": exit=Some(0), stdout={
+  "success": true,
+  "exitCode": 0,
+  "errorCount": 0,
+  "warningCount": 0,
+  "passedCount": 6,
+  "componentCount": 1,
+  "inputPath": "/tmp/.tmpiA6pxj/guide.json",
+  "stages": [
+    {
+      "stage": "Environment",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "Passed"
+    },
+    {
+      "stage": "Conflicts",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "No simulated file conflicts"
+    },
+    {
+      "stage": "InstallOrder",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "Install order is correct."
+    },
+    {
+      "stage": "ComponentValidation",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "All components passed archive validation.",
+      "messages": [
+        "OK: Wide"
+      ]
+    },
+    {
+      "stage": "FomodConfiguration",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "All detected FOMOD archives are configured."
+    },
+    {
+      "stage": "DryRun",
+      "passed": true,
+      "hasWarnings": false,
+      "summary": "✓ Dry-run validation passed successfully. All instructions appear to be correct."
+    }
+  ],
+  "dryRun": {
+    "isValid": true,
+    "hasWarnings": false,
+    "issues": []
+  }
+}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "conflicts" "--game-dir" "/tmp/.tmpiA6pxj/game" "--source-dir" "/tmp/.tmpiA6pxj/mods" "--input" "/tmp/.tmpiA6pxj/guide.json" "--phase" "remaining": exit=Some(0), stdout={
+  "conflicts": [],
+  "conflictCountsByComponent": {},
+  "analyzedComponentCount": 1,
+  "limitations": []
+}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpiA6pxj/game" "--source-dir" "/tmp/.tmpiA6pxj/mods" "--input" "/tmp/.tmpiA6pxj/guide.json" "--phase" "remaining" "--json": exit=Some(0), stdout={"component":"Wide","step":1,"message":"Copy"}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpiA6pxj/game" "--source-dir" "/tmp/.tmpiA6pxj/mods" "--input" "/tmp/.tmpiA6pxj/guide.json" "--phase" "base" "--json": exit=Some(1), stdout=, stderr=Error: Base / step 1 (Move): Source matches no files: <<modDirectory>>/base.txt
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpiA6pxj/game" "--source-dir" "/tmp/.tmpiA6pxj/mods" "--input" "/tmp/.tmpiA6pxj/guide.json" "--phase" "remaining" "--json": exit=Some(0), stdout={"component":"","step":0,"message":"Creating recovery snapshot of game and mod directories"}
+{"component":"Wide","step":1,"message":"Copy"}
+, stderr=
+final manifest sha256 by path: {"": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", ".modsync-e25410674128ea58": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", ".modsync-e25410674128ea58/completion.json": "9cf3b756e5d7eaf896ad463a7bfe025ef8c53d16c8f60f53d27724be87403077", ".modsync-e25410674128ea58/snapshot": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", ".modsync-e25410674128ea58/snapshot.json": "df9cabda1d6bd87c5f10404e2e78567cc24e3df6ed33d71a4c0aea7c8152c398", ".modsync-e25410674128ea58/snapshot/game": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", ".modsync-e25410674128ea58/snapshot/game/Override": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", ".modsync-e25410674128ea58/snapshot/game/Override/base.txt": "210a9a455deff70fd7382d26b3d8417400573738a4cff04743b2becf3caf567d", ".modsync-e25410674128ea58/snapshot/mods": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", ".modsync-e25410674128ea58/snapshot/mods/wide.txt": "11c1ff87f61267fc5ee6d4c4127ac313b9a9570f8f49e4dda32ffc630c9d2ec2", ".modsync-lock-6cd41652a5caef8d": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", ".modsync-lock-e25410674128ea58": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "game": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "game/Override": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "game/Override/base.txt": "210a9a455deff70fd7382d26b3d8417400573738a4cff04743b2becf3caf567d", "game/Override/wide.txt": "11c1ff87f61267fc5ee6d4c4127ac313b9a9570f8f49e4dda32ffc630c9d2ec2", "guide.json": "7d566414266c1486512afc8eeee9a128a02d6c08f87ba4129e553143b0a95bad", "mods": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "mods/wide.txt": "11c1ff87f61267fc5ee6d4c4127ac313b9a9570f8f49e4dda32ffc630c9d2ec2"}
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpiA6pxj/game" "--source-dir" "/tmp/.tmpiA6pxj/mods" "--input" "/tmp/.tmpiA6pxj/guide.json" "--phase" "remaining" "--validation-report": exit=Some(1), stdout={
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 1,
+  "warningCount": 0,
+  "passedCount": 0,
+  "componentCount": 1,
+  "inputPath": "/tmp/.tmpiA6pxj/guide.json",
+  "stages": [
+    {
+      "stage": "Environment",
+      "passed": false,
+      "hasWarnings": false,
+      "summary": "Failed",
+      "messages": [
+        "Completed component definitions differ from receipt"
+      ]
+    }
+  ]
+}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "conflicts" "--game-dir" "/tmp/.tmpiA6pxj/game" "--source-dir" "/tmp/.tmpiA6pxj/mods" "--input" "/tmp/.tmpiA6pxj/guide.json" "--phase" "remaining": exit=Some(1), stdout=, stderr=Error: Completed component definitions differ from receipt
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpiA6pxj/game" "--source-dir" "/tmp/.tmpiA6pxj/mods" "--input" "/tmp/.tmpiA6pxj/guide.json" "--phase" "remaining" "--json": exit=Some(1), stdout=, stderr=Error: Completed component definitions differ from receipt
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpiA6pxj/game" "--source-dir" "/tmp/.tmpiA6pxj/mods" "--input" "/tmp/.tmpiA6pxj/guide.json" "--phase" "remaining" "--json": exit=Some(1), stdout=, stderr=Error: Completed component definitions differ from receipt
+
+phase proof guide sha256=7d566414266c1486512afc8eeee9a128a02d6c08f87ba4129e553143b0a95bad base receipt sha256=a0afc211984315747a6562700053536c3a8036208a90cbf98c258bb4f73e8332 final receipt sha256=f00406a2e617e73d4f5d695123dfc179511fe7d69ba5983b9b0a6f525c827b2f events Base -> Wide; source consumed, exact output bytes, manifests unchanged for validation/conflicts, pending absent
+ok
+test executable_preparation_rejects_invalid_prefixes_empty_phases_and_report_flags ... CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmp495rVb/game" "--source-dir" "/tmp/.tmp495rVb/mods" "--input" "/tmp/.tmp495rVb/guide.json" "--phase" "remaining" "--validation-report": exit=Some(1), stdout={
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 0,
+  "warningCount": 0,
+  "passedCount": 0,
+  "componentCount": 0,
+  "error": "Remaining requires a nonempty completed prefix"
+}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "conflicts" "--game-dir" "/tmp/.tmp495rVb/game" "--source-dir" "/tmp/.tmp495rVb/mods" "--input" "/tmp/.tmp495rVb/guide.json" "--phase" "remaining": exit=Some(1), stdout=, stderr=Error: Remaining requires a nonempty completed prefix
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmp495rVb/game" "--source-dir" "/tmp/.tmp495rVb/mods" "--input" "/tmp/.tmp495rVb/guide.json" "--phase" "remaining" "--json": exit=Some(1), stdout=, stderr=Error: Remaining requires a nonempty completed prefix
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmp495rVb/game" "--source-dir" "/tmp/.tmp495rVb/mods" "--input" "/tmp/.tmp495rVb/guide.json" "--phase" "remaining" "--json": exit=Some(1), stdout=, stderr=Error: Remaining requires a nonempty completed prefix
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmp495rVb/game" "--source-dir" "/tmp/.tmp495rVb/mods" "--input" "/tmp/.tmp495rVb/guide.json" "--phase" "base" "--json": exit=Some(1), stdout=, stderr=Error: Select at least one component
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpDMmoLX/game" "--source-dir" "/tmp/.tmpDMmoLX/mods" "--input" "/tmp/.tmpDMmoLX/guide.json" "--phase" "remaining" "--validation-report": exit=Some(1), stdout={
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 0,
+  "warningCount": 0,
+  "passedCount": 0,
+  "componentCount": 0,
+  "error": "No remaining components to install"
+}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "conflicts" "--game-dir" "/tmp/.tmpDMmoLX/game" "--source-dir" "/tmp/.tmpDMmoLX/mods" "--input" "/tmp/.tmpDMmoLX/guide.json" "--phase" "remaining": exit=Some(1), stdout=, stderr=Error: No remaining components to install
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpDMmoLX/game" "--source-dir" "/tmp/.tmpDMmoLX/mods" "--input" "/tmp/.tmpDMmoLX/guide.json" "--phase" "remaining" "--json": exit=Some(1), stdout=, stderr=Error: No remaining components to install
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpDMmoLX/game" "--source-dir" "/tmp/.tmpDMmoLX/mods" "--input" "/tmp/.tmpDMmoLX/guide.json" "--phase" "remaining" "--json": exit=Some(1), stdout=, stderr=Error: No remaining components to install
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpIAOSJl/game" "--source-dir" "/tmp/.tmpIAOSJl/mods" "--input" "/tmp/.tmpIAOSJl/guide.json" "--phase" "remaining" "--validation-report": exit=Some(1), stdout={
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 0,
+  "warningCount": 0,
+  "passedCount": 0,
+  "componentCount": 0,
+  "error": "Completed components must form the selected installation prefix in order"
+}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "conflicts" "--game-dir" "/tmp/.tmpIAOSJl/game" "--source-dir" "/tmp/.tmpIAOSJl/mods" "--input" "/tmp/.tmpIAOSJl/guide.json" "--phase" "remaining": exit=Some(1), stdout=, stderr=Error: Completed components must form the selected installation prefix in order
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpIAOSJl/game" "--source-dir" "/tmp/.tmpIAOSJl/mods" "--input" "/tmp/.tmpIAOSJl/guide.json" "--phase" "remaining" "--json": exit=Some(1), stdout=, stderr=Error: Completed components must form the selected installation prefix in order
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpIAOSJl/game" "--source-dir" "/tmp/.tmpIAOSJl/mods" "--input" "/tmp/.tmpIAOSJl/guide.json" "--phase" "remaining" "--json": exit=Some(1), stdout=, stderr=Error: Completed components must form the selected installation prefix in order
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpOBGPuw/game" "--source-dir" "/tmp/.tmpOBGPuw/mods" "--input" "/tmp/.tmpOBGPuw/guide.json" "--phase" "remaining" "--validation-report": exit=Some(1), stdout={
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 0,
+  "warningCount": 0,
+  "passedCount": 0,
+  "componentCount": 0,
+  "error": "The guide has no components"
+}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "conflicts" "--game-dir" "/tmp/.tmpOBGPuw/game" "--source-dir" "/tmp/.tmpOBGPuw/mods" "--input" "/tmp/.tmpOBGPuw/guide.json" "--phase" "remaining": exit=Some(1), stdout=, stderr=Error: The guide has no components
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpOBGPuw/game" "--source-dir" "/tmp/.tmpOBGPuw/mods" "--input" "/tmp/.tmpOBGPuw/guide.json" "--phase" "remaining" "--json": exit=Some(1), stdout=, stderr=Error: The guide has no components
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpOBGPuw/game" "--source-dir" "/tmp/.tmpOBGPuw/mods" "--input" "/tmp/.tmpOBGPuw/guide.json" "--phase" "remaining" "--json": exit=Some(1), stdout=, stderr=Error: The guide has no components
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpOBGPuw/game" "--source-dir" "/tmp/.tmpOBGPuw/mods" "--input" "/tmp/.tmpOBGPuw/guide.json" "--phase" "base" "--json": exit=Some(1), stdout=, stderr=Error: The guide has no components
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmponzrhP/game" "--source-dir" "/tmp/.tmponzrhP/mods" "--input" "/tmp/.tmponzrhP/guide.json" "--phase" "base" "--direct-markdown" "--validation-report": exit=Some(1), stdout={
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 0,
+  "warningCount": 0,
+  "passedCount": 0,
+  "componentCount": 0,
+  "error": "Phased Direct Markdown is unsupported: separate-invocation definitions are not stable"
+}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmponzrhP/game" "--source-dir" "/tmp/.tmponzrhP/mods" "--input" "/tmp/.tmponzrhP/guide.json" "--phase" "base" "--validation-report" "--full": exit=Some(1), stdout=, stderr=Error: Validation-report flags are only supported by phased validate
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmponzrhP/game" "--source-dir" "/tmp/.tmponzrhP/mods" "--input" "/tmp/.tmponzrhP/guide.json" "--phase" "base" "--validation-report" "--dry-run": exit=Some(1), stdout=, stderr=Error: Validation-report flags are only supported by phased validate
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmponzrhP/game" "--source-dir" "/tmp/.tmponzrhP/mods" "--input" "/tmp/.tmponzrhP/guide.json" "--phase" "base" "--validation-report" "--dry-run-only": exit=Some(1), stdout=, stderr=Error: Validation-report flags are only supported by phased validate
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmponzrhP/game" "--source-dir" "/tmp/.tmponzrhP/mods" "--input" "/tmp/.tmponzrhP/guide.json" "--phase" "base" "--validation-report": exit=Some(1), stdout=, stderr=Error: Validation-report flags are only supported by phased validate
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "conflicts" "--game-dir" "/tmp/.tmponzrhP/game" "--source-dir" "/tmp/.tmponzrhP/mods" "--input" "/tmp/.tmponzrhP/guide.json" "--phase" "base" "--validation-report" "--full": exit=Some(1), stdout=, stderr=Error: Validation-report flags are only supported by phased validate
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "conflicts" "--game-dir" "/tmp/.tmponzrhP/game" "--source-dir" "/tmp/.tmponzrhP/mods" "--input" "/tmp/.tmponzrhP/guide.json" "--phase" "base" "--validation-report" "--dry-run": exit=Some(1), stdout=, stderr=Error: Validation-report flags are only supported by phased validate
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "conflicts" "--game-dir" "/tmp/.tmponzrhP/game" "--source-dir" "/tmp/.tmponzrhP/mods" "--input" "/tmp/.tmponzrhP/guide.json" "--phase" "base" "--validation-report" "--dry-run-only": exit=Some(1), stdout=, stderr=Error: Validation-report flags are only supported by phased validate
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "conflicts" "--game-dir" "/tmp/.tmponzrhP/game" "--source-dir" "/tmp/.tmponzrhP/mods" "--input" "/tmp/.tmponzrhP/guide.json" "--phase" "base" "--validation-report": exit=Some(1), stdout=, stderr=Error: Validation-report flags are only supported by phased validate
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmponzrhP/game" "--source-dir" "/tmp/.tmponzrhP/mods" "--input" "/tmp/.tmponzrhP/guide.json" "--phase" "remaining" "--direct-markdown" "--validation-report": exit=Some(1), stdout={
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 0,
+  "warningCount": 0,
+  "passedCount": 0,
+  "componentCount": 0,
+  "error": "Phased Direct Markdown is unsupported: separate-invocation definitions are not stable"
+}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmponzrhP/game" "--source-dir" "/tmp/.tmponzrhP/mods" "--input" "/tmp/.tmponzrhP/guide.json" "--phase" "remaining" "--validation-report" "--full": exit=Some(1), stdout=, stderr=Error: Validation-report flags are only supported by phased validate
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmponzrhP/game" "--source-dir" "/tmp/.tmponzrhP/mods" "--input" "/tmp/.tmponzrhP/guide.json" "--phase" "remaining" "--validation-report" "--dry-run": exit=Some(1), stdout=, stderr=Error: Validation-report flags are only supported by phased validate
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmponzrhP/game" "--source-dir" "/tmp/.tmponzrhP/mods" "--input" "/tmp/.tmponzrhP/guide.json" "--phase" "remaining" "--validation-report" "--dry-run-only": exit=Some(1), stdout=, stderr=Error: Validation-report flags are only supported by phased validate
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmponzrhP/game" "--source-dir" "/tmp/.tmponzrhP/mods" "--input" "/tmp/.tmponzrhP/guide.json" "--phase" "remaining" "--validation-report": exit=Some(1), stdout=, stderr=Error: Validation-report flags are only supported by phased validate
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "conflicts" "--game-dir" "/tmp/.tmponzrhP/game" "--source-dir" "/tmp/.tmponzrhP/mods" "--input" "/tmp/.tmponzrhP/guide.json" "--phase" "remaining" "--validation-report" "--full": exit=Some(1), stdout=, stderr=Error: Validation-report flags are only supported by phased validate
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "conflicts" "--game-dir" "/tmp/.tmponzrhP/game" "--source-dir" "/tmp/.tmponzrhP/mods" "--input" "/tmp/.tmponzrhP/guide.json" "--phase" "remaining" "--validation-report" "--dry-run": exit=Some(1), stdout=, stderr=Error: Validation-report flags are only supported by phased validate
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "conflicts" "--game-dir" "/tmp/.tmponzrhP/game" "--source-dir" "/tmp/.tmponzrhP/mods" "--input" "/tmp/.tmponzrhP/guide.json" "--phase" "remaining" "--validation-report" "--dry-run-only": exit=Some(1), stdout=, stderr=Error: Validation-report flags are only supported by phased validate
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "conflicts" "--game-dir" "/tmp/.tmponzrhP/game" "--source-dir" "/tmp/.tmponzrhP/mods" "--input" "/tmp/.tmponzrhP/guide.json" "--phase" "remaining" "--validation-report": exit=Some(1), stdout=, stderr=Error: Validation-report flags are only supported by phased validate
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmponzrhP/game" "--source-dir" "/tmp/.tmponzrhP/mods" "--input" "/tmp/.tmponzrhP/guide.json" "--phase" "remaining" "--validation-report" "--dry-run-only": exit=Some(1), stdout={
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 0,
+  "warningCount": 0,
+  "passedCount": 0,
+  "componentCount": 0,
+  "error": "Remaining reports always run full validation and dry run; --dry-run-only is incompatible"
+}
+, stderr=
+ok
+test executable_remaining_rejects_stale_receipts_and_tampering_without_writes ... CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpc0IMrJ/game" "--source-dir" "/tmp/.tmpc0IMrJ/mods" "--input" "/tmp/.tmpc0IMrJ/guide.json" "--phase" "base" "--json": exit=Some(0), stdout={"component":"","step":0,"message":"Creating recovery snapshot of game and mod directories"}
+{"component":"Base","step":1,"message":"Move"}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpc0IMrJ/game" "--source-dir" "/tmp/.tmpc0IMrJ/mods" "--input" "/tmp/.tmpc0IMrJ/guide.json" "--phase" "remaining" "--validation-report": exit=Some(1), stdout={
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 1,
+  "warningCount": 0,
+  "passedCount": 0,
+  "componentCount": 1,
+  "inputPath": "/tmp/.tmpc0IMrJ/guide.json",
+  "stages": [
+    {
+      "stage": "Environment",
+      "passed": false,
+      "hasWarnings": false,
+      "summary": "Failed",
+      "messages": [
+        "No saved completion receipt for the completed prefix"
+      ]
+    }
+  ]
+}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "conflicts" "--game-dir" "/tmp/.tmpc0IMrJ/game" "--source-dir" "/tmp/.tmpc0IMrJ/mods" "--input" "/tmp/.tmpc0IMrJ/guide.json" "--phase" "remaining": exit=Some(1), stdout=, stderr=Error: No saved completion receipt for the completed prefix
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpc0IMrJ/game" "--source-dir" "/tmp/.tmpc0IMrJ/mods" "--input" "/tmp/.tmpc0IMrJ/guide.json" "--phase" "remaining" "--json": exit=Some(1), stdout=, stderr=Error: No saved completion receipt for the completed prefix
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpc0IMrJ/game" "--source-dir" "/tmp/.tmpc0IMrJ/mods" "--input" "/tmp/.tmpc0IMrJ/guide.json" "--phase" "remaining" "--json": exit=Some(1), stdout=, stderr=Error: No saved completion receipt for the completed prefix
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpN1tEBp/game" "--source-dir" "/tmp/.tmpN1tEBp/mods" "--input" "/tmp/.tmpN1tEBp/guide.json" "--phase" "base" "--json": exit=Some(0), stdout={"component":"","step":0,"message":"Creating recovery snapshot of game and mod directories"}
+{"component":"Base","step":1,"message":"Move"}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpN1tEBp/game" "--source-dir" "/tmp/.tmpN1tEBp/mods" "--input" "/tmp/.tmpN1tEBp/guide.json" "--phase" "remaining" "--validation-report": exit=Some(1), stdout={
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 1,
+  "warningCount": 0,
+  "passedCount": 0,
+  "componentCount": 1,
+  "inputPath": "/tmp/.tmpN1tEBp/guide.json",
+  "stages": [
+    {
+      "stage": "Environment",
+      "passed": false,
+      "hasWarnings": false,
+      "summary": "Failed",
+      "messages": [
+        "expected value at line 1 column 1"
+      ]
+    }
+  ]
+}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "conflicts" "--game-dir" "/tmp/.tmpN1tEBp/game" "--source-dir" "/tmp/.tmpN1tEBp/mods" "--input" "/tmp/.tmpN1tEBp/guide.json" "--phase" "remaining": exit=Some(1), stdout=, stderr=Error: expected value at line 1 column 1
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpN1tEBp/game" "--source-dir" "/tmp/.tmpN1tEBp/mods" "--input" "/tmp/.tmpN1tEBp/guide.json" "--phase" "remaining" "--json": exit=Some(1), stdout=, stderr=Error: expected value at line 1 column 1
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpN1tEBp/game" "--source-dir" "/tmp/.tmpN1tEBp/mods" "--input" "/tmp/.tmpN1tEBp/guide.json" "--phase" "remaining" "--json": exit=Some(1), stdout=, stderr=Error: expected value at line 1 column 1
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpz0ed0O/game" "--source-dir" "/tmp/.tmpz0ed0O/mods" "--input" "/tmp/.tmpz0ed0O/guide.json" "--phase" "base" "--json": exit=Some(0), stdout={"component":"","step":0,"message":"Creating recovery snapshot of game and mod directories"}
+{"component":"Base","step":1,"message":"Move"}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpz0ed0O/game" "--source-dir" "/tmp/.tmpz0ed0O/mods" "--input" "/tmp/.tmpz0ed0O/guide.json" "--phase" "remaining" "--validation-report": exit=Some(1), stdout={
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 1,
+  "warningCount": 0,
+  "passedCount": 0,
+  "componentCount": 1,
+  "inputPath": "/tmp/.tmpz0ed0O/guide.json",
+  "stages": [
+    {
+      "stage": "Environment",
+      "passed": false,
+      "hasWarnings": false,
+      "summary": "Failed",
+      "messages": [
+        "Completion roots differ"
+      ]
+    }
+  ]
+}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "conflicts" "--game-dir" "/tmp/.tmpz0ed0O/game" "--source-dir" "/tmp/.tmpz0ed0O/mods" "--input" "/tmp/.tmpz0ed0O/guide.json" "--phase" "remaining": exit=Some(1), stdout=, stderr=Error: Completion roots differ
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpz0ed0O/game" "--source-dir" "/tmp/.tmpz0ed0O/mods" "--input" "/tmp/.tmpz0ed0O/guide.json" "--phase" "remaining" "--json": exit=Some(1), stdout=, stderr=Error: Completion roots differ
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpz0ed0O/game" "--source-dir" "/tmp/.tmpz0ed0O/mods" "--input" "/tmp/.tmpz0ed0O/guide.json" "--phase" "remaining" "--json": exit=Some(1), stdout=, stderr=Error: Completion roots differ
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpJpHOdH/game" "--source-dir" "/tmp/.tmpJpHOdH/mods" "--input" "/tmp/.tmpJpHOdH/guide.json" "--phase" "base" "--json": exit=Some(0), stdout={"component":"","step":0,"message":"Creating recovery snapshot of game and mod directories"}
+{"component":"Base","step":1,"message":"Move"}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpJpHOdH/game" "--source-dir" "/tmp/.tmpJpHOdH/mods" "--input" "/tmp/.tmpJpHOdH/guide.json" "--phase" "remaining" "--validation-report": exit=Some(1), stdout={
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 1,
+  "warningCount": 0,
+  "passedCount": 0,
+  "componentCount": 1,
+  "inputPath": "/tmp/.tmpJpHOdH/guide.json",
+  "stages": [
+    {
+      "stage": "Environment",
+      "passed": false,
+      "hasWarnings": false,
+      "summary": "Failed",
+      "messages": [
+        "Completed component definitions differ from receipt"
+      ]
+    }
+  ]
+}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "conflicts" "--game-dir" "/tmp/.tmpJpHOdH/game" "--source-dir" "/tmp/.tmpJpHOdH/mods" "--input" "/tmp/.tmpJpHOdH/guide.json" "--phase" "remaining": exit=Some(1), stdout=, stderr=Error: Completed component definitions differ from receipt
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmpJpHOdH/game" "--source-dir" "/tmp/.tmpJpHOdH/mods" "--input" "/tmp/.tmpJpHOdH/guide.json" "--phase" "remaining" "--json": exit=Some(1), stdout=, stderr=Error: Completed component definitions differ from receipt
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmpJpHOdH/game" "--source-dir" "/tmp/.tmpJpHOdH/mods" "--input" "/tmp/.tmpJpHOdH/guide.json" "--phase" "remaining" "--json": exit=Some(1), stdout=, stderr=Error: Completed component definitions differ from receipt
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmp5s1Hwi/game" "--source-dir" "/tmp/.tmp5s1Hwi/mods" "--input" "/tmp/.tmp5s1Hwi/guide.json" "--phase" "base" "--json": exit=Some(0), stdout={"component":"","step":0,"message":"Creating recovery snapshot of game and mod directories"}
+{"component":"Base","step":1,"message":"Move"}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmp5s1Hwi/game" "--source-dir" "/tmp/.tmp5s1Hwi/mods" "--input" "/tmp/.tmp5s1Hwi/guide.json" "--phase" "remaining" "--validation-report": exit=Some(1), stdout={
+  "success": false,
+  "exitCode": 1,
+  "errorCount": 1,
+  "warningCount": 0,
+  "passedCount": 0,
+  "componentCount": 1,
+  "inputPath": "/tmp/.tmp5s1Hwi/guide.json",
+  "stages": [
+    {
+      "stage": "Environment",
+      "passed": false,
+      "hasWarnings": false,
+      "summary": "Failed",
+      "messages": [
+        "Completed game files differ from receipt"
+      ]
+    }
+  ]
+}
+, stderr=
+CLI "/tmp/modsync-rs-target/debug/modsync" "conflicts" "--game-dir" "/tmp/.tmp5s1Hwi/game" "--source-dir" "/tmp/.tmp5s1Hwi/mods" "--input" "/tmp/.tmp5s1Hwi/guide.json" "--phase" "remaining": exit=Some(1), stdout=, stderr=Error: Completed game files differ from receipt
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "install" "--game-dir" "/tmp/.tmp5s1Hwi/game" "--source-dir" "/tmp/.tmp5s1Hwi/mods" "--input" "/tmp/.tmp5s1Hwi/guide.json" "--phase" "remaining" "--json": exit=Some(1), stdout=, stderr=Error: Completed game files differ from receipt
+
+CLI "/tmp/modsync-rs-target/debug/modsync" "validate" "--game-dir" "/tmp/.tmp5s1Hwi/game" "--source-dir" "/tmp/.tmp5s1Hwi/mods" "--input" "/tmp/.tmp5s1Hwi/guide.json" "--phase" "remaining" "--json": exit=Some(1), stdout=, stderr=Error: Completed game files differ from receipt
+
+ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.02s

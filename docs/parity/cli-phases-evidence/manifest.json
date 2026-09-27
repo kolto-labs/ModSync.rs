@@ -1,0 +1,53 @@
+{
+  "implementationHead": "3d106ef0c3cc9687864bcdf0a3c988bbd2c6d7c2",
+  "packageBase": "872b1dec4b5a120661aa604374c38cf043a11943",
+  "sourceSha256": {
+    "src/engine.rs": "3c3143f9b9cbaf45583d0f739560256d24dca755e6318ac0a154400d31a1db6b",
+    "src/phase.rs": "de3a6a526898c42fc8dad9a48565d7943c20012a6e9cb8d9df176132a4d905a3",
+    "src/lib.rs": "98ca984bd0eff80fb5314815d62d9a7574478407b523f4edf9273f218662e36a",
+    "src/main.rs": "3890fd2b3736d93849f31839d84c21e0b4f7fb0aafe9af30c4ea9306b9338b4f",
+    "src/ui.rs": "f5b6525105bfb31d804479bbf38c2867aa1a401bc60b302c1f236f09a24baf5d",
+    "tests/phase_preparation.rs": "37e044e78900ecc4fd5c3f42ae408b5630b3c8bc3553001e5a591ed6bfe93b82",
+    "tests/cli_phases.rs": "178c303cacced39446fa6621abb470a08e0591f12ddcbda674a5aac006ed0332",
+    "tests/installer.rs": "d4aba0b63455ab5f3ba336bea844911b90c2a408141a8410a11c19ca2c538925"
+  },
+  "artifactsSha256": {
+    "README.md": "9e954bfdb5a001facbc9aa66b401ac0c0986891de425231304a24c9303078c90",
+    "progress.md": "07dd6093b4f957ee8be1f1d66f59ce44e4745240c3d46f973dc89b9e336f5c49",
+    "task-1-all-targets.log": "8b68fa60697977ab6127cf1c65390359a29319ed7b2d34eccd2f7e1ced319231",
+    "task-1-clippy.log": "fd23db91f83770e0a65b1d6cc4d248245a30940562d19de17ef5ff45f9c88289",
+    "task-1-no-default.log": "caf19cd797519e812577a23305d6d0a9aa6894f1e4debada3267a761e27aac16",
+    "task-1-report.md": "43afd8eaf31e1e2dc43d07c6f00ead2123bbb013636588f17621461418d16c5d",
+    "task-1-review.md": "a327c6ae119d552185eccd2cc128490f93bcc30397462e3404f9f3c6c33d6755",
+    "task-2-all-targets.log": "19c6f313afdfeb0373d68dcc915243644f30c6eb30e9429c40cf6e072da6db5b",
+    "task-2-clippy.log": "27dedf4f5f3b36dcaa2d123077428983642b4faea6b0096d3295faa72489618f",
+    "task-2-fix1-all-targets.log": "c5f1eb194612a668114226d2d0cef020240fbe9198a582ba1fc7a278c65b246c",
+    "task-2-fix1-before.log": "9338d32f09a7a3b60c5ef43c3b6ea2c964689fc9cee2fd8038312b0fd7f454a4",
+    "task-2-fix1-clippy.log": "fe03efb61815cb6185998e07b2fa66ef46370489b5f286ca064da17fde3e96d1",
+    "task-2-fix1-focused.log": "f5f1ed5f315fceb8e779c7baab61e6acaf8fb555cf570856c39baf8813f38c86",
+    "task-2-fix1-no-default.log": "c79986b61c06a4616a67f59949f0223e2dee038b675ff7f9135bd6083d001c3c",
+    "task-2-fix1-review.md": "64b19cb7a1ea5b506ba226f2219e368800ca2d4c5d753cce723d0d51fd68aff0",
+    "task-2-focused.log": "ed3a3d047ad3e51932890f9ad63e2ca1ffb43b4996bf7eff96ab6b425a317f57",
+    "task-2-no-default.log": "264a417af46efba024e59579e5e9f358dfff83458f3adeac8344a150894f6639",
+    "task-2-report.md": "6e81b9f6b25db4769de36e6d6f5ccd247b2f87121b1ed451d0869ecb762cca27",
+    "task-2-review.md": "62761f13fa4179609d1173e0508fc43de624da785ff86195ec1f53790b13da59",
+    "task-3-all-targets.log": "f13a0fcb65285c1c694d95436f4c018a17e6e5dccc86ec2a77deba6b5302619f",
+    "task-3-clippy.log": "f671a1d4a75b4e7d2944c25b4cd5ae77e41d10f818fcbebd30cc57f5c25c0ca4",
+    "task-3-focused.log": "77a55de9492a40157b0e90afa721bf6431b7fa378a1c305cf2f44680e73c7831",
+    "task-3-no-default.log": "7cfaad9a91f390c214be425464e5c76877dfdd8f32567d36a93f8ec415fa1b88",
+    "task-3-report.md": "989e09e58b650a31e8fe6b81c39ecf88a2225622fc28ed46a29e3488bf83de85",
+    "task-3-review.md": "133c252dd4819efca513ca4287b3ac4536b4cdde290b84c8c16f1a668bd36186"
+  },
+  "bindings": {
+    "task-1-*": "4010aece72e901203c71ddc5ed6b61a0005f2ca5",
+    "task-2-*": "9714ab1a59d9633280c79418287a52692bd17073; focused log predates final All-warning compatibility condition, as stated in task-2-report.md",
+    "task-2-fix1-*": "312ee167a4732f4095f8c966595fd3b2185396d9; before.log is deliberately red at prior source with new regression",
+    "task-3-*": "3d106ef0c3cc9687864bcdf0a3c988bbd2c6d7c2"
+  },
+  "limitations": [
+    "Task report text captures fmt/diff-check success; no separate raw stdout log exists for those checks.",
+    "Detailed CLI trace predates final All-warning condition and All report fix; final suites rerun those tests at implementationHead.",
+    "Temporary fixtures were cleaned by tests; retained evidence is raw log text with manifests, event JSONL, receipt hashes and asserted ordered IDs, not a copied on-disk receipt."
+  ],
+  "normalization": "Archived .log copies strip trailing whitespace and extra EOF blank lines only; originals remain in plan scratch through review. Exact task diffs remain in Git and scratch."
+}

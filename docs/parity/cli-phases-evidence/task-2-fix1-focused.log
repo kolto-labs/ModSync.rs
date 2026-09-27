@@ -1,0 +1,24 @@
+   Compiling modsync v0.1.0 (/run/media/brunner56/MyBook/Workspaces/ModSync.rs)
+    Finished `test` profile [unoptimized] target(s) in 2.22s
+     Running tests/cli_phases.rs (/tmp/modsync-rs-target/debug/deps/cli_phases-7d253b34803770ba)
+
+running 7 tests
+test executable_explicit_base_retains_ordinary_copy_repeat_semantics ... ok
+test executable_all_invalid_guides_keep_pipeline_report_shape ... ok
+test executable_phases_consume_base_then_validate_conflict_and_install_only_suffix ... ok
+test executable_failed_suffix_blocks_operations_until_explicit_restore_then_retries ... ok
+test executable_remaining_rejects_stale_receipts_and_tampering_without_writes ... ok
+test executable_choices_reconstruction_is_stable_and_whole_payload_changes_fail_closed ... ok
+test executable_preparation_rejects_invalid_prefixes_empty_phases_and_report_flags ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.98s
+
+     Running tests/phase_preparation.rs (/tmp/modsync-rs-target/debug/deps/phase_preparation-c584772fa9a312f9)
+
+running 4 tests
+test remaining_rejects_empty_duplicate_missing_nonprefix_and_exhausted_ids ... ok
+test preparation_matrix_preserves_selection_and_rejects_invalid_contexts ... ok
+test stable_reconstruction_matches_retained_and_changed_choices_fail_receipt_verification ... ok
+test remaining_conflicts_verify_all_evidence_without_any_tree_or_snapshot_changes ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
