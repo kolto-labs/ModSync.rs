@@ -1064,7 +1064,12 @@ fn run() -> Result<()> {
                 settings.archive.max_expanded_bytes = args.max_expanded_bytes;
                 let engine = Engine::new(settings)?;
                 let emit = |event: modsync::Event| {
-                    if args.validation_report || args.install_progress_json {
+                    if args.validation_report {
+                        return;
+                    }
+                    if args.install_progress_json {
+                        // Keep stdout typed; external program output stays readable.
+                        eprintln!("{} / {}: {}", event.component, event.step, event.message);
                         return;
                     }
                     if args.json {
