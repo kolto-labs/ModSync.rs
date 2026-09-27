@@ -423,7 +423,16 @@ impl Store {
         )
     }
     pub fn patcher_preferences(&self) -> Result<PatcherPreferences> {
-        let settings = self.read_settings(false)?;
+        // Read-only lookup: an unusable legacy file (no current file) warns and uses
+        // defaults; an unusable current file is still an error.
+        let settings = if self.root.join("settings.json").exists() {
+            self.read_settings(false)?
+        } else {
+            self.read_settings(false).unwrap_or_else(|e| {
+                eprintln!("Warning: failed to read legacy settings: {e:#}");
+                json!({})
+            })
+        };
         let engine = match setting_text(&settings, "patcherEngine")?
             .as_deref()
             .unwrap_or("Holopatcher")

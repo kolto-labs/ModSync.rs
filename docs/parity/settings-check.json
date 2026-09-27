@@ -191,6 +191,17 @@
       "id": "G-c",
       "case": "activate with a non-null unparseable current file",
       "rust": "exit 1, file unchanged (kept on purpose; frozen tests pin it)"
+    },
+    {
+      "id": "G-d",
+      "case": "validate with no current settings.json and a corrupt legacy KOTORModSync file (/tmp/msprobe/pp.sh)",
+      "csharp": "validate has no --profile/--active-profile/--settings-dir; its settings load ignores the legacy file. rc=1 comes from a missing mod directory, and it is the same with the legacy file removed, so the corrupt legacy file has no effect",
+      "rust": {
+        "--active-profile": "rc=1 'No active profile is configured' (the legacy file is unreadable, so there is no active name)",
+        "--profile P": "reaches validation and fails on the missing fixture archive, not on settings parsing",
+        "current file 'bad'": "rc=1 parse error, file unchanged"
+      },
+      "rust_binary_sha256": "317bf5cfa9a5ecb827801b3dd8e163c2a5b3b8af6b387c1bc5d49b3a4ec74b89"
     }
   ],
   "scope": "Linux, en-US host, pinned DLL. Covers the settings verb, the profile CLI's managed-field reads and activation, BOM input, masking and GUID spelling. Not covered: GUI SettingsManager typed load and save, theme to TargetGame mapping, the set-nexus-api-key verb, non-en-US number parsing, native macOS and Windows folders, and crash atomicity."
