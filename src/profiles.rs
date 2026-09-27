@@ -34,6 +34,59 @@ fn setting_text(settings: &Value, key: &str) -> Result<Option<String>> {
     }
 }
 
+/// `File.ReadAllText` strips a UTF-8 byte-order mark before the C# JSON readers see it.
+fn without_bom(bytes: &[u8]) -> &[u8] {
+    bytes.strip_prefix(b"\xEF\xBB\xBF").unwrap_or(bytes)
+}
+
+/// Canonical GUID text as C# `Guid.ToString()` writes it (lowercase, hyphenated, no braces).
+/// Values that are not GUIDs are returned unchanged.
+pub fn normalize_guid(text: &str) -> String {
+    let trimmed = text.trim();
+    let inner = trimmed
+        .strip_prefix('{')
+        .and_then(|t| t.strip_suffix('}'))
+        .or_else(|| trimmed.strip_prefix('(').and_then(|t| t.strip_suffix(')')))
+        .unwrap_or(trimmed);
+    let hex: String = inner.chars().filter(|c| *c != '-').collect();
+    let hyphens_ok = !inner.contains('-')
+        || (inner.len() == 36 && [8, 13, 18, 23].iter().all(|&i| inner.as_bytes()[i] == b'-'));
+    if hex.len() != 32 || !hyphens_ok || !hex.chars().all(|c| c.is_ascii_hexdigit()) {
+        return text.to_owned();
+    }
+    let h = hex.to_ascii_lowercase();
+    format!(
+        "{}-{}-{}-{}-{}",
+        &h[0..8],
+        &h[8..12],
+        &h[12..16],
+        &h[16..20],
+        &h[20..32]
+    )
+}
+
+/// The two fields `ModSyncSettings` reads: case-insensitive names, and a wrong type in
+/// either resets both to defaults because the C# deserializer rejects the whole object.
+fn managed_fields(settings: &Value) -> (bool, Option<String>) {
+    let mut enabled = false;
+    let mut active = None;
+    for (key, value) in settings.as_object().into_iter().flatten() {
+        if key.eq_ignore_ascii_case("managedDeploymentEnabled") {
+            match value {
+                Value::Bool(b) => enabled = *b,
+                _ => return (false, None),
+            }
+        } else if key.eq_ignore_ascii_case("activeProfileName") {
+            match value {
+                Value::String(s) => active = Some(s.clone()),
+                Value::Null => active = None,
+                _ => return (false, None),
+            }
+        }
+    }
+    (enabled, active)
+}
+
 fn now() -> String {
     chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true)
 }
@@ -70,14 +123,14 @@ impl Profile {
             if let Some((_, selection)) = self
                 .component_selections
                 .iter()
-                .find(|(id, _)| id.eq_ignore_ascii_case(&c.guid))
+                .find(|(id, _)| normalize_guid(id) == normalize_guid(&c.guid))
             {
                 c.is_selected = selection.is_selected;
                 for option in &mut c.options {
                     option.is_selected = selection
                         .selected_option_guids
                         .iter()
-                        .any(|id| id.eq_ignore_ascii_case(&option.guid));
+                        .any(|id| normalize_guid(id) == normalize_guid(&option.guid));
                 }
             }
         }
@@ -159,7 +212,7 @@ impl Store {
     pub fn load(&self, name: &str) -> Result<Option<Profile>> {
         Ok(fs::read(self.path(name)?)
             .ok()
-            .and_then(|bytes| serde_json::from_slice(&bytes).ok()))
+            .and_then(|bytes| serde_json::from_slice(without_bom(&bytes)).ok()))
     }
     pub fn require(&self, name: &str) -> Result<Profile> {
         self.load(name)?
@@ -184,7 +237,7 @@ impl Store {
             let path = entry?.path();
             if path.extension().is_some_and(|s| s == "json")
                 && let Ok(bytes) = fs::read(path)
-                && let Ok(profile) = serde_json::from_slice::<Profile>(&bytes)
+                && let Ok(profile) = serde_json::from_slice::<Profile>(without_bom(&bytes))
                 && !profile.name.trim().is_empty()
             {
                 result.push(profile);
@@ -214,11 +267,12 @@ impl Store {
     }
     pub fn clone_profile(&self, from: &str, to: &str) -> Result<Profile> {
         let _lock = self.lock()?;
+        // The reference reports a missing source before a taken target name.
+        let mut profile = self.require(from)?;
         ensure!(
             !self.path(to)?.exists(),
             "A profile named '{to}' already exists"
         );
-        let mut profile = self.require(from)?;
         profile.name = to.trim().into();
         profile.created_utc = now();
         self.save_unlocked(&profile)?;
@@ -257,11 +311,15 @@ impl Store {
             return Ok(false);
         }
         let mut settings = self.settings()?;
-        if settings
-            .get("activeProfileName")
-            .and_then(Value::as_str)
+        if managed_fields(&settings)
+            .1
             .is_some_and(|active| active.eq_ignore_ascii_case(name))
         {
+            for (key, value) in settings.as_object_mut().unwrap().iter_mut() {
+                if key.eq_ignore_ascii_case("activeProfileName") {
+                    *value = Value::Null;
+                }
+            }
             settings["activeProfileName"] = Value::Null;
             // Clear the setting first: a failed delete leaves a usable, inactive profile.
             recovery::atomic_write(
@@ -285,14 +343,14 @@ impl Store {
         } else {
             return Ok(json!({}));
         };
-        let mut value: Value = serde_json::from_slice(&fs::read(path)?)?;
+        let mut value: Value = serde_json::from_slice(without_bom(&fs::read(path)?))?;
         ensure!(value.is_object(), "Settings must be an object");
         if path != &current && managed_only {
             // The C# profile CLI imports only its two managed-deployment fields.
-            value
-                .as_object_mut()
-                .unwrap()
-                .retain(|key, _| key == "activeProfileName" || key == "managedDeploymentEnabled");
+            value.as_object_mut().unwrap().retain(|key, _| {
+                key.eq_ignore_ascii_case("activeProfileName")
+                    || key.eq_ignore_ascii_case("managedDeploymentEnabled")
+            });
         }
         Ok(value)
     }
@@ -424,22 +482,21 @@ impl Store {
         )
     }
     pub fn active_name(&self) -> Result<Option<String>> {
-        Ok(self
-            .settings()?
-            .get("activeProfileName")
-            .and_then(Value::as_str)
-            .map(str::to_owned))
+        Ok(managed_fields(&self.settings()?).1)
     }
     pub fn activate(&self, name: &str) -> Result<Profile> {
         let _lock = self.lock()?;
         let mut profile = self.require(name)?;
-        let mut settings = self.settings()?;
+        // ModSyncSettings reads the typed fields from the current or legacy file, then
+        // merges them into the current file only (a legacy file is never copied wholesale).
+        let (enabled, _) = managed_fields(&self.settings()?);
+        let mut settings = if self.root.join("settings.json").exists() {
+            self.settings()?
+        } else {
+            json!({})
+        };
+        settings["managedDeploymentEnabled"] = enabled.into();
         settings["activeProfileName"] = profile.name.clone().into();
-        settings
-            .as_object_mut()
-            .unwrap()
-            .entry("managedDeploymentEnabled")
-            .or_insert(false.into());
         profile.last_used_utc = now();
         self.save_unlocked(&profile)?;
         recovery::atomic_write(
@@ -475,14 +532,14 @@ impl Store {
         };
         for c in &guide.components {
             profile.component_selections.insert(
-                c.guid.clone(),
+                normalize_guid(&c.guid),
                 Selection {
                     is_selected: c.is_selected,
                     selected_option_guids: c
                         .options
                         .iter()
                         .filter(|o| o.is_selected)
-                        .map(|o| o.guid.clone())
+                        .map(|o| normalize_guid(&o.guid))
                         .collect(),
                 },
             );
@@ -526,17 +583,169 @@ impl Profile {
         })
     }
 }
+/// Keys whose values are masked in settings output unless secrets are revealed.
+pub const SENSITIVE_KEYS: &[&str] = &["nexusModsApiKey"];
+
+fn is_sensitive(key: &str) -> bool {
+    SENSITIVE_KEYS.iter().any(|k| k.eq_ignore_ascii_case(key))
+}
+
 /// Clone settings for CLI/UI output without exposing stored credentials.
+/// Every case variant is masked (the C# reference masks only the exact-case key and
+/// prints a `NexusModsApiKey` value verbatim); a JSON null stays null, as in C#.
 pub fn redacted(settings: &Value, reveal_secrets: bool) -> Value {
     let mut clone = settings.clone();
-    if !reveal_secrets
-        && let Some(root) = clone.as_object_mut()
-        && let Some(key) = root
-            .keys()
-            .find(|key| key.eq_ignore_ascii_case("nexusModsApiKey"))
-            .cloned()
-    {
-        root.insert(key, "***".into());
+    if !reveal_secrets && let Some(root) = clone.as_object_mut() {
+        for (key, value) in root.iter_mut() {
+            if is_sensitive(key) && !value.is_null() {
+                *value = "***".into();
+            }
+        }
     }
     clone
+}
+
+/// Whether `settings get` should mask this key's value.
+pub fn is_sensitive_key(key: &str) -> bool {
+    is_sensitive(key)
+}
+
+/// The `settings` verb's file, resolved like C# `SettingsFileStore`: a trimmed explicit
+/// directory, otherwise the default directory. The legacy KOTORModSync file is never used,
+/// because the reference passes the already-resolved directory to its path lookup.
+pub struct SettingsFile {
+    pub directory: PathBuf,
+    pub path: PathBuf,
+}
+
+impl SettingsFile {
+    pub fn resolve(explicit: Option<&Path>) -> Result<Self> {
+        let explicit = explicit
+            .map(|p| match p.to_str() {
+                Some(text) => PathBuf::from(text.trim()),
+                None => p.to_owned(),
+            })
+            .filter(|p| !p.as_os_str().is_empty());
+        let directory = settings_directory(explicit.as_deref())?;
+        Ok(Self {
+            path: directory.join("settings.json"),
+            directory,
+        })
+    }
+
+    /// The stored object, `{}` when absent or JSON `null`. An unreadable, unparseable,
+    /// empty or non-object file is an error carrying the reason.
+    pub fn load(&self) -> Result<Value> {
+        let bytes = match fs::read(&self.path) {
+            Ok(bytes) => bytes,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(json!({})),
+            Err(e) => return Err(e.into()),
+        };
+        match serde_json::from_slice::<Value>(without_bom(&bytes))? {
+            Value::Object(map) => Ok(Value::Object(map)),
+            Value::Null => Ok(json!({})),
+            _ => anyhow::bail!("The settings file must hold a JSON object"),
+        }
+    }
+
+    /// Owner-only atomic replacement (0600 on Unix, like the reference `SaveRoot`).
+    pub fn save(&self, root: &Value) -> Result<()> {
+        ensure!(root.is_object(), "Settings must be an object");
+        let path = std::path::absolute(&self.path)?;
+        recovery::atomic_write(&path, &serde_json::to_vec_pretty(root)?)?;
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            fs::set_permissions(&path, fs::Permissions::from_mode(0o600))?;
+        }
+        Ok(())
+    }
+}
+
+/// `SettingsFileStore.SetValue`: empty or whitespace removes the exact-case key; anything
+/// else is parsed like the reference CLI. Other keys keep their order.
+pub fn set_cli_value(root: &mut Value, key: &str, raw: Option<&str>) -> Result<()> {
+    let map = root.as_object_mut().context("Settings must be an object")?;
+    match raw.filter(|r| !r.trim().is_empty()) {
+        None => {
+            map.shift_remove(key);
+        }
+        Some(raw) => {
+            map.insert(key.to_owned(), parse_cli_value(raw)?);
+        }
+    }
+    Ok(())
+}
+
+/// `SettingsFileStore.ParseCliValue`, matched against the pinned DLL on an en-US host:
+/// booleans and null (any case), 64-bit integers, then .NET-style doubles (thousands
+/// commas allowed, integral results written without a fraction), then JSON objects or
+/// arrays, otherwise the trimmed text. NaN and out-of-range numbers fail like the
+/// reference, which cannot serialize them.
+pub fn parse_cli_value(raw: &str) -> Result<Value> {
+    let t = raw.trim();
+    if t.eq_ignore_ascii_case("true") {
+        return Ok(true.into());
+    }
+    if t.eq_ignore_ascii_case("false") {
+        return Ok(false.into());
+    }
+    if t.eq_ignore_ascii_case("null") {
+        return Ok(Value::Null);
+    }
+    if let Ok(n) = t.parse::<i64>() {
+        return Ok(n.into());
+    }
+    if t.eq_ignore_ascii_case("nan") || matches!(t, "\u{221e}" | "-\u{221e}" | "+\u{221e}") {
+        anyhow::bail!("Non-finite numbers cannot be written as valid JSON");
+    }
+    if let Some(d) = dotnet_double(t) {
+        ensure!(
+            d.is_finite(),
+            "Non-finite numbers cannot be written as valid JSON"
+        );
+        if d.fract() == 0.0 && d.abs() < 9_007_199_254_740_992.0 {
+            return Ok((d as i64).into());
+        }
+        return Ok(serde_json::Number::from_f64(d)
+            .context("Number is not representable")?
+            .into());
+    }
+    if (t.starts_with('{') && t.ends_with('}')) || (t.starts_with('[') && t.ends_with(']')) {
+        return serde_json::from_str(t).context("Invalid JSON value");
+    }
+    Ok(t.into())
+}
+
+/// `double.TryParse` with `NumberStyles.Float | AllowThousands` for an en-US culture.
+fn dotnet_double(t: &str) -> Option<f64> {
+    let body = t.strip_prefix(['+', '-']).unwrap_or(t);
+    let (mantissa, exponent) = match body.find(['e', 'E']) {
+        Some(i) => (&body[..i], Some(&body[i + 1..])),
+        None => (body, None),
+    };
+    let (int, frac) = mantissa.split_once('.').unwrap_or((mantissa, ""));
+    let int_ok = int.is_empty()
+        || (int.starts_with(|c: char| c.is_ascii_digit())
+            && int.chars().all(|c| c.is_ascii_digit() || c == ','));
+    let digits = int.chars().filter(char::is_ascii_digit).count() + frac.len();
+    let exp_ok = exponent.is_none_or(|e| {
+        let e = e.strip_prefix(['+', '-']).unwrap_or(e);
+        !e.is_empty() && e.chars().all(|c| c.is_ascii_digit())
+    });
+    if !int_ok || digits == 0 || !frac.chars().all(|c| c.is_ascii_digit()) || !exp_ok {
+        return None;
+    }
+    t.replace(',', "").parse().ok()
+}
+
+/// `FormatSettingsValueForText`: raw strings, lowercase booleans, empty for null,
+/// otherwise compact JSON.
+pub fn settings_text(value: &Value) -> String {
+    match value {
+        Value::Null => String::new(),
+        Value::String(s) => s.clone(),
+        Value::Bool(b) => b.to_string(),
+        other => other.to_string(),
+    }
 }

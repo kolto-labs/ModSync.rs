@@ -26,6 +26,8 @@ enum Action {
     Deployment(DeploymentArgs),
     /// Manage stored install profiles.
     Profile(profile_cli::ProfileArgs),
+    /// Get, set or list settings.json values.
+    Settings(profile_cli::SettingsArgs),
     /// Open the desktop installer (also the default with no command).
     Gui {
         #[arg(long)]
@@ -791,6 +793,7 @@ fn run() -> Result<()> {
             source_dir,
         }) => recovery::restore(&Roots::new(&source_dir, &game_dir)?),
         Some(Action::Profile(args)) => args.run(),
+        Some(Action::Settings(args)) => args.run(),
         Some(Action::DownloadPlan {
             input,
             component,
