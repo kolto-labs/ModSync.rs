@@ -493,6 +493,8 @@ pub fn run(
         settings.workers > 0,
         "Download worker count must be positive"
     );
+    // Before any race of this run exists, so nothing swept here can be ours.
+    sweep_stale_peer_staging(&plan.source_dir, std::time::SystemTime::now());
     let origins = || {
         plan.targets
             .iter()
@@ -819,6 +821,40 @@ fn discard(acquired: &Acquired, notes: &mut Vec<String>) {
     }
 }
 
+const PEER_STAGING_PREFIX: &str = ".peer-";
+const PEER_STAGING_SUFFIX: &str = ".part";
+
+/// True for the name of a Peer staging folder (`.peer-<nonce>.part`). A leftover one holds
+/// an unaccepted copy and must never count as a present archive.
+pub(crate) fn is_peer_staging(name: &std::ffi::OsStr) -> bool {
+    name.to_str().is_some_and(|name| {
+        name.len() > PEER_STAGING_PREFIX.len() + PEER_STAGING_SUFFIX.len()
+            && name.starts_with(PEER_STAGING_PREFIX)
+            && name.ends_with(PEER_STAGING_SUFFIX)
+    })
+}
+
+/// Removes Peer staging folders left in `source_dir` by an earlier, killed run. Each race
+/// makes a fresh folder after its run starts, so one last modified before `started`
+/// belongs to no live race of this run. Best effort: a folder that stays is still
+/// ignored by the planner.
+fn sweep_stale_peer_staging(source_dir: &Path, started: std::time::SystemTime) {
+    let Ok(entries) = std::fs::read_dir(source_dir) else {
+        return;
+    };
+    for entry in entries.flatten() {
+        let stale = is_peer_staging(&entry.file_name())
+            && entry.file_type().is_ok_and(|kind| kind.is_dir())
+            && entry
+                .metadata()
+                .and_then(|metadata| metadata.modified())
+                .is_ok_and(|modified| modified < started);
+        if stale {
+            let _ = std::fs::remove_dir_all(entry.path());
+        }
+    }
+}
+
 /// Peer's private staging directory for one race, created beside the final path.
 ///
 /// Peer publishes only inside it, so nothing Peer writes is visible at the final path
@@ -833,7 +869,10 @@ struct PeerStaging {
 impl PeerStaging {
     fn create(target: &ArchiveTarget, source_dir: &Path) -> Result<Self> {
         // Short and fixed-length, so a long archive name cannot push it past a name limit.
-        let directory = source_dir.join(format!(".peer-{}.part", uuid::Uuid::new_v4().simple()));
+        let directory = source_dir.join(format!(
+            "{PEER_STAGING_PREFIX}{}{PEER_STAGING_SUFFIX}",
+            uuid::Uuid::new_v4().simple()
+        ));
         std::fs::create_dir(&directory)
             .with_context(|| format!("Could not create {}", directory.display()))?;
         let destination = match &target.filename {
