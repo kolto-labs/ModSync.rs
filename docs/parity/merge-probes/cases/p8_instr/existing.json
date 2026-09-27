@@ -1,0 +1,24 @@
+[
+ {
+  "Guid": "00000001-0000-0000-0000-000000000000",
+  "Name": "Alpha",
+  "Author": "",
+  "IsSelected": true,
+  "Instructions": [
+   {
+    "Action": "Extract",
+    "Source": [
+     "<<modDirectory>>\\old.zip"
+    ],
+    "Destination": "<<modDirectory>>"
+   },
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>\\old\\*.tga"
+    ],
+    "Destination": "<<kotorDirectory>>\\Override"
+   }
+  ]
+ }
+]

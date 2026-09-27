@@ -78,11 +78,31 @@ enum Origin {
 /// merge target. Each target matches a source row by GUID first, then by the
 /// highest heuristic score among unmatched rows. Unmatched source rows are inserted
 /// before the next source row already present, preserving their relative order.
+///
+/// Warnings about lost or ambiguous content go to stderr; see [`components_reporting`].
 pub fn components(
     existing: &[Component],
     incoming: &[Component],
     options: &Options,
 ) -> Vec<Component> {
+    let (result, warnings) = components_reporting(existing, incoming, options);
+    for warning in warnings {
+        eprintln!("Warning: {warning}");
+    }
+    result
+}
+
+/// Same as [`components`], returning the warnings instead of printing them.
+///
+/// C# throws when a matched component or option has duplicate instruction keys or
+/// duplicate option names. Rust keeps going and reports each place where a source
+/// value was skipped or a duplicate group received different content.
+pub fn components_reporting(
+    existing: &[Component],
+    incoming: &[Component],
+    options: &Options,
+) -> (Vec<Component>, Vec<String>) {
+    let mut warnings = Vec::new();
     let (mut result, source) = if options.use_existing_order {
         (existing.to_vec(), incoming)
     } else {
@@ -99,7 +119,7 @@ pub fn components(
         if let Some(index) = found {
             matched[index] = true;
             *origin = Origin::Matched;
-            update(target, &source[index], options);
+            update(target, &source[index], options, &mut warnings);
         }
     }
     for (index, component) in source.iter().enumerate() {
@@ -122,7 +142,7 @@ pub fn components(
     } else {
         (Origin::SourceOnly, Origin::TargetOnly)
     };
-    result
+    let result = result
         .into_iter()
         .zip(origins)
         .filter(|(_, origin)| {
@@ -130,7 +150,8 @@ pub fn components(
                 || (options.exclude_incoming_only && *origin == incoming_only))
         })
         .map(|(component, _)| component)
-        .collect()
+        .collect();
+    (result, warnings)
 }
 
 fn blank_guid(guid: &str) -> bool {
@@ -265,9 +286,32 @@ fn instruction_key(instruction: &crate::Instruction) -> (String, String) {
     )
 }
 
+fn same_instruction(a: &crate::Instruction, b: &crate::Instruction) -> bool {
+    a.action.eq_ignore_ascii_case(&b.action)
+        && a.source == b.source
+        && a.destination.eq_ignore_ascii_case(&b.destination)
+        && a.arguments == b.arguments
+        && a.overwrite == b.overwrite
+        && a.dependencies == b.dependencies
+        && a.restrictions == b.restrictions
+}
+
+fn describe(instruction: &crate::Instruction) -> String {
+    format!("{} {}", instruction.action, instruction.source.join(", "))
+}
+
 /// C# key merge: keys come from the target's original instructions only; each
 /// original is replaced at most once and unkeyed source instructions append.
-fn merge_instructions(target: &mut Vec<crate::Instruction>, source: &[crate::Instruction]) {
+///
+/// C# throws on duplicate target keys. Rust replaces the first of a group and warns
+/// when that changes content, and warns when a skipped source instruction is not
+/// already present in the group.
+fn merge_instructions(
+    target: &mut Vec<crate::Instruction>,
+    source: &[crate::Instruction],
+    scope: &str,
+    warnings: &mut Vec<String>,
+) {
     let original: Vec<_> = target.iter().map(instruction_key).collect();
     let mut replaced = vec![false; original.len()];
     for incoming in source {
@@ -277,6 +321,18 @@ fn merge_instructions(target: &mut Vec<crate::Instruction>, source: &[crate::Ins
             continue;
         };
         if replaced[existing] {
+            let kept = original
+                .iter()
+                .enumerate()
+                .any(|(index, known)| *known == key && same_instruction(&target[index], incoming));
+            if !kept {
+                warnings.push(format!(
+                    "{scope}: instruction key '{}|{}' was already replaced; skipped '{}'",
+                    key.0,
+                    key.1,
+                    describe(incoming)
+                ));
+            }
             continue;
         }
         replaced[existing] = true;
@@ -290,6 +346,16 @@ fn merge_instructions(target: &mut Vec<crate::Instruction>, source: &[crate::Ins
             && incoming.arguments.eq_ignore_ascii_case(&prior.arguments)
         {
             replacement.source.clone_from(&prior.source);
+        }
+        let group = original.iter().filter(|known| **known == key).count();
+        if group > 1 && !same_instruction(prior, &replacement) {
+            warnings.push(format!(
+                "{scope}: instruction key '{}|{}' appears {group} times; replaced only the first ('{}' with '{}')",
+                key.0,
+                key.1,
+                describe(prior),
+                describe(&replacement)
+            ));
         }
         target[existing] = replacement;
     }
@@ -337,14 +403,58 @@ fn merge_resources(
     }
 }
 
-fn merge_options(target: &mut Vec<Component>, source: &[Component]) {
+fn option_name(option: &Component) -> String {
+    option.name.trim().to_lowercase()
+}
+
+/// C# option merge: names match against the target's original options only, and
+/// unmatched source options append. C# throws on duplicate target names; Rust merges
+/// into the first and warns when that changes it. A later source option whose name
+/// and instructions repeat an appended one is dropped, keeping the first as the C#
+/// loader does; the drop is reported when any other value differed.
+fn merge_options(
+    target: &mut Vec<Component>,
+    source: &[Component],
+    scope: &str,
+    warnings: &mut Vec<String>,
+) {
+    let original = target.len();
     for source_option in source {
-        if let Some(target_option) = target.iter_mut().find(|option| {
-            option
-                .name
-                .trim()
-                .eq_ignore_ascii_case(source_option.name.trim())
-        }) {
+        let name = option_name(source_option);
+        let group: Vec<_> = (0..original)
+            .filter(|&index| option_name(&target[index]) == name)
+            .collect();
+        let Some(&first) = group.first() else {
+            let repeat = (original..target.len()).find(|&index| {
+                option_name(&target[index]) == name
+                    && target[index].instructions.len() == source_option.instructions.len()
+                    && target[index]
+                        .instructions
+                        .iter()
+                        .zip(&source_option.instructions)
+                        .all(|(a, b)| same_instruction(a, b))
+            });
+            match repeat {
+                Some(kept) => {
+                    if serde_json::to_value(&target[kept]).ok()
+                        != serde_json::to_value(source_option).ok()
+                    {
+                        warnings.push(format!(
+                            "{scope}: duplicate option '{}' ({}) dropped; kept the first ({})",
+                            source_option.name, source_option.guid, target[kept].guid
+                        ));
+                    }
+                }
+                None => target.push(source_option.clone()),
+            }
+            continue;
+        };
+        let before = (group.len() > 1)
+            .then(|| serde_json::to_value(&target[first]).ok())
+            .flatten();
+        let label = format!("{scope}, option '{}'", target[first].name);
+        {
+            let target_option = &mut target[first];
             if target_option.guid.is_empty() && !source_option.guid.is_empty() {
                 target_option.guid.clone_from(&source_option.guid);
             }
@@ -355,14 +465,32 @@ fn merge_options(target: &mut Vec<Component>, source: &[Component]) {
             }
             union(&mut target_option.dependencies, &source_option.dependencies);
             union(&mut target_option.restrictions, &source_option.restrictions);
-            merge_instructions(&mut target_option.instructions, &source_option.instructions);
+            merge_instructions(
+                &mut target_option.instructions,
+                &source_option.instructions,
+                &label,
+                warnings,
+            );
             merge_resources(
                 &mut target_option.resource_registry,
                 &source_option.resource_registry,
             );
-            merge_options(&mut target_option.options, &source_option.options);
-        } else {
-            target.push(source_option.clone());
+            merge_options(
+                &mut target_option.options,
+                &source_option.options,
+                &label,
+                warnings,
+            );
+        }
+        if let Some(before) = before
+            && serde_json::to_value(&target[first]).ok() != Some(before)
+        {
+            warnings.push(format!(
+                "{scope}: option name '{}' appears {} times; merged '{}' into the first",
+                target[first].name,
+                group.len(),
+                source_option.name
+            ));
         }
     }
 }
@@ -429,7 +557,12 @@ fn take(target: &mut String, source: &str, prefer: bool) {
     }
 }
 
-fn update(target: &mut Component, source: &Component, options: &Options) {
+fn update(
+    target: &mut Component,
+    source: &Component,
+    options: &Options,
+    warnings: &mut Vec<String>,
+) {
     if (blank_guid(&target.guid) && !blank_guid(&source.guid))
         || (!options.use_existing_order
             && !blank_guid(&target.guid)
@@ -492,11 +625,17 @@ fn update(target: &mut Component, source: &Component, options: &Options) {
     union(&mut target.restrictions, &source.restrictions);
     union(&mut target.install_after, &source.install_after);
     union(&mut target.install_before, &source.install_before);
+    let scope = format!("component '{}'", target.name);
     if !options.prefer(options.prefer_existing_instructions) {
-        merge_instructions(&mut target.instructions, &source.instructions);
+        merge_instructions(
+            &mut target.instructions,
+            &source.instructions,
+            &scope,
+            warnings,
+        );
     }
     if !options.prefer(options.prefer_existing_options) {
-        merge_options(&mut target.options, &source.options);
+        merge_options(&mut target.options, &source.options, &scope, warnings);
     }
     for (key, value) in &source.metadata {
         if key.eq_ignore_ascii_case("Language") || key.eq_ignore_ascii_case("InstallationMethod") {

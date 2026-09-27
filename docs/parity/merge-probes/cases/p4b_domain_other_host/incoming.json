@@ -1,0 +1,15 @@
+[
+ {
+  "Guid": "00000041-0000-0000-0000-000000000000",
+  "Name": "Robes HD",
+  "Author": "Y",
+  "IsSelected": true,
+  "ResourceRegistry": {
+   "https://www.nexusmods.com/kotor/mods/2": {
+    "Files": {
+     "a.zip": true
+    }
+   }
+  }
+ }
+]

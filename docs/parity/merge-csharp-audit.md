@@ -66,7 +66,7 @@ so the lookup misses it (probe p10b).
 
 | Path | Default order | Existing order |
 |---|---|---|
-| Async (CLI) | `exclude-existing-only` drops rows whose GUID is not in incoming. `exclude-incoming-only` is ignored (`:208-212` tests the wrong flag). | `exclude-existing-only` drops rows whose GUID is not in incoming. That includes heuristic-matched existing rows. `exclude-incoming-only` is ignored. |
+| Async (CLI) | `exclude-existing-only` drops rows whose GUID is not in incoming. `exclude-incoming-only` is ignored: the branch at `:208-212` handles only `ExcludeExistingOnly`, and no `ExcludeIncomingOnly` branch exists. | `exclude-existing-only` drops rows whose GUID is not in incoming. That includes heuristic-matched existing rows. `exclude-incoming-only` is ignored. |
 | Sync (tests) | `exclude-incoming-only` drops rows whose GUID is not in existing. `exclude-existing-only` is ignored. | Same as async. |
 
 No C# test asserts `ExcludeIncomingOnly` removal. `MergeDirectionsPriorityTest.cs:120`
@@ -131,6 +131,8 @@ OUTPUT` with thirteen flags.
    `--prefer-existing-installation-method`.
 7. **Static link validation.** Fixed for the http(s)+host filter.
 8. **Instruction key rules.** Fixed to original-target keys and replace-once.
+   Duplicate keys and duplicate option names no longer merge silently: Rust keeps
+   going and warns on stderr when content is lost or ambiguous (see divergences).
 9. **Network URL validation during `--download`.** Open. Rust `merge` has no
    `--download`, `--select`, `--source-path`, `--spoiler-free` or
    `--auto-generate-local`.
@@ -141,24 +143,52 @@ OUTPUT` with thirteen flags.
 
 ## Intentional divergences
 
-- **p6, p6c: `exclude-incoming-only`.** C# CLI ignores it (async path bug,
-  `ComponentMergeService.cs:208-212` vs `:259-263`). Rust removes incoming-only rows,
-  as the help text says and as the sync path does in default order.
+- **p6, p6c: `exclude-incoming-only`.** The C# CLI ignores it. The async path used by
+  the CLI has no `ExcludeIncomingOnly` branch at all (`ComponentMergeService.cs:174-216`);
+  the sync path has one in default order (`:259-263`). Rust removes incoming-only rows,
+  as the help text says and as the sync path does.
 - **Heuristic-matched rows under exclusion.** Rust decides by match state, not by
   GUID sets. C# existing order with `exclude-existing-only` drops heuristic-matched
   existing rows. Rust keeps them.
-- **p9: duplicate instruction keys in the target.** C# fails the merge. Rust keeps
-  the first key and continues.
-- **Instruction GUIDs.** C# `CloneInstruction` drops instruction GUIDs. Rust keeps
-  the source GUID.
+- **p9: duplicate instruction keys in the target.** C# `ToDictionary` throws (`:815`,
+  and `:858` for option names, `:916` for option instructions) and the whole merge
+  fails. That happens on shipped builds: merging `KOTOR1_Full.toml` with itself exits 1
+  in C# with "Key: move|<<kotordirectory>>\override". The reviewer counted duplicate
+  keys in 11 of 165 K1 components and 15 of 101 K2 components. Rust keeps going: it
+  replaces the first instruction of a duplicate group and skips a source instruction
+  whose key was already replaced. It prints a stderr warning naming the component,
+  the option if any, and the key, but only when content is lost or ambiguous:
+  - a skipped source instruction that is not already present in the group (p9b);
+  - a replacement landing in a duplicate-key group that differs from the original
+    (p9).
+  The same rule covers option instructions and option names: a merge into the first
+  of several same-named target options warns when it changes that option. A
+  self-merge with identical content stays silent.
+- **Instruction GUIDs.** The C# model has no instruction GUID (`Instruction.cs` has no
+  `Guid` property). Rust keeps its optional instruction GUID from the source.
+- **q1: new resource URL.** C# copies only `Files` into the new entry (`:719-734`).
+  Rust copies the whole metadata object (`FileSize`, `HandlerMetadata` and so on).
+  Not changed in this lane.
+- **q2: duplicate source option names.** Fixed to keep the first. Target options
+  match by name against the target's original options only, as the C# `optMap`
+  does (`:858`). A later source option that repeats the name and instructions of one
+  already appended is dropped, and a warning is printed if any other value differed.
+  This matches the C# result, where the loader removes the repeat before the merge
+  ("Duplicate option detected ... Removing duplicate", seen with `convert`). When the
+  instructions differ, both options are appended, as C# merge does.
 - **Extra Rust merging.** Rust also merges option resource registries, nested
   options and unknown metadata keys when the target lacks them. C# does not.
 
 ## Probes
 
-Fixtures are 25 JSON guide pairs: 21 from `/tmp/f20-probe/gen.py`, plus p9b, p10b,
-p11b and p11c written separately. They are dependency-free, so the C# loader's dependency reorder does
-not affect order. Order parity is claimed only for these fixtures.
+The probe scripts, fixtures, recorded C# outputs and a receipt with binary hashes live
+in `docs/parity/merge-probes/` (`receipt.json`). They are probe scripts, not Rust
+tests: Rust tests stay frozen until full parity.
+
+Fixtures are 28 JSON guide pairs: 21 from `gen.py`, plus p9b, p10b, p11b, p11c and p15
+written separately, and the reviewer's q1 and q2. Order fixtures are dependency-free,
+so the C# loader's dependency reorder does not affect order. Order parity is claimed
+only for these fixtures.
 
 - C#: the prebuilt `ModSync.Core.dll` from
   `/tmp/modsync-validation-reference-20260927-5813/artifacts/bin/ModSync.Core/debug_net9.0`
@@ -169,17 +199,34 @@ not affect order. Order parity is claimed only for these fixtures.
 - Rust before: `ac9cf3a` debug binary. Rust after: this lane's debug binary. Both run as
   `modsync merge E I out.json FLAGS`. The baseline has no
   `--prefer-existing-installation-method`, so p7b is recorded as missing.
-- `/tmp/f20-probe/cmp.py` compares order, GUID, name, author, description, tier,
-  installation method, language, instructions and registry URL keys. It ignores
-  `Files`, because C# JSON output drops them (open item in `COMPATIBILITY.md`). It
-  also normalizes path separators and ignores Extract destinations, which are
-  serializer differences.
+- `cmp.py` compares order, GUID, name, author, description, tier, installation method,
+  language, instructions, registry URL keys and option GUID, name and description. It
+  ignores `Files` and other registry metadata, because C# JSON output drops them. It
+  normalizes path separators and ignores Extract destinations, which are serializer
+  differences. Missing or failed C# output always counts as DIFF, so "error vs error"
+  is not a match.
 
-Result: 10 of 25 matched C# before, 22 of 25 after. The three remaining differences
-are the intentional divergences above.
+Result: 11 of 28 matched C# before, 24 of 28 after. The four remaining differences are
+p6 and p6c (intentional), p9 (C# throws) and p15 (both CLIs reject the input).
 
 | Probe | Checks | Rust before | Rust after | Note |
 |---|---|---|---|---|
+| p1_order | Existing-only row placed before next shared row | DIFF | SAME |  |
+| p2_guid_first | GUID match beats earlier name match | DIFF | SAME |  |
+| p3_best_score | Best heuristic score, not first hit | DIFF | SAME |  |
+| p4_domain | Name Jaccard 0.4 + same host 0.6 matches | DIFF | SAME |  |
+| p4b_domain_other_host | Different host: no match | SAME | SAME |  |
+| p5_symbol_plus | `+` is a symbol, not stripped | DIFF | SAME |  |
+| p5b_unicode_dash | En dash stripped as punctuation | DIFF | SAME |  |
+| p6_excl_incoming | `--exclude-incoming-only` | DIFF | DIFF | Divergence: C# CLI has no branch for the flag |
+| p6b_excl_existing | `--exclude-existing-only` | SAME | SAME |  |
+| p6c_excl_incoming_existing_order | `--exclude-incoming-only --use-existing-order` | DIFF | DIFF | Divergence: same |
+| p6d_excl_existing_existing_order | `--exclude-existing-only --use-existing-order` | DIFF | SAME |  |
+| p7_language_method | Language union; incoming method kept | DIFF | SAME |  |
+| p7b_method_prefer | `--prefer-existing-installation-method` | DIFF | SAME | Before: flag missing |
+| p8_instr | Instruction key replace and append | SAME | SAME |  |
+| p9_dup_keys | Duplicate target instruction keys | DIFF | DIFF | Divergence: C# throws; Rust warns on stderr |
+| p9b_dup_source_keys | Duplicate source keys: replace once | DIFF | SAME | Rust warns on stderr (skipped e2.tga) |
 | p10_existing_order | Existing order + prefer-existing-name inversion; insertion | DIFF | SAME |  |
 | p10b_existing_order_heuristic | Existing order, heuristic pair, unmatched appended | SAME | SAME |  |
 | p11_links | Non-http URLs dropped on matched merge | DIFF | SAME |  |
@@ -189,31 +236,39 @@ are the intentional divergences above.
 | p12b_guid_keep_existing_order | Same, existing order | SAME | SAME |  |
 | p13_prefer_all | `--prefer-existing-fields` | SAME | SAME |  |
 | p14_blank | Blank existing value not copied | SAME | SAME |  |
-| p1_order | Existing-only row placed before next shared row | DIFF | SAME |  |
-| p2_guid_first | GUID match beats earlier name match | DIFF | SAME |  |
-| p3_best_score | Best heuristic score, not first hit | DIFF | SAME |  |
-| p4_domain | Name Jaccard 0.4 + same host 0.6 matches | DIFF | SAME |  |
-| p4b_domain_other_host | Different host: no match | SAME | SAME |  |
-| p5_symbol_plus | `+` is a symbol, not stripped | DIFF | SAME |  |
-| p5b_unicode_dash | En dash stripped as punctuation | DIFF | SAME |  |
-| p6_excl_incoming | `--exclude-incoming-only` | DIFF | DIFF | Divergence: C# CLI ignores flag |
-| p6b_excl_existing | `--exclude-existing-only` | SAME | SAME |  |
-| p6c_excl_incoming_existing_order | `--exclude-incoming-only --use-existing-order` | DIFF | DIFF | Divergence: C# CLI ignores flag |
-| p6d_excl_existing_existing_order | `--exclude-existing-only --use-existing-order` | DIFF | SAME |  |
-| p7_language_method | Language union; incoming method kept | DIFF | SAME |  |
-| p7b_method_prefer | `--prefer-existing-installation-method` | DIFF | SAME | Before: flag missing |
-| p8_instr | Instruction key replace and append | SAME | SAME |  |
-| p9_dup_keys | Duplicate target instruction keys | DIFF | DIFF | Divergence: C# throws |
-| p9b_dup_source_keys | Duplicate source keys: replace once | DIFF | SAME |  |
+| p15_no_guids | No Guid keys | DIFF | DIFF | Both CLIs reject the input (error vs error = DIFF) |
+| q1_rr_meta | New URL metadata (reviewer) | SAME | SAME | Keys only. Metadata still differs (open divergence q1) |
+| q2_dup_opts | Duplicate source option names (reviewer) | DIFF | SAME | Rust keeps the first and warns |
 
-Extra checks:
+### Warnings printed by the Rust CLI
+
+| Probe | stderr |
+|---|---|
+| p9 | `component 'Alpha': instruction key 'copy\|<<kotordirectory>>\override' appears 2 times; replaced only the first ('Copy <<modDirectory>>\b.tga' with 'Copy <<modDirectory>>\a.tga')` |
+| p9b | `component 'Alpha': instruction key 'copy\|<<kotordirectory>>\override' was already replaced; skipped 'Copy <<modDirectory>>\e2.tga'` |
+| q2 | `component 'Alpha': duplicate option 'Opt' (00000012-...) dropped; kept the first (00000011-...)` |
+| all others | none |
+
+### Shipped-build self-merge (`run_self.sh`)
+
+| Build | C# exit | C# error | Rust exit | Rust stderr | Rust output vs Rust `convert` |
+|---|---|---|---|---|---|
+| `KOTOR1_Full.toml` (189 components) | 1 | `Key: move\|<<kotordirectory>>\override` | 0 | none | identical |
+| `KOTOR2_Full.toml` (145 components) | 1 | `Key: extract\|` | 0 | none | identical |
+
+A self-merge changes no content, so the warning rule stays silent.
+
+### Other checks
 
 - p15 (no `Guid` keys): both CLIs refuse the input. C# fails with "GetValue cannot
   return null for a required value". Rust fails with "Every component and option needs
   a Guid and Name" (Rust `src/model.rs:182`). Blank-GUID pairing is therefore not
   reachable from the CLI.
-- TOML output for p1, p8 and p4 (`-f toml` for C#, `.toml` output for Rust): component
-  order, GUIDs, names, instruction order and registry URL keys match. Rust writes
-  `\` path separators where C# writes `/`, and C# writes empty `Files` maps. Both are
-  serializer or loader differences, not merge rules. The Markdown pipeline part of the
-  F20 acceptance row is not claimed here.
+- q1: registry keys match, but the metadata differs as listed under divergences. C#
+  writes `FileSize` 0 and empty `HandlerMetadata` for the copied URL. Rust keeps
+  `FileSize` 123, `HandlerMetadata` and `Files`.
+- TOML output for p1, p8 and p4 (`run_toml.sh`): component order, GUIDs, names,
+  instruction order and registry URL keys match. Rust writes `\` path separators where
+  C# writes `/`, and C# writes empty `Files` maps. Both are serializer or loader
+  differences, not merge rules. The Markdown pipeline part of the F20 acceptance row
+  is not claimed here.

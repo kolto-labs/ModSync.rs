@@ -1,0 +1,155 @@
+{
+  "timestamp_utc": "2026-09-27T18:46:15.286922+00:00",
+  "csharp_reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+  "csharp_dll": "/tmp/modsync-validation-reference-20260927-5813/artifacts/bin/ModSync.Core/debug_net9.0/ModSync.Core.dll",
+  "csharp_dll_sha256": "89d9b2361aee4364f95151b41db59a4133122a6ad41bc2703e232cf10a4f5a6b",
+  "rust_base_commit": "ac9cf3a",
+  "rust_before_sha256": "256c10414f07ce48b711c7e16eadeb28e26600ddf8453db1b3e7392f37ea0c6f",
+  "rust_after_sha256": "3a52c78e3b3b0ad30514e5ba34d6cbfdbc454bd4d50cb169b893d4544853af82",
+  "isolation": "HOME, XDG_CONFIG_HOME, XDG_DATA_HOME and DOTNET_CLI_HOME under /tmp/f20-probe/home; C# not compiled",
+  "compare": "cmp.py: order, GUID, name, author, description, tier, InstallationMethod, Language, instructions, registry URL keys, option guid/name/description. Missing or error output on the C# side is DIFF.",
+  "summary": {
+    "cases": 28,
+    "rust_before_same": 11,
+    "rust_after_same": 24
+  },
+  "results": {
+    "p10_existing_order": {
+      "rust_before": "DIFF",
+      "rust_after": "SAME"
+    },
+    "p10b_existing_order_heuristic": {
+      "rust_before": "SAME",
+      "rust_after": "SAME"
+    },
+    "p11_links": {
+      "rust_before": "DIFF",
+      "rust_after": "SAME"
+    },
+    "p11b_links_unmatched": {
+      "rust_before": "SAME",
+      "rust_after": "SAME"
+    },
+    "p11c_links_source_empty": {
+      "rust_before": "SAME",
+      "rust_after": "SAME"
+    },
+    "p12_guid_keep": {
+      "rust_before": "SAME",
+      "rust_after": "SAME"
+    },
+    "p12b_guid_keep_existing_order": {
+      "rust_before": "SAME",
+      "rust_after": "SAME"
+    },
+    "p13_prefer_all": {
+      "rust_before": "SAME",
+      "rust_after": "SAME"
+    },
+    "p14_blank": {
+      "rust_before": "SAME",
+      "rust_after": "SAME"
+    },
+    "p15_no_guids": {
+      "rust_before": "DIFF",
+      "rust_after": "DIFF"
+    },
+    "p1_order": {
+      "rust_before": "DIFF",
+      "rust_after": "SAME"
+    },
+    "p2_guid_first": {
+      "rust_before": "DIFF",
+      "rust_after": "SAME"
+    },
+    "p3_best_score": {
+      "rust_before": "DIFF",
+      "rust_after": "SAME"
+    },
+    "p4_domain": {
+      "rust_before": "DIFF",
+      "rust_after": "SAME"
+    },
+    "p4b_domain_other_host": {
+      "rust_before": "SAME",
+      "rust_after": "SAME"
+    },
+    "p5_symbol_plus": {
+      "rust_before": "DIFF",
+      "rust_after": "SAME"
+    },
+    "p5b_unicode_dash": {
+      "rust_before": "DIFF",
+      "rust_after": "SAME"
+    },
+    "p6_excl_incoming": {
+      "rust_before": "DIFF",
+      "rust_after": "DIFF"
+    },
+    "p6b_excl_existing": {
+      "rust_before": "SAME",
+      "rust_after": "SAME"
+    },
+    "p6c_excl_incoming_existing_order": {
+      "rust_before": "DIFF",
+      "rust_after": "DIFF"
+    },
+    "p6d_excl_existing_existing_order": {
+      "rust_before": "DIFF",
+      "rust_after": "SAME"
+    },
+    "p7_language_method": {
+      "rust_before": "DIFF",
+      "rust_after": "SAME"
+    },
+    "p7b_method_prefer": {
+      "rust_before": "DIFF",
+      "rust_after": "SAME"
+    },
+    "p8_instr": {
+      "rust_before": "SAME",
+      "rust_after": "SAME"
+    },
+    "p9_dup_keys": {
+      "rust_before": "DIFF",
+      "rust_after": "DIFF"
+    },
+    "p9b_dup_source_keys": {
+      "rust_before": "DIFF",
+      "rust_after": "SAME"
+    },
+    "q1_rr_meta": {
+      "rust_before": "SAME",
+      "rust_after": "SAME"
+    },
+    "q2_dup_opts": {
+      "rust_before": "DIFF",
+      "rust_after": "SAME"
+    }
+  },
+  "rust_after_stderr": {
+    "p15_no_guids": "Error: Every component and option needs a Guid and Name",
+    "p9_dup_keys": "Warning: component 'Alpha': instruction key 'copy|<<kotordirectory>>\\override' appears 2 times; replaced only the first ('Copy <<modDirectory>>\\b.tga' with 'Copy <<modDirectory>>\\a.tga')",
+    "p9b_dup_source_keys": "Warning: component 'Alpha': instruction key 'copy|<<kotordirectory>>\\override' was already replaced; skipped 'Copy <<modDirectory>>\\e2.tga'",
+    "q2_dup_opts": "Warning: component 'Alpha': duplicate option 'Opt' (00000012-0000-0000-0000-000000000000) dropped; kept the first (00000011-0000-0000-0000-000000000000)"
+  },
+  "self_merge": {
+    "KOTOR1_Full": {
+      "csharp_exit": 1,
+      "csharp_error": "An item with the same key has already been added. Key: move|<<kotordirectory>>\\override",
+      "rust_exit": 0,
+      "rust_stderr_lines": 0,
+      "rust_equals_rust_convert": true,
+      "components": 189
+    },
+    "KOTOR2_Full": {
+      "csharp_exit": 1,
+      "csharp_error": "An item with the same key has already been added. Key: extract|",
+      "rust_exit": 0,
+      "rust_stderr_lines": 0,
+      "rust_equals_rust_convert": true,
+      "components": 145
+    }
+  },
+  "note": "Scripts expect to run from /tmp/f20-probe with the binaries above; the host glibc build runs through host-spawn."
+}

@@ -1,0 +1,20 @@
+[
+ {
+  "Guid": "00000001-0000-0000-0000-000000000000",
+  "Name": "Alpha",
+  "Author": "",
+  "IsSelected": true
+ },
+ {
+  "Guid": "00000009-0000-0000-0000-000000000000",
+  "Name": "Xeno Only",
+  "Author": "",
+  "IsSelected": true
+ },
+ {
+  "Guid": "00000002-0000-0000-0000-000000000000",
+  "Name": "Beta",
+  "Author": "",
+  "IsSelected": true
+ }
+]

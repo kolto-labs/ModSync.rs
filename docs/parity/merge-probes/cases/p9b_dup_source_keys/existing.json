@@ -1,0 +1,22 @@
+[
+ {
+  "Guid": "00000001-0000-0000-0000-000000000000",
+  "Name": "Alpha",
+  "Instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>\\e1.tga"
+    ],
+    "Destination": "<<kotorDirectory>>\\Override"
+   },
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>\\e2.tga"
+    ],
+    "Destination": "<<kotorDirectory>>\\Override"
+   }
+  ]
+ }
+]

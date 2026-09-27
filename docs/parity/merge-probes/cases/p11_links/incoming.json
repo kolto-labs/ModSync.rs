@@ -1,0 +1,20 @@
+[
+ {
+  "Guid": "00000001-0000-0000-0000-000000000000",
+  "Name": "Alpha",
+  "Author": "",
+  "IsSelected": true,
+  "ResourceRegistry": {
+   "https://ok.example/c": {
+    "Files": {
+     "c.zip": true
+    }
+   },
+   "ftp://bad.example/d": {
+    "Files": {
+     "d.zip": true
+    }
+   }
+  }
+ }
+]
