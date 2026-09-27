@@ -832,7 +832,8 @@ impl Filter {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Action {
-    /// Single item, full cascade. `guid` may also be an exact component name.
+    /// Single item, full cascade. `guid` may also be a component name
+    /// (case-insensitive) when no GUID matches.
     SetComponent { guid: String, selected: bool },
     /// Single item at any depth, full cascade. Checking selects the parent chain first.
     SetOption { guid: String, selected: bool },
@@ -1303,6 +1304,7 @@ fn close_dependencies(components: &mut [Component], warnings: &mut Vec<String>) 
 /// Errors are raised before any mutation.
 fn reset_from_selectors(
     components: &mut [Component],
+    game: Option<game::Detected>,
     selectors: &[String],
     direct: &mut BTreeMap<String, bool>,
 ) -> anyhow::Result<Vec<String>> {
@@ -1346,8 +1348,16 @@ fn reset_from_selectors(
         let filtered = has_filter
             && (categories.is_empty() || c.category.iter().any(|cat| lists(&categories, cat)))
             && (tiers.is_empty() || tiers.iter().any(|tier| tier_matches(&c.tier, tier)));
-        c.is_selected = !has_valid_selector || exact_match || filtered;
-        direct.insert(c.guid.to_ascii_lowercase(), c.is_selected);
+        let wanted = !has_valid_selector || exact_match || filtered;
+        if wanted && refused(game, c) {
+            // Refused before the closure runs; a previously selected copy is
+            // reported as auto-deselected.
+            warnings.push(refusal(c));
+            c.is_selected = false;
+            continue;
+        }
+        c.is_selected = wanted;
+        direct.insert(c.guid.to_ascii_lowercase(), wanted);
     }
     Ok(warnings)
 }
@@ -1391,7 +1401,14 @@ pub fn apply(
                         .position(|c| c.name.eq_ignore_ascii_case(&guid))
                 })
                 .ok_or_else(|| anyhow::anyhow!("Unknown component: {guid}"))?;
-            set_single(components, index, selected, &mut direct);
+            set_single(
+                components,
+                game,
+                index,
+                selected,
+                &mut direct,
+                &mut outcome.warnings,
+            );
         }
         Action::SetWidescreen { guid, selected } => {
             let index = component_index(components, &guid)
@@ -1400,11 +1417,22 @@ pub fn apply(
                 !base(&components[index]),
                 "Not a widescreen component: {guid}"
             );
-            set_single(components, index, selected, &mut direct);
+            set_single(
+                components,
+                game,
+                index,
+                selected,
+                &mut direct,
+                &mut outcome.warnings,
+            );
         }
         Action::SetOption { guid, selected } => {
             let path = find_option(components, &guid)
                 .ok_or_else(|| anyhow::anyhow!("Unknown option: {guid}"))?;
+            if selected && refused(game, &components[path[0]]) {
+                outcome.warnings.push(refusal(&components[path[0]]));
+                return Ok(outcome);
+            }
             direct.insert(guid.to_ascii_lowercase(), selected);
             let mut visited = Visited::default();
             if selected {
@@ -1418,8 +1446,7 @@ pub fn apply(
                 .iter_mut()
                 .filter(|c| base(c) && filter.matches(c))
             {
-                c.is_selected = true;
-                direct.insert(c.guid.to_ascii_lowercase(), true);
+                select_direct(c, game, &mut direct, &mut outcome.warnings);
             }
             close = true;
         }
@@ -1438,8 +1465,17 @@ pub fn apply(
             match groups.into_iter().find(|(name, _)| *name == category) {
                 Some((_, members)) => {
                     for index in members {
-                        components[index].is_selected = selected;
-                        direct.insert(components[index].guid.to_ascii_lowercase(), selected);
+                        if selected {
+                            select_direct(
+                                &mut components[index],
+                                game,
+                                &mut direct,
+                                &mut outcome.warnings,
+                            );
+                        } else {
+                            components[index].is_selected = false;
+                            direct.insert(components[index].guid.to_ascii_lowercase(), false);
+                        }
                     }
                     close = selected;
                 }
@@ -1453,8 +1489,7 @@ pub fn apply(
                 .iter_mut()
                 .filter(|c| base(c) && tier_matches(&c.tier, &tier))
             {
-                c.is_selected = true;
-                direct.insert(c.guid.to_ascii_lowercase(), true);
+                select_direct(c, game, &mut direct, &mut outcome.warnings);
             }
             close = true;
         }
@@ -1464,14 +1499,13 @@ pub fn apply(
                     .iter_mut()
                     .filter(|c| base(c) && matches_category_tier(c, &categories, &[]))
                 {
-                    c.is_selected = true;
-                    direct.insert(c.guid.to_ascii_lowercase(), true);
+                    select_direct(c, game, &mut direct, &mut outcome.warnings);
                 }
                 close = true;
             }
         }
         Action::ResetFromSelectors(selectors) => {
-            outcome.warnings = reset_from_selectors(components, &selectors, &mut direct)?;
+            outcome.warnings = reset_from_selectors(components, game, &selectors, &mut direct)?;
             close = true;
         }
         Action::EnforceGame => {
@@ -1499,10 +1533,7 @@ pub fn apply(
                 && !game::selectable(c, detected)
                 && !before[nodes_index(&nodes, index)]
             {
-                outcome.warnings.push(format!(
-                    "'{}' ({}) is Aspyr-exclusive and cannot be selected for this game",
-                    c.name, c.guid
-                ));
+                outcome.warnings.push(refusal(c));
             }
         }
         game::enforce_selectable(components, detected);
@@ -1527,15 +1558,53 @@ pub fn apply(
             }
         }
     }
+    // A refused mod can be reported by the direct step and again after the closure.
+    let mut seen = BTreeSet::new();
+    outcome
+        .warnings
+        .retain(|warning| seen.insert(warning.clone()));
     Ok(outcome)
+}
+
+/// True when a known game refuses this component (C# editor: refuse before any cascade).
+fn refused(game: Option<game::Detected>, c: &Component) -> bool {
+    matches!(game, Some(detected) if detected != game::Detected::Unknown && !game::selectable(c, detected))
+}
+
+fn refusal(c: &Component) -> String {
+    format!(
+        "'{}' ({}) is Aspyr-exclusive and cannot be selected for this game",
+        c.name, c.guid
+    )
+}
+
+/// Bulk direct select of one component, refusing it without mutation when the game forbids it.
+fn select_direct(
+    c: &mut Component,
+    game: Option<game::Detected>,
+    direct: &mut BTreeMap<String, bool>,
+    warnings: &mut Vec<String>,
+) {
+    if refused(game, c) {
+        warnings.push(refusal(c));
+        return;
+    }
+    c.is_selected = true;
+    direct.insert(c.guid.to_ascii_lowercase(), true);
 }
 
 fn set_single(
     components: &mut [Component],
+    game: Option<game::Detected>,
     index: usize,
     selected: bool,
     direct: &mut BTreeMap<String, bool>,
+    warnings: &mut Vec<String>,
 ) {
+    if selected && refused(game, &components[index]) {
+        warnings.push(refusal(&components[index]));
+        return;
+    }
     direct.insert(components[index].guid.to_ascii_lowercase(), selected);
     let mut visited = Visited::default();
     if selected {
