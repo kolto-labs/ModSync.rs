@@ -646,12 +646,12 @@ impl App {
                     ui.spacing_mut().item_spacing.y = 8.0;
                     ui.label(RichText::new("⚙ What's Happening?").size(14.0).strong());
                     let items = [
-                        "✓ Extracting archives",
-                        "✓ Running TSLPatcher/HoloPatcher",
-                        "✓ Moving and copying files",
-                        "✓ Following guide order",
-                        "✓ Creating one recovery snapshot",
-                        "✓ Checking steps before writing",
+                        "✔ Extracting archives",
+                        "✔ Running TSLPatcher/HoloPatcher",
+                        "✔ Moving and copying files",
+                        "✔ Following guide order",
+                        "✔ Creating one recovery snapshot",
+                        "✔ Checking steps before writing",
                     ];
                     columns::<2>(ui, 0.0, egui::Align::Min, |column, ui| {
                         ui.spacing_mut().item_spacing.y = 4.0;
