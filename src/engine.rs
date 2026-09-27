@@ -1,5 +1,6 @@
 use crate::{
     archive,
+    install_progress::{OwnerFrame, Phase as InstallPhase, Progress as InstallProgress},
     model::{Component, Guide, Instruction},
     paths::{Roots, relative},
     recovery,
@@ -54,6 +55,79 @@ pub struct Event {
     pub component: String,
     pub step: usize,
     pub message: String,
+}
+
+/// Run-local observer state. Nothing is installed on Engine itself, so silent
+/// validation/preflight and ordinary Event consumers cannot observe these facts.
+struct InstallObserver<'a> {
+    callback: &'a mut dyn FnMut(InstallProgress),
+    current: InstallProgress,
+}
+
+impl<'a> InstallObserver<'a> {
+    fn new(total: usize, callback: &'a mut dyn FnMut(InstallProgress)) -> Self {
+        Self {
+            callback,
+            current: InstallProgress {
+                phase: InstallPhase::Preparing,
+                top_level_component_name: None,
+                top_level_component_guid: None,
+                component_index: 0,
+                component_total: total,
+                owner_name: None,
+                owner_guid: None,
+                owner_path: Vec::new(),
+                instruction_index: None,
+                instruction_total: None,
+                operation: None,
+                message: String::new(),
+                snapshot_pending: false,
+            },
+        }
+    }
+
+    fn emit(&mut self, phase: InstallPhase, message: impl Into<String>) {
+        self.current.phase = phase;
+        self.current.message = message.into();
+        (self.callback)(self.current.clone());
+    }
+
+    fn component(&mut self, component: &Component, index: usize) {
+        self.current.top_level_component_name = Some(component.name.clone());
+        self.current.top_level_component_guid = Some(component.guid.clone());
+        self.current.component_index = index;
+        self.current.owner_name = Some(component.name.clone());
+        self.current.owner_guid = Some(component.guid.clone());
+        self.current.owner_path = vec![OwnerFrame {
+            name: component.name.clone(),
+            guid: component.guid.clone(),
+            reached_from_instruction: None,
+        }];
+        self.current.instruction_index = None;
+        self.current.instruction_total = Some(component.instructions.len());
+        self.current.operation = None;
+    }
+
+    fn instruction(&mut self, owner: &Component, index: usize, message: String) {
+        self.current.owner_name = Some(owner.name.clone());
+        self.current.owner_guid = Some(owner.guid.clone());
+        self.current.instruction_index = Some(index);
+        self.current.instruction_total = Some(owner.instructions.len());
+        self.current.operation = Some(owner.instructions[index - 1].action.clone());
+        self.emit(InstallPhase::RunningInstruction, message);
+    }
+
+    fn clear_component(&mut self) {
+        self.current.top_level_component_name = None;
+        self.current.top_level_component_guid = None;
+        self.current.component_index = 0;
+        self.current.owner_name = None;
+        self.current.owner_guid = None;
+        self.current.owner_path.clear();
+        self.current.instruction_index = None;
+        self.current.instruction_total = None;
+        self.current.operation = None;
+    }
 }
 
 #[derive(Clone)]
@@ -709,43 +783,86 @@ impl Engine {
         Ok(self.conflicts.take().unwrap().finish())
     }
 
-    pub fn install(mut self, guide: &Guide, mut emit: impl FnMut(Event)) -> Result<()> {
+    pub fn install(self, guide: &Guide, emit: impl FnMut(Event)) -> Result<()> {
+        self.install_observed(guide, emit, |_| {})
+    }
+
+    /// Observe real installation boundaries, excluding all silent preflight work.
+    /// The observer is synchronous and non-fallible; it must not panic. Adapters
+    /// may ignore failed channel delivery. Completed and Ok win over late cancel.
+    pub fn install_observed(
+        mut self,
+        guide: &Guide,
+        mut emit: impl FnMut(Event),
+        mut progress: impl FnMut(InstallProgress),
+    ) -> Result<()> {
         let _lock = recovery::Lock::acquire(&self.settings.roots)?;
         recovery::ensure_clean(&self.settings.roots)?;
         self.scan()?;
         recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
         self.run(guide, &mut |_| {})?;
         self.scan()?;
+        let ordered = self.remaining_ordered(guide)?;
+        let mut observer = InstallObserver::new(ordered.len(), &mut progress);
+        observer.emit(InstallPhase::Preparing, "Installation preflight completed");
         emit(Event {
             component: String::new(),
             step: 0,
             message: "Creating recovery snapshot of game and mod directories".into(),
         });
         self.check_cancelled()?;
+        observer.emit(
+            InstallPhase::CreatingSnapshot,
+            "Creating recovery snapshot of game and mod directories",
+        );
+        self.check_cancelled()?;
         recovery::begin(&self.settings.roots)?;
+        observer.current.snapshot_pending = true;
+        observer.emit(InstallPhase::CreatingSnapshot, "Recovery snapshot active");
         self.install = true;
-        self.run(guide, &mut emit).with_context(|| {
-            format!(
-                "Install stopped. Restore before retrying; snapshot: {}",
-                recovery::state_dir(&self.settings.roots).display()
-            )
-        })?;
+        self.run_ordered(guide, &ordered, &mut emit, Some(&mut observer))
+            .with_context(|| {
+                format!(
+                    "Install stopped. Restore before retrying; snapshot: {}",
+                    recovery::state_dir(&self.settings.roots).display()
+                )
+            })?;
+        self.check_cancelled()?;
+        observer.clear_component();
+        observer.emit(
+            InstallPhase::RecordingCompletion,
+            "Recording installation completion",
+        );
+        self.check_cancelled()?;
         recovery::record_completion(&self.settings.roots, guide)?;
+        self.check_cancelled()?;
         recovery::finish(&self.settings.roots)?;
+        observer.current.snapshot_pending = false;
+        observer.emit(InstallPhase::Completed, "Installation complete");
         Ok(())
     }
 
     /// Execute the remaining suffix while retaining selected dependency context.
     /// A saved receipt must match roots, prefix definitions and current game bytes.
-    /// This is not exposed by CLI/GUI yet.
     pub fn install_remaining(
-        mut self,
+        self,
         guide: &Guide,
         completed: &[String],
         emit: impl FnMut(Event),
     ) -> Result<()> {
+        self.install_remaining_observed(guide, completed, emit, |_| {})
+    }
+
+    /// Observe the same verified suffix execution as install_remaining.
+    pub fn install_remaining_observed(
+        mut self,
+        guide: &Guide,
+        completed: &[String],
+        emit: impl FnMut(Event),
+        progress: impl FnMut(InstallProgress),
+    ) -> Result<()> {
         self.set_completed_prefix(guide, completed)?;
-        self.install(guide, emit)
+        self.install_observed(guide, emit, progress)
     }
 
     /// Simulate only the suffix, with the same saved completion contract
@@ -826,7 +943,26 @@ impl Engine {
         Ok(())
     }
 
+    fn remaining_ordered<'a>(&self, guide: &'a Guide) -> Result<Vec<&'a Component>> {
+        Ok(guide
+            .ordered()?
+            .into_iter()
+            .filter(|c| !self.completed.contains(&c.guid.to_ascii_lowercase()))
+            .collect())
+    }
+
     fn run(&mut self, guide: &Guide, emit: &mut impl FnMut(Event)) -> Result<()> {
+        let ordered = self.remaining_ordered(guide)?;
+        self.run_ordered(guide, &ordered, emit, None)
+    }
+
+    fn run_ordered(
+        &mut self,
+        guide: &Guide,
+        ordered: &[&Component],
+        emit: &mut impl FnMut(Event),
+        mut progress: Option<&mut InstallObserver<'_>>,
+    ) -> Result<()> {
         self.selected = guide.selected_ids();
         self.selected_names = guide
             .components
@@ -834,10 +970,7 @@ impl Engine {
             .filter(|c| c.is_selected)
             .map(|c| c.name.to_lowercase())
             .collect();
-        for c in guide.ordered()? {
-            if self.completed.contains(&c.guid.to_ascii_lowercase()) {
-                continue;
-            }
+        for (index, c) in ordered.iter().enumerate() {
             ensure!(
                 !c.instructions.is_empty(),
                 "{} has no executable instructions; review the guide",
@@ -846,12 +979,31 @@ impl Engine {
             if let Some(tracker) = &mut self.conflicts {
                 tracker.begin(c);
             }
-            self.component(c, emit)?;
+            if let Some(observer) = progress.as_deref_mut() {
+                observer.component(c, index + 1);
+                observer.emit(
+                    InstallPhase::InstallingComponent,
+                    format!("Installing: {}", c.name),
+                );
+            }
+            self.component(c, emit, progress.as_deref_mut())?;
+            if let Some(observer) = progress.as_deref_mut() {
+                observer.component(c, index + 1);
+                observer.emit(
+                    InstallPhase::ComponentCompleted,
+                    format!("Installed: {}", c.name),
+                );
+            }
         }
         Ok(())
     }
 
-    fn component(&mut self, c: &Component, emit: &mut impl FnMut(Event)) -> Result<()> {
+    fn component(
+        &mut self,
+        c: &Component,
+        emit: &mut impl FnMut(Event),
+        mut progress: Option<&mut InstallObserver<'_>>,
+    ) -> Result<()> {
         self.validation_target = Some((c.name.clone(), c.guid.clone(), None));
         self.check_component(c)?;
         for (n, instruction) in c.instructions.iter().enumerate() {
@@ -863,6 +1015,9 @@ impl Engine {
                     step: n + 1,
                     message: "Skipped by instruction conditions".into(),
                 });
+                if let Some(observer) = progress.as_deref_mut() {
+                    observer.instruction(c, n + 1, "Skipped by instruction conditions".into());
+                }
                 continue;
             }
             let message = if matches!(instruction.action.as_str(), "Patcher" | "Execute" | "Run")
@@ -884,13 +1039,20 @@ impl Engine {
                 tracker.external_effects |=
                     matches!(instruction.action.as_str(), "Patcher" | "Execute" | "Run");
             }
-            self.execute(c, instruction, emit)
+            if let Some(observer) = progress.as_deref_mut() {
+                // This is context for reached Choose frames, not an emitted success.
+                observer.current.instruction_index = Some(n + 1);
+            }
+            self.execute_observed(c, instruction, emit, progress.as_deref_mut())
                 .with_context(|| format!("{} / step {} ({})", c.name, n + 1, instruction.action))?;
             emit(Event {
                 component: c.name.clone(),
                 step: n + 1,
-                message,
+                message: message.clone(),
             });
+            if let Some(observer) = progress.as_deref_mut() {
+                observer.instruction(c, n + 1, message);
+            }
         }
         Ok(())
     }
@@ -1160,10 +1322,34 @@ impl Engine {
         i: &Instruction,
         emit: &mut impl FnMut(Event),
     ) -> Result<()> {
+        self.execute_observed(component, i, emit, None)
+    }
+
+    fn execute_observed(
+        &mut self,
+        component: &Component,
+        i: &Instruction,
+        emit: &mut impl FnMut(Event),
+        mut progress: Option<&mut InstallObserver<'_>>,
+    ) -> Result<()> {
         match i.action.as_str() {
             "Choose" => {
+                let reached_from_instruction = progress
+                    .as_ref()
+                    .and_then(|observer| observer.current.instruction_index);
                 for option in Self::chosen_options(component, i)? {
-                    self.component(option, emit)?;
+                    if let Some(observer) = progress.as_deref_mut() {
+                        observer.current.owner_path.push(OwnerFrame {
+                            name: option.name.clone(),
+                            guid: option.guid.clone(),
+                            reached_from_instruction,
+                        });
+                    }
+                    let result = self.component(option, emit, progress.as_deref_mut());
+                    if let Some(observer) = progress.as_deref_mut() {
+                        observer.current.owner_path.pop();
+                    }
+                    result?;
                 }
             }
             "Extract" => {
