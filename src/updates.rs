@@ -157,12 +157,39 @@ pub fn record_nxm_download(
 
 impl NexusClient {
     pub fn new(api_key: Option<String>) -> Result<Self> {
-        Self::with_base_url(api_key, "https://api.nexusmods.com/v1/")
+        Self::build(
+            api_key,
+            "https://api.nexusmods.com/v1/",
+            reqwest::redirect::Policy::default(),
+        )
     }
 
     /// Requires https, except for loopback hosts, which may use http so a
-    /// local fake API can be used without a certificate authority.
+    /// local fake API can be used without a certificate authority. Redirects
+    /// are followed only within the base URL's origin, so the scheme check
+    /// and the API key cannot be carried to another host.
     pub fn with_base_url(api_key: Option<String>, base_url: &str) -> Result<Self> {
+        let origin = reqwest::Url::parse(base_url)?.origin();
+        let policy = reqwest::redirect::Policy::custom(move |attempt| {
+            if attempt.url().origin() != origin {
+                let target = attempt.url().origin().ascii_serialization();
+                attempt.error(format!(
+                    "Refusing Nexus API redirect to another origin: {target}"
+                ))
+            } else if attempt.previous().len() >= 10 {
+                attempt.error("Too many Nexus API redirects")
+            } else {
+                attempt.follow()
+            }
+        });
+        Self::build(api_key, base_url, policy)
+    }
+
+    fn build(
+        api_key: Option<String>,
+        base_url: &str,
+        redirect: reqwest::redirect::Policy,
+    ) -> Result<Self> {
         let base_url = reqwest::Url::parse(base_url)?.join("./")?;
         let loopback = base_url.host_str().is_some_and(|host| {
             host.eq_ignore_ascii_case("localhost")
@@ -179,6 +206,7 @@ impl NexusClient {
         Ok(Self {
             client: reqwest::blocking::Client::builder()
                 .timeout(Duration::from_secs(60))
+                .redirect(redirect)
                 .build()?,
             base_url,
             api_key,
