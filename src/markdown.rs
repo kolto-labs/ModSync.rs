@@ -36,7 +36,7 @@ pub(crate) fn parse(text: &str) -> Result<Guide> {
         } else if let Some((lang, content)) = block.split_once('\n')
             && matches!(lang.trim(), "toml" | "json" | "yaml" | "yml" | "xml")
         {
-            let parsed = Guide::parse(content, lang.trim())?;
+            let parsed = Guide::parse_without_dedup(content, lang.trim())?;
             structured.components.extend(parsed.components);
             structured.metadata.extend(parsed.metadata);
         }
