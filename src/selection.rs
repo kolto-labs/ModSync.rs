@@ -868,9 +868,12 @@ pub struct Outcome {
     /// GUIDs newly selected (components and options), in guide order.
     pub selected: Vec<String>,
     pub deselected: Vec<String>,
-    /// Subset of `selected` that the action did not target directly.
+    /// Nodes whose final value differs from what the action assigned (or that
+    /// changed without being assigned). Usually a subset of `selected`; after
+    /// `ResetFromSelectors` it also names closure additions that were selected
+    /// before the reset.
     pub auto_selected: Vec<String>,
-    /// Subset of `deselected` that the action did not target directly.
+    /// The same rule for deselection.
     pub auto_deselected: Vec<String>,
     pub warnings: Vec<String>,
 }
@@ -963,6 +966,25 @@ pub fn summary_detail(counts: &Counts) -> String {
     } else {
         format!("{} mods not selected", counts.total - counts.selected)
     }
+}
+
+/// GUIDs of every selected component and option, in guide order (pre-order).
+pub fn selected_guids(components: &[Component]) -> Vec<String> {
+    all_nodes(components)
+        .into_iter()
+        .map(|path| node(components, &path))
+        .filter(|c| c.is_selected)
+        .map(|c| c.guid.clone())
+        .collect()
+}
+
+/// `Name (GUID)` for a component or option at any depth, or the GUID alone.
+pub fn describe(components: &[Component], guid: &str) -> String {
+    all_nodes(components)
+        .into_iter()
+        .map(|path| node(components, &path))
+        .find(|c| c.guid.eq_ignore_ascii_case(guid))
+        .map_or_else(|| guid.to_owned(), |c| format!("{} ({})", c.name, c.guid))
 }
 
 /// Distinct non-widescreen tiers (non-empty) and categories, UTF-16 ordinal order.
@@ -1391,6 +1413,7 @@ pub fn apply(
     // GUID (lowercase) -> the value the action itself assigned.
     let mut direct = BTreeMap::<String, bool>::new();
     let mut close = false;
+    let enforcing = action == Action::EnforceGame;
 
     match action {
         Action::SetComponent { guid, selected } => {
@@ -1528,11 +1551,10 @@ pub fn apply(
     }
 
     if let Some(detected) = game.filter(|detected| *detected != game::Detected::Unknown) {
-        for (index, c) in components.iter().enumerate() {
-            if c.is_selected
-                && !game::selectable(c, detected)
-                && !before[nodes_index(&nodes, index)]
-            {
+        for c in components.iter() {
+            // Outside EnforceGame, a selected Aspyr-only mod here was pulled in
+            // by this action's closure or cascade; say why it and its dependents go.
+            if c.is_selected && !game::selectable(c, detected) && !enforcing {
                 outcome.warnings.push(refusal(c));
             }
         }
@@ -1541,19 +1563,24 @@ pub fn apply(
 
     let after = snapshot(components, &nodes);
     for (position, path) in nodes.iter().enumerate() {
-        if before[position] == after[position] {
-            continue;
-        }
+        let (was, now) = (before[position], after[position]);
         let guid = &node(components, path).guid;
-        let assigned = direct.get(&guid.to_ascii_lowercase()).copied();
-        if after[position] {
+        if now && !was {
             push_unique(&mut outcome.selected, guid);
-            if assigned != Some(true) {
-                push_unique(&mut outcome.auto_selected, guid);
-            }
-        } else {
+        } else if was && !now {
             push_unique(&mut outcome.deselected, guid);
-            if assigned != Some(false) {
+        }
+        // Auto lists compare the final value with what the action itself
+        // assigned. After ResetFromSelectors this names every closure addition,
+        // including one that was already selected before the reset.
+        let automatic = match direct.get(&guid.to_ascii_lowercase()) {
+            Some(assigned) => *assigned != now,
+            None => was != now,
+        };
+        if automatic {
+            if now {
+                push_unique(&mut outcome.auto_selected, guid);
+            } else {
                 push_unique(&mut outcome.auto_deselected, guid);
             }
         }
@@ -1612,12 +1639,4 @@ fn set_single(
     } else {
         component_unchecked(components, index, &mut visited.components);
     }
-}
-
-/// Position of top-level component `index` in the pre-order node list.
-fn nodes_index(nodes: &[NodePath], index: usize) -> usize {
-    nodes
-        .iter()
-        .position(|path| path.len() == 1 && path[0] == index)
-        .unwrap_or_default()
 }
