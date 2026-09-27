@@ -579,6 +579,20 @@ impl App {
             {
                 self.stop_confirmation = true;
             }
+            // Keep the recovery action in the always-visible footer so small
+            // windows can reach it without scrolling the page.
+            if page.install_phase().is_some()
+                && self.installing_page.failed()
+                && self.phase_failed
+                && ui
+                    .add_enabled(
+                        self.receiver.is_none(),
+                        egui::Button::new("Restore snapshot").min_size(egui::vec2(100.0, 32.0)),
+                    )
+                    .clicked()
+            {
+                self.start(Job::Restore, ctx);
+            }
             if !next && page != Page::Finished {
                 ui.label("Complete this page before continuing.");
             }

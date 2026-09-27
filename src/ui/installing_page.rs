@@ -93,6 +93,10 @@ impl State {
         matches!(self.outcome, Outcome::Running)
     }
 
+    pub fn failed(&self) -> bool {
+        matches!(self.outcome, Outcome::Failed(_))
+    }
+
     pub fn accepts(&self, run: u64, stamp: &str) -> bool {
         self.active() && self.run == run && self.stamp == stamp
     }
@@ -380,8 +384,9 @@ fn bar(ui: &mut egui::Ui, height: f32, radius: f32, fraction: Option<f32>, hover
     );
     let visuals = ui.visuals();
     let fill = visuals.selection.bg_fill;
+    // Inactive widget fill stays visible on every theme's panel fill.
     ui.painter()
-        .rect_filled(rect, radius, visuals.extreme_bg_color);
+        .rect_filled(rect, radius, visuals.widgets.inactive.bg_fill);
     match fraction {
         Some(fraction) => {
             let mut filled = rect;
