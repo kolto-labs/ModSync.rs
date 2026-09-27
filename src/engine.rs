@@ -544,6 +544,7 @@ impl Engine {
         completed: &[String],
     ) -> Result<crate::conflicts::Report> {
         self.set_completed_prefix(guide, completed)?;
+        recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
         self.analyze_conflicts(guide)
     }
 
