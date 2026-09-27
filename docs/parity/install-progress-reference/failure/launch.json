@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "/usr/bin/dbus-run-session",
+    "--",
+    "dotnet",
+    "/tmp/modsync-validation-reference-20260927-5813/artifacts/bin/ModSync/debug_net9.0/ModSync.dll",
+    "--instructionFile=/tmp/modsync-install-reference-20260927/failure/guide.json",
+    "--kotorPath=/tmp/modsync-install-reference-20260927/failure/game",
+    "--modDirectory=/tmp/modsync-install-reference-20260927/failure/mods",
+    "--allow-multiple-instances"
+  ],
+  "wrapper_pid": 2428094,
+  "display": ":1"
+}

@@ -1,0 +1,1491 @@
+{
+ "schemaVersion": 1,
+ "generatedAt": "2026-09-27",
+ "task": "install-progress Task 3 (docs and evidence integration)",
+ "baseCommit": "659027e7eef54bb489039e3062b36ddd232b5c7d",
+ "csharpOracle": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+ "reviewedSourceHead": "ac9cf3ac45092bbeea3b650b180ab2df5da003af",
+ "reviewedSourceTree": "f48e4af97ebd91fb13d4f8330822bfbd4a3fcaa6",
+ "sources": {
+  "065ffee": {
+   "commit": "065ffeed4337a9ee9bc317b91998f262e36565bf",
+   "sha256": {
+    "src/engine.rs": "05b9de341f7734734ec7a18eb57b378549eaae795bf4db9803fa0c451911c1dc",
+    "src/install_progress.rs": "415720600e897cf79c11e8f5c784fe17da06831f01d243522e31413b3a79f163",
+    "src/lib.rs": "8830994462b2b37d750419fcf5d5adec33f2571219ae6f4ccd049fbc186f58a2",
+    "src/main.rs": "3890fd2b3736d93849f31839d84c21e0b4f7fb0aafe9af30c4ea9306b9338b4f",
+    "src/ui.rs": "fcc500890929441bf59f99d472a48fe5eb8890bba8b717b5b5c70ab8916ca31d",
+    "src/ui/installing_page.rs": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "Cargo.lock": "7ff8f003581c5fce3433f9438044b9dc3850adb26f2b05daf8bb908cd6a4dc8f"
+   }
+  },
+  "57f198f": {
+   "commit": "57f198f7b5f11228f11d115247d0955d11fe9e1f",
+   "sha256": {
+    "src/engine.rs": "05b9de341f7734734ec7a18eb57b378549eaae795bf4db9803fa0c451911c1dc",
+    "src/install_progress.rs": "415720600e897cf79c11e8f5c784fe17da06831f01d243522e31413b3a79f163",
+    "src/lib.rs": "8830994462b2b37d750419fcf5d5adec33f2571219ae6f4ccd049fbc186f58a2",
+    "src/main.rs": "802dfcc294184bcb3f872719f19c326d64e77d1f8771e5b99bd824a548f830c1",
+    "src/ui.rs": "fcc500890929441bf59f99d472a48fe5eb8890bba8b717b5b5c70ab8916ca31d",
+    "src/ui/installing_page.rs": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "Cargo.lock": "7ff8f003581c5fce3433f9438044b9dc3850adb26f2b05daf8bb908cd6a4dc8f"
+   }
+  },
+  "cd8f0b0": {
+   "commit": "cd8f0b07d994f2833e57327118c9919ecf3da58d",
+   "sha256": {
+    "src/engine.rs": "05b9de341f7734734ec7a18eb57b378549eaae795bf4db9803fa0c451911c1dc",
+    "src/install_progress.rs": "415720600e897cf79c11e8f5c784fe17da06831f01d243522e31413b3a79f163",
+    "src/lib.rs": "8830994462b2b37d750419fcf5d5adec33f2571219ae6f4ccd049fbc186f58a2",
+    "src/main.rs": "5cbeabb8d0856abf2b12d554b73260c07361da97d70d88263b106a123c407228",
+    "src/ui.rs": "fcc500890929441bf59f99d472a48fe5eb8890bba8b717b5b5c70ab8916ca31d",
+    "src/ui/installing_page.rs": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "Cargo.lock": "7ff8f003581c5fce3433f9438044b9dc3850adb26f2b05daf8bb908cd6a4dc8f"
+   }
+  },
+  "c28f4fc": {
+   "commit": "c28f4fce53bdafd43c584d8c817130a279e6c0b7",
+   "sha256": {
+    "src/engine.rs": "05b9de341f7734734ec7a18eb57b378549eaae795bf4db9803fa0c451911c1dc",
+    "src/install_progress.rs": "415720600e897cf79c11e8f5c784fe17da06831f01d243522e31413b3a79f163",
+    "src/lib.rs": "8830994462b2b37d750419fcf5d5adec33f2571219ae6f4ccd049fbc186f58a2",
+    "src/main.rs": "5cbeabb8d0856abf2b12d554b73260c07361da97d70d88263b106a123c407228",
+    "src/ui.rs": "521cbe8c50ff8b92a9a8a7e028b9334bbd5498882b96efb93afe77aefb3193a7",
+    "src/ui/installing_page.rs": "feef3ce4e29449cfaee9ab8ba05299c98b86aa642fd4c6d62b4273b029984cbe",
+    "Cargo.lock": "7ff8f003581c5fce3433f9438044b9dc3850adb26f2b05daf8bb908cd6a4dc8f"
+   }
+  },
+  "ac9cf3a": {
+   "commit": "ac9cf3ac45092bbeea3b650b180ab2df5da003af",
+   "sha256": {
+    "src/engine.rs": "05b9de341f7734734ec7a18eb57b378549eaae795bf4db9803fa0c451911c1dc",
+    "src/install_progress.rs": "415720600e897cf79c11e8f5c784fe17da06831f01d243522e31413b3a79f163",
+    "src/lib.rs": "8830994462b2b37d750419fcf5d5adec33f2571219ae6f4ccd049fbc186f58a2",
+    "src/main.rs": "5cbeabb8d0856abf2b12d554b73260c07361da97d70d88263b106a123c407228",
+    "src/ui.rs": "91eae63663a9aba0cf221f7984d6176c8b4755d0b26e6c57bab2e95ddde9b58f",
+    "src/ui/installing_page.rs": "e677b39ffa40dbc1206f26c7c9ae0f14863c2f718e7ccecb9956c2d88a50e0af",
+    "Cargo.lock": "7ff8f003581c5fce3433f9438044b9dc3850adb26f2b05daf8bb908cd6a4dc8f"
+   }
+  }
+ },
+ "packages": {
+  "cli-57f198f": {
+   "origin": "/tmp/modsync-install-progress-task2a.eQHn7F",
+   "sourceCommit": "57f198f7b5f11228f11d115247d0955d11fe9e1f",
+   "binarySha256": "16d2d2a29312c729fd35e541a5d0fac52ef28f656268bc127ded717c34285887",
+   "binaryReverified": "2026-09-27 Task 3: sha256sum of the origin copy matched",
+   "note": "Predates cd8f0b0: typed mode then dropped legacy Event text, so *.stderr are empty on success. Origin receipt.json typedStreams.failure.completedFacts=0 is wrong: failure.stdout holds one componentCompleted line."
+  },
+  "gui-r1-c28f4fc": {
+   "origin": "/tmp/modsync-2b-native/final",
+   "sourceCommit": "c28f4fce53bdafd43c584d8c817130a279e6c0b7",
+   "binarySha256": "35b3b1b78e6574f525befe8aac0363b5b23af858e0af1317aaeca7972cb1a0d4",
+   "binaryReverified": false,
+   "note": "Round 1, before review fixes F1-F7. The binary at /tmp/modsync-2b-native/modsync was later replaced; its hash is taken from the origin receipt only. The origin receipt hash for wm_delete.py (caf0966c...) is for an earlier version; the copied script matches the round-2 hash."
+  },
+  "gui-r2-ac9cf3a": {
+   "origin": "/tmp/modsync-2b-native/r2",
+   "sourceCommit": "ac9cf3ac45092bbeea3b650b180ab2df5da003af",
+   "binarySha256": "9429089da7c9fd7e8d4b023d0aa46084dccea20e13b127d63873b6ba196dcce6",
+   "binaryReverified": "2026-09-27 ~11:12 Task 3 sha256sum of /tmp/modsync-2b-native/modsync matched; by 11:14 that path had been overwritten by another build (f233685f...), so it can no longer be re-checked",
+   "display": "private Xvfb :93, 1280x800x24, -dpi 96, no window manager; 600x400 via xdotool windowsize; scale 1:1",
+   "ownedProcessGroups": {
+    "light-small": 3182446,
+    "k2-close-request": 3190343,
+    "k2-cancel": 3198314,
+    "k1-f1": 3206229,
+    "xvfb": 3180221
+   },
+   "note": "Origin receipt hash for r2/lib.sh (90e9d7d3...) does not match the file on disk (5af056fd...). Copied as found; scenario claims rest on transcripts and manifests, not on that hash."
+  },
+  "cli-ac9cf3a": {
+   "origin": "/tmp/modsync-install-progress-task3.D3waxs",
+   "sourceCommit": "ac9cf3ac45092bbeea3b650b180ab2df5da003af",
+   "build": "git archive ac9cf3a (Cargo.toml Cargo.lock src assets examples README.md LICENSE.txt) -> host-spawn CARGO_TARGET_DIR=/tmp/modsync-task3-target cargo build --no-default-features --bin modsync -j 4; exit 0",
+   "binarySha256": "b6097a7905204f23ec88e985e0d5095f8d2ea4e6037032a4cd4c771989139fa8",
+   "note": "Headless build, so this hash differs from the desktop build; src/main.rs, engine.rs, install_progress.rs are identical to the desktop build commit.",
+   "results": {
+    "typed-ok": {
+     "exit": 0,
+     "stdoutLines": 17,
+     "lastPhase": "completed",
+     "lastSnapshotPending": false,
+     "stderrLegacyEventLines": 7
+    },
+    "typed-fail": {
+     "exit": 1,
+     "stdoutLines": 9,
+     "lastPhase": "runningInstruction",
+     "completedLines": 0,
+     "componentCompletedLines": 1,
+     "pendingRecovery": true
+    },
+    "typed-preflight": {
+     "exit": 1,
+     "stdoutLines": 0,
+     "gameModContentUnchanged": true,
+     "snapshotCreated": false,
+     "note": "empty .modsync-* state dir and lock files created outside game/mods"
+    },
+    "legacy-json": {
+     "exit": 0,
+     "lines": 7,
+     "keys": [
+      "component",
+      "message",
+      "step"
+     ]
+    },
+    "conflict-json": {
+     "exit": 2
+    },
+    "conflict-report": {
+     "exit": 2
+    }
+   }
+  }
+ },
+ "testPolicy": {
+  "rustTestsCreated": false,
+  "rustTestsModified": false,
+  "rustTestsRun": false,
+  "temporaryRustHarness": false
+ },
+ "agentsMdTouched": false,
+ "notBound": [
+  "Nested Choose owner paths/directions: source reading only, no native run",
+  "Pinned C# captures are bound separately in docs/parity/install-progress-reference/receipt.json",
+  "Round-1 binary 35b3b1b7... could not be re-hashed",
+  "Review findings #2, #9, #10 fixes (in progress in src/ui.rs working tree) are not part of any evidence here"
+ ],
+ "artifacts": [
+  {
+   "path": "scripts/make_fixture.sh",
+   "source": "/tmp/modsync-2b-native/make_fixture.sh",
+   "bytes": 2290,
+   "sha256": "477e4c5b8cb8787262be81add6e9a4e19e0dd94eec7dde1c1f490fff848e7d22",
+   "receiptClaim": "477e4c5b8cb8787262be81add6e9a4e19e0dd94eec7dde1c1f490fff848e7d22",
+   "matchesReceipt": true
+  },
+  {
+   "path": "scripts/launch.sh",
+   "source": "/tmp/modsync-2b-native/launch.sh",
+   "bytes": 483,
+   "sha256": "fbc3289112b4cf018830eb4b1a5bf2177829aeffaac737fdd0698f3f912dcd6d",
+   "receiptClaim": "fbc3289112b4cf018830eb4b1a5bf2177829aeffaac737fdd0698f3f912dcd6d",
+   "matchesReceipt": true
+  },
+  {
+   "path": "scripts/drive.sh",
+   "source": "/tmp/modsync-2b-native/drive.sh",
+   "bytes": 452,
+   "sha256": "6988d0e57d4eb359755531241f5f044986e6423b4838fbb84aa0ef302aef1a99",
+   "receiptClaim": "6988d0e57d4eb359755531241f5f044986e6423b4838fbb84aa0ef302aef1a99",
+   "matchesReceipt": true
+  },
+  {
+   "path": "scripts/shot.sh",
+   "source": "/tmp/modsync-2b-native/shot.sh",
+   "bytes": 74,
+   "sha256": "5cc0bd3f8d7edbeb5cd10ff3b1531dffc5556e9b0bcba2f2cbe0a591d0fe7314",
+   "receiptClaim": "5cc0bd3f8d7edbeb5cd10ff3b1531dffc5556e9b0bcba2f2cbe0a591d0fe7314",
+   "matchesReceipt": true
+  },
+  {
+   "path": "scripts/wm_delete.py",
+   "source": "/tmp/modsync-2b-native/wm_delete.py",
+   "bytes": 1257,
+   "sha256": "08a87e9c94664449b77acde97687a8446be9553aa8e255713c65fb1ac0fad38b",
+   "receiptClaim": "08a87e9c94664449b77acde97687a8446be9553aa8e255713c65fb1ac0fad38b",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/receipt.md",
+   "source": "/tmp/modsync-2b-native/r2/receipt.md",
+   "bytes": 10408,
+   "sha256": "a51f351b6d1f01ac128e0def215bb512a5ef745cd93794b32b3f30943f5984e4",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "gui-r2-ac9cf3a/lib.sh",
+   "source": "/tmp/modsync-2b-native/r2/lib.sh",
+   "bytes": 1807,
+   "sha256": "5af056fdadfa8bb080b7971689f73894a981037ee2369b15302a78eb9385535b",
+   "receiptClaim": "90e9d7d324994e261ac0b2a2e42fc282508a466ea1fb8d2802e31a501a4da43a",
+   "matchesReceipt": false
+  },
+  {
+   "path": "gui-r2-ac9cf3a/scenario-small.sh",
+   "source": "/tmp/modsync-2b-native/r2/scenario-small.sh",
+   "bytes": 445,
+   "sha256": "da8ae4a4a07845d9bdc1806557032a55cb68d11a411fdf97911d79b167ee0fac",
+   "receiptClaim": "da8ae4a4a07845d9bdc1806557032a55cb68d11a411fdf97911d79b167ee0fac",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/scenario-cancel.sh",
+   "source": "/tmp/modsync-2b-native/r2/scenario-cancel.sh",
+   "bytes": 451,
+   "sha256": "990081009f820dca7bd169240782bd0ef1bbbf616b75ee1504f987c9f7958545",
+   "receiptClaim": "990081009f820dca7bd169240782bd0ef1bbbf616b75ee1504f987c9f7958545",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/scenario-cancel2.sh",
+   "source": "/tmp/modsync-2b-native/r2/scenario-cancel2.sh",
+   "bytes": 696,
+   "sha256": "cba06da66f47e0dfc6c684c05141330c18d2cc95f9de33ba6c77ee7b8c8c6994",
+   "receiptClaim": "cba06da66f47e0dfc6c684c05141330c18d2cc95f9de33ba6c77ee7b8c8c6994",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/scenario-f1.sh",
+   "source": "/tmp/modsync-2b-native/r2/scenario-f1.sh",
+   "bytes": 1004,
+   "sha256": "a1452c9a641036a44b93cebb179cfac29ed4b031ae11076dffaa8634328dcf30",
+   "receiptClaim": "a1452c9a641036a44b93cebb179cfac29ed4b031ae11076dffaa8634328dcf30",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/xvfb.log",
+   "source": "/tmp/modsync-2b-native/r2/xvfb.log",
+   "bytes": 541,
+   "sha256": "e9e5985d3d7bbfebd4b594d02ec1047fc0641f65012cde1dc944f393d472ec52",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "gui-r2-ac9cf3a/light-small/10-small-active-stop-install.png",
+   "source": "/tmp/modsync-2b-native/r2/light-small/10-small-active-stop-install.png",
+   "bytes": 40694,
+   "sha256": "d92e8a1dab99b5572a6e5af9794ad4bb0553733b78bb94cc37c69e006b2587f2",
+   "receiptClaim": "d92e8a1dab99b5572a6e5af9794ad4bb0553733b78bb94cc37c69e006b2587f2",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/light-small/20-small-success-continue.png",
+   "source": "/tmp/modsync-2b-native/r2/light-small/20-small-success-continue.png",
+   "bytes": 34499,
+   "sha256": "c3ae56c9bbf1ca1606d2043f3ced3803c1e4efc043874d8cd17b21def4f461f5",
+   "receiptClaim": "c3ae56c9bbf1ca1606d2043f3ced3803c1e4efc043874d8cd17b21def4f461f5",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/light-small/21-success-large.png",
+   "source": "/tmp/modsync-2b-native/r2/light-small/21-success-large.png",
+   "bytes": 81790,
+   "sha256": "f030f721bf64d1fc001f76486c1954e3b81ffb39c14a666560698db9f6e6df5a",
+   "receiptClaim": "f030f721bf64d1fc001f76486c1954e3b81ffb39c14a666560698db9f6e6df5a",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/light-small/transcript.txt",
+   "source": "/tmp/modsync-2b-native/r2/light-small/transcript.txt",
+   "bytes": 1409,
+   "sha256": "6b348c7c63340ade002bb0c5ac2bb1ab2ed4122a7b0a976223e0d8c4ec9701e8",
+   "receiptClaim": "6b348c7c63340ade002bb0c5ac2bb1ab2ed4122a7b0a976223e0d8c4ec9701e8",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/light-small/guide.json",
+   "source": "/tmp/modsync-2b-native/r2/light-small/guide.json",
+   "bytes": 2016,
+   "sha256": "78c17ad6fef728d7b6176f853215f8f3f0ec469aa27d0da5239c44111e44fa36",
+   "receiptClaim": "78c17ad6fef728d7b6176f853215f8f3f0ec469aa27d0da5239c44111e44fa36",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/light-small/app.log",
+   "source": "/tmp/modsync-2b-native/r2/light-small/app.log",
+   "bytes": 369,
+   "sha256": "3aaadea2774a76c98547e47df10a1e78639f7f39271e9b0b851048ad04caee65",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "gui-r2-ac9cf3a/light-small/after.sha256",
+   "source": "/tmp/modsync-2b-native/r2/light-small/after.sha256",
+   "bytes": 834,
+   "sha256": "9a79386919e17a9b6fe4b5485e036dbc0cee3d69a48f27acbf0620eb5d0e0c70",
+   "receiptClaim": "9a79386919e17a9b6fe4b5485e036dbc0cee3d69a48f27acbf0620eb5d0e0c70",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/light-small/before.sha256",
+   "source": "/tmp/modsync-2b-native/r2/light-small/before.sha256",
+   "bytes": 565,
+   "sha256": "96fb8930cbed3f552af064f9c6ab5c00c0811404f228abb6090df5799ab63345",
+   "receiptClaim": "96fb8930cbed3f552af064f9c6ab5c00c0811404f228abb6090df5799ab63345",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k2-close-request/10-active.png",
+   "source": "/tmp/modsync-2b-native/r2/k2-close-request/10-active.png",
+   "bytes": 143063,
+   "sha256": "6d9c9a5dd91e3f53bc33064e8422aad7a64fbd88834ac24eb6660de5be3e8b57",
+   "receiptClaim": "6d9c9a5dd91e3f53bc33064e8422aad7a64fbd88834ac24eb6660de5be3e8b57",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k2-close-request/11-close-attempt.png",
+   "source": "/tmp/modsync-2b-native/r2/k2-close-request/11-close-attempt.png",
+   "bytes": 112504,
+   "sha256": "6221219cc5c52b0c67763373a02310617580c71c3af23e04aa0bfedfa7cc988e",
+   "receiptClaim": "6221219cc5c52b0c67763373a02310617580c71c3af23e04aa0bfedfa7cc988e",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k2-close-request/20-cancelled.png",
+   "source": "/tmp/modsync-2b-native/r2/k2-close-request/20-cancelled.png",
+   "bytes": 101866,
+   "sha256": "3614d1e754d0ba3acc4e0daf84f814f1cc808beb27286e001bc44c269b366581",
+   "receiptClaim": "3614d1e754d0ba3acc4e0daf84f814f1cc808beb27286e001bc44c269b366581",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k2-close-request/transcript.txt",
+   "source": "/tmp/modsync-2b-native/r2/k2-close-request/transcript.txt",
+   "bytes": 1704,
+   "sha256": "ef63d947e34008fa17db2315b046d16969cded0cffe0221f1584af056bded697",
+   "receiptClaim": "ef63d947e34008fa17db2315b046d16969cded0cffe0221f1584af056bded697",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k2-close-request/guide.json",
+   "source": "/tmp/modsync-2b-native/r2/k2-close-request/guide.json",
+   "bytes": 2016,
+   "sha256": "78c17ad6fef728d7b6176f853215f8f3f0ec469aa27d0da5239c44111e44fa36",
+   "receiptClaim": "78c17ad6fef728d7b6176f853215f8f3f0ec469aa27d0da5239c44111e44fa36",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k2-close-request/app.log",
+   "source": "/tmp/modsync-2b-native/r2/k2-close-request/app.log",
+   "bytes": 369,
+   "sha256": "6ac04fd704ed40b22357fe0645545e11827e10d9af87e277fdc4ae4332e08396",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k2-close-request/after-cancel.sha256",
+   "source": "/tmp/modsync-2b-native/r2/k2-close-request/after-cancel.sha256",
+   "bytes": 834,
+   "sha256": "9a79386919e17a9b6fe4b5485e036dbc0cee3d69a48f27acbf0620eb5d0e0c70",
+   "receiptClaim": "9a79386919e17a9b6fe4b5485e036dbc0cee3d69a48f27acbf0620eb5d0e0c70",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k2-close-request/before.sha256",
+   "source": "/tmp/modsync-2b-native/r2/k2-close-request/before.sha256",
+   "bytes": 565,
+   "sha256": "96fb8930cbed3f552af064f9c6ab5c00c0811404f228abb6090df5799ab63345",
+   "receiptClaim": "96fb8930cbed3f552af064f9c6ab5c00c0811404f228abb6090df5799ab63345",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k2-cancel/10-active.png",
+   "source": "/tmp/modsync-2b-native/r2/k2-cancel/10-active.png",
+   "bytes": 143041,
+   "sha256": "f5c50bb42b89a63e762909c42503ec3fe06a6cf28c05d9733d27513370879df5",
+   "receiptClaim": "f5c50bb42b89a63e762909c42503ec3fe06a6cf28c05d9733d27513370879df5",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k2-cancel/11-stop-confirm.png",
+   "source": "/tmp/modsync-2b-native/r2/k2-cancel/11-stop-confirm.png",
+   "bytes": 131925,
+   "sha256": "497ef361f396972c5ccfe0d906894788fe47707704dc90756d04e1be17636ba7",
+   "receiptClaim": "497ef361f396972c5ccfe0d906894788fe47707704dc90756d04e1be17636ba7",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k2-cancel/20-cancelled.png",
+   "source": "/tmp/modsync-2b-native/r2/k2-cancel/20-cancelled.png",
+   "bytes": 138583,
+   "sha256": "8778bab55aa67c1d4b8c954b1bd6c715e92b4654c837dc62cf7eb915255690f8",
+   "receiptClaim": "8778bab55aa67c1d4b8c954b1bd6c715e92b4654c837dc62cf7eb915255690f8",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k2-cancel/22-install-steps.png",
+   "source": "/tmp/modsync-2b-native/r2/k2-cancel/22-install-steps.png",
+   "bytes": 157912,
+   "sha256": "4c3b2331859e04dfb5275b6f127c25cf881d02c23ce3b483c47bfb71023d9317",
+   "receiptClaim": "4c3b2331859e04dfb5275b6f127c25cf881d02c23ce3b483c47bfb71023d9317",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k2-cancel/30-restored.png",
+   "source": "/tmp/modsync-2b-native/r2/k2-cancel/30-restored.png",
+   "bytes": 158133,
+   "sha256": "a59f62c9ece7a1a9e4dc8b44b19d82fbfa2540a24a3034a7ba1b95d5c3134db4",
+   "receiptClaim": "a59f62c9ece7a1a9e4dc8b44b19d82fbfa2540a24a3034a7ba1b95d5c3134db4",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k2-cancel/transcript.txt",
+   "source": "/tmp/modsync-2b-native/r2/k2-cancel/transcript.txt",
+   "bytes": 1782,
+   "sha256": "7f9a10d6662558adc71034f4cefdc986a1f173048d33314a21e1e0f99e9e1c89",
+   "receiptClaim": "7f9a10d6662558adc71034f4cefdc986a1f173048d33314a21e1e0f99e9e1c89",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k2-cancel/guide.json",
+   "source": "/tmp/modsync-2b-native/r2/k2-cancel/guide.json",
+   "bytes": 2016,
+   "sha256": "78c17ad6fef728d7b6176f853215f8f3f0ec469aa27d0da5239c44111e44fa36",
+   "receiptClaim": "78c17ad6fef728d7b6176f853215f8f3f0ec469aa27d0da5239c44111e44fa36",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k2-cancel/app.log",
+   "source": "/tmp/modsync-2b-native/r2/k2-cancel/app.log",
+   "bytes": 369,
+   "sha256": "c12e289685f43e02c5846f968fed5db4f2b50ae65b194bebde3b672fc1131c22",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k2-cancel/after-cancel.sha256",
+   "source": "/tmp/modsync-2b-native/r2/k2-cancel/after-cancel.sha256",
+   "bytes": 655,
+   "sha256": "85b79c989476721a4eb0a21014a92b24b6b48c5509bbd70131b51384013b2f5e",
+   "receiptClaim": "85b79c989476721a4eb0a21014a92b24b6b48c5509bbd70131b51384013b2f5e",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k2-cancel/after-restore.sha256",
+   "source": "/tmp/modsync-2b-native/r2/k2-cancel/after-restore.sha256",
+   "bytes": 565,
+   "sha256": "96fb8930cbed3f552af064f9c6ab5c00c0811404f228abb6090df5799ab63345",
+   "receiptClaim": "96fb8930cbed3f552af064f9c6ab5c00c0811404f228abb6090df5799ab63345",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k2-cancel/before.sha256",
+   "source": "/tmp/modsync-2b-native/r2/k2-cancel/before.sha256",
+   "bytes": 565,
+   "sha256": "96fb8930cbed3f552af064f9c6ab5c00c0811404f228abb6090df5799ab63345",
+   "receiptClaim": "96fb8930cbed3f552af064f9c6ab5c00c0811404f228abb6090df5799ab63345",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k1-f1/20-g1-failed.png",
+   "source": "/tmp/modsync-2b-native/r2/k1-f1/20-g1-failed.png",
+   "bytes": 129622,
+   "sha256": "c6864dc03e662ed20eb521618f6ec56cc76c84e304005d3021ff71ba8352b203",
+   "receiptClaim": "c6864dc03e662ed20eb521618f6ec56cc76c84e304005d3021ff71ba8352b203",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k1-f1/32-folders-changed.png",
+   "source": "/tmp/modsync-2b-native/r2/k1-f1/32-folders-changed.png",
+   "bytes": 132373,
+   "sha256": "abbddff02e0ca83827952d82188e916eda73540a15dd01352cbc3892d6d70df9",
+   "receiptClaim": "abbddff02e0ca83827952d82188e916eda73540a15dd01352cbc3892d6d70df9",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k1-f1/40-restored-g1.png",
+   "source": "/tmp/modsync-2b-native/r2/k1-f1/40-restored-g1.png",
+   "bytes": 135519,
+   "sha256": "3aaebfe71436d29715b881a74649ca04b83f2ff53c9b4ed7566399763a7665f7",
+   "receiptClaim": "3aaebfe71436d29715b881a74649ca04b83f2ff53c9b4ed7566399763a7665f7",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k1-f1/41-folders-back-retry.png",
+   "source": "/tmp/modsync-2b-native/r2/k1-f1/41-folders-back-retry.png",
+   "bytes": 133814,
+   "sha256": "1110bf9cd0f65a1301fcf1d232de08827e521721442dc3b6381538f2c87c5f70",
+   "receiptClaim": "1110bf9cd0f65a1301fcf1d232de08827e521721442dc3b6381538f2c87c5f70",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k1-f1/g2-cli.out",
+   "source": "/tmp/modsync-2b-native/r2/k1-f1/g2-cli.out",
+   "bytes": 349,
+   "sha256": "81d36a091df878499f9adf3471cc2acdccd57b1078bfee44961769fd279d6704",
+   "receiptClaim": "81d36a091df878499f9adf3471cc2acdccd57b1078bfee44961769fd279d6704",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k1-f1/transcript.txt",
+   "source": "/tmp/modsync-2b-native/r2/k1-f1/transcript.txt",
+   "bytes": 3282,
+   "sha256": "3478b98108fec84f370659400bf1b74099e1083cd6ed3d9c8720e8bf0ed9d41b",
+   "receiptClaim": "3478b98108fec84f370659400bf1b74099e1083cd6ed3d9c8720e8bf0ed9d41b",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k1-f1/guide.json",
+   "source": "/tmp/modsync-2b-native/r2/k1-f1/guide.json",
+   "bytes": 2016,
+   "sha256": "d09e8571d44d1a42eb801cfbd8217ba059474c37a9b98f9b43ba6b7d517a877e",
+   "receiptClaim": "d09e8571d44d1a42eb801cfbd8217ba059474c37a9b98f9b43ba6b7d517a877e",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k1-f1/app.log",
+   "source": "/tmp/modsync-2b-native/r2/k1-f1/app.log",
+   "bytes": 369,
+   "sha256": "bd15c84f171df90eb970e5720ef11ebbba647c92314008bd5bba47040f754b12",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k1-f1/after-failure.sha256",
+   "source": "/tmp/modsync-2b-native/r2/k1-f1/after-failure.sha256",
+   "bytes": 744,
+   "sha256": "79bad9a0a209cee6e685c9e3051a58cdd4db6e6b8f5f5d9f37ff29070fcea69d",
+   "receiptClaim": "79bad9a0a209cee6e685c9e3051a58cdd4db6e6b8f5f5d9f37ff29070fcea69d",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k1-f1/after-restore.sha256",
+   "source": "/tmp/modsync-2b-native/r2/k1-f1/after-restore.sha256",
+   "bytes": 565,
+   "sha256": "96fb8930cbed3f552af064f9c6ab5c00c0811404f228abb6090df5799ab63345",
+   "receiptClaim": "96fb8930cbed3f552af064f9c6ab5c00c0811404f228abb6090df5799ab63345",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k1-f1/before.sha256",
+   "source": "/tmp/modsync-2b-native/r2/k1-f1/before.sha256",
+   "bytes": 565,
+   "sha256": "96fb8930cbed3f552af064f9c6ab5c00c0811404f228abb6090df5799ab63345",
+   "receiptClaim": "96fb8930cbed3f552af064f9c6ab5c00c0811404f228abb6090df5799ab63345",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k1-f1/g2-after-fail.sha256",
+   "source": "/tmp/modsync-2b-native/r2/k1-f1/g2-after-fail.sha256",
+   "bytes": 744,
+   "sha256": "79bad9a0a209cee6e685c9e3051a58cdd4db6e6b8f5f5d9f37ff29070fcea69d",
+   "receiptClaim": "79bad9a0a209cee6e685c9e3051a58cdd4db6e6b8f5f5d9f37ff29070fcea69d",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k1-f1/g2-after-restore.sha256",
+   "source": "/tmp/modsync-2b-native/r2/k1-f1/g2-after-restore.sha256",
+   "bytes": 744,
+   "sha256": "79bad9a0a209cee6e685c9e3051a58cdd4db6e6b8f5f5d9f37ff29070fcea69d",
+   "receiptClaim": "79bad9a0a209cee6e685c9e3051a58cdd4db6e6b8f5f5d9f37ff29070fcea69d",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r2-ac9cf3a/k1-f1/g2-before.sha256",
+   "source": "/tmp/modsync-2b-native/r2/k1-f1/g2-before.sha256",
+   "bytes": 565,
+   "sha256": "96fb8930cbed3f552af064f9c6ab5c00c0811404f228abb6090df5799ab63345",
+   "receiptClaim": "96fb8930cbed3f552af064f9c6ab5c00c0811404f228abb6090df5799ab63345",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/receipt.txt",
+   "source": "/tmp/modsync-2b-native/final/receipt.txt",
+   "bytes": 4728,
+   "sha256": "b15d7cdb39a5dcd7ce5f5843521419fd5b4a083a2cf090c64130817fdf3e41fd",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "gui-r1-c28f4fc/light/10-mid.png",
+   "source": "/tmp/modsync-2b-native/final/light/10-mid.png",
+   "bytes": 102381,
+   "sha256": "a79ad6b0564cb15125eea06a386bdb553eaf54406340a1acfc961feb448e6494",
+   "receiptClaim": "a79ad6b0564cb15125eea06a386bdb553eaf54406340a1acfc961feb448e6494",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/light/20-success.png",
+   "source": "/tmp/modsync-2b-native/final/light/20-success.png",
+   "bytes": 81895,
+   "sha256": "675230011fb4ab6376dab02cb945f87a7ce77d007d54df493164dd0352e80014",
+   "receiptClaim": "675230011fb4ab6376dab02cb945f87a7ce77d007d54df493164dd0352e80014",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/light/23-wide-skipped.png",
+   "source": "/tmp/modsync-2b-native/final/light/23-wide-skipped.png",
+   "bytes": 82775,
+   "sha256": "4a8ec1a098181b1a41744393f17bc71d1c882d65f975a4c16c630ec99edcee50",
+   "receiptClaim": "4a8ec1a098181b1a41744393f17bc71d1c882d65f975a4c16c630ec99edcee50",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/light/guide.json",
+   "source": "/tmp/modsync-2b-native/final/light/guide.json",
+   "bytes": 2335,
+   "sha256": "cf1b5d903fd53d094bd2bf65b84f61c3980e1331c0084d731d9272e29c1e64bb",
+   "receiptClaim": "cf1b5d903fd53d094bd2bf65b84f61c3980e1331c0084d731d9272e29c1e64bb",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/light/after.sha256",
+   "source": "/tmp/modsync-2b-native/final/light/after.sha256",
+   "bytes": 434,
+   "sha256": "d5062ce42c20f72ac0a5bb97ce011505652bc874d0d8ff45fdddc1bdb6105061",
+   "receiptClaim": "d5062ce42c20f72ac0a5bb97ce011505652bc874d0d8ff45fdddc1bdb6105061",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/light/before.sha256",
+   "source": "/tmp/modsync-2b-native/final/light/before.sha256",
+   "bytes": 645,
+   "sha256": "b31c3ec020e2b51739ea15dac5349f3806255bc3ed5de66d4bace90ea3f14c7f",
+   "receiptClaim": "b31c3ec020e2b51739ea15dac5349f3806255bc3ed5de66d4bace90ea3f14c7f",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/light-f598129/11-close-attempt.png",
+   "source": "/tmp/modsync-2b-native/final/light-f598129/11-close-attempt.png",
+   "bytes": 90515,
+   "sha256": "874c2413812a96c1dcab0bda789e92c7050699bee7b6acad7d76290b2cd21d9b",
+   "receiptClaim": "874c2413812a96c1dcab0bda789e92c7050699bee7b6acad7d76290b2cd21d9b",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/light-f598129/guide.json",
+   "source": "/tmp/modsync-2b-native/final/light-f598129/guide.json",
+   "bytes": 2335,
+   "sha256": "cf1b5d903fd53d094bd2bf65b84f61c3980e1331c0084d731d9272e29c1e64bb",
+   "receiptClaim": "cf1b5d903fd53d094bd2bf65b84f61c3980e1331c0084d731d9272e29c1e64bb",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/light-f598129/after.sha256",
+   "source": "/tmp/modsync-2b-native/final/light-f598129/after.sha256",
+   "bytes": 434,
+   "sha256": "d5062ce42c20f72ac0a5bb97ce011505652bc874d0d8ff45fdddc1bdb6105061",
+   "receiptClaim": "d5062ce42c20f72ac0a5bb97ce011505652bc874d0d8ff45fdddc1bdb6105061",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/light-f598129/before.sha256",
+   "source": "/tmp/modsync-2b-native/final/light-f598129/before.sha256",
+   "bytes": 645,
+   "sha256": "b31c3ec020e2b51739ea15dac5349f3806255bc3ed5de66d4bace90ea3f14c7f",
+   "receiptClaim": "b31c3ec020e2b51739ea15dac5349f3806255bc3ed5de66d4bace90ea3f14c7f",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/k1-fail/10-mid.png",
+   "source": "/tmp/modsync-2b-native/final/k1-fail/10-mid.png",
+   "bytes": 144941,
+   "sha256": "09cda05c1f43df1fad945511fbcd16b2dd31c466788f84b7f745f65bc347939f",
+   "receiptClaim": "09cda05c1f43df1fad945511fbcd16b2dd31c466788f84b7f745f65bc347939f",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/k1-fail/20-failed.png",
+   "source": "/tmp/modsync-2b-native/final/k1-fail/20-failed.png",
+   "bytes": 125103,
+   "sha256": "9aa0fe87e352fe723506130cdf4dc98aecdf99b784fccddd8fb3d4f1529f42f5",
+   "receiptClaim": "9aa0fe87e352fe723506130cdf4dc98aecdf99b784fccddd8fb3d4f1529f42f5",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/k1-fail/30-small-failed.png",
+   "source": "/tmp/modsync-2b-native/final/k1-fail/30-small-failed.png",
+   "bytes": 56519,
+   "sha256": "10c5d21ec94497fc1208bd5d4a5e12fb0ed41fa14293bbab031cede1cb78c17c",
+   "receiptClaim": "10c5d21ec94497fc1208bd5d4a5e12fb0ed41fa14293bbab031cede1cb78c17c",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/k1-fail/41-restored.png",
+   "source": "/tmp/modsync-2b-native/final/k1-fail/41-restored.png",
+   "bytes": 126018,
+   "sha256": "0cdca5484af821d63229b8c7932e1089c3aa228061a5abf28e73fee04096ebe2",
+   "receiptClaim": "0cdca5484af821d63229b8c7932e1089c3aa228061a5abf28e73fee04096ebe2",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/k1-fail/guide.json",
+   "source": "/tmp/modsync-2b-native/final/k1-fail/guide.json",
+   "bytes": 2016,
+   "sha256": "d09e8571d44d1a42eb801cfbd8217ba059474c37a9b98f9b43ba6b7d517a877e",
+   "receiptClaim": "d09e8571d44d1a42eb801cfbd8217ba059474c37a9b98f9b43ba6b7d517a877e",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/k1-fail/after-failure.sha256",
+   "source": "/tmp/modsync-2b-native/final/k1-fail/after-failure.sha256",
+   "bytes": 744,
+   "sha256": "79bad9a0a209cee6e685c9e3051a58cdd4db6e6b8f5f5d9f37ff29070fcea69d",
+   "receiptClaim": "79bad9a0a209cee6e685c9e3051a58cdd4db6e6b8f5f5d9f37ff29070fcea69d",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/k1-fail/after-restore.sha256",
+   "source": "/tmp/modsync-2b-native/final/k1-fail/after-restore.sha256",
+   "bytes": 565,
+   "sha256": "96fb8930cbed3f552af064f9c6ab5c00c0811404f228abb6090df5799ab63345",
+   "receiptClaim": "96fb8930cbed3f552af064f9c6ab5c00c0811404f228abb6090df5799ab63345",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/k1-fail/before.sha256",
+   "source": "/tmp/modsync-2b-native/final/k1-fail/before.sha256",
+   "bytes": 565,
+   "sha256": "96fb8930cbed3f552af064f9c6ab5c00c0811404f228abb6090df5799ab63345",
+   "receiptClaim": "96fb8930cbed3f552af064f9c6ab5c00c0811404f228abb6090df5799ab63345",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/k2/12-stop-confirm.png",
+   "source": "/tmp/modsync-2b-native/final/k2/12-stop-confirm.png",
+   "bytes": 113330,
+   "sha256": "1ccd722f559662099453391364470f0d1d86643fa376238b73395020b7cb5dea",
+   "receiptClaim": "1ccd722f559662099453391364470f0d1d86643fa376238b73395020b7cb5dea",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/k2/20-cancelled.png",
+   "source": "/tmp/modsync-2b-native/final/k2/20-cancelled.png",
+   "bytes": 129536,
+   "sha256": "6f750055bba963185f0c87cc725f98d37f41eb7681aa6139cae2f71648aee945",
+   "receiptClaim": "6f750055bba963185f0c87cc725f98d37f41eb7681aa6139cae2f71648aee945",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/k2/30-restored.png",
+   "source": "/tmp/modsync-2b-native/final/k2/30-restored.png",
+   "bytes": 128089,
+   "sha256": "f88b03373cf662c97e8a9d45b84cf2ea0adc1daccf2083d2e4f505968b697c68",
+   "receiptClaim": "f88b03373cf662c97e8a9d45b84cf2ea0adc1daccf2083d2e4f505968b697c68",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/k2/41-retry-success.png",
+   "source": "/tmp/modsync-2b-native/final/k2/41-retry-success.png",
+   "bytes": 101072,
+   "sha256": "cfadde65c821cdb5b7aa64c6ccdf57619b9f3217a502df3de34bd83c7a9fb0d6",
+   "receiptClaim": "cfadde65c821cdb5b7aa64c6ccdf57619b9f3217a502df3de34bd83c7a9fb0d6",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/k2/51-wide-mid.png",
+   "source": "/tmp/modsync-2b-native/final/k2/51-wide-mid.png",
+   "bytes": 115165,
+   "sha256": "2ead631cfafda66b8b0dab611848604914702c5944e5a30bfdbab2a30bdf830c",
+   "receiptClaim": "2ead631cfafda66b8b0dab611848604914702c5944e5a30bfdbab2a30bdf830c",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/k2/52-wide-success.png",
+   "source": "/tmp/modsync-2b-native/final/k2/52-wide-success.png",
+   "bytes": 104511,
+   "sha256": "0be971e30dc930acceae548fc482b57d9f1484f4de1263b289a24099a1edfb8f",
+   "receiptClaim": "0be971e30dc930acceae548fc482b57d9f1484f4de1263b289a24099a1edfb8f",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/k2/guide.json",
+   "source": "/tmp/modsync-2b-native/final/k2/guide.json",
+   "bytes": 2335,
+   "sha256": "cf1b5d903fd53d094bd2bf65b84f61c3980e1331c0084d731d9272e29c1e64bb",
+   "receiptClaim": "cf1b5d903fd53d094bd2bf65b84f61c3980e1331c0084d731d9272e29c1e64bb",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/k2/after-cancel.sha256",
+   "source": "/tmp/modsync-2b-native/final/k2/after-cancel.sha256",
+   "bytes": 914,
+   "sha256": "b6ae2c0f22d0dc085dcf210049502b117bfe27360d7da9256df145cfce76a617",
+   "receiptClaim": "b6ae2c0f22d0dc085dcf210049502b117bfe27360d7da9256df145cfce76a617",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/k2/after-restore.sha256",
+   "source": "/tmp/modsync-2b-native/final/k2/after-restore.sha256",
+   "bytes": 645,
+   "sha256": "b31c3ec020e2b51739ea15dac5349f3806255bc3ed5de66d4bace90ea3f14c7f",
+   "receiptClaim": "b31c3ec020e2b51739ea15dac5349f3806255bc3ed5de66d4bace90ea3f14c7f",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/k2/after.sha256",
+   "source": "/tmp/modsync-2b-native/final/k2/after.sha256",
+   "bytes": 523,
+   "sha256": "3f8e4bf200ec3f819a13d2aa8eccb859a43e48f3a943beafcb93da81b5a200bb",
+   "receiptClaim": "3f8e4bf200ec3f819a13d2aa8eccb859a43e48f3a943beafcb93da81b5a200bb",
+   "matchesReceipt": true
+  },
+  {
+   "path": "gui-r1-c28f4fc/k2/before.sha256",
+   "source": "/tmp/modsync-2b-native/final/k2/before.sha256",
+   "bytes": 645,
+   "sha256": "b31c3ec020e2b51739ea15dac5349f3806255bc3ed5de66d4bace90ea3f14c7f",
+   "receiptClaim": "b31c3ec020e2b51739ea15dac5349f3806255bc3ed5de66d4bace90ea3f14c7f",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/all.parsed.ndjson",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/all.parsed.ndjson",
+   "bytes": 8852,
+   "sha256": "f9a07ade361caa47596067c29ac49af0d038dda92df5aba2821f7db6f42b03b3",
+   "receiptClaim": "f9a07ade361caa47596067c29ac49af0d038dda92df5aba2821f7db6f42b03b3",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/all.stderr",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/all.stderr",
+   "bytes": 0,
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "receiptClaim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/all.stdout",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/all.stdout",
+   "bytes": 8852,
+   "sha256": "f9a07ade361caa47596067c29ac49af0d038dda92df5aba2821f7db6f42b03b3",
+   "receiptClaim": "f9a07ade361caa47596067c29ac49af0d038dda92df5aba2821f7db6f42b03b3",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/base.parsed.ndjson",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/base.parsed.ndjson",
+   "bytes": 6235,
+   "sha256": "aa116ea2d477ab2f3bc696fc1e0ca78b80be0afb4f057d9a58bccb60c0fbaf33",
+   "receiptClaim": "aa116ea2d477ab2f3bc696fc1e0ca78b80be0afb4f057d9a58bccb60c0fbaf33",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/base.stderr",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/base.stderr",
+   "bytes": 0,
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "receiptClaim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/base.stdout",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/base.stdout",
+   "bytes": 6235,
+   "sha256": "aa116ea2d477ab2f3bc696fc1e0ca78b80be0afb4f057d9a58bccb60c0fbaf33",
+   "receiptClaim": "aa116ea2d477ab2f3bc696fc1e0ca78b80be0afb4f057d9a58bccb60c0fbaf33",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/default-clippy.log",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/default-clippy.log",
+   "bytes": 141,
+   "sha256": "18c9ac7bd53cd66fe47b1b809c060b45ef02688ea01f7f784b4363f261198f68",
+   "receiptClaim": "18c9ac7bd53cd66fe47b1b809c060b45ef02688ea01f7f784b4363f261198f68",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/default-restore.log",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/default-restore.log",
+   "bytes": 60,
+   "sha256": "73a65a88f17a6051c2673ec9eecfc56f51ac5685531a39b438d704d6f3b1a9f9",
+   "receiptClaim": "73a65a88f17a6051c2673ec9eecfc56f51ac5685531a39b438d704d6f3b1a9f9",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/drop-failure.first-line",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/drop-failure.first-line",
+   "bytes": 339,
+   "sha256": "3f6ff17dde6a67b909b5efe6f0af5aa16b3d4f4f48487a94f26b3949709c9e95",
+   "receiptClaim": "3f6ff17dde6a67b909b5efe6f0af5aa16b3d4f4f48487a94f26b3949709c9e95",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/drop-failure.pipe-status",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/drop-failure.pipe-status",
+   "bytes": 4,
+   "sha256": "f4a8ae8e74ddfb896a256de4e3099911dcaa6a9302591713898069b0bcd6e3d7",
+   "receiptClaim": "f4a8ae8e74ddfb896a256de4e3099911dcaa6a9302591713898069b0bcd6e3d7",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/drop-failure.stderr",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/drop-failure.stderr",
+   "bytes": 222,
+   "sha256": "0066a17c593f866a827920379b5bd6eb5549d9c7e1edc6a17359e75f314c5de8",
+   "receiptClaim": "0066a17c593f866a827920379b5bd6eb5549d9c7e1edc6a17359e75f314c5de8",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/drop-slow.first-line",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/drop-slow.first-line",
+   "bytes": 339,
+   "sha256": "3f6ff17dde6a67b909b5efe6f0af5aa16b3d4f4f48487a94f26b3949709c9e95",
+   "receiptClaim": "3f6ff17dde6a67b909b5efe6f0af5aa16b3d4f4f48487a94f26b3949709c9e95",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/drop-slow.pipe-status",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/drop-slow.pipe-status",
+   "bytes": 4,
+   "sha256": "0ccdb5a77ba5bf7687f2565a8ed97dfb9c1af45503c496fb646312239fab5101",
+   "receiptClaim": "0ccdb5a77ba5bf7687f2565a8ed97dfb9c1af45503c496fb646312239fab5101",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/drop-slow.stderr",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/drop-slow.stderr",
+   "bytes": 0,
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "receiptClaim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/drop.first-line",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/drop.first-line",
+   "bytes": 339,
+   "sha256": "2aa1b2f5751da336ee9690c7ee9968a5711202214a66c6b4774192490107b904",
+   "receiptClaim": "2aa1b2f5751da336ee9690c7ee9968a5711202214a66c6b4774192490107b904",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/drop.pipe-status",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/drop.pipe-status",
+   "bytes": 4,
+   "sha256": "0ccdb5a77ba5bf7687f2565a8ed97dfb9c1af45503c496fb646312239fab5101",
+   "receiptClaim": "0ccdb5a77ba5bf7687f2565a8ed97dfb9c1af45503c496fb646312239fab5101",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/drop.stderr",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/drop.stderr",
+   "bytes": 0,
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "receiptClaim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/failure.stderr",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/failure.stderr",
+   "bytes": 217,
+   "sha256": "222e2bcb458ea4185a4efdfc55e7079cdd2ea8b5f30258c04eae0f37520ef0dc",
+   "receiptClaim": "222e2bcb458ea4185a4efdfc55e7079cdd2ea8b5f30258c04eae0f37520ef0dc",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/failure.stdout",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/failure.stdout",
+   "bytes": 3146,
+   "sha256": "a83617ac8ba5b1cb4091ffe14d41134e4c4be9dfc95a22fcb309602fa4f2c9f1",
+   "receiptClaim": "a83617ac8ba5b1cb4091ffe14d41134e4c4be9dfc95a22fcb309602fa4f2c9f1",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/fmt.log",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/fmt.log",
+   "bytes": 0,
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "receiptClaim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/headless-build.log",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/headless-build.log",
+   "bytes": 140,
+   "sha256": "4c1d571530e7fe41af87fc20977d5bcad69e5e6d7fcae81644e68863f6490a4f",
+   "receiptClaim": "4c1d571530e7fe41af87fc20977d5bcad69e5e6d7fcae81644e68863f6490a4f",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/headless-clippy.log",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/headless-clippy.log",
+   "bytes": 140,
+   "sha256": "fcaffed9a63e16697874056a5f96aaff914f7e4256f5bc4e5b602c112774d65b",
+   "receiptClaim": "fcaffed9a63e16697874056a5f96aaff914f7e4256f5bc4e5b602c112774d65b",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/invalid-conflict.stderr",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/invalid-conflict.stderr",
+   "bytes": 245,
+   "sha256": "3d4fccd9c0aba0b3af707f5eb162b91fabd374ca60bcaa738846c9b29f0cfea1",
+   "receiptClaim": "3d4fccd9c0aba0b3af707f5eb162b91fabd374ca60bcaa738846c9b29f0cfea1",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/invalid-conflict.stdout",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/invalid-conflict.stdout",
+   "bytes": 0,
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "receiptClaim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/invalid-conflicts.stderr",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/invalid-conflicts.stderr",
+   "bytes": 60,
+   "sha256": "faabf7ee180da1df9e2972623aed29a6e45446d5cbd813facf1715fcc2864b18",
+   "receiptClaim": "faabf7ee180da1df9e2972623aed29a6e45446d5cbd813facf1715fcc2864b18",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/invalid-conflicts.stdout",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/invalid-conflicts.stdout",
+   "bytes": 0,
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "receiptClaim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/invalid-validate.stderr",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/invalid-validate.stderr",
+   "bytes": 60,
+   "sha256": "faabf7ee180da1df9e2972623aed29a6e45446d5cbd813facf1715fcc2864b18",
+   "receiptClaim": "faabf7ee180da1df9e2972623aed29a6e45446d5cbd813facf1715fcc2864b18",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/invalid-validate.stdout",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/invalid-validate.stdout",
+   "bytes": 0,
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "receiptClaim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/invalid.after.sha256",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/invalid.after.sha256",
+   "bytes": 1188,
+   "sha256": "c2436ef265721e0de54b5aede64e27648c88db48e26c97d31e9df1773d09d5e2",
+   "receiptClaim": "c2436ef265721e0de54b5aede64e27648c88db48e26c97d31e9df1773d09d5e2",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/invalid.before.sha256",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/invalid.before.sha256",
+   "bytes": 1188,
+   "sha256": "c2436ef265721e0de54b5aede64e27648c88db48e26c97d31e9df1773d09d5e2",
+   "receiptClaim": "c2436ef265721e0de54b5aede64e27648c88db48e26c97d31e9df1773d09d5e2",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/legacy.stderr",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/legacy.stderr",
+   "bytes": 0,
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "receiptClaim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/legacy.stdout",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/legacy.stdout",
+   "bytes": 639,
+   "sha256": "9ea418cf3d8bf2a0621678e554b7ed99a6fc0203b02cf5e4db915f1ed8ad62e4",
+   "receiptClaim": "9ea418cf3d8bf2a0621678e554b7ed99a6fc0203b02cf5e4db915f1ed8ad62e4",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/preflight.after.sha256",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/preflight.after.sha256",
+   "bytes": 1075,
+   "sha256": "81ed2897c7cf6245879e131c790f74fd3f950c8313c84fee7d0319c9e052cc1c",
+   "receiptClaim": "81ed2897c7cf6245879e131c790f74fd3f950c8313c84fee7d0319c9e052cc1c",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/preflight.before.sha256",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/preflight.before.sha256",
+   "bytes": 1075,
+   "sha256": "81ed2897c7cf6245879e131c790f74fd3f950c8313c84fee7d0319c9e052cc1c",
+   "receiptClaim": "81ed2897c7cf6245879e131c790f74fd3f950c8313c84fee7d0319c9e052cc1c",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/preflight.stderr",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/preflight.stderr",
+   "bytes": 87,
+   "sha256": "c6ab8d95d225023119c736054c46e0ed0dc921eaedd399d711f9d13e98b7d7a3",
+   "receiptClaim": "c6ab8d95d225023119c736054c46e0ed0dc921eaedd399d711f9d13e98b7d7a3",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/preflight.stdout",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/preflight.stdout",
+   "bytes": 0,
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "receiptClaim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/receipt.json",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/receipt.json",
+   "bytes": 50435,
+   "sha256": "cac376fc5a05095e5192aa006a3edd8cbcf2f5d597e5986a4add74de6bbf49b6",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-57f198f/remaining.parsed.ndjson",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/remaining.parsed.ndjson",
+   "bytes": 4338,
+   "sha256": "59f2894107831c4b65189a5f16a0a0d80caca16426a11cca3bfad9781c0743f8",
+   "receiptClaim": "59f2894107831c4b65189a5f16a0a0d80caca16426a11cca3bfad9781c0743f8",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/remaining.stderr",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/remaining.stderr",
+   "bytes": 0,
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "receiptClaim": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/remaining.stdout",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/remaining.stdout",
+   "bytes": 4338,
+   "sha256": "59f2894107831c4b65189a5f16a0a0d80caca16426a11cca3bfad9781c0743f8",
+   "receiptClaim": "59f2894107831c4b65189a5f16a0a0d80caca16426a11cca3bfad9781c0743f8",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/fixtures/all-guide.json",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/all/guide.json",
+   "bytes": 2695,
+   "sha256": "796f94f2cd8f98f7ba778a4ec9ef4c7d7b40b591daa55e8ca1710ffe2cc528f0",
+   "receiptClaim": "796f94f2cd8f98f7ba778a4ec9ef4c7d7b40b591daa55e8ca1710ffe2cc528f0",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/fixtures/phased-guide.json",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/phased/guide.json",
+   "bytes": 2695,
+   "sha256": "796f94f2cd8f98f7ba778a4ec9ef4c7d7b40b591daa55e8ca1710ffe2cc528f0",
+   "receiptClaim": "796f94f2cd8f98f7ba778a4ec9ef4c7d7b40b591daa55e8ca1710ffe2cc528f0",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/fixtures/failure-guide.json",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/failure/guide.json",
+   "bytes": 1365,
+   "sha256": "c4e4dae5432351c7b4144e62acf24097607bd8a3360373124b8653b30c893855",
+   "receiptClaim": "c4e4dae5432351c7b4144e62acf24097607bd8a3360373124b8653b30c893855",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/fixtures/invalid-guide.json",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/invalid/guide.json",
+   "bytes": 2695,
+   "sha256": "796f94f2cd8f98f7ba778a4ec9ef4c7d7b40b591daa55e8ca1710ffe2cc528f0",
+   "receiptClaim": "796f94f2cd8f98f7ba778a4ec9ef4c7d7b40b591daa55e8ca1710ffe2cc528f0",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/fixtures/legacy-guide.json",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/legacy/guide.json",
+   "bytes": 2695,
+   "sha256": "796f94f2cd8f98f7ba778a4ec9ef4c7d7b40b591daa55e8ca1710ffe2cc528f0",
+   "receiptClaim": "796f94f2cd8f98f7ba778a4ec9ef4c7d7b40b591daa55e8ca1710ffe2cc528f0",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/fixtures/preflight-guide.json",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/preflight/guide.json",
+   "bytes": 2695,
+   "sha256": "796f94f2cd8f98f7ba778a4ec9ef4c7d7b40b591daa55e8ca1710ffe2cc528f0",
+   "receiptClaim": "796f94f2cd8f98f7ba778a4ec9ef4c7d7b40b591daa55e8ca1710ffe2cc528f0",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/fixtures/drop-guide.json",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/drop/guide.json",
+   "bytes": 2695,
+   "sha256": "796f94f2cd8f98f7ba778a4ec9ef4c7d7b40b591daa55e8ca1710ffe2cc528f0",
+   "receiptClaim": "796f94f2cd8f98f7ba778a4ec9ef4c7d7b40b591daa55e8ca1710ffe2cc528f0",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/fixtures/drop-slow-guide.json",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/drop-slow/guide.json",
+   "bytes": 1394,
+   "sha256": "8b1bf232e3ac02a15a9f8a0d6180bb345d249f3f45118adfdf563e87ff9e7533",
+   "receiptClaim": "8b1bf232e3ac02a15a9f8a0d6180bb345d249f3f45118adfdf563e87ff9e7533",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-57f198f/fixtures/drop-failure-guide.json",
+   "source": "/tmp/modsync-install-progress-task2a.eQHn7F/drop-failure/guide.json",
+   "bytes": 1397,
+   "sha256": "5c1efbbf999aae7deeed014b0e62b43d0ab4387fdc138064e3967026fdc640b2",
+   "receiptClaim": "5c1efbbf999aae7deeed014b0e62b43d0ab4387fdc138064e3967026fdc640b2",
+   "matchesReceipt": true
+  },
+  {
+   "path": "cli-ac9cf3a/binary.sha256",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/binary.sha256",
+   "bytes": 74,
+   "sha256": "d5912c3a0b0eba3c60067af99b36b4ade39bdaea5671e64c5a1508be74fb043b",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/conflict-json.exit",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/conflict-json.exit",
+   "bytes": 2,
+   "sha256": "53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/conflict-json.stderr",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/conflict-json.stderr",
+   "bytes": 245,
+   "sha256": "3d4fccd9c0aba0b3af707f5eb162b91fabd374ca60bcaa738846c9b29f0cfea1",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/conflict-json.stdout",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/conflict-json.stdout",
+   "bytes": 0,
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/conflict-report.exit",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/conflict-report.exit",
+   "bytes": 2,
+   "sha256": "53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/conflict-report.stderr",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/conflict-report.stderr",
+   "bytes": 258,
+   "sha256": "a73045af8ea671c24d7f855fc10331ddda4bec27f355dd25fdb3bf050ecca86d",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/conflict-report.stdout",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/conflict-report.stdout",
+   "bytes": 0,
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/fail.after.manifest",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/fail.after.manifest",
+   "bytes": 838,
+   "sha256": "94b16f457a26536576ddb84f4f4cfcd9c08834298847c0bb45387ab95d21b0f2",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/fail.before.manifest",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/fail.before.manifest",
+   "bytes": 565,
+   "sha256": "96fb8930cbed3f552af064f9c6ab5c00c0811404f228abb6090df5799ab63345",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/fail.recovery.ls",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/fail.recovery.ls",
+   "bytes": 270,
+   "sha256": "759cf673044b4c46a3fc42b350a77afde73772901fc7883408537e2d3d370f0d",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/help.exit",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/help.exit",
+   "bytes": 2,
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/help.stderr",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/help.stderr",
+   "bytes": 0,
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/help.stdout",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/help.stdout",
+   "bytes": 2401,
+   "sha256": "1db059539eacbb608857d211f18c774c84281bfc750588c184f05d1857fa0ac5",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/legacy-json.exit",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/legacy-json.exit",
+   "bytes": 2,
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/legacy-json.stderr",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/legacy-json.stderr",
+   "bytes": 0,
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/legacy-json.stdout",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/legacy-json.stdout",
+   "bytes": 416,
+   "sha256": "3919f0118407d8c7d1ef36252b138253c4f25ff761ceab1b496633a829e3d231",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/ok.after.manifest",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/ok.after.manifest",
+   "bytes": 928,
+   "sha256": "de05e4fd07eeaddcb51e19237e9ae5280779fb8ff7a87f39ea9c3008ba065277",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/ok.before.manifest",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/ok.before.manifest",
+   "bytes": 565,
+   "sha256": "96fb8930cbed3f552af064f9c6ab5c00c0811404f228abb6090df5799ab63345",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/pre.after.manifest",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/pre.after.manifest",
+   "bytes": 579,
+   "sha256": "84a01a51b3b918484fdea0d8c321af1b94d2688a1ead50d2f93b01b8b4c9e4f3",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/pre.before.manifest",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/pre.before.manifest",
+   "bytes": 485,
+   "sha256": "38424d704cd10558d3ee5eb5afa764337c2dd43e3120fc876edb3447458736eb",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/probe.sh",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/probe.sh",
+   "bytes": 1759,
+   "sha256": "886e68560c0745858f6bb8a000372675d6d92f1f25ab3bd8a199b47598f88952",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/typed-fail.exit",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/typed-fail.exit",
+   "bytes": 2,
+   "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/typed-fail.stderr",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/typed-fail.stderr",
+   "bytes": 362,
+   "sha256": "785ec17f30419959936b62f81cf94909a602f106744134fe28ec92e150b15c7b",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/typed-fail.stdout",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/typed-fail.stdout",
+   "bytes": 3520,
+   "sha256": "a0a10756d916546b26c368774fb1239b6a59c5eb6b692611b2d8a18568d9f1d7",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/typed-ok.exit",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/typed-ok.exit",
+   "bytes": 2,
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/typed-ok.stderr",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/typed-ok.stderr",
+   "bytes": 192,
+   "sha256": "4845c6c1250fc94686fcd92cb403fdd5ac495a2dc5d391f1c7d7c9d2f9d9256f",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/typed-ok.stdout",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/typed-ok.stdout",
+   "bytes": 6613,
+   "sha256": "5ed6ff3de874279af8816f7f573307d6d1dc160017ff72ae803f0496ac5fd970",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/typed-preflight.exit",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/typed-preflight.exit",
+   "bytes": 2,
+   "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/typed-preflight.stderr",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/typed-preflight.stderr",
+   "bytes": 86,
+   "sha256": "91b494b98fe3bec9accc10440039b2c44aaa0738d650fbb8347e04958d1e5561",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/typed-preflight.stdout",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/typed-preflight.stdout",
+   "bytes": 0,
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/fixtures/ok-guide.json",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/ok/guide.json",
+   "bytes": 2016,
+   "sha256": "78c17ad6fef728d7b6176f853215f8f3f0ec469aa27d0da5239c44111e44fa36",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/fixtures/fail-guide.json",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/fail/guide.json",
+   "bytes": 2016,
+   "sha256": "d09e8571d44d1a42eb801cfbd8217ba059474c37a9b98f9b43ba6b7d517a877e",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/fixtures/pre-guide.json",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/pre/guide.json",
+   "bytes": 2016,
+   "sha256": "78c17ad6fef728d7b6176f853215f8f3f0ec469aa27d0da5239c44111e44fa36",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  },
+  {
+   "path": "cli-ac9cf3a/fixtures/leg-guide.json",
+   "source": "/tmp/modsync-install-progress-task3.D3waxs/leg/guide.json",
+   "bytes": 2016,
+   "sha256": "78c17ad6fef728d7b6176f853215f8f3f0ec469aa27d0da5239c44111e44fa36",
+   "receiptClaim": null,
+   "matchesReceipt": null
+  }
+ ]
+}

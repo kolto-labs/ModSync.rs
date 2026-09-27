@@ -1,0 +1,13 @@
+{
+  "owned_pids": [
+    2417461,
+    2417471,
+    2417472,
+    2417676,
+    2428094,
+    2428095,
+    2428110
+  ],
+  "remaining_process_states": {},
+  "note": "Administrative termination after settled terminal captures; not cancellation behavior proof."
+}

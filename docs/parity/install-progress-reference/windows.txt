@@ -1,0 +1,21 @@
+
+xwininfo: Window id: 0x39f (the root window) (has no name)
+
+  Root window id: 0x39f (the root window) (has no name)
+  Parent window id: 0x0 (none)
+     14 children:
+     0x1400005 "Qt Selection Owner for ksecretd": ()  3x3+0+0  +0+0
+     0x1200001 "xdg-desktop-portal-gtk": ("xdg-desktop-portal-gtk" "Xdg-desktop-portal-gtk")  10x10+10+10  +10+10
+     0xc00013 "ModSync v2.0.0a1": ("dotnet" "ModSync")  1280x800+10+10  +10+10
+     0x1000005 "Qt Selection Owner for xdg-desktop-portal-kde": ()  3x3+0+0  +0+0
+     0xc0000d (has no name): ()  1x1+0+0  +0+0
+     0xc00009 (has no name): ()  1x1+0+0  +0+0
+     0xc00001 (has no name): ()  1x1+0+0  +0+0
+     0x200013 "ModSync v2.0.0a1": ("dotnet" "ModSync")  1280x800+10+10  +10+10
+     0xa00005 "Qt Selection Owner for ksecretd": ()  3x3+0+0  +0+0
+     0x800001 "xdg-desktop-portal-gtk": ("xdg-desktop-portal-gtk" "Xdg-desktop-portal-gtk")  10x10+10+10  +10+10
+     0x600005 "Qt Selection Owner for xdg-desktop-portal-kde": ()  3x3+0+0  +0+0
+     0x20000d (has no name): ()  1x1+0+0  +0+0
+     0x200009 (has no name): ()  1x1+0+0  +0+0
+     0x200001 (has no name): ()  1x1+0+0  +0+0
+

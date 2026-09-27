@@ -1,0 +1,2 @@
+dbus-daemon[3182451]: [session uid=1000 pid=3182451 pidfd=5] Activating service name='org.a11y.Bus' requested by ':1.0' (uid=1000 pid=3182834 comm="/tmp/modsync-2b-native/modsync gui --settings-dir" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[3182451]: [session uid=1000 pid=3182451 pidfd=5] Successfully activated service 'org.a11y.Bus'

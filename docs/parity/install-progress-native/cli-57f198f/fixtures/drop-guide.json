@@ -1,0 +1,115 @@
+[
+  {
+    "Guid": "11111111-1111-1111-1111-111111111111",
+    "Name": "Duplicate Name",
+    "IsSelected": true,
+    "Instructions": [
+      {
+        "Action": "Move",
+        "Source": [
+          "<<modDirectory>>/a.txt"
+        ],
+        "Destination": "<<kotorDirectory>>/Override",
+        "Overwrite": true
+      },
+      {
+        "Action": "Choose",
+        "Source": [
+          "33333333-3333-3333-3333-333333333333"
+        ],
+        "Destination": "",
+        "Overwrite": true
+      },
+      {
+        "Action": "Copy",
+        "Source": [
+          "<<modDirectory>>/b.txt"
+        ],
+        "Destination": "<<kotorDirectory>>/Override",
+        "Overwrite": true
+      }
+    ],
+    "Options": [
+      {
+        "Guid": "33333333-3333-3333-3333-333333333333",
+        "Name": "Duplicate Name",
+        "IsSelected": true,
+        "Instructions": [
+          {
+            "Action": "Choose",
+            "Source": [
+              "44444444-4444-4444-4444-444444444444"
+            ],
+            "Destination": "",
+            "Overwrite": true
+          },
+          {
+            "Action": "Copy",
+            "Source": [
+              "<<modDirectory>>/c.txt"
+            ],
+            "Destination": "<<kotorDirectory>>/Override",
+            "Overwrite": true
+          }
+        ],
+        "Options": [
+          {
+            "Guid": "44444444-4444-4444-4444-444444444444",
+            "Name": "Duplicate Name",
+            "IsSelected": true,
+            "Instructions": [
+              {
+                "Action": "Copy",
+                "Source": [
+                  "<<modDirectory>>/d.txt"
+                ],
+                "Destination": "<<kotorDirectory>>/Override",
+                "Overwrite": true
+              }
+            ],
+            "Options": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "Guid": "22222222-2222-2222-2222-222222222222",
+    "Name": "Duplicate Name",
+    "IsSelected": true,
+    "Instructions": [
+      {
+        "Action": "Copy",
+        "Source": [
+          "<<modDirectory>>/e.txt"
+        ],
+        "Destination": "<<kotorDirectory>>/Override",
+        "Overwrite": true
+      },
+      {
+        "Action": "Copy",
+        "Source": [
+          "<<modDirectory>>/f.txt"
+        ],
+        "Destination": "<<kotorDirectory>>/Override",
+        "Overwrite": true
+      },
+      {
+        "Action": "Choose",
+        "Source": [
+          "not-a-real-option"
+        ],
+        "Destination": "",
+        "Overwrite": true,
+        "Dependencies": [
+          "not-selected"
+        ]
+      }
+    ],
+    "Options": [],
+    "Dependencies": [
+      "11111111-1111-1111-1111-111111111111"
+    ],
+    "WidescreenOnly": true
+  }
+]

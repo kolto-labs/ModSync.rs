@@ -1,0 +1,663 @@
+[09/27/2026 08:39:23] Logging initialized at 09/27/2026 08:39:23
+[09/27/2026 08:39:23] CLI: Set InstructionFile to '/tmp/modsync-install-reference-20260927/guide.json'
+[09/27/2026 08:39:23] CLI: Set KotorPath to '/tmp/modsync-install-reference-20260927/game'
+[09/27/2026 08:39:23] CLI: Set ModDirectory to '/tmp/modsync-install-reference-20260927/mods'
+[09/27/2026 08:39:23] [Verbose] CLI: AllowMultipleInstances enabled
+[09/27/2026 08:39:23] [Warning] [Telemetry] No signing secret found - telemetry will be disabled
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activating service name='org.freedesktop.portal.Desktop' requested by ':1.0' (uid=1000 pid=2417676 comm="dotnet /tmp/modsync-validation-reference-20260927-" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activating service name='org.freedesktop.impl.portal.PermissionStore' requested by ':1.1' (uid=1000 pid=2418052 comm="/usr/libexec/xdg-desktop-portal" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Successfully activated service 'org.freedesktop.impl.portal.PermissionStore'
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activating service name='org.freedesktop.portal.Documents' requested by ':1.1' (uid=1000 pid=2418052 comm="/usr/libexec/xdg-desktop-portal" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Successfully activated service 'org.freedesktop.portal.Documents'
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activating service name='org.freedesktop.impl.portal.desktop.kde' requested by ':1.1' (uid=1000 pid=2418052 comm="/usr/libexec/xdg-desktop-portal" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Successfully activated service 'org.freedesktop.impl.portal.desktop.kde'
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activating service name='org.freedesktop.impl.portal.desktop.gtk' requested by ':1.1' (uid=1000 pid=2418052 comm="/usr/libexec/xdg-desktop-portal" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activating service name='org.a11y.Bus' requested by ':1.5' (uid=1000 pid=2418139 comm="/usr/libexec/xdg-desktop-portal-gtk" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Successfully activated service 'org.a11y.Bus'
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activating service name='org.freedesktop.systemd1' requested by ':1.7' (uid=1000 pid=2418156 comm="/usr/bin/dbus-broker-launch --config-file=/usr/sha" label="unconfined_u:unconfined_r:unconfined_dbusd_t:s0-s0:c0.c1023")
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activated service 'org.freedesktop.systemd1' failed: Process org.freedesktop.systemd1 exited with status 1
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activating service name='org.freedesktop.systemd1' requested by ':1.7' (uid=1000 pid=2418156 comm="/usr/bin/dbus-broker-launch --config-file=/usr/sha" label="unconfined_u:unconfined_r:unconfined_dbusd_t:s0-s0:c0.c1023")
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activated service 'org.freedesktop.systemd1' failed: Process org.freedesktop.systemd1 exited with status 1
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activating service name='org.gtk.vfs.Daemon' requested by ':1.8' (uid=1000 pid=2418139 comm="/usr/libexec/xdg-desktop-portal-gtk" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Successfully activated service 'org.gtk.vfs.Daemon'
+
+** (xdg-desktop-portal-gtk:2418139): WARNING **: 08:39:26.606: AT-SPI: Could not obtain desktop path or name
+
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Successfully activated service 'org.freedesktop.impl.portal.desktop.gtk'
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activating service name='org.freedesktop.systemd1' requested by ':1.7' (uid=1000 pid=2418156 comm="/usr/bin/dbus-broker-launch --config-file=/usr/sha" label="unconfined_u:unconfined_r:unconfined_dbusd_t:s0-s0:c0.c1023")
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activated service 'org.freedesktop.systemd1' failed: Process org.freedesktop.systemd1 exited with status 1
+
+** (xdg-desktop-portal-gtk:2418139): WARNING **: 08:39:26.617: atk-bridge: GetRegisteredEvents returned message with unknown signature
+
+** (xdg-desktop-portal-gtk:2418139): WARNING **: 08:39:26.617: atk-bridge: get_device_events_reply: unknown signature
+
+(/usr/libexec/xdg-desktop-portal:2418052): xdg-desktop-portal-WARNING **: 08:39:26.652: Failed to connect to PipeWire: Couldn't connect to PipeWire
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activating service name='org.freedesktop.impl.portal.desktop.kwallet' requested by ':1.1' (uid=1000 pid=2418052 comm="/usr/libexec/xdg-desktop-portal" label="unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023")
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Successfully activated service 'org.freedesktop.portal.Desktop'
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Successfully activated service 'org.freedesktop.impl.portal.desktop.kwallet'
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activating service name='org.freedesktop.systemd1' requested by ':1.7' (uid=1000 pid=2418156 comm="/usr/bin/dbus-broker-launch --config-file=/usr/sha" label="unconfined_u:unconfined_r:unconfined_dbusd_t:s0-s0:c0.c1023")
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activated service 'org.freedesktop.systemd1' failed: Process org.freedesktop.systemd1 exited with status 1
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activating service name='org.freedesktop.systemd1' requested by ':1.7' (uid=1000 pid=2418156 comm="/usr/bin/dbus-broker-launch --config-file=/usr/sha" label="unconfined_u:unconfined_r:unconfined_dbusd_t:s0-s0:c0.c1023")
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activated service 'org.freedesktop.systemd1' failed: Process org.freedesktop.systemd1 exited with status 1
+[09/27/2026 08:39:27] [Verbose] DirectoryPickerControl[Type=ModDirectory] constructed
+[09/27/2026 08:39:27] [Verbose] DirectoryPickerControl[Type=ModDirectory] constructed
+[09/27/2026 08:39:27] [Verbose] DirectoryPickerControl[KotorDirectory] InitializePathSuggestions: Starting initialization
+[09/27/2026 08:39:27] [Verbose] DirectoryPickerControl.GetDefaultPathsForGame OS=LINUX
+[09/27/2026 08:39:27] [Verbose] DirectoryPickerControl.GetDefaultPathsForGame returning 4 paths
+[09/27/2026 08:39:27] [Verbose] DirectoryPickerControl(KotorDirectory) GetDefaultPathsForGame returned: 4 paths
+[09/27/2026 08:39:27] [Verbose] DirectoryPickerControl(KotorDirectory) Found 2 existing paths
+[09/27/2026 08:39:27] [Verbose] DirectoryPickerControl(KotorDirectory) Existing paths: /home/brunner56/.steam/steam/steamapps/common/swkotor, /home/brunner56/.local/share/Steam/steamapps/common/swkotor
+[09/27/2026 08:39:27] [Verbose] DirectoryPickerControl(KotorDirectory) Set ItemsSource with 2 items
+[09/27/2026 08:39:27] [Verbose] DirectoryPickerControl(KotorDirectory) added 2 default paths, total items: 2
+[09/27/2026 08:39:27] [Verbose] DirectoryPickerControl[KotorDirectory] InitializePathSuggestions: KotorDirectory initialized, ItemsSource count: 2
+[09/27/2026 08:39:28] [Verbose] [RawTab] Format tab changed from 'toml' to 'toml'
+[09/27/2026 08:39:28] [Verbose] [RawTab] Format tab changed from 'toml' to 'toml'
+[09/27/2026 08:39:28] [Verbose] [TabControl_SelectionChanged] START - IgnoreInternalTabChange=False
+[09/27/2026 08:39:28] [Verbose] [TabControl_SelectionChanged] START - IgnoreInternalTabChange=False
+[09/27/2026 08:39:28] [Verbose] [DownloadCacheService] Initialized
+[09/27/2026 08:39:28] [Verbose] [DownloadHandlerFactory] Created new HttpClient with 180 minute timeout
+[09/27/2026 08:39:28] [Verbose] [DeadlyStream] Initializing download handler with session cookie management
+[09/27/2026 08:39:28] [Verbose] [DeadlyStream] Added User-Agent header: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
+[09/27/2026 08:39:28] [Verbose] [DeadlyStream] Added Accept header: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8
+[09/27/2026 08:39:28] [Verbose] [DeadlyStream] Added Accept-Language header: en-US,en;q=0.9
+[09/27/2026 08:39:28] [Verbose] [DeadlyStream] Added custom identification headers: X-ModSync-App, X-ModSync-Repo, X-Accept-ModSync
+[09/27/2026 08:39:28] [Verbose] [DeadlyStream] Added identification bearer token: KOTOR_MODSYNC_PUBLIC
+[09/27/2026 08:39:28] [Verbose] [DeadlyStream] Handler initialized with proper browser headers and identification markers
+[09/27/2026 08:39:28] [Verbose] [DeadlyStream] Bandwidth throttling enabled: 7 MB/s using ThrottledStream
+[09/27/2026 08:39:28] [Verbose] [MEGA] Initializing MEGA download handler
+[09/27/2026 08:39:28] [Warning] [NexusMods] No API key provided. Nexus Mods downloads will be limited.
+[09/27/2026 08:39:28] [Warning] [NexusMods] For full functionality, please configure a Nexus Mods API key.
+[09/27/2026 08:39:28] [Verbose] [NexusMods] Initializing Nexus Mods download handler
+[09/27/2026 08:39:28] [Verbose] [NexusMods] API key provided: False
+[09/27/2026 08:39:28] [Verbose] [NexusMods] Handler initialized with Nexus Mods API compliance
+[09/27/2026 08:39:28] [Verbose] [GameFront] Initializing GameFront download handler
+[09/27/2026 08:39:28] [Verbose] [GameFront] Handler initialized with proper browser headers
+[09/27/2026 08:39:28] [Verbose] [DirectDownload] Initializing direct download handler
+[09/27/2026 08:39:28] [Verbose] [DownloadHandlerFactory] Created 5 download handlers in priority order
+[09/27/2026 08:39:28] [Verbose] [DownloadManager] Initialized with 5 download handlers
+[09/27/2026 08:39:28] [Verbose] [DownloadManager] Handler 1: DeadlyStreamDownloadHandler
+[09/27/2026 08:39:28] [Verbose] [DownloadManager] Handler 2: MegaDownloadHandler
+[09/27/2026 08:39:28] [Verbose] [DownloadManager] Handler 3: NexusModsDownloadHandler
+[09/27/2026 08:39:28] [Verbose] [DownloadManager] Handler 4: GameFrontDownloadHandler
+[09/27/2026 08:39:28] [Verbose] [DownloadManager] Handler 5: DirectDownloadHandler
+[09/27/2026 08:39:28] [Verbose] [MainWindow.LoadSettings] === STARTING LOAD ===
+[09/27/2026 08:39:28] [Verbose] [MainWindow.LoadSettings] BEFORE loading settings:
+[09/27/2026 08:39:28] [Verbose] [MainWindow.LoadSettings]   MainConfigInstance.sourcePath: ''
+[09/27/2026 08:39:28] [Verbose] [MainWindow.LoadSettings]   MainConfigInstance.destinationPath: ''
+[09/27/2026 08:39:28] [Verbose] [MainWindow.LoadSettings]   MainConfigInstance.debugLogging: 'True'
+[09/27/2026 08:39:28] [Verbose] [SettingsManager.LoadSettings] Loading settings from: '/tmp/modsync-install-reference-20260927/config/ModSync/settings.json'
+[09/27/2026 08:39:28] [Verbose] [SettingsManager.LoadSettings] No settings file found, using defaults
+[09/27/2026 08:39:28] [Verbose] [MainWindow.LoadSettings] Settings loaded from file:
+[09/27/2026 08:39:28] [Verbose] [MainWindow.LoadSettings]   settings.SourcePath: ''
+[09/27/2026 08:39:28] [Verbose] [MainWindow.LoadSettings]   settings.DestinationPath: ''
+[09/27/2026 08:39:28] [Verbose] [MainWindow.LoadSettings]   settings.Theme: '/Styles/LightStyle.axaml'
+[09/27/2026 08:39:28] [Verbose] [MainWindow.LoadSettings]   settings.DebugLogging: 'True'
+[09/27/2026 08:39:28] [Verbose] [MainWindow.LoadSettings]   settings.SpoilerFreeMode: 'False'
+[09/27/2026 08:39:28] [Verbose] [AppSettings.ApplyToMainConfig] Applying settings to MainConfig:
+[09/27/2026 08:39:28] [Verbose] [AppSettings.ApplyToMainConfig] SourcePath from settings: ''
+[09/27/2026 08:39:28] [Verbose] [AppSettings.ApplyToMainConfig] DestinationPath from settings: ''
+[09/27/2026 08:39:28] [Verbose] [AppSettings.ApplyToMainConfig] SpoilerFreeMode from settings: 'False'
+[09/27/2026 08:39:28] [Verbose] [AppSettings.ApplyToMainConfig] SourcePath is empty, not applying
+[09/27/2026 08:39:28] [Verbose] [AppSettings.ApplyToMainConfig] DestinationPath is empty, not applying
+[09/27/2026 08:39:28] [Verbose] [MainWindow.LoadSettings] AFTER ApplyToMainConfig:
+[09/27/2026 08:39:28] [Verbose] [MainWindow.LoadSettings]   MainConfigInstance.sourcePath: ''
+[09/27/2026 08:39:28] [Verbose] [MainWindow.LoadSettings]   MainConfigInstance.destinationPath: ''
+[09/27/2026 08:39:28] [Verbose] [MainWindow.LoadSettings]   MainConfigInstance.debugLogging: 'True'
+[09/27/2026 08:39:28] [Verbose] [MainWindow.LoadSettings]   theme: '/Styles/LightStyle.axaml'
+[09/27/2026 08:39:28] [Verbose] [MainWindow.LoadSettings]   spoilerFreeMode: 'False'
+[09/27/2026 08:39:28] [Verbose] Applied theme: /Styles/LightStyle.axaml
+[09/27/2026 08:39:28] [Verbose] Settings loaded and applied successfully
+[09/27/2026 08:39:28] Started main window
+[09/27/2026 08:39:28] AutoUpdateService initialized successfully.
+[09/27/2026 08:39:28] Auto-update service started successfully.
+[09/27/2026 08:39:28] [Verbose] [App.Desktop_Startup] Applying CLI arguments to MainConfig
+[09/27/2026 08:39:29] [App.Desktop_Startup] Set SourcePath from CLI: '/tmp/modsync-install-reference-20260927/mods'
+[09/27/2026 08:39:29] [App.Desktop_Startup] Set DestinationPath from CLI: '/tmp/modsync-install-reference-20260927/game'
+[09/27/2026 08:39:28] Started automatic update check loop.
+[09/27/2026 08:39:29] [Warning] [Telemetry] No signing secret found - telemetry will be disabled
+[09/27/2026 08:39:29] [Verbose] [TabControl_SelectionChanged] TabControl found, SelectedIndex=0
+[09/27/2026 08:39:29] [Verbose] [TabControl_SelectionChanged] TabControl found, SelectedIndex=0
+[09/27/2026 08:39:29] [Verbose] [TabControl_SelectionChanged] CurrentComponent is null, tabs can't be used
+[09/27/2026 08:39:29] [Verbose] [TabControl_SelectionChanged] CurrentComponent is null, tabs can't be used
+[09/27/2026 08:39:29] [Verbose] Setting up window move event handlers...
+[09/27/2026 08:39:29] [Verbose] [TabControl_SelectionChanged] Set to InitialTab
+[09/27/2026 08:39:29] [Verbose] [TabControl_SelectionChanged] Set to InitialTab
+[09/27/2026 08:39:30] [Warning] [Telemetry] No signing secret found - telemetry will be disabled
+[09/27/2026 08:39:30] [Warning] [Telemetry] No signing secret found - telemetry will be disabled
+[09/27/2026 08:39:30] [Verbose] [Telemetry] Telemetry not initialized (disabled or no user consent)
+[09/27/2026 08:39:30] Detected game version: Kotor1, IsAspyr: False
+[09/27/2026 08:39:30] [AutoLoadInstructionFileAsync] Loading instruction file from CLI: '/tmp/modsync-install-reference-20260927/guide.json'
+[09/27/2026 08:39:30] [Verbose] Loading from string with format: json
+[09/27/2026 08:39:30] [Verbose] Loading from JSON string
+[09/27/2026 08:39:30] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue: Found key 'Guid', type=String, value=11111111-1111-1111-1111-111111111111
+[09/27/2026 08:39:30] [Verbose] GetValue<Guid>: key='Guid', type=string, value='11111111-1111-1111-1111-111111111111'
+[09/27/2026 08:39:30] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue: Found key 'Name', type=String, value=Fixture
+[09/27/2026 08:39:30] [Verbose]  == Deserialize next component 'Fixture' ==
+[09/27/2026 08:39:30] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue: Found key 'Author', type=String, value=Wizard
+[09/27/2026 08:39:30] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue: Found key 'Category', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 08:39:30] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue: Found key 'Category', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 08:39:30] [Warning] Could not deserialize key 'Category': Object must implement IConvertible. - using default value
+[09/27/2026 08:39:30] [Verbose] Deserialization error details for 'Category': System.InvalidCastException: Object must implement IConvertible.
+   at System.Convert.ChangeType(Object value, Type conversionType, IFormatProvider provider)
+   at ModSync.Core.Services.ModComponentSerializationService.GetValue[T](IDictionary`2 dict, String key, Boolean required) in /home/brunner56/.codex/worktrees/5813/ModSync/src/ModSync.Core/Services/ModComponentSerializationService.cs:line 3279
+[09/27/2026 08:39:30] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue: Found key 'Directions', type=String, value=Copy the disposable texture into the isolated Override folder.
+[09/27/2026 08:39:30] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue: Found key 'Language', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 08:39:30] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue: Found key 'Language', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 08:39:30] [Warning] Could not deserialize key 'Language': Object must implement IConvertible. - using default value
+[09/27/2026 08:39:30] [Verbose] Deserialization error details for 'Language': System.InvalidCastException: Object must implement IConvertible.
+   at System.Convert.ChangeType(Object value, Type conversionType, IFormatProvider provider)
+   at ModSync.Core.Services.ModComponentSerializationService.GetValue[T](IDictionary`2 dict, String key, Boolean required) in /home/brunner56/.codex/worktrees/5813/ModSync/src/ModSync.Core/Services/ModComponentSerializationService.cs:line 3279
+[09/27/2026 08:39:30] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue: Found key 'ExcludedDownloads', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 08:39:30] [Verbose] DeserializeResourceRegistry: Found ResourceRegistry field, type: Dictionary`2
+[09/27/2026 08:39:30] [Verbose] DeserializeResourceRegistry: ResourceRegistry is IDictionary<string, object> with 0 entries
+[09/27/2026 08:39:30] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue: Found key 'Dependencies', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 08:39:30] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue: Found key 'Restrictions', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 08:39:30] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue: Found key 'InstallBefore', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 08:39:30] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue: Found key 'InstallAfter', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 08:39:30] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 16 keys
+[09/27/2026 08:39:30] [Verbose] GetValue: Found key 'IsSelected', type=Boolean, value=True
+[09/27/2026 08:39:30] [Verbose] === Processing Instructions for component 'Fixture' ===
+[09/27/2026 08:39:30] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 08:39:30] [Verbose] Instructions object type: List`1, value: System.Collections.Generic.List`1[System.Object]
+[09/27/2026 08:39:30] [Verbose] Instructions is IList<object> with 1 items
+[09/27/2026 08:39:30] [Verbose] DeserializeInstructions called for 'Fixture' with 1 items
+[09/27/2026 08:39:30] [Verbose]   instructionsSerializedList[0] type: Dictionary`2, value: System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 08:39:30] [Verbose] Processing instruction 1 for 'Fixture': System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 08:39:31] [Verbose] Serialized instruction dict: Action, Source, Destination, Overwrite, Dependencies, Restrictions
+[09/27/2026 08:39:31] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 6 keys
+[09/27/2026 08:39:31] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 08:39:31] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 6 keys
+[09/27/2026 08:39:31] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 08:39:31] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 6 keys
+[09/27/2026 08:39:31] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 08:39:31] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 6 keys
+[09/27/2026 08:39:31] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 08:39:31] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/27/2026 08:39:31] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 6 keys
+[09/27/2026 08:39:31] [Verbose] GetValue<Boolean>: Attempting to get key 'Overwrite' from dict with 6 keys
+[09/27/2026 08:39:31] [Verbose] GetValue: Found key 'Overwrite', type=Boolean, value=False
+[09/27/2026 08:39:31] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 6 keys
+[09/27/2026 08:39:31] [Verbose] GetValue: Found key 'Restrictions', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 08:39:31] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 6 keys
+[09/27/2026 08:39:31] [Verbose] GetValue: Found key 'Dependencies', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 08:39:31] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 6 keys
+[09/27/2026 08:39:31] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.String]
+[09/27/2026 08:39:31] [Verbose] [Instruction.set_Source] Setting new source and calling OnPropertyChanged
+[09/27/2026 08:39:31] [Verbose] [Instruction.set_Source] OnPropertyChanged completed
+[09/27/2026 08:39:31] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 6 keys
+[09/27/2026 08:39:31] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 08:39:31] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 16 keys
+[09/27/2026 08:39:31] [Verbose] GetValue: Found key 'Options', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 08:39:31] [Verbose] Successfully deserialized component 'Fixture'
+[09/27/2026 08:39:31] [Verbose] [Cache] Loaded resource index: 378 metadata entries
+[09/27/2026 08:39:31] [Verbose] Successfully resolved dependencies and reordered 1 components
+[09/27/2026 08:39:31] [Verbose] Auto-fix enabled, applying fixes to loaded components
+[09/27/2026 08:39:31] [Verbose] [Cache] Loaded resource index: 378 metadata entries
+[09/27/2026 08:39:31] Loaded 1 components from CLI-specified file.
+[09/27/2026 08:39:32] [Verbose] DirectoryPickerControl[Type=ModDirectory] constructed
+[09/27/2026 08:39:32] [Verbose] DirectoryPickerControl[ModDirectory] GetCurrentPath -> ''
+[09/27/2026 08:39:32] [Verbose] DirectoryPickerControl[Type=ModDirectory] constructed
+[09/27/2026 08:39:32] [Verbose] DirectoryPickerControl[KotorDirectory] InitializePathSuggestions: Starting initialization
+[09/27/2026 08:39:32] [Verbose] DirectoryPickerControl.GetDefaultPathsForGame OS=LINUX
+[09/27/2026 08:39:32] [Verbose] DirectoryPickerControl.GetDefaultPathsForGame returning 4 paths
+[09/27/2026 08:39:32] [Verbose] DirectoryPickerControl(KotorDirectory) GetDefaultPathsForGame returned: 4 paths
+[09/27/2026 08:39:32] [Verbose] DirectoryPickerControl(KotorDirectory) Found 2 existing paths
+[09/27/2026 08:39:32] [Verbose] DirectoryPickerControl(KotorDirectory) Existing paths: /home/brunner56/.steam/steam/steamapps/common/swkotor, /home/brunner56/.local/share/Steam/steamapps/common/swkotor
+[09/27/2026 08:39:32] [Verbose] DirectoryPickerControl(KotorDirectory) Set ItemsSource with 2 items
+[09/27/2026 08:39:32] [Verbose] DirectoryPickerControl(KotorDirectory) added 2 default paths, total items: 2
+[09/27/2026 08:39:32] [Verbose] DirectoryPickerControl[KotorDirectory] InitializePathSuggestions: KotorDirectory initialized, ItemsSource count: 2
+[09/27/2026 08:39:32] [Verbose] DirectoryPickerControl[KotorDirectory] GetCurrentPath -> ''
+[09/27/2026 08:39:32] [Verbose] [NavigateToPage] START: pageIndex=0, _pages.Count=11
+[09/27/2026 08:39:32] [Verbose] [MainWindow] Entered wizard mode
+[09/27/2026 08:39:32] [AutoLoadInstructionFileAsync] Successfully loaded instruction file
+[09/27/2026 08:39:32] [Verbose] [NavigateToPage] Page type: WelcomePage, Title: Welcome
+[09/27/2026 08:39:32] [Verbose] [NavigateToPage] Page.Content type: WelcomePage, HasParent: False
+[09/27/2026 08:39:32] [Verbose] [NavigateToPage] showDownloads=False
+[09/27/2026 08:39:32] [Verbose] [NavigateToPage] About to clear PageContent. Current content type: 
+[09/27/2026 08:39:32] [Verbose] [ClearPageContent] START: PageContent.Content type=
+[09/27/2026 08:39:32] [Verbose] [ClearPageContent] Setting PageContent.Content = null
+[09/27/2026 08:39:32] [Verbose] [ClearPageContent] COMPLETE
+[09/27/2026 08:39:32] [Verbose] [NavigateToPage] PageContent cleared. Page.Content parent now: null
+[09/27/2026 08:39:32] [Verbose] [NavigateToPage] Creating fresh ContentControl wrapper...
+[09/27/2026 08:39:32] [Verbose] [NavigateToPage] Wrapper created. Page.Content parent now: ContentControl
+[09/27/2026 08:39:32] [Verbose] [NavigateToPage] Detaching sidebar...
+[09/27/2026 08:39:32] [Verbose] [DetachSidebar] START: content=ContentControl, hasParent=False
+[09/27/2026 08:39:32] [Verbose] [DetachSidebar] Detaching content...
+[09/27/2026 08:39:32] [Verbose] [DetachVisual] Control ContentControl has no parent, nothing to detach
+[09/27/2026 08:39:32] [Verbose] [DetachSidebar] Detaching sidebar...
+[09/27/2026 08:39:32] [Verbose] [DetachVisual] Control is null, nothing to detach
+[09/27/2026 08:39:32] [Verbose] [DetachSidebar] Setting PageContent.Content directly to content...
+[09/27/2026 08:39:32] [Verbose] [DetachSidebar] COMPLETE: Content parent is now: ContentControl
+[09/27/2026 08:39:32] [Verbose] [NavigateToPage] Sidebar detached. PageContent.Content type: ContentControl
+[09/27/2026 08:39:32] [Verbose] [NavigateToPage] Calling OnNavigatedToAsync...
+[09/27/2026 08:39:32] [Verbose] [NavigateToPage] OnNavigatedToAsync completed successfully
+[09/27/2026 08:39:32] [Verbose] [NavigateToPage] COMPLETE: Successfully navigated to page 0
+[09/27/2026 08:39:52] [Verbose] [Telemetry] Configuration saved
+[09/27/2026 08:39:52] [Verbose] [Telemetry] Configuration saved
+[09/27/2026 08:39:52] [Telemetry] User declined telemetry collection
+[09/27/2026 08:39:53] [Verbose] [NavigateToPage] START: pageIndex=1, _pages.Count=11
+[09/27/2026 08:39:53] [Verbose] [NavigateToPage] Page type: PreamblePage, Title: Before You Begin
+[09/27/2026 08:39:53] [Verbose] [NavigateToPage] Page.Content type: PreamblePage, HasParent: False
+[09/27/2026 08:39:53] [Verbose] [NavigateToPage] showDownloads=False
+[09/27/2026 08:39:53] [Verbose] [NavigateToPage] About to clear PageContent. Current content type: ContentControl
+[09/27/2026 08:39:53] [Verbose] [ClearPageContent] START: PageContent.Content type=ContentControl
+[09/27/2026 08:39:53] [Verbose] [ClearPageContent] Existing content: ContentControl
+[09/27/2026 08:39:53] [Verbose] [ClearPageContent] Clearing ContentControl inner control: WelcomePage
+[09/27/2026 08:39:53] [Verbose] [ClearPageContent] Detaching existing content from PageContent...
+[09/27/2026 08:39:53] [Verbose] [DetachVisual] Detaching ContentControl from parent ContentControl
+[09/27/2026 08:39:53] [Verbose] [DetachVisual] Detached from ContentControl
+[09/27/2026 08:39:53] [Verbose] [DetachVisual] SUCCESS: Control parent is now null
+[09/27/2026 08:39:53] [Verbose] [ClearPageContent] Setting PageContent.Content = null
+[09/27/2026 08:39:53] [Verbose] [ClearPageContent] COMPLETE
+[09/27/2026 08:39:53] [Verbose] [NavigateToPage] PageContent cleared. Page.Content parent now: null
+[09/27/2026 08:39:53] [Verbose] [NavigateToPage] Creating fresh ContentControl wrapper...
+[09/27/2026 08:39:53] [Verbose] [NavigateToPage] Wrapper created. Page.Content parent now: ContentControl
+[09/27/2026 08:39:53] [Verbose] [NavigateToPage] Detaching sidebar...
+[09/27/2026 08:39:53] [Verbose] [DetachSidebar] START: content=ContentControl, hasParent=False
+[09/27/2026 08:39:53] [Verbose] [DetachSidebar] Detaching content...
+[09/27/2026 08:39:53] [Verbose] [DetachVisual] Control ContentControl has no parent, nothing to detach
+[09/27/2026 08:39:53] [Verbose] [DetachSidebar] Detaching sidebar...
+[09/27/2026 08:39:53] [Verbose] [DetachVisual] Control is null, nothing to detach
+[09/27/2026 08:39:53] [Verbose] [DetachSidebar] Setting PageContent.Content directly to content...
+[09/27/2026 08:39:53] [Verbose] [DetachSidebar] COMPLETE: Content parent is now: ContentControl
+[09/27/2026 08:39:53] [Verbose] [NavigateToPage] Sidebar detached. PageContent.Content type: ContentControl
+[09/27/2026 08:39:53] [Verbose] [NavigateToPage] Calling OnNavigatedToAsync...
+[09/27/2026 08:39:53] [Verbose] [NavigateToPage] OnNavigatedToAsync completed successfully
+[09/27/2026 08:39:53] [Verbose] [NavigateToPage] COMPLETE: Successfully navigated to page 1
+[09/27/2026 08:40:05] [Verbose] [NavigateToPage] START: pageIndex=2, _pages.Count=11
+[09/27/2026 08:40:06] [Verbose] [NavigateToPage] Page type: ModDirectoryPage, Title: Mod Workspace Directory
+[09/27/2026 08:40:06] [Verbose] [NavigateToPage] Page.Content type: ModDirectoryPage, HasParent: False
+[09/27/2026 08:40:06] [Verbose] [NavigateToPage] showDownloads=False
+[09/27/2026 08:40:06] [Verbose] [NavigateToPage] About to clear PageContent. Current content type: ContentControl
+[09/27/2026 08:40:06] [Verbose] [ClearPageContent] START: PageContent.Content type=ContentControl
+[09/27/2026 08:40:06] [Verbose] [ClearPageContent] Existing content: ContentControl
+[09/27/2026 08:40:06] [Verbose] [ClearPageContent] Clearing ContentControl inner control: PreamblePage
+[09/27/2026 08:40:06] [Verbose] [ClearPageContent] Detaching existing content from PageContent...
+[09/27/2026 08:40:06] [Verbose] [DetachVisual] Detaching ContentControl from parent ContentControl
+[09/27/2026 08:40:06] [Verbose] [DetachVisual] Detached from ContentControl
+[09/27/2026 08:40:06] [Verbose] [DetachVisual] SUCCESS: Control parent is now null
+[09/27/2026 08:40:06] [Verbose] [ClearPageContent] Setting PageContent.Content = null
+[09/27/2026 08:40:06] [Verbose] [ClearPageContent] COMPLETE
+[09/27/2026 08:40:06] [Verbose] [NavigateToPage] PageContent cleared. Page.Content parent now: null
+[09/27/2026 08:40:06] [Verbose] [NavigateToPage] Creating fresh ContentControl wrapper...
+[09/27/2026 08:40:06] [Verbose] [NavigateToPage] Wrapper created. Page.Content parent now: ContentControl
+[09/27/2026 08:40:06] [Verbose] [NavigateToPage] Detaching sidebar...
+[09/27/2026 08:40:06] [Verbose] [DetachSidebar] START: content=ContentControl, hasParent=False
+[09/27/2026 08:40:06] [Verbose] [DetachSidebar] Detaching content...
+[09/27/2026 08:40:06] [Verbose] [DetachVisual] Control ContentControl has no parent, nothing to detach
+[09/27/2026 08:40:06] [Verbose] [DetachSidebar] Detaching sidebar...
+[09/27/2026 08:40:06] [Verbose] [DetachVisual] Control is null, nothing to detach
+[09/27/2026 08:40:06] [Verbose] [DetachSidebar] Setting PageContent.Content directly to content...
+[09/27/2026 08:40:06] [Verbose] [DetachSidebar] COMPLETE: Content parent is now: ContentControl
+[09/27/2026 08:40:06] [Verbose] [NavigateToPage] Sidebar detached. PageContent.Content type: ContentControl
+[09/27/2026 08:40:06] [Verbose] DirectoryPickerControl.OnAttachedToVisualTree
+[09/27/2026 08:40:06] [Verbose] DirectoryPickerControl[ModDirectory] InitializePathSuggestions: Starting initialization
+[09/27/2026 08:40:06] [Verbose] DirectoryPickerControl(ModDirectory) LoadRecentModPaths returned: 0 paths
+[09/27/2026 08:40:06] [Verbose] DirectoryPickerControl(ModDirectory) Set ItemsSource, current ItemsSource count: 0
+[09/27/2026 08:40:06] [Verbose] DirectoryPickerControl[ModDirectory] InitializePathSuggestions: ModDirectory initialized, ItemsSource count: 0
+[09/27/2026 08:40:06] [Verbose] DirectoryPickerControl.OnApplyTemplate
+[09/27/2026 08:40:06] [Verbose] DirectoryPickerControl[ModDirectory] InitializePathSuggestions: Starting initialization
+[09/27/2026 08:40:06] [Verbose] DirectoryPickerControl(ModDirectory) LoadRecentModPaths returned: 0 paths
+[09/27/2026 08:40:06] [Verbose] DirectoryPickerControl(ModDirectory) Set ItemsSource, current ItemsSource count: 0
+[09/27/2026 08:40:06] [Verbose] DirectoryPickerControl[ModDirectory] InitializePathSuggestions: ModDirectory initialized, ItemsSource count: 0
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] Calling OnNavigatedToAsync...
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl[ModDirectory] SetCurrentPath -> '/tmp/modsync-install-reference-20260927/mods' (fireEvent=False)
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl[ModDirectory] GetCurrentPath -> '/tmp/modsync-install-reference-20260927/mods'
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] OnNavigatedToAsync completed successfully
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl[ModDirectory] TextChanged: '/tmp/modsync-install-reference-20260927/mods'
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl[ModDirectory] Watching directory: '/tmp/modsync-install-reference-20260927/mods'
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] COMPLETE: Successfully navigated to page 2
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl[ModDirectory] GetCurrentPath -> '/tmp/modsync-install-reference-20260927/mods'
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl[ModDirectory] GetCurrentPath -> '/tmp/modsync-install-reference-20260927/mods'
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] START: pageIndex=3, _pages.Count=11
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] Page type: GameDirectoryPage, Title: KOTOR Game Directory
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] Page.Content type: GameDirectoryPage, HasParent: False
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] showDownloads=False
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] About to clear PageContent. Current content type: ContentControl
+[09/27/2026 08:40:07] [Verbose] [ClearPageContent] START: PageContent.Content type=ContentControl
+[09/27/2026 08:40:07] [Verbose] [ClearPageContent] Existing content: ContentControl
+[09/27/2026 08:40:07] [Verbose] [ClearPageContent] Clearing ContentControl inner control: ModDirectoryPage
+[09/27/2026 08:40:07] [Verbose] [ClearPageContent] Detaching existing content from PageContent...
+[09/27/2026 08:40:07] [Verbose] [DetachVisual] Detaching ContentControl from parent ContentControl
+[09/27/2026 08:40:07] [Verbose] [DetachVisual] Detached from ContentControl
+[09/27/2026 08:40:07] [Verbose] [DetachVisual] SUCCESS: Control parent is now null
+[09/27/2026 08:40:07] [Verbose] [ClearPageContent] Setting PageContent.Content = null
+[09/27/2026 08:40:07] [Verbose] [ClearPageContent] COMPLETE
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] PageContent cleared. Page.Content parent now: null
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] Creating fresh ContentControl wrapper...
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] Wrapper created. Page.Content parent now: ContentControl
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] Detaching sidebar...
+[09/27/2026 08:40:07] [Verbose] [DetachSidebar] START: content=ContentControl, hasParent=False
+[09/27/2026 08:40:07] [Verbose] [DetachSidebar] Detaching content...
+[09/27/2026 08:40:07] [Verbose] [DetachVisual] Control ContentControl has no parent, nothing to detach
+[09/27/2026 08:40:07] [Verbose] [DetachSidebar] Detaching sidebar...
+[09/27/2026 08:40:07] [Verbose] [DetachVisual] Control is null, nothing to detach
+[09/27/2026 08:40:07] [Verbose] [DetachSidebar] Setting PageContent.Content directly to content...
+[09/27/2026 08:40:07] [Verbose] [DetachSidebar] COMPLETE: Content parent is now: ContentControl
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] Sidebar detached. PageContent.Content type: ContentControl
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl.OnAttachedToVisualTree
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl[KotorDirectory] InitializePathSuggestions: Starting initialization
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl.GetDefaultPathsForGame OS=LINUX
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl.GetDefaultPathsForGame returning 4 paths
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl(KotorDirectory) GetDefaultPathsForGame returned: 4 paths
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl(KotorDirectory) Found 2 existing paths
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl(KotorDirectory) Existing paths: /home/brunner56/.steam/steam/steamapps/common/swkotor, /home/brunner56/.local/share/Steam/steamapps/common/swkotor
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl(KotorDirectory) Set ItemsSource with 2 items
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl(KotorDirectory) added 2 default paths, total items: 2
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl[KotorDirectory] InitializePathSuggestions: KotorDirectory initialized, ItemsSource count: 2
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl.OnApplyTemplate
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl[KotorDirectory] InitializePathSuggestions: Starting initialization
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl.GetDefaultPathsForGame OS=LINUX
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl.GetDefaultPathsForGame returning 4 paths
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl(KotorDirectory) GetDefaultPathsForGame returned: 4 paths
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl(KotorDirectory) Found 2 existing paths
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl(KotorDirectory) Existing paths: /home/brunner56/.steam/steam/steamapps/common/swkotor, /home/brunner56/.local/share/Steam/steamapps/common/swkotor
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl(KotorDirectory) Set ItemsSource with 2 items
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl(KotorDirectory) added 2 default paths, total items: 2
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl[KotorDirectory] InitializePathSuggestions: KotorDirectory initialized, ItemsSource count: 2
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] Calling OnNavigatedToAsync...
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl[KotorDirectory] SetCurrentPath -> '/tmp/modsync-install-reference-20260927/game' (fireEvent=False)
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl[KotorDirectory] Added path to suggestions: '/tmp/modsync-install-reference-20260927/game'
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl[KotorDirectory] GetCurrentPath -> '/tmp/modsync-install-reference-20260927/game'
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] OnNavigatedToAsync completed successfully
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl[KotorDirectory] TextChanged: '/tmp/modsync-install-reference-20260927/game'
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl[KotorDirectory] Watching directory: '/tmp/modsync-install-reference-20260927/game'
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] COMPLETE: Successfully navigated to page 3
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl[KotorDirectory] GetCurrentPath -> '/tmp/modsync-install-reference-20260927/game'
+[09/27/2026 08:40:07] [Verbose] DirectoryPickerControl[KotorDirectory] GetCurrentPath -> '/tmp/modsync-install-reference-20260927/game'
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] START: pageIndex=4, _pages.Count=11
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] Page type: ModSelectionPage, Title: Mod Selection
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] Page.Content type: ModSelectionPage, HasParent: False
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] showDownloads=False
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] About to clear PageContent. Current content type: ContentControl
+[09/27/2026 08:40:07] [Verbose] [ClearPageContent] START: PageContent.Content type=ContentControl
+[09/27/2026 08:40:07] [Verbose] [ClearPageContent] Existing content: ContentControl
+[09/27/2026 08:40:07] [Verbose] [ClearPageContent] Clearing ContentControl inner control: GameDirectoryPage
+[09/27/2026 08:40:07] [Verbose] [ClearPageContent] Detaching existing content from PageContent...
+[09/27/2026 08:40:07] [Verbose] [DetachVisual] Detaching ContentControl from parent ContentControl
+[09/27/2026 08:40:07] [Verbose] [DetachVisual] Detached from ContentControl
+[09/27/2026 08:40:07] [Verbose] [DetachVisual] SUCCESS: Control parent is now null
+[09/27/2026 08:40:07] [Verbose] [ClearPageContent] Setting PageContent.Content = null
+[09/27/2026 08:40:07] [Verbose] [ClearPageContent] COMPLETE
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] PageContent cleared. Page.Content parent now: null
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] Creating fresh ContentControl wrapper...
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] Wrapper created. Page.Content parent now: ContentControl
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] Detaching sidebar...
+[09/27/2026 08:40:07] [Verbose] [DetachSidebar] START: content=ContentControl, hasParent=False
+[09/27/2026 08:40:07] [Verbose] [DetachSidebar] Detaching content...
+[09/27/2026 08:40:07] [Verbose] [DetachVisual] Control ContentControl has no parent, nothing to detach
+[09/27/2026 08:40:07] [Verbose] [DetachSidebar] Detaching sidebar...
+[09/27/2026 08:40:07] [Verbose] [DetachVisual] Control is null, nothing to detach
+[09/27/2026 08:40:07] [Verbose] [DetachSidebar] Setting PageContent.Content directly to content...
+[09/27/2026 08:40:07] [Verbose] [DetachSidebar] COMPLETE: Content parent is now: ContentControl
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] Sidebar detached. PageContent.Content type: ContentControl
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] Calling OnNavigatedToAsync...
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] OnNavigatedToAsync completed successfully
+[09/27/2026 08:40:07] [Verbose] [NavigateToPage] COMPLETE: Successfully navigated to page 4
+[09/27/2026 08:40:18] [Verbose] [NavigateToPage] START: pageIndex=5, _pages.Count=11
+[09/27/2026 08:40:18] [Verbose] [NavigateToPage] Page type: DownloadsExplainPage, Title: Download Process
+[09/27/2026 08:40:18] [Verbose] [NavigateToPage] Page.Content type: DownloadsExplainPage, HasParent: False
+[09/27/2026 08:40:18] [Verbose] [NavigateToPage] showDownloads=True
+[09/27/2026 08:40:18] [Verbose] [NavigateToPage] About to clear PageContent. Current content type: ContentControl
+[09/27/2026 08:40:18] [Verbose] [ClearPageContent] START: PageContent.Content type=ContentControl
+[09/27/2026 08:40:18] [Verbose] [ClearPageContent] Existing content: ContentControl
+[09/27/2026 08:40:18] [Verbose] [ClearPageContent] Clearing ContentControl inner control: ModSelectionPage
+[09/27/2026 08:40:18] [Verbose] [ClearPageContent] Detaching existing content from PageContent...
+[09/27/2026 08:40:18] [Verbose] [DetachVisual] Detaching ContentControl from parent ContentControl
+[09/27/2026 08:40:18] [Verbose] [DetachVisual] Detached from ContentControl
+[09/27/2026 08:40:18] [Verbose] [DetachVisual] SUCCESS: Control parent is now null
+[09/27/2026 08:40:18] [Verbose] [ClearPageContent] Setting PageContent.Content = null
+[09/27/2026 08:40:18] [Verbose] [ClearPageContent] COMPLETE
+[09/27/2026 08:40:18] [Verbose] [NavigateToPage] PageContent cleared. Page.Content parent now: null
+[09/27/2026 08:40:18] [Verbose] [NavigateToPage] Creating fresh ContentControl wrapper...
+[09/27/2026 08:40:18] [Verbose] [NavigateToPage] Wrapper created. Page.Content parent now: ContentControl
+[09/27/2026 08:40:18] [Verbose] [NavigateToPage] Attaching sidebar...
+[09/27/2026 08:40:18] [Verbose] [AttachSidebar] START: content=ContentControl, hasParent=False
+[09/27/2026 08:40:18] [Verbose] [AttachSidebar] Detaching content from existing parent...
+[09/27/2026 08:40:18] [Verbose] [DetachVisual] Control ContentControl has no parent, nothing to detach
+[09/27/2026 08:40:18] [Verbose] [AttachSidebar] Detaching sidebar from existing parent...
+[09/27/2026 08:40:18] [Verbose] [DetachVisual] Control Border has no parent, nothing to detach
+[09/27/2026 08:40:18] [Verbose] [AttachSidebar] Creating Grid wrapper...
+[09/27/2026 08:40:18] [Verbose] [AttachSidebar] Adding content to Grid column 0...
+[09/27/2026 08:40:18] [Verbose] [AttachSidebar] Content added. Parent is now: Grid
+[09/27/2026 08:40:18] [Verbose] [AttachSidebar] Adding sidebar to Grid column 1...
+[09/27/2026 08:40:18] [Verbose] [AttachSidebar] Sidebar added. Grid has 2 children
+[09/27/2026 08:40:18] [Verbose] [AttachSidebar] Setting PageContent.Content to Grid...
+[09/27/2026 08:40:18] [Verbose] [AttachSidebar] COMPLETE: PageContent.Content is now: Grid
+[09/27/2026 08:40:18] [Verbose] [NavigateToPage] Sidebar attached. PageContent.Content type: Grid
+[09/27/2026 08:40:18] [Verbose] [NavigateToPage] Calling OnNavigatedToAsync...
+[09/27/2026 08:40:18] [Verbose] [NavigateToPage] OnNavigatedToAsync completed successfully
+[09/27/2026 08:40:18] [Verbose] [NavigateToPage] COMPLETE: Successfully navigated to page 5
+[09/27/2026 08:40:31] [Verbose] [NavigateToPage] START: pageIndex=6, _pages.Count=11
+[09/27/2026 08:40:31] [Verbose] [NavigateToPage] Page type: ValidatePage, Title: Validation
+[09/27/2026 08:40:31] [Verbose] [NavigateToPage] Page.Content type: ValidatePage, HasParent: False
+[09/27/2026 08:40:31] [Verbose] [NavigateToPage] showDownloads=True
+[09/27/2026 08:40:31] [Verbose] [NavigateToPage] About to clear PageContent. Current content type: Grid
+[09/27/2026 08:40:31] [Verbose] [ClearPageContent] START: PageContent.Content type=Grid
+[09/27/2026 08:40:31] [Verbose] [ClearPageContent] Existing content: Grid
+[09/27/2026 08:40:31] [Verbose] [ClearPageContent] Existing content is Grid with 2 children
+[09/27/2026 08:40:31] [Verbose] [ClearPageContent] Removing Grid child: ContentControl
+[09/27/2026 08:40:31] [Verbose] [DetachVisual] Control ContentControl has no parent, nothing to detach
+[09/27/2026 08:40:31] [Verbose] [ClearPageContent] Removing Grid child: Border
+[09/27/2026 08:40:31] [Verbose] [DetachVisual] Control Border has no parent, nothing to detach
+[09/27/2026 08:40:31] [Verbose] [ClearPageContent] Detaching existing content from PageContent...
+[09/27/2026 08:40:31] [Verbose] [DetachVisual] Detaching Grid from parent ContentControl
+[09/27/2026 08:40:31] [Verbose] [DetachVisual] Detached from ContentControl
+[09/27/2026 08:40:31] [Verbose] [DetachVisual] SUCCESS: Control parent is now null
+[09/27/2026 08:40:31] [Verbose] [ClearPageContent] Setting PageContent.Content = null
+[09/27/2026 08:40:31] [Verbose] [ClearPageContent] COMPLETE
+[09/27/2026 08:40:31] [Verbose] [NavigateToPage] PageContent cleared. Page.Content parent now: null
+[09/27/2026 08:40:31] [Verbose] [NavigateToPage] Creating fresh ContentControl wrapper...
+[09/27/2026 08:40:31] [Verbose] [NavigateToPage] Wrapper created. Page.Content parent now: ContentControl
+[09/27/2026 08:40:31] [Verbose] [NavigateToPage] Attaching sidebar...
+[09/27/2026 08:40:31] [Verbose] [AttachSidebar] START: content=ContentControl, hasParent=False
+[09/27/2026 08:40:31] [Verbose] [AttachSidebar] Detaching content from existing parent...
+[09/27/2026 08:40:31] [Verbose] [DetachVisual] Control ContentControl has no parent, nothing to detach
+[09/27/2026 08:40:31] [Verbose] [AttachSidebar] Detaching sidebar from existing parent...
+[09/27/2026 08:40:31] [Verbose] [DetachVisual] Control Border has no parent, nothing to detach
+[09/27/2026 08:40:31] [Verbose] [AttachSidebar] Creating Grid wrapper...
+[09/27/2026 08:40:31] [Verbose] [AttachSidebar] Adding content to Grid column 0...
+[09/27/2026 08:40:31] [Verbose] [AttachSidebar] Content added. Parent is now: Grid
+[09/27/2026 08:40:31] [Verbose] [AttachSidebar] Adding sidebar to Grid column 1...
+[09/27/2026 08:40:31] [Verbose] [AttachSidebar] Sidebar added. Grid has 2 children
+[09/27/2026 08:40:31] [Verbose] [AttachSidebar] Setting PageContent.Content to Grid...
+[09/27/2026 08:40:31] [Verbose] [AttachSidebar] COMPLETE: PageContent.Content is now: Grid
+[09/27/2026 08:40:31] [Verbose] [NavigateToPage] Sidebar attached. PageContent.Content type: Grid
+[09/27/2026 08:40:31] [Verbose] [NavigateToPage] Calling OnNavigatedToAsync...
+[09/27/2026 08:40:31] [Verbose] [NavigateToPage] OnNavigatedToAsync completed successfully
+[09/27/2026 08:40:31] [Verbose] [NavigateToPage] COMPLETE: Successfully navigated to page 6
+[09/27/2026 08:40:47] [Verbose] Holopatcher executable not found at '/tmp/modsync-validation-reference-20260927-5813/artifacts/bin/ModSync/debug_net9.0/Resources/HoloPatcher.app/Contents/MacOS/holopatcher'...
+[09/27/2026 08:40:47] [Verbose] Found holopatcher executable at '/tmp/modsync-validation-reference-20260927-5813/artifacts/bin/ModSync/debug_net9.0/Resources/holopatcher'...
+[09/27/2026 08:40:47] [Verbose] Holopatcher Python source not found at '/tmp/modsync-validation-reference-20260927-5813/artifacts/bin/ModSync/debug_net9.0/Resources/PyKotor/Tools/HoloPatcher/src/holopatcher'...
+[09/27/2026 08:40:47] [Verbose] Ensuring the holopatcher binary has executable permissions...
+[09/27/2026 08:40:52] [Note] - No mod chosen: Select your mod directory first.
+[09/27/2026 08:40:52] Finding duplicate case-insensitive folders/files in the install destination...
+[09/27/2026 08:40:52] Checking for duplicate components...
+[09/27/2026 08:40:52] Ensuring both the mod directory and the install directory are writable...
+[09/27/2026 08:40:52] Validating individual components, this might take a while...
+[09/27/2026 08:40:52] [Verbose]  == Validating 'Fixture' == 
+[09/27/2026 08:40:52] [Verbose] Finished validating all components.
+[09/27/2026 08:40:53] [Verbose] [Instruction.SetRealPaths] Action=Copy, Source count=1, sourceIsNotFilePath=False, skipExistenceCheck=False
+[09/27/2026 08:40:53] [Verbose] [Instruction.SetRealPaths] Raw Source paths: [<<modDirectory>>/sample.tga]
+[09/27/2026 08:40:53] [Verbose] [Instruction.SetRealPaths] MainConfig.SourcePath: /tmp/modsync-install-reference-20260927/mods
+[09/27/2026 08:40:53] [Verbose] [Instruction.SetRealPaths] MainConfig.DestinationPath: /tmp/modsync-install-reference-20260927/game
+[09/27/2026 08:40:53] [Verbose] [Instruction.SetRealPaths] Calling ReplaceCustomVariables on source paths...
+[09/27/2026 08:40:53] [Verbose] [Instruction.SetRealPaths] After ReplaceCustomVariables on source: [/tmp/modsync-install-reference-20260927/mods/sample.tga]
+[09/27/2026 08:40:53] [Verbose] [Instruction.SetRealPaths] Calling EnumerateFilesWithWildcards with processed paths...
+[09/27/2026 08:40:53] [Verbose] [PathHelper] EnumerateFilesWithWildcards: path=/tmp/modsync-install-reference-20260927/mods/sample.tga, formatted=/tmp/modsync-install-reference-20260927/mods/sample.tga
+[09/27/2026 08:40:53] [Verbose] [PathHelper] No wildcards, checking FileExists...
+[09/27/2026 08:40:53] [Verbose] [PathHelper] EXISTS! Adding: /tmp/modsync-install-reference-20260927/mods/sample.tga
+[09/27/2026 08:40:53] [Verbose] [Instruction.SetRealPaths] After EnumerateFilesWithWildcards: Found 1 files
+[09/27/2026 08:40:53] [Verbose] [Instruction.SetRealPaths] Raw Destination: <<kotorDirectory>>/Override
+[09/27/2026 08:40:53] [Verbose] [Instruction.SetRealPaths] After ReplaceCustomVariables on Destination: /tmp/modsync-install-reference-20260927/game/Override
+[09/27/2026 08:40:53] [Verbose] [Instruction.SetRealPaths] TryGetValidDirectoryInfo result: /tmp/modsync-install-reference-20260927/game/Override
+[09/27/2026 08:40:53] [Verbose] [PathHelper.GetRelativePath] Called with relativeTo='/tmp/modsync-install-reference-20260927/mods', path='/tmp/modsync-install-reference-20260927/mods/sample.tga'
+[09/27/2026 08:40:53] [Verbose] [PathHelper.GetRelativePath] After FixPathFormatting: relativeTo='/tmp/modsync-install-reference-20260927/mods', path='/tmp/modsync-install-reference-20260927/mods/sample.tga'
+[09/27/2026 08:40:53] [Verbose] [PathHelper.GetRelativePath] After GetFullPath: relativeTo='/tmp/modsync-install-reference-20260927/mods', path='/tmp/modsync-install-reference-20260927/mods/sample.tga'
+[09/27/2026 08:40:53] [Verbose] [PathHelper.GetRelativePath] Common path length: 40
+[09/27/2026 08:40:53] [Verbose] [PathHelper.GetRelativePath] Returning relative path: 'mods/sample.tga'
+[09/27/2026 08:40:53] [Verbose] [PathHelper.GetRelativePath] Called with relativeTo='/tmp/modsync-install-reference-20260927/game', path='/tmp/modsync-install-reference-20260927/game/Override/sample.tga'
+[09/27/2026 08:40:53] [Verbose] [PathHelper.GetRelativePath] After FixPathFormatting: relativeTo='/tmp/modsync-install-reference-20260927/game', path='/tmp/modsync-install-reference-20260927/game/Override/sample.tga'
+[09/27/2026 08:40:53] [Verbose] [PathHelper.GetRelativePath] After GetFullPath: relativeTo='/tmp/modsync-install-reference-20260927/game', path='/tmp/modsync-install-reference-20260927/game/Override/sample.tga'
+[09/27/2026 08:40:53] [Verbose] [PathHelper.GetRelativePath] Common path length: 40
+[09/27/2026 08:40:53] [Verbose] [PathHelper.GetRelativePath] Returning relative path: 'game/Override/sample.tga'
+[09/27/2026 08:40:53] Copy 'mods/sample.tga' to 'game/Override/sample.tga'
+[09/27/2026 08:40:53] [Verbose] Instruction #1 'Copy' exited with code Success
+[09/27/2026 08:40:53] [Verbose] Successfully completed instruction #1 'Copy'
+[09/27/2026 08:40:59] [Verbose] [NavigateToPage] START: pageIndex=7, _pages.Count=11
+[09/27/2026 08:40:59] [Verbose] [NavigateToPage] Page type: InstallStartPage, Title: Ready to Install
+[09/27/2026 08:40:59] [Verbose] [NavigateToPage] Page.Content type: InstallStartPage, HasParent: False
+[09/27/2026 08:40:59] [Verbose] [NavigateToPage] showDownloads=True
+[09/27/2026 08:40:59] [Verbose] [NavigateToPage] About to clear PageContent. Current content type: Grid
+[09/27/2026 08:40:59] [Verbose] [ClearPageContent] START: PageContent.Content type=Grid
+[09/27/2026 08:40:59] [Verbose] [ClearPageContent] Existing content: Grid
+[09/27/2026 08:40:59] [Verbose] [ClearPageContent] Existing content is Grid with 2 children
+[09/27/2026 08:40:59] [Verbose] [ClearPageContent] Removing Grid child: ContentControl
+[09/27/2026 08:40:59] [Verbose] [DetachVisual] Control ContentControl has no parent, nothing to detach
+[09/27/2026 08:40:59] [Verbose] [ClearPageContent] Removing Grid child: Border
+[09/27/2026 08:40:59] [Verbose] [DetachVisual] Control Border has no parent, nothing to detach
+[09/27/2026 08:40:59] [Verbose] [ClearPageContent] Detaching existing content from PageContent...
+[09/27/2026 08:40:59] [Verbose] [DetachVisual] Detaching Grid from parent ContentControl
+[09/27/2026 08:40:59] [Verbose] [DetachVisual] Detached from ContentControl
+[09/27/2026 08:40:59] [Verbose] [DetachVisual] SUCCESS: Control parent is now null
+[09/27/2026 08:40:59] [Verbose] [ClearPageContent] Setting PageContent.Content = null
+[09/27/2026 08:40:59] [Verbose] [ClearPageContent] COMPLETE
+[09/27/2026 08:40:59] [Verbose] [NavigateToPage] PageContent cleared. Page.Content parent now: null
+[09/27/2026 08:40:59] [Verbose] [NavigateToPage] Creating fresh ContentControl wrapper...
+[09/27/2026 08:40:59] [Verbose] [NavigateToPage] Wrapper created. Page.Content parent now: ContentControl
+[09/27/2026 08:40:59] [Verbose] [NavigateToPage] Attaching sidebar...
+[09/27/2026 08:40:59] [Verbose] [AttachSidebar] START: content=ContentControl, hasParent=False
+[09/27/2026 08:40:59] [Verbose] [AttachSidebar] Detaching content from existing parent...
+[09/27/2026 08:40:59] [Verbose] [DetachVisual] Control ContentControl has no parent, nothing to detach
+[09/27/2026 08:40:59] [Verbose] [AttachSidebar] Detaching sidebar from existing parent...
+[09/27/2026 08:40:59] [Verbose] [DetachVisual] Control Border has no parent, nothing to detach
+[09/27/2026 08:40:59] [Verbose] [AttachSidebar] Creating Grid wrapper...
+[09/27/2026 08:40:59] [Verbose] [AttachSidebar] Adding content to Grid column 0...
+[09/27/2026 08:40:59] [Verbose] [AttachSidebar] Content added. Parent is now: Grid
+[09/27/2026 08:40:59] [Verbose] [AttachSidebar] Adding sidebar to Grid column 1...
+[09/27/2026 08:40:59] [Verbose] [AttachSidebar] Sidebar added. Grid has 2 children
+[09/27/2026 08:40:59] [Verbose] [AttachSidebar] Setting PageContent.Content to Grid...
+[09/27/2026 08:40:59] [Verbose] [AttachSidebar] COMPLETE: PageContent.Content is now: Grid
+[09/27/2026 08:40:59] [Verbose] [NavigateToPage] Sidebar attached. PageContent.Content type: Grid
+[09/27/2026 08:40:59] [Verbose] [NavigateToPage] Calling OnNavigatedToAsync...
+[09/27/2026 08:40:59] [Verbose] [NavigateToPage] OnNavigatedToAsync completed successfully
+[09/27/2026 08:40:59] [Verbose] [NavigateToPage] COMPLETE: Successfully navigated to page 7
+[09/27/2026 08:41:17] [Verbose] [NavigateToPage] START: pageIndex=8, _pages.Count=11
+[09/27/2026 08:41:17] [Verbose] [NavigateToPage] Page type: InstallingPage, Title: Installing Mods
+[09/27/2026 08:41:17] [Verbose] [NavigateToPage] Page.Content type: InstallingPage, HasParent: False
+[09/27/2026 08:41:17] [Verbose] [NavigateToPage] showDownloads=True
+[09/27/2026 08:41:17] [Verbose] [NavigateToPage] About to clear PageContent. Current content type: Grid
+[09/27/2026 08:41:17] [Verbose] [ClearPageContent] START: PageContent.Content type=Grid
+[09/27/2026 08:41:17] [Verbose] [ClearPageContent] Existing content: Grid
+[09/27/2026 08:41:17] [Verbose] [ClearPageContent] Existing content is Grid with 2 children
+[09/27/2026 08:41:17] [Verbose] [ClearPageContent] Removing Grid child: ContentControl
+[09/27/2026 08:41:17] [Verbose] [DetachVisual] Control ContentControl has no parent, nothing to detach
+[09/27/2026 08:41:17] [Verbose] [ClearPageContent] Removing Grid child: Border
+[09/27/2026 08:41:17] [Verbose] [DetachVisual] Control Border has no parent, nothing to detach
+[09/27/2026 08:41:17] [Verbose] [ClearPageContent] Detaching existing content from PageContent...
+[09/27/2026 08:41:17] [Verbose] [DetachVisual] Detaching Grid from parent ContentControl
+[09/27/2026 08:41:17] [Verbose] [DetachVisual] Detached from ContentControl
+[09/27/2026 08:41:17] [Verbose] [DetachVisual] SUCCESS: Control parent is now null
+[09/27/2026 08:41:17] [Verbose] [ClearPageContent] Setting PageContent.Content = null
+[09/27/2026 08:41:17] [Verbose] [ClearPageContent] COMPLETE
+[09/27/2026 08:41:17] [Verbose] [NavigateToPage] PageContent cleared. Page.Content parent now: null
+[09/27/2026 08:41:17] [Verbose] [NavigateToPage] Creating fresh ContentControl wrapper...
+[09/27/2026 08:41:17] [Verbose] [NavigateToPage] Wrapper created. Page.Content parent now: ContentControl
+[09/27/2026 08:41:17] [Verbose] [NavigateToPage] Attaching sidebar...
+[09/27/2026 08:41:17] [Verbose] [AttachSidebar] START: content=ContentControl, hasParent=False
+[09/27/2026 08:41:17] [Verbose] [AttachSidebar] Detaching content from existing parent...
+[09/27/2026 08:41:17] [Verbose] [DetachVisual] Control ContentControl has no parent, nothing to detach
+[09/27/2026 08:41:17] [Verbose] [AttachSidebar] Detaching sidebar from existing parent...
+[09/27/2026 08:41:17] [Verbose] [DetachVisual] Control Border has no parent, nothing to detach
+[09/27/2026 08:41:17] [Verbose] [AttachSidebar] Creating Grid wrapper...
+[09/27/2026 08:41:17] [Verbose] [AttachSidebar] Adding content to Grid column 0...
+[09/27/2026 08:41:17] [Verbose] [AttachSidebar] Content added. Parent is now: Grid
+[09/27/2026 08:41:17] [Verbose] [AttachSidebar] Adding sidebar to Grid column 1...
+[09/27/2026 08:41:17] [Verbose] [AttachSidebar] Sidebar added. Grid has 2 children
+[09/27/2026 08:41:17] [Verbose] [AttachSidebar] Setting PageContent.Content to Grid...
+[09/27/2026 08:41:17] [Verbose] [AttachSidebar] COMPLETE: PageContent.Content is now: Grid
+[09/27/2026 08:41:17] [Verbose] [NavigateToPage] Sidebar attached. PageContent.Content type: Grid
+[09/27/2026 08:41:17] [Verbose] [NavigateToPage] Calling OnNavigatedToAsync...
+[09/27/2026 08:41:17] [Verbose] [NavigateToPage] OnNavigatedToAsync completed successfully
+[09/27/2026 08:41:17] [Verbose] [NavigateToPage] COMPLETE: Successfully navigated to page 8
+[09/27/2026 08:41:17] Initializing checkpoint system...
+[09/27/2026 08:41:18] Creating install backup snapshot (full game-directory copy + zip). This can take several minutes on large installs or slow disks; use --no-checkpoint to skip.
+[09/27/2026 08:41:18] Install backup snapshot ready.
+[09/27/2026 08:41:18] Initializing Git checkpoint baseline (copies the full game tree into .modsync). This can also take several minutes; use --no-checkpoint to skip.
+[09/27/2026 08:41:18] Initializing Git-based checkpoint system...
+[09/27/2026 08:41:18] Creating new git repository for checkpoints...
+[09/27/2026 08:41:18] Creating baseline checkpoint of game directory...
+[09/27/2026 08:41:19] Checkpoint system initialized. Baseline: e7ab67fc22a62c6a5667cb171b5e964c9006eb34
+[09/27/2026 08:41:19] Start install of 'Fixture'...
+[09/27/2026 08:41:19] [Verbose] [Instruction.SetRealPaths] Action=Copy, Source count=1, sourceIsNotFilePath=False, skipExistenceCheck=False
+[09/27/2026 08:41:19] [Verbose] [Instruction.SetRealPaths] Raw Source paths: [<<modDirectory>>/sample.tga]
+[09/27/2026 08:41:19] [Verbose] [Instruction.SetRealPaths] MainConfig.SourcePath: /tmp/modsync-install-reference-20260927/mods
+[09/27/2026 08:41:19] [Verbose] [Instruction.SetRealPaths] MainConfig.DestinationPath: /tmp/modsync-install-reference-20260927/game
+[09/27/2026 08:41:19] [Verbose] [Instruction.SetRealPaths] Calling ReplaceCustomVariables on source paths...
+[09/27/2026 08:41:19] [Verbose] [Instruction.SetRealPaths] After ReplaceCustomVariables on source: [/tmp/modsync-install-reference-20260927/mods/sample.tga]
+[09/27/2026 08:41:19] [Verbose] [Instruction.SetRealPaths] Calling EnumerateFilesWithWildcards with processed paths...
+[09/27/2026 08:41:19] [Verbose] [PathHelper] EnumerateFilesWithWildcards: path=/tmp/modsync-install-reference-20260927/mods/sample.tga, formatted=/tmp/modsync-install-reference-20260927/mods/sample.tga
+[09/27/2026 08:41:19] [Verbose] [PathHelper] No wildcards, checking FileExists...
+[09/27/2026 08:41:19] [Verbose] [PathHelper] EXISTS! Adding: /tmp/modsync-install-reference-20260927/mods/sample.tga
+[09/27/2026 08:41:19] [Verbose] [Instruction.SetRealPaths] After EnumerateFilesWithWildcards: Found 1 files
+[09/27/2026 08:41:19] [Verbose] [Instruction.SetRealPaths] Raw Destination: <<kotorDirectory>>/Override
+[09/27/2026 08:41:19] [Verbose] [Instruction.SetRealPaths] After ReplaceCustomVariables on Destination: /tmp/modsync-install-reference-20260927/game/Override
+[09/27/2026 08:41:19] [Verbose] [Instruction.SetRealPaths] TryGetValidDirectoryInfo result: /tmp/modsync-install-reference-20260927/game/Override
+[09/27/2026 08:41:19] [Verbose] [PathHelper.GetRelativePath] Called with relativeTo='/tmp/modsync-install-reference-20260927/mods', path='/tmp/modsync-install-reference-20260927/mods/sample.tga'
+[09/27/2026 08:41:19] [Verbose] [PathHelper.GetRelativePath] After FixPathFormatting: relativeTo='/tmp/modsync-install-reference-20260927/mods', path='/tmp/modsync-install-reference-20260927/mods/sample.tga'
+[09/27/2026 08:41:19] [Verbose] [PathHelper.GetRelativePath] After GetFullPath: relativeTo='/tmp/modsync-install-reference-20260927/mods', path='/tmp/modsync-install-reference-20260927/mods/sample.tga'
+[09/27/2026 08:41:19] [Verbose] [PathHelper.GetRelativePath] Common path length: 40
+[09/27/2026 08:41:19] [Verbose] [PathHelper.GetRelativePath] Returning relative path: 'mods/sample.tga'
+[09/27/2026 08:41:19] [Verbose] [PathHelper.GetRelativePath] Called with relativeTo='/tmp/modsync-install-reference-20260927/game', path='/tmp/modsync-install-reference-20260927/game/Override/sample.tga'
+[09/27/2026 08:41:19] [Verbose] [PathHelper.GetRelativePath] After FixPathFormatting: relativeTo='/tmp/modsync-install-reference-20260927/game', path='/tmp/modsync-install-reference-20260927/game/Override/sample.tga'
+[09/27/2026 08:41:19] [Verbose] [PathHelper.GetRelativePath] After GetFullPath: relativeTo='/tmp/modsync-install-reference-20260927/game', path='/tmp/modsync-install-reference-20260927/game/Override/sample.tga'
+[09/27/2026 08:41:19] [Verbose] [PathHelper.GetRelativePath] Common path length: 40
+[09/27/2026 08:41:19] [Verbose] [PathHelper.GetRelativePath] Returning relative path: 'game/Override/sample.tga'
+[09/27/2026 08:41:19] Copy 'mods/sample.tga' to 'game/Override/sample.tga'
+[09/27/2026 08:41:19] [Verbose] Instruction #1 'Copy' exited with code Success
+[09/27/2026 08:41:19] [Verbose] Successfully completed instruction #1 'Copy'
+[09/27/2026 08:41:19] Completed Successfully
+[09/27/2026 08:41:19] Install of 'Fixture' succeeded.
+[09/27/2026 08:41:19] ✓ Checkpoint created: 348ecd6e - Fixture
+[09/27/2026 08:41:19] ✓ Checkpoint created: 348ecd6e
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activating service name='org.freedesktop.systemd1' requested by ':1.7' (uid=1000 pid=2418156 comm="/usr/bin/dbus-broker-launch --config-file=/usr/sha" label="unconfined_u:unconfined_r:unconfined_dbusd_t:s0-s0:c0.c1023")
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activated service 'org.freedesktop.systemd1' failed: Process org.freedesktop.systemd1 exited with status 1
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activating service name='org.freedesktop.systemd1' requested by ':1.7' (uid=1000 pid=2418156 comm="/usr/bin/dbus-broker-launch --config-file=/usr/sha" label="unconfined_u:unconfined_r:unconfined_dbusd_t:s0-s0:c0.c1023")
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activated service 'org.freedesktop.systemd1' failed: Process org.freedesktop.systemd1 exited with status 1
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activating service name='org.freedesktop.systemd1' requested by ':1.7' (uid=1000 pid=2418156 comm="/usr/bin/dbus-broker-launch --config-file=/usr/sha" label="unconfined_u:unconfined_r:unconfined_dbusd_t:s0-s0:c0.c1023")
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activated service 'org.freedesktop.systemd1' failed: Process org.freedesktop.systemd1 exited with status 1
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activating service name='org.freedesktop.systemd1' requested by ':1.7' (uid=1000 pid=2418156 comm="/usr/bin/dbus-broker-launch --config-file=/usr/sha" label="unconfined_u:unconfined_r:unconfined_dbusd_t:s0-s0:c0.c1023")
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activated service 'org.freedesktop.systemd1' failed: Process org.freedesktop.systemd1 exited with status 1
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activating service name='org.freedesktop.systemd1' requested by ':1.7' (uid=1000 pid=2418156 comm="/usr/bin/dbus-broker-launch --config-file=/usr/sha" label="unconfined_u:unconfined_r:unconfined_dbusd_t:s0-s0:c0.c1023")
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activated service 'org.freedesktop.systemd1' failed: Process org.freedesktop.systemd1 exited with status 1
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activating service name='org.freedesktop.systemd1' requested by ':1.7' (uid=1000 pid=2418156 comm="/usr/bin/dbus-broker-launch --config-file=/usr/sha" label="unconfined_u:unconfined_r:unconfined_dbusd_t:s0-s0:c0.c1023")
+dbus-daemon[2417472]: [session uid=1000 pid=2417472 pidfd=5] Activated service 'org.freedesktop.systemd1' failed: Process org.freedesktop.systemd1 exited with status 1
+A connection to the bus can't be made
+KCrash: Application 'xdg-desktop-portal-kde' crashing... crashRecursionCounter = 2

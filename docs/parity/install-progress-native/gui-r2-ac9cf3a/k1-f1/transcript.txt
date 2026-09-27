@@ -1,0 +1,62 @@
+10:28:09.131 fixture G1=/tmp/modsync-2b-native/r2/k1-f1 fail KOTOR1; G2=/tmp/modsync-2b-native/r2/k1-f1-g2 fail
+10:28:09.150 G2 CLI: /tmp/modsync-2b-native/modsync install --input /tmp/modsync-2b-native/r2/k1-f1-g2/guide.json --game-dir /tmp/modsync-2b-native/r2/k1-f1-g2/game --source-dir /tmp/modsync-2b-native/r2/k1-f1-g2/mods --use-file-selection --allow-processes
+10:28:18.306 G2 CLI exit 1
+.modsync-62906a8a774ef587
+.modsync-lock-62906a8a774ef587
+.modsync-lock-bea1fde8989d8bb5
+pending
+snapshot
+snapshot.json
+10:28:18.324 manifest before.sha256
+10:28:18.326 launch: /tmp/modsync-2b-native/launch.sh /tmp/modsync-2b-native/r2/k1-f1  (modsync gui --settings-dir /tmp/modsync-2b-native/r2/k1-f1/settings --input /tmp/modsync-2b-native/r2/k1-f1/guide.json --game-dir /tmp/modsync-2b-native/r2/k1-f1/game --source-dir /tmp/modsync-2b-native/r2/k1-f1/mods --allow-multiple-instances)
+10:28:26.340 app pgid 3206229 window 2097156
+10:28:26.342 click 700,12 warm-up click on title bar text
+10:28:27.467 click 62,34 Guide and settings
+10:28:29.086 click 62,115 Validation tools
+10:28:30.703 click 23,142 Trust external programs
+10:28:32.503 screenshot 02-trust.png
+10:28:32.506 click 262,34 Return to wizard
+10:28:34.114 click 1206,728 Next
+10:28:35.724 click 1206,728 Next
+10:28:37.334 click 1206,728 Next
+10:28:38.944 click 1206,728 Next
+10:28:40.553 click 1206,728 Next
+10:28:42.170 click 95,303 Run Validation
+10:28:46.282 click 1206,767 Next
+10:28:47.629 click 1206,678 Next
+10:28:48.954 screenshot 06-confirm.png
+10:28:48.956 click 504,428 Create snapshot and install
+10:29:03.381 screenshot 20-g1-failed.png
+10:29:03.393 manifest after-failure.sha256
+10:29:10.786 click 62,34 Guide and settings
+10:29:12.574 screenshot 30-settings.png
+10:29:18.083 click 370,226 Game directory field
+10:29:19.112 typed game dir /tmp/modsync-2b-native/r2/k1-f1-g2/game
+10:29:19.622 click 370,247 Mod directory field
+10:29:20.445 typed mod dir /tmp/modsync-2b-native/r2/k1-f1-g2/mods
+10:29:21.449 screenshot 31-settings-g2.png
+10:29:21.452 click 262,34 Return to wizard
+10:29:23.284 screenshot 32-folders-changed.png
+10:29:33.220 first typing attempt not delivered (no keyboard focus); set X focus
+10:29:33.222 click 62,34 Guide and settings
+10:29:34.876 windowfocus
+10:29:34.882 click 370,226 Game directory field
+10:29:35.893 typed game dir
+10:29:36.625 screenshot 31b-typing.png
+10:29:41.909 click 370,247 Mod directory field
+10:29:43.198 typed mod dir
+10:29:44.001 screenshot 31c-settings-g2.png
+10:29:44.018 click 262,34 Return to wizard
+10:29:45.852 screenshot 32-folders-changed.png
+10:29:53.876 click 980,678 Restore snapshot (footer)
+10:29:57.993 screenshot 40-restored-g1.png
+10:29:58.040 manifest after-restore.sha256
+10:29:58.142 G2 pending after restore: /tmp/modsync-2b-native/r2/k1-f1-g2/.modsync-62906a8a774ef587/pending
+10:29:58.203 G1 pending after restore: ls: cannot access '/tmp/modsync-2b-native/r2/k1-f1/.modsync-69b55dd2497fb8c7/pending': No such file or directory
+10:30:04.131 click 62,34 Guide and settings
+10:30:05.780 click 370,226 Game directory field
+10:30:06.873 typed game dir back to G1
+10:30:06.887 click 370,247 Mod directory field
+10:30:07.921 typed mod dir back to G1
+10:30:08.447 click 262,34 Return to wizard
+10:30:11.677 screenshot 41-folders-back-retry.png

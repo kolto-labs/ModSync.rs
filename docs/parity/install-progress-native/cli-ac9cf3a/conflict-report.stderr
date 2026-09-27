@@ -1,0 +1,5 @@
+error: the argument '--install-progress-json' cannot be used with '--validation-report'
+
+Usage: modsync install --input <INPUT> --game-dir <GAME_DIR> --source-dir <SOURCE_DIR> --use-file-selection --install-progress-json
+
+For more information, try '--help'.

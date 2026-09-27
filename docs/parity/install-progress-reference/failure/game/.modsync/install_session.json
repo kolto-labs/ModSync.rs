@@ -1,0 +1,21 @@
+﻿{
+  "Version": "2.0",
+  "SessionId": "e18adb57-e397-455f-9172-c53a59ecdeb0",
+  "CreatedUtc": "2026-09-27T13:44:48.8099285+00:00",
+  "DestinationPath": "/tmp/modsync-install-reference-20260927/failure/game",
+  "ComponentOrder": [
+    "11111111-1111-1111-1111-111111111111"
+  ],
+  "Components": {
+    "11111111-1111-1111-1111-111111111111": {
+      "ComponentId": "11111111-1111-1111-1111-111111111111",
+      "State": 3,
+      "LastStartedUtc": "2026-09-27T13:44:49.3869947+00:00",
+      "LastCompletedUtc": "2026-09-27T13:44:49.4610758+00:00"
+    }
+  },
+  "BackupPath": "/tmp/modsync-install-reference-20260927/failure/game/.modsync/last_good_backup.zip",
+  "CurrentRevision": 0,
+  "BaselineCheckpointId": "2401fc30796d4342b32a8a1a2500d52e7ee88d31",
+  "ComponentCheckpoints": {}
+}

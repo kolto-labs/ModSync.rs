@@ -1,0 +1,1605 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-27T13:55:42Z",
+  "evidenceRoot": "/tmp/modsync-install-progress-task2a.eQHn7F",
+  "binding": {
+    "baseCommit": "065ffeed4337a9ee9bc317b91998f262e36565bf",
+    "sourceCommit": "57f198f7b5f11228f11d115247d0955d11fe9e1f",
+    "sourceTree": "6067e128863e008757cceb294dbc5d5748607b87",
+    "sources": {
+      "src/main.rs": "802dfcc294184bcb3f872719f19c326d64e77d1f8771e5b99bd824a548f830c1",
+      "Cargo.lock": "7ff8f003581c5fce3433f9438044b9dc3850adb26f2b05daf8bb908cd6a4dc8f"
+    },
+    "binaries": {
+      "copiedProbe": "16d2d2a29312c729fd35e541a5d0fac52ef28f656268bc127ded717c34285887",
+      "restoredDefaultTarget": "16d2d2a29312c729fd35e541a5d0fac52ef28f656268bc127ded717c34285887"
+    },
+    "fixtures": {
+      "allGuide": "796f94f2cd8f98f7ba778a4ec9ef4c7d7b40b591daa55e8ca1710ffe2cc528f0",
+      "phasedGuide": "796f94f2cd8f98f7ba778a4ec9ef4c7d7b40b591daa55e8ca1710ffe2cc528f0",
+      "failureGuide": "c4e4dae5432351c7b4144e62acf24097607bd8a3360373124b8653b30c893855"
+    }
+  },
+  "builds": [
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "log": "fmt.log"
+    },
+    {
+      "name": "defaultClippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--lib",
+        "--bins",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "log": "default-clippy.log"
+    },
+    {
+      "name": "headlessBuild",
+      "command": [
+        "cargo",
+        "build",
+        "--no-default-features",
+        "-j2"
+      ],
+      "exit": 0,
+      "log": "headless-build.log"
+    },
+    {
+      "name": "headlessClippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--no-default-features",
+        "--lib",
+        "--bins",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "log": "headless-clippy.log"
+    },
+    {
+      "name": "defaultRestore",
+      "command": [
+        "cargo",
+        "build",
+        "-j2"
+      ],
+      "exit": 0,
+      "log": "default-restore.log"
+    }
+  ],
+  "commands": [
+    {
+      "name": "typedAll",
+      "selector": "install",
+      "phase": "all",
+      "flags": [
+        "--use-file-selection",
+        "--install-progress-json"
+      ],
+      "fixture": "all",
+      "exit": 0,
+      "stdout": "all.stdout",
+      "stderr": "all.stderr"
+    },
+    {
+      "name": "typedBase",
+      "selector": "install",
+      "phase": "base",
+      "flags": [
+        "--use-file-selection",
+        "--install-progress-json"
+      ],
+      "fixture": "phased",
+      "exit": 0,
+      "stdout": "base.stdout",
+      "stderr": "base.stderr"
+    },
+    {
+      "name": "typedRemaining",
+      "selector": "install",
+      "phase": "remaining",
+      "flags": [
+        "--use-file-selection",
+        "--install-progress-json"
+      ],
+      "fixture": "phased",
+      "exit": 0,
+      "stdout": "remaining.stdout",
+      "stderr": "remaining.stderr"
+    },
+    {
+      "name": "legacyJson",
+      "selector": "install",
+      "phase": "all",
+      "flags": [
+        "--use-file-selection",
+        "--json"
+      ],
+      "fixture": "legacy",
+      "exit": 0,
+      "stdout": "legacy.stdout",
+      "stderr": "legacy.stderr"
+    },
+    {
+      "name": "preflightFailure",
+      "selector": "install",
+      "phase": "all",
+      "flags": [
+        "--use-file-selection",
+        "--install-progress-json"
+      ],
+      "fixture": "preflight",
+      "exit": 1,
+      "stdout": "preflight.stdout",
+      "stderr": "preflight.stderr"
+    },
+    {
+      "name": "runtimeFailure",
+      "selector": "install",
+      "phase": "all",
+      "flags": [
+        "--use-file-selection",
+        "--allow-processes",
+        "--install-progress-json"
+      ],
+      "fixture": "failure",
+      "exit": 1,
+      "stdout": "failure.stdout",
+      "stderr": "failure.stderr"
+    },
+    {
+      "name": "invalidValidate",
+      "selector": "validate",
+      "flags": [
+        "--use-file-selection",
+        "--install-progress-json"
+      ],
+      "fixture": "invalid",
+      "exit": 1,
+      "stdout": "invalid-validate.stdout",
+      "stderr": "invalid-validate.stderr"
+    },
+    {
+      "name": "invalidConflicts",
+      "selector": "conflicts",
+      "flags": [
+        "--use-file-selection",
+        "--install-progress-json"
+      ],
+      "fixture": "invalid",
+      "exit": 1,
+      "stdout": "invalid-conflicts.stdout",
+      "stderr": "invalid-conflicts.stderr"
+    },
+    {
+      "name": "clapConflict",
+      "selector": "install",
+      "flags": [
+        "--use-file-selection",
+        "--install-progress-json",
+        "--json"
+      ],
+      "fixture": "invalid",
+      "exit": 2,
+      "stdout": "invalid-conflict.stdout",
+      "stderr": "invalid-conflict.stderr"
+    },
+    {
+      "name": "droppedConsumerSuccess",
+      "selector": "install",
+      "flags": [
+        "--use-file-selection",
+        "--allow-processes",
+        "--install-progress-json"
+      ],
+      "fixture": "drop-slow",
+      "pipelineReader": [
+        "head",
+        "-n",
+        "1"
+      ],
+      "producerExit": 0,
+      "consumerExit": 0,
+      "stderr": "drop-slow.stderr",
+      "completionPresent": true,
+      "pendingPresent": false
+    },
+    {
+      "name": "droppedConsumerFailure",
+      "selector": "install",
+      "flags": [
+        "--use-file-selection",
+        "--allow-processes",
+        "--install-progress-json"
+      ],
+      "fixture": "drop-failure",
+      "pipelineReader": [
+        "head",
+        "-n",
+        "1"
+      ],
+      "producerExit": 1,
+      "consumerExit": 0,
+      "stderr": "drop-failure.stderr",
+      "completionPresent": false,
+      "pendingPresent": true
+    }
+  ],
+  "typedStreams": {
+    "all": {
+      "lines": 18,
+      "componentTotal": 2,
+      "terminalPhase": "completed",
+      "stdoutSha256": "f9a07ade361caa47596067c29ac49af0d038dda92df5aba2821f7db6f42b03b3"
+    },
+    "base": {
+      "lines": 13,
+      "componentTotal": 1,
+      "terminalPhase": "completed",
+      "stdoutSha256": "aa116ea2d477ab2f3bc696fc1e0ca78b80be0afb4f057d9a58bccb60c0fbaf33"
+    },
+    "remaining": {
+      "lines": 10,
+      "componentTotal": 1,
+      "terminalPhase": "completed",
+      "stdoutSha256": "59f2894107831c4b65189a5f16a0a0d80caca16426a11cca3bfad9781c0743f8"
+    },
+    "failure": {
+      "lines": 7,
+      "componentTotal": 3,
+      "terminalPhase": "installingComponent",
+      "completedFacts": 0,
+      "stdoutSha256": "a83617ac8ba5b1cb4091ffe14d41134e4c4be9dfc95a22fcb309602fa4f2c9f1"
+    },
+    "preflightFailure": {
+      "lines": 0,
+      "pendingPresent": false
+    }
+  },
+  "legacy": {
+    "baselinePath": "/tmp/modsync-install-progress-task1/baseline-all.stdout",
+    "byteIdentical": true,
+    "bytes": 639,
+    "lines": 10,
+    "sha256": "9ea418cf3d8bf2a0621678e554b7ed99a6fc0203b02cf5e4db915f1ed8ad62e4",
+    "keys": [
+      "component",
+      "message",
+      "step"
+    ]
+  },
+  "manifests": {
+    "invalidBefore": "invalid.before.sha256",
+    "invalidAfter": "invalid.after.sha256",
+    "invalidMatch": true,
+    "preflightBefore": "preflight.before.sha256",
+    "preflightAfter": "preflight.after.sha256",
+    "preflightMatch": true
+  },
+  "processes": {
+    "ownedRemaining": [],
+    "userProcessesTouched": false
+  },
+  "testPolicy": {
+    "rustTestsCreated": false,
+    "rustTestsModified": false,
+    "rustTestsRun": false,
+    "temporaryRustHarness": false
+  },
+  "artifacts": [
+    {
+      "path": "all.parsed.ndjson",
+      "sha256": "f9a07ade361caa47596067c29ac49af0d038dda92df5aba2821f7db6f42b03b3",
+      "bytes": 8852
+    },
+    {
+      "path": "all.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "all.stdout",
+      "sha256": "f9a07ade361caa47596067c29ac49af0d038dda92df5aba2821f7db6f42b03b3",
+      "bytes": 8852
+    },
+    {
+      "path": "all/.modsync-ed845f42ba6bf57d/completion.json",
+      "sha256": "81c34ca08dd2e70e23e6581e710fa1bb109e9e7d11048ae7db8fea7bc10f70d8",
+      "bytes": 5773
+    },
+    {
+      "path": "all/.modsync-ed845f42ba6bf57d/snapshot.json",
+      "sha256": "3665614ac76d820c1b80d0eabc4edf734519dcb96ce23126511e117fc41ba368",
+      "bytes": 974
+    },
+    {
+      "path": "all/.modsync-ed845f42ba6bf57d/snapshot/game/Override/original.txt",
+      "sha256": "25718360e05d3c2d0963d1381e9dd4dae5fca789244ee4b9f861adcc0cc96218",
+      "bytes": 9
+    },
+    {
+      "path": "all/.modsync-ed845f42ba6bf57d/snapshot/game/dialog.tlk",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "all/.modsync-ed845f42ba6bf57d/snapshot/game/swkotor.exe",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "all/.modsync-ed845f42ba6bf57d/snapshot/mods/a.txt",
+      "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+      "bytes": 2
+    },
+    {
+      "path": "all/.modsync-ed845f42ba6bf57d/snapshot/mods/b.txt",
+      "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+      "bytes": 2
+    },
+    {
+      "path": "all/.modsync-ed845f42ba6bf57d/snapshot/mods/c.txt",
+      "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+      "bytes": 2
+    },
+    {
+      "path": "all/.modsync-ed845f42ba6bf57d/snapshot/mods/d.txt",
+      "sha256": "8d74beec1be996322ad76813bafb92d40839895d6dd7ee808b17ca201eac98be",
+      "bytes": 2
+    },
+    {
+      "path": "all/.modsync-ed845f42ba6bf57d/snapshot/mods/e.txt",
+      "sha256": "a2bbdb2de53523b8099b37013f251546f3d65dbe7a0774fa41af0a4176992fd4",
+      "bytes": 2
+    },
+    {
+      "path": "all/.modsync-ed845f42ba6bf57d/snapshot/mods/f.txt",
+      "sha256": "092fcfbbcfca3b5be7ae1b5e58538e92c35ab273ae13664fed0d67484c8e78a6",
+      "bytes": 2
+    },
+    {
+      "path": "all/.modsync-lock-08ed1a6d1588d833",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "all/.modsync-lock-ed845f42ba6bf57d",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "all/game/Override/a.txt",
+      "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+      "bytes": 2
+    },
+    {
+      "path": "all/game/Override/b.txt",
+      "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+      "bytes": 2
+    },
+    {
+      "path": "all/game/Override/c.txt",
+      "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+      "bytes": 2
+    },
+    {
+      "path": "all/game/Override/d.txt",
+      "sha256": "8d74beec1be996322ad76813bafb92d40839895d6dd7ee808b17ca201eac98be",
+      "bytes": 2
+    },
+    {
+      "path": "all/game/Override/e.txt",
+      "sha256": "a2bbdb2de53523b8099b37013f251546f3d65dbe7a0774fa41af0a4176992fd4",
+      "bytes": 2
+    },
+    {
+      "path": "all/game/Override/f.txt",
+      "sha256": "092fcfbbcfca3b5be7ae1b5e58538e92c35ab273ae13664fed0d67484c8e78a6",
+      "bytes": 2
+    },
+    {
+      "path": "all/game/Override/original.txt",
+      "sha256": "25718360e05d3c2d0963d1381e9dd4dae5fca789244ee4b9f861adcc0cc96218",
+      "bytes": 9
+    },
+    {
+      "path": "all/game/dialog.tlk",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "all/game/swkotor.exe",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "all/guide.json",
+      "sha256": "796f94f2cd8f98f7ba778a4ec9ef4c7d7b40b591daa55e8ca1710ffe2cc528f0",
+      "bytes": 2695
+    },
+    {
+      "path": "all/mods/b.txt",
+      "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+      "bytes": 2
+    },
+    {
+      "path": "all/mods/c.txt",
+      "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+      "bytes": 2
+    },
+    {
+      "path": "all/mods/d.txt",
+      "sha256": "8d74beec1be996322ad76813bafb92d40839895d6dd7ee808b17ca201eac98be",
+      "bytes": 2
+    },
+    {
+      "path": "all/mods/e.txt",
+      "sha256": "a2bbdb2de53523b8099b37013f251546f3d65dbe7a0774fa41af0a4176992fd4",
+      "bytes": 2
+    },
+    {
+      "path": "all/mods/f.txt",
+      "sha256": "092fcfbbcfca3b5be7ae1b5e58538e92c35ab273ae13664fed0d67484c8e78a6",
+      "bytes": 2
+    },
+    {
+      "path": "base.parsed.ndjson",
+      "sha256": "aa116ea2d477ab2f3bc696fc1e0ca78b80be0afb4f057d9a58bccb60c0fbaf33",
+      "bytes": 6235
+    },
+    {
+      "path": "base.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "base.stdout",
+      "sha256": "aa116ea2d477ab2f3bc696fc1e0ca78b80be0afb4f057d9a58bccb60c0fbaf33",
+      "bytes": 6235
+    },
+    {
+      "path": "default-clippy.log",
+      "sha256": "18c9ac7bd53cd66fe47b1b809c060b45ef02688ea01f7f784b4363f261198f68",
+      "bytes": 141
+    },
+    {
+      "path": "default-restore.log",
+      "sha256": "73a65a88f17a6051c2673ec9eecfc56f51ac5685531a39b438d704d6f3b1a9f9",
+      "bytes": 60
+    },
+    {
+      "path": "drop-failure.first-line",
+      "sha256": "3f6ff17dde6a67b909b5efe6f0af5aa16b3d4f4f48487a94f26b3949709c9e95",
+      "bytes": 339
+    },
+    {
+      "path": "drop-failure.pipe-status",
+      "sha256": "f4a8ae8e74ddfb896a256de4e3099911dcaa6a9302591713898069b0bcd6e3d7",
+      "bytes": 4
+    },
+    {
+      "path": "drop-failure.stderr",
+      "sha256": "0066a17c593f866a827920379b5bd6eb5549d9c7e1edc6a17359e75f314c5de8",
+      "bytes": 222
+    },
+    {
+      "path": "drop-failure/.modsync-a4fe6fd0fbf55729/pending",
+      "sha256": "2335d937b403ed20b96d7c5a8834029eb96f2ae55b3e659553426f93b8398f41",
+      "bytes": 60
+    },
+    {
+      "path": "drop-failure/.modsync-a4fe6fd0fbf55729/snapshot.json",
+      "sha256": "59714c348870992902fd7798ee39c9f94c9a4ca9f10497488d77a01eadaf12e4",
+      "bytes": 1164
+    },
+    {
+      "path": "drop-failure/.modsync-a4fe6fd0fbf55729/snapshot/game/Override/original.txt",
+      "sha256": "25718360e05d3c2d0963d1381e9dd4dae5fca789244ee4b9f861adcc0cc96218",
+      "bytes": 9
+    },
+    {
+      "path": "drop-failure/.modsync-a4fe6fd0fbf55729/snapshot/game/dialog.tlk",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "drop-failure/.modsync-a4fe6fd0fbf55729/snapshot/game/swkotor.exe",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "drop-failure/.modsync-a4fe6fd0fbf55729/snapshot/mods/a.txt",
+      "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+      "bytes": 2
+    },
+    {
+      "path": "drop-failure/.modsync-a4fe6fd0fbf55729/snapshot/mods/b.txt",
+      "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+      "bytes": 2
+    },
+    {
+      "path": "drop-failure/.modsync-a4fe6fd0fbf55729/snapshot/mods/c.txt",
+      "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+      "bytes": 2
+    },
+    {
+      "path": "drop-failure/.modsync-a4fe6fd0fbf55729/snapshot/mods/d.txt",
+      "sha256": "8d74beec1be996322ad76813bafb92d40839895d6dd7ee808b17ca201eac98be",
+      "bytes": 2
+    },
+    {
+      "path": "drop-failure/.modsync-a4fe6fd0fbf55729/snapshot/mods/e.txt",
+      "sha256": "a2bbdb2de53523b8099b37013f251546f3d65dbe7a0774fa41af0a4176992fd4",
+      "bytes": 2
+    },
+    {
+      "path": "drop-failure/.modsync-a4fe6fd0fbf55729/snapshot/mods/f.txt",
+      "sha256": "092fcfbbcfca3b5be7ae1b5e58538e92c35ab273ae13664fed0d67484c8e78a6",
+      "bytes": 2
+    },
+    {
+      "path": "drop-failure/.modsync-a4fe6fd0fbf55729/snapshot/mods/false",
+      "sha256": "2110833880a67c723cb4296491e51679609ea222ea69b13d993cafb9f70cf78d",
+      "bytes": 32304
+    },
+    {
+      "path": "drop-failure/.modsync-a4fe6fd0fbf55729/snapshot/mods/sleep",
+      "sha256": "651468d5d1adbd00e0cf39813d90dc2c0deeb57c99ef06227f13d4407797e14b",
+      "bytes": 36608
+    },
+    {
+      "path": "drop-failure/.modsync-lock-a4fe6fd0fbf55729",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "drop-failure/.modsync-lock-b3b6b54fa01c7a7a",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "drop-failure/game/Override/original.txt",
+      "sha256": "25718360e05d3c2d0963d1381e9dd4dae5fca789244ee4b9f861adcc0cc96218",
+      "bytes": 9
+    },
+    {
+      "path": "drop-failure/game/dialog.tlk",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "drop-failure/game/swkotor.exe",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "drop-failure/guide.json",
+      "sha256": "5c1efbbf999aae7deeed014b0e62b43d0ab4387fdc138064e3967026fdc640b2",
+      "bytes": 1397
+    },
+    {
+      "path": "drop-failure/mods/a.txt",
+      "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+      "bytes": 2
+    },
+    {
+      "path": "drop-failure/mods/b.txt",
+      "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+      "bytes": 2
+    },
+    {
+      "path": "drop-failure/mods/c.txt",
+      "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+      "bytes": 2
+    },
+    {
+      "path": "drop-failure/mods/d.txt",
+      "sha256": "8d74beec1be996322ad76813bafb92d40839895d6dd7ee808b17ca201eac98be",
+      "bytes": 2
+    },
+    {
+      "path": "drop-failure/mods/e.txt",
+      "sha256": "a2bbdb2de53523b8099b37013f251546f3d65dbe7a0774fa41af0a4176992fd4",
+      "bytes": 2
+    },
+    {
+      "path": "drop-failure/mods/f.txt",
+      "sha256": "092fcfbbcfca3b5be7ae1b5e58538e92c35ab273ae13664fed0d67484c8e78a6",
+      "bytes": 2
+    },
+    {
+      "path": "drop-failure/mods/false",
+      "sha256": "2110833880a67c723cb4296491e51679609ea222ea69b13d993cafb9f70cf78d",
+      "bytes": 32304
+    },
+    {
+      "path": "drop-failure/mods/sleep",
+      "sha256": "651468d5d1adbd00e0cf39813d90dc2c0deeb57c99ef06227f13d4407797e14b",
+      "bytes": 36608
+    },
+    {
+      "path": "drop-slow.first-line",
+      "sha256": "3f6ff17dde6a67b909b5efe6f0af5aa16b3d4f4f48487a94f26b3949709c9e95",
+      "bytes": 339
+    },
+    {
+      "path": "drop-slow.pipe-status",
+      "sha256": "0ccdb5a77ba5bf7687f2565a8ed97dfb9c1af45503c496fb646312239fab5101",
+      "bytes": 4
+    },
+    {
+      "path": "drop-slow.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "drop-slow/.modsync-3ceed452cdb942d2/completion.json",
+      "sha256": "74bb237f906293685e001f7b55b958de1485ece87d8a6a18155778855c77c88c",
+      "bytes": 3243
+    },
+    {
+      "path": "drop-slow/.modsync-3ceed452cdb942d2/snapshot.json",
+      "sha256": "6b96de9f9eba5e39a41a68247f63d993ad2655e2810f3e9770e3456e115ef24c",
+      "bytes": 1158
+    },
+    {
+      "path": "drop-slow/.modsync-3ceed452cdb942d2/snapshot/game/Override/original.txt",
+      "sha256": "25718360e05d3c2d0963d1381e9dd4dae5fca789244ee4b9f861adcc0cc96218",
+      "bytes": 9
+    },
+    {
+      "path": "drop-slow/.modsync-3ceed452cdb942d2/snapshot/game/dialog.tlk",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "drop-slow/.modsync-3ceed452cdb942d2/snapshot/game/swkotor.exe",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "drop-slow/.modsync-3ceed452cdb942d2/snapshot/mods/a.txt",
+      "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+      "bytes": 2
+    },
+    {
+      "path": "drop-slow/.modsync-3ceed452cdb942d2/snapshot/mods/b.txt",
+      "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+      "bytes": 2
+    },
+    {
+      "path": "drop-slow/.modsync-3ceed452cdb942d2/snapshot/mods/c.txt",
+      "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+      "bytes": 2
+    },
+    {
+      "path": "drop-slow/.modsync-3ceed452cdb942d2/snapshot/mods/d.txt",
+      "sha256": "8d74beec1be996322ad76813bafb92d40839895d6dd7ee808b17ca201eac98be",
+      "bytes": 2
+    },
+    {
+      "path": "drop-slow/.modsync-3ceed452cdb942d2/snapshot/mods/e.txt",
+      "sha256": "a2bbdb2de53523b8099b37013f251546f3d65dbe7a0774fa41af0a4176992fd4",
+      "bytes": 2
+    },
+    {
+      "path": "drop-slow/.modsync-3ceed452cdb942d2/snapshot/mods/f.txt",
+      "sha256": "092fcfbbcfca3b5be7ae1b5e58538e92c35ab273ae13664fed0d67484c8e78a6",
+      "bytes": 2
+    },
+    {
+      "path": "drop-slow/.modsync-3ceed452cdb942d2/snapshot/mods/false",
+      "sha256": "2110833880a67c723cb4296491e51679609ea222ea69b13d993cafb9f70cf78d",
+      "bytes": 32304
+    },
+    {
+      "path": "drop-slow/.modsync-3ceed452cdb942d2/snapshot/mods/sleep",
+      "sha256": "651468d5d1adbd00e0cf39813d90dc2c0deeb57c99ef06227f13d4407797e14b",
+      "bytes": 36608
+    },
+    {
+      "path": "drop-slow/.modsync-lock-3ceed452cdb942d2",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "drop-slow/.modsync-lock-493408481a513be7",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "drop-slow/game/Override/a.txt",
+      "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+      "bytes": 2
+    },
+    {
+      "path": "drop-slow/game/Override/b.txt",
+      "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+      "bytes": 2
+    },
+    {
+      "path": "drop-slow/game/Override/c.txt",
+      "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+      "bytes": 2
+    },
+    {
+      "path": "drop-slow/game/Override/original.txt",
+      "sha256": "25718360e05d3c2d0963d1381e9dd4dae5fca789244ee4b9f861adcc0cc96218",
+      "bytes": 9
+    },
+    {
+      "path": "drop-slow/game/dialog.tlk",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "drop-slow/game/swkotor.exe",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "drop-slow/guide.json",
+      "sha256": "8b1bf232e3ac02a15a9f8a0d6180bb345d249f3f45118adfdf563e87ff9e7533",
+      "bytes": 1394
+    },
+    {
+      "path": "drop-slow/mods/a.txt",
+      "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+      "bytes": 2
+    },
+    {
+      "path": "drop-slow/mods/b.txt",
+      "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+      "bytes": 2
+    },
+    {
+      "path": "drop-slow/mods/c.txt",
+      "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+      "bytes": 2
+    },
+    {
+      "path": "drop-slow/mods/d.txt",
+      "sha256": "8d74beec1be996322ad76813bafb92d40839895d6dd7ee808b17ca201eac98be",
+      "bytes": 2
+    },
+    {
+      "path": "drop-slow/mods/e.txt",
+      "sha256": "a2bbdb2de53523b8099b37013f251546f3d65dbe7a0774fa41af0a4176992fd4",
+      "bytes": 2
+    },
+    {
+      "path": "drop-slow/mods/f.txt",
+      "sha256": "092fcfbbcfca3b5be7ae1b5e58538e92c35ab273ae13664fed0d67484c8e78a6",
+      "bytes": 2
+    },
+    {
+      "path": "drop-slow/mods/false",
+      "sha256": "2110833880a67c723cb4296491e51679609ea222ea69b13d993cafb9f70cf78d",
+      "bytes": 32304
+    },
+    {
+      "path": "drop-slow/mods/sleep",
+      "sha256": "651468d5d1adbd00e0cf39813d90dc2c0deeb57c99ef06227f13d4407797e14b",
+      "bytes": 36608
+    },
+    {
+      "path": "drop.first-line",
+      "sha256": "2aa1b2f5751da336ee9690c7ee9968a5711202214a66c6b4774192490107b904",
+      "bytes": 339
+    },
+    {
+      "path": "drop.pipe-status",
+      "sha256": "0ccdb5a77ba5bf7687f2565a8ed97dfb9c1af45503c496fb646312239fab5101",
+      "bytes": 4
+    },
+    {
+      "path": "drop.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "drop/.modsync-97e25a5a90689eaa/completion.json",
+      "sha256": "ddb3ce2d469263ba90f1dbe74b2d20a7397c4cc521b818107dea8eba23b2728d",
+      "bytes": 5775
+    },
+    {
+      "path": "drop/.modsync-97e25a5a90689eaa/snapshot.json",
+      "sha256": "8b8b97c41785e290b12add79907d996885ff3dd6e4a7cdcf7079cb27bc8cf611",
+      "bytes": 976
+    },
+    {
+      "path": "drop/.modsync-97e25a5a90689eaa/snapshot/game/Override/original.txt",
+      "sha256": "25718360e05d3c2d0963d1381e9dd4dae5fca789244ee4b9f861adcc0cc96218",
+      "bytes": 9
+    },
+    {
+      "path": "drop/.modsync-97e25a5a90689eaa/snapshot/game/dialog.tlk",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "drop/.modsync-97e25a5a90689eaa/snapshot/game/swkotor.exe",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "drop/.modsync-97e25a5a90689eaa/snapshot/mods/a.txt",
+      "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+      "bytes": 2
+    },
+    {
+      "path": "drop/.modsync-97e25a5a90689eaa/snapshot/mods/b.txt",
+      "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+      "bytes": 2
+    },
+    {
+      "path": "drop/.modsync-97e25a5a90689eaa/snapshot/mods/c.txt",
+      "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+      "bytes": 2
+    },
+    {
+      "path": "drop/.modsync-97e25a5a90689eaa/snapshot/mods/d.txt",
+      "sha256": "8d74beec1be996322ad76813bafb92d40839895d6dd7ee808b17ca201eac98be",
+      "bytes": 2
+    },
+    {
+      "path": "drop/.modsync-97e25a5a90689eaa/snapshot/mods/e.txt",
+      "sha256": "a2bbdb2de53523b8099b37013f251546f3d65dbe7a0774fa41af0a4176992fd4",
+      "bytes": 2
+    },
+    {
+      "path": "drop/.modsync-97e25a5a90689eaa/snapshot/mods/f.txt",
+      "sha256": "092fcfbbcfca3b5be7ae1b5e58538e92c35ab273ae13664fed0d67484c8e78a6",
+      "bytes": 2
+    },
+    {
+      "path": "drop/.modsync-lock-5a8455ab22b05eb9",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "drop/.modsync-lock-97e25a5a90689eaa",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "drop/game/Override/a.txt",
+      "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+      "bytes": 2
+    },
+    {
+      "path": "drop/game/Override/b.txt",
+      "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+      "bytes": 2
+    },
+    {
+      "path": "drop/game/Override/c.txt",
+      "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+      "bytes": 2
+    },
+    {
+      "path": "drop/game/Override/d.txt",
+      "sha256": "8d74beec1be996322ad76813bafb92d40839895d6dd7ee808b17ca201eac98be",
+      "bytes": 2
+    },
+    {
+      "path": "drop/game/Override/e.txt",
+      "sha256": "a2bbdb2de53523b8099b37013f251546f3d65dbe7a0774fa41af0a4176992fd4",
+      "bytes": 2
+    },
+    {
+      "path": "drop/game/Override/f.txt",
+      "sha256": "092fcfbbcfca3b5be7ae1b5e58538e92c35ab273ae13664fed0d67484c8e78a6",
+      "bytes": 2
+    },
+    {
+      "path": "drop/game/Override/original.txt",
+      "sha256": "25718360e05d3c2d0963d1381e9dd4dae5fca789244ee4b9f861adcc0cc96218",
+      "bytes": 9
+    },
+    {
+      "path": "drop/game/dialog.tlk",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "drop/game/swkotor.exe",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "drop/guide.json",
+      "sha256": "796f94f2cd8f98f7ba778a4ec9ef4c7d7b40b591daa55e8ca1710ffe2cc528f0",
+      "bytes": 2695
+    },
+    {
+      "path": "drop/mods/b.txt",
+      "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+      "bytes": 2
+    },
+    {
+      "path": "drop/mods/c.txt",
+      "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+      "bytes": 2
+    },
+    {
+      "path": "drop/mods/d.txt",
+      "sha256": "8d74beec1be996322ad76813bafb92d40839895d6dd7ee808b17ca201eac98be",
+      "bytes": 2
+    },
+    {
+      "path": "drop/mods/e.txt",
+      "sha256": "a2bbdb2de53523b8099b37013f251546f3d65dbe7a0774fa41af0a4176992fd4",
+      "bytes": 2
+    },
+    {
+      "path": "drop/mods/f.txt",
+      "sha256": "092fcfbbcfca3b5be7ae1b5e58538e92c35ab273ae13664fed0d67484c8e78a6",
+      "bytes": 2
+    },
+    {
+      "path": "failure.stderr",
+      "sha256": "222e2bcb458ea4185a4efdfc55e7079cdd2ea8b5f30258c04eae0f37520ef0dc",
+      "bytes": 217
+    },
+    {
+      "path": "failure.stdout",
+      "sha256": "a83617ac8ba5b1cb4091ffe14d41134e4c4be9dfc95a22fcb309602fa4f2c9f1",
+      "bytes": 3146
+    },
+    {
+      "path": "failure/.modsync-989cf8c7d8466bb5/pending",
+      "sha256": "2335d937b403ed20b96d7c5a8834029eb96f2ae55b3e659553426f93b8398f41",
+      "bytes": 60
+    },
+    {
+      "path": "failure/.modsync-989cf8c7d8466bb5/snapshot.json",
+      "sha256": "3d3ecdca43d26b7330926aa7c215ca220e1bdb6102a3536d9d4f9771ea0e86f4",
+      "bytes": 1068
+    },
+    {
+      "path": "failure/.modsync-989cf8c7d8466bb5/snapshot/game/Override/original.txt",
+      "sha256": "25718360e05d3c2d0963d1381e9dd4dae5fca789244ee4b9f861adcc0cc96218",
+      "bytes": 9
+    },
+    {
+      "path": "failure/.modsync-989cf8c7d8466bb5/snapshot/game/dialog.tlk",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "failure/.modsync-989cf8c7d8466bb5/snapshot/game/swkotor.exe",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "failure/.modsync-989cf8c7d8466bb5/snapshot/mods/a.txt",
+      "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+      "bytes": 2
+    },
+    {
+      "path": "failure/.modsync-989cf8c7d8466bb5/snapshot/mods/b.txt",
+      "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+      "bytes": 2
+    },
+    {
+      "path": "failure/.modsync-989cf8c7d8466bb5/snapshot/mods/c.txt",
+      "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+      "bytes": 2
+    },
+    {
+      "path": "failure/.modsync-989cf8c7d8466bb5/snapshot/mods/d.txt",
+      "sha256": "8d74beec1be996322ad76813bafb92d40839895d6dd7ee808b17ca201eac98be",
+      "bytes": 2
+    },
+    {
+      "path": "failure/.modsync-989cf8c7d8466bb5/snapshot/mods/e.txt",
+      "sha256": "a2bbdb2de53523b8099b37013f251546f3d65dbe7a0774fa41af0a4176992fd4",
+      "bytes": 2
+    },
+    {
+      "path": "failure/.modsync-989cf8c7d8466bb5/snapshot/mods/f.txt",
+      "sha256": "092fcfbbcfca3b5be7ae1b5e58538e92c35ab273ae13664fed0d67484c8e78a6",
+      "bytes": 2
+    },
+    {
+      "path": "failure/.modsync-989cf8c7d8466bb5/snapshot/mods/false",
+      "sha256": "2110833880a67c723cb4296491e51679609ea222ea69b13d993cafb9f70cf78d",
+      "bytes": 32304
+    },
+    {
+      "path": "failure/.modsync-lock-989cf8c7d8466bb5",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "failure/.modsync-lock-b484c1820be5e9c4",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "failure/game/Override/a.txt",
+      "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+      "bytes": 2
+    },
+    {
+      "path": "failure/game/Override/original.txt",
+      "sha256": "25718360e05d3c2d0963d1381e9dd4dae5fca789244ee4b9f861adcc0cc96218",
+      "bytes": 9
+    },
+    {
+      "path": "failure/game/dialog.tlk",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "failure/game/swkotor.exe",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "failure/guide.json",
+      "sha256": "c4e4dae5432351c7b4144e62acf24097607bd8a3360373124b8653b30c893855",
+      "bytes": 1365
+    },
+    {
+      "path": "failure/mods/a.txt",
+      "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+      "bytes": 2
+    },
+    {
+      "path": "failure/mods/b.txt",
+      "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+      "bytes": 2
+    },
+    {
+      "path": "failure/mods/c.txt",
+      "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+      "bytes": 2
+    },
+    {
+      "path": "failure/mods/d.txt",
+      "sha256": "8d74beec1be996322ad76813bafb92d40839895d6dd7ee808b17ca201eac98be",
+      "bytes": 2
+    },
+    {
+      "path": "failure/mods/e.txt",
+      "sha256": "a2bbdb2de53523b8099b37013f251546f3d65dbe7a0774fa41af0a4176992fd4",
+      "bytes": 2
+    },
+    {
+      "path": "failure/mods/f.txt",
+      "sha256": "092fcfbbcfca3b5be7ae1b5e58538e92c35ab273ae13664fed0d67484c8e78a6",
+      "bytes": 2
+    },
+    {
+      "path": "failure/mods/false",
+      "sha256": "2110833880a67c723cb4296491e51679609ea222ea69b13d993cafb9f70cf78d",
+      "bytes": 32304
+    },
+    {
+      "path": "fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "headless-build.log",
+      "sha256": "4c1d571530e7fe41af87fc20977d5bcad69e5e6d7fcae81644e68863f6490a4f",
+      "bytes": 140
+    },
+    {
+      "path": "headless-clippy.log",
+      "sha256": "fcaffed9a63e16697874056a5f96aaff914f7e4256f5bc4e5b602c112774d65b",
+      "bytes": 140
+    },
+    {
+      "path": "invalid-conflict.stderr",
+      "sha256": "3d4fccd9c0aba0b3af707f5eb162b91fabd374ca60bcaa738846c9b29f0cfea1",
+      "bytes": 245
+    },
+    {
+      "path": "invalid-conflict.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "invalid-conflicts.stderr",
+      "sha256": "faabf7ee180da1df9e2972623aed29a6e45446d5cbd813facf1715fcc2864b18",
+      "bytes": 60
+    },
+    {
+      "path": "invalid-conflicts.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "invalid-validate.stderr",
+      "sha256": "faabf7ee180da1df9e2972623aed29a6e45446d5cbd813facf1715fcc2864b18",
+      "bytes": 60
+    },
+    {
+      "path": "invalid-validate.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "invalid.after.sha256",
+      "sha256": "c2436ef265721e0de54b5aede64e27648c88db48e26c97d31e9df1773d09d5e2",
+      "bytes": 1188
+    },
+    {
+      "path": "invalid.before.sha256",
+      "sha256": "c2436ef265721e0de54b5aede64e27648c88db48e26c97d31e9df1773d09d5e2",
+      "bytes": 1188
+    },
+    {
+      "path": "invalid/game/Override/original.txt",
+      "sha256": "25718360e05d3c2d0963d1381e9dd4dae5fca789244ee4b9f861adcc0cc96218",
+      "bytes": 9
+    },
+    {
+      "path": "invalid/game/dialog.tlk",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "invalid/game/swkotor.exe",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "invalid/guide.json",
+      "sha256": "796f94f2cd8f98f7ba778a4ec9ef4c7d7b40b591daa55e8ca1710ffe2cc528f0",
+      "bytes": 2695
+    },
+    {
+      "path": "invalid/mods/a.txt",
+      "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+      "bytes": 2
+    },
+    {
+      "path": "invalid/mods/b.txt",
+      "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+      "bytes": 2
+    },
+    {
+      "path": "invalid/mods/c.txt",
+      "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+      "bytes": 2
+    },
+    {
+      "path": "invalid/mods/d.txt",
+      "sha256": "8d74beec1be996322ad76813bafb92d40839895d6dd7ee808b17ca201eac98be",
+      "bytes": 2
+    },
+    {
+      "path": "invalid/mods/e.txt",
+      "sha256": "a2bbdb2de53523b8099b37013f251546f3d65dbe7a0774fa41af0a4176992fd4",
+      "bytes": 2
+    },
+    {
+      "path": "invalid/mods/f.txt",
+      "sha256": "092fcfbbcfca3b5be7ae1b5e58538e92c35ab273ae13664fed0d67484c8e78a6",
+      "bytes": 2
+    },
+    {
+      "path": "legacy.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "legacy.stdout",
+      "sha256": "9ea418cf3d8bf2a0621678e554b7ed99a6fc0203b02cf5e4db915f1ed8ad62e4",
+      "bytes": 639
+    },
+    {
+      "path": "legacy/.modsync-551da0e217033b52/completion.json",
+      "sha256": "1b1ea330232b3dc605e3191d2cf17788061bfdc14b57ab52305eae0e76505d9a",
+      "bytes": 5779
+    },
+    {
+      "path": "legacy/.modsync-551da0e217033b52/snapshot.json",
+      "sha256": "4f3ce3c207878d2434b919263b95b03dfd23c2eda554228044f12d9f041b0687",
+      "bytes": 980
+    },
+    {
+      "path": "legacy/.modsync-551da0e217033b52/snapshot/game/Override/original.txt",
+      "sha256": "25718360e05d3c2d0963d1381e9dd4dae5fca789244ee4b9f861adcc0cc96218",
+      "bytes": 9
+    },
+    {
+      "path": "legacy/.modsync-551da0e217033b52/snapshot/game/dialog.tlk",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "legacy/.modsync-551da0e217033b52/snapshot/game/swkotor.exe",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "legacy/.modsync-551da0e217033b52/snapshot/mods/a.txt",
+      "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+      "bytes": 2
+    },
+    {
+      "path": "legacy/.modsync-551da0e217033b52/snapshot/mods/b.txt",
+      "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+      "bytes": 2
+    },
+    {
+      "path": "legacy/.modsync-551da0e217033b52/snapshot/mods/c.txt",
+      "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+      "bytes": 2
+    },
+    {
+      "path": "legacy/.modsync-551da0e217033b52/snapshot/mods/d.txt",
+      "sha256": "8d74beec1be996322ad76813bafb92d40839895d6dd7ee808b17ca201eac98be",
+      "bytes": 2
+    },
+    {
+      "path": "legacy/.modsync-551da0e217033b52/snapshot/mods/e.txt",
+      "sha256": "a2bbdb2de53523b8099b37013f251546f3d65dbe7a0774fa41af0a4176992fd4",
+      "bytes": 2
+    },
+    {
+      "path": "legacy/.modsync-551da0e217033b52/snapshot/mods/f.txt",
+      "sha256": "092fcfbbcfca3b5be7ae1b5e58538e92c35ab273ae13664fed0d67484c8e78a6",
+      "bytes": 2
+    },
+    {
+      "path": "legacy/.modsync-lock-551da0e217033b52",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "legacy/.modsync-lock-d4bc1aa9b32df9af",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "legacy/game/Override/a.txt",
+      "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+      "bytes": 2
+    },
+    {
+      "path": "legacy/game/Override/b.txt",
+      "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+      "bytes": 2
+    },
+    {
+      "path": "legacy/game/Override/c.txt",
+      "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+      "bytes": 2
+    },
+    {
+      "path": "legacy/game/Override/d.txt",
+      "sha256": "8d74beec1be996322ad76813bafb92d40839895d6dd7ee808b17ca201eac98be",
+      "bytes": 2
+    },
+    {
+      "path": "legacy/game/Override/e.txt",
+      "sha256": "a2bbdb2de53523b8099b37013f251546f3d65dbe7a0774fa41af0a4176992fd4",
+      "bytes": 2
+    },
+    {
+      "path": "legacy/game/Override/f.txt",
+      "sha256": "092fcfbbcfca3b5be7ae1b5e58538e92c35ab273ae13664fed0d67484c8e78a6",
+      "bytes": 2
+    },
+    {
+      "path": "legacy/game/Override/original.txt",
+      "sha256": "25718360e05d3c2d0963d1381e9dd4dae5fca789244ee4b9f861adcc0cc96218",
+      "bytes": 9
+    },
+    {
+      "path": "legacy/game/dialog.tlk",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "legacy/game/swkotor.exe",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "legacy/guide.json",
+      "sha256": "796f94f2cd8f98f7ba778a4ec9ef4c7d7b40b591daa55e8ca1710ffe2cc528f0",
+      "bytes": 2695
+    },
+    {
+      "path": "legacy/mods/b.txt",
+      "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+      "bytes": 2
+    },
+    {
+      "path": "legacy/mods/c.txt",
+      "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+      "bytes": 2
+    },
+    {
+      "path": "legacy/mods/d.txt",
+      "sha256": "8d74beec1be996322ad76813bafb92d40839895d6dd7ee808b17ca201eac98be",
+      "bytes": 2
+    },
+    {
+      "path": "legacy/mods/e.txt",
+      "sha256": "a2bbdb2de53523b8099b37013f251546f3d65dbe7a0774fa41af0a4176992fd4",
+      "bytes": 2
+    },
+    {
+      "path": "legacy/mods/f.txt",
+      "sha256": "092fcfbbcfca3b5be7ae1b5e58538e92c35ab273ae13664fed0d67484c8e78a6",
+      "bytes": 2
+    },
+    {
+      "path": "modsync",
+      "sha256": "16d2d2a29312c729fd35e541a5d0fac52ef28f656268bc127ded717c34285887",
+      "bytes": 95567896
+    },
+    {
+      "path": "phased/.modsync-4bf92b70531b5953/completion.json",
+      "sha256": "e2ea68517768e590866a276b6f91002c1ec8c85e4d751f68b66b639cc9350196",
+      "bytes": 5779
+    },
+    {
+      "path": "phased/.modsync-4bf92b70531b5953/snapshot.json",
+      "sha256": "65931c34045b557cd426f59cfa466178b667b78d1e5f4cc3d0015a21aaef9507",
+      "bytes": 5752
+    },
+    {
+      "path": "phased/.modsync-4bf92b70531b5953/snapshot/game/Override/a.txt",
+      "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+      "bytes": 2
+    },
+    {
+      "path": "phased/.modsync-4bf92b70531b5953/snapshot/game/Override/b.txt",
+      "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+      "bytes": 2
+    },
+    {
+      "path": "phased/.modsync-4bf92b70531b5953/snapshot/game/Override/c.txt",
+      "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+      "bytes": 2
+    },
+    {
+      "path": "phased/.modsync-4bf92b70531b5953/snapshot/game/Override/d.txt",
+      "sha256": "8d74beec1be996322ad76813bafb92d40839895d6dd7ee808b17ca201eac98be",
+      "bytes": 2
+    },
+    {
+      "path": "phased/.modsync-4bf92b70531b5953/snapshot/game/Override/original.txt",
+      "sha256": "25718360e05d3c2d0963d1381e9dd4dae5fca789244ee4b9f861adcc0cc96218",
+      "bytes": 9
+    },
+    {
+      "path": "phased/.modsync-4bf92b70531b5953/snapshot/game/dialog.tlk",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "phased/.modsync-4bf92b70531b5953/snapshot/game/swkotor.exe",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "phased/.modsync-4bf92b70531b5953/snapshot/mods/b.txt",
+      "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+      "bytes": 2
+    },
+    {
+      "path": "phased/.modsync-4bf92b70531b5953/snapshot/mods/c.txt",
+      "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+      "bytes": 2
+    },
+    {
+      "path": "phased/.modsync-4bf92b70531b5953/snapshot/mods/d.txt",
+      "sha256": "8d74beec1be996322ad76813bafb92d40839895d6dd7ee808b17ca201eac98be",
+      "bytes": 2
+    },
+    {
+      "path": "phased/.modsync-4bf92b70531b5953/snapshot/mods/e.txt",
+      "sha256": "a2bbdb2de53523b8099b37013f251546f3d65dbe7a0774fa41af0a4176992fd4",
+      "bytes": 2
+    },
+    {
+      "path": "phased/.modsync-4bf92b70531b5953/snapshot/mods/f.txt",
+      "sha256": "092fcfbbcfca3b5be7ae1b5e58538e92c35ab273ae13664fed0d67484c8e78a6",
+      "bytes": 2
+    },
+    {
+      "path": "phased/.modsync-lock-4bf92b70531b5953",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "phased/.modsync-lock-a6c1daff03a31738",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "phased/game/Override/a.txt",
+      "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+      "bytes": 2
+    },
+    {
+      "path": "phased/game/Override/b.txt",
+      "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+      "bytes": 2
+    },
+    {
+      "path": "phased/game/Override/c.txt",
+      "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+      "bytes": 2
+    },
+    {
+      "path": "phased/game/Override/d.txt",
+      "sha256": "8d74beec1be996322ad76813bafb92d40839895d6dd7ee808b17ca201eac98be",
+      "bytes": 2
+    },
+    {
+      "path": "phased/game/Override/e.txt",
+      "sha256": "a2bbdb2de53523b8099b37013f251546f3d65dbe7a0774fa41af0a4176992fd4",
+      "bytes": 2
+    },
+    {
+      "path": "phased/game/Override/f.txt",
+      "sha256": "092fcfbbcfca3b5be7ae1b5e58538e92c35ab273ae13664fed0d67484c8e78a6",
+      "bytes": 2
+    },
+    {
+      "path": "phased/game/Override/original.txt",
+      "sha256": "25718360e05d3c2d0963d1381e9dd4dae5fca789244ee4b9f861adcc0cc96218",
+      "bytes": 9
+    },
+    {
+      "path": "phased/game/dialog.tlk",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "phased/game/swkotor.exe",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "phased/guide.json",
+      "sha256": "796f94f2cd8f98f7ba778a4ec9ef4c7d7b40b591daa55e8ca1710ffe2cc528f0",
+      "bytes": 2695
+    },
+    {
+      "path": "phased/mods/b.txt",
+      "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+      "bytes": 2
+    },
+    {
+      "path": "phased/mods/c.txt",
+      "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+      "bytes": 2
+    },
+    {
+      "path": "phased/mods/d.txt",
+      "sha256": "8d74beec1be996322ad76813bafb92d40839895d6dd7ee808b17ca201eac98be",
+      "bytes": 2
+    },
+    {
+      "path": "phased/mods/e.txt",
+      "sha256": "a2bbdb2de53523b8099b37013f251546f3d65dbe7a0774fa41af0a4176992fd4",
+      "bytes": 2
+    },
+    {
+      "path": "phased/mods/f.txt",
+      "sha256": "092fcfbbcfca3b5be7ae1b5e58538e92c35ab273ae13664fed0d67484c8e78a6",
+      "bytes": 2
+    },
+    {
+      "path": "preflight.after.sha256",
+      "sha256": "81ed2897c7cf6245879e131c790f74fd3f950c8313c84fee7d0319c9e052cc1c",
+      "bytes": 1075
+    },
+    {
+      "path": "preflight.before.sha256",
+      "sha256": "81ed2897c7cf6245879e131c790f74fd3f950c8313c84fee7d0319c9e052cc1c",
+      "bytes": 1075
+    },
+    {
+      "path": "preflight.stderr",
+      "sha256": "c6ab8d95d225023119c736054c46e0ed0dc921eaedd399d711f9d13e98b7d7a3",
+      "bytes": 87
+    },
+    {
+      "path": "preflight.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "preflight/.modsync-lock-791aa45a335b12bb",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "preflight/.modsync-lock-c035681cd60bfdf7",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "preflight/game/Override/original.txt",
+      "sha256": "25718360e05d3c2d0963d1381e9dd4dae5fca789244ee4b9f861adcc0cc96218",
+      "bytes": 9
+    },
+    {
+      "path": "preflight/game/dialog.tlk",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "preflight/game/swkotor.exe",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "preflight/guide.json",
+      "sha256": "796f94f2cd8f98f7ba778a4ec9ef4c7d7b40b591daa55e8ca1710ffe2cc528f0",
+      "bytes": 2695
+    },
+    {
+      "path": "preflight/mods/a.txt",
+      "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+      "bytes": 2
+    },
+    {
+      "path": "preflight/mods/b.txt",
+      "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f",
+      "bytes": 2
+    },
+    {
+      "path": "preflight/mods/c.txt",
+      "sha256": "a3a5e715f0cc574a73c3f9bebb6bc24f32ffd5b67b387244c2c909da779a1478",
+      "bytes": 2
+    },
+    {
+      "path": "preflight/mods/d.txt",
+      "sha256": "8d74beec1be996322ad76813bafb92d40839895d6dd7ee808b17ca201eac98be",
+      "bytes": 2
+    },
+    {
+      "path": "preflight/mods/e.txt",
+      "sha256": "a2bbdb2de53523b8099b37013f251546f3d65dbe7a0774fa41af0a4176992fd4",
+      "bytes": 2
+    },
+    {
+      "path": "remaining.parsed.ndjson",
+      "sha256": "59f2894107831c4b65189a5f16a0a0d80caca16426a11cca3bfad9781c0743f8",
+      "bytes": 4338
+    },
+    {
+      "path": "remaining.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "remaining.stdout",
+      "sha256": "59f2894107831c4b65189a5f16a0a0d80caca16426a11cca3bfad9781c0743f8",
+      "bytes": 4338
+    }
+  ]
+}

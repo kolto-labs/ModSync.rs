@@ -1,0 +1,11 @@
+{"thisMod":[
+ {"Guid":"a1","Name":"Alpha Textures","IsSelected":true,"Directions":"Alpha directions: copy the alpha file, then run the slow step. Long direction sentence 1 keeps going so the text must wrap and clip at sixty pixels. Long direction sentence 2 keeps going so the text must wrap and clip at sixty pixels. Long direction sentence 3 keeps going so the text must wrap and clip at sixty pixels. Long direction sentence 4 keeps going so the text must wrap and clip at sixty pixels. Long direction sentence 5 keeps going so the text must wrap and clip at sixty pixels. Long direction sentence 6 keeps going so the text must wrap and clip at sixty pixels. Long direction sentence 7 keeps going so the text must wrap and clip at sixty pixels. Long direction sentence 8 keeps going so the text must wrap and clip at sixty pixels. Long direction sentence 9 keeps going so the text must wrap and clip at sixty pixels. Long direction sentence 10 keeps going so the text must wrap and clip at sixty pixels. Long direction sentence 11 keeps going so the text must wrap and clip at sixty pixels. Long direction sentence 12 keeps going so the text must wrap and clip at sixty pixels. ","Instructions":[
+   {"Action":"Copy","Source":["<<modDirectory>>/alpha.txt"],"Destination":"<<gameDirectory>>/Override","Overwrite":true},
+   {"Action":"Run","Source":["<<modDirectory>>/slow.sh"]}]},
+ {"Guid":"b2","Name":"Beta Patch","IsSelected":true,"Directions":"First Beta Patch directions (GUID b2).","Instructions":[
+   {"Action":"Copy","Source":["<<modDirectory>>/beta.txt"],"Destination":"<<gameDirectory>>/Override","Overwrite":true},
+   {"Action":"Run","Source":["<<modDirectory>>/fail.sh"]}]},
+ {"Guid":"c3","Name":"Beta Patch","IsSelected":true,"Directions":"Second Beta Patch directions (GUID c3), same display name.","Instructions":[
+   {"Action":"Copy","Source":["<<modDirectory>>/gamma.txt"],"Destination":"<<gameDirectory>>/Override","Overwrite":true},
+   {"Action":"Run","Source":["<<modDirectory>>/slow.sh"]}]}
+]}

@@ -1,0 +1,53 @@
+Validate, snapshot, then install in dependency order. Stop at the first failure
+
+Usage: modsync install [OPTIONS]
+
+Options:
+      --phase <PHASE>
+          Run all selected components, the base, or the verified remaining suffix [default: all] [possible values: all, base, remaining]
+      --direct-markdown
+          Install a Markdown guide in source order after direct-Markdown preflight
+      --fomod-choices <FOMOD_CHOICES>
+          Version-1 FOMOD choices JSON; overrides embedded choices for this run
+  -i, --input <INPUT>
+          
+      --game-dir <GAME_DIR>
+          
+      --source-dir <SOURCE_DIR>
+          
+      --profile <PROFILE>
+          Apply this stored profile before explicit selection overrides
+      --active-profile
+          Use activeProfileName from the specified settings directory
+      --settings-dir <SETTINGS_DIR>
+          
+      --use-file-selection
+          Honor IsSelected flags; by default select all top-level components
+      --select <SELECT>
+          Select component names/GUIDs or category:Name/tier:Name filters (repeat the flag)
+      --option <OPTION>
+          Select option GUIDs (repeat the flag). Existing option selections are retained
+      --allow-processes
+          Trust this guide to run programs with your user permissions
+      --patcher <PATCHER>
+          Patcher executable for Patcher instructions [aliases: --kpatcher-path, --odypatcher-path]
+      --patcher-engine <PATCHER_ENGINE>
+          CLI patcher backend for Patcher instructions [possible values: ody-patcher, k-patcher, holo-patcher]
+      --scratch-dir <SCRATCH_DIR>
+          Existing scratch folder outside the game and mod trees (defaults to system temp)
+      --max-expanded-bytes <MAX_EXPANDED_BYTES>
+          Optional expanded-byte budget per archive; extraction also checks free scratch space
+      --json
+          Emit newline-delimited JSON events
+      --install-progress-json
+          Emit newline-delimited typed installation progress
+      --validation-report
+          Emit the structured validation pipeline report instead of validation events
+      --dry-run
+          Include a non-mutating engine dry-run result in the validation report
+      --full
+          Include environment, conflict, and install-order validation stages
+      --dry-run-only
+          Run only FOMOD configuration and VFS dry-run validation
+  -h, --help
+          Print help

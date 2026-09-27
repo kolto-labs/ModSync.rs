@@ -1,5 +1,42 @@
 # C# GUI parity inventory
 
+## Installing page checkpoint — 2026-09-27
+
+Status: **partial**. `src/ui/installing_page.rs` renders both Installing Mods and Installing Widescreen Mods from shared `install_progress::Progress` facts, through `ac9cf3a`. `src/ui.rs` owns the run-ID/input-stamp-bound worker channel. This replaces the "P1 — installation progress" gap row below (spinner, global logs, terminal `Done`), which is kept as history. Native evidence: [install-progress-native/](install-progress-native/README.md). C# reference: [install-progress-reference/](install-progress-reference/README.md) and [the source audit](install-progress-csharp-audit.md). Rulings: [install-progress-integration.md](install-progress-integration.md).
+
+What matches the pinned C# composition: outer page scroll; a top card with percent, `N/M mods installed`, overall bar, current mod, directions and current operation with an indeterminate bar; statistics and "Installing Your Mods" cards side by side; a "What's Happening?" card; a footer warning. Directions come from the prepared guide given to the engine, looked up by GUID, never by first name match.
+
+C# defects Rust does not copy (native C# evidence in `install-progress-reference/`):
+
+1. A returned failure shows 100% and "Installation complete". Rust keeps the last real count and shows the error.
+2. Continue stays disabled after completion. Rust enables Continue after a committed success.
+3. One checkpoint is counted twice. Rust shows no checkpoint count.
+4. The finished current-mod bar shows about 1%. Rust keeps the current-mod bar indeterminate.
+5. The active host has no install Stop. Rust has Stop Install; see below.
+
+Other deliberate differences:
+
+- **Recovery snapshot row.** RECOVERY SNAPSHOT replaces CHECKPOINTS CREATED. Rust keeps one whole-run snapshot, so the row reads preparing, active, or finalized. No per-component count is shown.
+- **Issues read "Not counted".** The engine has no typed warning or error facts. External-program output stays in the log but is not counted by text matching.
+- **Percent.** Moves only on `componentCompleted`. Rounds half-to-even like .NET `Math.Round` (2/3 shows 67%). Capped at 99 until `completed`. While component *i* runs the count stays *i − 1*.
+- **Operation label** names the last finished step, because facts arrive after each step succeeds.
+- **Stop Install.** Footer button, then a confirmation. Cancels at the next safe boundary (between instructions, or the 100 ms poll inside a running external program). Restore is required when a snapshot is pending. It does not promise to finish the current mod. A window close while installing opens the same confirmation.
+- **Recovery actions.** Restore and Retry live only in the footer and act on the roots captured at dispatch. Retry is disabled while the current folders differ from those roots.
+- **Copy.** The explanation card says what Rust does ("Creating one recovery snapshot", "Checking steps before writing", "Following guide order"). The footer reads "Do not close ModSync while the install runs". The error shows in the directions slot. ETA reads `--:--:--` after a failure.
+- **Extra.** A collapsed page-local "Install steps" log keeps the newest 2000 lines. Colors come from egui theme visuals.
+
+Verified natively on Linux/Xvfb (1280×800 and 600×400, 96 dpi, Light/K1/K2): active progress, 600×400 Stop Install and Continue, Stop confirmation with cancel inside the running step and exact restore, a close request during install where the commit wins over the open modal, failure then restore of the captured roots while the folders pointed elsewhere, and widescreen phase reuse (round 1, `c28f4fc`).
+
+Open:
+
+- **600×400 host chrome.** At 600×400 the page body is about 280×50 px, because the downloads sidebar, header and activity panel take the rest. Footer controls stay reachable (`gui-r2-ac9cf3a/light-small`), but the page itself is barely usable. This belongs to the shell, not the page, and is not fixed.
+- Nested Choose directions and owner paths are checked from source only, not natively.
+- Review findings #2 (utility Restore uses live paths), #9 (stale Remaining success has no route out) and #10 (Retry disabled after a `Settings::new` failure) were open at this checkpoint.
+- Validation page Run/Stop at 600×400 was not rechecked with this build.
+- No DPI, keyboard, screen-reader, Windows or macOS evidence. No exact Avalonia metrics or font claim.
+
+Frozen-test drift (source reading only; nothing compiled or run): `finish_worker` in the `src/ui.rs` test module (`ac9cf3a` L3221–3231) waits for `Message::Done`. Installs now end with `Message::InstallTerminal`, so three tests that start an install will time out: `desktop_retained_and_cli_reconstructed_choices_verify_real_completion`, `desktop_invalid_retained_ids_and_failed_base_never_promote_or_mutate` and `stale_install_completion_cannot_promote_effective_definitions`. Separately, and already true before this slice, the tests match `Message::ValidationReport` (L3910), which the enum lacks. These wait for the user's test freeze to lift.
+
 ## Final archive diagnostic correction — 2026-09-27
 
 Whole-package review found one P2 combined-path defect: known component archive errors lacked a severity marker, so the shared presentation displayed only an aggregate card and first-issue navigation could select the final generic failure. Scoped specification/quality review approves `099834c` and closes F1. That commit fixes the shared failed-outcome mapping with an idempotent `ERROR:` prefix, preserving component identity/detail. **Raw Report message values now include that prefix; serialized schema, stages, counters and warning behavior are unchanged.** This qualifies earlier transport-compatibility statements: schema stability does not imply unchanged diagnostic text.

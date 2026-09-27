@@ -1,5 +1,16 @@
 # Full C# feature parity — active acceptance ledger
 
+## Install progress slice checkpoint — 2026-09-27
+
+F10, F24 and F26 remain **partial**. F29 remains **unverified**. Source through `ac9cf3a`; rulings, commits and open findings in [install-progress-integration.md](install-progress-integration.md); evidence in [install-progress-native/](install-progress-native/README.md).
+
+- **F10 (install coordinator, cancellation, progress).** Added: a shared typed progress contract (`Engine::install_observed` / `install_remaining_observed`, `Progress`/`Phase`/`OwnerFrame`) with silent preflight, exact top-level suffix totals, GUID-bound owner paths, and `completed` only after the receipt and `recovery::finish`. Native proof covers desktop cancellation at a safe boundary with exact restore, failure with exact restore of the captured roots, and a late Stop that cannot undo a committed success. Still open: per-component checkpoints (Rust keeps one whole-run snapshot), automatic rollback, crash durability, nested Choose evidence beyond source reading, and the reference best-effort install flags noted below.
+- **F24 (wizard pages).** The Installing page now renders shared facts for Base and Retained Remaining, with the deliberate C# deviations listed in `GUI-INVENTORY.md` (five C# defects not copied, "Not counted" issues, recovery snapshot row, Stop Install, round-half-to-even percent capped at 99). Still open: the 600×400 host chrome leaves about 280×50 px for the page body; review findings #2, #9 and #10 in `src/ui.rs`; DPI, keyboard, accessibility and non-Linux rendering.
+- **F26 (CLI contracts).** Added: `install --install-progress-json` NDJSON with the `installProgress` envelope, conflicts with `--json`/`--validation-report`, legacy `--json` byte-identical, legacy Event text on stderr in typed mode, and a documented success/failure contract (`COMPATIBILITY.md`, `GUI-CLI.md`). Still open: the flag's help text, a machine-readable failure record (not planned), and the full CLI verb/option comparison.
+- **F29.** No full-build or game evidence. All fixtures are small disposable guides.
+
+No Rust tests were created, changed or run. Frozen inline tests in `src/ui.rs` are expected to hang on `finish_worker` once the freeze lifts; details in the integration doc.
+
 ## Final archive diagnostic correction — 2026-09-27
 
 Whole-package review found one P2 combined-path defect: known component archive errors lacked a severity marker, so the shared presentation displayed only an aggregate card and first-issue navigation could select the final generic failure. Scoped specification/quality review approves `099834c` and closes F1. That commit fixes the shared failed-outcome mapping with an idempotent `ERROR:` prefix, preserving component identity/detail. **Raw Report message values now include that prefix; serialized schema, stages, counters and warning behavior are unchanged.** This qualifies earlier transport-compatibility statements: schema stability does not imply unchanged diagnostic text.

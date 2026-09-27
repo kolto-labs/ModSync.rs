@@ -1,5 +1,36 @@
 # Compatibility and proof boundaries
 
+## Typed install progress and Installing page — 2026-09-27
+
+Commits `065ffee` (shared contract), `57f198f` and `cd8f0b0` (CLI adapter), `dcd1373`..`ac9cf3a` (desktop page). Rulings, commit map and open review findings are in [install-progress-integration.md](docs/parity/install-progress-integration.md). Evidence is in [install-progress-native/](docs/parity/install-progress-native/README.md).
+
+**Library API (additive).** `Engine::install_observed(guide, emit, progress)` and `Engine::install_remaining_observed(guide, completed, emit, progress)` take a second observer, `FnMut(install_progress::Progress)`. `Engine::install` and `Engine::install_remaining` still exist and pass a no-op observer. The observer cannot return an error. A dropped receiver does not change execution. The legacy `Event { component, step, message }` callback and its serialization are unchanged.
+
+**Progress schema.** `Progress` serializes in camelCase: `phase`, `topLevelComponentName`, `topLevelComponentGuid`, `componentIndex`, `componentTotal`, `ownerName`, `ownerGuid`, `ownerPath` (array of `OwnerFrame {name, guid, reachedFromInstruction}`), `instructionIndex`, `instructionTotal`, `operation`, `message`, `snapshotPending`. `phase` is one of `preparing`, `creatingSnapshot`, `installingComponent`, `runningInstruction`, `componentCompleted`, `recordingCompletion`, `completed`. Indices are one-based when an item is active and 0 otherwise. `componentTotal` counts only the ordered top-level components still to install; nested Choose work never changes it. `instructionTotal` is owner-local. There is no `rollingBack` phase and no error phase. `Progress` carries no schema version field.
+
+**CLI flag.** `install --install-progress-json` writes one JSON object per line to stdout:
+
+```json
+{"type":"installProgress","progress":{...Progress...}}
+```
+
+- Only `install` accepts it. `validate` and `conflicts` reject it with `--install-progress-json is only supported by install`.
+- Clap rejects it together with `--json` or `--validation-report` (exit 2, usage error). One stdout stream has one schema.
+- Legacy `--json` is byte-identical to the pre-slice output. The Task 1 fix1 and Task 2a receipts both compare the same 639-byte, 10-line All stream (SHA256 `9ea418cf…`) with keys `component`, `message`, `step`.
+- In typed mode, legacy Event text (`component / step: message`, which includes external-program output) goes to **stderr**, from `cd8f0b0`. Stdout stays pure NDJSON.
+- Stdout write errors in typed mode are ignored on purpose (`let _ = …write_all`). A closed pipe means the consumer left, and the engine keeps its own safe cancellation and recovery contract. The install still runs to its normal end and exit code. The Task 2a `drop*` probes cover this.
+
+**Success and failure contract (review finding #5).**
+
+- Success: exit 0, and the last stdout line has `"phase":"completed"` with `snapshotPending:false`. `completed` is emitted only after the completion receipt is recorded and `recovery::finish` succeeds.
+- Failure or cancellation after the stream started: nonzero exit, no `completed` line, and the real error text on stderr (`Error: …`). The last line is the last fact that really happened; it may be `componentCompleted` for an earlier component. No failure envelope is emitted.
+- Preflight failure (lock, receipt check, scan, non-mutating preflight): zero stdout lines, nonzero exit, error on stderr, and no recovery snapshot.
+- The flag's `--help` text (`src/main.rs:343`) does not yet state this contract. The lead updates it separately.
+
+**Desktop.** Base and Retained Remaining installs render one Installing page from these facts (`src/ui/installing_page.rs`). The percentage moves only on `componentCompleted`, stays at 99% or less until `completed`, and uses round-half-to-even like .NET `Math.Round`. The page shows one recovery snapshot row instead of C# checkpoint counts. Issue counts read "Not counted". Stop Install asks for confirmation and then cancels at the next safe boundary. Restore and Retry act on the roots captured when the run started. The deliberate differences from C# are listed in `docs/parity/GUI-INVENTORY.md`.
+
+**Limits.** This does not close F10, F24 or F26, and it adds no F29 full-build proof. There is still one whole-run recovery snapshot, no per-component checkpoint and no automatic rollback. The review findings #2, #9 and #10 (`src/ui.rs` restore routing, stale Remaining dead end, Retry after a `Settings::new` failure) were still open when this was written. Frozen inline tests in `src/ui.rs` will hang on `finish_worker`; see the integration doc. No Rust tests were created, changed or run.
+
 ## Final archive diagnostic correction — 2026-09-27
 
 Whole-package review found one P2 combined-path defect: known component archive errors lacked a severity marker, so the shared presentation displayed only an aggregate card and first-issue navigation could select the final generic failure. Scoped specification/quality review approves `099834c` and closes F1. That commit fixes the shared failed-outcome mapping with an idempotent `ERROR:` prefix, preserving component identity/detail. **Raw Report message values now include that prefix; serialized schema, stages, counters and warning behavior are unchanged.** This qualifies earlier transport-compatibility statements: schema stability does not imply unchanged diagnostic text.

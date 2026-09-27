@@ -1,0 +1,34 @@
+{
+  "argv": [
+    "/usr/bin/dbus-run-session",
+    "--",
+    "dotnet",
+    "/tmp/modsync-validation-reference-20260927-5813/artifacts/bin/ModSync/debug_net9.0/ModSync.dll",
+    "--instructionFile=/tmp/modsync-install-reference-20260927/guide.json",
+    "--kotorPath=/tmp/modsync-install-reference-20260927/game",
+    "--modDirectory=/tmp/modsync-install-reference-20260927/mods",
+    "--allow-multiple-instances"
+  ],
+  "wrapper_pid": 2417471,
+  "xvfb_pid": 2417461,
+  "display": ":1",
+  "environment": {
+    "XDG_CONFIG_DIRS": "/home/brunner56/.config/kdedefaults:/etc/xdg:/usr/share/kde-settings/kde-profile/default/xdg",
+    "XDG_SESSION_PATH": "/org/freedesktop/DisplayManager/Session1",
+    "XDG_MENU_PREFIX": "plasma-",
+    "XDG_SEAT": "seat0",
+    "XDG_SESSION_DESKTOP": "KDE",
+    "XDG_SESSION_TYPE": "x11",
+    "XDG_CURRENT_DESKTOP": "KDE",
+    "XDG_SEAT_PATH": "/org/freedesktop/DisplayManager/Seat0",
+    "XDG_SESSION_CLASS": "user",
+    "DISPLAY": ":1",
+    "XDG_VTNR": "2",
+    "XDG_SESSION_ID": "3",
+    "XDG_RUNTIME_DIR": "/tmp/modsync-install-reference-20260927/runtime",
+    "XDG_DATA_DIRS": "/home/brunner56/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share:/usr/share:/var/lib/snapd/desktop",
+    "XDG_CONFIG_HOME": "/tmp/modsync-install-reference-20260927/config",
+    "XDG_DATA_HOME": "/tmp/modsync-install-reference-20260927/data",
+    "XDG_CACHE_HOME": "/tmp/modsync-install-reference-20260927/cache"
+  }
+}

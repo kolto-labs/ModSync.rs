@@ -1,0 +1,23 @@
+{
+  "game": {
+    ".modsync/checkpoints/.git/HEAD": "28d25bf82af4c0e2b72f50959b2beb859e3e60b9630a5e8c603dad4ddb2b6e80",
+    ".modsync/checkpoints/.git/config": "c4a5f4286f745a5761fee60f89204e5f3d4ebe89ce2ad3e0928bbb8297cdd129",
+    ".modsync/checkpoints/.git/description": "85ab6c163d43a17ea9cf7788308bca1466f1b0a8d1cc92e26e9bf63da4062aee",
+    ".modsync/checkpoints/.git/hooks/README.sample": "7319d7f1803fda2b3416143e426b9ec4c3c3c817c75188b2b82cb3e68ff293ab",
+    ".modsync/checkpoints/.git/index": "08ee80e58505f213d22a1a41645b4e3b79e6b7ccbddbb8637fc1c47e46d035b4",
+    ".modsync/checkpoints/.git/info/exclude": "fdb7dc7be17051c3c5067cdf2b8fdf2ca3a8daf2b5e91f34c6ce1ff3a94c5f6a",
+    ".modsync/checkpoints/.git/logs/HEAD": "ad6776928b15541a528efd1dd3252718dd9fc6e6f754eaa6669cf0e9fd1b8b1f",
+    ".modsync/checkpoints/.git/logs/refs/heads/main": "ad6776928b15541a528efd1dd3252718dd9fc6e6f754eaa6669cf0e9fd1b8b1f",
+    ".modsync/checkpoints/.git/objects/24/01fc30796d4342b32a8a1a2500d52e7ee88d31": "07e01501ec1dd0630fa54e8f7150b5fde286eb74a781cc8b0bb5772f152e16bf",
+    ".modsync/checkpoints/.git/objects/aa/33c60968434e87286fcccdf5b14a7f46cf5114": "eb54b80d61e1c93d6a763804b91533133dbf30717e6d1d0f8147135079a8ddf8",
+    ".modsync/checkpoints/.git/objects/e6/9de29bb2d1d6434b8b29ae775ad8c2e48c5391": "164c5fa8067facf1a43f09ce3d0e35ebf53a7f5723ecbf15a8667cfc53c26f6c",
+    ".modsync/checkpoints/.git/refs/heads/main": "b584409937276bb4893e1b75cf9bf99d32216569c51ed7632f5f89741a24ad2c",
+    ".modsync/checkpoints/dialog.tlk": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".modsync/checkpoints/swkotor.exe": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".modsync/install_session.json": "5827c1bd42bbd53ce63bd873d7518c2047225f684b44bd8259444889e6289ec6",
+    ".modsync/last_good_backup.zip": "a7bd0c99d664b7beeaa3f69a7b8c0e4856728c58419d45bca3cebbdc2108148a",
+    "dialog.tlk": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "swkotor.exe": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "mods": {}
+}

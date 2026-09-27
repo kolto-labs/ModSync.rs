@@ -6,7 +6,8 @@ The target is the C# GUI's controls, layouts, text, conditional pages, interacti
 |---|---|---|
 | Base validation | `Engine::validate_report_with_options`; desktop selects full validation with dry run, CLI supplies flags | C# environment, dependency conflicts, archive validation, issue presentation; native comparison |
 | Remaining-phase validation | `Engine::validate_report_remaining` enters the same report pipeline as base validation | Completed prefix survives every fresh stage engine; consumed-source regression verifies no replay or writes. Native remaining-phase rendering remains open |
-| Installation | `phase::prepare` then `Engine::install` / `install_remaining`; CLI All/Base/Remaining, desktop All/Base/Retained Remaining | Equality begins after selection; CLI stable-input reconstruction differs from GUI retained choices; full-build output remains unproven |
+| Installation | `phase::prepare` then `Engine::install_observed` / `install_remaining_observed` (old names wrap them with a no-op observer); CLI All/Base/Remaining, desktop All/Base/Retained Remaining | Equality begins after selection; CLI stable-input reconstruction differs from GUI retained choices; full-build output remains unproven |
+| Install progress | Both frontends read the same `install_progress::Progress` facts. CLI serializes them with `--install-progress-json`; the desktop Installing page renders them | Contract below. Desktop elapsed/ETA/rate are local presentation only and never reach the CLI |
 | Selection | `selection.rs` owns both reference policies: GUI helpers add using wizard numeric/`Optional` tier priorities, while CLI resets using `matches_category_tier` and CLI tier normalization | Regressions cover empty/numeric CLI selectors, numeric wizard selection, exact full-label wizard selection versus cumulative CLI selection, `Optional`, and exact colon-containing name/GUID precedence. Exact name/GUID selection remains a Rust CLI extension; native selection interaction parity remains open |
 | Downloads | Shared download/provider modules with separate frontend orchestration | Queue, cancellation, progress, filename selection and host behavior through both entry points |
 | Wizard presentation | `src/ui.rs`, currently egui | Exact C# page/control inventory and conditional routes, text, layout, keyboard/focus, accessibility, themes and native rendered comparisons |
@@ -33,3 +34,21 @@ is required when they affected Base. A fresh explicit Base can repeat ordinary C
 operations; consumed Move inputs fail safely. Only explicit `--direct-markdown`
 transformation is excluded from phased requests. The automated differential evidence
 does not refresh the earlier native wizard captures or establish exact C# parity.
+
+## Typed install progress contract — 2026-09-27
+
+The CLI and the desktop Installing page consume one shared fact stream: `Engine::install_observed` / `install_remaining_observed` and `install_progress::Progress` (`065ffee`). Neither frontend infers component order, completion, recovery or cancellation. Full schema and compatibility notes: `COMPATIBILITY.md`, "Typed install progress and Installing page — 2026-09-27". Rulings: [install-progress-integration.md](install-progress-integration.md).
+
+`modsync install --install-progress-json` writes `{"type":"installProgress","progress":{...}}` per stdout line. It conflicts with `--json` and `--validation-report`, and `validate`/`conflicts` reject it. In typed mode the legacy Event text goes to stderr (`cd8f0b0`). Stdout write errors are ignored on purpose: a gone consumer does not stop or alter the install.
+
+How a consumer reads the result:
+
+| Outcome | Exit | Stdout | Stderr |
+|---|---|---|---|
+| Success | 0 | Last line has `"phase":"completed"` and `snapshotPending:false` | Legacy Event text |
+| Failure or cancel after the snapshot | nonzero | No `completed` line. The last line is the last fact that happened, e.g. an earlier `componentCompleted` or `installingComponent` | Legacy Event text, then `Error: …` with the real error and the restore-before-retry snapshot path |
+| Preflight failure | nonzero | Zero lines | `Error: …`; no snapshot is created |
+
+There is no failure envelope. The flag's `--help` text does not yet describe this table; the lead updates `src/main.rs` separately. The CLI has no cancellation input, so cancellation is exercised only through the desktop Stop Install path.
+
+Evidence: [install-progress-native/](install-progress-native/README.md) binds the Task 2a CLI probes to `57f198f` and a typed-mode stderr/contract probe to a clean `ac9cf3a` build. This is shared-contract evidence only. No C# CLI install-stream comparison was made, and it proves nothing about C# GUI parity.
