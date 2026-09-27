@@ -123,14 +123,13 @@ impl Profile {
             if let Some((_, selection)) = self
                 .component_selections
                 .iter()
-                .find(|(id, _)| normalize_guid(id) == normalize_guid(&c.guid))
+                .find(|(id, _)| normalize_guid(id).eq_ignore_ascii_case(&normalize_guid(&c.guid)))
             {
                 c.is_selected = selection.is_selected;
                 for option in &mut c.options {
-                    option.is_selected = selection
-                        .selected_option_guids
-                        .iter()
-                        .any(|id| normalize_guid(id) == normalize_guid(&option.guid));
+                    option.is_selected = selection.selected_option_guids.iter().any(|id| {
+                        normalize_guid(id).eq_ignore_ascii_case(&normalize_guid(&option.guid))
+                    });
                 }
             }
         }
@@ -330,8 +329,24 @@ impl Store {
         fs::remove_file(path)?;
         Ok(true)
     }
+    /// Settings as read for the two managed fields (activation, active name, deactivation).
+    /// Like `ModSyncSettings.LoadFromDirectory`: a JSON `null` file reads as `{}`, and an
+    /// unusable legacy file warns and yields defaults. Unusable current files are still
+    /// refused so they are never replaced.
     fn settings(&self) -> Result<Value> {
-        self.read_settings(true)
+        let current = self.root.join("settings.json");
+        if current.exists() {
+            let value: Value = serde_json::from_slice(without_bom(&fs::read(&current)?))?;
+            return match value {
+                Value::Null => Ok(json!({})),
+                Value::Object(_) => Ok(value),
+                _ => anyhow::bail!("Settings must be an object"),
+            };
+        }
+        self.read_settings(true).or_else(|e| {
+            eprintln!("Warning: failed to read legacy settings: {e:#}");
+            Ok(json!({}))
+        })
     }
     fn read_settings(&self, managed_only: bool) -> Result<Value> {
         let current = self.root.join("settings.json");
