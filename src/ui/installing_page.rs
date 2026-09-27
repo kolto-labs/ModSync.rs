@@ -64,10 +64,19 @@ impl State {
         self.run
     }
 
-    /// Bind the roots and folder text captured before dispatch.
-    pub fn bind_roots(&mut self, roots: &Roots, mods: &str, game: &str) {
-        self.roots = Some(roots.clone());
+    /// Bind the folder text this run starts with, before anything can fail.
+    pub fn bind_folders(&mut self, mods: &str, game: &str) {
         self.folders = (mods.to_owned(), game.to_owned());
+    }
+
+    /// Bind the roots resolved from those folders before dispatch.
+    pub fn bind_roots(&mut self, roots: &Roots) {
+        self.roots = Some(roots.clone());
+    }
+
+    /// The engine committed, but the result was not applied to this project.
+    pub fn not_applied(&self) -> bool {
+        matches!(self.outcome, Outcome::NotApplied(_))
     }
 
     /// Roots of a failed run whose snapshot is still pending.
@@ -186,7 +195,7 @@ impl State {
         self.outcome = match (engine_ok, result) {
             (true, Ok(())) if !stale => Outcome::Succeeded,
             (true, Ok(())) => Outcome::NotApplied(
-                "The install finished for the captured folders, but the guide or folders changed. Reload the guide before you continue.".into(),
+                "The install finished for the captured folders, but the guide or folders changed. Use Restart wizard below to start again with the current guide.".into(),
             ),
             (true, Err(error)) => Outcome::NotApplied(format!("{error:#}")),
             (false, Err(error)) => Outcome::Failed(format!("{error:#}")),
@@ -608,7 +617,7 @@ impl App {
                         // Text only: the actions live once, in the footer.
                         let guidance = match &state.outcome {
                             Outcome::NotApplied(_) => {
-                                "The engine finished, but this project did not record it. Reload the guide, then check Activity before you install again."
+                                "The engine finished, but this project did not record it. Use Restart wizard below, then check Activity before you install again."
                             }
                             _ if state.pending() => {
                                 "Files may have changed. Use Restore snapshot below, then retry this phase."

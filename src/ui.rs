@@ -173,7 +173,7 @@ impl App {
                 self.phase_failed = !engine_succeeded && pending;
                 self.logs.push(match &final_result {
                     Ok(()) if accepted => "Installation complete.".into(),
-                    Ok(()) => "Installation finished for the captured folders, but the guide or folders changed. Reload the guide before you continue.".into(),
+                    Ok(()) => "Installation finished for the captured folders, but the guide or folders changed. Use Restart wizard to start again with the current guide.".into(),
                     Err(error) if engine_succeeded => {
                         format!("Installed, but not applied here: {error:#}")
                     }
@@ -616,6 +616,22 @@ impl App {
                     .clicked()
             {
                 self.start(Job::Install, ctx);
+            }
+            // A stale success was not applied to this project and has no
+            // Back or Continue; restart through the existing wizard path.
+            if page.install_phase().is_some()
+                && self.installing_page.not_applied()
+                && ui
+                    .add_enabled(
+                        self.receiver.is_none(),
+                        egui::Button::new("Restart wizard").min_size(egui::vec2(100.0, 32.0)),
+                    )
+                    .on_hover_text("Start again with the current guide and folders")
+                    .clicked()
+            {
+                self.reset_installation();
+                self.wizard = self.guide.as_ref().map(Wizard::new);
+                self.utility = false;
             }
             if !next && page != Page::Finished {
                 ui.label("Complete this page before continuing.");
@@ -1488,7 +1504,21 @@ impl App {
                         self.start(Job::Validate, ctx);
                     }
 
-                    if ui.button("Restore failed install").clicked() {
+                    let captured = self
+                        .installing_page
+                        .restore_target()
+                        .map(|roots| roots.game.display().to_string());
+                    let hover = match &captured {
+                        Some(game) => format!("Restores the failed install's own folders: {game}"),
+                        None => "Restores the pending snapshot for the folders above".into(),
+                    };
+                    if ui
+                        .button("Restore failed install")
+                        .on_hover_text(hover)
+                        .clicked()
+                    {
+                        // start() routes to the captured roots when a failed
+                        // install is pending.
                         self.start(Job::Restore, ctx);
                     }
                     if ui.button("Save selection…").clicked()
@@ -2252,10 +2282,19 @@ impl App {
     }
 
     fn start(&mut self, job: Job, ctx: &egui::Context) {
+        // Every Restore entry point uses a failed install's captured roots while
+        // one is pending. Live-path restore is only for other recovery.
+        if job == Job::Restore && self.installing_page.restore_target().is_some() {
+            self.restore_captured(ctx);
+            return;
+        }
         self.refresh_input_stamp();
         // Bind this run to the exact inputs before anything can fail.
         let install_run =
             (job == Job::Install).then(|| self.installing_page.begin(&self.input_stamp));
+        if install_run.is_some() {
+            self.installing_page.bind_folders(&self.mods, &self.game);
+        }
         self.validation_input_stamp = (job == Job::Validate).then(|| self.input_stamp.clone());
         self.validated = false;
         self.conflicts = None;
@@ -2286,8 +2325,7 @@ impl App {
             }
         };
         if install_run.is_some() {
-            self.installing_page
-                .bind_roots(&settings.roots, &self.mods, &self.game);
+            self.installing_page.bind_roots(&settings.roots);
         }
         if job == Job::Restore {
             self.restore_roots = Some(settings.roots.clone());
