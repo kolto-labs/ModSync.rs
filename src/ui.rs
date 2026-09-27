@@ -95,10 +95,7 @@ impl App {
     fn handle_message(&mut self, message: Message) {
         match message {
             Message::Downloaded(path, options) => {
-                if self.completed_base.is_none()
-                    && self.guide.is_some()
-                    && self.should_offer_fomod_editor(&path)
-                {
+                if self.guide.is_some() && self.should_offer_fomod_editor(&path) {
                     let saved = self.saved_fomod_choices(&path);
                     match saved {
                         Ok(saved) => {
@@ -1192,13 +1189,12 @@ impl App {
                     self.validation_report = None;
                 }
                 Self::path_row(ui, "FOMOD archive", &mut self.fomod_archive, false);
-                if self.completed_base.is_none()
-                    && ui
-                        .add_enabled(
-                            !self.fomod_archive.trim().is_empty(),
-                            egui::Button::new("Configure FOMOD archive…"),
-                        )
-                        .clicked()
+                if ui
+                    .add_enabled(
+                        !self.fomod_archive.trim().is_empty(),
+                        egui::Button::new("Configure FOMOD archive…"),
+                    )
+                    .clicked()
                 {
                     let path = PathBuf::from(&self.fomod_archive);
                     let budget = if self.expanded_budget.trim().is_empty() {
@@ -1887,7 +1883,11 @@ impl App {
                 modsync::fomod::ChoicesFile::parse(&std::fs::read_to_string(&self.fomod_choices)?)?;
             Ok(choices.archive(filename).cloned())
         } else if let Some(guide) = &self.guide {
-            modsync::fomod::saved_archive_choices(guide, filename)
+            modsync::fomod::saved_archive_choices_remaining(
+                guide,
+                filename,
+                self.completed_base.as_deref().unwrap_or_default(),
+            )
         } else {
             Ok(None)
         }
@@ -1929,9 +1929,15 @@ impl App {
             .ok_or_else(|| anyhow::anyhow!("Load a guide first"))?;
         if !self.fomod_choices.trim().is_empty() {
             modsync::fomod::ChoicesFile::parse(&std::fs::read_to_string(&self.fomod_choices)?)?
-                .apply_to_guide(&mut guide)?;
+                .apply_to_remaining(
+                    &mut guide,
+                    self.completed_base.as_deref().unwrap_or_default(),
+                )?;
         }
-        choices.merge_into_guide(&mut guide)?;
+        choices.merge_into_remaining(
+            &mut guide,
+            self.completed_base.as_deref().unwrap_or_default(),
+        )?;
         self.guide = Some(guide);
         self.fomod_choices.clear();
         self.validated = false;
@@ -1950,7 +1956,10 @@ impl App {
             .ok_or_else(|| anyhow::anyhow!("Load a guide first"))?;
         if !self.fomod_choices.trim().is_empty() {
             modsync::fomod::ChoicesFile::parse(&std::fs::read_to_string(&self.fomod_choices)?)?
-                .apply_to_guide(&mut guide)?;
+                .apply_to_remaining(
+                    &mut guide,
+                    self.completed_base.as_deref().unwrap_or_default(),
+                )?;
         }
         guide.save(path)
     }
@@ -2008,7 +2017,10 @@ impl App {
                     &self.fomod_choices,
                 )?)?;
                 if let Some(guide) = &mut guide {
-                    choices.apply_to_guide(guide)?;
+                    choices.apply_to_remaining(
+                        guide,
+                        self.completed_base.as_deref().unwrap_or_default(),
+                    )?;
                 }
                 Ok(())
             })();
@@ -2444,17 +2456,12 @@ impl eframe::App for App {
                 }
                 crate::fomod_ui::Outcome::Dismissed(filename) => {
                     if let Some(guide) = &mut self.guide {
-                        fn mark(components: &mut [Component], filename: &str) {
-                            for component in components {
-                                modsync::fomod::set_prompt_status(
-                                    component,
-                                    filename,
-                                    modsync::fomod::PromptStatus::Dismissed,
-                                );
-                                mark(&mut component.options, filename);
-                            }
-                        }
-                        mark(&mut guide.components, &filename);
+                        modsync::fomod::set_prompt_status_remaining(
+                            guide,
+                            &filename,
+                            modsync::fomod::PromptStatus::Dismissed,
+                            self.completed_base.as_deref().unwrap_or_default(),
+                        );
                     }
                     self.logs
                         .push(format!("FOMOD configuration dismissed for {filename}."));
@@ -3054,6 +3061,85 @@ mod tests {
         std::fs::write(&choices, "invalid").unwrap();
         assert!(app.save_selection(&output).is_err());
         assert_eq!(std::fs::read(output).unwrap(), before);
+    }
+
+    #[test]
+    fn remaining_fomod_editor_and_external_choices_preserve_consumed_base() {
+        use std::io::Write;
+        for external in [false, true] {
+            let (root, mut app) = route_fixture(false);
+            let archive = Path::new(&app.mods).join("wide.zip");
+            let mut zip = zip::ZipWriter::new(std::fs::File::create(&archive).unwrap());
+            for (name, bytes) in [
+                ("fomod/ModuleConfig.xml", br#"<config><installSteps><installStep name="Style"><optionalFileGroups><group name="Texture" type="SelectExactlyOne"><plugins><plugin name="Default"><files><file source="default.txt" destination="Override"/></files></plugin><plugin name="Alternate"><files><file source="asset.txt" destination="Override"/></files></plugin></plugins></group></optionalFileGroups></installStep></installSteps></config>"#.as_slice()),
+                ("asset.txt", b"configured wide".as_slice()),
+                ("default.txt", b"unwanted default".as_slice()),
+            ] {
+                zip.start_file(name, zip::write::SimpleFileOptions::default()).unwrap();
+                zip.write_all(bytes).unwrap();
+            }
+            zip.finish().unwrap();
+            let guide = app.guide.as_mut().unwrap();
+            guide.components[1].instructions = vec![
+                serde_json::from_value(
+                    serde_json::json!({"Action":"Extract","Source":["<<modDirectory>>/wide.zip"]}),
+                )
+                .unwrap(),
+            ];
+            guide.components[0].options.push(Component {
+                guid: "base-option".into(),
+                ..Default::default()
+            });
+            let base_definition = serde_json::to_value(&guide.components[0]).unwrap();
+            let ctx = egui::Context::default();
+            reach(&mut app, Page::Validate);
+            app.start(Job::Validate, &ctx);
+            finish_worker(&mut app);
+            assert!(app.validated, "{:?}", app.logs);
+            reach(&mut app, Page::Installing);
+            finish_worker(&mut app);
+            assert!(!Path::new(&app.mods).join("base.txt").exists());
+            reach(&mut app, Page::WidescreenModSelection);
+            modsync::selection::set_component_selected(
+                &mut app.guide.as_mut().unwrap().components,
+                1,
+                true,
+            );
+            let choices = modsync::fomod::ChoicesFile::parse(r#"{"archives":[{"archiveFileName":"wide.zip","selections":[{"stepName":"Style","groupName":"Texture","plugins":["Alternate"]}]}]}"#).unwrap();
+            if external {
+                let path = root.path().join("remaining-choices.json");
+                std::fs::write(&path, serde_json::to_vec(&choices).unwrap()).unwrap();
+                app.fomod_choices = path.to_string_lossy().into_owned();
+            } else {
+                // Same handler as the native editor's committed Choices outcome.
+                app.apply_fomod_choices(&choices).unwrap();
+                assert!(app.saved_fomod_choices(&archive).unwrap().is_some());
+            }
+            assert_eq!(
+                serde_json::to_value(&app.guide.as_ref().unwrap().components[0]).unwrap(),
+                base_definition
+            );
+            app.start(Job::Validate, &ctx);
+            finish_worker(&mut app);
+            assert!(app.validated, "external={external}: {:?}", app.logs);
+            reach(&mut app, Page::WidescreenInstalling);
+            finish_worker(&mut app);
+            assert!(app.finished, "external={external}: {:?}", app.logs);
+            assert_eq!(
+                std::fs::read(Path::new(&app.game).join("Override/base.txt")).unwrap(),
+                b"base fixture"
+            );
+            assert_eq!(
+                std::fs::read(Path::new(&app.game).join("Override/asset.txt")).unwrap(),
+                b"configured wide"
+            );
+            assert!(!Path::new(&app.game).join("Override/default.txt").exists());
+            assert!(!Path::new(&app.mods).join("base.txt").exists());
+            assert_eq!(
+                serde_json::to_value(&app.guide.as_ref().unwrap().components[0]).unwrap(),
+                base_definition
+            );
+        }
     }
 
     #[test]

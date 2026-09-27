@@ -1,5 +1,11 @@
 # Native desktop route receipt
 
+**Historical source binding:** this receipt records desktop commit `d4fdb45`,
+before the subsequent remaining-phase FOMOD configuration fix. Its hashes remain
+unchanged and must not be interpreted as native execution of that fix. The fix has
+separate automated shared/UI-worker regressions; native FOMOD interaction remains
+an open proof boundary.
+
 This directory records a disposable Rust native run against the active-host route
 from C# `d31ccbd3bfcddb4705917eafa6483715c166de3b`. It establishes functional route
 integration for one two-component fixture, not exact C# GUI equivalence or a real

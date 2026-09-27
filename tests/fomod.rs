@@ -1005,3 +1005,55 @@ fn prompt_status_preserves_existing_metadata_casing() {
         Some("configured")
     );
 }
+#[test]
+fn remaining_choices_preserve_completed_subtrees_and_saved_sessions() {
+    use modsync::fomod::{
+        ChoicesFile, PromptStatus, saved_archive_choices_remaining, set_prompt_status_remaining,
+    };
+    let mut guide = modsync::Guide::parse(
+        r#"{"thisMod":[
+      {"Guid":"BASE","Name":"Base","Options":[{"Guid":"base-option","Name":"Base option"}]},
+      {"Guid":"wide","Name":"Wide","Options":[{"Guid":"completed-option","Name":"Completed option"},{"Guid":"open-option","Name":"Open option"}]}
+    ]}"#,
+        "json",
+    )
+    .unwrap();
+    for component in &mut guide.components {
+        component.resource_registry.insert(
+            "source".into(),
+            serde_json::json!({"files":{"wide.zip":{}}}),
+        );
+        for option in &mut component.options {
+            option.resource_registry.insert(
+                "source".into(),
+                serde_json::json!({"files":{"wide.zip":{}}}),
+            );
+        }
+    }
+    let original = ChoicesFile::parse(r#"{"archives":[{"archiveFileName":"wide.zip","selections":[{"stepName":"S","groupName":"G","plugins":["Old"]}]}]}"#).unwrap();
+    original.apply_to_guide(&mut guide).unwrap();
+    let completed = vec!["base".into(), "COMPLETED-OPTION".into()];
+    let base = serde_json::to_value(&guide.components[0]).unwrap();
+    let option = serde_json::to_value(&guide.components[1].options[0]).unwrap();
+    let edits = ChoicesFile::parse(r#"{"archives":[{"archiveFileName":"wide.zip","selections":[{"stepName":"S","groupName":"G","plugins":["New"]}]}]}"#).unwrap();
+    edits.apply_to_remaining(&mut guide, &completed).unwrap();
+    edits.merge_into_remaining(&mut guide, &completed).unwrap();
+    set_prompt_status_remaining(&mut guide, "wide.zip", PromptStatus::Dismissed, &completed);
+    assert_eq!(
+        modsync::fomod::prompt_status(&guide.components[1], "wide.zip").as_deref(),
+        Some("dismissed")
+    );
+    assert_eq!(serde_json::to_value(&guide.components[0]).unwrap(), base);
+    assert_eq!(
+        serde_json::to_value(&guide.components[1].options[0]).unwrap(),
+        option
+    );
+    assert_eq!(
+        saved_archive_choices_remaining(&guide, "wide.zip", &completed)
+            .unwrap()
+            .unwrap()
+            .selections[0]
+            .plugins,
+        ["New"]
+    );
+}

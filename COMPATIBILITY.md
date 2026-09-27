@@ -1,5 +1,14 @@
 # Compatibility and proof boundaries
 
+Remaining-phase FOMOD configuration now uses shared choices application/merge and
+prompt-status helpers that preserve completed component definitions and nested
+options. The desktop editor and external choices file both feed the same remaining
+operation; receipt verification is unchanged. Regressions configure an initially
+unselected widescreen archive after a base Move consumes its source, then validate
+and install only the remaining component. The native wizard receipt below predates
+this fix and is evidence for its recorded source hashes only; the new FOMOD boundary
+has automated worker/shared tests, not a newly driven native FOMOD session.
+
 The desktop now uses the active C# embedded-host route: separate landing load,
 Welcome, conditional notices, directory/selection/download/validation/review pages,
 worker-driven base and remaining phases, and Finish returning to the loaded guide.

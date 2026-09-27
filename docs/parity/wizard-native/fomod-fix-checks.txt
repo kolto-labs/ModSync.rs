@@ -1,0 +1,123 @@
+Remaining FOMOD fix: automated evidence only; native receipt remains pre-fix.
+CARGO_TARGET_DIR=/tmp/modsync-rs-target
+
+cargo test --bin modsync ui::tests
+    Finished `test` profile [unoptimized] target(s) in 0.58s
+     Running unittests src/main.rs (/tmp/modsync-rs-target/debug/deps/modsync-e7aaab0cfe066810)
+
+running 26 tests
+test fomod_ui::tests::navigation_validates_current_step_and_recomputes_flag_visibility ... ok
+test ui::tests::desktop_fomod_edits_preserve_choices_file_archives_and_invalidate_readiness ... ok
+test fomod_ui::tests::replacing_inspection_cancels_old_worker_and_rejects_its_late_result ... ok
+test ui::tests::desktop_conflict_worker_reports_without_writing_and_clears_stale_results ... ok
+test fomod_ui::tests::automatic_cancel_only_records_a_confirmed_fomod ... ok
+test ui::tests::base_validation_includes_selected_widescreen_inputs ... ok
+test ui::tests::choices_metadata_changes_and_inflight_edits_invalidate_validation ... ok
+test ui::tests::desktop_profile_capture_and_activation_preserve_loaded_guide_and_reset_validation ... ok
+test ui::tests::failed_job_setup_invalidates_validation_and_confirmation ... ok
+test ui::tests::multiple_categories_apply_together_without_clearing_existing_selections ... ok
+test ui::tests::post_download_fomod_prompt_obeys_registered_status ... ok
+test ui::tests::desktop_profile_management_checks_confirmation_and_refreshes_names ... ok
+test ui::tests::nxm_completion_marks_only_the_resolved_registry_file ... ok
+test ui::tests::desktop_validation_uses_the_shared_full_dry_run_pipeline ... ok
+test ui::tests::protocol_guide_replaces_stale_wizard_state ... ok
+test ui::tests::desktop_restores_saved_directories_but_preserves_explicit_launch_paths ... ok
+test ui::tests::saved_desktop_selection_embeds_external_fomod_choices_and_reloads ... ok
+test ui::tests::queued_nxm_handoffs_keep_arrival_order_until_setup_is_ready ... ok
+test ui::tests::themes_persist_and_failed_save_keeps_displayed_theme ... ok
+test fomod_ui::tests::automatic_inspection_closes_for_ordinary_archives_but_keeps_errors_visible ... ok
+test ui::tests::choices_stamp_never_opens_a_fifo ... ok
+test ui::tests::desktop_empty_widescreen_phase_retains_all_completion_pages_without_replay ... ok
+test ui::tests::desktop_gates_reject_stale_validation_unknown_game_and_failed_worker ... ok
+test ui::tests::desktop_connected_route_uses_worker_success_and_verified_remaining_prefix ... ok
+test ui::tests::option_without_raw_description_renders_spoiler_description ... ok
+test ui::tests::remaining_fomod_editor_and_external_choices_preserve_consumed_base ... ok
+
+test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+cargo test --test fomod
+   Compiling modsync v0.1.0 (/run/media/brunner56/MyBook/Workspaces/ModSync.rs)
+    Finished `test` profile [unoptimized] target(s) in 1.92s
+     Running tests/fomod.rs (/tmp/modsync-rs-target/debug/deps/fomod-709b61e1021c8c49)
+
+running 26 tests
+test archive_choices_route_steps_and_commit_only_when_every_group_is_valid ... ok
+test console_back_revises_previous_visible_step_and_recomputes_visibility ... ok
+test captured_choices_roundtrip_selected_plugins_and_reject_ambiguous_names ... ok
+test console_selection_retries_invalid_choices_and_cancels_atomically ... ok
+test choices_file_schema_and_named_selections_reject_ambiguous_or_invalid_changes ... ok
+test edited_archive_choices_merge_without_losing_other_packages ... ok
+test archive_module_mapping_keeps_nested_content_root ... ok
+test info_xml_preserves_reference_metadata_and_rejects_unsafe_xml ... ok
+test file_plan_preserves_conditional_attachment_and_skips_unmappable_patterns ... ok
+test module_file_directives_keep_reference_order_paths_and_priority_defaults ... ok
+test file_and_game_dependencies_match_csharp_satisfied_mapping_behavior ... ok
+test required_choices_cannot_be_removed_directly_or_through_exclusive_siblings ... ok
+test prompt_status_preserves_existing_metadata_casing ... ok
+test saved_archive_selection_resolves_nested_components_and_rejects_conflicts ... ok
+test visibility_uses_ordered_selected_flags_and_only_validates_visible_steps ... ok
+test module_xml_drives_selection_defaults_flags_and_visibility_without_installing ... ok
+test xml_plugin_details_preserve_authored_text_without_opening_image_paths ... ok
+test selection_modes_match_pinned_csharp_oracle ... ok
+test plugin_type_descriptors_match_csharp_defaults_and_are_retained ... ok
+test remaining_choices_preserve_completed_subtrees_and_saved_sessions ... ok
+test prompt_status_matches_csharp_resource_metadata_contract ... ok
+test mapped_file_copies_use_shared_preflight_and_install_without_mutating_sources ... ok
+test folder_mapping_matches_reference_top_level_only_copy ... ok
+test archive_inspection_reads_nested_metadata_and_cleans_scratch_on_failure ... ok
+test choices_export_roundtrips_and_cannot_replace_archive_through_directory_alias ... ok
+test inspect_cli_applies_archive_choices_and_reports_invalid_names ... ok
+
+test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+cargo test --test installer cli_fomod_choices_validate_and_install_without_rewriting_guide
+   Compiling modsync v0.1.0 (/run/media/brunner56/MyBook/Workspaces/ModSync.rs)
+    Finished `test` profile [unoptimized] target(s) in 3.17s
+     Running tests/installer.rs (/tmp/modsync-rs-target/debug/deps/installer-dbbfcafcab986ea3)
+
+running 1 test
+test cli_fomod_choices_validate_and_install_without_rewriting_guide ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 46 filtered out; finished in 0.04s
+
+cargo test --no-default-features --test fomod
+   Compiling modsync v0.1.0 (/run/media/brunner56/MyBook/Workspaces/ModSync.rs)
+    Finished `test` profile [unoptimized] target(s) in 1.73s
+     Running tests/fomod.rs (/tmp/modsync-rs-target/debug/deps/fomod-80b397d368769d1c)
+
+running 26 tests
+test archive_choices_route_steps_and_commit_only_when_every_group_is_valid ... ok
+test archive_module_mapping_keeps_nested_content_root ... ok
+test file_and_game_dependencies_match_csharp_satisfied_mapping_behavior ... ok
+test captured_choices_roundtrip_selected_plugins_and_reject_ambiguous_names ... ok
+test file_plan_preserves_conditional_attachment_and_skips_unmappable_patterns ... ok
+test console_back_revises_previous_visible_step_and_recomputes_visibility ... ok
+test edited_archive_choices_merge_without_losing_other_packages ... ok
+test info_xml_preserves_reference_metadata_and_rejects_unsafe_xml ... ok
+test choices_file_schema_and_named_selections_reject_ambiguous_or_invalid_changes ... ok
+test console_selection_retries_invalid_choices_and_cancels_atomically ... ok
+test prompt_status_preserves_existing_metadata_casing ... ok
+test folder_mapping_matches_reference_top_level_only_copy ... ok
+test module_xml_drives_selection_defaults_flags_and_visibility_without_installing ... ok
+test mapped_file_copies_use_shared_preflight_and_install_without_mutating_sources ... ok
+test plugin_type_descriptors_match_csharp_defaults_and_are_retained ... ok
+test module_file_directives_keep_reference_order_paths_and_priority_defaults ... ok
+test prompt_status_matches_csharp_resource_metadata_contract ... ok
+test required_choices_cannot_be_removed_directly_or_through_exclusive_siblings ... ok
+test saved_archive_selection_resolves_nested_components_and_rejects_conflicts ... ok
+test selection_modes_match_pinned_csharp_oracle ... ok
+test visibility_uses_ordered_selected_flags_and_only_validates_visible_steps ... ok
+test xml_plugin_details_preserve_authored_text_without_opening_image_paths ... ok
+test remaining_choices_preserve_completed_subtrees_and_saved_sessions ... ok
+test archive_inspection_reads_nested_metadata_and_cleans_scratch_on_failure ... ok
+test choices_export_roundtrips_and_cannot_replace_archive_through_directory_alias ... ok
+test inspect_cli_applies_archive_choices_and_reports_invalid_names ... ok
+
+test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+cargo clippy --all-targets -- -D warnings
+    Checking modsync v0.1.0 (/run/media/brunner56/MyBook/Workspaces/ModSync.rs)
+    Finished `dev` profile [unoptimized] target(s) in 0.91s
+
+cargo fmt --all -- --check: exit 0
+git diff --check: exit 0

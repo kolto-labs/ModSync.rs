@@ -714,28 +714,14 @@ pub fn set_prompt_status(
 impl ChoicesFile {
     /// Override embedded choices recursively; the caller owns persistence of the guide.
     pub fn apply_to_guide(&self, guide: &mut crate::Guide) -> Result<()> {
-        let value = serde_json::to_value(self)?;
-        fn attach(
-            components: &mut [crate::Component],
-            value: &serde_json::Value,
-            archives: &[ArchiveChoices],
-        ) {
-            for component in components {
-                component
-                    .metadata
-                    .insert("FomodChoices".into(), value.clone());
-                for archive in archives {
-                    set_prompt_status(
-                        component,
-                        &archive.archive_file_name,
-                        PromptStatus::Configured,
-                    );
-                }
-                attach(&mut component.options, value, archives);
-            }
-        }
-        attach(&mut guide.components, &value, &self.archives);
-        Ok(())
+        self.apply_to_remaining(guide, &[])
+    }
+
+    /// Apply external choices without changing completed component definitions or
+    /// their nested options. The engine still verifies the completed prefix and
+    /// its receipt before any remaining-phase operation.
+    pub fn apply_to_remaining(&self, guide: &mut crate::Guide, completed: &[String]) -> Result<()> {
+        self.update_guide(guide, completed, false)
     }
 }
 
@@ -859,9 +845,39 @@ pub fn prompt_choices(
 impl ChoicesFile {
     /// Merge edited archives while preserving choices for other packages atomically.
     pub fn merge_into_guide(&self, guide: &mut crate::Guide) -> Result<()> {
-        fn merge(components: &mut [crate::Component], edits: &ChoicesFile) -> Result<()> {
+        self.merge_into_remaining(guide, &[])
+    }
+
+    /// Merge editor choices only into unfinished components, preserving the exact
+    /// completed definitions needed by recovery receipt verification.
+    pub fn merge_into_remaining(
+        &self,
+        guide: &mut crate::Guide,
+        completed: &[String],
+    ) -> Result<()> {
+        self.update_guide(guide, completed, true)
+    }
+
+    fn update_guide(
+        &self,
+        guide: &mut crate::Guide,
+        completed: &[String],
+        merge: bool,
+    ) -> Result<()> {
+        fn update(
+            components: &mut [crate::Component],
+            edits: &ChoicesFile,
+            completed: &[String],
+            merge: bool,
+        ) -> Result<()> {
             for component in components {
-                let mut choices = match component.metadata.get("FomodChoices") {
+                if completed
+                    .iter()
+                    .any(|id| id.eq_ignore_ascii_case(&component.guid))
+                {
+                    continue;
+                }
+                let mut choices = match component.metadata.get("FomodChoices").filter(|_| merge) {
                     Some(value) => ChoicesFile::parse(&serde_json::to_string(value)?)?,
                     None => ChoicesFile {
                         version: 1,
@@ -882,12 +898,12 @@ impl ChoicesFile {
                         PromptStatus::Configured,
                     );
                 }
-                merge(&mut component.options, edits)?;
+                update(&mut component.options, edits, completed, merge)?;
             }
             Ok(())
         }
         let mut candidate = guide.clone();
-        merge(&mut candidate.components, self)?;
+        update(&mut candidate.components, self, completed, merge)?;
         *guide = candidate;
         Ok(())
     }
@@ -898,12 +914,27 @@ pub fn saved_archive_choices(
     guide: &crate::Guide,
     filename: &str,
 ) -> Result<Option<ArchiveChoices>> {
+    saved_archive_choices_remaining(guide, filename, &[])
+}
+
+pub fn saved_archive_choices_remaining(
+    guide: &crate::Guide,
+    filename: &str,
+    completed: &[String],
+) -> Result<Option<ArchiveChoices>> {
     fn visit(
         components: &[crate::Component],
         filename: &str,
         found: &mut Option<ArchiveChoices>,
+        completed: &[String],
     ) -> Result<()> {
         for component in components {
+            if completed
+                .iter()
+                .any(|id| id.eq_ignore_ascii_case(&component.guid))
+            {
+                continue;
+            }
             if let Some(value) = component.metadata.get("FomodChoices") {
                 let file = ChoicesFile::parse(&serde_json::to_string(value)?)?;
                 if let Some(choices) = file.archive(filename) {
@@ -918,11 +949,38 @@ pub fn saved_archive_choices(
                     }
                 }
             }
-            visit(&component.options, filename, found)?;
+            visit(&component.options, filename, found, completed)?;
         }
         Ok(())
     }
     let mut found = None;
-    visit(&guide.components, filename, &mut found)?;
+    visit(&guide.components, filename, &mut found, completed)?;
     Ok(found)
+}
+
+/// Record editor dismissal/configuration without altering completed definitions.
+pub fn set_prompt_status_remaining(
+    guide: &mut crate::Guide,
+    filename: &str,
+    status: PromptStatus,
+    completed: &[String],
+) {
+    fn visit(
+        components: &mut [crate::Component],
+        filename: &str,
+        status: PromptStatus,
+        completed: &[String],
+    ) {
+        for component in components {
+            if completed
+                .iter()
+                .any(|id| id.eq_ignore_ascii_case(&component.guid))
+            {
+                continue;
+            }
+            set_prompt_status(component, filename, status);
+            visit(&mut component.options, filename, status, completed);
+        }
+    }
+    visit(&mut guide.components, filename, status, completed);
 }
