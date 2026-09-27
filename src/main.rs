@@ -87,6 +87,9 @@ enum Action {
         nexus_mods_api_key: Option<String>,
         #[arg(long)]
         settings_dir: Option<PathBuf>,
+        /// Probe-only Nexus API base URL. Requires an explicit API-key flag.
+        #[arg(long, hide = true)]
+        nexus_api_base: Option<String>,
     },
     /// Apply provider version data from a JSON object keyed as game/modId.
     UpdateApply {
@@ -629,18 +632,27 @@ fn run() -> Result<()> {
             output,
             nexus_mods_api_key,
             settings_dir,
+            nexus_api_base,
         }) => {
             let link = modsync::protocol::parse(&url)?;
             anyhow::ensure!(
                 matches!(link, modsync::protocol::Link::Nxm { .. }),
                 "Expected an nxm:// URL"
             );
-            let directory = modsync::profiles::settings_directory(settings_dir.as_deref())?;
-            let key = nexus_mods_api_key
-                .or(modsync::profiles::Store::new(&directory)?.nexus_api_key()?)
-                .or_else(|| std::env::var("KOTOR_MODSYNC_NEXUS_API_KEY").ok())
-                .or_else(|| std::env::var("NEXUS_MODS_API_KEY").ok());
-            let mut client = modsync::updates::NexusClient::new(key)?;
+            let mut client = if let Some(base) = nexus_api_base {
+                // Never send a stored or environment key to a caller-chosen host.
+                let key = nexus_mods_api_key
+                    .filter(|key| !key.trim().is_empty())
+                    .context("--nexus-api-base requires an explicit --nexus-mods-api-key")?;
+                modsync::updates::NexusClient::with_base_url(Some(key), &base)?
+            } else {
+                let directory = modsync::profiles::settings_directory(settings_dir.as_deref())?;
+                let key = nexus_mods_api_key
+                    .or(modsync::profiles::Store::new(&directory)?.nexus_api_key()?)
+                    .or_else(|| std::env::var("KOTOR_MODSYNC_NEXUS_API_KEY").ok())
+                    .or_else(|| std::env::var("NEXUS_MODS_API_KEY").ok());
+                modsync::updates::NexusClient::new(key)?
+            };
             let download_link = client.nxm_download_link(&link)?;
             download::fetch(&download_link.uri, &output, None, &AtomicBool::new(false))?;
             println!("{}", serde_json::to_string_pretty(&download_link)?);
