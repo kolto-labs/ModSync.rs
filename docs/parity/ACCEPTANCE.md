@@ -11,12 +11,15 @@ individual source/binary bindings, reviews and proof limits. Earlier dated slice
 entries below remain historical; their statements of missing work apply to their
 named commits, not automatically to this checkpoint.
 
-Selected-guide `fetch-downloads` implementation is in progress and still awaits
-specification and independent quality review. Its temporary passing CLI assertions
-are not acceptance of this entire domain. Loopback HTTPS, loader normalization and
-shared GUI acquisition have bounded reviewed plans; implementation/runtime gates
-remain. No Rust tests or custom Rust harnesses may be added, changed or run under
-the current user freeze. Nothing here substitutes compilation for full-build,
+Selected-guide `fetch-downloads` (`2889ec5`), loopback HTTPS (`6c08656`), and
+Source normalization (`62b6f70`) have passed independent specification and quality
+reviews with source-bound production evidence. See [current progress](PROGRESS.md)
+and their linked receipts for precise scope; none closes an entire domain.
+FOMOD post-download CLI policy, cancellation and scoped recording are the active
+implementation. Shared desktop acquisition, persistent sharing, remaining FOMOD
+semantics, host providers, Markdown, checkpoints and other ledger requirements
+remain open. No Rust tests or custom Rust harnesses may be added, changed or run
+under the current user freeze. Nothing here substitutes compilation for full-build,
 platform, external-host or live-game proof.
 
 ## Completion pages slice checkpoint — 2026-09-27

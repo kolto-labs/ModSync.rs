@@ -1,6 +1,6 @@
 # Full Rust functionality progress
 
-Updated 2026-09-28 04:18 UTC. Goal: every F01–F29 requirement in [ACCEPTANCE.md](ACCEPTANCE.md)
+Updated 2026-09-28 04:54 UTC. Goal: every F01–F29 requirement in [ACCEPTANCE.md](ACCEPTANCE.md)
 verified against pinned C# `d31ccbd3`, including identical K1/K2 full installs
 against C# and manual references. A delivered slice does not close a whole domain.
 
@@ -64,13 +64,19 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 4. The first [FOMOD integration slice](fomod-remaining-plan.md) is now the sole
    production implementation: CLI policy/dispatch, consumer binding and cancellable
    terminal input. Persistence and remaining semantic/native acceptance follow.
+   The [actual full.md conversion baseline](full-markdown-baseline/README.md)
+   retains eight production conversions and an independent anonymous comparison.
+   Both engines draft 72 instructions for 186 K1 components and 56 for 145 K2
+   components. Generated instruction content matches under documented GUID and
+   omission rules; the Delete Overwrite export/default distinction is retained.
+   These results do not establish complete prose coverage or any installation.
 5. Use the [full remaining-scope map](remaining-scope-map.md) to reconcile actual
    source and derive bounded tasks where a current plan is missing: engine actions/
    archives, patchers, per-component checkpoints, hosts/FOMOD, editor/conflicts/
    update/profile UI, complete wizard/main-window controls, CLI contracts,
    diagnostics and packaging. Historical checkpoints do not establish that all
    remaining domains already have complete implementation plans.
-5. Perform requirement-by-requirement acceptance, ending with F29: authorized,
+6. Perform requirement-by-requirement acceptance, ending with F29: authorized,
    isolated K1/K2 installs with identical inputs/selections, ordered per-step
    comparisons, final resource content checks, and live-game evidence.
 

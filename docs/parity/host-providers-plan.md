@@ -1,6 +1,6 @@
 # F13 host providers: bounded source audit and remaining execution plan
 
-Status: **planning only; F13 remains partial**. This document authorizes no implementation or live request. It covers the host slice reserved by `download-orchestration-plan.md` Task 1c and the F13 row of `remaining-scope-map.md`. It does not replace accepted fetch, loopback, desktop, update UI, or F29 plans.
+Status: **independently approved plan; implementation pending; F13 remains partial**. This document records scope, not runtime acceptance or live-host authorization. It covers the host slice reserved by `download-orchestration-plan.md` Task 1c and the F13 row of `remaining-scope-map.md`. It does not replace accepted fetch, loopback, desktop, update UI, or F29 plans.
 
 ## Evidence boundary and source authority
 

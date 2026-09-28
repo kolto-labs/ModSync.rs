@@ -1,0 +1,128 @@
+{
+  "scope": "Pre-implementation full.md production conversion baseline only; raw real-guide outputs remain outside repository. No installation/review acceptance or post-Markdown-fix proof.",
+  "rustSource": "62b6f70",
+  "rustSha256": "a665ace4f9db3f9ae4dcf6be95b075e1b5ff1d6f822ed0885493e984ffca31b8",
+  "csharpSha256": "89d9b2361aee4364f95151b41db59a4133122a6ad41bc2703e232cf10a4f5a6b",
+  "results": [
+    {
+      "label": "k1-rust-plain",
+      "exit": 0,
+      "elapsed": 0.8147525610402226,
+      "inputSha256": "fc81840edb64da1684697dc89d72c9235c6afaa43d4d1e0b1989e4f206ba1cd2",
+      "outputSha256": "aefc7e8f5ca1f39b719b3c111571d4d124e378887f26a2b23ec9cd0e5802ae66",
+      "counts": {
+        "components": 186,
+        "includingOptions": 186,
+        "instructions": 0,
+        "zeroActionTopLevel": 186,
+        "reviewRecordCount": 0,
+        "warningNonempty": 1
+      }
+    },
+    {
+      "label": "k1-csharp-plain",
+      "exit": 0,
+      "elapsed": 72.66911817900836,
+      "inputSha256": "fc81840edb64da1684697dc89d72c9235c6afaa43d4d1e0b1989e4f206ba1cd2",
+      "outputSha256": "8e1b6b20c5065acd25cb0b9dda426d13d5deb4e5758b97f385b1f60d04983b63",
+      "counts": {
+        "components": 186,
+        "includingOptions": 186,
+        "instructions": 0,
+        "zeroActionTopLevel": 186,
+        "reviewRecordCount": 0,
+        "warningNonempty": 1
+      }
+    },
+    {
+      "label": "k1-rust-draft",
+      "exit": 0,
+      "elapsed": 1.7879715280141681,
+      "inputSha256": "fc81840edb64da1684697dc89d72c9235c6afaa43d4d1e0b1989e4f206ba1cd2",
+      "outputSha256": "6dcd693354d0daf5d3f070b3e3757afb42d7327e79941de16797edf319e0139c",
+      "counts": {
+        "components": 186,
+        "includingOptions": 187,
+        "instructions": 72,
+        "zeroActionTopLevel": 143,
+        "reviewRecordCount": 68,
+        "warningNonempty": 1
+      }
+    },
+    {
+      "label": "k1-csharp-draft",
+      "exit": 0,
+      "elapsed": 66.82496625103522,
+      "inputSha256": "fc81840edb64da1684697dc89d72c9235c6afaa43d4d1e0b1989e4f206ba1cd2",
+      "outputSha256": "c8e26335c49361e6d36e05d39817f14dd72cbcb8d93b2e9d786393afa9ca0a24",
+      "counts": {
+        "components": 186,
+        "includingOptions": 187,
+        "instructions": 72,
+        "zeroActionTopLevel": 143,
+        "reviewRecordCount": 0,
+        "warningNonempty": 1
+      }
+    },
+    {
+      "label": "k2-rust-plain",
+      "exit": 0,
+      "elapsed": 2.325136799016036,
+      "inputSha256": "4587e4a6a3e5dfde23a9b0f2031f4b56ae62b028b3140f79096135df682d8b0a",
+      "outputSha256": "2901b371d2a70223dae5270dfaa0c413febeb00257f8cecebb26bc96a65ae803",
+      "counts": {
+        "components": 145,
+        "includingOptions": 145,
+        "instructions": 0,
+        "zeroActionTopLevel": 145,
+        "reviewRecordCount": 0,
+        "warningNonempty": 0
+      }
+    },
+    {
+      "label": "k2-csharp-plain",
+      "exit": 0,
+      "elapsed": 65.99427916505374,
+      "inputSha256": "4587e4a6a3e5dfde23a9b0f2031f4b56ae62b028b3140f79096135df682d8b0a",
+      "outputSha256": "00d0f9bf0192aaf835a91813e1a265b94993a747206be9dc85db1c5ad6c03486",
+      "counts": {
+        "components": 145,
+        "includingOptions": 145,
+        "instructions": 0,
+        "zeroActionTopLevel": 145,
+        "reviewRecordCount": 0,
+        "warningNonempty": 0
+      }
+    },
+    {
+      "label": "k2-rust-draft",
+      "exit": 0,
+      "elapsed": 1.8602227669907734,
+      "inputSha256": "4587e4a6a3e5dfde23a9b0f2031f4b56ae62b028b3140f79096135df682d8b0a",
+      "outputSha256": "e3b36cad25765611e597b7ae16184d7aec0d3e3fb4a2c9526473b232622cec20",
+      "counts": {
+        "components": 145,
+        "includingOptions": 148,
+        "instructions": 56,
+        "zeroActionTopLevel": 104,
+        "reviewRecordCount": 62,
+        "warningNonempty": 0
+      }
+    },
+    {
+      "label": "k2-csharp-draft",
+      "exit": 0,
+      "elapsed": 78.47201299504377,
+      "inputSha256": "4587e4a6a3e5dfde23a9b0f2031f4b56ae62b028b3140f79096135df682d8b0a",
+      "outputSha256": "5a571f532e74ffd179dbba938ab4e1831df7e9ac9e683e087e19194e00f041d1",
+      "counts": {
+        "components": 145,
+        "includingOptions": 148,
+        "instructions": 56,
+        "zeroActionTopLevel": 104,
+        "reviewRecordCount": 0,
+        "warningNonempty": 0
+      }
+    }
+  ]
+}
