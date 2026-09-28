@@ -1,0 +1,138 @@
+{
+  "report": {
+    "outcomes": [
+      {
+        "targetIndex": 0,
+        "componentGuid": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "registryUrl": "https://127.0.0.1:36303/slow/one.zip",
+        "filename": "one.zip",
+        "status": "completed",
+        "source": {
+          "kind": "origin",
+          "provider": "direct"
+        },
+        "path": "/tmp/downloads-gui-577wftta/cli/mods/one.zip",
+        "sha256": "5335eb049afb079d7f20ffdb590f5a992c8f4f31340eeae888ed8ab7e411d665",
+        "manual": null,
+        "error": null
+      },
+      {
+        "targetIndex": 1,
+        "componentGuid": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        "registryUrl": "https://127.0.0.1:36303/slow/two.zip",
+        "filename": "two.zip",
+        "status": "completed",
+        "source": {
+          "kind": "origin",
+          "provider": "direct"
+        },
+        "path": "/tmp/downloads-gui-577wftta/cli/mods/two.zip",
+        "sha256": "3a3eebb568e29a887afca1d0ec991531d697de183a948a71cb73f254ee6dc1c6",
+        "manual": null,
+        "error": null
+      },
+      {
+        "targetIndex": 2,
+        "componentGuid": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+        "registryUrl": "https://127.0.0.1:36303/page/landing",
+        "filename": "manual.zip",
+        "status": "manualRequired",
+        "source": {
+          "kind": "origin",
+          "provider": "direct"
+        },
+        "path": null,
+        "sha256": null,
+        "manual": {
+          "url": "https://127.0.0.1:36303/page/landing",
+          "reason": "htmlLanding"
+        },
+        "error": null
+      },
+      {
+        "targetIndex": 3,
+        "componentGuid": "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+        "registryUrl": "https://127.0.0.1:36303/missing/gone.zip",
+        "filename": "gone.zip",
+        "status": "failed",
+        "source": null,
+        "path": null,
+        "sha256": null,
+        "manual": null,
+        "error": "HTTP status 404 Not Found"
+      },
+      {
+        "targetIndex": 4,
+        "componentGuid": "gggggggg-gggg-4ggg-8ggg-gggggggggggg",
+        "registryUrl": "https://127.0.0.1:36303/wide/wide.zip",
+        "filename": "wide.zip",
+        "status": "completed",
+        "source": {
+          "kind": "origin",
+          "provider": "direct"
+        },
+        "path": "/tmp/downloads-gui-577wftta/cli/mods/wide.zip",
+        "sha256": "8b289e4c2447251f189bd4211afbb6aba51eae242d921cad7f3e66aa6cb4f5ed",
+        "manual": null,
+        "error": null
+      }
+    ],
+    "skipped": [
+      {
+        "componentGuid": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "registryUrl": "https://127.0.0.1:36303/present/present.zip",
+        "filename": "present.zip",
+        "reason": "alreadyPresent",
+        "path": "/tmp/downloads-gui-577wftta/cli/mods/present.zip",
+        "detail": null
+      },
+      {
+        "componentGuid": "hhhhhhhh-hhhh-4hhh-8hhh-hhhhhhhhhhhh",
+        "registryUrl": "https://127.0.0.1:36303/unselected/never.zip",
+        "filename": null,
+        "reason": "allFilesFlaggedFalse",
+        "path": null,
+        "detail": null
+      }
+    ],
+    "cancelled": false
+  },
+  "recordSummary": {
+    "recorded": [
+      [
+        "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "https://127.0.0.1:36303/slow/one.zip",
+        "one.zip"
+      ],
+      [
+        "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        "https://127.0.0.1:36303/slow/two.zip",
+        "two.zip"
+      ],
+      [
+        "gggggggg-gggg-4ggg-8ggg-gggggggggggg",
+        "https://127.0.0.1:36303/wide/wide.zip",
+        "wide.zip"
+      ],
+      [
+        "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "https://127.0.0.1:36303/present/present.zip",
+        "present.zip"
+      ]
+    ],
+    "keptFalse": [],
+    "hashesRecorded": 0
+  },
+  "fomodFollowups": {
+    "followups": [],
+    "inspectionErrors": []
+  },
+  "fomodConfiguration": {
+    "consumers": [],
+    "acceptedSessions": [],
+    "errors": [],
+    "unresolved": 0,
+    "cancelled": false
+  },
+  "fomodConfigurationRecorded": false
+}

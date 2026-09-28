@@ -1,5 +1,59 @@
 # Compatibility and proof boundaries
 
+## Desktop acquisition, step 1 — 2026-09-28 (unreviewed)
+
+Step 1 of the [downloads GUI plan](docs/parity/downloads-gui-plan.md) is commit
+`6ac257f` plus an uncommitted review follow-up (restored test-only
+`record_nxm_download`, proxy secrets redacted even after a context change, Stop
+during planning skips the transfer, alias-resolved default-directory check,
+per-frame context derived from the input stamp). It changes `src/ui.rs`, adds
+`src/ui/downloads_panel.rs`, and adds hidden GUI arguments in `src/main.rs`. It has
+not had SPEC or QUALITY review, and nothing in it is accepted.
+
+- The desktop **Fetch Downloads** (Downloads panel, from DownloadsExplain onward and
+  in the utility view) and the **nxm handoff** now use the shared orchestrator
+  exactly as the CLI does. Fetch uses `plan` over the `Scope::All` candidates,
+  `run_with_loopback_ca` with workers 4 and retries 1, a per-run `PeerAcquire`, and
+  `record`. The nxm handoff uses `nxm_target`, `AcquisitionPlan::single` (Peer Off),
+  run and record, re-resolved against the guide bound at dispatch. The old NexusClient
+  bypass is removed.
+- Every run has a monotonic identity bound to the guide revision, workspace, game
+  folder and completed-base context, and that binding is checked every frame and at
+  the terminal. On a match, `record` runs on a clone that replaces the guide only on
+  success, and the guide file is never saved automatically. A changed context
+  records nothing and says where the files are.
+- Rows show real sources, phase, measured bytes and peers, the orchestrator's own
+  Superseded, and manual reasons with an explicit-click link. Stop shows Stopping
+  until the terminal arrives. Keys, nxm credentials, proxy endpoints and URL
+  queries/fragments are redacted from the UI and the Activity log.
+- The settings directory and any probe key are fixed before any store, telemetry,
+  guide or protocol effect. This also fixes an ordinary `--settings-dir` launch,
+  which previously read the key and telemetry from the default directory. The hidden
+  probe options `--nexus-mods-api-key`, `--nexus-api-base` and `--extra-ca-file`
+  have these rules:
+  - they require an existing non-default settings directory that is not nested with
+    the default;
+  - they never claim or forward the instance socket;
+  - they never read the stored key or persist the probe key.
+
+[Native proof](docs/parity/downloads-gui/README.md) runs the real binary on
+private Xvfb in an isolated network namespace with loopback fixtures. All 46
+checks pass, with screenshots. It includes a comparison with the CLI on the same
+fixture: same requests, same bytes, same statuses and the same record count.
+Regression probes still pass: S2b 254, S2a 224, S1 339, inherited 41, H1a 138 and
+fetch-shared-url 381.
+
+Found, not changed: Origin progress reports `total: 0` in both frontends because
+`src/download.rs:453` reads the length after the sniff at `:382`.
+
+Still open:
+- the FOMOD follow-up queue (listed only), Peer settings controls and disclosure,
+  and install gating on unresolved FOMOD work (steps 2–3);
+- a GUI guide record diff (the portal save dialog), Peer races, cancel mid-race,
+  close-during-work, and stale-message runtime cases.
+- Known limitation: planning is not interruptible, so Stop during Fetch preparation
+  takes effect when planning returns; the run then transfers nothing.
+
 ## Selected-guide acquisition CLI — 2026-09-28
 
 Source `efefba1`, corrected by `2889ec5`, adds `fetch-downloads` using the shared
@@ -212,7 +266,7 @@ validation/install preserve the completed prefix without replaying consumed Move
 sources. Failed installs block progression; input changes during a validation worker
 discard its stale result. Native route evidence and deliberate safety/copy differences
 are recorded in `docs/parity/wizard-native/README.md` and `GUI-INVENTORY.md`.
-Exact rendering, automatic missing-mod downloads, rich markup, accessibility, and
+Exact rendering, the remaining downloads UI (plan steps 2–3), rich markup, accessibility, and
 the metadata-free JSON/TOML default-preamble distinction remain open. FOMOD input
 stamps avoid per-frame payload reads; non-Unix timestamp-preserving edits remain
 an invalidation limitation. This route slice does not establish full C# GUI parity.
@@ -251,7 +305,7 @@ Reference: the local ModSync C# source at `d31ccbd3bfcddb4705917eafa6483715c166d
 | FOMOD | Archive discovery, XML/choices parsing, configured archive extraction and selected-copy installation; CLI and desktop selection flows | Full corpus, restart/recovery, and complete native interface parity remain open |
 | Managed deployment | Staged-tree manifest deploy/uninstall/purge CLI with hardlink-or-copy materialization, hash-guarded restoration, preflight and rollback, profile-scoped roots, profile switch with optional purge, and patcher provenance snapshot/record | Normal engine actions are not yet redirected into per-component staging (design in `docs/parity/deployment-csharp-audit.md`); no GUI management integration |
 | Merge | `merge EXISTING INCOMING OUTPUT` matches GUIDs, then normalized name/author values; it supports existing-order, field-preference and exclusion switches | No C# URL validation, domain fallback, complete per-field/resource conflict rules, full option merge, or GUI merge dialogs |
-| Protocol links | `protocol-parse` parses `nxm://` and `modsync://` links into typed JSON; `protocol-fetch` resolves hosts, rejects local/private targets and every unsafe redirect hop, caps instruction downloads at 5 MiB, and atomically publishes a new destination; `protocol-open` fetches, loads and emits a `modsync://` guide from a temporary file; `protocol-resolve` resolves an `nxm://` game/mod handoff to exactly one top-level component registry entry; `nxm-download` resolves authorized Nexus mirrors and streams an archive through the shared HTTPS/integrity path; the desktop retains and downloads an `nxm://` handoff on its worker channel, then marks the matched registry file available, while a confirmed `modsync://` link loads through that same worker/status flow; Unix secondary launches forward either one bounded URL or an activation request to the primary UI through a per-user socket; `protocol-register-linux` writes and registers its desktop handler | No cancellation during a ModSync instruction fetch, Windows named-pipe handoff, Windows/macOS registration execution, or native desktop acceptance |
+| Protocol links | `protocol-parse` parses `nxm://` and `modsync://` links into typed JSON; `protocol-fetch` resolves hosts, rejects local/private targets and every unsafe redirect hop, caps instruction downloads at 5 MiB, and atomically publishes a new destination; `protocol-open` fetches, loads and emits a `modsync://` guide from a temporary file; `protocol-resolve` resolves an `nxm://` game/mod handoff to exactly one top-level component registry entry; `nxm-download` resolves authorized Nexus mirrors and streams an archive through the shared HTTPS/integrity path; the desktop retains an `nxm://` handoff and, when idle, runs it through the shared `nxm_target`/single-plan/run/`record` path bound to the guide at dispatch (desktop step 1, unreviewed), while a confirmed `modsync://` link loads through that same worker/status flow; Unix secondary launches forward either one bounded URL or an activation request to the primary UI through a per-user socket; `protocol-register-linux` writes and registers its desktop handler | No cancellation during a ModSync instruction fetch, Windows named-pipe handoff, Windows/macOS registration execution, or native desktop acceptance |
 | Updates | `update-apply` records supplied versions; `update-check` reads the existing settings/API-key override sources, fetches Nexus versions with API headers, one 429 retry and rate-budget tracking, then atomically saves guide and result summary; the desktop can save/clear a masked API key, runs the shared check asynchronously and shows per-component update indicators; the shared client also parses file lists, MD5 matches and key validation; every Nexus API client (default and override base) follows only same-origin redirects, at most 10 hops, so the `apikey` header never leaves its base origin, nxm download keys are URL-query encoded and never appear in client error text, and an override base without a trailing slash keeps its last path segment ([loopback proof](docs/parity/nexus-h1a-proof/README.md); https-to-http downgrade and the default base are covered by source only) | No desktop file/MD5/key-validation surface, no cancellation during a request, and no live-Nexus acceptance run |
 | Widescreen, Aspyr, game-specific notices | Automatic KOTOR 1/KOTOR 2 Legacy/KOTOR 2 Aspyr detection, Aspyr `steamassets` content-root resolution, Aspyr-only selection gating, and phased widescreen desktop flow | No native-platform or full-build acceptance of the game-specific flows |
 | Editor | Native guide editor for component metadata, dependencies/restrictions, component and instruction add/remove/reorder, executable instruction fields, and atomic multi-format save | No option editor, raw text replacement, URL/regex import, file browser, or full C# editor corpus acceptance |
@@ -981,5 +1035,5 @@ before Origin stops in a race, fall-through after a refusal, no adoption after a
 cancel, adoption after a lost unnamed publish),
 [shared-URL proof](docs/parity/fetch-shared-url-proof/README.md), 381/381 checks
 (10 fail on `d4ccbc1`; 38 of the earlier 354 fail on `45b3c64`).
-This is Fetch/nxm acquisition only; the desktop download path does not use this
-orchestrator.
+This is Fetch/nxm acquisition only. Desktop Fetch and nxm use this orchestrator from
+desktop step 1 (top of this file, unreviewed).
