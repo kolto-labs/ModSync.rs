@@ -1511,6 +1511,9 @@ fn run() -> Result<()> {
                     (effective_mode, Some(peer_settings))
                 }
             };
+            let keep_finished_sharing = peer_settings.as_ref().is_some_and(|settings| {
+                settings.sharing && settings.keep_sharing && settings.mode != p2p::PeerMode::Off
+            });
             let orchestrator_peer_mode = match effective_mode {
                 p2p::PeerMode::Off => orchestrator::PeerMode::Off,
                 p2p::PeerMode::Race => orchestrator::PeerMode::Race,
@@ -1636,7 +1639,7 @@ fn run() -> Result<()> {
                     choices: fomod_choices,
                     interactive,
                     non_interactive,
-                    settings_dir,
+                    settings_dir: settings_dir.clone(),
                 },
                 &cancelled,
                 &[],
@@ -1685,12 +1688,39 @@ fn run() -> Result<()> {
             // Latch classification after recording/cleanup so the emitted summary
             // and exit code describe the same completed run boundary.
             configuration.cancelled = report.cancelled || cancelled.load(Ordering::SeqCst);
+            let mut sharing_enrollment = modsync::peer_sharing::Enrollment::default();
+            if keep_finished_sharing && !configuration.cancelled {
+                sharing_enrollment =
+                    match modsync::profiles::SettingsFile::resolve(settings_dir.as_deref())
+                        .and_then(|settings| modsync::peer_sharing::Catalog::open(&settings))
+                    {
+                        Ok(catalog) => modsync::peer_sharing::enroll_report(
+                            &catalog,
+                            &execution,
+                            &plan,
+                            &report,
+                            &archive_options,
+                            Some(input.as_path()),
+                            true,
+                        ),
+                        Err(error) => modsync::peer_sharing::Enrollment {
+                            failures: vec![format!("Sharing enrollment storage: {error:#}")],
+                            ..Default::default()
+                        },
+                    };
+            }
             let summary_value = serde_json::json!({
                 "report": report,
                 "recordSummary": record_summary,
                 "fomodFollowups": fomod,
                 "fomodConfiguration": configuration,
                 "fomodConfigurationRecorded": fomod_recorded,
+                "sharingEnrollment": {
+                    "admitted": sharing_enrollment.admitted,
+                    "duplicates": sharing_enrollment.duplicates,
+                    "rejected": sharing_enrollment.rejected,
+                    "failures": sharing_enrollment.failures,
+                },
             });
             if progress_json {
                 let envelope = serde_json::json!({"type": "summary", "summary": summary_value});
@@ -1706,6 +1736,8 @@ fn run() -> Result<()> {
                 .outcomes
                 .iter()
                 .any(|o| o.status == orchestrator::TargetStatus::Failed);
+            // Sharing enrollment failures are reported in the summary only; they
+            // never turn a completed acquisition into a failed command.
             if failed || !fomod.inspection_errors.is_empty() || configuration.has_errors() {
                 std::process::exit(1);
             }

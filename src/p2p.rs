@@ -396,11 +396,21 @@ impl PeerSettings {
                 _ => Vec::new(),
             }
         };
-        if let Some(v) = get("peerSharing").and_then(|v| v.as_bool()) {
-            out.sharing = v;
-        }
-        if let Some(v) = get("peerKeepSharing").and_then(|v| v.as_bool()) {
-            out.keep_sharing = v;
+        // A case alias cannot turn an explicit off-switch back on. Malformed
+        // values for either safety switch also fail closed.
+        for (key, enabled) in [
+            ("peerSharing", &mut out.sharing),
+            ("peerKeepSharing", &mut out.keep_sharing),
+        ] {
+            for value in map
+                .iter()
+                .filter(|(stored, _)| stored.eq_ignore_ascii_case(key))
+                .map(|(_, value)| value)
+            {
+                if value.as_bool() != Some(true) {
+                    *enabled = false;
+                }
+            }
         }
         if let Some(v) = get("peerUploadWhileDownloading").and_then(|v| v.as_bool()) {
             out.upload_while_downloading = v;
@@ -408,7 +418,12 @@ impl PeerSettings {
         if let Some(v) = get("peerUploadKiBps").and_then(|v| v.as_u64()) {
             out.upload_kibps = u32::try_from(v).unwrap_or(u32::MAX);
         }
-        if let Some(v) = get("peerMode").and_then(|v| v.as_str()) {
+        if map.iter().any(|(key, value)| {
+            key.eq_ignore_ascii_case("peerMode")
+                && !matches!(value.as_str(), Some(mode) if !mode.eq_ignore_ascii_case("off"))
+        }) {
+            out.mode = PeerMode::Off;
+        } else if let Some(v) = get("peerMode").and_then(|v| v.as_str()) {
             out.mode = match v.to_ascii_lowercase().as_str() {
                 "off" => PeerMode::Off,
                 "fallback" => PeerMode::Fallback,

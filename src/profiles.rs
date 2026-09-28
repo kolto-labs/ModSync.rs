@@ -681,7 +681,10 @@ impl SettingsFile {
         let map = root.as_object_mut().context("Settings must be an object")?;
         for (key, value) in changes {
             ensure!(
-                matches!(key.as_str(), "peerSharing" | "peerMode" | "peerUploadKiBps"),
+                matches!(
+                    key.as_str(),
+                    "peerSharing" | "peerKeepSharing" | "peerMode" | "peerUploadKiBps"
+                ),
                 "Unsupported peer setting"
             );
             map.retain(|stored, _| !stored.eq_ignore_ascii_case(key));
