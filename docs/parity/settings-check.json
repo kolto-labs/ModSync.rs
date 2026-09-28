@@ -1,7 +1,7 @@
 {
   "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
   "reference_dll_sha256": "8f3b1e3f8fe47b2cc6f8e3f281912506721c7367218381bb2a35cf86dc5768f0",
-  "rust_cli_binary_sha256": "d9567a630afceb058684a05a321014aab40a62d9db692e1cef80fe53e2192550",
+  "rust_cli_binary_sha256": "0bea1f1c304fdac118d1f708037a4ab06f08f99daa2571ee063bc1f9cc3fd320",
   "host_locale": "en_US.UTF-8",
   "isolation": "HOME and XDG_CONFIG_HOME pointed at /tmp/msprobe scratch paths for every run of both implementations",
   "comparison": "Stdout parsed as JSON after dropping the C# 'Logging initialized' line; files compared as parsed JSON. Textual differences that parse to the same value (System.Text.Json \\u0022 escapes, 9.223372036854776E+18 vs e+18) count as equal.",
@@ -202,7 +202,22 @@
         "current file 'bad'": "rc=1 parse error, file unchanged"
       },
       "rust_binary_sha256": "317bf5cfa9a5ecb827801b3dd8e163c2a5b3b8af6b387c1bc5d49b3a4ec74b89"
+    },
+    {
+      "id": "G-e",
+      "case": "update-check / nxm-download with only a corrupt legacy file (/tmp/msprobe/nk.sh, run under unshare -rn)",
+      "rust": {
+        "update-check --nexus-mods-api-key X": "rc=0, no settings read",
+        "nxm-download --nexus-mods-api-key X": "rc=1 on network unreachable (no settings error)",
+        "no flag, NEXUS_MODS_API_KEY=E": "legacy warning, env key used, rc=0",
+        "no flag, no env": "legacy warning, then rc=1 'Set nexusModsApiKey ...'",
+        "current file 'bad', no flag": "rc=1 parse error, file unchanged",
+        "current file 'bad', with flag": "rc=0"
+      },
+      "rust_binary_sha256": "0bea1f1c304fdac118d1f708037a4ab06f08f99daa2571ee063bc1f9cc3fd320",
+      "csharp": "not compared: no equivalent settings-dir/legacy path in the pinned CLI for these verbs"
     }
   ],
-  "scope": "Linux, en-US host, pinned DLL. Covers the settings verb, the profile CLI's managed-field reads and activation, BOM input, masking and GUID spelling. Not covered: GUI SettingsManager typed load and save, theme to TargetGame mapping, the set-nexus-api-key verb, non-en-US number parsing, native macOS and Windows folders, and crash atomicity."
+  "scope": "Linux, en-US host, pinned DLL. Covers the settings verb, the profile CLI's managed-field reads and activation, BOM input, masking and GUID spelling. Not covered: GUI SettingsManager typed load and save, theme to TargetGame mapping, the set-nexus-api-key verb, non-en-US number parsing, native macOS and Windows folders, and crash atomicity.",
+  "rust_binary_note": "Pinned binary is the --no-default-features debug build of the commit that added G-e. Earlier cases were run on 5e2d791c (433b70d), d9567a63 (adbc532) and 317bf5cf (b19164d); G-e was run on the pinned binary."
 }

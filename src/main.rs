@@ -638,10 +638,13 @@ fn run() -> Result<()> {
                 "Expected an nxm:// URL"
             );
             let directory = modsync::profiles::settings_directory(settings_dir.as_deref())?;
-            let key = nexus_mods_api_key
-                .or(modsync::profiles::Store::new(&directory)?.nexus_api_key()?)
-                .or_else(|| std::env::var("KOTOR_MODSYNC_NEXUS_API_KEY").ok())
-                .or_else(|| std::env::var("NEXUS_MODS_API_KEY").ok());
+            // An explicit flag wins without reading settings.
+            let key = match nexus_mods_api_key {
+                Some(key) => Some(key),
+                None => modsync::profiles::Store::new(&directory)?.nexus_api_key()?,
+            }
+            .or_else(|| std::env::var("KOTOR_MODSYNC_NEXUS_API_KEY").ok())
+            .or_else(|| std::env::var("NEXUS_MODS_API_KEY").ok());
             let mut client = modsync::updates::NexusClient::new(key)?;
             let download_link = client.nxm_download_link(&link)?;
             download::fetch(&download_link.uri, &output, None, &AtomicBool::new(false))?;
@@ -674,8 +677,11 @@ fn run() -> Result<()> {
             settings_dir,
         }) => {
             let directory = modsync::profiles::settings_directory(settings_dir.as_deref())?;
-            let key = nexus_mods_api_key
-                .or(modsync::profiles::Store::new(&directory)?.nexus_api_key()?)
+            // An explicit flag wins without reading settings.
+            let key = match nexus_mods_api_key {
+                Some(key) => Some(key),
+                None => modsync::profiles::Store::new(&directory)?.nexus_api_key()?,
+            }
                 .or_else(|| std::env::var("KOTOR_MODSYNC_NEXUS_API_KEY").ok())
                 .or_else(|| std::env::var("NEXUS_MODS_API_KEY").ok())
                 .filter(|key| !key.trim().is_empty())

@@ -376,8 +376,19 @@ impl Store {
             setting_text(&settings, "destinationPath")?,
         ))
     }
+    /// Read-only lookup: an unusable legacy file (no current file) warns and uses
+    /// defaults; an unusable current file is still an error.
+    fn lookup_settings(&self) -> Result<Value> {
+        if self.root.join("settings.json").exists() {
+            return self.read_settings(false);
+        }
+        Ok(self.read_settings(false).unwrap_or_else(|e| {
+            eprintln!("Warning: failed to read legacy settings: {e:#}");
+            json!({})
+        }))
+    }
     pub fn nexus_api_key(&self) -> Result<Option<String>> {
-        setting_text(&self.read_settings(false)?, "nexusModsApiKey")
+        setting_text(&self.lookup_settings()?, "nexusModsApiKey")
     }
     pub fn save_nexus_api_key(&self, key: &str) -> Result<()> {
         let _lock = self.lock()?;
@@ -423,16 +434,7 @@ impl Store {
         )
     }
     pub fn patcher_preferences(&self) -> Result<PatcherPreferences> {
-        // Read-only lookup: an unusable legacy file (no current file) warns and uses
-        // defaults; an unusable current file is still an error.
-        let settings = if self.root.join("settings.json").exists() {
-            self.read_settings(false)?
-        } else {
-            self.read_settings(false).unwrap_or_else(|e| {
-                eprintln!("Warning: failed to read legacy settings: {e:#}");
-                json!({})
-            })
-        };
+        let settings = self.lookup_settings()?;
         let engine = match setting_text(&settings, "patcherEngine")?
             .as_deref()
             .unwrap_or("Holopatcher")
