@@ -161,13 +161,37 @@ pub fn record_nxm_download(
     Ok(())
 }
 
+/// Production Nexus Mods API base.
+const NEXUS_API_BASE: &str = "https://api.nexusmods.com/v1/";
+
+/// Most redirect hops one Nexus API request may follow. `Attempt::previous` also holds
+/// the original URL, so the policy compares with `>` like reqwest's `Policy::limited`.
+const NEXUS_API_REDIRECT_LIMIT: usize = 10;
+
+/// The one redirect policy every `NexusClient` uses, bound to that client's own API
+/// base origin. A redirect is followed only when scheme, host and port all equal the
+/// base's, so the custom `apikey` header (which reqwest does not strip across hosts)
+/// never reaches another host or port, and https is never downgraded to http. The
+/// policy runs before the redirect target is contacted, so a refused hop sends nothing.
+fn api_redirect_policy(base_url: &reqwest::Url) -> reqwest::redirect::Policy {
+    let origin = base_url.origin();
+    reqwest::redirect::Policy::custom(move |attempt| {
+        if attempt.url().origin() != origin {
+            let target = attempt.url().origin().ascii_serialization();
+            attempt.error(format!(
+                "Refusing Nexus API redirect to another origin: {target}"
+            ))
+        } else if attempt.previous().len() > NEXUS_API_REDIRECT_LIMIT {
+            attempt.error("Too many Nexus API redirects")
+        } else {
+            attempt.follow()
+        }
+    })
+}
+
 impl NexusClient {
     pub fn new(api_key: Option<String>) -> Result<Self> {
-        Self::build(
-            api_key,
-            "https://api.nexusmods.com/v1/",
-            reqwest::redirect::Policy::default(),
-        )
+        Self::build(api_key, NEXUS_API_BASE)
     }
 
     /// Requires https, except for loopback hosts, which may use http so a
@@ -175,28 +199,19 @@ impl NexusClient {
     /// are followed only within the base URL's origin, so the scheme check
     /// and the API key cannot be carried to another host.
     pub fn with_base_url(api_key: Option<String>, base_url: &str) -> Result<Self> {
-        let origin = reqwest::Url::parse(base_url)?.origin();
-        let policy = reqwest::redirect::Policy::custom(move |attempt| {
-            if attempt.url().origin() != origin {
-                let target = attempt.url().origin().ascii_serialization();
-                attempt.error(format!(
-                    "Refusing Nexus API redirect to another origin: {target}"
-                ))
-            } else if attempt.previous().len() >= 10 {
-                attempt.error("Too many Nexus API redirects")
-            } else {
-                attempt.follow()
-            }
-        });
-        Self::build(api_key, base_url, policy)
+        Self::build(api_key, base_url)
     }
 
-    fn build(
-        api_key: Option<String>,
-        base_url: &str,
-        redirect: reqwest::redirect::Policy,
-    ) -> Result<Self> {
-        let base_url = reqwest::Url::parse(base_url)?.join("./")?;
+    /// Both constructors end here, so both get `api_redirect_policy` for their own base.
+    fn build(api_key: Option<String>, base_url: &str) -> Result<Self> {
+        let mut base_url = reqwest::Url::parse(base_url)?;
+        // Relative API paths join under the base's last segment, so `.../v1` and `.../v1/`
+        // both become `.../v1/` (a bare `join("./")` would drop `v1`).
+        if !base_url.path().ends_with('/') {
+            let path = format!("{}/", base_url.path());
+            base_url.set_path(&path);
+        }
+        let base_url = base_url.join("./")?;
         let loopback = base_url.host_str().is_some_and(|host| {
             host.eq_ignore_ascii_case("localhost")
                 || host
@@ -209,6 +224,7 @@ impl NexusClient {
             base_url.scheme() == "https" || (loopback && base_url.scheme() == "http"),
             "Nexus API base URL must use https (http is allowed only for loopback hosts)"
         );
+        let redirect = api_redirect_policy(&base_url);
         Ok(Self {
             client: reqwest::blocking::Client::builder()
                 .timeout(Duration::from_secs(60))
@@ -275,12 +291,23 @@ impl NexusClient {
                 "games/{game_domain}/mods/{mod_id}/files/{file_id}.json"
             ))
             .ok();
-        let mut path =
-            format!("games/{game_domain}/mods/{mod_id}/files/{file_id}/download_link.json");
+        let mut url = self.base_url.join(&format!(
+            "games/{game_domain}/mods/{mod_id}/files/{file_id}/download_link.json"
+        ))?;
         if let Some(key) = key.as_deref().filter(|key| !key.is_empty()) {
-            path.push_str(&format!("?key={}&expires={expires}", key));
+            // Built by URL query encoding, never interpolation, so reserved characters
+            // stay part of the key. Spaces become %20 rather than form `+`; a literal `+`
+            // is already %2B, so strict and form decoders both recover the exact key.
+            // Unlike `download_orchestrator::nxm_url`, whose form `+` only ever goes back
+            // through `protocol::parse` (`query_pairs`), this URL goes to the Nexus server,
+            // whose decoder may not treat `+` as a space.
+            url.query_pairs_mut()
+                .append_pair("key", key)
+                .append_pair("expires", &expires.to_string());
+            let query = url.query().unwrap_or_default().replace('+', "%20");
+            url.set_query(Some(&query));
         }
-        let value = self.get_value(&path)?;
+        let value = self.get_url_value(url)?;
         let links = value
             .as_array()
             .or_else(|| value.get("download_links").and_then(Value::as_array));
@@ -356,7 +383,13 @@ impl NexusClient {
                 message: "API key is invalid or unauthorized.".into(),
             });
         }
-        let value: Value = serde_json::from_str(&response.error_for_status()?.text()?)?;
+        let value: Value = serde_json::from_str(
+            &response
+                .error_for_status()
+                .map_err(redact_query)?
+                .text()
+                .map_err(redact_query)?,
+        )?;
         Ok(NexusValidateResult {
             is_valid: true,
             user_name: value["name"].as_str().unwrap_or_default().into(),
@@ -370,7 +403,10 @@ impl NexusClient {
     }
 
     fn get_value(&mut self, path: &str) -> Result<Value> {
-        let url = self.base_url.join(path)?;
+        self.get_url_value(self.base_url.join(path)?)
+    }
+
+    fn get_url_value(&mut self, url: reqwest::Url) -> Result<Value> {
         let mut response = self.request(url.clone())?;
         if response.status() == reqwest::StatusCode::TOO_MANY_REQUESTS {
             let delay = response
@@ -384,14 +420,16 @@ impl NexusClient {
             if self.defer_rate_limits {
                 return Err(crate::download::transient(
                     Some(delay.as_secs()),
-                    anyhow::anyhow!("Nexus Mods rate limit (HTTP 429) for {url}"),
+                    anyhow::anyhow!("Nexus Mods rate limit (HTTP 429) for {}", url.path()),
                 ));
             }
             std::thread::sleep(delay);
             response = self.request(url)?;
         }
-        let response = response.error_for_status()?;
-        Ok(serde_json::from_str(&response.text()?)?)
+        let response = response.error_for_status().map_err(redact_query)?;
+        Ok(serde_json::from_str(
+            &response.text().map_err(redact_query)?,
+        )?)
     }
 
     fn request(&mut self, url: reqwest::Url) -> Result<reqwest::blocking::Response> {
@@ -408,13 +446,22 @@ impl NexusClient {
         if let Some(key) = self.api_key.as_deref().filter(|key| !key.trim().is_empty()) {
             request = request.header("apikey", key);
         }
-        let response = request.send()?;
+        let response = request.send().map_err(redact_query)?;
         self.daily_remaining =
             header_count(&response, "X-RL-Daily-Remaining").or(self.daily_remaining);
         self.hourly_remaining =
             header_count(&response, "X-RL-Hourly-Remaining").or(self.hourly_remaining);
         Ok(response)
     }
+}
+
+/// Drops the query from the URL a reqwest error reports, so an nxm download `key` (sent
+/// in the `download_link.json` query) never reaches error text; the path is kept.
+fn redact_query(mut error: reqwest::Error) -> reqwest::Error {
+    if let Some(url) = error.url_mut() {
+        url.set_query(None);
+    }
+    error
 }
 
 fn header_count(response: &reqwest::blocking::Response, name: &str) -> Option<i64> {

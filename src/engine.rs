@@ -672,7 +672,9 @@ impl Engine {
         Ok(())
     }
 
-    fn validate_fomod_configuration(mut self, guide: &Guide) -> Result<()> {
+    /// Returns warnings for configured registered archives that no selected Extract
+    /// instruction installs: choices are valid, but configuration installs no files.
+    fn validate_fomod_configuration(mut self, guide: &Guide) -> Result<Vec<String>> {
         fn is_archive(name: &str) -> bool {
             matches!(
                 std::path::Path::new(name)
@@ -683,14 +685,14 @@ impl Engine {
                 Some("zip" | "7z" | "rar" | "exe" | "tar" | "gz")
             )
         }
-        fn configured_choices(component: &Component, filename: &str) -> Result<()> {
-            let raw = component.metadata.get("FomodChoices").with_context(|| {
-                format!("FOMOD archive '{filename}' has no explicit FomodChoices configuration")
-            })?;
-            let choices = crate::fomod::ChoicesFile::parse(&serde_json::to_string(raw)?)?;
-            choices
-                .archive(filename)
-                .with_context(|| format!("No FOMOD choices for {filename}"))?;
+        fn configured_choices(
+            component: &Component,
+            filename: &str,
+            module: &crate::fomod::ArchiveModule,
+        ) -> Result<()> {
+            let choices = crate::fomod::required_saved_choices(component, filename)?;
+            crate::fomod::current_archive_choices(module, &choices, filename)
+                .with_context(|| crate::fomod::stale_choices_context(filename))?;
             Ok(())
         }
 
@@ -708,6 +710,11 @@ impl Engine {
             }
             self.collect_execution_components(component, &mut scope)?;
         }
+        // Registered archives with valid choices, by path: filename and registrants.
+        let mut configured = BTreeMap::<String, (String, Vec<String>)>::new();
+        // (archive path, component) pairs already checked by the registered pass.
+        let mut checked = BTreeSet::new();
+        let mut routes = BTreeSet::new();
         for component in &scope {
             let mut registered = BTreeSet::new();
             for resource in component.resource_registry.values() {
@@ -747,8 +754,14 @@ impl Engine {
                     .with_context(|| {
                         format!("Registered archive '{filename}' cannot be inspected")
                     })?;
-                    if crate::fomod::inspect_entries(&entries)?.is_some() {
-                        configured_choices(component, filename)?;
+                    if let Some(module) = crate::fomod::inspect_entries(&entries)? {
+                        configured_choices(component, filename, &module)?;
+                        checked.insert((key(&path), component.guid.clone()));
+                        configured
+                            .entry(key(&path))
+                            .or_insert_with(|| (filename.to_owned(), Vec::new()))
+                            .1
+                            .push(component.name.clone());
                     }
                 }
             }
@@ -761,6 +774,11 @@ impl Engine {
                 // Missing generic Extract inputs belong to archive validation and
                 // dry-run availability, not the independent FOMOD state gate.
                 for source in self.matches(&instruction.source, true)? {
+                    // Any applying Extract of this path is an install route, FOMOD or not.
+                    routes.insert(key(&source));
+                    if checked.contains(&(key(&source), component.guid.clone())) {
+                        continue;
+                    }
                     let content = &self.files[&key(&source)].1;
                     let entries = archive::unpack(
                         content.path(),
@@ -768,18 +786,34 @@ impl Engine {
                         &self.settings.archive,
                         &self.settings.cancelled,
                     )?;
-                    if crate::fomod::inspect_entries(&entries)?.is_none() {
+                    let Some(module) = crate::fomod::inspect_entries(&entries)? else {
                         continue;
-                    }
+                    };
                     let filename = source
                         .file_name()
                         .and_then(|name| name.to_str())
                         .context("FOMOD archive filename is invalid")?;
-                    configured_choices(component, filename)?;
+                    configured_choices(component, filename, &module)?;
                 }
             }
         }
-        Ok(())
+        // C# FomodConfigurationGate soft-warns "configured" without archive-scoped
+        // instructions. Rust keeps choices, so the analogue is a missing Extract route.
+        // One warning per archive, naming every registering component.
+        Ok(configured
+            .into_iter()
+            .filter(|(path, _)| !routes.contains(path))
+            .map(|(_, (filename, names))| {
+                let names = names
+                    .iter()
+                    .map(|name| format!("'{name}'"))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                format!(
+                    "FOMOD archive '{filename}' registered by {names} has valid choices, but no selected Extract instruction installs it; configuration alone installs no files."
+                )
+            })
+            .collect())
     }
 
     /// Analyze actual simulated writes without changing either installation tree.
@@ -1372,22 +1406,20 @@ impl Engine {
                     let configured = if let Some(mut module) =
                         crate::fomod::inspect_entries(&entries)?
                     {
-                        let raw = component.metadata.get("FomodChoices")
-                            .context("FOMOD choices are unsupported without explicit FomodChoices configuration")?;
-                        let choices =
-                            crate::fomod::ChoicesFile::parse(&serde_json::to_string(raw)?)?;
                         let filename = source
                             .file_name()
                             .and_then(|n| n.to_str())
                             .context("FOMOD archive filename is invalid")?;
-                        choices
-                            .archive(filename)
-                            .with_context(|| format!("No FOMOD choices for {filename}"))?
-                            .apply_to(&mut module.config.steps)?;
+                        let choices = crate::fomod::required_saved_choices(component, filename)?;
                         let relative = dest.strip_prefix(&self.settings.roots.mods).context(
                             "Configured FOMOD extraction must stay in the mod directory",
                         )?;
-                        module.copy_instructions(&relative.to_string_lossy())?
+                        // Applying and mapping both judge the saved choices against
+                        // the current archive, so both carry the recovery route.
+                        choices
+                            .apply_to(&mut module.config.steps)
+                            .and_then(|()| module.copy_instructions(&relative.to_string_lossy()))
+                            .with_context(|| crate::fomod::stale_choices_context(filename))?
                     } else {
                         Vec::new()
                     };

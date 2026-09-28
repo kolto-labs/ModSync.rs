@@ -1593,23 +1593,7 @@ fn run() -> Result<()> {
                 &cancelled,
                 &[],
             );
-            let fomod = orchestrator::FomodFollowups {
-                followups: scan
-                    .archives
-                    .iter()
-                    .filter_map(|archive| {
-                        archive
-                            .consumers
-                            .iter()
-                            .find(|c| c.should_prompt)
-                            .map(|consumer| orchestrator::FomodFollowup {
-                                component_guid: consumer.component_guid.clone(),
-                                archive: archive.archive.clone(),
-                            })
-                    })
-                    .collect(),
-                inspection_errors: scan.inspection_errors.clone(),
-            };
+            let inspection_errors = scan.inspection_errors.clone();
             let mut configuration = modsync::fomod_cli::dispatch(
                 &mut execution,
                 scan,
@@ -1623,6 +1607,11 @@ fn run() -> Result<()> {
                 &cancelled,
                 &[],
             );
+            // Follow-ups describe the post-dispatch state: consumers still lacking choices.
+            let fomod = orchestrator::FomodFollowups {
+                followups: configuration.followups(),
+                inspection_errors,
+            };
             // Recording uses the pristine authored guide so transient selection is
             // never persisted. Commit accepted sessions only, after dispatch; a
             // cancelled current session has no edit to replay.
@@ -1630,10 +1619,20 @@ fn run() -> Result<()> {
             let record_summary = if record {
                 match (|| -> Result<orchestrator::RecordSummary> {
                     let summary = orchestrator::record(&mut guide, &report)?;
-                    configuration.apply_recorded(&mut guide, &[])?;
-                    if !summary.recorded.is_empty() || configuration.has_edits() {
+                    // FOMOD replay is all-or-nothing; on failure the guide still holds the
+                    // acquisition facts, which are saved alone while the error fails the run.
+                    let applied = match configuration.apply_recorded(&mut guide, &[]) {
+                        Ok(()) => configuration.has_edits(),
+                        Err(error) => {
+                            configuration
+                                .errors
+                                .push(format!("Recording FOMOD configuration: {error:#}"));
+                            false
+                        }
+                    };
+                    if !summary.recorded.is_empty() || applied {
                         guide.save(&input)?;
-                        fomod_recorded = configuration.has_edits();
+                        fomod_recorded = applied;
                     }
                     Ok(summary)
                 })() {

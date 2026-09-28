@@ -63,7 +63,17 @@ is assigned because the remaining domains differ greatly in scope and proof cost
    its missing legacy-bullet metadata route remain separate approved work.
 4. The first [FOMOD integration slice](fomod-remaining-plan.md) is now the sole
    production implementation: CLI policy/dispatch, consumer binding and cancellable
-   terminal input. Persistence and remaining semantic/native acceptance follow.
+   terminal input. S2a (source commit `0d6aad1`, review follow-up commit
+   `93837e5`, round-2 follow-up commit `a436c05` and a round-3 follow-up) adds `--fomod-choices` same-archive reconfiguration, stale-choice
+   refusal against the current archive, an actionable C#-configured import
+   requirement, a repair hint for unparseable saved choices, and the no-Extract route
+   warning; [evidence](fomod-s2a-proof/README.md) is 224/224. The round-3 follow-up is
+   `ae8d7e9`; S2a SPEC and QUALITY are [approved](fomod-s2a-review.md). Open:
+   Fetch plans one target per component for a shared URL/filename, so two
+   components on one URL race on the destination (`File exists`) and the second is
+   neither bound nor recorded; one-run `validate/install --fomod-choices` still
+   replaces all embedded archive choices.
+   Remaining S2 semantic items and native acceptance follow.
    The [actual full.md conversion baseline](full-markdown-baseline/README.md)
    retains eight production conversions and an independent anonymous comparison.
    Both engines draft 72 instructions for 186 K1 components and 56 for 145 K2
@@ -76,6 +86,10 @@ is assigned because the remaining domains differ greatly in scope and proof cost
    update/profile UI, complete wizard/main-window controls, CLI contracts,
    diagnostics and packaging. Historical checkpoints do not establish that all
    remaining domains already have complete implementation plans.
+   Nexus H1a (shared same-origin API redirect policy, query-encoded nxm keys) has
+   [isolated production-CLI evidence](nexus-h1a-proof/README.md), 108/108 checks.
+   It still needs independent SPEC and QUALITY review. The https-to-http downgrade
+   is covered by source only, and the rest of H1 is still open.
 6. Perform requirement-by-requirement acceptance, ending with F29: authorized,
    isolated K1/K2 installs with identical inputs/selections, ordered per-step
    comparisons, final resource content checks, and live-game evidence.

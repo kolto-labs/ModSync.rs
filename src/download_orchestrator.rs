@@ -1538,22 +1538,25 @@ fn nxm_url(link: &protocol::Link) -> Result<String> {
     else {
         bail!("Expected an nxm:// link");
     };
-    let mut url = format!("nxm://{game_domain}/mods/{mod_id}/files/{file_id}");
-    let mut query = Vec::new();
+    let mut url = reqwest::Url::parse(&format!(
+        "nxm://{game_domain}/mods/{mod_id}/files/{file_id}"
+    ))?;
+    // Query-encoded (decoded again by `protocol::parse`), so a key's reserved characters
+    // survive the round trip instead of becoming extra parameters. A space becomes form
+    // `+`, which `protocol::parse`'s `query_pairs` decodes back; the API request built by
+    // `updates::NexusClient::nxm_download_link` uses %20 instead, for the Nexus server.
     if let Some(key) = key.as_deref().filter(|k| !k.is_empty()) {
-        query.push(format!("key={key}"));
+        url.query_pairs_mut().append_pair("key", key);
     }
     if *expires > 0 {
-        query.push(format!("expires={expires}"));
+        url.query_pairs_mut()
+            .append_pair("expires", &expires.to_string());
     }
     if *user_id > 0 {
-        query.push(format!("user_id={user_id}"));
+        url.query_pairs_mut()
+            .append_pair("user_id", &user_id.to_string());
     }
-    if !query.is_empty() {
-        url.push('?');
-        url.push_str(&query.join("&"));
-    }
-    Ok(url)
+    Ok(url.into())
 }
 
 /// The only nxm path: resolves the component (Matched only) and returns one target whose
@@ -1744,19 +1747,41 @@ pub fn fomod_followups(
         .skipped
         .retain(|skip| eligible(&skip.component_guid, skip.path.as_ref()));
     let scan = collect_fomod_consumers(guide, &captured, options, cancelled, &[]);
+    // Eligibility here is the recursive `offer_prompt` filter above, and the desktop
+    // offers its editor without assessing saved choices, so every consumer is pending.
     FomodFollowups {
-        followups: scan
-            .archives
-            .iter()
-            .filter_map(|archive| {
-                archive.consumers.first().map(|consumer| FomodFollowup {
-                    component_guid: consumer.component_guid.clone(),
-                    archive: archive.archive.clone(),
-                })
+        followups: pending_fomod_followups(scan.archives.iter().flat_map(|archive| {
+            archive.consumers.iter().map(|consumer| {
+                (
+                    archive.archive.as_path(),
+                    consumer.component_guid.as_str(),
+                    true,
+                    false,
+                )
             })
-            .collect(),
+        })),
         inspection_errors: scan.inspection_errors,
     }
+}
+
+/// Per-archive follow-up deduplication shared by desktop and Fetch: each archive is
+/// offered once, bound to its first consumer that is eligible and still lacks usable
+/// choices. Eligibility is the caller's: Fetch passes the top-level `should_prompt`
+/// captured at collection, while the desktop pre-filters with recursive `offer_prompt`.
+/// Items are `(archive, component GUID, prompt eligible, usable choices)` in capture order.
+pub fn pending_fomod_followups<'a>(
+    consumers: impl IntoIterator<Item = (&'a Path, &'a str, bool, bool)>,
+) -> Vec<FomodFollowup> {
+    let mut followups: Vec<FomodFollowup> = Vec::new();
+    for (archive, guid, eligible, usable_choices) in consumers {
+        if eligible && !usable_choices && !followups.iter().any(|f| f.archive == archive) {
+            followups.push(FomodFollowup {
+                component_guid: guid.to_owned(),
+                archive: archive.to_path_buf(),
+            });
+        }
+    }
+    followups
 }
 
 /// A GUID/path binding from the captured acquisition report, before inspection deduplication.

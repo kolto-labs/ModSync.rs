@@ -252,7 +252,7 @@ Reference: the local ModSync C# source at `d31ccbd3bfcddb4705917eafa6483715c166d
 | Managed deployment | Staged-tree manifest deploy/uninstall/purge CLI with hardlink-or-copy materialization, hash-guarded restoration, preflight and rollback, profile-scoped roots, profile switch with optional purge, and patcher provenance snapshot/record | Normal engine actions are not yet redirected into per-component staging (design in `docs/parity/deployment-csharp-audit.md`); no GUI management integration |
 | Merge | `merge EXISTING INCOMING OUTPUT` matches GUIDs, then normalized name/author values; it supports existing-order, field-preference and exclusion switches | No C# URL validation, domain fallback, complete per-field/resource conflict rules, full option merge, or GUI merge dialogs |
 | Protocol links | `protocol-parse` parses `nxm://` and `modsync://` links into typed JSON; `protocol-fetch` resolves hosts, rejects local/private targets and every unsafe redirect hop, caps instruction downloads at 5 MiB, and atomically publishes a new destination; `protocol-open` fetches, loads and emits a `modsync://` guide from a temporary file; `protocol-resolve` resolves an `nxm://` game/mod handoff to exactly one top-level component registry entry; `nxm-download` resolves authorized Nexus mirrors and streams an archive through the shared HTTPS/integrity path; the desktop retains and downloads an `nxm://` handoff on its worker channel, then marks the matched registry file available, while a confirmed `modsync://` link loads through that same worker/status flow; Unix secondary launches forward either one bounded URL or an activation request to the primary UI through a per-user socket; `protocol-register-linux` writes and registers its desktop handler | No cancellation during a ModSync instruction fetch, Windows named-pipe handoff, Windows/macOS registration execution, or native desktop acceptance |
-| Updates | `update-apply` records supplied versions; `update-check` reads the existing settings/API-key override sources, fetches Nexus versions with API headers, one 429 retry and rate-budget tracking, then atomically saves guide and result summary; the desktop can save/clear a masked API key, runs the shared check asynchronously and shows per-component update indicators; the shared client also parses file lists, MD5 matches and key validation | No desktop file/MD5/key-validation surface, no cancellation during a request, and no live-Nexus acceptance run |
+| Updates | `update-apply` records supplied versions; `update-check` reads the existing settings/API-key override sources, fetches Nexus versions with API headers, one 429 retry and rate-budget tracking, then atomically saves guide and result summary; the desktop can save/clear a masked API key, runs the shared check asynchronously and shows per-component update indicators; the shared client also parses file lists, MD5 matches and key validation; every Nexus API client (default and override base) follows only same-origin redirects, at most 10 hops, so the `apikey` header never leaves its base origin, nxm download keys are URL-query encoded and never appear in client error text, and an override base without a trailing slash keeps its last path segment ([loopback proof](docs/parity/nexus-h1a-proof/README.md); https-to-http downgrade and the default base are covered by source only) | No desktop file/MD5/key-validation surface, no cancellation during a request, and no live-Nexus acceptance run |
 | Widescreen, Aspyr, game-specific notices | Automatic KOTOR 1/KOTOR 2 Legacy/KOTOR 2 Aspyr detection, Aspyr `steamassets` content-root resolution, Aspyr-only selection gating, and phased widescreen desktop flow | No native-platform or full-build acceptance of the game-specific flows |
 | Editor | Native guide editor for component metadata, dependencies/restrictions, component and instruction add/remove/reorder, executable instruction fields, and atomic multi-format save | No option editor, raw text replacement, URL/regex import, file browser, or full C# editor corpus acceptance |
 | Telemetry | Default-off consent gate, nonserialized signing-secret HMAC helper, and authenticated structured-event transport with `telemetry-auth` request headers | No OTLP protobuf traces/metrics, diagnostics UI, persisted consent, or automatic UI/install event wiring |
@@ -823,3 +823,36 @@ become wildcard install inputs. The game-tree scan is unchanged, and recovery
 snapshots still cover the complete source tree and reject symlinks. A direct CLI
 install copied an accepted file while leaving the staged peer payload untouched.
 This is a source-discovery safeguard, not complete peer acquisition or F29 proof.
+
+## FOMOD S2a reconfiguration and stale choices — 2026-09-28 UTC
+
+`fetch-downloads --fomod-choices <file>` with an entry for an archive now replaces
+different or stale saved choices for that archive (`reconfigured`). It keeps a single
+entry per archive, keeps other archives' entries unchanged, and makes no edit when the
+choices are identical. Only the flag reconfigures or recovers saved choices:
+`MODSYNC_FOMOD_CHOICES` keeps its S1 role of configuring pending consumers, and
+`--fomod-skip` still wins over the flag. Interactive, warn and skip never touch
+configured consumers. When stale saved choices need the flag's file and it cannot be
+read or parsed, the file error is reported; when it loads but has no entry for that
+archive, that is reported too. An entry that does not fit the current
+archive fails the run without changing consumers whose saved choices are valid.
+`validate --validation-report` now applies saved choices to the current archive
+instead of checking only that an entry exists. Stale or invalid choices, and
+C#-configured guides with no `FomodChoices`, fail with the supported import route.
+Saved `FomodChoices` that cannot be parsed (for example version 2 or a duplicate
+archive) are never overwritten by Fetch, since that could discard other archives'
+entries. Fetch, validate and install instead name a repair hint: repair that
+component's `FomodChoices` in the guide (removing it discards every archive's saved
+choices for that component), then capture and record any missing choices. A
+`--fomod-choices` entry still reconfigures the archive's other consumers, and the run
+fails for the unparseable one.
+Prompt status is never treated as executable choices.
+
+A registered FOMOD archive with valid choices but no selected `Extract` passes with
+one warning per archive, naming its registrants: configuration alone installs no
+files. Choices carry no byte identity (as in C#). A replacement archive that still
+accepts the saved names is mapped fresh from its current bytes. Evidence:
+[S2a proof](docs/parity/fomod-s2a-proof/README.md), 217/217 checks. The run-scoped
+`validate`/`install --fomod-choices` still replaces all embedded archive choices for
+that run; it is not a recovery route. Unicode matching, desktop reconfiguration and
+the S3 corpora remain open, and F15 stays partial.

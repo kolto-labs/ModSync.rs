@@ -1,5 +1,5 @@
 //! Shared FOMOD selection rules. Archive configuration and installation are not yet wired.
-use anyhow::{Result, ensure};
+use anyhow::{Context, Result, ensure};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
@@ -673,42 +673,74 @@ pub fn should_prompt(component: &crate::Component, archive: &str) -> bool {
 }
 
 /// Persist a C#-compatible prompt state when a resource registry entry contains the archive.
+/// Returns false when no entry matches or the matching entry's metadata is malformed.
 pub fn set_prompt_status(
     component: &mut crate::Component,
     archive: &str,
     status: PromptStatus,
 ) -> bool {
+    try_set_prompt_status(component, archive, status).unwrap_or(false)
+}
+
+/// Like [`set_prompt_status`], but malformed matching metadata is an error:
+/// `Ok(false)` means no resource registry entry contains the archive.
+pub fn try_set_prompt_status(
+    component: &mut crate::Component,
+    archive: &str,
+    status: PromptStatus,
+) -> Result<bool> {
     let filename = archive_name(archive);
     let Some(resource) = component
         .resource_registry
         .values_mut()
         .find(|resource| resource_matches(resource, &filename))
     else {
-        return false;
+        return Ok(false);
     };
+    write_prompt_status(resource, &filename, status)?;
+    Ok(true)
+}
+
+/// Write one archive's prompt status into a resource registry entry, preserving the
+/// entry's existing handler-metadata key spelling. Malformed shapes are errors.
+fn write_prompt_status(
+    resource: &mut serde_json::Value,
+    filename: &str,
+    status: PromptStatus,
+) -> Result<()> {
     let object = resource
         .as_object_mut()
-        .expect("resource matched only as an object");
-    let metadata_key = if object.contains_key("handlerMetadata") {
+        .context("FOMOD resource entry must be an object")?;
+    let key = if object.contains_key("handlerMetadata") {
         "handlerMetadata"
     } else if object.contains_key("HandlerMetadata") {
         "HandlerMetadata"
     } else {
         "handlerMetadata"
     };
-    let metadata = object
-        .entry(metadata_key)
-        .or_insert_with(|| serde_json::json!({}));
-    let statuses = metadata
+    // Like C# FomodDownloadPromptState: null metadata becomes a fresh map, and a
+    // missing or non-map status value is replaced rather than rejected.
+    let metadata = object.entry(key).or_insert(serde_json::Value::Null);
+    if metadata.is_null() {
+        *metadata = serde_json::json!({});
+    }
+    let metadata = metadata
         .as_object_mut()
-        .expect("handlerMetadata must be an object")
+        .context("FOMOD handler metadata must be an object")?;
+    let statuses = metadata
         .entry("fomodPromptStatus")
-        .or_insert_with(|| serde_json::json!({}));
+        .or_insert(serde_json::Value::Null);
+    if !statuses.is_object() {
+        *statuses = serde_json::json!({});
+    }
     statuses
         .as_object_mut()
-        .expect("fomodPromptStatus must be an object")
-        .insert(filename, serde_json::Value::String(status.as_str().into()));
-    true
+        .context("FOMOD prompt status must be an object")?
+        .insert(
+            filename.to_owned(),
+            serde_json::Value::String(status.as_str().into()),
+        );
+    Ok(())
 }
 
 impl ChoicesFile {
@@ -935,11 +967,14 @@ impl ChoicesFile {
                     .metadata
                     .insert("FomodChoices".into(), serde_json::to_value(choices)?);
                 for archive in &edits.archives {
-                    set_prompt_status(
+                    try_set_prompt_status(
                         component,
                         &archive.archive_file_name,
                         PromptStatus::Configured,
-                    );
+                    )
+                    .with_context(|| {
+                        format!("Recording FOMOD prompt status for {}", component.guid)
+                    })?;
                 }
                 update(&mut component.options, edits, completed, merge)?;
             }
@@ -950,6 +985,87 @@ impl ChoicesFile {
         *guide = candidate;
         Ok(())
     }
+}
+
+/// Supported routes for missing, stale or C#-only FOMOD configuration.
+pub const CHOICES_RECOVERY_HINT: &str = "Capture choices with `modsync fomod-inspect <archive> --interactive --save-choices <file>`, then persist them with `modsync fetch-downloads --record --fomod-choices <file>`.";
+
+/// Route for saved `FomodChoices` that cannot be parsed. Fetch never overwrites them
+/// (that could discard other archives' entries), so the guide must be edited first.
+/// Repair comes first: removal drops every archive's entry for the component.
+pub const CHOICES_REPAIR_HINT: &str = "Repair this component's FomodChoices in the guide (removing it discards every archive's saved choices for this component); `fetch-downloads --fomod-choices` does not overwrite unparseable saved choices. Afterwards, capture any missing choices with `modsync fomod-inspect <archive> --interactive --save-choices <file>` and record them with `modsync fetch-downloads --record --fomod-choices <file>`.";
+
+/// The component's saved choices for one archive, or an actionable error.
+/// Prompt status, including a C# `configured` marker, is never executable choices:
+/// C# persists generated instructions and a status, not a choices representation.
+pub fn required_saved_choices(
+    component: &crate::Component,
+    filename: &str,
+) -> Result<ArchiveChoices> {
+    let missing = |what: &str| match prompt_status(component, filename).as_deref() {
+        Some("configured") => anyhow::anyhow!(
+            "FOMOD archive '{filename}' is marked configured in handlerMetadata.fomodPromptStatus but has {what}. Prompt status is not executable choices; configuration recorded by the C# app (generated instructions plus status) is not imported. {CHOICES_RECOVERY_HINT}"
+        ),
+        Some(status) => anyhow::anyhow!(
+            "FOMOD archive '{filename}' (prompt status '{status}') has {what}. {CHOICES_RECOVERY_HINT}"
+        ),
+        None => anyhow::anyhow!("FOMOD archive '{filename}' has {what}. {CHOICES_RECOVERY_HINT}"),
+    };
+    let file = saved_choices_file(component)?
+        .ok_or_else(|| missing("no explicit FomodChoices configuration"))?;
+    file.archive(filename)
+        .cloned()
+        .ok_or_else(|| missing("no saved FomodChoices entry for this archive"))
+}
+
+/// The component's saved `FomodChoices`, if any. Unparseable saved choices are an
+/// error naming the repair route, with one wording for Fetch, the gate and install.
+pub fn saved_choices_file(component: &crate::Component) -> Result<Option<ChoicesFile>> {
+    let Some(raw) = component.metadata.get("FomodChoices") else {
+        return Ok(None);
+    };
+    ChoicesFile::parse(&serde_json::to_string(raw)?)
+        .with_context(|| {
+            format!(
+                "Saved FomodChoices of component {} cannot be parsed. {CHOICES_REPAIR_HINT}",
+                component.guid
+            )
+        })
+        .map(Some)
+}
+
+/// Context for choices that no longer fit the archive now on disk. Choices carry
+/// only the archive filename (as in C#), so identity is the current installer
+/// accepting every saved step/group/plugin name and mapping safely.
+pub fn stale_choices_context(filename: &str) -> String {
+    format!(
+        "Saved FOMOD choices for '{filename}' do not apply to the current archive, which may have changed since they were saved (to recover: {})",
+        CHOICES_RECOVERY_HINT.trim_end_matches('.')
+    )
+}
+
+/// Apply choices to the current archive's installer and map them without writing.
+/// Returns the normalized capture (authored names, every group) for comparison.
+pub fn current_archive_choices(
+    module: &ArchiveModule,
+    choices: &ArchiveChoices,
+    filename: &str,
+) -> Result<ArchiveChoices> {
+    let mut steps = module.config.steps.clone();
+    choices.apply_to(&mut steps)?;
+    let mapped = ArchiveModule {
+        module_path: module.module_path.clone(),
+        content_root: module.content_root.clone(),
+        config: ModuleConfig {
+            steps,
+            ..module.config.clone()
+        },
+        info: None,
+    };
+    mapped.copy_instructions("fomod-extracted")?;
+    Ok(ChoicesFile::capture(filename, &mapped.config.steps)?
+        .archives
+        .remove(0))
 }
 
 /// Find a saved archive session; refuse conflicting component configurations.
@@ -1086,28 +1202,8 @@ pub fn apply_bound_archive(
             .values_mut()
             .filter(|value| resource_matches(value, &filename))
         {
-            let object = resource.as_object_mut().unwrap();
-            let key = if object.contains_key("handlerMetadata") {
-                "handlerMetadata"
-            } else if object.contains_key("HandlerMetadata") {
-                "HandlerMetadata"
-            } else {
-                "handlerMetadata"
-            };
-            let metadata = object.entry(key).or_insert_with(|| serde_json::json!({}));
-            let metadata = metadata.as_object_mut().ok_or_else(|| {
-                anyhow::anyhow!("FOMOD handler metadata must be an object for {guid}")
-            })?;
-            let statuses = metadata
-                .entry("fomodPromptStatus")
-                .or_insert_with(|| serde_json::json!({}));
-            let statuses = statuses.as_object_mut().ok_or_else(|| {
-                anyhow::anyhow!("FOMOD prompt status must be an object for {guid}")
-            })?;
-            statuses.insert(
-                filename.clone(),
-                serde_json::Value::String(status.as_str().into()),
-            );
+            write_prompt_status(resource, &filename, status)
+                .with_context(|| format!("Recording FOMOD prompt status for {guid}"))?;
         }
     }
     *guide = candidate;
