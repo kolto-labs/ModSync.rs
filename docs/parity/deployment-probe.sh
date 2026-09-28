@@ -330,5 +330,48 @@ $B deployment uninstall --component $A --game-dir $W/game2 --staging-dir $S --ma
 echo "  rc=$rc: $(tail -1 $W/err | cut -c1-120)"
 ok "refused, manifest and file kept" '[ $rc -ne 0 ] && [ -e $M/manifests/$A.json ] && [ -e $G/a.txt ] && [ "$(cat $M/game-directory)" = "$(realpath $G)" ]'
 
+echo "P29 a root deployed by an older build (no owner-record support) adopts the record on its next command, closing the window for a second explicit root"; new p29
+mkdir -p $G/Override; printf ORIG > $G/Override/x.2da
+OWNER=$(dirname $G)/.modsync-owner-$(printf %s "$(realpath $G)" | sha256sum | cut -c1-16)
+OLDB=${OLDB:-/tmp/depprobe/modsync-nodefault-b1c60b1}
+if [ -x "$OLDB" ]; then
+  depold(){ $OLDB deployment "$@" --game-dir $G --staging-dir $S --manifest-dir $M; }
+  stage $A Override/x.2da OLD
+  depold deploy --component $A >$W/oldout 2>$W/olderr; rc=$?
+  echo "  old-binary deploy rc=$rc: $(man $M)"
+  ok "old binary deployed with a marker but no owner record" '[ $rc -eq 0 ] && [ -e $M/game-directory ] && [ ! -e "$OWNER" ]'
+  dep uninstall --component $C >$W/out 2>$W/err   # bogus component: touches ensure_own_game only, adopts
+  echo "  after fixed-binary touch: owner=$(cat "$OWNER" 2>/dev/null || echo MISSING)"
+  ok "fixed binary adopted the owner record for this root" '[ -e "$OWNER" ] && [ "$(cat "$OWNER")" = "$(realpath $M)" ]'
+  M2=$W/managed2; mkdir -p $M2
+  dep2(){ $B deployment "$@" --game-dir $G --staging-dir $S --manifest-dir $M2; }
+  stage $Bc Override/x.2da NEW
+  dep2 deploy --component $Bc >$W/out2 2>$W/err2; rc2=$?
+  echo "  second explicit root rc=$rc2: $(tail -1 $W/err2 | cut -c1-150)"
+  ok "second root refused; original root's file untouched" '[ $rc2 -ne 0 ] && [ "$(cat $G/Override/x.2da)" = OLD ] && [ -z "$(ls $M2/manifests 2>/dev/null)" ]'
+  dep uninstall --component $A >/dev/null
+else
+  echo "  SKIP: OLDB not found or not executable ($OLDB); set OLDB=<path to a pre-owner-record modsync build>"
+fi
+
+echo "P30 a marker-less root with one matching and one mismatching entry refuses, and the untouched game dir stays untouched"; new p30
+mkdir -p $G/Override $W/game2/Override
+printf ORIG1 > $G/Override/a.tga; printf WRONGB > $G/Override/b.tga
+printf ORIG1 > $W/game2/Override/a.tga; printf REALB > $W/game2/Override/b.tga
+hA=$(sha256sum $W/game2/Override/a.tga | cut -d' ' -f1); hB=$(sha256sum $W/game2/Override/b.tga | cut -d' ' -f1)
+mkdir -p $M/manifests
+printf '{"ComponentGuid":"%s","DeployedUtc":"2026-09-27T10:00:00.0000000Z","Entries":[{"RelativePath":"Override/a.tga","SourceHash":"%s","Size":5,"DeploymentMethod":0,"OverwroteExisting":false,"BackupRelativePath":null},{"RelativePath":"Override/b.tga","SourceHash":"%s","Size":5,"DeploymentMethod":0,"OverwroteExisting":false,"BackupRelativePath":null}]}' $A $hA $hB > $M/manifests/$A.json
+echo "  manifest entries: a.tga matches both dirs by coincidence, b.tga only matches game2"
+dep uninstall --component $A >$W/out 2>$W/err; rc=$?
+echo "  rc=$rc against the wrong dir: $(tail -1 $W/err | cut -c1-150)"
+ok "refused, names the first mismatch, wrong dir untouched" '[ $rc -ne 0 ] && grep -q "b.tga" $W/err && [ "$(cat $G/Override/a.tga)" = ORIG1 ] && [ "$(cat $G/Override/b.tga)" = WRONGB ] && [ -e $M/manifests/$A.json ]'
+ok "the real game dir was never touched" '[ "$(cat $W/game2/Override/a.tga)" = ORIG1 ] && [ "$(cat $W/game2/Override/b.tga)" = REALB ]'
+
+echo "P31 the same marker-less root is accepted once every owned entry matches (the real game dir)"; new31_G=$W/game2
+dep31(){ $B deployment "$@" --game-dir $new31_G --staging-dir $S --manifest-dir $M; }
+dep31 uninstall --component $A >$W/out3 2>$W/err3; rc3=$?
+echo "  rc=$rc3 against the real dir: $(man $M)"
+ok "accepted: both entries matched, manifest consumed, files removed" '[ $rc3 -eq 0 ] && [ ! -e $W/game2/Override/a.tga ] && [ ! -e $W/game2/Override/b.tga ] && [ -z "$(ls $M/manifests)" ]'
+
 echo; echo "TOTAL pass=$pass fail=$fail"
 [ "$fail" -eq 0 ] || exit 1

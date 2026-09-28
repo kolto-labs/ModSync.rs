@@ -301,7 +301,16 @@ impl Service {
 
     /// Refuse to touch this root's manifests against a game directory other
     /// than the one they were deployed into. A root with no marker predates it
-    /// and is accepted; the next save records this game.
+    /// and is accepted only when every owned entry still hash-matches a live
+    /// file here; the next save records this game.
+    ///
+    /// Also opportunistically claims the game-directory owner record for a
+    /// root that already has manifests and confirmed it belongs here, when
+    /// that record is currently absent or free. A root deployed by an older
+    /// build (or before another root released its own manifests) may have no
+    /// record at all; without this, `ensure_unowned_or_self` would treat
+    /// "absent" as free and let a second explicit root deploy over it. This
+    /// runs under the caller's game lock, same as every mutating command.
     pub fn ensure_own_game(&self) -> Result<()> {
         if !has_manifests(&self.root) {
             return Ok(());
@@ -315,24 +324,72 @@ impl Service {
             ),
             // No marker: this root predates it (see `write_marker`). Blindly
             // accepting it let a marker-less root move originals into the
-            // wrong game tree, so require at least one owned entry to still
-            // hash-match a live file in *this* game directory first.
-            None => ensure!(
-                self.deployed()?.iter().any(|manifest| {
-                    manifest.entries.iter().any(|entry| {
-                        self.locate(&entry.relative_path)
+            // wrong game tree, so every owned entry (across every manifest)
+            // must still hash-match a live file in *this* game directory;
+            // a missing or mismatched entry, or no entries at all, refuses.
+            None => {
+                let manifests = self.deployed()?;
+                let mut total = 0usize;
+                let mut mismatch: Option<String> = None;
+                'entries: for manifest in &manifests {
+                    for entry in &manifest.entries {
+                        total += 1;
+                        let matches = self
+                            .locate(&entry.relative_path)
                             .ok()
                             .flatten()
                             .is_some_and(|(destination, _)| {
                                 hash(&destination).is_ok_and(|bytes| {
                                     bytes.eq_ignore_ascii_case(&entry.source_hash)
                                 })
-                            })
-                    })
-                }),
-                "This manifest root has no game-directory marker and none of its owned entries match files in {}; it likely belongs to a different game directory. Use the correct game directory, or purge these manifests there first.",
-                self.game.display()
-            ),
+                            });
+                        if !matches {
+                            mismatch = Some(entry.relative_path.clone());
+                            break 'entries;
+                        }
+                    }
+                }
+                ensure!(
+                    total > 0 && mismatch.is_none(),
+                    "This manifest root has no game-directory marker and {}; it likely belongs to a different game directory. Use the correct game directory, or purge these manifests there first.",
+                    match mismatch {
+                        Some(path) => format!(
+                            "its entry '{path}' does not match a file in {}",
+                            self.game.display()
+                        ),
+                        None => format!(
+                            "has no owned entries to confirm it belongs to {}",
+                            self.game.display()
+                        ),
+                    }
+                );
+            }
+        }
+        self.adopt_owner_record_if_unowned()?;
+        Ok(())
+    }
+
+    /// Claim the game-directory owner record for this root when it is
+    /// currently unclaimed (no record, the record already names this root, or
+    /// the recorded owner has no manifests left). Called only after
+    /// `ensure_own_game` has confirmed this root belongs to `self.game`.
+    fn adopt_owner_record_if_unowned(&self) -> Result<()> {
+        let path = owner_record_path(&self.game)?;
+        if let Ok(meta) = fs::symlink_metadata(&path) {
+            ensure!(!meta.file_type().is_symlink(), "Owner record is a symlink");
+        }
+        let recorded = fs::read_to_string(&path).ok();
+        let recorded = recorded.as_deref().map(str::trim).filter(|s| !s.is_empty());
+        let root = fs::canonicalize(&self.root).unwrap_or_else(|_| self.root.clone());
+        let unowned = match recorded {
+            None => true,
+            Some(text) => {
+                let owner = PathBuf::from(text);
+                owner == root || !has_manifests(&owner)
+            }
+        };
+        if unowned {
+            self.claim_owner_record()?;
         }
         Ok(())
     }
@@ -522,6 +579,14 @@ impl Service {
         name: Option<String>,
     ) -> Result<(Manifest, Vec<String>)> {
         let id = component_id(component)?;
+        // Read before `ensure_exclusive_game` may adopt it (see
+        // `adopt_owner_record_if_unowned`) or before the first successful
+        // save claims it below, so the migration-limit warning below can
+        // tell "this call is the one establishing ownership" from "ownership
+        // was already recorded". See docs/parity/deployment-csharp-audit.md
+        // for why this stays a warning rather than a refusal.
+        let record_existed = owner_record_path(&self.game)
+            .is_ok_and(|path| fs::read_to_string(path).is_ok_and(|text| !text.trim().is_empty()));
         self.ensure_exclusive_game()?;
         let staged = self.staged_directory(component, &id)?;
         ensure!(
@@ -596,6 +661,16 @@ impl Service {
                 source_hash,
                 backup: backup_path,
             });
+        }
+
+        if !record_existed {
+            let overwritten = plans.iter().filter(|plan| plan.backup.is_some()).count();
+            if overwritten > 0 {
+                warnings.push(format!(
+                    "Claiming ownership of {} for the first time while deploying {label}, and {overwritten} existing file(s) in its target paths will be backed up and overwritten; if another manager already tracks these files this could not be verified.",
+                    self.game.display()
+                ));
+            }
         }
 
         let mut manifest = Manifest {
