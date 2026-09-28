@@ -40,6 +40,10 @@ librqbit = { version = "9.0.1", features = ["disable-upload"] }
 tokio = { version = "1", features = ["rt-multi-thread", "signal"] }
 uuid = { version = "1", features = ["v4"] }
 mega = { version = "0.8.0", default-features = false }
+aes = "0.8"
+ctr = "0.9"
+base64 = "0.22"
+futures = "0.3"
 
 [profile.dev]
 debug = 0

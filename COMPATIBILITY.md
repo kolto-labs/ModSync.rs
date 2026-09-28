@@ -160,6 +160,33 @@ plan/run/record/FOMOD-followup library and concrete proxy-only Peer adapter.
   request to that fixture with proxies off, reads no stored Nexus key and
   persists nothing and starts no peers; it does not make localhost a DeadlyStream host. Source only;
   not built or exercised.
+- MEGA public single-file links are decrypted anonymously (their source order changed
+  from Peer then manual to Origin then Peer). The `mega` crate cannot use this
+  project's TLS, so the anonymous protocol runs in `src/download_hosts/mega/transfer.rs`
+  over the shared rustls client; the crate supplies only `compute_condensed_mac`.
+  Supported link forms: `https://mega.nz/file/<handle>#<key>`, `/embed/<handle>#<key>`,
+  `/embed#!<handle>!<key>` and legacy `/#!<handle>!<key>`, on `mega.nz` or `mega.co.nz`
+  (also `www.` or another subdomain), http or https, a missing scheme, percent-encoded
+  fragments, and trailing `/`, `?` or `&`. Rejected with their own messages: folder links
+  (`/folder/`, `#F!`; folder traversal is unsupported), password-protected links (`#P!`),
+  unrecognized paths, and a missing or malformed handle or 43 character key. One API
+  request (`g` with `p=<handle>`, `ssl=2`) returns the size, encrypted attributes and
+  storage address; the link key folds to the AES key, CTR nonce and meta MAC, the
+  attributes must decrypt to `MEGA{...}` with a safe single-component `n` name, the bytes
+  stream through AES-128-CTR into staging, must equal the API size, and only publish
+  through the shared no-clobber path after the condensed MAC equals the link's MAC. A wrong
+  key, corrupted attributes, altered bytes, a short transfer, a deleted node (-9), a blocked
+  one (-16) and a bad API reply are separate failures; a busy API (-3, -4, -6, -18, -19)
+  and a short or reset transfer retry. Quota (-17, HTTP 509) and access denied (-11)
+  are manual boundaries at the redacted link with no Peer. Production talks only to
+  `g.api.mega.co.nz` and `*.userstorage.mega.co.nz` or `*.userstorage.mega.nz` over
+  https; redirects stay on the origin that returned them. The key is not put in errors,
+  `Debug` or manual URLs, but the guide's `registry_url` (which holds the authored link)
+  is still shown in plans and reports as authored. Node metadata beyond name and size
+  is not exposed yet (H4). The hidden `fetch-downloads --mega-api-base <https-loopback-url>`
+  option (needs `--extra-ca-file`) requires the API and every returned download address
+  to be loopback https, with proxies off, no stored Nexus key read, nothing persisted and
+  no peers. Source only; not built or exercised.
 - Real isolated Peer transfers cover known/unknown names, verification, budget/hash
   refusal and SIGINT cleanup. Unsupported-provider chains can end ManualRequired
   after a Peer failure; this is exit 3, not success. Other exits are 0 complete,
@@ -383,7 +410,7 @@ Reference: the local ModSync C# source at `d31ccbd3bfcddb4705917eafa6483715c166d
 | Validation | In-memory file index tracks changes across instruction boundaries; generated drafts require explicit review | Extracted content uses private temporary files outside game/mod trees; external program effects cannot be simulated |
 | Patching | OdyPatcher subprocess, namespace index or named INI, exit-status checking, output capture | Resolves configured path, PATH, and application Resources candidates; no embedded patcher, Wine, or patch-byte equivalence claim |
 | Recovery | Snapshot both roots, stop on first failure, block retry until verified restore | Full copies; restart whole guide after restore; not per-component resume or a power-loss atomic filesystem transaction |
-| Downloads | HTTPS and BitTorrent magnet transfers, streamed integrity checks, SHA-256 content identity, no-clobber publish; source-ordered DeadlyStream/MEGA/Nexus/GameFront provider routing | No host scraping beyond the anonymous DeadlyStream page flow (source only; not built or exercised), account management, CAPTCHA interaction, MEGA decryption, or automatic torrent discovery |
+| Downloads | HTTPS and BitTorrent magnet transfers, streamed integrity checks, SHA-256 content identity, no-clobber publish; source-ordered DeadlyStream/MEGA/Nexus/GameFront provider routing | No host scraping beyond the anonymous DeadlyStream page flow (source only; not built or exercised), account management, CAPTCHA interaction, MEGA folder or password links (single public files are decrypted; source only, not built or exercised), or automatic torrent discovery |
 | Profiles | Persistent profile store and CLI CRUD/capture/apply/activation; profile-backed CLI validation/install | Desktop manager, default storage discovery and full schema/platform parity remain incomplete |
 | FOMOD | Archive discovery, XML/choices parsing, configured archive extraction and selected-copy installation; CLI and desktop selection flows | Full corpus, restart/recovery, and complete native interface parity remain open |
 | Managed deployment | Staged-tree manifest deploy/uninstall/purge CLI with hardlink-or-copy materialization, hash-guarded restoration, preflight and rollback, profile-scoped roots, profile switch with optional purge, and patcher provenance snapshot/record | Normal engine actions are not yet redirected into per-component staging (design in `docs/parity/deployment-csharp-audit.md`); no GUI management integration |

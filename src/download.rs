@@ -71,11 +71,20 @@ pub(crate) fn page_client(
     loopback_ca: Option<&LoopbackCa>,
     no_proxy: bool,
 ) -> Result<reqwest::blocking::Client> {
+    client_with_policy(loopback_ca, no_proxy, reqwest::redirect::Policy::none())
+}
+
+/// As [`page_client`], with the caller's own redirect policy (it vets every hop).
+pub(crate) fn client_with_policy(
+    loopback_ca: Option<&LoopbackCa>,
+    no_proxy: bool,
+    policy: reqwest::redirect::Policy,
+) -> Result<reqwest::blocking::Client> {
     let mut builder = reqwest::blocking::Client::builder()
         .https_only(true)
         .connect_timeout(CONNECT_TIMEOUT)
         .timeout(IDLE_TIMEOUT)
-        .redirect(reqwest::redirect::Policy::none())
+        .redirect(policy)
         .user_agent(concat!("ModSync/", env!("CARGO_PKG_VERSION")));
     if no_proxy {
         builder = builder.no_proxy();
@@ -126,7 +135,7 @@ impl std::error::Error for FetchError {
     }
 }
 
-fn fail(class: FailureClass, error: impl Into<anyhow::Error>) -> anyhow::Error {
+pub(crate) fn fail(class: FailureClass, error: impl Into<anyhow::Error>) -> anyhow::Error {
     anyhow::Error::new(FetchError {
         class,
         error: error.into(),
@@ -566,6 +575,53 @@ fn fetch_inner(
         progress(FetchProgress::Transferring { bytes, total });
     }
     let digest = format!("{:x}", hash.finalize());
+    let fallback_name = disposition
+        .as_deref()
+        .and_then(disposition_filename)
+        .or_else(|| {
+            final_url
+                .path_segments()
+                .and_then(|mut s| s.next_back().map(percent_decode))
+        });
+    publish_staged(
+        Staged {
+            temp,
+            digest,
+            fallback_name,
+        },
+        destination,
+        sha256,
+        cancelled,
+        options,
+        progress,
+    )
+}
+
+/// A finished staging file: its bytes are in `temp` (inside the destination directory),
+/// `digest` is their lower-case hex SHA-256 and `fallback_name` names an unnamed
+/// [`Destination::Directory`] publish.
+pub(crate) struct Staged {
+    pub temp: tempfile::NamedTempFile,
+    pub digest: String,
+    pub fallback_name: Option<String>,
+}
+
+/// The shared tail of every transfer: authored hash, one-component name, no-clobber
+/// destination, archive verification, then the no-clobber move. Nothing is published on
+/// any error, and dropping `staged.temp` removes the staging file.
+pub(crate) fn publish_staged(
+    staged: Staged,
+    destination: Destination<'_>,
+    sha256: Option<&str>,
+    cancelled: &AtomicBool,
+    options: &crate::archive::Options,
+    progress: &mut dyn FnMut(FetchProgress),
+) -> Result<Fetched> {
+    let Staged {
+        temp,
+        digest,
+        fallback_name,
+    } = staged;
     if let Some(expected) = sha256 {
         ensure!(
             digest.eq_ignore_ascii_case(expected),
@@ -577,14 +633,7 @@ fn fetch_inner(
         Destination::Directory { directory, name } => {
             let name = match name {
                 Some(name) => name.to_owned(),
-                None => disposition
-                    .as_deref()
-                    .and_then(disposition_filename)
-                    .or_else(|| {
-                        final_url
-                            .path_segments()
-                            .and_then(|mut s| s.next_back().map(percent_decode))
-                    })
+                None => fallback_name
                     .filter(|name| !name.is_empty())
                     .ok_or_else(|| anyhow::anyhow!("Server did not name the download"))?,
             };
@@ -635,7 +684,7 @@ pub fn one_component(name: &str) -> Result<&str> {
 }
 
 /// Connect/reset/abort/timeout are transient; TLS, DNS and certificate errors are not.
-fn network_failure(error: anyhow::Error) -> anyhow::Error {
+pub(crate) fn network_failure(error: anyhow::Error) -> anyhow::Error {
     let mut transient = false;
     let mut source: Option<&(dyn std::error::Error + 'static)> = Some(error.as_ref());
     while let Some(e) = source {

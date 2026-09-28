@@ -1027,6 +1027,7 @@ impl App {
                         nexus_api_key: key,
                         nexus_api_base: api_base,
                         deadlystream_base: None,
+                        mega_api_base: None,
                         peer,
                     };
                     let report = orchestrator::run_with_loopback_ca(

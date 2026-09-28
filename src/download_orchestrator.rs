@@ -10,7 +10,7 @@ use crate::{
     },
     archive,
     download::{self, Destination, FailureClass, FetchProgress},
-    download_hosts::{self, Provider, deadlystream},
+    download_hosts::{self, Provider, deadlystream, mega},
     download_plan, download_queue, protocol,
     selection::DownloadCandidate,
     updates::NexusClient,
@@ -185,8 +185,12 @@ fn sources_for(
         Provider::Nexus => manual(ManualReason::FreeUserWait),
         // The anonymous page/session flow runs in `origin_once`; a gate it finds is terminal.
         Provider::DeadlyStream => origin(OriginRequirement::None),
-        // Not automated yet (Task 1c / open questions 1 and 2).
-        Provider::GameFront | Provider::Mega => manual(ManualReason::Unsupported),
+        // Anonymous public single-file decryption runs in `origin_once`. A quota or access
+        // gate it finds is terminal; an unsupported link form (folder, password) fails
+        // with its own message and leaves Peer to the ordinary Origin-then-Peer order.
+        Provider::Mega => origin(OriginRequirement::None),
+        // Not automated (Task 1c / open question 1).
+        Provider::GameFront => manual(ManualReason::Unsupported),
     };
     match primary {
         Source::Origin { .. } => std::iter::once(primary).chain(peer).collect(),
@@ -912,6 +916,10 @@ pub struct RunSettings {
     /// request goes to this loopback HTTPS origin instead, and needs the run's loopback CA.
     /// Provider identity stays with the guide's URL. Never persisted.
     pub deadlystream_base: Option<String>,
+    /// Probe-only MEGA API base (HTTPS loopback only): the API request and every download
+    /// address it returns must be loopback HTTPS under the run's loopback CA, with
+    /// proxies off. Provider identity stays with the guide's URL. Never persisted.
+    pub mega_api_base: Option<String>,
     /// The Peer source (BitTorrent slice). `None` while the tunnel is down or sharing is
     /// off: every Peer step then fails closed and opens no sockets.
     pub peer: Option<Arc<dyn Acquire>>,
@@ -926,6 +934,7 @@ impl Default for RunSettings {
             nexus_api_key: None,
             nexus_api_base: None,
             deadlystream_base: None,
+            mega_api_base: None,
             peer: None,
         }
     }
@@ -2212,6 +2221,7 @@ fn origin_once(
         bail!("Not an origin source");
     };
     let kind = source.kind();
+    let mut mega_node = None::<mega::Resolved>;
     let (fetch_url, name_hint, transfer) = if *provider == Provider::Nexus {
         if *requires == OriginRequirement::NexusPremium {
             match &context.premium {
@@ -2277,6 +2287,16 @@ fn origin_once(
                 confine_origin: true,
             },
         )
+    } else if *provider == Provider::Mega {
+        // The API request and node attributes are read (and any quota or access gate
+        // found) before the first `Transferring` event, as for DeadlyStream. The bytes
+        // move through `mega::transfer`, so `fetch_url` and the context are unused.
+        let node = mega_node.insert(mega_resolve(context, url, cancelled)?);
+        (
+            String::new(),
+            Some(node.name.clone()),
+            download::TransferContext::default(),
+        )
     } else {
         (
             url.clone(),
@@ -2317,15 +2337,25 @@ fn origin_once(
             phase,
         });
     };
-    let fetched = download::fetch_to_with_context(
-        &fetch_url,
-        destination,
-        target.expected_sha256.as_deref(),
-        cancelled,
-        &context.settings.archive,
-        &mut progress,
-        &transfer,
-    )
+    let fetched = match &mega_node {
+        Some(node) => mega::transfer(
+            node,
+            destination,
+            target.expected_sha256.as_deref(),
+            cancelled,
+            &context.settings.archive,
+            &mut progress,
+        ),
+        None => download::fetch_to_with_context(
+            &fetch_url,
+            destination,
+            target.expected_sha256.as_deref(),
+            cancelled,
+            &context.settings.archive,
+            &mut progress,
+            &transfer,
+        ),
+    }
     .map_err(|error| match (provider, download::classify(&error)) {
         // A gate on a resolved Nexus CDN link or DeadlyStream archive link: point the
         // person at the page, not at a signed, expiring or session-bound URL.
@@ -2339,6 +2369,24 @@ fn origin_once(
         path: fetched.path,
         sha256: fetched.sha256,
     })
+}
+
+/// The node behind a MEGA public file link: its safe name and size, and the vetted storage
+/// address. An unsupported link form (folder, password, missing or bad key) fails here
+/// with a message that never contains the link. A quota or access gate is `ManualRequired`
+/// at the redacted link, so Peer does not run around it.
+fn mega_resolve(
+    context: &RunContext<'_>,
+    url: &str,
+    cancelled: &AtomicBool,
+) -> Result<mega::Resolved> {
+    let link = mega::parse_link(url).map_err(anyhow::Error::from)?;
+    mega::resolve(
+        &link,
+        context.settings.mega_api_base.as_deref(),
+        context.loopback_ca,
+        cancelled,
+    )
 }
 
 /// The archive of a DeadlyStream page that `target` wants: the one named by its filename

@@ -329,6 +329,10 @@ enum Action {
         /// selection and archive request goes there. Requires --extra-ca-file.
         #[arg(long, hide = true)]
         deadlystream_base: Option<String>,
+        /// Probe-only MEGA API base (HTTPS loopback only): the API request and every
+        /// download address it returns must be loopback HTTPS. Requires --extra-ca-file.
+        #[arg(long, hide = true)]
+        mega_api_base: Option<String>,
         /// Per-invocation CA for isolated loopback HTTPS archive probes.
         #[arg(long, hide = true)]
         extra_ca_file: Option<PathBuf>,
@@ -1453,6 +1457,7 @@ fn run() -> Result<()> {
             settings_dir,
             nexus_api_base,
             deadlystream_base,
+            mega_api_base,
             extra_ca_file,
             peer_mode,
             scratch_dir,
@@ -1504,8 +1509,10 @@ fn run() -> Result<()> {
             // credential bypass in C3 below.
             let (effective_mode, peer_settings) = match peer_mode {
                 Some(PeerModeArg::Off) => (p2p::PeerMode::Off, None),
-                // A DeadlyStream fixture run reads no stored settings and starts no peers.
-                _ if deadlystream_base.is_some() => (p2p::PeerMode::Off, None),
+                // A DeadlyStream or MEGA fixture run reads no stored settings and starts no peers.
+                _ if deadlystream_base.is_some() || mega_api_base.is_some() => {
+                    (p2p::PeerMode::Off, None)
+                }
                 _ => {
                     let settings_value =
                         modsync::profiles::SettingsFile::resolve(settings_dir.as_deref())?
@@ -1550,8 +1557,11 @@ fn run() -> Result<()> {
             } else {
                 match nexus_mods_api_key {
                     Some(key) => Some(key),
-                    // A DeadlyStream fixture run reads no stored credential.
-                    None if needs_nexus && deadlystream_base.is_none() => {
+                    // A DeadlyStream or MEGA fixture run reads no stored credential.
+                    None if needs_nexus
+                        && deadlystream_base.is_none()
+                        && mega_api_base.is_none() =>
+                    {
                         let directory =
                             modsync::profiles::settings_directory(settings_dir.as_deref())?;
                         modsync::profiles::Store::new(&directory)?.nexus_api_key()?
@@ -1582,6 +1592,12 @@ fn run() -> Result<()> {
                 anyhow::ensure!(
                     loopback_ca.is_some(),
                     "--deadlystream-base requires --extra-ca-file"
+                );
+            }
+            if mega_api_base.is_some() {
+                anyhow::ensure!(
+                    loopback_ca.is_some(),
+                    "--mega-api-base requires --extra-ca-file"
                 );
             }
 
@@ -1617,6 +1633,7 @@ fn run() -> Result<()> {
                 nexus_api_key: key,
                 nexus_api_base,
                 deadlystream_base,
+                mega_api_base,
                 peer,
             };
             let cancelled = p2p::stop_signal_flag()?;

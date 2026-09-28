@@ -5,9 +5,13 @@
 //! use [`redact`] or [`MegaLink::redact_in`] before text that may hold a link
 //! leaves the process.
 //!
-//! Folder links are recognized and rejected: folder traversal is unsupported.
+//! Folder links are recognized and rejected: folder traversal is unsupported. The
+//! `transfer` module resolves and decrypts a single public file (slice H3).
 
 use std::fmt;
+
+mod transfer;
+pub use transfer::{Resolved, resolve, transfer};
 
 /// Why a MEGA link could not be used. The messages never contain link text.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -222,7 +226,7 @@ fn take_key(text: &str) -> Result<String, MegaLinkError> {
         return Err(MegaLinkError::InvalidKey);
     }
     let last = key.chars().last().unwrap_or('A');
-    if key.len() != 43 || b64url_value(last) % 4 != 0 {
+    if key.len() != 43 || !b64url_value(last).is_multiple_of(4) {
         return Err(MegaLinkError::InvalidKey);
     }
     Ok(key.to_owned())
