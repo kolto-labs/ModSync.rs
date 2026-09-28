@@ -77,7 +77,7 @@ Commit `12c5c68` (exact Base/Widescreen/Finished completion pages). Source and p
 
 **Recovery copy reuse (trivial fix, this task).** The Finished page's second "Next Steps" bullet (`src/ui/completion_pages.rs:502`) previously paraphrased the truthful recovery sentence instead of quoting it. It now reuses the `RECOVERY_TEXT` constant (`src/ui/completion_pages.rs:15`) verbatim, so the Recovery modal, the Base page's Recovery card and the Finished page all state the exact same sentence.
 
-**Task 2b CLI surface integrated.** `completion-summary --game-dir PATH --mod-dir PATH [--json]` now reads the same `recovery::CompletionSummary` as the GUI. The standalone query was approved at `cd2af69` and is included in this integration; its six-scenario CLI evidence is in `docs/parity/completion-summary-probe.log`. The earlier completion-page lane inspection predated that merge.
+**Task 2b CLI surface integrated.** `completion-summary --game-dir PATH --source-dir PATH [--json]` now reads the same `recovery::CompletionSummary` as the GUI. The standalone query was approved at `cd2af69` and is included in this integration; its six-scenario CLI evidence is in `docs/parity/completion-summary-probe.log`. The earlier completion-page lane inspection predated that merge.
 
 ## Final archive diagnostic correction — 2026-09-27
 
@@ -713,3 +713,13 @@ The shared deployment service stages `staging/<component-guid>` trees into the g
 ### Interactive dependency selection checkpoint
 
 Desktop component and option toggles now route through a shared selection resolver matching the pinned `ComponentSelectionService` behavior: selecting a component follows transitive component dependencies, resolves component/option restrictions in both directions and selects required options; selecting an option selects its parent and its component/option dependencies; deselection cascades through dependents and clears a parent when its last option is removed. Filtered, tier, category and group bulk selection use the same resolver, while base deselection cascades instead of leaving selected dependents behind. A focused Rust regression covers the reference test suite's component chain, mixed restriction, option dependency, reverse option restriction and deselection cases. The pinned C# test source contains corresponding executable cases, but a fresh local reference run could not progress past NuGet restore and was cancelled after five minutes; this checkpoint therefore has source/test alignment and Rust execution evidence, not a fresh cross-runtime result. Native pointer interaction, nested options beyond the reference's immediate option model and Unicode identifier equivalence remain open.
+
+
+## Wave 2 integration follow-up — 2026-09-28 UTC
+
+The engine's source-tree scan now excludes `.peer-*.part` directories using the
+same predicate as download planning. Unaccepted peer payloads therefore do not
+become wildcard install inputs. The game-tree scan is unchanged, and recovery
+snapshots still cover the complete source tree and reject symlinks. A direct CLI
+install copied an accepted file while leaving the staged peer payload untouched.
+This is a source-discovery safeguard, not complete peer acquisition or F29 proof.

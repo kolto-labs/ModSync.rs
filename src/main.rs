@@ -892,8 +892,8 @@ fn run() -> Result<()> {
                         modsync::profiles::Store::new(&directory)?.nexus_api_key()?
                     }
                 }
-                    .or_else(|| std::env::var("KOTOR_MODSYNC_NEXUS_API_KEY").ok())
-                    .or_else(|| std::env::var("NEXUS_MODS_API_KEY").ok())
+                .or_else(|| std::env::var("KOTOR_MODSYNC_NEXUS_API_KEY").ok())
+                .or_else(|| std::env::var("NEXUS_MODS_API_KEY").ok())
             };
             if let Some(input) = input {
                 use modsync::download_orchestrator as orchestrator;

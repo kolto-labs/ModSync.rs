@@ -223,7 +223,15 @@ impl Engine {
         self.files.clear();
         self.directories.clear();
         for root in [&self.settings.roots.mods, &self.settings.roots.game] {
-            for entry in walkdir::WalkDir::new(root) {
+            let walk = walkdir::WalkDir::new(root)
+                .into_iter()
+                .filter_entry(|entry| {
+                    root != &self.settings.roots.mods
+                        || entry.depth() == 0
+                        || !(entry.file_type().is_dir()
+                            && crate::download_orchestrator::is_peer_staging(entry.file_name()))
+                });
+            for entry in walk {
                 let entry = entry?;
                 ensure!(
                     !entry.file_type().is_symlink(),
