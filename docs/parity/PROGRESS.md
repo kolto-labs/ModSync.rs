@@ -58,10 +58,13 @@ is assigned because the remaining domains differ greatly in scope and proof cost
    the same gap in Markdown embedded YAML and shows an actual bare-relative Copy
    succeeding in C# but rejected by Rust. Rust copies identical bytes after the
    Source is normalized by C#. The expanded implementation plan is independently
-   approved; a fresh subagent is now the sole implementation/build owner for the
-   production loader fix. Rust Markdown export and
-   its missing legacy-bullet metadata route remain separate open work.
-4. Use the [full remaining-scope map](remaining-scope-map.md) to reconcile actual
+   approved; source `62b6f70` and [production evidence](source-normalization-proof/README.md)
+   are committed. Independent source SPEC and QUALITY reviews approved this bounded fix. Rust Markdown export and
+   its missing legacy-bullet metadata route remain separate approved work.
+4. The first [FOMOD integration slice](fomod-remaining-plan.md) is now the sole
+   production implementation: CLI policy/dispatch, consumer binding and cancellable
+   terminal input. Persistence and remaining semantic/native acceptance follow.
+5. Use the [full remaining-scope map](remaining-scope-map.md) to reconcile actual
    source and derive bounded tasks where a current plan is missing: engine actions/
    archives, patchers, per-component checkpoints, hosts/FOMOD, editor/conflicts/
    update/profile UI, complete wizard/main-window controls, CLI contracts,

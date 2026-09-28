@@ -1,6 +1,6 @@
 # Instruction Source normalization follow-up
 
-Status: independently approved; implementation not started.
+Status: implemented at62b6f70, evidence0f48868, independently SPEC and QUALITY approved for this bounded slice.
 [Plan review](source-normalization-plan-review.md) records the corrections and approval.
 F01 and F05 remain **partial**. This is one loader-field fix, not domain completion.
 

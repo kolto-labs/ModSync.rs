@@ -61,6 +61,29 @@ report.cancelled is true and CLI exit is130. Body/race cancellation marks the
 target cancelled. This pre-existing distinction remains explicit. GUI downloads,
 persistent sharing, complete providers and F29 remain open.
 
+## Stored instruction Source normalization — 2026-09-28
+
+Source `62b6f70`, evidence `0f48868`, passed independent SPEC and QUALITY review.
+The loader now normalizes stored non-Choose Sources with the same helper used for
+equality, before deduplication. It preserves placeholder casing, recursively handles
+Options, filters blank non-Choose array strings, preserves bare blank scalars for
+validation, and retains malformed-value errors. Choose is exempt case-insensitively.
+Destination, arguments, selection defaults, Markdown parsing and path enforcement
+are unchanged. Bare-relative Copy now executes under the mod root.
+
+[Production evidence](docs/parity/source-normalization-proof/README.md) covers four
+structured formats, authored scalars, embedded YAML/TOML, dedup/Choose, idempotence,
+nonmutating validation and actual Copy. Identical authored guide bytes produce
+identical payload bytes in Rust/C#; C# used --skip-validation because full validation
+fails its missing HoloPatcher prerequisite. Absolute-looking input uses the inside
+mod root while an outside sentinel is preserved; unsafe paths remain rejected.
+
+C# differences remain explicit: deeper options, blank Choose entries, typed malformed
+values and the examined XML empty-array case do not have identical models. Uppercase
+placeholders survive conversion but still fail Rust execution. This does not close
+F01/F05, full validation or complete format/action parity. Five production gates
+pass and53 frozen entries remain unchanged; no Rust tests were run.
+
 ## Typed install progress and Installing page — 2026-09-27
 
 Commits `065ffee` (shared contract), `57f198f`, `cd8f0b0` and `33de7f6` (CLI adapter and help text), `dcd1373`..`ac9cf3a`, `a24e96b` and `9df6c3b` (desktop page). Rulings, commit map and review findings are in [install-progress-integration.md](docs/parity/install-progress-integration.md). Evidence is in [install-progress-native/](docs/parity/install-progress-native/README.md).
