@@ -51,11 +51,15 @@ const MAX_REDIRECTS: usize = 3;
 /// A resolved public file: its safe name and size, the vetted storage address and the
 /// key material. `Debug` shows the name and size only.
 pub struct Resolved {
-    /// A safe single file name from the decrypted node attributes.
-    pub name: String,
-    /// The file size in bytes, from the API.
+    /// A safe single file name from the decrypted node attributes. `None` only when the
+    /// caller did not need a name (the guide supplies the file name) and the node's name
+    /// was unusable.
+    pub name: Option<String>,
+    /// The file size in bytes, from the API. Zero is a valid (empty) file.
     pub size: u64,
-    /// The link with its key removed, for a manual requirement.
+    /// The authored link a person can open, for a manual requirement. It may hold the
+    /// key, so it appears only in `ManualRequired` (display redaction applies), never in
+    /// an error message.
     manual_url: String,
     download: Url,
     client: Client,
@@ -74,18 +78,39 @@ impl fmt::Debug for Resolved {
 }
 
 fn permanent(message: impl Into<String>) -> anyhow::Error {
-    download::fail(FailureClass::Permanent, anyhow!(message.into()))
+    download::fail(
+        FailureClass::Permanent,
+        anyhow::anyhow!("{}", message.into()),
+    )
 }
 
 fn transient(retry_after_secs: Option<u64>, message: impl Into<String>) -> anyhow::Error {
-    download::transient(retry_after_secs, anyhow!(message.into()))
+    download::transient(retry_after_secs, anyhow::anyhow!("{}", message.into()))
 }
 
-/// A body read that failed. Only the error's kind is kept (timeouts and resets stay
-/// transient), because the wrapped transport error can name the download address.
+/// A body read that failed. Only a kind is kept, because the wrapped transport error can
+/// name the download address. A reqwest read timeout arrives as `ErrorKind::Other` around
+/// a `reqwest::Error`, so the source chain is searched for it and mapped to `TimedOut`
+/// (transient); resets and other kinds pass through unchanged.
 fn read_failure(error: std::io::Error) -> anyhow::Error {
+    let mut kind = error.kind();
+    let mut source: Option<&(dyn std::error::Error + 'static)> = error
+        .get_ref()
+        .map(|inner| inner as &(dyn std::error::Error + 'static));
+    while let Some(cause) = source {
+        if cause
+            .downcast_ref::<reqwest::Error>()
+            .is_some_and(reqwest::Error::is_timeout)
+            || cause
+                .downcast_ref::<std::io::Error>()
+                .is_some_and(|io| io.kind() == std::io::ErrorKind::TimedOut)
+        {
+            kind = std::io::ErrorKind::TimedOut;
+        }
+        source = cause.source();
+    }
     download::network_failure(
-        std::io::Error::new(error.kind(), "The MEGA connection was interrupted").into(),
+        std::io::Error::new(kind, "The MEGA connection was interrupted").into(),
     )
 }
 
@@ -270,16 +295,20 @@ fn node_name(aes_key: &[u8; 16], encoded: &str) -> Result<String> {
 
 /// Resolves a public file link anonymously: one API request, then key and attribute
 /// decryption, then the vetted storage address. Nothing is downloaded. A quota or access
-/// restriction is `ManualRequired` (its URL is the redacted link), a busy API is
-/// `Transient`, a deleted, blocked or undecryptable node is `Permanent`. `api_base` is the
-/// per-invocation fixture base (https loopback, needs `loopback_ca`); `None` is production.
+/// restriction is `ManualRequired` (its URL is `manual_url`, the authored link), a busy API
+/// is `Transient`, a deleted, blocked or undecryptable node is `Permanent`. `api_base` is
+/// the per-invocation fixture base (https loopback, needs `loopback_ca`); `None` is
+/// production. `need_name` is false when the guide names the file: a bad node name then
+/// does not fail the resolve (it is validated whenever it will be used).
 pub fn resolve(
     link: &MegaLink,
+    manual_url: &str,
+    need_name: bool,
     api_base: Option<&str>,
     loopback_ca: Option<&LoopbackCa>,
     cancelled: &AtomicBool,
 ) -> Result<Resolved> {
-    let manual_url = link.redacted_url();
+    let manual_url = manual_url.to_owned();
     let fixture = api_base.is_some();
     let loopback_ca = api_base.and(loopback_ca);
     let (aes_key, iv, mac) = split_key(link.key())?;
@@ -332,11 +361,14 @@ pub fn resolve(
             permanent("The MEGA API returned an unexpected reply")
         });
     }
+    // A negative `e` wins even when a `g` is also present.
+    if let Some(code) = entry.get("e").and_then(serde_json::Value::as_i64)
+        && code < 0
+    {
+        return Err(api_failure(code, &manual_url));
+    }
     let Some(download_address) = entry.get("g").and_then(serde_json::Value::as_str) else {
-        return Err(match entry.get("e").and_then(serde_json::Value::as_i64) {
-            Some(code) if code < 0 => api_failure(code, &manual_url),
-            _ => permanent("The MEGA API reply names no download address"),
-        });
+        return Err(permanent("The MEGA API reply names no download address"));
     };
     let size = entry
         .get("s")
@@ -346,10 +378,11 @@ pub fn resolve(
         .get("at")
         .and_then(serde_json::Value::as_str)
         .ok_or_else(|| permanent("The MEGA API reply carries no node attributes"))?;
-    if size == 0 {
-        return Err(permanent("The MEGA file is empty"));
-    }
-    let name = node_name(&aes_key, encoded).map_err(|error| permanent(error.to_string()))?;
+    let name = match node_name(&aes_key, encoded) {
+        Ok(name) => Some(name),
+        Err(error) if need_name => return Err(permanent(error.to_string())),
+        Err(_) => None,
+    };
 
     let mut storage = Url::parse(download_address)
         .map_err(|_| permanent("MEGA returned an invalid download address"))?;
@@ -364,6 +397,9 @@ pub fn resolve(
         .map_err(|_| permanent("MEGA returned an invalid download address"))?
         .pop_if_empty()
         .push(&format!("0-{size}"));
+    // reqwest 0.12.28's blocking builder has no `read_timeout`, but its blocking
+    // `Response::read` applies the client timeout afresh to every read call, so the shared
+    // `IDLE_TIMEOUT` already bounds a stall between bytes, not the whole transfer.
     let client = download::client_with_policy(loopback_ca, fixture, same_origin_policy(&storage))?;
     Ok(Resolved {
         name,
@@ -408,6 +444,8 @@ pub fn transfer(
     transfer_inner(resolved, destination, sha256, cancelled, options, progress).map_err(|error| {
         if download::classify(&error).is_some() {
             error
+        } else if cancelled.load(Ordering::Relaxed) {
+            download::fail(FailureClass::Cancelled, error)
         } else {
             download::fail(FailureClass::Permanent, error)
         }
@@ -502,6 +540,13 @@ fn transfer_inner(
         bytes += read as u64;
         progress(FetchProgress::Transferring { bytes, total });
     }
+    // The body must end at `size`: a longer one is never silently truncated.
+    let mut extra = [0u8; 1];
+    if response.read(&mut extra).map_err(read_failure)? > 0 {
+        return Err(permanent(
+            "The MEGA download is longer than the size MEGA reported",
+        ));
+    }
     temp.flush()?;
     drop(response);
 
@@ -534,7 +579,7 @@ fn transfer_inner(
         Staged {
             temp,
             digest: format!("{:x}", hash.finalize()),
-            fallback_name: Some(resolved.name.clone()),
+            fallback_name: resolved.name.clone(),
         },
         destination,
         sha256,

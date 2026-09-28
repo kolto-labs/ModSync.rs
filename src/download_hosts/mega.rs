@@ -186,6 +186,9 @@ fn modern(handle: Option<&str>, fragment: &str) -> Result<MegaLink, MegaLinkErro
     if fragment.starts_with("F!") {
         return Err(MegaLinkError::FolderUnsupported);
     }
+    if fragment.starts_with("P!") {
+        return Err(MegaLinkError::PasswordProtectedUnsupported);
+    }
     let handle = valid_handle(handle.unwrap_or(""))?;
     let key = take_key(fragment)?;
     Ok(MegaLink { handle, key })

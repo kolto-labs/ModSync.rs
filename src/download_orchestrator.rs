@@ -186,13 +186,18 @@ fn sources_for(
         // The anonymous page/session flow runs in `origin_once`; a gate it finds is terminal.
         Provider::DeadlyStream => origin(OriginRequirement::None),
         // Anonymous public single-file decryption runs in `origin_once`. A quota or access
-        // gate it finds is terminal; an unsupported link form (folder, password) fails
-        // with its own message and leaves Peer to the ordinary Origin-then-Peer order.
+        // gate it finds is terminal (no Peer, no Manual after it); any other failure
+        // (folder, password, bad key, permanent origin error) falls to Peer, then to a
+        // final Manual so the link stays reachable by hand.
         Provider::Mega => origin(OriginRequirement::None),
         // Not automated (Task 1c / open question 1).
         Provider::GameFront => manual(ManualReason::Unsupported),
     };
     match primary {
+        Source::Origin { .. } if provider == Provider::Mega => std::iter::once(primary)
+            .chain(peer)
+            .chain(std::iter::once(manual(ManualReason::Unsupported)))
+            .collect(),
         Source::Origin { .. } => std::iter::once(primary).chain(peer).collect(),
         Source::Manual {
             reason: ManualReason::Unsupported,
@@ -2291,10 +2296,10 @@ fn origin_once(
         // The API request and node attributes are read (and any quota or access gate
         // found) before the first `Transferring` event, as for DeadlyStream. The bytes
         // move through `mega::transfer`, so `fetch_url` and the context are unused.
-        let node = mega_node.insert(mega_resolve(context, url, cancelled)?);
+        let node = mega_node.insert(mega_resolve(context, target, url, cancelled)?);
         (
             String::new(),
-            Some(node.name.clone()),
+            node.name.clone(),
             download::TransferContext::default(),
         )
     } else {
@@ -2374,15 +2379,19 @@ fn origin_once(
 /// The node behind a MEGA public file link: its safe name and size, and the vetted storage
 /// address. An unsupported link form (folder, password, missing or bad key) fails here
 /// with a message that never contains the link. A quota or access gate is `ManualRequired`
-/// at the redacted link, so Peer does not run around it.
+/// at the target's authored link (display redaction hides the key), so Peer does not run
+/// around it. A guide-supplied filename means a bad node name does not fail the resolve.
 fn mega_resolve(
     context: &RunContext<'_>,
+    target: &ArchiveTarget,
     url: &str,
     cancelled: &AtomicBool,
 ) -> Result<mega::Resolved> {
     let link = mega::parse_link(url).map_err(anyhow::Error::from)?;
     mega::resolve(
         &link,
+        &target.registry_url,
+        target.filename.is_none(),
         context.settings.mega_api_base.as_deref(),
         context.loopback_ca,
         cancelled,

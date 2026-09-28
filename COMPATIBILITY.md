@@ -161,7 +161,7 @@ plan/run/record/FOMOD-followup library and concrete proxy-only Peer adapter.
   persists nothing and starts no peers; it does not make localhost a DeadlyStream host. Source only;
   not built or exercised.
 - MEGA public single-file links are decrypted anonymously (their source order changed
-  from Peer then manual to Origin then Peer). The `mega` crate cannot use this
+  from Peer then manual to Origin, then Peer, then a final manual). The `mega` crate cannot use this
   project's TLS, so the anonymous protocol runs in `src/download_hosts/mega/transfer.rs`
   over the shared rustls client; the crate supplies only `compute_condensed_mac`.
   Supported link forms: `https://mega.nz/file/<handle>#<key>`, `/embed/<handle>#<key>`,
@@ -173,16 +173,23 @@ plan/run/record/FOMOD-followup library and concrete proxy-only Peer adapter.
   request (`g` with `p=<handle>`, `ssl=2`) returns the size, encrypted attributes and
   storage address; the link key folds to the AES key, CTR nonce and meta MAC, the
   attributes must decrypt to `MEGA{...}` with a safe single-component `n` name, the bytes
-  stream through AES-128-CTR into staging, must equal the API size, and only publish
+  stream through AES-128-CTR into staging, must equal the API size (a zero-byte file is
+  valid; a longer body is an error, never truncated), and only publish
   through the shared no-clobber path after the condensed MAC equals the link's MAC. A wrong
   key, corrupted attributes, altered bytes, a short transfer, a deleted node (-9), a blocked
-  one (-16) and a bad API reply are separate failures; a busy API (-3, -4, -6, -18, -19)
-  and a short or reset transfer retry. Quota (-17, HTTP 509) and access denied (-11)
-  are manual boundaries at the redacted link with no Peer. Production talks only to
+  one (-16) and a bad API reply are separate failures; an API entry with a negative `e`
+  is that error even when it also carries `g`; a busy API (-1, -3, -4, -6, -18, -19)
+  and a short, stalled or reset transfer retry. Quota (-17, HTTP 509) and access denied
+  (-11) are manual boundaries at the guide's authored link with no Peer and no later
+  manual step. Any other failure (folder, password, bad key or handle, permanent origin
+  error) falls to Peer and then ends ManualRequired at the authored link. When the guide
+  supplies the file name, a bad node name does not fail the download; otherwise it does.
+  A stall between bytes is bounded by the shared idle timeout, not the whole transfer. Production talks only to
   `g.api.mega.co.nz` and `*.userstorage.mega.co.nz` or `*.userstorage.mega.nz` over
-  https; redirects stay on the origin that returned them. The key is not put in errors,
-  `Debug` or manual URLs, but the guide's `registry_url` (which holds the authored link)
-  is still shown in plans and reports as authored. Node metadata beyond name and size
+  https; redirects stay on the origin that returned them. The key is not put in errors
+  or `Debug`. The manual URL is the guide's `registry_url` (the authored link, which
+  holds the key); it is shown in plans and reports as authored, subject to display
+  redaction. Node metadata beyond name and size
   is not exposed yet (H4). The hidden `fetch-downloads --mega-api-base <https-loopback-url>`
   option (needs `--extra-ca-file`) requires the API and every returned download address
   to be loopback https, with proxies off, no stored Nexus key read, nothing persisted and
