@@ -8,7 +8,7 @@ $CARGO_TARGET_DIR/debug/modsync, else target/debug/modsync) through the existing
 explicit-key `--nexus-api-base` transport against recording loopback servers.
 No Rust test or harness, no fake acquisition adapter, no real Nexus host.
 """
-import hashlib, http.server, io, json, os, pathlib, shutil, socket, ssl, subprocess
+import hashlib, http.server, io, json, os, pathlib, select, shutil, socket, ssl, subprocess
 import sys, tempfile, threading, time, traceback, urllib.parse, urllib.request, zipfile
 
 sys.dont_write_bytecode = True
@@ -23,8 +23,15 @@ subprocess.run(['ip', 'link', 'set', 'lo', 'up'], check=True)
 assert not subprocess.check_output(['ip', 'route'], text=True).strip(), 'namespace must have no routes'
 
 def digest(path): return hashlib.sha256(pathlib.Path(path).read_bytes()).hexdigest()
-SOURCE = {str(p.relative_to(REPO)): digest(p) for p in sorted((REPO/'src').rglob('*.rs'))}
+def source_files(): return sorted((REPO/'src').rglob('*.rs')) + [REPO/'Cargo.toml', REPO/'Cargo.lock']
+SOURCE = {str(p.relative_to(REPO)): digest(p) for p in source_files()}
 BINARY = digest(BIN)
+# Bind the binary to this source: it must have been built after every hashed file changed.
+STALE = [str(p.relative_to(REPO)) for p in source_files() if p.stat().st_mtime_ns >= BIN.stat().st_mtime_ns]
+assert not STALE, f'binary {BIN} is older than hashed source {STALE}; rebuild before running the proof'
+def git(*args): return subprocess.check_output(['git', '-c', f'safe.directory={REPO}', '-C', str(REPO)] + list(args), text=True)
+GIT_HEAD = git('rev-parse', 'HEAD').strip()
+GIT_STATUS = git('status', '--porcelain', '--', 'src', 'Cargo.toml', 'Cargo.lock')
 ROOT = pathlib.Path(tempfile.mkdtemp(prefix='nexus-h1a-'))
 ENV = {k: v for k, v in os.environ.items() if not k.lower().endswith('_proxy') and 'NEXUS' not in k}
 for k in ['HOME', 'XDG_CONFIG_HOME', 'XDG_CACHE_HOME', 'XDG_DATA_HOME']:
@@ -32,8 +39,11 @@ for k in ['HOME', 'XDG_CONFIG_HOME', 'XDG_CACHE_HOME', 'XDG_DATA_HOME']:
 
 API_KEY = 'fixture-api-key-7f3c'
 NXM_KEY = 'a+b/c=d&e f%'
+# Every spelling of the key that could leak into output: raw, strict and form encoded.
+NXM_KEY_FORMS = [NXM_KEY, urllib.parse.quote(NXM_KEY, safe=''), urllib.parse.quote_plus(NXM_KEY)]
 EXPIRES = 4102444800
 CHECKS = []; RUNS = []; LOG = []; LOCK = threading.Lock()
+ACTIVE = [0]  # accepted (or accepting) connections whose handler has not finished
 
 def check(name, actual, expected=True):
     row = dict(name=name, actual=actual, expected=expected, passed=actual == expected); CHECKS.append(row)
@@ -76,11 +86,24 @@ class Recording(http.server.BaseHTTPRequestHandler):
 
 class Server(http.server.ThreadingHTTPServer):
     def get_request(self):
+        with LOCK: ACTIVE[0] += 1
         try:
             return super().get_request()
         except ssl.SSLError as e:
             # A TLS client that rejected this server's certificate still reached it.
-            record('tls-handshake-failed', server=self.label, reason=e.reason); raise
+            record('tls-handshake-failed', server=self.label, reason=e.reason)
+            with LOCK: ACTIVE[0] -= 1
+            raise
+        except BaseException:
+            with LOCK: ACTIVE[0] -= 1
+            raise
+
+    def shutdown_request(self, request):
+        # Every accepted request ends here, after its handler (or on refusal/error).
+        try:
+            super().shutdown_request(request)
+        finally:
+            with LOCK: ACTIVE[0] -= 1
 
 SERVERS = []
 def serve(address, port, label, respond, ctx=None):
@@ -88,6 +111,18 @@ def serve(address, port, label, respond, ctx=None):
     srv.daemon_threads = True; srv.label = label; srv.respond = respond
     if ctx: srv.socket = ctx.wrap_socket(srv.socket, server_side=True)
     threading.Thread(target=srv.serve_forever, daemon=True).start(); SERVERS.append(srv); return srv
+
+def quiesce(polls=4, interval=.05, limit=15):
+    """Wait until no listening socket has a pending connection, no handler is in flight and
+    the log is unchanged over `polls` consecutive polls, so zero counts are final."""
+    stable, last, deadline = 0, None, time.monotonic() + limit
+    while time.monotonic() < deadline:
+        pending = select.select([s.socket for s in SERVERS], [], [], 0)[0]
+        with LOCK: state = (ACTIVE[0], len(LOG))
+        stable = stable + 1 if not pending and state[0] == 0 and state == last else 0
+        if stable >= polls: return
+        last = state; time.sleep(interval)
+    raise AssertionError(f'servers did not quiesce: active={ACTIVE[0]} log={len(LOG)}')
 
 def json_reply(value, code=200): return code, {'Content-Type': 'application/json'}, json.dumps(value).encode()
 def redirect(location): return 302, {'Location': location, 'Content-Type': 'text/plain'}, b'redirect fixture'
@@ -100,7 +135,9 @@ def api_respond(handler):
     if rest == 'users/validate.json': return json_reply({'name': 'fixture', 'is_premium': True})
     if rest.endswith('download_link.json'):
         hop = int(urllib.parse.parse_qs(url.query).get('hop', ['0'])[0])
-        same = f'{API}{url.path}?hop={hop + 1}'
+        # Same-origin hops keep the request's other query parameters (an nxm key included).
+        query = [(k, v) for k, v in urllib.parse.parse_qsl(url.query, keep_blank_values=True) if k != 'hop']
+        same = f'{API}{url.path}?' + urllib.parse.urlencode(query + [('hop', hop + 1)], quote_via=urllib.parse.quote)
         if scenario == 'same' and hop < 2: return redirect(same)
         if scenario == 'loop': return redirect(same)
         if scenario == 'cross-host': return redirect(f'{CROSS_HOST}{url.path}')
@@ -135,7 +172,7 @@ def execute(name, argv_tail, command='fetch-downloads', guide_url=PAGE, workspac
         argv = [str(BIN), 'nxm-download'] + [a.replace('{MODS}', str(mods)).replace('{GUIDE}', str(guide)).replace('{SETTINGS}', str(settings)) for a in argv_tail]
     start = len(LOG); began = time.monotonic()
     proc = subprocess.run(argv, capture_output=True, text=True, env=ENV, timeout=90)
-    time.sleep(.2)  # let server threads finish recording
+    quiesce()  # every connection this run made is recorded and finished
     row = dict(name=name, argv=argv, exit=proc.returncode, stdout=proc.stdout, stderr=proc.stderr,
                elapsed=round(time.monotonic() - began, 3), guide=json.loads(guide.read_text()),
                observed=LOG[start:], published=sorted(p.name for p in mods.iterdir()))
@@ -161,6 +198,9 @@ def archive_clean(row, start, expected_requests):
     check(row['name'] + '_archive_no_key_value', any(API_KEY in json.dumps(r) for r in reqs), False)
 
 def refused(row, start, destination, message='Refusing Nexus API redirect to another origin'):
+    """`destination=None` when the refused target is not a separate recording server: the loop
+    stays on `api`, and the host-alias and scheme-change targets are the `api` socket itself,
+    so those cases assert on `api`'s own requests and TLS hellos instead."""
     check(row['name'] + '_failed', row['exit'] != 0)
     check(row['name'] + '_unpublished', row['published'], [])
     check(row['name'] + '_policy_message', message in row['stdout'] + row['stderr'])
@@ -215,7 +255,7 @@ def main():
                 ssl.create_default_context(cafile=str(CA)).wrap_socket(raw, server_hostname='127.0.0.1')
         except (OSError, ssl.SSLError):
             pass
-        time.sleep(.2)
+        quiesce()
         check('control_api_port_records_tls_hello', [r['tls'] for r in since(start, kind='connection', server='api')], [True])
 
         # Plain success: API + archive, archive carries no apikey.
@@ -243,8 +283,15 @@ def main():
         # A same-origin loop stops at the hop limit.
         row, start = execute('same_origin_loop', base('loop')); refused(row, start, None, 'Too many Nexus API redirects')
         links = [r for r in api_requests(start) if 'download_link' in r['path']]
-        check('same_origin_loop_request_count', len(links), 10)
+        # The original request plus NEXUS_API_REDIRECT_LIMIT (10) followed hops.
+        check('same_origin_loop_request_count', len(links), 11)
         check('same_origin_loop_bounded_time', row['elapsed'] < 30)
+
+        # A base without a trailing slash keeps its last path segment (`/noslash/v1`).
+        row, start = execute('base_without_trailing_slash', ['--nexus-api-base', f'{API}/noslash/v1', '--nexus-mods-api-key', API_KEY])
+        completed(row); archive_clean(row, start, 1)
+        check('base_without_trailing_slash_api_paths', [r['path'] for r in api_requests(start)],
+              ['/noslash/v1/users/validate.json', '/noslash/v1/games/kotor/mods/1/files/1.json', '/noslash/v1/games/kotor/mods/1/files/1/download_link.json'])
 
         # Cross-host, cross-port, host alias and scheme change are refused before contact.
         row, start = execute('cross_host_redirect', base('cross-host')); refused(row, start, 'cross-host')
@@ -278,6 +325,17 @@ def main():
         check('nxm_key_direct_archive_tls_only', api_requests(start, 'archive'), [])
         check('nxm_key_direct_failed_at_archive_certificate', row['exit'] != 0 and 'certificate' in (row['stdout'] + row['stderr']).lower())
 
+        # A keyed download_link request that loops or is refused never prints the key.
+        for name, scenario, message, destination in [
+                ('nxm_key_loop', 'loop', 'Too many Nexus API redirects', None),
+                ('nxm_key_cross_host', 'cross-host', 'Refusing Nexus API redirect to another origin', 'cross-host')]:
+            row, start = execute(name, [nxm, '{MODS}/example-archive.zip'] + base(scenario), command='nxm')
+            refused(row, start, destination, message)
+            links = [r for r in api_requests(start) if 'download_link' in r['path']]
+            check(name + '_key_reached_api', len(links) > 0 and all('key=a%2Bb%2Fc%3Dd%26e%20f%25' in r['path'] for r in links))
+            check(name + '_link_request_count', len(links), 11 if scenario == 'loop' else 1)
+            check(name + '_no_key_in_output', [f for f in NXM_KEY_FORMS if f in row['stdout'] + row['stderr']], [])
+
         # Same key through the shared acquisition path (nxm_target -> nxm_url -> run).
         row, start = execute('nxm_key_orchestrated', [nxm, '{MODS}', '--input', '{GUIDE}'] + base('keyed'), command='nxm',
                              guide_url='https://www.nexusmods.com/kotor/mods/1')
@@ -290,9 +348,11 @@ def main():
         error = traceback.format_exc(); print(error, flush=True)
     finally:
         for s in SERVERS: s.shutdown(); s.server_close()
-        check('source_frozen', SOURCE, {str(p.relative_to(REPO)): digest(p) for p in sorted((REPO/'src').rglob('*.rs'))})
+        check('source_frozen', SOURCE, {str(p.relative_to(REPO)): digest(p) for p in source_files()})
         check('binary_frozen', BINARY, digest(BIN))
-        receipt = dict(binary=str(BIN), binarySha256=BINARY, sourceSha256=SOURCE, proofSha256=digest(__file__),
+        check('git_head_frozen', GIT_HEAD, git('rev-parse', 'HEAD').strip())
+        receipt = dict(binary=str(BIN), binarySha256=BINARY, binaryMtimeNs=BIN.stat().st_mtime_ns, sourceSha256=SOURCE,
+                       gitHead=GIT_HEAD, gitStatusPorcelain=GIT_STATUS, proofSha256=digest(__file__),
                        namespace=os.readlink('/proc/self/ns/net'), parentNamespace=PARENT,
                        routes=subprocess.check_output(['ip', 'route'], text=True),
                        archiveSha256=ARCHIVE_SHA, apiKeyFixture=API_KEY, nxmKey=NXM_KEY,

@@ -1542,7 +1542,9 @@ fn nxm_url(link: &protocol::Link) -> Result<String> {
         "nxm://{game_domain}/mods/{mod_id}/files/{file_id}"
     ))?;
     // Query-encoded (decoded again by `protocol::parse`), so a key's reserved characters
-    // survive the round trip instead of becoming extra parameters.
+    // survive the round trip instead of becoming extra parameters. A space becomes form
+    // `+`, which `protocol::parse`'s `query_pairs` decodes back; the API request built by
+    // `updates::NexusClient::nxm_download_link` uses %20 instead, for the Nexus server.
     if let Some(key) = key.as_deref().filter(|k| !k.is_empty()) {
         url.query_pairs_mut().append_pair("key", key);
     }
