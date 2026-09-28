@@ -425,6 +425,43 @@ fn same_guids(left: &[String], right: &[String]) -> bool {
             })
 }
 
+/// C# rewrites non-Choose Sources at deserialize time (`Serializer.DeserializePathInDictionary`:
+/// `PathHelper.FixPathFormatting` then `PrefixPath`) before `AreInstructionsIdentical` sees
+/// them. Rust keeps the authored text, so the comparison applies that rewrite on the fly.
+fn source_key(path: &str) -> String {
+    fn fix(path: &str) -> String {
+        let mut out = String::with_capacity(path.len());
+        for c in path.trim_start_matches('\\').chars() {
+            let c = if c == '\\' { '/' } else { c };
+            if c == '/' && out.ends_with('/') && !out[..out.len() - 1].ends_with(':') {
+                continue;
+            }
+            out.push(c);
+        }
+        if out.len() > 1 {
+            out.truncate(out.trim_end_matches('/').len());
+        }
+        out
+    }
+    if path.trim().is_empty() {
+        return path.to_owned();
+    }
+    let fixed = fix(path);
+    let lower = fixed.to_ascii_lowercase();
+    if [
+        "<<moddirectory>>",
+        "<<kotordirectory>>",
+        "<<gamedirectory>>",
+    ]
+    .iter()
+    .any(|prefix| lower.starts_with(prefix))
+    {
+        fixed
+    } else {
+        fix(&format!("<<modDirectory>>/{fixed}"))
+    }
+}
+
 /// Port of C# `AreInstructionsIdentical`: instruction Guid and Parent are not compared.
 fn same_instructions(left: &[Instruction], right: &[Instruction]) -> bool {
     left.len() == right.len()
@@ -433,7 +470,13 @@ fn same_instructions(left: &[Instruction], right: &[Instruction]) -> bool {
                 && a.destination == b.destination
                 && a.arguments == b.arguments
                 && a.overwrite == b.overwrite
-                && a.source == b.source
+                && a.source.len() == b.source.len()
+                && (a.action == "Choose" && a.source == b.source
+                    || a.action != "Choose"
+                        && a.source
+                            .iter()
+                            .zip(&b.source)
+                            .all(|(x, y)| source_key(x) == source_key(y)))
                 && same_guids(&a.dependencies, &b.dependencies)
                 && same_guids(&a.restrictions, &b.restrictions)
         })
