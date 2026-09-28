@@ -1,0 +1,121 @@
+{
+  "name": "atomic_consumers",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "fetch-downloads",
+    "--input",
+    "/tmp/fomod-s1-wt73fxdo/atomic_consumers/guide.json",
+    "--source-dir",
+    "/tmp/fomod-s1-wt73fxdo/atomic_consumers/mods",
+    "--settings-dir",
+    "/tmp/fomod-s1-wt73fxdo/atomic_consumers/settings",
+    "--scratch-dir",
+    "/tmp/fomod-s1-wt73fxdo/atomic_consumers/scratch",
+    "--peer-mode",
+    "off",
+    "--retries",
+    "0",
+    "--extra-ca-file",
+    "/tmp/fomod-s1-wt73fxdo/loopback.pem",
+    "--fomod-choices",
+    "/tmp/fomod-s1-wt73fxdo/atomic_consumers/choices.json",
+    "--record"
+  ],
+  "environment": {
+    "HOME": "/tmp/fomod-s1-wt73fxdo/HOME",
+    "XDG_CONFIG_HOME": "/tmp/fomod-s1-wt73fxdo/XDG_CONFIG_HOME",
+    "XDG_CACHE_HOME": "/tmp/fomod-s1-wt73fxdo/XDG_CACHE_HOME",
+    "XDG_DATA_HOME": "/tmp/fomod-s1-wt73fxdo/XDG_DATA_HOME"
+  },
+  "fomodEnvironment": {},
+  "exit": 1,
+  "stdout": "{\n  \"report\": {\n    \"outcomes\": [],\n    \"skipped\": [\n      {\n        \"componentGuid\": \"aaaaaaaa-1111-4111-8111-111111111111\",\n        \"registryUrl\": \"https://127.0.0.1:41769/example.zip\",\n        \"filename\": \"example.zip\",\n        \"reason\": \"alreadyPresent\",\n        \"path\": \"/tmp/fomod-s1-wt73fxdo/atomic_consumers/mods/example.zip\",\n        \"detail\": null\n      },\n      {\n        \"componentGuid\": \"bbbbbbbb-2222-4222-8222-222222222222\",\n        \"registryUrl\": \"https://127.0.0.1:41769/example.zip\",\n        \"filename\": \"example.zip\",\n        \"reason\": \"alreadyPresent\",\n        \"path\": \"/tmp/fomod-s1-wt73fxdo/atomic_consumers/mods/example.zip\",\n        \"detail\": null\n      }\n    ],\n    \"cancelled\": false\n  },\n  \"recordSummary\": {\n    \"recorded\": [\n      [\n        \"aaaaaaaa-1111-4111-8111-111111111111\",\n        \"https://127.0.0.1:41769/example.zip\",\n        \"example.zip\"\n      ],\n      [\n        \"bbbbbbbb-2222-4222-8222-222222222222\",\n        \"https://127.0.0.1:41769/example.zip\",\n        \"example.zip\"\n      ]\n    ],\n    \"keptFalse\": [],\n    \"hashesRecorded\": 0\n  },\n  \"fomodFollowups\": {\n    \"followups\": [\n      {\n        \"componentGuid\": \"aaaaaaaa-1111-4111-8111-111111111111\",\n        \"archive\": \"/tmp/fomod-s1-wt73fxdo/atomic_consumers/mods/example.zip\"\n      }\n    ],\n    \"inspectionErrors\": []\n  },\n  \"fomodConfiguration\": {\n    \"consumers\": [\n      {\n        \"componentGuid\": \"aaaaaaaa-1111-4111-8111-111111111111\",\n        \"archive\": \"/tmp/fomod-s1-wt73fxdo/atomic_consumers/mods/example.zip\",\n        \"outcome\": \"error\",\n        \"usableChoices\": false,\n        \"error\": \"FOMOD handler metadata must be an object for bbbbbbbb-2222-4222-8222-222222222222\"\n      },\n      {\n        \"componentGuid\": \"bbbbbbbb-2222-4222-8222-222222222222\",\n        \"archive\": \"/tmp/fomod-s1-wt73fxdo/atomic_consumers/mods/example.zip\",\n        \"outcome\": \"error\",\n        \"usableChoices\": false,\n        \"error\": \"FOMOD handler metadata must be an object for bbbbbbbb-2222-4222-8222-222222222222\"\n      }\n    ],\n    \"acceptedSessions\": [],\n    \"errors\": [],\n    \"unresolved\": 2,\n    \"cancelled\": false\n  },\n  \"fomodConfigurationRecorded\": false\n}\n",
+  "stderr": "",
+  "data": {
+    "report": {
+      "outcomes": [],
+      "skipped": [
+        {
+          "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+          "registryUrl": "https://127.0.0.1:41769/example.zip",
+          "filename": "example.zip",
+          "reason": "alreadyPresent",
+          "path": "/tmp/fomod-s1-wt73fxdo/atomic_consumers/mods/example.zip",
+          "detail": null
+        },
+        {
+          "componentGuid": "bbbbbbbb-2222-4222-8222-222222222222",
+          "registryUrl": "https://127.0.0.1:41769/example.zip",
+          "filename": "example.zip",
+          "reason": "alreadyPresent",
+          "path": "/tmp/fomod-s1-wt73fxdo/atomic_consumers/mods/example.zip",
+          "detail": null
+        }
+      ],
+      "cancelled": false
+    },
+    "recordSummary": {
+      "recorded": [
+        [
+          "aaaaaaaa-1111-4111-8111-111111111111",
+          "https://127.0.0.1:41769/example.zip",
+          "example.zip"
+        ],
+        [
+          "bbbbbbbb-2222-4222-8222-222222222222",
+          "https://127.0.0.1:41769/example.zip",
+          "example.zip"
+        ]
+      ],
+      "keptFalse": [],
+      "hashesRecorded": 0
+    },
+    "fomodFollowups": {
+      "followups": [
+        {
+          "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+          "archive": "/tmp/fomod-s1-wt73fxdo/atomic_consumers/mods/example.zip"
+        }
+      ],
+      "inspectionErrors": []
+    },
+    "fomodConfiguration": {
+      "consumers": [
+        {
+          "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+          "archive": "/tmp/fomod-s1-wt73fxdo/atomic_consumers/mods/example.zip",
+          "outcome": "error",
+          "usableChoices": false,
+          "error": "FOMOD handler metadata must be an object for bbbbbbbb-2222-4222-8222-222222222222"
+        },
+        {
+          "componentGuid": "bbbbbbbb-2222-4222-8222-222222222222",
+          "archive": "/tmp/fomod-s1-wt73fxdo/atomic_consumers/mods/example.zip",
+          "outcome": "error",
+          "usableChoices": false,
+          "error": "FOMOD handler metadata must be an object for bbbbbbbb-2222-4222-8222-222222222222"
+        }
+      ],
+      "acceptedSessions": [],
+      "errors": [],
+      "unresolved": 2,
+      "cancelled": false
+    },
+    "fomodConfigurationRecorded": false
+  },
+  "before": {
+    "choices.json": "0909f9656df30084ca6282fdaa0902d9478158f85879a6b7e873c0dc9393e60a",
+    "guide.json": "47b96daabe927d6c3b9450c1e78319535351c4be81bdaa6e17ffc3b3982cd103",
+    "mods/example.zip": "4c771f563fe916fc2a4f70366cce984d7029328cb41ab6546185c443cfa7efba",
+    "settings/settings.json": "e38e2668bd932c003c9ef418b34973672ee7f230ea6a72e2f741253c48e3562f"
+  },
+  "after": {
+    "choices.json": "0909f9656df30084ca6282fdaa0902d9478158f85879a6b7e873c0dc9393e60a",
+    "guide.json": "296df24195791a96a61a25280be74b62c5b3652c08ad71ca0c1493c75c02f5c0",
+    "mods/example.zip": "4c771f563fe916fc2a4f70366cce984d7029328cb41ab6546185c443cfa7efba",
+    "settings/settings.json": "e38e2668bd932c003c9ef418b34973672ee7f230ea6a72e2f741253c48e3562f"
+  },
+  "extra": {
+    "stdinUtf8": ""
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "name": "automatic_tty",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "fetch-downloads",
+    "--input",
+    "/tmp/fomod-s1-wt73fxdo/automatic_tty/guide.json",
+    "--source-dir",
+    "/tmp/fomod-s1-wt73fxdo/automatic_tty/mods",
+    "--settings-dir",
+    "/tmp/fomod-s1-wt73fxdo/automatic_tty/settings",
+    "--scratch-dir",
+    "/tmp/fomod-s1-wt73fxdo/automatic_tty/scratch",
+    "--peer-mode",
+    "off",
+    "--retries",
+    "0",
+    "--extra-ca-file",
+    "/tmp/fomod-s1-wt73fxdo/loopback.pem",
+    "--record"
+  ],
+  "environment": {
+    "HOME": "/tmp/fomod-s1-wt73fxdo/HOME",
+    "XDG_CONFIG_HOME": "/tmp/fomod-s1-wt73fxdo/XDG_CONFIG_HOME",
+    "XDG_CACHE_HOME": "/tmp/fomod-s1-wt73fxdo/XDG_CACHE_HOME",
+    "XDG_DATA_HOME": "/tmp/fomod-s1-wt73fxdo/XDG_DATA_HOME"
+  },
+  "fomodEnvironment": {},
+  "exit": 0,
+  "stdout": "{\r\n  \"report\": {\r\n    \"outcomes\": [],\r\n    \"skipped\": [\r\n      {\r\n        \"componentGuid\": \"aaaaaaaa-1111-4111-8111-111111111111\",\r\n        \"registryUrl\": \"https://127.0.0.1:41769/example.zip\",\r\n        \"filename\": \"example.zip\",\r\n        \"reason\": \"alreadyPresent\",\r\n        \"path\": \"/tmp/fomod-s1-wt73fxdo/automatic_tty/mods/example.zip\",\r\n        \"detail\": null\r\n      }\r\n    ],\r\n    \"cancelled\": false\r\n  },\r\n  \"recordSummary\": {\r\n    \"recorded\": [\r\n      [\r\n        \"aaaaaaaa-1111-4111-8111-111111111111\",\r\n        \"https://127.0.0.1:41769/example.zip\",\r\n        \"example.zip\"\r\n      ]\r\n    ],\r\n    \"keptFalse\": [],\r\n    \"hashesRecorded\": 0\r\n  },\r\n  \"fomodFollowups\": {\r\n    \"followups\": [\r\n      {\r\n        \"componentGuid\": \"aaaaaaaa-1111-4111-8111-111111111111\",\r\n        \"archive\": \"/tmp/fomod-s1-wt73fxdo/automatic_tty/mods/example.zip\"\r\n      }\r\n    ],\r\n    \"inspectionErrors\": []\r\n  },\r\n  \"fomodConfiguration\": {\r\n    \"consumers\": [\r\n      {\r\n        \"componentGuid\": \"aaaaaaaa-1111-4111-8111-111111111111\",\r\n        \"archive\": \"/tmp/fomod-s1-wt73fxdo/automatic_tty/mods/example.zip\",\r\n        \"outcome\": \"configured\",\r\n        \"usableChoices\": true,\r\n        \"error\": null\r\n      }\r\n    ],\r\n    \"acceptedSessions\": [\r\n      {\r\n        \"archive\": \"/tmp/fomod-s1-wt73fxdo/automatic_tty/mods/example.zip\",\r\n        \"componentGuids\": [\r\n          \"aaaaaaaa-1111-4111-8111-111111111111\"\r\n        ],\r\n        \"choices\": {\r\n          \"archiveFileName\": \"example.zip\",\r\n          \"selections\": [\r\n            {\r\n              \"stepName\": \"Choose\",\r\n              \"groupName\": \"Variant\",\r\n              \"plugins\": [\r\n                \"Beta\"\r\n              ]\r\n            }\r\n          ]\r\n        }\r\n      }\r\n    ],\r\n    \"errors\": [],\r\n    \"unresolved\": 0,\r\n    \"cancelled\": false\r\n  },\r\n  \"fomodConfigurationRecorded\": true\r\n}\r\n",
+  "stderr": "Configure FOMOD example.zip now? [y/N] Step: Choose\nVariant (SelectExactlyOne)\n1. [x] Alpha\n   First variant\n2. [ ] Beta\n   Second variant\nNumbers separated by commas; Enter keeps selection, 0 clears, back revisits, q cancels: ",
+  "data": {
+    "report": {
+      "outcomes": [],
+      "skipped": [
+        {
+          "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+          "registryUrl": "https://127.0.0.1:41769/example.zip",
+          "filename": "example.zip",
+          "reason": "alreadyPresent",
+          "path": "/tmp/fomod-s1-wt73fxdo/automatic_tty/mods/example.zip",
+          "detail": null
+        }
+      ],
+      "cancelled": false
+    },
+    "recordSummary": {
+      "recorded": [
+        [
+          "aaaaaaaa-1111-4111-8111-111111111111",
+          "https://127.0.0.1:41769/example.zip",
+          "example.zip"
+        ]
+      ],
+      "keptFalse": [],
+      "hashesRecorded": 0
+    },
+    "fomodFollowups": {
+      "followups": [
+        {
+          "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+          "archive": "/tmp/fomod-s1-wt73fxdo/automatic_tty/mods/example.zip"
+        }
+      ],
+      "inspectionErrors": []
+    },
+    "fomodConfiguration": {
+      "consumers": [
+        {
+          "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+          "archive": "/tmp/fomod-s1-wt73fxdo/automatic_tty/mods/example.zip",
+          "outcome": "configured",
+          "usableChoices": true,
+          "error": null
+        }
+      ],
+      "acceptedSessions": [
+        {
+          "archive": "/tmp/fomod-s1-wt73fxdo/automatic_tty/mods/example.zip",
+          "componentGuids": [
+            "aaaaaaaa-1111-4111-8111-111111111111"
+          ],
+          "choices": {
+            "archiveFileName": "example.zip",
+            "selections": [
+              {
+                "stepName": "Choose",
+                "groupName": "Variant",
+                "plugins": [
+                  "Beta"
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "errors": [],
+      "unresolved": 0,
+      "cancelled": false
+    },
+    "fomodConfigurationRecorded": true
+  },
+  "before": {
+    "choices.json": "0909f9656df30084ca6282fdaa0902d9478158f85879a6b7e873c0dc9393e60a",
+    "guide.json": "f358c3deb5d83268888c2dd451e472d07eab7e857f1d766671c1be0e6acd8c0b",
+    "mods/example.zip": "4c771f563fe916fc2a4f70366cce984d7029328cb41ab6546185c443cfa7efba",
+    "settings/settings.json": "e38e2668bd932c003c9ef418b34973672ee7f230ea6a72e2f741253c48e3562f"
+  },
+  "after": {
+    "choices.json": "0909f9656df30084ca6282fdaa0902d9478158f85879a6b7e873c0dc9393e60a",
+    "guide.json": "efc83067062292f6da674028894d3bcd8766c23875e0dedb5dd240e2def16943",
+    "mods/example.zip": "4c771f563fe916fc2a4f70366cce984d7029328cb41ab6546185c443cfa7efba",
+    "settings/settings.json": "e38e2668bd932c003c9ef418b34973672ee7f230ea6a72e2f741253c48e3562f"
+  },
+  "extra": {
+    "inputActions": [
+      {
+        "waitFor": "now?",
+        "stdinHex": "790a"
+      },
+      {
+        "waitFor": "Numbers separated",
+        "stdinHex": "320a"
+      }
+    ],
+    "signals": [],
+    "exitLatencySeconds": 0.0031627839198336005,
+    "originalFlags": 2,
+    "flagsRestored": true,
+    "terminalModeRestored": true,
+    "pipeWriterHeldOpen": false
+  }
+}

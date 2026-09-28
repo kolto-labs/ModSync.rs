@@ -1,0 +1,1 @@
+{"Components": [{"Guid": "aaaaaaaa-1111-4111-8111-111111111111", "Name": "Example Consumer 1", "IsSelected": true, "Instructions": [], "ResourceRegistry": {"https://127.0.0.1:41769/example.zip": {"Files": {"example.zip": true}, "ContentHashSHA256": "c670d23702cffde9e2af8596319dd1f02a856179d13b945b604ae169921c2109", "custom": "keep"}}, "CustomField": "keep"}]}

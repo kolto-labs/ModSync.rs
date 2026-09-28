@@ -1,0 +1,110 @@
+{
+  "name": "eof_stops_prompts",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "fetch-downloads",
+    "--input",
+    "/tmp/fomod-s1-wt73fxdo/eof_stops_prompts/guide.json",
+    "--source-dir",
+    "/tmp/fomod-s1-wt73fxdo/eof_stops_prompts/mods",
+    "--settings-dir",
+    "/tmp/fomod-s1-wt73fxdo/eof_stops_prompts/settings",
+    "--scratch-dir",
+    "/tmp/fomod-s1-wt73fxdo/eof_stops_prompts/scratch",
+    "--peer-mode",
+    "off",
+    "--retries",
+    "0",
+    "--extra-ca-file",
+    "/tmp/fomod-s1-wt73fxdo/loopback.pem",
+    "--interactive"
+  ],
+  "environment": {
+    "HOME": "/tmp/fomod-s1-wt73fxdo/HOME",
+    "XDG_CONFIG_HOME": "/tmp/fomod-s1-wt73fxdo/XDG_CONFIG_HOME",
+    "XDG_CACHE_HOME": "/tmp/fomod-s1-wt73fxdo/XDG_CACHE_HOME",
+    "XDG_DATA_HOME": "/tmp/fomod-s1-wt73fxdo/XDG_DATA_HOME"
+  },
+  "fomodEnvironment": {},
+  "exit": 3,
+  "stdout": "{\n  \"report\": {\n    \"outcomes\": [],\n    \"skipped\": [\n      {\n        \"componentGuid\": \"aaaaaaaa-1111-4111-8111-111111111111\",\n        \"registryUrl\": \"https://127.0.0.1:41769/example.zip\",\n        \"filename\": \"example.zip\",\n        \"reason\": \"alreadyPresent\",\n        \"path\": \"/tmp/fomod-s1-wt73fxdo/eof_stops_prompts/mods/example.zip\",\n        \"detail\": null\n      },\n      {\n        \"componentGuid\": \"bbbbbbbb-2222-4222-8222-222222222222\",\n        \"registryUrl\": \"https://127.0.0.1:41769/second.zip\",\n        \"filename\": \"second.zip\",\n        \"reason\": \"alreadyPresent\",\n        \"path\": \"/tmp/fomod-s1-wt73fxdo/eof_stops_prompts/mods/second.zip\",\n        \"detail\": null\n      }\n    ],\n    \"cancelled\": false\n  },\n  \"recordSummary\": null,\n  \"fomodFollowups\": {\n    \"followups\": [\n      {\n        \"componentGuid\": \"aaaaaaaa-1111-4111-8111-111111111111\",\n        \"archive\": \"/tmp/fomod-s1-wt73fxdo/eof_stops_prompts/mods/example.zip\"\n      },\n      {\n        \"componentGuid\": \"bbbbbbbb-2222-4222-8222-222222222222\",\n        \"archive\": \"/tmp/fomod-s1-wt73fxdo/eof_stops_prompts/mods/second.zip\"\n      }\n    ],\n    \"inspectionErrors\": []\n  },\n  \"fomodConfiguration\": {\n    \"consumers\": [\n      {\n        \"componentGuid\": \"aaaaaaaa-1111-4111-8111-111111111111\",\n        \"archive\": \"/tmp/fomod-s1-wt73fxdo/eof_stops_prompts/mods/example.zip\",\n        \"outcome\": \"eof\",\n        \"usableChoices\": false,\n        \"error\": null\n      },\n      {\n        \"componentGuid\": \"bbbbbbbb-2222-4222-8222-222222222222\",\n        \"archive\": \"/tmp/fomod-s1-wt73fxdo/eof_stops_prompts/mods/second.zip\",\n        \"outcome\": \"notPrompted\",\n        \"usableChoices\": false,\n        \"error\": null\n      }\n    ],\n    \"acceptedSessions\": [],\n    \"errors\": [],\n    \"unresolved\": 2,\n    \"cancelled\": false\n  },\n  \"fomodConfigurationRecorded\": false\n}\n",
+  "stderr": "Configure FOMOD example.zip now? [y/N] ",
+  "data": {
+    "report": {
+      "outcomes": [],
+      "skipped": [
+        {
+          "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+          "registryUrl": "https://127.0.0.1:41769/example.zip",
+          "filename": "example.zip",
+          "reason": "alreadyPresent",
+          "path": "/tmp/fomod-s1-wt73fxdo/eof_stops_prompts/mods/example.zip",
+          "detail": null
+        },
+        {
+          "componentGuid": "bbbbbbbb-2222-4222-8222-222222222222",
+          "registryUrl": "https://127.0.0.1:41769/second.zip",
+          "filename": "second.zip",
+          "reason": "alreadyPresent",
+          "path": "/tmp/fomod-s1-wt73fxdo/eof_stops_prompts/mods/second.zip",
+          "detail": null
+        }
+      ],
+      "cancelled": false
+    },
+    "recordSummary": null,
+    "fomodFollowups": {
+      "followups": [
+        {
+          "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+          "archive": "/tmp/fomod-s1-wt73fxdo/eof_stops_prompts/mods/example.zip"
+        },
+        {
+          "componentGuid": "bbbbbbbb-2222-4222-8222-222222222222",
+          "archive": "/tmp/fomod-s1-wt73fxdo/eof_stops_prompts/mods/second.zip"
+        }
+      ],
+      "inspectionErrors": []
+    },
+    "fomodConfiguration": {
+      "consumers": [
+        {
+          "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+          "archive": "/tmp/fomod-s1-wt73fxdo/eof_stops_prompts/mods/example.zip",
+          "outcome": "eof",
+          "usableChoices": false,
+          "error": null
+        },
+        {
+          "componentGuid": "bbbbbbbb-2222-4222-8222-222222222222",
+          "archive": "/tmp/fomod-s1-wt73fxdo/eof_stops_prompts/mods/second.zip",
+          "outcome": "notPrompted",
+          "usableChoices": false,
+          "error": null
+        }
+      ],
+      "acceptedSessions": [],
+      "errors": [],
+      "unresolved": 2,
+      "cancelled": false
+    },
+    "fomodConfigurationRecorded": false
+  },
+  "before": {
+    "choices.json": "0909f9656df30084ca6282fdaa0902d9478158f85879a6b7e873c0dc9393e60a",
+    "guide.json": "922a940657e1750a048599839a80f03c828bc3c1224b077ed8001458f852cf15",
+    "mods/example.zip": "4c771f563fe916fc2a4f70366cce984d7029328cb41ab6546185c443cfa7efba",
+    "mods/second.zip": "4c771f563fe916fc2a4f70366cce984d7029328cb41ab6546185c443cfa7efba",
+    "settings/settings.json": "e38e2668bd932c003c9ef418b34973672ee7f230ea6a72e2f741253c48e3562f"
+  },
+  "after": {
+    "choices.json": "0909f9656df30084ca6282fdaa0902d9478158f85879a6b7e873c0dc9393e60a",
+    "guide.json": "922a940657e1750a048599839a80f03c828bc3c1224b077ed8001458f852cf15",
+    "mods/example.zip": "4c771f563fe916fc2a4f70366cce984d7029328cb41ab6546185c443cfa7efba",
+    "mods/second.zip": "4c771f563fe916fc2a4f70366cce984d7029328cb41ab6546185c443cfa7efba",
+    "settings/settings.json": "e38e2668bd932c003c9ef418b34973672ee7f230ea6a72e2f741253c48e3562f"
+  },
+  "extra": {
+    "stdinUtf8": ""
+  }
+}

@@ -1,0 +1,134 @@
+{
+  "name": "pty_editing",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "fetch-downloads",
+    "--input",
+    "/tmp/fomod-s1-wt73fxdo/pty_editing/guide.json",
+    "--source-dir",
+    "/tmp/fomod-s1-wt73fxdo/pty_editing/mods",
+    "--settings-dir",
+    "/tmp/fomod-s1-wt73fxdo/pty_editing/settings",
+    "--scratch-dir",
+    "/tmp/fomod-s1-wt73fxdo/pty_editing/scratch",
+    "--peer-mode",
+    "off",
+    "--retries",
+    "0",
+    "--extra-ca-file",
+    "/tmp/fomod-s1-wt73fxdo/loopback.pem",
+    "--record",
+    "--interactive"
+  ],
+  "environment": {
+    "HOME": "/tmp/fomod-s1-wt73fxdo/HOME",
+    "XDG_CONFIG_HOME": "/tmp/fomod-s1-wt73fxdo/XDG_CONFIG_HOME",
+    "XDG_CACHE_HOME": "/tmp/fomod-s1-wt73fxdo/XDG_CACHE_HOME",
+    "XDG_DATA_HOME": "/tmp/fomod-s1-wt73fxdo/XDG_DATA_HOME"
+  },
+  "fomodEnvironment": {},
+  "exit": 0,
+  "stdout": "{\n  \"report\": {\n    \"outcomes\": [],\n    \"skipped\": [\n      {\n        \"componentGuid\": \"aaaaaaaa-1111-4111-8111-111111111111\",\n        \"registryUrl\": \"https://127.0.0.1:41769/example.zip\",\n        \"filename\": \"example.zip\",\n        \"reason\": \"alreadyPresent\",\n        \"path\": \"/tmp/fomod-s1-wt73fxdo/pty_editing/mods/example.zip\",\n        \"detail\": null\n      }\n    ],\n    \"cancelled\": false\n  },\n  \"recordSummary\": {\n    \"recorded\": [\n      [\n        \"aaaaaaaa-1111-4111-8111-111111111111\",\n        \"https://127.0.0.1:41769/example.zip\",\n        \"example.zip\"\n      ]\n    ],\n    \"keptFalse\": [],\n    \"hashesRecorded\": 0\n  },\n  \"fomodFollowups\": {\n    \"followups\": [\n      {\n        \"componentGuid\": \"aaaaaaaa-1111-4111-8111-111111111111\",\n        \"archive\": \"/tmp/fomod-s1-wt73fxdo/pty_editing/mods/example.zip\"\n      }\n    ],\n    \"inspectionErrors\": []\n  },\n  \"fomodConfiguration\": {\n    \"consumers\": [\n      {\n        \"componentGuid\": \"aaaaaaaa-1111-4111-8111-111111111111\",\n        \"archive\": \"/tmp/fomod-s1-wt73fxdo/pty_editing/mods/example.zip\",\n        \"outcome\": \"configured\",\n        \"usableChoices\": true,\n        \"error\": null\n      }\n    ],\n    \"acceptedSessions\": [\n      {\n        \"archive\": \"/tmp/fomod-s1-wt73fxdo/pty_editing/mods/example.zip\",\n        \"componentGuids\": [\n          \"aaaaaaaa-1111-4111-8111-111111111111\"\n        ],\n        \"choices\": {\n          \"archiveFileName\": \"example.zip\",\n          \"selections\": [\n            {\n              \"stepName\": \"Choose\",\n              \"groupName\": \"Variant\",\n              \"plugins\": [\n                \"Beta\"\n              ]\n            }\n          ]\n        }\n      }\n    ],\n    \"errors\": [],\n    \"unresolved\": 0,\n    \"cancelled\": false\n  },\n  \"fomodConfigurationRecorded\": true\n}\n",
+  "stderr": "Configure FOMOD example.zip now? [y/N] Step: Choose\nVariant (SelectExactlyOne)\n1. [x] Alpha\n   First variant\n2. [ ] Beta\n   Second variant\nNumbers separated by commas; Enter keeps selection, 0 clears, back revisits, q cancels: ",
+  "data": {
+    "report": {
+      "outcomes": [],
+      "skipped": [
+        {
+          "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+          "registryUrl": "https://127.0.0.1:41769/example.zip",
+          "filename": "example.zip",
+          "reason": "alreadyPresent",
+          "path": "/tmp/fomod-s1-wt73fxdo/pty_editing/mods/example.zip",
+          "detail": null
+        }
+      ],
+      "cancelled": false
+    },
+    "recordSummary": {
+      "recorded": [
+        [
+          "aaaaaaaa-1111-4111-8111-111111111111",
+          "https://127.0.0.1:41769/example.zip",
+          "example.zip"
+        ]
+      ],
+      "keptFalse": [],
+      "hashesRecorded": 0
+    },
+    "fomodFollowups": {
+      "followups": [
+        {
+          "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+          "archive": "/tmp/fomod-s1-wt73fxdo/pty_editing/mods/example.zip"
+        }
+      ],
+      "inspectionErrors": []
+    },
+    "fomodConfiguration": {
+      "consumers": [
+        {
+          "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+          "archive": "/tmp/fomod-s1-wt73fxdo/pty_editing/mods/example.zip",
+          "outcome": "configured",
+          "usableChoices": true,
+          "error": null
+        }
+      ],
+      "acceptedSessions": [
+        {
+          "archive": "/tmp/fomod-s1-wt73fxdo/pty_editing/mods/example.zip",
+          "componentGuids": [
+            "aaaaaaaa-1111-4111-8111-111111111111"
+          ],
+          "choices": {
+            "archiveFileName": "example.zip",
+            "selections": [
+              {
+                "stepName": "Choose",
+                "groupName": "Variant",
+                "plugins": [
+                  "Beta"
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "errors": [],
+      "unresolved": 0,
+      "cancelled": false
+    },
+    "fomodConfigurationRecorded": true
+  },
+  "before": {
+    "choices.json": "0909f9656df30084ca6282fdaa0902d9478158f85879a6b7e873c0dc9393e60a",
+    "guide.json": "f358c3deb5d83268888c2dd451e472d07eab7e857f1d766671c1be0e6acd8c0b",
+    "mods/example.zip": "4c771f563fe916fc2a4f70366cce984d7029328cb41ab6546185c443cfa7efba",
+    "settings/settings.json": "e38e2668bd932c003c9ef418b34973672ee7f230ea6a72e2f741253c48e3562f"
+  },
+  "after": {
+    "choices.json": "0909f9656df30084ca6282fdaa0902d9478158f85879a6b7e873c0dc9393e60a",
+    "guide.json": "efc83067062292f6da674028894d3bcd8766c23875e0dedb5dd240e2def16943",
+    "mods/example.zip": "4c771f563fe916fc2a4f70366cce984d7029328cb41ab6546185c443cfa7efba",
+    "settings/settings.json": "e38e2668bd932c003c9ef418b34973672ee7f230ea6a72e2f741253c48e3562f"
+  },
+  "extra": {
+    "inputActions": [
+      {
+        "waitFor": "now?",
+        "stdinHex": "790a"
+      },
+      {
+        "waitFor": "Numbers separated",
+        "stdinHex": "397f320a"
+      }
+    ],
+    "signals": [],
+    "exitLatencySeconds": 0.003164777997881174,
+    "originalFlags": 2,
+    "flagsRestored": true,
+    "terminalModeRestored": true,
+    "pipeWriterHeldOpen": false
+  }
+}

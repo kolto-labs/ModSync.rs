@@ -1,0 +1,99 @@
+[
+  {
+    "Guid": "bbbbbbbb-2222-4222-8222-222222222222",
+    "Name": "Example Consumer 2",
+    "Author": "",
+    "Description": "",
+    "Directions": "",
+    "Tier": "",
+    "Category": [],
+    "IsSelected": true,
+    "Dependencies": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "Instructions": [],
+    "Options": [],
+    "ResourceRegistry": {
+      "https://127.0.0.1:41769/example.zip": {
+        "Files": {
+          "example.zip": true
+        },
+        "ContentHashSHA256": "4c771f563fe916fc2a4f70366cce984d7029328cb41ab6546185c443cfa7efba",
+        "custom": "keep",
+        "handlerMetadata": {
+          "fomodPromptStatus": {
+            "example.zip": "configured"
+          }
+        }
+      }
+    },
+    "CustomField": "keep",
+    "FomodChoices": {
+      "version": 1,
+      "archives": [
+        {
+          "archiveFileName": "example.zip",
+          "selections": [
+            {
+              "stepName": "Choose",
+              "groupName": "Variant",
+              "plugins": [
+                "Beta"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "Guid": "aaaaaaaa-1111-4111-8111-111111111111",
+    "Name": "Example Consumer 1",
+    "Author": "",
+    "Description": "",
+    "Directions": "",
+    "Tier": "",
+    "Category": [],
+    "IsSelected": true,
+    "Dependencies": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "Instructions": [],
+    "Options": [],
+    "ResourceRegistry": {
+      "https://127.0.0.1:41769/example.zip": {
+        "Files": {
+          "example.zip": true
+        },
+        "ContentHashSHA256": "4c771f563fe916fc2a4f70366cce984d7029328cb41ab6546185c443cfa7efba",
+        "custom": "keep",
+        "handlerMetadata": {
+          "fomodPromptStatus": {
+            "example.zip": "configured"
+          },
+          "unrelated": "keep"
+        }
+      }
+    },
+    "CustomField": "keep",
+    "FomodChoices": {
+      "version": 1,
+      "archives": [
+        {
+          "archiveFileName": "example.zip",
+          "selections": [
+            {
+              "stepName": "Choose",
+              "groupName": "Variant",
+              "plugins": [
+                "Alpha"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

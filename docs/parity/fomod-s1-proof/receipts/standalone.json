@@ -1,0 +1,34 @@
+{
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "fomod-inspect",
+    "/tmp/fomod-s1-wt73fxdo/standalone/mods/example.zip",
+    "--interactive",
+    "--save-choices",
+    "/tmp/fomod-s1-wt73fxdo/standalone/saved.json",
+    "--extracted-directory",
+    "expanded",
+    "--scratch-dir",
+    "/tmp/fomod-s1-wt73fxdo/standalone/scratch"
+  ],
+  "exit": 0,
+  "stdout": "{\n  \"modulePath\": \"fomod/ModuleConfig.xml\",\n  \"contentRoot\": \"\",\n  \"name\": \"Example Installer\",\n  \"info\": null,\n  \"steps\": [\n    {\n      \"name\": \"Choose\",\n      \"visible\": true,\n      \"groups\": [\n        {\n          \"name\": \"Variant\",\n          \"type\": \"SelectExactlyOne\",\n          \"plugins\": [\n            {\n              \"name\": \"Alpha\",\n              \"description\": \"First variant\",\n              \"imagePath\": \"\",\n              \"required\": false,\n              \"pluginType\": \"Optional\",\n              \"selected\": false\n            },\n            {\n              \"name\": \"Beta\",\n              \"description\": \"Second variant\",\n              \"imagePath\": \"\",\n              \"required\": false,\n              \"pluginType\": \"Optional\",\n              \"selected\": true\n            }\n          ]\n        }\n      ]\n    }\n  ],\n  \"instructions\": [\n    {\n      \"Action\": \"Copy\",\n      \"Source\": [\n        \"<<modDirectory>>/expanded/payload/b.txt\"\n      ],\n      \"Destination\": \"<<gameDirectory>>/Override\",\n      \"Arguments\": \"\",\n      \"Overwrite\": true,\n      \"Dependencies\": [],\n      \"Restrictions\": []\n    }\n  ]\n}\n",
+  "stderr": "Step: Choose\nVariant (SelectExactlyOne)\n1. [x] Alpha\n   First variant\n2. [ ] Beta\n   Second variant\nNumbers separated by commas; Enter keeps selection, 0 clears, back revisits, q cancels: ",
+  "saved": {
+    "version": 1,
+    "archives": [
+      {
+        "archiveFileName": "example.zip",
+        "selections": [
+          {
+            "stepName": "Choose",
+            "groupName": "Variant",
+            "plugins": [
+              "Beta"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

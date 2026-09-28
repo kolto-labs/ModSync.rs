@@ -1,0 +1,138 @@
+{
+  "name": "five_groups_back_required",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "fetch-downloads",
+    "--input",
+    "/tmp/fomod-s1-wt73fxdo/five_groups_back_required/guide.json",
+    "--source-dir",
+    "/tmp/fomod-s1-wt73fxdo/five_groups_back_required/mods",
+    "--settings-dir",
+    "/tmp/fomod-s1-wt73fxdo/five_groups_back_required/settings",
+    "--scratch-dir",
+    "/tmp/fomod-s1-wt73fxdo/five_groups_back_required/scratch",
+    "--peer-mode",
+    "off",
+    "--retries",
+    "0",
+    "--extra-ca-file",
+    "/tmp/fomod-s1-wt73fxdo/loopback.pem",
+    "--interactive"
+  ],
+  "environment": {
+    "HOME": "/tmp/fomod-s1-wt73fxdo/HOME",
+    "XDG_CONFIG_HOME": "/tmp/fomod-s1-wt73fxdo/XDG_CONFIG_HOME",
+    "XDG_CACHE_HOME": "/tmp/fomod-s1-wt73fxdo/XDG_CACHE_HOME",
+    "XDG_DATA_HOME": "/tmp/fomod-s1-wt73fxdo/XDG_DATA_HOME"
+  },
+  "fomodEnvironment": {},
+  "exit": 0,
+  "stdout": "{\n  \"report\": {\n    \"outcomes\": [],\n    \"skipped\": [\n      {\n        \"componentGuid\": \"aaaaaaaa-1111-4111-8111-111111111111\",\n        \"registryUrl\": \"https://127.0.0.1:41769/example.zip\",\n        \"filename\": \"example.zip\",\n        \"reason\": \"alreadyPresent\",\n        \"path\": \"/tmp/fomod-s1-wt73fxdo/five_groups_back_required/mods/example.zip\",\n        \"detail\": null\n      }\n    ],\n    \"cancelled\": false\n  },\n  \"recordSummary\": null,\n  \"fomodFollowups\": {\n    \"followups\": [\n      {\n        \"componentGuid\": \"aaaaaaaa-1111-4111-8111-111111111111\",\n        \"archive\": \"/tmp/fomod-s1-wt73fxdo/five_groups_back_required/mods/example.zip\"\n      }\n    ],\n    \"inspectionErrors\": []\n  },\n  \"fomodConfiguration\": {\n    \"consumers\": [\n      {\n        \"componentGuid\": \"aaaaaaaa-1111-4111-8111-111111111111\",\n        \"archive\": \"/tmp/fomod-s1-wt73fxdo/five_groups_back_required/mods/example.zip\",\n        \"outcome\": \"configured\",\n        \"usableChoices\": true,\n        \"error\": null\n      }\n    ],\n    \"acceptedSessions\": [\n      {\n        \"archive\": \"/tmp/fomod-s1-wt73fxdo/five_groups_back_required/mods/example.zip\",\n        \"componentGuids\": [\n          \"aaaaaaaa-1111-4111-8111-111111111111\"\n        ],\n        \"choices\": {\n          \"archiveFileName\": \"example.zip\",\n          \"selections\": [\n            {\n              \"stepName\": \"Groups\",\n              \"groupName\": \"SelectExactlyOne\",\n              \"plugins\": [\n                \"Alpha\"\n              ]\n            },\n            {\n              \"stepName\": \"Groups\",\n              \"groupName\": \"SelectAny\",\n              \"plugins\": []\n            },\n            {\n              \"stepName\": \"Groups\",\n              \"groupName\": \"SelectAtMostOne\",\n              \"plugins\": []\n            },\n            {\n              \"stepName\": \"Groups\",\n              \"groupName\": \"SelectAtLeastOne\",\n              \"plugins\": [\n                \"Beta\"\n              ]\n            },\n            {\n              \"stepName\": \"Groups\",\n              \"groupName\": \"SelectAll\",\n              \"plugins\": [\n                \"Alpha\",\n                \"Beta\"\n              ]\n            },\n            {\n              \"stepName\": \"Finish\",\n              \"groupName\": \"Extra\",\n              \"plugins\": []\n            }\n          ]\n        }\n      }\n    ],\n    \"errors\": [],\n    \"unresolved\": 0,\n    \"cancelled\": false\n  },\n  \"fomodConfigurationRecorded\": false\n}\n",
+  "stderr": "Configure FOMOD example.zip now? [y/N] Step: Groups\nSelectExactlyOne (SelectExactlyOne)\n1. [x] Alpha (required)\n   Generic option\n2. [ ] Beta\n   Generic option\nNumbers separated by commas; Enter keeps selection, 0 clears, back revisits, q cancels: Invalid selection: Cannot deselect required plugin 'Alpha' in group 'SelectExactlyOne'.\nSelectExactlyOne (SelectExactlyOne)\n1. [x] Alpha (required)\n   Generic option\n2. [ ] Beta\n   Generic option\nNumbers separated by commas; Enter keeps selection, 0 clears, back revisits, q cancels: SelectAny (SelectAny)\n1. [ ] Alpha\n   Generic option\n2. [ ] Beta\n   Generic option\nNumbers separated by commas; Enter keeps selection, 0 clears, back revisits, q cancels: SelectAtMostOne (SelectAtMostOne)\n1. [ ] Alpha\n   Generic option\n2. [ ] Beta\n   Generic option\nNumbers separated by commas; Enter keeps selection, 0 clears, back revisits, q cancels: SelectAtLeastOne (SelectAtLeastOne)\n1. [x] Alpha\n   Generic option\n2. [ ] Beta\n   Generic option\nNumbers separated by commas; Enter keeps selection, 0 clears, back revisits, q cancels: Invalid selection: Select at least one option in 'SelectAtLeastOne'.\nSelectAtLeastOne (SelectAtLeastOne)\n1. [x] Alpha\n   Generic option\n2. [ ] Beta\n   Generic option\nNumbers separated by commas; Enter keeps selection, 0 clears, back revisits, q cancels: SelectAll (SelectAll)\n1. [x] Alpha\n   Generic option\n2. [x] Beta\n   Generic option\nNumbers separated by commas; Enter keeps selection, 0 clears, back revisits, q cancels: Invalid selection: All options in 'SelectAll' must be selected.\nSelectAll (SelectAll)\n1. [x] Alpha\n   Generic option\n2. [x] Beta\n   Generic option\nNumbers separated by commas; Enter keeps selection, 0 clears, back revisits, q cancels: Step: Finish\nExtra (SelectAny)\n1. [ ] Extra\n   Generic option\nNumbers separated by commas; Enter keeps selection, 0 clears, back revisits, q cancels: Step: Groups\nSelectExactlyOne (SelectExactlyOne)\n1. [x] Alpha (required)\n   Generic option\n2. [ ] Beta\n   Generic option\nNumbers separated by commas; Enter keeps selection, 0 clears, back revisits, q cancels: SelectAny (SelectAny)\n1. [ ] Alpha\n   Generic option\n2. [ ] Beta\n   Generic option\nNumbers separated by commas; Enter keeps selection, 0 clears, back revisits, q cancels: SelectAtMostOne (SelectAtMostOne)\n1. [ ] Alpha\n   Generic option\n2. [x] Beta\n   Generic option\nNumbers separated by commas; Enter keeps selection, 0 clears, back revisits, q cancels: SelectAtLeastOne (SelectAtLeastOne)\n1. [x] Alpha\n   Generic option\n2. [ ] Beta\n   Generic option\nNumbers separated by commas; Enter keeps selection, 0 clears, back revisits, q cancels: SelectAll (SelectAll)\n1. [x] Alpha\n   Generic option\n2. [x] Beta\n   Generic option\nNumbers separated by commas; Enter keeps selection, 0 clears, back revisits, q cancels: Step: Finish\nExtra (SelectAny)\n1. [ ] Extra\n   Generic option\nNumbers separated by commas; Enter keeps selection, 0 clears, back revisits, q cancels: ",
+  "data": {
+    "report": {
+      "outcomes": [],
+      "skipped": [
+        {
+          "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+          "registryUrl": "https://127.0.0.1:41769/example.zip",
+          "filename": "example.zip",
+          "reason": "alreadyPresent",
+          "path": "/tmp/fomod-s1-wt73fxdo/five_groups_back_required/mods/example.zip",
+          "detail": null
+        }
+      ],
+      "cancelled": false
+    },
+    "recordSummary": null,
+    "fomodFollowups": {
+      "followups": [
+        {
+          "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+          "archive": "/tmp/fomod-s1-wt73fxdo/five_groups_back_required/mods/example.zip"
+        }
+      ],
+      "inspectionErrors": []
+    },
+    "fomodConfiguration": {
+      "consumers": [
+        {
+          "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+          "archive": "/tmp/fomod-s1-wt73fxdo/five_groups_back_required/mods/example.zip",
+          "outcome": "configured",
+          "usableChoices": true,
+          "error": null
+        }
+      ],
+      "acceptedSessions": [
+        {
+          "archive": "/tmp/fomod-s1-wt73fxdo/five_groups_back_required/mods/example.zip",
+          "componentGuids": [
+            "aaaaaaaa-1111-4111-8111-111111111111"
+          ],
+          "choices": {
+            "archiveFileName": "example.zip",
+            "selections": [
+              {
+                "stepName": "Groups",
+                "groupName": "SelectExactlyOne",
+                "plugins": [
+                  "Alpha"
+                ]
+              },
+              {
+                "stepName": "Groups",
+                "groupName": "SelectAny",
+                "plugins": []
+              },
+              {
+                "stepName": "Groups",
+                "groupName": "SelectAtMostOne",
+                "plugins": []
+              },
+              {
+                "stepName": "Groups",
+                "groupName": "SelectAtLeastOne",
+                "plugins": [
+                  "Beta"
+                ]
+              },
+              {
+                "stepName": "Groups",
+                "groupName": "SelectAll",
+                "plugins": [
+                  "Alpha",
+                  "Beta"
+                ]
+              },
+              {
+                "stepName": "Finish",
+                "groupName": "Extra",
+                "plugins": []
+              }
+            ]
+          }
+        }
+      ],
+      "errors": [],
+      "unresolved": 0,
+      "cancelled": false
+    },
+    "fomodConfigurationRecorded": false
+  },
+  "before": {
+    "choices.json": "0909f9656df30084ca6282fdaa0902d9478158f85879a6b7e873c0dc9393e60a",
+    "guide.json": "9f466922bc9813431903366287da223bb776ed40d6d27e20b560ace264c2dbc4",
+    "mods/example.zip": "492d181b57414e9dc18c382656dd4cc8c15a044732351d0db7db60e48303411d",
+    "settings/settings.json": "e38e2668bd932c003c9ef418b34973672ee7f230ea6a72e2f741253c48e3562f"
+  },
+  "after": {
+    "choices.json": "0909f9656df30084ca6282fdaa0902d9478158f85879a6b7e873c0dc9393e60a",
+    "guide.json": "9f466922bc9813431903366287da223bb776ed40d6d27e20b560ace264c2dbc4",
+    "mods/example.zip": "492d181b57414e9dc18c382656dd4cc8c15a044732351d0db7db60e48303411d",
+    "settings/settings.json": "e38e2668bd932c003c9ef418b34973672ee7f230ea6a72e2f741253c48e3562f"
+  },
+  "extra": {
+    "stdinUtf8": "y\n2\n1\n0\n2\n0\n1\n0\n1,2\nback\n1\n0\n0\n2\n1,2\n0\n"
+  }
+}

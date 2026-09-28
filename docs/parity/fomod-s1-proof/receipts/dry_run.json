@@ -1,0 +1,66 @@
+{
+  "name": "dry_run",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "fetch-downloads",
+    "--input",
+    "/tmp/fomod-s1-wt73fxdo/dry_run/guide.json",
+    "--source-dir",
+    "/tmp/fomod-s1-wt73fxdo/dry_run/mods",
+    "--settings-dir",
+    "/tmp/fomod-s1-wt73fxdo/dry_run/settings",
+    "--scratch-dir",
+    "/tmp/fomod-s1-wt73fxdo/dry_run/scratch",
+    "--peer-mode",
+    "off",
+    "--retries",
+    "0",
+    "--extra-ca-file",
+    "/tmp/fomod-s1-wt73fxdo/loopback.pem",
+    "--dry-run",
+    "--interactive",
+    "--fomod-choices",
+    "missing.json"
+  ],
+  "environment": {
+    "HOME": "/tmp/fomod-s1-wt73fxdo/HOME",
+    "XDG_CONFIG_HOME": "/tmp/fomod-s1-wt73fxdo/XDG_CONFIG_HOME",
+    "XDG_CACHE_HOME": "/tmp/fomod-s1-wt73fxdo/XDG_CACHE_HOME",
+    "XDG_DATA_HOME": "/tmp/fomod-s1-wt73fxdo/XDG_DATA_HOME"
+  },
+  "fomodEnvironment": {},
+  "exit": 0,
+  "stdout": "{\n  \"sourceDir\": \"/tmp/fomod-s1-wt73fxdo/dry_run/mods\",\n  \"peerMode\": \"off\",\n  \"targets\": [],\n  \"skipped\": [\n    {\n      \"componentGuid\": \"aaaaaaaa-1111-4111-8111-111111111111\",\n      \"registryUrl\": \"https://127.0.0.1:41769/example.zip\",\n      \"filename\": \"example.zip\",\n      \"reason\": \"alreadyPresent\",\n      \"path\": \"/tmp/fomod-s1-wt73fxdo/dry_run/mods/example.zip\",\n      \"detail\": null\n    }\n  ],\n  \"warnings\": []\n}\n",
+  "stderr": "",
+  "data": {
+    "sourceDir": "/tmp/fomod-s1-wt73fxdo/dry_run/mods",
+    "peerMode": "off",
+    "targets": [],
+    "skipped": [
+      {
+        "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+        "registryUrl": "https://127.0.0.1:41769/example.zip",
+        "filename": "example.zip",
+        "reason": "alreadyPresent",
+        "path": "/tmp/fomod-s1-wt73fxdo/dry_run/mods/example.zip",
+        "detail": null
+      }
+    ],
+    "warnings": []
+  },
+  "before": {
+    "choices.json": "0909f9656df30084ca6282fdaa0902d9478158f85879a6b7e873c0dc9393e60a",
+    "guide.json": "f358c3deb5d83268888c2dd451e472d07eab7e857f1d766671c1be0e6acd8c0b",
+    "mods/example.zip": "4c771f563fe916fc2a4f70366cce984d7029328cb41ab6546185c443cfa7efba",
+    "settings/settings.json": "40b5cafe045b9c9e31a1c3fdcfbc89f934906ff06a6276b55c2a0e517be21655"
+  },
+  "after": {
+    "choices.json": "0909f9656df30084ca6282fdaa0902d9478158f85879a6b7e873c0dc9393e60a",
+    "guide.json": "f358c3deb5d83268888c2dd451e472d07eab7e857f1d766671c1be0e6acd8c0b",
+    "mods/example.zip": "4c771f563fe916fc2a4f70366cce984d7029328cb41ab6546185c443cfa7efba",
+    "settings/settings.json": "40b5cafe045b9c9e31a1c3fdcfbc89f934906ff06a6276b55c2a0e517be21655"
+  },
+  "extra": {
+    "stdinUtf8": ""
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "all_false_file_selection",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "fetch-downloads",
+    "--input",
+    "/tmp/fetch-controller-audit-ri8icdg_/all_false_file_selection/guide.json",
+    "--source-dir",
+    "/tmp/fetch-controller-audit-ri8icdg_/mods",
+    "--settings-dir",
+    "/tmp/fetch-controller-audit-ri8icdg_/all_false_file_selection/settings",
+    "--dry-run",
+    "--peer-mode",
+    "off",
+    "--use-file-selection"
+  ],
+  "exit": 0,
+  "stdout": "{\n  \"sourceDir\": \"/tmp/fetch-controller-audit-ri8icdg_/mods\",\n  \"peerMode\": \"off\",\n  \"targets\": [],\n  \"skipped\": [],\n  \"warnings\": []\n}\n",
+  "stderr": "",
+  "data": {
+    "sourceDir": "/tmp/fetch-controller-audit-ri8icdg_/mods",
+    "peerMode": "off",
+    "targets": [],
+    "skipped": [],
+    "warnings": []
+  },
+  "guideBeforeSha256": "9e5c49dad420035e8197cb56edd08cfb09bc869e4e54c22449c39663db2235c9",
+  "guideAfterSha256": "9e5c49dad420035e8197cb56edd08cfb09bc869e4e54c22449c39663db2235c9",
+  "newCasePaths": []
+}

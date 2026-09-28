@@ -1,0 +1,47 @@
+{
+  "name": "conflicting_flags",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "fetch-downloads",
+    "--input",
+    "/tmp/fomod-s1-wt73fxdo/conflicting_flags/guide.json",
+    "--source-dir",
+    "/tmp/fomod-s1-wt73fxdo/conflicting_flags/mods",
+    "--settings-dir",
+    "/tmp/fomod-s1-wt73fxdo/conflicting_flags/settings",
+    "--scratch-dir",
+    "/tmp/fomod-s1-wt73fxdo/conflicting_flags/scratch",
+    "--peer-mode",
+    "off",
+    "--retries",
+    "0",
+    "--extra-ca-file",
+    "/tmp/fomod-s1-wt73fxdo/loopback.pem",
+    "--interactive",
+    "--non-interactive"
+  ],
+  "environment": {
+    "HOME": "/tmp/fomod-s1-wt73fxdo/HOME",
+    "XDG_CONFIG_HOME": "/tmp/fomod-s1-wt73fxdo/XDG_CONFIG_HOME",
+    "XDG_CACHE_HOME": "/tmp/fomod-s1-wt73fxdo/XDG_CACHE_HOME",
+    "XDG_DATA_HOME": "/tmp/fomod-s1-wt73fxdo/XDG_DATA_HOME"
+  },
+  "fomodEnvironment": {},
+  "exit": 2,
+  "stdout": "",
+  "stderr": "error: the argument '--interactive' cannot be used with '--non-interactive'\n\nUsage: modsync fetch-downloads --input <INPUT> --source-dir <SOURCE_DIR> --settings-dir <SETTINGS_DIR> --scratch-dir <SCRATCH_DIR> --peer-mode <PEER_MODE> --retries <RETRIES> --interactive\n\nFor more information, try '--help'.\n",
+  "data": null,
+  "before": {
+    "choices.json": "0909f9656df30084ca6282fdaa0902d9478158f85879a6b7e873c0dc9393e60a",
+    "guide.json": "f358c3deb5d83268888c2dd451e472d07eab7e857f1d766671c1be0e6acd8c0b",
+    "settings/settings.json": "e38e2668bd932c003c9ef418b34973672ee7f230ea6a72e2f741253c48e3562f"
+  },
+  "after": {
+    "choices.json": "0909f9656df30084ca6282fdaa0902d9478158f85879a6b7e873c0dc9393e60a",
+    "guide.json": "f358c3deb5d83268888c2dd451e472d07eab7e857f1d766671c1be0e6acd8c0b",
+    "settings/settings.json": "e38e2668bd932c003c9ef418b34973672ee7f230ea6a72e2f741253c48e3562f"
+  },
+  "extra": {
+    "stdinUtf8": ""
+  }
+}

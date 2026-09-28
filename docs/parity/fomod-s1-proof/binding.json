@@ -1,0 +1,22 @@
+{
+  "sourceCommit": "f3f27d346c9a07dd102d23ed8992f72d19f3c8d2",
+  "binarySha256": "9314848a80c55c1bd06fdcbf4f18556ad3bbc2a30f820944c8cb90cd03f13195",
+  "productionCases": 58,
+  "productionChecks": [
+    319,
+    319
+  ],
+  "inheritedChecks": [
+    41,
+    41
+  ],
+  "buildRuntimeSourceHashesIdentical": true,
+  "allProductionGateExits": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "windowsRuntimeVerified": false
+}

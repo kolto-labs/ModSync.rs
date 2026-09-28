@@ -1,0 +1,59 @@
+Plan and run the selected-guide acquisition for every selected component with resources: existing/Origin/Peer sources, optional recording and FOMOD follow-ups
+
+Usage: modsync fetch-downloads [OPTIONS] --input <INPUT> --source-dir <SOURCE_DIR>
+
+Options:
+      --input <INPUT>
+          
+      --source-dir <SOURCE_DIR>
+          
+      --game-dir <GAME_DIR>
+          Detect the game here to apply Aspyr-only rules. Without it they are only reported
+      --use-file-selection
+          Honor IsSelected flags; by default select all top-level components
+      --select <SELECT>
+          Select component names/GUIDs or category:Name/tier:Name filters (repeat the flag)
+      --option <OPTION>
+          Select option GUIDs and their parent mods (repeat the flag)
+      --deselect <NAME|GUID>
+          Deselect a mod by name or GUID; mods that depend on it are deselected too (repeat the flag)
+      --deselect-option <GUID>
+          Deselect an option GUID; whatever depends on it is deselected too (repeat the flag)
+      --select-through-tier <TIER>
+          Add base mods in this tier and every higher tier (repeat the flag)
+      --add-category <CATEGORY>
+          Add base mods in this category, ignoring case (repeat the flag)
+      --select-visible-search <TEXT>
+          Add base mods whose shown name or description contains this text (repeat the flag)
+      --spoiler-free
+          Match --select-visible-search against spoiler-free names and descriptions
+      --workers <WORKERS>
+          [default: 4]
+      --retries <RETRIES>
+          [default: 1]
+      --nexus-mods-api-key <NEXUS_MODS_API_KEY>
+          
+      --settings-dir <SETTINGS_DIR>
+          
+      --peer-mode <PEER_MODE>
+          Overrides the stored peerMode; peerSharing=false always wins regardless [possible values: off, race, fallback]
+      --scratch-dir <SCRATCH_DIR>
+          Existing scratch folder outside the game and mod trees (defaults to system temp)
+      --max-expanded-bytes <MAX_EXPANDED_BYTES>
+          Optional expanded-byte budget per archive; extraction also checks free scratch space
+      --dry-run
+          Print the effective plan and exit without downloading, recording or saving
+      --progress-json
+          Emit newline-delimited JSON acquisition events, then one summary line
+      --fomod-skip
+          Leave detected FOMOD installers unconfigured and mark them dismissed
+      --fomod-choices <FOMOD_CHOICES>
+          Version-1 FOMOD choices JSON, overriding MODSYNC_FOMOD_CHOICES
+      --interactive
+          Ask to configure downloaded FOMOD installers, including with redirected input
+      --non-interactive
+          Disable automatic terminal FOMOD prompting
+      --record
+          Save acquisition facts and accepted FOMOD configuration/status edits
+  -h, --help
+          Print help
