@@ -1,0 +1,139 @@
+{
+  "name": "ca_correct",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "fetch-downloads",
+    "--input",
+    "/tmp/fetch-acceptance-pr5xb_w5/ca_correct/guide.json",
+    "--source-dir",
+    "/tmp/fetch-acceptance-pr5xb_w5/ca_correct/mods",
+    "--scratch-dir",
+    "/tmp/fetch-acceptance-pr5xb_w5/ca_correct/scratch",
+    "--settings-dir",
+    "/tmp/fetch-acceptance-pr5xb_w5/ca_correct/settings",
+    "--peer-mode",
+    "off",
+    "--progress-json",
+    "--retries",
+    "2",
+    "--extra-ca-file",
+    "/tmp/fetch-acceptance-pr5xb_w5/correct.pem"
+  ],
+  "environment": {
+    "HOME": "/tmp/fetch-acceptance-pr5xb_w5/HOME",
+    "XDG_CONFIG_HOME": "/tmp/fetch-acceptance-pr5xb_w5/XDG_CONFIG_HOME",
+    "XDG_CACHE_HOME": "/tmp/fetch-acceptance-pr5xb_w5/XDG_CACHE_HOME",
+    "XDG_DATA_HOME": "/tmp/fetch-acceptance-pr5xb_w5/XDG_DATA_HOME"
+  },
+  "envOverrides": {},
+  "exit": 1,
+  "stdout": "{\"type\":\"acquisition\",\"event\":{\"targetIndex\":0,\"componentGuid\":\"aaaaaaaa-1111-4111-8111-111111111111\",\"filename\":\"example.zip\",\"source\":{\"kind\":\"origin\",\"provider\":\"direct\"},\"phase\":{\"phase\":\"resolving\"}}}\n{\"type\":\"acquisition\",\"event\":{\"targetIndex\":0,\"componentGuid\":\"aaaaaaaa-1111-4111-8111-111111111111\",\"filename\":\"example.zip\",\"source\":{\"kind\":\"origin\",\"provider\":\"direct\"},\"phase\":{\"phase\":\"sourceFailed\",\"error\":\"error sending request: client error (Connect): invalid peer certificate: Other(OtherError(CaUsedAsEndEntity))\",\"will_fallback\":false}}}\n{\"type\":\"summary\",\"summary\":{\"report\":{\"outcomes\":[{\"targetIndex\":0,\"componentGuid\":\"aaaaaaaa-1111-4111-8111-111111111111\",\"registryUrl\":\"https://127.0.0.1:40465/archive\",\"filename\":\"example.zip\",\"status\":\"failed\",\"source\":null,\"path\":null,\"sha256\":null,\"manual\":null,\"error\":\"error sending request: client error (Connect): invalid peer certificate: Other(OtherError(CaUsedAsEndEntity))\"}],\"skipped\":[],\"cancelled\":false},\"recordSummary\":null,\"fomodFollowups\":{\"followups\":[],\"inspectionErrors\":[]}}}\n",
+  "stderr": "",
+  "elapsed": 0.11724848998710513,
+  "events": [
+    {
+      "time": 662557.36431626,
+      "event": {
+        "targetIndex": 0,
+        "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+        "filename": "example.zip",
+        "source": {
+          "kind": "origin",
+          "provider": "direct"
+        },
+        "phase": {
+          "phase": "resolving"
+        }
+      }
+    },
+    {
+      "time": 662557.372744618,
+      "event": {
+        "targetIndex": 0,
+        "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+        "filename": "example.zip",
+        "source": {
+          "kind": "origin",
+          "provider": "direct"
+        },
+        "phase": {
+          "phase": "sourceFailed",
+          "error": "error sending request: client error (Connect): invalid peer certificate: Other(OtherError(CaUsedAsEndEntity))",
+          "will_fallback": false
+        }
+      }
+    }
+  ],
+  "summary": {
+    "report": {
+      "outcomes": [
+        {
+          "targetIndex": 0,
+          "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+          "registryUrl": "https://127.0.0.1:40465/archive",
+          "filename": "example.zip",
+          "status": "failed",
+          "source": null,
+          "path": null,
+          "sha256": null,
+          "manual": null,
+          "error": "error sending request: client error (Connect): invalid peer certificate: Other(OtherError(CaUsedAsEndEntity))"
+        }
+      ],
+      "skipped": [],
+      "cancelled": false
+    },
+    "recordSummary": null,
+    "fomodFollowups": {
+      "followups": [],
+      "inspectionErrors": []
+    }
+  },
+  "serverTimeline": [],
+  "peerConnections": [],
+  "httpsProxyConnections": [],
+  "before": {
+    "guide.json": "9df54695b78261354cbe2ebd50a85b06865ef9c141cc6972107b29a1dc297e34",
+    "mods": "directory",
+    "scratch": "directory",
+    "settings": "directory",
+    "settings/settings.json": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d"
+  },
+  "after": {
+    "guide.json": "9df54695b78261354cbe2ebd50a85b06865ef9c141cc6972107b29a1dc297e34",
+    "mods": "directory",
+    "scratch": "directory",
+    "settings": "directory",
+    "settings/settings.json": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d"
+  },
+  "envBefore": {
+    "HOME": {},
+    "XDG_CONFIG_HOME": {
+      "ModSync": "directory",
+      "ModSync/peer-share": "directory",
+      "ModSync/peer-share/.modsync-share-tqmiMc": "directory",
+      "ModSync/peer-share/.modsync-share-tqmiMc/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ModSync/peer-share/.modsync-share-tqmiMc/example.zip": "3f0949489b018e4ab95d6650a2e195f18d17a0ec0cad37eb91a558f6feb0c8a0",
+      "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "XDG_CACHE_HOME": {
+      "com.rqbit.dht": "directory"
+    },
+    "XDG_DATA_HOME": {}
+  },
+  "envAfter": {
+    "HOME": {},
+    "XDG_CONFIG_HOME": {
+      "ModSync": "directory",
+      "ModSync/peer-share": "directory",
+      "ModSync/peer-share/.modsync-share-tqmiMc": "directory",
+      "ModSync/peer-share/.modsync-share-tqmiMc/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ModSync/peer-share/.modsync-share-tqmiMc/example.zip": "3f0949489b018e4ab95d6650a2e195f18d17a0ec0cad37eb91a558f6feb0c8a0",
+      "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "XDG_CACHE_HOME": {
+      "com.rqbit.dht": "directory"
+    },
+    "XDG_DATA_HOME": {}
+  }
+}

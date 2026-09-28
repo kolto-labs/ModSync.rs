@@ -1,0 +1,196 @@
+{
+  "name": "gate-header_fallback",
+  "guideInput": {
+    "Components": [
+      {
+        "Guid": "aaaaaaaa-1111-4111-8111-111111111111",
+        "Name": "Example A",
+        "IsSelected": true,
+        "Instructions": [],
+        "ResourceRegistry": {
+          "https://127.0.0.1:35733/gate-header": {
+            "Files": {
+              "example.zip": true
+            },
+            "ContentHashSHA256": "9eb3b9b6381cf6df995997c3f6052c3958aa0ec9281bd10c433a2b89c5cb6b6f",
+            "Magnet": "magnet:?xt=urn:btih:b193138612653c2b7a84b1b57864c4387e83d8eb&dn=example.zip",
+            "TorrentInfo": "ZDY6bGVuZ3RoaTEwNDg3MTJlNDpuYW1lMTE6ZXhhbXBsZS56aXAxMjpwaWVjZSBsZW5ndGhpNjU1MzZlNjpwaWVjZXMzNDA6gX8IWYiFo0nyrb+dhX2TVrfA9I57kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAAa4TdG2Q4DmVuCF/vB+bgX8yM9MmU="
+          }
+        }
+      }
+    ]
+  },
+  "settingsInput": {
+    "peerSharing": true,
+    "peerMode": "fallback",
+    "peerProxies": [
+      "socks5://127.0.0.1:48841"
+    ],
+    "peerProxyListUrl": "",
+    "peerTrackerListUrl": null,
+    "peerTrackers": [],
+    "peerExtraPeers": [
+      "127.0.0.1:40949"
+    ],
+    "nexusModsApiKey": "fixture-stored-secret"
+  },
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "fetch-downloads",
+    "--input",
+    "/tmp/fetch-acceptance-gpugm2dj/gate-header_fallback/guide.json",
+    "--source-dir",
+    "/tmp/fetch-acceptance-gpugm2dj/gate-header_fallback/mods",
+    "--scratch-dir",
+    "/tmp/fetch-acceptance-gpugm2dj/gate-header_fallback/scratch",
+    "--settings-dir",
+    "/tmp/fetch-acceptance-gpugm2dj/gate-header_fallback/settings",
+    "--peer-mode",
+    "fallback",
+    "--progress-json",
+    "--retries",
+    "2",
+    "--extra-ca-file",
+    "/tmp/fetch-acceptance-gpugm2dj/correct.pem"
+  ],
+  "environment": {
+    "HOME": "/tmp/fetch-acceptance-gpugm2dj/HOME",
+    "XDG_CONFIG_HOME": "/tmp/fetch-acceptance-gpugm2dj/XDG_CONFIG_HOME",
+    "XDG_CACHE_HOME": "/tmp/fetch-acceptance-gpugm2dj/XDG_CACHE_HOME",
+    "XDG_DATA_HOME": "/tmp/fetch-acceptance-gpugm2dj/XDG_DATA_HOME"
+  },
+  "envOverrides": {},
+  "exit": 3,
+  "stdout": "{\"type\":\"acquisition\",\"event\":{\"targetIndex\":0,\"componentGuid\":\"aaaaaaaa-1111-4111-8111-111111111111\",\"filename\":\"example.zip\",\"source\":{\"kind\":\"origin\",\"provider\":\"direct\"},\"phase\":{\"phase\":\"resolving\"}}}\n{\"type\":\"acquisition\",\"event\":{\"targetIndex\":0,\"componentGuid\":\"aaaaaaaa-1111-4111-8111-111111111111\",\"filename\":\"example.zip\",\"source\":{\"kind\":\"origin\",\"provider\":\"direct\"},\"phase\":{\"phase\":\"manualRequired\",\"url\":\"https://127.0.0.1:35733/gate-header\",\"reason\":\"captcha\"}}}\n{\"type\":\"summary\",\"summary\":{\"report\":{\"outcomes\":[{\"targetIndex\":0,\"componentGuid\":\"aaaaaaaa-1111-4111-8111-111111111111\",\"registryUrl\":\"https://127.0.0.1:35733/gate-header\",\"filename\":\"example.zip\",\"status\":\"manualRequired\",\"source\":{\"kind\":\"origin\",\"provider\":\"direct\"},\"path\":null,\"sha256\":null,\"manual\":{\"url\":\"https://127.0.0.1:35733/gate-header\",\"reason\":\"captcha\"},\"error\":null}],\"skipped\":[],\"cancelled\":false},\"recordSummary\":null,\"fomodFollowups\":{\"followups\":[],\"inspectionErrors\":[]}}}\n",
+  "stderr": "",
+  "elapsed": 0.11481155292131007,
+  "events": [
+    {
+      "time": 662963.766395029,
+      "event": {
+        "targetIndex": 0,
+        "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+        "filename": "example.zip",
+        "source": {
+          "kind": "origin",
+          "provider": "direct"
+        },
+        "phase": {
+          "phase": "resolving"
+        }
+      }
+    },
+    {
+      "time": 662963.770633515,
+      "event": {
+        "targetIndex": 0,
+        "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+        "filename": "example.zip",
+        "source": {
+          "kind": "origin",
+          "provider": "direct"
+        },
+        "phase": {
+          "phase": "manualRequired",
+          "url": "https://127.0.0.1:35733/gate-header",
+          "reason": "captcha"
+        }
+      }
+    }
+  ],
+  "summary": {
+    "report": {
+      "outcomes": [
+        {
+          "targetIndex": 0,
+          "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+          "registryUrl": "https://127.0.0.1:35733/gate-header",
+          "filename": "example.zip",
+          "status": "manualRequired",
+          "source": {
+            "kind": "origin",
+            "provider": "direct"
+          },
+          "path": null,
+          "sha256": null,
+          "manual": {
+            "url": "https://127.0.0.1:35733/gate-header",
+            "reason": "captcha"
+          },
+          "error": null
+        }
+      ],
+      "skipped": [],
+      "cancelled": false
+    },
+    "recordSummary": null,
+    "fomodFollowups": {
+      "followups": [],
+      "inspectionErrors": []
+    }
+  },
+  "serverTimeline": [
+    {
+      "kind": "request",
+      "time": 662963.76960682,
+      "server": "loopback",
+      "path": "/gate-header",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:35733"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662963.769703506,
+      "server": "loopback",
+      "path": "/gate-header"
+    }
+  ],
+  "peerConnections": [],
+  "httpsProxyConnections": [],
+  "before": {
+    "guide.json": "bb0ff12b8cfc2c78fb6f496b855fb8dd71eaeef59b003dcaa7201058a9292e6c",
+    "mods": "directory",
+    "scratch": "directory",
+    "settings": "directory",
+    "settings/settings.json": "261f5606bf65fb1eb90297151e937ab08ce4aa9f00562e8cd9a8d65a76cdda5e"
+  },
+  "after": {
+    "guide.json": "bb0ff12b8cfc2c78fb6f496b855fb8dd71eaeef59b003dcaa7201058a9292e6c",
+    "mods": "directory",
+    "scratch": "directory",
+    "settings": "directory",
+    "settings/settings.json": "261f5606bf65fb1eb90297151e937ab08ce4aa9f00562e8cd9a8d65a76cdda5e"
+  },
+  "envBefore": {
+    "HOME": {},
+    "XDG_CONFIG_HOME": {
+      "ModSync": "directory",
+      "ModSync/peer-share": "directory",
+      "ModSync/peer-share/.modsync-share-UEudza": "directory",
+      "ModSync/peer-share/.modsync-share-UEudza/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ModSync/peer-share/.modsync-share-UEudza/example.zip": "9eb3b9b6381cf6df995997c3f6052c3958aa0ec9281bd10c433a2b89c5cb6b6f",
+      "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "XDG_CACHE_HOME": {
+      "com.rqbit.dht": "directory"
+    },
+    "XDG_DATA_HOME": {}
+  },
+  "envAfter": {
+    "HOME": {},
+    "XDG_CONFIG_HOME": {
+      "ModSync": "directory",
+      "ModSync/peer-share": "directory",
+      "ModSync/peer-share/.modsync-share-UEudza": "directory",
+      "ModSync/peer-share/.modsync-share-UEudza/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ModSync/peer-share/.modsync-share-UEudza/example.zip": "9eb3b9b6381cf6df995997c3f6052c3958aa0ec9281bd10c433a2b89c5cb6b6f",
+      "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "XDG_CACHE_HOME": {
+      "com.rqbit.dht": "directory"
+    },
+    "XDG_DATA_HOME": {}
+  }
+}

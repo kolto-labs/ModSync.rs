@@ -1,0 +1,4738 @@
+{
+  "binary": "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+  "binarySha256": "e40e218304a3b1070fffa516ba60d74dd3128abb03798485316976e18732d82f",
+  "sourceSha256": {
+    "src/acquisition.rs": "fea993566281f9a84fa5b8a7d4f7c72f5f413c0d84480d35f9ce5df90646cad8",
+    "src/archive.rs": "c8b9e88416a8a0607c8246f787f791ab562ffe5553019e54362c478acfcd67c2",
+    "src/archive_generation/merge.rs": "be352a71eb5cc125148bfbd27275248c89f45af28f0a9d04910a9714a3487a1e",
+    "src/archive_generation.rs": "ca62b3c22e105108168c83b076b8c7d3fc64d1113373f47c9cf0cffd8f52660f",
+    "src/conflicts.rs": "c6f5dff2d21d2e4151cb53d3656e5b892e9d59e1f337ce9deaeba4671447d9a6",
+    "src/deployment.rs": "fab3726d33ebbac72878322856f3c70fe106a4ae29a8a70501b36c73280b339e",
+    "src/direct_markdown.rs": "70bf715188348e1700936adad2c304156846bd20b3fb3896f070983fb5b00521",
+    "src/download.rs": "22a684d821af9b5d3b9f487ad7d45c81bf808a339efb1dd02d166c0197e7620e",
+    "src/download_hosts.rs": "2f6197607eaeb07e8eeaeb5050778701da31e9e6abd9891b60b204b94a4cee70",
+    "src/download_orchestrator.rs": "916e3b4a0ee6e3fc68e132369f622b3c7623bb01c2558a7c7a292bbfe379040a",
+    "src/download_plan.rs": "52edd1844819e65bef31c11d4c065123810da98310b1bed75405695e73222ff0",
+    "src/download_queue.rs": "3f91eefa75b26aa46153b1e9948bbb05237180af89fe79fec923d3f04eeb8467",
+    "src/draft.rs": "86525e213956a05155b3b9c7353935ad1cb9202f7980bce5454dfddc39ba1703",
+    "src/editor.rs": "a769237d78447abe2185ff23e78b3776ae7b701784bec7df7a915f04b7fd4a9d",
+    "src/engine.rs": "ed59ffaccf86a29d71ac8426fc5e61b7447304720acf3ab9886f87b726779ef3",
+    "src/fomod/xml.rs": "ddc98afd42ccb71cf0d8d249bd3ec673b86a2e86a817d94e35913ce87b43546c",
+    "src/fomod.rs": "e695d57aab122953e951fa85ada449312af023d3260e4b9f9c42f436d7d20915",
+    "src/fomod_ui.rs": "fcb65a5d77816bcf6e5e4407723fec48d546a5aa74228b48953250662f42799c",
+    "src/game.rs": "7074ba4dd69436bae90a86f019496a7d4434900a55979e7d193173b4b850ae0e",
+    "src/install_progress.rs": "415720600e897cf79c11e8f5c784fe17da06831f01d243522e31413b3a79f163",
+    "src/lib.rs": "2e1931fcff2da668d0ea058ff067c1af32ef7e2217348ad3227293ca064b2c40",
+    "src/logging.rs": "58542a9bfd7b3fbbb90f137e31917d2369b5ded812cf269e4ecfaaf1446bef96",
+    "src/main.rs": "2a465fc4571aa8b104c86314164a77f076ebe54f79a3afb3dcc11189e6838200",
+    "src/markdown/extract.rs": "148e999ab50fe36aeda8c34c276e6a3e9ea23513ac46542b17ce4f0a07547614",
+    "src/markdown.rs": "6f8dd4ba1d144b5a87b2b950bab6c96b367a300b073e549c05ad2b944d86af97",
+    "src/merge.rs": "9274989f4b9978b58ac06204a77ce92b36bbc3e4c15f494b68110b38262f719d",
+    "src/model.rs": "3a91f51099bb64c7fadda3e4dfb49608c6e03b3725046b029288cfed958c5475",
+    "src/p2p.rs": "b2c3f7a2029a9173529a7603cc48200a7050755814d75bccd6e2c0ef857a78d5",
+    "src/patcher.rs": "50ebe6ff192e6137facecfd22fbd05d02e985af716a31bde5e7f098a34f2b1a1",
+    "src/paths.rs": "a5c719d40ec7c14770ec4d4a0f367a27fdd0d316db20bf3da25f32a8b09231c3",
+    "src/peer_acquire.rs": "0560a6d74a8e9e88270e49f4297fd8bf065a5f259386c56b3d547afb1cd95251",
+    "src/phase.rs": "de3a6a526898c42fc8dad9a48565d7943c20012a6e9cb8d9df176132a4d905a3",
+    "src/profile_cli.rs": "4f60ec7a28e133b2cf2f4b273964768956369fe34e08490964b03e22bd534e18",
+    "src/profiles.rs": "abe3fda234d3b14e272abc874184303f89b5c7765714c30907d87fc2c56f8623",
+    "src/protocol.rs": "13877fc8bb295fb8787e3a9e11bcbca9d998cf7b7dd8209cda5f5144511f0faf",
+    "src/protocol_registration.rs": "3a240dffb690af41379a07e372889979ee2b40aa75b21b2a7ba2071db6c1bf9c",
+    "src/recovery.rs": "48407a4e8216ae5497106bc58219a75d0e7403015b1c57a2b1c51d9e508ee00b",
+    "src/reference_paths.rs": "1666e78a9c8ca8114d9673c4878854cf8f4e831a7e2ce928b4e9c44cb58abb2e",
+    "src/resources.rs": "678adda2640a7f8abb61319c311f44956d51a19a654a8546aaf4ca8689501433",
+    "src/selection.rs": "777cef0bde01e91df76fd5c498c44ce31d4018ed59dbf2bb800761f64d1fede2",
+    "src/single_instance.rs": "fc52211eac20d32e034f541c91058bbbb406fb26a43b4d9e2f085bb8f108e34f",
+    "src/telemetry.rs": "01283b3865d572eeda7b5de5901dc0f209193e5d5bd8185972be21eb44355ece",
+    "src/ui/completion_pages.rs": "7e122bc441ea74bf8bf5e48d9cb1a6cde68a0817e0c926c0179bc8646d4e608b",
+    "src/ui/installing_page.rs": "51af2238e2d6d4a52f0e787dd656e30a5356408d227797237b3ceafd2c2279dd",
+    "src/ui/validation_page.rs": "9f6f25a3c20e241a4a03bb8cecb0756c81b923501788e14e800cbc1df93404a5",
+    "src/ui.rs": "1ef92ad692de68cf7472b74e8178f9a5e834134cf28d09793b3360fe7f6a988e",
+    "src/updates.rs": "64d3db98a47ba56c0d3c1af9692adcf5772cf3be5e19de123fb1a9deb4bd6930",
+    "src/validation/presentation.rs": "3d28c2acbf3883178bf287a4c452aa61974284dfde449957526cdff7a6cfd034",
+    "src/validation.rs": "bbd556c532581626927930382bc624f11395857cf0fe34af37ac2bb382ad4400",
+    "src/wizard.rs": "a77e39ac3b1686f3e750365276d900c88c97d3b848332b12aa079d6bea4c29e6",
+    "src/xml.rs": "d15737f2909f85a969c098843e93fd57b607b84228c46018c8e12aaa7f6e4000"
+  },
+  "namespace": "net:[4026534592]",
+  "parentNamespace": "net:[4026531833]",
+  "addresses": "[{\"ifindex\":1,\"ifname\":\"lo\",\"flags\":[\"LOOPBACK\",\"UP\",\"LOWER_UP\"],\"mtu\":65536,\"qdisc\":\"noqueue\",\"operstate\":\"UNKNOWN\",\"group\":\"default\",\"txqlen\":1000,\"link_type\":\"loopback\",\"address\":\"00:00:00:00:00:00\",\"broadcast\":\"00:00:00:00:00:00\",\"addr_info\":[{\"family\":\"inet\",\"local\":\"127.0.0.1\",\"prefixlen\":8,\"scope\":\"host\",\"label\":\"lo\",\"valid_life_time\":4294967295,\"preferred_life_time\":4294967295},{\"family\":\"inet\",\"local\":\"192.0.2.1\",\"prefixlen\":32,\"scope\":\"global\",\"label\":\"lo\",\"valid_life_time\":4294967295,\"preferred_life_time\":4294967295},{\"family\":\"inet6\",\"local\":\"::1\",\"prefixlen\":128,\"scope\":\"host\",\"protocol\":\"kernel_lo\",\"valid_life_time\":4294967295,\"preferred_life_time\":4294967295}]}]\n",
+  "routes": "",
+  "root": "/tmp/fetch-acceptance-vrfew36k",
+  "checks": [
+    {
+      "name": "reachable_192.0.2.1",
+      "actual": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "expected": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "passed": true
+    },
+    {
+      "name": "reachable_public.example",
+      "actual": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "expected": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "passed": true
+    },
+    {
+      "name": "reachable_localhost.evil",
+      "actual": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "expected": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "passed": true
+    },
+    {
+      "name": "reachable_http",
+      "actual": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "expected": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "passed": true
+    },
+    {
+      "name": "ca_None_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_None_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_None_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "ca_None_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "ca_None_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "ca_None_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "ca_None_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "ca_None_failed",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "ca_None_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_wrong_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_wrong_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_wrong_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "ca_wrong_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "ca_wrong_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "ca_wrong_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "ca_wrong_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "ca_wrong_failed",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "ca_wrong_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_invalid_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_invalid_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_invalid_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "ca_invalid_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "ca_invalid_failed",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "ca_invalid_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_missing_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_missing_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_missing_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "ca_missing_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "ca_missing_failed",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "ca_missing_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_correct_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_correct_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_correct_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "ca_correct_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "ca_correct_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "ca_correct_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "ca_correct_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "ca_correct_identity_2",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "ca_correct_identity_3",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "ca_correct_exit",
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "ca_correct_files",
+      "actual": [
+        "example.zip"
+      ],
+      "expected": [
+        "example.zip"
+      ],
+      "passed": true
+    },
+    {
+      "name": "ca_correct_hash",
+      "actual": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "expected": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "passed": true
+    },
+    {
+      "name": "ca_correct_completed_once",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "ipv6_loopback_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ipv6_loopback_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ipv6_loopback_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "ipv6_loopback_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "ipv6_loopback_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "ipv6_loopback_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "ipv6_loopback_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "ipv6_loopback_identity_2",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "ipv6_loopback_identity_3",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "ipv6_loopback_exit",
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "ipv6_loopback_files",
+      "actual": [
+        "example.zip"
+      ],
+      "expected": [
+        "example.zip"
+      ],
+      "passed": true
+    },
+    {
+      "name": "ipv6_loopback_hash",
+      "actual": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "expected": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "passed": true
+    },
+    {
+      "name": "ipv6_loopback_completed_once",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "localhost_correct_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "localhost_correct_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "localhost_correct_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "localhost_correct_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "localhost_correct_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "localhost_correct_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "localhost_correct_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "localhost_correct_identity_2",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "localhost_correct_identity_3",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "localhost_correct_exit",
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "localhost_correct_files",
+      "actual": [
+        "example.zip"
+      ],
+      "expected": [
+        "example.zip"
+      ],
+      "passed": true
+    },
+    {
+      "name": "localhost_correct_hash",
+      "actual": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "expected": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "passed": true
+    },
+    {
+      "name": "localhost_correct_completed_once",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "localhost_pinned_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "localhost_pinned_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "localhost_pinned_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "localhost_pinned_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "localhost_pinned_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "localhost_pinned_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "localhost_pinned_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "localhost_pinned_identity_2",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "localhost_pinned_identity_3",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "localhost_pinned_exit",
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "localhost_pinned_files",
+      "actual": [
+        "example.zip"
+      ],
+      "expected": [
+        "example.zip"
+      ],
+      "passed": true
+    },
+    {
+      "name": "localhost_pinned_hash",
+      "actual": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "expected": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "passed": true
+    },
+    {
+      "name": "localhost_pinned_completed_once",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "initial_public_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_public_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_public_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "initial_public_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "initial_public_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "initial_public_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "initial_public_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "initial_public_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_public_no_request",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_public_rejected",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "initial_ip_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_ip_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_ip_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "initial_ip_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "initial_ip_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "initial_ip_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "initial_ip_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "initial_ip_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_ip_no_request",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_ip_rejected",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "initial_deceptive_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_deceptive_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_deceptive_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "initial_deceptive_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "initial_deceptive_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "initial_deceptive_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "initial_deceptive_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "initial_deceptive_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_deceptive_no_request",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_deceptive_rejected",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "initial_http_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_http_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_http_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "initial_http_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "initial_http_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "initial_http_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "initial_http_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "initial_http_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_http_no_request",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_http_rejected",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "redirect_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "redirect_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "redirect_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "redirect_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "redirect_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "redirect_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "redirect_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "redirect_identity_2",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "redirect_identity_3",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "redirect_exit",
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "redirect_files",
+      "actual": [
+        "example.zip"
+      ],
+      "expected": [
+        "example.zip"
+      ],
+      "passed": true
+    },
+    {
+      "name": "redirect_hash",
+      "actual": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "expected": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "passed": true
+    },
+    {
+      "name": "redirect_completed_once",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "chain_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "chain_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "chain_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "chain_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "chain_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "chain_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "chain_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "chain_identity_2",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "chain_identity_3",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "chain_exit",
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "chain_files",
+      "actual": [
+        "example.zip"
+      ],
+      "expected": [
+        "example.zip"
+      ],
+      "passed": true
+    },
+    {
+      "name": "chain_hash",
+      "actual": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "expected": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "passed": true
+    },
+    {
+      "name": "chain_completed_once",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "downgrade_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "downgrade_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "downgrade_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "downgrade_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "downgrade_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "downgrade_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "downgrade_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "downgrade_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "downgrade_failed",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "downgrade_no_outside_request",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "downgrade_not_manual",
+      "actual": "failed",
+      "expected": "failed",
+      "passed": true
+    },
+    {
+      "name": "escape_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "escape_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "escape_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "escape_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "escape_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "escape_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "escape_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "escape_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "escape_failed",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "escape_no_outside_request",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "escape_not_manual",
+      "actual": "failed",
+      "expected": "failed",
+      "passed": true
+    },
+    {
+      "name": "deceptive_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "deceptive_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "deceptive_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "deceptive_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "deceptive_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "deceptive_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "deceptive_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "deceptive_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "deceptive_failed",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "deceptive_no_outside_request",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "deceptive_not_manual",
+      "actual": "failed",
+      "expected": "failed",
+      "passed": true
+    },
+    {
+      "name": "loop_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "loop_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "loop_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "loop_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "loop_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "loop_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "loop_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "loop_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "loop_failed",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "loop_no_outside_request",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "loop_not_manual",
+      "actual": "failed",
+      "expected": "failed",
+      "passed": true
+    },
+    {
+      "name": "credentials-redirect_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "credentials-redirect_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "credentials-redirect_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "credentials-redirect_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "credentials-redirect_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "credentials-redirect_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "credentials-redirect_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "credentials-redirect_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "credentials-redirect_failed",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "credentials-redirect_no_outside_request",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "credentials-redirect_not_manual",
+      "actual": "failed",
+      "expected": "failed",
+      "passed": true
+    },
+    {
+      "name": "redirect_error_redacted",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "proxy_control_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "proxy_control_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "proxy_control_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "proxy_control_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "proxy_control_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "proxy_control_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "proxy_control_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "ordinary_proxy_contact",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "proxy_control_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "proxy_override_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "proxy_override_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "proxy_override_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "proxy_override_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "proxy_override_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "proxy_override_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "proxy_override_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "proxy_override_identity_2",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "proxy_override_identity_3",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "proxy_override_exit",
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "proxy_override_files",
+      "actual": [
+        "example.zip"
+      ],
+      "expected": [
+        "example.zip"
+      ],
+      "passed": true
+    },
+    {
+      "name": "proxy_override_hash",
+      "actual": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "expected": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "passed": true
+    },
+    {
+      "name": "proxy_override_completed_once",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "override_proxy_zero",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-login_race_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-login_race_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-login_race_settings_unchanged",
+      "actual": "715ab22989c4bd69e649c1d01fd57878540baefb4499d212f138a69fd583702e",
+      "expected": "715ab22989c4bd69e649c1d01fd57878540baefb4499d212f138a69fd583702e",
+      "passed": true
+    },
+    {
+      "name": "gate-login_race_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "gate-login_race_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "gate-login_race_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "gate-login_race_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "gate-login_race_exit",
+      "actual": 3,
+      "expected": 3,
+      "passed": true
+    },
+    {
+      "name": "gate-login_race_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-login_race_zero_peer_connections",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-login_race_zero_peer_events",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-login_race_reason",
+      "actual": "loginRequired",
+      "expected": "loginRequired",
+      "passed": true
+    },
+    {
+      "name": "gate-body_race_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-body_race_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-body_race_settings_unchanged",
+      "actual": "715ab22989c4bd69e649c1d01fd57878540baefb4499d212f138a69fd583702e",
+      "expected": "715ab22989c4bd69e649c1d01fd57878540baefb4499d212f138a69fd583702e",
+      "passed": true
+    },
+    {
+      "name": "gate-body_race_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "gate-body_race_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "gate-body_race_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "gate-body_race_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "gate-body_race_exit",
+      "actual": 3,
+      "expected": 3,
+      "passed": true
+    },
+    {
+      "name": "gate-body_race_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-body_race_zero_peer_connections",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-body_race_zero_peer_events",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-body_race_reason",
+      "actual": "captcha",
+      "expected": "captcha",
+      "passed": true
+    },
+    {
+      "name": "gate-header_race_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-header_race_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-header_race_settings_unchanged",
+      "actual": "715ab22989c4bd69e649c1d01fd57878540baefb4499d212f138a69fd583702e",
+      "expected": "715ab22989c4bd69e649c1d01fd57878540baefb4499d212f138a69fd583702e",
+      "passed": true
+    },
+    {
+      "name": "gate-header_race_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "gate-header_race_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "gate-header_race_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "gate-header_race_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "gate-header_race_exit",
+      "actual": 3,
+      "expected": 3,
+      "passed": true
+    },
+    {
+      "name": "gate-header_race_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-header_race_zero_peer_connections",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-header_race_zero_peer_events",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-header_race_reason",
+      "actual": "captcha",
+      "expected": "captcha",
+      "passed": true
+    },
+    {
+      "name": "gate-wait_race_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-wait_race_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-wait_race_settings_unchanged",
+      "actual": "715ab22989c4bd69e649c1d01fd57878540baefb4499d212f138a69fd583702e",
+      "expected": "715ab22989c4bd69e649c1d01fd57878540baefb4499d212f138a69fd583702e",
+      "passed": true
+    },
+    {
+      "name": "gate-wait_race_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "gate-wait_race_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "gate-wait_race_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "gate-wait_race_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "gate-wait_race_exit",
+      "actual": 3,
+      "expected": 3,
+      "passed": true
+    },
+    {
+      "name": "gate-wait_race_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-wait_race_zero_peer_connections",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-wait_race_zero_peer_events",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-wait_race_reason",
+      "actual": "freeUserWait",
+      "expected": "freeUserWait",
+      "passed": true
+    },
+    {
+      "name": "gate-login_fallback_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-login_fallback_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-login_fallback_settings_unchanged",
+      "actual": "b48325b6bf7cb98aa7868ff035b23d830b3697946d91431d54c9056d1fecb3f0",
+      "expected": "b48325b6bf7cb98aa7868ff035b23d830b3697946d91431d54c9056d1fecb3f0",
+      "passed": true
+    },
+    {
+      "name": "gate-login_fallback_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "gate-login_fallback_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "gate-login_fallback_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "gate-login_fallback_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "gate-login_fallback_exit",
+      "actual": 3,
+      "expected": 3,
+      "passed": true
+    },
+    {
+      "name": "gate-login_fallback_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-login_fallback_zero_peer_connections",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-login_fallback_zero_peer_events",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-login_fallback_reason",
+      "actual": "loginRequired",
+      "expected": "loginRequired",
+      "passed": true
+    },
+    {
+      "name": "gate-body_fallback_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-body_fallback_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-body_fallback_settings_unchanged",
+      "actual": "b48325b6bf7cb98aa7868ff035b23d830b3697946d91431d54c9056d1fecb3f0",
+      "expected": "b48325b6bf7cb98aa7868ff035b23d830b3697946d91431d54c9056d1fecb3f0",
+      "passed": true
+    },
+    {
+      "name": "gate-body_fallback_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "gate-body_fallback_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "gate-body_fallback_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "gate-body_fallback_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "gate-body_fallback_exit",
+      "actual": 3,
+      "expected": 3,
+      "passed": true
+    },
+    {
+      "name": "gate-body_fallback_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-body_fallback_zero_peer_connections",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-body_fallback_zero_peer_events",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-body_fallback_reason",
+      "actual": "captcha",
+      "expected": "captcha",
+      "passed": true
+    },
+    {
+      "name": "gate-header_fallback_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-header_fallback_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-header_fallback_settings_unchanged",
+      "actual": "b48325b6bf7cb98aa7868ff035b23d830b3697946d91431d54c9056d1fecb3f0",
+      "expected": "b48325b6bf7cb98aa7868ff035b23d830b3697946d91431d54c9056d1fecb3f0",
+      "passed": true
+    },
+    {
+      "name": "gate-header_fallback_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "gate-header_fallback_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "gate-header_fallback_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "gate-header_fallback_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "gate-header_fallback_exit",
+      "actual": 3,
+      "expected": 3,
+      "passed": true
+    },
+    {
+      "name": "gate-header_fallback_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-header_fallback_zero_peer_connections",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-header_fallback_zero_peer_events",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-header_fallback_reason",
+      "actual": "captcha",
+      "expected": "captcha",
+      "passed": true
+    },
+    {
+      "name": "gate-wait_fallback_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-wait_fallback_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-wait_fallback_settings_unchanged",
+      "actual": "b48325b6bf7cb98aa7868ff035b23d830b3697946d91431d54c9056d1fecb3f0",
+      "expected": "b48325b6bf7cb98aa7868ff035b23d830b3697946d91431d54c9056d1fecb3f0",
+      "passed": true
+    },
+    {
+      "name": "gate-wait_fallback_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "gate-wait_fallback_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "gate-wait_fallback_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "gate-wait_fallback_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "gate-wait_fallback_exit",
+      "actual": 3,
+      "expected": 3,
+      "passed": true
+    },
+    {
+      "name": "gate-wait_fallback_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-wait_fallback_zero_peer_connections",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-wait_fallback_zero_peer_events",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-wait_fallback_reason",
+      "actual": "freeUserWait",
+      "expected": "freeUserWait",
+      "passed": true
+    },
+    {
+      "name": "origin_wins_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "origin_wins_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "origin_wins_settings_unchanged",
+      "actual": "715ab22989c4bd69e649c1d01fd57878540baefb4499d212f138a69fd583702e",
+      "expected": "715ab22989c4bd69e649c1d01fd57878540baefb4499d212f138a69fd583702e",
+      "passed": true
+    },
+    {
+      "name": "origin_wins_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "origin_wins_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "origin_wins_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "origin_wins_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "origin_wins_identity_2",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "origin_wins_identity_3",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "origin_wins_identity_4",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "origin_wins_identity_5",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "origin_wins_identity_6",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "origin_wins_identity_7",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "origin_wins_identity_8",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "origin_wins_identity_9",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "origin_wins_identity_10",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "origin_wins_identity_11",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "origin_wins_identity_12",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "origin_wins_identity_13",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "origin_wins_identity_14",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "origin_wins_identity_15",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "origin_wins_identity_16",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "origin_wins_identity_17",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "origin_wins_identity_18",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "origin_wins_identity_19",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "origin_wins_exit",
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "origin_wins_files",
+      "actual": [
+        "example.zip"
+      ],
+      "expected": [
+        "example.zip"
+      ],
+      "passed": true
+    },
+    {
+      "name": "origin_wins_hash",
+      "actual": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "expected": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "passed": true
+    },
+    {
+      "name": "origin_wins_completed_once",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "origin_wins_winner",
+      "actual": "origin",
+      "expected": "origin",
+      "passed": true
+    },
+    {
+      "name": "origin_wins_real_peer_connected",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "origin_wins_gate_clear_before_peer",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "peer_wins_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "peer_wins_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "peer_wins_settings_unchanged",
+      "actual": "715ab22989c4bd69e649c1d01fd57878540baefb4499d212f138a69fd583702e",
+      "expected": "715ab22989c4bd69e649c1d01fd57878540baefb4499d212f138a69fd583702e",
+      "passed": true
+    },
+    {
+      "name": "peer_wins_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "peer_wins_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "peer_wins_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "peer_wins_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "peer_wins_identity_2",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "peer_wins_identity_3",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "peer_wins_identity_4",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "peer_wins_identity_5",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "peer_wins_identity_6",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "peer_wins_identity_7",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "peer_wins_identity_8",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "peer_wins_identity_9",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "peer_wins_exit",
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "peer_wins_files",
+      "actual": [
+        "example.zip"
+      ],
+      "expected": [
+        "example.zip"
+      ],
+      "passed": true
+    },
+    {
+      "name": "peer_wins_hash",
+      "actual": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "expected": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "passed": true
+    },
+    {
+      "name": "peer_wins_completed_once",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "peer_wins_winner",
+      "actual": "peer",
+      "expected": "peer",
+      "passed": true
+    },
+    {
+      "name": "peer_wins_real_peer_connected",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "peer_wins_gate_clear_before_peer",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "retry429_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "retry429_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "retry429_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "retry429_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "retry429_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "retry429_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "retry429_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "retry429_identity_2",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "retry429_identity_3",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "retry429_exit",
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "retry429_files",
+      "actual": [
+        "example.zip"
+      ],
+      "expected": [
+        "example.zip"
+      ],
+      "passed": true
+    },
+    {
+      "name": "retry429_hash",
+      "actual": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "expected": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "passed": true
+    },
+    {
+      "name": "retry429_completed_once",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "retry429_attempts",
+      "actual": 3,
+      "expected": 3,
+      "passed": true
+    },
+    {
+      "name": "retry503_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "retry503_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "retry503_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "retry503_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "retry503_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "retry503_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "retry503_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "retry503_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "retry503_attempts",
+      "actual": 3,
+      "expected": 3,
+      "passed": true
+    },
+    {
+      "name": "retry503_bounded",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "cancel_body_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "cancel_body_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "cancel_body_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "cancel_body_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "cancel_body_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "cancel_body_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "cancel_body_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "cancel_body_identity_2",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "cancel_body_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "cancel_body_nonzero",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "cancel_body_prompt",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "cancel_backoff_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "cancel_backoff_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "cancel_backoff_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "cancel_backoff_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "cancel_backoff_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "cancel_backoff_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "cancel_backoff_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "cancel_backoff_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "cancel_backoff_nonzero",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "cancel_backoff_prompt",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "cancel_race_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "cancel_race_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "cancel_race_settings_unchanged",
+      "actual": "715ab22989c4bd69e649c1d01fd57878540baefb4499d212f138a69fd583702e",
+      "expected": "715ab22989c4bd69e649c1d01fd57878540baefb4499d212f138a69fd583702e",
+      "passed": true
+    },
+    {
+      "name": "cancel_race_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "cancel_race_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "cancel_race_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "cancel_race_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "cancel_race_identity_2",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "cancel_race_identity_3",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "cancel_race_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "cancel_race_nonzero",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "cancel_race_prompt",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "cancel_race_real_peer_connected",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "cancel_race_gate_clear_before_peer",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "unknown_name_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "unknown_name_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "unknown_name_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "unknown_name_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "unknown_name_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "unknown_name_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "unknown_name_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "unknown_name_identity_2",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "unknown_name_identity_3",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "unknown_name_exit",
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "unknown_name_files",
+      "actual": [
+        "example.zip"
+      ],
+      "expected": [
+        "example.zip"
+      ],
+      "passed": true
+    },
+    {
+      "name": "unknown_name_hash",
+      "actual": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "expected": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "passed": true
+    },
+    {
+      "name": "unknown_name_completed_once",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "unsafe_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "unsafe_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "unsafe_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "unsafe_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "unsafe_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "unsafe_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "unsafe_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "unsafe_identity_2",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "unsafe_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "unsafe_failed",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "unknown-empty_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "unknown-empty_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "unknown-empty_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "unknown-empty_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "unknown-empty_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "unknown-empty_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "unknown-empty_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "unknown-empty_identity_2",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "unknown-empty_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "unknown-empty_failed",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "bad_hash_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "bad_hash_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "bad_hash_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "bad_hash_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "bad_hash_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "bad_hash_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "bad_hash_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "bad_hash_identity_2",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "bad_hash_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "bad_hash_failed",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "corrupt_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "corrupt_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "corrupt_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "corrupt_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "corrupt_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "corrupt_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "corrupt_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "corrupt_identity_2",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "corrupt_identity_3",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "corrupt_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "corrupt_failed",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "budget_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "budget_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "budget_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "budget_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "budget_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "budget_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "budget_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "budget_identity_2",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "budget_identity_3",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "budget_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "budget_failed",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "dry_run_invalid_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "dry_run_invalid_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "dry_run_invalid_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "dry_run_invalid_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "dry_run_invalid_failed",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "dry_run_invalid_no_network",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "dry_run_invalid_no_writes",
+      "actual": {
+        "guide.json": "a7f419c15ec85726cedca0406ee54a8c5f16cf9cfc427278bd48e9c5dd060d86",
+        "mods": "directory",
+        "scratch": "directory",
+        "settings": "directory",
+        "settings/settings.json": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca"
+      },
+      "expected": {
+        "guide.json": "a7f419c15ec85726cedca0406ee54a8c5f16cf9cfc427278bd48e9c5dd060d86",
+        "mods": "directory",
+        "scratch": "directory",
+        "settings": "directory",
+        "settings/settings.json": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca"
+      },
+      "passed": true
+    },
+    {
+      "name": "dry_run_missing_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "dry_run_missing_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "dry_run_missing_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "dry_run_missing_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "dry_run_missing_failed",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "dry_run_missing_no_network",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "dry_run_missing_no_writes",
+      "actual": {
+        "guide.json": "a7f419c15ec85726cedca0406ee54a8c5f16cf9cfc427278bd48e9c5dd060d86",
+        "mods": "directory",
+        "scratch": "directory",
+        "settings": "directory",
+        "settings/settings.json": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca"
+      },
+      "expected": {
+        "guide.json": "a7f419c15ec85726cedca0406ee54a8c5f16cf9cfc427278bd48e9c5dd060d86",
+        "mods": "directory",
+        "scratch": "directory",
+        "settings": "directory",
+        "settings/settings.json": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca"
+      },
+      "passed": true
+    },
+    {
+      "name": "dry_run_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "dry_run_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "dry_run_settings_unchanged",
+      "actual": "715ab22989c4bd69e649c1d01fd57878540baefb4499d212f138a69fd583702e",
+      "expected": "715ab22989c4bd69e649c1d01fd57878540baefb4499d212f138a69fd583702e",
+      "passed": true
+    },
+    {
+      "name": "dry_run_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "dry_run_exit",
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "dry_run_case_unchanged",
+      "actual": {
+        "guide.json": "a7f419c15ec85726cedca0406ee54a8c5f16cf9cfc427278bd48e9c5dd060d86",
+        "mods": "directory",
+        "scratch": "directory",
+        "settings": "directory",
+        "settings/settings.json": "715ab22989c4bd69e649c1d01fd57878540baefb4499d212f138a69fd583702e"
+      },
+      "expected": {
+        "guide.json": "a7f419c15ec85726cedca0406ee54a8c5f16cf9cfc427278bd48e9c5dd060d86",
+        "mods": "directory",
+        "scratch": "directory",
+        "settings": "directory",
+        "settings/settings.json": "715ab22989c4bd69e649c1d01fd57878540baefb4499d212f138a69fd583702e"
+      },
+      "passed": true
+    },
+    {
+      "name": "dry_run_environment_unchanged",
+      "actual": {
+        "HOME": {},
+        "XDG_CONFIG_HOME": {
+          "ModSync": "directory",
+          "ModSync/peer-share": "directory",
+          "ModSync/peer-share/.modsync-share-oNHFAG": "directory",
+          "ModSync/peer-share/.modsync-share-oNHFAG/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-oNHFAG/example.zip": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+          "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "XDG_CACHE_HOME": {
+          "com.rqbit.dht": "directory"
+        },
+        "XDG_DATA_HOME": {}
+      },
+      "expected": {
+        "HOME": {},
+        "XDG_CONFIG_HOME": {
+          "ModSync": "directory",
+          "ModSync/peer-share": "directory",
+          "ModSync/peer-share/.modsync-share-oNHFAG": "directory",
+          "ModSync/peer-share/.modsync-share-oNHFAG/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-oNHFAG/example.zip": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+          "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "XDG_CACHE_HOME": {
+          "com.rqbit.dht": "directory"
+        },
+        "XDG_DATA_HOME": {}
+      },
+      "passed": true
+    },
+    {
+      "name": "dry_run_no_network",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "dry_run_zero_peer_connections",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "dry_run_zero_peer_events",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "api_no_explicit_key_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "api_no_explicit_key_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "api_no_explicit_key_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "api_no_explicit_key_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "api_override_requires_explicit",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "api_override_no_requests",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "api_no_explicit_key_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "api_explicit_key_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "api_explicit_key_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "api_explicit_key_settings_unchanged",
+      "actual": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "expected": "554a14e1e97f2f07e103c36f3954f1bd0898c6e58603dc8c7d3b8921e3da72ca",
+      "passed": true
+    },
+    {
+      "name": "api_explicit_key_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "api_explicit_key_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "api_explicit_key_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "api_explicit_key_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "api_explicit_key_identity_2",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "api_explicit_key_identity_3",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "api_explicit_key_exit",
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "api_explicit_key_files",
+      "actual": [
+        "example.zip"
+      ],
+      "expected": [
+        "example.zip"
+      ],
+      "passed": true
+    },
+    {
+      "name": "api_explicit_key_hash",
+      "actual": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "expected": "6a54ddbd0f394090c7df002a97a24e699eb3af00e840647bee8e87308eae0f76",
+      "passed": true
+    },
+    {
+      "name": "api_explicit_key_completed_once",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "api_explicit_no_secrets_to_archive",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "source_frozen",
+      "actual": {
+        "src/acquisition.rs": "fea993566281f9a84fa5b8a7d4f7c72f5f413c0d84480d35f9ce5df90646cad8",
+        "src/archive.rs": "c8b9e88416a8a0607c8246f787f791ab562ffe5553019e54362c478acfcd67c2",
+        "src/archive_generation/merge.rs": "be352a71eb5cc125148bfbd27275248c89f45af28f0a9d04910a9714a3487a1e",
+        "src/archive_generation.rs": "ca62b3c22e105108168c83b076b8c7d3fc64d1113373f47c9cf0cffd8f52660f",
+        "src/conflicts.rs": "c6f5dff2d21d2e4151cb53d3656e5b892e9d59e1f337ce9deaeba4671447d9a6",
+        "src/deployment.rs": "fab3726d33ebbac72878322856f3c70fe106a4ae29a8a70501b36c73280b339e",
+        "src/direct_markdown.rs": "70bf715188348e1700936adad2c304156846bd20b3fb3896f070983fb5b00521",
+        "src/download.rs": "22a684d821af9b5d3b9f487ad7d45c81bf808a339efb1dd02d166c0197e7620e",
+        "src/download_hosts.rs": "2f6197607eaeb07e8eeaeb5050778701da31e9e6abd9891b60b204b94a4cee70",
+        "src/download_orchestrator.rs": "916e3b4a0ee6e3fc68e132369f622b3c7623bb01c2558a7c7a292bbfe379040a",
+        "src/download_plan.rs": "52edd1844819e65bef31c11d4c065123810da98310b1bed75405695e73222ff0",
+        "src/download_queue.rs": "3f91eefa75b26aa46153b1e9948bbb05237180af89fe79fec923d3f04eeb8467",
+        "src/draft.rs": "86525e213956a05155b3b9c7353935ad1cb9202f7980bce5454dfddc39ba1703",
+        "src/editor.rs": "a769237d78447abe2185ff23e78b3776ae7b701784bec7df7a915f04b7fd4a9d",
+        "src/engine.rs": "ed59ffaccf86a29d71ac8426fc5e61b7447304720acf3ab9886f87b726779ef3",
+        "src/fomod/xml.rs": "ddc98afd42ccb71cf0d8d249bd3ec673b86a2e86a817d94e35913ce87b43546c",
+        "src/fomod.rs": "e695d57aab122953e951fa85ada449312af023d3260e4b9f9c42f436d7d20915",
+        "src/fomod_ui.rs": "fcb65a5d77816bcf6e5e4407723fec48d546a5aa74228b48953250662f42799c",
+        "src/game.rs": "7074ba4dd69436bae90a86f019496a7d4434900a55979e7d193173b4b850ae0e",
+        "src/install_progress.rs": "415720600e897cf79c11e8f5c784fe17da06831f01d243522e31413b3a79f163",
+        "src/lib.rs": "2e1931fcff2da668d0ea058ff067c1af32ef7e2217348ad3227293ca064b2c40",
+        "src/logging.rs": "58542a9bfd7b3fbbb90f137e31917d2369b5ded812cf269e4ecfaaf1446bef96",
+        "src/main.rs": "2a465fc4571aa8b104c86314164a77f076ebe54f79a3afb3dcc11189e6838200",
+        "src/markdown/extract.rs": "148e999ab50fe36aeda8c34c276e6a3e9ea23513ac46542b17ce4f0a07547614",
+        "src/markdown.rs": "6f8dd4ba1d144b5a87b2b950bab6c96b367a300b073e549c05ad2b944d86af97",
+        "src/merge.rs": "9274989f4b9978b58ac06204a77ce92b36bbc3e4c15f494b68110b38262f719d",
+        "src/model.rs": "3a91f51099bb64c7fadda3e4dfb49608c6e03b3725046b029288cfed958c5475",
+        "src/p2p.rs": "b2c3f7a2029a9173529a7603cc48200a7050755814d75bccd6e2c0ef857a78d5",
+        "src/patcher.rs": "50ebe6ff192e6137facecfd22fbd05d02e985af716a31bde5e7f098a34f2b1a1",
+        "src/paths.rs": "a5c719d40ec7c14770ec4d4a0f367a27fdd0d316db20bf3da25f32a8b09231c3",
+        "src/peer_acquire.rs": "0560a6d74a8e9e88270e49f4297fd8bf065a5f259386c56b3d547afb1cd95251",
+        "src/phase.rs": "de3a6a526898c42fc8dad9a48565d7943c20012a6e9cb8d9df176132a4d905a3",
+        "src/profile_cli.rs": "4f60ec7a28e133b2cf2f4b273964768956369fe34e08490964b03e22bd534e18",
+        "src/profiles.rs": "abe3fda234d3b14e272abc874184303f89b5c7765714c30907d87fc2c56f8623",
+        "src/protocol.rs": "13877fc8bb295fb8787e3a9e11bcbca9d998cf7b7dd8209cda5f5144511f0faf",
+        "src/protocol_registration.rs": "3a240dffb690af41379a07e372889979ee2b40aa75b21b2a7ba2071db6c1bf9c",
+        "src/recovery.rs": "48407a4e8216ae5497106bc58219a75d0e7403015b1c57a2b1c51d9e508ee00b",
+        "src/reference_paths.rs": "1666e78a9c8ca8114d9673c4878854cf8f4e831a7e2ce928b4e9c44cb58abb2e",
+        "src/resources.rs": "678adda2640a7f8abb61319c311f44956d51a19a654a8546aaf4ca8689501433",
+        "src/selection.rs": "777cef0bde01e91df76fd5c498c44ce31d4018ed59dbf2bb800761f64d1fede2",
+        "src/single_instance.rs": "fc52211eac20d32e034f541c91058bbbb406fb26a43b4d9e2f085bb8f108e34f",
+        "src/telemetry.rs": "01283b3865d572eeda7b5de5901dc0f209193e5d5bd8185972be21eb44355ece",
+        "src/ui/completion_pages.rs": "7e122bc441ea74bf8bf5e48d9cb1a6cde68a0817e0c926c0179bc8646d4e608b",
+        "src/ui/installing_page.rs": "51af2238e2d6d4a52f0e787dd656e30a5356408d227797237b3ceafd2c2279dd",
+        "src/ui/validation_page.rs": "9f6f25a3c20e241a4a03bb8cecb0756c81b923501788e14e800cbc1df93404a5",
+        "src/ui.rs": "1ef92ad692de68cf7472b74e8178f9a5e834134cf28d09793b3360fe7f6a988e",
+        "src/updates.rs": "64d3db98a47ba56c0d3c1af9692adcf5772cf3be5e19de123fb1a9deb4bd6930",
+        "src/validation/presentation.rs": "3d28c2acbf3883178bf287a4c452aa61974284dfde449957526cdff7a6cfd034",
+        "src/validation.rs": "bbd556c532581626927930382bc624f11395857cf0fe34af37ac2bb382ad4400",
+        "src/wizard.rs": "a77e39ac3b1686f3e750365276d900c88c97d3b848332b12aa079d6bea4c29e6",
+        "src/xml.rs": "d15737f2909f85a969c098843e93fd57b607b84228c46018c8e12aaa7f6e4000"
+      },
+      "expected": {
+        "src/acquisition.rs": "fea993566281f9a84fa5b8a7d4f7c72f5f413c0d84480d35f9ce5df90646cad8",
+        "src/archive.rs": "c8b9e88416a8a0607c8246f787f791ab562ffe5553019e54362c478acfcd67c2",
+        "src/archive_generation/merge.rs": "be352a71eb5cc125148bfbd27275248c89f45af28f0a9d04910a9714a3487a1e",
+        "src/archive_generation.rs": "ca62b3c22e105108168c83b076b8c7d3fc64d1113373f47c9cf0cffd8f52660f",
+        "src/conflicts.rs": "c6f5dff2d21d2e4151cb53d3656e5b892e9d59e1f337ce9deaeba4671447d9a6",
+        "src/deployment.rs": "fab3726d33ebbac72878322856f3c70fe106a4ae29a8a70501b36c73280b339e",
+        "src/direct_markdown.rs": "70bf715188348e1700936adad2c304156846bd20b3fb3896f070983fb5b00521",
+        "src/download.rs": "22a684d821af9b5d3b9f487ad7d45c81bf808a339efb1dd02d166c0197e7620e",
+        "src/download_hosts.rs": "2f6197607eaeb07e8eeaeb5050778701da31e9e6abd9891b60b204b94a4cee70",
+        "src/download_orchestrator.rs": "916e3b4a0ee6e3fc68e132369f622b3c7623bb01c2558a7c7a292bbfe379040a",
+        "src/download_plan.rs": "52edd1844819e65bef31c11d4c065123810da98310b1bed75405695e73222ff0",
+        "src/download_queue.rs": "3f91eefa75b26aa46153b1e9948bbb05237180af89fe79fec923d3f04eeb8467",
+        "src/draft.rs": "86525e213956a05155b3b9c7353935ad1cb9202f7980bce5454dfddc39ba1703",
+        "src/editor.rs": "a769237d78447abe2185ff23e78b3776ae7b701784bec7df7a915f04b7fd4a9d",
+        "src/engine.rs": "ed59ffaccf86a29d71ac8426fc5e61b7447304720acf3ab9886f87b726779ef3",
+        "src/fomod/xml.rs": "ddc98afd42ccb71cf0d8d249bd3ec673b86a2e86a817d94e35913ce87b43546c",
+        "src/fomod.rs": "e695d57aab122953e951fa85ada449312af023d3260e4b9f9c42f436d7d20915",
+        "src/fomod_ui.rs": "fcb65a5d77816bcf6e5e4407723fec48d546a5aa74228b48953250662f42799c",
+        "src/game.rs": "7074ba4dd69436bae90a86f019496a7d4434900a55979e7d193173b4b850ae0e",
+        "src/install_progress.rs": "415720600e897cf79c11e8f5c784fe17da06831f01d243522e31413b3a79f163",
+        "src/lib.rs": "2e1931fcff2da668d0ea058ff067c1af32ef7e2217348ad3227293ca064b2c40",
+        "src/logging.rs": "58542a9bfd7b3fbbb90f137e31917d2369b5ded812cf269e4ecfaaf1446bef96",
+        "src/main.rs": "2a465fc4571aa8b104c86314164a77f076ebe54f79a3afb3dcc11189e6838200",
+        "src/markdown/extract.rs": "148e999ab50fe36aeda8c34c276e6a3e9ea23513ac46542b17ce4f0a07547614",
+        "src/markdown.rs": "6f8dd4ba1d144b5a87b2b950bab6c96b367a300b073e549c05ad2b944d86af97",
+        "src/merge.rs": "9274989f4b9978b58ac06204a77ce92b36bbc3e4c15f494b68110b38262f719d",
+        "src/model.rs": "3a91f51099bb64c7fadda3e4dfb49608c6e03b3725046b029288cfed958c5475",
+        "src/p2p.rs": "b2c3f7a2029a9173529a7603cc48200a7050755814d75bccd6e2c0ef857a78d5",
+        "src/patcher.rs": "50ebe6ff192e6137facecfd22fbd05d02e985af716a31bde5e7f098a34f2b1a1",
+        "src/paths.rs": "a5c719d40ec7c14770ec4d4a0f367a27fdd0d316db20bf3da25f32a8b09231c3",
+        "src/peer_acquire.rs": "0560a6d74a8e9e88270e49f4297fd8bf065a5f259386c56b3d547afb1cd95251",
+        "src/phase.rs": "de3a6a526898c42fc8dad9a48565d7943c20012a6e9cb8d9df176132a4d905a3",
+        "src/profile_cli.rs": "4f60ec7a28e133b2cf2f4b273964768956369fe34e08490964b03e22bd534e18",
+        "src/profiles.rs": "abe3fda234d3b14e272abc874184303f89b5c7765714c30907d87fc2c56f8623",
+        "src/protocol.rs": "13877fc8bb295fb8787e3a9e11bcbca9d998cf7b7dd8209cda5f5144511f0faf",
+        "src/protocol_registration.rs": "3a240dffb690af41379a07e372889979ee2b40aa75b21b2a7ba2071db6c1bf9c",
+        "src/recovery.rs": "48407a4e8216ae5497106bc58219a75d0e7403015b1c57a2b1c51d9e508ee00b",
+        "src/reference_paths.rs": "1666e78a9c8ca8114d9673c4878854cf8f4e831a7e2ce928b4e9c44cb58abb2e",
+        "src/resources.rs": "678adda2640a7f8abb61319c311f44956d51a19a654a8546aaf4ca8689501433",
+        "src/selection.rs": "777cef0bde01e91df76fd5c498c44ce31d4018ed59dbf2bb800761f64d1fede2",
+        "src/single_instance.rs": "fc52211eac20d32e034f541c91058bbbb406fb26a43b4d9e2f085bb8f108e34f",
+        "src/telemetry.rs": "01283b3865d572eeda7b5de5901dc0f209193e5d5bd8185972be21eb44355ece",
+        "src/ui/completion_pages.rs": "7e122bc441ea74bf8bf5e48d9cb1a6cde68a0817e0c926c0179bc8646d4e608b",
+        "src/ui/installing_page.rs": "51af2238e2d6d4a52f0e787dd656e30a5356408d227797237b3ceafd2c2279dd",
+        "src/ui/validation_page.rs": "9f6f25a3c20e241a4a03bb8cecb0756c81b923501788e14e800cbc1df93404a5",
+        "src/ui.rs": "1ef92ad692de68cf7472b74e8178f9a5e834134cf28d09793b3360fe7f6a988e",
+        "src/updates.rs": "64d3db98a47ba56c0d3c1af9692adcf5772cf3be5e19de123fb1a9deb4bd6930",
+        "src/validation/presentation.rs": "3d28c2acbf3883178bf287a4c452aa61974284dfde449957526cdff7a6cfd034",
+        "src/validation.rs": "bbd556c532581626927930382bc624f11395857cf0fe34af37ac2bb382ad4400",
+        "src/wizard.rs": "a77e39ac3b1686f3e750365276d900c88c97d3b848332b12aa079d6bea4c29e6",
+        "src/xml.rs": "d15737f2909f85a969c098843e93fd57b607b84228c46018c8e12aaa7f6e4000"
+      },
+      "passed": true
+    },
+    {
+      "name": "binary_frozen",
+      "actual": "e40e218304a3b1070fffa516ba60d74dd3128abb03798485316976e18732d82f",
+      "expected": "e40e218304a3b1070fffa516ba60d74dd3128abb03798485316976e18732d82f",
+      "passed": true
+    },
+    {
+      "name": "children_reaped",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    }
+  ],
+  "passed": 553,
+  "total": 553,
+  "error": null,
+  "children": [
+    {
+      "pid": 1363272,
+      "exit": 0
+    },
+    {
+      "pid": 1363490,
+      "exit": 1
+    },
+    {
+      "pid": 1363556,
+      "exit": 1
+    },
+    {
+      "pid": 1363623,
+      "exit": 1
+    },
+    {
+      "pid": 1363633,
+      "exit": 1
+    },
+    {
+      "pid": 1363646,
+      "exit": 0
+    },
+    {
+      "pid": 1363734,
+      "exit": 0
+    },
+    {
+      "pid": 1363804,
+      "exit": 0
+    },
+    {
+      "pid": 1363835,
+      "exit": 0
+    },
+    {
+      "pid": 1363872,
+      "exit": 1
+    },
+    {
+      "pid": 1363890,
+      "exit": 1
+    },
+    {
+      "pid": 1363944,
+      "exit": 1
+    },
+    {
+      "pid": 1364035,
+      "exit": 1
+    },
+    {
+      "pid": 1364107,
+      "exit": 0
+    },
+    {
+      "pid": 1364226,
+      "exit": 0
+    },
+    {
+      "pid": 1364319,
+      "exit": 1
+    },
+    {
+      "pid": 1364331,
+      "exit": 1
+    },
+    {
+      "pid": 1364357,
+      "exit": 1
+    },
+    {
+      "pid": 1364384,
+      "exit": 1
+    },
+    {
+      "pid": 1364439,
+      "exit": 1
+    },
+    {
+      "pid": 1364503,
+      "exit": 1
+    },
+    {
+      "pid": 1364561,
+      "exit": 0
+    },
+    {
+      "pid": 1364687,
+      "exit": 3
+    },
+    {
+      "pid": 1364764,
+      "exit": 3
+    },
+    {
+      "pid": 1364821,
+      "exit": 3
+    },
+    {
+      "pid": 1364870,
+      "exit": 3
+    },
+    {
+      "pid": 1364927,
+      "exit": 3
+    },
+    {
+      "pid": 1364958,
+      "exit": 3
+    },
+    {
+      "pid": 1365013,
+      "exit": 3
+    },
+    {
+      "pid": 1365076,
+      "exit": 3
+    },
+    {
+      "pid": 1365125,
+      "exit": 0
+    },
+    {
+      "pid": 1365941,
+      "exit": 0
+    },
+    {
+      "pid": 1366008,
+      "exit": 0
+    },
+    {
+      "pid": 1366034,
+      "exit": 1
+    },
+    {
+      "pid": 1366087,
+      "exit": 130
+    },
+    {
+      "pid": 1366127,
+      "exit": 130
+    },
+    {
+      "pid": 1366364,
+      "exit": 130
+    },
+    {
+      "pid": 1366970,
+      "exit": 0
+    },
+    {
+      "pid": 1366982,
+      "exit": 1
+    },
+    {
+      "pid": 1366993,
+      "exit": 1
+    },
+    {
+      "pid": 1367024,
+      "exit": 1
+    },
+    {
+      "pid": 1367068,
+      "exit": 1
+    },
+    {
+      "pid": 1367090,
+      "exit": 1
+    },
+    {
+      "pid": 1367147,
+      "exit": 1
+    },
+    {
+      "pid": 1367153,
+      "exit": 1
+    },
+    {
+      "pid": 1367158,
+      "exit": 0
+    },
+    {
+      "pid": 1367161,
+      "exit": 1
+    },
+    {
+      "pid": 1367163,
+      "exit": 0
+    }
+  ],
+  "timeline": [
+    {
+      "kind": "request",
+      "time": 662625.208439802,
+      "server": "nonloopback",
+      "path": "/archive",
+      "headers": {
+        "Accept-Encoding": "identity",
+        "Host": "192.0.2.1:37723",
+        "User-Agent": "Python-urllib/3.14",
+        "Connection": "close"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662625.215104268,
+      "server": "nonloopback",
+      "path": "/archive"
+    },
+    {
+      "kind": "request",
+      "time": 662625.227680777,
+      "server": "nonloopback",
+      "path": "/archive",
+      "headers": {
+        "Accept-Encoding": "identity",
+        "Host": "public.example:37723",
+        "User-Agent": "Python-urllib/3.14",
+        "Connection": "close"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662625.230568671,
+      "server": "nonloopback",
+      "path": "/archive"
+    },
+    {
+      "kind": "request",
+      "time": 662625.244859838,
+      "server": "nonloopback",
+      "path": "/archive",
+      "headers": {
+        "Accept-Encoding": "identity",
+        "Host": "localhost.evil:37723",
+        "User-Agent": "Python-urllib/3.14",
+        "Connection": "close"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662625.261211618,
+      "server": "nonloopback",
+      "path": "/archive"
+    },
+    {
+      "kind": "request",
+      "time": 662625.2927537,
+      "server": "http",
+      "path": "/archive",
+      "headers": {
+        "Accept-Encoding": "identity",
+        "Host": "127.0.0.1:43229",
+        "User-Agent": "Python-urllib/3.14",
+        "Connection": "close"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662625.293876006,
+      "server": "http",
+      "path": "/archive"
+    },
+    {
+      "kind": "request",
+      "time": 662625.695620842,
+      "server": "loopback",
+      "path": "/archive",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662625.697221385,
+      "server": "loopback",
+      "path": "/archive"
+    },
+    {
+      "kind": "request",
+      "time": 662625.926611295,
+      "server": "ipv6",
+      "path": "/archive",
+      "headers": {
+        "accept": "*/*",
+        "host": "[::1]:44103"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662625.928863067,
+      "server": "ipv6",
+      "path": "/archive"
+    },
+    {
+      "kind": "request",
+      "time": 662626.143158489,
+      "server": "loopback",
+      "path": "/archive",
+      "headers": {
+        "accept": "*/*",
+        "host": "localhost:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662626.145096952,
+      "server": "loopback",
+      "path": "/archive"
+    },
+    {
+      "kind": "request",
+      "time": 662626.439091999,
+      "server": "loopback",
+      "path": "/archive",
+      "headers": {
+        "accept": "*/*",
+        "host": "localhost:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662626.443552221,
+      "server": "loopback",
+      "path": "/archive"
+    },
+    {
+      "kind": "request",
+      "time": 662627.354452529,
+      "server": "loopback",
+      "path": "/redirect",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662627.354583046,
+      "server": "loopback",
+      "path": "/redirect"
+    },
+    {
+      "kind": "request",
+      "time": 662627.359570139,
+      "server": "loopback",
+      "path": "/archive",
+      "headers": {
+        "accept": "*/*",
+        "referer": "https://127.0.0.1:42005/redirect",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662627.360537838,
+      "server": "loopback",
+      "path": "/archive"
+    },
+    {
+      "kind": "request",
+      "time": 662627.591333497,
+      "server": "loopback",
+      "path": "/chain",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662627.591456235,
+      "server": "loopback",
+      "path": "/chain"
+    },
+    {
+      "kind": "request",
+      "time": 662627.594933915,
+      "server": "loopback",
+      "path": "/redirect",
+      "headers": {
+        "accept": "*/*",
+        "referer": "https://127.0.0.1:42005/chain",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662627.595441371,
+      "server": "loopback",
+      "path": "/redirect"
+    },
+    {
+      "kind": "request",
+      "time": 662627.602943758,
+      "server": "loopback",
+      "path": "/archive",
+      "headers": {
+        "accept": "*/*",
+        "referer": "https://127.0.0.1:42005/redirect",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662627.611490352,
+      "server": "loopback",
+      "path": "/archive"
+    },
+    {
+      "kind": "request",
+      "time": 662627.850097873,
+      "server": "loopback",
+      "path": "/downgrade",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662627.850179544,
+      "server": "loopback",
+      "path": "/downgrade"
+    },
+    {
+      "kind": "request",
+      "time": 662627.980288045,
+      "server": "loopback",
+      "path": "/escape",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662627.980383932,
+      "server": "loopback",
+      "path": "/escape"
+    },
+    {
+      "kind": "request",
+      "time": 662628.127320313,
+      "server": "loopback",
+      "path": "/deceptive",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662628.127423161,
+      "server": "loopback",
+      "path": "/deceptive"
+    },
+    {
+      "kind": "request",
+      "time": 662628.272168516,
+      "server": "loopback",
+      "path": "/loop",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662628.272274715,
+      "server": "loopback",
+      "path": "/loop"
+    },
+    {
+      "kind": "request",
+      "time": 662628.277614375,
+      "server": "loopback",
+      "path": "/loop",
+      "headers": {
+        "accept": "*/*",
+        "referer": "https://127.0.0.1:42005/loop",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662628.277732839,
+      "server": "loopback",
+      "path": "/loop"
+    },
+    {
+      "kind": "request",
+      "time": 662628.283273992,
+      "server": "loopback",
+      "path": "/loop",
+      "headers": {
+        "accept": "*/*",
+        "referer": "https://127.0.0.1:42005/loop",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662628.283406144,
+      "server": "loopback",
+      "path": "/loop"
+    },
+    {
+      "kind": "request",
+      "time": 662628.298326797,
+      "server": "loopback",
+      "path": "/loop",
+      "headers": {
+        "accept": "*/*",
+        "referer": "https://127.0.0.1:42005/loop",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662628.300159133,
+      "server": "loopback",
+      "path": "/loop"
+    },
+    {
+      "kind": "request",
+      "time": 662628.310945044,
+      "server": "loopback",
+      "path": "/loop",
+      "headers": {
+        "accept": "*/*",
+        "referer": "https://127.0.0.1:42005/loop",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662628.311075763,
+      "server": "loopback",
+      "path": "/loop"
+    },
+    {
+      "kind": "request",
+      "time": 662628.320400052,
+      "server": "loopback",
+      "path": "/loop",
+      "headers": {
+        "accept": "*/*",
+        "referer": "https://127.0.0.1:42005/loop",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662628.320516115,
+      "server": "loopback",
+      "path": "/loop"
+    },
+    {
+      "kind": "request",
+      "time": 662628.327318993,
+      "server": "loopback",
+      "path": "/loop",
+      "headers": {
+        "accept": "*/*",
+        "referer": "https://127.0.0.1:42005/loop",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662628.327437053,
+      "server": "loopback",
+      "path": "/loop"
+    },
+    {
+      "kind": "request",
+      "time": 662628.331141107,
+      "server": "loopback",
+      "path": "/loop",
+      "headers": {
+        "accept": "*/*",
+        "referer": "https://127.0.0.1:42005/loop",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662628.331264955,
+      "server": "loopback",
+      "path": "/loop"
+    },
+    {
+      "kind": "request",
+      "time": 662628.336547947,
+      "server": "loopback",
+      "path": "/loop",
+      "headers": {
+        "accept": "*/*",
+        "referer": "https://127.0.0.1:42005/loop",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662628.337322336,
+      "server": "loopback",
+      "path": "/loop"
+    },
+    {
+      "kind": "request",
+      "time": 662628.339855437,
+      "server": "loopback",
+      "path": "/loop",
+      "headers": {
+        "accept": "*/*",
+        "referer": "https://127.0.0.1:42005/loop",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662628.339946376,
+      "server": "loopback",
+      "path": "/loop"
+    },
+    {
+      "kind": "request",
+      "time": 662628.609013024,
+      "server": "loopback",
+      "path": "/credentials-redirect",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662628.609123952,
+      "server": "loopback",
+      "path": "/credentials-redirect"
+    },
+    {
+      "kind": "https-proxy-connect",
+      "time": 662628.74190655,
+      "target": "127.0.0.1:42005"
+    },
+    {
+      "kind": "request",
+      "time": 662628.930566191,
+      "server": "loopback",
+      "path": "/archive",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662628.932207456,
+      "server": "loopback",
+      "path": "/archive"
+    },
+    {
+      "kind": "request",
+      "time": 662629.316944648,
+      "server": "loopback",
+      "path": "/gate-login",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662629.317081502,
+      "server": "loopback",
+      "path": "/gate-login"
+    },
+    {
+      "kind": "request",
+      "time": 662629.474856111,
+      "server": "loopback",
+      "path": "/gate-body",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662629.474949776,
+      "server": "loopback",
+      "path": "/gate-body"
+    },
+    {
+      "kind": "request",
+      "time": 662629.623868418,
+      "server": "loopback",
+      "path": "/gate-header",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662629.623977371,
+      "server": "loopback",
+      "path": "/gate-header"
+    },
+    {
+      "kind": "request",
+      "time": 662629.795043396,
+      "server": "loopback",
+      "path": "/gate-wait",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662629.795196451,
+      "server": "loopback",
+      "path": "/gate-wait"
+    },
+    {
+      "kind": "request",
+      "time": 662629.935308154,
+      "server": "loopback",
+      "path": "/gate-login",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662629.935692682,
+      "server": "loopback",
+      "path": "/gate-login"
+    },
+    {
+      "kind": "request",
+      "time": 662630.167959241,
+      "server": "loopback",
+      "path": "/gate-body",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662630.168066787,
+      "server": "loopback",
+      "path": "/gate-body"
+    },
+    {
+      "kind": "request",
+      "time": 662630.357251437,
+      "server": "loopback",
+      "path": "/gate-header",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662630.357386453,
+      "server": "loopback",
+      "path": "/gate-header"
+    },
+    {
+      "kind": "request",
+      "time": 662630.522340503,
+      "server": "loopback",
+      "path": "/gate-wait",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662630.522462584,
+      "server": "loopback",
+      "path": "/gate-wait"
+    },
+    {
+      "kind": "request",
+      "time": 662630.715660031,
+      "server": "loopback",
+      "path": "/origin-win",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662631.913175281,
+      "server": "loopback",
+      "path": "/origin-win"
+    },
+    {
+      "kind": "request",
+      "time": 662633.132329266,
+      "server": "loopback",
+      "path": "/peer-win",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "request",
+      "time": 662634.962927208,
+      "server": "loopback",
+      "path": "/retry429",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662634.963041331,
+      "server": "loopback",
+      "path": "/retry429"
+    },
+    {
+      "kind": "request",
+      "time": 662634.967176209,
+      "server": "loopback",
+      "path": "/retry429",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662634.967285878,
+      "server": "loopback",
+      "path": "/retry429"
+    },
+    {
+      "kind": "request",
+      "time": 662634.971983966,
+      "server": "loopback",
+      "path": "/retry429",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662634.973370387,
+      "server": "loopback",
+      "path": "/retry429"
+    },
+    {
+      "kind": "body-disconnected",
+      "time": 662635.060968577,
+      "server": "loopback",
+      "path": "/peer-win"
+    },
+    {
+      "kind": "request",
+      "time": 662635.145629809,
+      "server": "loopback",
+      "path": "/retry503",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662635.145724186,
+      "server": "loopback",
+      "path": "/retry503"
+    },
+    {
+      "kind": "request",
+      "time": 662635.659876937,
+      "server": "loopback",
+      "path": "/retry503",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662635.659983883,
+      "server": "loopback",
+      "path": "/retry503"
+    },
+    {
+      "kind": "request",
+      "time": 662636.667429843,
+      "server": "loopback",
+      "path": "/retry503",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662636.667517533,
+      "server": "loopback",
+      "path": "/retry503"
+    },
+    {
+      "kind": "request",
+      "time": 662636.780927063,
+      "server": "loopback",
+      "path": "/cancel-body",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "sigint",
+      "time": 662637.1501025,
+      "case": "cancel_body",
+      "pid": 1366087
+    },
+    {
+      "kind": "request",
+      "time": 662637.393647601,
+      "server": "loopback",
+      "path": "/backoff",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662637.393748119,
+      "server": "loopback",
+      "path": "/backoff"
+    },
+    {
+      "kind": "body-disconnected",
+      "time": 662637.504334553,
+      "server": "loopback",
+      "path": "/cancel-body"
+    },
+    {
+      "kind": "sigint",
+      "time": 662637.696884967,
+      "case": "cancel_backoff",
+      "pid": 1366127
+    },
+    {
+      "kind": "request",
+      "time": 662637.860206638,
+      "server": "loopback",
+      "path": "/cancel-race",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "sigint",
+      "time": 662638.264052287,
+      "case": "cancel_race",
+      "pid": 1366364
+    },
+    {
+      "kind": "body-disconnected",
+      "time": 662638.587953098,
+      "server": "loopback",
+      "path": "/cancel-race"
+    },
+    {
+      "kind": "request",
+      "time": 662639.510788805,
+      "server": "loopback",
+      "path": "/unknown",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662639.511729668,
+      "server": "loopback",
+      "path": "/unknown"
+    },
+    {
+      "kind": "request",
+      "time": 662639.689790537,
+      "server": "loopback",
+      "path": "/unsafe",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662639.691583069,
+      "server": "loopback",
+      "path": "/unsafe"
+    },
+    {
+      "kind": "request",
+      "time": 662639.86633143,
+      "server": "loopback",
+      "path": "/unknown-empty",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662639.86759393,
+      "server": "loopback",
+      "path": "/unknown-empty"
+    },
+    {
+      "kind": "request",
+      "time": 662640.111260499,
+      "server": "loopback",
+      "path": "/archive",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662640.116093707,
+      "server": "loopback",
+      "path": "/archive"
+    },
+    {
+      "kind": "request",
+      "time": 662640.353573045,
+      "server": "loopback",
+      "path": "/corrupt",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662640.354980447,
+      "server": "loopback",
+      "path": "/corrupt"
+    },
+    {
+      "kind": "request",
+      "time": 662640.52146991,
+      "server": "loopback",
+      "path": "/archive",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662640.527902588,
+      "server": "loopback",
+      "path": "/archive"
+    },
+    {
+      "kind": "request",
+      "time": 662641.016277869,
+      "server": "loopback",
+      "path": "/archive",
+      "headers": {
+        "accept": "*/*",
+        "host": "127.0.0.1:42005"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662641.02037178,
+      "server": "loopback",
+      "path": "/archive"
+    }
+  ],
+  "peerConnections": [
+    {
+      "host": "127.0.0.1",
+      "port": 44093,
+      "time": 662630.792576193
+    },
+    {
+      "host": "127.0.0.1",
+      "port": 44093,
+      "time": 662630.949464792
+    },
+    {
+      "host": "127.0.0.1",
+      "port": 44093,
+      "time": 662633.517067526
+    },
+    {
+      "host": "127.0.0.1",
+      "port": 44093,
+      "time": 662633.605248142
+    },
+    {
+      "host": "127.0.0.1",
+      "port": 44093,
+      "time": 662638.246288722
+    }
+  ],
+  "httpsProxyConnections": [
+    {
+      "kind": "https-proxy-connect",
+      "time": 662628.74190655,
+      "target": "127.0.0.1:42005"
+    }
+  ]
+}

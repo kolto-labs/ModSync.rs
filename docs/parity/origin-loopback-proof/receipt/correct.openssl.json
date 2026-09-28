@@ -1,0 +1,25 @@
+{
+  "argv": [
+    "openssl",
+    "req",
+    "-x509",
+    "-newkey",
+    "rsa:2048",
+    "-nodes",
+    "-keyout",
+    "/tmp/fetch-acceptance-gpugm2dj/correct.key",
+    "-out",
+    "/tmp/fetch-acceptance-gpugm2dj/correct.pem",
+    "-days",
+    "1",
+    "-subj",
+    "/CN=Loopback Fixture",
+    "-addext",
+    "subjectAltName=DNS:localhost,DNS:localhost.evil,DNS:public.example,IP:127.0.0.1,IP:192.0.2.1,IP:::1",
+    "-addext",
+    "basicConstraints=critical,CA:TRUE",
+    "-addext",
+    "keyUsage=critical,keyCertSign,cRLSign"
+  ],
+  "exit": 0
+}

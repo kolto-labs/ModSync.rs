@@ -1,0 +1,5 @@
+['cargo', 'fmt', '--all', '--', '--check'] 0
+['cargo', 'build', '--locked', '--offline', '--no-default-features', '--lib', '--bin', 'modsync', '-j2'] 0
+['cargo', 'clippy', '--locked', '--offline', '--no-default-features', '--lib', '--bin', 'modsync', '-j2', '--', '-D', 'warnings'] 0
+['cargo', 'build', '--locked', '--offline', '--lib', '--bin', 'modsync', '-j2'] 0
+['cargo', 'clippy', '--locked', '--offline', '--lib', '--bin', 'modsync', '-j2', '--', '-D', 'warnings'] 0

@@ -1,0 +1,34 @@
+[
+  [
+    "openssl",
+    "req",
+    "-new",
+    "-newkey",
+    "rsa:2048",
+    "-nodes",
+    "-keyout",
+    "/tmp/fetch-acceptance-gpugm2dj/leaf.key",
+    "-out",
+    "/tmp/fetch-acceptance-gpugm2dj/leaf.csr",
+    "-subj",
+    "/CN=Loopback Server"
+  ],
+  [
+    "openssl",
+    "x509",
+    "-req",
+    "-in",
+    "/tmp/fetch-acceptance-gpugm2dj/leaf.csr",
+    "-CA",
+    "/tmp/fetch-acceptance-gpugm2dj/correct.pem",
+    "-CAkey",
+    "/tmp/fetch-acceptance-gpugm2dj/correct.key",
+    "-CAcreateserial",
+    "-out",
+    "/tmp/fetch-acceptance-gpugm2dj/leaf.pem",
+    "-days",
+    "1",
+    "-extfile",
+    "/tmp/fetch-acceptance-gpugm2dj/leaf.ext"
+  ]
+]

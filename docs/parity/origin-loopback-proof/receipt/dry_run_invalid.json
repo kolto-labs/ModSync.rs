@@ -1,0 +1,117 @@
+{
+  "name": "dry_run_invalid",
+  "guideInput": {
+    "Components": [
+      {
+        "Guid": "aaaaaaaa-1111-4111-8111-111111111111",
+        "Name": "Example A",
+        "IsSelected": true,
+        "Instructions": [],
+        "ResourceRegistry": {
+          "https://127.0.0.1:35733/archive": {
+            "Files": {
+              "example.zip": true
+            },
+            "ContentHashSHA256": "9eb3b9b6381cf6df995997c3f6052c3958aa0ec9281bd10c433a2b89c5cb6b6f",
+            "Magnet": "magnet:?xt=urn:btih:b193138612653c2b7a84b1b57864c4387e83d8eb&dn=example.zip",
+            "TorrentInfo": "ZDY6bGVuZ3RoaTEwNDg3MTJlNDpuYW1lMTE6ZXhhbXBsZS56aXAxMjpwaWVjZSBsZW5ndGhpNjU1MzZlNjpwaWVjZXMzNDA6gX8IWYiFo0nyrb+dhX2TVrfA9I57kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAAa4TdG2Q4DmVuCF/vB+bgX8yM9MmU="
+          }
+        }
+      }
+    ]
+  },
+  "settingsInput": {
+    "peerSharing": true,
+    "peerMode": "off",
+    "peerProxies": [
+      "socks5://127.0.0.1:48841"
+    ],
+    "peerProxyListUrl": "",
+    "peerTrackerListUrl": null,
+    "peerTrackers": [],
+    "peerExtraPeers": [
+      "127.0.0.1:40949"
+    ],
+    "nexusModsApiKey": "fixture-stored-secret"
+  },
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "fetch-downloads",
+    "--input",
+    "/tmp/fetch-acceptance-gpugm2dj/dry_run_invalid/guide.json",
+    "--source-dir",
+    "/tmp/fetch-acceptance-gpugm2dj/dry_run_invalid/mods",
+    "--scratch-dir",
+    "/tmp/fetch-acceptance-gpugm2dj/dry_run_invalid/scratch",
+    "--settings-dir",
+    "/tmp/fetch-acceptance-gpugm2dj/dry_run_invalid/settings",
+    "--peer-mode",
+    "off",
+    "--progress-json",
+    "--retries",
+    "2",
+    "--extra-ca-file",
+    "/tmp/fetch-acceptance-gpugm2dj/invalid.pem",
+    "--dry-run"
+  ],
+  "environment": {
+    "HOME": "/tmp/fetch-acceptance-gpugm2dj/HOME",
+    "XDG_CONFIG_HOME": "/tmp/fetch-acceptance-gpugm2dj/XDG_CONFIG_HOME",
+    "XDG_CACHE_HOME": "/tmp/fetch-acceptance-gpugm2dj/XDG_CACHE_HOME",
+    "XDG_DATA_HOME": "/tmp/fetch-acceptance-gpugm2dj/XDG_DATA_HOME"
+  },
+  "envOverrides": {},
+  "exit": 1,
+  "stdout": "",
+  "stderr": "Error: Invalid loopback CA certificate\n",
+  "elapsed": 0.01878847600892186,
+  "events": [],
+  "summary": null,
+  "serverTimeline": [],
+  "peerConnections": [],
+  "httpsProxyConnections": [],
+  "before": {
+    "guide.json": "e26d063bdf43b2b316ca9bcdf5097fc9173fae1bebaf5880f55153a524af71c1",
+    "mods": "directory",
+    "scratch": "directory",
+    "settings": "directory",
+    "settings/settings.json": "3a3f66cb8f904766c800deda2f939d177c5d8ca9963b952884debb6fb173d317"
+  },
+  "after": {
+    "guide.json": "e26d063bdf43b2b316ca9bcdf5097fc9173fae1bebaf5880f55153a524af71c1",
+    "mods": "directory",
+    "scratch": "directory",
+    "settings": "directory",
+    "settings/settings.json": "3a3f66cb8f904766c800deda2f939d177c5d8ca9963b952884debb6fb173d317"
+  },
+  "envBefore": {
+    "HOME": {},
+    "XDG_CONFIG_HOME": {
+      "ModSync": "directory",
+      "ModSync/peer-share": "directory",
+      "ModSync/peer-share/.modsync-share-UEudza": "directory",
+      "ModSync/peer-share/.modsync-share-UEudza/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ModSync/peer-share/.modsync-share-UEudza/example.zip": "9eb3b9b6381cf6df995997c3f6052c3958aa0ec9281bd10c433a2b89c5cb6b6f",
+      "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "XDG_CACHE_HOME": {
+      "com.rqbit.dht": "directory"
+    },
+    "XDG_DATA_HOME": {}
+  },
+  "envAfter": {
+    "HOME": {},
+    "XDG_CONFIG_HOME": {
+      "ModSync": "directory",
+      "ModSync/peer-share": "directory",
+      "ModSync/peer-share/.modsync-share-UEudza": "directory",
+      "ModSync/peer-share/.modsync-share-UEudza/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ModSync/peer-share/.modsync-share-UEudza/example.zip": "9eb3b9b6381cf6df995997c3f6052c3958aa0ec9281bd10c433a2b89c5cb6b6f",
+      "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "XDG_CACHE_HOME": {
+      "com.rqbit.dht": "directory"
+    },
+    "XDG_DATA_HOME": {}
+  }
+}

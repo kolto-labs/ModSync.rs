@@ -1,0 +1,14 @@
+[
+  "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+  "torrent-seed",
+  "/tmp/fetch-acceptance-gpugm2dj/example.zip",
+  "--no-proxy",
+  "--authored-magnet",
+  "magnet:?xt=urn:btih:b193138612653c2b7a84b1b57864c4387e83d8eb&dn=example.zip",
+  "--torrent-info",
+  "ZDY6bGVuZ3RoaTEwNDg3MTJlNDpuYW1lMTE6ZXhhbXBsZS56aXAxMjpwaWVjZSBsZW5ndGhpNjU1MzZlNjpwaWVjZXMzNDA6gX8IWYiFo0nyrb+dhX2TVrfA9I57kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAAa4TdG2Q4DmVuCF/vB+bgX8yM9MmU=",
+  "--share-ratio",
+  "0",
+  "--upload-kibps",
+  "10000"
+]

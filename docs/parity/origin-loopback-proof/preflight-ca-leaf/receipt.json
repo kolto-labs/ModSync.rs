@@ -1,0 +1,1865 @@
+{
+  "binary": "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+  "binarySha256": "e40e218304a3b1070fffa516ba60d74dd3128abb03798485316976e18732d82f",
+  "sourceSha256": {
+    "src/acquisition.rs": "fea993566281f9a84fa5b8a7d4f7c72f5f413c0d84480d35f9ce5df90646cad8",
+    "src/archive.rs": "c8b9e88416a8a0607c8246f787f791ab562ffe5553019e54362c478acfcd67c2",
+    "src/archive_generation/merge.rs": "be352a71eb5cc125148bfbd27275248c89f45af28f0a9d04910a9714a3487a1e",
+    "src/archive_generation.rs": "ca62b3c22e105108168c83b076b8c7d3fc64d1113373f47c9cf0cffd8f52660f",
+    "src/conflicts.rs": "c6f5dff2d21d2e4151cb53d3656e5b892e9d59e1f337ce9deaeba4671447d9a6",
+    "src/deployment.rs": "fab3726d33ebbac72878322856f3c70fe106a4ae29a8a70501b36c73280b339e",
+    "src/direct_markdown.rs": "70bf715188348e1700936adad2c304156846bd20b3fb3896f070983fb5b00521",
+    "src/download.rs": "22a684d821af9b5d3b9f487ad7d45c81bf808a339efb1dd02d166c0197e7620e",
+    "src/download_hosts.rs": "2f6197607eaeb07e8eeaeb5050778701da31e9e6abd9891b60b204b94a4cee70",
+    "src/download_orchestrator.rs": "916e3b4a0ee6e3fc68e132369f622b3c7623bb01c2558a7c7a292bbfe379040a",
+    "src/download_plan.rs": "52edd1844819e65bef31c11d4c065123810da98310b1bed75405695e73222ff0",
+    "src/download_queue.rs": "3f91eefa75b26aa46153b1e9948bbb05237180af89fe79fec923d3f04eeb8467",
+    "src/draft.rs": "86525e213956a05155b3b9c7353935ad1cb9202f7980bce5454dfddc39ba1703",
+    "src/editor.rs": "a769237d78447abe2185ff23e78b3776ae7b701784bec7df7a915f04b7fd4a9d",
+    "src/engine.rs": "ed59ffaccf86a29d71ac8426fc5e61b7447304720acf3ab9886f87b726779ef3",
+    "src/fomod/xml.rs": "ddc98afd42ccb71cf0d8d249bd3ec673b86a2e86a817d94e35913ce87b43546c",
+    "src/fomod.rs": "e695d57aab122953e951fa85ada449312af023d3260e4b9f9c42f436d7d20915",
+    "src/fomod_ui.rs": "fcb65a5d77816bcf6e5e4407723fec48d546a5aa74228b48953250662f42799c",
+    "src/game.rs": "7074ba4dd69436bae90a86f019496a7d4434900a55979e7d193173b4b850ae0e",
+    "src/install_progress.rs": "415720600e897cf79c11e8f5c784fe17da06831f01d243522e31413b3a79f163",
+    "src/lib.rs": "2e1931fcff2da668d0ea058ff067c1af32ef7e2217348ad3227293ca064b2c40",
+    "src/logging.rs": "58542a9bfd7b3fbbb90f137e31917d2369b5ded812cf269e4ecfaaf1446bef96",
+    "src/main.rs": "2a465fc4571aa8b104c86314164a77f076ebe54f79a3afb3dcc11189e6838200",
+    "src/markdown/extract.rs": "148e999ab50fe36aeda8c34c276e6a3e9ea23513ac46542b17ce4f0a07547614",
+    "src/markdown.rs": "6f8dd4ba1d144b5a87b2b950bab6c96b367a300b073e549c05ad2b944d86af97",
+    "src/merge.rs": "9274989f4b9978b58ac06204a77ce92b36bbc3e4c15f494b68110b38262f719d",
+    "src/model.rs": "3a91f51099bb64c7fadda3e4dfb49608c6e03b3725046b029288cfed958c5475",
+    "src/p2p.rs": "b2c3f7a2029a9173529a7603cc48200a7050755814d75bccd6e2c0ef857a78d5",
+    "src/patcher.rs": "50ebe6ff192e6137facecfd22fbd05d02e985af716a31bde5e7f098a34f2b1a1",
+    "src/paths.rs": "a5c719d40ec7c14770ec4d4a0f367a27fdd0d316db20bf3da25f32a8b09231c3",
+    "src/peer_acquire.rs": "0560a6d74a8e9e88270e49f4297fd8bf065a5f259386c56b3d547afb1cd95251",
+    "src/phase.rs": "de3a6a526898c42fc8dad9a48565d7943c20012a6e9cb8d9df176132a4d905a3",
+    "src/profile_cli.rs": "4f60ec7a28e133b2cf2f4b273964768956369fe34e08490964b03e22bd534e18",
+    "src/profiles.rs": "abe3fda234d3b14e272abc874184303f89b5c7765714c30907d87fc2c56f8623",
+    "src/protocol.rs": "13877fc8bb295fb8787e3a9e11bcbca9d998cf7b7dd8209cda5f5144511f0faf",
+    "src/protocol_registration.rs": "3a240dffb690af41379a07e372889979ee2b40aa75b21b2a7ba2071db6c1bf9c",
+    "src/recovery.rs": "48407a4e8216ae5497106bc58219a75d0e7403015b1c57a2b1c51d9e508ee00b",
+    "src/reference_paths.rs": "1666e78a9c8ca8114d9673c4878854cf8f4e831a7e2ce928b4e9c44cb58abb2e",
+    "src/resources.rs": "678adda2640a7f8abb61319c311f44956d51a19a654a8546aaf4ca8689501433",
+    "src/selection.rs": "777cef0bde01e91df76fd5c498c44ce31d4018ed59dbf2bb800761f64d1fede2",
+    "src/single_instance.rs": "fc52211eac20d32e034f541c91058bbbb406fb26a43b4d9e2f085bb8f108e34f",
+    "src/telemetry.rs": "01283b3865d572eeda7b5de5901dc0f209193e5d5bd8185972be21eb44355ece",
+    "src/ui/completion_pages.rs": "7e122bc441ea74bf8bf5e48d9cb1a6cde68a0817e0c926c0179bc8646d4e608b",
+    "src/ui/installing_page.rs": "51af2238e2d6d4a52f0e787dd656e30a5356408d227797237b3ceafd2c2279dd",
+    "src/ui/validation_page.rs": "9f6f25a3c20e241a4a03bb8cecb0756c81b923501788e14e800cbc1df93404a5",
+    "src/ui.rs": "1ef92ad692de68cf7472b74e8178f9a5e834134cf28d09793b3360fe7f6a988e",
+    "src/updates.rs": "64d3db98a47ba56c0d3c1af9692adcf5772cf3be5e19de123fb1a9deb4bd6930",
+    "src/validation/presentation.rs": "3d28c2acbf3883178bf287a4c452aa61974284dfde449957526cdff7a6cfd034",
+    "src/validation.rs": "bbd556c532581626927930382bc624f11395857cf0fe34af37ac2bb382ad4400",
+    "src/wizard.rs": "a77e39ac3b1686f3e750365276d900c88c97d3b848332b12aa079d6bea4c29e6",
+    "src/xml.rs": "d15737f2909f85a969c098843e93fd57b607b84228c46018c8e12aaa7f6e4000"
+  },
+  "namespace": "net:[4026534592]",
+  "parentNamespace": "net:[4026531833]",
+  "addresses": "[{\"ifindex\":1,\"ifname\":\"lo\",\"flags\":[\"LOOPBACK\",\"UP\",\"LOWER_UP\"],\"mtu\":65536,\"qdisc\":\"noqueue\",\"operstate\":\"UNKNOWN\",\"group\":\"default\",\"txqlen\":1000,\"link_type\":\"loopback\",\"address\":\"00:00:00:00:00:00\",\"broadcast\":\"00:00:00:00:00:00\",\"addr_info\":[{\"family\":\"inet\",\"local\":\"127.0.0.1\",\"prefixlen\":8,\"scope\":\"host\",\"label\":\"lo\",\"valid_life_time\":4294967295,\"preferred_life_time\":4294967295},{\"family\":\"inet\",\"local\":\"192.0.2.1\",\"prefixlen\":32,\"scope\":\"global\",\"label\":\"lo\",\"valid_life_time\":4294967295,\"preferred_life_time\":4294967295},{\"family\":\"inet6\",\"local\":\"::1\",\"prefixlen\":128,\"scope\":\"host\",\"protocol\":\"kernel_lo\",\"valid_life_time\":4294967295,\"preferred_life_time\":4294967295}]}]\n",
+  "routes": "",
+  "root": "/tmp/fetch-acceptance-pr5xb_w5",
+  "checks": [
+    {
+      "name": "reachable_192.0.2.1",
+      "actual": "3f0949489b018e4ab95d6650a2e195f18d17a0ec0cad37eb91a558f6feb0c8a0",
+      "expected": "3f0949489b018e4ab95d6650a2e195f18d17a0ec0cad37eb91a558f6feb0c8a0",
+      "passed": true
+    },
+    {
+      "name": "reachable_public.example",
+      "actual": "3f0949489b018e4ab95d6650a2e195f18d17a0ec0cad37eb91a558f6feb0c8a0",
+      "expected": "3f0949489b018e4ab95d6650a2e195f18d17a0ec0cad37eb91a558f6feb0c8a0",
+      "passed": true
+    },
+    {
+      "name": "reachable_localhost.evil",
+      "actual": "3f0949489b018e4ab95d6650a2e195f18d17a0ec0cad37eb91a558f6feb0c8a0",
+      "expected": "3f0949489b018e4ab95d6650a2e195f18d17a0ec0cad37eb91a558f6feb0c8a0",
+      "passed": true
+    },
+    {
+      "name": "reachable_http",
+      "actual": "3f0949489b018e4ab95d6650a2e195f18d17a0ec0cad37eb91a558f6feb0c8a0",
+      "expected": "3f0949489b018e4ab95d6650a2e195f18d17a0ec0cad37eb91a558f6feb0c8a0",
+      "passed": true
+    },
+    {
+      "name": "ca_None_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_None_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_None_settings_unchanged",
+      "actual": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "expected": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "passed": true
+    },
+    {
+      "name": "ca_None_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "ca_None_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "ca_None_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "ca_None_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "ca_None_failed",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "ca_None_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_wrong_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_wrong_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_wrong_settings_unchanged",
+      "actual": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "expected": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "passed": true
+    },
+    {
+      "name": "ca_wrong_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "ca_wrong_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "ca_wrong_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "ca_wrong_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "ca_wrong_failed",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "ca_wrong_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_invalid_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_invalid_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_invalid_settings_unchanged",
+      "actual": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "expected": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "passed": true
+    },
+    {
+      "name": "ca_invalid_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "ca_invalid_failed",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "ca_invalid_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_missing_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_missing_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_missing_settings_unchanged",
+      "actual": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "expected": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "passed": true
+    },
+    {
+      "name": "ca_missing_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "ca_missing_failed",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "ca_missing_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_correct_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_correct_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ca_correct_settings_unchanged",
+      "actual": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "expected": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "passed": true
+    },
+    {
+      "name": "ca_correct_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "ca_correct_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "ca_correct_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "ca_correct_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "ca_correct_exit",
+      "actual": 1,
+      "expected": 0,
+      "passed": false
+    },
+    {
+      "name": "ca_correct_files",
+      "actual": [],
+      "expected": [
+        "example.zip"
+      ],
+      "passed": false
+    },
+    {
+      "name": "ca_correct_hash",
+      "actual": null,
+      "expected": "3f0949489b018e4ab95d6650a2e195f18d17a0ec0cad37eb91a558f6feb0c8a0",
+      "passed": false
+    },
+    {
+      "name": "ca_correct_completed_once",
+      "actual": 0,
+      "expected": 1,
+      "passed": false
+    },
+    {
+      "name": "ipv6_loopback_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ipv6_loopback_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "ipv6_loopback_settings_unchanged",
+      "actual": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "expected": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "passed": true
+    },
+    {
+      "name": "ipv6_loopback_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "ipv6_loopback_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "ipv6_loopback_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "ipv6_loopback_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "ipv6_loopback_exit",
+      "actual": 1,
+      "expected": 0,
+      "passed": false
+    },
+    {
+      "name": "ipv6_loopback_files",
+      "actual": [],
+      "expected": [
+        "example.zip"
+      ],
+      "passed": false
+    },
+    {
+      "name": "ipv6_loopback_hash",
+      "actual": null,
+      "expected": "3f0949489b018e4ab95d6650a2e195f18d17a0ec0cad37eb91a558f6feb0c8a0",
+      "passed": false
+    },
+    {
+      "name": "ipv6_loopback_completed_once",
+      "actual": 0,
+      "expected": 1,
+      "passed": false
+    },
+    {
+      "name": "localhost_correct_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "localhost_correct_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "localhost_correct_settings_unchanged",
+      "actual": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "expected": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "passed": true
+    },
+    {
+      "name": "localhost_correct_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "localhost_correct_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "localhost_correct_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "localhost_correct_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "localhost_correct_exit",
+      "actual": 1,
+      "expected": 0,
+      "passed": false
+    },
+    {
+      "name": "localhost_correct_files",
+      "actual": [],
+      "expected": [
+        "example.zip"
+      ],
+      "passed": false
+    },
+    {
+      "name": "localhost_correct_hash",
+      "actual": null,
+      "expected": "3f0949489b018e4ab95d6650a2e195f18d17a0ec0cad37eb91a558f6feb0c8a0",
+      "passed": false
+    },
+    {
+      "name": "localhost_correct_completed_once",
+      "actual": 0,
+      "expected": 1,
+      "passed": false
+    },
+    {
+      "name": "localhost_pinned_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "localhost_pinned_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "localhost_pinned_settings_unchanged",
+      "actual": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "expected": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "passed": true
+    },
+    {
+      "name": "localhost_pinned_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "localhost_pinned_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "localhost_pinned_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "localhost_pinned_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "localhost_pinned_exit",
+      "actual": 1,
+      "expected": 0,
+      "passed": false
+    },
+    {
+      "name": "localhost_pinned_files",
+      "actual": [],
+      "expected": [
+        "example.zip"
+      ],
+      "passed": false
+    },
+    {
+      "name": "localhost_pinned_hash",
+      "actual": null,
+      "expected": "3f0949489b018e4ab95d6650a2e195f18d17a0ec0cad37eb91a558f6feb0c8a0",
+      "passed": false
+    },
+    {
+      "name": "localhost_pinned_completed_once",
+      "actual": 0,
+      "expected": 1,
+      "passed": false
+    },
+    {
+      "name": "initial_public_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_public_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_public_settings_unchanged",
+      "actual": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "expected": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "passed": true
+    },
+    {
+      "name": "initial_public_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "initial_public_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "initial_public_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "initial_public_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "initial_public_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_public_no_request",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_public_rejected",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "initial_ip_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_ip_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_ip_settings_unchanged",
+      "actual": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "expected": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "passed": true
+    },
+    {
+      "name": "initial_ip_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "initial_ip_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "initial_ip_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "initial_ip_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "initial_ip_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_ip_no_request",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_ip_rejected",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "initial_deceptive_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_deceptive_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_deceptive_settings_unchanged",
+      "actual": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "expected": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "passed": true
+    },
+    {
+      "name": "initial_deceptive_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "initial_deceptive_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "initial_deceptive_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "initial_deceptive_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "initial_deceptive_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_deceptive_no_request",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_deceptive_rejected",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "initial_http_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_http_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_http_settings_unchanged",
+      "actual": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "expected": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "passed": true
+    },
+    {
+      "name": "initial_http_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "initial_http_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "initial_http_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "initial_http_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "initial_http_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_http_no_request",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "initial_http_rejected",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "redirect_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "redirect_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "redirect_settings_unchanged",
+      "actual": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "expected": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "passed": true
+    },
+    {
+      "name": "redirect_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "redirect_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "redirect_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "redirect_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "redirect_exit",
+      "actual": 1,
+      "expected": 0,
+      "passed": false
+    },
+    {
+      "name": "redirect_files",
+      "actual": [],
+      "expected": [
+        "example.zip"
+      ],
+      "passed": false
+    },
+    {
+      "name": "redirect_hash",
+      "actual": null,
+      "expected": "3f0949489b018e4ab95d6650a2e195f18d17a0ec0cad37eb91a558f6feb0c8a0",
+      "passed": false
+    },
+    {
+      "name": "redirect_completed_once",
+      "actual": 0,
+      "expected": 1,
+      "passed": false
+    },
+    {
+      "name": "chain_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "chain_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "chain_settings_unchanged",
+      "actual": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "expected": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "passed": true
+    },
+    {
+      "name": "chain_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "chain_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "chain_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "chain_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "chain_exit",
+      "actual": 1,
+      "expected": 0,
+      "passed": false
+    },
+    {
+      "name": "chain_files",
+      "actual": [],
+      "expected": [
+        "example.zip"
+      ],
+      "passed": false
+    },
+    {
+      "name": "chain_hash",
+      "actual": null,
+      "expected": "3f0949489b018e4ab95d6650a2e195f18d17a0ec0cad37eb91a558f6feb0c8a0",
+      "passed": false
+    },
+    {
+      "name": "chain_completed_once",
+      "actual": 0,
+      "expected": 1,
+      "passed": false
+    },
+    {
+      "name": "downgrade_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "downgrade_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "downgrade_settings_unchanged",
+      "actual": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "expected": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "passed": true
+    },
+    {
+      "name": "downgrade_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "downgrade_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "downgrade_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "downgrade_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "downgrade_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "downgrade_failed",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "downgrade_no_outside_request",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "downgrade_not_manual",
+      "actual": "failed",
+      "expected": "failed",
+      "passed": true
+    },
+    {
+      "name": "escape_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "escape_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "escape_settings_unchanged",
+      "actual": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "expected": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "passed": true
+    },
+    {
+      "name": "escape_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "escape_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "escape_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "escape_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "escape_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "escape_failed",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "escape_no_outside_request",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "escape_not_manual",
+      "actual": "failed",
+      "expected": "failed",
+      "passed": true
+    },
+    {
+      "name": "deceptive_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "deceptive_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "deceptive_settings_unchanged",
+      "actual": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "expected": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "passed": true
+    },
+    {
+      "name": "deceptive_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "deceptive_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "deceptive_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "deceptive_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "deceptive_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "deceptive_failed",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "deceptive_no_outside_request",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "deceptive_not_manual",
+      "actual": "failed",
+      "expected": "failed",
+      "passed": true
+    },
+    {
+      "name": "loop_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "loop_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "loop_settings_unchanged",
+      "actual": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "expected": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "passed": true
+    },
+    {
+      "name": "loop_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "loop_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "loop_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "loop_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "loop_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "loop_failed",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "loop_no_outside_request",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "loop_not_manual",
+      "actual": "failed",
+      "expected": "failed",
+      "passed": true
+    },
+    {
+      "name": "credentials-redirect_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "credentials-redirect_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "credentials-redirect_settings_unchanged",
+      "actual": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "expected": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "passed": true
+    },
+    {
+      "name": "credentials-redirect_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "credentials-redirect_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "credentials-redirect_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "credentials-redirect_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "credentials-redirect_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "credentials-redirect_failed",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "credentials-redirect_no_outside_request",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "credentials-redirect_not_manual",
+      "actual": "failed",
+      "expected": "failed",
+      "passed": true
+    },
+    {
+      "name": "redirect_error_redacted",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "proxy_control_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "proxy_control_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "proxy_control_settings_unchanged",
+      "actual": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "expected": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "passed": true
+    },
+    {
+      "name": "proxy_control_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "proxy_control_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "proxy_control_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "proxy_control_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "ordinary_proxy_contact",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "proxy_control_unpublished",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "proxy_override_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "proxy_override_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "proxy_override_settings_unchanged",
+      "actual": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "expected": "eb09276ad414a841f28b76f2a235c43f938b96cfaf67cba8e4a243da4aa5f45d",
+      "passed": true
+    },
+    {
+      "name": "proxy_override_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "proxy_override_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "proxy_override_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "proxy_override_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "proxy_override_exit",
+      "actual": 1,
+      "expected": 0,
+      "passed": false
+    },
+    {
+      "name": "proxy_override_files",
+      "actual": [],
+      "expected": [
+        "example.zip"
+      ],
+      "passed": false
+    },
+    {
+      "name": "proxy_override_hash",
+      "actual": null,
+      "expected": "3f0949489b018e4ab95d6650a2e195f18d17a0ec0cad37eb91a558f6feb0c8a0",
+      "passed": false
+    },
+    {
+      "name": "proxy_override_completed_once",
+      "actual": 0,
+      "expected": 1,
+      "passed": false
+    },
+    {
+      "name": "override_proxy_zero",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-login_race_scratch_clean",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-login_race_no_staging",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "gate-login_race_settings_unchanged",
+      "actual": "4f855d96a318176f5eac1e9d305f72d6d930a1aa6fab82a3bbe736107a201f88",
+      "expected": "4f855d96a318176f5eac1e9d305f72d6d930a1aa6fab82a3bbe736107a201f88",
+      "passed": true
+    },
+    {
+      "name": "gate-login_race_no_ca_persistence",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "gate-login_race_summary_last",
+      "actual": "summary",
+      "expected": "summary",
+      "passed": true
+    },
+    {
+      "name": "gate-login_race_identity_0",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "gate-login_race_identity_1",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "gate-login_race_identity_2",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "gate-login_race_identity_3",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "gate-login_race_identity_4",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "gate-login_race_identity_5",
+      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
+      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
+      "passed": true
+    },
+    {
+      "name": "gate-login_race_exit",
+      "actual": 0,
+      "expected": 3,
+      "passed": false
+    },
+    {
+      "name": "gate-login_race_unpublished",
+      "actual": [
+        "/tmp/fetch-acceptance-pr5xb_w5/gate-login_race/mods/example.zip"
+      ],
+      "expected": [],
+      "passed": false
+    },
+    {
+      "name": "gate-login_race_zero_peer_connections",
+      "actual": [
+        {
+          "host": "127.0.0.1",
+          "port": 36331,
+          "time": 662559.4912436
+        },
+        {
+          "host": "127.0.0.1",
+          "port": 36331,
+          "time": 662559.604015745
+        }
+      ],
+      "expected": [],
+      "passed": false
+    },
+    {
+      "name": "gate-login_race_zero_peer_events",
+      "actual": [
+        {
+          "time": 662559.599904095,
+          "event": {
+            "targetIndex": 0,
+            "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+            "filename": "example.zip",
+            "source": {
+              "kind": "peer"
+            },
+            "phase": {
+              "phase": "transferring",
+              "bytes": 0,
+              "total": 1048712,
+              "peers": null
+            }
+          }
+        },
+        {
+          "time": 662559.701129287,
+          "event": {
+            "targetIndex": 0,
+            "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+            "filename": "example.zip",
+            "source": {
+              "kind": "peer"
+            },
+            "phase": {
+              "phase": "transferring",
+              "bytes": 1048712,
+              "total": 1048712,
+              "peers": 0
+            }
+          }
+        },
+        {
+          "time": 662560.704193294,
+          "event": {
+            "targetIndex": 0,
+            "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+            "filename": "example.zip",
+            "source": {
+              "kind": "peer"
+            },
+            "phase": {
+              "phase": "verifying"
+            }
+          }
+        },
+        {
+          "time": 662560.770083054,
+          "event": {
+            "targetIndex": 0,
+            "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+            "filename": "example.zip",
+            "source": {
+              "kind": "peer"
+            },
+            "phase": {
+              "phase": "completed",
+              "path": "/tmp/fetch-acceptance-pr5xb_w5/gate-login_race/mods/example.zip",
+              "sha256": "3f0949489b018e4ab95d6650a2e195f18d17a0ec0cad37eb91a558f6feb0c8a0"
+            }
+          }
+        }
+      ],
+      "expected": [],
+      "passed": false
+    },
+    {
+      "name": "source_frozen",
+      "actual": {
+        "src/acquisition.rs": "fea993566281f9a84fa5b8a7d4f7c72f5f413c0d84480d35f9ce5df90646cad8",
+        "src/archive.rs": "c8b9e88416a8a0607c8246f787f791ab562ffe5553019e54362c478acfcd67c2",
+        "src/archive_generation/merge.rs": "be352a71eb5cc125148bfbd27275248c89f45af28f0a9d04910a9714a3487a1e",
+        "src/archive_generation.rs": "ca62b3c22e105108168c83b076b8c7d3fc64d1113373f47c9cf0cffd8f52660f",
+        "src/conflicts.rs": "c6f5dff2d21d2e4151cb53d3656e5b892e9d59e1f337ce9deaeba4671447d9a6",
+        "src/deployment.rs": "fab3726d33ebbac72878322856f3c70fe106a4ae29a8a70501b36c73280b339e",
+        "src/direct_markdown.rs": "70bf715188348e1700936adad2c304156846bd20b3fb3896f070983fb5b00521",
+        "src/download.rs": "22a684d821af9b5d3b9f487ad7d45c81bf808a339efb1dd02d166c0197e7620e",
+        "src/download_hosts.rs": "2f6197607eaeb07e8eeaeb5050778701da31e9e6abd9891b60b204b94a4cee70",
+        "src/download_orchestrator.rs": "916e3b4a0ee6e3fc68e132369f622b3c7623bb01c2558a7c7a292bbfe379040a",
+        "src/download_plan.rs": "52edd1844819e65bef31c11d4c065123810da98310b1bed75405695e73222ff0",
+        "src/download_queue.rs": "3f91eefa75b26aa46153b1e9948bbb05237180af89fe79fec923d3f04eeb8467",
+        "src/draft.rs": "86525e213956a05155b3b9c7353935ad1cb9202f7980bce5454dfddc39ba1703",
+        "src/editor.rs": "a769237d78447abe2185ff23e78b3776ae7b701784bec7df7a915f04b7fd4a9d",
+        "src/engine.rs": "ed59ffaccf86a29d71ac8426fc5e61b7447304720acf3ab9886f87b726779ef3",
+        "src/fomod/xml.rs": "ddc98afd42ccb71cf0d8d249bd3ec673b86a2e86a817d94e35913ce87b43546c",
+        "src/fomod.rs": "e695d57aab122953e951fa85ada449312af023d3260e4b9f9c42f436d7d20915",
+        "src/fomod_ui.rs": "fcb65a5d77816bcf6e5e4407723fec48d546a5aa74228b48953250662f42799c",
+        "src/game.rs": "7074ba4dd69436bae90a86f019496a7d4434900a55979e7d193173b4b850ae0e",
+        "src/install_progress.rs": "415720600e897cf79c11e8f5c784fe17da06831f01d243522e31413b3a79f163",
+        "src/lib.rs": "2e1931fcff2da668d0ea058ff067c1af32ef7e2217348ad3227293ca064b2c40",
+        "src/logging.rs": "58542a9bfd7b3fbbb90f137e31917d2369b5ded812cf269e4ecfaaf1446bef96",
+        "src/main.rs": "2a465fc4571aa8b104c86314164a77f076ebe54f79a3afb3dcc11189e6838200",
+        "src/markdown/extract.rs": "148e999ab50fe36aeda8c34c276e6a3e9ea23513ac46542b17ce4f0a07547614",
+        "src/markdown.rs": "6f8dd4ba1d144b5a87b2b950bab6c96b367a300b073e549c05ad2b944d86af97",
+        "src/merge.rs": "9274989f4b9978b58ac06204a77ce92b36bbc3e4c15f494b68110b38262f719d",
+        "src/model.rs": "3a91f51099bb64c7fadda3e4dfb49608c6e03b3725046b029288cfed958c5475",
+        "src/p2p.rs": "b2c3f7a2029a9173529a7603cc48200a7050755814d75bccd6e2c0ef857a78d5",
+        "src/patcher.rs": "50ebe6ff192e6137facecfd22fbd05d02e985af716a31bde5e7f098a34f2b1a1",
+        "src/paths.rs": "a5c719d40ec7c14770ec4d4a0f367a27fdd0d316db20bf3da25f32a8b09231c3",
+        "src/peer_acquire.rs": "0560a6d74a8e9e88270e49f4297fd8bf065a5f259386c56b3d547afb1cd95251",
+        "src/phase.rs": "de3a6a526898c42fc8dad9a48565d7943c20012a6e9cb8d9df176132a4d905a3",
+        "src/profile_cli.rs": "4f60ec7a28e133b2cf2f4b273964768956369fe34e08490964b03e22bd534e18",
+        "src/profiles.rs": "abe3fda234d3b14e272abc874184303f89b5c7765714c30907d87fc2c56f8623",
+        "src/protocol.rs": "13877fc8bb295fb8787e3a9e11bcbca9d998cf7b7dd8209cda5f5144511f0faf",
+        "src/protocol_registration.rs": "3a240dffb690af41379a07e372889979ee2b40aa75b21b2a7ba2071db6c1bf9c",
+        "src/recovery.rs": "48407a4e8216ae5497106bc58219a75d0e7403015b1c57a2b1c51d9e508ee00b",
+        "src/reference_paths.rs": "1666e78a9c8ca8114d9673c4878854cf8f4e831a7e2ce928b4e9c44cb58abb2e",
+        "src/resources.rs": "678adda2640a7f8abb61319c311f44956d51a19a654a8546aaf4ca8689501433",
+        "src/selection.rs": "777cef0bde01e91df76fd5c498c44ce31d4018ed59dbf2bb800761f64d1fede2",
+        "src/single_instance.rs": "fc52211eac20d32e034f541c91058bbbb406fb26a43b4d9e2f085bb8f108e34f",
+        "src/telemetry.rs": "01283b3865d572eeda7b5de5901dc0f209193e5d5bd8185972be21eb44355ece",
+        "src/ui/completion_pages.rs": "7e122bc441ea74bf8bf5e48d9cb1a6cde68a0817e0c926c0179bc8646d4e608b",
+        "src/ui/installing_page.rs": "51af2238e2d6d4a52f0e787dd656e30a5356408d227797237b3ceafd2c2279dd",
+        "src/ui/validation_page.rs": "9f6f25a3c20e241a4a03bb8cecb0756c81b923501788e14e800cbc1df93404a5",
+        "src/ui.rs": "1ef92ad692de68cf7472b74e8178f9a5e834134cf28d09793b3360fe7f6a988e",
+        "src/updates.rs": "64d3db98a47ba56c0d3c1af9692adcf5772cf3be5e19de123fb1a9deb4bd6930",
+        "src/validation/presentation.rs": "3d28c2acbf3883178bf287a4c452aa61974284dfde449957526cdff7a6cfd034",
+        "src/validation.rs": "bbd556c532581626927930382bc624f11395857cf0fe34af37ac2bb382ad4400",
+        "src/wizard.rs": "a77e39ac3b1686f3e750365276d900c88c97d3b848332b12aa079d6bea4c29e6",
+        "src/xml.rs": "d15737f2909f85a969c098843e93fd57b607b84228c46018c8e12aaa7f6e4000"
+      },
+      "expected": {
+        "src/acquisition.rs": "fea993566281f9a84fa5b8a7d4f7c72f5f413c0d84480d35f9ce5df90646cad8",
+        "src/archive.rs": "c8b9e88416a8a0607c8246f787f791ab562ffe5553019e54362c478acfcd67c2",
+        "src/archive_generation/merge.rs": "be352a71eb5cc125148bfbd27275248c89f45af28f0a9d04910a9714a3487a1e",
+        "src/archive_generation.rs": "ca62b3c22e105108168c83b076b8c7d3fc64d1113373f47c9cf0cffd8f52660f",
+        "src/conflicts.rs": "c6f5dff2d21d2e4151cb53d3656e5b892e9d59e1f337ce9deaeba4671447d9a6",
+        "src/deployment.rs": "fab3726d33ebbac72878322856f3c70fe106a4ae29a8a70501b36c73280b339e",
+        "src/direct_markdown.rs": "70bf715188348e1700936adad2c304156846bd20b3fb3896f070983fb5b00521",
+        "src/download.rs": "22a684d821af9b5d3b9f487ad7d45c81bf808a339efb1dd02d166c0197e7620e",
+        "src/download_hosts.rs": "2f6197607eaeb07e8eeaeb5050778701da31e9e6abd9891b60b204b94a4cee70",
+        "src/download_orchestrator.rs": "916e3b4a0ee6e3fc68e132369f622b3c7623bb01c2558a7c7a292bbfe379040a",
+        "src/download_plan.rs": "52edd1844819e65bef31c11d4c065123810da98310b1bed75405695e73222ff0",
+        "src/download_queue.rs": "3f91eefa75b26aa46153b1e9948bbb05237180af89fe79fec923d3f04eeb8467",
+        "src/draft.rs": "86525e213956a05155b3b9c7353935ad1cb9202f7980bce5454dfddc39ba1703",
+        "src/editor.rs": "a769237d78447abe2185ff23e78b3776ae7b701784bec7df7a915f04b7fd4a9d",
+        "src/engine.rs": "ed59ffaccf86a29d71ac8426fc5e61b7447304720acf3ab9886f87b726779ef3",
+        "src/fomod/xml.rs": "ddc98afd42ccb71cf0d8d249bd3ec673b86a2e86a817d94e35913ce87b43546c",
+        "src/fomod.rs": "e695d57aab122953e951fa85ada449312af023d3260e4b9f9c42f436d7d20915",
+        "src/fomod_ui.rs": "fcb65a5d77816bcf6e5e4407723fec48d546a5aa74228b48953250662f42799c",
+        "src/game.rs": "7074ba4dd69436bae90a86f019496a7d4434900a55979e7d193173b4b850ae0e",
+        "src/install_progress.rs": "415720600e897cf79c11e8f5c784fe17da06831f01d243522e31413b3a79f163",
+        "src/lib.rs": "2e1931fcff2da668d0ea058ff067c1af32ef7e2217348ad3227293ca064b2c40",
+        "src/logging.rs": "58542a9bfd7b3fbbb90f137e31917d2369b5ded812cf269e4ecfaaf1446bef96",
+        "src/main.rs": "2a465fc4571aa8b104c86314164a77f076ebe54f79a3afb3dcc11189e6838200",
+        "src/markdown/extract.rs": "148e999ab50fe36aeda8c34c276e6a3e9ea23513ac46542b17ce4f0a07547614",
+        "src/markdown.rs": "6f8dd4ba1d144b5a87b2b950bab6c96b367a300b073e549c05ad2b944d86af97",
+        "src/merge.rs": "9274989f4b9978b58ac06204a77ce92b36bbc3e4c15f494b68110b38262f719d",
+        "src/model.rs": "3a91f51099bb64c7fadda3e4dfb49608c6e03b3725046b029288cfed958c5475",
+        "src/p2p.rs": "b2c3f7a2029a9173529a7603cc48200a7050755814d75bccd6e2c0ef857a78d5",
+        "src/patcher.rs": "50ebe6ff192e6137facecfd22fbd05d02e985af716a31bde5e7f098a34f2b1a1",
+        "src/paths.rs": "a5c719d40ec7c14770ec4d4a0f367a27fdd0d316db20bf3da25f32a8b09231c3",
+        "src/peer_acquire.rs": "0560a6d74a8e9e88270e49f4297fd8bf065a5f259386c56b3d547afb1cd95251",
+        "src/phase.rs": "de3a6a526898c42fc8dad9a48565d7943c20012a6e9cb8d9df176132a4d905a3",
+        "src/profile_cli.rs": "4f60ec7a28e133b2cf2f4b273964768956369fe34e08490964b03e22bd534e18",
+        "src/profiles.rs": "abe3fda234d3b14e272abc874184303f89b5c7765714c30907d87fc2c56f8623",
+        "src/protocol.rs": "13877fc8bb295fb8787e3a9e11bcbca9d998cf7b7dd8209cda5f5144511f0faf",
+        "src/protocol_registration.rs": "3a240dffb690af41379a07e372889979ee2b40aa75b21b2a7ba2071db6c1bf9c",
+        "src/recovery.rs": "48407a4e8216ae5497106bc58219a75d0e7403015b1c57a2b1c51d9e508ee00b",
+        "src/reference_paths.rs": "1666e78a9c8ca8114d9673c4878854cf8f4e831a7e2ce928b4e9c44cb58abb2e",
+        "src/resources.rs": "678adda2640a7f8abb61319c311f44956d51a19a654a8546aaf4ca8689501433",
+        "src/selection.rs": "777cef0bde01e91df76fd5c498c44ce31d4018ed59dbf2bb800761f64d1fede2",
+        "src/single_instance.rs": "fc52211eac20d32e034f541c91058bbbb406fb26a43b4d9e2f085bb8f108e34f",
+        "src/telemetry.rs": "01283b3865d572eeda7b5de5901dc0f209193e5d5bd8185972be21eb44355ece",
+        "src/ui/completion_pages.rs": "7e122bc441ea74bf8bf5e48d9cb1a6cde68a0817e0c926c0179bc8646d4e608b",
+        "src/ui/installing_page.rs": "51af2238e2d6d4a52f0e787dd656e30a5356408d227797237b3ceafd2c2279dd",
+        "src/ui/validation_page.rs": "9f6f25a3c20e241a4a03bb8cecb0756c81b923501788e14e800cbc1df93404a5",
+        "src/ui.rs": "1ef92ad692de68cf7472b74e8178f9a5e834134cf28d09793b3360fe7f6a988e",
+        "src/updates.rs": "64d3db98a47ba56c0d3c1af9692adcf5772cf3be5e19de123fb1a9deb4bd6930",
+        "src/validation/presentation.rs": "3d28c2acbf3883178bf287a4c452aa61974284dfde449957526cdff7a6cfd034",
+        "src/validation.rs": "bbd556c532581626927930382bc624f11395857cf0fe34af37ac2bb382ad4400",
+        "src/wizard.rs": "a77e39ac3b1686f3e750365276d900c88c97d3b848332b12aa079d6bea4c29e6",
+        "src/xml.rs": "d15737f2909f85a969c098843e93fd57b607b84228c46018c8e12aaa7f6e4000"
+      },
+      "passed": true
+    },
+    {
+      "name": "binary_frozen",
+      "actual": "e40e218304a3b1070fffa516ba60d74dd3128abb03798485316976e18732d82f",
+      "expected": "e40e218304a3b1070fffa516ba60d74dd3128abb03798485316976e18732d82f",
+      "passed": true
+    },
+    {
+      "name": "children_reaped",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    }
+  ],
+  "passed": 203,
+  "total": 235,
+  "error": "Traceback (most recent call last):\n  File \"/home/brunner56/.cache/modsync-wt-integ/docs/parity/origin-loopback-proof/run_probe.py\", line 199, in main\n    check(r['name']+'_reason',r['summary']['report']['outcomes'][0].get('manual',{}).get('reason'),reason)\n                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'NoneType' object has no attribute 'get'\n",
+  "children": [
+    {
+      "pid": 1353121,
+      "exit": 0
+    },
+    {
+      "pid": 1353309,
+      "exit": 1
+    },
+    {
+      "pid": 1353330,
+      "exit": 1
+    },
+    {
+      "pid": 1353345,
+      "exit": 1
+    },
+    {
+      "pid": 1353348,
+      "exit": 1
+    },
+    {
+      "pid": 1353350,
+      "exit": 1
+    },
+    {
+      "pid": 1353370,
+      "exit": 1
+    },
+    {
+      "pid": 1353384,
+      "exit": 1
+    },
+    {
+      "pid": 1353395,
+      "exit": 1
+    },
+    {
+      "pid": 1353405,
+      "exit": 1
+    },
+    {
+      "pid": 1353415,
+      "exit": 1
+    },
+    {
+      "pid": 1353424,
+      "exit": 1
+    },
+    {
+      "pid": 1353433,
+      "exit": 1
+    },
+    {
+      "pid": 1353445,
+      "exit": 1
+    },
+    {
+      "pid": 1353480,
+      "exit": 1
+    },
+    {
+      "pid": 1353536,
+      "exit": 1
+    },
+    {
+      "pid": 1353625,
+      "exit": 1
+    },
+    {
+      "pid": 1353685,
+      "exit": 1
+    },
+    {
+      "pid": 1353767,
+      "exit": 1
+    },
+    {
+      "pid": 1353852,
+      "exit": 1
+    },
+    {
+      "pid": 1353884,
+      "exit": 1
+    },
+    {
+      "pid": 1353902,
+      "exit": 1
+    },
+    {
+      "pid": 1353917,
+      "exit": 0
+    }
+  ],
+  "timeline": [
+    {
+      "kind": "request",
+      "time": 662556.967501058,
+      "server": "nonloopback",
+      "path": "/archive",
+      "headers": {
+        "Accept-Encoding": "identity",
+        "Host": "192.0.2.1:42771",
+        "User-Agent": "Python-urllib/3.14",
+        "Connection": "close"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662556.968932164,
+      "server": "nonloopback",
+      "path": "/archive"
+    },
+    {
+      "kind": "request",
+      "time": 662556.98003926,
+      "server": "nonloopback",
+      "path": "/archive",
+      "headers": {
+        "Accept-Encoding": "identity",
+        "Host": "public.example:42771",
+        "User-Agent": "Python-urllib/3.14",
+        "Connection": "close"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662556.981071457,
+      "server": "nonloopback",
+      "path": "/archive"
+    },
+    {
+      "kind": "request",
+      "time": 662556.991956035,
+      "server": "nonloopback",
+      "path": "/archive",
+      "headers": {
+        "Accept-Encoding": "identity",
+        "Host": "localhost.evil:42771",
+        "User-Agent": "Python-urllib/3.14",
+        "Connection": "close"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662556.995122375,
+      "server": "nonloopback",
+      "path": "/archive"
+    },
+    {
+      "kind": "request",
+      "time": 662557.00312569,
+      "server": "http",
+      "path": "/archive",
+      "headers": {
+        "Accept-Encoding": "identity",
+        "Host": "127.0.0.1:42367",
+        "User-Agent": "Python-urllib/3.14",
+        "Connection": "close"
+      }
+    },
+    {
+      "kind": "body-complete",
+      "time": 662557.003739512,
+      "server": "http",
+      "path": "/archive"
+    },
+    {
+      "kind": "https-proxy-connect",
+      "time": 662559.187968846,
+      "target": "127.0.0.1:40465"
+    }
+  ],
+  "peerConnections": [
+    {
+      "host": "127.0.0.1",
+      "port": 36331,
+      "time": 662559.4912436
+    },
+    {
+      "host": "127.0.0.1",
+      "port": 36331,
+      "time": 662559.604015745
+    }
+  ],
+  "httpsProxyConnections": [
+    {
+      "kind": "https-proxy-connect",
+      "time": 662559.187968846,
+      "target": "127.0.0.1:40465"
+    }
+  ]
+}
