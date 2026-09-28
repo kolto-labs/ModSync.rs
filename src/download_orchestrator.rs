@@ -485,7 +485,7 @@ fn nexus_page(url: &str) -> Result<(String, u64, Option<u64>)> {
 
 /// The page URL of an unnamed target whose Nexus origin names no file: the only kind
 /// `discover` expands.
-fn bare_nexus_page(target: &ArchiveTarget) -> Option<&str> {
+fn bare_nexus_page(target: &ArchiveTarget) -> Option<(&str, OriginRequirement)> {
     if target.filename.is_some() {
         return None;
     }
@@ -493,11 +493,11 @@ fn bare_nexus_page(target: &ArchiveTarget) -> Option<&str> {
         Source::Origin {
             url,
             provider: Provider::Nexus,
-            ..
+            requires,
         } if !url.trim_start().to_ascii_lowercase().starts_with("nxm://")
             && nexus_page(url).is_ok_and(|(_, _, file_id)| file_id.is_none()) =>
         {
-            Some(url.as_str())
+            Some((url.as_str(), *requires))
         }
         _ => None,
     })
@@ -663,8 +663,9 @@ pub fn discover(
         ..plan.clone()
     };
     let mut nexus: Option<NexusClient> = None;
+    let mut premium: Option<bool> = None;
     for target in &plan.targets {
-        let Some(page) = bare_nexus_page(target) else {
+        let Some((page, requires)) = bare_nexus_page(target) else {
             result.targets.push(target.clone());
             continue;
         };
@@ -682,6 +683,19 @@ pub fn discover(
         let Some(client) = nexus.as_mut() else {
             unreachable!("the Nexus client was just created");
         };
+        // A free, invalid or unvalidated key cannot download these files anyway: leave the
+        // page as planned, so `run` reports its one gate, with no file-list request.
+        if requires == OriginRequirement::NexusPremium {
+            let premium = *premium.get_or_insert_with(|| {
+                client
+                    .validate()
+                    .is_ok_and(|result| result.is_valid && result.is_premium)
+            });
+            if !premium {
+                result.targets.push(target.clone());
+                continue;
+            }
+        }
         // All or nothing per page: a failure keeps no partial expansion.
         let mut expanded = AcquisitionPlan {
             source_dir: result.source_dir.clone(),

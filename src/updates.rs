@@ -113,9 +113,8 @@ pub enum NxmAuthorization {
     Missing,
     /// A one-time key without a usable `expires` timestamp.
     Invalid,
-    /// The one-time key's `expires` time has passed.
-    Expired,
-    /// Nexus refused the one-time key with this HTTP status.
+    /// Nexus refused the one-time key with this HTTP status. Expiry is judged by Nexus,
+    /// not the local clock, which may run fast.
     Refused(u16),
 }
 
@@ -130,7 +129,6 @@ impl std::fmt::Display for NxmAuthorization {
                 f,
                 "The nxm link's download key has no valid expiry; {AGAIN}"
             ),
-            Self::Expired => write!(f, "The nxm link's download key has expired; {AGAIN}"),
             Self::Refused(status) => write!(
                 f,
                 "Nexus Mods refused the nxm download key (HTTP {status}); it may have expired, so {AGAIN}"
@@ -140,12 +138,6 @@ impl std::fmt::Display for NxmAuthorization {
 }
 
 impl std::error::Error for NxmAuthorization {}
-
-fn unix_now() -> u64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map_or(0, |elapsed| elapsed.as_secs())
-}
 
 /// Checks that a server-supplied download filename is exactly one normal path
 /// component, so joining it onto a directory cannot escape that directory.
@@ -323,23 +315,18 @@ impl NexusClient {
         };
         let keyed = key.as_deref().is_some_and(|value| !value.is_empty());
         // With an API key, Nexus decides whether a forwarded one-time key still matters.
-        // Without one, the key alone must authorize, so check it before any request.
+        // Without one, the key alone must authorize, so check its shape before any
+        // request. Whether it has expired is Nexus's answer, not the local clock's.
         if !self
             .api_key
             .as_deref()
             .is_some_and(|value| !value.trim().is_empty())
         {
-            let problem = if !keyed {
-                Some(NxmAuthorization::Missing)
-            } else if *expires == 0 {
-                Some(NxmAuthorization::Invalid)
-            } else if *expires <= unix_now() {
-                Some(NxmAuthorization::Expired)
-            } else {
-                None
-            };
-            if let Some(problem) = problem {
-                return Err(problem.into());
+            if !keyed {
+                return Err(NxmAuthorization::Missing.into());
+            }
+            if *expires == 0 {
+                return Err(NxmAuthorization::Invalid.into());
             }
         }
         let metadata = self
