@@ -316,6 +316,9 @@ enum Action {
         /// Probe-only API base override (HTTPS, or loopback HTTP); requires an explicit key.
         #[arg(long, hide = true)]
         nexus_api_base: Option<String>,
+        /// Per-invocation CA for isolated loopback HTTPS archive probes.
+        #[arg(long, hide = true)]
+        extra_ca_file: Option<PathBuf>,
         /// Overrides the stored peerMode; peerSharing=false always wins regardless.
         #[arg(long, value_enum)]
         peer_mode: Option<PeerModeArg>,
@@ -1399,6 +1402,7 @@ fn run() -> Result<()> {
             nexus_mods_api_key,
             settings_dir,
             nexus_api_base,
+            extra_ca_file,
             peer_mode,
             scratch_dir,
             max_expanded_bytes,
@@ -1509,6 +1513,11 @@ fn run() -> Result<()> {
             };
             let plan = orchestrator::plan(&execution, &candidates, &plan_options)?;
 
+            let loopback_ca = extra_ca_file
+                .as_deref()
+                .map(modsync::download::LoopbackCa::from_pem_file)
+                .transpose()?;
+
             // C4: dry-run prints the effective plan and returns before any policy
             // creation, signal handling, save or FOMOD extraction.
             if dry_run {
@@ -1544,16 +1553,22 @@ fn run() -> Result<()> {
             };
             let cancelled = p2p::stop_signal_flag()?;
             let stdout = std::sync::Mutex::new(std::io::stdout());
-            let report = orchestrator::run(&plan, &run_settings, &cancelled, |event| {
-                if progress_json {
-                    let envelope = serde_json::json!({"type": "acquisition", "event": event});
-                    if let Ok(line) = serde_json::to_string(&envelope) {
-                        let mut out = stdout.lock().unwrap();
-                        let _ = writeln!(out, "{line}");
-                        let _ = out.flush();
+            let report = orchestrator::run_with_loopback_ca(
+                &plan,
+                &run_settings,
+                &cancelled,
+                |event| {
+                    if progress_json {
+                        let envelope = serde_json::json!({"type": "acquisition", "event": event});
+                        if let Ok(line) = serde_json::to_string(&envelope) {
+                            let mut out = stdout.lock().unwrap();
+                            let _ = writeln!(out, "{line}");
+                            let _ = out.flush();
+                        }
                     }
-                }
-            })?;
+                },
+                loopback_ca.as_ref(),
+            )?;
 
             let record_summary = if record {
                 let summary = orchestrator::record(&mut guide, &report)?;

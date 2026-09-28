@@ -474,6 +474,7 @@ pub struct RunReport {
 }
 
 struct RunContext<'a> {
+    loopback_ca: Option<&'a download::LoopbackCa>,
     plan: &'a AcquisitionPlan,
     settings: &'a RunSettings,
     cancelled: &'a AtomicBool,
@@ -487,7 +488,18 @@ pub fn run(
     plan: &AcquisitionPlan,
     settings: &RunSettings,
     cancelled: &AtomicBool,
+    observe: impl FnMut(AcquisitionEvent) + Send,
+) -> Result<RunReport> {
+    run_with_loopback_ca(plan, settings, cancelled, observe, None)
+}
+
+/// Run with a per-invocation CA restricted to loopback archive HTTPS transfers.
+pub fn run_with_loopback_ca(
+    plan: &AcquisitionPlan,
+    settings: &RunSettings,
+    cancelled: &AtomicBool,
     mut observe: impl FnMut(AcquisitionEvent) + Send,
+    loopback_ca: Option<&download::LoopbackCa>,
 ) -> Result<RunReport> {
     ensure!(
         settings.workers > 0,
@@ -535,6 +547,7 @@ pub fn run(
     };
     let (events, receiver) = mpsc::channel();
     let context = RunContext {
+        loopback_ca,
         plan,
         settings,
         cancelled,
@@ -1436,13 +1449,14 @@ fn origin_once(
             phase,
         });
     };
-    let fetched = download::fetch_to(
+    let fetched = download::fetch_to_with_loopback_ca(
         &fetch_url,
         destination,
         target.expected_sha256.as_deref(),
         cancelled,
         &context.settings.archive,
         &mut progress,
+        context.loopback_ca,
     )
     .map_err(|error| match (provider, download::classify(&error)) {
         // A gate on a resolved Nexus CDN link: point the person at the mod page, not

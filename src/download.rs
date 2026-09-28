@@ -22,6 +22,47 @@ pub const RETRY_AFTER_CAP: Duration = Duration::from_secs(60);
 /// Bytes of a suspect body inspected for challenge, login or countdown markers.
 const SNIFF_LIMIT: u64 = 64 * 1024;
 
+/// Per-invocation trust for an isolated HTTPS loopback probe. Never persisted.
+#[derive(Clone)]
+pub struct LoopbackCa(reqwest::Certificate);
+
+impl LoopbackCa {
+    pub fn from_pem_file(path: &Path) -> Result<Self> {
+        let pem = std::fs::read(path)
+            .map_err(|_| anyhow::anyhow!("Cannot read loopback CA certificate"))?;
+        let certificate = reqwest::Certificate::from_pem(&pem)
+            .map_err(|_| anyhow::anyhow!("Invalid loopback CA certificate"))?;
+        // The rustls reqwest backend defers PEM/DER validation until client build.
+        ensure!(
+            !reqwest::Certificate::from_pem_bundle(&pem)
+                .map_err(|_| anyhow::anyhow!("Invalid loopback CA certificate"))?
+                .is_empty(),
+            "Invalid loopback CA certificate"
+        );
+        reqwest::blocking::Client::builder()
+            .no_proxy()
+            .add_root_certificate(certificate.clone())
+            .build()
+            .map_err(|_| anyhow::anyhow!("Invalid loopback CA certificate"))?;
+        Ok(Self(certificate))
+    }
+}
+
+fn eligible_loopback(url: &reqwest::Url) -> bool {
+    url.scheme() == "https"
+        && match url.host() {
+            Some(host) => {
+                host.to_string() == "localhost"
+                    || host
+                        .to_string()
+                        .trim_matches(['[', ']'])
+                        .parse::<std::net::IpAddr>()
+                        .is_ok_and(|ip| ip.is_loopback())
+            }
+            None => false,
+        }
+}
+
 /// Why a fetch failed. Callers decide retries and fallbacks from this, never from text.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase", tag = "class")]
@@ -181,7 +222,29 @@ pub fn fetch_to(
     options: &crate::archive::Options,
     progress: &mut dyn FnMut(FetchProgress),
 ) -> Result<Fetched> {
-    fetch_inner(url, destination, sha256, cancelled, options, progress).map_err(|error| {
+    fetch_to_with_loopback_ca(url, destination, sha256, cancelled, options, progress, None)
+}
+
+/// As [`fetch_to`], with explicit trust restricted to HTTPS loopback on every hop.
+pub fn fetch_to_with_loopback_ca(
+    url: &str,
+    destination: Destination<'_>,
+    sha256: Option<&str>,
+    cancelled: &AtomicBool,
+    options: &crate::archive::Options,
+    progress: &mut dyn FnMut(FetchProgress),
+    loopback_ca: Option<&LoopbackCa>,
+) -> Result<Fetched> {
+    fetch_inner(
+        url,
+        destination,
+        sha256,
+        cancelled,
+        options,
+        progress,
+        loopback_ca,
+    )
+    .map_err(|error| {
         if classify(&error).is_some() {
             error
         } else if cancelled.load(Ordering::Relaxed) {
@@ -199,9 +262,16 @@ fn fetch_inner(
     cancelled: &AtomicBool,
     options: &crate::archive::Options,
     progress: &mut dyn FnMut(FetchProgress),
+    loopback_ca: Option<&LoopbackCa>,
 ) -> Result<Fetched> {
     let url = reqwest::Url::parse(raw_url)?;
     ensure!(url.scheme() == "https", "Downloads require HTTPS");
+    if loopback_ca.is_some() {
+        ensure!(
+            eligible_loopback(&url),
+            "Loopback CA requires an HTTPS loopback endpoint"
+        );
+    }
     let directory = match destination {
         Destination::File(path) => {
             ensure!(!path.exists(), "Download destination already exists");
@@ -219,15 +289,36 @@ fn fetch_inner(
             directory
         }
     };
-    let client = reqwest::blocking::Client::builder()
+    let mut builder = reqwest::blocking::Client::builder()
         .https_only(true)
         .connect_timeout(CONNECT_TIMEOUT)
-        .timeout(IDLE_TIMEOUT)
-        .build()?;
-    let mut response = client
-        .get(url)
-        .send()
-        .map_err(|e| network_failure(e.into()))?;
+        .timeout(IDLE_TIMEOUT);
+    if let Some(ca) = loopback_ca {
+        builder = builder
+            .add_root_certificate(ca.0.clone())
+            .no_proxy()
+            .resolve("localhost", "127.0.0.1:0".parse().expect("literal address"))
+            .redirect(reqwest::redirect::Policy::custom(|attempt| {
+                if !eligible_loopback(attempt.url()) {
+                    attempt.error("Loopback CA redirect requires an HTTPS loopback endpoint")
+                } else if attempt.previous().len() >= 10 {
+                    attempt.error("Loopback CA redirect limit exceeded")
+                } else {
+                    attempt.follow()
+                }
+            }));
+    }
+    let client = builder.build()?;
+    let mut response = client.get(url).send().map_err(|e| {
+        network_failure(
+            if loopback_ca.is_some() {
+                e.without_url()
+            } else {
+                e
+            }
+            .into(),
+        )
+    })?;
     let final_url = response.url().clone();
     let status = response.status();
     let header = |name: &str| {
