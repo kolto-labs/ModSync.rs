@@ -976,17 +976,27 @@ impl App {
                         &guide.components,
                         modsync::selection::Scope::All,
                     );
-                    let plan = orchestrator::plan(
+                    let plan_options = orchestrator::PlanOptions {
+                        source_dir,
+                        resolution: None,
+                        peer_mode,
+                        user_peers: Vec::new(),
+                        nexus_key_present: key.is_some(),
+                        archive: archive.clone(),
+                    };
+                    let plan = orchestrator::plan(&guide, &candidates, &plan_options)?;
+                    // Nexus page discovery runs before the rows exist, so every discovered
+                    // archive gets its own row and the run reports into the same indices.
+                    let plan = orchestrator::discover(
                         &guide,
-                        &candidates,
-                        &orchestrator::PlanOptions {
-                            source_dir,
-                            resolution: None,
-                            peer_mode,
-                            user_peers: Vec::new(),
-                            nexus_key_present: key.is_some(),
-                            archive: archive.clone(),
+                        &plan,
+                        &plan_options,
+                        &orchestrator::RunSettings {
+                            nexus_api_key: key.clone(),
+                            nexus_api_base: api_base.clone(),
+                            ..Default::default()
                         },
+                        &cancelled,
                     )?;
                     send(downloads_panel::Update::Prepared {
                         plan: Box::new(plan.clone()),

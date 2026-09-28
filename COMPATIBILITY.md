@@ -97,14 +97,30 @@ plan/run/record/FOMOD-followup library and concrete proxy-only Peer adapter.
   dry-run is the pretty raw effective plan; dry-run with progress JSON is exactly
   one compact `{"type":"plan","plan":...}` line and performs no acquisition.
 - Nexus free accounts remain manual; authorization errors are terminal failures.
-  Neither starts Peer. An nxm handoff with any one-time key is keyed. Without an
-  API key, a missing key, a key with no valid `expires`, or an `expires` already
-  past fails before any Nexus request, and Nexus refusing the key (HTTP 401, 403
-  or 410) is a terminal failure that says to click Mod Manager Download again.
-  C# sends the key and reports only the refusal. With an API key, the key is
-  still forwarded and Nexus decides. Source only; not built or exercised. Race startup grants are delayed until Origin eligibility
+  Neither starts Peer. Race startup grants are delayed until Origin eligibility
   and revoked if Origin wins before Peer starts. Isolated HTTPS Origin runtime
   is now exercised by the additive loopback slice described below.
+- An nxm handoff with any one-time key is keyed. Without an API key, a missing
+  key, a key with no valid `expires`, or an `expires` already past fails before
+  any Nexus request. Nexus refusing the key (HTTP 401, 403 or 410) is a terminal
+  failure that says to click Mod Manager Download again. C# sends the key and
+  reports only the refusal. With an API key, the key is still forwarded and
+  Nexus decides. Source only; not built or exercised.
+- Fetch (CLI and desktop, not dry-run) discovers files for an unnamed Nexus mod
+  page with a Nexus origin and no `file_id`, as C# does. It keeps MAIN, UPDATE
+  and MISCELLANEOUS files, then applies the component's Extract patterns and
+  resolution filter the way named files are filtered. Each selected file
+  becomes its own named target and desktop row, fetched through its `file_id`;
+  a present valid copy is skipped. A page none of whose eligible files the
+  Extract patterns need gets no target and a warning. The page stays unnamed and fails at run,
+  with the reason in the plan warnings (`planWarnings` in the CLI summary),
+  when the file list fails, when no file is eligible, when two eligible files
+  share a name, or when an authored `ContentHashSHA256` would have to cover
+  several files. Several files never use Peer. A named Nexus file that matches
+  more than one listed file now fails instead of taking the first. Recording
+  writes `ContentHashSHA256` only for a resource's single archive (no production
+  caller records hashes today). Per-file hashes need a registry schema decision
+  and are not stored. Source only; not built or exercised.
 - Real isolated Peer transfers cover known/unknown names, verification, budget/hash
   refusal and SIGINT cleanup. Unsupported-provider chains can end ManualRequired
   after a Peer failure; this is exit 3, not success. Other exits are 0 complete,

@@ -458,6 +458,259 @@ fn plan_url(
     Ok(())
 }
 
+/// Nexus file categories a bare mod page downloads, as C# `ResolveDownloadLinksAsync`:
+/// OPTIONAL and every other category are left out.
+const NEXUS_PAGE_CATEGORIES: [&str; 3] = ["MAIN", "UPDATE", "MISCELLANEOUS"];
+
+/// Game domain and mod id of a Nexus mod-page URL, plus its `file_id` query, if any.
+fn nexus_page(url: &str) -> Result<(String, u64, Option<u64>)> {
+    let parsed = reqwest::Url::parse(url)?;
+    let segments: Vec<&str> = parsed
+        .path_segments()
+        .map(Iterator::collect)
+        .unwrap_or_default();
+    ensure!(
+        segments.len() >= 3 && segments[1].eq_ignore_ascii_case("mods"),
+        "Nexus URL is not a mod page: {url}"
+    );
+    let mod_id = segments[2]
+        .parse()
+        .with_context(|| format!("Nexus URL has no mod id: {url}"))?;
+    let file_id = parsed
+        .query_pairs()
+        .find(|(key, _)| key.eq_ignore_ascii_case("file_id"))
+        .and_then(|(_, value)| value.parse::<u64>().ok());
+    Ok((segments[0].to_ascii_lowercase(), mod_id, file_id))
+}
+
+/// The page URL of an unnamed target whose Nexus origin names no file: the only kind
+/// `discover` expands.
+fn bare_nexus_page(target: &ArchiveTarget) -> Option<&str> {
+    if target.filename.is_some() {
+        return None;
+    }
+    target.sources.iter().find_map(|source| match source {
+        Source::Origin {
+            url,
+            provider: Provider::Nexus,
+            ..
+        } if !url.trim_start().to_ascii_lowercase().starts_with("nxm://")
+            && nexus_page(url).is_ok_and(|(_, _, file_id)| file_id.is_none()) =>
+        {
+            Some(url.as_str())
+        }
+        _ => None,
+    })
+}
+
+/// Expands one bare Nexus page target. `Err` leaves the target as planned.
+fn expand_nexus_page(
+    guide: &Guide,
+    target: &ArchiveTarget,
+    page: &str,
+    options: &PlanOptions,
+    client: &mut NexusClient,
+    result: &mut AcquisitionPlan,
+) -> Result<()> {
+    let (game_domain, mod_id, _) = nexus_page(page)?;
+    let component = guide
+        .components
+        .iter()
+        .find(|component| component.guid == target.component_guid)
+        .with_context(|| {
+            format!(
+                "Component {} is no longer in the guide",
+                target.component_guid
+            )
+        })?;
+    let files = client.get_mod_files(&game_domain, &mod_id.to_string())?;
+    let eligible: Vec<_> = files
+        .iter()
+        .filter(|file| {
+            NEXUS_PAGE_CATEGORIES
+                .iter()
+                .any(|category| file.category_name.eq_ignore_ascii_case(category))
+        })
+        .collect();
+    ensure!(
+        !eligible.is_empty(),
+        "Nexus mod {mod_id} lists no MAIN, UPDATE or MISCELLANEOUS file"
+    );
+    for (index, file) in eligible.iter().enumerate() {
+        download::one_component(&file.file_name).with_context(|| {
+            format!(
+                "Nexus mod {mod_id} lists an unsafe file name {:?}",
+                file.file_name
+            )
+        })?;
+        ensure!(
+            file.file_id > 0,
+            "Nexus mod {mod_id} lists {} without a file id",
+            file.file_name
+        );
+        // Two eligible files with one name would publish to one path: never pick one.
+        ensure!(
+            !eligible[..index]
+                .iter()
+                .any(|other| other.file_name.eq_ignore_ascii_case(&file.file_name)),
+            "Nexus mod {mod_id} lists more than one eligible file named {}; name the file id under the URL",
+            file.file_name
+        );
+    }
+    let names: Vec<String> = eligible
+        .iter()
+        .map(|file| file.file_name.clone())
+        .filter(|name| resolution_allows(options.resolution, name))
+        .collect();
+    let selected = download_plan::select_filenames(
+        component,
+        &target.registry_url,
+        &names,
+        Some(&result.source_dir),
+    )?;
+    if selected.is_empty() {
+        // As `plan` drops named files the component's Extract patterns do not need.
+        result.warnings.push(format!(
+            "{}: no eligible file of Nexus mod {mod_id} is needed by this component's Extract instructions",
+            target.registry_url
+        ));
+        return Ok(());
+    }
+    // One authored hash identifies one archive; which sibling it means is unknown.
+    ensure!(
+        selected.len() == 1 || target.expected_sha256.is_none(),
+        "The authored ContentHashSHA256 identifies one archive, but {} files of Nexus mod {mod_id} match; name the file under Files",
+        selected.len()
+    );
+    let single = selected.len() == 1;
+    for name in selected {
+        let file = eligible
+            .iter()
+            .find(|file| file.file_name == name)
+            .context("Selected file is not an eligible Nexus file")?;
+        let mut url = reqwest::Url::parse(page)?;
+        url.query_pairs_mut()
+            .append_pair("file_id", &file.file_id.to_string());
+        let sources = target
+            .sources
+            .iter()
+            .filter(|source| single || !matches!(source, Source::Peer { .. }))
+            .map(|source| match source {
+                Source::Origin {
+                    provider: Provider::Nexus,
+                    requires,
+                    ..
+                } => Source::Origin {
+                    url: url.to_string(),
+                    provider: Provider::Nexus,
+                    requires: *requires,
+                },
+                other => other.clone(),
+            })
+            .collect();
+        if let Some(path) = find_existing(&result.source_dir, &name)
+            && existing_valid(&path, target.expected_sha256.as_deref(), &options.archive)
+        {
+            result.skipped.push(PlannedSkip {
+                component_guid: target.component_guid.clone(),
+                registry_url: target.registry_url.clone(),
+                filename: Some(name),
+                reason: SkipReason::AlreadyPresent,
+                path: Some(path),
+                detail: None,
+            });
+            continue;
+        }
+        result.targets.push(ArchiveTarget {
+            component_guid: target.component_guid.clone(),
+            registry_url: target.registry_url.clone(),
+            filename: Some(name),
+            expected_sha256: target.expected_sha256.clone(),
+            sources,
+            shared_destination: None,
+        });
+    }
+    if !single
+        && target
+            .sources
+            .iter()
+            .any(|s| matches!(s, Source::Peer { .. }))
+    {
+        result.warnings.push(format!(
+            "{}: the page has several archives but a torrent holds one; peers not used",
+            target.registry_url
+        ));
+    }
+    Ok(())
+}
+
+/// Execution-time Nexus page discovery; `plan` and dry-run never call it. Each unnamed
+/// target whose Nexus origin is a mod page without `file_id` becomes one named target per
+/// selected MAIN, UPDATE or MISCELLANEOUS file, filtered by the component's `Files` flags
+/// and Extract patterns as `plan` filters named files. Callers show and run the returned
+/// plan, so events, rows and outcomes share its indices. A page that cannot be expanded
+/// safely (API failure, no or duplicate eligible names, one authored hash for several
+/// files) stays as planned, fails at run, and adds its reason to `warnings`.
+pub fn discover(
+    guide: &Guide,
+    plan: &AcquisitionPlan,
+    options: &PlanOptions,
+    settings: &RunSettings,
+    cancelled: &AtomicBool,
+) -> Result<AcquisitionPlan> {
+    let mut result = AcquisitionPlan {
+        targets: Vec::new(),
+        ..plan.clone()
+    };
+    let mut nexus: Option<NexusClient> = None;
+    for target in &plan.targets {
+        let Some(page) = bare_nexus_page(target) else {
+            result.targets.push(target.clone());
+            continue;
+        };
+        if cancelled.load(Ordering::SeqCst) {
+            result.targets.push(target.clone());
+            continue;
+        }
+        if nexus.is_none() {
+            let key = settings.nexus_api_key.clone();
+            nexus = Some(match &settings.nexus_api_base {
+                Some(base) => NexusClient::with_base_url(key, base)?,
+                None => NexusClient::new(key)?,
+            });
+        }
+        let Some(client) = nexus.as_mut() else {
+            unreachable!("the Nexus client was just created");
+        };
+        // All or nothing per page: a failure keeps no partial expansion.
+        let mut expanded = AcquisitionPlan {
+            source_dir: result.source_dir.clone(),
+            peer_mode: result.peer_mode,
+            targets: Vec::new(),
+            skipped: Vec::new(),
+            warnings: Vec::new(),
+        };
+        match expand_nexus_page(guide, target, page, options, client, &mut expanded) {
+            Ok(()) => {
+                result.targets.extend(expanded.targets);
+                result.skipped.extend(expanded.skipped);
+                result.warnings.extend(expanded.warnings);
+            }
+            Err(error) => {
+                result
+                    .warnings
+                    .push(format!("{}: {error:#}", target.registry_url));
+                result.targets.push(target.clone());
+            }
+        }
+    }
+    let links = shared_destinations(&result.targets);
+    for (target, link) in result.targets.iter_mut().zip(links) {
+        target.shared_destination = link;
+    }
+    Ok(result)
+}
+
 pub struct RunSettings {
     pub workers: usize,
     /// Extra attempts for transient failures only.
@@ -1872,23 +2125,7 @@ fn nexus_link(
     if url.trim_start().to_ascii_lowercase().starts_with("nxm://") {
         return protocol::parse(url);
     }
-    let parsed = reqwest::Url::parse(url)?;
-    let segments: Vec<&str> = parsed
-        .path_segments()
-        .map(Iterator::collect)
-        .unwrap_or_default();
-    ensure!(
-        segments.len() >= 3 && segments[1].eq_ignore_ascii_case("mods"),
-        "Nexus URL is not a mod page: {url}"
-    );
-    let game_domain = segments[0].to_ascii_lowercase();
-    let mod_id: u64 = segments[2]
-        .parse()
-        .with_context(|| format!("Nexus URL has no mod id: {url}"))?;
-    let query_file = parsed
-        .query_pairs()
-        .find(|(key, _)| key.eq_ignore_ascii_case("file_id"))
-        .and_then(|(_, value)| value.parse::<u64>().ok());
+    let (game_domain, mod_id, query_file) = nexus_page(url)?;
     let file_id = match (query_file, &target.filename) {
         (Some(id), _) => id,
         (None, Some(name)) => {
@@ -1896,14 +2133,23 @@ fn nexus_link(
                 .lock()
                 .unwrap()
                 .get_mod_files(&game_domain, &mod_id.to_string())?;
-            let file = files
+            let mut matching = files
                 .iter()
-                .find(|file| file.file_name.eq_ignore_ascii_case(name))
+                .filter(|file| file.file_name.eq_ignore_ascii_case(name));
+            let file = matching
+                .next()
                 .with_context(|| format!("Nexus mod {mod_id} lists no file named {name}"))?;
+            ensure!(
+                matching.next().is_none(),
+                "Nexus mod {mod_id} lists more than one file named {name}; add a file_id to the URL"
+            );
             u64::try_from(file.file_id)?
         }
         (None, None) => {
-            bail!("Nexus page URL does not name a file; add a Files entry or a file_id: {url}")
+            // `discover` names every page it can; the plan warnings say why this one stayed.
+            bail!(
+                "Nexus page URL does not name a file; add a Files entry or a file_id (see the plan warnings): {url}"
+            )
         }
     };
     Ok(protocol::Link::Nxm {
@@ -2044,11 +2290,26 @@ pub fn record_with(
         .iter()
         .filter(|s| s.reason == SkipReason::AlreadyPresent)
         .map(|s| (&s.component_guid, &s.registry_url, s.path.as_deref(), None));
-    for (guid, url, path, sha256) in completed.chain(present) {
+    let entries: Vec<_> = completed.chain(present).collect();
+    // `ContentHashSHA256` identifies a resource's only archive. A resource that yields
+    // several archives (named Files, or a discovered Nexus page) never gets one archive's
+    // digest as if it identified its siblings.
+    let archives_of = |guid: &String, url: &String| {
+        let mut names: Vec<&str> = entries
+            .iter()
+            .filter(|(g, u, _, _)| *g == guid && *u == url)
+            .filter_map(|(_, _, path, _)| path.and_then(|p| p.file_name()).and_then(|n| n.to_str()))
+            .collect();
+        names.sort_by_key(|name| name.to_ascii_lowercase());
+        names.dedup_by(|a, b| a.eq_ignore_ascii_case(b));
+        names.len()
+    };
+    for &(guid, url, path, sha256) in &entries {
         let Some(name) = path.and_then(|p| p.file_name()).and_then(|n| n.to_str()) else {
             continue;
         };
         let name = download::one_component(name)?;
+        let only_archive = archives_of(guid, url) == 1;
         let component = component_mut(&mut working.components, guid)
             .with_context(|| format!("Component {guid} is no longer in the guide"))?;
         let metadata = component
@@ -2057,7 +2318,17 @@ pub fn record_with(
             .with_context(|| format!("Registry URL is no longer present: {url}"))?
             .as_object_mut()
             .context("Resource metadata must be an object")?;
+        let sibling_recorded = metadata
+            .get("Files")
+            .and_then(Value::as_object)
+            .is_some_and(|files| {
+                files.iter().any(|(key, value)| {
+                    value == &Value::Bool(true) && !key.eq_ignore_ascii_case(name)
+                })
+            });
         if record_hashes
+            && only_archive
+            && !sibling_recorded
             && let Some(sha256) = sha256
             && metadata
                 .get("ContentHashSHA256")

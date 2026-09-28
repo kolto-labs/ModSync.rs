@@ -1605,6 +1605,14 @@ fn run() -> Result<()> {
                 peer,
             };
             let cancelled = p2p::stop_signal_flag()?;
+            // Execution only: dry-run returned above without network discovery.
+            let plan = orchestrator::discover(
+                &execution,
+                &plan,
+                &plan_options,
+                &run_settings,
+                &cancelled,
+            )?;
             let stdout = std::sync::Mutex::new(std::io::stdout());
             let report = orchestrator::run_with_loopback_ca(
                 &plan,
@@ -1715,6 +1723,7 @@ fn run() -> Result<()> {
                 "fomodFollowups": fomod,
                 "fomodConfiguration": configuration,
                 "fomodConfigurationRecorded": fomod_recorded,
+                "planWarnings": plan.warnings,
                 "sharingEnrollment": {
                     "admitted": sharing_enrollment.admitted,
                     "duplicates": sharing_enrollment.duplicates,
