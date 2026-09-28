@@ -1,0 +1,35 @@
+{
+  "task": "round2 quality-finding fixes for DeploymentAction::Switch",
+  "before": {
+    "source_git_sha": "2252894f4c3d1ffe7ae92d0b615e15c83a39a22d",
+    "binary_sha256": "e31cd130d69fe14ef729c7125d53967bdd67c853b7f29b8b2e4e0733f9dc1aae",
+    "binary_sha256_source": "controller repro receipt /home/brunner56/.cache/modsync-resume/switch-mismatch-before.json, built from this same commit"
+  },
+  "after": {
+    "source_git_sha": "714e59bb0807307c93813ee499a01998d4b89909",
+    "binary_sha256": "8b6c5fc393682685142eeba72a37945f6584258fefed00fa9fdce3654ee0adfa"
+  },
+  "build": {
+    "target_dir": "/home/brunner56/.cache/modsync-rs-target-lead",
+    "commands": [
+      "cargo fmt --all -- --check",
+      "cargo build --locked --no-default-features --bin modsync -j2",
+      "cargo clippy --locked --no-default-features --lib --bin modsync -j2 -- -D warnings"
+    ],
+    "log": "switch-round2-build-receipt.log",
+    "result": "all three commands exit 0, no warnings"
+  },
+  "probes": {
+    "script": "switch-probes.py",
+    "receipt": "switch-probes.json",
+    "checks": 39,
+    "all_passed": true,
+    "new_checks_this_round": [
+      "p8_* (modified-after-deploy file refuses purge/switch; game+artifact hashes and active profile unchanged)",
+      "p9_* (deployed path replaced with a directory refuses likewise)",
+      "p10_* (one ordinary + one blocked component: mixed purge refused, no partial preflight mutation, both manifests retained)",
+      "p11_* (two overlapping deployments: purge newest-first, original bytes restored, switch succeeds)"
+    ]
+  },
+  "scope_note": "Fixes are bounded to DeploymentAction::Switch in src/main.rs. Service::reinstall_blockers (src/deployment.rs:1137) is read-only and unmodified; ordinary purge/uninstall soft-skip semantics for non-Switch commands (deploy/uninstall/purge) are unchanged. Store::activate's own internal profile lock (src/profiles.rs) is untouched and out of scope for this task; only the deployment/game-directory lock ordering relative to active_name is addressed here."
+}

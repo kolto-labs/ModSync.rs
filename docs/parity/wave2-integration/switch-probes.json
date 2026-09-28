@@ -1,5 +1,7 @@
 {
+  "source_git_sha": "714e59bb0807307c93813ee499a01998d4b89909",
   "binary": "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+  "binary_sha256": "8b6c5fc393682685142eeba72a37945f6584258fefed00fa9fdce3654ee0adfa",
   "checks": [
     {
       "name": "p1_deploy_ok",
@@ -10,16 +12,16 @@
           "deployment",
           "deploy",
           "--game-dir",
-          "/tmp/modsync-switch-probe-f2m70rc_/game",
+          "/tmp/modsync-switch-probe-lr3kz30w/game",
           "--profile",
           "A",
           "--settings-dir",
-          "/tmp/modsync-switch-probe-f2m70rc_/settings",
+          "/tmp/modsync-switch-probe-lr3kz30w/settings",
           "--component",
           "comp1"
         ],
         "exit": 0,
-        "stdout": "{\n  \"ComponentGuid\": \"comp1\",\n  \"DeployedUtc\": \"2026-09-28T02:28:12.4254294Z\",\n  \"Entries\": [\n    {\n      \"RelativePath\": \"file.txt\",\n      \"SourceHash\": \"2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824\",\n      \"Size\": 5,\n      \"DeploymentMethod\": 0,\n      \"OverwroteExisting\": false\n    }\n  ]\n}\n",
+        "stdout": "{\n  \"ComponentGuid\": \"comp1\",\n  \"DeployedUtc\": \"2026-09-28T02:46:52.3053964Z\",\n  \"Entries\": [\n    {\n      \"RelativePath\": \"file.txt\",\n      \"SourceHash\": \"2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824\",\n      \"Size\": 5,\n      \"DeploymentMethod\": 0,\n      \"OverwroteExisting\": false\n    }\n  ]\n}\n",
         "stderr": ""
       }
     },
@@ -32,11 +34,11 @@
           "deployment",
           "switch",
           "--game-dir",
-          "/tmp/modsync-switch-probe-f2m70rc_/game",
+          "/tmp/modsync-switch-probe-lr3kz30w/game",
           "--to",
           "B",
           "--settings-dir",
-          "/tmp/modsync-switch-probe-f2m70rc_/settings"
+          "/tmp/modsync-switch-probe-lr3kz30w/settings"
         ],
         "exit": 1,
         "stdout": "",
@@ -57,11 +59,11 @@
           "deployment",
           "switch",
           "--game-dir",
-          "/tmp/modsync-switch-probe-zol7ql2r/game",
+          "/tmp/modsync-switch-probe-0n3qcmpg/game",
           "--to",
           "B",
           "--settings-dir",
-          "/tmp/modsync-switch-probe-zol7ql2r/settings"
+          "/tmp/modsync-switch-probe-0n3qcmpg/settings"
         ],
         "exit": 1,
         "stdout": "",
@@ -82,11 +84,11 @@
           "deployment",
           "switch",
           "--game-dir",
-          "/tmp/modsync-switch-probe-ffq4a3xk/game",
+          "/tmp/modsync-switch-probe-z301kri6/game",
           "--to",
           "B",
           "--settings-dir",
-          "/tmp/modsync-switch-probe-ffq4a3xk/settings"
+          "/tmp/modsync-switch-probe-z301kri6/settings"
         ],
         "exit": 1,
         "stdout": "",
@@ -107,11 +109,11 @@
           "deployment",
           "switch",
           "--game-dir",
-          "/tmp/modsync-switch-probe-95hz85a0/does-not-exist",
+          "/tmp/modsync-switch-probe-tcu__r7v/does-not-exist",
           "--to",
           "B",
           "--settings-dir",
-          "/tmp/modsync-switch-probe-95hz85a0/settings"
+          "/tmp/modsync-switch-probe-tcu__r7v/settings"
         ],
         "exit": 1,
         "stdout": "",
@@ -132,11 +134,11 @@
           "deployment",
           "switch",
           "--game-dir",
-          "/tmp/modsync-switch-probe-7gqwsnkj/game",
+          "/tmp/modsync-switch-probe-v7fd6cp0/game",
           "--to",
           "B",
           "--settings-dir",
-          "/tmp/modsync-switch-probe-7gqwsnkj/settings"
+          "/tmp/modsync-switch-probe-v7fd6cp0/settings"
         ],
         "exit": 0,
         "stdout": "{\n  \"from\": \"A\",\n  \"to\": \"B\",\n  \"purged\": [],\n  \"deployed\": 0,\n  \"stagedNotDeployed\": []\n}\n",
@@ -157,17 +159,17 @@
           "deployment",
           "deploy",
           "--game-dir",
-          "/tmp/modsync-switch-probe-ov_0w355/game",
+          "/tmp/modsync-switch-probe-c31cchu6/game",
           "--profile",
           "B",
           "--settings-dir",
-          "/tmp/modsync-switch-probe-ov_0w355/settings",
+          "/tmp/modsync-switch-probe-c31cchu6/settings",
           "--component",
           "comp2"
         ],
         "exit": 0,
-        "stdout": "{\n  \"ComponentGuid\": \"comp2\",\n  \"DeployedUtc\": \"2026-09-28T02:28:12.8762549Z\",\n  \"Entries\": [\n    {\n      \"RelativePath\": \"shared.txt\",\n      \"SourceHash\": \"fe382990f47523c750359f75373c83fb0183bb149bb25857b0b31c07f5c9a23d\",\n      \"Size\": 12,\n      \"DeploymentMethod\": 0,\n      \"OverwroteExisting\": true,\n      \"BackupRelativePath\": \"shared.txt\"\n    }\n  ]\n}\n",
-        "stderr": "warning: Claiming ownership of /tmp/modsync-switch-probe-ov_0w355/game for the first time while deploying comp2, and 1 existing file(s) in its target paths will be backed up and overwritten; if another manager already tracks these files this could not be verified.\n"
+        "stdout": "{\n  \"ComponentGuid\": \"comp2\",\n  \"DeployedUtc\": \"2026-09-28T02:46:52.8987946Z\",\n  \"Entries\": [\n    {\n      \"RelativePath\": \"shared.txt\",\n      \"SourceHash\": \"fe382990f47523c750359f75373c83fb0183bb149bb25857b0b31c07f5c9a23d\",\n      \"Size\": 12,\n      \"DeploymentMethod\": 0,\n      \"OverwroteExisting\": true,\n      \"BackupRelativePath\": \"shared.txt\"\n    }\n  ]\n}\n",
+        "stderr": "warning: Claiming ownership of /tmp/modsync-switch-probe-c31cchu6/game for the first time while deploying comp2, and 1 existing file(s) in its target paths will be backed up and overwritten; if another manager already tracks these files this could not be verified.\n"
       }
     },
     {
@@ -179,11 +181,11 @@
           "deployment",
           "switch",
           "--game-dir",
-          "/tmp/modsync-switch-probe-ov_0w355/game",
+          "/tmp/modsync-switch-probe-c31cchu6/game",
           "--to",
           "A",
           "--settings-dir",
-          "/tmp/modsync-switch-probe-ov_0w355/settings",
+          "/tmp/modsync-switch-probe-c31cchu6/settings",
           "--purge-current"
         ],
         "exit": 0,
@@ -210,16 +212,16 @@
           "deployment",
           "deploy",
           "--game-dir",
-          "/tmp/modsync-switch-probe-djsdkonm/game",
+          "/tmp/modsync-switch-probe-lzmxeq_4/game",
           "--profile",
           "A",
           "--settings-dir",
-          "/tmp/modsync-switch-probe-djsdkonm/settings",
+          "/tmp/modsync-switch-probe-lzmxeq_4/settings",
           "--component",
           "comp3"
         ],
         "exit": 0,
-        "stdout": "{\n  \"ComponentGuid\": \"comp3\",\n  \"DeployedUtc\": \"2026-09-28T02:28:12.9861601Z\",\n  \"Entries\": [\n    {\n      \"RelativePath\": \"locked.txt\",\n      \"SourceHash\": \"9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0\",\n      \"Size\": 3,\n      \"DeploymentMethod\": 0,\n      \"OverwroteExisting\": false\n    }\n  ]\n}\n",
+        "stdout": "{\n  \"ComponentGuid\": \"comp3\",\n  \"DeployedUtc\": \"2026-09-28T02:46:53.0207980Z\",\n  \"Entries\": [\n    {\n      \"RelativePath\": \"locked.txt\",\n      \"SourceHash\": \"9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0\",\n      \"Size\": 3,\n      \"DeploymentMethod\": 0,\n      \"OverwroteExisting\": false\n    }\n  ]\n}\n",
         "stderr": ""
       }
     },
@@ -232,11 +234,11 @@
           "deployment",
           "switch",
           "--game-dir",
-          "/tmp/modsync-switch-probe-djsdkonm/game",
+          "/tmp/modsync-switch-probe-lzmxeq_4/game",
           "--to",
           "B",
           "--settings-dir",
-          "/tmp/modsync-switch-probe-djsdkonm/settings",
+          "/tmp/modsync-switch-probe-lzmxeq_4/settings",
           "--purge-current"
         ],
         "exit": 1,
@@ -255,7 +257,7 @@
       "detail": [
         {
           "ComponentGuid": "comp3",
-          "DeployedUtc": "2026-09-28T02:28:12.9861601Z",
+          "DeployedUtc": "2026-09-28T02:46:53.0207980Z",
           "Entries": [
             {
               "RelativePath": "locked.txt",
@@ -267,6 +269,336 @@
           ]
         }
       ]
+    },
+    {
+      "name": "p8_deploy_ok",
+      "passed": true,
+      "detail": {
+        "argv": [
+          "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+          "deployment",
+          "deploy",
+          "--game-dir",
+          "/tmp/modsync-switch-probe-84fphicb/game",
+          "--profile",
+          "A",
+          "--settings-dir",
+          "/tmp/modsync-switch-probe-84fphicb/settings",
+          "--component",
+          "comp1"
+        ],
+        "exit": 0,
+        "stdout": "{\n  \"ComponentGuid\": \"comp1\",\n  \"DeployedUtc\": \"2026-09-28T02:46:53.1144960Z\",\n  \"Entries\": [\n    {\n      \"RelativePath\": \"example.txt\",\n      \"SourceHash\": \"c1fa83ed9f3b817e225d7994e58324f4e7da3e260281dfc89bc2ff16953c4304\",\n      \"Size\": 8,\n      \"DeploymentMethod\": 0,\n      \"OverwroteExisting\": true,\n      \"BackupRelativePath\": \"example.txt\"\n    }\n  ]\n}\n",
+        "stderr": "warning: Claiming ownership of /tmp/modsync-switch-probe-84fphicb/game for the first time while deploying comp1, and 1 existing file(s) in its target paths will be backed up and overwritten; if another manager already tracks these files this could not be verified.\n"
+      }
+    },
+    {
+      "name": "p8_modified_after_deploy_refused",
+      "passed": true,
+      "detail": {
+        "argv": [
+          "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+          "deployment",
+          "switch",
+          "--game-dir",
+          "/tmp/modsync-switch-probe-84fphicb/game",
+          "--to",
+          "B",
+          "--settings-dir",
+          "/tmp/modsync-switch-probe-84fphicb/settings",
+          "--purge-current"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Error: Cannot switch from profile 'A': 'example.txt' was modified after deployment. Resolve these files, then retry; nothing was changed.\n"
+      }
+    },
+    {
+      "name": "p8_active_unchanged",
+      "passed": true,
+      "detail": "A"
+    },
+    {
+      "name": "p8_game_and_artifacts_unchanged",
+      "passed": true,
+      "detail": {
+        "before": {
+          "/tmp/modsync-switch-probe-84fphicb/game::example.txt": "4e670cce66af3cdd211bc55c6a9ec6f05186e593d0b962e0f0e8acaaccaa8da0",
+          "/tmp/modsync-switch-probe-84fphicb/settings/profiles/A/deployment::game-directory": "03af6a84e95978c155fd90fcf973d2630e1e73d4b34c5d6835e89f1ab3c23f17",
+          "/tmp/modsync-switch-probe-84fphicb/settings/profiles/A/deployment::backups/comp1/example.txt": "0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5",
+          "/tmp/modsync-switch-probe-84fphicb/settings/profiles/A/deployment::manifests/comp1.json": "8fdd174a8ef3f6d178410ec21e631fdb6c9d1a2b9f90453fed8e068ac2d7b751"
+        },
+        "after": {
+          "/tmp/modsync-switch-probe-84fphicb/game::example.txt": "4e670cce66af3cdd211bc55c6a9ec6f05186e593d0b962e0f0e8acaaccaa8da0",
+          "/tmp/modsync-switch-probe-84fphicb/settings/profiles/A/deployment::game-directory": "03af6a84e95978c155fd90fcf973d2630e1e73d4b34c5d6835e89f1ab3c23f17",
+          "/tmp/modsync-switch-probe-84fphicb/settings/profiles/A/deployment::backups/comp1/example.txt": "0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5",
+          "/tmp/modsync-switch-probe-84fphicb/settings/profiles/A/deployment::manifests/comp1.json": "8fdd174a8ef3f6d178410ec21e631fdb6c9d1a2b9f90453fed8e068ac2d7b751"
+        }
+      }
+    },
+    {
+      "name": "p9_deploy_ok",
+      "passed": true,
+      "detail": {
+        "argv": [
+          "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+          "deployment",
+          "deploy",
+          "--game-dir",
+          "/tmp/modsync-switch-probe-mdfyftav/game",
+          "--profile",
+          "A",
+          "--settings-dir",
+          "/tmp/modsync-switch-probe-mdfyftav/settings",
+          "--component",
+          "comp1"
+        ],
+        "exit": 0,
+        "stdout": "{\n  \"ComponentGuid\": \"comp1\",\n  \"DeployedUtc\": \"2026-09-28T02:46:53.2035829Z\",\n  \"Entries\": [\n    {\n      \"RelativePath\": \"example.txt\",\n      \"SourceHash\": \"c1fa83ed9f3b817e225d7994e58324f4e7da3e260281dfc89bc2ff16953c4304\",\n      \"Size\": 8,\n      \"DeploymentMethod\": 0,\n      \"OverwroteExisting\": false\n    }\n  ]\n}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "p9_replaced_with_directory_refused",
+      "passed": true,
+      "detail": {
+        "argv": [
+          "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+          "deployment",
+          "switch",
+          "--game-dir",
+          "/tmp/modsync-switch-probe-mdfyftav/game",
+          "--to",
+          "B",
+          "--settings-dir",
+          "/tmp/modsync-switch-probe-mdfyftav/settings",
+          "--purge-current"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Error: Cannot switch from profile 'A': 'example.txt' is no longer a regular file. Resolve these files, then retry; nothing was changed.\n"
+      }
+    },
+    {
+      "name": "p9_active_unchanged",
+      "passed": true,
+      "detail": "A"
+    },
+    {
+      "name": "p9_game_and_artifacts_unchanged",
+      "passed": true,
+      "detail": {
+        "before": {
+          "/tmp/modsync-switch-probe-mdfyftav/settings/profiles/A/deployment::game-directory": "6298e4d05ac04b727a8dec83f1678448586581f5beca3f1ada2b860aea9c735c",
+          "/tmp/modsync-switch-probe-mdfyftav/settings/profiles/A/deployment::manifests/comp1.json": "07bfb2146190b43dfc693cb8f89d1ce94ecd73fd1f7ed194069ed8063f864520"
+        },
+        "after": {
+          "/tmp/modsync-switch-probe-mdfyftav/settings/profiles/A/deployment::game-directory": "6298e4d05ac04b727a8dec83f1678448586581f5beca3f1ada2b860aea9c735c",
+          "/tmp/modsync-switch-probe-mdfyftav/settings/profiles/A/deployment::manifests/comp1.json": "07bfb2146190b43dfc693cb8f89d1ce94ecd73fd1f7ed194069ed8063f864520"
+        }
+      }
+    },
+    {
+      "name": "p10_deploy_ordinary_ok",
+      "passed": true,
+      "detail": {
+        "argv": [
+          "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+          "deployment",
+          "deploy",
+          "--game-dir",
+          "/tmp/modsync-switch-probe-4tzygato/game",
+          "--profile",
+          "A",
+          "--settings-dir",
+          "/tmp/modsync-switch-probe-4tzygato/settings",
+          "--component",
+          "ordinary"
+        ],
+        "exit": 0,
+        "stdout": "{\n  \"ComponentGuid\": \"ordinary\",\n  \"DeployedUtc\": \"2026-09-28T02:46:53.3026062Z\",\n  \"Entries\": [\n    {\n      \"RelativePath\": \"ordinary.txt\",\n      \"SourceHash\": \"d14a58bae804a2b80b5b76a010239c88ffca1fc7951a90f8e9131beda1e23c1b\",\n      \"Size\": 4,\n      \"DeploymentMethod\": 0,\n      \"OverwroteExisting\": false\n    }\n  ]\n}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "p10_deploy_blocked_ok",
+      "passed": true,
+      "detail": {
+        "argv": [
+          "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+          "deployment",
+          "deploy",
+          "--game-dir",
+          "/tmp/modsync-switch-probe-4tzygato/game",
+          "--profile",
+          "A",
+          "--settings-dir",
+          "/tmp/modsync-switch-probe-4tzygato/settings",
+          "--component",
+          "blocked"
+        ],
+        "exit": 0,
+        "stdout": "{\n  \"ComponentGuid\": \"blocked\",\n  \"DeployedUtc\": \"2026-09-28T02:46:53.3196805Z\",\n  \"Entries\": [\n    {\n      \"RelativePath\": \"blocked.txt\",\n      \"SourceHash\": \"c1fa83ed9f3b817e225d7994e58324f4e7da3e260281dfc89bc2ff16953c4304\",\n      \"Size\": 8,\n      \"DeploymentMethod\": 0,\n      \"OverwroteExisting\": false\n    }\n  ]\n}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "p10_mixed_purge_refused",
+      "passed": true,
+      "detail": {
+        "argv": [
+          "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+          "deployment",
+          "switch",
+          "--game-dir",
+          "/tmp/modsync-switch-probe-4tzygato/game",
+          "--to",
+          "B",
+          "--settings-dir",
+          "/tmp/modsync-switch-probe-4tzygato/settings",
+          "--purge-current"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Error: Cannot switch from profile 'A': 'blocked.txt' was modified after deployment. Resolve these files, then retry; nothing was changed.\n"
+      }
+    },
+    {
+      "name": "p10_active_unchanged",
+      "passed": true,
+      "detail": "A"
+    },
+    {
+      "name": "p10_no_partial_mutation_ordinary_still_present",
+      "passed": true,
+      "detail": {
+        "before": {
+          "/tmp/modsync-switch-probe-4tzygato/game::blocked.txt": "4e670cce66af3cdd211bc55c6a9ec6f05186e593d0b962e0f0e8acaaccaa8da0",
+          "/tmp/modsync-switch-probe-4tzygato/game::ordinary.txt": "d14a58bae804a2b80b5b76a010239c88ffca1fc7951a90f8e9131beda1e23c1b",
+          "/tmp/modsync-switch-probe-4tzygato/settings/profiles/A/deployment::game-directory": "ea378d3f2d81f43df42812813dcf1fa4d53005e5d378573b3d228735cce20864",
+          "/tmp/modsync-switch-probe-4tzygato/settings/profiles/A/deployment::manifests/blocked.json": "9634c025657473984008055e25ea8a09e744022001a9c54fa884d05d35fba74a",
+          "/tmp/modsync-switch-probe-4tzygato/settings/profiles/A/deployment::manifests/ordinary.json": "4bf5f1498f057b1453e750419ed95788fe98dd7e59af2ea6681cf621664d3999"
+        },
+        "after": {
+          "/tmp/modsync-switch-probe-4tzygato/game::blocked.txt": "4e670cce66af3cdd211bc55c6a9ec6f05186e593d0b962e0f0e8acaaccaa8da0",
+          "/tmp/modsync-switch-probe-4tzygato/game::ordinary.txt": "d14a58bae804a2b80b5b76a010239c88ffca1fc7951a90f8e9131beda1e23c1b",
+          "/tmp/modsync-switch-probe-4tzygato/settings/profiles/A/deployment::game-directory": "ea378d3f2d81f43df42812813dcf1fa4d53005e5d378573b3d228735cce20864",
+          "/tmp/modsync-switch-probe-4tzygato/settings/profiles/A/deployment::manifests/blocked.json": "9634c025657473984008055e25ea8a09e744022001a9c54fa884d05d35fba74a",
+          "/tmp/modsync-switch-probe-4tzygato/settings/profiles/A/deployment::manifests/ordinary.json": "4bf5f1498f057b1453e750419ed95788fe98dd7e59af2ea6681cf621664d3999"
+        }
+      }
+    },
+    {
+      "name": "p10_both_manifests_retained",
+      "passed": true,
+      "detail": [
+        {
+          "ComponentGuid": "ordinary",
+          "DeployedUtc": "2026-09-28T02:46:53.3026062Z",
+          "Entries": [
+            {
+              "RelativePath": "ordinary.txt",
+              "SourceHash": "d14a58bae804a2b80b5b76a010239c88ffca1fc7951a90f8e9131beda1e23c1b",
+              "Size": 4,
+              "DeploymentMethod": 0,
+              "OverwroteExisting": false
+            }
+          ]
+        },
+        {
+          "ComponentGuid": "blocked",
+          "DeployedUtc": "2026-09-28T02:46:53.3196805Z",
+          "Entries": [
+            {
+              "RelativePath": "blocked.txt",
+              "SourceHash": "c1fa83ed9f3b817e225d7994e58324f4e7da3e260281dfc89bc2ff16953c4304",
+              "Size": 8,
+              "DeploymentMethod": 0,
+              "OverwroteExisting": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "p11_deploy_compA_ok",
+      "passed": true,
+      "detail": {
+        "argv": [
+          "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+          "deployment",
+          "deploy",
+          "--game-dir",
+          "/tmp/modsync-switch-probe-7bcyosm5/game",
+          "--profile",
+          "A",
+          "--settings-dir",
+          "/tmp/modsync-switch-probe-7bcyosm5/settings",
+          "--component",
+          "compA"
+        ],
+        "exit": 0,
+        "stdout": "{\n  \"ComponentGuid\": \"compA\",\n  \"DeployedUtc\": \"2026-09-28T02:46:53.4364176Z\",\n  \"Entries\": [\n    {\n      \"RelativePath\": \"shared.txt\",\n      \"SourceHash\": \"6d760c02bfa8afee2891e32c52dba252bf8311c93c2d3b232a2a8a8a38049aa6\",\n      \"Size\": 13,\n      \"DeploymentMethod\": 0,\n      \"OverwroteExisting\": true,\n      \"BackupRelativePath\": \"shared.txt\"\n    }\n  ]\n}\n",
+        "stderr": "warning: Claiming ownership of /tmp/modsync-switch-probe-7bcyosm5/game for the first time while deploying compA, and 1 existing file(s) in its target paths will be backed up and overwritten; if another manager already tracks these files this could not be verified.\n"
+      }
+    },
+    {
+      "name": "p11_deploy_compB_ok",
+      "passed": true,
+      "detail": {
+        "argv": [
+          "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+          "deployment",
+          "deploy",
+          "--game-dir",
+          "/tmp/modsync-switch-probe-7bcyosm5/game",
+          "--profile",
+          "A",
+          "--settings-dir",
+          "/tmp/modsync-switch-probe-7bcyosm5/settings",
+          "--component",
+          "compB"
+        ],
+        "exit": 0,
+        "stdout": "{\n  \"ComponentGuid\": \"compB\",\n  \"DeployedUtc\": \"2026-09-28T02:46:53.4533741Z\",\n  \"Entries\": [\n    {\n      \"RelativePath\": \"shared.txt\",\n      \"SourceHash\": \"35f0c2e4901bc8337fb0f7118eb9cb0a502151727600c6e955b1cc16730b9f1d\",\n      \"Size\": 14,\n      \"DeploymentMethod\": 0,\n      \"OverwroteExisting\": true,\n      \"BackupRelativePath\": \"shared.txt\"\n    }\n  ]\n}\n",
+        "stderr": "warning: Conflict: 'shared.txt' from component 'compB' is already deployed by component 'compA'. The new file will overwrite it.\n"
+      }
+    },
+    {
+      "name": "p11_second_overlay_live",
+      "passed": true,
+      "detail": "second-overlay"
+    },
+    {
+      "name": "p11_purge_and_switch_succeeds",
+      "passed": true,
+      "detail": {
+        "argv": [
+          "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+          "deployment",
+          "switch",
+          "--game-dir",
+          "/tmp/modsync-switch-probe-7bcyosm5/game",
+          "--to",
+          "B",
+          "--settings-dir",
+          "/tmp/modsync-switch-probe-7bcyosm5/settings",
+          "--purge-current"
+        ],
+        "exit": 0,
+        "stdout": "{\n  \"from\": \"A\",\n  \"to\": \"B\",\n  \"purged\": [\n    {\n      \"component\": \"compB\",\n      \"removed\": true,\n      \"deleted\": [\n        \"shared.txt\"\n      ],\n      \"restored\": [\n        \"shared.txt\"\n      ],\n      \"skipped\": [],\n      \"transferred\": [],\n      \"warnings\": []\n    },\n    {\n      \"component\": \"compA\",\n      \"removed\": true,\n      \"deleted\": [\n        \"shared.txt\"\n      ],\n      \"restored\": [\n        \"shared.txt\"\n      ],\n      \"skipped\": [],\n      \"transferred\": [],\n      \"warnings\": []\n    }\n  ],\n  \"deployed\": 0,\n  \"stagedNotDeployed\": []\n}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "p11_original_bytes_restored",
+      "passed": true,
+      "detail": "8e338be649868e7c9e053212037e4bb0965ba7653e81b974bab76578bd59c80a"
+    },
+    {
+      "name": "p11_active_is_target",
+      "passed": true,
+      "detail": "B"
     }
   ],
   "all_passed": true

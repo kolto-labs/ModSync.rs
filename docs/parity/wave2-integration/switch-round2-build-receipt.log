@@ -1,0 +1,8 @@
+=== cargo fmt --all -- --check ===
+fmt exit=0
+=== cargo build --locked --no-default-features --bin modsync -j2 ===
+    Finished `dev` profile [unoptimized] target(s) in 4.33s
+build exit=0
+=== cargo clippy --locked --no-default-features --lib --bin modsync -j2 -- -D warnings ===
+    Finished `dev` profile [unoptimized] target(s) in 1.75s
+clippy exit=0
