@@ -1744,19 +1744,39 @@ pub fn fomod_followups(
         .skipped
         .retain(|skip| eligible(&skip.component_guid, skip.path.as_ref()));
     let scan = collect_fomod_consumers(guide, &captured, options, cancelled, &[]);
+    // Eligibility here is the recursive `offer_prompt` filter above, and the desktop
+    // offers its editor without assessing saved choices, so every consumer is pending.
     FomodFollowups {
-        followups: scan
-            .archives
-            .iter()
-            .filter_map(|archive| {
-                archive.consumers.first().map(|consumer| FomodFollowup {
-                    component_guid: consumer.component_guid.clone(),
-                    archive: archive.archive.clone(),
-                })
+        followups: pending_fomod_followups(scan.archives.iter().flat_map(|archive| {
+            archive.consumers.iter().map(|consumer| {
+                (
+                    archive.archive.as_path(),
+                    consumer.component_guid.as_str(),
+                    true,
+                    false,
+                )
             })
-            .collect(),
+        })),
         inspection_errors: scan.inspection_errors,
     }
+}
+
+/// The shared follow-up predicate for desktop and Fetch: each archive is offered once,
+/// bound to its first consumer that is prompt-eligible and still lacks usable choices.
+/// Items are `(archive, component GUID, prompt eligible, usable choices)` in capture order.
+pub fn pending_fomod_followups<'a>(
+    consumers: impl IntoIterator<Item = (&'a Path, &'a str, bool, bool)>,
+) -> Vec<FomodFollowup> {
+    let mut followups: Vec<FomodFollowup> = Vec::new();
+    for (archive, guid, eligible, usable_choices) in consumers {
+        if eligible && !usable_choices && !followups.iter().any(|f| f.archive == archive) {
+            followups.push(FomodFollowup {
+                component_guid: guid.to_owned(),
+                archive: archive.to_path_buf(),
+            });
+        }
+    }
+    followups
 }
 
 /// A GUID/path binding from the captured acquisition report, before inspection deduplication.

@@ -69,6 +69,27 @@ and signal actions, exit, raw stdout/stderr, and before/after hashes. The matchi
 `receipts/fixtures/<case>/{before,after}` directories retain actual guide, sidecar,
 settings and archive bytes. Shared restart cases retain each invocation's state.
 
+## Post-review corrections (receipts predate these; re-run required)
+
+The quality review (`docs/parity/fomod-s1-quality-review.md`) changed source after
+these receipts were captured, so the affected receipts are historical until re-run:
+
+- Unix input no longer sets O_NONBLOCK or saves/restores stdin flags (fds 0/1/2
+  share one TTY open file description). It polls with a timeout and performs one
+  read per readiness. The "restored original stdin flags" measurement above now
+  means "descriptor flags unchanged".
+- Policy resolution is lazy (first archive with pending consumers), so malformed
+  settings or a missing `MODSYNC_FOMOD_CHOICES` file no longer fail runs that need
+  no policy.
+- Warn/Skip record (and print their warning) only when a pending consumer's prompt
+  status changes, so a repeated `--record` run with nothing new does not save.
+- `fomodFollowups` is computed after dispatch from consumers that were
+  prompt-eligible and still lack usable choices, through the same helper the
+  desktop wrapper uses.
+- With `--record`, a failure replaying FOMOD edits (atomic) no longer drops the
+  acquisition facts: they are saved alone, the FOMOD error is reported, and the
+  run exits 1.
+
 ## Source boundaries and self-review
 
 - `src/main.rs`: four Fetch flags, captured scan/dispatch, delayed scoped recording,

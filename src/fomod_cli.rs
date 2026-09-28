@@ -100,6 +100,8 @@ pub struct ConsumerOutcome {
     pub outcome: Outcome,
     pub usable_choices: bool,
     pub error: Option<String>,
+    #[serde(skip)]
+    should_prompt: bool,
 }
 
 #[derive(Serialize)]
@@ -147,6 +149,18 @@ impl Report {
         *guide = candidate;
         Ok(())
     }
+    /// Follow-ups after dispatch: consumers that were prompt-eligible at capture and
+    /// still lack usable choices, using the desktop wrapper's shared predicate.
+    pub fn followups(&self) -> Vec<acquisition::FomodFollowup> {
+        acquisition::pending_fomod_followups(self.consumers.iter().map(|c| {
+            (
+                c.archive.as_path(),
+                c.component_guid.as_str(),
+                c.should_prompt,
+                c.usable_choices,
+            )
+        }))
+    }
     pub fn has_edits(&self) -> bool {
         !self.edits.is_empty()
     }
@@ -190,19 +204,20 @@ pub fn dispatch(
         report.cancelled = cancelled.load(Ordering::SeqCst);
         return report;
     }
-    let mode = options.resolve();
-    if let Err(error) = &mode {
-        report.errors.push(format!("{error:#}"));
-    }
+    // Resolved lazily, once, for the first archive that needs a policy, so malformed
+    // settings or a missing choices file cannot fail a run that needs no policy.
+    let mut mode: Option<Result<Mode>> = None;
     let mut input: Option<TerminalInput> = None;
     let mut stop_prompting = false;
     for archive in &mut scan.archives {
-        let filename = archive
+        let Some(filename) = archive
             .archive
             .file_name()
             .and_then(|n| n.to_str())
-            .unwrap()
-            .to_owned();
+            .map(str::to_owned)
+        else {
+            continue;
+        };
         let start = report.consumers.len();
         for consumer in &archive.consumers {
             let validity = guide
@@ -229,6 +244,7 @@ pub fn dispatch(
                 },
                 usable_choices,
                 error,
+                should_prompt: consumer.should_prompt,
             });
         }
         let pending: Vec<_> = report.consumers[start..]
@@ -240,11 +256,18 @@ pub fn dispatch(
         if pending.is_empty() {
             continue;
         }
+        if mode.is_none() && !cancelled.load(Ordering::SeqCst) {
+            let resolved = options.resolve();
+            if let Err(error) = &resolved {
+                report.errors.push(format!("{error:#}"));
+            }
+            mode = Some(resolved);
+        }
         let result = (|| -> Result<(Outcome, Option<Edit>)> {
             if cancelled.load(Ordering::SeqCst) {
                 return Ok((Outcome::SignalCancelled, None));
             }
-            let Ok(mode) = &mode else {
+            let Some(Ok(mode)) = &mode else {
                 return Ok((Outcome::Error, None));
             };
             let guids: Vec<_> = pending
@@ -267,9 +290,6 @@ pub fn dispatch(
                         Outcome::Warned
                     };
                     choices = None;
-                    eprintln!(
-                        "FOMOD {filename} requires choices before installation; use --fomod-choices or --interactive."
-                    );
                 }
                 Mode::Choices(file) => {
                     let entry = file.archive(&filename).with_context(|| {
@@ -300,7 +320,8 @@ pub fn dispatch(
                         input = Some(TerminalInput::new()?);
                     }
                     let input = input.as_mut().unwrap();
-                    let mut output = std::io::stderr().lock();
+                    // Unlocked stderr locks per write; no lock is held across a read.
+                    let mut output = std::io::stderr();
                     write!(output, "Configure FOMOD {filename} now? [y/N] ")?;
                     output.flush()?;
                     let answer = match input.next_line(cancelled)? {
@@ -360,6 +381,21 @@ pub fn dispatch(
             if cancelled.load(Ordering::SeqCst) {
                 return Ok((Outcome::SignalCancelled, None));
             }
+            if choices.is_none() {
+                // Warn/Skip: record (and warn) only when a pending consumer's prompt
+                // status actually changes, so a repeated run neither re-warns nor saves.
+                let changed = guids.iter().any(|guid| {
+                    let before = guide.components.iter().find(|c| c.guid == *guid);
+                    let after = candidate.components.iter().find(|c| c.guid == *guid);
+                    before.map(|c| &c.resource_registry) != after.map(|c| &c.resource_registry)
+                });
+                if !changed {
+                    return Ok((outcome, None));
+                }
+                eprintln!(
+                    "FOMOD {filename} requires choices before installation; use --fomod-choices or --interactive."
+                );
+            }
             *guide = candidate;
             Ok((
                 outcome,
@@ -418,26 +454,21 @@ pub fn dispatch(
 
 #[cfg(unix)]
 struct TerminalInput {
-    original_flags: i32,
-    restored: bool,
     pending: Vec<u8>,
     eof: bool,
 }
 
+/// Unix input never changes file status flags: on a TTY, fds 0/1/2 share one open
+/// file description, so O_NONBLOCK would leak to stdout/stderr and to the user's
+/// shell if the process is stopped or killed. A bounded poll() observes the signal
+/// flag, and each POLLIN readiness is followed by exactly one read(): canonical TTY
+/// and pipe readiness guarantees that single read returns without blocking, and
+/// regular files never block.
 #[cfg(unix)]
 impl TerminalInput {
     fn new() -> Result<Self> {
         // Fetch exclusively owns stdin during dispatch; no buffered stdin is used.
-        let flags = unsafe { libc::fcntl(libc::STDIN_FILENO, libc::F_GETFL) };
-        if flags < 0 {
-            return Err(std::io::Error::last_os_error().into());
-        }
-        if unsafe { libc::fcntl(libc::STDIN_FILENO, libc::F_SETFL, flags | libc::O_NONBLOCK) } < 0 {
-            return Err(std::io::Error::last_os_error().into());
-        }
         Ok(Self {
-            original_flags: flags,
-            restored: false,
             pending: Vec::new(),
             eof: false,
         })
@@ -477,6 +508,8 @@ impl TerminalInput {
             if ready == 0 {
                 continue;
             }
+            // One read per readiness (POLLIN, or POLLHUP/POLLERR/POLLNVAL, whose read
+            // reports EOF or the error). Re-poll before any further read.
             let mut bytes = [0_u8; 4096];
             let count =
                 unsafe { libc::read(libc::STDIN_FILENO, bytes.as_mut_ptr().cast(), bytes.len()) };
@@ -498,19 +531,8 @@ impl TerminalInput {
         }
     }
     fn finish(&mut self) -> Result<()> {
-        if !self.restored {
-            if unsafe { libc::fcntl(libc::STDIN_FILENO, libc::F_SETFL, self.original_flags) } < 0 {
-                return Err(std::io::Error::last_os_error().into());
-            }
-            self.restored = true;
-        }
+        // No terminal or descriptor state is changed, so there is nothing to restore.
         Ok(())
-    }
-}
-#[cfg(unix)]
-impl Drop for TerminalInput {
-    fn drop(&mut self) {
-        let _ = self.finish();
     }
 }
 
@@ -528,7 +550,7 @@ impl TerminalInput {
         use std::{
             os::windows::io::AsRawHandle,
             sync::{Arc, mpsc},
-            time::Duration,
+            time::{Duration, Instant},
         };
         use windows_sys::Win32::{
             Foundation::{
@@ -628,17 +650,35 @@ impl TerminalInput {
             };
             let _ = send.send(read());
         });
-        let mut cancellation_error = None;
+        let mut cancellation_error: Option<std::io::Error> = None;
+        let mut cancelled_at: Option<Instant> = None;
+        let mut reported = false;
         let result = loop {
             if cancelled.load(Ordering::SeqCst) {
                 stop.store(true, Ordering::SeqCst);
-                if unsafe { CancelSynchronousIo(worker.as_raw_handle()) } == 0 {
+                let since = *cancelled_at.get_or_insert_with(Instant::now);
+                // Benign misses (no pending read yet) are retried; a real failure stops
+                // retrying and is surfaced while the mandatory wait continues.
+                if cancellation_error.is_none()
+                    && unsafe { CancelSynchronousIo(worker.as_raw_handle()) } == 0
+                {
                     let error = std::io::Error::last_os_error();
                     if !matches!(
                         error.raw_os_error().map(|c| c as u32),
                         Some(ERROR_NOT_FOUND | ERROR_OPERATION_ABORTED)
                     ) {
                         cancellation_error = Some(error);
+                    }
+                }
+                if !reported && since.elapsed() >= Duration::from_secs(2) {
+                    reported = true;
+                    match &cancellation_error {
+                        Some(error) => eprintln!(
+                            "FOMOD input reader has not stopped after cancellation ({error}); waiting for it to finish."
+                        ),
+                        None => eprintln!(
+                            "FOMOD input reader has not stopped after cancellation; waiting for it to finish."
+                        ),
                     }
                 }
             }

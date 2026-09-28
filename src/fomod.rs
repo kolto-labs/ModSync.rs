@@ -1,5 +1,5 @@
 //! Shared FOMOD selection rules. Archive configuration and installation are not yet wired.
-use anyhow::{Result, ensure};
+use anyhow::{Context, Result, ensure};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
@@ -673,6 +673,7 @@ pub fn should_prompt(component: &crate::Component, archive: &str) -> bool {
 }
 
 /// Persist a C#-compatible prompt state when a resource registry entry contains the archive.
+/// Returns false when no entry matches or the matching entry's metadata is malformed.
 pub fn set_prompt_status(
     component: &mut crate::Component,
     archive: &str,
@@ -686,10 +687,20 @@ pub fn set_prompt_status(
     else {
         return false;
     };
+    write_prompt_status(resource, &filename, status).is_ok()
+}
+
+/// Write one archive's prompt status into a resource registry entry, preserving the
+/// entry's existing handler-metadata key spelling. Malformed shapes are errors.
+fn write_prompt_status(
+    resource: &mut serde_json::Value,
+    filename: &str,
+    status: PromptStatus,
+) -> Result<()> {
     let object = resource
         .as_object_mut()
-        .expect("resource matched only as an object");
-    let metadata_key = if object.contains_key("handlerMetadata") {
+        .context("FOMOD resource entry must be an object")?;
+    let key = if object.contains_key("handlerMetadata") {
         "handlerMetadata"
     } else if object.contains_key("HandlerMetadata") {
         "HandlerMetadata"
@@ -697,18 +708,20 @@ pub fn set_prompt_status(
         "handlerMetadata"
     };
     let metadata = object
-        .entry(metadata_key)
-        .or_insert_with(|| serde_json::json!({}));
-    let statuses = metadata
+        .entry(key)
+        .or_insert_with(|| serde_json::json!({}))
         .as_object_mut()
-        .expect("handlerMetadata must be an object")
+        .context("FOMOD handler metadata must be an object")?;
+    metadata
         .entry("fomodPromptStatus")
-        .or_insert_with(|| serde_json::json!({}));
-    statuses
+        .or_insert_with(|| serde_json::json!({}))
         .as_object_mut()
-        .expect("fomodPromptStatus must be an object")
-        .insert(filename, serde_json::Value::String(status.as_str().into()));
-    true
+        .context("FOMOD prompt status must be an object")?
+        .insert(
+            filename.to_owned(),
+            serde_json::Value::String(status.as_str().into()),
+        );
+    Ok(())
 }
 
 impl ChoicesFile {
@@ -1086,28 +1099,8 @@ pub fn apply_bound_archive(
             .values_mut()
             .filter(|value| resource_matches(value, &filename))
         {
-            let object = resource.as_object_mut().unwrap();
-            let key = if object.contains_key("handlerMetadata") {
-                "handlerMetadata"
-            } else if object.contains_key("HandlerMetadata") {
-                "HandlerMetadata"
-            } else {
-                "handlerMetadata"
-            };
-            let metadata = object.entry(key).or_insert_with(|| serde_json::json!({}));
-            let metadata = metadata.as_object_mut().ok_or_else(|| {
-                anyhow::anyhow!("FOMOD handler metadata must be an object for {guid}")
-            })?;
-            let statuses = metadata
-                .entry("fomodPromptStatus")
-                .or_insert_with(|| serde_json::json!({}));
-            let statuses = statuses.as_object_mut().ok_or_else(|| {
-                anyhow::anyhow!("FOMOD prompt status must be an object for {guid}")
-            })?;
-            statuses.insert(
-                filename.clone(),
-                serde_json::Value::String(status.as_str().into()),
-            );
+            write_prompt_status(resource, &filename, status)
+                .with_context(|| format!("Recording FOMOD prompt status for {guid}"))?;
         }
     }
     *guide = candidate;
