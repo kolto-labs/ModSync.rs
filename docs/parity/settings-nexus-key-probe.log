@@ -1,0 +1,52 @@
+binary: /home/brunner56/.cache/modsync-rs-target-prof/debug/modsync sha256=0bea1f1c304fdac118d1f708037a4ab06f08f99daa2571ee063bc1f9cc3fd320
+### A update-check --nexus-mods-api-key X
+rc=0  legacy_warnings=0  parse_errors=0
+{
+  "CheckedCount": 0,
+  "SkippedCount": 2,
+  "RateLimitReached": false,
+  "UpdatesFound": [],
+  "Errors": []
+
+### B nxm-download --nexus-mods-api-key X (network-isolated: unshare -rn)
+rc=1  legacy_warnings=0  parse_errors=0
+Error: error sending request for url (https://api.nexusmods.com/v1/games/kotor/mods/1/files/2/download_link.json?key=k&expires=9999999999): client error (Connect): dns error: failed to lookup address information: Name or service not known
+
+### C update-check, no flag, NEXUS_MODS_API_KEY=E
+rc=0  legacy_warnings=1  parse_errors=0
+Warning: failed to read legacy settings: expected value at line 1 column 1
+{
+  "CheckedCount": 0,
+  "SkippedCount": 2,
+  "RateLimitReached": false,
+  "UpdatesFound": [],
+
+### D nxm-download, no flag, KOTOR_MODSYNC_NEXUS_API_KEY=E (network-isolated: unshare -rn)
+rc=1  legacy_warnings=1  parse_errors=0
+Warning: failed to read legacy settings: expected value at line 1 column 1
+Error: error sending request for url (https://api.nexusmods.com/v1/games/kotor/mods/1/files/2/download_link.json?key=k&expires=9999999999): client error (Connect): dns error: failed to lookup address information: Name or service not known
+
+### E update-check, no flag, no env
+rc=1  legacy_warnings=1  parse_errors=0
+Warning: failed to read legacy settings: expected value at line 1 column 1
+Error: Set nexusModsApiKey in settings, an API-key flag, or a Nexus API-key environment variable
+
+### F update-check, current file 'bad', no flag
+rc=1  legacy_warnings=0  parse_errors=0
+Error: expected value at line 1 column 1
+
+current file now: bad
+### G nxm-download, current file 'bad', no flag
+rc=1  legacy_warnings=0  parse_errors=0
+Error: expected value at line 1 column 1
+
+### H update-check, current file 'bad', with flag
+rc=0  legacy_warnings=0  parse_errors=0
+{
+  "CheckedCount": 0,
+  "SkippedCount": 2,
+  "RateLimitReached": false,
+  "UpdatesFound": [],
+  "Errors": []
+
+legacy file after all runs: corrupt

@@ -205,16 +205,18 @@
     },
     {
       "id": "G-e",
-      "case": "update-check / nxm-download with only a corrupt legacy file (/tmp/msprobe/nk.sh, run under unshare -rn)",
+      "case": "update-check / nxm-download with only a corrupt legacy file, run via docs/parity/settings-nexus-key-probe.sh (durable copy of the ad hoc /tmp/msprobe/nk2.sh probe; log at docs/parity/settings-nexus-key-probe.log). Cases B and D reach the network (Nexus's download-link resolver); the script itself wraps those two calls in `unshare -rn`, isolating them from the live network. Cases A, C, E-H never make a network call",
       "rust": {
-        "update-check --nexus-mods-api-key X": "rc=0, no settings read",
-        "nxm-download --nexus-mods-api-key X": "rc=1 on network unreachable (no settings error)",
-        "no flag, NEXUS_MODS_API_KEY=E": "legacy warning, env key used, rc=0",
-        "no flag, no env": "legacy warning, then rc=1 'Set nexusModsApiKey ...'",
-        "current file 'bad', no flag": "rc=1 parse error, file unchanged",
-        "current file 'bad', with flag": "rc=0"
+        "A update-check --nexus-mods-api-key X": "rc=0, no settings read",
+        "B nxm-download --nexus-mods-api-key X (unshare -rn)": "rc=1: DNS lookup failure for api.nexusmods.com (network isolated by unshare -rn, not a live 401)",
+        "C update-check, no flag, NEXUS_MODS_API_KEY=E": "legacy warning, env key used, rc=0",
+        "D nxm-download, no flag, KOTOR_MODSYNC_NEXUS_API_KEY=E (unshare -rn)": "legacy warning, then rc=1: same DNS lookup failure as case B",
+        "E update-check, no flag, no env": "legacy warning, then rc=1 'Set nexusModsApiKey ...'",
+        "F update-check, current file 'bad', no flag": "rc=1 parse error, current file unchanged ('bad')",
+        "G nxm-download, current file 'bad', no flag": "rc=1 parse error",
+        "H update-check, current file 'bad', with flag": "rc=0"
       },
-      "rust_binary_sha256": "0bea1f1c304fdac118d1f708037a4ab06f08f99daa2571ee063bc1f9cc3fd320",
+      "rust_binary_sha256": "0bea1f1c304fdac118d1f708037a4ab06f08f99daa2571ee063bc1f9cc3fd320 (echoed by the script into the log's first line)",
       "csharp": "not compared: no equivalent settings-dir/legacy path in the pinned CLI for these verbs"
     }
   ],
