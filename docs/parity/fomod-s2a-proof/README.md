@@ -3,8 +3,9 @@
 Scope is the bounded S2a slice of [the remaining plan](../fomod-remaining-plan.md)
 (S2 paragraph two plus the registration-without-Extract sentence). The base is
 `5f81e82`. Source is commit `0d6aad1`, its review follow-up commit `93837e5`
-([section (d)](#d-review-follow-up)) and the round-2 follow-up
-([section (e)](#e-round-2-follow-up)), bound by hash in the receipt. Priority sorting, recursive folder copy, authored renaming, Unicode matching,
+([section (d)](#d-review-follow-up)), the round-2 follow-up commit `a436c05`
+([section (e)](#e-round-2-follow-up)) and the round-3 follow-up
+([section (f)](#f-round-3-follow-up)), bound by hash in the receipt. Priority sorting, recursive folder copy, authored renaming, Unicode matching,
 diagnostic/ownership corrections and desktop work are out of scope. This slice does
 not change F15 or F29 status.
 
@@ -118,15 +119,16 @@ the sources.
 | Registration without Extract | Missing or invalid choices fail the gate with the route. | Valid choices pass with a `WARNING` and `warningCount` 1. Two registrants of one archive give one warning naming both. Install copies only the unrelated file. The same guide with `Extract` has no warning and installs. |
 | Saved names apply, mapping is unsafe | Validate and install refuse with the recovery route (install's mapping step now carries it). The game stays untouched. | — |
 | Unparseable saved `FomodChoices` (version 2; duplicate archive) | Fetch with a valid `--fomod-choices` entry: exit 1, `error`, no session, saved choices and registry unchanged; the consumer error names the repair hint and no output names the Fetch recovery route. Validate (both shapes) and install (version 2) show only the repair hint; the game stays untouched. A flag file without this archive's entry reports no missing-entry error (nothing to recover). | After the component's `FomodChoices` is removed from the guide, `--record --fomod-choices` gives `configured` and saves the entry. |
+| Unparseable (version 2) and stale parseable consumers of one archive | The unparseable consumer: `error` with the repair hint, metadata value-equal. Exit 1. | The same `--record --fomod-choices` run reconfigures the other consumer: outcomes `error`, `reconfigured`; one session naming only its GUID; its new choices saved. |
 | Stale saved choices, flag file without this archive's entry | Exit 1, `error`, one run error `Choices file <path> has no entry for archive 'example.zip'`, choices kept. | The existing explicit-entry recovery (`reconfigured`). |
 | Every validate run | Guide, mod and game trees byte-identical before and after (scratch excluded). | — |
 
-### Results (source `93837e5` plus the round-2 follow-up, cloud Linux)
+### Results (source `a436c05` plus the round-3 follow-up, cloud Linux)
 
-- `probe.py`: **217/217 checks, 54 production invocations**. Default-feature debug
-  binary SHA-256 `2ac04e2895207dc199c0d344d62ddf89e64cd6604c8b1572c3ef48f70a09aa8d`
-  (host-specific). Git HEAD `8e008dc` (source `93837e5`, docs-only since) plus the
-  round-2 follow-up in `src/{fomod,fomod_cli}.rs`, bound by hash in the receipt.
+- `probe.py`: **224/224 checks, 55 production invocations**. Default-feature debug
+  binary SHA-256 `4eb8d8da757f9bb7cf0a32a6c8829ca3b18bc6a44ab9464cb24f5ced33818469`
+  (host-specific). Git HEAD `a436c05` plus the round-3 follow-up in `src/fomod.rs`,
+  bound by hash in the receipt.
 - Original pre-fix demonstration (the first 117 checks): against a
   `--no-default-features` binary built from a `git archive` of `5f81e82`
   (`FOMOD_S2A_ALLOW_UNBOUND=1`), **84/117; 33 checks failed**: every reconfiguration
@@ -141,12 +143,18 @@ the sources.
   `--no-default-features` binary built from a `git archive` of `93837e5` (output
   `target/cloud-proof/fomod-s2a-pre93837e5`) gives **209/217; 8 checks fail**. See
   [section (e)](#e-round-2-follow-up).
+- Round-3 pre-fix demonstration: the current probe against `--no-default-features`
+  binaries built from `a436c05` gives **218/224; 6 checks fail** (output
+  `target/cloud-proof/fomod-s2a-prea436c05`), and with the unparseable skip in
+  `dispatch` removed **215/224; 9 checks fail** (output
+  `target/cloud-proof/fomod-s2a-prea436c05-noskip`). The tree was restored after
+  each build. See [section (f)](#f-round-3-follow-up).
 - Regressions in isolated namespaces: S1 `probe.py` **339/339 (61 cases)**,
   `inherited_controller.py` **41/41**, Nexus H1a `probe.py` **138/138**. No S1
   expectation changed.
 - Gates, all exit 0:
   - `cargo fmt --all -- --check`;
-  - `cargo build`/`clippy -D warnings --locked --lib --bin modsync -j3`, with and
+  - `cargo build`/`clippy -D warnings --locked --lib --bin modsync -j2`, with and
     without `--no-default-features`;
   - `x86_64-pc-windows-gnu` Clippy `-D warnings` in both feature modes.
 
@@ -204,15 +212,15 @@ The [re-review](../fomod-s2a-review.md) of `93837e5` required changes:
   `saved_choices_file` for Fetch, the gate and install). Saved `FomodChoices` that
   `ChoicesFile::parse` rejects no longer advertise `fetch-downloads --record
   --fomod-choices`, which re-parses the same metadata and always failed. The hint
-  says to repair or remove that component's `FomodChoices` in the guide, then capture
+  says to repair (round 3: not remove) that component's `FomodChoices`, then capture
   with `fomod-inspect --save-choices` and record with `fetch-downloads --record
   --fomod-choices`. `CHOICES_RECOVERY_HINT` stays for parseable choices that are
   stale or invalid against the current archive.
 - **No overwrite.** Fetch (`src/fomod_cli.rs` `dispatch`) excludes consumers with
   unparseable saved choices from a flag reconfiguration session, so they keep their
   own error and are never rewritten, which could discard other archives' entries.
-  Other consumers of the archive are still reconfigured or configured (source
-  reading; not probed).
+  Other consumers of the archive are still reconfigured or configured (probed in
+  round 3, section (f)).
 - **Missing entry.** When a consumer has stale (parseable) saved choices and the
   loaded `--fomod-choices` file has no entry for that archive, the run reports
   `Choices file <path> has no entry for archive '<name>'` once in `errors`.
@@ -230,6 +238,35 @@ The 8 checks that fail against `93837e5`:
 The unparseable Fetch exit, outcome, unchanged saved choices and empty sessions pass
 at both commits (`apply_bound_archive` already refused to re-parse the metadata), as
 do the no-entry control and the repaired positive control.
+
+## (f) Round-3 follow-up
+
+The [re-review](../fomod-s2a-review.md) of `a436c05` approved SPEC and required
+QUALITY changes:
+
+- **Probe for the unparseable skip** (`src/fomod_cli.rs` `dispatch`, unchanged).
+  New case `unparseable_shared`: one archive with an unparseable (version 2)
+  consumer and a stale parseable consumer, and a `--record --fomod-choices` file with
+  a valid entry. It asserts exit 1, outcomes `error`, `reconfigured`, one session
+  naming only the second GUID, the unparseable metadata value-equal, the second
+  consumer's new choices saved and the repair hint on the first. The archive is
+  pre-placed: two components fetching one URL concurrently race on the destination
+  file (`File exists`), an S1 download behavior outside this slice.
+- **Repair hint wording** (`src/fomod.rs` `CHOICES_REPAIR_HINT`): repair comes first,
+  and removal is qualified as discarding every archive's saved choices for the
+  component. The capture and record steps stay. The probe's `REPAIR` text follows.
+- **PROGRESS** names `a436c05` and this follow-up.
+
+Against `a436c05`, the 6 hint checks fail: `unparseable_version2_fetch_repair_hint`,
+`unparseable_version2_validate_repair_hint`, `unparseable_install_repair_hint`,
+`unparseable_duplicate_fetch_repair_hint`,
+`unparseable_duplicate_validate_repair_hint` and `unparseable_shared_repair_hint`.
+The new case's other checks pass there, because the skip is `a436c05` behavior.
+With the skip removed, 3 more fail: `unparseable_shared_outcomes` (`error`,
+`error`), `_session_scope` (none) and `_other_saved` (still `Beta`): the session
+fails on re-parsing the unparseable metadata, so neither consumer changes.
+`unparseable_shared_unparseable_unchanged` passes either way because
+`apply_bound_archive` refuses to re-parse the metadata.
 
 ## Observations reported, not fixed (out of scope)
 
@@ -260,7 +297,7 @@ F15 remains partial.
 ## Reproduction
 
 ```bash
-cargo build --locked --lib --bin modsync -j3
+cargo build --locked --lib --bin modsync -j2
 FOMOD_PARENT_NETNS="$(readlink /proc/self/ns/net)" unshare -Urn python3 docs/parity/fomod-s2a-proof/probe.py
 ```
 

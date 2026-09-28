@@ -64,11 +64,12 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 4. The first [FOMOD integration slice](fomod-remaining-plan.md) is now the sole
    production implementation: CLI policy/dispatch, consumer binding and cancellable
    terminal input. S2a (source commit `0d6aad1`, review follow-up commit
-   `93837e5` and a round-2 follow-up) adds `--fomod-choices` same-archive reconfiguration, stale-choice
+   `93837e5`, round-2 follow-up commit `a436c05` and a round-3 follow-up) adds `--fomod-choices` same-archive reconfiguration, stale-choice
    refusal against the current archive, an actionable C#-configured import
    requirement, a repair hint for unparseable saved choices, and the no-Extract route
-   warning; [evidence](fomod-s2a-proof/README.md) is 217/217 and the round-2
-   follow-up needs SPEC/QUALITY re-review.
+   warning; [evidence](fomod-s2a-proof/README.md) is 224/224. `a436c05` was re-reviewed
+   (SPEC approved, QUALITY changes required); the round-3 follow-up needs QUALITY
+   re-review.
    Remaining S2 semantic items and native acceptance follow.
    The [actual full.md conversion baseline](full-markdown-baseline/README.md)
    retains eight production conversions and an independent anonymous comparison.

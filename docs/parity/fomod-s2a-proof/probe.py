@@ -240,7 +240,7 @@ ri=install(c,'install_files');check('extract_install_exit',ri['exit'],0);check('
 
 # 5. Unparseable saved FomodChoices: Fetch cannot overwrite them (other archives' entries
 # would be lost), so every route names the repair hint, never the Fetch recovery route.
-REPAIR="Repair or remove this component's FomodChoices in the guide"
+REPAIR="Repair this component's FomodChoices in the guide (removing it discards every archive's saved choices for this component)"
 RECOVERY='Capture choices with `modsync fomod-inspect'
 def repair_only(text):return REPAIR in text and RECOVERY not in text and 'to recover:' not in text
 BAD={'version2':{'version':2,'archives':choices('Beta')['archives']},'duplicate':{'version':1,'archives':choices('Beta')['archives']*2}}
@@ -260,6 +260,15 @@ for shape,bad in BAD.items():
   # Positive control: once the guide's FomodChoices is removed, the Fetch route configures it.
   data=components(c);del data[0]['FomodChoices'];c['guide'].write_text(json.dumps({'Components':data}))
   r=fetch(c,'fetch_after_repair',['--record'],choices('Beta'));check('unparseable_repaired_exit',r['exit'],0);check('unparseable_repaired_outcomes',outcomes(r),['configured']);check('unparseable_repaired_saved',components(c)[0]['FomodChoices'],choices('Beta'))
+
+# Unparseable metadata is excluded from a flag session, but the archive's other consumer
+# (stale, parseable) is still recovered in one session naming only it; the run fails.
+# The replaced archive is already present, as in the other shared-archive cases.
+c=setup('unparseable_shared',[comp(path='/renamed/example.zip',status='configured',saved=BAD['version2']),comp(1,path='/renamed/example.zip',status='configured',saved=choices('Beta'))],{'example.zip':V2_RENAMED})
+kept0=lambda:{k:components(c)[0].get(k) for k in ('FomodChoices','ResourceRegistry','CustomField')};u0=kept0()
+r=fetch(c,'fetch_valid_flag',['--record'],choices('Delta'));check('unparseable_shared_exit',r['exit'],1);check('unparseable_shared_outcomes',outcomes(r),['error','reconfigured'])
+check('unparseable_shared_session_scope',[s['componentGuids'] for s in config(r)['acceptedSessions']],[[GUIDS[1]]]);check('unparseable_shared_unparseable_unchanged',kept0(),u0)
+check('unparseable_shared_other_saved',components(c)[1]['FomodChoices'],choices('Delta'));check('unparseable_shared_repair_hint',repair_only(config(r)['consumers'][0]['error'] or ''))
 
 srv.shutdown();srv.server_close()
 check('binary_unchanged',digest(BIN),BINARY_BEFORE)

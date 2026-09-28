@@ -992,7 +992,8 @@ pub const CHOICES_RECOVERY_HINT: &str = "Capture choices with `modsync fomod-ins
 
 /// Route for saved `FomodChoices` that cannot be parsed. Fetch never overwrites them
 /// (that could discard other archives' entries), so the guide must be edited first.
-pub const CHOICES_REPAIR_HINT: &str = "Repair or remove this component's FomodChoices in the guide; `fetch-downloads --fomod-choices` does not overwrite unparseable saved choices. Afterwards, capture choices with `modsync fomod-inspect <archive> --interactive --save-choices <file>` and record them with `modsync fetch-downloads --record --fomod-choices <file>`.";
+/// Repair comes first: removal drops every archive's entry for the component.
+pub const CHOICES_REPAIR_HINT: &str = "Repair this component's FomodChoices in the guide (removing it discards every archive's saved choices for this component); `fetch-downloads --fomod-choices` does not overwrite unparseable saved choices. Afterwards, capture any missing choices with `modsync fomod-inspect <archive> --interactive --save-choices <file>` and record them with `modsync fetch-downloads --record --fomod-choices <file>`.";
 
 /// The component's saved choices for one archive, or an actionable error.
 /// Prompt status, including a C# `configured` marker, is never executable choices:

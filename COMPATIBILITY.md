@@ -841,8 +841,11 @@ instead of checking only that an entry exists. Stale or invalid choices, and
 C#-configured guides with no `FomodChoices`, fail with the supported import route.
 Saved `FomodChoices` that cannot be parsed (for example version 2 or a duplicate
 archive) are never overwritten by Fetch, since that could discard other archives'
-entries. Fetch, validate and install instead name a repair hint: repair or remove
-that component's `FomodChoices` in the guide, then capture and record choices.
+entries. Fetch, validate and install instead name a repair hint: repair that
+component's `FomodChoices` in the guide (removing it discards every archive's saved
+choices for that component), then capture and record any missing choices. A
+`--fomod-choices` entry still reconfigures the archive's other consumers, and the run
+fails for the unparseable one.
 Prompt status is never treated as executable choices.
 
 A registered FOMOD archive with valid choices but no selected `Extract` passes with

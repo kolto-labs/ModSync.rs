@@ -57,3 +57,22 @@ Controller decision for 1: unparseable metadata gets its own repair hint (repair
 remove that component's `FomodChoices`, then capture and record); flag
 reconfiguration does not overwrite unparseable metadata, which could discard other
 archives' entries.
+
+## Re-review of `a436c05`: SPEC APPROVED, QUALITY CHANGES REQUIRED
+
+SPEC: round-2 findings resolved; the repair hint no longer names a route that
+always fails, and a missing flag entry is reported.
+
+1. Should-fix (QUALITY): `src/fomod_cli.rs` `dispatch` skips consumers with
+   unparseable saved choices during flag reconfiguration, but no probe exercised it;
+   the claim that other consumers of the archive are still reconfigured was source
+   reading only.
+2. Low (QUALITY): `CHOICES_REPAIR_HINT` presented removal as equal to repair,
+   although removing `FomodChoices` discards every archive's saved choices for that
+   component.
+3. Info: `PROGRESS.md` did not name the round-2 follow-up commit.
+
+Fixed in the round-3 follow-up ([proof section (f)](fomod-s2a-proof/README.md#f-round-3-follow-up)):
+probe case `unparseable_shared` (fails 3 checks with the skip removed) and a
+`COMPATIBILITY.md` sentence; the hint now says to repair, with removal qualified;
+`PROGRESS.md` names `a436c05` and the round-3 follow-up. Probe 224/224.
