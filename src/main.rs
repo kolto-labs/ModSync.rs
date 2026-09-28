@@ -154,14 +154,14 @@ enum Action {
         #[arg(long)]
         source_dir: PathBuf,
     },
-    /// Print the saved completion receipt summary as JSON, or null when there is none.
+    /// Print the saved completion receipt summary, or report that there is none.
     CompletionSummary {
         #[arg(long)]
         game_dir: PathBuf,
         #[arg(long)]
         source_dir: PathBuf,
-        /// JSON is the only output format.
-        #[arg(long, required = true)]
+        /// Print the summary as JSON, or null when there is no receipt.
+        #[arg(long)]
         json: bool,
     },
     /// Convert TOML, JSON, YAML, XML, or Markdown input.
@@ -815,10 +815,27 @@ fn run() -> Result<()> {
         Some(Action::CompletionSummary {
             game_dir,
             source_dir,
-            json: _,
+            json,
         }) => {
             let summary = recovery::completion_summary(&Roots::new(&source_dir, &game_dir)?)?;
-            println!("{}", serde_json::to_string_pretty(&summary)?);
+            if json {
+                println!("{}", serde_json::to_string_pretty(&summary)?);
+            } else if let Some(summary) = summary {
+                println!("Components in receipt: {}", summary.components.len());
+                for component in &summary.components {
+                    println!("  {} ({})", component.name, component.guid);
+                }
+                println!("Game files in receipt: {}", summary.game_files);
+                match summary.game_delta_since_run_start {
+                    Some(delta) => println!(
+                        "Game files changed since run start: {} added, {} changed, {} removed",
+                        delta.added, delta.changed, delta.removed
+                    ),
+                    None => println!("Game files changed since run start: N/A"),
+                }
+            } else {
+                println!("No completion receipt.");
+            }
             Ok(())
         }
         Some(Action::Profile(args)) => args.run(),
