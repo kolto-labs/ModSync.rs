@@ -344,3 +344,7 @@ duplicate-test isolation cleanup is accepted as deferred nonblocking P3; Task 3
 independently covers the specific duplicate guard. No feature row is promoted to
 complete: native pre-fix wizard evidence is unchanged, and full C# parity, real full builds, restart behavior,
 accessibility and cross-platform acceptance remain open.
+
+### Settings verb and profile schema edge cases
+
+F16/F17: the CLI now has `settings --action list|get|set` with the reference's directory resolution (never the legacy file), value parsing, text and `--json` output, `--reveal-secrets` and 0600 writes. Masking covers every case variant of `nexusModsApiKey`; the reference prints `NexusModsApiKey` in clear. Profile activation and listing read the managed fields case-insensitively, and a wrong type resets them, as C# does. Profile and settings files with a UTF-8 BOM now load. Capture writes C#-form GUIDs and apply matches braced or uppercase guide GUIDs. Live DLL comparisons are in `settings-check.json`; the key and behavior inventory is `profiles-settings-csharp-audit.md`. Rust still refuses to replace an unreadable settings file where C# overwrites it. Typed GUI settings load/apply for the remaining keys, theme-to-game mapping, non-en-US number parsing and native macOS/Windows folders remain open. Neither domain is complete.

@@ -1,0 +1,225 @@
+{
+  "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+  "reference_dll_sha256": "8f3b1e3f8fe47b2cc6f8e3f281912506721c7367218381bb2a35cf86dc5768f0",
+  "rust_cli_binary_sha256": "0bea1f1c304fdac118d1f708037a4ab06f08f99daa2571ee063bc1f9cc3fd320",
+  "host_locale": "en_US.UTF-8",
+  "isolation": "HOME and XDG_CONFIG_HOME pointed at /tmp/msprobe scratch paths for every run of both implementations",
+  "comparison": "Stdout parsed as JSON after dropping the C# 'Logging initialized' line; files compared as parsed JSON. Textual differences that parse to the same value (System.Text.Json \\u0022 escapes, 9.223372036854776E+18 vs e+18) count as equal.",
+  "cases": [
+    {
+      "id": "A1",
+      "case": "activate with PascalCase ManagedDeploymentEnabled:true",
+      "csharp": {
+        "managedDeploymentEnabled": true,
+        "ManagedDeploymentEnabled": true,
+        "activeProfileName": "P"
+      },
+      "rust_matches": true
+    },
+    {
+      "id": "A2",
+      "case": "activate with managedDeploymentEnabled:\"true\" (string)",
+      "csharp": {
+        "managedDeploymentEnabled": false
+      },
+      "rust_matches": true
+    },
+    {
+      "id": "A3",
+      "case": "activate with activeProfileName:5 and managedDeploymentEnabled:true",
+      "csharp": {
+        "managedDeploymentEnabled": false,
+        "activeProfileName": "P"
+      },
+      "rust_matches": true
+    },
+    {
+      "id": "A4",
+      "case": "profile list with PascalCase ActiveProfileName",
+      "csharp": "IsActive true",
+      "rust_matches": true
+    },
+    {
+      "id": "A5",
+      "case": "profile list with corrupt settings.json",
+      "csharp": "warning, exit 0, IsActive false",
+      "rust_matches": true
+    },
+    {
+      "id": "A6",
+      "case": "settings list, file starts with UTF-8 BOM",
+      "csharp": "values read",
+      "rust_matches": true
+    },
+    {
+      "id": "A7",
+      "case": "profile show, profile file starts with UTF-8 BOM",
+      "csharp": "profile read",
+      "rust_matches": true
+    },
+    {
+      "id": "A8",
+      "case": "settings list on corrupt, null, [1] and empty files",
+      "csharp": "values {} and exit 0 (warning for all but null)",
+      "rust_matches": true
+    },
+    {
+      "id": "A9",
+      "case": "settings set on corrupt file",
+      "csharp": "exit 0, file replaced with {\"k\":\"v\"}",
+      "rust_matches": false,
+      "deliberate": "Rust exits 1 and leaves the file untouched, matching the non-replacement already pinned for activation and deactivation"
+    },
+    {
+      "id": "A10",
+      "case": "settings get text: string, bool, null, int, float, object, masked key, exact-case miss, missing",
+      "csharp": "str|false||12|1.5|{\"x\":[1,\"y\"]}|***|***|exit 1|exit 1",
+      "rust_matches": true
+    },
+    {
+      "id": "A11",
+      "case": "settings get --json masked and --reveal-secrets",
+      "rust_matches": true
+    },
+    {
+      "id": "A12",
+      "case": "settings list text with nexusModsApiKey and NexusModsApiKey",
+      "csharp": "NexusModsApiKey=sec2 printed in clear",
+      "rust_matches": false,
+      "deliberate": "Rust masks every case variant"
+    },
+    {
+      "id": "A12b",
+      "case": "settings list --json --reveal-secrets",
+      "rust_matches": true
+    },
+    {
+      "id": "A13",
+      "case": "set nexusModsApiKey --json masks the value; set theme next to existing Theme keeps both; file mode",
+      "csharp": {
+        "file": {
+          "Theme": "old",
+          "nested": {
+            "a": 1
+          },
+          "nexusModsApiKey": "abc",
+          "theme": "new"
+        },
+        "mode": "600"
+      },
+      "rust_matches": true
+    },
+    {
+      "id": "A14",
+      "case": "--action LIST (case), unknown action, get without --key, profile CLONE with --name",
+      "csharp": "ok, exit 1, exit 1, clone ok",
+      "rust_matches": "all except unknown action: clap exits 2 instead of 1"
+    },
+    {
+      "id": "A15",
+      "case": "settings list, no file (text)",
+      "rust_matches": true
+    },
+    {
+      "id": "A16",
+      "case": "settings set, default dir, only legacy KOTORModSync file present",
+      "csharp": "writes ModSync/settings.json = {\"k\":1}; legacy untouched",
+      "rust_matches": true
+    },
+    {
+      "id": "A17",
+      "case": "--settings-dir of spaces",
+      "csharp": "trimmed to the default dir (observed by the independent review)",
+      "rust_matches": true
+    },
+    {
+      "id": "V",
+      "case": "settings set value parsing: TRUE, ' 7 ', +5, -5, 1.5, 1e3, 1,000, 9223372036854775808, NaN, Infinity, null, [1,2, {\"a\":1}, \"q\", 0x10, ' spaced text ', '  ', -0, 1.0, 007, [], 1_000, '1 000', 'tRuE ', 5., .5, 1e400, {bad}, [1,], omitted",
+      "csharp": "true, 7, 5, -5, 1.5, 1000, 1000, 9.223372036854776E+18, error, \"Infinity\", null, \"[1,2\", {a:1}, \"\\\"q\\\"\", \"0x10\", \"spaced text\", removed, 0, 1, 7, [], \"1_000\", \"1 000\", true, 5, 0.5, error, error, error, removed",
+      "rust_matches": true,
+      "note": "In the C# CLI, --value=<text with spaces> and --value -Infinity fail in CommandLineParser before ParseCliValue runs; those values were compared with separate arguments instead"
+    },
+    {
+      "id": "RT",
+      "case": "C# and Rust writes to one file, including nested, non-ASCII, <&>, PascalCase and unknown keys; then list from both",
+      "rust_matches": true,
+      "mode_after_rust_write": "600"
+    },
+    {
+      "id": "G1",
+      "case": "Rust capture of a guide with braced uppercase GUIDs; C# profile show and list read it",
+      "csharp_show_equals_rust_show": true,
+      "keys": "lowercase hyphenated, no braces"
+    },
+    {
+      "id": "G2",
+      "case": "Rust apply of a C#-style lowercase profile to a guide with braced uppercase GUIDs",
+      "result": "component and option deselected as stored (before this change neither matched)"
+    },
+    {
+      "id": "G-a",
+      "case": "profile activate, current settings.json holds JSON null (reviewer /tmp/msprobe-rev/gap.sh)",
+      "csharp": {
+        "rc": 0,
+        "file": {
+          "managedDeploymentEnabled": false,
+          "activeProfileName": "P"
+        }
+      },
+      "rust_matches": true
+    },
+    {
+      "id": "G-b",
+      "case": "profile activate, no current file, corrupt legacy KOTORModSync file (gap.sh)",
+      "csharp": {
+        "rc": 0,
+        "file": {
+          "managedDeploymentEnabled": false,
+          "activeProfileName": "P"
+        },
+        "legacy": "untouched"
+      },
+      "rust_matches": true
+    },
+    {
+      "id": "G3",
+      "case": "profile --action frob; apply of non-GUID id 'A' to guide id 'a' (reviewer g3.sh)",
+      "csharp": "frob exits 1",
+      "rust": "frob exits 2 (approved A14-class deviation); 'A' matches 'a' and deselects the component"
+    },
+    {
+      "id": "G-c",
+      "case": "activate with a non-null unparseable current file",
+      "rust": "exit 1, file unchanged (kept on purpose; frozen tests pin it)"
+    },
+    {
+      "id": "G-d",
+      "case": "validate with no current settings.json and a corrupt legacy KOTORModSync file (/tmp/msprobe/pp.sh)",
+      "csharp": "validate has no --profile/--active-profile/--settings-dir; its settings load ignores the legacy file. rc=1 comes from a missing mod directory, and it is the same with the legacy file removed, so the corrupt legacy file has no effect",
+      "rust": {
+        "--active-profile": "rc=1 'No active profile is configured' (the legacy file is unreadable, so there is no active name)",
+        "--profile P": "reaches validation and fails on the missing fixture archive, not on settings parsing",
+        "current file 'bad'": "rc=1 parse error, file unchanged"
+      },
+      "rust_binary_sha256": "317bf5cfa9a5ecb827801b3dd8e163c2a5b3b8af6b387c1bc5d49b3a4ec74b89"
+    },
+    {
+      "id": "G-e",
+      "case": "update-check / nxm-download with only a corrupt legacy file, run via docs/parity/settings-nexus-key-probe.sh (durable copy of the ad hoc /tmp/msprobe/nk2.sh probe; log at docs/parity/settings-nexus-key-probe.log). Cases B and D reach the network (Nexus's download-link resolver); the script itself wraps those two calls in `unshare -rn`, isolating them from the live network. Cases A, C, E-H never make a network call",
+      "rust": {
+        "A update-check --nexus-mods-api-key X": "rc=0, no settings read",
+        "B nxm-download --nexus-mods-api-key X (unshare -rn)": "rc=1: DNS lookup failure for api.nexusmods.com (network isolated by unshare -rn, not a live 401)",
+        "C update-check, no flag, NEXUS_MODS_API_KEY=E": "legacy warning, env key used, rc=0",
+        "D nxm-download, no flag, KOTOR_MODSYNC_NEXUS_API_KEY=E (unshare -rn)": "legacy warning, then rc=1: same DNS lookup failure as case B",
+        "E update-check, no flag, no env": "legacy warning, then rc=1 'Set nexusModsApiKey ...'",
+        "F update-check, current file 'bad', no flag": "rc=1 parse error, current file unchanged ('bad')",
+        "G nxm-download, current file 'bad', no flag": "rc=1 parse error",
+        "H update-check, current file 'bad', with flag": "rc=0"
+      },
+      "rust_binary_sha256": "0bea1f1c304fdac118d1f708037a4ab06f08f99daa2571ee063bc1f9cc3fd320 (echoed by the script into the log's first line)",
+      "csharp": "not compared: no equivalent settings-dir/legacy path in the pinned CLI for these verbs"
+    }
+  ],
+  "scope": "Linux, en-US host, pinned DLL. Covers the settings verb, the profile CLI's managed-field reads and activation, BOM input, masking and GUID spelling. Not covered: GUI SettingsManager typed load and save, theme to TargetGame mapping, the set-nexus-api-key verb, non-en-US number parsing, native macOS and Windows folders, and crash atomicity.",
+  "rust_binary_note": "Pinned binary is the --no-default-features debug build of the commit that added G-e. Earlier cases were run on 5e2d791c (433b70d), d9567a63 (adbc532) and 317bf5cf (b19164d); G-e was run on the pinned binary."
+}

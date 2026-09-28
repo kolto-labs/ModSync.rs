@@ -26,6 +26,8 @@ enum Action {
     Deployment(DeploymentArgs),
     /// Manage stored install profiles.
     Profile(profile_cli::ProfileArgs),
+    /// Get, set or list settings.json values.
+    Settings(profile_cli::SettingsArgs),
     /// Open the desktop installer (also the default with no command).
     Gui {
         #[arg(long)]
@@ -860,11 +862,17 @@ fn run() -> Result<()> {
                     .context("--nexus-api-base requires an explicit --nexus-mods-api-key")?;
                 modsync::updates::NexusClient::with_base_url(Some(key), &base)?
             } else {
-                let directory = modsync::profiles::settings_directory(settings_dir.as_deref())?;
-                let key = nexus_mods_api_key
-                    .or(modsync::profiles::Store::new(&directory)?.nexus_api_key()?)
-                    .or_else(|| std::env::var("KOTOR_MODSYNC_NEXUS_API_KEY").ok())
-                    .or_else(|| std::env::var("NEXUS_MODS_API_KEY").ok());
+                // An explicit flag wins without reading settings.
+                let key = match nexus_mods_api_key {
+                    Some(key) => Some(key),
+                    None => {
+                        let directory =
+                            modsync::profiles::settings_directory(settings_dir.as_deref())?;
+                        modsync::profiles::Store::new(&directory)?.nexus_api_key()?
+                    }
+                }
+                .or_else(|| std::env::var("KOTOR_MODSYNC_NEXUS_API_KEY").ok())
+                .or_else(|| std::env::var("NEXUS_MODS_API_KEY").ok());
                 modsync::updates::NexusClient::new(key)?
             };
             let download_link = client.nxm_download_link(&link)?;
@@ -898,8 +906,11 @@ fn run() -> Result<()> {
             settings_dir,
         }) => {
             let directory = modsync::profiles::settings_directory(settings_dir.as_deref())?;
-            let key = nexus_mods_api_key
-                .or(modsync::profiles::Store::new(&directory)?.nexus_api_key()?)
+            // An explicit flag wins without reading settings.
+            let key = match nexus_mods_api_key {
+                Some(key) => Some(key),
+                None => modsync::profiles::Store::new(&directory)?.nexus_api_key()?,
+            }
                 .or_else(|| std::env::var("KOTOR_MODSYNC_NEXUS_API_KEY").ok())
                 .or_else(|| std::env::var("NEXUS_MODS_API_KEY").ok())
                 .filter(|key| !key.trim().is_empty())
@@ -1020,6 +1031,7 @@ fn run() -> Result<()> {
             source_dir,
         }) => recovery::restore(&Roots::new(&source_dir, &game_dir)?),
         Some(Action::Profile(args)) => args.run(),
+        Some(Action::Settings(args)) => args.run(),
         Some(Action::DownloadPlan {
             input,
             component,
