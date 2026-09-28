@@ -990,6 +990,10 @@ impl ChoicesFile {
 /// Supported routes for missing, stale or C#-only FOMOD configuration.
 pub const CHOICES_RECOVERY_HINT: &str = "Capture choices with `modsync fomod-inspect <archive> --interactive --save-choices <file>`, then persist them with `modsync fetch-downloads --record --fomod-choices <file>`.";
 
+/// Route for saved `FomodChoices` that cannot be parsed. Fetch never overwrites them
+/// (that could discard other archives' entries), so the guide must be edited first.
+pub const CHOICES_REPAIR_HINT: &str = "Repair or remove this component's FomodChoices in the guide; `fetch-downloads --fomod-choices` does not overwrite unparseable saved choices. Afterwards, capture choices with `modsync fomod-inspect <archive> --interactive --save-choices <file>` and record them with `modsync fetch-downloads --record --fomod-choices <file>`.";
+
 /// The component's saved choices for one archive, or an actionable error.
 /// Prompt status, including a C# `configured` marker, is never executable choices:
 /// C# persists generated instructions and a status, not a choices representation.
@@ -1014,7 +1018,7 @@ pub fn required_saved_choices(
 }
 
 /// The component's saved `FomodChoices`, if any. Unparseable saved choices are an
-/// error naming the recovery route, with one wording for Fetch, the gate and install.
+/// error naming the repair route, with one wording for Fetch, the gate and install.
 pub fn saved_choices_file(component: &crate::Component) -> Result<Option<ChoicesFile>> {
     let Some(raw) = component.metadata.get("FomodChoices") else {
         return Ok(None);
@@ -1022,7 +1026,7 @@ pub fn saved_choices_file(component: &crate::Component) -> Result<Option<Choices
     ChoicesFile::parse(&serde_json::to_string(raw)?)
         .with_context(|| {
             format!(
-                "Saved FomodChoices of component {} are invalid. {CHOICES_RECOVERY_HINT}",
+                "Saved FomodChoices of component {} cannot be parsed. {CHOICES_REPAIR_HINT}",
                 component.guid
             )
         })

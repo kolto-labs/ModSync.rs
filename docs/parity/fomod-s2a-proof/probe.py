@@ -182,6 +182,9 @@ r=fetch(c,'missing_choices_file',['--record','--fomod-choices',str(missing)]);ch
 check('stale_missing_file_reported',[('Reading FOMOD choices' in e and str(missing) in e) for e in config(r).get('errors',[])],[True]);check('stale_missing_file_choices_kept',components(c)[0]['FomodChoices'],choices('Beta'))
 r=fetch(c,'malformed_choices_file',['--record'],'{invalid');bad=r['argv'][-1];check('stale_malformed_file_exit',r['exit'],1);check('stale_malformed_file_outcomes',outcomes(r),['error'])
 check('stale_malformed_file_reported',[('Parsing FOMOD choices' in e and bad in e) for e in config(r).get('errors',[])],[True]);check('stale_malformed_file_choices_kept',components(c)[0]['FomodChoices'],choices('Beta'))
+# A loadable flag file without this archive's entry cannot recover it: say so once.
+r=fetch(c,'flag_without_entry',['--record'],choices('Delta','other.zip'));noentry=r['argv'][-1];check('stale_noentry_exit',r['exit'],1);check('stale_noentry_outcomes',outcomes(r),['error'])
+check('stale_noentry_reported',config(r).get('errors'),[f"Choices file {noentry} has no entry for archive 'example.zip'"]);check('stale_noentry_choices_kept',components(c)[0]['FomodChoices'],choices('Beta'))
 r=fetch(c,'recover_with_choices',['--record'],choices('Delta'));check('stale_recover_exit',r['exit'],0);check('stale_recover_outcomes',outcomes(r),['reconfigured'])
 check('stale_recover_saved',components(c)[0]['FomodChoices'],choices('Delta'))
 rv=validate(c,'validate_recovered');check('stale_recovered_validate_exit',rv['exit'],0)
@@ -234,6 +237,29 @@ ri=install(c,'install_refuses');check('stale_mapping_install_exit',ri['exit'],1)
 c=setup('registered_with_extract',[comp(status='configured',saved=choices('Beta'))],{'example.zip':V1})
 rv=validate(c,'validate_clean');check('extract_validate_exit',rv['exit'],0);check('extract_validate_no_warning',fomod_stage(rv)['hasWarnings'],False);check('extract_warning_count',rv['data']['warningCount'],0)
 ri=install(c,'install_files');check('extract_install_exit',ri['exit'],0);check('extract_install_bytes',ri['game'],{'Override/b.txt':'beta\n'})
+
+# 5. Unparseable saved FomodChoices: Fetch cannot overwrite them (other archives' entries
+# would be lost), so every route names the repair hint, never the Fetch recovery route.
+REPAIR="Repair or remove this component's FomodChoices in the guide"
+RECOVERY='Capture choices with `modsync fomod-inspect'
+def repair_only(text):return REPAIR in text and RECOVERY not in text and 'to recover:' not in text
+BAD={'version2':{'version':2,'archives':choices('Beta')['archives']},'duplicate':{'version':1,'archives':choices('Beta')['archives']*2}}
+for shape,bad in BAD.items():
+ c=setup(f'unparseable_{shape}',[comp(status='configured',saved=bad)],{'example.zip':V1})
+ # --record re-serializes the guide; the saved configuration itself must be unchanged.
+ authored=lambda:[{k:x.get(k) for k in ('FomodChoices','ResourceRegistry','CustomField')} for x in components(c)];g0=authored()
+ r=fetch(c,'fetch_valid_flag',['--record'],choices('Beta'));n=f'unparseable_{shape}_fetch'
+ check(n+'_exit',r['exit'],1);check(n+'_outcomes',outcomes(r),['error']);check(n+'_guide_unchanged',authored(),g0)
+ check(n+'_repair_hint',repair_only(config(r)['consumers'][0]['error'] or ''));check(n+'_no_recovery_route',RECOVERY not in r['stdout']+r['stderr'])
+ check(n+'_sessions',config(r)['acceptedSessions'],[])
+ rv=validate(c,'validate_repair');check(f'unparseable_{shape}_validate_exit',rv['exit'],1);check(f'unparseable_{shape}_validate_repair_hint',[repair_only(m) for m in fomod_stage(rv)['messages']],[True])
+ if shape=='version2':
+  # Not needed for recovery: a flag file without this archive's entry reports no entry error.
+  r=fetch(c,'fetch_flag_without_entry',['--record'],choices('Beta','other.zip'));check('unparseable_noentry_exit',r['exit'],1);check('unparseable_noentry_no_entry_error',[e for e in config(r).get('errors',[]) if 'has no entry' in e],[])
+  ri=install(c,'install_repair');check('unparseable_install_exit',ri['exit'],1);check('unparseable_install_repair_hint',repair_only(ri['stderr']));check('unparseable_install_game_untouched',ri['game'],{})
+  # Positive control: once the guide's FomodChoices is removed, the Fetch route configures it.
+  data=components(c);del data[0]['FomodChoices'];c['guide'].write_text(json.dumps({'Components':data}))
+  r=fetch(c,'fetch_after_repair',['--record'],choices('Beta'));check('unparseable_repaired_exit',r['exit'],0);check('unparseable_repaired_outcomes',outcomes(r),['configured']);check('unparseable_repaired_saved',components(c)[0]['FomodChoices'],choices('Beta'))
 
 srv.shutdown();srv.server_close()
 check('binary_unchanged',digest(BIN),BINARY_BEFORE)

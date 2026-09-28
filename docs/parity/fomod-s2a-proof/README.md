@@ -2,8 +2,9 @@
 
 Scope is the bounded S2a slice of [the remaining plan](../fomod-remaining-plan.md)
 (S2 paragraph two plus the registration-without-Extract sentence). The base is
-`5f81e82`. Source is commit `0d6aad1` plus the review follow-up described in
-[section (d)](#d-review-follow-up), bound by hash in the receipt. Priority sorting, recursive folder copy, authored renaming, Unicode matching,
+`5f81e82`. Source is commit `0d6aad1`, its review follow-up commit `93837e5`
+([section (d)](#d-review-follow-up)) and the round-2 follow-up
+([section (e)](#e-round-2-follow-up)), bound by hash in the receipt. Priority sorting, recursive folder copy, authored renaming, Unicode matching,
 diagnostic/ownership corrections and desktop work are out of scope. This slice does
 not change F15 or F29 status.
 
@@ -116,14 +117,16 @@ the sources.
 | C#-style configured-only guide | Validate, install, and Fetch interactive/warn give actionable requirements. There is no prompt and no guide change. | `--record --fomod-choices` imports. Validate passes, install writes bytes, and the authored instructions are preserved. |
 | Registration without Extract | Missing or invalid choices fail the gate with the route. | Valid choices pass with a `WARNING` and `warningCount` 1. Two registrants of one archive give one warning naming both. Install copies only the unrelated file. The same guide with `Extract` has no warning and installs. |
 | Saved names apply, mapping is unsafe | Validate and install refuse with the recovery route (install's mapping step now carries it). The game stays untouched. | — |
+| Unparseable saved `FomodChoices` (version 2; duplicate archive) | Fetch with a valid `--fomod-choices` entry: exit 1, `error`, no session, saved choices and registry unchanged; the consumer error names the repair hint and no output names the Fetch recovery route. Validate (both shapes) and install (version 2) show only the repair hint; the game stays untouched. A flag file without this archive's entry reports no missing-entry error (nothing to recover). | After the component's `FomodChoices` is removed from the guide, `--record --fomod-choices` gives `configured` and saves the entry. |
+| Stale saved choices, flag file without this archive's entry | Exit 1, `error`, one run error `Choices file <path> has no entry for archive 'example.zip'`, choices kept. | The existing explicit-entry recovery (`reconfigured`). |
 | Every validate run | Guide, mod and game trees byte-identical before and after (scratch excluded). | — |
 
-### Results (source `0d6aad1` plus the follow-up, cloud Linux)
+### Results (source `93837e5` plus the round-2 follow-up, cloud Linux)
 
-- `probe.py`: **182/182 checks, 46 production invocations**. Default-feature debug
-  binary SHA-256 `cd218bb624747a08ff953a14458b7cd718171cd2ea9e106fa6d19bd54246a4cd`
-  (host-specific). Git HEAD `61c588e` (source `0d6aad1`) plus the uncommitted
-  follow-up in `src/{engine,fomod,fomod_cli}.rs`, bound by hash in the receipt.
+- `probe.py`: **217/217 checks, 54 production invocations**. Default-feature debug
+  binary SHA-256 `2ac04e2895207dc199c0d344d62ddf89e64cd6604c8b1572c3ef48f70a09aa8d`
+  (host-specific). Git HEAD `8e008dc` (source `93837e5`, docs-only since) plus the
+  round-2 follow-up in `src/{fomod,fomod_cli}.rs`, bound by hash in the receipt.
 - Original pre-fix demonstration (the first 117 checks): against a
   `--no-default-features` binary built from a `git archive` of `5f81e82`
   (`FOMOD_S2A_ALLOW_UNBOUND=1`), **84/117; 33 checks failed**: every reconfiguration
@@ -134,6 +137,10 @@ the sources.
   `--no-default-features` binary built from a `git archive` of `0d6aad1` (output
   `target/cloud-proof/fomod-s2a-pre0d6aad1`) gives **163/182; 19 checks fail**. See
   [section (d)](#d-review-follow-up).
+- Round-2 pre-fix demonstration: the current probe against a
+  `--no-default-features` binary built from a `git archive` of `93837e5` (output
+  `target/cloud-proof/fomod-s2a-pre93837e5`) gives **209/217; 8 checks fail**. See
+  [section (e)](#e-round-2-follow-up).
 - Regressions in isolated namespaces: S1 `probe.py` **339/339 (61 cases)**,
   `inherited_controller.py` **41/41**, Nexus H1a `probe.py` **138/138**. No S1
   expectation changed.
@@ -168,8 +175,8 @@ The follow-up applies the controller decisions:
   component's `Extract`.
 - **Install** maps choices under the same stale context, so an unsafe mapping of
   still-valid names shows the recovery route.
-- **Saved-choices parse error** has one wording, with the recovery hint, through
-  `fomod::saved_choices_file` for Fetch, the gate and install.
+- **Saved-choices parse error** has one wording through
+  `fomod::saved_choices_file` for Fetch, the gate and install (its hint is the round-2 repair hint, section (e)).
 - **Probe**: every validate run asserts unchanged guide, mod and game trees. The
   fixture root is removed at exit unless `MODSYNC_PROOF_KEEP=1`; receipts under
   `target/cloud-proof` are kept.
@@ -188,6 +195,41 @@ The 19 checks that fail against `0d6aad1`:
 
 The validate tree-invariance checks and the lazy missing-file case pass at both
 commits. They are invariants, not fixes.
+
+## (e) Round-2 follow-up
+
+The [re-review](../fomod-s2a-review.md) of `93837e5` required changes:
+
+- **Unparseable saved choices** (`src/fomod.rs` `CHOICES_REPAIR_HINT`, used by
+  `saved_choices_file` for Fetch, the gate and install). Saved `FomodChoices` that
+  `ChoicesFile::parse` rejects no longer advertise `fetch-downloads --record
+  --fomod-choices`, which re-parses the same metadata and always failed. The hint
+  says to repair or remove that component's `FomodChoices` in the guide, then capture
+  with `fomod-inspect --save-choices` and record with `fetch-downloads --record
+  --fomod-choices`. `CHOICES_RECOVERY_HINT` stays for parseable choices that are
+  stale or invalid against the current archive.
+- **No overwrite.** Fetch (`src/fomod_cli.rs` `dispatch`) excludes consumers with
+  unparseable saved choices from a flag reconfiguration session, so they keep their
+  own error and are never rewritten, which could discard other archives' entries.
+  Other consumers of the archive are still reconfigured or configured (source
+  reading; not probed).
+- **Missing entry.** When a consumer has stale (parseable) saved choices and the
+  loaded `--fomod-choices` file has no entry for that archive, the run reports
+  `Choices file <path> has no entry for archive '<name>'` once in `errors`.
+  Unparseable consumers do not count as needing the file.
+
+The 8 checks that fail against `93837e5`:
+
+- repair hint instead of the Fetch recovery route:
+  `unparseable_version2_fetch_repair_hint`, `_no_recovery_route`,
+  `unparseable_version2_validate_repair_hint`, `unparseable_install_repair_hint`, and
+  `unparseable_duplicate_fetch_repair_hint`, `_no_recovery_route`,
+  `unparseable_duplicate_validate_repair_hint`;
+- missing entry: `stale_noentry_reported`.
+
+The unparseable Fetch exit, outcome, unchanged saved choices and empty sessions pass
+at both commits (`apply_bound_archive` already refused to re-parse the metadata), as
+do the no-entry control and the repaired positive control.
 
 ## Observations reported, not fixed (out of scope)
 

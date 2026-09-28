@@ -269,12 +269,20 @@ pub fn dispatch(
         };
         let start = report.consumers.len();
         let mut saved = Vec::new();
+        // Consumers whose saved FomodChoices cannot be parsed: never overwritten here.
+        let mut unparseable = Vec::new();
         for consumer in &archive.consumers {
-            let validity = guide
+            let component = guide
                 .components
                 .iter()
                 .find(|c| c.guid == consumer.component_guid)
-                .context("Captured FOMOD consumer disappeared")
+                .context("Captured FOMOD consumer disappeared");
+            unparseable.push(
+                component
+                    .as_ref()
+                    .is_ok_and(|c| fomod::saved_choices_file(c).is_err()),
+            );
+            let validity = component
                 .and_then(|component| saved_current(component, &archive.module, &filename));
             let (current, error) = match validity {
                 Ok(value) => (value, None),
@@ -307,15 +315,31 @@ pub fn dispatch(
             .iter()
             .zip(&report.consumers[start..])
             .any(|(current, c)| current.is_some() || c.error.is_some());
+        // Lazy (S1): the file is ignored when every consumer resolves. A consumer with
+        // stale (parseable) saved choices needs it to recover, so name why it cannot.
+        let needed = report.consumers[start..]
+            .iter()
+            .zip(&unparseable)
+            .any(|(c, unparseable)| c.error.is_some() && !unparseable);
         // The flag wins over the environment, so the cached source is the flag file.
         let entry = if has_saved && options.choices_flag() && !cancelled.load(Ordering::SeqCst) {
             match explicit(&mut explicit_cache, options) {
-                Ok(Some(file)) => file.archive(&filename).cloned(),
+                Ok(Some(file)) => {
+                    let entry = file.archive(&filename).cloned();
+                    if entry.is_none() && needed {
+                        let path = options.choices.as_ref().map(|p| p.display().to_string());
+                        let error = format!(
+                            "Choices file {} has no entry for archive '{filename}'",
+                            path.unwrap_or_default()
+                        );
+                        if !report.errors.contains(&error) {
+                            report.errors.push(error);
+                        }
+                    }
+                    entry
+                }
                 Ok(None) => None,
                 Err(error) => {
-                    // Lazy (S1): ignored when every consumer resolves. A consumer with
-                    // stale saved choices needed the file to recover, so name why not.
-                    let needed = report.consumers[start..].iter().any(|c| c.error.is_some());
                     if needed && !report.errors.contains(error) {
                         report.errors.push(error.clone());
                     }
@@ -335,6 +359,9 @@ pub fn dispatch(
                 let wanted = serde_json::to_value(&normalized.selections)?;
                 let mut targets = Vec::new();
                 for (offset, current) in saved.iter().enumerate() {
+                    if unparseable[offset] {
+                        continue;
+                    }
                     let same = match current {
                         Some(current) => serde_json::to_value(&current.selections)? == wanted,
                         None => false,

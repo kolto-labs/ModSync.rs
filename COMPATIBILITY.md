@@ -833,18 +833,23 @@ choices are identical. Only the flag reconfigures or recovers saved choices:
 `MODSYNC_FOMOD_CHOICES` keeps its S1 role of configuring pending consumers, and
 `--fomod-skip` still wins over the flag. Interactive, warn and skip never touch
 configured consumers. When stale saved choices need the flag's file and it cannot be
-read or parsed, the file error is reported. An entry that does not fit the current
+read or parsed, the file error is reported; when it loads but has no entry for that
+archive, that is reported too. An entry that does not fit the current
 archive fails the run without changing consumers whose saved choices are valid.
 `validate --validation-report` now applies saved choices to the current archive
 instead of checking only that an entry exists. Stale or invalid choices, and
 C#-configured guides with no `FomodChoices`, fail with the supported import route.
+Saved `FomodChoices` that cannot be parsed (for example version 2 or a duplicate
+archive) are never overwritten by Fetch, since that could discard other archives'
+entries. Fetch, validate and install instead name a repair hint: repair or remove
+that component's `FomodChoices` in the guide, then capture and record choices.
 Prompt status is never treated as executable choices.
 
 A registered FOMOD archive with valid choices but no selected `Extract` passes with
 one warning per archive, naming its registrants: configuration alone installs no
 files. Choices carry no byte identity (as in C#). A replacement archive that still
 accepts the saved names is mapped fresh from its current bytes. Evidence:
-[S2a proof](docs/parity/fomod-s2a-proof/README.md), 182/182 checks. The run-scoped
+[S2a proof](docs/parity/fomod-s2a-proof/README.md), 217/217 checks. The run-scoped
 `validate`/`install --fomod-choices` still replaces all embedded archive choices for
 that run; it is not a recovery route. Unicode matching, desktop reconfiguration and
 the S3 corpora remain open, and F15 stays partial.
