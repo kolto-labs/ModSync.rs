@@ -1,0 +1,48 @@
+C# dll: /tmp/modsync-validation-reference-20260927-5813/artifacts/bin/ModSync.Core/debug_net9.0/ModSync.Core.dll sha256=89d9b2361aee4364f95151b41db59a4133122a6ad41bc2703e232cf10a4f5a6b
+rust:   /home/brunner56/.cache/modsync-rs-target-dep/debug/modsync sha256=20638425a4bc4771afa22bd21a138573d1bafac2b0a55c69b46f197becb0c09f
+D1 C# writes, Rust reads and uninstalls
+[09/27/2026 21:03:35] [Deployment] Deployed component 'Diff Mod A' (aaaaaaaa-0000-0000-0000-00000000000a): 2 files (2 hardlinked, 0 copied, 1 overwrote existing files).
+Manifests written: 1
+{
+  "ComponentGuid": "aaaaaaaa-0000-0000-0000-00000000000a",
+  "ComponentName": "Diff Mod A",
+  "DeployedUtc": "2026-09-28T02:03:35.717186Z",
+  "Entries": [
+    {
+      "RelativePath": "Override/x.2da",
+      "SourceHash": "37e9ed233737237c0a14380e600ca524d21a86cda3f8dd646ea6341035b0b2b4",
+      "Size": 5,
+      "DeploymentMethod": 0,
+      "OverwroteExisting": true,
+      "BackupRelativePath": "Override/x.2da"
+    },
+    {
+      "RelativePath": "Override/added.tga",
+      "SourceHash": "b45616416cafffcd0e84102064ce56545d7221176155b23aa3c1348a5eeb18c8",
+      "Size": 5,
+      "DeploymentMethod": 0,
+      "OverwroteExisting": false,
+      "BackupRelativePath": null
+    }
+  ]
+}  PASS C# wrote one manifest
+  PASS Rust status reads it
+  PASS Rust uninstall restored the original
+  PASS Rust uninstall removed the added file
+D2 Rust deploys RustB, C# deploys A over it, Rust purges
+warning: Claiming ownership of /tmp/depprobe/csharp-resume-20260927/game for the first time while deploying RustB, and 1 existing file(s) in its target paths will be backed up and overwritten; if another manager already tracks these files this could not be verified.
+[09/27/2026 21:03:37] [Warning] [Deployment] Conflict: 'Override/x.2da' from component 'Diff Mod A' is already deployed by component 'RustB'. The new file will overwrite it.
+[09/27/2026 21:03:37] [Deployment] Deployed component 'Diff Mod A' (aaaaaaaa-0000-0000-0000-00000000000a): 2 files (2 hardlinked, 0 copied, 1 overwrote existing files).
+Manifests written: 1
+  PASS C# read the Rust manifest (conflict names RustB)
+  PASS Rust purge removed both
+  PASS mixed purge restored the original
+D3 C# redeploys the same component twice
+[09/27/2026 21:03:38] [Deployment] Deployed component 'Diff Mod A' (aaaaaaaa-0000-0000-0000-00000000000a): 2 files (2 hardlinked, 0 copied, 1 overwrote existing files).
+Manifests written: 1
+  run 1: live=CSNEW backup=ORIG
+[09/27/2026 21:03:39] [Deployment] Deployed component 'Diff Mod A' (aaaaaaaa-0000-0000-0000-00000000000a): 2 files (2 hardlinked, 0 copied, 2 overwrote existing files).
+Manifests written: 1
+  run 2: live=CSNEW backup=CSNEW
+  PASS C# redeploy overwrote its own backup (known C# defect, Rust refuses this)
+TOTAL fail=0
