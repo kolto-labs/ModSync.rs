@@ -1,0 +1,103 @@
+{
+  "scope": "Pinned C# authored scalar inputs; XML untyped numeric text is not a JSON numeric type equivalent. Conversion only, not Rust acceptance or install validation.",
+  "csharpSha256": "89d9b2361aee4364f95151b41db59a4133122a6ad41bc2703e232cf10a4f5a6b",
+  "root": "/tmp/source-scalar-oracle-p4vrkk6p",
+  "results": [
+    {
+      "case": "relative",
+      "format": "json",
+      "exit": 0,
+      "outputPresent": true
+    },
+    {
+      "case": "relative",
+      "format": "toml",
+      "exit": 0,
+      "outputPresent": true
+    },
+    {
+      "case": "relative",
+      "format": "yaml",
+      "exit": 0,
+      "outputPresent": true
+    },
+    {
+      "case": "relative",
+      "format": "xml",
+      "exit": 0,
+      "outputPresent": true
+    },
+    {
+      "case": "empty",
+      "format": "json",
+      "exit": 1,
+      "outputPresent": false
+    },
+    {
+      "case": "empty",
+      "format": "toml",
+      "exit": 1,
+      "outputPresent": false
+    },
+    {
+      "case": "empty",
+      "format": "yaml",
+      "exit": 1,
+      "outputPresent": false
+    },
+    {
+      "case": "empty",
+      "format": "xml",
+      "exit": 1,
+      "outputPresent": false
+    },
+    {
+      "case": "whitespace",
+      "format": "json",
+      "exit": 1,
+      "outputPresent": false
+    },
+    {
+      "case": "whitespace",
+      "format": "toml",
+      "exit": 1,
+      "outputPresent": false
+    },
+    {
+      "case": "whitespace",
+      "format": "yaml",
+      "exit": 1,
+      "outputPresent": false
+    },
+    {
+      "case": "whitespace",
+      "format": "xml",
+      "exit": 1,
+      "outputPresent": false
+    },
+    {
+      "case": "nonstring",
+      "format": "json",
+      "exit": 0,
+      "outputPresent": true
+    },
+    {
+      "case": "nonstring",
+      "format": "toml",
+      "exit": 0,
+      "outputPresent": true
+    },
+    {
+      "case": "nonstring",
+      "format": "yaml",
+      "exit": 0,
+      "outputPresent": true
+    },
+    {
+      "case": "nonstring",
+      "format": "xml",
+      "exit": 0,
+      "outputPresent": true
+    }
+  ]
+}

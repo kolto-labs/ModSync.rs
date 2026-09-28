@@ -1,0 +1,108 @@
+[
+  {
+    "case": "empty",
+    "format": "json",
+    "exit": 1,
+    "source": null
+  },
+  {
+    "case": "empty",
+    "format": "toml",
+    "exit": 1,
+    "source": null
+  },
+  {
+    "case": "empty",
+    "format": "xml",
+    "exit": 1,
+    "source": null
+  },
+  {
+    "case": "empty",
+    "format": "yaml",
+    "exit": 1,
+    "source": null
+  },
+  {
+    "case": "nonstring",
+    "format": "json",
+    "exit": 0,
+    "source": []
+  },
+  {
+    "case": "nonstring",
+    "format": "toml",
+    "exit": 0,
+    "source": []
+  },
+  {
+    "case": "nonstring",
+    "format": "xml",
+    "exit": 0,
+    "source": [
+      "<<modDirectory>>/42"
+    ]
+  },
+  {
+    "case": "nonstring",
+    "format": "yaml",
+    "exit": 0,
+    "source": []
+  },
+  {
+    "case": "relative",
+    "format": "json",
+    "exit": 0,
+    "source": [
+      "<<modDirectory>>/x/file.txt"
+    ]
+  },
+  {
+    "case": "relative",
+    "format": "toml",
+    "exit": 0,
+    "source": [
+      "<<modDirectory>>/x/file.txt"
+    ]
+  },
+  {
+    "case": "relative",
+    "format": "xml",
+    "exit": 0,
+    "source": [
+      "<<modDirectory>>/x/file.txt"
+    ]
+  },
+  {
+    "case": "relative",
+    "format": "yaml",
+    "exit": 0,
+    "source": [
+      "<<modDirectory>>/x/file.txt"
+    ]
+  },
+  {
+    "case": "whitespace",
+    "format": "json",
+    "exit": 1,
+    "source": null
+  },
+  {
+    "case": "whitespace",
+    "format": "toml",
+    "exit": 1,
+    "source": null
+  },
+  {
+    "case": "whitespace",
+    "format": "xml",
+    "exit": 1,
+    "source": null
+  },
+  {
+    "case": "whitespace",
+    "format": "yaml",
+    "exit": 1,
+    "source": null
+  }
+]

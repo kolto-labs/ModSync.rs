@@ -1,0 +1,14 @@
+from pathlib import Path
+import json,hashlib,tempfile,subprocess,html
+root=Path(tempfile.mkdtemp(prefix='source-scalar-oracle-')); out=Path('/home/brunner56/.cache/modsync-resume/source-scalar-oracle');out.mkdir(exist_ok=True)
+dll=Path('/tmp/modsync-validation-reference-20260927-5813/artifacts/bin/ModSync.Core/debug_net9.0/ModSync.Core.dll')
+for d in ['home','config','cache','tmp']:(root/d).mkdir()
+sandbox=['bwrap','--unshare-net','--ro-bind','/','/','--dev','/dev','--proc','/proc','--bind',str(root),str(root),'--setenv','HOME',str(root/'home'),'--setenv','XDG_CONFIG_HOME',str(root/'config'),'--setenv','XDG_CACHE_HOME',str(root/'cache'),'--setenv','TMPDIR',str(root/'tmp'),'--chdir',str(root),'--']
+records=[]
+for case,value in [('relative','x/file.txt'),('empty',''),('whitespace','  '),('nonstring',42)]:
+ c={'Guid':'11111111-1111-1111-1111-111111111111','Name':'Example scalar','IsSelected':True,'Instructions':[{'Action':'Copy','Source':value,'Destination':'<<kotorDirectory>>/Override'}]}
+ rendered={'json':json.dumps([c]),'toml':'[[thisMod]]\nGuid="'+c['Guid']+'"\nName="Example scalar"\nIsSelected=true\n[[thisMod.Instructions]]\nAction="Copy"\nSource='+json.dumps(value)+'\nDestination="<<kotorDirectory>>/Override"\n','yaml':'---\nGuid: '+c['Guid']+'\nName: Example scalar\nIsSelected: true\nInstructions:\n- Action: Copy\n  Source: '+json.dumps(value)+'\n  Destination: "<<kotorDirectory>>/Override"\n','xml':'<ModSync xmlns:json="http://james.newtonking.com/projects/json"><ModComponents><Guid>'+c['Guid']+'</Guid><Name>Example scalar</Name><IsSelected>true</IsSelected><Instructions json:Array="true"><Action>Copy</Action><Source>'+html.escape(str(value))+'</Source><Destination>&lt;&lt;kotorDirectory&gt;&gt;/Override</Destination></Instructions></ModComponents></ModSync>'}
+ for fmt,content in rendered.items():
+  label=case+'-'+fmt;inp=root/(label+'.'+fmt);inp.write_text(content);dest=root/(label+'-output.json');args=sandbox+['dotnet',str(dll),'convert','--input',str(inp),'--output',str(dest),'--format','json','--plaintext','--non-interactive'];p=subprocess.run(args,capture_output=True,text=True,timeout=45)
+  r={'case':case,'format':fmt,'argv':args,'exit':p.returncode,'stdout':p.stdout,'stderr':p.stderr,'output':json.loads(dest.read_text()) if dest.exists() else None};records.append(r);(out/(label+'.receipt.json')).write_text(json.dumps(r,indent=2)+'\n');(out/inp.name).write_text(content)
+receipt={'scope':'Pinned C# authored scalar inputs; XML untyped numeric text is not a JSON numeric type equivalent. Conversion only, not Rust acceptance or install validation.','csharpSha256':hashlib.sha256(dll.read_bytes()).hexdigest(),'root':str(root),'results':[{'case':r['case'],'format':r['format'],'exit':r['exit'],'outputPresent':r['output'] is not None} for r in records]};(out/'receipt.json').write_text(json.dumps(receipt,indent=2)+'\n');print(json.dumps(receipt,indent=2))

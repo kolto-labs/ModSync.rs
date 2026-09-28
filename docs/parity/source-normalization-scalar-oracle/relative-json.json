@@ -1,0 +1,1 @@
+[{"Guid": "11111111-1111-1111-1111-111111111111", "Name": "Example scalar", "IsSelected": true, "Instructions": [{"Action": "Copy", "Source": "x/file.txt", "Destination": "<<kotorDirectory>>/Override"}]}]

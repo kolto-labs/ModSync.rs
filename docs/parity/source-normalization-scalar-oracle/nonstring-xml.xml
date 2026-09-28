@@ -1,0 +1,1 @@
+<ModSync xmlns:json="http://james.newtonking.com/projects/json"><ModComponents><Guid>11111111-1111-1111-1111-111111111111</Guid><Name>Example scalar</Name><IsSelected>true</IsSelected><Instructions json:Array="true"><Action>Copy</Action><Source>42</Source><Destination>&lt;&lt;kotorDirectory&gt;&gt;/Override</Destination></Instructions></ModComponents></ModSync>

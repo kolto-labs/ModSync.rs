@@ -61,6 +61,7 @@ Pinned C# is `d31ccbd3`, read-only checkout
 | [JSON baseline](source-normalization-probe/receipt.json) | Seven cases; five differing separator/prefix shapes, game placeholder and Choose agree | Post-fix results |
 | [Other structured formats](source-normalization-formats/receipt.json) | Same five differences in TOML/YAML/XML | Expanded edge matrix in each format |
 | [Twelve-shape C# matrix](source-normalization-format-oracle/receipt.json) | C# normalized Source/Options agree across four rendered formats | Authored scalar shape in each format, negative cases, post-fix Rust |
+| [Authored scalar oracle](source-normalization-scalar-oracle/README.md) | Sixteen direct C# calls: relative/empty/whitespace/numeric scalar across four authored formats; numeric JSON/TOML/YAML silently empties Source | Post-fix Rust; XML numeric text is not numeric token equivalence |
 | [Expanded probes](source-normalization-expanded/receipt.json) | JSON strings/arrays/empty/null/options, embedded YAML, Rust-only fenced JSON, small Copy and path probes | Embedded TOML, full validation equivalence, all post-fix behavior |
 
 The expanded C# binary hash is
