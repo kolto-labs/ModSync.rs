@@ -498,9 +498,9 @@ impl App {
                         ui.spacing_mut().item_spacing.y = 8.0;
                         ui.vertical_centered(|ui| ui.label("🎮 Next Steps:"));
                         for step in [
-                            "• Launch the game and enjoy your modded experience!",
-                            "• This run's snapshot was released. Restore is offered only when an install stops partway.",
-                            "• Copy the activity log for installation details.",
+                            "• Launch the game and enjoy your modded experience!".to_owned(),
+                            format!("• {RECOVERY_TEXT}"),
+                            "• Copy the activity log for installation details.".to_owned(),
                         ] {
                             wrapped(ui, RichText::new(step));
                         }
