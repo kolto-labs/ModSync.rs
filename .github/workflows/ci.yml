@@ -1,13 +1,68 @@
 name: Production parity gates
-on: [push, pull_request, workflow_dispatch]
+# One run per pull request update or main push. Pushing a PR branch used to start
+# two runs (push + pull_request) of a three-OS matrix, and macOS/Windows runners
+# bill 10x/2x on private repositories; that exhausted the account's included
+# minutes. Linux now carries every gate, including a Windows cross-check, and the
+# native Windows/macOS builds run only on manual dispatch.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      native:
+        description: Also build natively on Windows and macOS (billed 2x/10x)
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 # Rust tests remain frozen during the parity effort. These jobs deliberately
 # compile only production lib/bin targets; passing is not full parity acceptance.
 jobs:
   production:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.95.0
+        with:
+          components: rustfmt, clippy
+          targets: x86_64-pc-windows-gnu
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+      - name: Install system and MinGW packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends pkg-config libssl-dev \
+            libwayland-dev libxkbcommon-dev libx11-dev libxi-dev libxrandr-dev \
+            libxcursor-dev libgl1-mesa-dev gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64
+      - run: cargo fmt --all -- --check
+      - run: cargo build --locked --no-default-features --lib --bin modsync -j2
+      - run: cargo clippy --locked --no-default-features --lib --bin modsync -j2 -- -D warnings
+      - run: cargo build --locked --lib --bin modsync -j2
+      - run: cargo clippy --locked --lib --bin modsync -j2 -- -D warnings
+      - name: Windows cross-check headers
+        # Vendored unrar includes <PowrProf.h> and <Wbemidl.h>; MinGW ships them in
+        # lowercase, which only matters on a case-sensitive filesystem.
+        run: |
+          dir="$RUNNER_TEMP/wininc"
+          mkdir -p "$dir"
+          for header in PowrProf Wbemidl; do
+            echo "#include <$(echo "$header" | tr '[:upper:]' '[:lower:]').h>" > "$dir/$header.h"
+          done
+          echo "CXXFLAGS_x86_64_pc_windows_gnu=-I$dir" >> "$GITHUB_ENV"
+      - run: cargo clippy --locked --no-default-features --lib --bin modsync --target x86_64-pc-windows-gnu -j2 -- -D warnings
+      - run: cargo clippy --locked --lib --bin modsync --target x86_64-pc-windows-gnu -j2 -- -D warnings
+
+  native:
+    if: github.event_name == 'workflow_dispatch' && inputs.native
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -17,7 +72,6 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           cache-on-failure: true
-      - run: cargo fmt --all -- --check
       - run: cargo build --locked --no-default-features --lib --bin modsync -j2
       - run: cargo clippy --locked --no-default-features --lib --bin modsync -j2 -- -D warnings
       - run: cargo build --locked --lib --bin modsync -j2

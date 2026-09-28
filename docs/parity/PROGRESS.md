@@ -68,11 +68,18 @@ is assigned because the remaining domains differ greatly in scope and proof cost
    refusal against the current archive, an actionable C#-configured import
    requirement, a repair hint for unparseable saved choices, and the no-Extract route
    warning; [evidence](fomod-s2a-proof/README.md) is 224/224. The round-3 follow-up is
-   `ae8d7e9`; S2a SPEC and QUALITY are [approved](fomod-s2a-review.md). Open:
-   Fetch plans one target per component for a shared URL/filename, so two
-   components on one URL race on the destination (`File exists`) and the second is
-   neither bound nor recorded; one-run `validate/install --fomod-choices` still
-   replaces all embedded archive choices.
+   `ae8d7e9`; S2a SPEC and QUALITY are [approved](fomod-s2a-review.md). Fetch now
+   runs components that may publish one archive file as one serialized group
+   instead of a race (commit `4bf5c54`, its review follow-up `339b3d6`, and a second
+   follow-up that makes groups transitive and requires the same name for inherited
+   failures). A later component takes a file already published under its name
+   (subject to its own hash) or the outcome of identical sources for the same name
+   without a request; otherwise, for example a different URL after the owner failed,
+   it downloads for itself. Every component is reported, recorded and bound as a
+   FOMOD consumer; [evidence](fetch-shared-url-proof/README.md) is 266/266 (22 new
+   checks fail on `339b3d6`). The second follow-up is `3f0caf4`; SPEC and QUALITY are approved. Open: an unnamed target whose server-revealed name matches a file already present fails with `Download destination already exists` instead of adopting it under its own hash (`src/download.rs` ~466); an unnamed linked target can inherit a named member's name-specific failure (`src/download_orchestrator.rs` ~722). Also open:
+   one-run `validate/install --fomod-choices` still replaces all embedded archive
+   choices.
    Remaining S2 semantic items and native acceptance follow.
    The [actual full.md conversion baseline](full-markdown-baseline/README.md)
    retains eight production conversions and an independent anonymous comparison.
