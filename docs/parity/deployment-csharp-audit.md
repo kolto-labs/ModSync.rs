@@ -300,3 +300,36 @@ A further re-review found two more gaps, checked against repros the reviewer lef
 Verification: `docs/parity/deployment-probe.sh` (same build as above, `--no-default-features` debug, `CARGO_TARGET_DIR=/home/brunner56/.cache/modsync-rs-target-dep`): **75 pass, 0 fail** (69 baseline + P29, P30, P31). Binary sha256 `935291f6e45926c46debec7eb0613e151f2c8599543e1f32aae62b209c595d02`, built from commit `2106b2d` with a clean tree (probe's `source:` line: `2106b2dd9fb3665353bf2f88e462e0bab7e8cc62`, no `+uncommitted src changes` and no staleness warning). Receipt: `/tmp/depprobe/probe-2106b2d.log`. C# differential re-run with the same binary: `TOTAL fail=0` (8/8, same DLL sha256 `2c8cb17a6048127f051faf941b840f2e43c65476ac7a018247f383c5bffac270` as section 5). Receipt: `/tmp/depprobe/differential-2106b2d.log`.
 
 `Service::{new, deploy, uninstall, purge, deployed, manifest}`, `deploy_append`, `reinstall_blockers`, `prepare_reinstall`, and the `Entry`/`Manifest`/`Method`/`UninstallReport`/`ProvenanceReport` shapes are unchanged; `tests/deployment.rs` stays byte-identical to before this round (`git diff` against it is empty) and was not compiled, per the freeze.
+
+
+## 10. Resumed round 4: live legacy ownership (2026-09-28 UTC)
+
+Source commit `6fe2fa2` completes the paused overlap correction. The marker-less
+acceptance gate checks the newest manifest entry for each separator-normalized,
+case-insensitive path, rather than superseded entries from older deployments.
+This supersedes section 9's literal all-historical-entries requirement.
+
+Additional measured fixes: a marker-less root that has adopted the per-game
+owner record now blocks a competing explicit root; an empty root no longer
+claims that record after a no-op uninstall or a failed deployment. A disposable CLI
+fixture reproduced the former ownership bypass before the guard was corrected.
+Read-only `ensure_own_game` remains free of owner-record writes.
+
+[Source/binary receipt](deployment-round4/build-receipt.json),
+[CLI output](deployment-round4/cli-probes.log),
+[C# differential](deployment-round4/csharp-differential.log), and
+[independent Sonnet review](deployment-round4/review.md) are retained here.
+The final suite reports **82 pass, 0 fail**. Eight C# differential assertions
+pass using the pinned validation-reference DLL, rather than the older unbound
+DLL described in section 5. Production no-default-features build, Clippy with
+warnings denied, and formatting checks pass. No Rust tests were changed or run.
+
+Probe roots now support an explicitly supplied empty directory and refuse reuse
+of nonempty roots. The old-binary upgrade check is mandatory: an absent legacy
+binary fails the suite instead of silently skipping evidence.
+
+Limits: legacy manifests with historically corrupted deployment timestamps,
+unreadable manifests/owner storage, and full managed installation through the
+Rust engine remain outside this receipt. F18 remains partial; F29 remains
+unverified. Probe logs identify the checkout but cannot by themselves bind an
+executable using mtime; use the full source hash build receipt for that binding.
