@@ -103,11 +103,21 @@ impl Guide {
     }
 
     pub fn parse(text: &str, format: &str) -> Result<Self> {
+        Self::parse_with(text, format, true)
+    }
+
+    /// Markdown's fenced instruction blocks parse through here: the C# Markdown ingest path
+    /// never runs load-time duplicate-option removal, so neither may its embedded guides.
+    pub(crate) fn parse_without_dedup(text: &str, format: &str) -> Result<Self> {
+        Self::parse_with(text, format, false)
+    }
+
+    fn parse_with(text: &str, format: &str, dedup: bool) -> Result<Self> {
         let text = text.trim_start_matches('\u{feff}');
         let format = format.trim().to_ascii_lowercase();
         if format.is_empty() || format == "auto" {
             for hint in ["toml", "md", "yaml", "xml", "json"] {
-                if let Ok(guide) = Self::parse(text, hint) {
+                if let Ok(guide) = Self::parse_with(text, hint, dedup) {
                     return Ok(guide);
                 }
             }
@@ -194,6 +204,13 @@ impl Guide {
         }
         for c in &guide.components {
             check(c, &mut ids)?;
+        }
+        // C# runs RemoveDuplicateOptions only in DeserializeModComponentFromString
+        // (TOML/JSON/YAML/XML); Markdown ingest goes through MarkdownParser and keeps duplicates.
+        if dedup && canonical_format(&format) != Some("md") {
+            for component in &mut guide.components {
+                remove_duplicate_options(component);
+            }
         }
         if !guide.components.iter().any(|c| c.is_selected) {
             for component in &mut guide.components {
@@ -388,6 +405,121 @@ impl Guide {
             result.push(*c);
         }
         Ok(result)
+    }
+}
+
+/// C# compares instruction Dependencies and Restrictions as `List<Guid>` and matches Choose
+/// sources with `Guid.TryParse`, so case and brace differences do not count.
+fn guid_key(value: &str) -> Option<uuid::Uuid> {
+    uuid::Uuid::parse_str(value.trim()).ok()
+}
+
+fn same_guids(left: &[String], right: &[String]) -> bool {
+    left.len() == right.len()
+        && left
+            .iter()
+            .zip(right)
+            .all(|(a, b)| match (guid_key(a), guid_key(b)) {
+                (Some(a), Some(b)) => a == b,
+                _ => a == b,
+            })
+}
+
+/// C# rewrites non-Choose Sources at deserialize time (`Serializer.DeserializePathInDictionary`:
+/// `PathHelper.FixPathFormatting` then `PrefixPath`) before `AreInstructionsIdentical` sees
+/// them. Rust keeps the authored text, so the comparison applies that rewrite on the fly.
+fn source_key(path: &str) -> String {
+    fn fix(path: &str) -> String {
+        let mut out = String::with_capacity(path.len());
+        for c in path.trim_start_matches('\\').chars() {
+            let c = if c == '\\' { '/' } else { c };
+            if c == '/' && out.ends_with('/') && !out[..out.len() - 1].ends_with(':') {
+                continue;
+            }
+            out.push(c);
+        }
+        if out.len() > 1 {
+            out.truncate(out.trim_end_matches('/').len());
+        }
+        out
+    }
+    if path.trim().is_empty() {
+        return path.to_owned();
+    }
+    let fixed = fix(path);
+    let lower = fixed.to_ascii_lowercase();
+    if [
+        "<<moddirectory>>",
+        "<<kotordirectory>>",
+        "<<gamedirectory>>",
+    ]
+    .iter()
+    .any(|prefix| lower.starts_with(prefix))
+    {
+        fixed
+    } else {
+        fix(&format!("<<modDirectory>>/{fixed}"))
+    }
+}
+
+/// Port of C# `AreInstructionsIdentical`: instruction Guid and Parent are not compared.
+fn same_instructions(left: &[Instruction], right: &[Instruction]) -> bool {
+    left.len() == right.len()
+        && left.iter().zip(right).all(|(a, b)| {
+            a.action == b.action
+                && a.destination == b.destination
+                && a.arguments == b.arguments
+                && a.overwrite == b.overwrite
+                && a.source.len() == b.source.len()
+                && (a.action == "Choose" && a.source == b.source
+                    || a.action != "Choose"
+                        && a.source
+                            .iter()
+                            .zip(&b.source)
+                            .all(|(x, y)| source_key(x) == source_key(y)))
+                && same_guids(&a.dependencies, &b.dependencies)
+                && same_guids(&a.restrictions, &b.restrictions)
+        })
+}
+
+/// Port of C# `RemoveDuplicateOptions`: an option whose instructions match an earlier
+/// option's is dropped (names are ignored), and its GUID leaves the component's Choose lists.
+fn remove_duplicate_options(component: &mut Component) {
+    let mut drop = vec![false; component.options.len()];
+    let mut dropped = BTreeSet::new();
+    for i in 0..component.options.len() {
+        if drop[i] {
+            continue;
+        }
+        let kept = &component.options[i];
+        for (j, duplicate) in component.options.iter().enumerate().skip(i + 1) {
+            if !drop[j] && same_instructions(&kept.instructions, &duplicate.instructions) {
+                drop[j] = true;
+                if let Some(id) = guid_key(&duplicate.guid) {
+                    dropped.insert(id);
+                }
+                eprintln!(
+                    "Component '{}': Duplicate option detected - '{}' (GUID: {}) has identical \
+                     instructions to '{}' (GUID: {}). Removing duplicate.",
+                    component.name, duplicate.name, duplicate.guid, kept.name, kept.guid
+                );
+            }
+        }
+    }
+    if !drop.contains(&true) {
+        return;
+    }
+    let mut index = 0;
+    component.options.retain(|_| {
+        index += 1;
+        !drop[index - 1]
+    });
+    for instruction in &mut component.instructions {
+        if instruction.action == "Choose" {
+            instruction
+                .source
+                .retain(|source| guid_key(source).is_none_or(|id| !dropped.contains(&id)));
+        }
     }
 }
 
