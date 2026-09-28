@@ -1,0 +1,273 @@
+{
+  "binary": "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+  "checks": [
+    {
+      "name": "p1_deploy_ok",
+      "passed": true,
+      "detail": {
+        "argv": [
+          "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+          "deployment",
+          "deploy",
+          "--game-dir",
+          "/tmp/modsync-switch-probe-f2m70rc_/game",
+          "--profile",
+          "A",
+          "--settings-dir",
+          "/tmp/modsync-switch-probe-f2m70rc_/settings",
+          "--component",
+          "comp1"
+        ],
+        "exit": 0,
+        "stdout": "{\n  \"ComponentGuid\": \"comp1\",\n  \"DeployedUtc\": \"2026-09-28T02:28:12.4254294Z\",\n  \"Entries\": [\n    {\n      \"RelativePath\": \"file.txt\",\n      \"SourceHash\": \"2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824\",\n      \"Size\": 5,\n      \"DeploymentMethod\": 0,\n      \"OverwroteExisting\": false\n    }\n  ]\n}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "p1_no_purge_refused_with_live_current",
+      "passed": true,
+      "detail": {
+        "argv": [
+          "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+          "deployment",
+          "switch",
+          "--game-dir",
+          "/tmp/modsync-switch-probe-f2m70rc_/game",
+          "--to",
+          "B",
+          "--settings-dir",
+          "/tmp/modsync-switch-probe-f2m70rc_/settings"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Error: Profile 'A' still has 1 deployment(s) in this game directory. Two live profiles cannot share one game tree; pass --purge-current to remove them first.\n"
+      }
+    },
+    {
+      "name": "p1_active_unchanged",
+      "passed": true,
+      "detail": "A"
+    },
+    {
+      "name": "p2_refused_with_external_lock_held",
+      "passed": true,
+      "detail": {
+        "argv": [
+          "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+          "deployment",
+          "switch",
+          "--game-dir",
+          "/tmp/modsync-switch-probe-zol7ql2r/game",
+          "--to",
+          "B",
+          "--settings-dir",
+          "/tmp/modsync-switch-probe-zol7ql2r/settings"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Error: Another ModSync process is using the game directory: Resource temporarily unavailable (os error 11)\n"
+      }
+    },
+    {
+      "name": "p2_active_unchanged",
+      "passed": true,
+      "detail": "A"
+    },
+    {
+      "name": "p3_corrupt_current_profile_refused",
+      "passed": true,
+      "detail": {
+        "argv": [
+          "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+          "deployment",
+          "switch",
+          "--game-dir",
+          "/tmp/modsync-switch-probe-ffq4a3xk/game",
+          "--to",
+          "B",
+          "--settings-dir",
+          "/tmp/modsync-switch-probe-ffq4a3xk/settings"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Error: Managed deployment requires profile 'A', but it was not found on disk.\n"
+      }
+    },
+    {
+      "name": "p3_active_unchanged",
+      "passed": true,
+      "detail": "A"
+    },
+    {
+      "name": "p4_missing_game_dir_refused",
+      "passed": true,
+      "detail": {
+        "argv": [
+          "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+          "deployment",
+          "switch",
+          "--game-dir",
+          "/tmp/modsync-switch-probe-95hz85a0/does-not-exist",
+          "--to",
+          "B",
+          "--settings-dir",
+          "/tmp/modsync-switch-probe-95hz85a0/settings"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Error: Game directory is unavailable: No such file or directory (os error 2)\n"
+      }
+    },
+    {
+      "name": "p4_active_unchanged",
+      "passed": true,
+      "detail": "A"
+    },
+    {
+      "name": "p5_valid_empty_switch_succeeds",
+      "passed": true,
+      "detail": {
+        "argv": [
+          "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+          "deployment",
+          "switch",
+          "--game-dir",
+          "/tmp/modsync-switch-probe-7gqwsnkj/game",
+          "--to",
+          "B",
+          "--settings-dir",
+          "/tmp/modsync-switch-probe-7gqwsnkj/settings"
+        ],
+        "exit": 0,
+        "stdout": "{\n  \"from\": \"A\",\n  \"to\": \"B\",\n  \"purged\": [],\n  \"deployed\": 0,\n  \"stagedNotDeployed\": []\n}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "p5_active_now_target",
+      "passed": true,
+      "detail": "B"
+    },
+    {
+      "name": "p6_deploy_over_existing_ok",
+      "passed": true,
+      "detail": {
+        "argv": [
+          "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+          "deployment",
+          "deploy",
+          "--game-dir",
+          "/tmp/modsync-switch-probe-ov_0w355/game",
+          "--profile",
+          "B",
+          "--settings-dir",
+          "/tmp/modsync-switch-probe-ov_0w355/settings",
+          "--component",
+          "comp2"
+        ],
+        "exit": 0,
+        "stdout": "{\n  \"ComponentGuid\": \"comp2\",\n  \"DeployedUtc\": \"2026-09-28T02:28:12.8762549Z\",\n  \"Entries\": [\n    {\n      \"RelativePath\": \"shared.txt\",\n      \"SourceHash\": \"fe382990f47523c750359f75373c83fb0183bb149bb25857b0b31c07f5c9a23d\",\n      \"Size\": 12,\n      \"DeploymentMethod\": 0,\n      \"OverwroteExisting\": true,\n      \"BackupRelativePath\": \"shared.txt\"\n    }\n  ]\n}\n",
+        "stderr": "warning: Claiming ownership of /tmp/modsync-switch-probe-ov_0w355/game for the first time while deploying comp2, and 1 existing file(s) in its target paths will be backed up and overwritten; if another manager already tracks these files this could not be verified.\n"
+      }
+    },
+    {
+      "name": "p6_purge_and_switch_succeeds",
+      "passed": true,
+      "detail": {
+        "argv": [
+          "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+          "deployment",
+          "switch",
+          "--game-dir",
+          "/tmp/modsync-switch-probe-ov_0w355/game",
+          "--to",
+          "A",
+          "--settings-dir",
+          "/tmp/modsync-switch-probe-ov_0w355/settings",
+          "--purge-current"
+        ],
+        "exit": 0,
+        "stdout": "{\n  \"from\": \"B\",\n  \"to\": \"A\",\n  \"purged\": [\n    {\n      \"component\": \"comp2\",\n      \"removed\": true,\n      \"deleted\": [\n        \"shared.txt\"\n      ],\n      \"restored\": [\n        \"shared.txt\"\n      ],\n      \"skipped\": [],\n      \"transferred\": [],\n      \"warnings\": []\n    }\n  ],\n  \"deployed\": 0,\n  \"stagedNotDeployed\": []\n}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "p6_original_bytes_restored",
+      "passed": true,
+      "detail": "8e338be649868e7c9e053212037e4bb0965ba7653e81b974bab76578bd59c80a"
+    },
+    {
+      "name": "p6_active_is_target",
+      "passed": true,
+      "detail": "A"
+    },
+    {
+      "name": "p7_deploy_ok",
+      "passed": true,
+      "detail": {
+        "argv": [
+          "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+          "deployment",
+          "deploy",
+          "--game-dir",
+          "/tmp/modsync-switch-probe-djsdkonm/game",
+          "--profile",
+          "A",
+          "--settings-dir",
+          "/tmp/modsync-switch-probe-djsdkonm/settings",
+          "--component",
+          "comp3"
+        ],
+        "exit": 0,
+        "stdout": "{\n  \"ComponentGuid\": \"comp3\",\n  \"DeployedUtc\": \"2026-09-28T02:28:12.9861601Z\",\n  \"Entries\": [\n    {\n      \"RelativePath\": \"locked.txt\",\n      \"SourceHash\": \"9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0\",\n      \"Size\": 3,\n      \"DeploymentMethod\": 0,\n      \"OverwroteExisting\": false\n    }\n  ]\n}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "p7_failed_purge_refused",
+      "passed": true,
+      "detail": {
+        "argv": [
+          "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+          "deployment",
+          "switch",
+          "--game-dir",
+          "/tmp/modsync-switch-probe-djsdkonm/game",
+          "--to",
+          "B",
+          "--settings-dir",
+          "/tmp/modsync-switch-probe-djsdkonm/settings",
+          "--purge-current"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Error: Permission denied (os error 13)\n"
+      }
+    },
+    {
+      "name": "p7_active_unchanged",
+      "passed": true,
+      "detail": "A"
+    },
+    {
+      "name": "p7_manifest_retained",
+      "passed": true,
+      "detail": [
+        {
+          "ComponentGuid": "comp3",
+          "DeployedUtc": "2026-09-28T02:28:12.9861601Z",
+          "Entries": [
+            {
+              "RelativePath": "locked.txt",
+              "SourceHash": "9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
+              "Size": 3,
+              "DeploymentMethod": 0,
+              "OverwroteExisting": false
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "all_passed": true
+}

@@ -781,23 +781,52 @@ fn run() -> Result<()> {
                 } => {
                     let settings = modsync::profiles::settings_directory(settings_dir.as_deref())?;
                     let store = modsync::profiles::Store::new(&settings)?;
-                    store.require(&to)?;
+                    let target_profile = store.require(&to)?;
                     let from = store.active_name()?;
+                    let switching = from
+                        .as_deref()
+                        .is_some_and(|current| !current.eq_ignore_ascii_case(to.trim()));
+
+                    // Resolve both sides (and propagate a bad source profile/service
+                    // instead of silently treating it as an empty deployment) before
+                    // taking the game lock, so construction failures never touch it.
+                    let source = switching
+                        .then(|| {
+                            modsync::deployment::Service::for_profile(
+                                &settings,
+                                from.as_deref().unwrap(),
+                                &game_dir,
+                            )
+                        })
+                        .transpose()?;
+                    let target = modsync::deployment::Service::for_profile(
+                        &settings,
+                        &target_profile.name,
+                        &game_dir,
+                    )?;
+
+                    // One game-scoped lock covers the live-manifest check, the purge,
+                    // and the activation below; source and target share the same
+                    // per-game lock file, so only one of them is ever locked.
+                    let _lock = match &source {
+                        Some(service) => service.lock()?,
+                        None => target.lock()?,
+                    };
+
                     let mut purged = Vec::new();
-                    if let Some(current) = from.as_deref()
-                        && !current.eq_ignore_ascii_case(to.trim())
-                    {
-                        let service = modsync::deployment::Service::for_profile(
-                            &settings, current, &game_dir,
-                        );
+                    if let Some(service) = &source {
+                        let current = from.as_deref().unwrap();
                         if purge_current {
-                            let service = service?;
-                            let _lock = service.lock()?;
                             purged = service.purge_report()?;
                             for report in &purged {
                                 warn(&report.warnings);
                             }
-                        } else if let Ok(service) = service {
+                            let live = service.deployed()?.len();
+                            ensure!(
+                                live == 0,
+                                "Purge for profile '{current}' left {live} deployment(s) still live in this game directory; refusing to activate '{to}' while '{current}' remains live."
+                            );
+                        } else {
                             let live = service.deployed()?.len();
                             ensure!(
                                 live == 0,
@@ -805,18 +834,20 @@ fn run() -> Result<()> {
                             );
                         }
                     }
+
+                    // Read-only report prerequisites are checked before persisting
+                    // activation, so a corrupt target manifest cannot leave
+                    // activeProfileName pointing at a profile we then fail to report.
+                    let deployed = target.deployed()?.len();
+                    let staged_not_deployed = target.staged_not_deployed()?;
+
                     let profile = store.activate(&to)?;
-                    let target = modsync::deployment::Service::for_profile(
-                        &settings,
-                        &profile.name,
-                        &game_dir,
-                    )?;
                     print(serde_json::json!({
                         "from": from,
                         "to": profile.name,
                         "purged": purged,
-                        "deployed": target.deployed()?.len(),
-                        "stagedNotDeployed": target.staged_not_deployed()?,
+                        "deployed": deployed,
+                        "stagedNotDeployed": staged_not_deployed,
                     }))
                 }
             }
