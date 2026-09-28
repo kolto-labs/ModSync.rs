@@ -1,0 +1,12 @@
+l10-install-one stdout=same stderr=same
+l11-validate-opt stdout=same stderr=same
+l12-validate-closure stdout=same stderr=DIFF
+l1-validate-default stdout=same stderr=same
+l2-validate-selwarn stdout=same stderr=same
+l3-unknown-option stdout=same stderr=same
+l4-unknown-component stdout=same stderr=same
+l5-install-default stdout=same stderr=same
+l6-validate-option stdout=same stderr=same
+l7-conflicts-select stdout=same stderr=DIFF
+l8-validate-k1-dev stdout=same stderr=DIFF
+l9-validate-one stdout=same stderr=same

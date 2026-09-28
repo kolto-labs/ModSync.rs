@@ -1,0 +1,24 @@
+l1-validate-default	base	1	validate --json
+l1-validate-default	new	1	validate --json
+l2-validate-selwarn	base	1	validate --json --select Alpha Core --select bogus:x --select 
+l2-validate-selwarn	new	1	validate --json --select Alpha Core --select bogus:x --select 
+l3-unknown-option	base	1	validate --json --option Missing
+l3-unknown-option	new	1	validate --json --option Missing
+l4-unknown-component	base	1	validate --json --select Missing
+l4-unknown-component	new	1	validate --json --select Missing
+l5-install-default	base	1	install --json
+l5-install-default	new	1	install --json
+l6-validate-option	base	1	validate --json --select Delta: Colon Mod --option 00000000-0000-0000-0000-000000000012
+l6-validate-option	new	1	validate --json --select Delta: Colon Mod --option 00000000-0000-0000-0000-000000000012
+l7-conflicts-select	base	1	conflicts --select Beta Addon
+l7-conflicts-select	new	1	conflicts --select Beta Addon
+l8-validate-k1-dev	base	1	validate --json
+l8-validate-k1-dev	new	1	validate --json
+l9-validate-one	base	1	validate --json --select Alpha Core
+l9-validate-one	new	1	validate --json --select Alpha Core
+l10-install-one	base	1	install --json --select Alpha Core --select Epsilon
+l10-install-one	new	1	install --json --select Alpha Core --select Epsilon
+l11-validate-opt	base	1	validate --json --select Delta: Colon Mod --option 00000000-0000-0000-0000-000000000012
+l11-validate-opt	new	1	validate --json --select Delta: Colon Mod --option 00000000-0000-0000-0000-000000000012
+l12-validate-closure	base	1	validate --json --select Beta Addon
+l12-validate-closure	new	1	validate --json --select Beta Addon

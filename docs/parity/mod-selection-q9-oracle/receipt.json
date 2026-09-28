@@ -1,0 +1,215 @@
+{
+  "timestamp_utc": "2026-09-27T15:18:47Z",
+  "question": "Q9 in docs/parity/mod-selection-plan.md: does ticking/unticking in C# wizard Mod Selection cascade Dependencies/Restrictions?",
+  "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
+  "reference_worktree": "/home/brunner56/.codex/worktrees/5813/ModSync",
+  "build_reused": "/tmp/modsync-validation-reference-20260927-5813/artifacts/bin/ModSync/debug_net9.0",
+  "binary_sha256": {
+    "ModSync.dll": "fbd5164771bceb732018b47215490d94f7e8944689c86c015bbf14819c2bfd2d",
+    "ModSync.Core.dll": "89d9b2361aee4364f95151b41db59a4133122a6ad41bc2703e232cf10a4f5a6b",
+    "Resources/holopatcher": "fdd470570a82df58be8913074133ab13ba94a874e69d66b0592ebe3f5af230c5"
+  },
+  "binary_hashes_match_validation_reference": true,
+  "runtime_host": {
+    "path": "/home/brunner56/.dotnet-sandbox/dotnet",
+    "sha256": "f0c9838e1593ad6c595aa666f0b1a1604da60a5ca4ad2d5a19affe8d4d713bfb",
+    "framework": "Microsoft.NETCore.App 9.0.19",
+    "note": "prior reference host 3fd639f3... not found on PATH; DLLs identical"
+  },
+  "source_sha256_inspected": {
+    "Dialogs/WizardPages/ModSelectionPage.axaml.cs": "9ffffdfd94932a25afcc18695c0c6db54cc1081a4b713a408424370109b4d5ed",
+    "Controls/ModListItem.axaml": "10db39b226bd839d8bdb59aa54bb58a82d34fbf7cebb6913a7dd5d30569aa5f8",
+    "Controls/ModListItem.axaml.cs": "a3e7f4fdd760b8fff60d49b4be5b7f4305df73cbfa05f2870b4147e5d6b371bc",
+    "Controls/ModListSidebar.axaml": "071115a8564c973a31e4707362f7cd4e40112d979dbf4038f0a96f885b7e42da",
+    "MainWindow.axaml.cs": "6bca94868978627d6f48c7c158aef05751689117d6a71b0f5bb7c4318cbfa6fa"
+  },
+  "guide": {
+    "source": "/run/media/brunner56/MyBook/Workspaces/ModSync/mod-builds/TOMLs/KOTOR1_Full.toml",
+    "sha256": "7a4417963c62ec8205b1d219ecad10ea6cd3419897face92df04ea1aa8aecd3d",
+    "copies": [
+      "/tmp/modsync-q9-oracle-20260927/A/KOTOR1_Full.toml",
+      "/tmp/modsync-q9-oracle-20260927/B/KOTOR1_Full.toml"
+    ],
+    "dependency_target": "Grenades and Mines HD (index 124) -> High-Poly Grenades",
+    "restriction_pair": "KOTOR Dialogue Fixes options Standard <-> Revised (option-level; guide has no component-level Restrictions)"
+  },
+  "fixture": "per run: game/ with zero-byte swkotor.exe and dialog.tlk, empty mods/, private config/data/cache/runtime under /tmp/modsync-q9-oracle-20260927",
+  "display": {
+    "server": "Xvfb :57 -screen 0 1280x900x24 -nolisten tcp",
+    "xvfb_pid": 2903744,
+    "shared_by_runs": "A then B sequentially"
+  },
+  "input_capture": {
+    "input": "python-xlib 0.33 XTEST via 'uvx --with python-xlib python x.py' (xdotool not installed)",
+    "capture": "ffmpeg -f x11grab -video_size 1280x900 -i :57 -frames:v 1"
+  },
+  "launch_env": "env -u WAYLAND_DISPLAY -u DBUS_SESSION_BUS_ADDRESS PATH=~/.dotnet-sandbox:$PATH DOTNET_ROOT=~/.dotnet-sandbox DOTNET_CLI_TELEMETRY_OPTOUT=1 DISPLAY=:57 XDG_SESSION_TYPE=x11 XDG_CONFIG_HOME=<run>/config XDG_DATA_HOME=<run>/data XDG_CACHE_HOME=<run>/cache XDG_RUNTIME_DIR=<run>/runtime setsid /usr/bin/dbus-run-session -- dotnet <BIN>/ModSync.dll --instructionFile=<run>/KOTOR1_Full.toml --kotorPath=<run>/game --modDirectory=<run>/mods --allow-multiple-instances",
+  "runs": {
+    "A": {
+      "root": "/tmp/modsync-q9-oracle-20260927/A",
+      "pids": {
+        "dbus-run-session": 2977938,
+        "dbus-daemon": 2977948,
+        "dotnet": 2978023,
+        "xdg-desktop-portal": 2979259,
+        "xdg-document-portal": 2979292,
+        "xdg-permission-store": 2979309,
+        "fusermount3": 2979321
+      },
+      "steps": [
+        "decline telemetry",
+        "Wizard Mode off -> main view",
+        "sidebar filter 'Grenade'",
+        "Wizard Mode on, Next x4 -> Mod Selection",
+        "Deselect All",
+        "wizard search 'Grenade', Expand All",
+        "tick Grenades and Mines HD",
+        "rebuild via search edit",
+        "untick High-Poly Grenades",
+        "rebuild",
+        "Wizard Mode off, sidebar filter 'Dialogue Fixes'",
+        "Wizard Mode on, Next x4, search 'Dialogue Fixes', Expand All",
+        "tick Standard",
+        "rebuild"
+      ],
+      "full_log": {
+        "lines": 20919,
+        "sha256": "8331c134ad8d03b661b3dcf64895c0695734c2d4a641026768ffdc27d900e2a4",
+        "OnCheckBoxChanged_START_count": 104
+      },
+      "result": {
+        "dependency_tick": "cascade: 0->1 displayed immediately (stale), 2 of 189 after rebuild; log 20284/20291 High-Poly Grenades IsChecked=True via ModListItem sender",
+        "dependency_untick": "cascade: log 20298/20305 Grenades and Mines HD IsChecked=False; 0 of 189 after rebuild",
+        "restriction_tick": "cascade: log 20911 'Option Standard conflicts with component Revised, deselecting it'; Revised unticked after rebuild",
+        "side_effect": "realizing sidebar item re-selected KOTOR Dialogue Fixes via HandleOptionChecked on still-selected Revised option"
+      }
+    },
+    "B": {
+      "root": "/tmp/modsync-q9-oracle-20260927/B",
+      "pids": {
+        "dbus-run-session": 3080811,
+        "dbus-daemon": 3080812,
+        "dotnet": 3080813,
+        "xdg-desktop-portal": 3081282,
+        "xdg-document-portal": 3081297,
+        "xdg-permission-store": 3081309,
+        "fusermount3": 3081330
+      },
+      "steps": [
+        "decline telemetry",
+        "Next x4 -> Mod Selection",
+        "Deselect All",
+        "search 'Grenade', Expand All",
+        "tick Grenades and Mines HD",
+        "rebuild",
+        "search 'Dialogue Fixes'",
+        "tick KOTOR Dialogue Fixes",
+        "tick Standard",
+        "rebuild"
+      ],
+      "full_log": {
+        "lines": 19960,
+        "sha256": "292bbea8c386dae8ea7899c882f322a8bce483fd665472c7dbbd0bfcd34559bc",
+        "OnCheckBoxChanged_count": 0,
+        "ComponentSelectionService_count": 0
+      },
+      "result": {
+        "dependency_tick": "no cascade: 1 of 189 after rebuild, High-Poly Grenades unticked",
+        "restriction_tick": "no cascade: Standard and Revised both ticked after rebuild, 2 of 189"
+      }
+    }
+  },
+  "verdict": {
+    "A": {
+      "dependencies": "yes (tick and untick)",
+      "restrictions": "yes (option-level pair)"
+    },
+    "B": {
+      "dependencies": "no",
+      "restrictions": "no (option-level pair)"
+    },
+    "overall": "partial: cascade only via realized hidden sidebar ModListItem; wizard page itself never cascades; wizard display is stale until list rebuild",
+    "mechanism_referent": "Run A Deselect All cleared 24 selected mods but logged exactly one [OnCheckBoxChanged] START (line 20277, High-Poly Grenades, the only realized sidebar item)"
+  },
+  "cleanup": {
+    "method": "kill dotnet, then dbus-run-session/dbus-daemon/portals by PID, then Xvfb :57",
+    "verified_gone": [
+      2978023,
+      2977948,
+      2977938,
+      2979259,
+      2979292,
+      2979309,
+      2979321,
+      3080811,
+      3080812,
+      3080813,
+      3081282,
+      3081297,
+      3081309,
+      3081330,
+      2903744
+    ],
+    "mounts_remaining": "none",
+    "disposable_root_left": "/tmp/modsync-q9-oracle-20260927",
+    "user_processes_touched": "none; unrelated bfs ffprobe search (pid 2737846) left alone",
+    "pattern_kill_disclosure": "One 'pkill -f' by pattern was issued to stop this agent's own filesystem search; it matched and killed the agent's own shell (exit 144). Follow-up ps showed the unrelated bfs ffprobe search (pid 2737846, not started by this agent) still alive; this agent's own libhostfxr search (pid 2973215) was then killed by PID. No other process was killed by pattern."
+  },
+  "not_done": [
+    "no tests, no compile, no install, no downloads, no validation run",
+    "telemetry declined in both runs",
+    "component-level Restrictions not exercisable with this guide"
+  ],
+  "artifacts_sha256": {
+    "README.md": "1aa85243cc8720d644915873829dd0209680ebdba2746748c49c95bf310d17e4",
+    "run-a/00-launch.png": "7688b16a9e4301561c81f8d61fc6c7cdcb46c239e825162f75547e426acff1ee",
+    "run-a/01-after-telemetry.png": "6b0ae6bf0a11a137159f9ffdbb899fb0ad9ec9f6db9328f32e8c38696881c048",
+    "run-a/03-loaded.png": "ac552f26033beb37d689c0a903eaa409d34f89ff90a4ce8fe9181b3e97341fcb",
+    "run-a/04-main-view.png": "3921605349e7c1b36e9333347cb95c95f18737f58814a63f08fbb860b6d65b9c",
+    "run-a/05-sidebar-grenade-realized.png": "88f2fcb23cb9589e1a66aaef16087f6793a36c4b8c0e27b591887817e4b1741e",
+    "run-a/06-wizard-reentered.png": "9383695a8996e3ed370253fc40ae8ef3feeb21d318b0bce267c207150d514bcf",
+    "run-a/08-modselection-initial.png": "e240ee6386aced5edc336819593dbfcf94ea556d8bf580c0e3946353d5712f8e",
+    "run-a/09-after-deselect-all.png": "14112059a575ddc75ede8a726ab7d9cd0c106cc98a675220450516314fa61615",
+    "run-a/12-before-tick-dep.png": "2c2e0d98730bfb5b2d248f86bd31e7f341b66eee257678fbb025b285c13a31e2",
+    "run-a/13-after-tick-dep-immediate.png": "e4ae5564843ffea336c52e0cc0b291d0707e9356f3063fb2c6c12ac38616ee67",
+    "run-a/14-after-tick-dep-5s.png": "e4ae5564843ffea336c52e0cc0b291d0707e9356f3063fb2c6c12ac38616ee67",
+    "run-a/15-after-tick-dep-count-stale.png": "1690d56785113decc8e981dcbdd636a3a4a3397c0c5e7d05458fa33adc7d897e",
+    "run-a/16-after-tick-dep-rebuilt-count.png": "583fc9e1715bc971921b9ca3a8033f82f7b1454f988b0eabd2ca23db46582fff",
+    "run-a/17-after-tick-dep-rebuilt-list.png": "2461dc6058fe29f2a32a27e8fd428cb65786744e854ce4ada4d44fbc8ac4c4d3",
+    "run-a/18-before-untick-parent.png": "e1e74a01d58c3b2d073b850517563651372e210ac53b19f2550ac3e04ff68970",
+    "run-a/19-after-untick-parent-immediate.png": "9bc35c6c8758f0fa921691ebab31f61a54ca7e302dfb089ae58c4757d639678d",
+    "run-a/20-after-untick-count-stale.png": "fb2251275a81380231a295b662a5fd2d8fc9532454a83a63a75b9dfb0c34d1a5",
+    "run-a/21-after-untick-rebuilt.png": "cc85861166f55100587941cf36bd2374c6499fba4d8ae3dd4de6e00b6ae61613",
+    "run-a/22-after-untick-rebuilt-count.png": "d96713be5c31fe9788630b6050f37018b79ba024cb6794188df65de9533bbba3",
+    "run-a/23-main-view-again.png": "2f202a21efcc0cb3840087b754c279bea9f0d4e4978a13b4ef6dbdd373253431",
+    "run-a/24-sidebar-dialogue-realized.png": "7fa7e33489b789d8d39ab24dddfe6f87098e597c20a9241a76370c48f99b7d39",
+    "run-a/26-wizard-dialogue-fixes.png": "3500abdc3006c278ee8a5aaca834890f4f346467271655b0d4a8ed016f9a25c2",
+    "run-a/27-before-tick-standard.png": "d128e309158f99c70994a54f6ba16241c60f657dfcf68887645541743d808e6e",
+    "run-a/28-after-tick-standard-immediate.png": "5e78da7c3cc9eee3d1ed6e0288d76eb29583a5016e109a3653f88853e041e0ff",
+    "run-a/29-after-tick-standard-5s.png": "5e78da7c3cc9eee3d1ed6e0288d76eb29583a5016e109a3653f88853e041e0ff",
+    "run-a/30-after-tick-standard-rebuilt-count.png": "d4efb8db779a7388d274b9dee279a30acc65a79460427bdd0d2058412b7f4d15",
+    "run-a/31-after-tick-standard-rebuilt-options.png": "7730af36f141d7cf8bffb9cf1851571ca4e915c2df0a14cfc248485194b05246",
+    "run-a/app-trimmed.log": "394723bce9a816dd8c8000961066487e14051f4968d2191f9798c719ea5c7e30",
+    "run-b/00-telemetry.png": "2f9c200cfb65f7dc70753f3d399e906307140aff1acbaa330c79f99e75d7e403",
+    "run-b/01-loaded.png": "fd7748874ca0baaa116689b32fb56a5f37e392957a671da47be7616cb60281cb",
+    "run-b/02-modselection-initial.png": "67be6fff43d06a70aabb63bd52861aaa0570382bd1255ec0d4955d02a147f74e",
+    "run-b/03-after-deselect-all.png": "a541d757e970ceae857fcc0f585ffb456e5c9dd4e8a07d354a653547ab42baf1",
+    "run-b/04-before-tick-dep.png": "bf6b8431835009a7c8d70a2f4373356620afa4551a68e2d569b1a58a793da136",
+    "run-b/05-after-tick-dep-immediate.png": "289b53f9974915c29b63796f38f3838f1b0876af5acce34f0fd0d6e827ba8d34",
+    "run-b/06-after-tick-dep-5s.png": "289b53f9974915c29b63796f38f3838f1b0876af5acce34f0fd0d6e827ba8d34",
+    "run-b/07-after-tick-dep-count.png": "233b8208fd99c2fd4a1dfffd60f6314bbf44d888322d3c8e5df73fcab3a58d9c",
+    "run-b/08-after-tick-dep-rebuilt-count.png": "498adfc67dc8b703be0d0b406827bf94998c58cd483a91f39a00e2fce69f9ab5",
+    "run-b/09-after-tick-dep-rebuilt-list.png": "3bd75cce4dc9f16f887a7f3ed1abc3318c068f1c474d7f93ab407f065f0a2206",
+    "run-b/10-before-tick-standard.png": "c6dc0cf4e0e661885d63ae023d863d1e4e8aebf26b8430edff844132c990862f",
+    "run-b/11-after-tick-component.png": "fd14a7259a2a6f55e8cc4cfc3b08f9256449cad21e4eb97bbdd6ad3f2eef79a7",
+    "run-b/12-after-tick-standard-immediate.png": "31eb79a98087ad3e7688d342b5100e4f4e45b8685074454cb3d0dbbcc87da192",
+    "run-b/13-after-tick-standard-rebuilt-count.png": "958eb9327e119bb4999a093028bbdd2abf323b31f7c8d98e02f61a8a126f59b2",
+    "run-b/14-after-tick-standard-rebuilt-options.png": "e7a3186fd4cfda0b764c6fee2b868d67b1e21e3ba61090d2e623e08c2b21ac4b",
+    "run-b/app-trimmed.log": "8c95db89782642e129950d2ba784b71fa02b9b8159f830a09e6736423140c6cb"
+  },
+  "run_window_local": "2026-09-27 09:58-10:14 local (-0500), per app log timestamps",
+  "repo_state_note": {
+    "ModSync.rs AGENTS.md": "shows modified in git status but not touched by this run: mtime 2026-09-15 21:46:25 -0500, git diff --stat 'AGENTS.md | 3 ---' (1 file changed, 3 deletions)",
+    "oracle_worktree_status": "clean"
+  }
+}

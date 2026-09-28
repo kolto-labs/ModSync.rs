@@ -31,6 +31,39 @@ Commits `065ffee` (shared contract), `57f198f`, `cd8f0b0` and `33de7f6` (CLI ada
 
 **Limits.** This does not close F10, F24 or F26, and it adds no F29 full-build proof. There is still one whole-run recovery snapshot, no per-component checkpoint and no automatic rollback. Review findings #2, #9 and #10 (`src/ui.rs` restore routing, stale Remaining dead end, Retry after a `Settings::new` failure) are fixed by `a24e96b` (#2, #10) and `9df6c3b` (#9); the scoped frontend-races re-review approved them. Frozen inline tests in `src/ui.rs` will hang on `finish_worker`; see the integration doc. No Rust tests were created, changed or run.
 
+## Shared selection actions (CLI half) — 2026-09-27
+
+Branch `selection-actions` at `384cca5` (`92bd0ac`..`384cca5`) adds `selection::apply` with `Action` and `Outcome` (`src/selection.rs:834-877`, `:1405`). The CLI routes every selection flag through it.
+
+**Status:**
+- CLI: landed and probed. Evidence is in [docs/parity/mod-selection-probes/](docs/parity/mod-selection-probes/README.md), with receipt sha256 `a601124f…a014`. 172 copied outputs re-hash equal to the receipt.
+- GUI: planned only. `src/ui.rs` is unchanged on this branch. It still runs `enforce_selectable` per draw (`ui.rs:916`) and the old `select_tier` (`ui.rs:1015`). The GUI halves of probes 6 (download candidates) and 7 (mutual restriction) stay unverified until mod-selection Task 3.
+
+The full rules, C# `file:line` references and CLI JSON shape are in [GUI-CLI.md, Mod selection policy](docs/parity/GUI-CLI.md#mod-selection-policy). In short:
+
+- **Tier.** Select by Tier is cumulative over normalized tiers, with a bare `1`–`4` fallback. This is a decided deviation from the C# wizard, which selects the exact tier for every full-label tier (`ModSelectionPage.axaml.cs:1231-1247`). All 920 of 920 corpus tiers take that exact branch. C#'s own prompt (`:1173`) and tooltip (`ModSelectionPage.axaml:49`) promise the cumulative rule, and so does the C# CLI (`ModBuildConverter.cs:1424-1431`).
+- **Aspyr.** `EnforceGame` runs once after every selection source whenever the game is known. This is a deviation from the C# wizard and CLI. Only the C# editor gates Aspyr-only mods (`src/ModSync.GUI/MainWindow.axaml.cs:5061-5075`).
+  - Since `384cca5`, removing a mod also clears its options and the mods that depend on them (probe p19).
+  - An unknown game only warns.
+- **Bulk actions.** Bulk and reset actions add the dependency closure only. Restriction conflicts become warnings. This is a Rust policy with no C# source.
+- **Single items.** Single-item actions use the full editor cascade. This is a Rust rule: the live Q9 oracle shows the C# wizard cascades only when editor-sidebar items were realized first ([docs/parity/mod-selection-q9-oracle/](docs/parity/mod-selection-q9-oracle/README.md)).
+- **Auto lists.** `autoSelected` and `autoDeselected` can name GUIDs that are in neither `selected` nor `deselected` (probe p2, `outcomes[0]`).
+
+**CLI behaviour changes** against `c28f4fc` (probe 8, `out-legacy/compare.txt`). 9 of 12 legacy runs are byte-identical. The other three changed:
+
+- `validate --select "Beta Addon"` (l12) and `conflicts --select "Beta Addon"` (l7):
+  - Before, they failed with `Beta Addon requires selected component …0001`.
+  - Now `--select` adds the dependency closure and prints `Selection: auto-selected Alpha Core (…0001)`.
+  - On the executable fixture (`out-legacy-exec`), both now succeed and print their normal stdout.
+- `validate --json` on K1 (l8): stdout is unchanged. stderr gains two `Selection: auto-deselected` lines, because default-all now drops the Aspyr-only mod and its dependent on a known non-Aspyr game. The C# CLI keeps them (`ModBuildConverter.cs:1379-1385`).
+
+**What this supersedes:**
+- the wizard tier rule in the Scope paragraph below ("Wizard tier selection is additive and cumulative only for `1` through `4` and `Optional`");
+- the "Tier/category selection checkpoint" statement that unknown tiers select exact matches;
+- the Selection row's "explicit CLI components/options" (the CLI now resolves them).
+
+These apply to the CLI now and to the GUI once Task 3 lands. No Rust tests were created, changed or run.
+
 ## Final archive diagnostic correction — 2026-09-27
 
 Whole-package review found one P2 combined-path defect: known component archive errors lacked a severity marker, so the shared presentation displayed only an aggregate card and first-issue navigation could select the final generic failure. Scoped specification/quality review approves `099834c` and closes F1. That commit fixes the shared failed-outcome mapping with an idempotent `ERROR:` prefix, preserving component identity/detail. **Raw Report message values now include that prefix; serialized schema, stages, counters and warning behavior are unchanged.** This qualifies earlier transport-compatibility statements: schema stability does not imply unchanged diagnostic text.
