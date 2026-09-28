@@ -82,6 +82,13 @@ pub fn transient(retry_after_secs: Option<u64>, error: anyhow::Error) -> anyhow:
     fail(FailureClass::Transient { retry_after_secs }, error)
 }
 
+/// Tag a stop as `FailureClass::Cancelled`, so callers that classify errors (for example
+/// the download orchestrator's race) see a clean stop rather than an ordinary failure.
+/// For adapters whose own cancellation path does not already attach this class.
+pub fn cancelled(error: anyhow::Error) -> anyhow::Error {
+    fail(FailureClass::Cancelled, error)
+}
+
 /// The typed class attached by this module, if any.
 pub fn classify(error: &anyhow::Error) -> Option<&FailureClass> {
     error

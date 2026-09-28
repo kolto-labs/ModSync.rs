@@ -2,7 +2,15 @@ mod profile_cli;
 use anyhow::{Context, Result, ensure};
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use modsync::{Engine, Guide, PatcherEngine, Settings, download, paths::Roots, recovery};
-use std::{ffi::OsString, io::Write, path::PathBuf, sync::atomic::AtomicBool};
+use std::{
+    ffi::OsString,
+    io::Write,
+    path::PathBuf,
+    sync::{
+        Arc,
+        atomic::{AtomicBool, Ordering},
+    },
+};
 
 #[cfg(feature = "desktop")]
 mod fomod_ui;
@@ -276,6 +284,73 @@ enum Action {
     },
     /// Report the provider selected for an HTTP(S) URL without downloading it.
     DownloadProvider { url: String },
+    /// Plan and run the selected-guide acquisition for every selected component with
+    /// resources: existing/Origin/Peer sources, optional recording and FOMOD follow-ups.
+    FetchDownloads {
+        #[arg(long)]
+        input: PathBuf,
+        #[arg(long)]
+        source_dir: PathBuf,
+        /// Detect the game here to apply Aspyr-only rules. Without it they are only reported.
+        #[arg(long)]
+        game_dir: Option<PathBuf>,
+        /// Honor IsSelected flags; by default select all top-level components.
+        #[arg(long)]
+        use_file_selection: bool,
+        /// Select component names/GUIDs or category:Name/tier:Name filters (repeat the flag).
+        #[arg(long)]
+        select: Vec<String>,
+        /// Select option GUIDs and their parent mods (repeat the flag).
+        #[arg(long)]
+        option: Vec<String>,
+        #[command(flatten)]
+        selection_flags: SelectionFlags,
+        #[arg(long, default_value_t = 4)]
+        workers: usize,
+        #[arg(long, default_value_t = 1)]
+        retries: usize,
+        #[arg(long)]
+        nexus_mods_api_key: Option<String>,
+        #[arg(long)]
+        settings_dir: Option<PathBuf>,
+        /// Probe-only API base override (HTTPS, or loopback HTTP); requires an explicit key.
+        #[arg(long, hide = true)]
+        nexus_api_base: Option<String>,
+        /// Overrides the stored peerMode; peerSharing=false always wins regardless.
+        #[arg(long, value_enum)]
+        peer_mode: Option<PeerModeArg>,
+        /// Existing scratch folder outside the game and mod trees (defaults to system temp).
+        #[arg(long)]
+        scratch_dir: Option<PathBuf>,
+        /// Optional expanded-byte budget per archive; extraction also checks free scratch space.
+        #[arg(long)]
+        max_expanded_bytes: Option<u64>,
+        /// Print the effective plan and exit without downloading, recording or saving.
+        #[arg(long)]
+        dry_run: bool,
+        /// Emit newline-delimited JSON acquisition events, then one summary line.
+        #[arg(long)]
+        progress_json: bool,
+        /// Update the guide's selected/already-present resource facts on success.
+        #[arg(long)]
+        record: bool,
+    },
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
+enum PeerModeArg {
+    Off,
+    Race,
+    Fallback,
+}
+impl From<PeerModeArg> for modsync::p2p::PeerMode {
+    fn from(value: PeerModeArg) -> Self {
+        match value {
+            PeerModeArg::Off => Self::Off,
+            PeerModeArg::Race => Self::Race,
+            PeerModeArg::Fallback => Self::Fallback,
+        }
+    }
 }
 #[derive(Args)]
 struct DeploymentArgs {
@@ -1309,6 +1384,213 @@ fn run() -> Result<()> {
                 "{}",
                 serde_json::to_string_pretty(&modsync::download_hosts::provider(&url)?)?
             );
+            Ok(())
+        }
+        Some(Action::FetchDownloads {
+            input,
+            source_dir,
+            game_dir,
+            use_file_selection,
+            select,
+            option,
+            selection_flags,
+            workers,
+            retries,
+            nexus_mods_api_key,
+            settings_dir,
+            nexus_api_base,
+            peer_mode,
+            scratch_dir,
+            max_expanded_bytes,
+            dry_run,
+            progress_json,
+            record,
+        }) => {
+            use modsync::{
+                download_orchestrator as orchestrator, p2p, peer_acquire::PeerAcquire, selection,
+            };
+            // C1/C4: the loaded guide stays pristine for `record`/`save`; selection runs on
+            // a separate, transient clone that plan/run/the Peer adapter/`fomod_followups`
+            // see instead. No selection change from this run is ever written back.
+            let mut guide = Guide::load_preserving_selection(&input)?;
+            let mut execution = guide.clone();
+            let has_selector = !select.is_empty()
+                || !option.is_empty()
+                || !selection_flags.select_through_tier.is_empty()
+                || !selection_flags.add_category.is_empty()
+                || !selection_flags.select_visible_search.is_empty();
+            if !use_file_selection {
+                for c in &mut execution.components {
+                    c.is_selected = !has_selector;
+                }
+            }
+            let detected = game_dir
+                .as_deref()
+                .map(|dir| modsync::game::detect(&modsync::game::resolve_install_root(dir)));
+            apply_selection(
+                &mut execution.components,
+                detected,
+                &select,
+                &option,
+                &selection_flags,
+                true,
+            )?;
+            let candidates =
+                selection::download_candidates(&execution.components, selection::Scope::All);
+
+            // C2: the effective peer settings/mode, resolved before the plan. An explicit
+            // --peer-mode overrides the stored mode; peerSharing=false always wins. An
+            // explicit `--peer-mode off` needs no settings at all, so it bypasses even
+            // unreadable (malformed) settings.json, matching the explicit-key/API-base
+            // credential bypass in C3 below.
+            let (effective_mode, peer_settings) = match peer_mode {
+                Some(PeerModeArg::Off) => (p2p::PeerMode::Off, None),
+                _ => {
+                    let settings_value =
+                        modsync::profiles::SettingsFile::resolve(settings_dir.as_deref())?
+                            .load()?;
+                    let mut peer_settings = p2p::PeerSettings::from_settings(&settings_value);
+                    if let Some(mode) = peer_mode {
+                        peer_settings.mode = mode.into();
+                    }
+                    let effective_mode = peer_settings.effective_mode();
+                    (effective_mode, Some(peer_settings))
+                }
+            };
+            let orchestrator_peer_mode = match effective_mode {
+                p2p::PeerMode::Off => orchestrator::PeerMode::Off,
+                p2p::PeerMode::Race => orchestrator::PeerMode::Race,
+                p2p::PeerMode::Fallback => orchestrator::PeerMode::Fallback,
+            };
+
+            // C3: a stored/legacy key is looked up only when a selected candidate's
+            // resource actually needs Nexus and no explicit key was given. An overridden
+            // API base always requires an explicit, nonblank key.
+            let needs_nexus = candidates.iter().any(|candidate| {
+                execution.components[candidate.index]
+                    .resource_registry
+                    .keys()
+                    .any(|url| {
+                        matches!(
+                            modsync::download_hosts::provider(url),
+                            Ok(modsync::download_hosts::Provider::Nexus)
+                        )
+                    })
+            });
+            let key = if nexus_api_base.is_some() {
+                Some(
+                    nexus_mods_api_key
+                        .filter(|key| !key.trim().is_empty())
+                        .context("--nexus-api-base requires an explicit --nexus-mods-api-key")?,
+                )
+            } else {
+                match nexus_mods_api_key {
+                    Some(key) => Some(key),
+                    None if needs_nexus => {
+                        let directory =
+                            modsync::profiles::settings_directory(settings_dir.as_deref())?;
+                        modsync::profiles::Store::new(&directory)?.nexus_api_key()?
+                    }
+                    None => None,
+                }
+            };
+
+            let archive_options = modsync::archive::Options {
+                scratch_dir: scratch_dir.clone(),
+                max_expanded_bytes,
+            };
+            let plan_options = orchestrator::PlanOptions {
+                source_dir: source_dir.clone(),
+                resolution: None,
+                peer_mode: orchestrator_peer_mode,
+                user_peers: Vec::new(),
+                nexus_key_present: key.is_some(),
+                archive: archive_options.clone(),
+            };
+            let plan = orchestrator::plan(&execution, &candidates, &plan_options)?;
+
+            // C4: dry-run prints the effective plan and returns before any policy
+            // creation, signal handling, save or FOMOD extraction.
+            if dry_run {
+                println!("{}", serde_json::to_string_pretty(&plan)?);
+                return Ok(());
+            }
+
+            let peer: Option<Arc<dyn modsync::acquisition::Acquire>> =
+                match (effective_mode, peer_settings) {
+                    (p2p::PeerMode::Off, _) => None,
+                    (_, Some(peer_settings)) => Some(Arc::new(PeerAcquire::new(
+                        &execution,
+                        peer_settings,
+                        archive_options.clone(),
+                        settings_dir.clone(),
+                    ))),
+                    // Unreachable: effective_mode is only non-Off when peer_settings was
+                    // actually read (see above).
+                    (_, None) => None,
+                };
+            let run_settings = orchestrator::RunSettings {
+                workers,
+                retries,
+                archive: archive_options.clone(),
+                nexus_api_key: key,
+                nexus_api_base,
+                peer,
+            };
+            let cancelled = p2p::stop_signal_flag()?;
+            let stdout = std::sync::Mutex::new(std::io::stdout());
+            let report = orchestrator::run(&plan, &run_settings, &cancelled, |event| {
+                if progress_json {
+                    let envelope = serde_json::json!({"type": "acquisition", "event": event});
+                    if let Ok(line) = serde_json::to_string(&envelope) {
+                        let mut out = stdout.lock().unwrap();
+                        let _ = writeln!(out, "{line}");
+                        let _ = out.flush();
+                    }
+                }
+            })?;
+
+            let record_summary = if record {
+                let summary = orchestrator::record(&mut guide, &report)?;
+                if !summary.recorded.is_empty() {
+                    guide.save(&input)?;
+                }
+                Some(summary)
+            } else {
+                None
+            };
+            let fomod =
+                orchestrator::fomod_followups(&execution, &report, &archive_options, &cancelled);
+
+            let summary_value = serde_json::json!({
+                "report": report,
+                "recordSummary": record_summary,
+                "fomodFollowups": fomod,
+            });
+            if progress_json {
+                let envelope = serde_json::json!({"type": "summary", "summary": summary_value});
+                println!("{}", serde_json::to_string(&envelope)?);
+            } else {
+                println!("{}", serde_json::to_string_pretty(&summary_value)?);
+            }
+
+            if report.cancelled || cancelled.load(Ordering::SeqCst) {
+                std::process::exit(130);
+            }
+            let failed = report
+                .outcomes
+                .iter()
+                .any(|o| o.status == orchestrator::TargetStatus::Failed);
+            if failed || !fomod.inspection_errors.is_empty() {
+                std::process::exit(1);
+            }
+            let manual = report
+                .outcomes
+                .iter()
+                .any(|o| o.status == orchestrator::TargetStatus::ManualRequired);
+            if manual || !fomod.followups.is_empty() {
+                std::process::exit(3);
+            }
             Ok(())
         }
         Some(Action::Download {

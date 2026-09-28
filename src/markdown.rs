@@ -26,7 +26,7 @@ const FIELDS: &[(&str, &str)] = &[
     ("Steam Notes", "SteamNotes"),
 ];
 
-pub(crate) fn parse(text: &str) -> Result<Guide> {
+pub(crate) fn parse_with_selection_default(text: &str, default_selection: bool) -> Result<Guide> {
     let text = text.replace("\r\n", "\n");
     // Preserve guides wrapped in fenced blocks, including documents with decorative headings.
     // Reject mixed executable/prose input rather than silently dropping either set of components.
@@ -38,7 +38,7 @@ pub(crate) fn parse(text: &str) -> Result<Guide> {
         } else if let Some((lang, content)) = block.split_once('\n')
             && matches!(lang.trim(), "toml" | "json" | "yaml" | "yml" | "xml")
         {
-            let parsed = Guide::parse_without_dedup(content, lang.trim())?;
+            let parsed = Guide::parse_without_dedup(content, lang.trim(), default_selection)?;
             structured.components.extend(parsed.components);
             structured.metadata.extend(parsed.metadata);
         }

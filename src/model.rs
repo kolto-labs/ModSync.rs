@@ -94,30 +94,44 @@ impl Guide {
         Ok(guide)
     }
 
+    /// Load an instruction file without replacing authored all-false selection.
+    /// Acquisition applies its transient defaults on a separate execution clone.
+    pub fn load_preserving_selection(path: &Path) -> Result<Self> {
+        Self::load_with_selection_default(path, false)
+    }
+
     pub fn load(path: &Path) -> Result<Self> {
+        Self::load_with_selection_default(path, true)
+    }
+
+    fn load_with_selection_default(path: &Path, default_selection: bool) -> Result<Self> {
         let bytes = fs::read(path).with_context(|| format!("Read {}", path.display()))?;
         let text = String::from_utf8_lossy(&bytes).replace('\u{fffd}', "_");
         let extension = path.extension().and_then(|s| s.to_str()).unwrap_or("");
         let hint = canonical_format(extension);
-        Self::parse(&text, hint.unwrap_or("auto"))
+        Self::parse_with(&text, hint.unwrap_or("auto"), true, default_selection)
     }
 
     pub fn parse(text: &str, format: &str) -> Result<Self> {
-        Self::parse_with(text, format, true)
+        Self::parse_with(text, format, true, true)
     }
 
     /// Markdown's fenced instruction blocks parse through here: the C# Markdown ingest path
     /// never runs load-time duplicate-option removal, so neither may its embedded guides.
-    pub(crate) fn parse_without_dedup(text: &str, format: &str) -> Result<Self> {
-        Self::parse_with(text, format, false)
+    pub(crate) fn parse_without_dedup(
+        text: &str,
+        format: &str,
+        default_selection: bool,
+    ) -> Result<Self> {
+        Self::parse_with(text, format, false, default_selection)
     }
 
-    fn parse_with(text: &str, format: &str, dedup: bool) -> Result<Self> {
+    fn parse_with(text: &str, format: &str, dedup: bool, default_selection: bool) -> Result<Self> {
         let text = text.trim_start_matches('\u{feff}');
         let format = format.trim().to_ascii_lowercase();
         if format.is_empty() || format == "auto" {
             for hint in ["toml", "md", "yaml", "xml", "json"] {
-                if let Ok(guide) = Self::parse_with(text, hint, dedup) {
+                if let Ok(guide) = Self::parse_with(text, hint, dedup, default_selection) {
                     return Ok(guide);
                 }
             }
@@ -182,7 +196,7 @@ impl Guide {
                 ensure!(directives.is_empty(), "YAML directives require a document");
                 guide
             }
-            "md" => crate::markdown::parse(text)?,
+            "md" => crate::markdown::parse_with_selection_default(text, default_selection)?,
             other => bail!("Unsupported instruction format: {other}"),
         };
         ensure!(!guide.components.is_empty(), "The guide has no components");
@@ -212,7 +226,7 @@ impl Guide {
                 remove_duplicate_options(component);
             }
         }
-        if !guide.components.iter().any(|c| c.is_selected) {
+        if default_selection && !guide.components.iter().any(|c| c.is_selected) {
             for component in &mut guide.components {
                 component.is_selected = true;
             }

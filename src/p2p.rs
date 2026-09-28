@@ -1972,7 +1972,11 @@ impl CliProxyOptions {
 /// console close on Windows), so sessions stop cleanly and temp and share
 /// folders are removed. The handlers are registered before this returns, so
 /// call it before creating anything that needs cleanup.
-fn stop_signal_flag() -> Result<std::sync::Arc<AtomicBool>> {
+///
+/// Public so a binary entry point (for example a CLI command that owns its
+/// own cancellation flag) can install the same signal handling once, instead
+/// of duplicating signal registration.
+pub fn stop_signal_flag() -> Result<std::sync::Arc<AtomicBool>> {
     let flag = std::sync::Arc::new(AtomicBool::new(false));
     let runtime = tokio::runtime::Builder::new_current_thread()
         .enable_all()

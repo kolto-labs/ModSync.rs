@@ -25,7 +25,7 @@ use std::{
     path::{Path, PathBuf},
     sync::{
         Arc, Mutex,
-        atomic::{AtomicBool, Ordering},
+        atomic::{AtomicBool, AtomicU8, Ordering},
         mpsc,
     },
     thread,
@@ -611,6 +611,58 @@ enum Step {
     Cancelled(SourceKind),
     /// Try the next source. The kind is the source that failed last.
     Failed(String, SourceKind),
+    /// Ends the target now; never falls through to a later source (O3: a failed or
+    /// unknown premium validation must not let Peer run).
+    Terminal(String, SourceKind),
+}
+
+/// Premium validation for a Nexus origin returned an error rather than a known
+/// free-or-premium status. Distinguished from `ManualReason` gates (nothing to click
+/// through) and from ordinary transient failures (Peer must not run around it either).
+#[derive(Debug)]
+struct PremiumValidationFailed(String);
+
+impl std::fmt::Display for PremiumValidationFailed {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
+impl std::error::Error for PremiumValidationFailed {}
+
+/// A never-started Peer racer (O2 denied or cancelled it before `Acquire::acquire` was
+/// ever called). Carries no user-visible text: the coordinator must not emit any event
+/// or report `Superseded` for it.
+#[derive(Debug)]
+struct PeerNeverStarted;
+
+impl std::fmt::Display for PeerNeverStarted {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("Peer not started")
+    }
+}
+
+impl std::error::Error for PeerNeverStarted {}
+
+fn is_never_started(error: &anyhow::Error) -> bool {
+    error
+        .chain()
+        .any(|e| e.downcast_ref::<PeerNeverStarted>().is_some())
+}
+
+/// Whether an Origin error must keep Peer from ever starting: a gate (login, captcha,
+/// free-wait, HTML landing) or a failed/unknown premium validation (O3).
+fn origin_denies_peer(error: &anyhow::Error) -> bool {
+    if error
+        .chain()
+        .any(|e| e.downcast_ref::<PremiumValidationFailed>().is_some())
+    {
+        return true;
+    }
+    matches!(
+        download::classify(error),
+        Some(FailureClass::ManualRequired { reason, .. }) if reason.is_gate()
+    )
 }
 
 fn acquire_target(context: &RunContext<'_>, index: usize, target: &ArchiveTarget) -> TargetOutcome {
@@ -734,6 +786,22 @@ fn acquire_sources(
                 );
                 last_error = Some(error);
             }
+            Step::Terminal(error, kind) => {
+                emit(
+                    context,
+                    index,
+                    target,
+                    kind,
+                    Phase::SourceFailed {
+                        error: error.clone(),
+                        will_fallback: false,
+                    },
+                );
+                return TargetOutcome {
+                    error: Some(error),
+                    ..outcome(index, target, TargetStatus::Failed)
+                };
+            }
         }
     }
     TargetOutcome {
@@ -743,6 +811,12 @@ fn acquire_sources(
 }
 
 fn step_from_error(error: anyhow::Error, kind: SourceKind) -> Step {
+    if error
+        .chain()
+        .any(|e| e.downcast_ref::<PremiumValidationFailed>().is_some())
+    {
+        return Step::Terminal(format!("{error:#}"), kind);
+    }
     match download::classify(&error) {
         Some(FailureClass::ManualRequired { url, reason }) => {
             Step::Manual(url.clone(), *reason, kind)
@@ -794,7 +868,13 @@ fn single_source(
             ),
             Some(peer) => {
                 let mut on = |event: AcquisitionEvent| {
-                    let _ = context.events.send(event);
+                    let _ = context.events.send(AcquisitionEvent {
+                        target_index: index,
+                        component_guid: target.component_guid.clone(),
+                        filename: target.filename.clone().or(event.filename),
+                        source: SourceKind::Peer,
+                        phase: event.phase,
+                    });
                 };
                 let destination = match target.destination(&context.plan.source_dir) {
                     Ok(destination) => destination,
@@ -966,33 +1046,105 @@ fn race_origin_peer(
     };
     let flags = [AtomicBool::new(false), AtomicBool::new(false)];
     let origin_cleared = AtomicBool::new(false);
+    // Peer's grant to call `Acquire::acquire` (O2): the thread below may spawn and wait
+    // inertly, but must not start transferring until Origin passes gate classification
+    // (its first `Transferring`) or fails with an error that does not deny Peer.
+    const WAITING: u8 = 0;
+    const GRANTED: u8 = 1;
+    const DENIED: u8 = 2;
+    const STARTED: u8 = 3;
+    let grant = AtomicU8::new(WAITING);
+    let peer_started = AtomicBool::new(false);
     let (results, receiver) = mpsc::channel::<(usize, Result<Acquired>)>();
     let step = thread::scope(|scope| {
         {
             let results = results.clone();
             let flag = &flags[ORIGIN];
             let origin_cleared = &origin_cleared;
+            let grant = &grant;
             scope.spawn(move || {
                 let mut on = |event: AcquisitionEvent| {
                     if matches!(event.phase, Phase::Transferring { .. }) {
                         origin_cleared.store(true, Ordering::SeqCst);
+                        let _ = grant.compare_exchange(
+                            WAITING,
+                            GRANTED,
+                            Ordering::SeqCst,
+                            Ordering::SeqCst,
+                        );
                     }
                     let _ = context.events.send(event);
                 };
-                let _ = results.send((
-                    ORIGIN,
-                    origin_with_retries(context, index, target, origin, flag, &mut on),
-                ));
+                let result = origin_with_retries(context, index, target, origin, flag, &mut on);
+                match &result {
+                    // Revoke an unused grant when Origin finishes. The Peer claims
+                    // GRANTED atomically, so completion cannot start a waiting Peer.
+                    Ok(_) => {
+                        grant.store(DENIED, Ordering::SeqCst);
+                    }
+                    Err(error) if origin_denies_peer(error) => {
+                        let _ = grant.compare_exchange(
+                            WAITING,
+                            DENIED,
+                            Ordering::SeqCst,
+                            Ordering::SeqCst,
+                        );
+                    }
+                    Err(_) => grant.store(GRANTED, Ordering::SeqCst),
+                }
+                let _ = results.send((ORIGIN, result));
             });
         }
         {
             let flag = &flags[PEER];
             let destination = staging.destination.as_path();
+            let grant = &grant;
+            let peer_started = &peer_started;
             scope.spawn(move || {
                 let mut on = |event: AcquisitionEvent| {
-                    let _ = context.events.send(event);
+                    let _ = context.events.send(AcquisitionEvent {
+                        target_index: index,
+                        component_guid: target.component_guid.clone(),
+                        filename: target.filename.clone().or(event.filename),
+                        source: SourceKind::Peer,
+                        phase: event.phase,
+                    });
                 };
-                let _ = results.send((PEER, peer.acquire(target, destination, flag, &mut on)));
+                let granted = loop {
+                    match grant.load(Ordering::SeqCst) {
+                        GRANTED => {
+                            if flag.load(Ordering::SeqCst)
+                                || context.cancelled.load(Ordering::SeqCst)
+                            {
+                                break false;
+                            }
+                            if grant
+                                .compare_exchange(
+                                    GRANTED,
+                                    STARTED,
+                                    Ordering::SeqCst,
+                                    Ordering::SeqCst,
+                                )
+                                .is_ok()
+                            {
+                                break true;
+                            }
+                        }
+                        DENIED => break false,
+                        _ => {}
+                    }
+                    if flag.load(Ordering::SeqCst) {
+                        break false;
+                    }
+                    thread::sleep(Duration::from_millis(15));
+                };
+                let result = if granted {
+                    peer_started.store(true, Ordering::SeqCst);
+                    peer.acquire(target, destination, flag, &mut on)
+                } else {
+                    Err(anyhow::Error::new(PeerNeverStarted))
+                };
+                let _ = results.send((PEER, result));
             });
         }
         let kinds = [origin_kind, SourceKind::Peer];
@@ -1050,6 +1202,14 @@ fn race_origin_peer(
             };
             running[racer] = false;
             let other = 1 - racer;
+            if racer == PEER
+                && let Err(error) = &result
+                && is_never_started(error)
+            {
+                // Never called `Acquire::acquire`: no event was ever emitted for it, so
+                // none is emitted now either (O2).
+                continue;
+            }
             if decided.is_some() || parent_cancelled() {
                 // A loser, or a result that arrived after a cancel: never accepted.
                 if let Ok(acquired) = &result
@@ -1091,11 +1251,22 @@ fn race_origin_peer(
                         if let Some(held) = held_peer.take() {
                             discard(&held, &mut notes);
                         }
-                        if !superseded[PEER] {
+                        if peer_started.load(Ordering::SeqCst) && !superseded[PEER] {
                             superseded[PEER] = true;
                             emit(context, index, target, SourceKind::Peer, Phase::Superseded);
                         }
                         decided = Some(gate);
+                    }
+                    terminal @ Step::Terminal(..) if racer == ORIGIN => {
+                        stop(PEER);
+                        if let Some(held) = held_peer.take() {
+                            discard(&held, &mut notes);
+                        }
+                        if peer_started.load(Ordering::SeqCst) && !superseded[PEER] {
+                            superseded[PEER] = true;
+                            emit(context, index, target, SourceKind::Peer, Phase::Superseded);
+                        }
+                        decided = Some(terminal);
                     }
                     step => {
                         let message = match step {
@@ -1195,8 +1366,8 @@ fn origin_once(
         if *requires == OriginRequirement::NexusPremium {
             match &context.premium {
                 Some(Ok(true)) => {}
-                // A free or invalid key: manual, with no download request (gate, R2).
-                Some(Ok(false)) | None => {
+                // A known free key: manual, with no download request (gate, R2).
+                Some(Ok(false)) => {
                     // The mod page, not an nxm link, is what a person can open.
                     return Err(download::manual_required(
                         &target.registry_url,
@@ -1204,7 +1375,17 @@ fn origin_once(
                         "Nexus Mods needs a premium account for automatic downloads; download it on the website.",
                     ));
                 }
-                Some(Err(error)) => bail!("{error}"),
+                // A validation error, or (defensively) no validation result at all for a
+                // target that requires one: terminal, not a known-free gate and not an
+                // ordinary transient failure (O3). Peer must not run around either.
+                Some(Err(error)) => {
+                    return Err(anyhow::Error::new(PremiumValidationFailed(error.clone())));
+                }
+                None => {
+                    return Err(anyhow::Error::new(PremiumValidationFailed(
+                        "Nexus premium status is unknown".to_owned(),
+                    )));
+                }
             }
         }
         let nexus = context

@@ -17,6 +17,7 @@ pub mod model;
 pub mod p2p;
 pub mod patcher;
 pub mod paths;
+pub mod peer_acquire;
 pub mod phase;
 pub mod recovery;
 pub mod validation;
