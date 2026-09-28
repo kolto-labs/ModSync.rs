@@ -1,0 +1,25 @@
+{
+  "sourceCommit": "efefba1420ff7eb167f4de39a17db0acbce77b6e",
+  "sourceSha256": {
+    "src/main.rs": "bc4071e2a4771ffd116736f5a6e478cf389240d4a9d341b062058f7e26fed23c",
+    "src/download_orchestrator.rs": "3faac51f2b2a8ddf0f1d0aeca16b23de6b4995da5c56c503722ad46edf6b5f35",
+    "src/peer_acquire.rs": "0560a6d74a8e9e88270e49f4297fd8bf065a5f259386c56b3d547afb1cd95251",
+    "src/model.rs": "3a91f51099bb64c7fadda3e4dfb49608c6e03b3725046b029288cfed958c5475",
+    "src/markdown.rs": "6f8dd4ba1d144b5a87b2b950bab6c96b367a300b073e549c05ad2b944d86af97",
+    "src/download.rs": "0a88f8bfd371ea9ad68c94fe9c835f82081f0242539d174fe00143e04308516e",
+    "src/p2p.rs": "b2c3f7a2029a9173529a7603cc48200a7050755814d75bccd6e2c0ef857a78d5",
+    "src/lib.rs": "2e1931fcff2da668d0ea058ff067c1af32ef7e2217348ad3227293ca064b2c40"
+  },
+  "binary": "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+  "binarySha256": "f7c7f2ba55ea9a59ab6968416aa86075e3980a6978a820214d7458cec5909bc3",
+  "assertionsPassed": 305,
+  "assertionsTotal": 305,
+  "productionGateExits": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "acceptanceRunnerExit": 0
+}

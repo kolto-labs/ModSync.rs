@@ -1,0 +1,274 @@
+{
+  "name": "shared_pool",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "fetch-downloads",
+    "--input",
+    "/tmp/fetch-acceptance-024xvxp3/shared_pool/guide.json",
+    "--source-dir",
+    "/tmp/fetch-acceptance-024xvxp3/shared_pool/mods",
+    "--settings-dir",
+    "/tmp/fetch-acceptance-024xvxp3/shared_pool/settings",
+    "--scratch-dir",
+    "/tmp/fetch-acceptance-024xvxp3/shared_pool/scratch",
+    "--workers",
+    "1",
+    "--progress-json"
+  ],
+  "exit": 0,
+  "stdout": "{\"type\":\"acquisition\",\"event\":{\"targetIndex\":0,\"componentGuid\":\"aaaaaaaa-1111-4111-8111-111111111111\",\"filename\":\"example.zip\",\"source\":{\"kind\":\"peer\"},\"phase\":{\"phase\":\"resolving\"}}}\n{\"type\":\"acquisition\",\"event\":{\"targetIndex\":0,\"componentGuid\":\"aaaaaaaa-1111-4111-8111-111111111111\",\"filename\":\"example.zip\",\"source\":{\"kind\":\"peer\"},\"phase\":{\"phase\":\"transferring\",\"bytes\":0,\"total\":1048712,\"peers\":null}}}\n{\"type\":\"acquisition\",\"event\":{\"targetIndex\":0,\"componentGuid\":\"aaaaaaaa-1111-4111-8111-111111111111\",\"filename\":\"example.zip\",\"source\":{\"kind\":\"peer\"},\"phase\":{\"phase\":\"transferring\",\"bytes\":983176,\"total\":1048712,\"peers\":1}}}\n{\"type\":\"acquisition\",\"event\":{\"targetIndex\":0,\"componentGuid\":\"aaaaaaaa-1111-4111-8111-111111111111\",\"filename\":\"example.zip\",\"source\":{\"kind\":\"peer\"},\"phase\":{\"phase\":\"transferring\",\"bytes\":1048712,\"total\":1048712,\"peers\":0}}}\n{\"type\":\"acquisition\",\"event\":{\"targetIndex\":0,\"componentGuid\":\"aaaaaaaa-1111-4111-8111-111111111111\",\"filename\":\"example.zip\",\"source\":{\"kind\":\"peer\"},\"phase\":{\"phase\":\"verifying\"}}}\n{\"type\":\"acquisition\",\"event\":{\"targetIndex\":0,\"componentGuid\":\"aaaaaaaa-1111-4111-8111-111111111111\",\"filename\":\"example.zip\",\"source\":{\"kind\":\"peer\"},\"phase\":{\"phase\":\"completed\",\"path\":\"/tmp/fetch-acceptance-024xvxp3/shared_pool/mods/example.zip\",\"sha256\":\"25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b\"}}}\n{\"type\":\"acquisition\",\"event\":{\"targetIndex\":1,\"componentGuid\":\"bbbbbbbb-2222-4222-8222-222222222222\",\"filename\":\"second.zip\",\"source\":{\"kind\":\"peer\"},\"phase\":{\"phase\":\"resolving\"}}}\n{\"type\":\"acquisition\",\"event\":{\"targetIndex\":1,\"componentGuid\":\"bbbbbbbb-2222-4222-8222-222222222222\",\"filename\":\"second.zip\",\"source\":{\"kind\":\"peer\"},\"phase\":{\"phase\":\"transferring\",\"bytes\":0,\"total\":1048712,\"peers\":null}}}\n{\"type\":\"acquisition\",\"event\":{\"targetIndex\":1,\"componentGuid\":\"bbbbbbbb-2222-4222-8222-222222222222\",\"filename\":\"second.zip\",\"source\":{\"kind\":\"peer\"},\"phase\":{\"phase\":\"transferring\",\"bytes\":1048712,\"total\":1048712,\"peers\":0}}}\n{\"type\":\"acquisition\",\"event\":{\"targetIndex\":1,\"componentGuid\":\"bbbbbbbb-2222-4222-8222-222222222222\",\"filename\":\"second.zip\",\"source\":{\"kind\":\"peer\"},\"phase\":{\"phase\":\"verifying\"}}}\n{\"type\":\"acquisition\",\"event\":{\"targetIndex\":1,\"componentGuid\":\"bbbbbbbb-2222-4222-8222-222222222222\",\"filename\":\"second.zip\",\"source\":{\"kind\":\"peer\"},\"phase\":{\"phase\":\"completed\",\"path\":\"/tmp/fetch-acceptance-024xvxp3/shared_pool/mods/second.zip\",\"sha256\":\"25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b\"}}}\n{\"type\":\"summary\",\"summary\":{\"report\":{\"outcomes\":[{\"targetIndex\":0,\"componentGuid\":\"aaaaaaaa-1111-4111-8111-111111111111\",\"registryUrl\":\"https://mega.nz/file/example\",\"filename\":\"example.zip\",\"status\":\"completed\",\"source\":{\"kind\":\"peer\"},\"path\":\"/tmp/fetch-acceptance-024xvxp3/shared_pool/mods/example.zip\",\"sha256\":\"25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b\",\"manual\":null,\"error\":null},{\"targetIndex\":1,\"componentGuid\":\"bbbbbbbb-2222-4222-8222-222222222222\",\"registryUrl\":\"https://mega.nz/file/example\",\"filename\":\"second.zip\",\"status\":\"completed\",\"source\":{\"kind\":\"peer\"},\"path\":\"/tmp/fetch-acceptance-024xvxp3/shared_pool/mods/second.zip\",\"sha256\":\"25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b\",\"manual\":null,\"error\":null}],\"skipped\":[],\"cancelled\":false},\"recordSummary\":null,\"fomodFollowups\":{\"followups\":[],\"inspectionErrors\":[]}}}\n",
+  "stderr": "",
+  "data": {
+    "report": {
+      "outcomes": [
+        {
+          "targetIndex": 0,
+          "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+          "registryUrl": "https://mega.nz/file/example",
+          "filename": "example.zip",
+          "status": "completed",
+          "source": {
+            "kind": "peer"
+          },
+          "path": "/tmp/fetch-acceptance-024xvxp3/shared_pool/mods/example.zip",
+          "sha256": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "manual": null,
+          "error": null
+        },
+        {
+          "targetIndex": 1,
+          "componentGuid": "bbbbbbbb-2222-4222-8222-222222222222",
+          "registryUrl": "https://mega.nz/file/example",
+          "filename": "second.zip",
+          "status": "completed",
+          "source": {
+            "kind": "peer"
+          },
+          "path": "/tmp/fetch-acceptance-024xvxp3/shared_pool/mods/second.zip",
+          "sha256": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "manual": null,
+          "error": null
+        }
+      ],
+      "skipped": [],
+      "cancelled": false
+    },
+    "recordSummary": null,
+    "fomodFollowups": {
+      "followups": [],
+      "inspectionErrors": []
+    }
+  },
+  "events": [
+    {
+      "targetIndex": 0,
+      "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+      "filename": "example.zip",
+      "source": {
+        "kind": "peer"
+      },
+      "phase": {
+        "phase": "resolving"
+      }
+    },
+    {
+      "targetIndex": 0,
+      "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+      "filename": "example.zip",
+      "source": {
+        "kind": "peer"
+      },
+      "phase": {
+        "phase": "transferring",
+        "bytes": 0,
+        "total": 1048712,
+        "peers": null
+      }
+    },
+    {
+      "targetIndex": 0,
+      "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+      "filename": "example.zip",
+      "source": {
+        "kind": "peer"
+      },
+      "phase": {
+        "phase": "transferring",
+        "bytes": 983176,
+        "total": 1048712,
+        "peers": 1
+      }
+    },
+    {
+      "targetIndex": 0,
+      "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+      "filename": "example.zip",
+      "source": {
+        "kind": "peer"
+      },
+      "phase": {
+        "phase": "transferring",
+        "bytes": 1048712,
+        "total": 1048712,
+        "peers": 0
+      }
+    },
+    {
+      "targetIndex": 0,
+      "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+      "filename": "example.zip",
+      "source": {
+        "kind": "peer"
+      },
+      "phase": {
+        "phase": "verifying"
+      }
+    },
+    {
+      "targetIndex": 0,
+      "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+      "filename": "example.zip",
+      "source": {
+        "kind": "peer"
+      },
+      "phase": {
+        "phase": "completed",
+        "path": "/tmp/fetch-acceptance-024xvxp3/shared_pool/mods/example.zip",
+        "sha256": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b"
+      }
+    },
+    {
+      "targetIndex": 1,
+      "componentGuid": "bbbbbbbb-2222-4222-8222-222222222222",
+      "filename": "second.zip",
+      "source": {
+        "kind": "peer"
+      },
+      "phase": {
+        "phase": "resolving"
+      }
+    },
+    {
+      "targetIndex": 1,
+      "componentGuid": "bbbbbbbb-2222-4222-8222-222222222222",
+      "filename": "second.zip",
+      "source": {
+        "kind": "peer"
+      },
+      "phase": {
+        "phase": "transferring",
+        "bytes": 0,
+        "total": 1048712,
+        "peers": null
+      }
+    },
+    {
+      "targetIndex": 1,
+      "componentGuid": "bbbbbbbb-2222-4222-8222-222222222222",
+      "filename": "second.zip",
+      "source": {
+        "kind": "peer"
+      },
+      "phase": {
+        "phase": "transferring",
+        "bytes": 1048712,
+        "total": 1048712,
+        "peers": 0
+      }
+    },
+    {
+      "targetIndex": 1,
+      "componentGuid": "bbbbbbbb-2222-4222-8222-222222222222",
+      "filename": "second.zip",
+      "source": {
+        "kind": "peer"
+      },
+      "phase": {
+        "phase": "verifying"
+      }
+    },
+    {
+      "targetIndex": 1,
+      "componentGuid": "bbbbbbbb-2222-4222-8222-222222222222",
+      "filename": "second.zip",
+      "source": {
+        "kind": "peer"
+      },
+      "phase": {
+        "phase": "completed",
+        "path": "/tmp/fetch-acceptance-024xvxp3/shared_pool/mods/second.zip",
+        "sha256": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "host": "127.0.0.1",
+      "port": 39651,
+      "time": 661211.394107718
+    },
+    {
+      "host": "127.0.0.1",
+      "port": 39651,
+      "time": 661211.495400906
+    },
+    {
+      "host": "127.0.0.1",
+      "port": 39651,
+      "time": 661212.77220808
+    },
+    {
+      "host": "127.0.0.1",
+      "port": 39651,
+      "time": 661212.868530279
+    }
+  ],
+  "apiRequests": [],
+  "before": {
+    "guide.json": "8c625b0db3c58c70b8a6236203cfe58ccd4dbfd0bb956dd0a80bf3a7ee1d7152",
+    "mods": "directory",
+    "scratch": "directory",
+    "settings": "directory",
+    "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+  },
+  "after": {
+    "guide.json": "8c625b0db3c58c70b8a6236203cfe58ccd4dbfd0bb956dd0a80bf3a7ee1d7152",
+    "mods": "directory",
+    "mods/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+    "mods/second.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+    "scratch": "directory",
+    "settings": "directory",
+    "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+  },
+  "guideAfter": "{\"Components\": [{\"Guid\": \"aaaaaaaa-1111-4111-8111-111111111111\", \"Name\": \"Example A\", \"IsSelected\": true, \"Instructions\": [], \"ResourceRegistry\": {\"https://mega.nz/file/example\": {\"Files\": {\"example.zip\": true}, \"ContentHashSHA256\": \"25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b\", \"Magnet\": \"magnet:?xt=urn:btih:09c985227992b7b949e1522b167d057b130a829b&dn=example.zip\", \"TorrentInfo\": \"ZDY6bGVuZ3RoaTEwNDg3MTJlNDpuYW1lMTE6ZXhhbXBsZS56aXAxMjpwaWVjZSBsZW5ndGhpNjU1MzZlNjpwaWVjZXMzNDA6vdG+KW2YgstldkZC0eNgCoy/zkd7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FADhEchbgA9IF8iK//fD+YE6sa0/KmU=\"}}}, {\"Guid\": \"bbbbbbbb-2222-4222-8222-222222222222\", \"Name\": \"Example B\", \"IsSelected\": true, \"Instructions\": [], \"ResourceRegistry\": {\"https://mega.nz/file/example\": {\"Files\": {\"second.zip\": true}, \"ContentHashSHA256\": \"25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b\", \"Magnet\": \"magnet:?xt=urn:btih:09c985227992b7b949e1522b167d057b130a829b&dn=example.zip\", \"TorrentInfo\": \"ZDY6bGVuZ3RoaTEwNDg3MTJlNDpuYW1lMTE6ZXhhbXBsZS56aXAxMjpwaWVjZSBsZW5ndGhpNjU1MzZlNjpwaWVjZXMzNDA6vdG+KW2YgstldkZC0eNgCoy/zkd7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FADhEchbgA9IF8iK//fD+YE6sa0/KmU=\"}}}]}",
+  "envBefore": {
+    "HOME": {},
+    "XDG_CONFIG_HOME": {
+      "ModSync": "directory",
+      "ModSync/peer-share": "directory",
+      "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
+      "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+      "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "XDG_CACHE_HOME": {
+      "com.rqbit.dht": "directory"
+    },
+    "XDG_DATA_HOME": {}
+  },
+  "envAfter": {
+    "HOME": {},
+    "XDG_CONFIG_HOME": {
+      "ModSync": "directory",
+      "ModSync/peer-share": "directory",
+      "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
+      "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+      "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "XDG_CACHE_HOME": {
+      "com.rqbit.dht": "directory"
+    },
+    "XDG_DATA_HOME": {}
+  }
+}

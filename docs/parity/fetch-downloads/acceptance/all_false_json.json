@@ -1,0 +1,77 @@
+{
+  "name": "all_false_json",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "fetch-downloads",
+    "--input",
+    "/tmp/fetch-acceptance-024xvxp3/all_false_json/guide.json",
+    "--source-dir",
+    "/tmp/fetch-acceptance-024xvxp3/all_false_json/mods",
+    "--settings-dir",
+    "/tmp/fetch-acceptance-024xvxp3/all_false_json/settings",
+    "--scratch-dir",
+    "/tmp/fetch-acceptance-024xvxp3/all_false_json/scratch",
+    "--dry-run",
+    "--peer-mode",
+    "off",
+    "--use-file-selection"
+  ],
+  "exit": 0,
+  "stdout": "{\n  \"sourceDir\": \"/tmp/fetch-acceptance-024xvxp3/all_false_json/mods\",\n  \"peerMode\": \"off\",\n  \"targets\": [],\n  \"skipped\": [],\n  \"warnings\": []\n}\n",
+  "stderr": "",
+  "data": {
+    "sourceDir": "/tmp/fetch-acceptance-024xvxp3/all_false_json/mods",
+    "peerMode": "off",
+    "targets": [],
+    "skipped": [],
+    "warnings": []
+  },
+  "events": [],
+  "connections": [],
+  "apiRequests": [],
+  "before": {
+    "guide.json": "2b4e789b3489a57b693b7bbbc948f4b429b9614ff1c3ec27983dd3af292f9a63",
+    "mods": "directory",
+    "scratch": "directory",
+    "settings": "directory",
+    "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+  },
+  "after": {
+    "guide.json": "2b4e789b3489a57b693b7bbbc948f4b429b9614ff1c3ec27983dd3af292f9a63",
+    "mods": "directory",
+    "scratch": "directory",
+    "settings": "directory",
+    "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+  },
+  "guideAfter": "{\"Components\": [{\"Guid\": \"aaaaaaaa-1111-4111-8111-111111111111\", \"Name\": \"Example A\", \"IsSelected\": false, \"Instructions\": [], \"ResourceRegistry\": {\"https://mega.nz/file/example\": {\"Files\": {\"example.zip\": true}, \"ContentHashSHA256\": \"25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b\", \"Magnet\": \"magnet:?xt=urn:btih:09c985227992b7b949e1522b167d057b130a829b&dn=example.zip\", \"TorrentInfo\": \"ZDY6bGVuZ3RoaTEwNDg3MTJlNDpuYW1lMTE6ZXhhbXBsZS56aXAxMjpwaWVjZSBsZW5ndGhpNjU1MzZlNjpwaWVjZXMzNDA6vdG+KW2YgstldkZC0eNgCoy/zkd7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FADhEchbgA9IF8iK//fD+YE6sa0/KmU=\"}}}]}",
+  "envBefore": {
+    "HOME": {},
+    "XDG_CONFIG_HOME": {
+      "ModSync": "directory",
+      "ModSync/peer-share": "directory",
+      "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
+      "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+      "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "XDG_CACHE_HOME": {
+      "com.rqbit.dht": "directory"
+    },
+    "XDG_DATA_HOME": {}
+  },
+  "envAfter": {
+    "HOME": {},
+    "XDG_CONFIG_HOME": {
+      "ModSync": "directory",
+      "ModSync/peer-share": "directory",
+      "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
+      "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+      "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "XDG_CACHE_HOME": {
+      "com.rqbit.dht": "directory"
+    },
+    "XDG_DATA_HOME": {}
+  }
+}

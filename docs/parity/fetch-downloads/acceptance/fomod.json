@@ -1,0 +1,108 @@
+{
+  "name": "fomod",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "fetch-downloads",
+    "--input",
+    "/tmp/fetch-acceptance-024xvxp3/fomod/guide.json",
+    "--source-dir",
+    "/tmp/fetch-acceptance-024xvxp3/fomod/mods",
+    "--settings-dir",
+    "/tmp/fetch-acceptance-024xvxp3/fomod/settings",
+    "--scratch-dir",
+    "/tmp/fetch-acceptance-024xvxp3/fomod/scratch",
+    "--peer-mode",
+    "off",
+    "--record",
+    "--progress-json"
+  ],
+  "exit": 3,
+  "stdout": "{\"type\":\"summary\",\"summary\":{\"report\":{\"outcomes\":[],\"skipped\":[{\"componentGuid\":\"aaaaaaaa-1111-4111-8111-111111111111\",\"registryUrl\":\"https://mega.nz/file/example\",\"filename\":\"fomod.zip\",\"reason\":\"alreadyPresent\",\"path\":\"/tmp/fetch-acceptance-024xvxp3/fomod/mods/fomod.zip\",\"detail\":null}],\"cancelled\":false},\"recordSummary\":{\"recorded\":[[\"aaaaaaaa-1111-4111-8111-111111111111\",\"https://mega.nz/file/example\",\"fomod.zip\"]],\"keptFalse\":[],\"hashesRecorded\":0},\"fomodFollowups\":{\"followups\":[{\"componentGuid\":\"aaaaaaaa-1111-4111-8111-111111111111\",\"archive\":\"/tmp/fetch-acceptance-024xvxp3/fomod/mods/fomod.zip\"}],\"inspectionErrors\":[]}}}\n",
+  "stderr": "",
+  "data": {
+    "report": {
+      "outcomes": [],
+      "skipped": [
+        {
+          "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+          "registryUrl": "https://mega.nz/file/example",
+          "filename": "fomod.zip",
+          "reason": "alreadyPresent",
+          "path": "/tmp/fetch-acceptance-024xvxp3/fomod/mods/fomod.zip",
+          "detail": null
+        }
+      ],
+      "cancelled": false
+    },
+    "recordSummary": {
+      "recorded": [
+        [
+          "aaaaaaaa-1111-4111-8111-111111111111",
+          "https://mega.nz/file/example",
+          "fomod.zip"
+        ]
+      ],
+      "keptFalse": [],
+      "hashesRecorded": 0
+    },
+    "fomodFollowups": {
+      "followups": [
+        {
+          "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+          "archive": "/tmp/fetch-acceptance-024xvxp3/fomod/mods/fomod.zip"
+        }
+      ],
+      "inspectionErrors": []
+    }
+  },
+  "events": [],
+  "connections": [],
+  "apiRequests": [],
+  "before": {
+    "guide.json": "a3b7aefd593e110319ca17c17e8d40faf42fdfa46abc54ec35ff6358e485fa57",
+    "mods": "directory",
+    "mods/fomod.zip": "7900b4d042ea39b0d3574da8f69f6ad040afd6a91eb44a65e2c3f7cc9e6ce685",
+    "scratch": "directory",
+    "settings": "directory",
+    "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+  },
+  "after": {
+    "guide.json": "2270a7df635a199724b9e3c644b9c3905573f5e04afeeff90bc4d47a6144b8ff",
+    "mods": "directory",
+    "mods/fomod.zip": "7900b4d042ea39b0d3574da8f69f6ad040afd6a91eb44a65e2c3f7cc9e6ce685",
+    "scratch": "directory",
+    "settings": "directory",
+    "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+  },
+  "guideAfter": "[\n  {\n    \"Guid\": \"aaaaaaaa-1111-4111-8111-111111111111\",\n    \"Name\": \"Example A\",\n    \"Author\": \"\",\n    \"Description\": \"\",\n    \"Directions\": \"\",\n    \"Tier\": \"\",\n    \"Category\": [],\n    \"IsSelected\": false,\n    \"Dependencies\": [],\n    \"Restrictions\": [],\n    \"InstallBefore\": [],\n    \"InstallAfter\": [],\n    \"Instructions\": [],\n    \"Options\": [],\n    \"ResourceRegistry\": {\n      \"https://mega.nz/file/example\": {\n        \"Files\": {\n          \"fomod.zip\": true\n        },\n        \"ContentHashSHA256\": \"7900b4d042ea39b0d3574da8f69f6ad040afd6a91eb44a65e2c3f7cc9e6ce685\"\n      }\n    }\n  }\n]",
+  "envBefore": {
+    "HOME": {},
+    "XDG_CONFIG_HOME": {
+      "ModSync": "directory",
+      "ModSync/peer-share": "directory",
+      "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
+      "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+      "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "XDG_CACHE_HOME": {
+      "com.rqbit.dht": "directory"
+    },
+    "XDG_DATA_HOME": {}
+  },
+  "envAfter": {
+    "HOME": {},
+    "XDG_CONFIG_HOME": {
+      "ModSync": "directory",
+      "ModSync/peer-share": "directory",
+      "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
+      "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+      "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "XDG_CACHE_HOME": {
+      "com.rqbit.dht": "directory"
+    },
+    "XDG_DATA_HOME": {}
+  }
+}
