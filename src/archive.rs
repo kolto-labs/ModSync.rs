@@ -106,10 +106,20 @@ pub fn unpack(
     options: &Options,
     cancelled: &AtomicBool,
 ) -> Result<Vec<Entry>> {
-    process(path, name, options, cancelled, true)
+    process(path, name, options, cancelled, true).map(|(files, _)| files)
 }
 pub fn verify(path: &Path, name: &Path, options: &Options, cancelled: &AtomicBool) -> Result<()> {
     process(path, name, options, cancelled, false).map(|_| ())
+}
+/// Verify like [`verify`] and return every entry name (lowercase, `/`-separated),
+/// without spooling any entry to scratch storage.
+pub fn list(
+    path: &Path,
+    name: &Path,
+    options: &Options,
+    cancelled: &AtomicBool,
+) -> Result<BTreeSet<String>> {
+    process(path, name, options, cancelled, false).map(|(_, names)| names)
 }
 fn process(
     path: &Path,
@@ -117,7 +127,7 @@ fn process(
     options: &Options,
     cancelled: &AtomicBool,
     spool: bool,
-) -> Result<Vec<Entry>> {
+) -> Result<(Vec<Entry>, BTreeSet<String>)> {
     ensure!(
         !cancelled.load(Ordering::Relaxed),
         "Archive operation cancelled"
@@ -275,7 +285,7 @@ fn process(
             "Unsupported archive signature. ZIP, 7z, RAR, TAR and GZip are supported. Only embedded 7z SFX payloads are decoded; executables are never run as archives."
         );
     }
-    Ok(output.files)
+    Ok((output.files, output.names))
 }
 fn read_tar(reader: impl Read, output: &mut Output<'_>) -> Result<()> {
     let mut archive = tar::Archive::new(reader);

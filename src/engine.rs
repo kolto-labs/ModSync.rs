@@ -8,7 +8,7 @@ use crate::{
 use anyhow::{Context, Result, bail, ensure};
 use serde::Serialize;
 use std::{
-    collections::{BTreeMap, BTreeSet},
+    collections::{BTreeMap, BTreeSet, btree_map},
     fs,
     io::{BufRead, BufReader, Read},
     path::{Path, PathBuf},
@@ -147,6 +147,32 @@ impl Content {
     }
 }
 
+/// The glob half of Extract/Copy source matching; a source also matches every file
+/// below it as a folder (see `Engine::source_matches`).
+pub(crate) fn source_glob_matches(pattern: &glob::Pattern, candidate: &str) -> bool {
+    pattern.matches_with(
+        candidate,
+        glob::MatchOptions {
+            case_sensitive: false,
+            require_literal_separator: true,
+            require_literal_leading_dot: false,
+        },
+    )
+}
+
+/// File names the FOMOD gate treats as archives; also the folder-source heuristic
+/// for run-scoped FOMOD choices.
+pub(crate) fn is_archive(name: &str) -> bool {
+    matches!(
+        Path::new(name)
+            .extension()
+            .and_then(|extension| extension.to_str())
+            .map(|extension| extension.to_ascii_lowercase())
+            .as_deref(),
+        Some("zip" | "7z" | "rar" | "exe" | "tar" | "gz")
+    )
+}
+
 fn key(path: &Path) -> String {
     path.to_string_lossy().replace('\\', "/").to_lowercase()
 }
@@ -267,7 +293,25 @@ impl Engine {
     pub fn validate(mut self, guide: &Guide, mut emit: impl FnMut(Event)) -> Result<()> {
         recovery::ensure_clean(&self.settings.roots)?;
         recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
+        // C# runs FomodConfigurationGate on every validate path, not only the report.
+        self.fomod_gate(guide, &mut emit)?;
         self.run(guide, &mut emit)
+    }
+
+    /// The read-only FOMOD configuration gate for plain validate and install. Issues
+    /// fail before any simulation or write; warnings are emitted as events.
+    fn fomod_gate(&mut self, guide: &Guide, emit: &mut impl FnMut(Event)) -> Result<()> {
+        let warnings = self
+            .validate_fomod_configuration(guide)
+            .context("FOMOD configuration check failed")?;
+        for warning in warnings {
+            emit(Event {
+                component: String::new(),
+                step: 0,
+                message: format!("WARNING: {warning}"),
+            });
+        }
+        Ok(())
     }
 
     pub fn validate_report(
@@ -409,7 +453,7 @@ impl Engine {
             false,
         );
         let fomod = fresh_engine()
-            .and_then(|engine| engine.validate_fomod_configuration(guide))
+            .and_then(|mut engine| engine.validate_fomod_configuration(guide))
             .map_err(|error| format!("{error:#}"));
         report.fomod_configuration(fomod);
         boundary(
@@ -674,17 +718,10 @@ impl Engine {
 
     /// Returns warnings for configured registered archives that no selected Extract
     /// instruction installs: choices are valid, but configuration installs no files.
-    fn validate_fomod_configuration(mut self, guide: &Guide) -> Result<Vec<String>> {
-        fn is_archive(name: &str) -> bool {
-            matches!(
-                std::path::Path::new(name)
-                    .extension()
-                    .and_then(|extension| extension.to_str())
-                    .map(|extension| extension.to_ascii_lowercase())
-                    .as_deref(),
-                Some("zip" | "7z" | "rar" | "exe" | "tar" | "gz")
-            )
-        }
+    /// Mapper fallbacks of each checked installer are logged once per archive, as C#
+    /// logs them, outside the report. Reads archives into scratch only; never writes
+    /// the game or mod trees.
+    fn validate_fomod_configuration(&mut self, guide: &Guide) -> Result<Vec<String>> {
         fn configured_choices(
             component: &Component,
             filename: &str,
@@ -714,7 +751,11 @@ impl Engine {
         let mut configured = BTreeMap::<String, (String, Vec<String>)>::new();
         // (archive path, component) pairs already checked by the registered pass.
         let mut checked = BTreeSet::new();
+        // Each archive path is inspected once per gate, whichever component names it.
+        let mut inspected = BTreeMap::<String, Option<crate::fomod::ArchiveModule>>::new();
         let mut routes = BTreeSet::new();
+        // Checked FOMOD archive paths whose mapper fallbacks were already logged.
+        let mut logged = BTreeSet::new();
         for component in &scope {
             let mut registered = BTreeSet::new();
             for resource in component.resource_registry.values() {
@@ -726,7 +767,7 @@ impl Engine {
                     continue;
                 };
                 for name in files.keys() {
-                    if !is_archive(name) || !registered.insert(name.to_ascii_lowercase()) {
+                    if !is_archive(name) || !registered.insert(crate::fomod::fold_case(name)) {
                         continue;
                     }
                     let relative_name = relative(name, false).with_context(|| {
@@ -745,18 +786,26 @@ impl Engine {
                         }
                         continue;
                     }
-                    let entries = archive::unpack(
-                        &path,
-                        &relative_name,
-                        &self.settings.archive,
-                        &self.settings.cancelled,
-                    )
-                    .with_context(|| {
-                        format!("Registered archive '{filename}' cannot be inspected")
-                    })?;
-                    if let Some(module) = crate::fomod::inspect_entries(&entries)? {
-                        configured_choices(component, filename, &module)?;
-                        checked.insert((key(&path), component.guid.clone()));
+                    checked.insert((key(&path), component.guid.clone()));
+                    let module = match inspected.entry(key(&path)) {
+                        btree_map::Entry::Occupied(entry) => entry.into_mut(),
+                        btree_map::Entry::Vacant(entry) => entry.insert(
+                            crate::fomod::inspect_listed(
+                                &path,
+                                &relative_name,
+                                &self.settings.archive,
+                                &self.settings.cancelled,
+                            )
+                            .with_context(|| {
+                                format!("Registered archive '{filename}' cannot be inspected")
+                            })?,
+                        ),
+                    };
+                    if let Some(module) = module {
+                        configured_choices(component, filename, module)?;
+                        if logged.insert(key(&path)) {
+                            crate::fomod::log_fallback_warnings(&module.config);
+                        }
                         configured
                             .entry(key(&path))
                             .or_insert_with(|| (filename.to_owned(), Vec::new()))
@@ -779,21 +828,28 @@ impl Engine {
                     if checked.contains(&(key(&source), component.guid.clone())) {
                         continue;
                     }
-                    let content = &self.files[&key(&source)].1;
-                    let entries = archive::unpack(
-                        content.path(),
-                        &source,
-                        &self.settings.archive,
-                        &self.settings.cancelled,
-                    )?;
-                    let Some(module) = crate::fomod::inspect_entries(&entries)? else {
+                    let module = match inspected.entry(key(&source)) {
+                        btree_map::Entry::Occupied(entry) => entry.into_mut(),
+                        btree_map::Entry::Vacant(entry) => {
+                            entry.insert(crate::fomod::inspect_listed(
+                                self.files[&key(&source)].1.path(),
+                                &source,
+                                &self.settings.archive,
+                                &self.settings.cancelled,
+                            )?)
+                        }
+                    };
+                    let Some(module) = module else {
                         continue;
                     };
                     let filename = source
                         .file_name()
                         .and_then(|name| name.to_str())
                         .context("FOMOD archive filename is invalid")?;
-                    configured_choices(component, filename, &module)?;
+                    configured_choices(component, filename, module)?;
+                    if logged.insert(key(&source)) {
+                        crate::fomod::log_fallback_warnings(&module.config);
+                    }
                 }
             }
         }
@@ -842,6 +898,9 @@ impl Engine {
         recovery::ensure_clean(&self.settings.roots)?;
         self.scan()?;
         recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
+        // C# InstallationService blocks installation on FomodConfigurationGate issues.
+        self.fomod_gate(guide, &mut emit)
+            .context("Installation blocked before any write")?;
         self.run(guide, &mut |_| {})?;
         self.scan()?;
         let ordered = self.remaining_ordered(guide)?;
@@ -1234,14 +1293,7 @@ impl Engine {
     }
 
     fn source_matches(prefix: &str, pattern: &glob::Pattern, candidate: &str) -> bool {
-        pattern.matches_with(
-            candidate,
-            glob::MatchOptions {
-                case_sensitive: false,
-                require_literal_separator: true,
-                require_literal_leading_dot: false,
-            },
-        ) || candidate.starts_with(prefix)
+        source_glob_matches(pattern, candidate) || candidate.starts_with(prefix)
     }
 
     fn instruction_sources(&self, sources: &[String]) -> Result<Vec<PathBuf>> {

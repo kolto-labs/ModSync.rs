@@ -651,6 +651,16 @@ pub fn dispatch(
             }
         }
     }
+    // C# logs mapper fallbacks when post-download configuration maps an archive.
+    for archive in &scan.archives {
+        if report
+            .accepted_sessions
+            .iter()
+            .any(|session| session.archive == archive.archive)
+        {
+            fomod::log_fallback_warnings(&archive.module.config);
+        }
+    }
     if let Some(mut input) = input
         && let Err(error) = input.finish()
     {

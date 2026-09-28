@@ -2,6 +2,39 @@
 use anyhow::{Context, Result, ensure};
 use serde::{Deserialize, Serialize};
 
+/// Case key for FOMOD archive, step, group, plugin and flag names, following C#
+/// `StringComparison.OrdinalIgnoreCase`, which compares simple (one-to-one) uppercase
+/// mappings, so `Ä` and `ä` match. Rust's `char::to_uppercase` is the full mapping:
+/// a single-character result is the simple mapping; a multi-character expansion
+/// (`ß` -> `SS`) keeps the character, as .NET does, except the Greek iota-subscript
+/// letters (U+1F80-1FAF lowercase rows, U+1FB3, U+1FC3, U+1FF3), whose simple
+/// mapping is a titlecase letter (`ᾀ` -> `ᾈ`, UnicodeData.txt) and is spelled out below.
+pub fn fold_case(value: &str) -> String {
+    value
+        .chars()
+        .map(|c| {
+            let mut upper = c.to_uppercase();
+            match (upper.next(), upper.next()) {
+                (Some(single), None) => single,
+                _ => match u32::from(c) {
+                    0x1F80..=0x1F87 | 0x1F90..=0x1F97 | 0x1FA0..=0x1FA7 => {
+                        char::from_u32(u32::from(c) + 8).unwrap_or(c)
+                    }
+                    0x1FB3 => '\u{1FBC}',
+                    0x1FC3 => '\u{1FCC}',
+                    0x1FF3 => '\u{1FFC}',
+                    _ => c,
+                },
+            }
+        })
+        .collect()
+}
+
+/// Unicode-aware C# `OrdinalIgnoreCase` equality for FOMOD names.
+pub fn eq_ignore_case(left: &str, right: &str) -> bool {
+    left.eq_ignore_ascii_case(right) || fold_case(left) == fold_case(right)
+}
+
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub enum GroupType {
     SelectAny,
@@ -183,7 +216,7 @@ impl ChoicesFile {
                 "FOMOD archive filename is empty"
             );
             ensure!(
-                archives.insert(archive.archive_file_name.to_ascii_lowercase()),
+                archives.insert(fold_case(&archive.archive_file_name)),
                 "Duplicate FOMOD archive '{}'",
                 archive.archive_file_name
             );
@@ -191,8 +224,8 @@ impl ChoicesFile {
             for selection in &archive.selections {
                 ensure!(
                     groups.insert((
-                        selection.step_name.to_ascii_lowercase(),
-                        selection.group_name.to_ascii_lowercase()
+                        fold_case(&selection.step_name),
+                        fold_case(&selection.group_name)
                     )),
                     "Duplicate FOMOD selection for '{}' / '{}'",
                     selection.step_name,
@@ -206,7 +239,7 @@ impl ChoicesFile {
     pub fn archive(&self, filename: &str) -> Option<&ArchiveChoices> {
         self.archives
             .iter()
-            .find(|a| a.archive_file_name.eq_ignore_ascii_case(filename))
+            .find(|a| eq_ignore_case(&a.archive_file_name, filename))
     }
 }
 
@@ -219,7 +252,7 @@ impl GroupSelection {
                 .plugins
                 .iter()
                 .enumerate()
-                .filter(|(_, p)| p.name.eq_ignore_ascii_case(name))
+                .filter(|(_, p)| eq_ignore_case(&p.name, name))
                 .map(|(i, _)| i)
                 .collect();
             ensure!(
@@ -262,8 +295,8 @@ impl ArchiveChoices {
         for selection in &self.selections {
             ensure!(
                 seen.insert((
-                    selection.step_name.to_ascii_lowercase(),
-                    selection.group_name.to_ascii_lowercase()
+                    fold_case(&selection.step_name),
+                    fold_case(&selection.group_name)
                 )),
                 "Duplicate FOMOD selection for '{}' / '{}'",
                 selection.step_name,
@@ -271,7 +304,7 @@ impl ArchiveChoices {
             );
             let mut matches = candidate
                 .iter_mut()
-                .filter(|s| s.name.eq_ignore_ascii_case(&selection.step_name));
+                .filter(|s| eq_ignore_case(&s.name, &selection.step_name));
             let step = matches.next().ok_or_else(|| {
                 anyhow::anyhow!("FOMOD step '{}' was not found", selection.step_name)
             })?;
@@ -283,7 +316,7 @@ impl ArchiveChoices {
             let mut matches = step
                 .groups
                 .iter_mut()
-                .filter(|g| g.name.eq_ignore_ascii_case(&selection.group_name));
+                .filter(|g| eq_ignore_case(&g.name, &selection.group_name));
             let group = matches.next().ok_or_else(|| {
                 anyhow::anyhow!(
                     "FOMOD group '{}' was not found in step '{}'",
@@ -318,8 +351,9 @@ pub enum FlagCondition {
     },
     /// C# does not model FOMOD file/game dependency state and treats these
     /// leaves as satisfied. Keep their effect explicit rather than rejecting
-    /// otherwise usable packages.
-    Always,
+    /// otherwise usable packages. The label names the authored dependency
+    /// (C# wording, e.g. `fileDependency 'x.esp'`) for the fallback warning.
+    Always(String),
     All(Vec<FlagCondition>),
     Any(Vec<FlagCondition>),
 }
@@ -327,8 +361,8 @@ pub enum FlagCondition {
 impl FlagCondition {
     fn matches(&self, flags: &std::collections::BTreeMap<String, String>) -> bool {
         match self {
-            Self::Flag { name, value } => flags.get(&name.to_ascii_lowercase()) == Some(value),
-            Self::Always => true,
+            Self::Flag { name, value } => flags.get(&fold_case(name)) == Some(value),
+            Self::Always(_) => true,
             Self::All(children) => children.iter().all(|c| c.matches(flags)),
             // C# treats every empty composite as true, including Or.
             Self::Any(children) => children.is_empty() || children.iter().any(|c| c.matches(flags)),
@@ -337,14 +371,15 @@ impl FlagCondition {
 }
 
 /// Reference order: all selected plugins contribute, including those in hidden steps.
-/// Later flag assignments win; names ignore ASCII case and values are case-sensitive.
+/// Later flag assignments win; names ignore case (C# OrdinalIgnoreCase) and values are
+/// case-sensitive.
 pub fn visible_steps(steps: &[StepSelection]) -> Vec<usize> {
     let mut flags = std::collections::BTreeMap::new();
     for step in steps {
         for group in &step.groups {
             for plugin in group.plugins().iter().filter(|p| p.selected) {
                 for (name, value) in &plugin.flags {
-                    flags.insert(name.to_ascii_lowercase(), value.clone());
+                    flags.insert(fold_case(name), value.clone());
                 }
             }
         }
@@ -386,13 +421,21 @@ pub struct ModuleConfig {
     pub conditional_files: Vec<ConditionalFiles>,
 }
 
+/// How the reference mapper places one conditional file pattern.
+enum PatternPlacement {
+    /// No flag dependency: installed after every plugin's files.
+    Trailing,
+    /// Attached to the first plugin (global index) that sets every flag.
+    Plugin(usize),
+    /// Or/nested composites the reference cannot attach (C# skips with a warning).
+    Unsupported,
+    /// No single plugin sets every flag (C# skips with a warning).
+    Unattached,
+}
+
 impl ModuleConfig {
-    /// Build the reference mapper's file order without resolving paths or writing files.
-    /// Conditional patterns that the reference cannot attach to one plugin are skipped.
-    pub fn selected_files(&self) -> Result<Vec<&FileInstall>> {
-        let visible = visible_steps(&self.steps);
-        let plugins: Vec<_> = self
-            .steps
+    fn plugins(&self) -> Vec<(usize, &PluginSelection)> {
+        self.steps
             .iter()
             .enumerate()
             .flat_map(|(i, step)| {
@@ -400,44 +443,63 @@ impl ModuleConfig {
                     .iter()
                     .flat_map(move |group| group.plugins().iter().map(move |p| (i, p)))
             })
-            .collect();
+            .collect()
+    }
+
+    /// Reference `ApplyConditionalInstalls` classification, with the labels of
+    /// file/game dependencies it treats as satisfied.
+    fn place_pattern(
+        pattern: &ConditionalFiles,
+        plugins: &[(usize, &PluginSelection)],
+    ) -> (PatternPlacement, Vec<String>) {
+        let children: Vec<_> = match &pattern.condition {
+            FlagCondition::Flag { .. } | FlagCondition::Always(_) => vec![&pattern.condition],
+            FlagCondition::All(children) => children.iter().collect(),
+            FlagCondition::Any(children) if children.len() <= 1 => children.iter().collect(),
+            _ => return (PatternPlacement::Unsupported, Vec::new()),
+        };
+        let mut flags = Vec::new();
+        let mut ignored = Vec::new();
+        for condition in children {
+            match condition {
+                FlagCondition::Flag { name, value } => flags.push((name, value)),
+                FlagCondition::Always(label) => ignored.push(label.clone()),
+                _ => return (PatternPlacement::Unsupported, ignored),
+            }
+        }
+        if flags.is_empty() {
+            return (PatternPlacement::Trailing, ignored);
+        }
+        let index = plugins.iter().position(|(_, plugin)| {
+            flags.iter().all(|(name, value)| {
+                plugin
+                    .flags
+                    .iter()
+                    .any(|(n, v)| eq_ignore_case(n, name) && v == *value)
+            })
+        });
+        (
+            index.map_or(PatternPlacement::Unattached, PatternPlacement::Plugin),
+            ignored,
+        )
+    }
+
+    /// Build the reference mapper's file order without resolving paths or writing files.
+    /// Conditional patterns that the reference cannot attach to one plugin are skipped;
+    /// [`ModuleConfig::fallback_warnings`] reports them.
+    pub fn selected_files(&self) -> Result<Vec<&FileInstall>> {
+        let visible = visible_steps(&self.steps);
+        let plugins = self.plugins();
         let mut attached: std::collections::BTreeMap<usize, Vec<&FileInstall>> =
             std::collections::BTreeMap::new();
         let mut trailing = Vec::new();
         for pattern in &self.conditional_files {
-            let children: Vec<_> = match &pattern.condition {
-                FlagCondition::Flag { .. } | FlagCondition::Always => vec![&pattern.condition],
-                FlagCondition::All(children) => children.iter().collect(),
-                FlagCondition::Any(children) if children.len() <= 1 => children.iter().collect(),
-                _ => continue,
-            };
-            let mut flags = Vec::new();
-            let mut supported = true;
-            for condition in children {
-                match condition {
-                    FlagCondition::Flag { name, value } => flags.push((name, value)),
-                    FlagCondition::Always => {}
-                    _ => supported = false,
+            match Self::place_pattern(pattern, &plugins).0 {
+                PatternPlacement::Trailing => trailing.extend(&pattern.files),
+                PatternPlacement::Plugin(index) => {
+                    attached.entry(index).or_default().extend(&pattern.files)
                 }
-            }
-            if !supported {
-                continue;
-            }
-            if flags.is_empty() {
-                trailing.extend(&pattern.files);
-            } else {
-                let index = plugins.iter().position(|(_, plugin)| {
-                    flags.iter().all(|(name, value)| {
-                        plugin
-                            .flags
-                            .iter()
-                            .any(|(n, v)| n.eq_ignore_ascii_case(name) && v == *value)
-                    })
-                });
-                let Some(index) = index else {
-                    continue;
-                };
-                attached.entry(index).or_default().extend(&pattern.files);
+                PatternPlacement::Unsupported | PatternPlacement::Unattached => {}
             }
         }
         for &index in &visible {
@@ -457,6 +519,94 @@ impl ModuleConfig {
         files.extend(trailing);
         Ok(files)
     }
+
+    /// Visible diagnostics for the fallbacks where the reference mapper
+    /// (`FomodToComponentMapper`) logs a warning: file/game dependencies treated as
+    /// satisfied, skipped conditional patterns and dropped destination renames. They
+    /// describe the installer, not a selection, so every authored entry is covered.
+    pub fn fallback_warnings(&self) -> Vec<String> {
+        fn unevaluated(condition: &FlagCondition, labels: &mut Vec<String>) {
+            match condition {
+                FlagCondition::Always(label) => labels.push(label.clone()),
+                FlagCondition::All(children) | FlagCondition::Any(children) => {
+                    for child in children {
+                        unevaluated(child, labels);
+                    }
+                }
+                FlagCondition::Flag { .. } => {}
+            }
+        }
+        let mut labels = Vec::new();
+        for step in &self.steps {
+            if let Some(condition) = &step.visible {
+                unevaluated(condition, &mut labels);
+            }
+        }
+        let mut warnings = Vec::new();
+        let plugins = self.plugins();
+        let mut files: Vec<_> = self.required_files.iter().collect();
+        files.extend(plugins.iter().flat_map(|(_, plugin)| &plugin.files));
+        for pattern in &self.conditional_files {
+            let (placement, ignored) = Self::place_pattern(pattern, &plugins);
+            labels.extend(ignored);
+            match placement {
+                PatternPlacement::Unsupported => warnings.push(
+                    "Skipping a conditionalFileInstalls pattern: only a flat And of flagDependency elements is supported in this slice.".to_owned(),
+                ),
+                PatternPlacement::Unattached => warnings.push(
+                    "Skipping a conditionalFileInstalls pattern: its flag dependencies are not all set by a single plugin.".to_owned(),
+                ),
+                PatternPlacement::Trailing | PatternPlacement::Plugin(_) => {
+                    files.extend(&pattern.files)
+                }
+            }
+        }
+        let mut seen = std::collections::BTreeSet::new();
+        for label in labels {
+            if seen.insert(label.clone()) {
+                warnings.push(format!("{label} is not evaluated; treating as satisfied."));
+            }
+        }
+        for file in files {
+            if let Some((source, destination)) = dropped_rename(file)
+                && seen.insert(format!("rename\0{source}\0{destination}"))
+            {
+                warnings.push(format!(
+                    "FOMOD wants to install '{source}' as '{destination}'; renames are not supported by the Copy action, the source file name is kept."
+                ));
+            }
+        }
+        warnings
+    }
+}
+
+/// Log an installer's mapper fallbacks as warnings with C# `FomodToComponentMapper`'s
+/// exact `Logger.LogWarning` text (no archive prefix). The CLI mirrors the log to
+/// stderr; validation reports are unchanged.
+pub fn log_fallback_warnings(config: &ModuleConfig) {
+    for warning in config.fallback_warnings() {
+        crate::logging::warning(format!("[FomodToComponentMapper] {warning}"));
+    }
+}
+
+/// Source and destination names when the mapper keeps the source name although the
+/// authored destination names a different file (C# `BuildDestination`).
+fn dropped_rename(file: &FileInstall) -> Option<(String, String)> {
+    if file.is_folder {
+        return None;
+    }
+    let name = |path: &str| {
+        path.trim()
+            .replace('\\', "/")
+            .trim_matches('/')
+            .rsplit('/')
+            .next()
+            .unwrap_or("")
+            .to_owned()
+    };
+    let (source, destination) = (name(&file.source), name(&file.destination));
+    (destination.contains('.') && !eq_ignore_case(&destination, &source))
+        .then_some((source, destination))
 }
 
 impl ModuleConfig {
@@ -479,7 +629,7 @@ impl ModuleConfig {
                     .to_string_lossy();
                 if let Some(name) = destination.file_name() {
                     let name = name.to_string_lossy();
-                    if name.contains('.') || name.eq_ignore_ascii_case(&filename) {
+                    if name.contains('.') || eq_ignore_case(&name, &filename) {
                         // The shared Copy action preserves the source name. The C# mapper
                         // therefore drops an authored destination filename, including a
                         // requested rename, and keeps the destination directory.
@@ -549,6 +699,21 @@ pub fn inspect_archive(
 ) -> Result<Option<ArchiveModule>> {
     let entries = crate::archive::unpack(path, path, options, cancelled)?;
     inspect_entries(&entries)
+}
+
+/// Like [`inspect_archive`], but a verified listing decides first: only an archive
+/// that lists a `fomod/ModuleConfig.xml` is spooled to scratch storage and parsed.
+pub(crate) fn inspect_listed(
+    path: &std::path::Path,
+    name: &std::path::Path,
+    options: &crate::archive::Options,
+    cancelled: &std::sync::atomic::AtomicBool,
+) -> Result<Option<ArchiveModule>> {
+    let names = crate::archive::list(path, name, options, cancelled)?;
+    if !names.iter().any(|name| is_module_config_path(name)) {
+        return Ok(None);
+    }
+    inspect_entries(&crate::archive::unpack(path, name, options, cancelled)?)
 }
 
 pub(crate) fn inspect_entries(entries: &[crate::archive::Entry]) -> Result<Option<ArchiveModule>> {
@@ -631,9 +796,9 @@ fn resource_matches(value: &serde_json::Value, filename: &str) -> bool {
     else {
         return false;
     };
-    files
-        .keys()
-        .any(|name| archive_name(name) == filename || name.trim().eq_ignore_ascii_case(filename))
+    files.keys().any(|name| {
+        eq_ignore_case(&archive_name(name), filename) || eq_ignore_case(name.trim(), filename)
+    })
 }
 
 /// Whether this component registers the archive under a resource-registry Files key.
@@ -643,6 +808,37 @@ pub fn resource_matches_archive(component: &crate::Component, archive: &str) -> 
         .resource_registry
         .values()
         .any(|resource| resource_matches(resource, &filename))
+}
+
+/// Whether an Extract source could resolve to the archive under the engine's source
+/// matching: a glob (`*`, `?`, `[...]`) over the file name, or a folder source that
+/// contains the archive at any depth. The archive's folder is unknown here, so any
+/// source whose last component is not an archive file name may be that folder, and
+/// an unparseable glob is kept too: over-inclusion only applies a named entry.
+fn source_may_extract(source: &str, filename: &str) -> bool {
+    let source = source.trim().replace('\\', "/");
+    let last = source
+        .trim_end_matches('/')
+        .rsplit('/')
+        .next()
+        .unwrap_or("");
+    !crate::engine::is_archive(last)
+        || glob::Pattern::new(&fold_case(last)).map_or(true, |pattern| {
+            crate::engine::source_glob_matches(&pattern, &fold_case(filename))
+        })
+}
+
+/// Whether this component registers the archive or may extract it through one of its
+/// own Extract sources (see [`source_may_extract`]). Options are separate components.
+fn references_archive(component: &crate::Component, archive: &str) -> bool {
+    let filename = archive_name(archive);
+    resource_matches_archive(component, archive)
+        || component
+            .instructions
+            .iter()
+            .filter(|instruction| instruction.action == "Extract")
+            .flat_map(|instruction| &instruction.source)
+            .any(|source| source_may_extract(source, &filename))
 }
 
 /// Read the C#-compatible per-archive prompt status from the matching resource entry.
@@ -659,7 +855,7 @@ pub fn prompt_status(component: &crate::Component, archive: &str) -> Option<Stri
     let statuses = metadata.get("fomodPromptStatus")?.as_object()?;
     statuses
         .iter()
-        .find(|(name, _)| archive_name(name) == filename)
+        .find(|(name, _)| eq_ignore_case(&archive_name(name), &filename))
         .and_then(|(_, status)| status.as_str())
         .map(str::to_owned)
 }
@@ -733,18 +929,28 @@ fn write_prompt_status(
     if !statuses.is_object() {
         *statuses = serde_json::json!({});
     }
-    statuses
+    let statuses = statuses
         .as_object_mut()
-        .context("FOMOD prompt status must be an object")?
-        .insert(
-            filename.to_owned(),
-            serde_json::Value::String(status.as_str().into()),
-        );
+        .context("FOMOD prompt status must be an object")?;
+    // Like the C# OrdinalIgnoreCase status map, an existing key for this archive
+    // (any case) is updated in place instead of gaining a differently cased twin.
+    let value = serde_json::Value::String(status.as_str().into());
+    let mut updated = false;
+    for (name, current) in statuses.iter_mut() {
+        if eq_ignore_case(&archive_name(name), filename) {
+            *current = value.clone();
+            updated = true;
+        }
+    }
+    if !updated {
+        statuses.insert(filename.to_owned(), value);
+    }
     Ok(())
 }
 
 impl ChoicesFile {
-    /// Override embedded choices recursively; the caller owns persistence of the guide.
+    /// Override embedded choices per archive, recursively; the caller owns persistence
+    /// of the guide (the CLI never persists it).
     pub fn apply_to_guide(&self, guide: &mut crate::Guide) -> Result<()> {
         self.apply_to_remaining(guide, &[])
     }
@@ -752,8 +958,12 @@ impl ChoicesFile {
     /// Apply external choices without changing completed component definitions or
     /// their nested options. The engine still verifies the completed prefix and
     /// its receipt before any remaining-phase operation.
+    ///
+    /// Rust extension (C# validate/install take no choices file): an entry replaces
+    /// that archive's embedded choices; other archives keep theirs. Unparseable
+    /// embedded choices are an error naming the repair route, never discarded.
     pub fn apply_to_remaining(&self, guide: &mut crate::Guide, completed: &[String]) -> Result<()> {
-        self.update_guide(guide, completed, false)
+        self.update_guide(guide, completed)
     }
 }
 
@@ -930,20 +1140,18 @@ impl ChoicesFile {
         guide: &mut crate::Guide,
         completed: &[String],
     ) -> Result<()> {
-        self.update_guide(guide, completed, true)
+        self.update_guide(guide, completed)
     }
 
-    fn update_guide(
-        &self,
-        guide: &mut crate::Guide,
-        completed: &[String],
-        merge: bool,
-    ) -> Result<()> {
+    /// Per-archive merge shared by run-scoped application and editor merges. Each
+    /// component (or option) receives only the entries for archives it registers or
+    /// extracts itself; other components, including ones with unparseable saved
+    /// choices, are left untouched.
+    fn update_guide(&self, guide: &mut crate::Guide, completed: &[String]) -> Result<()> {
         fn update(
             components: &mut [crate::Component],
             edits: &ChoicesFile,
             completed: &[String],
-            merge: bool,
         ) -> Result<()> {
             for component in components {
                 if completed
@@ -952,36 +1160,48 @@ impl ChoicesFile {
                 {
                     continue;
                 }
-                let mut choices = match component.metadata.get("FomodChoices").filter(|_| merge) {
-                    Some(value) => ChoicesFile::parse(&serde_json::to_string(value)?)?,
-                    None => ChoicesFile {
-                        version: 1,
-                        archives: Vec::new(),
-                    },
-                };
-                choices
+                let relevant: Vec<_> = edits
                     .archives
-                    .retain(|old| edits.archive(&old.archive_file_name).is_none());
-                choices.archives.extend(edits.archives.clone());
-                component
-                    .metadata
-                    .insert("FomodChoices".into(), serde_json::to_value(choices)?);
-                for archive in &edits.archives {
-                    try_set_prompt_status(
-                        component,
-                        &archive.archive_file_name,
-                        PromptStatus::Configured,
-                    )
-                    .with_context(|| {
-                        format!("Recording FOMOD prompt status for {}", component.guid)
-                    })?;
+                    .iter()
+                    .filter(|archive| references_archive(component, &archive.archive_file_name))
+                    .cloned()
+                    .collect();
+                if !relevant.is_empty() {
+                    merge_relevant(component, &relevant)?;
                 }
-                update(&mut component.options, edits, completed, merge)?;
+                update(&mut component.options, edits, completed)?;
+            }
+            Ok(())
+        }
+        fn merge_relevant(
+            component: &mut crate::Component,
+            edits: &[ArchiveChoices],
+        ) -> Result<()> {
+            let mut choices = saved_choices_file(component)?.unwrap_or(ChoicesFile {
+                version: 1,
+                archives: Vec::new(),
+            });
+            choices.archives.retain(|old| {
+                !edits
+                    .iter()
+                    .any(|new| eq_ignore_case(&new.archive_file_name, &old.archive_file_name))
+            });
+            choices.archives.extend(edits.iter().cloned());
+            component
+                .metadata
+                .insert("FomodChoices".into(), serde_json::to_value(choices)?);
+            for archive in edits {
+                try_set_prompt_status(
+                    component,
+                    &archive.archive_file_name,
+                    PromptStatus::Configured,
+                )
+                .with_context(|| format!("Recording FOMOD prompt status for {}", component.guid))?;
             }
             Ok(())
         }
         let mut candidate = guide.clone();
-        update(&mut candidate.components, self, completed, merge)?;
+        update(&mut candidate.components, self, completed)?;
         *guide = candidate;
         Ok(())
     }
@@ -1178,7 +1398,7 @@ pub fn apply_bound_archive(
             .unwrap();
         if let Some(edit) = choices {
             ensure!(
-                edit.archive_file_name.eq_ignore_ascii_case(filename),
+                eq_ignore_case(&edit.archive_file_name, filename),
                 "FOMOD choices archive does not match captured binding"
             );
             let mut saved = match component.metadata.get("FomodChoices") {
@@ -1190,7 +1410,7 @@ pub fn apply_bound_archive(
             };
             saved
                 .archives
-                .retain(|old| !old.archive_file_name.eq_ignore_ascii_case(filename));
+                .retain(|old| !eq_ignore_case(&old.archive_file_name, filename));
             saved.archives.push(edit.clone());
             component
                 .metadata

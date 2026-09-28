@@ -68,7 +68,19 @@ is assigned because the remaining domains differ greatly in scope and proof cost
    refusal against the current archive, an actionable C#-configured import
    requirement, a repair hint for unparseable saved choices, and the no-Extract route
    warning; [evidence](fomod-s2a-proof/README.md) is 224/224. The round-3 follow-up is
-   `ae8d7e9`; S2a SPEC and QUALITY are [approved](fomod-s2a-review.md). Fetch now
+   `ae8d7e9`; S2a SPEC and QUALITY are [approved](fomod-s2a-review.md). S2b
+   (commit `37cd4cc`, review follow-up `c28dee0` that dedupes and lists gate
+   archives, restores C#'s exact fallback text, adds iota-subscript case mapping and
+   scopes run choices to referencing components, and second follow-up `6dfbf63` (SPEC and QUALITY approved)
+   that matches that scope to engine source resolution so folder and glob
+   character-class Extract sources keep their choices; completed components, and so a
+   completed component no entry references, are never touched; second follow-up not
+   yet reviewed) makes the run-scoped
+   `validate`/`install --fomod-choices` Rust extension merge per archive, matches
+   FOMOD names like C# `OrdinalIgnoreCase` including Unicode, runs the FOMOD gate on
+   plain `validate` and `install`, and logs C#'s mapper fallback warnings;
+   [evidence](fomod-s2b-proof/README.md) is 254/254 (19 of 232 fail on `37cd4cc`; 10
+   of 254 fail on `c28dee0`). Fetch now
    runs components that may publish one archive file as one serialized group
    instead of a race (commit `4bf5c54`, its review follow-up `339b3d6`, and a second
    follow-up that makes groups transitive and requires the same name for inherited
