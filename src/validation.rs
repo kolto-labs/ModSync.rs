@@ -271,7 +271,7 @@ impl Report {
             passed: true,
             has_warnings: true,
             summary: format!(
-                "All detected FOMOD archives are configured; {} configured archive(s) have no install route.",
+                "All detected FOMOD archives are configured ({} warning(s)).",
                 warnings.len()
             ),
             messages: warnings

@@ -110,7 +110,12 @@ fn condition(node: &Node) -> Result<FlagCondition> {
             // The pinned C# mapper logs these as unmodeled and evaluates them
             // as true. Preserve that deterministic behavior without opening
             // or probing authored game paths during validation.
-            "filedependency" | "gamedependency" => FlagCondition::Always,
+            "filedependency" => {
+                FlagCondition::Always(format!("fileDependency '{}'", child.attr("file")))
+            }
+            "gamedependency" => {
+                FlagCondition::Always(format!("gameDependency '{}'", child.attr("version")))
+            }
             "dependencies" => condition(child)?,
             other => bail!("Unsupported FOMOD visibility dependency: {other}"),
         });

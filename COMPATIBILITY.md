@@ -857,6 +857,38 @@ accepts the saved names is mapped fresh from its current bytes. Evidence:
 that run; it is not a recovery route. Unicode matching, desktop reconfiguration and
 the S3 corpora remain open, and F15 stays partial.
 
+## FOMOD S2b run choices, Unicode names, gate and fallbacks — 2026-09-28 UTC
+
+`validate`/`install --fomod-choices` is a Rust extension: C# validate and install take
+no choices file (only Fetch's post-download hook does). It now merges per archive. A
+file entry replaces that archive's embedded choices for the run, and other archives
+keep theirs. The guide is never written, and with `Retained` completion context
+completed components are not touched. `--phase remaining` still applies the file to
+the reconstructed completed definitions, and the receipt refuses a different file
+before any write. Unparseable embedded `FomodChoices` now fail with the repair hint
+instead of being replaced. This supersedes the earlier whole-file replacement noted
+under "CLI configured FOMOD installation" and in the S2a section.
+
+FOMOD archive, step, group, plugin and flag names, and prompt-status archive keys,
+now match like C# `OrdinalIgnoreCase` (`Ä` matches `ä`; `ß` does not match `SS`),
+replacing the earlier ASCII-only matching. Recording a status updates an existing key
+of any case in place. .NET casing-table exceptions are not replicated.
+
+Plain `validate` and `install` now run the registered-archive FOMOD gate, as C# does
+on every validate path and at install. Missing, stale or configured-only choices and
+a missing archive with recorded state fail before any simulation or write. The
+no-route warning becomes a `WARNING:` event. This includes desktop installation
+through the shared engine.
+
+C#'s mapper fallback warnings are logged with its `[FomodToComponentMapper]` wording:
+unevaluated file/game dependencies, skipped conditional patterns and dropped renames.
+They are logged by the gate, by Fetch configuration and by `fomod-inspect`. These
+verbs mirror the log to stderr, and the validation report and stdout JSON are
+unchanged. C# has no warning for group defaults or auto-selection, so Rust adds none.
+Evidence: [S2b proof](docs/parity/fomod-s2b-proof/README.md), 200/200 checks (70 fail
+on `b6d1d88`). Ownership propagation, gate dependency scope, the missing-archive soft
+warning, desktop reconfiguration and the S3 corpora remain open, and F15 stays partial.
+
 ## Fetch shared URL and destination — 2026-09-28 UTC
 
 `fetch-downloads` no longer lets two selected components race for one archive file.

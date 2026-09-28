@@ -767,7 +767,21 @@ impl From<TorrentProxyArgs> for modsync::p2p::CliProxyOptions {
 }
 
 fn run() -> Result<()> {
-    match Cli::parse().command {
+    let command = Cli::parse().command;
+    // FOMOD mapper fallbacks are log warnings, as in C#; these verbs mirror the
+    // log to stderr so they stay visible without touching machine stdout.
+    if matches!(
+        command,
+        Some(
+            Action::Validate(_)
+                | Action::Install(_)
+                | Action::FetchDownloads { .. }
+                | Action::FomodInspect { .. }
+        )
+    ) {
+        modsync::logging::set_mirror_stderr(true);
+    }
+    match command {
         Some(Action::ProtocolHandoff(arguments)) => {
             ensure!(
                 arguments.len() == 1,
@@ -980,6 +994,9 @@ fn run() -> Result<()> {
                 },
                 &AtomicBool::new(false),
             )?;
+            if let (Some(module), Some(filename)) = (&module, archive.file_name()) {
+                modsync::fomod::log_fallback_warnings(&filename.to_string_lossy(), &module.config);
+            }
             if let Some(path) = choices {
                 let choices = modsync::fomod::ChoicesFile::parse(&std::fs::read_to_string(path)?)?;
                 let filename = archive

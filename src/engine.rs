@@ -267,7 +267,25 @@ impl Engine {
     pub fn validate(mut self, guide: &Guide, mut emit: impl FnMut(Event)) -> Result<()> {
         recovery::ensure_clean(&self.settings.roots)?;
         recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
+        // C# runs FomodConfigurationGate on every validate path, not only the report.
+        self.fomod_gate(guide, &mut emit)?;
         self.run(guide, &mut emit)
+    }
+
+    /// The read-only FOMOD configuration gate for plain validate and install. Issues
+    /// fail before any simulation or write; warnings are emitted as events.
+    fn fomod_gate(&mut self, guide: &Guide, emit: &mut impl FnMut(Event)) -> Result<()> {
+        let warnings = self
+            .validate_fomod_configuration(guide)
+            .context("FOMOD configuration check failed")?;
+        for warning in warnings {
+            emit(Event {
+                component: String::new(),
+                step: 0,
+                message: format!("WARNING: {warning}"),
+            });
+        }
+        Ok(())
     }
 
     pub fn validate_report(
@@ -409,7 +427,7 @@ impl Engine {
             false,
         );
         let fomod = fresh_engine()
-            .and_then(|engine| engine.validate_fomod_configuration(guide))
+            .and_then(|mut engine| engine.validate_fomod_configuration(guide))
             .map_err(|error| format!("{error:#}"));
         report.fomod_configuration(fomod);
         boundary(
@@ -674,7 +692,10 @@ impl Engine {
 
     /// Returns warnings for configured registered archives that no selected Extract
     /// instruction installs: choices are valid, but configuration installs no files.
-    fn validate_fomod_configuration(mut self, guide: &Guide) -> Result<Vec<String>> {
+    /// Mapper fallbacks of each checked installer are logged once per archive, as C#
+    /// logs them, outside the report. Reads archives into scratch only; never writes
+    /// the game or mod trees.
+    fn validate_fomod_configuration(&mut self, guide: &Guide) -> Result<Vec<String>> {
         fn is_archive(name: &str) -> bool {
             matches!(
                 std::path::Path::new(name)
@@ -715,6 +736,8 @@ impl Engine {
         // (archive path, component) pairs already checked by the registered pass.
         let mut checked = BTreeSet::new();
         let mut routes = BTreeSet::new();
+        // Checked FOMOD archive paths whose mapper fallbacks were already logged.
+        let mut logged = BTreeSet::new();
         for component in &scope {
             let mut registered = BTreeSet::new();
             for resource in component.resource_registry.values() {
@@ -726,7 +749,7 @@ impl Engine {
                     continue;
                 };
                 for name in files.keys() {
-                    if !is_archive(name) || !registered.insert(name.to_ascii_lowercase()) {
+                    if !is_archive(name) || !registered.insert(crate::fomod::fold_case(name)) {
                         continue;
                     }
                     let relative_name = relative(name, false).with_context(|| {
@@ -756,6 +779,9 @@ impl Engine {
                     })?;
                     if let Some(module) = crate::fomod::inspect_entries(&entries)? {
                         configured_choices(component, filename, &module)?;
+                        if logged.insert(key(&path)) {
+                            crate::fomod::log_fallback_warnings(filename, &module.config);
+                        }
                         checked.insert((key(&path), component.guid.clone()));
                         configured
                             .entry(key(&path))
@@ -794,6 +820,9 @@ impl Engine {
                         .and_then(|name| name.to_str())
                         .context("FOMOD archive filename is invalid")?;
                     configured_choices(component, filename, &module)?;
+                    if logged.insert(key(&source)) {
+                        crate::fomod::log_fallback_warnings(filename, &module.config);
+                    }
                 }
             }
         }
@@ -842,6 +871,9 @@ impl Engine {
         recovery::ensure_clean(&self.settings.roots)?;
         self.scan()?;
         recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
+        // C# InstallationService blocks installation on FomodConfigurationGate issues.
+        self.fomod_gate(guide, &mut emit)
+            .context("Installation blocked before any write")?;
         self.run(guide, &mut |_| {})?;
         self.scan()?;
         let ordered = self.remaining_ordered(guide)?;
