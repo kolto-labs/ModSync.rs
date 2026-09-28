@@ -63,6 +63,25 @@ Extend summary additively with per-archive/per-consumer configuration outcomes a
 
 Thus warn-continue continues acquisition but cannot convert missing choices into exit 0. Distinguish absent choices (unresolved) from present invalid choices (error). Record the exit-contract distinction from C# host wording; prompt suppression is solely a prompting policy, never readiness proof.
 
+#### S1 dependency assignment
+
+Controller assigned the narrow record-timing dependency from S2 to S1: with
+`--record`, merge only captured GUID/archive configuration and prompt-state edits
+into the pristine authored guide, preserve original selection/unrelated data and
+acquisition facts, and atomically save after dispatch even when only FOMOD changed.
+A failed current session preserves its prior state; earlier successful sessions may
+persist with explicit mixed outcomes. Cancellation records only already committed
+session edits under the same declared ordering. Repeated Fetch/record receipts must
+exercise this now. Broader S2 semantic/reconfiguration and native corpus remain.
+
+Shared assessment/application may accept an additive excluded/completed GUID set;
+standalone Fetch uses an empty set unless a real existing input supplies one.
+Recovery-aware desktop proof remains assigned to that frontend. Capture eligibility
+comes from the existing report/guide selection scope; no unrelated global scan or
+newly invented descendant enrollment. The Windows native adapter is implemented,
+with runtime acceptance explicitly pending until supported Windows proof exists;
+an unsupported stub or detached blocked reader does not satisfy the contract.
+
 ### S2 — persistence, scoped replacement and semantic corrections
 
 Ownership: `src/fomod.rs`, `src/fomod/xml.rs`, narrowly `src/engine.rs` and validation report integration only for demonstrated gate gaps; `src/main.rs` only after S1 ownership releases. Desktop changes remain with the desktop contract owner, serialized with these shared changes.
