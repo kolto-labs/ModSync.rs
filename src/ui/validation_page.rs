@@ -186,7 +186,7 @@ impl App {
             .guide
             .as_ref()
             .map_or(0, |g| g.components.iter().filter(|c| c.is_selected).count());
-        let busy = self.receiver.is_some();
+        let busy = self.receiver.is_some() || self.fomod_pending();
         let is_light = self.theme.to_ascii_lowercase().contains("light");
         let k2 = self.theme.to_ascii_lowercase().contains("kotor2");
         let foreground = if is_light {

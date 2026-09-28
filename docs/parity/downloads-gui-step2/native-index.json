@@ -1,0 +1,56 @@
+{
+  "sourceBaseline": "1d92ba404fb93bce03d7a25dee9c42ac30c1d08c",
+  "productionBinarySha256": "70fe6d1105d393d29c007b9bfe46d7ed4fbeab038764455f775f749845a6295c",
+  "probeSha256": "1209b1ebc5fb8374014a2984da23d729751587dde40014b442d2886c5a25524d",
+  "scenarios": [
+    {
+      "scenario": "serial",
+      "checks": 27,
+      "receipt": "native/serial/receipt.json",
+      "receiptSha256": "7c33118e5475f7a602b71a68fe9c6ed4906d7ba05125f2f28be78f760cb8e0d2"
+    },
+    {
+      "scenario": "suppressed",
+      "checks": 2,
+      "receipt": "native/suppressed/receipt.json",
+      "receiptSha256": "081079111c877b12715c137d904166583e9d6e7e74b5a708f833f34041d570a3"
+    },
+    {
+      "scenario": "broken-choices",
+      "checks": 9,
+      "receipt": "native/broken-choices/receipt.json",
+      "receiptSha256": "f42292b3e254ac613b97fa613f66fce90aac713980bdea5000cc814364bf794c"
+    },
+    {
+      "scenario": "vanished-archive",
+      "checks": 3,
+      "receipt": "native/vanished-archive/receipt.json",
+      "receiptSha256": "aabb8f39dc7be9d89033f2fb96657717b5d5c1f1d15377a61713877a02a26d2b"
+    },
+    {
+      "scenario": "malformed",
+      "checks": 5,
+      "receipt": "native/malformed/receipt.json",
+      "receiptSha256": "898a404e159a019aab24a2def90e909c85accc1df7f968e6c676653abe8bcccf"
+    }
+  ],
+  "passedChecks": 46,
+  "receiptSourceAndScreenshotHashesVerified": true,
+  "controllerVisualReview": {
+    "status": "passed",
+    "screenshots": [
+      "native/serial/screenshots/0060-first-editor-small.png",
+      "native/serial/screenshots/0095-small-navigation-return.png",
+      "native/vanished-archive/screenshots/0019-inspection-error.png",
+      "native/malformed/screenshots/0019-malformed-save-error.png"
+    ],
+    "scope": "Readable modal controls and real page 6 navigation at 600x400; actual inspection error; visible malformed-settings error and disabled Fetch."
+  },
+  "boundedStep2Accepted": true,
+  "pendingNativeCases": [
+    "Stale editor outcome through a real guide/root replacement",
+    "Completed-base choice preservation",
+    "Direct Install-button click while a FOMOD dialog is unresolved; blocked validation and wizard advancement are exercised"
+  ],
+  "note": "Acceptance covers the five retained step-2 scenarios and reviewed source. It does not close full downloads native acceptance, other platforms, persistent sharing or F29. Per-scenario accepted:false means the probe itself does not grant acceptance; this controller review supplies the bounded verdict."
+}

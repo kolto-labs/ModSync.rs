@@ -24,6 +24,11 @@ pub struct Editor {
     step_cursor: usize,
 }
 impl Editor {
+    /// Includes asynchronous inspection and error dialogs, which may close without an Outcome.
+    pub fn is_open(&self) -> bool {
+        self.open
+    }
+
     fn dismissal(&self) -> Option<Outcome> {
         (self.dismiss_non_fomod && self.detected_fomod)
             .then(|| Outcome::Dismissed(self.filename.clone()))
@@ -96,7 +101,7 @@ impl Editor {
         }
         let mut outcome = None;
         egui::Modal::new(egui::Id::new("fomod_editor")).show(ctx, |ui| {
-            ui.set_min_width(540.0);
+            ui.set_width((ctx.screen_rect().width() - 48.0).clamp(180.0, 540.0));
             ui.heading(format!("Configure {}", self.filename));
             if self.receiver.is_some() {
                 ui.spinner();
@@ -116,7 +121,7 @@ impl Editor {
                     ));
                 }
                 egui::ScrollArea::vertical()
-                    .max_height(420.0)
+                    .max_height((ctx.screen_rect().height() - 180.0).clamp(60.0, 420.0))
                     .show(ui, |ui| {
                         for &index in visible.get(self.step_cursor).into_iter() {
                             let step = &mut module.config.steps[index];

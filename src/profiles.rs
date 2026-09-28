@@ -674,6 +674,22 @@ impl SettingsFile {
         }
     }
 
+    /// Update explicitly edited peer keys while retaining unrelated settings/secrets.
+    /// Remove case aliases first: the peer reader accepts case-insensitive keys.
+    pub fn update_peer_settings(&self, changes: &[(String, Value)]) -> Result<()> {
+        let mut root = self.load()?;
+        let map = root.as_object_mut().context("Settings must be an object")?;
+        for (key, value) in changes {
+            ensure!(
+                matches!(key.as_str(), "peerSharing" | "peerMode" | "peerUploadKiBps"),
+                "Unsupported peer setting"
+            );
+            map.retain(|stored, _| !stored.eq_ignore_ascii_case(key));
+            map.insert(key.clone(), value.clone());
+        }
+        self.save(&root)
+    }
+
     /// Owner-only atomic replacement (0600 on Unix, like the reference `SaveRoot`).
     pub fn save(&self, root: &Value) -> Result<()> {
         ensure!(root.is_object(), "Settings must be an object");

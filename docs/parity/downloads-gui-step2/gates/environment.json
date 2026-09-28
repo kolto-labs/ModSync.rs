@@ -1,0 +1,11 @@
+{
+  "platform": "Linux aarch64",
+  "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
+  "cargo": "cargo 1.95.0 (f2d3ce0bd 2026-03-21)",
+  "env": {
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_INCREMENTAL": "0"
+  },
+  "source_baseline": "d438528a744d86b252712212983c3ca5b70af3bd",
+  "note": "Production lib/bin only, two build jobs; isolated remote copy; no Rust tests/harnesses run."
+}

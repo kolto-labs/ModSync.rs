@@ -61,6 +61,24 @@ struct ProbeContext {
     loopback_ca: Option<modsync::download::LoopbackCa>,
 }
 
+#[derive(Clone)]
+struct FomodPending {
+    run: u64,
+    context: String,
+    path: PathBuf,
+    options: modsync::archive::Options,
+    dismiss_non_fomod: bool,
+}
+
+#[derive(Default)]
+struct PeerView {
+    directory: Option<String>,
+    settings: Option<modsync::p2p::PeerSettings>,
+    error: Option<String>,
+    receiver: Option<Receiver<Result<modsync::p2p::PeerSettings>>>,
+    saving: bool,
+}
+
 pub struct App {
     theme: String,
     input: String,
@@ -79,6 +97,11 @@ pub struct App {
     fomod_choices: String,
     fomod_archive: String,
     fomod_editor: crate::fomod_ui::Editor,
+    fomod_queue: std::collections::VecDeque<FomodPending>,
+    fomod_owner: Option<(u64, String)>,
+    fomod_active: Option<FomodPending>,
+    fomod_failure: Option<(FomodPending, String)>,
+    peer_view: PeerView,
     expanded_budget: String,
     allow_processes: bool,
     guide: Option<Guide>,
@@ -86,6 +109,7 @@ pub struct App {
     wizard: Option<Wizard>,
     utility: bool,
     input_stamp: String,
+    guide_generation: u64,
     validation_input_stamp: Option<String>,
     validation_page: validation_page::State,
     installing_page: installing_page::State,
@@ -151,14 +175,7 @@ impl App {
                         path.display()
                     ));
                 } else if self.guide.is_some() && self.should_offer_fomod_editor(&path) {
-                    let saved = self.saved_fomod_choices(&path);
-                    match saved {
-                        Ok(saved) => {
-                            self.fomod_archive = path.to_string_lossy().into_owned();
-                            self.fomod_editor.launch(path, options, saved, true);
-                        }
-                        Err(error) => self.logs.push(format!("FOMOD choices: {error:#}")),
-                    }
+                    self.enqueue_fomod(run, path, options, true);
                 }
             }
             Message::Acquisition(run, update) => self.acquisition_update(run, update),
@@ -248,6 +265,7 @@ impl App {
             }
             Message::Log(line) => self.logs.push(line),
             Message::Updates(guide, summary) => {
+                self.guide_generation = self.guide_generation.wrapping_add(1);
                 self.guide = Some(guide);
                 self.logs.push(format!(
                     "Nexus update check: checked {}, skipped {}, found {} updates{}{}.",
@@ -408,6 +426,170 @@ impl App {
         }
     }
 
+    fn fomod_pending(&self) -> bool {
+        self.fomod_editor.is_open() || !self.fomod_queue.is_empty() || self.fomod_failure.is_some()
+    }
+
+    fn enqueue_fomod(
+        &mut self,
+        run: u64,
+        path: PathBuf,
+        options: modsync::archive::Options,
+        dismiss_non_fomod: bool,
+    ) {
+        self.refresh_input_stamp();
+        let context = self.acquisition_context();
+        let run = if run == 0 {
+            self.downloads.direct_run()
+        } else {
+            run
+        };
+        if self
+            .fomod_queue
+            .iter()
+            .any(|item| item.run == run && item.path == path && item.context == context)
+        {
+            return;
+        }
+        self.fomod_queue.push_back(FomodPending {
+            run,
+            context,
+            path,
+            options,
+            dismiss_non_fomod,
+        });
+        self.invalidate_validation();
+    }
+
+    fn advance_fomod_queue(&mut self) {
+        self.refresh_input_stamp();
+        let context = self.acquisition_context();
+        if self.fomod_failure.as_ref().is_some_and(|(item, _)| {
+            item.context != context || !self.downloads.latest_run_is(item.run)
+        }) {
+            self.fomod_failure = None;
+            self.logs
+                .push("Discarded stale FOMOD configuration error after context changed.".into());
+        }
+        let before = self.fomod_queue.len();
+        self.fomod_queue
+            .retain(|item| item.context == context && self.downloads.latest_run_is(item.run));
+        if before != self.fomod_queue.len() {
+            self.logs
+                .push("Discarded FOMOD prompts because the guide or folders changed.".into());
+        }
+        if self.receiver.is_some() || self.fomod_editor.is_open() || self.fomod_failure.is_some() {
+            return;
+        }
+        if let Some(item) = self.fomod_queue.pop_front() {
+            match self.saved_fomod_choices(&item.path) {
+                Ok(saved) => {
+                    self.fomod_archive = item.path.to_string_lossy().into_owned();
+                    self.fomod_active = Some(item.clone());
+                    self.fomod_owner = Some((item.run, item.context));
+                    self.fomod_editor.launch(
+                        item.path,
+                        item.options,
+                        saved,
+                        item.dismiss_non_fomod,
+                    );
+                }
+                Err(error) => {
+                    let error = self.downloads.redact(&format!("FOMOD choices: {error:#}"));
+                    self.logs.push(error.clone());
+                    self.fomod_failure = Some((item, error));
+                }
+            }
+        }
+    }
+
+    fn show_fomod(&mut self, ctx: &egui::Context) {
+        self.advance_fomod_queue();
+        let was_open = self.fomod_editor.is_open();
+        let outcome = self.fomod_editor.show(ctx);
+        self.refresh_input_stamp();
+        let context = self.acquisition_context();
+        let owner = self.fomod_owner.clone();
+        let accepted = owner
+            .as_ref()
+            .is_some_and(|(run, bound)| *bound == context && self.downloads.latest_run_is(*run));
+        if let Some(outcome) = outcome {
+            if accepted {
+                match outcome {
+                    crate::fomod_ui::Outcome::Choices(choices) => {
+                        if let Err(error) = self.apply_fomod_choices(&choices) {
+                            let error = self.downloads.redact(&format!("FOMOD choices: {error:#}"));
+                            self.logs.push(error.clone());
+                            if let Some(item) = self.fomod_active.clone() {
+                                self.fomod_failure = Some((item, error));
+                            }
+                        } else {
+                            self.downloads.unsaved_records = true;
+                        }
+                    }
+                    crate::fomod_ui::Outcome::Dismissed(filename) => {
+                        if let Some(guide) = &mut self.guide {
+                            modsync::fomod::set_prompt_status_remaining(
+                                guide,
+                                &filename,
+                                modsync::fomod::PromptStatus::Dismissed,
+                                self.completed_base.as_deref().unwrap_or_default(),
+                            );
+                            self.downloads.unsaved_records = true;
+                        }
+                        self.invalidate_validation();
+                        self.logs
+                            .push(format!("FOMOD configuration dismissed for {filename}."));
+                    }
+                }
+                // Only our accepted choice edit may carry the remaining batch into
+                // the new guide revision. Unrelated context changes discard it.
+                self.refresh_input_stamp();
+                let updated = self.acquisition_context();
+                for item in &mut self.fomod_queue {
+                    if item.context == context
+                        && owner.as_ref().is_some_and(|(run, _)| *run == item.run)
+                    {
+                        item.context = updated.clone();
+                    }
+                }
+            } else {
+                self.fomod_queue.clear();
+                self.logs
+                    .push("Ignored FOMOD outcome because its guide or folders changed.".into());
+            }
+        }
+        // Inspection/error Cancel may return None: closure still releases ownership.
+        if was_open && !self.fomod_editor.is_open() {
+            self.fomod_owner = None;
+            self.fomod_active = None;
+            ctx.request_repaint();
+        }
+        if let Some((item, error)) = self.fomod_failure.clone() {
+            egui::Modal::new(egui::Id::new("fomod_queue_error")).show(ctx, |ui| {
+                ui.set_width((ctx.screen_rect().width() - 48.0).clamp(180.0, 540.0));
+                ui.heading("FOMOD choices need attention");
+                egui::ScrollArea::vertical().max_height((ctx.screen_rect().height() - 150.0).max(60.0)).show(ui, |ui| {
+                    ui.colored_label(egui::Color32::RED, error);
+                    ui.label("Validation and installation are blocked. Correct the saved choices and retry, or explicitly dismiss this prompt.");
+                });
+                ui.horizontal_wrapped(|ui| {
+                    if ui.button("Retry FOMOD choices").clicked() {
+                        self.fomod_failure = None;
+                        self.fomod_queue.push_front(item.clone());
+                        ctx.request_repaint();
+                    }
+                    if ui.button("Dismiss FOMOD prompt").clicked() {
+                        self.fomod_failure = None;
+                        self.logs.push("FOMOD configuration error explicitly dismissed; validation will diagnose missing choices.".into());
+                        ctx.request_repaint();
+                    }
+                });
+            });
+        }
+        self.start_pending_nxm_if_ready();
+    }
+
     fn selected_widescreen(&self) -> usize {
         self.guide.as_ref().map_or(0, |g| {
             g.components
@@ -456,10 +638,13 @@ impl App {
             }
             Page::ModSelection => self.selected_base() > 0,
             Page::Validate => {
-                self.validated && self.validation_report.as_ref().is_some_and(|r| r.success)
+                !self.fomod_pending()
+                    && self.validated
+                    && self.validation_report.as_ref().is_some_and(|r| r.success)
             }
             Page::InstallStart => {
-                self.validated
+                !self.fomod_pending()
+                    && self.validated
                     && self.selected_base() > 0
                     && Path::new(&self.mods).is_dir()
                     && self.receiver.is_none()
@@ -467,6 +652,7 @@ impl App {
             Page::Installing => self.completed_base.is_some() && !self.phase_failed,
             Page::WidescreenModSelection => {
                 !self.phase_failed
+                    && !self.fomod_pending()
                     && self.receiver.is_none()
                     && (self.selected_widescreen() == 0 || self.validated)
             }
@@ -503,9 +689,11 @@ impl App {
     }
 
     fn downloads_visible(&self) -> bool {
-        self.wizard
-            .as_ref()
-            .is_some_and(|w| w.pages()[..=w.current_index()].contains(&Page::DownloadsExplain))
+        self.downloads.has_history()
+            || self
+                .wizard
+                .as_ref()
+                .is_some_and(|w| w.pages()[..=w.current_index()].contains(&Page::DownloadsExplain))
     }
 
     fn download_status(&self) -> String {
@@ -525,7 +713,10 @@ impl App {
             "{:?}",
             (
                 &self.input_stamp,
+                self.guide_generation,
+                &self.loaded_input,
                 std::fs::canonicalize(self.mods.trim()).ok(),
+                std::fs::canonicalize(self.game.trim()).ok(),
                 &self.completed_base,
             )
         )
@@ -535,6 +726,16 @@ impl App {
     fn fetch_blocker(&self) -> Option<&'static str> {
         if self.receiver.is_some() {
             Some("Wait for the current operation to finish.")
+        } else if self.peer_view.receiver.is_some() {
+            Some("Wait for peer settings to finish loading or saving.")
+        } else if self.peer_view.settings.is_none()
+            || self.peer_view.directory.as_deref() != Some(self.profile_directory.as_str())
+        {
+            Some(
+                "Load peer settings successfully before fetching; use Refresh peer settings after correcting an error.",
+            )
+        } else if self.fomod_pending() {
+            Some("Finish or dismiss the pending FOMOD choices first.")
         } else if self.guide.is_none() {
             Some("Load a guide first.")
         } else if self.mods.trim().is_empty() || !Path::new(self.mods.trim()).is_dir() {
@@ -797,6 +998,30 @@ impl App {
                             self.downloads.unsaved_records = true;
                             self.invalidate_validation();
                         }
+                        self.refresh_input_stamp();
+                        if !finished.report.cancelled
+                            && let Some(followups) = &finished.fomod
+                        {
+                            if let Ok(options) = self.archive_options() {
+                                for followup in &followups.followups {
+                                    if self.should_offer_fomod_editor(&followup.archive) {
+                                        self.enqueue_fomod(
+                                            run,
+                                            followup.archive.clone(),
+                                            options.clone(),
+                                            true,
+                                        );
+                                    }
+                                }
+                            }
+                            for error in &followups.inspection_errors {
+                                self.logs.push(format!(
+                                    "FOMOD inspection failed for {}: {}",
+                                    error.archive.display(),
+                                    self.downloads.redact(&error.error)
+                                ));
+                            }
+                        }
                         self.downloads
                             .finish(kind, &finished, Ok(summary), &settled.binding.names);
                     }
@@ -834,8 +1059,140 @@ impl App {
         }
     }
 
+    fn request_peer_settings(&mut self, changes: Vec<(String, serde_json::Value)>) {
+        if self.peer_view.receiver.is_some() {
+            return;
+        }
+        let directory = self.profile_directory.clone();
+        self.peer_view.directory = Some(directory.clone());
+        self.peer_view.saving = !changes.is_empty();
+        self.peer_view.error = None;
+        let (tx, rx) = mpsc::channel();
+        self.peer_view.receiver = Some(rx);
+        let repaint = self.repaint.clone();
+        std::thread::spawn(move || {
+            let result = (|| -> Result<_> {
+                let store = modsync::profiles::SettingsFile::resolve(Some(Path::new(&directory)))?;
+                if !changes.is_empty() {
+                    store.update_peer_settings(&changes)?;
+                }
+                Ok(modsync::p2p::PeerSettings::from_settings(&store.load()?))
+            })();
+            let _ = tx.send(result);
+            if let Some(ctx) = repaint {
+                ctx.request_repaint();
+            }
+        });
+    }
+
+    fn refresh_peer_presentation(&mut self) {
+        let result = self
+            .peer_view
+            .receiver
+            .as_ref()
+            .and_then(|rx| match rx.try_recv() {
+                Ok(result) => Some(result),
+                Err(mpsc::TryRecvError::Empty) => None,
+                Err(mpsc::TryRecvError::Disconnected) => Some(Err(anyhow::anyhow!(
+                    "Peer settings worker stopped unexpectedly"
+                ))),
+            });
+        if let Some(result) = result {
+            self.peer_view.receiver = None;
+            self.peer_view.saving = false;
+            if self.peer_view.directory.as_deref() == Some(self.profile_directory.as_str()) {
+                match result {
+                    Ok(settings) => {
+                        self.peer_view.settings = Some(settings);
+                        self.peer_view.error = None;
+                    }
+                    Err(error) => {
+                        self.peer_view.settings = None;
+                        let error = self.downloads.redact(&format!(
+                            "Peer settings could not be read or saved: {error}"
+                        ));
+                        self.logs.push(error.clone());
+                        self.peer_view.error = Some(error);
+                    }
+                }
+            }
+        }
+        if self.peer_view.directory.as_deref() != Some(self.profile_directory.as_str())
+            && self.peer_view.receiver.is_none()
+        {
+            self.peer_view.settings = None;
+            self.request_peer_settings(Vec::new());
+        }
+    }
+
+    fn peer_settings_content(&mut self, ui: &mut egui::Ui) {
+        ui.label("Peer sharing defaults to Race: Origin and Peer compete. Peer transfers use public proxies only and fail closed if no proxy works.");
+        ui.label("When enabled, discovery can fetch public proxy and tracker lists. Sharing Off prevents peer discovery and transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside the app.");
+        if let Some(error) = &self.peer_view.error {
+            ui.colored_label(egui::Color32::RED, error);
+        }
+        if self.peer_view.receiver.is_some() {
+            ui.label("Reading or saving peer settings…");
+        }
+        if ui
+            .add_enabled(
+                self.receiver.is_none() && self.peer_view.receiver.is_none(),
+                egui::Button::new("Refresh peer settings"),
+            )
+            .clicked()
+        {
+            self.request_peer_settings(Vec::new());
+        }
+        let Some(mut settings) = self.peer_view.settings.clone().filter(|_| {
+            self.peer_view.directory.as_deref() == Some(self.profile_directory.as_str())
+        }) else {
+            return;
+        };
+        ui.collapsing("Peer-sharing settings", |ui| {
+            let mut changes = Vec::new();
+            ui.add_enabled_ui(self.receiver.is_none() && self.peer_view.receiver.is_none(), |ui| {
+                if ui.checkbox(&mut settings.sharing, "Sharing enabled").changed() {
+                    changes.push(("peerSharing".to_owned(), serde_json::json!(settings.sharing)));
+                }
+                let prior = settings.mode;
+                ui.horizontal_wrapped(|ui| {
+                    ui.label("Mode:");
+                    for (mode, label) in [(modsync::p2p::PeerMode::Off, "Off"), (modsync::p2p::PeerMode::Race, "Race"), (modsync::p2p::PeerMode::Fallback, "Fallback")] {
+                        ui.radio_value(&mut settings.mode, mode, label);
+                    }
+                });
+                if prior != settings.mode {
+                    let mode = match settings.mode {
+                        modsync::p2p::PeerMode::Off => "off",
+                        modsync::p2p::PeerMode::Race => "race",
+                        modsync::p2p::PeerMode::Fallback => "fallback",
+                    };
+                    changes.push(("peerMode".to_owned(), serde_json::json!(mode)));
+                }
+                ui.horizontal_wrapped(|ui| {
+                    ui.label("Upload cap (KiB/s):");
+                    if ui.add(egui::DragValue::new(&mut settings.upload_kibps).range(16..=u32::MAX).clamp_existing_to_range(false)).changed() {
+                        changes.push(("peerUploadKiBps".to_owned(), serde_json::json!(settings.upload_kibps)));
+                    }
+                });
+            });
+            ui.label(format!("Effective mode: {:?}. Upload cap: {} KiB/s (minimum 16).", settings.effective_mode(), settings.upload_kibps.max(16)));
+            ui.label("The saved keep-sharing preference does not start a persistent seeder; that lifecycle is not available yet.");
+            if !changes.is_empty() { self.request_peer_settings(changes); }
+        });
+        ui.label(format!(
+            "Peer: {:?}; upload cap {} KiB/s.",
+            settings.effective_mode(),
+            settings.upload_kibps.max(16)
+        ));
+    }
+
     fn downloads_content(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
         ui.heading("Downloads");
+        self.peer_settings_content(ui);
+        if self.fomod_pending() {
+            ui.label(format!("FOMOD choices pending: {} queued. Finish or dismiss these before validation or installation.", self.fomod_queue.len()));
+        }
         ui.label("Fetch Downloads plans every selected mod's archives (base and widescreen), keeps verified archives already in the workspace and downloads the rest. Nothing starts until you select it.");
         let blocker = self.fetch_blocker();
         ui.horizontal_wrapped(|ui| {
@@ -934,7 +1291,9 @@ impl App {
         let gate = self.wizard_gate();
         let wizard = self.wizard.as_ref().unwrap();
         let page = wizard.current();
-        let back = wizard.can_back() && self.receiver.is_none();
+        let back = wizard.can_back()
+            && (self.receiver.is_none()
+                || matches!(self.job, Job::Download | Job::NxmDownload | Job::Fetch));
         let next = wizard.can_next(gate);
         if self.downloads_visible() {
             ui.add_space(12.0);
@@ -1042,7 +1401,7 @@ impl App {
     fn wizard_content(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
         let page = self.wizard.as_ref().unwrap().current();
         if page == Page::Validate {
-            self.validation_content(ui, ctx);
+            ui.add_enabled_ui(!self.fomod_pending(), |ui| self.validation_content(ui, ctx));
             return;
         }
         if page.install_phase().is_some() {
@@ -1809,23 +2168,16 @@ impl App {
                     };
                     match budget {
                         Ok(max_expanded_bytes) => {
-                            let saved = self.saved_fomod_choices(&path);
-                            match saved {
-                                Ok(saved) => self.fomod_editor.launch(
-                                    path,
-                                    modsync::archive::Options {
-                                        scratch_dir: if self.scratch.is_empty() {
-                                            None
-                                        } else {
-                                            Some(PathBuf::from(&self.scratch))
-                                        },
-                                        max_expanded_bytes,
-                                    },
-                                    saved,
-                                    false,
-                                ),
-                                Err(error) => self.logs.push(format!("FOMOD choices: {error:#}")),
-                            }
+                            self.enqueue_fomod(
+                                0,
+                                path,
+                                modsync::archive::Options {
+                                    scratch_dir: (!self.scratch.is_empty())
+                                        .then(|| PathBuf::from(&self.scratch)),
+                                    max_expanded_bytes,
+                                },
+                                false,
+                            );
                         }
                         Err(_) => self
                             .logs
@@ -2062,6 +2414,11 @@ impl App {
             fomod_choices: String::new(),
             fomod_archive: String::new(),
             fomod_editor: Default::default(),
+            fomod_queue: Default::default(),
+            fomod_owner: None,
+            fomod_active: None,
+            fomod_failure: None,
+            peer_view: Default::default(),
             expanded_budget: String::new(),
             allow_processes: false,
             guide: None,
@@ -2069,6 +2426,7 @@ impl App {
             wizard: None,
             utility: false,
             input_stamp: String::new(),
+            guide_generation: 0,
             validation_input_stamp: None,
             validation_page: validation_page::State::default(),
             installing_page: installing_page::State::default(),
@@ -2132,6 +2490,7 @@ impl App {
     }
 
     fn reset_installation(&mut self) {
+        self.guide_generation = self.guide_generation.wrapping_add(1);
         self.completed_base = None;
         self.pending_base.clear();
         self.install_context = None;
@@ -2244,6 +2603,8 @@ impl App {
         if self.guide.is_some()
             && !self.mods.trim().is_empty()
             && self.receiver.is_none()
+            && !self.fomod_pending()
+            && !self.peer_view.saving
             && !self.pending_nxm.is_empty()
         {
             self.download_pending_nxm();
@@ -2253,7 +2614,7 @@ impl App {
     /// Dispatches the oldest queued nxm:// link through the shared path: re-resolved
     /// against the guide bound now, nxm_target, a single Peer-off plan, run and record.
     fn download_pending_nxm(&mut self) {
-        if self.receiver.is_some() {
+        if self.receiver.is_some() || self.fomod_pending() || self.peer_view.saving {
             return;
         }
         let Some(raw) = self.pending_nxm.pop_front() else {
@@ -2456,6 +2817,7 @@ impl App {
         if activate {
             // Persist activation before changing the displayed install state.
             let profile = store.activate(&self.profile_name)?;
+            self.guide_generation = self.guide_generation.wrapping_add(1);
             let mut guide = guide.clone();
             profile.apply(&mut guide);
             if let Some(game) = profile.kotor_directory.filter(|p| !p.is_empty()) {
@@ -2771,6 +3133,11 @@ impl App {
     }
 
     fn start(&mut self, job: Job, ctx: &egui::Context) {
+        if self.receiver.is_some() || self.fomod_pending() {
+            self.logs
+                .push("Wait for the current operation and FOMOD choices to finish.".into());
+            return;
+        }
         // Every Restore entry point uses a failed install's captured roots while
         // one is pending. Live-path restore is only for other recovery.
         if job == Job::Restore && self.installing_page.restore_target().is_some() {
@@ -3384,26 +3751,10 @@ impl eframe::App for App {
         if self.logs.len() > 5000 {
             self.logs.drain(..self.logs.len() - 5000);
         }
-        if let Some(outcome) = self.fomod_editor.show(ctx) {
-            match outcome {
-                crate::fomod_ui::Outcome::Choices(choices) => {
-                    if let Err(error) = self.apply_fomod_choices(&choices) {
-                        self.logs.push(format!("FOMOD choices: {error:#}"));
-                    }
-                }
-                crate::fomod_ui::Outcome::Dismissed(filename) => {
-                    if let Some(guide) = &mut self.guide {
-                        modsync::fomod::set_prompt_status_remaining(
-                            guide,
-                            &filename,
-                            modsync::fomod::PromptStatus::Dismissed,
-                            self.completed_base.as_deref().unwrap_or_default(),
-                        );
-                    }
-                    self.logs
-                        .push(format!("FOMOD configuration dismissed for {filename}."));
-                }
-            }
+        self.refresh_peer_presentation();
+        self.show_fomod(ctx);
+        if self.peer_view.receiver.is_some() {
+            ctx.request_repaint_after(Duration::from_millis(100));
         }
         let busy = self.receiver.is_some();
         if busy {
@@ -3467,7 +3818,7 @@ impl eframe::App for App {
                 .frame(
                     egui::Frame::default()
                         .fill(ctx.style().visuals.panel_fill)
-                        .inner_margin(egui::Margin::symmetric(24, 16)),
+                        .inner_margin(egui::Margin::symmetric(12, 4)),
                 )
                 .show(ctx, |ui| {
                     ui.horizontal(|ui| {
@@ -3545,7 +3896,12 @@ impl eframe::App for App {
         if !validation_visible {
             egui::TopBottomPanel::bottom("activity")
                 .resizable(true)
-                .default_height(100.0)
+                .default_height(if ctx.screen_rect().height() < 600.0 {
+                    45.0
+                } else {
+                    100.0
+                })
+                .max_height(ctx.screen_rect().height() * 0.25)
                 .show(ctx, |ui| {
                     ui.horizontal(|ui| {
                         ui.strong("Activity");
@@ -3593,10 +3949,10 @@ impl eframe::App for App {
                 .frame(
                     egui::Frame::default()
                         .fill(ctx.style().visuals.panel_fill)
-                        .inner_margin(egui::Margin::symmetric(24, 16)),
+                        .inner_margin(egui::Margin::symmetric(12, 4)),
                 )
                 .show(ctx, |ui| self.wizard_footer(ui, ctx));
-            if self.downloads_visible() {
+            if self.downloads_visible() && ctx.screen_rect().width() >= 900.0 {
                 egui::SidePanel::right("wizard_downloads")
                     .exact_width(320.0)
                     .resizable(false)
@@ -3606,7 +3962,7 @@ impl eframe::App for App {
             }
         }
         egui::CentralPanel::default().frame(egui::Frame::default().fill(ctx.style().visuals.panel_fill).inner_margin(16)).show(ctx, |ui| {
-            if validation_visible && ui.available_height() > 420.0 && ui.available_width() > 500.0 {
+            if validation_visible && ctx.screen_rect().width() >= 900.0 && ui.available_height() > 420.0 && ui.available_width() > 500.0 {
                 self.validation_content(ui, ctx);
                 return;
             }
@@ -3627,6 +3983,12 @@ impl eframe::App for App {
                         ui.collapsing("Download tools", |ui| self.downloads_content(ui, ctx));
                     } else { ui.add_enabled_ui(!busy, |ui| self.surface(ui, ctx, self.page)); }
                     } else {
+                        if self.downloads_visible() && ctx.screen_rect().width() < 900.0 {
+                            egui::CollapsingHeader::new("Downloads and peer settings")
+                                .default_open(true)
+                                .show(ui, |ui| self.downloads_content(ui, ctx));
+                            ui.separator();
+                        }
                         self.wizard_content(ui, ctx);
                     }
                 });

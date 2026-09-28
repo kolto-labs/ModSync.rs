@@ -12,6 +12,23 @@ resume_focus: "Finish review/merge of downloads GUI step 1 (PR #5), then downloa
 
 # Entry point
 
+## Subsequent continuation: downloads GUI step 2
+
+PR #5 was merged as `d438528`; its Stop-during-planning correction is on main.
+The docs-only audit merge `1d92ba4` was incorporated without altering product source.
+The bounded downloads GUI step 2 is now implemented and accepted: preserving peer
+settings/disclosure, serial context-bound FOMOD questions, explicit error retry or
+dismissal, readiness guards, and responsive navigation. Independent review and
+exact final source hashes are in [the review](../parity/downloads-gui-step2-review.md).
+All five production gates and 46/46 native assertions across five isolated Linux
+aarch64 scenarios pass; 53 frozen files/regions are unchanged. The
+[evidence README](../parity/downloads-gui-step2/README.md) and controller index retain
+the proof boundaries and remaining cases. No Rust tests or custom Rust harnesses ran.
+
+Next is the remaining downloads step-3 native matrix, then `persistent-sharing-plan.md`.
+Full parity remains incomplete. The original in-flight snapshot and map below are
+historical; do not restart step 1 or step 2 from their older status descriptions.
+
 Read [the previous handoff](rust-parity-cloud.md) first. Its constraints still hold:
 - No Rust tests or temporary harnesses until full parity. Production gates and
   isolated fixtures only.

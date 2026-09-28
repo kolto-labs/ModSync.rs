@@ -1,0 +1,1249 @@
+{
+  "identity": {
+    "binary": "/root/modsync-downloads-step2-20260928/target/modsync-desktop-candidate",
+    "binary_sha256": "70fe6d1105d393d29c007b9bfe46d7ed4fbeab038764455f775f749845a6295c",
+    "probe_sha256": "1209b1ebc5fb8374014a2984da23d729751587dde40014b442d2886c5a25524d",
+    "source": {
+      "src/acquisition.rs": "92a13616b529eb58b10b887481b0977b36fff82ec915646e1882c5dcf51abb6f",
+      "src/archive.rs": "51dccfef9ea640067483ae92aba1a2bc5ec808ab26b966c800ffa9efec1b9763",
+      "src/archive_generation/merge.rs": "be352a71eb5cc125148bfbd27275248c89f45af28f0a9d04910a9714a3487a1e",
+      "src/archive_generation.rs": "ca62b3c22e105108168c83b076b8c7d3fc64d1113373f47c9cf0cffd8f52660f",
+      "src/conflicts.rs": "c6f5dff2d21d2e4151cb53d3656e5b892e9d59e1f337ce9deaeba4671447d9a6",
+      "src/deployment.rs": "fab3726d33ebbac72878322856f3c70fe106a4ae29a8a70501b36c73280b339e",
+      "src/direct_markdown.rs": "70bf715188348e1700936adad2c304156846bd20b3fb3896f070983fb5b00521",
+      "src/download.rs": "effcc722ca140b1c7ba2d3693ce909934398400078b4622458d2de99f2074ced",
+      "src/download_hosts.rs": "2f6197607eaeb07e8eeaeb5050778701da31e9e6abd9891b60b204b94a4cee70",
+      "src/download_orchestrator.rs": "4298c77d1f0346075508c2d3cbafcf5919efc31775835a560c074ac9948cb811",
+      "src/download_plan.rs": "52edd1844819e65bef31c11d4c065123810da98310b1bed75405695e73222ff0",
+      "src/download_queue.rs": "3f91eefa75b26aa46153b1e9948bbb05237180af89fe79fec923d3f04eeb8467",
+      "src/draft.rs": "86525e213956a05155b3b9c7353935ad1cb9202f7980bce5454dfddc39ba1703",
+      "src/editor.rs": "a769237d78447abe2185ff23e78b3776ae7b701784bec7df7a915f04b7fd4a9d",
+      "src/engine.rs": "ead136850ec8729e463d79f32d6ee13bf4be3f9fcf6160ce47f1cb9216de816e",
+      "src/fomod/xml.rs": "7e087c643dd6d24e144b4cdd277e58d512694a991feca17d05912e9d145d8daf",
+      "src/fomod.rs": "6411c24801943357e2c8db1f96b3c7a30c68f80c611ce5588130b5b68ed02beb",
+      "src/fomod_cli.rs": "f5bcc513e952d86773a487eced9aa25a5a7a76ab700c4b5d2072691884c06cd8",
+      "src/fomod_ui.rs": "2e8c88e60e40471fda69a3971a333840b9b43d1ac37f918159be9470dc8988c2",
+      "src/game.rs": "7074ba4dd69436bae90a86f019496a7d4434900a55979e7d193173b4b850ae0e",
+      "src/install_progress.rs": "415720600e897cf79c11e8f5c784fe17da06831f01d243522e31413b3a79f163",
+      "src/lib.rs": "5249e749c8392537f60c0603a697b2eb46f4713764c7fe5fa7a7a14dd29e28c5",
+      "src/logging.rs": "58542a9bfd7b3fbbb90f137e31917d2369b5ded812cf269e4ecfaaf1446bef96",
+      "src/main.rs": "10b7a3d19714628e3cec85b33737e4e251dee6e642447f35e387a57177ab8012",
+      "src/markdown/extract.rs": "148e999ab50fe36aeda8c34c276e6a3e9ea23513ac46542b17ce4f0a07547614",
+      "src/markdown.rs": "6f8dd4ba1d144b5a87b2b950bab6c96b367a300b073e549c05ad2b944d86af97",
+      "src/merge.rs": "9274989f4b9978b58ac06204a77ce92b36bbc3e4c15f494b68110b38262f719d",
+      "src/model.rs": "b54f38f1b2c5103a9b92e855e4ed6edee7e1aba558717c7a4939930a37579354",
+      "src/p2p.rs": "b2c3f7a2029a9173529a7603cc48200a7050755814d75bccd6e2c0ef857a78d5",
+      "src/patcher.rs": "50ebe6ff192e6137facecfd22fbd05d02e985af716a31bde5e7f098a34f2b1a1",
+      "src/paths.rs": "a5c719d40ec7c14770ec4d4a0f367a27fdd0d316db20bf3da25f32a8b09231c3",
+      "src/peer_acquire.rs": "5273cc7d89092a1481b77294c5f57629bc377822f018a8655b3d31d74022d8fc",
+      "src/phase.rs": "de3a6a526898c42fc8dad9a48565d7943c20012a6e9cb8d9df176132a4d905a3",
+      "src/profile_cli.rs": "4f60ec7a28e133b2cf2f4b273964768956369fe34e08490964b03e22bd534e18",
+      "src/profiles.rs": "e0824e2782b1ceca635d5f1c4c75ff2aec6036cebe3767f05a09bda80079f263",
+      "src/protocol.rs": "13877fc8bb295fb8787e3a9e11bcbca9d998cf7b7dd8209cda5f5144511f0faf",
+      "src/protocol_registration.rs": "3a240dffb690af41379a07e372889979ee2b40aa75b21b2a7ba2071db6c1bf9c",
+      "src/recovery.rs": "48407a4e8216ae5497106bc58219a75d0e7403015b1c57a2b1c51d9e508ee00b",
+      "src/reference_paths.rs": "1666e78a9c8ca8114d9673c4878854cf8f4e831a7e2ce928b4e9c44cb58abb2e",
+      "src/resources.rs": "678adda2640a7f8abb61319c311f44956d51a19a654a8546aaf4ca8689501433",
+      "src/selection.rs": "777cef0bde01e91df76fd5c498c44ce31d4018ed59dbf2bb800761f64d1fede2",
+      "src/single_instance.rs": "fc52211eac20d32e034f541c91058bbbb406fb26a43b4d9e2f085bb8f108e34f",
+      "src/telemetry.rs": "01283b3865d572eeda7b5de5901dc0f209193e5d5bd8185972be21eb44355ece",
+      "src/ui/completion_pages.rs": "7e122bc441ea74bf8bf5e48d9cb1a6cde68a0817e0c926c0179bc8646d4e608b",
+      "src/ui/downloads_panel.rs": "13a1e98f92511c1abf2b9d83c6606715c107e396dac76fa3b44109ad76eab94f",
+      "src/ui/installing_page.rs": "51af2238e2d6d4a52f0e787dd656e30a5356408d227797237b3ceafd2c2279dd",
+      "src/ui/validation_page.rs": "6506318221fbaa673706c92da5d58119f064c739d85af79a06ca4a32dadc890e",
+      "src/ui.rs": "e8e6c5a1895dabeeadafd429928d9c4a2077655c619c8a53d66f2d20aa241e87",
+      "src/updates.rs": "7e0dff211af1f430315369101ae4bd30fb7a5ad359f6eb6ab414651a084e40c9",
+      "src/validation/presentation.rs": "3d28c2acbf3883178bf287a4c452aa61974284dfde449957526cdff7a6cfd034",
+      "src/validation.rs": "86123bc263f4c42dfb225ddb2ba2fa66e9f63624258f77d30dc10bb63cad15b0",
+      "src/wizard.rs": "fb8fd6ebc6dd3a62609d0fee178a5b1a11006b49112e099566e173fdc9dbecd7",
+      "src/xml.rs": "d15737f2909f85a969c098843e93fd57b607b84228c46018c8e12aaa7f6e4000",
+      "Cargo.toml": "6ee6aadcb17656ced1493d3b6fdd7dc09269f1c9235e07bb1811cd1400ae50f1",
+      "Cargo.lock": "9fa1a428475faee574c48b9f1f287a6eb9c34e7fb589235b1ad7d811c43853e5"
+    },
+    "namespaces": {
+      "parent_network": "net:[4026531833]",
+      "network": "net:[4026537890]",
+      "user": "user:[4026537888]"
+    },
+    "uname": "Linux beatapostapita.bolabaden.org 6.17.0-1018-oracle #18~24.04.1-Ubuntu SMP Mon Jun 22 18:23:57 UTC 2026 aarch64 aarch64 aarch64 GNU/Linux"
+  },
+  "completed": true,
+  "scenarios": [
+    "serial"
+  ],
+  "checks": [
+    {
+      "name": "opening_peer_controls_preserves_authored_low_cap_and_all_keys",
+      "actual": "5ed8b65cdf88bc406485f56dbd98f1101be2c8c7a0c01e149d8cde1789ee8479",
+      "expected": "5ed8b65cdf88bc406485f56dbd98f1101be2c8c7a0c01e149d8cde1789ee8479",
+      "passed": true
+    },
+    {
+      "name": "peer_mode_key_preserved",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "all_case_variants_mode_off",
+      "actual": [
+        "off"
+      ],
+      "expected": [
+        "off"
+      ],
+      "passed": true
+    },
+    {
+      "name": "unchanged_fixtureUnknownKey",
+      "actual": {
+        "nested": [
+          1,
+          "preserve"
+        ]
+      },
+      "expected": {
+        "nested": [
+          1,
+          "preserve"
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "unchanged_nexusModsApiKey",
+      "actual": "synthetic-preserved-secret",
+      "expected": "synthetic-preserved-secret",
+      "passed": true
+    },
+    {
+      "name": "unchanged_peerUploadKiBps",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "unchanged_peerSharing",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "unchanged_PeerSharing",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "sharing_off_removes_case_override",
+      "actual": {
+        "peerSharing": false
+      },
+      "expected": {
+        "peerSharing": false
+      },
+      "passed": true
+    },
+    {
+      "name": "sharing_off_preserves_secret",
+      "actual": "synthetic-preserved-secret",
+      "expected": "synthetic-preserved-secret",
+      "passed": true
+    },
+    {
+      "name": "sharing_off_preserves_unknown",
+      "actual": {
+        "nested": [
+          1,
+          "preserve"
+        ]
+      },
+      "expected": {
+        "nested": [
+          1,
+          "preserve"
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "restart_settings_unchanged",
+      "actual": "8fdbbcfd1e82b295b15c2a80fea96910c0b935608be6f4784fa854db7d3f8ca9",
+      "expected": "8fdbbcfd1e82b295b15c2a80fea96910c0b935608be6f4784fa854db7d3f8ca9",
+      "passed": true
+    },
+    {
+      "name": "first_editor_only",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "unresolved_editor_blocks_validation",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "both_archives_downloaded",
+      "actual": [
+        "one.zip",
+        "two.zip"
+      ],
+      "expected": [
+        "one.zip",
+        "two.zip"
+      ],
+      "passed": true
+    },
+    {
+      "name": "archive_bytes_one.zip",
+      "actual": "3b34cdc7ae8d79248ed12e83b9db7205c960076b92ba53031dc83a4b278e2f8c",
+      "expected": "3b34cdc7ae8d79248ed12e83b9db7205c960076b92ba53031dc83a4b278e2f8c",
+      "passed": true
+    },
+    {
+      "name": "archive_bytes_two.zip",
+      "actual": "3d1297ffbcb2db0e1bb9b70a3c3f59bff018cfab1cf7d7a1652c973ba3aab63c",
+      "expected": "3d1297ffbcb2db0e1bb9b70a3c3f59bff018cfab1cf7d7a1652c973ba3aab63c",
+      "passed": true
+    },
+    {
+      "name": "second_editor_no_first",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "no_repaint_relaunch",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "cannot_advance_before_fresh_validation",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "resolved_queue_allows_real_validation",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "failed_validation_cannot_advance",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "small_window_back_reaches_downloads",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "small_window_navigation_returns_to_validation",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "game_unchanged_acquisition_and_choices",
+      "actual": {
+        "override/original.txt": "60624fbaf6192999be32cdb5a22da7878d40b83636498cef75f59cb5348c3f54",
+        "swkotor.exe": "35fa3166b6e751a4a1710872e4297882fa69f862dc3cf22c5e30b1f56e5ae303"
+      },
+      "expected": {
+        "override/original.txt": "60624fbaf6192999be32cdb5a22da7878d40b83636498cef75f59cb5348c3f54",
+        "swkotor.exe": "35fa3166b6e751a4a1710872e4297882fa69f862dc3cf22c5e30b1f56e5ae303"
+      },
+      "passed": true
+    },
+    {
+      "name": "guide_not_autosaved",
+      "actual": "047f08354d24b3a4ecedc6c639c258ab6d54a9f73753639cbd86bd2d706a8406",
+      "expected": "047f08354d24b3a4ecedc6c639c258ab6d54a9f73753639cbd86bd2d706a8406",
+      "passed": true
+    },
+    {
+      "name": "no_install_receipts",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    }
+  ],
+  "events": [
+    {
+      "t": 0.11,
+      "kind": "identity",
+      "binary": "/root/modsync-downloads-step2-20260928/target/modsync-desktop-candidate",
+      "binary_sha256": "70fe6d1105d393d29c007b9bfe46d7ed4fbeab038764455f775f749845a6295c",
+      "probe_sha256": "1209b1ebc5fb8374014a2984da23d729751587dde40014b442d2886c5a25524d",
+      "source": {
+        "src/acquisition.rs": "92a13616b529eb58b10b887481b0977b36fff82ec915646e1882c5dcf51abb6f",
+        "src/archive.rs": "51dccfef9ea640067483ae92aba1a2bc5ec808ab26b966c800ffa9efec1b9763",
+        "src/archive_generation/merge.rs": "be352a71eb5cc125148bfbd27275248c89f45af28f0a9d04910a9714a3487a1e",
+        "src/archive_generation.rs": "ca62b3c22e105108168c83b076b8c7d3fc64d1113373f47c9cf0cffd8f52660f",
+        "src/conflicts.rs": "c6f5dff2d21d2e4151cb53d3656e5b892e9d59e1f337ce9deaeba4671447d9a6",
+        "src/deployment.rs": "fab3726d33ebbac72878322856f3c70fe106a4ae29a8a70501b36c73280b339e",
+        "src/direct_markdown.rs": "70bf715188348e1700936adad2c304156846bd20b3fb3896f070983fb5b00521",
+        "src/download.rs": "effcc722ca140b1c7ba2d3693ce909934398400078b4622458d2de99f2074ced",
+        "src/download_hosts.rs": "2f6197607eaeb07e8eeaeb5050778701da31e9e6abd9891b60b204b94a4cee70",
+        "src/download_orchestrator.rs": "4298c77d1f0346075508c2d3cbafcf5919efc31775835a560c074ac9948cb811",
+        "src/download_plan.rs": "52edd1844819e65bef31c11d4c065123810da98310b1bed75405695e73222ff0",
+        "src/download_queue.rs": "3f91eefa75b26aa46153b1e9948bbb05237180af89fe79fec923d3f04eeb8467",
+        "src/draft.rs": "86525e213956a05155b3b9c7353935ad1cb9202f7980bce5454dfddc39ba1703",
+        "src/editor.rs": "a769237d78447abe2185ff23e78b3776ae7b701784bec7df7a915f04b7fd4a9d",
+        "src/engine.rs": "ead136850ec8729e463d79f32d6ee13bf4be3f9fcf6160ce47f1cb9216de816e",
+        "src/fomod/xml.rs": "7e087c643dd6d24e144b4cdd277e58d512694a991feca17d05912e9d145d8daf",
+        "src/fomod.rs": "6411c24801943357e2c8db1f96b3c7a30c68f80c611ce5588130b5b68ed02beb",
+        "src/fomod_cli.rs": "f5bcc513e952d86773a487eced9aa25a5a7a76ab700c4b5d2072691884c06cd8",
+        "src/fomod_ui.rs": "2e8c88e60e40471fda69a3971a333840b9b43d1ac37f918159be9470dc8988c2",
+        "src/game.rs": "7074ba4dd69436bae90a86f019496a7d4434900a55979e7d193173b4b850ae0e",
+        "src/install_progress.rs": "415720600e897cf79c11e8f5c784fe17da06831f01d243522e31413b3a79f163",
+        "src/lib.rs": "5249e749c8392537f60c0603a697b2eb46f4713764c7fe5fa7a7a14dd29e28c5",
+        "src/logging.rs": "58542a9bfd7b3fbbb90f137e31917d2369b5ded812cf269e4ecfaaf1446bef96",
+        "src/main.rs": "10b7a3d19714628e3cec85b33737e4e251dee6e642447f35e387a57177ab8012",
+        "src/markdown/extract.rs": "148e999ab50fe36aeda8c34c276e6a3e9ea23513ac46542b17ce4f0a07547614",
+        "src/markdown.rs": "6f8dd4ba1d144b5a87b2b950bab6c96b367a300b073e549c05ad2b944d86af97",
+        "src/merge.rs": "9274989f4b9978b58ac06204a77ce92b36bbc3e4c15f494b68110b38262f719d",
+        "src/model.rs": "b54f38f1b2c5103a9b92e855e4ed6edee7e1aba558717c7a4939930a37579354",
+        "src/p2p.rs": "b2c3f7a2029a9173529a7603cc48200a7050755814d75bccd6e2c0ef857a78d5",
+        "src/patcher.rs": "50ebe6ff192e6137facecfd22fbd05d02e985af716a31bde5e7f098a34f2b1a1",
+        "src/paths.rs": "a5c719d40ec7c14770ec4d4a0f367a27fdd0d316db20bf3da25f32a8b09231c3",
+        "src/peer_acquire.rs": "5273cc7d89092a1481b77294c5f57629bc377822f018a8655b3d31d74022d8fc",
+        "src/phase.rs": "de3a6a526898c42fc8dad9a48565d7943c20012a6e9cb8d9df176132a4d905a3",
+        "src/profile_cli.rs": "4f60ec7a28e133b2cf2f4b273964768956369fe34e08490964b03e22bd534e18",
+        "src/profiles.rs": "e0824e2782b1ceca635d5f1c4c75ff2aec6036cebe3767f05a09bda80079f263",
+        "src/protocol.rs": "13877fc8bb295fb8787e3a9e11bcbca9d998cf7b7dd8209cda5f5144511f0faf",
+        "src/protocol_registration.rs": "3a240dffb690af41379a07e372889979ee2b40aa75b21b2a7ba2071db6c1bf9c",
+        "src/recovery.rs": "48407a4e8216ae5497106bc58219a75d0e7403015b1c57a2b1c51d9e508ee00b",
+        "src/reference_paths.rs": "1666e78a9c8ca8114d9673c4878854cf8f4e831a7e2ce928b4e9c44cb58abb2e",
+        "src/resources.rs": "678adda2640a7f8abb61319c311f44956d51a19a654a8546aaf4ca8689501433",
+        "src/selection.rs": "777cef0bde01e91df76fd5c498c44ce31d4018ed59dbf2bb800761f64d1fede2",
+        "src/single_instance.rs": "fc52211eac20d32e034f541c91058bbbb406fb26a43b4d9e2f085bb8f108e34f",
+        "src/telemetry.rs": "01283b3865d572eeda7b5de5901dc0f209193e5d5bd8185972be21eb44355ece",
+        "src/ui/completion_pages.rs": "7e122bc441ea74bf8bf5e48d9cb1a6cde68a0817e0c926c0179bc8646d4e608b",
+        "src/ui/downloads_panel.rs": "13a1e98f92511c1abf2b9d83c6606715c107e396dac76fa3b44109ad76eab94f",
+        "src/ui/installing_page.rs": "51af2238e2d6d4a52f0e787dd656e30a5356408d227797237b3ceafd2c2279dd",
+        "src/ui/validation_page.rs": "6506318221fbaa673706c92da5d58119f064c739d85af79a06ca4a32dadc890e",
+        "src/ui.rs": "e8e6c5a1895dabeeadafd429928d9c4a2077655c619c8a53d66f2d20aa241e87",
+        "src/updates.rs": "7e0dff211af1f430315369101ae4bd30fb7a5ad359f6eb6ab414651a084e40c9",
+        "src/validation/presentation.rs": "3d28c2acbf3883178bf287a4c452aa61974284dfde449957526cdff7a6cfd034",
+        "src/validation.rs": "86123bc263f4c42dfb225ddb2ba2fa66e9f63624258f77d30dc10bb63cad15b0",
+        "src/wizard.rs": "fb8fd6ebc6dd3a62609d0fee178a5b1a11006b49112e099566e173fdc9dbecd7",
+        "src/xml.rs": "d15737f2909f85a969c098843e93fd57b607b84228c46018c8e12aaa7f6e4000",
+        "Cargo.toml": "6ee6aadcb17656ced1493d3b6fdd7dc09269f1c9235e07bb1811cd1400ae50f1",
+        "Cargo.lock": "9fa1a428475faee574c48b9f1f287a6eb9c34e7fb589235b1ad7d811c43853e5"
+      },
+      "namespaces": {
+        "parent_network": "net:[4026531833]",
+        "network": "net:[4026537890]",
+        "user": "user:[4026537888]"
+      },
+      "uname": "Linux beatapostapita.bolabaden.org 6.17.0-1018-oracle #18~24.04.1-Ubuntu SMP Mon Jun 22 18:23:57 UTC 2026 aarch64 aarch64 aarch64 GNU/Linux"
+    },
+    {
+      "t": 2.98,
+      "kind": "observed",
+      "name": "private X server accepts connections"
+    },
+    {
+      "t": 3.009,
+      "kind": "launch",
+      "argv": [
+        "/root/modsync-downloads-step2-20260928/target/modsync-desktop-candidate",
+        "gui",
+        "--settings-dir",
+        "/tmp/modsync-step2-k1i0vc6t/serial/settings",
+        "--input",
+        "/tmp/modsync-step2-k1i0vc6t/serial/guide.json",
+        "--source-dir",
+        "/tmp/modsync-step2-k1i0vc6t/serial/mods",
+        "--game-dir",
+        "/tmp/modsync-step2-k1i0vc6t/serial/game",
+        "--extra-ca-file",
+        "/tmp/modsync-step2-k1i0vc6t/ca.pem"
+      ]
+    },
+    {
+      "t": 8.48,
+      "kind": "screen",
+      "file": "screenshots/0003-before-next-to-downloads-0.png",
+      "sha256": "d9421e36d03f39c3e36ff027e2ba0d1f97f85453124023d62d25706623f155b3",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard K1 * K2 Welcome Step 1 of 10 Welcome to the ModSync Installation Wizard Welcome to ModSync The complete multi-mod installation solution for Knights of the Old Republic \u00a9 Automatic Dependencies O Cross-Platform \u00a9 One-Click Install The Problem The Solution Installing multiple KOTOR mods is tedious and error-prone: ModSync automates installation for you: * Manual file copying and deletion * Select mods you want, click Install * Complex install order requirements * Automatic dependency resolution * One mistake = start over from scratch * Smart install order management * Hours spent clicking through installers *No manual file operations needed * Confusing compatibility instructions * Built-in compatibility checking Installation Process 1. Configure Directories Point to your KOTOR installation and mod workspace folder 2. Load Instruction File Choose a curated mod build from popular configurations 3. Select Your Mods Browse by category or tier \u2014 dependencies auto-select 4. Download Mod Archives Select Fetch Downloads to acquire missing archives From direct and supported hosts. Hosts that need a login, CAPTCHA or wait stay manual in your browser. 5. Validation & Install Verify everything is ready, then install automatically Key Features Smart Dependencies Pre-Install Validation Resolves and installs required mods in the correct order Catches compatibility issues before installation starts Checkpoint System Cross-Platform Back Next Activity Copyreport Save report... Loaded 2 components"
+    },
+    {
+      "t": 8.588,
+      "kind": "click",
+      "action": "Next to downloads 0",
+      "label": "Next",
+      "position": [
+        1218,
+        740
+      ],
+      "calibrated": false
+    },
+    {
+      "t": 10.884,
+      "kind": "screen",
+      "file": "screenshots/0005-before-next-to-downloads-1.png",
+      "sha256": "872c4feea4a7f80b90fbf37c48e412c182b4dac5f2d0660d128abbce1553b7ac",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard K1 * K2 Step 2 of 10 Mod Workspace Directory Choose where mod archives are downloaded and processed Choose an existing workspace for downloaded archives and processed mod files. Keep it separate from your game installation. Mod workspace /tmp/modsync-step2-k1i0vc6t/serial/mods Browse... Directory exists Back Activity Copyreport Save report... Loaded 2 components"
+    },
+    {
+      "t": 11.02,
+      "kind": "click",
+      "action": "Next to downloads 1",
+      "label": "Next",
+      "position": [
+        1218,
+        740
+      ],
+      "calibrated": true
+    },
+    {
+      "t": 13.431,
+      "kind": "screen",
+      "file": "screenshots/0007-before-next-to-downloads-2.png",
+      "sha256": "89db03b5d625ab4b018e5bd4cae20a1c864ae9624b812e5d6868e2c272f9fee7",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard K1 * K2 Step 3 of 10 KOTOR Game Directory Point to your KOTOR installation folder Choose the folder containing your supported PC KOTOR installation Game directory /tmp/modsync-step2-k1i0vc6t/serial/game Browse... Detected game: Kotor1 Back Activity Copyreport Save report... Loaded 2 components"
+    },
+    {
+      "t": 13.578,
+      "kind": "click",
+      "action": "Next to downloads 2",
+      "label": "Next",
+      "position": [
+        1218,
+        740
+      ],
+      "calibrated": true
+    },
+    {
+      "t": 17.971,
+      "kind": "screen",
+      "file": "screenshots/0009-before-next-to-downloads-3.png",
+      "sha256": "45da92e454bdbffe3b5a285c2eb9dd8f90bb8b45529c422ff3ce102468367089",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard * Ki K2 Mod Selection Step 4 of 10 Choose the mods you want to install Check Nexus updates Select all Deselect all Search displayed name or description Clear filters Spoiler-free names and descriptions NA All tiers Select through tier All categories \u00a5 Select category Base build: 2 of 2 mods selected \u2014 All mods selected For installation Required: 0 Optional: 2 Base build: Showing all 2 mods Select multiple categories... Expand all Deselect group 2/2 selected > Other (2 mods) Example Component 0 Download links https://127.0.0.1:35691/one.zip 1 install steps Back Activity Copyreport Save report... Loaded 2 components"
+    },
+    {
+      "t": 18.115,
+      "kind": "click",
+      "action": "Next to downloads 3",
+      "label": "Next",
+      "position": [
+        1218,
+        740
+      ],
+      "calibrated": true
+    },
+    {
+      "t": 21.623,
+      "kind": "screen",
+      "file": "screenshots/0011-wait.png",
+      "sha256": "0ccdafda460ca767210c9c33a778cb8f02734f8487e4f0aa7120d7bc404a5f94",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard K1 * K2 Download Process Step 5 of 10 Fetch archives, then answer installer choices Downloads Download your mod files Peer sharing defaults to Race: Origin and Peer 2 base and 0 widescreen mods selected compete. Peer transfers use public proxies only and fail closed if no proxy works. Nothing downloads automatically. Select Fetch Downloads in the Downloads panel to acquire the missing archives of every selected mod into your workspace; archives already there are verified and kept. When enabled, discovery can fetch public proxy and Downloads continue while you read later pages, and the Downloads panel keeps their status. Changing the guide, selection or folders waits until downloads Finish. Run tracker lists. Sharing Off prevents peer discovery and validation after downloads Finish; installation still requires a Fresh validation. transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside the app. Refresh peer settings \u00bb Peer-sharing settings Peer: Fallback; upload cap 16 KiB/s. Fetch Downloads plans every selected mod's archives (base and widescreen), keeps verified archives already in the workspace and downloads the rest. Nothing starts until you select it. @ Fetch Downloads Open workspace No downloads started Direct archive download For provider pages, use the source links below and download in your browser. https://.../mod.zip Archive filename Expected SHA-256 (optional) Download archive \u00bb Selected mod sources Every archive is verified before it is kept. Progress shows measured bytes; a percentage appears only when the host reports a size. No downloads started Back Next Activity Copyreport Save report... Loaded 2 components"
+    },
+    {
+      "t": 25.666,
+      "kind": "screen",
+      "file": "screenshots/0012-before-peer-sharing-settings.png",
+      "sha256": "0ccdafda460ca767210c9c33a778cb8f02734f8487e4f0aa7120d7bc404a5f94",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard K1 * K2 Download Process Step 5 of 10 Fetch archives, then answer installer choices Downloads Download your mod files Peer sharing defaults to Race: Origin and Peer 2 base and 0 widescreen mods selected compete. Peer transfers use public proxies only and fail closed if no proxy works. Nothing downloads automatically. Select Fetch Downloads in the Downloads panel to acquire the missing archives of every selected mod into your workspace; archives already there are verified and kept. When enabled, discovery can fetch public proxy and Downloads continue while you read later pages, and the Downloads panel keeps their status. Changing the guide, selection or folders waits until downloads Finish. Run tracker lists. Sharing Off prevents peer discovery and validation after downloads Finish; installation still requires a Fresh validation. transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside the app. Refresh peer settings \u00bb Peer-sharing settings Peer: Fallback; upload cap 16 KiB/s. Fetch Downloads plans every selected mod's archives (base and widescreen), keeps verified archives already in the workspace and downloads the rest. Nothing starts until you select it. @ Fetch Downloads Open workspace No downloads started Direct archive download For provider pages, use the source links below and download in your browser. https://.../mod.zip Archive filename Expected SHA-256 (optional) Download archive \u00bb Selected mod sources Every archive is verified before it is kept. Progress shows measured bytes; a percentage appears only when the host reports a size. No downloads started Back Next Activity Copyreport Save report... Loaded 2 components"
+    },
+    {
+      "t": 25.775,
+      "kind": "click",
+      "action": "Peer-sharing settings",
+      "label": "Peer-sharing settings",
+      "position": [
+        1044,
+        318
+      ],
+      "calibrated": false
+    },
+    {
+      "t": 27.509,
+      "kind": "assertion",
+      "name": "opening_peer_controls_preserves_authored_low_cap_and_all_keys",
+      "actual": "5ed8b65cdf88bc406485f56dbd98f1101be2c8c7a0c01e149d8cde1789ee8479",
+      "expected": "5ed8b65cdf88bc406485f56dbd98f1101be2c8c7a0c01e149d8cde1789ee8479",
+      "passed": true
+    },
+    {
+      "t": 30.971,
+      "kind": "screen",
+      "file": "screenshots/0015-before-peer-mode-off.png",
+      "sha256": "63792382987fed2e48b4f0ed1d156fb82627528d0653c6d3bb4fc5a1c4326e71",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard * Ki K2 Download Process Step 5 of 10 Fetch archives, then answer installer choices Downloads Download your mod files Peer sharing defaults to Race: Origin and Peer 2 base and 0 widescreen mods selected compete. Peer transfers use public proxies only and fail closed if no proxy works. Nothing downloads automatically. Select Fetch Downloads in the Downloads panel to acquire the missing archives of every selected mod into your workspace; archives already there are verified and kept. When enabled, discovery can fetch public proxy and Downloads continue while you read later pages, and the Downloads panel keeps their status. Changing the guide, selection or folders waits until downloads Finish. Run tracker lists. Sharing Off prevents peer discovery and validation after downloads Finish; installation still requires a Fresh validation. transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside the app. Refresh peer settings Vv Peer-sharing settings v Sharing enabled Mode: Off Race @ Fallback Upload cap (KiB/s): 1 Effective mode: Fallback. Upload cap: 16 KiB/s (minimum 16). The saved keep-sharing preference does not start a persistent seeder; that lifecycle is not available yet. Peer: Fallback; upload cap 16 KiB/s. Fetch Downloads plans every selected mod's archives (base and widescreen), keeps verified archives already in the workspace and downloads the rest. Nothing starts until you select it. @ Fetch Downloads Open workspace No downloads started Direct archive download For provider pages, use the source links below and download in your browser. https://.../mod.zip Archive filename Cunackad CUA 206 fantianall No downloads started Back Next Activity Copyreport Save report... Loaded 2 components"
+    },
+    {
+      "t": 31.081,
+      "kind": "click",
+      "action": "Peer mode Off",
+      "label": "Off",
+      "position": [
+        1056,
+        359
+      ],
+      "calibrated": false
+    },
+    {
+      "t": 31.782,
+      "kind": "observed",
+      "name": "asynchronous peer settings save"
+    },
+    {
+      "t": 31.782,
+      "kind": "assertion",
+      "name": "peer_mode_key_preserved",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "t": 31.782,
+      "kind": "assertion",
+      "name": "all_case_variants_mode_off",
+      "actual": [
+        "off"
+      ],
+      "expected": [
+        "off"
+      ],
+      "passed": true
+    },
+    {
+      "t": 31.782,
+      "kind": "assertion",
+      "name": "unchanged_fixtureUnknownKey",
+      "actual": {
+        "nested": [
+          1,
+          "preserve"
+        ]
+      },
+      "expected": {
+        "nested": [
+          1,
+          "preserve"
+        ]
+      },
+      "passed": true
+    },
+    {
+      "t": 31.782,
+      "kind": "assertion",
+      "name": "unchanged_nexusModsApiKey",
+      "actual": "synthetic-preserved-secret",
+      "expected": "synthetic-preserved-secret",
+      "passed": true
+    },
+    {
+      "t": 31.782,
+      "kind": "assertion",
+      "name": "unchanged_peerUploadKiBps",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "t": 31.782,
+      "kind": "assertion",
+      "name": "unchanged_peerSharing",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "t": 31.782,
+      "kind": "assertion",
+      "name": "unchanged_PeerSharing",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "t": 34.947,
+      "kind": "screen",
+      "file": "screenshots/0025-before-switch-sharing-off.png",
+      "sha256": "d51c03a5de45038470f9f0c56e6456e27d2fb46c6f098882e887bd3eb7b18def",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard * Ki K2 Download Process Step 5 of 10 Fetch archives, then answer installer choices Downloads Download your mod files Peer sharing defaults to Race: Origin and Peer 2 base and 0 widescreen mods selected compete. Peer transfers use public proxies only and fail closed if no proxy works. Nothing downloads automatically. Select Fetch Downloads in the Downloads panel to acquire the missing archives of every selected mod into your workspace; archives already there are verified and kept. When enabled, discovery can fetch public proxy and Downloads continue while you read later pages, and the Downloads panel keeps their status. Changing the guide, selection or folders waits until downloads Finish. Run tracker lists. Sharing Off prevents peer discovery and validation after downloads Finish; installation still requires a Fresh validation. transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside the app. Refresh peer settings y Peer-sharing settings v Sharing enabled Race Fallback Mode: (@) Off Upload cap (KiB/s): 1 Effective mode: Off. Upload cap: 16 KiB/s (minimum 16). The saved keep-sharing preference does not start a persistent seeder; that lifecycle is not available yet. Peer: Off; upload cap 16 KiB/s. Fetch Downloads plans every selected mod's archives (base and widescreen), keeps verified archives already in the workspace and downloads the rest. Nothing starts until you select it. @ Fetch Downloads Open workspace No downloads started Direct archive download For provider pages, use the source links below and download in your browser. https://.../mod.zip Archive filename Cunackad CUA 206 fantianall No downloads started Back Next Activity Copyreport Save report... Loaded 2 components"
+    },
+    {
+      "t": 35.069,
+      "kind": "click",
+      "action": "Switch sharing Off",
+      "label": "Sharing enabled",
+      "position": [
+        1047,
+        339
+      ],
+      "calibrated": false
+    },
+    {
+      "t": 35.77,
+      "kind": "observed",
+      "name": "asynchronous sharing Off alias normalization"
+    },
+    {
+      "t": 35.77,
+      "kind": "assertion",
+      "name": "sharing_off_removes_case_override",
+      "actual": {
+        "peerSharing": false
+      },
+      "expected": {
+        "peerSharing": false
+      },
+      "passed": true
+    },
+    {
+      "t": 35.771,
+      "kind": "assertion",
+      "name": "sharing_off_preserves_secret",
+      "actual": "synthetic-preserved-secret",
+      "expected": "synthetic-preserved-secret",
+      "passed": true
+    },
+    {
+      "t": 35.771,
+      "kind": "assertion",
+      "name": "sharing_off_preserves_unknown",
+      "actual": {
+        "nested": [
+          1,
+          "preserve"
+        ]
+      },
+      "expected": {
+        "nested": [
+          1,
+          "preserve"
+        ]
+      },
+      "passed": true
+    },
+    {
+      "t": 35.985,
+      "kind": "close",
+      "exit": -15
+    },
+    {
+      "t": 36.002,
+      "kind": "observed",
+      "name": "private X server accepts connections"
+    },
+    {
+      "t": 36.003,
+      "kind": "launch",
+      "argv": [
+        "/root/modsync-downloads-step2-20260928/target/modsync-desktop-candidate",
+        "gui",
+        "--settings-dir",
+        "/tmp/modsync-step2-k1i0vc6t/serial/settings",
+        "--input",
+        "/tmp/modsync-step2-k1i0vc6t/serial/guide.json",
+        "--source-dir",
+        "/tmp/modsync-step2-k1i0vc6t/serial/mods",
+        "--game-dir",
+        "/tmp/modsync-step2-k1i0vc6t/serial/game",
+        "--extra-ca-file",
+        "/tmp/modsync-step2-k1i0vc6t/ca.pem"
+      ]
+    },
+    {
+      "t": 40.826,
+      "kind": "screen",
+      "file": "screenshots/0034-before-next-to-downloads-0.png",
+      "sha256": "d9421e36d03f39c3e36ff027e2ba0d1f97f85453124023d62d25706623f155b3",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard K1 * K2 Welcome Step 1 of 10 Welcome to the ModSync Installation Wizard Welcome to ModSync The complete multi-mod installation solution for Knights of the Old Republic \u00a9 Automatic Dependencies O Cross-Platform \u00a9 One-Click Install The Problem The Solution Installing multiple KOTOR mods is tedious and error-prone: ModSync automates installation for you: * Manual file copying and deletion * Select mods you want, click Install * Complex install order requirements * Automatic dependency resolution * One mistake = start over from scratch * Smart install order management * Hours spent clicking through installers *No manual file operations needed * Confusing compatibility instructions * Built-in compatibility checking Installation Process 1. Configure Directories Point to your KOTOR installation and mod workspace folder 2. Load Instruction File Choose a curated mod build from popular configurations 3. Select Your Mods Browse by category or tier \u2014 dependencies auto-select 4. Download Mod Archives Select Fetch Downloads to acquire missing archives From direct and supported hosts. Hosts that need a login, CAPTCHA or wait stay manual in your browser. 5. Validation & Install Verify everything is ready, then install automatically Key Features Smart Dependencies Pre-Install Validation Resolves and installs required mods in the correct order Catches compatibility issues before installation starts Checkpoint System Cross-Platform Back Next Activity Copyreport Save report... Loaded 2 components"
+    },
+    {
+      "t": 40.936,
+      "kind": "click",
+      "action": "Next to downloads 0",
+      "label": "Next",
+      "position": [
+        1218,
+        740
+      ],
+      "calibrated": false
+    },
+    {
+      "t": 43.048,
+      "kind": "screen",
+      "file": "screenshots/0036-before-next-to-downloads-1.png",
+      "sha256": "872c4feea4a7f80b90fbf37c48e412c182b4dac5f2d0660d128abbce1553b7ac",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard K1 * K2 Step 2 of 10 Mod Workspace Directory Choose where mod archives are downloaded and processed Choose an existing workspace for downloaded archives and processed mod files. Keep it separate from your game installation. Mod workspace /tmp/modsync-step2-k1i0vc6t/serial/mods Browse... Directory exists Back Activity Copyreport Save report... Loaded 2 components"
+    },
+    {
+      "t": 43.194,
+      "kind": "click",
+      "action": "Next to downloads 1",
+      "label": "Next",
+      "position": [
+        1218,
+        740
+      ],
+      "calibrated": true
+    },
+    {
+      "t": 44.969,
+      "kind": "screen",
+      "file": "screenshots/0038-before-next-to-downloads-2.png",
+      "sha256": "89db03b5d625ab4b018e5bd4cae20a1c864ae9624b812e5d6868e2c272f9fee7",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard K1 * K2 Step 3 of 10 KOTOR Game Directory Point to your KOTOR installation folder Choose the folder containing your supported PC KOTOR installation Game directory /tmp/modsync-step2-k1i0vc6t/serial/game Browse... Detected game: Kotor1 Back Activity Copyreport Save report... Loaded 2 components"
+    },
+    {
+      "t": 45.12,
+      "kind": "click",
+      "action": "Next to downloads 2",
+      "label": "Next",
+      "position": [
+        1218,
+        740
+      ],
+      "calibrated": true
+    },
+    {
+      "t": 48.924,
+      "kind": "screen",
+      "file": "screenshots/0040-before-next-to-downloads-3.png",
+      "sha256": "45da92e454bdbffe3b5a285c2eb9dd8f90bb8b45529c422ff3ce102468367089",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard * Ki K2 Mod Selection Step 4 of 10 Choose the mods you want to install Check Nexus updates Select all Deselect all Search displayed name or description Clear filters Spoiler-free names and descriptions NA All tiers Select through tier All categories \u00a5 Select category Base build: 2 of 2 mods selected \u2014 All mods selected For installation Required: 0 Optional: 2 Base build: Showing all 2 mods Select multiple categories... Expand all Deselect group 2/2 selected > Other (2 mods) Example Component 0 Download links https://127.0.0.1:35691/one.zip 1 install steps Back Activity Copyreport Save report... Loaded 2 components"
+    },
+    {
+      "t": 49.154,
+      "kind": "click",
+      "action": "Next to downloads 3",
+      "label": "Next",
+      "position": [
+        1218,
+        740
+      ],
+      "calibrated": true
+    },
+    {
+      "t": 53.809,
+      "kind": "screen",
+      "file": "screenshots/0042-wait.png",
+      "sha256": "e3dc7e6828651f527df727937e7a70a9fcfe31b225010e0e8b18c8b1113d77f3",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard K1 * K2 Download Process Step 5 of 10 Fetch archives, then answer installer choices Downloads Download your mod files Peer sharing defaults to Race: Origin and Peer 2 base and 0 widescreen mods selected compete. Peer transfers use public proxies only and fail closed if no proxy works. Nothing downloads automatically. Select Fetch Downloads in the Downloads panel to acquire the missing archives of every selected mod into your workspace; archives already there are verified and kept. When enabled, discovery can fetch public proxy and Downloads continue while you read later pages, and the Downloads panel keeps their status. Changing the guide, selection or folders waits until downloads Finish. Run tracker lists. Sharing Off prevents peer discovery and validation after downloads Finish; installation still requires a Fresh validation. transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside the app. Refresh peer settings \u00bb Peer-sharing settings Peer: Off; upload cap 16 KiB/s. Fetch Downloads plans every selected mod's archives (base and widescreen), keeps verified archives already in the workspace and downloads the rest. Nothing starts until you select it. @ Fetch Downloads Open workspace No downloads started Direct archive download For provider pages, use the source links below and download in your browser. https://.../mod.zip Archive filename Expected SHA-256 (optional) Download archive \u00bb Selected mod sources Every archive is verified before it is kept. Progress shows measured bytes; a percentage appears only when the host reports a size. No downloads started Back Next Activity Copyreport Save report... Loaded 2 components"
+    },
+    {
+      "t": 53.811,
+      "kind": "assertion",
+      "name": "restart_settings_unchanged",
+      "actual": "8fdbbcfd1e82b295b15c2a80fea96910c0b935608be6f4784fa854db7d3f8ca9",
+      "expected": "8fdbbcfd1e82b295b15c2a80fea96910c0b935608be6f4784fa854db7d3f8ca9",
+      "passed": true
+    },
+    {
+      "t": 57.02,
+      "kind": "screen",
+      "file": "screenshots/0044-settings-restart.png",
+      "sha256": "e3dc7e6828651f527df727937e7a70a9fcfe31b225010e0e8b18c8b1113d77f3",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard K1 * K2 Download Process Step 5 of 10 Fetch archives, then answer installer choices Downloads Download your mod files Peer sharing defaults to Race: Origin and Peer 2 base and 0 widescreen mods selected compete. Peer transfers use public proxies only and fail closed if no proxy works. Nothing downloads automatically. Select Fetch Downloads in the Downloads panel to acquire the missing archives of every selected mod into your workspace; archives already there are verified and kept. When enabled, discovery can fetch public proxy and Downloads continue while you read later pages, and the Downloads panel keeps their status. Changing the guide, selection or folders waits until downloads Finish. Run tracker lists. Sharing Off prevents peer discovery and validation after downloads Finish; installation still requires a Fresh validation. transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside the app. Refresh peer settings \u00bb Peer-sharing settings Peer: Off; upload cap 16 KiB/s. Fetch Downloads plans every selected mod's archives (base and widescreen), keeps verified archives already in the workspace and downloads the rest. Nothing starts until you select it. @ Fetch Downloads Open workspace No downloads started Direct archive download For provider pages, use the source links below and download in your browser. https://.../mod.zip Archive filename Expected SHA-256 (optional) Download archive \u00bb Selected mod sources Every archive is verified before it is kept. Progress shows measured bytes; a percentage appears only when the host reports a size. No downloads started Back Next Activity Copyreport Save report... Loaded 2 components"
+    },
+    {
+      "t": 60.78,
+      "kind": "screen",
+      "file": "screenshots/0045-before-navigate-to-validate-before-fetch.png",
+      "sha256": "e3dc7e6828651f527df727937e7a70a9fcfe31b225010e0e8b18c8b1113d77f3",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard K1 * K2 Download Process Step 5 of 10 Fetch archives, then answer installer choices Downloads Download your mod files Peer sharing defaults to Race: Origin and Peer 2 base and 0 widescreen mods selected compete. Peer transfers use public proxies only and fail closed if no proxy works. Nothing downloads automatically. Select Fetch Downloads in the Downloads panel to acquire the missing archives of every selected mod into your workspace; archives already there are verified and kept. When enabled, discovery can fetch public proxy and Downloads continue while you read later pages, and the Downloads panel keeps their status. Changing the guide, selection or folders waits until downloads Finish. Run tracker lists. Sharing Off prevents peer discovery and validation after downloads Finish; installation still requires a Fresh validation. transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside the app. Refresh peer settings \u00bb Peer-sharing settings Peer: Off; upload cap 16 KiB/s. Fetch Downloads plans every selected mod's archives (base and widescreen), keeps verified archives already in the workspace and downloads the rest. Nothing starts until you select it. @ Fetch Downloads Open workspace No downloads started Direct archive download For provider pages, use the source links below and download in your browser. https://.../mod.zip Archive filename Expected SHA-256 (optional) Download archive \u00bb Selected mod sources Every archive is verified before it is kept. Progress shows measured bytes; a percentage appears only when the host reports a size. No downloads started Back Next Activity Copyreport Save report... Loaded 2 components"
+    },
+    {
+      "t": 60.899,
+      "kind": "click",
+      "action": "Navigate to Validate before Fetch",
+      "label": "Next",
+      "position": [
+        1218,
+        740
+      ],
+      "calibrated": false
+    },
+    {
+      "t": 64.056,
+      "kind": "screen",
+      "file": "screenshots/0047-validation-before-fetch.png",
+      "sha256": "fd3d15510755252f54b4c967d1756858cebbef0c9c720e13b34686f9a53f1727",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard * Ki K2 Validation Step 6 of 10 Validating your mod selection and installation environment Downloads Peer sharing defaults to Race: Origin and Peer Q Pre-Installation Validation compete. Peer transfers use public proxies only and fail closed if no proxy works. We'll check For potential issues before starting the installation to ensure everything works smoothly. When enabled, discovery can fetch public proxy and tracker lists. Sharing Off prevents peer discovery and transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside | Q Run Validation the app. Refresh peer settings \u00bb Peer-sharing settings Peer: Off; upload cap 16 KiB/s. Fetch Downloads plans every selected mod's archives (base and widescreen), keeps verified archives already in the workspace and downloads the rest. Nothing starts until you select it. @ Fetch Downloads Open workspace No downloads started Direct archive download For provider pages, use the source links below and download in your browser. https://.../mod.zip Archive filename Expected SHA-256 (optional) Download archive \u00bb Selected mod sources Every archive is verified before it is kept. Progress ERRORS WARNINGS PASSED shows measured bytes; a percentage appears only Click \u2018Run Validation\u2019 to begin when the host reports a size. Ready to validate 2 of 2 mod(s). Click Run Validation to check your setup. 0 0 0 No downloads started Complete this page before continuing. Back Next"
+    },
+    {
+      "t": 64.056,
+      "kind": "calibration",
+      "control": "Run Validation",
+      "position": [
+        96,
+        280
+      ],
+      "source": "Visually inspected 1280x800 validation-before-fetch screenshot; later positive validation uses identical coordinates"
+    },
+    {
+      "t": 66.847,
+      "kind": "screen",
+      "file": "screenshots/0049-before-fetch-downloads.png",
+      "sha256": "fd3d15510755252f54b4c967d1756858cebbef0c9c720e13b34686f9a53f1727",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard * Ki K2 Validation Step 6 of 10 Validating your mod selection and installation environment Downloads Peer sharing defaults to Race: Origin and Peer Q Pre-Installation Validation compete. Peer transfers use public proxies only and fail closed if no proxy works. We'll check For potential issues before starting the installation to ensure everything works smoothly. When enabled, discovery can fetch public proxy and tracker lists. Sharing Off prevents peer discovery and transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside | Q Run Validation the app. Refresh peer settings \u00bb Peer-sharing settings Peer: Off; upload cap 16 KiB/s. Fetch Downloads plans every selected mod's archives (base and widescreen), keeps verified archives already in the workspace and downloads the rest. Nothing starts until you select it. @ Fetch Downloads Open workspace No downloads started Direct archive download For provider pages, use the source links below and download in your browser. https://.../mod.zip Archive filename Expected SHA-256 (optional) Download archive \u00bb Selected mod sources Every archive is verified before it is kept. Progress ERRORS WARNINGS PASSED shows measured bytes; a percentage appears only Click \u2018Run Validation\u2019 to begin when the host reports a size. Ready to validate 2 of 2 mod(s). Click Run Validation to check your setup. 0 0 0 No downloads started Complete this page before continuing. Back Next"
+    },
+    {
+      "t": 66.993,
+      "kind": "click",
+      "action": "Fetch Downloads",
+      "label": "Fetch Downloads",
+      "position": [
+        1035,
+        414
+      ],
+      "calibrated": false
+    },
+    {
+      "t": 69.071,
+      "kind": "screen",
+      "file": "screenshots/0051-wait.png",
+      "sha256": "4381db144e35e61490957ca38cdbdbc02964ae2755e7371bb248e8f269c78413",
+      "text": "Configure one.zip Example One Step 1 of 1 Choose Variant (SelectExactlyOne) v Alpha First variant Beta Second variant Back Use these choices Cancel"
+    },
+    {
+      "t": 70.319,
+      "kind": "screen",
+      "file": "screenshots/0052-first-editor.png",
+      "sha256": "601064fbbe5b9406f2d690a04637a9b3b9d0ca8e9674b655a59c28ff41c46064",
+      "text": "Configure one.zip Example One Step 1 of 1 Choose Variant (SelectExactlyOne) v Alpha First variant Beta Second variant Back Use these choices Cancel"
+    },
+    {
+      "t": 70.319,
+      "kind": "assertion",
+      "name": "first_editor_only",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "t": 70.427,
+      "kind": "click",
+      "action": "Attempt Run Validation with unresolved FOMOD",
+      "position": [
+        96,
+        280
+      ],
+      "calibrated_from": "validation-before-fetch screenshot"
+    },
+    {
+      "t": 72.517,
+      "kind": "screen",
+      "file": "screenshots/0055-validation-blocked-by-unresolved-editor.png",
+      "sha256": "601064fbbe5b9406f2d690a04637a9b3b9d0ca8e9674b655a59c28ff41c46064",
+      "text": "Configure one.zip Example One Step 1 of 1 Choose Variant (SelectExactlyOne) v Alpha First variant Beta Second variant Back Use these choices Cancel"
+    },
+    {
+      "t": 72.517,
+      "kind": "assertion",
+      "name": "unresolved_editor_blocks_validation",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "t": 72.517,
+      "kind": "assertion",
+      "name": "both_archives_downloaded",
+      "actual": [
+        "one.zip",
+        "two.zip"
+      ],
+      "expected": [
+        "one.zip",
+        "two.zip"
+      ],
+      "passed": true
+    },
+    {
+      "t": 72.517,
+      "kind": "assertion",
+      "name": "archive_bytes_one.zip",
+      "actual": "3b34cdc7ae8d79248ed12e83b9db7205c960076b92ba53031dc83a4b278e2f8c",
+      "expected": "3b34cdc7ae8d79248ed12e83b9db7205c960076b92ba53031dc83a4b278e2f8c",
+      "passed": true
+    },
+    {
+      "t": 72.517,
+      "kind": "assertion",
+      "name": "archive_bytes_two.zip",
+      "actual": "3d1297ffbcb2db0e1bb9b70a3c3f59bff018cfab1cf7d7a1652c973ba3aab63c",
+      "expected": "3d1297ffbcb2db0e1bb9b70a3c3f59bff018cfab1cf7d7a1652c973ba3aab63c",
+      "passed": true
+    },
+    {
+      "t": 74.187,
+      "kind": "screen",
+      "file": "screenshots/0060-first-editor-small.png",
+      "sha256": "a0a6ed92023e61a1ba21f842bca8289fb7af013f32e5d79927c341cfad2f64d3",
+      "text": "Configure one.zip Example One Step 1 of 1 Choose Variant (SelectExactlyOne) v Alpha First variant Beta Second variant Cancel"
+    },
+    {
+      "t": 74.856,
+      "kind": "screen",
+      "file": "screenshots/0061-before-choose-beta-at-600x400.png",
+      "sha256": "a0a6ed92023e61a1ba21f842bca8289fb7af013f32e5d79927c341cfad2f64d3",
+      "text": "Configure one.zip Example One Step 1 of 1 Choose Variant (SelectExactlyOne) v Alpha First variant Beta Second variant Cancel"
+    },
+    {
+      "t": 74.964,
+      "kind": "click",
+      "action": "Choose Beta at 600x400",
+      "label": "Beta",
+      "position": [
+        60,
+        239
+      ],
+      "calibrated": true
+    },
+    {
+      "t": 76.399,
+      "kind": "screen",
+      "file": "screenshots/0063-before-apply-choices-at-600x400.png",
+      "sha256": "f0c63a052bdf9effc0d1d87d2ccb9c9b4af5886767c1d4542c2496b2bf2ee1fb",
+      "text": "Configure one.zip Example One Step 1 of 1 Choose Variant (SelectExactlyOne) Alpha First variant Beta Second variant Back Use these choices Cancel"
+    },
+    {
+      "t": 76.52,
+      "kind": "click",
+      "action": "Apply choices at 600x400",
+      "label": "Use these choices",
+      "position": [
+        126,
+        277
+      ],
+      "calibrated": true
+    },
+    {
+      "t": 77.933,
+      "kind": "screen",
+      "file": "screenshots/0065-wait.png",
+      "sha256": "c7fc3a1d82efd670eefc05f10f904e5397cf17e446a0a48a3824fc22ebb9bcda",
+      "text": "Configure two.zip Example Two Step 1 of 1 Choose Variant (SelectExactlyOne) v Alpha First variant Beta Second variant Cancel"
+    },
+    {
+      "t": 78.794,
+      "kind": "screen",
+      "file": "screenshots/0066-second-editor.png",
+      "sha256": "c7fc3a1d82efd670eefc05f10f904e5397cf17e446a0a48a3824fc22ebb9bcda",
+      "text": "Configure two.zip Example Two Step 1 of 1 Choose Variant (SelectExactlyOne) v Alpha First variant Beta Second variant Cancel"
+    },
+    {
+      "t": 78.794,
+      "kind": "assertion",
+      "name": "second_editor_no_first",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "t": 79.465,
+      "kind": "screen",
+      "file": "screenshots/0068-before-dismiss-second-editor.png",
+      "sha256": "c7fc3a1d82efd670eefc05f10f904e5397cf17e446a0a48a3824fc22ebb9bcda",
+      "text": "Configure two.zip Example Two Step 1 of 1 Choose Variant (SelectExactlyOne) v Alpha First variant Beta Second variant Cancel"
+    },
+    {
+      "t": 79.578,
+      "kind": "click",
+      "action": "Dismiss second editor",
+      "label": "Cancel",
+      "position": [
+        53,
+        298
+      ],
+      "calibrated": true
+    },
+    {
+      "t": 83.349,
+      "kind": "screen",
+      "file": "screenshots/0070-dismissed.png",
+      "sha256": "9173c5d6f0e6b0ef41488dba6cc73d17fd280dfd30896400c7f285da52965122",
+      "text": "ModSync.rs_ Install mods in guide order Return to wizard Guide and settings Guide editor * K1 K2 Validation Step 6 of 10 Validating your mod selection and installation environment \u00a5 Downloads and peer settings Downloads Peer sharing defaults to Race: Origin and Peer compete. Peer transfers use public proxies only and fail closed if no proxy works. When enabled, discovery can fetch public proxy and tracker lists. Sharing OFf prevents peer discovery and transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside the app. Fetch Downloads finished: every planned archive is ready Complete this page before continuing. Back Next"
+    },
+    {
+      "t": 83.35,
+      "kind": "assertion",
+      "name": "no_repaint_relaunch",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "t": 86.698,
+      "kind": "screen",
+      "file": "screenshots/0072-fresh-validation-required.png",
+      "sha256": "c13919cb3f508d5cbf298112de9d2f74c3fd2d8b7d87608cdbb5e2cdc0715dbd",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard * Ki K2 Validation Step 6 of 10 Validating your mod selection and installation environment Downloads Peer sharing defaults to Race: Origin and Peer Q Pre-Installation Validation compete. Peer transfers use public proxies only and fail closed if no proxy works. We'll check For potential issues before starting the installation to ensure everything works smoothly. When enabled, discovery can fetch public proxy and tracker lists. Sharing Off prevents peer discovery and transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside | Q Run Validation the app. Refresh peer settings \u00bb Peer-sharing settings Peer: Off; upload cap 16 KiB/s. Fetch Downloads plans every selected mod's archives (base and widescreen), keeps verified archives already in the workspace and downloads the rest. Nothing starts until you select it. @ Fetch Downloads Open workspace Fetch Downloads Finished: every planned archive is ready Fetch Downloads: workspace /tmp/modsync-step2-k1i0vc6t/serial/mods 2 selected components with resources (base and widescreen) 2 archive targets planned, 0 skipped before transfer; peer mode Off Archive targets: 2 planned; 2 completed, 0 manual, 0 failed, 0 cancelled. Skipped before transfer: 0 already present and verified, 0 not eligible. Guide resource records: 2 files marked downloaded, 0 ERRORS WARNINGS PASSED kept as authored false. Click \u2018Run Validation\u2019 to begin Downloads never validate or install. Run validation Ready to validate 2 of 2 mod(s). Click Run Validation to check your setup. 0 0 0 after downloads finish. Unsaved resource records: open Guide editor, then Save guide as..., to keep them. The guide file is never saved automatically. Example Component 0: FOMOD installer in one.zio. Fetch Downloads Finished: every planned archive is ready Complete this page before continuing. Back Next"
+    },
+    {
+      "t": 89.29,
+      "kind": "screen",
+      "file": "screenshots/0073-before-try-advancing-without-fresh-validation.png",
+      "sha256": "c13919cb3f508d5cbf298112de9d2f74c3fd2d8b7d87608cdbb5e2cdc0715dbd",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard * Ki K2 Validation Step 6 of 10 Validating your mod selection and installation environment Downloads Peer sharing defaults to Race: Origin and Peer Q Pre-Installation Validation compete. Peer transfers use public proxies only and fail closed if no proxy works. We'll check For potential issues before starting the installation to ensure everything works smoothly. When enabled, discovery can fetch public proxy and tracker lists. Sharing Off prevents peer discovery and transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside | Q Run Validation the app. Refresh peer settings \u00bb Peer-sharing settings Peer: Off; upload cap 16 KiB/s. Fetch Downloads plans every selected mod's archives (base and widescreen), keeps verified archives already in the workspace and downloads the rest. Nothing starts until you select it. @ Fetch Downloads Open workspace Fetch Downloads Finished: every planned archive is ready Fetch Downloads: workspace /tmp/modsync-step2-k1i0vc6t/serial/mods 2 selected components with resources (base and widescreen) 2 archive targets planned, 0 skipped before transfer; peer mode Off Archive targets: 2 planned; 2 completed, 0 manual, 0 failed, 0 cancelled. Skipped before transfer: 0 already present and verified, 0 not eligible. Guide resource records: 2 files marked downloaded, 0 ERRORS WARNINGS PASSED kept as authored false. Click \u2018Run Validation\u2019 to begin Downloads never validate or install. Run validation Ready to validate 2 of 2 mod(s). Click Run Validation to check your setup. 0 0 0 after downloads finish. Unsaved resource records: open Guide editor, then Save guide as..., to keep them. The guide file is never saved automatically. Example Component 0: FOMOD installer in one.zio. Fetch Downloads Finished: every planned archive is ready Complete this page before continuing. Back Next"
+    },
+    {
+      "t": 89.397,
+      "kind": "click",
+      "action": "Try advancing without fresh validation",
+      "label": "Next",
+      "position": [
+        1218,
+        779
+      ],
+      "calibrated": false
+    },
+    {
+      "t": 92.392,
+      "kind": "screen",
+      "file": "screenshots/0075-fresh-validation-next-blocked.png",
+      "sha256": "c13919cb3f508d5cbf298112de9d2f74c3fd2d8b7d87608cdbb5e2cdc0715dbd",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard * Ki K2 Validation Step 6 of 10 Validating your mod selection and installation environment Downloads Peer sharing defaults to Race: Origin and Peer Q Pre-Installation Validation compete. Peer transfers use public proxies only and fail closed if no proxy works. We'll check For potential issues before starting the installation to ensure everything works smoothly. When enabled, discovery can fetch public proxy and tracker lists. Sharing Off prevents peer discovery and transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside | Q Run Validation the app. Refresh peer settings \u00bb Peer-sharing settings Peer: Off; upload cap 16 KiB/s. Fetch Downloads plans every selected mod's archives (base and widescreen), keeps verified archives already in the workspace and downloads the rest. Nothing starts until you select it. @ Fetch Downloads Open workspace Fetch Downloads Finished: every planned archive is ready Fetch Downloads: workspace /tmp/modsync-step2-k1i0vc6t/serial/mods 2 selected components with resources (base and widescreen) 2 archive targets planned, 0 skipped before transfer; peer mode Off Archive targets: 2 planned; 2 completed, 0 manual, 0 failed, 0 cancelled. Skipped before transfer: 0 already present and verified, 0 not eligible. Guide resource records: 2 files marked downloaded, 0 ERRORS WARNINGS PASSED kept as authored false. Click \u2018Run Validation\u2019 to begin Downloads never validate or install. Run validation Ready to validate 2 of 2 mod(s). Click Run Validation to check your setup. 0 0 0 after downloads finish. Unsaved resource records: open Guide editor, then Save guide as..., to keep them. The guide file is never saved automatically. Example Component 0: FOMOD installer in one.zio. Fetch Downloads Finished: every planned archive is ready Complete this page before continuing. Back Next"
+    },
+    {
+      "t": 92.393,
+      "kind": "assertion",
+      "name": "cannot_advance_before_fresh_validation",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "t": 95.428,
+      "kind": "screen",
+      "file": "screenshots/0077-before-validate-after-queue-resolved.png",
+      "sha256": "c13919cb3f508d5cbf298112de9d2f74c3fd2d8b7d87608cdbb5e2cdc0715dbd",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard * Ki K2 Validation Step 6 of 10 Validating your mod selection and installation environment Downloads Peer sharing defaults to Race: Origin and Peer Q Pre-Installation Validation compete. Peer transfers use public proxies only and fail closed if no proxy works. We'll check For potential issues before starting the installation to ensure everything works smoothly. When enabled, discovery can fetch public proxy and tracker lists. Sharing Off prevents peer discovery and transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside | Q Run Validation the app. Refresh peer settings \u00bb Peer-sharing settings Peer: Off; upload cap 16 KiB/s. Fetch Downloads plans every selected mod's archives (base and widescreen), keeps verified archives already in the workspace and downloads the rest. Nothing starts until you select it. @ Fetch Downloads Open workspace Fetch Downloads Finished: every planned archive is ready Fetch Downloads: workspace /tmp/modsync-step2-k1i0vc6t/serial/mods 2 selected components with resources (base and widescreen) 2 archive targets planned, 0 skipped before transfer; peer mode Off Archive targets: 2 planned; 2 completed, 0 manual, 0 failed, 0 cancelled. Skipped before transfer: 0 already present and verified, 0 not eligible. Guide resource records: 2 files marked downloaded, 0 ERRORS WARNINGS PASSED kept as authored false. Click \u2018Run Validation\u2019 to begin Downloads never validate or install. Run validation Ready to validate 2 of 2 mod(s). Click Run Validation to check your setup. 0 0 0 after downloads finish. Unsaved resource records: open Guide editor, then Save guide as..., to keep them. The guide file is never saved automatically. Example Component 0: FOMOD installer in one.zio. Fetch Downloads Finished: every planned archive is ready Complete this page before continuing. Back Next"
+    },
+    {
+      "t": 95.535,
+      "kind": "click",
+      "action": "Validate after queue resolved",
+      "label": "Run Validation",
+      "position": [
+        96,
+        280
+      ],
+      "calibrated": true
+    },
+    {
+      "t": 101.561,
+      "kind": "screen",
+      "file": "screenshots/0079-wait.png",
+      "sha256": "b4dab348ca24a8c9d8cb00673618ebeb91bea1bfd77240d35047779f47d12694",
+      "text": "ModSync.rs_ Install mods in guide order Return to wizard Guide and settings Guide editor * K1 K2 Step 6 of 10 Validation Validating your mod selection and installation environment Downloads Peer sharing defaults to Race: Origin and Peer Q Pre-Installation Validation compete. Peer transfers use public proxies only and fail closed if no proxy works. We'll check For potential issues before starting the installation to ensure everything works smoothly. When enabled, discovery can fetch public proxy and tracker lists. Sharing Off prevents peer discovery and transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside Validation Failed the app. Refresh peer settings \u00bb Peer-sharing settings |G Validation Log) 100% |Gotofirst issue] |Copy report| Drag the splitter below to resize Peer: Off; upload cap 16 KiB/s. Fetch Downloads plans every selected mod's archives (base and widescreen), keeps verified archives already Step 5: Checking FOMOD configuration FOMOD archive 'two.zip' (prompt status 'dismissed') has no explicit FomodChoices configuration. Capture choices with in the workspace and downloads the rest. Nothing \u201cmodsync fomod-inspect <archive> --interactive --save-choices <file>\u2019, then persist them with \u201cmodsync fetch-downloads starts until you select it. --record --fomod-choices <file>\u201d Step 6: Running instruction execution validation (dry-run) @ Fetch Downloads Open workspace Found 1 error(s) and @ warning(s) Fetch Downloads Finished: every planned archive is x [EngineSimulation] Example Component 1 / step 1 (Extract): FOMOD archive 'two.zip' (prompt status \u2018dismissed') has no ready explicit FomodChoices configuration. Capture choices with \u201cmodsync fomod-inspect <archive> --interactive --save-choices Fetch Downloads: workspace <file>\u2019, then persist them with \u201cmodsync fetch-downloads --record --fomod-choices <file>\u201d /tmp/modsync-step2-k1i0vc6t/serial/mods Validation completed in 0.0 seconds x Validation failed 2 selected components with resources (base and widescreen) 2 archive targets planned, 0 skipped before transfer; peer mode Off Archive targets: 2 planned; 2 completed, 0 manual, 0 failed, 0 cancelled. x FOMOD Configuration Skipped before transfer: 0 already present and Failed verified, 0 not eligible. Guide resource records: 2 files marked downloaded, 0 kept as authored false. Downloads never validate or install. Run validation ERRORS WARNINGS PASSED after downloads finish. x Validation Failed Unsaved resource records: open Guide editor, then Please resolve all critical errors before continuing. Check the results above for details. 2 0 4 Save guide as..., to keep them. The guide file is never saved automatically. Example Component 0: FOMOD installer in one.zio. Fetch Downloads finished: every planned archive is ready Complete this page before continuing. Back Next"
+    },
+    {
+      "t": 105.892,
+      "kind": "screen",
+      "file": "screenshots/0080-validation-ran-after-dismiss.png",
+      "sha256": "b4dab348ca24a8c9d8cb00673618ebeb91bea1bfd77240d35047779f47d12694",
+      "text": "ModSync.rs_ Install mods in guide order Return to wizard Guide and settings Guide editor * K1 K2 Step 6 of 10 Validation Validating your mod selection and installation environment Downloads Peer sharing defaults to Race: Origin and Peer Q Pre-Installation Validation compete. Peer transfers use public proxies only and fail closed if no proxy works. We'll check For potential issues before starting the installation to ensure everything works smoothly. When enabled, discovery can fetch public proxy and tracker lists. Sharing Off prevents peer discovery and transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside Validation Failed the app. Refresh peer settings \u00bb Peer-sharing settings |G Validation Log) 100% |Gotofirst issue] |Copy report| Drag the splitter below to resize Peer: Off; upload cap 16 KiB/s. Fetch Downloads plans every selected mod's archives (base and widescreen), keeps verified archives already Step 5: Checking FOMOD configuration FOMOD archive 'two.zip' (prompt status 'dismissed') has no explicit FomodChoices configuration. Capture choices with in the workspace and downloads the rest. Nothing \u201cmodsync fomod-inspect <archive> --interactive --save-choices <file>\u2019, then persist them with \u201cmodsync fetch-downloads starts until you select it. --record --fomod-choices <file>\u201d Step 6: Running instruction execution validation (dry-run) @ Fetch Downloads Open workspace Found 1 error(s) and @ warning(s) Fetch Downloads Finished: every planned archive is x [EngineSimulation] Example Component 1 / step 1 (Extract): FOMOD archive 'two.zip' (prompt status \u2018dismissed') has no ready explicit FomodChoices configuration. Capture choices with \u201cmodsync fomod-inspect <archive> --interactive --save-choices Fetch Downloads: workspace <file>\u2019, then persist them with \u201cmodsync fetch-downloads --record --fomod-choices <file>\u201d /tmp/modsync-step2-k1i0vc6t/serial/mods Validation completed in 0.0 seconds x Validation failed 2 selected components with resources (base and widescreen) 2 archive targets planned, 0 skipped before transfer; peer mode Off Archive targets: 2 planned; 2 completed, 0 manual, 0 failed, 0 cancelled. x FOMOD Configuration Skipped before transfer: 0 already present and Failed verified, 0 not eligible. Guide resource records: 2 files marked downloaded, 0 kept as authored false. Downloads never validate or install. Run validation ERRORS WARNINGS PASSED after downloads finish. x Validation Failed Unsaved resource records: open Guide editor, then Please resolve all critical errors before continuing. Check the results above for details. 2 0 4 Save guide as..., to keep them. The guide file is never saved automatically. Example Component 0: FOMOD installer in one.zio. Fetch Downloads finished: every planned archive is ready Complete this page before continuing. Back Next"
+    },
+    {
+      "t": 105.892,
+      "kind": "assertion",
+      "name": "resolved_queue_allows_real_validation",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "t": 110.842,
+      "kind": "screen",
+      "file": "screenshots/0082-before-try-advancing-after-failed-validation.png",
+      "sha256": "b4dab348ca24a8c9d8cb00673618ebeb91bea1bfd77240d35047779f47d12694",
+      "text": "ModSync.rs_ Install mods in guide order Return to wizard Guide and settings Guide editor * K1 K2 Step 6 of 10 Validation Validating your mod selection and installation environment Downloads Peer sharing defaults to Race: Origin and Peer Q Pre-Installation Validation compete. Peer transfers use public proxies only and fail closed if no proxy works. We'll check For potential issues before starting the installation to ensure everything works smoothly. When enabled, discovery can fetch public proxy and tracker lists. Sharing Off prevents peer discovery and transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside Validation Failed the app. Refresh peer settings \u00bb Peer-sharing settings |G Validation Log) 100% |Gotofirst issue] |Copy report| Drag the splitter below to resize Peer: Off; upload cap 16 KiB/s. Fetch Downloads plans every selected mod's archives (base and widescreen), keeps verified archives already Step 5: Checking FOMOD configuration FOMOD archive 'two.zip' (prompt status 'dismissed') has no explicit FomodChoices configuration. Capture choices with in the workspace and downloads the rest. Nothing \u201cmodsync fomod-inspect <archive> --interactive --save-choices <file>\u2019, then persist them with \u201cmodsync fetch-downloads starts until you select it. --record --fomod-choices <file>\u201d Step 6: Running instruction execution validation (dry-run) @ Fetch Downloads Open workspace Found 1 error(s) and @ warning(s) Fetch Downloads Finished: every planned archive is x [EngineSimulation] Example Component 1 / step 1 (Extract): FOMOD archive 'two.zip' (prompt status \u2018dismissed') has no ready explicit FomodChoices configuration. Capture choices with \u201cmodsync fomod-inspect <archive> --interactive --save-choices Fetch Downloads: workspace <file>\u2019, then persist them with \u201cmodsync fetch-downloads --record --fomod-choices <file>\u201d /tmp/modsync-step2-k1i0vc6t/serial/mods Validation completed in 0.0 seconds x Validation failed 2 selected components with resources (base and widescreen) 2 archive targets planned, 0 skipped before transfer; peer mode Off Archive targets: 2 planned; 2 completed, 0 manual, 0 failed, 0 cancelled. x FOMOD Configuration Skipped before transfer: 0 already present and Failed verified, 0 not eligible. Guide resource records: 2 files marked downloaded, 0 kept as authored false. Downloads never validate or install. Run validation ERRORS WARNINGS PASSED after downloads finish. x Validation Failed Unsaved resource records: open Guide editor, then Please resolve all critical errors before continuing. Check the results above for details. 2 0 4 Save guide as..., to keep them. The guide file is never saved automatically. Example Component 0: FOMOD installer in one.zio. Fetch Downloads finished: every planned archive is ready Complete this page before continuing. Back Next"
+    },
+    {
+      "t": 110.95,
+      "kind": "click",
+      "action": "Try advancing after failed validation",
+      "label": "Next",
+      "position": [
+        1218,
+        779
+      ],
+      "calibrated": false
+    },
+    {
+      "t": 118.196,
+      "kind": "screen",
+      "file": "screenshots/0084-failed-validation-next-blocked.png",
+      "sha256": "8d58dc8b1c277757597e85e2437216640cb4599514293ed4a09648dbb6c38305",
+      "text": "ModSync.rs_ Install mods in guide order Return to wizard Guide and settings Guide editor * K1 K2 Step 6 of 10 Validation Validating your mod selection and installation environment Downloads Peer sharing defaults to Race: Origin and Peer Q Pre-Installation Validation compete. Peer transfers use public proxies only and fail closed if no proxy works. We'll check For potential issues before starting the installation to ensure everything works smoothly. When enabled, discovery can fetch public proxy and tracker lists. Sharing Off prevents peer discovery and transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside Validation Failed the app. | Q Run Validation Refresh peer settings \u00bb Peer-sharing settings |G Validation Log) 100% |Gotofirst issue] |Copy report| Drag the splitter below to resize Peer: Off; upload cap 16 KiB/s. Fetch Downloads plans every selected mod's archives (base and widescreen), keeps verified archives already Step 5: Checking FOMOD configuration FOMOD archive 'two.zip' (prompt status 'dismissed') has no explicit FomodChoices configuration. Capture choices with in the workspace and downloads the rest. Nothing \u201cmodsync fomod-inspect <archive> --interactive --save-choices <file>\u2019, then persist them with \u201cmodsync fetch-downloads starts until you select it. --record --fomod-choices <file>\u201d Step 6: Running instruction execution validation (dry-run) @ Fetch Downloads Open workspace Found 1 error(s) and @ warning(s) Fetch Downloads Finished: every planned archive is x [EngineSimulation] Example Component 1 / step 1 (Extract): FOMOD archive 'two.zip' (prompt status \u2018dismissed') has no ready explicit FomodChoices configuration. Capture choices with \u201cmodsync fomod-inspect <archive> --interactive --save-choices Fetch Downloads: workspace <file>\u2019, then persist them with \u201cmodsync fetch-downloads --record --fomod-choices <file>\u201d /tmp/modsync-step2-k1i0vc6t/serial/mods Validation completed in 0.0 seconds x Validation failed 2 selected components with resources (base and widescreen) 2 archive targets planned, 0 skipped before transfer; peer mode Off Archive targets: 2 planned; 2 completed, 0 manual, 0 failed, 0 cancelled. x FOMOD Configuration Skipped before transfer: 0 already present and Failed verified, 0 not eligible. Guide resource records: 2 files marked downloaded, 0 kept as authored false. Downloads never validate or install. Run validation ERRORS WARNINGS PASSED after downloads finish. x Validation Failed Unsaved resource records: open Guide editor, then Please resolve all critical errors before continuing. Check the results above for details. 2 0 4 Save guide as..., to keep them. The guide file is never saved automatically. Example Component 0: FOMOD installer in one.zio. Fetch Downloads finished: every planned archive is ready Complete this page before continuing. Back Next"
+    },
+    {
+      "t": 118.197,
+      "kind": "assertion",
+      "name": "failed_validation_cannot_advance",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "t": 120.234,
+      "kind": "screen",
+      "file": "screenshots/0086-validation-600x400.png",
+      "sha256": "bf2ecc71590720fa06cf98009699e1dadb9c025a46bf1dd1be3141fc9e82f384",
+      "text": "ModSync.rs_ Install mods in guide order Return to wizard Guide and settings Guide editor * K1 K2 Validation Step 6 of 10 Validating your mod selection and installation environment \u00a5 Downloads and peer settings Downloads Peer sharing defaults to Race: Origin and Peer compete. Peer transfers use public proxies only and fail closed if no proxy works. When enabled, discovery can fetch public proxy and tracker lists. Sharing OFf prevents peer discovery and transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside the app. Refresh peer settings Fetch Downloads finished: every planned archive is ready Complete this page before continuing. Back Next"
+    },
+    {
+      "t": 121.71,
+      "kind": "screen",
+      "file": "screenshots/0087-before-back-at-600x400.png",
+      "sha256": "bf2ecc71590720fa06cf98009699e1dadb9c025a46bf1dd1be3141fc9e82f384",
+      "text": "ModSync.rs_ Install mods in guide order Return to wizard Guide and settings Guide editor * K1 K2 Validation Step 6 of 10 Validating your mod selection and installation environment \u00a5 Downloads and peer settings Downloads Peer sharing defaults to Race: Origin and Peer compete. Peer transfers use public proxies only and fail closed if no proxy works. When enabled, discovery can fetch public proxy and tracker lists. Sharing OFf prevents peer discovery and transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside the app. Refresh peer settings Fetch Downloads finished: every planned archive is ready Complete this page before continuing. Back Next"
+    },
+    {
+      "t": 121.819,
+      "kind": "click",
+      "action": "Back at 600x400",
+      "label": "Back",
+      "position": [
+        429,
+        379
+      ],
+      "calibrated": false
+    },
+    {
+      "t": 123.712,
+      "kind": "screen",
+      "file": "screenshots/0089-wait.png",
+      "sha256": "3f56809fcfee634d200ff16d55e14aba0cbed0dc9eb4d7057952d47588e011ff",
+      "text": "ModSync.rs_ Install mods in guide order Guide editor Return to wizard Guide and settings * K1 K2 Step 5 of 10 Download Process Fetch archives, then answer installer choices \u00a5 Downloads and peer settings Downloads Peer sharing defaults to Race: Origin and Peer compete. Peer transfers use public proxies only and Fail clased if no nraxy works Fetch Downloads finished: every planned archive is ready Back Next Activity Copyreport Save report... Validating... Example Component 0 / 0: Archive and destination checks completed Example Component 1 / 0: Archive and destination checks complete Stopped: Validation pipeline reported errors i"
+    },
+    {
+      "t": 125.557,
+      "kind": "screen",
+      "file": "screenshots/0090-small-navigation-back.png",
+      "sha256": "3f56809fcfee634d200ff16d55e14aba0cbed0dc9eb4d7057952d47588e011ff",
+      "text": "ModSync.rs_ Install mods in guide order Guide editor Return to wizard Guide and settings * K1 K2 Step 5 of 10 Download Process Fetch archives, then answer installer choices \u00a5 Downloads and peer settings Downloads Peer sharing defaults to Race: Origin and Peer compete. Peer transfers use public proxies only and Fail clased if no nraxy works Fetch Downloads finished: every planned archive is ready Back Next Activity Copyreport Save report... Validating... Example Component 0 / 0: Archive and destination checks completed Example Component 1 / 0: Archive and destination checks complete Stopped: Validation pipeline reported errors i"
+    },
+    {
+      "t": 125.557,
+      "kind": "assertion",
+      "name": "small_window_back_reaches_downloads",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "t": 126.96,
+      "kind": "screen",
+      "file": "screenshots/0092-before-next-at-600x400.png",
+      "sha256": "3f56809fcfee634d200ff16d55e14aba0cbed0dc9eb4d7057952d47588e011ff",
+      "text": "ModSync.rs_ Install mods in guide order Guide editor Return to wizard Guide and settings * K1 K2 Step 5 of 10 Download Process Fetch archives, then answer installer choices \u00a5 Downloads and peer settings Downloads Peer sharing defaults to Race: Origin and Peer compete. Peer transfers use public proxies only and Fail clased if no nraxy works Fetch Downloads finished: every planned archive is ready Back Next Activity Copyreport Save report... Validating... Example Component 0 / 0: Archive and destination checks completed Example Component 1 / 0: Archive and destination checks complete Stopped: Validation pipeline reported errors i"
+    },
+    {
+      "t": 127.087,
+      "kind": "click",
+      "action": "Next at 600x400",
+      "label": "Next",
+      "position": [
+        538,
+        290
+      ],
+      "calibrated": false
+    },
+    {
+      "t": 128.91,
+      "kind": "screen",
+      "file": "screenshots/0094-wait.png",
+      "sha256": "17f4c31b0e6c3e3375659bf5cafdafd94884f0ef77bdbfd874b0b91f87d79c91",
+      "text": "ModSync.rs_ Install mods in guide order Return to wizard Guide and settings Guide editor * K1 K2 Validation Step 6 of 10 Validating your mod selection and installation environment \u00a5 Downloads and peer settings Downloads Peer sharing defaults to Race: Origin and Peer compete. Peer transfers use public proxies only and fail closed if no proxy works. When enabled, discovery can fetch public proxy and tracker lists. Sharing OFf prevents peer discovery and transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside the app. Refresh peer settings Fetch Downloads finished: every planned archive is ready Complete this page before continuing. Back Next"
+    },
+    {
+      "t": 129.984,
+      "kind": "screen",
+      "file": "screenshots/0095-small-navigation-return.png",
+      "sha256": "17f4c31b0e6c3e3375659bf5cafdafd94884f0ef77bdbfd874b0b91f87d79c91",
+      "text": "ModSync.rs_ Install mods in guide order Return to wizard Guide and settings Guide editor * K1 K2 Validation Step 6 of 10 Validating your mod selection and installation environment \u00a5 Downloads and peer settings Downloads Peer sharing defaults to Race: Origin and Peer compete. Peer transfers use public proxies only and fail closed if no proxy works. When enabled, discovery can fetch public proxy and tracker lists. Sharing OFf prevents peer discovery and transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside the app. Refresh peer settings Fetch Downloads finished: every planned archive is ready Complete this page before continuing. Back Next"
+    },
+    {
+      "t": 129.984,
+      "kind": "assertion",
+      "name": "small_window_navigation_returns_to_validation",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "t": 134.29,
+      "kind": "screen",
+      "file": "screenshots/0097-validation-1280x800.png",
+      "sha256": "70f8ef387d4ce9295ae1628940b1717267bbd01d90a1b23ca9ce2d1cc975a6ca",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard K1 * K2 Validation Step 6 of 10 Validating your mod selection and installation environment Downloads Peer sharing defaults to Race: Origin and Peer Q Pre-Installation Validation compete. Peer transfers use public proxies only and fail closed if no proxy works. We'll check For potential issues before starting the installation to ensure everything works smoothly. When enabled, discovery can fetch public proxy and tracker lists. Sharing Off prevents peer discovery and transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside | Q Run Validation Validation Failed the app. Refresh peer settings \u00bb Peer-sharing settings Peer: Off; upload cap 16 KiB/s. |G Validation Log) 100% |Gotofirst issue] |Copy report| Drag the splitter below to resize Fetch Downloads plans every selected mod's archives Step 5: Checking FOMOD configuration (base and widescreen), keeps verified archives already FOMOD archive 'two.zip' (prompt status 'dismissed') has no explicit FomodChoices configuration. Capture choices with in the workspace and downloads the rest. Nothing \u201cmodsync fomod-inspect <archive> --interactive --save-choices <file>\u2019, then persist them with \u201cmodsync fetch-downloads starts until you select it. --record --fomod-choices <file>\u201d Step 6: Running instruction execution validation (dry-run) @ Fetch Downloads Open workspace Fetch Downloads Finished: every planned archive is ready Fetch Downloads: workspace /tmp/modsync-step2-k1i0vc6t/serial/mods 2 selected components with resources (base and x FOMOD Configuration widescreen) Failed 2 archive targets planned, 0 skipped before transfer; peer mode Off Archive targets: 2 planned; 2 completed, 0 manual, 0 failed, 0 cancelled. x Example Component 1 (EngineSimulation) Skipped before transfer: 0 already present and verified, 0 not eligible. Guide resource records: 2 files marked downloaded, 0 ERRORS WARNINGS PASSED kept as authored false. x Validation Failed Downloads never validate or install. Run validation Please resolve all critical errors before continuing. Check the results above for details. 2 0 4 after downloads finish. Unsaved resource records: open Guide editor, then Save guide as..., to keep them. The guide file is never saved automatically. Example Component 0: FOMOD installer in one.zio. Fetch Downloads finished: every planned archive is ready Complete this page before continuing. Back Next"
+    },
+    {
+      "t": 134.291,
+      "kind": "assertion",
+      "name": "game_unchanged_acquisition_and_choices",
+      "actual": {
+        "override/original.txt": "60624fbaf6192999be32cdb5a22da7878d40b83636498cef75f59cb5348c3f54",
+        "swkotor.exe": "35fa3166b6e751a4a1710872e4297882fa69f862dc3cf22c5e30b1f56e5ae303"
+      },
+      "expected": {
+        "override/original.txt": "60624fbaf6192999be32cdb5a22da7878d40b83636498cef75f59cb5348c3f54",
+        "swkotor.exe": "35fa3166b6e751a4a1710872e4297882fa69f862dc3cf22c5e30b1f56e5ae303"
+      },
+      "passed": true
+    },
+    {
+      "t": 134.291,
+      "kind": "assertion",
+      "name": "guide_not_autosaved",
+      "actual": "047f08354d24b3a4ecedc6c639c258ab6d54a9f73753639cbd86bd2d706a8406",
+      "expected": "047f08354d24b3a4ecedc6c639c258ab6d54a9f73753639cbd86bd2d706a8406",
+      "passed": true
+    },
+    {
+      "t": 134.291,
+      "kind": "assertion",
+      "name": "no_install_receipts",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "t": 134.307,
+      "kind": "close",
+      "exit": -15
+    },
+    {
+      "t": 134.307,
+      "kind": "scenario_complete",
+      "scenario": "serial"
+    }
+  ],
+  "requests": [
+    {
+      "path": "/one.zip",
+      "status": 200,
+      "bytes": 1028
+    },
+    {
+      "path": "/two.zip",
+      "status": 200,
+      "bytes": 1028
+    }
+  ],
+  "pending": [
+    "Stale editor outcome after an actual guide/root replacement: source review only until a safe UI route is reachable.",
+    "Completed-base choice preservation: requires an established completed-base fixture.",
+    "Direct Install-button interaction while a FOMOD dialog is unresolved is source-reviewed only; the native flow checks blocked validation and wizard advancement, then actual validation after resolution."
+  ],
+  "accepted": false,
+  "fixture_root": "/tmp/modsync-step2-k1i0vc6t",
+  "note": "Acceptance requires review of pending cases and screenshots; an exit code alone does not prove gates."
+}

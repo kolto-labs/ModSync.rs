@@ -1,0 +1,44 @@
+{
+  "Components": [
+    {
+      "Guid": "00000000-0000-4000-8000-000000000000",
+      "Name": "Example Component 0",
+      "IsSelected": true,
+      "Instructions": [
+        {
+          "Action": "Extract",
+          "Source": [
+            "<<modDirectory>>/one.zip"
+          ]
+        }
+      ],
+      "ResourceRegistry": {
+        "https://127.0.0.1:45235/one.zip": {
+          "Files": {
+            "one.zip": true
+          }
+        }
+      }
+    },
+    {
+      "Guid": "00000001-0000-4000-8000-000000000000",
+      "Name": "Example Component 1",
+      "IsSelected": true,
+      "Instructions": [
+        {
+          "Action": "Extract",
+          "Source": [
+            "<<modDirectory>>/two.zip"
+          ]
+        }
+      ],
+      "ResourceRegistry": {
+        "https://127.0.0.1:45235/two.zip": {
+          "Files": {
+            "two.zip": true
+          }
+        }
+      }
+    }
+  ]
+}
