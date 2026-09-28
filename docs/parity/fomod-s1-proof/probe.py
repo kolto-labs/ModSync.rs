@@ -2,8 +2,9 @@
 """Real production CLI/PTY receipts in one isolated network namespace. No Rust harness."""
 import copy, shutil, fcntl, hashlib, http.server, io, json, os, pathlib, pty, select, signal, ssl, subprocess, tempfile, termios, threading, time, zipfile
 REPO=pathlib.Path(__file__).resolve().parents[3]
-OUT=pathlib.Path(__file__).resolve().parent/'receipts';OUT.mkdir(exist_ok=True)
-BIN=pathlib.Path('/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync')
+TARGET=pathlib.Path(os.environ.get('CARGO_TARGET_DIR', str(REPO/'target'))).resolve()
+OUT=pathlib.Path(os.environ.get('MODSYNC_PROOF_OUT', str(TARGET/'cloud-proof/fomod'))).resolve();OUT.mkdir(parents=True,exist_ok=True)
+BIN=pathlib.Path(os.environ.get('MODSYNC_BINARY', str(TARGET/'debug/modsync'))).resolve()
 BINARY_BEFORE=hashlib.sha256(BIN.read_bytes()).hexdigest()
 SOURCE_BEFORE={str(p.relative_to(REPO)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted((REPO/'src').rglob('*.rs'))}
 assert os.environ['FOMOD_PARENT_NETNS'] != os.readlink('/proc/self/ns/net')

@@ -1,16 +1,18 @@
 import copy,hashlib,json,os,pathlib,subprocess,tempfile,zipfile
+assert os.environ['FOMOD_PARENT_NETNS'] != os.readlink('/proc/self/ns/net')
 subprocess.run(['ip','link','set','lo','up'],check=True)
 assert not subprocess.check_output(['ip','route'],text=True).strip()
-repo=pathlib.Path('/home/brunner56/.cache/modsync-wt-integ')
-binary='/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync'
+repo=pathlib.Path(__file__).resolve().parents[3]
+target=pathlib.Path(os.environ.get('CARGO_TARGET_DIR', str(repo/'target'))).resolve()
+binary=str(pathlib.Path(os.environ.get('MODSYNC_BINARY', str(target/'debug/modsync'))).resolve())
 binary_before=hashlib.sha256(pathlib.Path(binary).read_bytes()).hexdigest()
-out=pathlib.Path('/home/brunner56/.cache/modsync-wt-integ/docs/parity/fomod-s1-proof/inherited-controller');out.mkdir(exist_ok=True)
+out=pathlib.Path(os.environ.get('MODSYNC_PROOF_OUT', str(target/'cloud-proof/inherited'))).resolve();out.mkdir(parents=True,exist_ok=True)
 root=pathlib.Path(tempfile.mkdtemp(prefix='fetch-controller-audit-'));mods=root/'mods';mods.mkdir()
 env=os.environ.copy()
 for key in ['HOME','XDG_CONFIG_HOME','XDG_CACHE_HOME','XDG_DATA_HOME']:
  env[key]=str(root/key);pathlib.Path(env[key]).mkdir()
 for key in list(env):
- if key.lower().endswith('_proxy') or 'NEXUS' in key:env.pop(key,None)
+ if key.lower().endswith('_proxy') or 'NEXUS' in key or 'MODSYNC_FOMOD' in key:env.pop(key,None)
 base={'Components':[{'Guid':'aaaaaaaa-1111-4111-8111-111111111111','Name':'Example Archive A','IsSelected':False,'Instructions':[],'ResourceRegistry':{'https://example.invalid/example.zip':{'Files':{'example.zip':True}}}},{'Guid':'bbbbbbbb-2222-4222-8222-222222222222','Name':'Example Archive B','IsSelected':True,'Instructions':[],'ResourceRegistry':{'https://example.invalid/second.zip':{'Files':{'second.zip':True}}}}]}
 results=[]
 def run(name,guide,flags,settings=None,raw=None):
@@ -53,3 +55,5 @@ r=run('all_false_file_selection',g,['--dry-run','--peer-mode','off','--use-file-
 receipt={'binaryBeforeSha256':binary_before,'root':str(root),'networkNamespace':os.readlink('/proc/self/ns/net'),'ipv4Routes':subprocess.check_output(['ip','route'],text=True),'binary':binary,'binarySha256':hashlib.sha256(pathlib.Path(binary).read_bytes()).hexdigest(),'sourceSha256':{str(p):hashlib.sha256((repo/p).read_bytes()).hexdigest() for p in ['src/main.rs','src/download_orchestrator.rs','src/peer_acquire.rs','src/download.rs','src/p2p.rs','src/lib.rs']},'checks':checks,'passed':sum(c['passed'] for c in checks),'total':len(checks)}
 (out/'receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
 print(json.dumps({'passed':receipt['passed'],'total':receipt['total'],'failed':[c for c in checks if not c['passed']],'evidence':str(out)},indent=2))
+
+assert all(c['passed'] for c in checks)

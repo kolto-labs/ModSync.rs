@@ -1,7 +1,7 @@
 # Fetch FOMOD S1 production evidence
 
 Candidate source: `f3f27d346c9a07dd102d23ed8992f72d19f3c8d2`.
-Independent source SPEC and QUALITY review are still required. This evidence does
+Independent source SPEC review approved (see ../fomod-s1-spec-review.md); QUALITY is still required. This evidence does
 not accept full F15, S2, the desktop acquisition flow, or any real game install.
 
 The controller assigned the narrow S2 record-timing dependency to S1 in
@@ -128,9 +128,10 @@ Then run the real CLI fixtures in isolated namespaces:
 
 ```bash
 FOMOD_PARENT_NETNS="$(readlink /proc/self/ns/net)" unshare -Urn python3 docs/parity/fomod-s1-proof/probe.py
-unshare -Urn python3 docs/parity/fomod-s1-proof/inherited_controller.py
+FOMOD_PARENT_NETNS="$(readlink /proc/self/ns/net)" unshare -Urn python3 docs/parity/fomod-s1-proof/inherited_controller.py
 ```
 
-The target is intentionally fixed to
-`/home/brunner56/.cache/modsync-rs-target-lead`; remeasure free space and respect the
-single build owner before rerunning. No release build or test target is necessary.
+Current scripts default to the clone target directory and honor CARGO_TARGET_DIR,
+MODSYNC_BINARY and MODSYNC_PROOF_OUT as described in ../cloud/README.md. Historical
+receipts retain their original paths; new runs write separate evidence. Respect
+single build ownership. No release build or test target is necessary.
