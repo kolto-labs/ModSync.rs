@@ -3,7 +3,7 @@
 Scope is the bounded S2b slice of [the remaining plan](../fomod-remaining-plan.md) S2,
 continuing [S2a](../fomod-s2a-proof/README.md#what-remains-of-s2). The base is `b6d1d88`;
 the slice is commit `37cd4cc`, its review follow-up commit `c28dee0`, and an
-uncommitted second follow-up that aligns run-choice scope with engine source matching
+second follow-up `6dfbf63` (SPEC and QUALITY approved) that aligns run-choice scope with engine source matching
 (see "Review follow-up" below).
 Ownership propagation, desktop work and S3 are out of scope. This slice does not
 change F15 or F29 status.
@@ -166,7 +166,7 @@ Standing invariants:
 
 - `probe.py`: **254/254 checks, 89 production invocations**. The binary is the
   default-feature debug build; its SHA-256 is host-specific and recorded in the
-  receipt. The working tree is `c28dee0` plus the uncommitted scope follow-up, bound
+  receipt. The working tree is `c28dee0` plus the scope follow-up `6dfbf63`, bound
   by source hash in the receipt. (`c28dee0` recorded 232/232 with 81 invocations; the
   original slice recorded 200/200 with 67 invocations on an uncommitted `b6d1d88`
   tree.)
@@ -241,7 +241,7 @@ the proof above covers each:
 
 The re-review of `c28dee0` found that its scope check compared only an Extract
 source's last path component with the archive name, so a folder source or a glob
-character class lost its choices (a regression from `37cd4cc`). The uncommitted second
+character class lost its choices (a regression from `37cd4cc`). The second
 follow-up matches the way the engine resolves sources (`scope_folder_*`,
 `scope_char_class_*`):
 
@@ -281,3 +281,9 @@ FOMOD_PARENT_NETNS="$(readlink /proc/self/ns/net)" unshare -Urn python3 docs/par
 ```
 
 Set `MODSYNC_PROOF_KEEP=1` to keep the temporary fixture root.
+
+
+Residual (documented at merge): a folder source whose own name ends in an archive
+extension is compared as a file name, so its component fails for lack of choices rather
+than installing unconfigured; an included component with unparseable `FomodChoices`
+fails with the repair hint.

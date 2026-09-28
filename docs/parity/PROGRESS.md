@@ -71,7 +71,7 @@ is assigned because the remaining domains differ greatly in scope and proof cost
    `ae8d7e9`; S2a SPEC and QUALITY are [approved](fomod-s2a-review.md). S2b
    (commit `37cd4cc`, review follow-up `c28dee0` that dedupes and lists gate
    archives, restores C#'s exact fallback text, adds iota-subscript case mapping and
-   scopes run choices to referencing components, and an uncommitted second follow-up
+   scopes run choices to referencing components, and second follow-up `6dfbf63` (SPEC and QUALITY approved)
    that matches that scope to engine source resolution so folder and glob
    character-class Extract sources keep their choices; completed components, and so a
    completed component no entry references, are never touched; second follow-up not

@@ -874,7 +874,10 @@ own Extract source, so an unrelated component's unparseable `FomodChoices` do no
 the run. A source may extract the archive when its last component matches the archive
 name with the engine's glob rules (including `[...]` classes) or is not an archive file
 name, since the engine also extracts every archive below a folder source; this may
-include a component that turns out not to extract it.
+include a component that turns out not to extract it. A folder source whose own name ends in an archive extension (for example a directory
+named `Mod.zip`) is compared as a file name, not treated as a folder, so its component
+fails for lack of choices rather than installing unconfigured; a component included by
+this rule whose own `FomodChoices` cannot be parsed fails with the repair hint.
 Unparseable embedded `FomodChoices` on a component the file applies to fail with the
 repair hint instead of being replaced. This supersedes the earlier whole-file replacement noted
 under "CLI configured FOMOD installation" and in the S2a section.
