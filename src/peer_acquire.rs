@@ -163,6 +163,17 @@ impl Acquire for PeerAcquire {
             }
         };
 
+        // An unnamed target learns its name from the torrent before any transfer. When
+        // that name is already present, nothing is fetched or replaced: the orchestrator
+        // adopts the present file only if it has the authored digest, which every Peer
+        // copy must have. (In a race `destination` is an empty staging folder instead.)
+        if target.filename.is_none() && destination_file.exists() {
+            return Err(anyhow::Error::new(download::DestinationExists {
+                path: destination_file,
+                sha256: sha256.to_ascii_lowercase(),
+            }));
+        }
+
         // P3: policy is bootstrapped only now, from this eligible call.
         let policy = self
             .policy()

@@ -873,9 +873,11 @@ takes, with no request, a file an earlier member published under its name (for a
 unnamed target, from its own URL). This is the rule by which a rerun finds the file
 present by name (`AlreadyPresent`). Its own `ContentHashSHA256` must still match.
 Otherwise it takes the unfinished outcome of an earlier member with an identical
-source list (same URL and fallbacks) that, when the target knows its name, asked
-for that same name, since a repeat would make the same request again. Otherwise it
-runs its own sources, for example a different URL after the owner failed. A target that took another
+source list (same URL and fallbacks) that asked for the same name, or, like the
+target, for no name, since a repeat would make the same request again. An unnamed
+target therefore never inherits the failure of a member that asked for a name, which
+may be specific to that name. Otherwise it runs its own sources, for example a
+different URL after the owner failed. A target that took another
 member's result keeps its own `targetIndex`, component and registry URL, gains
 `sharedWith: <member>`, and gets one event with its final phase. Every component is
 therefore reported, recorded under `--record` and bound as a FOMOD consumer of the
@@ -898,16 +900,35 @@ Consequences:
   destination: `Example.zip` and `example.zip` give one file, `Example.zip`.
 - For a page URL such as a Nexus mod page, an unnamed component takes the file an
   earlier component named.
+- A component without a `Files` name that runs its own source and whose transfer
+  reveals a name already present (in a group, after an unlinked component that ran
+  first, or on a rerun) adopts the present file without replacing it: under
+  its own `ContentHashSHA256` when it authors one, else only when the present file
+  holds exactly the downloaded bytes. Otherwise it fails with an error that names
+  the present file and says it was not replaced; C# would overwrite it. The
+  transfer's temp file is removed either way. A refusal ends the target only when a
+  later source would reveal the same name (a repeat of the same Origin URL);
+  otherwise the target falls through to its next source, such as Peer in Fallback
+  mode. A run cancelled before or during the adoption ends `cancelled` and adopts
+  nothing. An unnamed transfer that finds its name absent but loses the no-clobber
+  publish to a concurrent transfer adopts the same way instead of failing with
+  `File exists`. A Peer copy whose torrent names a present file follows the same rule
+  under its authored hash. In a race that adoption runs before Origin is stopped: a
+  refusal is a Peer failure and Origin continues, and an adopted file reports source
+  Peer even when it is Origin's own copy not yet reported (Peer paths source only).
 
 C# deduplicates nothing: each component downloads on its own, and a later publish
-overwrites the file or finds it present and uses it. Two unknown names from
-different URLs that turn out equal still collide at publish, as before. So do a
-known and an unknown name from different URLs that no third target links. An
-unnamed group member that must run its own URL after another URL published the name
-it reveals fails deterministically with `Download destination already exists`, as a
-rerun would. The plan and report JSON changes are additive; rows with no link are
-unchanged. Evidence: commit `4bf5c54`, its review follow-up `339b3d6` and a second
-follow-up (transitive groups, name-matched failure inheritance),
-[shared-URL proof](docs/parity/fetch-shared-url-proof/README.md), 266/266 checks.
+overwrites the file or finds it present and uses it. A known and an unknown name
+from different URLs that no third target links still collide at publish when they
+run at once and the known name's publish loses: it fails with `File exists`. An unnamed Nexus target whose name the API reveals still fails before
+transferring when that name is present. The plan and report JSON changes are
+additive; rows with no link are unchanged. Evidence: commit `4bf5c54`, its review
+follow-up `339b3d6`, a second follow-up `3f0caf4` (transitive groups, name-matched
+failure inheritance), a third follow-up `d4ccbc1` (present-file adoption for unnamed
+targets, no named failure for an unnamed target) and a polish follow-up (adoption
+before Origin stops in a race, fall-through after a refusal, no adoption after a
+cancel, adoption after a lost unnamed publish),
+[shared-URL proof](docs/parity/fetch-shared-url-proof/README.md), 381/381 checks
+(10 fail on `d4ccbc1`; 38 of the earlier 354 fail on `45b3c64`).
 This is Fetch/nxm acquisition only; the desktop download path does not use this
 orchestrator.

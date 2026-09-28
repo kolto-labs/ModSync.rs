@@ -1,6 +1,6 @@
 # Full Rust functionality progress
 
-Updated 2026-09-28 04:54 UTC. Goal: every F01–F29 requirement in [ACCEPTANCE.md](ACCEPTANCE.md)
+Updated 2026-09-28 08:25 UTC. Goal: every F01–F29 requirement in [ACCEPTANCE.md](ACCEPTANCE.md)
 verified against pinned C# `d31ccbd3`, including identical K1/K2 full installs
 against C# and manual references. A delivered slice does not close a whole domain.
 
@@ -76,8 +76,28 @@ is assigned because the remaining domains differ greatly in scope and proof cost
    (subject to its own hash) or the outcome of identical sources for the same name
    without a request; otherwise, for example a different URL after the owner failed,
    it downloads for itself. Every component is reported, recorded and bound as a
-   FOMOD consumer; [evidence](fetch-shared-url-proof/README.md) is 266/266 (22 new
-   checks fail on `339b3d6`). The second follow-up is `3f0caf4`; SPEC and QUALITY are approved. Open: an unnamed target whose server-revealed name matches a file already present fails with `Download destination already exists` instead of adopting it under its own hash (`src/download.rs` ~466); an unnamed linked target can inherit a named member's name-specific failure (`src/download_orchestrator.rs` ~722). Also open:
+   FOMOD consumer. The second follow-up is `3f0caf4`; SPEC and QUALITY are approved.
+   A third follow-up, `d4ccbc1` (PR bodencrouch/ModSync.rs#3), makes the two changes
+   that review recommended: an unnamed target whose transfer reveals a name already
+   present adopts that file under its own hash, or with no hash only when the bytes
+   match, and otherwise fails clearly without replacing it (grouped, ungrouped with one
+   worker, and on reruns; the Peer publish paths match by source only); and an unnamed
+   target inherits only an unnamed member's failure (354/354; 38 new or changed checks
+   fail on `45b3c64`). An independent review approved `d4ccbc1` for SPEC and QUALITY.
+   The polish follow-up `7ba8b1b` (SPEC and QUALITY approved) addresses that review's five
+   non-blocking findings: a race adopts a present file before it stops Origin, and a
+   refused Peer adoption lets Origin continue; a refused adoption ends the target only
+   when a later source would reveal the same name, else it falls through; a cancelled
+   run never adopts; an unnamed Origin publish that loses a no-clobber race adopts
+   instead of failing with `File exists`; and the README states the reported source and
+   what `origin_denies_peer` does. [Evidence](fetch-shared-url-proof/README.md) is
+   381/381 (10 new checks fail on `d4ccbc1`; the race and Fallback changes are
+   source-only). Still open here: when Origin finds its name present inside a race, Peer is
+   stopped before adoption is decided, so a refused adoption cannot fall back to Peer as
+   Fallback mode does (`src/download_orchestrator.rs` ~1624); `adopt_present`'s hash pass
+   ignores cancellation; and an unnamed Nexus target whose API-revealed name is
+   present fails before transferring, and a known name's publish that loses a
+   no-clobber race outside a group still fails with `File exists`. Also open:
    one-run `validate/install --fomod-choices` still replaces all embedded archive
    choices.
    Remaining S2 semantic items and native acceptance follow.
