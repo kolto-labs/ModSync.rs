@@ -709,7 +709,10 @@ impl App {
             && self.guide.is_some()
             && self.selected_base() > 0
             && self.validated
-            && self.validation_report.as_ref().is_some_and(|report| report.success)
+            && self
+                .validation_report
+                .as_ref()
+                .is_some_and(|report| report.success)
             && self.validation_input_stamp.as_ref() == Some(&self.input_stamp)
             && route_available
     }
@@ -729,20 +732,17 @@ impl App {
         // Fresh validation already checked the current guide and folders. Advance
         // earlier reading pages to Validate without launching the engine, then use
         // the ordinary validated transition to the InstallStart review page.
-        while self
-            .wizard
-            .as_ref()
-            .is_some_and(|wizard| {
-                wizard.current() != Page::Validate && wizard.current() != Page::InstallStart
-            })
-        {
+        while self.wizard.as_ref().is_some_and(|wizard| {
+            wizard.current() != Page::Validate && wizard.current() != Page::InstallStart
+        }) {
             if !self.wizard.as_mut().is_some_and(|wizard| {
                 wizard.next(Gate {
                     can_navigate_forward: true,
                     validation_passed: true,
                 })
             }) {
-                self.logs.push("Installation review page is unavailable.".into());
+                self.logs
+                    .push("Installation review page is unavailable.".into());
                 return;
             }
         }
@@ -782,7 +782,8 @@ impl App {
                 can_navigate_forward: true,
                 validation_passed: true,
             }) {
-                self.logs.push("Retry validation page is unavailable.".into());
+                self.logs
+                    .push("Retry validation page is unavailable.".into());
                 return;
             }
         }
@@ -1473,8 +1474,7 @@ impl App {
                         self.receiver.is_none()
                             && !self.phase_failed
                             && self.installing_page.same_folders(&self.mods, &self.game),
-                        egui::Button::new("Revalidate phase")
-                            .min_size(egui::vec2(100.0, 32.0)),
+                        egui::Button::new("Revalidate phase").min_size(egui::vec2(100.0, 32.0)),
                     )
                     .on_disabled_hover_text(
                         "Set the game and mod folders back to the ones this install used",
