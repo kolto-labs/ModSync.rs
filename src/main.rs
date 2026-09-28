@@ -1512,7 +1512,12 @@ fn run() -> Result<()> {
             // C4: dry-run prints the effective plan and returns before any policy
             // creation, signal handling, save or FOMOD extraction.
             if dry_run {
-                println!("{}", serde_json::to_string_pretty(&plan)?);
+                if progress_json {
+                    let envelope = serde_json::json!({"type": "plan", "plan": plan});
+                    println!("{}", serde_json::to_string(&envelope)?);
+                } else {
+                    println!("{}", serde_json::to_string_pretty(&plan)?);
+                }
                 return Ok(());
             }
 
