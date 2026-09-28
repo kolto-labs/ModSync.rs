@@ -710,7 +710,10 @@ impl Engine {
             }
             self.collect_execution_components(component, &mut scope)?;
         }
-        let mut configured = Vec::new();
+        // Registered archives with valid choices, by path: filename and registrants.
+        let mut configured = BTreeMap::<String, (String, Vec<String>)>::new();
+        // (archive path, component) pairs already checked by the registered pass.
+        let mut checked = BTreeSet::new();
         let mut routes = BTreeSet::new();
         for component in &scope {
             let mut registered = BTreeSet::new();
@@ -753,7 +756,12 @@ impl Engine {
                     })?;
                     if let Some(module) = crate::fomod::inspect_entries(&entries)? {
                         configured_choices(component, filename, &module)?;
-                        configured.push((key(&path), filename.to_owned(), component.name.clone()));
+                        checked.insert((key(&path), component.guid.clone()));
+                        configured
+                            .entry(key(&path))
+                            .or_insert_with(|| (filename.to_owned(), Vec::new()))
+                            .1
+                            .push(component.name.clone());
                     }
                 }
             }
@@ -766,6 +774,11 @@ impl Engine {
                 // Missing generic Extract inputs belong to archive validation and
                 // dry-run availability, not the independent FOMOD state gate.
                 for source in self.matches(&instruction.source, true)? {
+                    // Any applying Extract of this path is an install route, FOMOD or not.
+                    routes.insert(key(&source));
+                    if checked.contains(&(key(&source), component.guid.clone())) {
+                        continue;
+                    }
                     let content = &self.files[&key(&source)].1;
                     let entries = archive::unpack(
                         content.path(),
@@ -773,8 +786,6 @@ impl Engine {
                         &self.settings.archive,
                         &self.settings.cancelled,
                     )?;
-                    // Any applying Extract of this path is an install route, FOMOD or not.
-                    routes.insert(key(&source));
                     let Some(module) = crate::fomod::inspect_entries(&entries)? else {
                         continue;
                     };
@@ -788,12 +799,18 @@ impl Engine {
         }
         // C# FomodConfigurationGate soft-warns "configured" without archive-scoped
         // instructions. Rust keeps choices, so the analogue is a missing Extract route.
+        // One warning per archive, naming every registering component.
         Ok(configured
             .into_iter()
-            .filter(|(path, _, _)| !routes.contains(path))
-            .map(|(_, filename, name)| {
+            .filter(|(path, _)| !routes.contains(path))
+            .map(|(_, (filename, names))| {
+                let names = names
+                    .iter()
+                    .map(|name| format!("'{name}'"))
+                    .collect::<Vec<_>>()
+                    .join(", ");
                 format!(
-                    "FOMOD archive '{filename}' registered by '{name}' has valid choices, but no selected Extract instruction installs it; configuration alone installs no files."
+                    "FOMOD archive '{filename}' registered by {names} has valid choices, but no selected Extract instruction installs it; configuration alone installs no files."
                 )
             })
             .collect())
@@ -1386,22 +1403,26 @@ impl Engine {
                         &self.settings.archive,
                         &self.settings.cancelled,
                     )?;
-                    let configured =
-                        if let Some(mut module) = crate::fomod::inspect_entries(&entries)? {
-                            let filename = source
-                                .file_name()
-                                .and_then(|n| n.to_str())
-                                .context("FOMOD archive filename is invalid")?;
-                            crate::fomod::required_saved_choices(component, filename)?
-                                .apply_to(&mut module.config.steps)
-                                .with_context(|| crate::fomod::stale_choices_context(filename))?;
-                            let relative = dest.strip_prefix(&self.settings.roots.mods).context(
-                                "Configured FOMOD extraction must stay in the mod directory",
-                            )?;
-                            module.copy_instructions(&relative.to_string_lossy())?
-                        } else {
-                            Vec::new()
-                        };
+                    let configured = if let Some(mut module) =
+                        crate::fomod::inspect_entries(&entries)?
+                    {
+                        let filename = source
+                            .file_name()
+                            .and_then(|n| n.to_str())
+                            .context("FOMOD archive filename is invalid")?;
+                        let choices = crate::fomod::required_saved_choices(component, filename)?;
+                        let relative = dest.strip_prefix(&self.settings.roots.mods).context(
+                            "Configured FOMOD extraction must stay in the mod directory",
+                        )?;
+                        // Applying and mapping both judge the saved choices against
+                        // the current archive, so both carry the recovery route.
+                        choices
+                            .apply_to(&mut module.config.steps)
+                            .and_then(|()| module.copy_instructions(&relative.to_string_lossy()))
+                            .with_context(|| crate::fomod::stale_choices_context(filename))?
+                    } else {
+                        Vec::new()
+                    };
                     let archive_paths: BTreeSet<_> = entries
                         .iter()
                         .map(|entry| key(&dest.join(&entry.path)))

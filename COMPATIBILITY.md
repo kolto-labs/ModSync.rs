@@ -826,19 +826,25 @@ This is a source-discovery safeguard, not complete peer acquisition or F29 proof
 
 ## FOMOD S2a reconfiguration and stale choices — 2026-09-28 UTC
 
-`fetch-downloads` with an explicit choices entry (`--fomod-choices` or
-`MODSYNC_FOMOD_CHOICES`) now replaces different or stale saved choices for that
-archive (`reconfigured`). It keeps a single entry per archive, keeps other
-archives' entries unchanged, and makes no edit when the choices are identical.
-Interactive, warn and skip still never touch configured consumers.
+`fetch-downloads --fomod-choices <file>` with an entry for an archive now replaces
+different or stale saved choices for that archive (`reconfigured`). It keeps a single
+entry per archive, keeps other archives' entries unchanged, and makes no edit when the
+choices are identical. Only the flag reconfigures or recovers saved choices:
+`MODSYNC_FOMOD_CHOICES` keeps its S1 role of configuring pending consumers, and
+`--fomod-skip` still wins over the flag. Interactive, warn and skip never touch
+configured consumers. When stale saved choices need the flag's file and it cannot be
+read or parsed, the file error is reported. An entry that does not fit the current
+archive fails the run without changing consumers whose saved choices are valid.
 `validate --validation-report` now applies saved choices to the current archive
 instead of checking only that an entry exists. Stale or invalid choices, and
 C#-configured guides with no `FomodChoices`, fail with the supported import route.
 Prompt status is never treated as executable choices.
 
 A registered FOMOD archive with valid choices but no selected `Extract` passes with
-a warning: configuration alone installs no files. Choices carry no byte identity (as
-in C#). A replacement archive that still accepts the saved names is mapped fresh
-from its current bytes. Evidence: [S2a proof](docs/parity/fomod-s2a-proof/README.md),
-117/117 checks. Unicode matching, desktop reconfiguration and the S3 corpora remain
-open, and F15 stays partial.
+one warning per archive, naming its registrants: configuration alone installs no
+files. Choices carry no byte identity (as in C#). A replacement archive that still
+accepts the saved names is mapped fresh from its current bytes. Evidence:
+[S2a proof](docs/parity/fomod-s2a-proof/README.md), 182/182 checks. The run-scoped
+`validate`/`install --fomod-choices` still replaces all embedded archive choices for
+that run; it is not a recovery route. Unicode matching, desktop reconfiguration and
+the S3 corpora remain open, and F15 stays partial.

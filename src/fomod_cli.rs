@@ -40,10 +40,23 @@ impl Options {
         let Some(path) = explicit.or(environment.as_ref()) else {
             return Ok(None);
         };
-        Ok(Some(fomod::ChoicesFile::parse(
-            &std::fs::read_to_string(path)
-                .with_context(|| format!("Reading FOMOD choices {}", path.display()))?,
-        )?))
+        Ok(Some(
+            fomod::ChoicesFile::parse(
+                &std::fs::read_to_string(path)
+                    .with_context(|| format!("Reading FOMOD choices {}", path.display()))?,
+            )
+            .with_context(|| format!("Parsing FOMOD choices {}", path.display()))?,
+        ))
+    }
+
+    /// Whether `--fomod-choices` names a file and skip does not win. Only this flag
+    /// reconfigures or recovers saved choices; MODSYNC_FOMOD_CHOICES keeps its S1
+    /// role of supplying pending consumers.
+    fn choices_flag(&self) -> bool {
+        !self.skip
+            && self.choices.as_ref().is_some_and(|p| {
+                !p.as_os_str().is_empty() && !p.to_string_lossy().trim().is_empty()
+            })
     }
 
     /// Resolve only after positive FOMOD detection. Explicit skip/choices never
@@ -190,15 +203,9 @@ fn saved_current(
     module: &fomod::ArchiveModule,
     filename: &str,
 ) -> Result<Option<fomod::ArchiveChoices>> {
-    let Some(value) = component.metadata.get("FomodChoices") else {
+    let Some(file) = fomod::saved_choices_file(component)? else {
         return Ok(None);
     };
-    let file = fomod::ChoicesFile::parse(&serde_json::to_string(value)?).with_context(|| {
-        format!(
-            "Saved FomodChoices are invalid. {}",
-            fomod::CHOICES_RECOVERY_HINT
-        )
-    })?;
     let Some(choices) = file.archive(filename) else {
         return Ok(None);
     };
@@ -292,7 +299,7 @@ pub fn dispatch(
                 should_prompt: consumer.should_prompt,
             });
         }
-        // Same-archive reconfiguration: an explicit choices entry for this archive
+        // Same-archive reconfiguration: a `--fomod-choices` entry for this archive
         // replaces different or stale saved choices (and configures pending
         // consumers) in one atomic session. Other archives' entries are untouched.
         // Without saved choices this is exactly the lazy Choices mode below.
@@ -300,10 +307,20 @@ pub fn dispatch(
             .iter()
             .zip(&report.consumers[start..])
             .any(|(current, c)| current.is_some() || c.error.is_some());
-        let entry = if has_saved && !cancelled.load(Ordering::SeqCst) {
+        // The flag wins over the environment, so the cached source is the flag file.
+        let entry = if has_saved && options.choices_flag() && !cancelled.load(Ordering::SeqCst) {
             match explicit(&mut explicit_cache, options) {
                 Ok(Some(file)) => file.archive(&filename).cloned(),
-                _ => None,
+                Ok(None) => None,
+                Err(error) => {
+                    // Lazy (S1): ignored when every consumer resolves. A consumer with
+                    // stale saved choices needed the file to recover, so name why not.
+                    let needed = report.consumers[start..].iter().any(|c| c.error.is_some());
+                    if needed && !report.errors.contains(error) {
+                        report.errors.push(error.clone());
+                    }
+                    None
+                }
             }
         } else {
             None
@@ -385,10 +402,18 @@ pub fn dispatch(
                 }
                 Ok(None) => {}
                 Err(error) => {
+                    // Nothing was committed: consumers with valid saved choices stay
+                    // resolved and usable; stale ones keep their own error. Pending
+                    // consumers fail as in S1 Choices mode. The run fails via errors.
+                    let error = format!("{error:#}");
                     for index in &all {
-                        report.consumers[*index].outcome = Outcome::Error;
-                        report.consumers[*index].error = Some(format!("{error:#}"));
+                        let consumer = &mut report.consumers[*index];
+                        if !consumer.usable_choices && consumer.error.is_none() {
+                            consumer.outcome = Outcome::Error;
+                            consumer.error = Some(error.clone());
+                        }
                     }
+                    report.errors.push(error);
                 }
             }
             continue;
@@ -408,7 +433,10 @@ pub fn dispatch(
                 Err(error) => Err(anyhow::anyhow!("{error}")),
             };
             if let Err(error) = &resolved {
-                report.errors.push(format!("{error:#}"));
+                let error = format!("{error:#}");
+                if !report.errors.contains(&error) {
+                    report.errors.push(error);
+                }
             }
             mode = Some(resolved);
         }

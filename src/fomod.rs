@@ -988,7 +988,7 @@ impl ChoicesFile {
 }
 
 /// Supported routes for missing, stale or C#-only FOMOD configuration.
-pub const CHOICES_RECOVERY_HINT: &str = "Capture choices with `modsync fomod-inspect <archive> --interactive --save-choices <file>`, then persist them with `modsync fetch-downloads --record --fomod-choices <file>` (or pass --fomod-choices <file> to validate/install for one run).";
+pub const CHOICES_RECOVERY_HINT: &str = "Capture choices with `modsync fomod-inspect <archive> --interactive --save-choices <file>`, then persist them with `modsync fetch-downloads --record --fomod-choices <file>`.";
 
 /// The component's saved choices for one archive, or an actionable error.
 /// Prompt status, including a C# `configured` marker, is never executable choices:
@@ -1006,19 +1006,27 @@ pub fn required_saved_choices(
         ),
         None => anyhow::anyhow!("FOMOD archive '{filename}' has {what}. {CHOICES_RECOVERY_HINT}"),
     };
-    let raw = component
-        .metadata
-        .get("FomodChoices")
+    let file = saved_choices_file(component)?
         .ok_or_else(|| missing("no explicit FomodChoices configuration"))?;
-    let file = ChoicesFile::parse(&serde_json::to_string(raw)?).with_context(|| {
-        format!(
-            "Saved FomodChoices of component {} are invalid",
-            component.guid
-        )
-    })?;
     file.archive(filename)
         .cloned()
         .ok_or_else(|| missing("no saved FomodChoices entry for this archive"))
+}
+
+/// The component's saved `FomodChoices`, if any. Unparseable saved choices are an
+/// error naming the recovery route, with one wording for Fetch, the gate and install.
+pub fn saved_choices_file(component: &crate::Component) -> Result<Option<ChoicesFile>> {
+    let Some(raw) = component.metadata.get("FomodChoices") else {
+        return Ok(None);
+    };
+    ChoicesFile::parse(&serde_json::to_string(raw)?)
+        .with_context(|| {
+            format!(
+                "Saved FomodChoices of component {} are invalid. {CHOICES_RECOVERY_HINT}",
+                component.guid
+            )
+        })
+        .map(Some)
 }
 
 /// Context for choices that no longer fit the archive now on disk. Choices carry
