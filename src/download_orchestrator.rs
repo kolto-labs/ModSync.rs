@@ -1615,14 +1615,6 @@ fn component_mut<'a>(components: &'a mut [Component], guid: &str) -> Option<&'a 
     None
 }
 
-fn component_ref<'a>(components: &'a [Component], guid: &str) -> Option<&'a Component> {
-    components.iter().find_map(|component| {
-        (component.guid == guid)
-            .then_some(component)
-            .or_else(|| component_ref(&component.options, guid))
-    })
-}
-
 /// Sets `ResourceRegistry[url].Files[name] = true` for completed and already-present
 /// archives. Never mutates a `false` entry. Hashes are not recorded; see `record_with`.
 pub fn record(guide: &mut Guide, report: &RunReport) -> Result<RecordSummary> {
@@ -1734,7 +1726,67 @@ pub fn fomod_followups(
     options: &archive::Options,
     cancelled: &AtomicBool,
 ) -> FomodFollowups {
-    let mut result = FomodFollowups::default();
+    // Preserve the desktop caller's recursive prompt policy and suppression of
+    // inspection for ineligible consumers; Fetch uses the full assessment below.
+    let eligible = |guid: &str, path: Option<&PathBuf>| {
+        guide
+            .components
+            .iter()
+            .find(|c| c.guid == guid && c.is_selected)
+            .zip(path.and_then(|p| p.file_name()).and_then(|n| n.to_str()))
+            .is_some_and(|(component, filename)| offer_prompt(component, filename))
+    };
+    let mut captured = report.clone();
+    captured
+        .outcomes
+        .retain(|outcome| eligible(&outcome.component_guid, outcome.path.as_ref()));
+    captured
+        .skipped
+        .retain(|skip| eligible(&skip.component_guid, skip.path.as_ref()));
+    let scan = collect_fomod_consumers(guide, &captured, options, cancelled, &[]);
+    FomodFollowups {
+        followups: scan
+            .archives
+            .iter()
+            .filter_map(|archive| {
+                archive.consumers.first().map(|consumer| FomodFollowup {
+                    component_guid: consumer.component_guid.clone(),
+                    archive: archive.archive.clone(),
+                })
+            })
+            .collect(),
+        inspection_errors: scan.inspection_errors,
+    }
+}
+
+/// A GUID/path binding from the captured acquisition report, before inspection deduplication.
+pub struct FomodConsumer {
+    pub component_guid: String,
+    pub should_prompt: bool,
+}
+
+pub struct FomodArchiveConsumers {
+    pub archive: PathBuf,
+    pub module: crate::fomod::ArchiveModule,
+    pub consumers: Vec<FomodConsumer>,
+}
+
+#[derive(Default)]
+pub struct FomodConsumerScan {
+    pub archives: Vec<FomodArchiveConsumers>,
+    pub inspection_errors: Vec<FomodInspectionError>,
+}
+
+/// Inspect each acquired path once, but retain every eligible consumer. Completed
+/// parent definitions (including descendants) are excluded before they can own a path.
+pub fn collect_fomod_consumers(
+    guide: &Guide,
+    report: &RunReport,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+    completed: &[String],
+) -> FomodConsumerScan {
+    let mut result = FomodConsumerScan::default();
     if report.cancelled {
         return result;
     }
@@ -1750,33 +1802,54 @@ pub fn fomod_followups(
                 .filter(|s| s.reason == SkipReason::AlreadyPresent)
                 .filter_map(|s| Some((&s.component_guid, s.path.as_ref()?))),
         );
-    let mut seen = BTreeSet::new();
+    let mut bindings: Vec<(PathBuf, Vec<FomodConsumer>)> = Vec::new();
     for (guid, path) in archives {
         if cancelled.load(Ordering::Relaxed) {
-            return FomodFollowups::default();
+            return FomodConsumerScan::default();
         }
-        if !seen.insert(path.clone()) {
-            continue;
-        }
-        let Some(component) = component_ref(&guide.components, guid).filter(|c| c.is_selected)
-        else {
+        // Acquisition candidates are top-level registry owners. Do not enroll an
+        // unrelated option merely because it mentions the same archive basename.
+        let Some(component) = guide.components.iter().find(|c| {
+            c.guid == *guid
+                && c.is_selected
+                && !completed.iter().any(|id| id.eq_ignore_ascii_case(&c.guid))
+        }) else {
             continue;
         };
         let Some(filename) = path.file_name().and_then(|n| n.to_str()) else {
             continue;
         };
-        if !offer_prompt(component, filename) {
-            continue;
+        let eligible = vec![FomodConsumer {
+            component_guid: component.guid.clone(),
+            should_prompt: crate::fomod::should_prompt(component, filename),
+        }];
+        if let Some((_, existing)) = bindings.iter_mut().find(|(archive, _)| archive == path) {
+            for consumer in eligible {
+                if !existing
+                    .iter()
+                    .any(|old| old.component_guid == consumer.component_guid)
+                {
+                    existing.push(consumer);
+                }
+            }
+        } else {
+            bindings.push((path.clone(), eligible));
         }
-        match crate::fomod::inspect_archive(path, options, cancelled) {
-            Ok(Some(_)) => result.followups.push(FomodFollowup {
-                component_guid: guid.clone(),
-                archive: path.clone(),
+    }
+    for (path, consumers) in bindings {
+        if cancelled.load(Ordering::Relaxed) {
+            return FomodConsumerScan::default();
+        }
+        match crate::fomod::inspect_archive(&path, options, cancelled) {
+            Ok(Some(module)) => result.archives.push(FomodArchiveConsumers {
+                archive: path,
+                module,
+                consumers,
             }),
             Ok(None) => {}
             Err(error) => result.inspection_errors.push(FomodInspectionError {
-                component_guid: guid.clone(),
-                archive: path.clone(),
+                component_guid: consumers[0].component_guid.clone(),
+                archive: path,
                 error: format!("{error:#}"),
             }),
         }

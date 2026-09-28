@@ -10,6 +10,7 @@ pub mod download_queue;
 pub mod draft;
 pub mod editor;
 pub mod engine;
+pub mod fomod_cli;
 pub mod game;
 pub mod install_progress;
 pub mod merge;

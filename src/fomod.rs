@@ -762,6 +762,47 @@ pub fn prompt_choices(
     input: &mut impl std::io::BufRead,
     output: &mut impl std::io::Write,
 ) -> Result<()> {
+    match prompt_choices_with(
+        steps,
+        &mut || {
+            let mut line = String::new();
+            Ok(if input.read_line(&mut line)? == 0 {
+                PromptLine::Eof
+            } else {
+                PromptLine::Line(line)
+            })
+        },
+        output,
+    )? {
+        PromptOutcome::Configured => Ok(()),
+        PromptOutcome::Eof => anyhow::bail!("FOMOD selection cancelled at end of input"),
+        _ => anyhow::bail!("FOMOD selection cancelled"),
+    }
+}
+
+/// Typed input boundary shared by the standalone wizard and cancellable Fetch host.
+pub enum PromptLine {
+    Line(String),
+    Eof,
+    SignalCancelled,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum PromptOutcome {
+    Configured,
+    Refused,
+    Eof,
+    UserQuit,
+    SignalCancelled,
+}
+
+/// A completed candidate replaces the session only after all visible groups validate.
+pub fn prompt_choices_with(
+    steps: &mut [StepSelection],
+    input: &mut impl FnMut() -> Result<PromptLine>,
+    output: &mut impl std::io::Write,
+) -> Result<PromptOutcome> {
     let mut candidate = steps.to_vec();
     let mut cursor = 0;
     'steps: while cursor < candidate.len() {
@@ -790,13 +831,15 @@ pub fn prompt_choices(
                     "Numbers separated by commas; Enter keeps selection, 0 clears, back revisits, q cancels: "
                 )?;
                 output.flush()?;
-                let mut line = String::new();
-                ensure!(
-                    input.read_line(&mut line)? != 0,
-                    "FOMOD selection cancelled at end of input"
-                );
+                let line = match input()? {
+                    PromptLine::Line(line) => line,
+                    PromptLine::Eof => return Ok(PromptOutcome::Eof),
+                    PromptLine::SignalCancelled => return Ok(PromptOutcome::SignalCancelled),
+                };
                 let line = line.trim();
-                ensure!(!line.eq_ignore_ascii_case("q"), "FOMOD selection cancelled");
+                if line.eq_ignore_ascii_case("q") {
+                    return Ok(PromptOutcome::UserQuit);
+                }
                 if line.eq_ignore_ascii_case("back") {
                     cursor = visible_steps(&candidate)
                         .into_iter()
@@ -839,7 +882,7 @@ pub fn prompt_choices(
         }
     }
     steps.clone_from_slice(&candidate);
-    Ok(())
+    Ok(PromptOutcome::Configured)
 }
 
 impl ChoicesFile {
@@ -983,4 +1026,90 @@ pub fn set_prompt_status_remaining(
         }
     }
     visit(&mut guide.components, filename, status, completed);
+}
+
+/// Apply one validated archive session to exact captured acquisition consumers.
+/// The caller owns GUID/path authorization; unlike the legacy broad merge this
+/// never traverses options or enrolls another component by archive name. Completed
+/// GUIDs are rejected. Cloning makes a multi-consumer edit all-or-nothing.
+pub fn apply_bound_archive(
+    guide: &mut crate::Guide,
+    guids: &[String],
+    filename: &str,
+    choices: Option<&ArchiveChoices>,
+    status: PromptStatus,
+    completed: &[String],
+) -> Result<()> {
+    let mut candidate = guide.clone();
+    for guid in guids {
+        ensure!(
+            !completed.iter().any(|id| id.eq_ignore_ascii_case(guid)),
+            "FOMOD consumer {guid} is completed"
+        );
+        ensure!(
+            candidate
+                .components
+                .iter()
+                .filter(|c| c.guid == *guid)
+                .count()
+                == 1,
+            "FOMOD consumer {guid} is missing or ambiguous"
+        );
+        let component = candidate
+            .components
+            .iter_mut()
+            .find(|c| c.guid == *guid)
+            .unwrap();
+        if let Some(edit) = choices {
+            ensure!(
+                edit.archive_file_name.eq_ignore_ascii_case(filename),
+                "FOMOD choices archive does not match captured binding"
+            );
+            let mut saved = match component.metadata.get("FomodChoices") {
+                Some(value) => ChoicesFile::parse(&serde_json::to_string(value)?)?,
+                None => ChoicesFile {
+                    version: 1,
+                    archives: Vec::new(),
+                },
+            };
+            saved
+                .archives
+                .retain(|old| !old.archive_file_name.eq_ignore_ascii_case(filename));
+            saved.archives.push(edit.clone());
+            component
+                .metadata
+                .insert("FomodChoices".into(), serde_json::to_value(saved)?);
+        }
+        let filename = archive_name(filename);
+        for resource in component
+            .resource_registry
+            .values_mut()
+            .filter(|value| resource_matches(value, &filename))
+        {
+            let object = resource.as_object_mut().unwrap();
+            let key = if object.contains_key("handlerMetadata") {
+                "handlerMetadata"
+            } else if object.contains_key("HandlerMetadata") {
+                "HandlerMetadata"
+            } else {
+                "handlerMetadata"
+            };
+            let metadata = object.entry(key).or_insert_with(|| serde_json::json!({}));
+            let metadata = metadata.as_object_mut().ok_or_else(|| {
+                anyhow::anyhow!("FOMOD handler metadata must be an object for {guid}")
+            })?;
+            let statuses = metadata
+                .entry("fomodPromptStatus")
+                .or_insert_with(|| serde_json::json!({}));
+            let statuses = statuses.as_object_mut().ok_or_else(|| {
+                anyhow::anyhow!("FOMOD prompt status must be an object for {guid}")
+            })?;
+            statuses.insert(
+                filename.clone(),
+                serde_json::Value::String(status.as_str().into()),
+            );
+        }
+    }
+    *guide = candidate;
+    Ok(())
 }

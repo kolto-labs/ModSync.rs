@@ -334,7 +334,19 @@ enum Action {
         /// Emit newline-delimited JSON acquisition events, then one summary line.
         #[arg(long)]
         progress_json: bool,
-        /// Update the guide's selected/already-present resource facts on success.
+        /// Leave detected FOMOD installers unconfigured and mark them dismissed.
+        #[arg(long)]
+        fomod_skip: bool,
+        /// Version-1 FOMOD choices JSON, overriding MODSYNC_FOMOD_CHOICES.
+        #[arg(long)]
+        fomod_choices: Option<PathBuf>,
+        /// Ask to configure downloaded FOMOD installers, including with redirected input.
+        #[arg(long, conflicts_with = "non_interactive")]
+        interactive: bool,
+        /// Disable automatic terminal FOMOD prompting.
+        #[arg(long, conflicts_with = "interactive")]
+        non_interactive: bool,
+        /// Save acquisition facts and accepted FOMOD configuration/status edits.
         #[arg(long)]
         record: bool,
     },
@@ -1409,6 +1421,10 @@ fn run() -> Result<()> {
             dry_run,
             progress_json,
             record,
+            fomod_skip,
+            fomod_choices,
+            interactive,
+            non_interactive,
         }) => {
             use modsync::{
                 download_orchestrator as orchestrator, p2p, peer_acquire::PeerAcquire, selection,
@@ -1570,22 +1586,78 @@ fn run() -> Result<()> {
                 loopback_ca.as_ref(),
             )?;
 
+            let scan = orchestrator::collect_fomod_consumers(
+                &execution,
+                &report,
+                &archive_options,
+                &cancelled,
+                &[],
+            );
+            let fomod = orchestrator::FomodFollowups {
+                followups: scan
+                    .archives
+                    .iter()
+                    .filter_map(|archive| {
+                        archive
+                            .consumers
+                            .iter()
+                            .find(|c| c.should_prompt)
+                            .map(|consumer| orchestrator::FomodFollowup {
+                                component_guid: consumer.component_guid.clone(),
+                                archive: archive.archive.clone(),
+                            })
+                    })
+                    .collect(),
+                inspection_errors: scan.inspection_errors.clone(),
+            };
+            let mut configuration = modsync::fomod_cli::dispatch(
+                &mut execution,
+                scan,
+                &modsync::fomod_cli::Options {
+                    skip: fomod_skip,
+                    choices: fomod_choices,
+                    interactive,
+                    non_interactive,
+                    settings_dir,
+                },
+                &cancelled,
+                &[],
+            );
+            // Recording uses the pristine authored guide so transient selection is
+            // never persisted. Commit accepted sessions only, after dispatch; a
+            // cancelled current session has no edit to replay.
+            let mut fomod_recorded = false;
             let record_summary = if record {
-                let summary = orchestrator::record(&mut guide, &report)?;
-                if !summary.recorded.is_empty() {
-                    guide.save(&input)?;
+                match (|| -> Result<orchestrator::RecordSummary> {
+                    let summary = orchestrator::record(&mut guide, &report)?;
+                    configuration.apply_recorded(&mut guide, &[])?;
+                    if !summary.recorded.is_empty() || configuration.has_edits() {
+                        guide.save(&input)?;
+                        fomod_recorded = configuration.has_edits();
+                    }
+                    Ok(summary)
+                })() {
+                    Ok(summary) => Some(summary),
+                    Err(error) => {
+                        configuration
+                            .errors
+                            .push(format!("Recording Fetch result: {error:#}"));
+                        None
+                    }
                 }
-                Some(summary)
             } else {
                 None
             };
-            let fomod =
-                orchestrator::fomod_followups(&execution, &report, &archive_options, &cancelled);
 
+            // Latch classification after recording/cleanup so the emitted summary
+            // and exit code describe the same completed run boundary.
+            configuration.cancelled = report.cancelled || cancelled.load(Ordering::SeqCst);
             let summary_value = serde_json::json!({
                 "report": report,
                 "recordSummary": record_summary,
                 "fomodFollowups": fomod,
+                "fomodConfiguration": configuration,
+                "fomodConfigurationRecorded": fomod_recorded,
             });
             if progress_json {
                 let envelope = serde_json::json!({"type": "summary", "summary": summary_value});
@@ -1594,21 +1666,21 @@ fn run() -> Result<()> {
                 println!("{}", serde_json::to_string_pretty(&summary_value)?);
             }
 
-            if report.cancelled || cancelled.load(Ordering::SeqCst) {
+            if configuration.cancelled {
                 std::process::exit(130);
             }
             let failed = report
                 .outcomes
                 .iter()
                 .any(|o| o.status == orchestrator::TargetStatus::Failed);
-            if failed || !fomod.inspection_errors.is_empty() {
+            if failed || !fomod.inspection_errors.is_empty() || configuration.has_errors() {
                 std::process::exit(1);
             }
             let manual = report
                 .outcomes
                 .iter()
                 .any(|o| o.status == orchestrator::TargetStatus::ManualRequired);
-            if manual || !fomod.followups.is_empty() {
+            if manual || configuration.unresolved > 0 {
                 std::process::exit(3);
             }
             Ok(())
