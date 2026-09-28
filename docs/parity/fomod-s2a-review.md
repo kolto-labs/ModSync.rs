@@ -40,3 +40,20 @@ atomicity; exit mapping; validation stays pure; consistent gate path keys.
 - SPEC 3 / QUALITY 5: reconfiguration of valid saved choices is limited to the
   explicit `--fomod-choices` flag; the environment variable keeps its S1 role of
   supplying pending consumers only.
+
+## Re-review of `93837e5`: SPEC CHANGES REQUIRED, QUALITY APPROVED
+
+All round-1 findings resolved per the controller decisions; `(path, guid)` checked
+set cannot skip a needed check. New:
+
+1. Medium (SPEC): unparseable saved `FomodChoices` metadata now shows the Fetch
+   `--record --fomod-choices` hint in Fetch, validate and install, but that route
+   re-parses the same metadata and always fails.
+2. Low (QUALITY): a loadable recovery file lacking this archive's entry is not
+   mentioned.
+3. Nit: "uncommitted" wording; COMPATIBILITY overclaims the import route.
+
+Controller decision for 1: unparseable metadata gets its own repair hint (repair or
+remove that component's `FomodChoices`, then capture and record); flag
+reconfiguration does not overwrite unparseable metadata, which could discard other
+archives' entries.
