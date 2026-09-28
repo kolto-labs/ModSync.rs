@@ -6,8 +6,20 @@ set -u
 B=${B:-/home/brunner56/.cache/modsync-rs-target-dep/debug/modsync}
 [ -x "$B" ] || { echo "binary not found: $B" >&2; exit 2; }
 command -v python3 >/dev/null || { echo "python3 is required" >&2; exit 2; }
+bin_mtime_epoch=$(stat -c %Y "$B")
 echo "binary: $B sha256=$(sha256sum "$B" | cut -d' ' -f1) mtime=$(stat -c %y "$B")"
-echo "source: $(git -C "$(dirname "$0")" rev-parse HEAD 2>/dev/null)$(git -C "$(dirname "$0")" diff --quiet HEAD -- ../../src 2>/dev/null || echo ' +uncommitted src changes')"
+# Bind the probe run to the commit the binary was actually built from, not
+# just the worktree's current HEAD: HEAD plus a clean `src/` tree is only
+# trustworthy provenance when the binary is newer than that commit.
+src_head=$(git -C "$(dirname "$0")" rev-parse HEAD 2>/dev/null)
+src_head_epoch=$(git -C "$(dirname "$0")" log -1 --format=%ct HEAD 2>/dev/null)
+src_dirty=""
+git -C "$(dirname "$0")" diff --quiet HEAD -- ../../src 2>/dev/null || src_dirty=" +uncommitted src changes"
+staleness=""
+if [ -z "$src_dirty" ] && [ -n "$src_head_epoch" ] && [ "$bin_mtime_epoch" -lt "$src_head_epoch" ]; then
+  staleness=" +WARNING binary mtime predates HEAD commit; it was not necessarily built from it"
+fi
+echo "source: ${src_head}${src_dirty}${staleness}"
 R=/tmp/depprobe/run; rm -rf "$R"; mkdir -p "$R"
 A=aaaaaaaa-0000-0000-0000-000000000001; Bc=bbbbbbbb-0000-0000-0000-000000000002; C=cccccccc-0000-0000-0000-000000000003
 pass=0; fail=0
@@ -240,15 +252,55 @@ dep deploy --component $A >/dev/null; mkdir $G/override
 dep uninstall --component $A >$W/out 2>$W/err; rc=$?
 ok "original restored, manifest removed" '[ $rc -eq 0 ] && [ "$(cat $G/Override/a.tga)" = ORIG ] && [ -z "$(ls $M/manifests)" ] && [ -z "$(find $M/backups -type f)" ]'
 
-echo "P25 provenance does not claim a path a newer component owns"; new p25
+echo "P25 provenance refuses a path a newer component owns, nothing mutated"; new p25
 mkdir -p $G/Override; printf ORIGX > $G/Override/x.2da; printf ORIGY > $G/Override/y.2da
 stage $A Override/x.2da A; stage $Bc Override/y.2da B
 dep deploy --component $A >/dev/null; sleep 0.05; dep deploy --component $Bc >/dev/null
 dep snapshot --out $W/before.json >/dev/null; cp -a $G $W/pre
 rm $G/Override/y.2da; printf PATCHED > $G/Override/y.2da
+before_a=$(cat $M/manifests/$A.json)
 dep record --component $A --before $W/before.json --backup-source $W/pre >$W/out 2>$W/err; rc=$?
-echo "  after record: $(man $M)"
-ok "skipped, not recorded in A, no backup made" '[ $rc -eq 0 ] && python3 -c "import json,sys;r=json.load(open(sys.argv[1]))[\"provenance\"];sys.exit(0 if r[\"skipped\"]==[\"Override/y.2da\"] and not r[\"recorded\"] else 1)" $W/out && ! grep -q y.2da $M/manifests/$A.json && [ ! -e $M/backups/$A/Override/y.2da ]'
+echo "  rc=$rc: $(tail -1 $W/err | cut -c1-120)"; echo "  after record: $(man $M)"
+ok "refused (nonzero exit), not skip-with-warning" '[ $rc -ne 0 ] && grep -q "y.2da" $W/err'
+ok "A's manifest untouched, not recorded, no backup made" '[ "$(cat $M/manifests/$A.json)" = "$before_a" ] && ! grep -q y.2da $M/manifests/$A.json && [ ! -e $M/backups/$A/Override/y.2da ]'
+
+echo "P25b provenance refuses this component's own path changed before the patcher, with no prior copy given"; new p25b
+printf DIALOG0 > $G/dialog.tlk; stage $A dialog.tlk STAGED
+dep deploy --component $A >/dev/null   # dialog.tlk is now STAGED, owned by A (hardlinked to staging)
+rm $G/dialog.tlk; printf TAMPERED > $G/dialog.tlk   # replace (not edit-in-place) so the staged hardlink keeps STAGED
+before_a=$(cat $M/manifests/$A.json)
+dep snapshot --out $W/before.json >/dev/null   # captures TAMPERED, not the owned STAGED hash
+rm $G/dialog.tlk; printf PATCHED > $G/dialog.tlk   # "patcher" writes over the tampered bytes
+dep record --component $A --before $W/before.json >$W/out 2>$W/err; rc=$?
+echo "  rc=$rc: $(tail -1 $W/err | cut -c1-120)"; echo "  after record: $(man $M)"
+ok "refused (nonzero exit), staging and manifest untouched" '[ $rc -ne 0 ] && [ "$(cat $M/manifests/$A.json)" = "$before_a" ] && [ "$(cat $S/$A/dialog.tlk)" = STAGED ]'
+
+echo "P25c explicit --manifest-dir roots enforce the same game-wide exclusivity as profiles"; new p25c
+mkdir -p $G/Override; printf ORIG > $G/Override/x.2da
+M2=$W/managed2; mkdir -p $M2
+dep2(){ $B deployment "$@" --game-dir $G --staging-dir $S --manifest-dir $M2; }
+stage $A Override/x.2da ONE
+dep deploy --component $A >/dev/null; echo "  root1 live: $(cat $G/Override/x.2da)"
+stage $Bc Override/x.2da TWO
+dep2 deploy --component $Bc >$W/out 2>$W/err; rc=$?
+echo "  rc=$rc: $(tail -1 $W/err | cut -c1-150)"
+ok "second explicit root refused while first still owns the game dir" '[ $rc -ne 0 ] && [ "$(cat $G/Override/x.2da)" = ONE ] && [ -z "$(ls $M2/manifests 2>/dev/null)" ]'
+dep purge >/dev/null
+dep2 deploy --component $Bc >$W/out2 2>$W/err2; rc2=$?
+echo "  after root1 purge, root2 rc=$rc2: live=$(cat $G/Override/x.2da 2>/dev/null)"
+ok "ownership transfers once the first root has no manifests left" '[ $rc2 -eq 0 ] && [ "$(cat $G/Override/x.2da)" = TWO ]'
+dep2 uninstall --component $Bc >/dev/null
+
+echo "P25d a marker-less legacy manifest root is refused against the wrong game directory"; new p25d
+mkdir -p $G/Override $M/manifests; printf ORIG > $G/Override/a.tga
+printf '{"ComponentGuid":"%s","DeployedUtc":"2026-09-27T10:00:00.0000000Z","Entries":[{"RelativePath":"Override/a.tga","SourceHash":"deadbeef","Size":3,"DeploymentMethod":0,"OverwroteExisting":false,"BackupRelativePath":null}]}' $A > $M/manifests/$A.json
+echo "  before: $(man $M) (no game-directory marker, hash does not match this game dir)"
+dep status >$W/out 2>$W/err; rc=$?
+echo "  rc=$rc: $(tail -1 $W/err | cut -c1-150)"
+ok "status still succeeds (read-only, no ensure_own_game gate)" '[ $rc -eq 0 ]'
+dep uninstall --component $A >$W/out2 2>$W/err2; rc2=$?
+echo "  uninstall rc=$rc2: $(tail -1 $W/err2 | cut -c1-150)"
+ok "marker-less root refused: no owned entry hash-matches this game dir" '[ $rc2 -ne 0 ] && [ -e $M/manifests/$A.json ] && [ "$(cat $G/Override/a.tga)" = ORIG ]'
 
 echo "P26 a failed backup handoff leaves both backups and both manifests"; new p26
 mkdir -p $G/Override; printf ORIG > $G/Override/x.2da; stage $A Override/x.2da A; stage $Bc Override/x.2da B

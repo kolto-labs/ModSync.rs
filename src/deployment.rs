@@ -148,10 +148,28 @@ pub struct GameLock {
 /// Records which game directory a manifest root deploys into.
 const GAME_MARKER: &str = "game-directory";
 
+/// Path of the game-scoped owner record: which manifest root currently owns
+/// this game directory, regardless of whether that root was reached through
+/// a profile (peers, checked in `ensure_exclusive_game`) or an explicit
+/// `--manifest-dir`/`--staging-dir` pair (no peers to check). Lives next to
+/// the per-game `.modsync-lock-<hash>` file, same hash scheme as
+/// `Service::lock` and `recovery::Lock::acquire`.
+fn owner_record_path(game: &Path) -> Result<PathBuf> {
+    let key = format!("{:x}", Sha256::digest(game.to_string_lossy().as_bytes()));
+    Ok(game
+        .parent()
+        .context("Game directory needs a parent")?
+        .join(format!(".modsync-owner-{}", &key[..16])))
+}
+
 struct Planned {
     source: PathBuf,
     destination: PathBuf,
     relative: String,
+    /// Hashed at preflight, not at apply time, so the work between the
+    /// mutation-time `check_ancestors` re-check and the actual write in
+    /// `place` stays as small as possible (narrows the TOCTOU window).
+    source_hash: String,
     backup: Option<PathBuf>,
 }
 
@@ -217,6 +235,67 @@ impl Service {
                 "Profile '{name}' still has managed deployments in this game directory. Purge them before deploying from another profile; two live profiles cannot share one game tree."
             );
         }
+        self.ensure_unowned_or_self()?;
+        Ok(())
+    }
+
+    /// Refuse when a *different* manifest root (reached without going through
+    /// `for_profile`, e.g. an explicit `--manifest-dir`) still owns this game
+    /// directory. `peers` above only sees sibling profile roots under one
+    /// settings directory; this check is root-agnostic, so two explicit roots
+    /// pointed at the same game tree cannot both go live.
+    fn ensure_unowned_or_self(&self) -> Result<()> {
+        let path = owner_record_path(&self.game)?;
+        if let Ok(meta) = fs::symlink_metadata(&path) {
+            ensure!(!meta.file_type().is_symlink(), "Owner record is a symlink");
+        }
+        let Ok(recorded) = fs::read_to_string(&path) else {
+            return Ok(());
+        };
+        let recorded = recorded.trim();
+        if recorded.is_empty() {
+            return Ok(());
+        }
+        let owner = PathBuf::from(recorded);
+        let root = fs::canonicalize(&self.root).unwrap_or_else(|_| self.root.clone());
+        if owner != root && has_manifests(&owner) {
+            ensure!(
+                marker_game(&owner).is_none_or(|game| game != self.game),
+                "Manifest root {} still has managed deployments in this game directory. Purge them there first; two live manifest roots cannot share one game tree.",
+                owner.display()
+            );
+        }
+        Ok(())
+    }
+
+    /// Record this root as the current owner of its game directory, so a
+    /// later, unrelated manifest root pointed at the same game tree is
+    /// refused by `ensure_unowned_or_self` even with no shared peer list.
+    fn claim_owner_record(&self) -> Result<()> {
+        let path = owner_record_path(&self.game)?;
+        let root = fs::canonicalize(&self.root).unwrap_or_else(|_| self.root.clone());
+        let text = root.to_string_lossy().into_owned();
+        if fs::read_to_string(&path).ok().as_deref() != Some(text.as_str()) {
+            crate::recovery::atomic_write(&path, text.as_bytes())?;
+        }
+        Ok(())
+    }
+
+    /// Release this root's claim on the owner record once it has no
+    /// manifests left, so another root may deploy into this game directory.
+    fn release_owner_record_if_empty(&self) -> Result<()> {
+        if has_manifests(&self.root) {
+            return Ok(());
+        }
+        let path = owner_record_path(&self.game)?;
+        let Ok(recorded) = fs::read_to_string(&path) else {
+            return Ok(());
+        };
+        let owner = PathBuf::from(recorded.trim());
+        let root = fs::canonicalize(&self.root).unwrap_or_else(|_| self.root.clone());
+        if owner == root {
+            let _ = fs::remove_file(&path);
+        }
         Ok(())
     }
 
@@ -224,15 +303,36 @@ impl Service {
     /// than the one they were deployed into. A root with no marker predates it
     /// and is accepted; the next save records this game.
     pub fn ensure_own_game(&self) -> Result<()> {
-        if has_manifests(&self.root)
-            && let Some(game) = marker_game(&self.root)
-        {
-            ensure!(
+        if !has_manifests(&self.root) {
+            return Ok(());
+        }
+        match marker_game(&self.root) {
+            Some(game) => ensure!(
                 game == self.game,
                 "These deployments belong to game directory {}, not {}. Use that game directory, or purge them there first.",
                 game.display(),
                 self.game.display()
-            );
+            ),
+            // No marker: this root predates it (see `write_marker`). Blindly
+            // accepting it let a marker-less root move originals into the
+            // wrong game tree, so require at least one owned entry to still
+            // hash-match a live file in *this* game directory first.
+            None => ensure!(
+                self.deployed()?.iter().any(|manifest| {
+                    manifest.entries.iter().any(|entry| {
+                        self.locate(&entry.relative_path)
+                            .ok()
+                            .flatten()
+                            .is_some_and(|(destination, _)| {
+                                hash(&destination).is_ok_and(|bytes| {
+                                    bytes.eq_ignore_ascii_case(&entry.source_hash)
+                                })
+                            })
+                    })
+                }),
+                "This manifest root has no game-directory marker and none of its owned entries match files in {}; it likely belongs to a different game directory. Use the correct game directory, or purge these manifests there first.",
+                self.game.display()
+            ),
         }
         Ok(())
     }
@@ -243,6 +343,7 @@ impl Service {
         if fs::read_to_string(&path).ok().as_deref() != Some(game.as_ref()) {
             crate::recovery::atomic_write(&path, game.as_bytes())?;
         }
+        self.claim_owner_record()?;
         Ok(())
     }
 
@@ -487,10 +588,12 @@ impl Service {
                     "Conflict: '{relative}' from component '{label}' is already deployed by component '{owner}'. The new file will overwrite it."
                 ));
             }
+            let source_hash = hash(item.path())?;
             plans.push(Planned {
                 source: item.path().to_path_buf(),
                 destination,
                 relative,
+                source_hash,
                 backup: backup_path,
             });
         }
@@ -566,11 +669,13 @@ impl Service {
     }
 
     fn apply(&self, plan: &Planned) -> Result<Entry> {
-        // Re-check at mutation time; the preflight result may be stale.
+        // Re-check at mutation time; the preflight result may be stale. The
+        // source hash was already taken at preflight (see `Planned`) so the
+        // gap between this check and the write in `place` stays small.
         check_ancestors(&self.game, &plan.relative)?;
         let mut entry = Entry {
             relative_path: plan.relative.clone(),
-            source_hash: hash(&plan.source)?,
+            source_hash: plan.source_hash.clone(),
             size: fs::metadata(&plan.source)?.len(),
             deployment_method: Method::Copy,
             overwrote_existing: false,
@@ -581,7 +686,12 @@ impl Service {
             entry.overwrote_existing = true;
             entry.backup_relative_path = Some(plan.relative.clone());
         }
-        match self.place(&plan.source, &plan.destination, &entry.source_hash) {
+        match self.place(
+            &plan.source,
+            &plan.destination,
+            &plan.relative,
+            &entry.source_hash,
+        ) {
             Ok(method) => {
                 entry.deployment_method = method;
                 Ok(entry)
@@ -603,11 +713,26 @@ impl Service {
     /// Materialize `source` at `destination` without ever replacing an existing
     /// file: a hardlink, or a copy published with no-clobber semantics. Nothing
     /// is left at `destination` on failure. A write that lands outside the game
-    /// tree (an ancestor swapped for a symlink after the check) is undone.
-    fn place(&self, source: &Path, destination: &Path, source_hash: &str) -> Result<Method> {
+    /// tree (an ancestor swapped for a symlink after the check) is undone,
+    /// including any directories `create_dir_all` made on the way there.
+    fn place(
+        &self,
+        source: &Path,
+        destination: &Path,
+        relative: &str,
+        source_hash: &str,
+    ) -> Result<Method> {
         let parent = destination
             .parent()
             .context("Deployment path needs a parent")?;
+        // Re-check right before create_dir_all: this is the last read before
+        // the write below, narrowing the window in which an ancestor could
+        // be swapped for a symlink between the caller's check and this write.
+        check_ancestors(&self.game, relative)?;
+        let existing_ancestor = parent
+            .ancestors()
+            .find(|candidate| fs::symlink_metadata(candidate).is_ok())
+            .map(Path::to_path_buf);
         fs::create_dir_all(parent)?;
         let method = match fs::hard_link(source, destination) {
             Ok(()) => Method::Hardlink,
@@ -630,6 +755,7 @@ impl Service {
             if hash(destination).is_ok_and(|bytes| bytes.eq_ignore_ascii_case(source_hash)) {
                 let _ = fs::remove_file(destination);
             }
+            remove_created_dirs(parent, existing_ancestor.as_deref());
             bail!(
                 "{} resolved outside the game directory during deployment",
                 destination.display()
@@ -749,7 +875,8 @@ impl Service {
             check_ancestors(&self.game, &relative)?;
             if let Some(&index) = owned.get(&relative.to_lowercase()) {
                 let entry = &manifest.entries[index];
-                if hash(item.path())?.eq_ignore_ascii_case(&entry.source_hash) {
+                let staged_hash = hash(item.path())?;
+                if staged_hash.eq_ignore_ascii_case(&entry.source_hash) {
                     continue;
                 }
                 let live_matches = fs::symlink_metadata(&destination)
@@ -764,6 +891,7 @@ impl Service {
                         source: item.path().to_path_buf(),
                         destination,
                         relative,
+                        source_hash: staged_hash,
                         backup: None,
                     },
                     Some(index),
@@ -799,11 +927,13 @@ impl Service {
                     "Conflict: '{relative}' from component '{label}' is already deployed by component '{owner}'. The new file will overwrite it."
                 ));
             }
+            let source_hash = hash(item.path())?;
             plans.push((
                 Planned {
                     source: item.path().to_path_buf(),
                     destination,
                     relative,
+                    source_hash,
                     backup: backup_path,
                 },
                 None,
@@ -1127,6 +1257,7 @@ impl Service {
         if retained.is_empty() {
             fs::remove_file(self.manifest_path(&id))?;
             remove_empty_tree(&backup);
+            self.release_owner_record_if_empty()?;
         } else {
             self.save(&Manifest {
                 entries: retained,
@@ -1295,6 +1426,45 @@ impl Service {
             .collect();
         let foreign = self.foreign_index(&id)?;
         let changed = self.diff_index(before)?;
+        // Decide refusals in a read-only pre-pass, before anything below can
+        // mutate the game tree or the staged tree (`sync_staged` rewrites
+        // staging with no undo). A newer component owning the path, or this
+        // component's own path having changed before the patcher ran, must
+        // fail the whole call rather than silently skip one entry.
+        let mut refusals: Vec<String> = Vec::new();
+        for relative in &changed {
+            let lower = relative.to_lowercase();
+            let parts = relative_parts(relative)?;
+            let path = self.game.join(&parts);
+            if check_ancestors(&self.game, relative).is_err()
+                || !fs::symlink_metadata(&path).is_ok_and(|meta| meta.is_file())
+            {
+                continue;
+            }
+            if let Some(&index) = owned.get(&lower) {
+                let ours = old
+                    .get(&lower)
+                    .is_some_and(|h| h.eq_ignore_ascii_case(&manifest.entries[index].source_hash));
+                if !ours {
+                    refusals.push(format!(
+                        "'{relative}' is owned by this component but changed before the patcher ran"
+                    ));
+                }
+                continue;
+            }
+            if let Some((owner, owner_utc)) = foreign.get(&lower)
+                && *owner_utc > manifest.deployed_utc
+            {
+                refusals.push(format!(
+                    "'{relative}' is owned by component '{owner}', deployed after this component"
+                ));
+            }
+        }
+        ensure!(
+            refusals.is_empty(),
+            "Refusing to record provenance: {}. Nothing was recorded or changed; resolve ownership first.",
+            refusals.join("; ")
+        );
         let mut created: Vec<PathBuf> = Vec::new();
         let outcome = (|| -> Result<()> {
             let mut seen = BTreeSet::new();
@@ -1593,7 +1763,7 @@ fn stranded(plan: &Planned) -> Option<Entry> {
     }
     Some(Entry {
         relative_path: plan.relative.clone(),
-        source_hash: hash(&plan.source).unwrap_or_default(),
+        source_hash: plan.source_hash.clone(),
         size: fs::metadata(&plan.source).map_or(0, |meta| meta.len()),
         deployment_method: Method::Copy,
         overwrote_existing: true,
@@ -1628,6 +1798,26 @@ fn hash(path: &Path) -> Result<String> {
     let mut digest = Sha256::new();
     std::io::copy(&mut file, &mut digest)?;
     Ok(format!("{:x}", digest.finalize()))
+}
+/// Best-effort cleanup of directories `create_dir_all` created on the way to
+/// `parent`, walking upward from `parent` (inclusive) to (but not including)
+/// `stop`, the nearest ancestor that already existed. `fs::remove_dir` only
+/// removes empty directories, so anything else that landed inside is left
+/// alone rather than force-removed.
+fn remove_created_dirs(parent: &Path, stop: Option<&Path>) {
+    let mut current = parent.to_path_buf();
+    loop {
+        if stop.is_some_and(|stop| current == stop) {
+            return;
+        }
+        if fs::remove_dir(&current).is_err() {
+            return;
+        }
+        match current.parent() {
+            Some(next) => current = next.to_path_buf(),
+            None => return,
+        }
+    }
 }
 fn prune(root: &Path, mut current: Option<&Path>) {
     while let Some(path) = current {
