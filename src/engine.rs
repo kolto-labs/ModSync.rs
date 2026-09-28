@@ -1485,7 +1485,7 @@ impl Engine {
             "DelDuplicate" => {
                 let dir = self.path(&i.destination, false)?;
                 let extensions = if i.source.is_empty() {
-                    vec![".tga".to_string(), ".tpc".to_string()]
+                    vec![".dds".to_string(), ".tpc".to_string(), ".tga".to_string()]
                 } else {
                     i.source.iter().map(|s| s.to_lowercase()).collect()
                 };
