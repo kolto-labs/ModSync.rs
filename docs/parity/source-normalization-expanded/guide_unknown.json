@@ -1,0 +1,3 @@
+[{"Guid":"aaaaaaaa-0000-0000-0000-000000000081","Name":"unknown_placeholder","Instructions":[
+  {"Guid":"cccccccc-0000-0000-0000-000000000081","Action":"Copy","Source":["<<modDirectory>>/<<fooDirectory>>/x/foo.tga"],"Destination":"<<kotorDirectory>>/Override"}
+]}]

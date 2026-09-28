@@ -1,0 +1,83 @@
+[09/27/2026 22:05:28] Logging initialized at 09/27/2026 22:05:28
+[09/27/2026 22:05:28] [Verbose] MainConfig initialized
+[09/27/2026 22:05:28] [Verbose] No settings.json found, using defaults
+[09/27/2026 22:05:28] [Verbose] Convert mode: embed.md
+[09/27/2026 22:05:28] [Verbose] Output format: json
+Loading components from input file...
+[09/27/2026 22:05:28] [Verbose] ProcessInstructionsAndOptions: Found 3 instruction items
+[09/27/2026 22:05:28] [Verbose] ProcessInstructionsAndOptions: Found 3 KeyValuePair instruction items, grouping them
+[09/27/2026 22:05:28] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Action = Copy
+[09/27/2026 22:05:28] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Source = System.Collections.Generic.List`1[System.Object]
+[09/27/2026 22:05:28] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Destination = <<kotorDirectory>>/Override
+[09/27/2026 22:05:28] [Verbose] GroupKeyValuePairsIntoInstructions: Grouped 3 KeyValuePairs into 1 instructions
+[09/27/2026 22:05:28] [Verbose] PreprocessComponentDictionary: ModLinkFilenames field not found after processing
+[09/27/2026 22:05:28] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue: Found key 'Guid', type=String, value=aaaaaaaa-0000-0000-0000-000000000050
+[09/27/2026 22:05:28] [Verbose] GetValue<Guid>: key='Guid', type=string, value='aaaaaaaa-0000-0000-0000-000000000050'
+[09/27/2026 22:05:28] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue: Found key 'Name', type=String, value=Example Component
+[09/27/2026 22:05:28] [Verbose]  == Deserialize next component 'Example Component' ==
+[09/27/2026 22:05:28] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] DeserializeResourceRegistry: No ResourceRegistry field found in componentDict
+[09/27/2026 22:05:28] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] === Processing Instructions for component 'Example Component' ===
+[09/27/2026 22:05:28] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 22:05:28] [Verbose] Instructions object type: List`1, value: System.Collections.Generic.List`1[System.Object]
+[09/27/2026 22:05:28] [Verbose] Instructions is IList<object> with 1 items
+[09/27/2026 22:05:28] [Verbose] DeserializeInstructions called for 'Example Component' with 1 items
+[09/27/2026 22:05:28] [Verbose]   instructionsSerializedList[0] type: Dictionary`2, value: System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 22:05:28] [Verbose] Processing instruction 1 for 'Example Component': System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 22:05:28] [Verbose] Serialized instruction dict: Action, Source, Destination
+[09/27/2026 22:05:28] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:05:28] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:05:28] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:05:28] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:05:28] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/27/2026 22:05:28] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.String]
+[09/27/2026 22:05:28] [Verbose] [Instruction.set_Source] Setting new source and calling OnPropertyChanged
+[09/27/2026 22:05:28] [Verbose] [Instruction.set_Source] OnPropertyChanged completed
+[09/27/2026 22:05:28] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 22:05:28] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 3 keys
+[09/27/2026 22:05:28] [Verbose] Successfully deserialized component 'Example Component'
+[09/27/2026 22:05:29] [Warning] [Telemetry] No signing secret found - telemetry will be disabled
+[09/27/2026 22:05:29] [Verbose] Successfully resolved dependencies for 1 components
+Loaded 1 components
+Serializing to output format...
+[09/27/2026 22:05:29] [Verbose] Saving to string with format: json
+[09/27/2026 22:05:29] [Verbose] [Cache] No resource index found, starting fresh
+[09/27/2026 22:05:29] [Verbose] [Cache] No resource index found, starting fresh
+[09/27/2026 22:05:29] [Verbose] Saving to JSON string
+✓ Conversion completed successfully, saved to: embed-csharp.json

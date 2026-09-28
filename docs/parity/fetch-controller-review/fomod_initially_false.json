@@ -1,0 +1,58 @@
+{
+  "name": "fomod_initially_false",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "fetch-downloads",
+    "--input",
+    "/tmp/fetch-controller-audit-3wr7e9jv/fomod_initially_false/guide.json",
+    "--source-dir",
+    "/tmp/fetch-controller-audit-3wr7e9jv/mods",
+    "--settings-dir",
+    "/tmp/fetch-controller-audit-3wr7e9jv/fomod_initially_false/settings",
+    "--peer-mode",
+    "off",
+    "--record"
+  ],
+  "exit": 3,
+  "stdout": "{\n  \"report\": {\n    \"outcomes\": [],\n    \"skipped\": [\n      {\n        \"componentGuid\": \"aaaaaaaa-1111-4111-8111-111111111111\",\n        \"registryUrl\": \"https://example.invalid/example.zip\",\n        \"filename\": \"example.zip\",\n        \"reason\": \"alreadyPresent\",\n        \"path\": \"/tmp/fetch-controller-audit-3wr7e9jv/mods/example.zip\",\n        \"detail\": null\n      }\n    ],\n    \"cancelled\": false\n  },\n  \"recordSummary\": {\n    \"recorded\": [\n      [\n        \"aaaaaaaa-1111-4111-8111-111111111111\",\n        \"https://example.invalid/example.zip\",\n        \"example.zip\"\n      ]\n    ],\n    \"keptFalse\": [],\n    \"hashesRecorded\": 0\n  },\n  \"fomodFollowups\": {\n    \"followups\": [\n      {\n        \"componentGuid\": \"aaaaaaaa-1111-4111-8111-111111111111\",\n        \"archive\": \"/tmp/fetch-controller-audit-3wr7e9jv/mods/example.zip\"\n      }\n    ],\n    \"inspectionErrors\": []\n  }\n}\n",
+  "stderr": "",
+  "data": {
+    "report": {
+      "outcomes": [],
+      "skipped": [
+        {
+          "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+          "registryUrl": "https://example.invalid/example.zip",
+          "filename": "example.zip",
+          "reason": "alreadyPresent",
+          "path": "/tmp/fetch-controller-audit-3wr7e9jv/mods/example.zip",
+          "detail": null
+        }
+      ],
+      "cancelled": false
+    },
+    "recordSummary": {
+      "recorded": [
+        [
+          "aaaaaaaa-1111-4111-8111-111111111111",
+          "https://example.invalid/example.zip",
+          "example.zip"
+        ]
+      ],
+      "keptFalse": [],
+      "hashesRecorded": 0
+    },
+    "fomodFollowups": {
+      "followups": [
+        {
+          "componentGuid": "aaaaaaaa-1111-4111-8111-111111111111",
+          "archive": "/tmp/fetch-controller-audit-3wr7e9jv/mods/example.zip"
+        }
+      ],
+      "inspectionErrors": []
+    }
+  },
+  "guideBeforeSha256": "72b826904656b47838edadf0417d6b5c9540f7d49b7c683c30487807e07f9b78",
+  "guideAfterSha256": "72114a5cdf67deb66644557fab4e34d469bf7e5d2f29c1adc6eadb05aea9d0e9",
+  "newCasePaths": []
+}

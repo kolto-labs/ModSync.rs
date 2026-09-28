@@ -1,0 +1,284 @@
+{
+  "binaryBeforeSha256": "f7c7f2ba55ea9a59ab6968416aa86075e3980a6978a820214d7458cec5909bc3",
+  "root": "/tmp/fetch-controller-audit-3wr7e9jv",
+  "networkNamespace": "net:[4026534592]",
+  "ipv4Routes": "",
+  "binary": "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+  "binarySha256": "f7c7f2ba55ea9a59ab6968416aa86075e3980a6978a820214d7458cec5909bc3",
+  "sourceSha256": {
+    "src/main.rs": "bc4071e2a4771ffd116736f5a6e478cf389240d4a9d341b062058f7e26fed23c",
+    "src/download_orchestrator.rs": "3faac51f2b2a8ddf0f1d0aeca16b23de6b4995da5c56c503722ad46edf6b5f35",
+    "src/peer_acquire.rs": "0560a6d74a8e9e88270e49f4297fd8bf065a5f259386c56b3d547afb1cd95251",
+    "src/download.rs": "0a88f8bfd371ea9ad68c94fe9c835f82081f0242539d174fe00143e04308516e",
+    "src/p2p.rs": "b2c3f7a2029a9173529a7603cc48200a7050755814d75bccd6e2c0ef857a78d5",
+    "src/lib.rs": "2e1931fcff2da668d0ea058ff067c1af32ef7e2217348ad3227293ca064b2c40"
+  },
+  "checks": [
+    {
+      "name": "default_all_exit",
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "default_all_targets",
+      "actual": [
+        "aaaaaaaa-1111-4111-8111-111111111111",
+        "bbbbbbbb-2222-4222-8222-222222222222"
+      ],
+      "expected": [
+        "aaaaaaaa-1111-4111-8111-111111111111",
+        "bbbbbbbb-2222-4222-8222-222222222222"
+      ],
+      "passed": true
+    },
+    {
+      "name": "default_all_no_guide_write",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "default_all_no_case_write",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "file_selection_exit",
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "file_selection_targets",
+      "actual": [
+        "bbbbbbbb-2222-4222-8222-222222222222"
+      ],
+      "expected": [
+        "bbbbbbbb-2222-4222-8222-222222222222"
+      ],
+      "passed": true
+    },
+    {
+      "name": "file_selection_no_guide_write",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "file_selection_no_case_write",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "explicit_select_exit",
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "explicit_select_targets",
+      "actual": [
+        "aaaaaaaa-1111-4111-8111-111111111111"
+      ],
+      "expected": [
+        "aaaaaaaa-1111-4111-8111-111111111111"
+      ],
+      "passed": true
+    },
+    {
+      "name": "explicit_select_no_guide_write",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "explicit_select_no_case_write",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "deselect_exit",
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "deselect_targets",
+      "actual": [
+        "bbbbbbbb-2222-4222-8222-222222222222"
+      ],
+      "expected": [
+        "bbbbbbbb-2222-4222-8222-222222222222"
+      ],
+      "passed": true
+    },
+    {
+      "name": "deselect_no_guide_write",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "deselect_no_case_write",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "stored_off_exit",
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "stored_off_effective_mode",
+      "actual": "off",
+      "expected": "off",
+      "passed": true
+    },
+    {
+      "name": "stored_off_no_writes",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "stored_fallback_exit",
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "stored_fallback_effective_mode",
+      "actual": "fallback",
+      "expected": "fallback",
+      "passed": true
+    },
+    {
+      "name": "stored_fallback_no_writes",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "sharing_false_exit",
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "sharing_false_effective_mode",
+      "actual": "off",
+      "expected": "off",
+      "passed": true
+    },
+    {
+      "name": "sharing_false_no_writes",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "default_race_exit",
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "default_race_effective_mode",
+      "actual": "race",
+      "expected": "race",
+      "passed": true
+    },
+    {
+      "name": "default_race_no_writes",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "sharing_false_override",
+      "actual": "off",
+      "expected": "off",
+      "passed": true
+    },
+    {
+      "name": "malformed_needed_exit",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "malformed_off_exit",
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "override_no_explicit_key_exit",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "fomod_False_exit",
+      "actual": 3,
+      "expected": 3,
+      "passed": true
+    },
+    {
+      "name": "fomod_False_followup_count",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "fomod_False_stored_selection",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "fomod_True_exit",
+      "actual": 3,
+      "expected": 3,
+      "passed": true
+    },
+    {
+      "name": "fomod_True_followup_count",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "fomod_True_stored_selection",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "all_false_file_selection_exit",
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "all_false_file_selection_targets",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "all_false_file_selection_skipped",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    }
+  ],
+  "passed": 41,
+  "total": 41
+}

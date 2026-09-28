@@ -1,5 +1,24 @@
 # Full C# feature parity — active acceptance ledger
 
+## Current integration status — 2026-09-28
+
+**Full parity is incomplete: F01–F28 remain partial and F29 is unverified.**
+[PROGRESS.md](PROGRESS.md) tracks the active sequence and current blockers.
+Reviewed local wave-two checkpoint `9ecf8e4` includes acquisition/P2P libraries,
+profiles/settings, texture priority, loader deduplication, completion CLI/UI and
+managed deployment; [integration evidence](wave2-integration/README.md) preserves
+individual source/binary bindings, reviews and proof limits. Earlier dated slice
+entries below remain historical; their statements of missing work apply to their
+named commits, not automatically to this checkpoint.
+
+Selected-guide `fetch-downloads` implementation is in progress and still awaits
+specification and independent quality review. Its temporary passing CLI assertions
+are not acceptance of this entire domain. Loopback HTTPS, loader normalization and
+shared GUI acquisition have bounded reviewed plans; implementation/runtime gates
+remain. No Rust tests or custom Rust harnesses may be added, changed or run under
+the current user freeze. Nothing here substitutes compilation for full-build,
+platform, external-host or live-game proof.
+
 ## Completion pages slice checkpoint — 2026-09-27
 
 F10, F11 and F24 remain **partial**. Source at `12c5c68` (exact Base/Widescreen/Finished completion pages); plan and source-cited composition in [completion-pages-plan.md](completion-pages-plan.md) and [completion-pages-csharp-audit.md](completion-pages-csharp-audit.md); native evidence in [completion-pages-native/](completion-pages-native/RECEIPT.txt); differences recorded in `COMPATIBILITY.md`.

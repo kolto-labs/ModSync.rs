@@ -1,0 +1,37 @@
+[
+  {"Guid":"aaaaaaaa-0000-0000-0000-00000000001a","Name":"single_string","Instructions":[
+    {"Guid":"cccccccc-0000-0000-0000-00000000001a","Action":"Copy","Source":"x/foo.tga","Destination":"<<kotorDirectory>>/Override"}
+  ]},
+  {"Guid":"aaaaaaaa-0000-0000-0000-00000000001b","Name":"empty_string_single","Instructions":[
+    {"Guid":"cccccccc-0000-0000-0000-00000000001b","Action":"Copy","Source":"","Destination":"<<kotorDirectory>>/Override"}
+  ]},
+  {"Guid":"aaaaaaaa-0000-0000-0000-00000000001c","Name":"whitespace_string_single","Instructions":[
+    {"Guid":"cccccccc-0000-0000-0000-00000000001c","Action":"Copy","Source":"   ","Destination":"<<kotorDirectory>>/Override"}
+  ]},
+  {"Guid":"aaaaaaaa-0000-0000-0000-00000000001d","Name":"empty_array_item","Instructions":[
+    {"Guid":"cccccccc-0000-0000-0000-00000000001d","Action":"Copy","Source":["", "x/foo.tga"],"Destination":"<<kotorDirectory>>/Override"}
+  ]},
+  {"Guid":"aaaaaaaa-0000-0000-0000-00000000001e","Name":"null_source","Instructions":[
+    {"Guid":"cccccccc-0000-0000-0000-00000000001e","Action":"Copy","Source":null,"Destination":"<<kotorDirectory>>/Override"}
+  ]},
+  {"Guid":"aaaaaaaa-0000-0000-0000-00000000001f","Name":"missing_source","Instructions":[
+    {"Guid":"cccccccc-0000-0000-0000-00000000001f","Action":"Copy","Destination":"<<kotorDirectory>>/Override"}
+  ]},
+  {"Guid":"aaaaaaaa-0000-0000-0000-000000000020","Name":"empty_array","Instructions":[
+    {"Guid":"cccccccc-0000-0000-0000-000000000020","Action":"Copy","Source":[],"Destination":"<<kotorDirectory>>/Override"}
+  ]},
+  {"Guid":"aaaaaaaa-0000-0000-0000-000000000021","Name":"placeholder_case","Instructions":[
+    {"Guid":"cccccccc-0000-0000-0000-000000000021","Action":"Copy","Source":["<<MODDIRECTORY>>/x/foo.tga"],"Destination":"<<kotorDirectory>>/Override"}
+  ]},
+  {"Guid":"aaaaaaaa-0000-0000-0000-000000000022","Name":"traversal","Instructions":[
+    {"Guid":"cccccccc-0000-0000-0000-000000000022","Action":"Copy","Source":["../../etc/passwd"],"Destination":"<<kotorDirectory>>/Override"}
+  ]},
+  {"Guid":"aaaaaaaa-0000-0000-0000-000000000023","Name":"absolute","Instructions":[
+    {"Guid":"cccccccc-0000-0000-0000-000000000023","Action":"Copy","Source":["/etc/passwd"],"Destination":"<<kotorDirectory>>/Override"}
+  ]},
+  {"Guid":"aaaaaaaa-0000-0000-0000-000000000024","Name":"nested_option_parent","Instructions":[],"Options":[
+    {"Guid":"cccccccc-0000-0000-0000-000000000024","Name":"nested_child","Instructions":[
+      {"Guid":"dddddddd-0000-0000-0000-000000000024","Action":"Copy","Source":["\\nested\\foo.tga"],"Destination":"<<kotorDirectory>>/Override"}
+    ]}
+  ]}
+]

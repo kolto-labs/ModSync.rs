@@ -1,0 +1,21 @@
+{
+  "name": "malformed_needed",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "fetch-downloads",
+    "--input",
+    "/tmp/fetch-controller-audit-q43jbhct/malformed_needed/guide.json",
+    "--source-dir",
+    "/tmp/fetch-controller-audit-q43jbhct/mods",
+    "--settings-dir",
+    "/tmp/fetch-controller-audit-q43jbhct/malformed_needed/settings",
+    "--dry-run"
+  ],
+  "exit": 1,
+  "stdout": "",
+  "stderr": "Error: key must be a string at line 1 column 2\n",
+  "data": null,
+  "guideBeforeSha256": "e41b9016461caaea3cedda1d970291cf315abab9c6630b20c597b997e20a398a",
+  "guideAfterSha256": "e41b9016461caaea3cedda1d970291cf315abab9c6630b20c597b997e20a398a",
+  "newCasePaths": []
+}

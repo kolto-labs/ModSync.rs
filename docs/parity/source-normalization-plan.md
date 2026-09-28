@@ -1,71 +1,112 @@
 # Instruction Source normalization follow-up
 
-Status: proposed; not implemented or independently reviewed. F01/F05 remain partial.
+Status: independently approved; implementation not started.
+[Plan review](source-normalization-plan-review.md) records the corrections and approval.
+F01 and F05 remain **partial**. This is one loader-field fix, not domain completion.
 
-## Observed gap
+## Observed defect and reference
 
-At the integrated wave 2 source, `Guide::from_value` calls `normalize_component`
-for each top-level component and recursively for options (`src/model.rs:223`,
-`:560`). The loader retains authored instruction Source strings. The deduplication
-comparison alone applies `source_key` (`src/model.rs:431`). Consequently an option
-can compare equal under normalized paths while validation receives the original
-path, including a leading backslash that the pinned C# loader rewrites.
+`Guide::from_value` calls `normalize_component` (`src/model.rs:223,560`) before
+deduplication. Stored Sources retain authored text; `source_key` (`:431-463`)
+normalizes only comparisons. A bare-relative Copy Source therefore compares as
+normalized but fails Rust validation because execution requires a placeholder.
 
-C# reference is the read-only checkout at
-`/home/brunner56/.codex/worktrees/5813/ModSync`, pinned to `d31ccbd3`.
-`Services/ModComponentSerializationService.cs:2140-2145,2349-2354` excludes Choose
-and invokes `Utility/Serializer.cs:111-179` for all other Source values.
-`FileSystemUtils/PathHelper.cs:823-847` trims leading backslashes, converts
-separators, collapses repeated separators except after a colon, and removes
-trailing separators. `Utility/Serializer.cs:237-249` prefixes relative inputs
-with `<<modDirectory>>` and preserves recognized placeholders case-insensitively.
-These references are under `src/ModSync.Core/`.
+Pinned C# is `d31ccbd3`, read-only checkout
+`/home/brunner56/.codex/worktrees/5813/ModSync`. Under `src/ModSync.Core/`:
 
-## Proposed implementation boundary
+- `Services/ModComponentSerializationService.cs:2140-2145,2349-2354` excludes
+  Choose case-insensitively and normalizes other Sources.
+- `Utility/Serializer.cs:111-179,237-249` formats and prefixes path strings,
+  recognizes placeholders case-insensitively, and filters empty array items.
+- `FileSystemUtils/PathHelper.cs:823-847` removes leading backslashes, converts
+  separators, collapses repetitions except after a colon, and trims trailing ones.
 
-1. Extract one source-normalization helper from `source_key`; apply it when
-   normalizing non-Choose instruction Source values before deserialization.
-   Cover both string and array shapes and recursive Options. Keep Choose GUID
-   strings intact. Do not alter Destination or executable arguments in this slice.
-2. Verify the route used by every format. Structured loaders use C#'s serializer;
-   Markdown reaches Rust's same `from_value` entry point, but its C# ingestion
-   route differs. Do not apply the structured-loader policy to Markdown merely
-   because the Rust entry point is shared; measure it first and pass explicit
-   format context if required.
-3. Preserve the engine's traversal, absolute-path and unknown-placeholder
-   rejection. Matching C# formatting is not permission to weaken the sandbox.
-   Separate C# quirks from safe supported behavior in COMPATIBILITY.md.
-4. Use the same helper for equality and stored Sources, avoiding divergent
-   comparisons. Retain dedup/Choose-reference behavior already approved in wave 2.
+## Bounded implementation contract
 
-## Required direct evidence before acceptance
+1. Own `src/model.rs` only, plus new direct-CLI evidence. Extract/reuse one
+   `fix` plus prefix helper from `source_key`; apply it to stored non-Choose
+   instruction Sources inside the existing `normalize_component` instruction walk.
+   Preserve its existing recursive Options traversal (`:638-640`). Do not change
+   Destination, arguments, execution path resolution, Markdown parsing, or exports.
+2. Skip Choose **case-insensitively** before action canonicalization. Preserve
+   GUID Sources verbatim, including mixed-case action spellings. Keep all existing
+   deduplication algorithm, Choose-reference remapping, and format exclusions.
+   Dropping empty array items intentionally makes their normalized comparisons equal.
+3. For nonempty string Sources, normalize and prefix as the current `source_key`
+   does. For arrays, drop empty/whitespace text items and normalize surviving
+   strings. Preserve existing errors for unsupported non-string shapes; do not
+   silently discard malformed values. Missing/null Source retains the empty default.
+   Preserve bare empty/whitespace strings for downstream validation, deliberately
+   avoiding C#'s whole-conversion exception for those inputs.
+4. Recognition of `<<modDirectory>>`, `<<kotorDirectory>>`, and
+   `<<gameDirectory>>` is case-insensitive; preserve authored placeholder casing.
+   Otherwise prefix `<<modDirectory>>` and normalize separators. Use this same
+   helper for equality and stored Sources. It must be idempotent because equality
+   may normalize already-normalized text. Keep normalization before deduplication.
+5. Keep `Roots::relative/resolve/check` unchanged. Traversal, unknown placeholders,
+   drive letters and symlinks must remain rejected at execution. Leading `/` is
+   absorbed into a mods-relative path by C# normalization; it must never access
+   the host's absolute path. Prove containment with an inside-root positive fixture
+   and a distinct outside-root sentinel, not merely a missing-file error.
+6. Structured loaders share `Guide::from_value`. Markdown embedded YAML uses that
+   path, as directly measured. Embedded TOML sharing it is source-derived and must
+   be probed. Rust fenced JSON is a separate Rust-only route. C# legacy-bullet
+   metadata is supported separately while Rust rejects it; that remains open and
+   is explicitly outside this slice.
 
-Use production CLIs with disposable guides and the pinned C# DLL. No Rust tests
-or temporary Rust harnesses may be created, modified, or run under the current
-freeze. Capture exact normalized Source values and validate results for JSON,
-TOML, YAML, XML and Markdown, including nested Options, Choose, single-string
-and array Sources, leading/repeated/trailing separators, each supported
-placeholder, mixed case, whitespace/empty strings, traversal and absolute paths.
-Compare the saved normalized guide and actual installed bytes for a safe Copy
-case. Re-run loader-dedup direct probes and confirm existing Rust test sources
-remain byte-identical. Record source/binary hashes and any intentional deviation.
+## Existing evidence and its limits — 2026-09-28 UTC
 
-No new normalization behavior or full-install proof is claimed by this plan.
+| Evidence | Measured coverage | What remains unmeasured |
+|---|---|---|
+| [JSON baseline](source-normalization-probe/receipt.json) | Seven cases; five differing separator/prefix shapes, game placeholder and Choose agree | Post-fix results |
+| [Other structured formats](source-normalization-formats/receipt.json) | Same five differences in TOML/YAML/XML | Expanded edge matrix in each format |
+| [Twelve-shape C# matrix](source-normalization-format-oracle/receipt.json) | C# normalized Source/Options agree across four rendered formats | Authored scalar shape in each format, negative cases, post-fix Rust |
+| [Expanded probes](source-normalization-expanded/receipt.json) | JSON strings/arrays/empty/null/options, embedded YAML, Rust-only fenced JSON, small Copy and path probes | Embedded TOML, full validation equivalence, all post-fix behavior |
 
-## Measured JSON-loader baseline (2026-09-28 UTC)
+The expanded C# binary hash is
+`89d9b2361aee4364f95151b41db59a4133122a6ad41bc2703e232cf10a4f5a6b`;
+fixed Rust baseline hash is
+`c3e2f60f1fbae36b2efc666173052c47d7e1ebf87326cc4c8490e1a4b67934cf`
+(source `714e59b`, bound in the Switch desktop receipt). The C# runs used bubblewrap
+with isolated network, read-only host, mounted `/dev` and `/proc`, and disposable
+HOME/XDG/TMPDIR roots. Exact captured commands accompany the expanded receipt.
 
-[Seven direct conversion cases](source-normalization-probe/receipt.json) now
-reproduce the mismatch against the pinned validation-reference C# DLL. The C#
-process ran in a bubblewrap sandbox with an isolated network and temporary
-settings/cache locations. Five authored Source shapes differ after loading:
-leading backslashes, relative paths, repeated placeholder separators, repeated
-relative separators, and a trailing separator. An existing game placeholder
-and Choose GUID remain identical. Saved input and both converter outputs are
-retained beside the receipt. This measures JSON conversion only; it does not
-settle Markdown routing, validation behavior, or installed file equivalence.
+Rust rejects bare `x/foo.tga`. C# Copy execution for the **same Source shape**
+succeeds, and Rust Copy using C#-normalized Source writes identical bytes
+(`5891b5b522d5df086d0ff0b110fbd9d21bb4fc7163af34d08286a2e846f6be03`).
+The input files have different component identifiers; they are not identical guides.
+C# used `--skip-validation` after an environment prerequisite failure. That flag
+bypasses the full pre-installation validation pipeline (`ModBuildConverter.cs:3576`),
+so these runs prove Copy behavior and bytes, **not validation equivalence**.
 
-A subsequent [structured-format comparison](source-normalization-formats/receipt.json)
-reproduces the same five differing Source shapes in TOML, YAML and XML inputs
-rendered from that JSON by the production Rust converter. Both converters exited
-zero for those formats. Rust Markdown export exits one with `Markdown export is
-not yet implemented`, so no Markdown normalization result follows from this probe.
+C# bare empty/whitespace Source throws during conversion; its array branch filters
+those strings. Rust currently accepts both shapes. Mixed-case placeholders are
+preserved by both converters but fail the measured install in both engines at
+different points. Do not infer supported execution from matching serialization.
+Rust's post-prefix traversal, unknown-placeholder and drive-letter probes reject;
+the absolute-looking case currently proves a missing mods-relative file only.
+
+## Direct acceptance after implementation
+
+No Rust tests or temporary/custom Rust harnesses may be created, changed or run.
+Use real production CLIs, disposable generic fixtures, pinned C# read-only sandbox,
+and exact argv/exit/stdout/stderr plus source/binary hashes in retained receipts.
+
+- Compare actual normalized Sources across JSON/TOML/YAML/XML and common Markdown
+  embedded YAML and TOML. Include nested Options, mixed-case Choose actions, each
+  supported placeholder, mixed case, separator shapes, strings/arrays, whitespace,
+  empty/null/missing, malformed values, traversal, unknown placeholders and drives.
+  Record format-specific differences rather than assuming JSON proves all formats.
+- Verify normalization idempotency by load/save/load. Re-run existing loader-dedup
+  direct probes and check Choose references, option order and format exclusions.
+- Execute a safe Copy from the same authored guide in Rust and C#, compare output
+  bytes, and separately label any skipped C# validation. Verify inside-root absolute
+  reinterpretation and outside sentinel preservation; include symlink rejection.
+- Build and strict-Clippy production `--lib --bin modsync` in CLI-only and default
+  modes, run fmt, and confirm all existing Rust test sources remain byte-identical.
+- Spec review, then independent quality review. Update COMPATIBILITY.md and progress
+  with measured behavior and remaining gaps. Commit only owned paths; no push while
+  the test-freeze/CI conflict remains unresolved.
+
+No whole-format export, broad Markdown parser, complete F05 action, full-build,
+GUI, live-game, or cross-platform acceptance follows from this bounded change.

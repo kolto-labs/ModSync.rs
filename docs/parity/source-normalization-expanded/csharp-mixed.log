@@ -1,0 +1,115 @@
+[09/27/2026 22:15:08] Logging initialized at 09/27/2026 22:15:08
+[09/27/2026 22:15:09] [Verbose] MainConfig initialized
+[09/27/2026 22:15:09] [Verbose] No settings.json found, using defaults
+[09/27/2026 22:15:09] Loading instruction file: guide.json
+[09/27/2026 22:15:09] [Verbose] Loading from string with format: json
+[09/27/2026 22:15:09] [Verbose] Loading from JSON string
+[09/27/2026 22:15:09] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue: Found key 'Guid', type=String, value=aaaaaaaa-0000-0000-0000-000000000080
+[09/27/2026 22:15:09] [Verbose] GetValue<Guid>: key='Guid', type=string, value='aaaaaaaa-0000-0000-0000-000000000080'
+[09/27/2026 22:15:09] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue: Found key 'Name', type=String, value=mixed_case
+[09/27/2026 22:15:09] [Verbose]  == Deserialize next component 'mixed_case' ==
+[09/27/2026 22:15:09] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] DeserializeResourceRegistry: No ResourceRegistry field found in componentDict
+[09/27/2026 22:15:09] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] === Processing Instructions for component 'mixed_case' ===
+[09/27/2026 22:15:09] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 22:15:09] [Verbose] Instructions object type: List`1, value: System.Collections.Generic.List`1[System.Object]
+[09/27/2026 22:15:09] [Verbose] Instructions is IList<object> with 1 items
+[09/27/2026 22:15:09] [Verbose] DeserializeInstructions called for 'mixed_case' with 1 items
+[09/27/2026 22:15:09] [Verbose]   instructionsSerializedList[0] type: Dictionary`2, value: System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 22:15:09] [Verbose] Processing instruction 1 for 'mixed_case': System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 22:15:09] [Verbose] Serialized instruction dict: Guid, Action, Source, Destination
+[09/27/2026 22:15:09] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:15:09] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:15:09] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:15:09] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:15:09] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:15:09] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:15:09] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:15:09] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:15:09] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/27/2026 22:15:09] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 4 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 4 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 4 keys
+[09/27/2026 22:15:09] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 4 keys
+[09/27/2026 22:15:09] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.String]
+[09/27/2026 22:15:09] [Verbose] [Instruction.set_Source] Setting new source and calling OnPropertyChanged
+[09/27/2026 22:15:09] [Verbose] [Instruction.set_Source] OnPropertyChanged completed
+[09/27/2026 22:15:09] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 4 keys
+[09/27/2026 22:15:09] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 22:15:09] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 3 keys
+[09/27/2026 22:15:09] [Verbose] Successfully deserialized component 'mixed_case'
+[09/27/2026 22:15:09] [Verbose] [Cache] No resource index found, starting fresh
+[09/27/2026 22:15:09] [Verbose] Successfully resolved dependencies and reordered 1 components
+[09/27/2026 22:15:09] [Verbose] All components are unselected, selecting all components automatically
+[09/27/2026 22:15:09] [Verbose] Auto-fix enabled, applying fixes to loaded components
+[09/27/2026 22:15:09] [Verbose] [Cache] No resource index found, starting fresh
+[09/27/2026 22:15:09] [Verbose] Successfully resolved dependencies for 1 components
+[09/27/2026 22:15:09] Loaded 1 component(s) from instruction file.
+[09/27/2026 22:15:09] Using IsSelected flags from the instruction file.
+[09/27/2026 22:15:09] 1 component(s) selected for installation.
+[09/27/2026 22:15:09] 
+[09/27/2026 22:15:09] Components to install:
+[09/27/2026 22:15:09]   1. mixed_case
+[09/27/2026 22:15:09] 
+[09/27/2026 22:15:09] Starting installation...
+[09/27/2026 22:15:09] ==================================================
+[09/27/2026 22:15:10] Creating install backup snapshot (full game-directory copy + zip). This can take several minutes on large installs or slow disks; use --no-checkpoint to skip.
+[09/27/2026 22:15:10] Install backup snapshot ready.
+[09/27/2026 22:15:10] Initializing Git checkpoint baseline (copies the full game tree into .modsync). This can also take several minutes; use --no-checkpoint to skip.
+[09/27/2026 22:15:10] Initializing Git-based checkpoint system...
+[09/27/2026 22:15:10] Creating new git repository for checkpoints...
+[09/27/2026 22:15:10] Creating baseline checkpoint of game directory...
+[09/27/2026 22:15:10] Checkpoint system initialized. Baseline: d66a925b283e9b2a9296c924d9f56b1f47560496
+[09/27/2026 22:15:10] [1/1] Installing: mixed_case
+[09/27/2026 22:15:10] Start install of 'mixed_case'...
+[09/27/2026 22:15:10] [Verbose] [Instruction.SetRealPaths] Action=Copy, Source count=1, sourceIsNotFilePath=False, skipExistenceCheck=False
+[09/27/2026 22:15:10] [Verbose] [Instruction.SetRealPaths] Raw Source paths: [<<MODDIRECTORY>>/x/foo.tga]
+[09/27/2026 22:15:10] [Verbose] [Instruction.SetRealPaths] MainConfig.SourcePath: /tmp/srcnorm-expanded/csharp-mixed/mods
+[09/27/2026 22:15:10] [Verbose] [Instruction.SetRealPaths] MainConfig.DestinationPath: /tmp/srcnorm-expanded/csharp-mixed/game
+[09/27/2026 22:15:10] [Verbose] [Instruction.SetRealPaths] Calling ReplaceCustomVariables on source paths...
+[09/27/2026 22:15:10] [Verbose] [Instruction.SetRealPaths] After ReplaceCustomVariables on source: [<<MODDIRECTORY>>/x/foo.tga]
+[09/27/2026 22:15:10] [Verbose] [Instruction.SetRealPaths] Calling EnumerateFilesWithWildcards with processed paths...
+[09/27/2026 22:15:10] [Verbose] [PathHelper] EnumerateFilesWithWildcards: path=<<MODDIRECTORY>>/x/foo.tga, formatted=/tmp/srcnorm-expanded/csharp-mixed/<<MODDIRECTORY>>/x/foo.tga
+[09/27/2026 22:15:10] [Verbose] [PathHelper] No wildcards, checking FileExists...
+[09/27/2026 22:15:10] [Verbose] [PathHelper] Not found, trying case-sensitive...
+[09/27/2026 22:15:10] [Verbose] [PathHelper] Case-sensitive: /tmp/srcnorm-expanded/csharp-mixed/<<MODDIRECTORY>>/x/foo.tga
+[09/27/2026 22:15:10] [Verbose] [PathHelper] NOT FOUND: /tmp/srcnorm-expanded/csharp-mixed/<<MODDIRECTORY>>/x/foo.tga
+[09/27/2026 22:15:10] [Verbose] [Instruction.SetRealPaths] After EnumerateFilesWithWildcards: Found 0 files
+[09/27/2026 22:15:10] [Verbose] [Instruction.SetRealPaths] ERROR: newSourcePaths is null/empty after wildcard expansion
+[09/27/2026 22:15:10] [Verbose] Source files not found, attempting auto-extraction...
+[09/27/2026 22:15:10] [Error] Missing mod file(s) for 'mixed_case'; run Fetch Downloads or place archives in the mod workspace.
+[09/27/2026 22:15:10] [Verbose] Instruction #1 'Copy' exited with code FileNotFoundPre
+[09/27/2026 22:15:10] [Error] FAILED Instruction #1 Action 'Copy'
+[09/27/2026 22:15:10] Required mod archive or file was not found in the mod workspace (download or copy files first).
+[09/27/2026 22:15:10] [Warning] [Telemetry] No signing secret found - telemetry will be disabled
+[09/27/2026 22:15:10] [Error] Install of 'mixed_case' failed with exit code MissingSourceFiles
+[09/27/2026 22:15:10] ==================================================
+[09/27/2026 22:15:10] [Error] Installation failed with exit code: MissingSourceFiles
+[09/27/2026 22:15:10] [Error] Check the logs above for more details.

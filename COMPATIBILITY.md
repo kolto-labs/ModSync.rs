@@ -704,7 +704,23 @@ The C# mapper cannot express a rename through its Copy action. For a file destin
 
 ### Managed deployment manifests
 
-The shared deployment service stages `staging/<component-guid>` trees into the game directory using hardlinks with a copy fallback, writes C#-shaped per-component JSON manifests (seven-digit `DeployedUtc`, lowercase GUID file names), backs up overwritten files, and exposes status, deploy, uninstall, newest-first purge, snapshot, record and switch through the CLI. Roots come from `--staging-dir`/`--manifest-dir` or from a profile's `profiles/<name>/{staging,deployment}` directory, as in C#. Uninstall removes only files whose current SHA-256 matches the manifest and restores a displaced file only after that removal; user-modified deployed files and their backups remain intact. Deliberate differences from C#, all fail-closed: redeploying a component that still has a manifest is refused (C# overwrites the original backup), the staged tree is preflighted and a failed deploy rolls back, symlinked targets and staged symlinks are refused, existing case variants of game paths are reused, an out-of-order uninstall hands its original backup to the later owner, corrupt manifests are skipped with a warning, and patcher provenance records a pre-existing changed file only with a backup of its prior bytes. Real CLI probes and a C# DLL differential (C# writes and Rust uninstalls; mixed C# and Rust manifests purged by Rust) are recorded in `docs/parity/deployment-csharp-audit.md`. Engine staging, GUI controls, multi-platform filesystem behavior and a C#-side purge of Rust manifests remain open.
+The shared deployment service stages `staging/<component-guid>` trees into the game directory using hardlinks with a copy fallback, writes C#-shaped per-component JSON manifests (seven-digit `DeployedUtc`, lowercase GUID file names), backs up overwritten files, and exposes status, deploy, uninstall, newest-first purge, snapshot, record and switch through the CLI. Roots come from `--staging-dir`/`--manifest-dir` or from a profile's `profiles/<name>/{staging,deployment}` directory, as in C#. Uninstall removes only files whose current SHA-256 matches the manifest and restores a displaced file only after that removal; user-modified deployed files and their backups remain intact. Deliberate differences from C#: redeploying a component that still has a manifest is refused (C# overwrites the original backup), the staged tree is preflighted and a failed deploy rolls back, symlinked targets and staged symlinks are refused, existing case variants of game paths are reused, an out-of-order uninstall hands its original backup to the later owner, corrupt manifests are skipped with a warning, and patcher provenance records a pre-existing changed file only with a backup of its prior bytes. Real CLI probes and a C# DLL differential (C# writes and Rust uninstalls; mixed C# and Rust manifests purged by Rust) are recorded in `docs/parity/deployment-csharp-audit.md`. Engine staging, GUI controls, multi-platform filesystem behavior and a C#-side purge of Rust manifests remain open.
+
+### Profile-switch purge safeguards
+
+The CLI switch takes the canonical game-directory lock before reading the active
+profile, checks target report prerequisites, and preflights every readable current
+manifest with the shared uninstall-blocker query before any purge. A modified
+file, a path replaced by a directory, or an unsafe path blocks switching without
+partially purging other components. After purge, skipped entries or remaining
+manifests block activation. Ordinary uninstall/purge hash-mismatch semantics are
+unchanged. The 39 source-bound direct CLI assertions, production gates, and spec
+and quality approvals are in [the wave-two receipt](docs/parity/wave2-integration/README.md).
+
+This does not make unreadable/corrupt manifests fail closed: the underlying service
+still warns and skips them. Plain profile activation uses a separate settings lock,
+and no atomicity against uncooperative external filesystem writers is claimed.
+Managed engine integration and desktop profile management remain incomplete.
 
 ### Concurrent direct-download queue
 

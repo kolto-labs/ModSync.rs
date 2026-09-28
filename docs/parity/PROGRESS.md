@@ -1,6 +1,6 @@
 # Full Rust functionality progress
 
-Updated 2026-09-28 02:54 UTC. Goal: every F01–F29 requirement in [ACCEPTANCE.md](ACCEPTANCE.md)
+Updated 2026-09-28 03:48 UTC. Goal: every F01–F29 requirement in [ACCEPTANCE.md](ACCEPTANCE.md)
 verified against pinned C# `d31ccbd3`, including identical K1/K2 full installs
 against C# and manual references. A delivered slice does not close a whole domain.
 
@@ -40,17 +40,30 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 1. Wave-two integration and profile-switch findings are reviewed and recorded
    locally; maintain their source-bound receipts as later slices land.
 2. Implement the [approved selected-guide CLI slice](fetch-downloads-cli-plan.md):
-   concrete peer adapter,
-   `fetch-downloads` CLI, FOMOD follow-up modes, wizard worker/panel and settings.
-   The library and standalone torrent verbs do not satisfy these frontend tasks.
-3. Fix loader Source normalization after format-specific differential coverage.
-   [Seven JSON cases](source-normalization-probe/receipt.json) and equivalent
-   [TOML/YAML/XML cases](source-normalization-formats/receipt.json) reproduce
-   five differences per format against C#. Markdown loader behavior remains
-   unmeasured; Rust Markdown export explicitly reports unimplemented.
-4. Continue the approved domain plans for engine actions/archives, patchers,
-   per-component checkpoints, hosts/FOMOD, editor/conflicts/update/profile UI,
-   complete wizard/main-window controls, CLI contracts, diagnostics and packaging.
+   orchestrator gate hardening, a concrete peer adapter, `fetch-downloads`, and
+   direct local transfer proof. Candidate source `efefba1` and receipts `54383a8` are committed locally;
+   independent spec review is active, with quality review still required.
+   Recorded acquisition checks pass 305/305, production gates pass in both feature
+   modes, and 53 frozen test files/regions are unchanged. The controller's separate
+   [41-check rerun](fetch-controller-review/README.md) confirms the all-false selection
+   and record fixes. These counts describe covered fixtures, not domain completion.
+   Follow with the [loopback HTTPS proof slice](origin-loopback-probe-plan.md),
+   then advanced FOMOD modes and shared wizard worker/panel/settings wiring.
+   The library and standalone torrent verbs do not satisfy those frontend tasks.
+3. Fix loader Source normalization. [Seven JSON cases](source-normalization-probe/receipt.json)
+   and equivalent [TOML/YAML/XML cases](source-normalization-formats/receipt.json)
+   reproduce five differences per format against C#. Expanded evidence reproduces
+   the same gap in Markdown embedded YAML and shows an actual bare-relative Copy
+   succeeding in C# but rejected by Rust. Rust copies identical bytes after the
+   Source is normalized by C#. The expanded implementation plan is independently
+   approved; the production loader fix has not started. Rust Markdown export and
+   its missing legacy-bullet metadata route remain separate open work.
+4. Use the [full remaining-scope map](remaining-scope-map.md) to reconcile actual
+   source and derive bounded tasks where a current plan is missing: engine actions/
+   archives, patchers, per-component checkpoints, hosts/FOMOD, editor/conflicts/
+   update/profile UI, complete wizard/main-window controls, CLI contracts,
+   diagnostics and packaging. Historical checkpoints do not establish that all
+   remaining domains already have complete implementation plans.
 5. Perform requirement-by-requirement acceptance, ending with F29: authorized,
    isolated K1/K2 installs with identical inputs/selections, ordered per-step
    comparisons, final resource content checks, and live-game evidence.

@@ -1,0 +1,171 @@
+{
+  "csharp_binary_sha256": "89d9b2361aee4364f95151b41db59a4133122a6ad41bc2703e232cf10a4f5a6b",
+  "rust_binary_sha256": "c3e2f60f1fbae36b2efc666173052c47d7e1ebf87326cc4c8490e1a4b67934cf",
+  "rust_binary": "/home/brunner56/.cache/modsync-resume/wave2-reviewed-binary",
+  "csharp_argv": "dotnet ModSync.Core.dll convert --input <in> --output <out> --format json --plaintext --non-interactive",
+  "sandbox": "bwrap --unshare-net --ro-bind / / --dev /dev --proc /proc --bind <disposable> <disposable> --setenv HOME/XDG_CONFIG_HOME/XDG_CACHE_HOME <disposable>, cwd inside disposable root",
+  "rust_argv": "wave2-reviewed-binary convert <in> <out> -f json",
+  "cases": {
+    "single_string_source_empty_or_whitespace": {
+      "input": "input.json (components single_string, empty_string_single, whitespace_string_single)",
+      "csharp_exit": 1,
+      "csharp_log": "csharp.log line 113: Value cannot be null or whitespace. (Parameter 'path'), thrown from Serializer.PrefixPath, aborts whole conversion",
+      "rust_exit": 0,
+      "rust_log": "rust-input.log",
+      "note": "C# only skips whitespace/empty for List<object> Source items (Serializer.cs default branch, line ~150-168); a bare string Source (Serializer.cs case string path, line 129-137) goes straight to PrefixPath with no whitespace check and throws, aborting the entire file's conversion. Reproduced by isolating each component (csharp2.log removes empty_string_single, still throws on whitespace_string_single; csharp3.log removes both, exits 0)."
+    },
+    "structured_source_values": {
+      "input": "input3.json (single_string, empty_array_item, null_source, missing_source, empty_array, placeholder_case, traversal, absolute, nested_child)",
+      "csharp_output": "csharp-out3.json",
+      "rust_output": "rust-input3.json",
+      "csharp_exit": 0,
+      "rust_exit": 0,
+      "diffs": [
+        {
+          "case": "single_string",
+          "csharp": [
+            "<<modDirectory>>/x/foo.tga"
+          ],
+          "rust": [
+            "x/foo.tga"
+          ]
+        },
+        {
+          "case": "empty_array_item (Source: [\"\", \"x/foo.tga\"])",
+          "csharp": [
+            "<<modDirectory>>/x/foo.tga"
+          ],
+          "rust": [
+            "",
+            "x/foo.tga"
+          ]
+        },
+        {
+          "case": "traversal (Source: [\"../../etc/passwd\"])",
+          "csharp": [
+            "<<modDirectory>>/../../etc/passwd"
+          ],
+          "rust": [
+            "../../etc/passwd"
+          ]
+        },
+        {
+          "case": "absolute (Source: [\"/etc/passwd\"])",
+          "csharp": [
+            "<<modDirectory>>/etc/passwd"
+          ],
+          "rust": [
+            "/etc/passwd"
+          ]
+        },
+        {
+          "case": "nested_child (Options[0].Instructions[0].Source: [\"\\\\nested\\\\foo.tga\"])",
+          "csharp": [
+            "<<modDirectory>>/nested/foo.tga"
+          ],
+          "rust": [
+            "\\nested\\foo.tga"
+          ]
+        }
+      ],
+      "agreements": [
+        {
+          "case": "null_source",
+          "csharp": [],
+          "rust": []
+        },
+        {
+          "case": "missing_source",
+          "csharp": [],
+          "rust": []
+        },
+        {
+          "case": "empty_array",
+          "csharp": [],
+          "rust": []
+        },
+        {
+          "case": "placeholder_case (Source: [\"<<MODDIRECTORY>>/x/foo.tga\"])",
+          "csharp": [
+            "<<MODDIRECTORY>>/x/foo.tga"
+          ],
+          "rust": [
+            "<<MODDIRECTORY>>/x/foo.tga"
+          ],
+          "note": "placeholder recognition is case-insensitive (Serializer.cs:244-246 StringComparison.OrdinalIgnoreCase) but original casing is not rewritten"
+        }
+      ]
+    },
+    "markdown_fenced_route_rust_only": {
+      "input": "fenced.md, a ### component section containing a fenced ```json block with the same leading-backslash Source as source-normalization-probe/input.json",
+      "rust_exit": 0,
+      "rust_output": "fenced-out.json",
+      "result": "Source unchanged: [\"\\\\x\\\\foo.tga\"]. NOT a C# comparison: grep of MarkdownParser.cs for a fenced ``` code-block route found nothing, so C# has no input shape to compare against here. This only shows Rust's fenced route reuses Guide::from_value/normalize_component internally; see markdown_embed_route for the real cross-engine comparison.",
+      "prose_route_caveat": "C#'s legacy bullet metadata parser (ParseLegacyMarkdownMetadata, MarkdownParser.cs:1001-1280, reached from ParseModSyncMetadata:900-901 when the <!--<<ModSync>>--> block content is neither YAML nor TOML) reads Source with a raw comma-split and never calls DeserializePathInDictionary/PrefixPath. Rust's markdown.rs explicitly rejects that legacy bullet form inside a metadata block ('legacy bullet metadata is not supported', src/markdown.rs:317) and has no per-instruction Source extraction for free-form prose outside any metadata block (extract.rs FIELDS has no Source/Instructions entry). Pre-existing gap, already tracked in markdown-csharp-audit.md's 'Instructions, Options and Restrictions' always-empty note; out of scope here."
+    },
+    "markdown_embed_route": {
+      "input": "embed.md: a ### component section under ## Mod List containing a <!--<<ModSync>>...--> block with YAML Instructions, Source: [\"\\\\x\\\\foo.tga\"]",
+      "csharp_exit": 0,
+      "csharp_output": "embed-csharp.json",
+      "csharp_source": [
+        "<<modDirectory>>/x/foo.tga"
+      ],
+      "csharp_route": "ParseModSyncMetadata (MarkdownParser.cs:844-864) detects YAML (DetectYamlFormat, :904-909), calls DeserializeYamlComponent -> DeserializeComponent -> DeserializeInstructions (ModComponentSerializationService.cs:3620,3657,1425,~2136-2144), the same Source-normalization path used by plain JSON/TOML/YAML/XML.",
+      "rust_exit": 0,
+      "rust_output": "embed-rust.json",
+      "rust_source": [
+        "\\x\\foo.tga"
+      ],
+      "rust_route": "markdown.rs:250-262 extracts the <!--<<ModSync>>--> body; markdown.rs:307-319 parses it as YAML/TOML and calls Guide::from_value (same normalize_component gap as plain JSON).",
+      "result": "Direct cross-engine comparison, same shape as the plain-JSON gap. Confirms the embedded-metadata Markdown route needs no format-specific handling: fixing normalize_component fixes this route too, because both engines already funnel it through their shared structured-component deserializer."
+    }
+  },
+  "install_rejection": {
+    "guide": "guide2.json (bare relative Source x/foo.tga); install.log also records an earlier leading-backslash fixture whose guide was not retained. Do not use that missing input as reproducible evidence.",
+    "rust_argv": "wave2-reviewed-binary install --input <guide> --game-dir game --source-dir mods --use-file-selection --allow-processes",
+    "rust_exit": 1,
+    "rust_error_guide": "Error: copy_case / step 1 (Copy): Path must start with <<modDirectory>> or <<kotorDirectory>>: \\x\\foo.tga (install.log)",
+    "rust_error_guide2": "Error: copy_relative / step 1 (Copy): Path must start with <<modDirectory>> or <<kotorDirectory>>: x/foo.tga (install2.log)",
+    "significance": "Today Rust's install path hard-rejects any authored Source lacking a placeholder prefix, including the bare-relative-path authoring style the plan's own JSON probe already used. C# accepts and installs these. This is a pre-existing parity gap that blocks install for those Source shapes, not merely a dedup-comparison artifact."
+  },
+  "csharp_installs_unprefixed_source": {
+    "guide": "csharp-install-guide.json, Source: [\"x/foo.tga\"], disposable mods/game dirs under /tmp/srcnorm-expanded/csharp-install, TMPDIR redirected into the disposable root (checkpoint backup needs a writable /tmp path)",
+    "csharp_argv": "dotnet ModSync.Core.dll install --input guide.json --game-dir game --source-dir mods -y --use-file-selection --skip-validation",
+    "csharp_exit": 0,
+    "csharp_log": "csharp-install.log: 'Copy mods/x/foo.tga to game/Override/foo.tga', 'Installation completed successfully!'",
+    "result_sha256": "game/Override/foo.tga = mods/x/foo.tga = 5891b5b522d5df086d0ff0b110fbd9d21bb4fc7163af34d08286a2e846f6be03 (copy-bytes-note.txt)",
+    "significance": "C# Copy execution accepts the same Source shape and produces matching bytes. Inputs have different component identifiers. --skip-validation bypasses the full pre-installation validation pipeline (ModBuildConverter.cs:3576), used after an environment prerequisite failure; validation-path equivalence is unproven."
+  },
+  "rust_installs_csharp_normalized_source": {
+    "guide": "guide_csharp_normalized.json: the single_string component from csharp-out3.json (C#'s own normalized Source, [\"<<modDirectory>>/x/foo.tga\"]), fed into Rust install with disposable mods/game dirs under /tmp/srcnorm-expanded/install",
+    "rust_argv": "wave2-reviewed-binary install --input guide_csharp_normalized.json --game-dir game --source-dir mods --use-file-selection --allow-processes",
+    "rust_exit": 0,
+    "rust_log": "install_normalized.log: 'single_string / 1: Copy'",
+    "result_sha256": "game/Override/foo.tga = mods/x/foo.tga = 5891b5b522d5df086d0ff0b110fbd9d21bb4fc7163af34d08286a2e846f6be03",
+    "significance": "This one normalized-Source Copy succeeds and produces the same payload bytes. This is baseline evidence only; the proposed loader fix and post-fix validation remain unproven."
+  },
+  "mixed_case_placeholder_install": {
+    "guide": "guide_mixed.json (Source [\"<<MODDIRECTORY>>/x/foo.tga\"], preserved uppercase casing as both engines already convert it, see placeholder_case row above)",
+    "rust_result": "install exit 1: 'Path must start with <<modDirectory>> or <<kotorDirectory>>: <<MODDIRECTORY>>/x/foo.tga' (mixed.log) -- Roots::resolve's strip_prefix is case-sensitive (src/paths.rs:67), so it never recognizes the uppercase form C#'s own case-insensitive PrefixPath preserves.",
+    "csharp_result": "install (bwrap, TMPDIR redirected) exit 1: 'Source files not found... Missing mod file(s)' (csharp-mixed.log) -- C# also fails to resolve the file for this exact literal Source at install time, via a different (file-lookup) code path than PrefixPath's case-insensitive check.",
+    "significance": "Both engines fail to install this shape end to end, just at different points with different messages. No functional divergence to fix: a helper that copies source_key's existing placeholder recognition (case-insensitive match, original casing preserved) does not need to canonicalize casing to match observed C# behavior, because C# does not successfully install this shape either.",
+    "related_probes": {
+      "unknown_placeholder": "guide_unknown.json Source [\"<<modDirectory>>/<<fooDirectory>>/x/foo.tga\"] -> Rust install exit 1 'Unsafe path: <<fooDirectory>>/x/foo.tga' (unknown.log): confirms unknown-placeholder rejection is intact after prefixing.",
+      "drive_letter": "guide_drive.json Source [\"<<modDirectory>>/C:/x/foo.tga\"] -> Rust install exit 1 'Unsafe path: C:/x/foo.tga' (drive.log): confirms a drive-letter segment (what C#'s FixPathFormatting would produce from a Windows path) is still rejected after prefixing."
+    }
+  },
+  "absolute_and_traversal_after_prefixing": {
+    "inputs": "guide_traversal.json (Source [\"<<modDirectory>>/../../etc/passwd\"]) and guide_absolute.json (Source [\"<<modDirectory>>/etc/passwd\"]), i.e. what PrefixPath's own textual concatenation already does to a traversal or a leading-/ input -- see the traversal/absolute rows under structured_source_values above",
+    "rust_argv": "wave2-reviewed-binary install --input <guide> --game-dir game --source-dir mods --use-file-selection --allow-processes",
+    "traversal_result": "exit 1, 'Unsafe path: ../../etc/passwd' (traversal.log) -- Roots::resolve/relative (src/paths.rs:14-40,61-90) still rejects the .. component after a <<modDirectory>> prefix is present.",
+    "absolute_result": "exit 1, 'Source matches no files: <<modDirectory>>/etc/passwd' (absolute.log) -- NOT a rejection of an absolute path; the tail after the placeholder ('etc/passwd') is treated as a relative path under the mods root (as C#'s own PrefixPath concatenation already does, per the 'absolute' row above), so there is no path outside mods/game to escape to. The exit is only because mods/etc/passwd does not exist in this disposable fixture, not a safety check.",
+    "significance": "The measured traversal is rejected; the absolute-looking normalized tail is looked up under the mods root and is missing. These probes do not prove all path-safety cases. Existing Roots checks must remain unchanged, and post-fix acceptance adds containment and symlink probes."
+  },
+  "scope": "Direct production-CLI JSON conversion, one Markdown fenced-block-only probe (Rust-internal, not a C# comparison), one Markdown embedded-metadata probe (real C# vs Rust comparison), two install-rejection probes, one real C# install with byte verification, one real Rust install of a C#-normalized guide with byte verification, and two post-prefix path-safety probes (traversal, absolute).",
+  "evidence_limits": [
+    "Expanded edge matrix is JSON-only; prior TOML/YAML/XML receipt covers five baseline shapes.",
+    "Embedded Markdown YAML was compared; embedded TOML remains source-derived until probed.",
+    "F01/F05 remain partial; no implementation or post-fix acceptance in this receipt."
+  ],
+  "captured_commands": "captured-commands.json"
+}

@@ -1,0 +1,590 @@
+[09/27/2026 22:00:21] Logging initialized at 09/27/2026 22:00:21
+[09/27/2026 22:00:21] [Verbose] MainConfig initialized
+[09/27/2026 22:00:21] [Verbose] No settings.json found, using defaults
+[09/27/2026 22:00:21] [Verbose] Convert mode: input3.json
+[09/27/2026 22:00:21] [Verbose] Output format: json
+Loading components from input file...
+[09/27/2026 22:00:21] [Verbose] Loading from string with format: json
+[09/27/2026 22:00:21] [Verbose] Loading from JSON string
+[09/27/2026 22:00:21] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue: Found key 'Guid', type=String, value=aaaaaaaa-0000-0000-0000-00000000001a
+[09/27/2026 22:00:21] [Verbose] GetValue<Guid>: key='Guid', type=string, value='aaaaaaaa-0000-0000-0000-00000000001a'
+[09/27/2026 22:00:21] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue: Found key 'Name', type=String, value=single_string
+[09/27/2026 22:00:21] [Verbose]  == Deserialize next component 'single_string' ==
+[09/27/2026 22:00:21] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] DeserializeResourceRegistry: No ResourceRegistry field found in componentDict
+[09/27/2026 22:00:21] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 3 keys
+[09/27/2026 22:00:21] [Verbose] === Processing Instructions for component 'single_string' ===
+[09/27/2026 22:00:21] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 22:00:21] [Verbose] Instructions object type: List`1, value: System.Collections.Generic.List`1[System.Object]
+[09/27/2026 22:00:21] [Verbose] Instructions is IList<object> with 1 items
+[09/27/2026 22:00:21] [Verbose] DeserializeInstructions called for 'single_string' with 1 items
+[09/27/2026 22:00:21] [Verbose]   instructionsSerializedList[0] type: Dictionary`2, value: System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 22:00:21] [Verbose] Processing instruction 1 for 'single_string': System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 22:00:21] [Verbose] Serialized instruction dict: Guid, Action, Source, Destination
+[09/27/2026 22:00:21] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:21] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:21] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:21] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:21] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:21] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:21] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:21] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:22] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.String]
+[09/27/2026 22:00:22] [Verbose] [Instruction.set_Source] Setting new source and calling OnPropertyChanged
+[09/27/2026 22:00:22] [Verbose] [Instruction.set_Source] OnPropertyChanged completed
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 22:00:22] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] Successfully deserialized component 'single_string'
+[09/27/2026 22:00:22] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Guid', type=String, value=aaaaaaaa-0000-0000-0000-00000000001d
+[09/27/2026 22:00:22] [Verbose] GetValue<Guid>: key='Guid', type=string, value='aaaaaaaa-0000-0000-0000-00000000001d'
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Name', type=String, value=empty_array_item
+[09/27/2026 22:00:22] [Verbose]  == Deserialize next component 'empty_array_item' ==
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] DeserializeResourceRegistry: No ResourceRegistry field found in componentDict
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] === Processing Instructions for component 'empty_array_item' ===
+[09/27/2026 22:00:22] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 22:00:22] [Verbose] Instructions object type: List`1, value: System.Collections.Generic.List`1[System.Object]
+[09/27/2026 22:00:22] [Verbose] Instructions is IList<object> with 1 items
+[09/27/2026 22:00:22] [Verbose] DeserializeInstructions called for 'empty_array_item' with 1 items
+[09/27/2026 22:00:22] [Verbose]   instructionsSerializedList[0] type: Dictionary`2, value: System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 22:00:22] [Verbose] Processing instruction 1 for 'empty_array_item': System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 22:00:22] [Verbose] Serialized instruction dict: Guid, Action, Source, Destination
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:22] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.String]
+[09/27/2026 22:00:22] [Verbose] [Instruction.set_Source] Setting new source and calling OnPropertyChanged
+[09/27/2026 22:00:22] [Verbose] [Instruction.set_Source] OnPropertyChanged completed
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 22:00:22] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] Successfully deserialized component 'empty_array_item'
+[09/27/2026 22:00:22] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Guid', type=String, value=aaaaaaaa-0000-0000-0000-00000000001e
+[09/27/2026 22:00:22] [Verbose] GetValue<Guid>: key='Guid', type=string, value='aaaaaaaa-0000-0000-0000-00000000001e'
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Name', type=String, value=null_source
+[09/27/2026 22:00:22] [Verbose]  == Deserialize next component 'null_source' ==
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] DeserializeResourceRegistry: No ResourceRegistry field found in componentDict
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] === Processing Instructions for component 'null_source' ===
+[09/27/2026 22:00:22] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 22:00:22] [Verbose] Instructions object type: List`1, value: System.Collections.Generic.List`1[System.Object]
+[09/27/2026 22:00:22] [Verbose] Instructions is IList<object> with 1 items
+[09/27/2026 22:00:22] [Verbose] DeserializeInstructions called for 'null_source' with 1 items
+[09/27/2026 22:00:22] [Verbose]   instructionsSerializedList[0] type: Dictionary`2, value: System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 22:00:22] [Verbose] Processing instruction 1 for 'null_source': System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 22:00:22] [Verbose] Serialized instruction dict: Guid, Action, Source, Destination
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:22] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Source', type=null, value=
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 22:00:22] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] Successfully deserialized component 'null_source'
+[09/27/2026 22:00:22] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Guid', type=String, value=aaaaaaaa-0000-0000-0000-00000000001f
+[09/27/2026 22:00:22] [Verbose] GetValue<Guid>: key='Guid', type=string, value='aaaaaaaa-0000-0000-0000-00000000001f'
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Name', type=String, value=missing_source
+[09/27/2026 22:00:22] [Verbose]  == Deserialize next component 'missing_source' ==
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] DeserializeResourceRegistry: No ResourceRegistry field found in componentDict
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] === Processing Instructions for component 'missing_source' ===
+[09/27/2026 22:00:22] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 22:00:22] [Verbose] Instructions object type: List`1, value: System.Collections.Generic.List`1[System.Object]
+[09/27/2026 22:00:22] [Verbose] Instructions is IList<object> with 1 items
+[09/27/2026 22:00:22] [Verbose] DeserializeInstructions called for 'missing_source' with 1 items
+[09/27/2026 22:00:22] [Verbose]   instructionsSerializedList[0] type: Dictionary`2, value: System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 22:00:22] [Verbose] Processing instruction 1 for 'missing_source': System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 22:00:22] [Verbose] Serialized instruction dict: Guid, Action, Destination
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:22] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 22:00:22] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] Successfully deserialized component 'missing_source'
+[09/27/2026 22:00:22] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Guid', type=String, value=aaaaaaaa-0000-0000-0000-000000000020
+[09/27/2026 22:00:22] [Verbose] GetValue<Guid>: key='Guid', type=string, value='aaaaaaaa-0000-0000-0000-000000000020'
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Name', type=String, value=empty_array
+[09/27/2026 22:00:22] [Verbose]  == Deserialize next component 'empty_array' ==
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] DeserializeResourceRegistry: No ResourceRegistry field found in componentDict
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] === Processing Instructions for component 'empty_array' ===
+[09/27/2026 22:00:22] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 22:00:22] [Verbose] Instructions object type: List`1, value: System.Collections.Generic.List`1[System.Object]
+[09/27/2026 22:00:22] [Verbose] Instructions is IList<object> with 1 items
+[09/27/2026 22:00:22] [Verbose] DeserializeInstructions called for 'empty_array' with 1 items
+[09/27/2026 22:00:22] [Verbose]   instructionsSerializedList[0] type: Dictionary`2, value: System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 22:00:22] [Verbose] Processing instruction 1 for 'empty_array': System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 22:00:22] [Verbose] Serialized instruction dict: Guid, Action, Source, Destination
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:22] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.String]
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 22:00:22] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] Successfully deserialized component 'empty_array'
+[09/27/2026 22:00:22] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Guid', type=String, value=aaaaaaaa-0000-0000-0000-000000000021
+[09/27/2026 22:00:22] [Verbose] GetValue<Guid>: key='Guid', type=string, value='aaaaaaaa-0000-0000-0000-000000000021'
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Name', type=String, value=placeholder_case
+[09/27/2026 22:00:22] [Verbose]  == Deserialize next component 'placeholder_case' ==
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] DeserializeResourceRegistry: No ResourceRegistry field found in componentDict
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] === Processing Instructions for component 'placeholder_case' ===
+[09/27/2026 22:00:22] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 22:00:22] [Verbose] Instructions object type: List`1, value: System.Collections.Generic.List`1[System.Object]
+[09/27/2026 22:00:22] [Verbose] Instructions is IList<object> with 1 items
+[09/27/2026 22:00:22] [Verbose] DeserializeInstructions called for 'placeholder_case' with 1 items
+[09/27/2026 22:00:22] [Verbose]   instructionsSerializedList[0] type: Dictionary`2, value: System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 22:00:22] [Verbose] Processing instruction 1 for 'placeholder_case': System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 22:00:22] [Verbose] Serialized instruction dict: Guid, Action, Source, Destination
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:22] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.String]
+[09/27/2026 22:00:22] [Verbose] [Instruction.set_Source] Setting new source and calling OnPropertyChanged
+[09/27/2026 22:00:22] [Verbose] [Instruction.set_Source] OnPropertyChanged completed
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 22:00:22] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] Successfully deserialized component 'placeholder_case'
+[09/27/2026 22:00:22] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Guid', type=String, value=aaaaaaaa-0000-0000-0000-000000000022
+[09/27/2026 22:00:22] [Verbose] GetValue<Guid>: key='Guid', type=string, value='aaaaaaaa-0000-0000-0000-000000000022'
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Name', type=String, value=traversal
+[09/27/2026 22:00:22] [Verbose]  == Deserialize next component 'traversal' ==
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] DeserializeResourceRegistry: No ResourceRegistry field found in componentDict
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] === Processing Instructions for component 'traversal' ===
+[09/27/2026 22:00:22] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 22:00:22] [Verbose] Instructions object type: List`1, value: System.Collections.Generic.List`1[System.Object]
+[09/27/2026 22:00:22] [Verbose] Instructions is IList<object> with 1 items
+[09/27/2026 22:00:22] [Verbose] DeserializeInstructions called for 'traversal' with 1 items
+[09/27/2026 22:00:22] [Verbose]   instructionsSerializedList[0] type: Dictionary`2, value: System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 22:00:22] [Verbose] Processing instruction 1 for 'traversal': System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 22:00:22] [Verbose] Serialized instruction dict: Guid, Action, Source, Destination
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:22] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.String]
+[09/27/2026 22:00:22] [Verbose] [Instruction.set_Source] Setting new source and calling OnPropertyChanged
+[09/27/2026 22:00:22] [Verbose] [Instruction.set_Source] OnPropertyChanged completed
+[09/27/2026 22:00:22] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 4 keys
+[09/27/2026 22:00:22] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 22:00:22] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 3 keys
+[09/27/2026 22:00:22] [Verbose] Successfully deserialized component 'traversal'
+[09/27/2026 22:00:23] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue: Found key 'Guid', type=String, value=aaaaaaaa-0000-0000-0000-000000000023
+[09/27/2026 22:00:23] [Verbose] GetValue<Guid>: key='Guid', type=string, value='aaaaaaaa-0000-0000-0000-000000000023'
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue: Found key 'Name', type=String, value=absolute
+[09/27/2026 22:00:23] [Verbose]  == Deserialize next component 'absolute' ==
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] DeserializeResourceRegistry: No ResourceRegistry field found in componentDict
+[09/27/2026 22:00:23] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] === Processing Instructions for component 'absolute' ===
+[09/27/2026 22:00:23] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 22:00:23] [Verbose] Instructions object type: List`1, value: System.Collections.Generic.List`1[System.Object]
+[09/27/2026 22:00:23] [Verbose] Instructions is IList<object> with 1 items
+[09/27/2026 22:00:23] [Verbose] DeserializeInstructions called for 'absolute' with 1 items
+[09/27/2026 22:00:23] [Verbose]   instructionsSerializedList[0] type: Dictionary`2, value: System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 22:00:23] [Verbose] Processing instruction 1 for 'absolute': System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 22:00:23] [Verbose] Serialized instruction dict: Guid, Action, Source, Destination
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:23] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.String]
+[09/27/2026 22:00:23] [Verbose] [Instruction.set_Source] Setting new source and calling OnPropertyChanged
+[09/27/2026 22:00:23] [Verbose] [Instruction.set_Source] OnPropertyChanged completed
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 22:00:23] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] Successfully deserialized component 'absolute'
+[09/27/2026 22:00:23] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue: Found key 'Guid', type=String, value=aaaaaaaa-0000-0000-0000-000000000024
+[09/27/2026 22:00:23] [Verbose] GetValue<Guid>: key='Guid', type=string, value='aaaaaaaa-0000-0000-0000-000000000024'
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue: Found key 'Name', type=String, value=nested_option_parent
+[09/27/2026 22:00:23] [Verbose]  == Deserialize next component 'nested_option_parent' ==
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] DeserializeResourceRegistry: No ResourceRegistry field found in componentDict
+[09/27/2026 22:00:23] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] === Processing Instructions for component 'nested_option_parent' ===
+[09/27/2026 22:00:23] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 22:00:23] [Verbose] Instructions object type: List`1, value: System.Collections.Generic.List`1[System.Object]
+[09/27/2026 22:00:23] [Verbose] Instructions is IList<object> with 0 items
+[09/27/2026 22:00:23] [Warning] No instructions found for component 'nested_option_parent'
+[09/27/2026 22:00:23] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue: Found key 'Options', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 22:00:23] [Verbose] DeserializeOptions called with 3 items
+[09/27/2026 22:00:23] [Verbose]   optionsSerializedList[0] type: KeyValuePair`2, value: [Guid, cccccccc-0000-0000-0000-000000000024]
+[09/27/2026 22:00:23] [Verbose]   optionsSerializedList[1] type: KeyValuePair`2, value: [Name, nested_child]
+[09/27/2026 22:00:23] [Verbose]   optionsSerializedList[2] type: KeyValuePair`2, value: [Instructions, System.Collections.Generic.List`1[System.Object]]
+[09/27/2026 22:00:23] [Verbose] Detected individual option fields, using GroupOptionFieldsIntoOptions
+[09/27/2026 22:00:23] [Verbose] === GroupOptionFieldsIntoOptions ===
+[09/27/2026 22:00:23] [Verbose] Processing 3 individual option fields
+[09/27/2026 22:00:23] [Verbose] Processing option field: Guid = cccccccc-0000-0000-0000-000000000024 (type: String)
+[09/27/2026 22:00:23] [Verbose] Processing option field: Name = nested_child (type: String)
+[09/27/2026 22:00:23] [Verbose] Processing option field: Instructions = System.Collections.Generic.List`1[System.Object] (type: List`1)
+[09/27/2026 22:00:23] [Verbose] Processing final option with 3 fields
+[09/27/2026 22:00:23] [Verbose] Processing complete option with keys: Guid, Name, Instructions
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue: Found key 'Name', type=String, value=nested_child
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue: Found key 'Guid', type=String, value=cccccccc-0000-0000-0000-000000000024
+[09/27/2026 22:00:23] [Verbose] GetValue<Guid>: key='Guid', type=string, value='cccccccc-0000-0000-0000-000000000024'
+[09/27/2026 22:00:23] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 3 keys
+[09/27/2026 22:00:23] [Verbose] Option 'nested_child' has Instructions field: type=List`1
+[09/27/2026 22:00:23] [Verbose] DeserializeInstructions called for 'nested_child' with 1 items
+[09/27/2026 22:00:23] [Verbose]   instructionsSerializedList[0] type: Dictionary`2, value: System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 22:00:23] [Verbose] Processing instruction 1 for 'nested_child': System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 22:00:23] [Verbose] Serialized instruction dict: Guid, Action, Source, Destination
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 22:00:23] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.String]
+[09/27/2026 22:00:23] [Verbose] [Instruction.set_Source] Setting new source and calling OnPropertyChanged
+[09/27/2026 22:00:23] [Verbose] [Instruction.set_Source] OnPropertyChanged completed
+[09/27/2026 22:00:23] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 4 keys
+[09/27/2026 22:00:23] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 22:00:23] [Verbose] Option 'nested_child' now has 1 instructions
+[09/27/2026 22:00:23] [Verbose] Successfully created option: Name='nested_child', Guid=cccccccc-0000-0000-0000-000000000024, Instructions.Count=1
+[09/27/2026 22:00:23] [Verbose] Grouped 3 fields into 1 complete options
+[09/27/2026 22:00:23] [Verbose] Successfully deserialized component 'nested_option_parent'
+[09/27/2026 22:00:23] [Verbose] [Cache] No resource index found, starting fresh
+[09/27/2026 22:00:23] [Verbose] Successfully resolved dependencies and reordered 9 components
+[09/27/2026 22:00:23] [Verbose] All components are unselected, selecting all components automatically
+[09/27/2026 22:00:23] [Verbose] Auto-fix enabled, applying fixes to loaded components
+[09/27/2026 22:00:23] [Verbose] [Cache] No resource index found, starting fresh
+[09/27/2026 22:00:23] [Verbose] Successfully resolved dependencies for 9 components
+Loaded 9 components
+Serializing to output format...
+[09/27/2026 22:00:23] [Verbose] Saving to string with format: json
+[09/27/2026 22:00:23] [Verbose] [Cache] No resource index found, starting fresh
+[09/27/2026 22:00:23] [Verbose] [Cache] No resource index found, starting fresh
+[09/27/2026 22:00:23] [Verbose] Saving to JSON string
+✓ Conversion completed successfully, saved to: csharp-out3.json

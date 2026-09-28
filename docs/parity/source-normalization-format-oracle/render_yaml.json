@@ -1,0 +1,14 @@
+{
+  "label": "render_yaml",
+  "argv": [
+    "/home/brunner56/.cache/modsync-resume/wave2-reviewed-binary",
+    "convert",
+    "/tmp/source-format-oracle-jyh4yx2s/input.json",
+    "/tmp/source-format-oracle-jyh4yx2s/input.yaml",
+    "-f",
+    "yaml"
+  ],
+  "exit": 0,
+  "stdout": "",
+  "stderr": ""
+}

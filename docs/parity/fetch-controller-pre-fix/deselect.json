@@ -1,0 +1,46 @@
+{
+  "name": "deselect",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "fetch-downloads",
+    "--input",
+    "/tmp/fetch-controller-audit-q43jbhct/deselect/guide.json",
+    "--source-dir",
+    "/tmp/fetch-controller-audit-q43jbhct/mods",
+    "--settings-dir",
+    "/tmp/fetch-controller-audit-q43jbhct/deselect/settings",
+    "--dry-run",
+    "--peer-mode",
+    "off",
+    "--deselect",
+    "aaaaaaaa-1111-4111-8111-111111111111"
+  ],
+  "exit": 0,
+  "stdout": "{\n  \"sourceDir\": \"/tmp/fetch-controller-audit-q43jbhct/mods\",\n  \"peerMode\": \"off\",\n  \"targets\": [\n    {\n      \"componentGuid\": \"bbbbbbbb-2222-4222-8222-222222222222\",\n      \"registryUrl\": \"https://example.invalid/second.zip\",\n      \"filename\": \"second.zip\",\n      \"expectedSha256\": null,\n      \"sources\": [\n        {\n          \"type\": \"origin\",\n          \"url\": \"https://example.invalid/second.zip\",\n          \"provider\": \"direct\",\n          \"requires\": \"none\"\n        }\n      ]\n    }\n  ],\n  \"skipped\": [],\n  \"warnings\": []\n}\n",
+  "stderr": "",
+  "data": {
+    "sourceDir": "/tmp/fetch-controller-audit-q43jbhct/mods",
+    "peerMode": "off",
+    "targets": [
+      {
+        "componentGuid": "bbbbbbbb-2222-4222-8222-222222222222",
+        "registryUrl": "https://example.invalid/second.zip",
+        "filename": "second.zip",
+        "expectedSha256": null,
+        "sources": [
+          {
+            "type": "origin",
+            "url": "https://example.invalid/second.zip",
+            "provider": "direct",
+            "requires": "none"
+          }
+        ]
+      }
+    ],
+    "skipped": [],
+    "warnings": []
+  },
+  "guideBeforeSha256": "e41b9016461caaea3cedda1d970291cf315abab9c6630b20c597b997e20a398a",
+  "guideAfterSha256": "e41b9016461caaea3cedda1d970291cf315abab9c6630b20c597b997e20a398a",
+  "newCasePaths": []
+}

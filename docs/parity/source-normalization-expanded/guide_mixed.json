@@ -1,0 +1,3 @@
+[{"Guid":"aaaaaaaa-0000-0000-0000-000000000080","Name":"mixed_case","Instructions":[
+  {"Guid":"cccccccc-0000-0000-0000-000000000080","Action":"Copy","Source":["<<MODDIRECTORY>>/x/foo.tga"],"Destination":"<<kotorDirectory>>/Override"}
+]}]
