@@ -70,14 +70,16 @@ is assigned because the remaining domains differ greatly in scope and proof cost
    warning; [evidence](fomod-s2a-proof/README.md) is 224/224. The round-3 follow-up is
    `ae8d7e9`; S2a SPEC and QUALITY are [approved](fomod-s2a-review.md). Fetch now
    runs components that may publish one archive file as one serialized group
-   instead of a race (commit `4bf5c54` plus its review follow-up). A later component
-   takes a file already published under its name (subject to its own hash) or the
-   outcome of identical sources without a request; otherwise, for example a
-   different URL after the owner failed, it downloads for itself. Every component is
-   reported, recorded and bound as a FOMOD consumer;
-   [evidence](fetch-shared-url-proof/README.md) is 181/181. The review follow-up is
-   not yet re-reviewed. Open: one-run `validate/install --fomod-choices` still
-   replaces all embedded archive choices.
+   instead of a race (commit `4bf5c54`, its review follow-up `339b3d6`, and a second
+   follow-up that makes groups transitive and requires the same name for inherited
+   failures). A later component takes a file already published under its name
+   (subject to its own hash) or the outcome of identical sources for the same name
+   without a request; otherwise, for example a different URL after the owner failed,
+   it downloads for itself. Every component is reported, recorded and bound as a
+   FOMOD consumer; [evidence](fetch-shared-url-proof/README.md) is 266/266 (22 new
+   checks fail on `339b3d6`). The second follow-up is not yet re-reviewed. Open:
+   one-run `validate/install --fomod-choices` still replaces all embedded archive
+   choices.
    Remaining S2 semantic items and native acceptance follow.
    The [actual full.md conversion baseline](full-markdown-baseline/README.md)
    retains eight production conversions and an independent anonymous comparison.

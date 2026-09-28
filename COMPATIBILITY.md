@@ -860,18 +860,22 @@ the S3 corpora remain open, and F15 stays partial.
 ## Fetch shared URL and destination — 2026-09-28 UTC
 
 `fetch-downloads` no longer lets two selected components race for one archive file.
-The plan links each later target that may publish an earlier target's file. That
-means equal `Files` names (ASCII case-insensitive), or the same registry URL when a
-name is revealed only by the transfer. The later target gets `sharedDestination`
-`{"kind":"sameUrl"|"differentUrl","targetIndex":N}`, where `N` owns the group and
-the kind only compares URLs. A group runs in one worker: owner first, then its
-linked targets in guide order, never concurrently. A linked target takes, with no
-request, a file an earlier member published under its name (for an unnamed target,
-from its own URL). This is the rule by which a rerun finds the file present by name.
-Its own `ContentHashSHA256` must still match. Otherwise it takes the unfinished
-outcome of an earlier member with an identical source list (same URL and fallbacks),
-since a repeat would ask the same sources again. Otherwise it runs its own sources,
-for example a different URL after the owner failed. A target that took another
+Two targets may publish one file when their `Files` names are equal (ASCII
+case-insensitive), or when they have the same registry URL and a name is revealed
+only by the transfer. The plan groups targets transitively by that relation: any two
+targets that may publish one file are in one group, even when they are linked only
+through a third target (a name match on one side, a URL match on the other). Each
+group is owned by its first target in guide order; every other member gets
+`sharedDestination` `{"kind":"sameUrl"|"differentUrl","targetIndex":N}`, where `N`
+is the owner and the kind only compares URLs. A group runs in one worker: owner
+first, then its linked targets in guide order, never concurrently. A linked target
+takes, with no request, a file an earlier member published under its name (for an
+unnamed target, from its own URL). This is the rule by which a rerun finds the file
+present by name (`AlreadyPresent`). Its own `ContentHashSHA256` must still match.
+Otherwise it takes the unfinished outcome of an earlier member with an identical
+source list (same URL and fallbacks) that, when the target knows its name, asked
+for that same name, since a repeat would make the same request again. Otherwise it
+runs its own sources, for example a different URL after the owner failed. A target that took another
 member's result keeps its own `targetIndex`, component and registry URL, gains
 `sharedWith: <member>`, and gets one event with its final phase. Every component is
 therefore reported, recorded under `--record` and bound as a FOMOD consumer of the
@@ -898,9 +902,12 @@ Consequences:
 C# deduplicates nothing: each component downloads on its own, and a later publish
 overwrites the file or finds it present and uses it. Two unknown names from
 different URLs that turn out equal still collide at publish, as before. So do a
-known and an unknown name from different URLs. The plan and report JSON changes are
-additive; rows with no link are unchanged. Evidence: commit `4bf5c54` plus its
-review follow-up,
-[shared-URL proof](docs/parity/fetch-shared-url-proof/README.md), 181/181 checks.
+known and an unknown name from different URLs that no third target links. An
+unnamed group member that must run its own URL after another URL published the name
+it reveals fails deterministically with `Download destination already exists`, as a
+rerun would. The plan and report JSON changes are additive; rows with no link are
+unchanged. Evidence: commit `4bf5c54`, its review follow-up `339b3d6` and a second
+follow-up (transitive groups, name-matched failure inheritance),
+[shared-URL proof](docs/parity/fetch-shared-url-proof/README.md), 266/266 checks.
 This is Fetch/nxm acquisition only; the desktop download path does not use this
 orchestrator.

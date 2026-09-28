@@ -45,8 +45,9 @@ FOMOD=package();PLAIN_A=plain('from url a\n');PLAIN_B=plain('from url b\n');SECO
 SERVE={'/control/example.zip':FOMOD,'/shared-w4/example.zip':FOMOD,'/shared-w1/example.zip':FOMOD,'/a/example.zip':PLAIN_A,'/b/example.zip':PLAIN_B,
  '/hash/example.zip':PLAIN_A,'/interleaved/example.zip':PLAIN_A,'/interleaved/second.zip':SECOND,'/names/example.zip':PLAIN_A,'/case/example.zip':PLAIN_A,
  '/ha/example.zip':PLAIN_A,'/hb/example.zip':PLAIN_B,'/d/example.zip':PLAIN_B,'/hash-owner/example.zip':PLAIN_A,'/unknown/example.zip':PLAIN_A,
- '/unknown-first/example.zip':PLAIN_A,'/chain-y/example.zip':PLAIN_B}
-# Not served (404): /missing/example.zip, /missing-a/example.zip, /chain-x/example.zip.
+ '/unknown-first/example.zip':PLAIN_A,'/chain-y/example.zip':PLAIN_B,'/trans-u1/example.zip':PLAIN_A,'/trans-u2/example.zip':PLAIN_B}
+# Not served (404): /missing/example.zip, /missing-a/example.zip, /chain-x/example.zip,
+# /names-404/example.zip.
 # Every response, 404 included, is held briefly, so two concurrent requests overlap (as
 # before the fix with --workers 4) and a request made only after another has answered
 # starts at least DELAY after it.
@@ -127,9 +128,12 @@ def terminal(r):
  last={}
  for e in r['events']:last[e['targetIndex']]=(e['componentGuid'],e['phase']['phase'])
  return [last[i] for i in sorted(last)]
-def dry(c,label):
+def replan(c,label):
+ # A dry run: the whole plan (targets and skips), with no request and no writes.
  r=fetch(c,label,['--dry-run']);check(r['name']+'_no_request',r['requests'],[]);check(r['name']+'_no_writes',r['after'],r['before'])
- return (r['data'] or {}).get('targets',[])
+ return r['data'] or {}
+def dry(c,label):return replan(c,label).get('targets',[])
+def present(plan):return [(s['componentGuid'],s['reason'],(s.get('path') or '').rsplit('/',1)[-1]) for s in plan.get('skipped',[])]
 
 # 1. Positive control: one component, one FOMOD archive, no pre-placed file.
 url=BASE+'/control/example.zip';c=setup('control',[comp(0,'/control/example.zip')])
@@ -246,7 +250,10 @@ check('same_404_follower_event',events_of(r,1),['sourceFailed']);check('same_404
 url='https://deadlystream.com/files/file/0000-example-mod/';c=setup('same_manual',[comp(0,None,url=url),comp(1,None,url=url)])
 targets=dry(c,'plan');check('same_manual_plan',[t.get('sharedDestination') for t in targets],[None,{'kind':'sameUrl','targetIndex':0}])
 r=fetch(c,'fetch',['--workers','4','--progress-json'])
-check('same_manual_exit',r['exit'],3);check('same_manual_no_request',r['requests'],[])
+# No `no_request` check here: the loopback origin cannot see a request to this host, so
+# such a check would be vacuous. The outcomes and events below are the evidence: with no
+# route, any attempt would end `failed`/`sourceFailed`, never `manualRequired`.
+check('same_manual_exit',r['exit'],3)
 check('same_manual_outcomes',statuses(r),[(0,GUIDS[0],'manualRequired',None),(1,GUIDS[1],'manualRequired',0)])
 check('same_manual_manual',[o.get('manual') for o in outcomes(r)],[{'url':url,'reason':'unsupported'}]*2)
 check('same_manual_events',[events_of(r,0),events_of(r,1)],[['resolving','manualRequired'],['manualRequired']]);check('same_manual_no_file',mods(r),{})
@@ -292,6 +299,59 @@ check('chain_exit',r['exit'],1);check('chain_requests',(asked(r,'/chain-x/exampl
 check('chain_outcomes',statuses(r),[(0,GUIDS[0],'failed',None),(1,GUIDS[1],'completed',None),(2,GUIDS[2],'completed',1)])
 check('chain_recorded',recorded(r),[[GUIDS[1],urly,'example.zip'],[GUIDS[2],urly,'example.zip']])
 check('chain_one_file',mods(r),{'mods/example.zip':hashlib.sha256(PLAIN_B).hexdigest()})
+
+# 16. Transitive groups. A target may share a file with two earlier targets that do not
+# share one with each other; all three must be one group, or two of them race.
+# (a) B (no Files, URL U2), A (example.zip, URL U1), C (example.zip, URL U2): C shares
+# B's URL and A's name. B owns the group and publishes example.zip from U2; A and C then
+# take that file by name without a request, as a rerun takes a present file
+# (AlreadyPresent). The rerun's dry-run plan shows exactly that.
+u1=BASE+'/trans-u1/example.zip';u2=BASE+'/trans-u2/example.zip';B_SHA=hashlib.sha256(PLAIN_B).hexdigest();A_SHA=hashlib.sha256(PLAIN_A).hexdigest()
+for workers in ['4','1']:
+ n=f'transitive_unnamed_first_w{workers}';c=setup(n,[comp(0,'/trans-u2/example.zip',None),comp(1,'/trans-u1/example.zip'),comp(2,'/trans-u2/example.zip')])
+ targets=dry(c,'plan');check(n+'_plan',[(t.get('filename'),t.get('sharedDestination')) for t in targets],[(None,None),('example.zip',{'kind':'differentUrl','targetIndex':0}),('example.zip',{'kind':'sameUrl','targetIndex':0})])
+ r=fetch(c,'fetch',['--workers',workers,'--record','--progress-json'])
+ check(n+'_exit',r['exit'],0);check(n+'_requests',(asked(r,'/trans-u1/example.zip'),asked(r,'/trans-u2/example.zip')),(0,1))
+ check(n+'_outcomes',statuses(r),[(0,GUIDS[0],'completed',None),(1,GUIDS[1],'completed',0),(2,GUIDS[2],'completed',0)])
+ check(n+'_same_file',[((o['path'] or '').rsplit('/',1)[-1],o['sha256']) for o in outcomes(r)],[('example.zip',B_SHA)]*3)
+ check(n+'_follower_events',[events_of(r,1),events_of(r,2)],[['completed'],['completed']])
+ check(n+'_errors',errors(r),[None]*3)
+ check(n+'_recorded',recorded(r),[[GUIDS[0],u2,'example.zip'],[GUIDS[1],u1,'example.zip'],[GUIDS[2],u2,'example.zip']])
+ check(n+'_file',mods(r),{'mods/example.zip':B_SHA})
+ again=replan(c,'rerun');check(n+'_rerun_targets',again.get('targets'),[])
+ check(n+'_rerun_present',present(again),[(g,'alreadyPresent','example.zip') for g in GUIDS])
+# (b) The other order: A (example.zip, U1), B (no Files, U2), C (example.zip, U2). A owns
+# the group and publishes example.zip from U1. B, unnamed, must run U2 itself, after A in
+# the same worker: its transfer reveals example.zip, which is present, so it fails
+# deterministically on publish (a rerun would too: an unnamed target is never
+# AlreadyPresent). C takes A's file by name without a request.
+for workers in ['4','1']:
+ n=f'transitive_named_first_w{workers}';c=setup(n,[comp(0,'/trans-u1/example.zip'),comp(1,'/trans-u2/example.zip',None),comp(2,'/trans-u2/example.zip')])
+ targets=dry(c,'plan');check(n+'_plan',[(t.get('filename'),t.get('sharedDestination')) for t in targets],[('example.zip',None),(None,{'kind':'differentUrl','targetIndex':0}),('example.zip',{'kind':'differentUrl','targetIndex':0})])
+ r=fetch(c,'fetch',['--workers',workers,'--record','--progress-json'])
+ check(n+'_exit',r['exit'],1);check(n+'_requests',(asked(r,'/trans-u1/example.zip'),asked(r,'/trans-u2/example.zip')),(1,1))
+ check(n+'_serialized',[b-a>=DELAY for a,b in zip(starts(r,'/trans-u1/example.zip'),starts(r,'/trans-u2/example.zip'))],[True])
+ check(n+'_outcomes',statuses(r),[(0,GUIDS[0],'completed',None),(1,GUIDS[1],'failed',None),(2,GUIDS[2],'completed',0)])
+ check(n+'_unnamed_error','Download destination already exists' in ((errors(r)[1:2] or [''])[0] or ''))
+ check(n+'_same_file',[((o['path'] or '').rsplit('/',1)[-1],o['sha256']) for o in outcomes(r)[::2]],[('example.zip',A_SHA)]*2)
+ check(n+'_terminal',terminal(r),[(GUIDS[0],'completed'),(GUIDS[1],'sourceFailed'),(GUIDS[2],'completed')])
+ check(n+'_recorded',recorded(r),[[GUIDS[0],u1,'example.zip'],[GUIDS[2],u2,'example.zip']])
+ check(n+'_file',mods(r),{'mods/example.zip':A_SHA})
+ again=replan(c,'rerun');check(n+'_rerun_targets',[(t['componentGuid'],t.get('filename'),t.get('sharedDestination')) for t in again.get('targets',[])],[(GUIDS[1],None,None)])
+ check(n+'_rerun_present',present(again),[(GUIDS[0],'alreadyPresent','example.zip'),(GUIDS[2],'alreadyPresent','example.zip')])
+
+# 17. Failure inheritance needs the same name. A (a.zip), B (no Files) and C (c.zip) on one
+# missing (404) URL are one group through B. B inherits A's failure (identical sources,
+# no name of its own). C knows a different name, which selects a different file (a Nexus
+# link is chosen by name), so it makes its own request, after A's.
+url=BASE+'/names-404/example.zip';c=setup('names_404',[comp(0,'/names-404/example.zip','a.zip'),comp(1,'/names-404/example.zip',None),comp(2,'/names-404/example.zip','c.zip')])
+targets=dry(c,'plan');check('names_404_plan',[(t.get('filename'),t.get('sharedDestination')) for t in targets],[('a.zip',None),(None,{'kind':'sameUrl','targetIndex':0}),('c.zip',{'kind':'sameUrl','targetIndex':0})])
+r=fetch(c,'fetch',['--workers','4','--record','--progress-json'])
+check('names_404_exit',r['exit'],1);check('names_404_requests',asked(r,'/names-404/example.zip'),2)
+check('names_404_serialized',[b-a>=DELAY for a,b in zip(starts(r,'/names-404/example.zip'),starts(r,'/names-404/example.zip')[1:])],[True])
+check('names_404_outcomes',statuses(r),[(0,GUIDS[0],'failed',None),(1,GUIDS[1],'failed',0),(2,GUIDS[2],'failed',None)])
+check('names_404_events',[events_of(r,1),events_of(r,2)[:1],events_of(r,2)[-1:]],[['sourceFailed'],['resolving'],['sourceFailed']])
+check('names_404_recorded',recorded(r),[]);check('names_404_no_file',mods(r),{})
 
 srv.shutdown();srv.server_close()
 check('binary_unchanged',digest(BIN),BINARY_BEFORE)

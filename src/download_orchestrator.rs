@@ -309,29 +309,41 @@ fn may_share_file(a: &ArchiveTarget, b: &ArchiveTarget) -> bool {
 }
 
 /// Two targets that publish one file must not transfer concurrently: the loser fails on
-/// the existing destination and is neither recorded nor bound. Each target that may
-/// share a file with an earlier one joins that target's group, owned by the first
-/// target of the group in guide order. `run` rechecks a plan against this.
+/// the existing destination and is neither recorded nor bound. Groups are the connected
+/// components of `may_share_file` over all targets (a union-find that merges every
+/// earlier match, not just the first), so any two targets that may share a file are in
+/// one group. Each group is owned by its lowest plan index; every other member links to
+/// it. `run` rechecks a plan against this.
 fn shared_destinations(targets: &[ArchiveTarget]) -> Vec<Option<SharedDestination>> {
-    let mut links: Vec<Option<SharedDestination>> = Vec::with_capacity(targets.len());
-    for target in targets {
-        let owner = targets
-            .iter()
-            .zip(&links)
-            .enumerate()
-            .find_map(|(index, (earlier, link))| {
-                may_share_file(earlier, target)
-                    .then(|| link.map_or(index, SharedDestination::owner))
-            });
-        links.push(owner.map(|owner| {
-            if targets[owner].registry_url == target.registry_url {
-                SharedDestination::SameUrl(owner)
-            } else {
-                SharedDestination::DifferentUrl(owner)
-            }
-        }));
+    fn root(parent: &mut [usize], mut index: usize) -> usize {
+        while parent[index] != index {
+            parent[index] = parent[parent[index]];
+            index = parent[index];
+        }
+        index
     }
-    links
+    let mut parent: Vec<usize> = (0..targets.len()).collect();
+    for (index, target) in targets.iter().enumerate() {
+        for (earlier, other) in targets[..index].iter().enumerate() {
+            if may_share_file(other, target) {
+                let (a, b) = (root(&mut parent, earlier), root(&mut parent, index));
+                // The lower root stays the root, so a root is always its group's lowest index.
+                parent[a.max(b)] = a.min(b);
+            }
+        }
+    }
+    (0..targets.len())
+        .map(|index| {
+            let owner = root(&mut parent, index);
+            (owner != index).then(|| {
+                if targets[owner].registry_url == targets[index].registry_url {
+                    SharedDestination::SameUrl(owner)
+                } else {
+                    SharedDestination::DifferentUrl(owner)
+                }
+            })
+        })
+        .collect()
 }
 
 fn plan_url(
@@ -614,8 +626,9 @@ pub fn run_with_loopback_ca(
     let outcomes = thread::scope(|scope| {
         let context = &context;
         let pool = scope.spawn(move || {
-            // Only group owners are queued. The owner's worker settles its linked targets
-            // after it, so targets that may publish one file never run at the same time.
+            // Only group owners are queued. The owner's worker settles every other member
+            // of its group after it, and any two targets that may publish one file are in
+            // one group (`shared_destinations`), so they never run at the same time.
             let owners = plan
                 .targets
                 .iter()
@@ -674,9 +687,9 @@ fn outcome(index: usize, target: &ArchiveTarget, status: TargetStatus) -> Target
 /// worker. A linked target takes, without a request, the file an earlier member
 /// published under its name (for a name only the transfer reveals, from its URL), as a
 /// present file is accepted by name. Otherwise it takes the unfinished outcome of an
-/// earlier member that ran the same source list (and knew its name, when this target
-/// does), since a repeat would ask the same sources again. Otherwise it runs its own
-/// sources.
+/// earlier member that ran the same source list (and, when this target knows its name,
+/// asked for that same name ignoring ASCII case), since a repeat would ask the same
+/// sources for the same file again. Otherwise it runs its own sources.
 fn acquire_group(
     context: &RunContext<'_>,
     owner: usize,
@@ -704,7 +717,14 @@ fn acquire_group(
             ran.iter().find(|(member, result)| {
                 result.status != TargetStatus::Completed
                     && member.sources == linked.sources
-                    && (member.filename.is_some() || linked.filename.is_none())
+                    // A known name selects the file (Nexus picks it by name), so only a
+                    // member that asked for this very name made this request.
+                    && linked.filename.as_deref().is_none_or(|name| {
+                        member
+                            .filename
+                            .as_deref()
+                            .is_some_and(|asked| asked.eq_ignore_ascii_case(name))
+                    })
             })
         };
         let outcome = match published.or_else(repeated) {

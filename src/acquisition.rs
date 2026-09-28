@@ -100,16 +100,18 @@ pub struct ArchiveTarget {
     pub expected_sha256: Option<String>,
     /// Already in fallback order.
     pub sources: Vec<Source>,
-    /// Set by `download_orchestrator::plan` when this target may publish the file of an
-    /// earlier target; `None` for a target that starts its own group.
+    /// Set by `download_orchestrator::plan` when this target is in a group of targets
+    /// that may publish one file (directly or through other members) and is not the
+    /// group's first target; `None` for a group's owner.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub shared_destination: Option<SharedDestination>,
 }
 
-/// Links a target to the earlier, unlinked target (by plan index) whose group it joins.
-/// A group runs in one worker, owner first, then its linked targets in plan order, so
-/// targets that may publish one file never transfer at the same time. The kind says
-/// only whether the registry URL is the owner's.
+/// Links a target to its group's owner: the unlinked target with the group's lowest plan
+/// index. A group is every target connected by "may publish one file", so a member can
+/// be linked through a later one. A group runs in one worker, owner first, then its
+/// linked targets in plan order, so targets that may publish one file never transfer at
+/// the same time. The kind says only whether the registry URL is the owner's.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase", tag = "kind", content = "targetIndex")]
 pub enum SharedDestination {
