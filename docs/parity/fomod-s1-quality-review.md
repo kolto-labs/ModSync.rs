@@ -36,3 +36,24 @@ modes; isolated-netns fixtures 319/319 (58 cases) and inherited 41/41.
 | 11 | nit | `set_prompt_status` returns `false` on malformed metadata and merge callers ignore it; bound path errors instead. |
 | 12 | nit | Comments overstate sharing with the desktop; only per-archive dedup is shared, eligibility differs. |
 | 13 | nit | Proof README binding stale (`f3f27d3`, "re-run required", "not cross-compiled"). |
+
+## Round 3 (fix `22379b5`): QUALITY APPROVED
+
+Independent reviewer confirmed 10-13 resolved without regression: after one
+`--record` run every consumer names the archive, so repeats are true no-ops; the
+no-`Files` probe case is not vacuous (fails 5 checks on `0e496f8`). Three nits:
+
+- Null `handlerMetadata` or non-map `fomodPromptStatus` failed the merge, stricter
+  than C# `FomodDownloadPromptState`. **Fixed by controller**: null metadata becomes
+  a fresh map and a non-map status value is replaced, as in C#. A non-null,
+  non-object metadata value (e.g. a string) remains an error, which the
+  `atomic_consumers` fixture still exercises.
+- Desktop dismissal (`set_prompt_status_remaining`) still ignores the residual
+  malformed case. Left as is: frozen tests call its `()` signature, and after the
+  C# tolerance above only a non-object, non-null metadata value reaches it.
+- README binary hash pointed at a gitignored path; wording now says so.
+
+Controller evidence after the nit fix: fmt; Linux and `x86_64-pc-windows-gnu`
+build/Clippy `-D warnings` in both feature modes; isolated-netns probe 339/339
+(61 cases), inherited 41/41; binary `e1ab267d…caaa` (host-specific). FOMOD S1
+QUALITY is accepted; S1 does not promote F15, S2 or install parity.

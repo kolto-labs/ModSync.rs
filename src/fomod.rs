@@ -718,14 +718,22 @@ fn write_prompt_status(
     } else {
         "handlerMetadata"
     };
-    let metadata = object
-        .entry(key)
-        .or_insert_with(|| serde_json::json!({}))
+    // Like C# FomodDownloadPromptState: null metadata becomes a fresh map, and a
+    // missing or non-map status value is replaced rather than rejected.
+    let metadata = object.entry(key).or_insert(serde_json::Value::Null);
+    if metadata.is_null() {
+        *metadata = serde_json::json!({});
+    }
+    let metadata = metadata
         .as_object_mut()
         .context("FOMOD handler metadata must be an object")?;
-    metadata
+    let statuses = metadata
         .entry("fomodPromptStatus")
-        .or_insert_with(|| serde_json::json!({}))
+        .or_insert(serde_json::Value::Null);
+    if !statuses.is_object() {
+        *statuses = serde_json::json!({});
+    }
+    statuses
         .as_object_mut()
         .context("FOMOD prompt status must be an object")?
         .insert(

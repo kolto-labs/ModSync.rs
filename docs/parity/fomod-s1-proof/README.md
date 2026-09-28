@@ -2,8 +2,8 @@
 
 Original candidate source: `f3f27d346c9a07dd102d23ed8992f72d19f3c8d2` (the receipts
 and hashes under "Final measured results" bind that source). Post-review source:
-the commit that adds this sentence (fixes on top of `0e496f8`); its cloud Linux debug
-binary measured SHA256 `926bbb3cd032dfe53de58c3d79ccf582985a42d486a84cb2d4c7d5b7356b7129`
+the commit that adds this sentence (fixes on top of `0e496f8`, plus the round-3 C# null-metadata tolerance); its cloud Linux debug
+binary measured SHA256 `e1ab267d57b95583bc90d5b7cbc75ba09c01627576debad1b544502cb0adcaaa`
 (host-specific, not a reproducibility claim; see "Post-review corrections").
 Independent source SPEC review approved (see ../fomod-s1-spec-review.md); QUALITY is still required. This evidence does
 not accept full F15, S2, the desktop acquisition flow, or any real game install.
@@ -85,8 +85,10 @@ re-run as follows.
 - Round 2 (post-review source, after `0e496f8`): `probe.py` gains a no-`Files`
   registry case (Warn without and with `--record`, plus a repeat run), giving
   **339/339 checks (61 cases)** and **41/41 inherited**. The new case fails 5
-  checks against the `0e496f8` Fetch dispatcher. Binary hash is recorded in
-  `target/cloud-proof`.
+  checks against the `0e496f8` Fetch dispatcher. Measured binary SHA256
+  `e1ab267d57b95583bc90d5b7cbc75ba09c01627576debad1b544502cb0adcaaa` on the cloud host;
+  its full receipt stayed in the uncommitted local `target/cloud-proof`, so the
+  committed `receipts/` still bind `f3f27d3`.
 - Windows code was cross-checked with Clippy `-D warnings` on
   `x86_64-pc-windows-gnu` in both feature modes, but **not run on Windows**.
 
