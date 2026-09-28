@@ -1,4 +1,5 @@
 mod completion_pages;
+mod downloads_panel;
 mod installing_page;
 mod validation_page;
 use anyhow::Result;
@@ -16,8 +17,10 @@ use std::{
 };
 
 enum Message {
-    Downloaded(PathBuf, modsync::archive::Options),
-    NxmDownloaded(modsync::protocol::NxmComponentMatch, String),
+    /// A direct URL download finished; the run binds its FOMOD follow-up.
+    Downloaded(u64, PathBuf, modsync::archive::Options),
+    /// Shared acquisition (Fetch or nxm handoff) facts for one run.
+    Acquisition(u64, downloads_panel::Update),
     ProtocolGuide(Guide),
     Conflicts(modsync::conflicts::Report),
     ValidationProgress(u64, modsync::validation::StageProgress),
@@ -39,8 +42,23 @@ enum Job {
     Restore,
     Download,
     NxmDownload,
+    Fetch,
     ProtocolOpen,
     Update,
+}
+
+/// Hidden probe launch context: explicit key, API base and loopback CA only.
+/// Never persisted, and never combined with the per-user instance socket.
+pub struct Probe {
+    pub nexus_api_key: Option<String>,
+    pub nexus_api_base: Option<String>,
+    pub extra_ca_file: Option<PathBuf>,
+}
+
+struct ProbeContext {
+    nexus_api_key: Option<String>,
+    nexus_api_base: Option<String>,
+    loopback_ca: Option<modsync::download::LoopbackCa>,
 }
 
 pub struct App {
@@ -103,15 +121,35 @@ pub struct App {
     download_hash: String,
     pending_protocol: Option<String>,
     pending_nxm: std::collections::VecDeque<String>,
-    nxm_record_error: Option<String>,
     telemetry: modsync::telemetry::Config,
+    /// Shared acquisition runs (Fetch and nxm) and their presentation.
+    downloads: downloads_panel::Panel,
+    /// The direct URL download's run and the acquisition context it was started for.
+    direct_download: Option<(u64, String)>,
+    /// Settings directory given at launch, used as the Peer cache like the CLI's.
+    explicit_settings: Option<PathBuf>,
+    probe: Option<ProbeContext>,
+    repaint: Option<egui::Context>,
 }
 
 impl App {
     fn handle_message(&mut self, message: Message) {
         match message {
-            Message::Downloaded(path, options) => {
-                if self.guide.is_some() && self.should_offer_fomod_editor(&path) {
+            Message::Downloaded(run, path, options) => {
+                // Offer the editor only for the guide and folders this download started
+                // with; a changed context never receives another guide's follow-up.
+                let bound = self
+                    .direct_download
+                    .as_ref()
+                    .is_some_and(|(bound, context)| {
+                        *bound == run && *context == self.acquisition_context()
+                    });
+                if !bound {
+                    self.logs.push(format!(
+                        "Downloaded {}, but the guide or folders changed; no FOMOD prompt was offered.",
+                        path.display()
+                    ));
+                } else if self.guide.is_some() && self.should_offer_fomod_editor(&path) {
                     let saved = self.saved_fomod_choices(&path);
                     match saved {
                         Ok(saved) => {
@@ -122,11 +160,7 @@ impl App {
                     }
                 }
             }
-            Message::NxmDownloaded(matched, file_name) => {
-                if let Err(error) = self.record_nxm_download(matched, &file_name) {
-                    self.nxm_record_error = Some(format!("{error:#}"));
-                }
-            }
+            Message::Acquisition(run, update) => self.acquisition_update(run, update),
             Message::ProtocolGuide(guide) => self.apply_protocol_guide(guide),
             Message::Conflicts(report) => self.conflicts = Some(report),
             Message::ValidationProgress(run, progress) => {
@@ -233,14 +267,9 @@ impl App {
             }
             Message::Done(result) => {
                 self.receiver = None;
-                let result = if self.job == Job::NxmDownload {
-                    match self.nxm_record_error.take() {
-                        Some(error) => Err(anyhow::anyhow!(error)),
-                        None => result,
-                    }
-                } else {
-                    result
-                };
+                if self.job == Job::Download {
+                    self.direct_download = None;
+                }
                 let succeeded = result.is_ok();
                 // Install terminals arrive only as InstallTerminal. A restore
                 // clears a failed install's pending state only when it restored
@@ -287,7 +316,7 @@ impl App {
                     && self.validation_report.as_ref().is_some_and(|r| r.success)
                     && self.job == Job::Validate
                     && self.validation_input_stamp.as_ref() == Some(&self.input_stamp);
-                self.logs.push(match result { Ok(()) => match self.job { Job::Conflicts => "Conflict analysis complete. Review the report and its limitations.", Job::Validate if !self.validated => "Validation result discarded. Run validation again.", Job::Validate => "Validation passed. External program effects, if any, remain unverified.", Job::Install => unreachable!("install terminals arrive as InstallTerminal"), Job::Restore => "Snapshot restored and file hashes verified.", Job::Download => "Archive downloaded and integrity checked.", Job::NxmDownload => "Nexus handoff download complete.", Job::ProtocolOpen => "ModSync build link loaded.", Job::Update => "Nexus update check complete." }.into(), Err(e) => format!("Stopped: {e:#}") });
+                self.logs.push(match result { Ok(()) => match self.job { Job::Conflicts => "Conflict analysis complete. Review the report and its limitations.", Job::Validate if !self.validated => "Validation result discarded. Run validation again.", Job::Validate => "Validation passed. External program effects, if any, remain unverified.", Job::Install => unreachable!("install terminals arrive as InstallTerminal"), Job::Restore => "Snapshot restored and file hashes verified.", Job::Download => "Archive downloaded and integrity checked.", Job::NxmDownload | Job::Fetch => "Downloads finished.", Job::ProtocolOpen => "ModSync build link loaded.", Job::Update => "Nexus update check complete." }.into(), Err(e) => format!("Stopped: {}", self.downloads.redact(&format!("{e:#}"))) });
                 let job = match self.job {
                     Job::Conflicts => "conflicts",
                     Job::Validate => "validation",
@@ -295,6 +324,7 @@ impl App {
                     Job::Restore => "restore",
                     Job::Download => "download",
                     Job::NxmDownload => "nxm_download",
+                    Job::Fetch => "fetch_downloads",
                     Job::ProtocolOpen => "protocol_open",
                     Job::Update => "update",
                 };
@@ -412,8 +442,8 @@ impl App {
         };
         // Downloads can continue while reading pages; changing inputs or beginning
         // another engine operation remains serialized with the current worker.
-        let reading =
-            self.receiver.is_none() || matches!(self.job, Job::Download | Job::NxmDownload);
+        let reading = self.receiver.is_none()
+            || matches!(self.job, Job::Download | Job::NxmDownload | Job::Fetch);
         let passed = match wizard.current() {
             Page::ModDirectory => !self.mods.trim().is_empty() && Path::new(&self.mods).is_dir(),
             Page::GameDirectory => {
@@ -476,12 +506,313 @@ impl App {
             .is_some_and(|w| w.pages()[..=w.current_index()].contains(&Page::DownloadsExplain))
     }
 
-    fn download_status(&self) -> &'static str {
-        if self.receiver.is_some() && matches!(self.job, Job::Download | Job::NxmDownload) {
-            "Download in progress — see activity for results"
+    fn download_status(&self) -> String {
+        if self.receiver.is_some() && self.job == Job::Download {
+            "Direct archive download in progress — see activity for results".into()
         } else {
-            "No active download"
+            self.downloads.status()
         }
+    }
+
+    /// What an acquisition run is bound to: guide revision, normalized workspace and
+    /// game identity, and the completed-base context.
+    fn acquisition_context(&self) -> String {
+        format!(
+            "{:?}",
+            (
+                serde_json::to_string(&self.guide).unwrap_or_default(),
+                &self.mods,
+                std::fs::canonicalize(self.mods.trim()).ok(),
+                &self.game,
+                &self.completed_base,
+            )
+        )
+    }
+
+    /// Why Fetch cannot start now, if it cannot.
+    fn fetch_blocker(&self) -> Option<&'static str> {
+        if self.receiver.is_some() {
+            Some("Wait for the current operation to finish.")
+        } else if self.guide.is_none() {
+            Some("Load a guide first.")
+        } else if self.mods.trim().is_empty() || !Path::new(self.mods.trim()).is_dir() {
+            Some("Choose an existing mod workspace first.")
+        } else {
+            None
+        }
+    }
+
+    fn archive_options(&self) -> Result<modsync::archive::Options> {
+        Ok(modsync::archive::Options {
+            scratch_dir: (!self.scratch.is_empty()).then(|| PathBuf::from(&self.scratch)),
+            max_expanded_bytes: if self.expanded_budget.trim().is_empty() {
+                None
+            } else {
+                Some(self.expanded_budget.trim().parse().map_err(|_| {
+                    anyhow::anyhow!("Expanded-byte budget must be a nonnegative integer.")
+                })?)
+            },
+        })
+    }
+
+    /// The Nexus key for a run: a probe launch uses only its explicit key; otherwise the
+    /// key loaded from (or typed for) the selected settings directory.
+    fn acquisition_key(&self) -> Option<String> {
+        match &self.probe {
+            Some(probe) => probe.nexus_api_key.clone(),
+            None => Some(self.nexus_api_key.clone()).filter(|key| !key.trim().is_empty()),
+        }
+    }
+
+    fn acquisition_secrets(&self) -> Vec<String> {
+        [self.nexus_api_key.clone()]
+            .into_iter()
+            .chain(self.probe.as_ref().and_then(|p| p.nexus_api_key.clone()))
+            .collect()
+    }
+
+    /// Capture guide, normalized workspace and names once, for a new run.
+    fn acquisition_binding(&self) -> Result<downloads_panel::Binding> {
+        let guide = self
+            .guide
+            .clone()
+            .ok_or_else(|| anyhow::anyhow!("Load a guide first"))?;
+        let source_dir = std::fs::canonicalize(self.mods.trim())
+            .ok()
+            .filter(|path| path.is_dir())
+            .ok_or_else(|| anyhow::anyhow!("Choose an existing mod workspace first"))?;
+        let names = guide
+            .components
+            .iter()
+            .map(|c| {
+                (
+                    c.guid.clone(),
+                    modsync::selection::display_name(c, self.spoiler_free),
+                )
+            })
+            .collect();
+        Ok(downloads_panel::Binding {
+            context: self.acquisition_context(),
+            guide,
+            source_dir,
+            names,
+        })
+    }
+
+    /// Starts the selected-guide Fetch: shared plan/run/record, Scope::All candidates,
+    /// four workers with one retry and a per-run Peer adapter, all off the UI thread.
+    fn start_fetch(&mut self) {
+        if let Some(reason) = self.fetch_blocker() {
+            self.logs.push(format!("Fetch Downloads: {reason}"));
+            return;
+        }
+        let prepared = self
+            .archive_options()
+            .and_then(|archive| Ok((archive, self.acquisition_binding()?)));
+        let (archive, binding) = match prepared {
+            Ok(value) => value,
+            Err(error) => {
+                self.logs.push(format!("Fetch Downloads: {error:#}"));
+                return;
+            }
+        };
+        let guide = binding.guide.clone();
+        let source_dir = binding.source_dir.clone();
+        let key = self.acquisition_key();
+        let (api_base, loopback_ca) = self.probe.as_ref().map_or((None, None), |probe| {
+            (probe.nexus_api_base.clone(), probe.loopback_ca.clone())
+        });
+        let settings_dir = PathBuf::from(&self.profile_directory);
+        // Like the CLI's explicit --settings-dir: the Peer cache follows an explicit
+        // settings directory, and the default share root is used otherwise.
+        let cache_dir = self.explicit_settings.clone();
+        self.invalidate_validation();
+        let cancelled = Arc::new(AtomicBool::new(false));
+        self.cancelled = cancelled.clone();
+        let secrets = self.acquisition_secrets();
+        let run = self.downloads.begin(
+            downloads_panel::Kind::Fetch,
+            binding,
+            cancelled.clone(),
+            &secrets,
+        );
+        let (tx, rx) = mpsc::channel();
+        self.receiver = Some(rx);
+        self.job = Job::Fetch;
+        self.logs
+            .push("Fetch Downloads: planning selected archives…".into());
+        let repaint = self.repaint.clone();
+        std::thread::spawn(move || {
+            use modsync::download_orchestrator as orchestrator;
+            let send = |update| {
+                let _ = tx.send(Message::Acquisition(run, update));
+                if let Some(ctx) = &repaint {
+                    ctx.request_repaint();
+                }
+            };
+            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(
+                || -> Result<Box<downloads_panel::Finished>> {
+                    let stored = modsync::profiles::SettingsFile::resolve(Some(&settings_dir))?
+                        .load()
+                        .map_err(|e| anyhow::anyhow!("Peer settings: {e:#}"))?;
+                    let peer_settings = modsync::p2p::PeerSettings::from_settings(&stored);
+                    let peer_mode = match peer_settings.effective_mode() {
+                        modsync::p2p::PeerMode::Off => orchestrator::PeerMode::Off,
+                        modsync::p2p::PeerMode::Race => orchestrator::PeerMode::Race,
+                        modsync::p2p::PeerMode::Fallback => orchestrator::PeerMode::Fallback,
+                    };
+                    let candidates = modsync::selection::download_candidates(
+                        &guide.components,
+                        modsync::selection::Scope::All,
+                    );
+                    let plan = orchestrator::plan(
+                        &guide,
+                        &candidates,
+                        &orchestrator::PlanOptions {
+                            source_dir,
+                            resolution: None,
+                            peer_mode,
+                            user_peers: Vec::new(),
+                            nexus_key_present: key.is_some(),
+                            archive: archive.clone(),
+                        },
+                    )?;
+                    send(downloads_panel::Update::Prepared {
+                        plan: Box::new(plan.clone()),
+                        selected_components: candidates.len(),
+                        secrets: peer_settings.proxies.clone(),
+                    });
+                    let peer: Option<Arc<dyn modsync::acquisition::Acquire>> = match peer_mode {
+                        orchestrator::PeerMode::Off => None,
+                        _ => Some(Arc::new(modsync::peer_acquire::PeerAcquire::new(
+                            &guide,
+                            peer_settings,
+                            archive.clone(),
+                            cache_dir,
+                        ))),
+                    };
+                    let settings = orchestrator::RunSettings {
+                        workers: 4,
+                        retries: 1,
+                        archive: archive.clone(),
+                        nexus_api_key: key,
+                        nexus_api_base: api_base,
+                        peer,
+                    };
+                    let report = orchestrator::run_with_loopback_ca(
+                        &plan,
+                        &settings,
+                        &cancelled,
+                        |event| send(downloads_panel::Update::Event(Box::new(event))),
+                        loopback_ca.as_ref(),
+                    )?;
+                    let stopped = report.cancelled || cancelled.load(Ordering::SeqCst);
+                    let fomod = (!stopped).then(|| {
+                        orchestrator::fomod_followups(&guide, &report, &archive, &cancelled)
+                    });
+                    Ok(Box::new(downloads_panel::Finished { report, fomod }))
+                },
+            ))
+            .unwrap_or_else(|_| Err(anyhow::anyhow!("The download worker stopped unexpectedly.")));
+            send(downloads_panel::Update::Terminal(result));
+        });
+    }
+
+    fn acquisition_update(&mut self, run: u64, update: downloads_panel::Update) {
+        // Another run's message changes nothing: no rows, guide, FOMOD or validation.
+        if !self.downloads.accepts(run) {
+            return;
+        }
+        let current = self.acquisition_context();
+        self.downloads.check_context(&current);
+        match update {
+            downloads_panel::Update::Terminal(result) => {
+                self.acquisition_terminal(run, result, &current)
+            }
+            update => self.downloads.apply(update),
+        }
+    }
+
+    /// The run terminal owns the report. Only an unchanged context records, on a clone
+    /// of the bound guide that replaces the current guide only when `record` succeeds.
+    fn acquisition_terminal(
+        &mut self,
+        run: u64,
+        result: Result<Box<downloads_panel::Finished>>,
+        current: &str,
+    ) {
+        let Some(settled) = self.downloads.settle(run, current) else {
+            return;
+        };
+        self.receiver = None;
+        self.stop_confirmation = false;
+        let kind = settled.kind;
+        let label = match kind {
+            downloads_panel::Kind::Fetch => "Fetch Downloads",
+            downloads_panel::Kind::Nxm => "Nexus handoff",
+        };
+        let succeeded = match result {
+            Err(error) => {
+                let text = format!("{error:#}");
+                self.downloads.failed(kind, &text);
+                self.logs
+                    .push(format!("{label} stopped: {}", self.downloads.redact(&text)));
+                false
+            }
+            Ok(finished) if settled.context_changed => {
+                let text = format!(
+                    "Files from this run stay in {}, but the guide or folders changed; nothing was recorded in the current guide.",
+                    settled.binding.source_dir.display()
+                );
+                self.downloads
+                    .finish(kind, &finished, Err(&text), &settled.binding.names);
+                self.logs.push(format!("{label}: {text}"));
+                false
+            }
+            Ok(finished) => {
+                let mut guide = settled.binding.guide.clone();
+                let recorded = modsync::download_orchestrator::record(&mut guide, &finished.report);
+                let succeeded = !finished.report.cancelled
+                    && finished.report.outcomes.iter().all(|o| {
+                        o.status == modsync::download_orchestrator::TargetStatus::Completed
+                    });
+                match &recorded {
+                    Ok(summary) => {
+                        let changed = serde_json::to_string(&guide).ok()
+                            != serde_json::to_string(&settled.binding.guide).ok();
+                        self.guide = Some(guide);
+                        if changed {
+                            self.downloads.unsaved_records = true;
+                            self.invalidate_validation();
+                        }
+                        self.downloads
+                            .finish(kind, &finished, Ok(summary), &settled.binding.names);
+                    }
+                    Err(error) => {
+                        let text = format!("Guide records were not changed: {error:#}");
+                        self.downloads
+                            .finish(kind, &finished, Err(&text), &settled.binding.names);
+                    }
+                }
+                self.logs.push(self.downloads.status());
+                succeeded
+            }
+        };
+        self.refresh_input_stamp();
+        self.emit_telemetry(
+            "operation.completed",
+            serde_json::Map::from_iter([
+                (
+                    "operation".into(),
+                    serde_json::json!(match kind {
+                        downloads_panel::Kind::Fetch => "fetch_downloads",
+                        downloads_panel::Kind::Nxm => "nxm_download",
+                    }),
+                ),
+                ("success".into(), serde_json::json!(succeeded)),
+            ]),
+        );
+        self.start_pending_nxm_if_ready();
     }
 
     fn open_folder(&mut self, ctx: &egui::Context, folder: &str) {
@@ -493,15 +824,48 @@ impl App {
 
     fn downloads_content(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
         ui.heading("Downloads");
-        ui.label(self.download_status());
-        if self.receiver.is_some() && matches!(self.job, Job::Download | Job::NxmDownload) {
-            ui.spinner();
-            if ui.button("Stop download").clicked() {
+        ui.label("Fetch Downloads plans every selected mod's archives (base and widescreen), keeps verified archives already in the workspace and downloads the rest. Nothing starts until you select it.");
+        let blocker = self.fetch_blocker();
+        ui.horizontal_wrapped(|ui| {
+            if ui
+                .add_enabled(blocker.is_none(), egui::Button::new("📥 Fetch Downloads"))
+                .on_disabled_hover_text(blocker.unwrap_or_default())
+                .clicked()
+            {
+                self.start_fetch();
+            }
+            let acquiring = self.receiver.is_some()
+                && matches!(self.job, Job::Download | Job::NxmDownload | Job::Fetch);
+            if acquiring
+                && ui
+                    .add_enabled(
+                        !self.downloads.stopping(),
+                        egui::Button::new("⏹ Stop Downloads"),
+                    )
+                    .clicked()
+            {
                 self.stop_confirmation = true;
             }
+            if ui.button("Open workspace").clicked() {
+                self.open_folder(ctx, &self.mods.clone());
+            }
+        });
+        if let Some(reason) = blocker
+            && !self.downloads.is_active()
+        {
+            ui.label(reason);
         }
-        if ui.button("Open workspace").clicked() {
-            self.open_folder(ctx, &self.mods.clone());
+        if self.receiver.is_some()
+            && matches!(self.job, Job::Download | Job::NxmDownload | Job::Fetch)
+        {
+            ui.spinner();
+        }
+        if self.receiver.is_some() && self.job == Job::Download {
+            ui.label(self.download_status());
+        }
+        if let Some(downloads_panel::Action::Open(url)) = self.downloads.show(ui) {
+            // Manual links open only from this explicit click.
+            ctx.open_url(egui::OpenUrl::new_tab(url));
         }
         ui.separator();
         ui.label("Direct archive download");
@@ -548,7 +912,7 @@ impl App {
                 }
             }
         });
-        ui.label("Completed downloads are integrity checked. Activity shows actual outcomes; no aggregate download percentage is available.");
+        ui.label("Every archive is verified before it is kept. Progress shows measured bytes; a percentage appears only when the host reports a size.");
     }
 
     fn wizard_footer(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
@@ -702,7 +1066,7 @@ impl App {
                         ("1. Configure Directories", "Point to your KOTOR installation and mod workspace folder"),
                         ("2. Load Instruction File", "Choose a curated mod build from popular configurations"),
                         ("3. Select Your Mods", "Browse by category or tier — dependencies auto-select"),
-                        ("4. Download Mod Archives", "Use direct archive downloads or provider links. Automatic missing-mod acquisition is not available in this build."),
+                        ("4. Download Mod Archives", "Select Fetch Downloads to acquire missing archives from direct and supported hosts. Hosts that need a login, CAPTCHA or wait stay manual in your browser."),
                         ("5. Validation & Install", "Verify everything is ready, then install automatically"),
                     ] { ui.strong(title); ui.label(detail); ui.add_space(6.0); }
                 });
@@ -747,8 +1111,13 @@ impl App {
             Page::ModSelection => self.surface(ui, ctx, 1),
             Page::DownloadsExplain => {
                 ui.heading("Download your mod files");
-                ui.label(format!("{} base mods selected", self.selected_base()));
-                ui.label("Use Downloads to acquire archives into your workspace. Downloads can continue while you read later pages. Run validation after downloads finish.");
+                ui.label(format!(
+                    "{} base and {} widescreen mods selected",
+                    self.selected_base(),
+                    self.selected_widescreen()
+                ));
+                ui.label("Nothing downloads automatically. Select Fetch Downloads in the Downloads panel to acquire the missing archives of every selected mod into your workspace; archives already there are verified and kept.");
+                ui.label("Downloads continue while you read later pages, and the Downloads panel keeps their status. Changing the guide, selection or folders waits until downloads finish. Run validation after downloads finish; installation still requires a fresh validation.");
             }
             Page::Validate => self.validation_content(ui, ctx),
             Page::InstallStart => {
@@ -829,10 +1198,12 @@ impl App {
                 if let Some(url) = self.pending_nxm.front() {
                     ui.separator();
                     ui.strong("Nexus Mod Manager link received");
-                    ui.label(url);
+                    ui.label(self.downloads.redact(url));
                     if ui
                         .add_enabled(
-                            self.guide.is_some() && !self.mods.trim().is_empty(),
+                            self.guide.is_some()
+                                && !self.mods.trim().is_empty()
+                                && self.receiver.is_none(),
                             egui::Button::new("Download linked Nexus file"),
                         )
                         .clicked()
@@ -891,28 +1262,32 @@ impl App {
                         Err(e) => format!("Settings save failed: {e:#}"),
                     });
                 }
-                ui.horizontal(|ui| {
-                    ui.label("Nexus API key");
-                    ui.add(
-                        egui::TextEdit::singleline(&mut self.nexus_api_key)
-                            .password(true)
-                            .desired_width(220.0),
-                    );
-                    if ui.button("Save key").clicked() {
-                        let result = (|| -> Result<()> {
-                            anyhow::ensure!(
-                                !self.profile_directory.is_empty(),
-                                "Choose a settings directory"
-                            );
-                            modsync::profiles::Store::new(Path::new(&self.profile_directory))?
-                                .save_nexus_api_key(&self.nexus_api_key)
-                        })();
-                        self.logs.push(match result {
-                            Ok(()) => "Nexus API key saved.".into(),
-                            Err(e) => format!("Nexus key save failed: {e:#}"),
-                        });
-                    }
-                });
+                if self.probe.is_some() {
+                    ui.label("Probe launch: the Nexus key comes only from the launch arguments and is never stored.");
+                } else {
+                    ui.horizontal(|ui| {
+                        ui.label("Nexus API key");
+                        ui.add(
+                            egui::TextEdit::singleline(&mut self.nexus_api_key)
+                                .password(true)
+                                .desired_width(220.0),
+                        );
+                        if ui.button("Save key").clicked() {
+                            let result = (|| -> Result<()> {
+                                anyhow::ensure!(
+                                    !self.profile_directory.is_empty(),
+                                    "Choose a settings directory"
+                                );
+                                modsync::profiles::Store::new(Path::new(&self.profile_directory))?
+                                    .save_nexus_api_key(&self.nexus_api_key)
+                            })();
+                            self.logs.push(match result {
+                                Ok(()) => "Nexus API key saved.".into(),
+                                Err(e) => format!("Nexus key save failed: {e:#}"),
+                            });
+                        }
+                    });
+                }
                 ui.collapsing("Telemetry", |ui| {
                         ui.label("Optional anonymous usage telemetry. It never includes mod names, file contents, or credentials.");
                         let mut consent = self.telemetry.user_consented;
@@ -1632,18 +2007,36 @@ impl App {
         });
     }
 
+    /// The frozen tests' constructor: default settings directory, no probe.
+    #[cfg(test)]
     fn new(input: Option<PathBuf>, game: Option<PathBuf>, mods: Option<PathBuf>) -> Self {
+        Self::with_launch(input, game, mods, None, None)
+    }
+
+    /// The settings directory and any probe credentials are fixed before the first
+    /// store read, telemetry load, guide load or protocol dispatch.
+    fn with_launch(
+        input: Option<PathBuf>,
+        game: Option<PathBuf>,
+        mods: Option<PathBuf>,
+        settings_dir: Option<PathBuf>,
+        probe: Option<ProbeContext>,
+    ) -> Self {
         let string = |p: Option<PathBuf>| {
             p.map(|p| p.to_string_lossy().into_owned())
                 .unwrap_or_default()
+        };
+        let profile_directory = match &settings_dir {
+            Some(directory) => directory.to_string_lossy().into_owned(),
+            None => modsync::profiles::settings_directory(None)
+                .map(|p| p.to_string_lossy().into_owned())
+                .unwrap_or_default(),
         };
         let mut app = Self {
             theme: "/Styles/LightStyle.axaml".into(),
             input: string(input),
             loaded_input: None,
-            profile_directory: modsync::profiles::settings_directory(None)
-                .map(|p| p.to_string_lossy().into_owned())
-                .unwrap_or_default(),
+            profile_directory,
             profile_name: String::new(),
             profile_names: Vec::new(),
             profile_target: String::new(),
@@ -1697,20 +2090,31 @@ impl App {
             download_hash: String::new(),
             pending_protocol: None,
             pending_nxm: Default::default(),
-            nxm_record_error: None,
             telemetry: Default::default(),
+            downloads: Default::default(),
+            direct_download: None,
+            explicit_settings: settings_dir,
+            probe,
+            repaint: None,
         };
-        if !app.input.is_empty() {
-            app.load();
-        }
-        if let Ok(store) = modsync::profiles::Store::new(Path::new(&app.profile_directory)) {
-            app.nexus_api_key = store.nexus_api_key().ok().flatten().unwrap_or_default();
+        match &app.probe {
+            // A probe never reads a stored key: only its explicit one is ever sent.
+            Some(probe) => app.nexus_api_key = probe.nexus_api_key.clone().unwrap_or_default(),
+            None => {
+                if let Ok(store) = modsync::profiles::Store::new(Path::new(&app.profile_directory))
+                {
+                    app.nexus_api_key = store.nexus_api_key().ok().flatten().unwrap_or_default();
+                }
+            }
         }
         match modsync::telemetry::Config::load(Path::new(&app.profile_directory)) {
             Ok(config) => app.telemetry = config,
             Err(error) => app
                 .logs
                 .push(format!("Telemetry configuration unavailable: {error:#}")),
+        }
+        if !app.input.is_empty() {
+            app.load();
         }
         app
     }
@@ -1743,6 +2147,7 @@ impl App {
                 self.logs
                     .push(format!("Loaded {} components", g.components.len()));
                 self.loaded_input = Some(PathBuf::from(&self.input));
+                self.downloads.unsaved_records = false;
                 self.wizard = (!g.components.is_empty()).then(|| Wizard::new(&g));
                 self.utility = false;
                 self.guide = Some(g);
@@ -1797,6 +2202,7 @@ impl App {
             guide.components.len()
         ));
         self.loaded_input = None;
+        self.downloads.unsaved_records = false;
         self.wizard = (!guide.components.is_empty()).then(|| Wizard::new(&guide));
         self.utility = false;
         self.guide = Some(guide);
@@ -1812,7 +2218,13 @@ impl App {
                 self.pending_nxm.push_back(url);
                 self.start_pending_nxm_if_ready();
             }
-            Err(error) => self.logs.push(format!("Protocol link rejected: {error:#}")),
+            Err(error) => {
+                let text = format!("{error:#}");
+                self.logs.push(format!(
+                    "Protocol link rejected: {}",
+                    self.downloads.redact(&text)
+                ));
+            }
         }
     }
 
@@ -1826,73 +2238,96 @@ impl App {
         }
     }
 
+    /// Dispatches the oldest queued nxm:// link through the shared path: re-resolved
+    /// against the guide bound now, nxm_target, a single Peer-off plan, run and record.
     fn download_pending_nxm(&mut self) {
+        if self.receiver.is_some() {
+            return;
+        }
         let Some(raw) = self.pending_nxm.pop_front() else {
             return;
         };
-        let result = (|| -> Result<_> {
+        let prepared = (|| -> Result<_> {
             let link = modsync::protocol::parse(&raw)?;
-            let guide = self
-                .guide
-                .as_ref()
-                .ok_or_else(|| anyhow::anyhow!("Load an instruction file first"))?;
-            let (status, matched) = modsync::protocol::resolve_nxm(&link, &guide.components);
-            anyhow::ensure!(
-                status == modsync::protocol::NxmResolveStatus::Matched,
-                "Nexus link does not identify exactly one loaded component"
-            );
-            let matched = matched.expect("matched status has a match");
-            anyhow::ensure!(
-                !self.mods.trim().is_empty(),
-                "Set a mod download directory first"
-            );
-            Ok((link, matched))
+            let archive = self.archive_options()?;
+            let binding = self.acquisition_binding()?;
+            let target = modsync::download_orchestrator::nxm_target(&binding.guide, &link)?;
+            let plan = modsync::download_orchestrator::AcquisitionPlan::single(
+                target,
+                &binding.source_dir,
+            )?;
+            Ok((plan, archive, binding))
         })();
-        let (link, matched) = match result {
+        let (plan, archive, binding) = match prepared {
             Ok(value) => value,
             Err(error) => {
-                self.logs.push(format!("Nexus handoff failed: {error:#}"));
+                let text = format!("{error:#}");
+                self.logs.push(format!(
+                    "Nexus handoff rejected: {}",
+                    self.downloads.redact(&text)
+                ));
                 return;
             }
         };
-        let mods = PathBuf::from(&self.mods);
-        let key = self.nexus_api_key.clone();
+        let key = self.acquisition_key();
+        let (api_base, loopback_ca) = self.probe.as_ref().map_or((None, None), |probe| {
+            (probe.nexus_api_base.clone(), probe.loopback_ca.clone())
+        });
+        self.invalidate_validation();
         let cancelled = Arc::new(AtomicBool::new(false));
         self.cancelled = cancelled.clone();
+        let mut secrets = self.acquisition_secrets();
+        secrets.push(raw);
+        let run = self.downloads.begin(
+            downloads_panel::Kind::Nxm,
+            binding,
+            cancelled.clone(),
+            &secrets,
+        );
         let (tx, rx) = mpsc::channel();
         self.receiver = Some(rx);
         self.job = Job::NxmDownload;
-        self.nxm_record_error = None;
         self.logs.push("Downloading linked Nexus file…".into());
+        let repaint = self.repaint.clone();
         std::thread::spawn(move || {
-            let result = (|| -> Result<()> {
-                let mut client = modsync::updates::NexusClient::new(Some(key))?;
-                let download_link = client.nxm_download_link(&link)?;
-                let output = mods.join(&download_link.file_name);
-                modsync::download::fetch(&download_link.uri, &output, None, &cancelled)?;
-                tx.send(Message::NxmDownloaded(matched, download_link.file_name))?;
-                Ok(())
-            })();
-            let _ = tx.send(Message::Done(result));
+            use modsync::download_orchestrator as orchestrator;
+            let send = |update| {
+                let _ = tx.send(Message::Acquisition(run, update));
+                if let Some(ctx) = &repaint {
+                    ctx.request_repaint();
+                }
+            };
+            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(
+                || -> Result<Box<downloads_panel::Finished>> {
+                    send(downloads_panel::Update::Prepared {
+                        plan: Box::new(plan.clone()),
+                        selected_components: 0,
+                        secrets: Vec::new(),
+                    });
+                    // As the CLI's `nxm-download --input`: one worker, the plan's Peer Off.
+                    let settings = orchestrator::RunSettings {
+                        workers: 1,
+                        archive,
+                        nexus_api_key: key,
+                        nexus_api_base: api_base,
+                        ..Default::default()
+                    };
+                    let report = orchestrator::run_with_loopback_ca(
+                        &plan,
+                        &settings,
+                        &cancelled,
+                        |event| send(downloads_panel::Update::Event(Box::new(event))),
+                        loopback_ca.as_ref(),
+                    )?;
+                    Ok(Box::new(downloads_panel::Finished {
+                        report,
+                        fomod: None,
+                    }))
+                },
+            ))
+            .unwrap_or_else(|_| Err(anyhow::anyhow!("The download worker stopped unexpectedly.")));
+            send(downloads_panel::Update::Terminal(result));
         });
-    }
-
-    fn record_nxm_download(
-        &mut self,
-        matched: modsync::protocol::NxmComponentMatch,
-        file_name: &str,
-    ) -> Result<()> {
-        let component = self
-            .guide
-            .as_mut()
-            .and_then(|guide| {
-                guide
-                    .components
-                    .iter_mut()
-                    .find(|component| component.guid == matched.component_guid)
-            })
-            .ok_or_else(|| anyhow::anyhow!("Resolved component changed before download"))?;
-        modsync::updates::record_nxm_download(component, &matched.registry_url, file_name)
     }
 
     fn apply_category_selection(&mut self) {
@@ -2459,6 +2894,12 @@ impl App {
         let url = self.download_url.clone();
         let filename = self.download_name.clone();
         let hash = self.download_hash.clone();
+        // A direct download gets a run identity too; its FOMOD follow-up is bound to it.
+        let direct_run = (job == Job::Download).then(|| {
+            let run = self.downloads.direct_run();
+            self.direct_download = Some((run, self.acquisition_context()));
+            run
+        });
         let (tx, rx) = mpsc::channel();
         self.receiver = Some(rx);
         self.job = job;
@@ -2470,6 +2911,7 @@ impl App {
                 Job::Restore => "Restoring snapshot…",
                 Job::Download => "Downloading…",
                 Job::NxmDownload => "Downloading linked Nexus file…",
+                Job::Fetch => "Fetching downloads…",
                 Job::ProtocolOpen => "Downloading ModSync build link…",
                 Job::Update => "Checking Nexus updates…",
             }
@@ -2500,7 +2942,11 @@ impl App {
                             &settings.cancelled,
                             &settings.archive,
                         )?;
-                        let _ = tx.send(Message::Downloaded(output, settings.archive.clone()));
+                        let _ = tx.send(Message::Downloaded(
+                            direct_run.unwrap_or_default(),
+                            output,
+                            settings.archive.clone(),
+                        ));
                         return Ok(());
                     }
                     let guide = guide.ok_or_else(|| anyhow::anyhow!("Load a guide first"))?;
@@ -2576,6 +3022,12 @@ impl App {
     }
 
     fn start_update_check(&mut self, ctx: &egui::Context) {
+        if self.probe.is_some() {
+            // A probe's settings may hold sentinel secrets meant never to be sent.
+            self.logs
+                .push("Nexus update check is unavailable in a probe launch.".into());
+            return;
+        }
         let Some(guide) = self.guide.clone() else {
             self.logs
                 .push("Load a guide before checking Nexus updates.".into());
@@ -2713,6 +3165,9 @@ impl App {
                 .as_ref()
                 .ok_or_else(|| anyhow::anyhow!("Load a guide first"))
                 .and_then(|guide| guide.save(&path));
+            if result.is_ok() {
+                self.downloads.unsaved_records = false;
+            }
             self.logs.push(match result {
                 Ok(()) => format!("Saved edited guide to {}.", path.display()),
                 Err(error) => format!("Guide save failed: {error:#}"),
@@ -2891,6 +3346,11 @@ impl eframe::App for App {
         for message in messages {
             self.handle_message(message);
         }
+        // Checked every frame as well as at the terminal.
+        if self.downloads.is_active() {
+            let context = self.acquisition_context();
+            self.downloads.check_context(&context);
+        }
         if self.logs.len() > 5000 {
             self.logs.drain(..self.logs.len() - 5000);
         }
@@ -3061,8 +3521,8 @@ impl eframe::App for App {
                         ui.strong("Activity");
                         if busy {
                             ui.spinner();
-                            if self.job == Job::NxmDownload {
-                                ui.label("Downloading linked Nexus file…");
+                            if matches!(self.job, Job::NxmDownload | Job::Fetch) {
+                                ui.label(self.downloads.status());
                             }
                             if self.job == Job::ProtocolOpen {
                                 ui.label("Downloading ModSync build link…");
@@ -3119,6 +3579,12 @@ impl eframe::App for App {
                 .id_salt("wizard_content")
                 .show(ui, |ui| {
                     if self.utility || self.wizard.is_none() {
+                        if self.guide.is_some() && !(self.wizard.is_none() && self.completed_base.is_some()) {
+                            // Utility view: Fetch, status and Stop stay reachable while busy.
+                            egui::CollapsingHeader::new("Downloads")
+                                .default_open(self.downloads.is_active())
+                                .show(ui, |ui| self.downloads_content(ui, ctx));
+                        }
                         if self.wizard.is_none() && self.completed_base.is_some() {
                         ui.heading("Loaded project");
                         ui.label("Installation completed. The guide and completion context remain loaded.");
@@ -3163,7 +3629,24 @@ impl eframe::App for App {
         }
         if self.stop_confirmation {
             let install = self.job == Job::Install && self.installing_page.active();
+            let acquisition = self.receiver.is_some()
+                && matches!(self.job, Job::Download | Job::NxmDownload | Job::Fetch);
+            let mut stop_downloads = false;
             egui::Modal::new(egui::Id::new("stop_operation")).show(ctx, |ui| {
+                if acquisition {
+                    ui.heading("Stop downloads?");
+                    ui.label("Transfers stop at the next safe point and unfinished files are removed. Archives that already finished and verified stay in the workspace and are still recorded. Downloading installs nothing, so there is no install rollback or snapshot restore.");
+                    ui.horizontal(|ui| {
+                        if ui.button("Stop downloads").clicked() {
+                            stop_downloads = true;
+                            self.stop_confirmation = false;
+                        }
+                        if ui.button("Keep downloading").clicked() {
+                            self.stop_confirmation = false;
+                        }
+                    });
+                    return;
+                }
                 if install {
                     ui.heading("Stop the install?");
                     ui.label(self.installing_page.stop_warning());
@@ -3176,6 +3659,12 @@ impl eframe::App for App {
                     if ui.button(if install { "Keep installing" } else { "Keep running" }).clicked() { self.stop_confirmation = false; }
                 });
             });
+            if stop_downloads {
+                // The run's own token; the run stays busy and shows stopping until its
+                // workers join and the terminal arrives.
+                self.cancelled.store(true, Ordering::Relaxed);
+                self.downloads.request_stop();
+            }
         }
         if self.confirm_install {
             let response = egui::Modal::new(egui::Id::new("install_confirmation_modal")).show(ctx, |ui| {
@@ -3201,13 +3690,22 @@ pub fn launch(
     settings_dir: Option<PathBuf>,
     protocol: Option<String>,
     allow_multiple_instances: bool,
+    probe: Option<Probe>,
 ) -> Result<()> {
-    let primary = if allow_multiple_instances {
+    // Probe context is settled before any other effect of the launch.
+    let probe = match probe {
+        Some(probe) => Some(probe_context(probe, settings_dir.as_deref())?),
+        None => None,
+    };
+    // A probe is always a separate instance: no socket claim and no forwarding, since
+    // forwarding carries only protocol text, never probe configuration.
+    let separate = allow_multiple_instances || probe.is_some();
+    let primary = if separate {
         None
     } else {
         modsync::single_instance::claim_or_forward(protocol.as_deref())?
     };
-    if primary.is_none() && !allow_multiple_instances {
+    if primary.is_none() && !separate {
         return Ok(());
     }
     let native = eframe::NativeOptions {
@@ -3220,16 +3718,11 @@ pub fn launch(
         "ModSync.rs",
         native,
         Box::new(move |creation| {
-            let mut app = App::new(input, game, mods);
+            let mut app = App::with_launch(input, game, mods, settings_dir, probe);
+            app.repaint = Some(creation.egui_ctx.clone());
             if let Some((protocol_receiver, instance_guard)) = primary {
                 app.protocol_receiver = Some(protocol_receiver);
                 app._instance_guard = Some(instance_guard);
-            }
-            if let Some(url) = protocol {
-                app.accept_protocol(url);
-            }
-            if let Some(directory) = settings_dir {
-                app.profile_directory = directory.to_string_lossy().into_owned();
             }
             if let Err(e) = app.restore_directory_preferences() {
                 app.logs.push(format!("Settings load failed: {e:#}"));
@@ -3274,10 +3767,54 @@ pub fn launch(
             }
             creation.egui_ctx.set_fonts(fonts);
             app.apply_theme(&creation.egui_ctx);
+            // Dispatched only after the settings context and preferences are in place.
+            if let Some(url) = protocol {
+                app.accept_protocol(url);
+            }
             Ok(Box::new(app))
         }),
     )
     .map_err(|e| anyhow::anyhow!("Desktop startup failed: {e}"))
+}
+
+/// Mirrors the CLI's probe rules: an API base needs an explicit nonblank key, the CA is
+/// per invocation, and the settings directory must be explicit, existing and neither the
+/// default settings directory nor nested with it, compared after resolving aliases.
+fn probe_context(probe: Probe, settings_dir: Option<&Path>) -> Result<ProbeContext> {
+    use anyhow::Context as _;
+    let directory = settings_dir
+        .filter(|path| !path.as_os_str().is_empty())
+        .context("Probe options require --settings-dir with a private settings directory")?;
+    let resolved = std::fs::canonicalize(directory)
+        .context("The probe settings directory must be an existing directory")?;
+    anyhow::ensure!(
+        resolved.is_dir(),
+        "The probe settings directory must be an existing directory"
+    );
+    if let Ok(default) = modsync::profiles::settings_directory(None) {
+        let default = std::fs::canonicalize(&default)
+            .or_else(|_| std::path::absolute(&default))
+            .unwrap_or(default);
+        anyhow::ensure!(
+            !resolved.starts_with(&default) && !default.starts_with(&resolved),
+            "Probe options require a settings directory separate from the default settings directory"
+        );
+    }
+    let nexus_api_key = probe.nexus_api_key.filter(|key| !key.trim().is_empty());
+    anyhow::ensure!(
+        probe.nexus_api_base.is_none() || nexus_api_key.is_some(),
+        "--nexus-api-base requires an explicit --nexus-mods-api-key"
+    );
+    let loopback_ca = probe
+        .extra_ca_file
+        .as_deref()
+        .map(modsync::download::LoopbackCa::from_pem_file)
+        .transpose()?;
+    Ok(ProbeContext {
+        nexus_api_key,
+        nexus_api_base: probe.nexus_api_base,
+        loopback_ca,
+    })
 }
 
 #[cfg(test)]

@@ -52,6 +52,15 @@ enum Action {
         /// Start a separate desktop process instead of forwarding to the running instance.
         #[arg(long)]
         allow_multiple_instances: bool,
+        /// Probe-only explicit Nexus key; never read from or written to settings.
+        #[arg(long, hide = true)]
+        nexus_mods_api_key: Option<String>,
+        /// Probe-only API base override (HTTPS, or loopback HTTP); requires an explicit key.
+        #[arg(long, hide = true)]
+        nexus_api_base: Option<String>,
+        /// Per-invocation CA for isolated loopback HTTPS archive probes.
+        #[arg(long, hide = true)]
+        extra_ca_file: Option<PathBuf>,
     },
     /// Inspect FOMOD metadata and selection defaults as JSON without installing.
     FomodInspect {
@@ -796,7 +805,7 @@ fn run() -> Result<()> {
             );
             Ok(())
         }
-        None => gui(None, None, None, None, None, false),
+        None => gui(None, None, None, None, None, false, GuiProbe::default()),
         Some(Action::Gui {
             settings_dir,
             input,
@@ -804,6 +813,9 @@ fn run() -> Result<()> {
             source_dir,
             protocol,
             allow_multiple_instances,
+            nexus_mods_api_key,
+            nexus_api_base,
+            extra_ca_file,
         }) => gui(
             input,
             game_dir,
@@ -811,6 +823,11 @@ fn run() -> Result<()> {
             settings_dir,
             protocol,
             allow_multiple_instances,
+            GuiProbe {
+                nexus_mods_api_key,
+                nexus_api_base,
+                extra_ca_file,
+            },
         ),
         Some(Action::Deployment(args)) => {
             let print = |value: serde_json::Value| -> Result<()> {
@@ -2099,6 +2116,14 @@ fn run() -> Result<()> {
     }
 }
 
+/// Hidden desktop probe options; any of them makes a probe launch.
+#[derive(Default)]
+struct GuiProbe {
+    nexus_mods_api_key: Option<String>,
+    nexus_api_base: Option<String>,
+    extra_ca_file: Option<PathBuf>,
+}
+
 fn gui(
     input: Option<PathBuf>,
     game: Option<PathBuf>,
@@ -2106,9 +2131,18 @@ fn gui(
     settings_dir: Option<PathBuf>,
     protocol: Option<String>,
     allow_multiple_instances: bool,
+    probe: GuiProbe,
 ) -> Result<()> {
     #[cfg(feature = "desktop")]
     {
+        let probe = (probe.nexus_mods_api_key.is_some()
+            || probe.nexus_api_base.is_some()
+            || probe.extra_ca_file.is_some())
+        .then_some(ui::Probe {
+            nexus_api_key: probe.nexus_mods_api_key,
+            nexus_api_base: probe.nexus_api_base,
+            extra_ca_file: probe.extra_ca_file,
+        });
         ui::launch(
             input,
             game,
@@ -2116,6 +2150,7 @@ fn gui(
             settings_dir,
             protocol,
             allow_multiple_instances,
+            probe,
         )
     }
     #[cfg(not(feature = "desktop"))]
@@ -2127,6 +2162,9 @@ fn gui(
             settings_dir,
             protocol,
             allow_multiple_instances,
+            probe.nexus_mods_api_key,
+            probe.nexus_api_base,
+            probe.extra_ca_file,
         );
         anyhow::bail!(
             "Desktop support is disabled. Build with the default features, or use --help for CLI commands."
