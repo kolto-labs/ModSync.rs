@@ -84,7 +84,7 @@ is assigned because the remaining domains differ greatly in scope and proof cost
    worker, and on reruns; the Peer publish paths match by source only); and an unnamed
    target inherits only an unnamed member's failure (354/354; 38 new or changed checks
    fail on `45b3c64`). An independent review approved `d4ccbc1` for SPEC and QUALITY.
-   A polish follow-up (local on `d4ccbc1`, not yet reviewed) makes that review's five
+   The polish follow-up `7ba8b1b` (SPEC and QUALITY approved) addresses that review's five
    non-blocking findings: a race adopts a present file before it stops Origin, and a
    refused Peer adoption lets Origin continue; a refused adoption ends the target only
    when a later source would reveal the same name, else it falls through; a cancelled
@@ -92,7 +92,10 @@ is assigned because the remaining domains differ greatly in scope and proof cost
    instead of failing with `File exists`; and the README states the reported source and
    what `origin_denies_peer` does. [Evidence](fetch-shared-url-proof/README.md) is
    381/381 (10 new checks fail on `d4ccbc1`; the race and Fallback changes are
-   source-only). Still open here: an unnamed Nexus target whose API-revealed name is
+   source-only). Still open here: when Origin finds its name present inside a race, Peer is
+   stopped before adoption is decided, so a refused adoption cannot fall back to Peer as
+   Fallback mode does (`src/download_orchestrator.rs` ~1624); `adopt_present`'s hash pass
+   ignores cancellation; and an unnamed Nexus target whose API-revealed name is
    present fails before transferring, and a known name's publish that loses a
    no-clobber race outside a group still fails with `File exists`. Also open:
    one-run `validate/install --fomod-choices` still replaces all embedded archive
