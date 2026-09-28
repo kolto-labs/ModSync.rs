@@ -105,6 +105,48 @@ pub struct NxmDownloadLink {
     pub uri: String,
 }
 
+/// Why an nxm handoff cannot authorize its download. Terminal: never retried, never
+/// answered with a different resource, and never worked around through a peer.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum NxmAuthorization {
+    /// No one-time key and no Nexus API key.
+    Missing,
+    /// A one-time key without a usable `expires` timestamp.
+    Invalid,
+    /// The one-time key's `expires` time has passed.
+    Expired,
+    /// Nexus refused the one-time key with this HTTP status.
+    Refused(u16),
+}
+
+impl std::fmt::Display for NxmAuthorization {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        const AGAIN: &str = "click \"Mod Manager Download\" on the website again";
+        match self {
+            Self::Missing => {
+                f.write_str("The nxm link has no download key and no Nexus API key is configured")
+            }
+            Self::Invalid => write!(
+                f,
+                "The nxm link's download key has no valid expiry; {AGAIN}"
+            ),
+            Self::Expired => write!(f, "The nxm link's download key has expired; {AGAIN}"),
+            Self::Refused(status) => write!(
+                f,
+                "Nexus Mods refused the nxm download key (HTTP {status}); it may have expired, so {AGAIN}"
+            ),
+        }
+    }
+}
+
+impl std::error::Error for NxmAuthorization {}
+
+fn unix_now() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |elapsed| elapsed.as_secs())
+}
+
 /// Checks that a server-supplied download filename is exactly one normal path
 /// component, so joining it onto a directory cannot escape that directory.
 /// Both `/` and `\\` count as separators on every platform.
@@ -279,13 +321,27 @@ impl NexusClient {
         else {
             bail!("Expected an nxm:// link");
         };
-        anyhow::ensure!(
-            self.api_key
-                .as_deref()
-                .is_some_and(|value| !value.trim().is_empty())
-                || (key.as_deref().is_some_and(|value| !value.is_empty()) && *expires > 0),
-            "The nxm link has no download key and no Nexus API key is configured"
-        );
+        let keyed = key.as_deref().is_some_and(|value| !value.is_empty());
+        // With an API key, Nexus decides whether a forwarded one-time key still matters.
+        // Without one, the key alone must authorize, so check it before any request.
+        if !self
+            .api_key
+            .as_deref()
+            .is_some_and(|value| !value.trim().is_empty())
+        {
+            let problem = if !keyed {
+                Some(NxmAuthorization::Missing)
+            } else if *expires == 0 {
+                Some(NxmAuthorization::Invalid)
+            } else if *expires <= unix_now() {
+                Some(NxmAuthorization::Expired)
+            } else {
+                None
+            };
+            if let Some(problem) = problem {
+                return Err(problem.into());
+            }
+        }
         let metadata = self
             .get_json::<NexusModFile>(&format!(
                 "games/{game_domain}/mods/{mod_id}/files/{file_id}.json"
@@ -307,7 +363,18 @@ impl NexusClient {
             let query = url.query().unwrap_or_default().replace('+', "%20");
             url.set_query(Some(&query));
         }
-        let value = self.get_url_value(url)?;
+        let value = self.get_url_value(url).map_err(|error| {
+            let status = error
+                .chain()
+                .find_map(|e| e.downcast_ref::<reqwest::Error>())
+                .and_then(reqwest::Error::status);
+            match status {
+                Some(status) if keyed && matches!(status.as_u16(), 401 | 403 | 410) => {
+                    anyhow::Error::new(NxmAuthorization::Refused(status.as_u16()))
+                }
+                _ => error,
+            }
+        })?;
         let links = value
             .as_array()
             .or_else(|| value.get("download_links").and_then(Value::as_array));

@@ -97,7 +97,12 @@ plan/run/record/FOMOD-followup library and concrete proxy-only Peer adapter.
   dry-run is the pretty raw effective plan; dry-run with progress JSON is exactly
   one compact `{"type":"plan","plan":...}` line and performs no acquisition.
 - Nexus free accounts remain manual; authorization errors are terminal failures.
-  Neither starts Peer. Race startup grants are delayed until Origin eligibility
+  Neither starts Peer. An nxm handoff with any one-time key is keyed. Without an
+  API key, a missing key, a key with no valid `expires`, or an `expires` already
+  past fails before any Nexus request, and Nexus refusing the key (HTTP 401, 403
+  or 410) is a terminal failure that says to click Mod Manager Download again.
+  C# sends the key and reports only the refusal. With an API key, the key is
+  still forwarded and Nexus decides. Source only; not built or exercised. Race startup grants are delayed until Origin eligibility
   and revoked if Origin wins before Peer starts. Isolated HTTPS Origin runtime
   is now exercised by the additive loopback slice described below.
 - Real isolated Peer transfers cover known/unknown names, verification, budget/hash

@@ -865,6 +865,16 @@ impl std::fmt::Display for PremiumValidationFailed {
 
 impl std::error::Error for PremiumValidationFailed {}
 
+/// A failed or unknown premium validation, or an nxm handoff whose key cannot authorize
+/// its download. Both are terminal: no retry, no other source, no peer.
+fn nexus_authorization_failed(error: &anyhow::Error) -> bool {
+    error.chain().any(|e| {
+        e.downcast_ref::<PremiumValidationFailed>().is_some()
+            || e.downcast_ref::<crate::updates::NxmAuthorization>()
+                .is_some()
+    })
+}
+
 /// A never-started Peer racer (O2 denied or cancelled it before `Acquire::acquire` was
 /// ever called). Carries no user-visible text: the coordinator must not emit any event
 /// or report `Superseded` for it.
@@ -891,11 +901,7 @@ fn is_never_started(error: &anyhow::Error) -> bool {
 /// first `Transferring` event has already granted Peer, so for that case this denies
 /// nothing; the race stops Peer when it settles on the present file.
 fn origin_denies_peer(error: &anyhow::Error) -> bool {
-    if error
-        .chain()
-        .any(|e| e.downcast_ref::<PremiumValidationFailed>().is_some())
-        || download::destination_exists(error).is_some()
-    {
+    if nexus_authorization_failed(error) || download::destination_exists(error).is_some() {
         return true;
     }
     matches!(
@@ -1069,10 +1075,7 @@ fn acquire_sources(
 /// `cancelled` is the run's flag: a present file found after a cancel is never offered
 /// for adoption.
 fn step_from_error(error: anyhow::Error, kind: SourceKind, cancelled: &AtomicBool) -> Step {
-    if error
-        .chain()
-        .any(|e| e.downcast_ref::<PremiumValidationFailed>().is_some())
-    {
+    if nexus_authorization_failed(&error) {
         return Step::Terminal(format!("{error:#}"), kind);
     }
     if let Some(present) = download::destination_exists(&error) {
@@ -1950,7 +1953,7 @@ fn nxm_url(link: &protocol::Link) -> Result<String> {
 /// Origin is the nxm link. Callers wrap it with `AcquisitionPlan::single`, then `run` and
 /// `record`.
 pub fn nxm_target(guide: &Guide, link: &protocol::Link) -> Result<ArchiveTarget> {
-    let protocol::Link::Nxm { key, expires, .. } = link else {
+    let protocol::Link::Nxm { key, .. } = link else {
         bail!("Expected an nxm:// link");
     };
     let (status, matched) = protocol::resolve_nxm(link, &guide.components);
@@ -1965,7 +1968,9 @@ pub fn nxm_target(guide: &Guide, link: &protocol::Link) -> Result<ArchiveTarget>
         .and_then(|c| c.resource_registry.get(&matched.registry_url))
         .and_then(|metadata| metadata_str(metadata, "ContentHashSHA256"))
         .map(str::to_owned);
-    let keyed = key.as_deref().is_some_and(|k| !k.is_empty()) && *expires > 0;
+    // Any one-time key makes this a keyed handoff: its expiry is judged when the link
+    // resolves, so a stale or malformed key reports why rather than a premium gate.
+    let keyed = key.as_deref().is_some_and(|k| !k.is_empty());
     Ok(ArchiveTarget {
         component_guid: matched.component_guid,
         registry_url: matched.registry_url,
