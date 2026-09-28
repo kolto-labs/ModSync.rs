@@ -1,8 +1,9 @@
 # Fetch: one transfer for components that share a URL and file
 
 Source: commit `4bf5c54` (PR bodencrouch/ModSync.rs#2), its review follow-up commit
-`339b3d6`, a second follow-up `3f0caf4` (merged at `45b3c64`), and a third follow-up on
-HEAD `45b3c64` (section (b)). The receipt binds git HEAD, porcelain and source hashes.
+`339b3d6`, a second follow-up `3f0caf4` (merged at `45b3c64`), a third follow-up
+`d4ccbc1` (PR bodencrouch/ModSync.rs#3), and a polish follow-up on HEAD `d4ccbc1`
+(section (b)). The receipt binds git HEAD, porcelain and source hashes.
 `4bf5c54` fixed the pre-existing defect recorded in the
 [final S2a quality check](../fomod-s2a-review.md#final-quality-check-of-ae8d7e9-approved).
 An independent review of `4bf5c54` required changes, which `339b3d6` makes. A
@@ -10,7 +11,23 @@ re-review of `339b3d6` found that its grouping was not transitive and that failu
 inheritance ignored which name a member asked for; `3f0caf4` fixes both. The review
 that approved `3f0caf4` recommended two follow-ups, which the third follow-up makes:
 an unnamed target adopts a file already present under the name its transfer reveals,
-and an unnamed target no longer inherits a named member's failure.
+and an unnamed target no longer inherits a named member's failure. An independent
+review approved `d4ccbc1` for SPEC and QUALITY and left five non-blocking findings,
+which the polish follow-up makes:
+
+- **The race stopped Origin before adoption was decided.** When a Peer publish found
+  its torrent name present, the race stopped Origin and returned the present file for
+  adoption. A refused adoption then ended the target, although Origin, still running,
+  might have finished. A refused adoption also always ended the target
+  (`Step::Terminal`), even when a later source would reveal a different name.
+- **A cancelled run could still adopt.** A present file found after a cancel was still
+  adopted, and `adopt_present` verified it with a fresh, never-set cancel flag.
+- **An Origin publish could lose a no-clobber race.** A `Directory` transfer that
+  found its name absent, then lost the no-clobber publish to a concurrent transfer,
+  failed with `File exists (os error 17)` instead of adopting like the Peer path.
+- **Reporting and wording.** The README did not say which source the outcome reports
+  when the Peer publish settles on Origin's copy, and it overstated what
+  `origin_denies_peer` does for a present name.
 
 ## (a) Defect at `728fa2f`
 
@@ -131,13 +148,19 @@ The current source works as follows:
   phase (`completed`, `manualRequired`, `cancelled` or `sourceFailed`). The event
   comes from the owner's worker, after the events of the members before it.
 - **Adopting a present file.** When the name an unnamed target's transfer reveals is
-  already present, `fetch_inner` (`src/download.rs:501-510`) no longer fails with
+  already present, `fetch_inner` (`src/download.rs:503-511`) no longer fails with
   text. It returns the typed `DestinationExists { path, sha256 }`
-  (`src/download.rs:110-144`), where `sha256` is the digest of the completed transfer.
-  The temp file is removed on return and nothing is published. `step_from_error`
-  (`src/download_orchestrator.rs:1049-1051`) turns that error into
-  `Step::Present`, and `acquire_sources` (`:941-947`) hands it to `adopt_present`
-  (`:1061-1109`), which applies the rule a named target follows via
+  (`src/download.rs:110-145`), where `sha256` is the digest of the completed transfer.
+  The temp file is removed on return and nothing is published. The same error is
+  returned when the name is absent after the transfer but a concurrent transfer takes
+  it before this one's no-clobber publish (`src/download.rs:516-529`, polish
+  follow-up): a `Directory` publish that fails with `AlreadyExists` returns
+  `DestinationExists` with the finished digest, as `PeerStaging::publish` already did,
+  instead of `File exists (os error 17)`. A `File` destination (a known name) keeps the
+  operating system's error. `step_from_error`
+  (`src/download_orchestrator.rs:1054-1076`) turns that error into
+  `Step::Present`, and `acquire_sources` (`:944-960`) hands it to `adopt_present`
+  (`:1078-1119`), which applies the rule a named target follows via
   `AlreadyPresent`: the target's own `ContentHashSHA256` must match the present file,
   and the present file must pass `archive::verify`. With no authored hash, the present
   file's SHA-256 must equal the downloaded digest; otherwise nothing says which bytes
@@ -145,25 +168,52 @@ The current source works as follows:
   the downloaded bytes, and this component has no ContentHashSHA256 to choose between
   them; it was not replaced`. A hash mismatch fails with `SHA-256 mismatch: the present
   file ... does not match this component's ContentHashSHA256; it was not replaced`.
-  Either failure ends the target (`Step::Terminal`), since a later source would find
-  the same file. On success the target is `completed` with the present path and its
-  SHA-256, with no `sharedWith`, because it ran its own source. The present file is
-  never replaced or removed.
+  Either failure ends the target (`Step::Terminal`) only when a later source would
+  reveal the same name again: `reveals_again` (`:1122-1134`) holds for a later Origin
+  with the same URL. Otherwise the refusal is an ordinary source failure and the
+  target falls through to its next source (polish follow-up; `d4ccbc1` ended the
+  target on every refusal). A Peer source learns its own name from the torrent and
+  checks it before any transfer, adopting or refusing a present file itself, and a
+  Manual source reveals no name. Today's source lists hold at most one Origin, so in
+  Fallback mode a refusal after Origin falls through to Peer, and a refusal after Peer
+  to a Manual `unsupported` host; with no later source the target fails as before. On
+  success the target is `completed` with the present path and its SHA-256, with no
+  `sharedWith`, because it ran its own source. The present file is never replaced or
+  removed.
+- **A cancelled run never adopts** (polish follow-up). `step_from_error` returns
+  `Step::Cancelled` instead of `Step::Present` when the run's cancel flag is set.
+  `acquire_sources` checks the flag again before `adopt_present` and after it, and
+  `adopt_present` passes the run's flag to `archive::verify` instead of a fresh
+  `AtomicBool(false)`, so a cancel during that check stops it. The race checks the
+  parent cancel after each adoption it makes. A cancelled target is `cancelled`, not
+  `completed`, and is not recorded.
 - **The Peer paths do the same.** An unnamed Peer copy learns its name from the
-  torrent. In a race, `PeerStaging::publish` (`src/download_orchestrator.rs:1251-1292`)
+  torrent. In a race, `PeerStaging::publish` (`src/download_orchestrator.rs:1275-1317`)
   now returns `DestinationExists` with the staged copy's digest when that name is
   present, before or at its no-clobber move, instead of `Could not publish the peer
-  copy`; the staged copy is removed with the staging folder. The race
-  (`:1485-1506`, `:1575-1586`, `:1634-1637`) settles on the present file whether Origin
-  or the Peer publish finds it: it stops the other racer, marks the present path as the
-  winner so a loser's cleanup never removes it, and returns `Step::Present`.
-  `origin_denies_peer` (`:872-887`) keeps a waiting Peer from starting after Origin
-  found the name present. Outside a race, `PeerAcquire` (`src/peer_acquire.rs:166-175`)
+  copy`; the staged copy is removed with the staging folder. When the Peer publish
+  finds the name present, the race (`:1512-1541`, and `:1683-1691` after both racers
+  end) now runs `adopt_present` itself before it stops Origin (polish follow-up;
+  `d4ccbc1` stopped Origin first). An adopted file is the winner: Origin is stopped,
+  the present path is marked as the winner so a loser's cleanup never removes it, and
+  the race returns `Step::Done` with source Peer. The present file may be Origin's own
+  copy, published but not yet reported; the outcome then still reports source Peer
+  (`{"kind":"peer"}`), the source whose publish settled on it, and Origin is reported
+  `superseded`. A refused adoption is a Peer `sourceFailed` (with `willFallback` true
+  while Origin runs), and Origin continues and may still win. When Origin finds the
+  name present (`:1624-1635`), the race stops Peer, marks the path as the winner and
+  returns `Step::Present`, which `acquire_sources` adopts or refuses as above.
+  `origin_denies_peer` (`:872-890`) moves a Peer that is still waiting for its grant to
+  denied. Origin reveals a present name only after its transfer, and so after its first
+  `Transferring` event has granted Peer, so for a present name this denies nothing; a
+  waiting or running Peer is stopped by the race when it settles on the present file.
+  Outside a race, `PeerAcquire` (`src/peer_acquire.rs:166-175`)
   returns `DestinationExists` with the authored digest, which every Peer copy must
   have, before any transfer, where `p2p::fetch_authored` previously failed with
   `Download destination already exists`. A Peer source always authors a hash, so
-  `adopt_present` then checks the present file against it. These Peer paths are
-  source-only: no Peer transfer can run here (section (e)).
+  `adopt_present` then checks the present file against it. These Peer paths, including
+  the polish follow-up's race changes and the Fallback fall-through, are source-only:
+  no Peer transfer can run here (section (e)).
 - **No explicit different-URL failure.** `4bf5c54`'s `DifferentUrl` failure in
   `acquire_sources` is removed by `339b3d6`.
 - **Other constructors.** `src/download_orchestrator.rs:455,1913`. `plan_url` and
@@ -244,13 +294,13 @@ records it. It deviates on purpose in these ways:
    the unnamed component makes its own request (`names_404`). Two unnamed components
    with identical sources still share one outcome (`unnamed_404`).
 
-Out of scope: two unknown names from different URLs that turn out equal still
-collide at publish when their transfers run concurrently. So do a known name and an
-unknown name from different URLs that the transfer reveals to be the same, when no
-third component links them and several workers run them at once. Only a name that is
-already present when the transfer ends is adopted; a publish that loses a concurrent
-no-clobber race still fails with the operating system's `File exists` error. An
-unnamed Nexus target whose name the API reveals before the transfer still fails
+Out of scope: a known name and an unknown name from different URLs that the transfer
+reveals to be the same, when no third component links them and several workers run
+them at once, still collide at publish when the known name's publish loses: a `File`
+destination keeps the operating system's `File exists` error. When an unnamed
+transfer loses a no-clobber publish, including to another unnamed transfer from a
+different URL, it now adopts the file by the rule above (`concurrent_unnamed`; before
+the polish follow-up it failed with `File exists`). An unnamed Nexus target whose name the API reveals before the transfer still fails
 before transferring when that name is present (the pre-transfer check in
 `fetch_inner` for a `Directory` name hint), because no digest exists yet to compare
 without a hash. The desktop download path (`ui.rs`, `download::fetch`) does not use
@@ -269,8 +319,11 @@ this orchestrator and is unchanged.
   after another has been answered starts at least 0.4 s after it.
 - **Fixtures.** Private HOME/XDG/settings/mods/scratch directories and generic
   archives. The FOMOD archive comes from the S2a `package()` generator. A component
-  can author no `Files` map, or a full registry URL instead of a loopback path.
+  can author no `Files` map, or a full registry URL instead of a loopback path. The
+  polish cases use a slow-to-verify archive: one deflated entry of 1 GiB of zeros,
+  about 1 MB on the wire, which `archive::verify` takes seconds to expand.
 - **Verb.** Only the real `fetch-downloads`, with `--peer-mode off --retries 0`.
+  `cancel_adoption` stops one run with SIGINT (Ctrl+C), as a user would.
 - **Receipts.** Output goes to `target/cloud-proof/fetch-shared-url`. Each run keeps
   its argv, exit, stdout, stderr, parsed summary, events, per-run requests,
   before/after trees and fixture copies. `receipt.json` binds git HEAD, porcelain,
@@ -308,6 +361,8 @@ checks the recorded rows.
 | `unnamed_404`: A and B (both no `Files`), one missing (404) URL | Plan: B `sameUrl` 0. Exit 1, exactly one request. Outcomes `failed` and `failed, sharedWith 0`; B has one `sourceFailed` event. No file. |
 | `ungrouped_sequential`: A (`example.zip`, U1), B (no `Files`, U2 serving the same bytes, B authors their hash), `--workers 1` | Plan: neither linked. Exit 0. One request each, U2 at least 0.4 s after U1. Outcomes both `completed` with no `sharedWith` and no error, both `example.zip` with A's SHA-256. Terminal events `completed`. Both recorded under their own URLs. One file. |
 | `ungrouped_hash`: A (`example.zip`, U1 serving Q), B (no `Files`, U2 serving P, B authors P's hash), `--workers 1` | Exit 1. One request each. Outcomes `completed` and `failed` (no `sharedWith`), B's error `SHA-256 mismatch: the present file ...`, saying it was not replaced. Terminal events `completed`, `sourceFailed`. Only A recorded. The file holds Q. |
+| `concurrent_unnamed` (polish): A (no `Files`, U1) and B (no `Files`, U2), both serving the slow archive, no hash | Plan: neither linked. Exit 0. One request each, and they overlap (starts less than 0.4 s apart). Both targets emit `verifying`, so both found the name absent after the transfer and reached the no-clobber publish; one publish lost. Outcomes both `completed` with no `sharedWith` and no error (no `File exists`), both `example.zip` with the same SHA-256. Terminal events `completed`. Both recorded under their own URLs. One file. |
+| `cancel_adoption` (polish): one component, no `Files`, no hash, the slow archive | A first Fetch without `--record` places `example.zip` (exit 0, one request, `completed`). A second Fetch with `--record` gets SIGINT 0.3 s after the origin has sent the whole body, while the adoption verifies the present file. Exit 130, one request, the signal after the body. Outcome `cancelled`, terminal event `cancelled`, nothing recorded, saved `Files` still absent. The file keeps its inode, mtime and size, and it is the only file. |
 | `unnamed_rerun`: one component, no `Files`, no hash | A first Fetch without `--record`: exit 0, one request, `completed`. A second Fetch with `--record`: exit 0, one request (the name is unknown until the transfer), `completed` with no error, `example.zip` and its SHA-256, terminal event `completed`. Recorded, and the saved `Files` becomes `{"example.zip": true}`. The file keeps its inode, mtime and size (not replaced), and it is the only file. A dry-run rerun plans no target and one `alreadyPresent` skip. |
 
 `same_manual` needs no network: the host class comes from the URL alone, and a
@@ -316,20 +371,47 @@ end `failed`, not `manualRequired`; the outcomes and events are the evidence. Th
 probe no longer has a `same_manual_no_request` check: the loopback origin cannot
 see a request to that host, so the check could never fail.
 
+`cancel_adoption` covers a cancel that lands while `adopt_present` verifies. The other
+two cancel checks (in `step_from_error`, and in `acquire_sources` before adoption)
+guard windows of microseconds between the transfer's end and the adoption, which a
+signal cannot be timed to hit; they are covered by source only. The race changes and
+the Fallback fall-through after a refused adoption need a Peer source, so they are
+covered by source only too: with `--peer-mode off` an unnamed target has Origin as its
+only source, and no Peer transfer can run here.
+
 The seeded `fetch-downloads` `shared_pool` case (one URL, two names, over Peer)
 cannot run here (section (e)). `distinct_names` covers the same no-over-merge rule
 over Origin.
 
 ## (e) Results (cloud Linux)
 
-- **Post-fix.** `probe.py` passes **354/354 checks** in 56 production invocations,
-  exit 0. The default-feature debug binary SHA-256 is
-  `912a31106263feec40e0ee3670caa28aa2182919cc196d18be8dadc2531778e8`
+- **Post-fix (polish follow-up).** `probe.py` passes **381/381 checks** in 60
+  production invocations, exit 0. The default-feature debug binary SHA-256 is
+  `5717a58e792d523412952696ec9f2a85785a13cb2c30ac1ae1d6060b3193708d`
   (host-specific), built after the last source edit. The receipt records git HEAD
-  `45b3c64`, with `src/download.rs`, `src/download_orchestrator.rs`,
-  `src/peer_acquire.rs`, this probe, this README, `COMPATIBILITY.md` and
-  `docs/parity/PROGRESS.md` modified. The sources are bound by hash.
-- **Pre-fix at `45b3c64`.** The same 354-check probe ran against a binary built with
+  `d4ccbc1`, with `src/download.rs`, `src/download_orchestrator.rs`, this probe, this
+  README, `COMPATIBILITY.md` and `docs/parity/PROGRESS.md` modified. The sources are
+  bound by hash.
+- **Pre-fix at `d4ccbc1`.** The same 381-check probe ran against a binary built with
+  `--no-default-features` from a `git archive` of `d4ccbc1` in its own target
+  directory under the scratchpad (SHA-256
+  `79644b0cd023cc9354909c195abfd397e8596e33f02d36d8ba99d48adc5d3fd3`, output
+  `target/cloud-proof/fetch-shared-url-pred4ccbc1`, `FETCH_SHARED_ALLOW_UNBOUND=1`).
+  It passes **371/381; 10 checks fail**, all in the two polish cases:
+  - `concurrent_unnamed`: exit, outcomes, errors, same file, terminal events and
+    recorded: 6 checks. The target whose publish lost failed with `File exists (os
+    error 17)`, so it was not recorded.
+  - `cancel_adoption`: outcomes, terminal event, not recorded and saved `Files`: 4
+    checks. The run was cancelled during the adoption's check, yet the target was
+    `completed` and recorded, because the check ran with a never-set cancel flag.
+
+  All 354 checks of the `d4ccbc1` probe pass on both binaries.
+- **The 354-check probe of `d4ccbc1`.** Before the polish follow-up, the probe had 354
+  checks in 56 invocations, and the `d4ccbc1` default-feature binary (then uncommitted
+  on `45b3c64`, SHA-256
+  `912a31106263feec40e0ee3670caa28aa2182919cc196d18be8dadc2531778e8`) passed all of
+  them.
+- **Pre-fix at `45b3c64`.** The 354-check probe ran against a binary built with
   `--no-default-features` from a `git archive` of `45b3c64` in its own target
   directory under the scratchpad (SHA-256
   `2448f2127e46bae9b25a7f81433726fae090bc6df2bfa11cc19e855031d5d50c`, output

@@ -77,15 +77,24 @@ is assigned because the remaining domains differ greatly in scope and proof cost
    without a request; otherwise, for example a different URL after the owner failed,
    it downloads for itself. Every component is reported, recorded and bound as a
    FOMOD consumer. The second follow-up is `3f0caf4`; SPEC and QUALITY are approved.
-   A third follow-up (local on `45b3c64`, not yet reviewed) makes the two changes that
-   review recommended: an unnamed target whose transfer reveals a name already present
-   adopts that file under its own hash, or with no hash only when the bytes match, and
-   otherwise fails clearly without replacing it (grouped, ungrouped with one worker,
-   and on reruns; the Peer publish paths match by source only); and an unnamed target
-   inherits only an unnamed member's failure. [Evidence](fetch-shared-url-proof/README.md)
-   is 354/354 (38 new or changed checks fail on `45b3c64`). Still open here: an unnamed
-   Nexus target whose API-revealed name is present fails before transferring, and
-   concurrent no-clobber publish collisions outside a group remain. Also open:
+   A third follow-up, `d4ccbc1` (PR bodencrouch/ModSync.rs#3), makes the two changes
+   that review recommended: an unnamed target whose transfer reveals a name already
+   present adopts that file under its own hash, or with no hash only when the bytes
+   match, and otherwise fails clearly without replacing it (grouped, ungrouped with one
+   worker, and on reruns; the Peer publish paths match by source only); and an unnamed
+   target inherits only an unnamed member's failure (354/354; 38 new or changed checks
+   fail on `45b3c64`). An independent review approved `d4ccbc1` for SPEC and QUALITY.
+   A polish follow-up (local on `d4ccbc1`, not yet reviewed) makes that review's five
+   non-blocking findings: a race adopts a present file before it stops Origin, and a
+   refused Peer adoption lets Origin continue; a refused adoption ends the target only
+   when a later source would reveal the same name, else it falls through; a cancelled
+   run never adopts; an unnamed Origin publish that loses a no-clobber race adopts
+   instead of failing with `File exists`; and the README states the reported source and
+   what `origin_denies_peer` does. [Evidence](fetch-shared-url-proof/README.md) is
+   381/381 (10 new checks fail on `d4ccbc1`; the race and Fallback changes are
+   source-only). Still open here: an unnamed Nexus target whose API-revealed name is
+   present fails before transferring, and a known name's publish that loses a
+   no-clobber race outside a group still fails with `File exists`. Also open:
    one-run `validate/install --fomod-choices` still replaces all embedded archive
    choices.
    Remaining S2 semantic items and native acceptance follow.

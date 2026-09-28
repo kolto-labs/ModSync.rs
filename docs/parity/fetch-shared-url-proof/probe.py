@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Fetch shared-URL production receipts: real fetch-downloads in one isolated network
 namespace with a recording loopback HTTPS origin. Generic fixtures only; no Rust harness."""
-import atexit, hashlib, http.server, io, json, os, pathlib, shutil, ssl, subprocess, tempfile, threading, time, zipfile
+import atexit, hashlib, http.server, io, json, os, pathlib, shutil, signal, ssl, subprocess, tempfile, threading, time, zipfile
 REPO=pathlib.Path(__file__).resolve().parents[3]
 TARGET=pathlib.Path(os.environ.get('CARGO_TARGET_DIR', str(REPO/'target'))).resolve()
 OUT=pathlib.Path(os.environ.get('MODSYNC_PROOF_OUT', str(TARGET/'cloud-proof/fetch-shared-url'))).resolve()
@@ -48,6 +48,19 @@ SERVE={'/control/example.zip':FOMOD,'/shared-w4/example.zip':FOMOD,'/shared-w1/e
  '/unknown-first/example.zip':PLAIN_A,'/chain-y/example.zip':PLAIN_B,'/trans-u1/example.zip':PLAIN_A,'/trans-u2/example.zip':PLAIN_B,
  '/named-u1/example.zip':PLAIN_A,'/named-u2/example.zip':PLAIN_A,'/seq-u1/example.zip':PLAIN_A,'/seq-u2/example.zip':PLAIN_A,'/seq-other/example.zip':PLAIN_B,
  '/rerun/example.zip':PLAIN_A}
+# A small archive whose integrity check is slow: one deflated entry of 1 GiB of zeros
+# (about 1 MB on the wire). archive::verify expands every entry, which takes seconds, so
+# a transfer spends seconds between its "already present" check and its publish, and an
+# adoption spends seconds verifying the present file.
+def slow(size=1<<30):
+ b=io.BytesIO();info=zipfile.ZipInfo('payload.bin',date_time=(2020,1,1,0,0,0));info.compress_type=zipfile.ZIP_DEFLATED
+ with zipfile.ZipFile(b,'w') as z:
+  with z.open(info,'w') as f:
+   chunk=bytes(1<<20)
+   for _ in range(size>>20):f.write(chunk)
+ return b.getvalue()
+SLOW=slow();SLOW_SHA=hashlib.sha256(SLOW).hexdigest()
+SERVE.update({'/conc-u1/example.zip':SLOW,'/conc-u2/example.zip':SLOW,'/cancel/example.zip':SLOW})
 # Not served (404): /missing/example.zip, /missing-a/example.zip, /chain-x/example.zip,
 # /names-404/example.zip, /unnamed-404/example.zip.
 # Every response, 404 included, is held briefly, so two concurrent requests overlap (as
@@ -97,14 +110,20 @@ def lines(text):
   try:rows.append(json.loads(line))
   except Exception:pass
  return rows
-def fetch(c,label,flags=(),sidecar=None):
+def fetch(c,label,flags=(),sidecar=None,interrupt=None):
  c['runs']+=1;name=f"{c['name']}_{c['runs']:02d}_{label}"
  args=[str(BIN),'fetch-downloads','--input',str(c['guide']),'--source-dir',str(c['mods']),'--settings-dir',str(c['settings']),'--scratch-dir',str(c['scratch']),'--peer-mode','off','--retries','0','--extra-ca-file',str(cert),*flags]
  if sidecar is not None:
   path=c['case']/f"choices-{c['runs']:02d}.json";path.write_text(json.dumps(sidecar));args+=['--fomod-choices',str(path)]
  before=snapshot(c['case']);start=len(REQUESTS)
  shutil.copytree(c['case'],OUT/'fixtures'/name/'before',dirs_exist_ok=True)
- r=subprocess.run(args,capture_output=True,text=True,env=ENV,timeout=60)
+ signalled=None
+ if interrupt is None:r=subprocess.run(args,capture_output=True,text=True,env=ENV,timeout=60)
+ else:
+  # interrupt(start) returns once it is time to send SIGINT (Ctrl+C), as a user would.
+  p=subprocess.Popen(args,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,env=ENV)
+  signalled=interrupt(start);p.send_signal(signal.SIGINT);signalled['signal']=time.monotonic()
+  out,err=p.communicate(timeout=60);r=subprocess.CompletedProcess(args,p.returncode,out,err)
  shutil.copytree(c['case'],OUT/'fixtures'/name/'after',dirs_exist_ok=True)
  rows=lines(r.stdout);data=None
  if '--progress-json' in flags:data=next((x.get('summary') or x.get('plan') for x in rows if x.get('type') in ('summary','plan')),None)
@@ -112,7 +131,7 @@ def fetch(c,label,flags=(),sidecar=None):
   try:data=json.loads(r.stdout)
   except Exception:data=None
  events=[x['event'] for x in rows if x.get('type')=='acquisition']
- row=dict(name=name,argv=args,exit=r.returncode,stdout=r.stdout,stderr=r.stderr,data=data,events=events,requests=REQUESTS[start:],before=before,after=snapshot(c['case']))
+ row=dict(name=name,argv=args,exit=r.returncode,stdout=r.stdout,stderr=r.stderr,data=data,events=events,requests=REQUESTS[start:],before=before,after=snapshot(c['case']),interrupt=signalled)
  (OUT/(name+'.json')).write_text(json.dumps(row,indent=2)+'\n');RUNS.append(row)
  check(name+'_scratch_clean',not any(p.startswith('scratch/') for p in row['after']))
  return row
@@ -436,6 +455,52 @@ check('unnamed_rerun_not_replaced',identity(c['mods']/'example.zip'),kept)
 check('unnamed_rerun_file',mods(r),{'mods/example.zip':A_SHA})
 again=replan(c,'rerun');check('unnamed_rerun_rerun_targets',again.get('targets'),[])
 check('unnamed_rerun_rerun_present',present(again),[(GUIDS[0],'alreadyPresent','example.zip')])
+
+# 20. Two unnamed targets with different URLs are not linked, so --workers 4 transfers
+# them at once. Both reveal example.zip with the same bytes (no hash). Each finds the name
+# absent after its transfer and then verifies for seconds, so both reach the no-clobber
+# publish: one publishes, and the other's publish fails with AlreadyExists. That failure
+# is now the same "already present" result as a name found present after the transfer, so
+# that target adopts the file (the bytes are equal) instead of failing with "File exists".
+# A verifying event for both targets shows that both passed the presence check.
+u1=BASE+'/conc-u1/example.zip';u2=BASE+'/conc-u2/example.zip';c=setup('concurrent_unnamed',[comp(0,'/conc-u1/example.zip',None),comp(1,'/conc-u2/example.zip',None)])
+targets=dry(c,'plan');check('concurrent_unnamed_plan',[(t.get('filename'),t.get('sharedDestination')) for t in targets],[(None,None),(None,None)])
+r=fetch(c,'fetch',['--workers','4','--record','--progress-json'])
+check('concurrent_unnamed_exit',r['exit'],0);check('concurrent_unnamed_requests',(asked(r,'/conc-u1/example.zip'),asked(r,'/conc-u2/example.zip')),(1,1))
+check('concurrent_unnamed_overlap',[abs(b-a)<DELAY for a,b in zip(starts(r,'/conc-u1/example.zip'),starts(r,'/conc-u2/example.zip'))],[True])
+check('concurrent_unnamed_both_verified',['verifying' in events_of(r,i) for i in (0,1)],[True,True])
+check('concurrent_unnamed_outcomes',statuses(r),[(0,GUIDS[0],'completed',None),(1,GUIDS[1],'completed',None)])
+check('concurrent_unnamed_errors',errors(r),[None]*2)
+check('concurrent_unnamed_same_file',[((o['path'] or '').rsplit('/',1)[-1],o['sha256']) for o in outcomes(r)],[('example.zip',SLOW_SHA)]*2)
+check('concurrent_unnamed_terminal',terminal(r),[(GUIDS[0],'completed'),(GUIDS[1],'completed')])
+check('concurrent_unnamed_recorded',recorded(r),[[GUIDS[0],u1,'example.zip'],[GUIDS[1],u2,'example.zip']])
+check('concurrent_unnamed_file',mods(r),{'mods/example.zip':SLOW_SHA})
+
+# 21. A cancel during an adoption. The first run places example.zip without --record, so
+# the component stays unnamed. The second run transfers again, finds example.zip present
+# and starts adopting it; SIGINT arrives 0.3 s after the origin has sent the whole body,
+# while the adoption verifies the present file. The run's cancel flag reaches that check,
+# so the target ends cancelled: not completed, not recorded, and the file is untouched.
+url=BASE+'/cancel/example.zip';c=setup('cancel_adoption',[comp(0,'/cancel/example.zip',None)])
+r=fetch(c,'first',['--workers','4','--progress-json'])
+check('cancel_adoption_first',(r['exit'],asked(r,'/cancel/example.zip'),statuses(r)),(0,1,[(0,GUIDS[0],'completed',None)]))
+kept=identity(c['mods']/'example.zip')
+def after_body(start,path='/cancel/example.zip',wait=0.3):
+ deadline=time.monotonic()+30
+ while time.monotonic()<deadline:
+  done=[x for x in REQUESTS[start:] if x['path']==path and 'end' in x]
+  if done:time.sleep(wait);return dict(bodySent=done[0]['end'])
+  time.sleep(0.01)
+ return dict(bodySent=None)
+r=fetch(c,'cancelled',['--workers','4','--record','--progress-json'],interrupt=after_body)
+check('cancel_adoption_exit',r['exit'],130);check('cancel_adoption_one_request',asked(r,'/cancel/example.zip'),1)
+check('cancel_adoption_signal_after_body',(r['interrupt']['bodySent'] or 0)>0 and r['interrupt']['signal']>r['interrupt']['bodySent'])
+check('cancel_adoption_outcomes',statuses(r),[(0,GUIDS[0],'cancelled',None)])
+check('cancel_adoption_terminal',terminal(r),[(GUIDS[0],'cancelled')])
+check('cancel_adoption_not_recorded',recorded(r) or [],[])
+check('cancel_adoption_saved_files',[x['ResourceRegistry'][url].get('Files') for x in components(c)],[None])
+check('cancel_adoption_not_replaced',identity(c['mods']/'example.zip'),kept)
+check('cancel_adoption_file',mods(r),{'mods/example.zip':SLOW_SHA})
 
 srv.shutdown();srv.server_close()
 check('binary_unchanged',digest(BIN),BINARY_BEFORE)

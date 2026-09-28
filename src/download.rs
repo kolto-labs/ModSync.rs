@@ -108,7 +108,8 @@ fn fail(class: FailureClass, error: impl Into<anyhow::Error>) -> anyhow::Error {
 }
 
 /// The file name of a [`Destination::Directory`] publish (for an unnamed one, the name the
-/// transfer revealed) is already taken when the transfer ends. The transfer and its
+/// transfer revealed) is already taken when the transfer ends, or is taken by a concurrent
+/// publish before this one's no-clobber move. The transfer and its
 /// digest are complete, but nothing was published: the present file is untouched and the
 /// temp file is removed. `sha256` is the digest of the transferred bytes (for a Peer
 /// source that learns the name before transferring, the authored digest every copy must
@@ -513,7 +514,19 @@ fn fetch_inner(
     progress(FetchProgress::Verifying);
     crate::archive::verify(temp.path(), &path, options, cancelled)?;
     temp.as_file().sync_all()?;
-    temp.persist_noclobber(&path).map_err(|e| e.error)?;
+    if let Err(error) = temp.persist_noclobber(&path) {
+        // The name was taken while this transfer verified (a concurrent publish): the
+        // same outcome as finding it present above, with the finished digest.
+        if matches!(destination, Destination::Directory { .. })
+            && error.error.kind() == std::io::ErrorKind::AlreadyExists
+        {
+            return Err(anyhow::Error::new(DestinationExists {
+                path,
+                sha256: digest,
+            }));
+        }
+        return Err(error.error.into());
+    }
     Ok(Fetched {
         path,
         sha256: digest,

@@ -828,10 +828,11 @@ enum Step {
     Failed(String, SourceKind),
     /// Ends the target now; never falls through to a later source (O3: a failed or
     /// unknown premium validation must not let Peer run; or a present file that
-    /// [`adopt_present`] refused, which every later source would find again).
+    /// [`adopt_present`] refused when a later source would reveal that same name again,
+    /// see [`reveals_again`]).
     Terminal(String, SourceKind),
     /// The name the source revealed is already present. `acquire_sources` adopts that
-    /// file ([`adopt_present`]) or ends the target; it is never replaced.
+    /// file ([`adopt_present`]) or refuses it; it is never replaced.
     Present(download::DestinationExists, SourceKind),
 }
 
@@ -869,9 +870,11 @@ fn is_never_started(error: &anyhow::Error) -> bool {
         .any(|e| e.downcast_ref::<PeerNeverStarted>().is_some())
 }
 
-/// Whether an Origin error must keep Peer from ever starting: a gate (login, captcha,
-/// free-wait, HTML landing), a failed/unknown premium validation (O3), or a revealed name
-/// that is already present (the race then settles on that file).
+/// Whether an Origin error must keep a still-waiting Peer from starting: a gate (login,
+/// captcha, free-wait, HTML landing), a failed/unknown premium validation (O3), or a
+/// revealed name that is already present. Origin reveals a present name only after its
+/// first `Transferring` event has already granted Peer, so for that case this denies
+/// nothing; the race stops Peer when it settles on the present file.
 fn origin_denies_peer(error: &anyhow::Error) -> bool {
     if error
         .chain()
@@ -938,14 +941,23 @@ fn acquire_sources(
         } else {
             single_source(context, index, target, source)
         };
+        position += 1;
         let step = match step {
+            // A cancelled run never completes a target by adoption.
+            Step::Present(_, kind) if context.cancelled.load(Ordering::SeqCst) => {
+                Step::Cancelled(kind)
+            }
             Step::Present(present, kind) => match adopt_present(context, target, &present) {
+                _ if context.cancelled.load(Ordering::SeqCst) => Step::Cancelled(kind),
                 Ok(acquired) => Step::Done(acquired, kind),
-                Err(error) => Step::Terminal(error, kind),
+                Err(error) if reveals_again(source, &target.sources[position..]) => {
+                    Step::Terminal(error, kind)
+                }
+                // A later source that reveals its own name may find another file.
+                Err(error) => Step::Failed(error, kind),
             },
             step => step,
         };
-        position += 1;
         let more = position < target.sources.len();
         match step {
             Step::Done(acquired, kind) => {
@@ -1039,7 +1051,9 @@ fn acquire_sources(
     }
 }
 
-fn step_from_error(error: anyhow::Error, kind: SourceKind) -> Step {
+/// `cancelled` is the run's flag: a present file found after a cancel is never offered
+/// for adoption.
+fn step_from_error(error: anyhow::Error, kind: SourceKind, cancelled: &AtomicBool) -> Step {
     if error
         .chain()
         .any(|e| e.downcast_ref::<PremiumValidationFailed>().is_some())
@@ -1047,6 +1061,9 @@ fn step_from_error(error: anyhow::Error, kind: SourceKind) -> Step {
         return Step::Terminal(format!("{error:#}"), kind);
     }
     if let Some(present) = download::destination_exists(&error) {
+        if cancelled.load(Ordering::SeqCst) {
+            return Step::Cancelled(kind);
+        }
         return Step::Present(present.clone(), kind);
     }
     match download::classify(&error) {
@@ -1090,13 +1107,7 @@ fn adopt_present(
         }
         _ => {}
     }
-    archive::verify(
-        path,
-        path,
-        &context.settings.archive,
-        &AtomicBool::new(false),
-    )
-    .map_err(|error| {
+    archive::verify(path, path, &context.settings.archive, context.cancelled).map_err(|error| {
         format!(
             "The present file {} failed verification: {error:#}",
             path.display()
@@ -1106,6 +1117,20 @@ fn adopt_present(
         path: path.clone(),
         sha256: actual,
     })
+}
+
+/// Whether a source after `source` would reveal the same name again and so find the
+/// same present file: a repeat of the same Origin URL. A Peer source learns its own name
+/// from the torrent and checks it before any transfer, adopting or refusing a present
+/// file itself; a Manual source reveals no name. Either may still end the target well,
+/// so a refused adoption falls through to it.
+fn reveals_again(source: &Source, later: &[Source]) -> bool {
+    let Source::Origin { url, .. } = source else {
+        return false;
+    };
+    later
+        .iter()
+        .any(|later| matches!(later, Source::Origin { url: again, .. } if again == url))
 }
 
 fn single_source(
@@ -1139,7 +1164,7 @@ fn single_source(
             };
             match origin_with_retries(context, index, target, source, context.cancelled, &mut on) {
                 Ok(acquired) => Step::Done(acquired, kind),
-                Err(error) => step_from_error(error, kind),
+                Err(error) => step_from_error(error, kind, context.cancelled),
             }
         }
         Source::Peer { .. } => match &context.settings.peer {
@@ -1164,7 +1189,7 @@ fn single_source(
                 };
                 match peer.acquire(target, &destination, context.cancelled, &mut on) {
                     Ok(acquired) => Step::Done(acquired, kind),
-                    Err(error) => step_from_error(error, kind),
+                    Err(error) => step_from_error(error, kind, context.cancelled),
                 }
             }
         },
@@ -1316,7 +1341,9 @@ impl PeerStaging {
 ///   error. Until then a finished Peer copy is held in staging. If Origin then reveals a
 ///   gate, the copy is removed and the target ends `ManualRequired`: a peer copy never
 ///   satisfies a gate (R2). An accepted copy is moved to the final path before Origin is
-///   stopped; if that move fails, Origin keeps running.
+///   stopped; if that move fails, Origin keeps running. When the copy's torrent name is
+///   already present, that file is adopted ([`adopt_present`]) before Origin is stopped;
+///   if adoption refuses it, that is a Peer failure and Origin keeps running.
 /// - The first accepted `Ok` wins. The loser is stopped, joined, has any published file
 ///   removed, and is reported `Superseded`. The staging folder is removed after the join.
 ///   Removal failures go into the returned notes.
@@ -1483,13 +1510,35 @@ fn race_origin_peer(
                         decided = Some(Step::Done(published, SourceKind::Peer));
                     }
                     Err(error) => match download::destination_exists(&error).cloned() {
-                        // Settled on the present file, which may even be Origin's own
-                        // copy not yet reported: it is the winner, never discarded.
-                        Some(present) => {
-                            stop(ORIGIN);
-                            winner_path = Some(present.path.clone());
-                            decided = Some(Step::Present(present, SourceKind::Peer));
-                        }
+                        // Adopted before Origin is stopped. The present file may even be
+                        // Origin's own copy not yet reported: then it is the winner, never
+                        // discarded, and the outcome reports Peer. A refusal is a Peer
+                        // failure only, and Origin keeps running.
+                        Some(present) => match adopt_present(context, target, &present) {
+                            _ if parent_cancelled() => {
+                                stop(ORIGIN);
+                                stop(PEER);
+                                decided = Some(Step::Cancelled(origin_kind));
+                            }
+                            Ok(adopted) => {
+                                stop(ORIGIN);
+                                winner_path = Some(adopted.path.clone());
+                                decided = Some(Step::Done(adopted, SourceKind::Peer));
+                            }
+                            Err(message) => {
+                                emit(
+                                    context,
+                                    index,
+                                    target,
+                                    SourceKind::Peer,
+                                    Phase::SourceFailed {
+                                        error: message.clone(),
+                                        will_fallback: running[ORIGIN],
+                                    },
+                                );
+                                last_error = Some((message, SourceKind::Peer));
+                            }
+                        },
                         None => {
                             let message = format!("{error:#}");
                             emit(
@@ -1560,7 +1609,7 @@ fn race_origin_peer(
                     // has failed without a gate. A gate discards it.
                     held_peer = Some(acquired);
                 }
-                (_, Err(error)) => match step_from_error(error, kinds[racer]) {
+                (_, Err(error)) => match step_from_error(error, kinds[racer], context.cancelled) {
                     gate @ Step::Manual(_, reason, _) if racer == ORIGIN && reason.is_gate() => {
                         stop(PEER);
                         if let Some(held) = held_peer.take() {
@@ -1632,7 +1681,13 @@ fn race_origin_peer(
                 match staging.publish(held, source_dir) {
                     Ok(published) => decided = Some(Step::Done(published, SourceKind::Peer)),
                     Err(error) => match download::destination_exists(&error).cloned() {
-                        Some(present) => decided = Some(Step::Present(present, SourceKind::Peer)),
+                        Some(present) => match adopt_present(context, target, &present) {
+                            _ if parent_cancelled() => {
+                                decided = Some(Step::Cancelled(SourceKind::Peer));
+                            }
+                            Ok(adopted) => decided = Some(Step::Done(adopted, SourceKind::Peer)),
+                            Err(message) => last_error = Some((message, SourceKind::Peer)),
+                        },
                         None => last_error = Some((format!("{error:#}"), SourceKind::Peer)),
                     },
                 }
