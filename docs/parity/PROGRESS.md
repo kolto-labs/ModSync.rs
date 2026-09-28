@@ -1,6 +1,6 @@
 # Full Rust functionality progress
 
-Updated 2026-09-28 03:48 UTC. Goal: every F01–F29 requirement in [ACCEPTANCE.md](ACCEPTANCE.md)
+Updated 2026-09-28 04:18 UTC. Goal: every F01–F29 requirement in [ACCEPTANCE.md](ACCEPTANCE.md)
 verified against pinned C# `d31ccbd3`, including identical K1/K2 full installs
 against C# and manual references. A delivered slice does not close a whole domain.
 
@@ -47,9 +47,10 @@ is assigned because the remaining domains differ greatly in scope and proof cost
    and 53 frozen test files/regions are unchanged. The controller's separate
    [41-check prior-candidate rerun and narrow final NDJSON probe](fetch-controller-review/README.md)
    retain their respective binary bindings. These counts cover fixtures, not domains.
-   The [loopback HTTPS proof slice](origin-loopback-probe-plan.md) is now the sole
-   active production implementation. Shared wizard/panel/settings wiring follows;
-   persistent sharing has a separate plan under review. Standalone torrent verbs
+   The [loopback HTTPS proof slice](origin-loopback-probe-plan.md) implementation at `6c08656` has passed independent source SPEC and QUALITY reviews. Its 53 isolated runtime cases, both production gates and
+   frozen-source comparison are retained in [the receipt](origin-loopback-proof/README.md).
+   Shared wizard/panel/settings wiring follows;
+   persistent sharing and remaining CLI FOMOD behavior have separately approved plans. Standalone torrent verbs
    and library presence do not satisfy those frontend/lifecycle tasks.
 3. Fix loader Source normalization. [Seven JSON cases](source-normalization-probe/receipt.json)
    and equivalent [TOML/YAML/XML cases](source-normalization-formats/receipt.json)
@@ -57,7 +58,8 @@ is assigned because the remaining domains differ greatly in scope and proof cost
    the same gap in Markdown embedded YAML and shows an actual bare-relative Copy
    succeeding in C# but rejected by Rust. Rust copies identical bytes after the
    Source is normalized by C#. The expanded implementation plan is independently
-   approved; the production loader fix has not started. Rust Markdown export and
+   approved; a fresh subagent is now the sole implementation/build owner for the
+   production loader fix. Rust Markdown export and
    its missing legacy-bullet metadata route remain separate open work.
 4. Use the [full remaining-scope map](remaining-scope-map.md) to reconcile actual
    source and derive bounded tasks where a current plan is missing: engine actions/

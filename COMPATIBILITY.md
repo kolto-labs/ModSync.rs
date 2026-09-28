@@ -21,8 +21,8 @@ plan/run/record/FOMOD-followup library and concrete proxy-only Peer adapter.
   one compact `{"type":"plan","plan":...}` line and performs no acquisition.
 - Nexus free accounts remain manual; authorization errors are terminal failures.
   Neither starts Peer. Race startup grants are delayed until Origin eligibility
-  and revoked if Origin wins before Peer starts. General HTTPS Origin behavior
-  still requires the separately planned runtime slice.
+  and revoked if Origin wins before Peer starts. Isolated HTTPS Origin runtime
+  is now exercised by the additive loopback slice described below.
 - Real isolated Peer transfers cover known/unknown names, verification, budget/hash
   refusal and SIGINT cleanup. Unsupported-provider chains can end ManualRequired
   after a Peer failure; this is exit 3, not success. Other exits are 0 complete,
@@ -35,6 +35,31 @@ All 53 frozen test files/regions remain unchanged. No Rust tests were run.
 Persistent sharing, shared desktop acquisition, advanced FOMOD, complete host
 automation, full-build/live-game and cross-platform proof remain open. No whole
 F01–F29 domain is promoted by this slice.
+
+## Isolated HTTPS acquisition transport — 2026-09-28
+
+Source `6c08656` adds per-invocation loopback certificate trust through additive
+`LoopbackCa::from_pem_file`, `fetch_to_with_loopback_ca`, and
+`run_with_loopback_ca`; existing fetch/run APIs and RunSettings remain unchanged.
+Hidden `fetch-downloads --extra-ca-file` applies only to archive HTTPS requests.
+It accepts exact localhost or literal loopback on the initial URL and every bounded
+redirect, pins localhost to loopback, and disables proxies only for that client.
+Ordinary trust/proxy/error behavior is preserved. No global or persisted CA change.
+Unreadable/invalid PEM/DER fails visibly even during dry-run; parsing reads the
+explicit file without network or transfer/cache writes.
+
+[Retained proof](docs/parity/origin-loopback-proof/README.md), source-bound to
+binary `e40e218304a3b1070fffa516ba60d74dd3128abb03798485316976e18732d82f`,
+contains 53 production cases: reachable TEST-NET/hostname controls, separate HTTP
+CONNECT control, redirect restrictions, all gate reasons in Race/Fallback with
+zero Peer work, both real race winners, retries, integrity/budget refusal, explicit
+API-key isolation and cancellation cleanup. Five production gates pass;94 unowned
+source/test/config files are unchanged. Independent source SPEC and QUALITY reviews approved the bounded slice. These are isolated synthetic-host results, not live-provider acceptance.
+
+Cancellation during retry backoff retains the last target failure while overall
+report.cancelled is true and CLI exit is130. Body/race cancellation marks the
+target cancelled. This pre-existing distinction remains explicit. GUI downloads,
+persistent sharing, complete providers and F29 remain open.
 
 ## Typed install progress and Installing page — 2026-09-27
 
