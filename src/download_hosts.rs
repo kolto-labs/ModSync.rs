@@ -16,14 +16,25 @@ pub fn provider(url: &str) -> Result<Provider> {
     if !matches!(url.scheme(), "http" | "https") {
         bail!("Downloads require an HTTP(S) URL");
     }
-    let host = url.host_str().unwrap_or("").to_ascii_lowercase();
-    Ok(if host.contains("deadlystream.com") {
+    let host = url
+        .host_str()
+        .unwrap_or("")
+        .trim_end_matches('.')
+        .to_ascii_lowercase();
+    // Exact host or a dot-separated subdomain only, so `evilmega.nz` is not MEGA.
+    let on = |domain: &str| {
+        host == domain
+            || host
+                .strip_suffix(domain)
+                .is_some_and(|prefix| prefix.ends_with('.'))
+    };
+    Ok(if on("deadlystream.com") {
         Provider::DeadlyStream
-    } else if host.contains("mega.nz") {
+    } else if on("mega.nz") || on("mega.co.nz") {
         Provider::Mega
-    } else if host.contains("nexusmods.com") {
+    } else if on("nexusmods.com") {
         Provider::Nexus
-    } else if host.contains("gamefront.com") {
+    } else if on("gamefront.com") {
         Provider::GameFront
     } else {
         Provider::Direct

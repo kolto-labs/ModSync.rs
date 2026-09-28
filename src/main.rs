@@ -84,7 +84,15 @@ enum Action {
     /// Resolve an nxm:// link through Nexus and download its archive.
     NxmDownload {
         url: String,
+        /// The archive path; with --input, the mod workspace directory instead.
         output: PathBuf,
+        /// Guide to resolve the link against. Runs the shared acquisition path
+        /// (nxm_target, run, record) and prints the run report.
+        #[arg(long)]
+        input: Option<PathBuf>,
+        /// With --input, write Files[name] = true back into the guide file.
+        #[arg(long, requires = "input")]
+        record: bool,
         #[arg(long)]
         nexus_mods_api_key: Option<String>,
         #[arg(long)]
@@ -846,6 +854,8 @@ fn run() -> Result<()> {
         Some(Action::NxmDownload {
             url,
             output,
+            input,
+            record,
             nexus_mods_api_key,
             settings_dir,
             nexus_api_base,
@@ -855,15 +865,16 @@ fn run() -> Result<()> {
                 matches!(link, modsync::protocol::Link::Nxm { .. }),
                 "Expected an nxm:// URL"
             );
-            let mut client = if let Some(base) = nexus_api_base {
+            let key = if nexus_api_base.is_some() {
                 // Never send a stored or environment key to a caller-chosen host.
-                let key = nexus_mods_api_key
-                    .filter(|key| !key.trim().is_empty())
-                    .context("--nexus-api-base requires an explicit --nexus-mods-api-key")?;
-                modsync::updates::NexusClient::with_base_url(Some(key), &base)?
+                Some(
+                    nexus_mods_api_key
+                        .filter(|key| !key.trim().is_empty())
+                        .context("--nexus-api-base requires an explicit --nexus-mods-api-key")?,
+                )
             } else {
                 // An explicit flag wins without reading settings.
-                let key = match nexus_mods_api_key {
+                match nexus_mods_api_key {
                     Some(key) => Some(key),
                     None => {
                         let directory =
@@ -871,9 +882,44 @@ fn run() -> Result<()> {
                         modsync::profiles::Store::new(&directory)?.nexus_api_key()?
                     }
                 }
-                .or_else(|| std::env::var("KOTOR_MODSYNC_NEXUS_API_KEY").ok())
-                .or_else(|| std::env::var("NEXUS_MODS_API_KEY").ok());
-                modsync::updates::NexusClient::new(key)?
+                    .or_else(|| std::env::var("KOTOR_MODSYNC_NEXUS_API_KEY").ok())
+                    .or_else(|| std::env::var("NEXUS_MODS_API_KEY").ok())
+            };
+            if let Some(input) = input {
+                use modsync::download_orchestrator as orchestrator;
+                anyhow::ensure!(
+                    output.is_dir(),
+                    "With --input, OUTPUT must be the existing mod workspace directory"
+                );
+                let mut guide = Guide::load(&input)?;
+                let target = orchestrator::nxm_target(&guide, &link)?;
+                let plan = orchestrator::AcquisitionPlan::single(target, &output)?;
+                let settings = orchestrator::RunSettings {
+                    workers: 1,
+                    nexus_api_key: key,
+                    nexus_api_base,
+                    ..Default::default()
+                };
+                let report = orchestrator::run(&plan, &settings, &AtomicBool::new(false), |_| {})?;
+                if record {
+                    let summary = orchestrator::record(&mut guide, &report)?;
+                    if !summary.recorded.is_empty() {
+                        guide.save(&input)?;
+                    }
+                }
+                println!("{}", serde_json::to_string_pretty(&report)?);
+                anyhow::ensure!(
+                    report
+                        .outcomes
+                        .iter()
+                        .all(|o| o.status == orchestrator::TargetStatus::Completed),
+                    "The nxm download did not complete"
+                );
+                return Ok(());
+            }
+            let mut client = match nexus_api_base {
+                Some(base) => modsync::updates::NexusClient::with_base_url(key, &base)?,
+                None => modsync::updates::NexusClient::new(key)?,
             };
             let download_link = client.nxm_download_link(&link)?;
             download::fetch(&download_link.uri, &output, None, &AtomicBool::new(false))?;

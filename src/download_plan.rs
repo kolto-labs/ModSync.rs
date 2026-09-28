@@ -62,7 +62,16 @@ fn unsatisfied(component: &Component, source: &Path) -> Result<Vec<String>> {
         }
     }
     if source.is_dir() {
-        for entry in walkdir::WalkDir::new(source) {
+        // A Peer staging folder left by a killed race holds an unaccepted copy, not an
+        // archive that is present.
+        let walk = walkdir::WalkDir::new(source)
+            .into_iter()
+            .filter_entry(|entry| {
+                entry.depth() == 0
+                    || !(entry.file_type().is_dir()
+                        && crate::download_orchestrator::is_peer_staging(entry.file_name()))
+            });
+        for entry in walk {
             let entry = entry?;
             ensure!(
                 !entry.file_type().is_symlink(),
