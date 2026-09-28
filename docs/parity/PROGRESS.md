@@ -76,6 +76,10 @@ is assigned because the remaining domains differ greatly in scope and proof cost
    update/profile UI, complete wizard/main-window controls, CLI contracts,
    diagnostics and packaging. Historical checkpoints do not establish that all
    remaining domains already have complete implementation plans.
+   Nexus H1a (shared same-origin API redirect policy, query-encoded nxm keys) has
+   [isolated production-CLI evidence](nexus-h1a-proof/README.md), 108/108 checks.
+   It still needs independent SPEC and QUALITY review. The https-to-http downgrade
+   is covered by source only, and the rest of H1 is still open.
 6. Perform requirement-by-requirement acceptance, ending with F29: authorized,
    isolated K1/K2 installs with identical inputs/selections, ordered per-step
    comparisons, final resource content checks, and live-game evidence.

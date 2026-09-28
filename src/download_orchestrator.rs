@@ -1538,22 +1538,23 @@ fn nxm_url(link: &protocol::Link) -> Result<String> {
     else {
         bail!("Expected an nxm:// link");
     };
-    let mut url = format!("nxm://{game_domain}/mods/{mod_id}/files/{file_id}");
-    let mut query = Vec::new();
+    let mut url = reqwest::Url::parse(&format!(
+        "nxm://{game_domain}/mods/{mod_id}/files/{file_id}"
+    ))?;
+    // Query-encoded (decoded again by `protocol::parse`), so a key's reserved characters
+    // survive the round trip instead of becoming extra parameters.
     if let Some(key) = key.as_deref().filter(|k| !k.is_empty()) {
-        query.push(format!("key={key}"));
+        url.query_pairs_mut().append_pair("key", key);
     }
     if *expires > 0 {
-        query.push(format!("expires={expires}"));
+        url.query_pairs_mut()
+            .append_pair("expires", &expires.to_string());
     }
     if *user_id > 0 {
-        query.push(format!("user_id={user_id}"));
+        url.query_pairs_mut()
+            .append_pair("user_id", &user_id.to_string());
     }
-    if !query.is_empty() {
-        url.push('?');
-        url.push_str(&query.join("&"));
-    }
-    Ok(url)
+    Ok(url.into())
 }
 
 /// The only nxm path: resolves the component (Matched only) and returns one target whose
