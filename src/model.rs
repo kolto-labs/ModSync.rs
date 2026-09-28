@@ -441,8 +441,8 @@ fn same_guids(left: &[String], right: &[String]) -> bool {
 
 /// C# rewrites non-Choose Sources at deserialize time (`Serializer.DeserializePathInDictionary`:
 /// `PathHelper.FixPathFormatting` then `PrefixPath`) before `AreInstructionsIdentical` sees
-/// them. Rust keeps the authored text, so the comparison applies that rewrite on the fly.
-fn source_key(path: &str) -> String {
+/// them. Use the same idempotent rewrite for stored Sources and equality.
+fn normalize_source(path: &str) -> String {
     fn fix(path: &str) -> String {
         let mut out = String::with_capacity(path.len());
         for c in path.trim_start_matches('\\').chars() {
@@ -490,7 +490,7 @@ fn same_instructions(left: &[Instruction], right: &[Instruction]) -> bool {
                         && a.source
                             .iter()
                             .zip(&b.source)
-                            .all(|(x, y)| source_key(x) == source_key(y)))
+                            .all(|(x, y)| normalize_source(x) == normalize_source(y)))
                 && same_guids(&a.dependencies, &b.dependencies)
                 && same_guids(&a.restrictions, &b.restrictions)
         })
@@ -639,6 +639,27 @@ fn normalize_component(value: &mut serde_json::Value) -> Result<()> {
                 .as_object_mut()
                 .context("Instruction must be an object")?;
             instruction.retain(|_, value| !value.is_null());
+            if !instruction
+                .get("Action")
+                .and_then(Value::as_str)
+                .is_some_and(|s| s.eq_ignore_ascii_case("Choose"))
+                && let Some(source) = instruction.get_mut("Source")
+            {
+                match source {
+                    Value::String(path) => *path = normalize_source(path),
+                    Value::Array(paths) => {
+                        paths.retain(|path| {
+                            !path.as_str().is_some_and(|text| text.trim().is_empty())
+                        });
+                        for path in paths {
+                            if let Value::String(text) = path {
+                                *text = normalize_source(text);
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+            }
             if instruction
                 .get("Action")
                 .and_then(Value::as_str)
