@@ -41,15 +41,16 @@ is assigned because the remaining domains differ greatly in scope and proof cost
    locally; maintain their source-bound receipts as later slices land.
 2. Implement the [approved selected-guide CLI slice](fetch-downloads-cli-plan.md):
    orchestrator gate hardening, a concrete peer adapter, `fetch-downloads`, and
-   direct local transfer proof. Candidate source `efefba1` and receipts `54383a8` are committed locally;
-   independent spec review is active, with quality review still required.
-   Recorded acquisition checks pass 305/305, production gates pass in both feature
-   modes, and 53 frozen test files/regions are unchanged. The controller's separate
-   [41-check rerun](fetch-controller-review/README.md) confirms the all-false selection
-   and record fixes. These counts describe covered fixtures, not domain completion.
-   Follow with the [loopback HTTPS proof slice](origin-loopback-probe-plan.md),
-   then advanced FOMOD modes and shared wizard worker/panel/settings wiring.
-   The library and standalone torrent verbs do not satisfy those frontend tasks.
+   direct local transfer proof. Source `efefba1` plus correction `2889ec5`, with
+   current evidence `14783d2`, passed independent spec and quality reviews.
+   Acquisition checks pass 312/312, production gates pass in both feature modes,
+   and 53 frozen test files/regions are unchanged. The controller's separate
+   [41-check prior-candidate rerun and narrow final NDJSON probe](fetch-controller-review/README.md)
+   retain their respective binary bindings. These counts cover fixtures, not domains.
+   The [loopback HTTPS proof slice](origin-loopback-probe-plan.md) is now the sole
+   active production implementation. Shared wizard/panel/settings wiring follows;
+   persistent sharing has a separate plan under review. Standalone torrent verbs
+   and library presence do not satisfy those frontend/lifecycle tasks.
 3. Fix loader Source normalization. [Seven JSON cases](source-normalization-probe/receipt.json)
    and equivalent [TOML/YAML/XML cases](source-normalization-formats/receipt.json)
    reproduce five differences per format against C#. Expanded evidence reproduces

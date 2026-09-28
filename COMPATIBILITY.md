@@ -1,5 +1,41 @@
 # Compatibility and proof boundaries
 
+## Selected-guide acquisition CLI — 2026-09-28
+
+Source `efefba1`, corrected by `2889ec5`, adds `fetch-downloads` using the shared
+plan/run/record/FOMOD-followup library and concrete proxy-only Peer adapter.
+[Contract](docs/parity/fetch-downloads-cli-plan.md),
+[spec review](docs/parity/fetch-downloads-spec-review.md),
+[quality review](docs/parity/fetch-downloads-quality-review.md), and
+[production evidence](docs/parity/fetch-downloads/RECEIPT.md) define this bounded slice.
+
+- Effective persisted Peer mode participates in planning; explicit Off bypasses
+  unnecessary peer settings. Sharing disabled takes precedence. API overrides
+  require an explicit nonblank key and cannot inherit stored/environment keys.
+- Default selection, file selection and explicit selectors use shared selection
+  rules. Recording preserves authored selection flags, including all-false guides.
+  An additive preserving loader leaves existing public loader defaults unchanged.
+- Acquisition progress uses `{"type":"acquisition","event":...}` NDJSON followed
+  by one summary envelope. Ordinary output is a pretty JSON summary. Ordinary
+  dry-run is the pretty raw effective plan; dry-run with progress JSON is exactly
+  one compact `{"type":"plan","plan":...}` line and performs no acquisition.
+- Nexus free accounts remain manual; authorization errors are terminal failures.
+  Neither starts Peer. Race startup grants are delayed until Origin eligibility
+  and revoked if Origin wins before Peer starts. General HTTPS Origin behavior
+  still requires the separately planned runtime slice.
+- Real isolated Peer transfers cover known/unknown names, verification, budget/hash
+  refusal and SIGINT cleanup. Unsupported-provider chains can end ManualRequired
+  after a Peer failure; this is exit 3, not success. Other exits are 0 complete,
+  1 failed/inspection error, and 130 cancelled.
+
+Corrected evidence `14783d2` binds 312 assertions and passing CLI/default production
+builds and strict Clippy to binary
+`1ba0f02f7577114030d559ea66dd5bcca8f9c3c9c835f6119af77738da947e74`.
+All 53 frozen test files/regions remain unchanged. No Rust tests were run.
+Persistent sharing, shared desktop acquisition, advanced FOMOD, complete host
+automation, full-build/live-game and cross-platform proof remain open. No whole
+F01–F29 domain is promoted by this slice.
+
 ## Typed install progress and Installing page — 2026-09-27
 
 Commits `065ffee` (shared contract), `57f198f`, `cd8f0b0` and `33de7f6` (CLI adapter and help text), `dcd1373`..`ac9cf3a`, `a24e96b` and `9df6c3b` (desktop page). Rulings, commit map and review findings are in [install-progress-integration.md](docs/parity/install-progress-integration.md). Evidence is in [install-progress-native/](docs/parity/install-progress-native/README.md).

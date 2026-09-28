@@ -1,0 +1,20 @@
+{
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "fetch-downloads",
+    "--input",
+    "/tmp/fetch-ndjson-controller-bd3gkipd/guide.json",
+    "--source-dir",
+    "/tmp/fetch-ndjson-controller-bd3gkipd/mods",
+    "--peer-mode",
+    "off",
+    "--dry-run",
+    "--progress-json"
+  ],
+  "exit": 0,
+  "stdout": "{\"type\":\"plan\",\"plan\":{\"sourceDir\":\"/tmp/fetch-ndjson-controller-bd3gkipd/mods\",\"peerMode\":\"off\",\"targets\":[],\"skipped\":[],\"warnings\":[]}}\n",
+  "stderr": "",
+  "single_plan_line": true,
+  "files_unchanged": true,
+  "binary_sha256": "1ba0f02f7577114030d559ea66dd5bcca8f9c3c9c835f6119af77738da947e74"
+}

@@ -136,7 +136,10 @@ transient selection changes. File write errors fail visibly.
 C5. Ordinary output is one pretty JSON summary containing report, recordSummary,
 fomodFollowups. With --progress-json every stdout line is a standalone JSON object:
 acquisition event envelopes followed by one single-line summary envelope. Send
-human diagnostics to stderr. Exit 130 for cancellation, otherwise 1 for failed
+human diagnostics to stderr. For `--dry-run --progress-json`, emit exactly one
+compact `{"type":"plan","plan":...}` envelope, with no acquisition events or
+run summary; ordinary dry-run keeps its pretty raw plan. This clarification follows
+quality finding FETCH-QUALITY-01 and preserves C4's no-run contract. Exit 130 for cancellation, otherwise 1 for failed
 outcomes or FOMOD inspection errors, 3 for remaining manual work, 0 for complete
 acquisition. Emit summary first; run must join workers/clean temporary resources
 before exit. Advanced FOMOD choices remain explicit followups, not auto-installed.
