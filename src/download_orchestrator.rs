@@ -1761,8 +1761,10 @@ pub fn fomod_followups(
     }
 }
 
-/// The shared follow-up predicate for desktop and Fetch: each archive is offered once,
-/// bound to its first consumer that is prompt-eligible and still lacks usable choices.
+/// Per-archive follow-up deduplication shared by desktop and Fetch: each archive is
+/// offered once, bound to its first consumer that is eligible and still lacks usable
+/// choices. Eligibility is the caller's: Fetch passes the top-level `should_prompt`
+/// captured at collection, while the desktop pre-filters with recursive `offer_prompt`.
 /// Items are `(archive, component GUID, prompt eligible, usable choices)` in capture order.
 pub fn pending_fomod_followups<'a>(
     consumers: impl IntoIterator<Item = (&'a Path, &'a str, bool, bool)>,

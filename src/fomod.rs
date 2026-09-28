@@ -679,15 +679,26 @@ pub fn set_prompt_status(
     archive: &str,
     status: PromptStatus,
 ) -> bool {
+    try_set_prompt_status(component, archive, status).unwrap_or(false)
+}
+
+/// Like [`set_prompt_status`], but malformed matching metadata is an error:
+/// `Ok(false)` means no resource registry entry contains the archive.
+pub fn try_set_prompt_status(
+    component: &mut crate::Component,
+    archive: &str,
+    status: PromptStatus,
+) -> Result<bool> {
     let filename = archive_name(archive);
     let Some(resource) = component
         .resource_registry
         .values_mut()
         .find(|resource| resource_matches(resource, &filename))
     else {
-        return false;
+        return Ok(false);
     };
-    write_prompt_status(resource, &filename, status).is_ok()
+    write_prompt_status(resource, &filename, status)?;
+    Ok(true)
 }
 
 /// Write one archive's prompt status into a resource registry entry, preserving the
@@ -948,11 +959,14 @@ impl ChoicesFile {
                     .metadata
                     .insert("FomodChoices".into(), serde_json::to_value(choices)?);
                 for archive in &edits.archives {
-                    set_prompt_status(
+                    try_set_prompt_status(
                         component,
                         &archive.archive_file_name,
                         PromptStatus::Configured,
-                    );
+                    )
+                    .with_context(|| {
+                        format!("Recording FOMOD prompt status for {}", component.guid)
+                    })?;
                 }
                 update(&mut component.options, edits, completed, merge)?;
             }

@@ -1,6 +1,10 @@
 # Fetch FOMOD S1 production evidence
 
-Candidate source: `f3f27d346c9a07dd102d23ed8992f72d19f3c8d2`.
+Original candidate source: `f3f27d346c9a07dd102d23ed8992f72d19f3c8d2` (the receipts
+and hashes under "Final measured results" bind that source). Post-review source:
+the commit that adds this sentence (fixes on top of `0e496f8`); its cloud Linux debug
+binary measured SHA256 `926bbb3cd032dfe53de58c3d79ccf582985a42d486a84cb2d4c7d5b7356b7129`
+(host-specific, not a reproducibility claim; see "Post-review corrections").
 Independent source SPEC review approved (see ../fomod-s1-spec-review.md); QUALITY is still required. This evidence does
 not accept full F15, S2, the desktop acquisition flow, or any real game install.
 
@@ -69,10 +73,24 @@ and signal actions, exit, raw stdout/stderr, and before/after hashes. The matchi
 `receipts/fixtures/<case>/{before,after}` directories retain actual guide, sidecar,
 settings and archive bytes. Shared restart cases retain each invocation's state.
 
-## Post-review corrections (receipts predate these; re-run required)
+## Post-review corrections
 
-The quality review (`docs/parity/fomod-s1-quality-review.md`) changed source after
-these receipts were captured, so the affected receipts are historical until re-run:
+The quality review (`docs/parity/fomod-s1-quality-review.md`, rounds 1 and 2)
+changed source after the `f3f27d3` receipts above were captured. Those committed
+receipts remain the historical `f3f27d3` binding; the post-review source was
+re-run as follows.
+
+- Round 1 (`0e496f8`): fixtures re-run on `0e496f8` at **319/319 checks
+  (58 cases)** and **41/41 inherited**, in the isolated network namespace.
+- Round 2 (post-review source, after `0e496f8`): `probe.py` gains a no-`Files`
+  registry case (Warn without and with `--record`, plus a repeat run), giving
+  **339/339 checks (61 cases)** and **41/41 inherited**. The new case fails 5
+  checks against the `0e496f8` Fetch dispatcher. Binary hash is recorded in
+  `target/cloud-proof`.
+- Windows code was cross-checked with Clippy `-D warnings` on
+  `x86_64-pc-windows-gnu` in both feature modes, but **not run on Windows**.
+
+Behavior changes:
 
 - Unix input no longer sets O_NONBLOCK or saves/restores stdin flags (fds 0/1/2
   share one TTY open file description). It polls with a timeout and performs one
@@ -81,14 +99,20 @@ these receipts were captured, so the affected receipts are historical until re-r
 - Policy resolution is lazy (first archive with pending consumers), so malformed
   settings or a missing `MODSYNC_FOMOD_CHOICES` file no longer fail runs that need
   no policy.
-- Warn/Skip record (and print their warning) only when a pending consumer's prompt
-  status changes, so a repeated `--record` run with nothing new does not save.
-- `fomodFollowups` is computed after dispatch from consumers that were
-  prompt-eligible and still lack usable choices, through the same helper the
-  desktop wrapper uses.
+- Warn/Skip are a no-op (no warning, no save) only when every pending consumer
+  already has a registry entry naming the archive and its prompt status is
+  unchanged. A consumer with no matching entry (no `Files` map) still warns, and
+  with `--record` the edit is replayed after acquisition recording adds `Files`,
+  so the warned status persists in the same run.
+- `fomodFollowups` is computed after dispatch from consumers whose top-level
+  `should_prompt` was true at collection and still lack usable choices. Only the
+  per-archive deduplication helper is shared with the desktop, whose eligibility
+  is the recursive `offer_prompt`.
 - With `--record`, a failure replaying FOMOD edits (atomic) no longer drops the
   acquisition facts: they are saved alone, the FOMOD error is reported, and the
   run exits 1.
+- The legacy choices merge path reports malformed prompt-status metadata as an
+  error instead of silently ignoring it.
 
 ## Source boundaries and self-review
 
@@ -119,8 +143,9 @@ results are not the final source/binary binding.
 
 Windows input has a native implementation using ReadConsoleW/ReadFile, repeated
 CancelSynchronousIo, and mandatory worker join. Its declarations and control-flow
-were checked against the installed windows-sys and Rust std sources. **Windows was
-not cross-compiled or run here.** Native console, redirected-pipe, cancellation,
+were checked against the installed windows-sys and Rust std sources, and the
+post-review source passes Clippy `-D warnings` for `x86_64-pc-windows-gnu` in both
+feature modes. **Windows was not run here.** Native console, redirected-pipe, cancellation,
 EOF, encoding, and device-driver behavior still require Windows runtime acceptance.
 Unexpected cancellation errors are retained; detached readers are not a fallback.
 

@@ -149,8 +149,9 @@ impl Report {
         *guide = candidate;
         Ok(())
     }
-    /// Follow-ups after dispatch: consumers that were prompt-eligible at capture and
-    /// still lack usable choices, using the desktop wrapper's shared predicate.
+    /// Follow-ups after dispatch: consumers whose top-level `should_prompt` was true at
+    /// collection and still lack usable choices. Only the per-archive deduplication is
+    /// shared with the desktop, whose eligibility is the recursive `offer_prompt`.
     pub fn followups(&self) -> Vec<acquisition::FomodFollowup> {
         acquisition::pending_fomod_followups(self.consumers.iter().map(|c| {
             (
@@ -382,14 +383,18 @@ pub fn dispatch(
                 return Ok((Outcome::SignalCancelled, None));
             }
             if choices.is_none() {
-                // Warn/Skip: record (and warn) only when a pending consumer's prompt
-                // status actually changes, so a repeated run neither re-warns nor saves.
-                let changed = guids.iter().any(|guid| {
+                // Warn/Skip: skip (no warning, no save) only when every pending consumer
+                // already registers this archive and its prompt status is unchanged. A
+                // consumer without a matching entry keeps the edit: acquisition recording
+                // may add the entry, and replaying the edit then persists the status.
+                let unchanged = guids.iter().all(|guid| {
                     let before = guide.components.iter().find(|c| c.guid == *guid);
                     let after = candidate.components.iter().find(|c| c.guid == *guid);
-                    before.map(|c| &c.resource_registry) != after.map(|c| &c.resource_registry)
+                    before.is_some_and(|c| fomod::resource_matches_archive(c, &filename))
+                        && before.map(|c| &c.resource_registry)
+                            == after.map(|c| &c.resource_registry)
                 });
-                if !changed {
+                if unchanged {
                     return Ok((outcome, None));
                 }
                 eprintln!(

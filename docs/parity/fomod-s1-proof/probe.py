@@ -120,6 +120,15 @@ a=comp(selected=False);a['Options']=[comp(2)];b=comp(1,selected=False);c=setup('
 after=json.loads(c['guide'].read_text());comps=after if isinstance(after,list) else after.get('Components',after.get('ModSync'));check('scope_authored_selection_preserved',[x['IsSelected'] for x in comps],[False,False]);check('scope_unselected_choices_absent','FomodChoices' not in comps[1]);check('scope_option_choices_absent','FomodChoices' not in comps[0]['Options'][0])
 # Persisted warning remains unresolved on restart; explicit choices resolves it.
 c=setup('restart');expect(run('restart_warn',case=c,flags=['--record']),3,['warned']);expect(run('restart_suppressed',case=c,flags=['--interactive']),3,['suppressed']);expect(run('restart_choices',case=c,flags=['--record','--fomod-choices','CHOICES']),0,['configured']);expect(run('restart_resolved',case=c),0,['resolved'])
+# A registry entry without a Files map is still a real change: warn now, and with
+# --record persist the warned status in the same run after Files is recorded.
+for label,flags in [('nofiles_warn',['--non-interactive']),('nofiles_warn_record',['--non-interactive','--record'])]:
+ a=comp();next(iter(a['ResourceRegistry'].values())).pop('Files');c=setup(label,components=[a],existing={})
+ r=expect(run(label,case=c,flags=flags),3,['warned']);check(label+'_stderr_warning','example.zip requires choices' in r['stderr'])
+ if '--record' in flags:
+  after=json.loads(c['guide'].read_text());comps=after if isinstance(after,list) else after.get('Components',after.get('ModSync'));meta=next(iter(comps[0]['ResourceRegistry'].values()))
+  check(label+'_files_recorded',meta.get('Files'),{'example.zip':True});check(label+'_status_persisted',meta.get('handlerMetadata',{}).get('fomodPromptStatus'),{'example.zip':'warned'});check(label+'_recorded_flag',r['data']['fomodConfigurationRecorded'])
+  r=expect(run(label+'_restart',case=c,flags=['--non-interactive']),3,['warned']);check(label+'_restart_no_warning','requires choices' not in r['stderr'])
 for label,text,expected in [('refusal','n\n',['refused']),('confirm_eof','',['eof']),('confirm_q','q\n',['userQuit']),('selection_eof','y\n',['eof']),('selection_q','y\nq\n',['userQuit']),('pipe_partial_eof','y\n2',['configured'])]:
  expect(run(label,flags=['--interactive'],text=text),0 if expected==['configured'] else 3,expected)
 second={'example.zip':PAYLOAD,'second.zip':PAYLOAD};two=[comp(),comp(1,filename='second.zip')]
