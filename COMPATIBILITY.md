@@ -856,3 +856,32 @@ accepts the saved names is mapped fresh from its current bytes. Evidence:
 `validate`/`install --fomod-choices` still replaces all embedded archive choices for
 that run; it is not a recovery route. Unicode matching, desktop reconfiguration and
 the S3 corpora remain open, and F15 stays partial.
+
+## Fetch shared URL and destination — 2026-09-28 UTC
+
+`fetch-downloads` no longer transfers one file twice when several selected
+components name the same registry URL and file name. The plan marks each later
+target with `sharedDestination` `{"kind":"sameUrl","targetIndex":N}`. Only target
+`N` is requested; its outcome is copied to every sharing target, which keeps its
+own `targetIndex`, component and registry URL, gains `sharedWith: N`, and gets one
+event with the final phase. Every owner is therefore reported, recorded under
+`--record` and bound as a FOMOD consumer of the one archive, in guide order.
+Before, the later owner failed on the existing destination (`File exists` or
+`Download destination already exists`), was neither recorded nor bound, and Fetch
+exited 1 after two requests. A sharing target's own `ContentHashSHA256` is checked
+against the shared bytes. The first owner's sources and hash govern the one
+transfer, so a hash that rejects the bytes fails every sharing owner.
+
+Known names compare ASCII case-insensitively, as existing-file detection and engine
+source matching do, so `Example.zip` and `example.zip` from one URL become one file.
+A name revealed only by the transfer is shared only by the same URL. A file name
+planned from two different URLs is `{"kind":"differentUrl",...}`: the later target
+fails at once with an explicit error naming both URLs and the owning component, and
+makes no request. C# has no such check: each component downloads on its own and a
+later publish overwrites the file, or finds it present and uses it whatever its
+URL. Two unknown names from different URLs that turn out equal still collide at
+publish, as before. The plan and report JSON changes are additive; rows with no
+shared destination are unchanged. Evidence:
+[shared-URL proof](docs/parity/fetch-shared-url-proof/README.md), 106/106 checks.
+This is Fetch/nxm acquisition only; the desktop download path does not use this
+orchestrator.

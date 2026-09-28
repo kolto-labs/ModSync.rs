@@ -6,7 +6,7 @@ use crate::{
     Component, Guide,
     acquisition::{
         Acquire, Acquired, AcquisitionEvent, ArchiveTarget, ManualReason, OriginRequirement,
-        PeerEndpoint, Phase, SkipReason, Source, SourceKind,
+        PeerEndpoint, Phase, SharedDestination, SkipReason, Source, SourceKind,
     },
     archive,
     download::{self, Destination, FailureClass, FetchProgress},
@@ -291,7 +291,35 @@ pub fn plan(
             plan_url(component, url, metadata, options, &mut result)?;
         }
     }
+    link_shared_destinations(&mut result.targets);
     Ok(result)
+}
+
+/// Two targets that publish one file must not both transfer: the loser fails on the
+/// existing destination and is neither recorded nor bound. The first target in guide
+/// order owns the file. A later target with the same registry URL shares its single
+/// transfer; one with a different URL fails explicitly. Known names compare ASCII
+/// case-insensitively, like `find_existing` and the C# `Files` map. A name revealed
+/// only by the transfer is shared by the same URL only.
+fn link_shared_destinations(targets: &mut [ArchiveTarget]) {
+    for index in 0..targets.len() {
+        let target = &targets[index];
+        let owner = targets[..index].iter().position(|earlier| {
+            earlier.shared_destination.is_none()
+                && match (&earlier.filename, &target.filename) {
+                    (Some(a), Some(b)) => a.eq_ignore_ascii_case(b),
+                    (None, None) => earlier.registry_url == target.registry_url,
+                    _ => false,
+                }
+        });
+        targets[index].shared_destination = owner.map(|owner| {
+            if targets[owner].registry_url == targets[index].registry_url {
+                SharedDestination::SameUrl(owner)
+            } else {
+                SharedDestination::DifferentUrl(owner)
+            }
+        });
+    }
 }
 
 fn plan_url(
@@ -400,6 +428,7 @@ fn plan_url(
             filename,
             expected_sha256: expected.clone(),
             sources: sources.clone(),
+            shared_destination: None,
         });
     }
     Ok(())
@@ -454,6 +483,10 @@ pub struct TargetOutcome {
     pub sha256: Option<String>,
     pub manual: Option<ManualRequirement>,
     pub error: Option<String>,
+    /// The plan index of the target whose single transfer this outcome shares
+    /// (`SharedDestination::SameUrl`); `None` when this target transferred for itself.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub shared_with: Option<usize>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
@@ -505,6 +538,16 @@ pub fn run_with_loopback_ca(
         settings.workers > 0,
         "Download worker count must be positive"
     );
+    for (index, target) in plan.targets.iter().enumerate() {
+        if let Some(SharedDestination::SameUrl(owner) | SharedDestination::DifferentUrl(owner)) =
+            target.shared_destination
+        {
+            ensure!(
+                owner < index && plan.targets[owner].shared_destination.is_none(),
+                "Download target {index} shares the destination of target {owner}, which is not an earlier downloading target"
+            );
+        }
+    }
     // Before any race of this run exists, so nothing swept here can be ours.
     sweep_stale_peer_staging(&plan.source_dir, std::time::SystemTime::now());
     let origins = || {
@@ -558,11 +601,29 @@ pub fn run_with_loopback_ca(
     let outcomes = thread::scope(|scope| {
         let context = &context;
         let pool = scope.spawn(move || {
-            download_queue::run_ordered(
-                plan.targets.iter().collect(),
-                settings.workers,
-                |index, target| acquire_target(context, index, target),
-            )
+            // A target sharing an earlier target's transfer is never queued: the owner
+            // fans its outcome out as soon as it ends, so each file is requested once.
+            let queued = plan
+                .targets
+                .iter()
+                .enumerate()
+                .filter(|(_, target)| {
+                    !matches!(
+                        target.shared_destination,
+                        Some(SharedDestination::SameUrl(_))
+                    )
+                })
+                .collect();
+            download_queue::run_ordered(queued, settings.workers, |_, (index, target)| {
+                let result = acquire_target(context, index, target);
+                let shared = shared_outcomes(context, index, &result);
+                std::iter::once(result).chain(shared).collect::<Vec<_>>()
+            })
+            .map(|finished| {
+                let mut outcomes: Vec<TargetOutcome> = finished.into_iter().flatten().collect();
+                outcomes.sort_by_key(|outcome| outcome.target_index);
+                outcomes
+            })
         });
         // Workers only send; this thread alone calls `observe`, so each target's events
         // arrive in the order its worker produced them.
@@ -599,7 +660,75 @@ fn outcome(index: usize, target: &ArchiveTarget, status: TargetStatus) -> Target
         sha256: None,
         manual: None,
         error: None,
+        shared_with: None,
     }
+}
+
+/// Fans a transferred target's outcome out, in plan order, to the targets that share its
+/// destination and URL. Each keeps its own index, component and registry URL, and gets
+/// one event carrying the owner's final phase. An authored hash of its own must also
+/// match the shared bytes.
+fn shared_outcomes(
+    context: &RunContext<'_>,
+    owner: usize,
+    result: &TargetOutcome,
+) -> Vec<TargetOutcome> {
+    let mut shared = Vec::new();
+    for (index, target) in context.plan.targets.iter().enumerate() {
+        if target.shared_destination != Some(SharedDestination::SameUrl(owner)) {
+            continue;
+        }
+        let mismatch = result.status == TargetStatus::Completed
+            && target
+                .expected_sha256
+                .as_deref()
+                .zip(result.sha256.as_deref())
+                .is_some_and(|(expected, actual)| !expected.eq_ignore_ascii_case(actual));
+        let outcome = if mismatch {
+            TargetOutcome {
+                error: Some(format!(
+                    "SHA-256 mismatch: the shared download {} does not match this component's ContentHashSHA256",
+                    result.path.as_deref().unwrap_or(Path::new("")).display()
+                )),
+                shared_with: Some(owner),
+                ..outcome(index, target, TargetStatus::Failed)
+            }
+        } else {
+            TargetOutcome {
+                target_index: index,
+                component_guid: target.component_guid.clone(),
+                registry_url: target.registry_url.clone(),
+                filename: match result.status {
+                    TargetStatus::Completed => result.filename.clone(),
+                    _ => target.filename.clone(),
+                },
+                shared_with: Some(owner),
+                ..result.clone()
+            }
+        };
+        let phase = match (outcome.status, &outcome.manual) {
+            (TargetStatus::Completed, _) => Phase::Completed {
+                path: outcome.path.clone().unwrap_or_default(),
+                sha256: outcome.sha256.clone().unwrap_or_default(),
+            },
+            (TargetStatus::ManualRequired, Some(manual)) => Phase::ManualRequired {
+                url: manual.url.clone(),
+                reason: manual.reason,
+            },
+            (TargetStatus::Cancelled, _) => Phase::Cancelled,
+            _ => Phase::SourceFailed {
+                error: outcome.error.clone().unwrap_or_default(),
+                will_fallback: false,
+            },
+        };
+        let source = outcome
+            .source
+            .or_else(|| target.sources.first().map(Source::kind))
+            .unwrap_or(SourceKind::Manual);
+        emit(context, index, target, source, phase);
+        shared.push(outcome);
+    }
+    shared
 }
 
 fn emit(
@@ -708,6 +837,31 @@ fn acquire_sources(
     if context.cancelled.load(Ordering::Relaxed) {
         emit(context, index, target, first, Phase::Cancelled);
         return outcome(index, target, TargetStatus::Cancelled);
+    }
+    if let Some(SharedDestination::DifferentUrl(owner)) = target.shared_destination {
+        // Deterministic and explicit instead of a race on the destination file.
+        let owner = &context.plan.targets[owner];
+        let error = format!(
+            "Download destination {} is also planned from {} for component {}; one file cannot come from two URLs, so {} was not requested",
+            target.filename.as_deref().unwrap_or_default(),
+            owner.registry_url,
+            owner.component_guid,
+            target.registry_url
+        );
+        emit(
+            context,
+            index,
+            target,
+            first,
+            Phase::SourceFailed {
+                error: error.clone(),
+                will_fallback: false,
+            },
+        );
+        return TargetOutcome {
+            error: Some(error),
+            ..outcome(index, target, TargetStatus::Failed)
+        };
     }
     emit(context, index, target, first, Phase::Resolving);
     let mut last_error = None;
@@ -1593,6 +1747,7 @@ pub fn nxm_target(guide: &Guide, link: &protocol::Link) -> Result<ArchiveTarget>
                 OriginRequirement::NexusPremium
             },
         }],
+        shared_destination: None,
     })
 }
 

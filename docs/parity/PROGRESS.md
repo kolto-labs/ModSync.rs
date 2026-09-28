@@ -68,10 +68,12 @@ is assigned because the remaining domains differ greatly in scope and proof cost
    refusal against the current archive, an actionable C#-configured import
    requirement, a repair hint for unparseable saved choices, and the no-Extract route
    warning; [evidence](fomod-s2a-proof/README.md) is 224/224. The round-3 follow-up is
-   `ae8d7e9`; S2a SPEC and QUALITY are [approved](fomod-s2a-review.md). Open:
-   Fetch plans one target per component for a shared URL/filename, so two
-   components on one URL race on the destination (`File exists`) and the second is
-   neither bound nor recorded; one-run `validate/install --fomod-choices` still
+   `ae8d7e9`; S2a SPEC and QUALITY are [approved](fomod-s2a-review.md). Fetch now
+   plans components that share a URL and file name as one transfer whose outcome
+   goes to every owner (reported, recorded and bound as FOMOD consumers), and a
+   file planned from two different URLs fails explicitly for the later one instead
+   of racing; [evidence](fetch-shared-url-proof/README.md) is 106/106 (uncommitted,
+   not yet reviewed). Open: one-run `validate/install --fomod-choices` still
    replaces all embedded archive choices.
    Remaining S2 semantic items and native acceptance follow.
    The [actual full.md conversion baseline](full-markdown-baseline/README.md)
