@@ -3,7 +3,7 @@
 the FOMOD gate on plain validate/install and mapper fallback warnings. Real
 fetch-downloads/fomod-inspect/validate/install in one isolated network namespace with a
 loopback HTTPS origin. Generic fixtures only; no Rust harness."""
-import atexit, hashlib, http.server, io, json, os, pathlib, shutil, ssl, subprocess, tempfile, threading, time, zipfile
+import atexit, ctypes, hashlib, http.server, io, json, os, pathlib, shutil, ssl, subprocess, tempfile, threading, time, zipfile
 REPO=pathlib.Path(__file__).resolve().parents[3]
 TARGET=pathlib.Path(os.environ.get('CARGO_TARGET_DIR', str(REPO/'target'))).resolve()
 OUT=pathlib.Path(os.environ.get('MODSYNC_PROOF_OUT', str(TARGET/'cloud-proof/fomod-s2b'))).resolve()
@@ -74,7 +74,7 @@ FALLBACK_XML=config([
  '<pattern><dependencies operator="And"><gameDependency version="1.0"/><flagDependency flag="Picked" value="yes"/></dependencies><files><file source="payload/g.txt" destination="Override"/></files></pattern>')
 FALLBACK=pack(FALLBACK_XML,{f'payload/{s}.txt':f'{s} bytes\n' for s in 'abegmo'})
 FALLBACK_WARNINGS=["fileDependency 'Example.esp' is not evaluated; treating as satisfied.","gameDependency '1.0' is not evaluated; treating as satisfied.",
- 'Skipping a conditionalFileInstalls pattern: only a flat And of flagDependency elements is supported.',
+ 'Skipping a conditionalFileInstalls pattern: only a flat And of flagDependency elements is supported in this slice.',
  'Skipping a conditionalFileInstalls pattern: its flag dependencies are not all set by a single plugin.',
  "FOMOD wants to install 'a.txt' as 'renamed.txt'; renames are not supported by the Copy action, the source file name is kept."]
 MAPPER='[Warning] [FomodToComponentMapper] '
@@ -157,7 +157,8 @@ def fetch(c,label,flags=()):
  r['consumers']=[v['outcome'] for v in (r['data'] or {}).get('fomodConfiguration',{}).get('consumers',[])]
  return r
 def mapper_lines(text):return [l for l in text.splitlines() if MAPPER in l]
-def warned(text,archive):return [w for w in FALLBACK_WARNINGS if f'{MAPPER}{archive}: {w}' in text]
+# C#'s exact text: the tag and the warning, with no archive prefix.
+def warned(text):return [w for w in FALLBACK_WARNINGS if any(l.endswith(MAPPER+w) for l in text.splitlines())]
 def files(*names):return {f'Override/{n}.txt':f'{n} bytes\n' for n in names}
 
 # 1. Run-scoped --fomod-choices merges per archive (Rust extension; C# validate/install
@@ -187,6 +188,23 @@ rv=validate(c,'unparseable_report',flags=sidecar(c,choices(entry('example.zip'))
 # Positive control: the same guide with parseable embedded choices takes the file entry.
 c=setup('merge_parseable',[comp(instructions=(extract('example.zip'),),saved=choices(entry('example.zip','Alpha')))],{'example.zip':FIRST})
 ri=install(c,'parseable_with_file',sidecar(c,choices(entry('example.zip'))));check('parseable_install_exit',ri['exit'],0);check('parseable_install_bytes',ri['game'],files('b'))
+# The file applies only to components that register or extract a named archive: an
+# unrelated component's unparseable FomodChoices are left alone and do not fail the run.
+UNPARSEABLE={'version':2,'archives':[entry('other.zip','Alpha')]}
+scope=[comp(instructions=(extract('example.zip'),),saved=choices(entry('example.zip','Alpha'))),comp(1,instructions=(NOTE,),saved=UNPARSEABLE)]
+c=setup('scope_unrelated',scope,{'example.zip':FIRST,'notes.txt':b'notes bytes\n'})
+ri=install(c,'install',sidecar(c,choices(entry('example.zip'))));check('scope_unrelated_install_exit',ri['exit'],0);check('scope_unrelated_install_bytes',ri['game'],files('b','notes'))
+rv=validate(c,'report',flags=sidecar(c,choices(entry('example.zip'))));check('scope_unrelated_report_exit',rv['exit'],0)
+rv=validate(c,'plain',report=False,flags=sidecar(c,choices(entry('example.zip'))));check('scope_unrelated_plain_exit',rv['exit'],0)
+# Controls: a registering-only component still takes the file entry (its stale embedded
+# choice is replaced), and an unrelated one keeps its own entries untouched.
+reg=[comp(instructions=(NOTE,),saved=choices(entry('example.zip','Unknown')),files=('example.zip',),status={'example.zip':'configured'})]
+c=setup('scope_registered',reg,{'example.zip':FIRST,'notes.txt':b'notes bytes\n'})
+rv=validate(c,'plain_embedded',report=False);check('scope_registered_embedded_exit',rv['exit'],1)
+rv=validate(c,'plain_file',report=False,flags=sidecar(c,choices(entry('example.zip'))));check('scope_registered_file_exit',rv['exit'],0)
+other=[comp(instructions=(extract('example.zip'),),saved=choices(entry('example.zip','Alpha'))),comp(1,instructions=(extract('second.zip'),),saved=choices(entry('second.zip','Alpha')))]
+c=setup('scope_other_archive',other,BOTH)
+ri=install(c,'install',sidecar(c,choices(entry('example.zip'))));check('scope_other_archive_exit',ri['exit'],0);check('scope_other_archive_bytes',ri['game'],files('b','c'))
 # Phased: base and remaining reconstruct the completed definitions from the same file;
 # a different file changes them and is refused before any write.
 wide=comp(1,instructions=(NOTE,),WidescreenOnly=True)
@@ -218,6 +236,13 @@ for label,override,needle in [('other_letter',{'plugin':'öBEL'},"FOMOD plugin '
  ri=install(c,'install');check(f'unicode_{label}_install_exit',ri['exit'],1);check(f'unicode_{label}_game_untouched',ri['game'],{})
 c=setup('unicode_sharp_s_exact',[comp(instructions=(extract('Ärchive.zip'),),saved=unicode_choices(plugin='STRAßE'))],{'Ärchive.zip':UNICODE})
 ri=install(c,'install');check('unicode_sharp_s_exact_exit',ri['exit'],0);check('unicode_sharp_s_exact_bytes',ri['game'],files('s'))
+# Greek iota-subscript letters: .NET's simple uppercase is the titlecase letter
+# (U+1F80 -> U+1F88, U+1FB3 -> U+1FBC); Rust's full mapping would expand them.
+IOTA=pair(names=('\u1f80\u03bb\u03c6\u03b1','\u1fb3\u03b2'))
+for label,name,expected in [('iota_row','\u1f88\u039b\u03a6\u0391','a'),('iota_single','\u1fbc\u0392','b')]:
+ c=setup(f'unicode_{label}',[comp(instructions=(extract('iota.zip'),),saved=choices(entry('iota.zip',name)))],{'iota.zip':IOTA})
+ rv=validate(c,'report');check(f'unicode_{label}_report_exit',rv['exit'],0)
+ ri=install(c,'install');check(f'unicode_{label}_install_exit',ri['exit'],0);check(f'unicode_{label}_install_bytes',ri['game'],files(expected))
 # A run-scoped file entry with a folded archive name replaces the embedded entry.
 c=setup('unicode_file_entry',[comp(instructions=(extract('Ärchive.zip'),),saved=unicode_choices(plugin='Ämber'))],{'Ärchive.zip':UNICODE})
 ri=install(c,'embedded');check('unicode_embedded_bytes',ri['game'],files('a'))
@@ -276,17 +301,17 @@ ri=install(c,'install');check('gate_plain_archive_install_exit',ri['exit'],0);ch
 # for every verb that maps; reports and stdout JSON are unchanged.
 fb=[comp(instructions=(extract('fallback.zip'),),saved=choices(entry('fallback.zip')),files=('fallback.zip',),status={'fallback.zip':'configured'})]
 c=setup('fallback',fb,{'fallback.zip':FALLBACK})
-rv=validate(c,'report');check('fallback_report_exit',rv['exit'],0);check('fallback_report_warnings',warned(rv['stderr'],'fallback.zip'),FALLBACK_WARNINGS)
+rv=validate(c,'report');check('fallback_report_exit',rv['exit'],0);check('fallback_report_warnings',warned(rv['stderr']),FALLBACK_WARNINGS)
 check('fallback_report_once',len(mapper_lines(rv['stderr'])),len(FALLBACK_WARNINGS));check('fallback_report_unchanged',(rv['data']['warningCount'],stage(rv)['hasWarnings']),(0,False))
-rv=validate(c,'plain',report=False);check('fallback_plain_exit',rv['exit'],0);check('fallback_plain_warnings',warned(rv['stderr'],'fallback.zip'),FALLBACK_WARNINGS)
-ri=install(c,'install');check('fallback_install_exit',ri['exit'],0);check('fallback_install_warnings',warned(ri['stderr'],'fallback.zip'),FALLBACK_WARNINGS)
+rv=validate(c,'plain',report=False);check('fallback_plain_exit',rv['exit'],0);check('fallback_plain_warnings',warned(rv['stderr']),FALLBACK_WARNINGS)
+ri=install(c,'install');check('fallback_install_exit',ri['exit'],0);check('fallback_install_warnings',warned(ri['stderr']),FALLBACK_WARNINGS)
 # Beta: its flag attaches the game-dependency pattern; the hidden step shows (file dependency satisfied).
 check('fallback_install_bytes',ri['game'],files('b','e','g'))
 r=execute(c,'inspect',[str(BIN),'fomod-inspect',str(c['mods']/'fallback.zip'),'--scratch-dir',str(c['scratch'])])
-check('fallback_inspect_exit',r['exit'],0);check('fallback_inspect_stdout_json',r['data'] is not None);check('fallback_inspect_warnings',warned(r['stderr'],'fallback.zip'),FALLBACK_WARNINGS)
+check('fallback_inspect_exit',r['exit'],0);check('fallback_inspect_stdout_json',r['data'] is not None);check('fallback_inspect_warnings',warned(r['stderr']),FALLBACK_WARNINGS)
 cf=setup('fallback_fetch',[comp(instructions=(extract('fallback.zip'),),files=('fallback.zip',),url=BASE+'/fallback.zip')],{})
 r=fetch(cf,'configure',['--record',*sidecar(cf,choices(entry('fallback.zip')))]);check('fallback_fetch_exit',r['exit'],0);check('fallback_fetch_outcomes',r['consumers'],['configured'])
-check('fallback_fetch_warnings',warned(r['stderr'],'fallback.zip'),FALLBACK_WARNINGS);check('fallback_fetch_stdout_json',r['data'] is not None)
+check('fallback_fetch_warnings',warned(r['stderr']),FALLBACK_WARNINGS);check('fallback_fetch_stdout_json',r['data'] is not None)
 # Resolved on the next Fetch: nothing is configured, so nothing is mapped or logged.
 r=fetch(cf,'resolved',['--non-interactive']);check('fallback_fetch_resolved_outcomes',r['consumers'],['resolved']);check('fallback_fetch_resolved_quiet',mapper_lines(r['stderr']),[])
 # Control: an installer without fallbacks logs nothing on any verb.
@@ -295,6 +320,45 @@ rv=validate(c,'report');check('clean_report_quiet',(rv['exit'],mapper_lines(rv['
 rv=validate(c,'plain',report=False);check('clean_plain_quiet',(rv['exit'],mapper_lines(rv['stderr'])),(0,[]))
 ri=install(c,'install');check('clean_install_quiet',(ri['exit'],mapper_lines(ri['stderr'])),(0,[]))
 r=execute(c,'inspect',[str(BIN),'fomod-inspect',str(c['mods']/'example.zip'),'--scratch-dir',str(c['scratch'])]);check('clean_inspect_quiet',(r['exit'],mapper_lines(r['stderr'])),(0,[]))
+
+# 5. The gate inspects each archive once, and spools only archives whose verified
+# listing names fomod/ModuleConfig.xml. Unpacks are counted as archive entries created
+# in --scratch-dir (inotify IN_CREATE on modsync-entry-* temporaries).
+LIBC=ctypes.CDLL(None,use_errno=True)
+def spooled(c,label,args):
+ fd=LIBC.inotify_init1(os.O_NONBLOCK);assert fd>=0
+ assert LIBC.inotify_add_watch(fd,str(c['scratch']).encode(),0x100)>=0
+ r=execute(c,label,args);names=[]
+ while True:
+  try:buf=os.read(fd,65536)
+  except BlockingIOError:break
+  i=0
+  while i<len(buf):
+   n=int.from_bytes(buf[i+12:i+16],'little');names.append(buf[i+16:i+16+n].rstrip(b'\0').decode());i+=16+n
+ os.close(fd);return r,sum(n.startswith('modsync-entry-') for n in names)
+def plain_validate(c):
+ game=c['case']/'unused-game';(game/'Override').mkdir(parents=True,exist_ok=True)
+ return [str(BIN),'validate','--input',str(c['guide']),'--game-dir',str(game),'--source-dir',str(c['mods']),'--scratch-dir',str(c['scratch'])]
+def shared(name,data,saved=None,status=None,extract_names=()):
+ # Both components register the archive and copy a note; only the first extracts.
+ second={**NOTE,'Source':['<<modDirectory>>/other.txt']}
+ return setup(name,[comp(i,instructions=(NOTE,*map(extract,extract_names)) if i==0 else (second,),saved=saved,files=('example.zip',),status=status) for i in (0,1)],{'example.zip':data,'notes.txt':b'notes bytes\n','other.txt':b'other bytes\n'})
+# Non-FOMOD archive registered by two components: listed, never spooled (spooled once
+# per registrant at 37cd4cc: 2).
+c=shared('unpack_plain_shared',PLAIN);r,n=spooled(c,'validate',plain_validate(c))
+check('unpack_plain_shared_exit',r['exit'],0);check('unpack_plain_shared_spooled',n,0)
+# FOMOD archive (3 entries) registered by two components: spooled once (twice at 37cd4cc: 6).
+c=shared('unpack_fomod_shared',FIRST,choices(entry('example.zip')),{'example.zip':'configured'});r,n=spooled(c,'validate',plain_validate(c))
+check('unpack_fomod_shared_exit',r['exit'],0);check('unpack_fomod_shared_spooled',n,3)
+# Registered by both, extracted by the first: the gate spools it once (3) and dry-run
+# simulation spools the selected Extract once (3). At 37cd4cc: 3 + 3 + 3.
+c=shared('unpack_fomod_extract',FIRST,choices(entry('example.zip')),{'example.zip':'configured'},('example.zip',));r,n=spooled(c,'validate',plain_validate(c))
+check('unpack_fomod_extract_exit',r['exit'],0);check('unpack_fomod_extract_spooled',n,6)
+# Non-FOMOD archive registered by both, extracted by the first: only the simulation
+# spools it (1). At 37cd4cc the gate spooled it three times (both registrants and the
+# unchecked Extract): 3 + 1.
+c=shared('unpack_plain_extract',PLAIN,extract_names=('example.zip',));r,n=spooled(c,'validate',plain_validate(c))
+check('unpack_plain_extract_exit',r['exit'],0);check('unpack_plain_extract_spooled',n,1)
 
 srv.shutdown();srv.server_close()
 check('binary_unchanged',digest(BIN),BINARY_BEFORE)

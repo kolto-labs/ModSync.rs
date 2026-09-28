@@ -8,7 +8,7 @@ use crate::{
 use anyhow::{Context, Result, bail, ensure};
 use serde::Serialize;
 use std::{
-    collections::{BTreeMap, BTreeSet},
+    collections::{BTreeMap, BTreeSet, btree_map},
     fs,
     io::{BufRead, BufReader, Read},
     path::{Path, PathBuf},
@@ -735,6 +735,8 @@ impl Engine {
         let mut configured = BTreeMap::<String, (String, Vec<String>)>::new();
         // (archive path, component) pairs already checked by the registered pass.
         let mut checked = BTreeSet::new();
+        // Each archive path is inspected once per gate, whichever component names it.
+        let mut inspected = BTreeMap::<String, Option<crate::fomod::ArchiveModule>>::new();
         let mut routes = BTreeSet::new();
         // Checked FOMOD archive paths whose mapper fallbacks were already logged.
         let mut logged = BTreeSet::new();
@@ -768,21 +770,26 @@ impl Engine {
                         }
                         continue;
                     }
-                    let entries = archive::unpack(
-                        &path,
-                        &relative_name,
-                        &self.settings.archive,
-                        &self.settings.cancelled,
-                    )
-                    .with_context(|| {
-                        format!("Registered archive '{filename}' cannot be inspected")
-                    })?;
-                    if let Some(module) = crate::fomod::inspect_entries(&entries)? {
-                        configured_choices(component, filename, &module)?;
+                    checked.insert((key(&path), component.guid.clone()));
+                    let module = match inspected.entry(key(&path)) {
+                        btree_map::Entry::Occupied(entry) => entry.into_mut(),
+                        btree_map::Entry::Vacant(entry) => entry.insert(
+                            crate::fomod::inspect_listed(
+                                &path,
+                                &relative_name,
+                                &self.settings.archive,
+                                &self.settings.cancelled,
+                            )
+                            .with_context(|| {
+                                format!("Registered archive '{filename}' cannot be inspected")
+                            })?,
+                        ),
+                    };
+                    if let Some(module) = module {
+                        configured_choices(component, filename, module)?;
                         if logged.insert(key(&path)) {
-                            crate::fomod::log_fallback_warnings(filename, &module.config);
+                            crate::fomod::log_fallback_warnings(&module.config);
                         }
-                        checked.insert((key(&path), component.guid.clone()));
                         configured
                             .entry(key(&path))
                             .or_insert_with(|| (filename.to_owned(), Vec::new()))
@@ -805,23 +812,27 @@ impl Engine {
                     if checked.contains(&(key(&source), component.guid.clone())) {
                         continue;
                     }
-                    let content = &self.files[&key(&source)].1;
-                    let entries = archive::unpack(
-                        content.path(),
-                        &source,
-                        &self.settings.archive,
-                        &self.settings.cancelled,
-                    )?;
-                    let Some(module) = crate::fomod::inspect_entries(&entries)? else {
+                    let module = match inspected.entry(key(&source)) {
+                        btree_map::Entry::Occupied(entry) => entry.into_mut(),
+                        btree_map::Entry::Vacant(entry) => {
+                            entry.insert(crate::fomod::inspect_listed(
+                                self.files[&key(&source)].1.path(),
+                                &source,
+                                &self.settings.archive,
+                                &self.settings.cancelled,
+                            )?)
+                        }
+                    };
+                    let Some(module) = module else {
                         continue;
                     };
                     let filename = source
                         .file_name()
                         .and_then(|name| name.to_str())
                         .context("FOMOD archive filename is invalid")?;
-                    configured_choices(component, filename, &module)?;
+                    configured_choices(component, filename, module)?;
                     if logged.insert(key(&source)) {
-                        crate::fomod::log_fallback_warnings(filename, &module.config);
+                        crate::fomod::log_fallback_warnings(&module.config);
                     }
                 }
             }

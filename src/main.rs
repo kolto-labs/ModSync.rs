@@ -994,8 +994,8 @@ fn run() -> Result<()> {
                 },
                 &AtomicBool::new(false),
             )?;
-            if let (Some(module), Some(filename)) = (&module, archive.file_name()) {
-                modsync::fomod::log_fallback_warnings(&filename.to_string_lossy(), &module.config);
+            if let Some(module) = &module {
+                modsync::fomod::log_fallback_warnings(&module.config);
             }
             if let Some(path) = choices {
                 let choices = modsync::fomod::ChoicesFile::parse(&std::fs::read_to_string(path)?)?;

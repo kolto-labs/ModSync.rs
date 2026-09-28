@@ -3,9 +3,12 @@ use anyhow::{Context, Result, ensure};
 use serde::{Deserialize, Serialize};
 
 /// Case key for FOMOD archive, step, group, plugin and flag names, following C#
-/// `StringComparison.OrdinalIgnoreCase`: each scalar value takes its simple
-/// (one-to-one) uppercase mapping, so `Ä` and `ä` match. Multi-character
-/// expansions such as `ß` -> `SS` are not applied, as in .NET ordinal casing.
+/// `StringComparison.OrdinalIgnoreCase`, which compares simple (one-to-one) uppercase
+/// mappings, so `Ä` and `ä` match. Rust's `char::to_uppercase` is the full mapping:
+/// a single-character result is the simple mapping; a multi-character expansion
+/// (`ß` -> `SS`) keeps the character, as .NET does, except the Greek iota-subscript
+/// letters (U+1F80-1FAF lowercase rows, U+1FB3, U+1FC3, U+1FF3), whose simple
+/// mapping is a titlecase letter (`ᾀ` -> `ᾈ`, UnicodeData.txt) and is spelled out below.
 pub fn fold_case(value: &str) -> String {
     value
         .chars()
@@ -13,7 +16,15 @@ pub fn fold_case(value: &str) -> String {
             let mut upper = c.to_uppercase();
             match (upper.next(), upper.next()) {
                 (Some(single), None) => single,
-                _ => c,
+                _ => match u32::from(c) {
+                    0x1F80..=0x1F87 | 0x1F90..=0x1F97 | 0x1FA0..=0x1FA7 => {
+                        char::from_u32(u32::from(c) + 8).unwrap_or(c)
+                    }
+                    0x1FB3 => '\u{1FBC}',
+                    0x1FC3 => '\u{1FCC}',
+                    0x1FF3 => '\u{1FFC}',
+                    _ => c,
+                },
             }
         })
         .collect()
@@ -540,7 +551,7 @@ impl ModuleConfig {
             labels.extend(ignored);
             match placement {
                 PatternPlacement::Unsupported => warnings.push(
-                    "Skipping a conditionalFileInstalls pattern: only a flat And of flagDependency elements is supported.".to_owned(),
+                    "Skipping a conditionalFileInstalls pattern: only a flat And of flagDependency elements is supported in this slice.".to_owned(),
                 ),
                 PatternPlacement::Unattached => warnings.push(
                     "Skipping a conditionalFileInstalls pattern: its flag dependencies are not all set by a single plugin.".to_owned(),
@@ -569,14 +580,12 @@ impl ModuleConfig {
     }
 }
 
-/// Log an installer's mapper fallbacks as warnings, like C# `Logger.LogWarning` in
-/// `FomodToComponentMapper`. The CLI mirrors the log to stderr; machine output and
-/// validation reports are unchanged.
-pub fn log_fallback_warnings(archive_file_name: &str, config: &ModuleConfig) {
+/// Log an installer's mapper fallbacks as warnings with C# `FomodToComponentMapper`'s
+/// exact `Logger.LogWarning` text (no archive prefix). The CLI mirrors the log to
+/// stderr; validation reports are unchanged.
+pub fn log_fallback_warnings(config: &ModuleConfig) {
     for warning in config.fallback_warnings() {
-        crate::logging::warning(format!(
-            "[FomodToComponentMapper] {archive_file_name}: {warning}"
-        ));
+        crate::logging::warning(format!("[FomodToComponentMapper] {warning}"));
     }
 }
 
@@ -692,6 +701,21 @@ pub fn inspect_archive(
     inspect_entries(&entries)
 }
 
+/// Like [`inspect_archive`], but a verified listing decides first: only an archive
+/// that lists a `fomod/ModuleConfig.xml` is spooled to scratch storage and parsed.
+pub(crate) fn inspect_listed(
+    path: &std::path::Path,
+    name: &std::path::Path,
+    options: &crate::archive::Options,
+    cancelled: &std::sync::atomic::AtomicBool,
+) -> Result<Option<ArchiveModule>> {
+    let names = crate::archive::list(path, name, options, cancelled)?;
+    if !names.iter().any(|name| is_module_config_path(name)) {
+        return Ok(None);
+    }
+    inspect_entries(&crate::archive::unpack(path, name, options, cancelled)?)
+}
+
 pub(crate) fn inspect_entries(entries: &[crate::archive::Entry]) -> Result<Option<ArchiveModule>> {
     let mut modules = entries
         .iter()
@@ -784,6 +808,24 @@ pub fn resource_matches_archive(component: &crate::Component, archive: &str) -> 
         .resource_registry
         .values()
         .any(|resource| resource_matches(resource, &filename))
+}
+
+/// Whether this component registers the archive or names it (by filename, wildcards
+/// allowed) in one of its own Extract sources. Options are separate components.
+fn references_archive(component: &crate::Component, archive: &str) -> bool {
+    let filename = fold_case(&archive_name(archive));
+    resource_matches_archive(component, archive)
+        || component
+            .instructions
+            .iter()
+            .filter(|instruction| instruction.action == "Extract")
+            .flat_map(|instruction| &instruction.source)
+            .any(|source| {
+                crate::reference_paths::pattern_matches(
+                    &filename,
+                    &fold_case(&archive_name(source)),
+                )
+            })
 }
 
 /// Read the C#-compatible per-archive prompt status from the matching resource entry.
@@ -1088,7 +1130,10 @@ impl ChoicesFile {
         self.update_guide(guide, completed)
     }
 
-    /// Per-archive merge shared by run-scoped application and editor merges.
+    /// Per-archive merge shared by run-scoped application and editor merges. Each
+    /// component (or option) receives only the entries for archives it registers or
+    /// extracts itself; other components, including ones with unparseable saved
+    /// choices, are left untouched.
     fn update_guide(&self, guide: &mut crate::Guide, completed: &[String]) -> Result<()> {
         fn update(
             components: &mut [crate::Component],
@@ -1102,28 +1147,43 @@ impl ChoicesFile {
                 {
                     continue;
                 }
-                let mut choices = saved_choices_file(component)?.unwrap_or(ChoicesFile {
-                    version: 1,
-                    archives: Vec::new(),
-                });
-                choices
+                let relevant: Vec<_> = edits
                     .archives
-                    .retain(|old| edits.archive(&old.archive_file_name).is_none());
-                choices.archives.extend(edits.archives.clone());
-                component
-                    .metadata
-                    .insert("FomodChoices".into(), serde_json::to_value(choices)?);
-                for archive in &edits.archives {
-                    try_set_prompt_status(
-                        component,
-                        &archive.archive_file_name,
-                        PromptStatus::Configured,
-                    )
-                    .with_context(|| {
-                        format!("Recording FOMOD prompt status for {}", component.guid)
-                    })?;
+                    .iter()
+                    .filter(|archive| references_archive(component, &archive.archive_file_name))
+                    .cloned()
+                    .collect();
+                if !relevant.is_empty() {
+                    merge_relevant(component, &relevant)?;
                 }
                 update(&mut component.options, edits, completed)?;
+            }
+            Ok(())
+        }
+        fn merge_relevant(
+            component: &mut crate::Component,
+            edits: &[ArchiveChoices],
+        ) -> Result<()> {
+            let mut choices = saved_choices_file(component)?.unwrap_or(ChoicesFile {
+                version: 1,
+                archives: Vec::new(),
+            });
+            choices.archives.retain(|old| {
+                !edits
+                    .iter()
+                    .any(|new| eq_ignore_case(&new.archive_file_name, &old.archive_file_name))
+            });
+            choices.archives.extend(edits.iter().cloned());
+            component
+                .metadata
+                .insert("FomodChoices".into(), serde_json::to_value(choices)?);
+            for archive in edits {
+                try_set_prompt_status(
+                    component,
+                    &archive.archive_file_name,
+                    PromptStatus::Configured,
+                )
+                .with_context(|| format!("Recording FOMOD prompt status for {}", component.guid))?;
             }
             Ok(())
         }

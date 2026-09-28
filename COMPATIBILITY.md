@@ -865,28 +865,39 @@ file entry replaces that archive's embedded choices for the run, and other archi
 keep theirs. The guide is never written, and with `Retained` completion context
 completed components are not touched. `--phase remaining` still applies the file to
 the reconstructed completed definitions, and the receipt refuses a different file
-before any write. Unparseable embedded `FomodChoices` now fail with the repair hint
-instead of being replaced. This supersedes the earlier whole-file replacement noted
+before any write. Both phases must therefore use the same binary: a base recorded by
+a build before `37cd4cc`, or by `37cd4cc` without its review follow-up, reconstructs
+different completed definitions and must be re-run. A file entry is applied only to
+components (and options) that register the archive or name it in their own Extract
+source, so an unrelated component's unparseable `FomodChoices` do not fail the run.
+Unparseable embedded `FomodChoices` on a component the file applies to fail with the
+repair hint instead of being replaced. This supersedes the earlier whole-file replacement noted
 under "CLI configured FOMOD installation" and in the S2a section.
 
 FOMOD archive, step, group, plugin and flag names, and prompt-status archive keys,
-now match like C# `OrdinalIgnoreCase` (`Ä` matches `ä`; `ß` does not match `SS`),
-replacing the earlier ASCII-only matching. Recording a status updates an existing key
-of any case in place. .NET casing-table exceptions are not replicated.
+now match like C# `OrdinalIgnoreCase` (`Ä` matches `ä`; `ß` does not match `SS`;
+Greek iota-subscript letters such as `ᾀ`/`ᾈ` and `ᾳ`/`ᾼ` use their simple uppercase
+mapping), replacing the earlier ASCII-only matching. Recording a status updates an
+existing key of any case in place. .NET casing-table exceptions are not replicated.
 
 Plain `validate` and `install` now run the registered-archive FOMOD gate, as C# does
 on every validate path and at install. Missing, stale or configured-only choices and
 a missing archive with recorded state fail before any simulation or write. The
 no-route warning becomes a `WARNING:` event. This includes desktop installation
-through the shared engine.
+through the shared engine. The gate inspects each archive path once per run, however
+many components register or extract it, and spools an archive to scratch only when
+its verified listing names `fomod/ModuleConfig.xml`.
 
-C#'s mapper fallback warnings are logged with its `[FomodToComponentMapper]` wording:
+C#'s mapper fallback warnings are logged with its exact `[FomodToComponentMapper]`
+wording and no archive prefix:
 unevaluated file/game dependencies, skipped conditional patterns and dropped renames.
 They are logged by the gate, by Fetch configuration and by `fomod-inspect`. These
-verbs mirror the log to stderr, and the validation report and stdout JSON are
-unchanged. C# has no warning for group defaults or auto-selection, so Rust adds none.
-Evidence: [S2b proof](docs/parity/fomod-s2b-proof/README.md), 200/200 checks (70 fail
-on `b6d1d88`). Ownership propagation, gate dependency scope, the missing-archive soft
+verbs mirror the log to stderr, and the `--validation-report` JSON is unchanged.
+Plain `validate`/`install --json` stdout gains one `WARNING:` event line per no-route
+archive from the gate. C# has no warning for group defaults or auto-selection, so Rust
+adds none. Evidence: [S2b proof](docs/parity/fomod-s2b-proof/README.md), 232/232 checks
+at `37cd4cc` plus its review follow-up (70 of the original 200 fail on `b6d1d88`; 19
+of 232 fail on `37cd4cc`). Ownership propagation, gate dependency scope, the missing-archive soft
 warning, desktop reconfiguration and the S3 corpora remain open, and F15 stays partial.
 
 ## Fetch shared URL and destination — 2026-09-28 UTC

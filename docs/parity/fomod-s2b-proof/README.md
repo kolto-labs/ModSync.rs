@@ -1,7 +1,9 @@
 # FOMOD S2b: per-archive run choices, Unicode names, plain-verb gate, fallback warnings
 
 Scope is the bounded S2b slice of [the remaining plan](../fomod-remaining-plan.md) S2,
-continuing [S2a](../fomod-s2a-proof/README.md#what-remains-of-s2). The base is `b6d1d88`.
+continuing [S2a](../fomod-s2a-proof/README.md#what-remains-of-s2). The base is `b6d1d88`;
+the slice is commit `37cd4cc` plus an uncommitted review follow-up (see "Review
+follow-up" below).
 Ownership propagation, desktop work and S3 are out of scope. This slice does not
 change F15 or F29 status.
 
@@ -27,29 +29,36 @@ are covered.
 
 ## (b) Changes
 
-- **Per-archive run choices** (`src/fomod.rs` `apply_to_remaining` ~910 and
-  `update_guide` ~1092). `validate`/`install --fomod-choices` now merges each file
+- **Per-archive run choices** (`src/fomod.rs` `apply_to_remaining` ~952 and
+  `update_guide` ~1137). `validate`/`install --fomod-choices` now merges each file
   entry into the embedded choices:
   - An entry replaces that archive's choices (archive names match case-insensitively),
     and other archives keep theirs.
   - Completed components are skipped, as before.
+  - An entry is applied only to a component (or option) that registers the archive or
+    names it in one of its own Extract sources (`references_archive` ~815; wildcards
+    follow the reference path matcher). Other components, including ones with
+    unparseable saved choices, are untouched.
   - The guide is never written.
   - Unparseable embedded `FomodChoices` go through `saved_choices_file` and fail with
     the S2a repair hint. They are never silently replaced.
   - The editor merge (`merge_into_remaining`) now shares this code. Its behavior is
     unchanged.
-- **Unicode names** (`src/fomod.rs` `fold_case`/`eq_ignore_case`, lines 9-26). These use
-  simple one-to-one uppercase mapping per scalar value (`Ä`≡`ä`; `ß`≢`SS`). They are
-  used for:
+- **Unicode names** (`src/fomod.rs` `fold_case`/`eq_ignore_case`, lines 5-36). These use
+  the simple one-to-one uppercase mapping per scalar value (`Ä`≡`ä`; `ß`≢`SS`). Rust's
+  `char::to_uppercase` is the full mapping, so a single-character result is taken as
+  is, a multi-character expansion keeps the character, and the Greek iota-subscript
+  letters (U+1F80-1F87, 1F90-1F97, 1FA0-1FA7, 1FB3, 1FC3, 1FF3), whose simple mapping
+  is a titlecase letter, are mapped explicitly. They are used for:
   - choices-file archive lookup and duplicate detection;
   - step, group and plugin lookup in `apply_to`/`apply_names`;
   - flag names in step visibility and conditional-pattern attachment;
   - rename detection;
   - resource and prompt-status archive keys;
   - the bound-session archive check;
-  - the gate's registered-name dedup (`src/engine.rs` ~752).
+  - the gate's registered-name dedup (`src/engine.rs` ~754).
 
-  `write_prompt_status` (~847) updates any existing key for the archive, in any case,
+  `write_prompt_status` (~889) updates any existing key for the archive, in any case,
   instead of adding a differently cased twin. It inserts the old key form only when no
   key matches.
 - **Gate on plain verbs** (`src/engine.rs` `fomod_gate` ~277).
@@ -62,17 +71,27 @@ are covered.
   Issues fail with the existing actionable messages under "FOMOD configuration check
   failed" (install adds "Installation blocked before any write"). No-route warnings
   become `WARNING:` events. The gate reads archives into scratch only.
-- **Fallback diagnostics** (`src/fomod.rs` `ModuleConfig::fallback_warnings` ~516,
-  `log_fallback_warnings` ~575, `dropped_rename` ~585, `PatternPlacement`/`place_pattern`
+  - Each archive path is inspected once per gate run (`inspected`, `src/engine.rs`
+    ~739), and every inspected `(path, component)` pair is recorded in `checked`, so
+    the Extract pass never re-reads an archive. Inspection goes through
+    `fomod::inspect_listed` (~706): a verified, non-spooling listing
+    (`archive::list`, `src/archive.rs` ~116) decides, and only an archive that lists
+    `fomod/ModuleConfig.xml` is spooled and parsed.
+- **Fallback diagnostics** (`src/fomod.rs` `ModuleConfig::fallback_warnings` ~527,
+  `log_fallback_warnings` ~586, `dropped_rename` ~594, `PatternPlacement`/`place_pattern`
   ~414-475). `selected_files` and the warnings now share one pattern classification.
   - `FlagCondition::Always` now carries the C# label (`src/fomod/xml.rs` ~114-117).
-  - Warnings are logged per installer with C#'s `[FomodToComponentMapper]` tag and
-    wording through `crate::logging::warning`. This happens once per archive in each
-    gate run (`src/engine.rs` ~783, ~824), for Fetch archives with an accepted
-    session (`src/fomod_cli.rs` ~666), and in `fomod-inspect` (`src/main.rs` ~998).
+  - Warnings are logged per installer with C#'s exact `[FomodToComponentMapper]`
+    text (`FomodToComponentMapper.cs:160`, `:165`, `:257`, `:277`, `:350`, `:432`),
+    with no archive prefix, through `crate::logging::warning`. This happens once per
+    archive in each gate run (`src/engine.rs` ~789, ~832), for Fetch archives with an
+    accepted session (`src/fomod_cli.rs` ~661), and in `fomod-inspect`
+    (`src/main.rs` ~998).
   - `main` mirrors the log to stderr for `validate`, `install`, `fetch-downloads` and
-    `fomod-inspect` (`src/main.rs` ~782). Stdout JSON and the validation report are
-    unchanged, matching C#'s report.
+    `fomod-inspect` (`src/main.rs` ~782). The validation report is unchanged,
+    matching C#'s report, and fallback warnings never reach stdout. The gate's
+    no-route warning is an ordinary event, so plain `validate`/`install` (with or
+    without `--json`) print one `WARNING:` event line for it on stdout.
 - **Report summary** (`src/validation.rs` ~274) uses C#'s
   `All detected FOMOD archives are configured (N warning(s)).`.
 
@@ -83,17 +102,23 @@ are covered.
   it matches the Fetch reconfiguration route (S2a) and the editor merge, and a file
   for one archive no longer drops every other archive for the run.
   - With `--phase remaining` (context `Reconstruct`), the file is applied to every
-    component. That is how the completed definitions are reconstructed from the same
-    inputs as the base run.
+    referencing component, completed or not. That is how the completed definitions
+    are reconstructed from the same inputs as the base run, so both phases must use
+    the same binary. A base recorded by a build before `37cd4cc`, or by `37cd4cc`
+    before this follow-up (which scoped the file to referencing components), must be
+    re-run.
   - The receipt then refuses a different file before any write (`phased_*`).
   - The desktop's `Retained` context skips completed components.
 - **Unparseable embedded choices + file** fail instead of being overwritten, because
   a merge cannot preserve entries it cannot read. At `b6d1d88` the file silently
   replaced them.
 - **Case mapping.** .NET ordinal casing is a simple per-character uppercase mapping.
-  Rust `char::to_uppercase` is full mapping, so characters with multi-character
-  uppercase (e.g. `ß`) are left unchanged. Unverified residual: .NET casing-table
-  exceptions (for example U+0131, U+017F) are not replicated.
+  Rust `char::to_uppercase` is full mapping, so characters whose full uppercase is
+  several characters (e.g. `ß`) are left unchanged, which matches .NET because their
+  simple mapping is the identity. The only exceptions are the iota-subscript letters,
+  whose simple mapping is a titlecase letter; they are mapped explicitly and covered
+  by the `unicode_iota_*` fixtures. Unverified residual: .NET casing-table exceptions
+  (for example U+0131, U+017F) are not replicated.
 - **Gate at install and plain validate** follows C#. The desktop install now runs it
   too, through the shared engine. The missing-archive-without-state soft warning and
   hard-dependency scope expansion stay out of scope (S3 gate/report scope).
@@ -131,17 +156,29 @@ Standing invariants:
 | Unicode flags | Value `AN` vs `an` stays case-sensitive: only `a`. | Flag `ä` set as `Ä` shows the step and attaches the pattern: `a`,`e`,`f`. |
 | Prompt-status key | — | Key `ärchive.zip` is read for `Ärchive.zip` (and ASCII `example.zip` for `Example.zip`). Fetch `--record` with a folded or exact entry updates it in place to one key, `configured`, then installs `b`. |
 | Gate, plain validate/install | Missing, stale and configured-only choices on a registered-only FOMOD archive, and a missing archive with recorded state: exit 1 with the actionable text. Install leaves the game and mods untouched. | Valid choices give exit 0 plus one ` / 0: WARNING: ` route event, and install copies `notes`. The same guide with `Extract` has no warning. A registered non-FOMOD archive and a missing archive without state pass. |
-| Fallback warnings | — | All five C# warnings, each once, on report/plain/install/`fomod-inspect`/Fetch stderr. The report keeps `warningCount` 0 and no stage warning. Install writes `b`,`e`,`g`. A resolved Fetch and a clean installer log nothing. |
+| Unicode iota subscript | — | `ᾈΛΦΑ` selects plugin `ᾀλφα` and `ᾼΒ` selects `ᾳβ` on report and install. |
+| Run-choice scope | A registering-only component with a stale embedded choice fails plain validate. | An unrelated component with unparseable `FomodChoices` does not fail install/report/plain with a file for another component's archive (`b`,`notes`). The registering-only component takes the file entry (exit 0). A second archive keeps its own embedded choice (`b`,`c`). |
+| Gate unpack count (inotify on `--scratch-dir`) | — | Plain validate spools a non-FOMOD archive registered by two components 0 times, a FOMOD archive (3 entries) registered by two components 3 entries (once), the same with one Extract 6 (gate once plus simulation once), and a non-FOMOD archive registered twice and extracted once 1 (simulation only). |
+| Fallback warnings | — | All five C# warnings, each once and with C#'s exact text, on report/plain/install/`fomod-inspect`/Fetch stderr. The report keeps `warningCount` 0 and no stage warning. Install writes `b`,`e`,`g`. A resolved Fetch and a clean installer log nothing. |
 
 ### Results (cloud Linux)
 
-- `probe.py`: **200/200 checks, 67 production invocations**. The default-feature
-  debug binary SHA-256 is
-  `473e6d38e1ecce9da4d0f209f64e70d5443a3cc3699fb5e34e387be889df6d64` (host-specific).
-  The working tree is `b6d1d88` plus this slice, uncommitted and bound by source hash
-  in the receipt.
-- Pre-fix demonstration: the same probe against a `--no-default-features` binary built
-  from a `git archive` of `b6d1d88` in a scratch directory with its own
+- `probe.py`: **232/232 checks, 81 production invocations**. The binary is the
+  default-feature debug build; its SHA-256 is host-specific and recorded in the
+  receipt. The working tree is `37cd4cc` plus the uncommitted review follow-up, bound
+  by source hash in the receipt. (The original slice recorded 200/200 with 67
+  invocations on an uncommitted `b6d1d88` tree.)
+- Follow-up pre-fix demonstration: the same probe against a `--no-default-features`
+  binary built from a `git archive` of `37cd4cc` in a scratch directory with its own
+  `CARGO_TARGET_DIR` (`FOMOD_S2B_ALLOW_UNBOUND=1`, output
+  `target/cloud-proof/fomod-s2b-pre37cd4cc`) gives **213/232; 19 checks fail**: all
+  four `scope_unrelated_*` (the file reached the unrelated component and its
+  unparseable choices failed the run), all six `unicode_iota_*`, the five
+  `fallback_*_warnings` (archive prefix, and "is supported." without "in this
+  slice"), and the four `unpack_*_spooled` counts, which were 2, 6, 9 and 4 instead of
+  0, 3, 6 and 1.
+- Original pre-fix demonstration (the 200-check probe committed in `37cd4cc`) against
+  a binary built with `--no-default-features` from a `git archive` of `b6d1d88` in a scratch directory with its own
   `CARGO_TARGET_DIR` (`FOMOD_S2B_ALLOW_UNBOUND=1`, output
   `target/cloud-proof/fomod-s2b-preb6d1d88`) gives **130/200; 70 checks fail**:
   - merge: `merge_install_exit`/`_bytes`, `merge_report_exit`, `_stage_passed`,
@@ -175,6 +212,22 @@ Standing invariants:
 
   No Rust test or harness was created, modified, compiled or run, and
   `--all-targets` was not used.
+
+## Review follow-up
+
+The independent review of `37cd4cc` found five issues; the uncommitted follow-up fixes
+them and the proof above covers each:
+
+- The gate unpacked every registered archive and re-unpacked non-FOMOD and shared
+  archives; it now lists first, spools only FOMOD archives and inspects each path once
+  (`unpack_*`).
+- The fallback text had an archive prefix and dropped "in this slice"; it is now C#'s
+  exact text (`fallback_*_warnings`).
+- Iota-subscript letters did not fold like .NET (`unicode_iota_*`).
+- A run choices file reached every component, so an unrelated component with
+  unparseable `FomodChoices` failed the run (`scope_*`).
+- Phased runs and the `--json` stdout claim are now documented precisely (above and in
+  `COMPATIBILITY.md`).
 
 ## What remains of S2
 
