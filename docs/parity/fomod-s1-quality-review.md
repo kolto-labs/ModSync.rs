@@ -23,3 +23,16 @@ top-level consumer binding, exit latching after recording.
 
 Controller confirmed finding 1 by source inspection. Fixes dispatched to a fresh
 implementer; a new independent QUALITY round follows.
+
+## Round 2 (fix `0e496f8`): CHANGES REQUIRED
+
+Findings 1, 2 and 4-9 resolved; 3 partially. Controller evidence for `0e496f8`:
+Linux gates plus `x86_64-pc-windows-gnu` Clippy `-D warnings` in both feature
+modes; isolated-netns fixtures 319/319 (58 cases) and inherited 41/41.
+
+| # | Severity | Finding |
+| --- | --- | --- |
+| 10 | should-fix | Warn/Skip no-op detection treats a real change as no-op when no registry entry names the archive (no `Files` map): no warning, and `--record` defers `warned` to the next run. |
+| 11 | nit | `set_prompt_status` returns `false` on malformed metadata and merge callers ignore it; bound path errors instead. |
+| 12 | nit | Comments overstate sharing with the desktop; only per-archive dedup is shared, eligibility differs. |
+| 13 | nit | Proof README binding stale (`f3f27d3`, "re-run required", "not cross-compiled"). |
