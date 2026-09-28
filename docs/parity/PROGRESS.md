@@ -67,9 +67,12 @@ is assigned because the remaining domains differ greatly in scope and proof cost
    `93837e5`, round-2 follow-up commit `a436c05` and a round-3 follow-up) adds `--fomod-choices` same-archive reconfiguration, stale-choice
    refusal against the current archive, an actionable C#-configured import
    requirement, a repair hint for unparseable saved choices, and the no-Extract route
-   warning; [evidence](fomod-s2a-proof/README.md) is 224/224. `a436c05` was re-reviewed
-   (SPEC approved, QUALITY changes required); the round-3 follow-up needs QUALITY
-   re-review.
+   warning; [evidence](fomod-s2a-proof/README.md) is 224/224. The round-3 follow-up is
+   `ae8d7e9`; S2a SPEC and QUALITY are [approved](fomod-s2a-review.md). Open:
+   Fetch plans one target per component for a shared URL/filename, so two
+   components on one URL race on the destination (`File exists`) and the second is
+   neither bound nor recorded; one-run `validate/install --fomod-choices` still
+   replaces all embedded archive choices.
    Remaining S2 semantic items and native acceptance follow.
    The [actual full.md conversion baseline](full-markdown-baseline/README.md)
    retains eight production conversions and an independent anonymous comparison.

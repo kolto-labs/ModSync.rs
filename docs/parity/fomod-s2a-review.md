@@ -76,3 +76,18 @@ Fixed in the round-3 follow-up ([proof section (f)](fomod-s2a-proof/README.md#f-
 probe case `unparseable_shared` (fails 3 checks with the skip removed) and a
 `COMPATIBILITY.md` sentence; the hint now says to repair, with removal qualified;
 `PROGRESS.md` names `a436c05` and the round-3 follow-up. Probe 224/224.
+
+## Final QUALITY check of `ae8d7e9`: APPROVED
+
+Both round-3 findings resolved; the `unparseable_shared` case exercises the
+shared-archive skip non-vacuously (3 behavior checks fail without it). Two README
+wording nits fixed by the controller. **FOMOD S2a is accepted (SPEC and QUALITY).**
+
+Separate pre-existing defect found (not S2a): `plan` deduplicates by component only
+(`src/download_orchestrator.rs` ~270/287) and `plan_url` adds one `ArchiveTarget`
+per component for the same URL and filename (~397; `src/acquisition.rs` ~111), so
+two components with one URL download concurrently to one path; the loser fails
+`persist_noclobber` with `EEXIST` (`src/download.rs` ~277/417/473), is excluded
+from FOMOD binding and `record`, and Fetch exits non-zero. Fix: merge targets by
+destination at plan time and fan the outcome out to every owning component; prove
+with two components on one URL and no pre-placed archive.

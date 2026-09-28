@@ -212,15 +212,16 @@ The [re-review](../fomod-s2a-review.md) of `93837e5` required changes:
   `saved_choices_file` for Fetch, the gate and install). Saved `FomodChoices` that
   `ChoicesFile::parse` rejects no longer advertise `fetch-downloads --record
   --fomod-choices`, which re-parses the same metadata and always failed. The hint
-  says to repair (round 3: not remove) that component's `FomodChoices`, then capture
+  says to repair (round 3: removal qualified) that component's `FomodChoices`, then capture
   with `fomod-inspect --save-choices` and record with `fetch-downloads --record
   --fomod-choices`. `CHOICES_RECOVERY_HINT` stays for parseable choices that are
   stale or invalid against the current archive.
 - **No overwrite.** Fetch (`src/fomod_cli.rs` `dispatch`) excludes consumers with
   unparseable saved choices from a flag reconfiguration session, so they keep their
   own error and are never rewritten, which could discard other archives' entries.
-  Other consumers of the archive are still reconfigured or configured (probed in
-  round 3, section (f)).
+  Other consumers of the archive are still reconfigured (a stale co-consumer is
+  probed in round 3, section (f)) or configured (pending co-consumer; same
+  `targets` path, not probed).
 - **Missing entry.** When a consumer has stale (parseable) saved choices and the
   loaded `--fomod-choices` file has no entry for that archive, the run reports
   `Choices file <path> has no entry for archive '<name>'` once in `errors`.
