@@ -47,6 +47,21 @@ def new_root():
     return tempfile.mkdtemp(prefix="modsync-switch-probe-")
 
 
+def hash_tree(*roots):
+    """sha256 of every regular file under each root, keyed by (root, relpath)."""
+    digest = {}
+    for root in roots:
+        if not os.path.isdir(root):
+            continue
+        for dirpath, _dirnames, filenames in os.walk(root):
+            for name in filenames:
+                path = os.path.join(dirpath, name)
+                rel = os.path.relpath(path, root)
+                if os.path.isfile(path):
+                    digest[f"{root}::{rel}"] = sha256_file(path)
+    return digest
+
+
 def make_profile(settings_dir, name):
     return run("profile", "--action", "create", "--name", name, "--settings-dir", settings_dir)
 
@@ -203,11 +218,137 @@ def probe_7(results):
     shutil.rmtree(root)
 
 
+def artifact_root(settings, profile):
+    return os.path.join(settings, "profiles", profile, "deployment")
+
+
+def probe_8(results):
+    """Modified-after-deploy file refuses the purge/switch and changes nothing."""
+    root = new_root()
+    game = os.path.join(root, "game")
+    settings = os.path.join(root, "settings")
+    os.makedirs(game)
+    make_profile(settings, "A")
+    make_profile(settings, "B")
+    run("profile", "--action", "activate", "--name", "A", "--settings-dir", settings)
+    original = os.path.join(game, "example.txt")
+    with open(original, "w") as f:
+        f.write("original")
+    r = deploy(game, settings, "A", "comp1", {"example.txt": "deployed"})
+    check(results, "p8_deploy_ok", r["exit"] == 0, r)
+    with open(original, "w") as f:
+        f.write("modified-after-deploy")
+    before = hash_tree(game, artifact_root(settings, "A"))
+    r = switch(game, settings, "B", purge=True)
+    check(results, "p8_modified_after_deploy_refused", r["exit"] != 0, r)
+    check(results, "p8_active_unchanged", active_profile(settings) == "A", active_profile(settings))
+    after = hash_tree(game, artifact_root(settings, "A"))
+    check(results, "p8_game_and_artifacts_unchanged", before == after, {"before": before, "after": after})
+    shutil.rmtree(root)
+
+
+def probe_9(results):
+    """A deployed path replaced with a directory refuses the purge/switch likewise."""
+    root = new_root()
+    game = os.path.join(root, "game")
+    settings = os.path.join(root, "settings")
+    os.makedirs(game)
+    make_profile(settings, "A")
+    make_profile(settings, "B")
+    run("profile", "--action", "activate", "--name", "A", "--settings-dir", settings)
+    r = deploy(game, settings, "A", "comp1", {"example.txt": "deployed"})
+    check(results, "p9_deploy_ok", r["exit"] == 0, r)
+    target_path = os.path.join(game, "example.txt")
+    os.remove(target_path)
+    os.makedirs(target_path)
+    before = hash_tree(game, artifact_root(settings, "A"))
+    r = switch(game, settings, "B", purge=True)
+    check(results, "p9_replaced_with_directory_refused", r["exit"] != 0, r)
+    check(results, "p9_active_unchanged", active_profile(settings) == "A", active_profile(settings))
+    after = hash_tree(game, artifact_root(settings, "A"))
+    check(results, "p9_game_and_artifacts_unchanged", before == after, {"before": before, "after": after})
+    shutil.rmtree(root)
+
+
+def probe_10(results):
+    """One ordinary + one blocked component: no partial preflight mutation."""
+    root = new_root()
+    game = os.path.join(root, "game")
+    settings = os.path.join(root, "settings")
+    os.makedirs(game)
+    make_profile(settings, "A")
+    make_profile(settings, "B")
+    run("profile", "--action", "activate", "--name", "A", "--settings-dir", settings)
+    r = deploy(game, settings, "A", "ordinary", {"ordinary.txt": "fine"})
+    check(results, "p10_deploy_ordinary_ok", r["exit"] == 0, r)
+    r = deploy(game, settings, "A", "blocked", {"blocked.txt": "deployed"})
+    check(results, "p10_deploy_blocked_ok", r["exit"] == 0, r)
+    with open(os.path.join(game, "blocked.txt"), "w") as f:
+        f.write("modified-after-deploy")
+    before = hash_tree(game, artifact_root(settings, "A"))
+    r = switch(game, settings, "B", purge=True)
+    check(results, "p10_mixed_purge_refused", r["exit"] != 0, r)
+    check(results, "p10_active_unchanged", active_profile(settings) == "A", active_profile(settings))
+    after = hash_tree(game, artifact_root(settings, "A"))
+    check(
+        results,
+        "p10_no_partial_mutation_ordinary_still_present",
+        before == after,
+        {"before": before, "after": after},
+    )
+    r = run("deployment", "status", "--game-dir", game, "--profile", "A", "--settings-dir", settings)
+    manifests = json.loads(r["stdout"]) if r["exit"] == 0 else []
+    check(
+        results,
+        "p10_both_manifests_retained",
+        {m["ComponentGuid"] for m in manifests} == {"ordinary", "blocked"},
+        manifests,
+    )
+    shutil.rmtree(root)
+
+
+def probe_11(results):
+    """Two overlapping deployments purge newest-first, restore original, then switch."""
+    root = new_root()
+    game = os.path.join(root, "game")
+    settings = os.path.join(root, "settings")
+    os.makedirs(game)
+    make_profile(settings, "A")
+    make_profile(settings, "B")
+    run("profile", "--action", "activate", "--name", "A", "--settings-dir", settings)
+    shared = os.path.join(game, "shared.txt")
+    with open(shared, "w") as f:
+        f.write("original-bytes")
+    original_hash = sha256_file(shared)
+    r = deploy(game, settings, "A", "compA", {"shared.txt": "first-overlay"})
+    check(results, "p11_deploy_compA_ok", r["exit"] == 0, r)
+    r = deploy(game, settings, "A", "compB", {"shared.txt": "second-overlay"})
+    check(results, "p11_deploy_compB_ok", r["exit"] == 0, r)
+    check(results, "p11_second_overlay_live", open(shared).read() == "second-overlay", open(shared).read())
+    r = switch(game, settings, "B", purge=True)
+    check(results, "p11_purge_and_switch_succeeds", r["exit"] == 0, r)
+    check(results, "p11_original_bytes_restored", sha256_file(shared) == original_hash, sha256_file(shared))
+    check(results, "p11_active_is_target", active_profile(settings) == "B", active_profile(settings))
+    shutil.rmtree(root)
+
+
 def main():
     results = []
-    for probe in (probe_1, probe_2, probe_3, probe_4, probe_5, probe_6, probe_7):
+    for probe in (
+        probe_1, probe_2, probe_3, probe_4, probe_5, probe_6, probe_7,
+        probe_8, probe_9, probe_10, probe_11,
+    ):
         probe(results)
-    receipt = {"binary": BINARY, "checks": results, "all_passed": all(c["passed"] for c in results)}
+    source_sha = subprocess.run(
+        ["git", "rev-parse", "HEAD"], capture_output=True, text=True, cwd=os.path.dirname(__file__)
+    ).stdout.strip()
+    receipt = {
+        "source_git_sha": source_sha,
+        "binary": BINARY,
+        "binary_sha256": sha256_file(BINARY),
+        "checks": results,
+        "all_passed": all(c["passed"] for c in results),
+    }
     out_path = os.path.join(os.path.dirname(__file__), "switch-probes.json")
     with open(out_path, "w") as f:
         json.dump(receipt, f, indent=2)

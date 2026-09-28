@@ -782,14 +782,24 @@ fn run() -> Result<()> {
                     let settings = modsync::profiles::settings_directory(settings_dir.as_deref())?;
                     let store = modsync::profiles::Store::new(&settings)?;
                     let target_profile = store.require(&to)?;
+
+                    // Preflight and lock the target first: a known-bad target must
+                    // refuse before anything reads the active profile or touches the
+                    // current deployment, and `active_name` is read only once the
+                    // lock is held so a concurrent switch cannot interleave with it.
+                    let target = modsync::deployment::Service::for_profile(
+                        &settings,
+                        &target_profile.name,
+                        &game_dir,
+                    )?;
+                    let _lock = target.lock()?;
+
                     let from = store.active_name()?;
                     let switching = from
                         .as_deref()
                         .is_some_and(|current| !current.eq_ignore_ascii_case(to.trim()));
 
-                    // Resolve both sides (and propagate a bad source profile/service
-                    // instead of silently treating it as an empty deployment) before
-                    // taking the game lock, so construction failures never touch it.
+                    // Same per-game lock file as `target`'s; never lock it twice.
                     let source = switching
                         .then(|| {
                             modsync::deployment::Service::for_profile(
@@ -799,32 +809,49 @@ fn run() -> Result<()> {
                             )
                         })
                         .transpose()?;
-                    let target = modsync::deployment::Service::for_profile(
-                        &settings,
-                        &target_profile.name,
-                        &game_dir,
-                    )?;
 
-                    // One game-scoped lock covers the live-manifest check, the purge,
-                    // and the activation below; source and target share the same
-                    // per-game lock file, so only one of them is ever locked.
-                    let _lock = match &source {
-                        Some(service) => service.lock()?,
-                        None => target.lock()?,
-                    };
+                    // Read-only target report prerequisites are checked before the
+                    // purge below, so a known-bad target refuses without purging the
+                    // current profile's deployments needlessly, and before persisting
+                    // activation, so a corrupt target manifest cannot leave
+                    // activeProfileName pointing at a profile we then fail to report.
+                    let deployed = target.deployed()?.len();
+                    let staged_not_deployed = target.staged_not_deployed()?;
 
                     let mut purged = Vec::new();
                     if let Some(service) = &source {
                         let current = from.as_deref().unwrap();
+
+                        // Preflight every live manifest's reinstall blockers before any
+                        // purge mutation: a hash mismatch, non-regular path, or unsafe
+                        // path refuses cleanly, leaving game/manifests/backups/active
+                        // profile untouched, instead of soft-skipping mid-purge and
+                        // activating over a modified file left behind.
+                        let (manifests, _) = service.deployed_with_warnings()?;
+                        let mut blockers = Vec::new();
+                        for manifest in &manifests {
+                            blockers.extend(service.reinstall_blockers(&manifest.component_guid)?);
+                        }
+                        ensure!(
+                            blockers.is_empty(),
+                            "Cannot switch from profile '{current}': {}. Resolve these files, then retry; nothing was changed.",
+                            blockers.join("; ")
+                        );
+
                         if purge_current {
                             purged = service.purge_report()?;
                             for report in &purged {
                                 warn(&report.warnings);
                             }
+                            // A blocker can still appear between the preflight above and
+                            // this purge (e.g. a hostile external writer); this is not
+                            // promised atomic, but a skip or retained manifest here must
+                            // still refuse activation rather than claim the purge finished.
+                            let skipped = purged.iter().any(|report| !report.skipped.is_empty());
                             let live = service.deployed()?.len();
                             ensure!(
-                                live == 0,
-                                "Purge for profile '{current}' left {live} deployment(s) still live in this game directory; refusing to activate '{to}' while '{current}' remains live."
+                                live == 0 && !skipped,
+                                "Purge for profile '{current}' left {live} deployment(s) or skipped file(s) still live in this game directory; refusing to activate '{to}' while '{current}' remains live."
                             );
                         } else {
                             let live = service.deployed()?.len();
@@ -834,12 +861,6 @@ fn run() -> Result<()> {
                             );
                         }
                     }
-
-                    // Read-only report prerequisites are checked before persisting
-                    // activation, so a corrupt target manifest cannot leave
-                    // activeProfileName pointing at a profile we then fail to report.
-                    let deployed = target.deployed()?.len();
-                    let staged_not_deployed = target.staged_not_deployed()?;
 
                     let profile = store.activate(&to)?;
                     print(serde_json::json!({
