@@ -20,7 +20,8 @@ if [ -z "$src_dirty" ] && [ -n "$src_head_epoch" ] && [ "$bin_mtime_epoch" -lt "
   staleness=" +WARNING binary mtime predates HEAD commit; it was not necessarily built from it"
 fi
 echo "source: ${src_head}${src_dirty}${staleness}"
-R=/tmp/depprobe/run; rm -rf "$R"; mkdir -p "$R"
+R=${PROBE_ROOT:-/tmp/depprobe/run}; mkdir -p "$R"
+[ -z "$(ls -A "$R")" ] || { echo "probe root must be empty: $R" >&2; exit 2; }
 A=aaaaaaaa-0000-0000-0000-000000000001; Bc=bbbbbbbb-0000-0000-0000-000000000002; C=cccccccc-0000-0000-0000-000000000003
 pass=0; fail=0
 ok(){ if eval "$2"; then echo "  PASS $1"; pass=$((pass+1)); else echo "  FAIL $1"; fail=$((fail+1)); fi; }
@@ -351,7 +352,8 @@ if [ -x "$OLDB" ]; then
   ok "second root refused; original root's file untouched" '[ $rc2 -ne 0 ] && [ "$(cat $G/Override/x.2da)" = OLD ] && [ -z "$(ls $M2/manifests 2>/dev/null)" ]'
   dep uninstall --component $A >/dev/null
 else
-  echo "  SKIP: OLDB not found or not executable ($OLDB); set OLDB=<path to a pre-owner-record modsync build>"
+  echo "  FAIL: OLDB not found or not executable ($OLDB); legacy upgrade proof requires the old binary"
+  fail=$((fail+1))
 fi
 
 echo "P30 a marker-less root with one matching and one mismatching entry refuses, and the untouched game dir stays untouched"; new p30
@@ -372,6 +374,57 @@ dep31(){ $B deployment "$@" --game-dir $new31_G --staging-dir $S --manifest-dir 
 dep31 uninstall --component $A >$W/out3 2>$W/err3; rc3=$?
 echo "  rc=$rc3 against the real dir: $(man $M)"
 ok "accepted: both entries matched, manifest consumed, files removed" '[ $rc3 -eq 0 ] && [ ! -e $W/game2/Override/a.tga ] && [ ! -e $W/game2/Override/b.tga ] && [ -z "$(ls $M/manifests)" ]'
+
+echo "P32 a marker-less legacy root with overlapping deployments purges newest first"; new p32
+mkdir -p $G/Override; printf ORIG > $G/Override/x.2da
+stage $A Override/x.2da FIRST; stage $Bc Override/x.2da SECOND
+dep deploy --component $A >$W/deploy-a 2>$W/deploy-a.err; rc_a=$?
+sleep 0.05
+dep deploy --component $Bc >$W/deploy-b 2>$W/deploy-b.err; rc_b=$?
+OWNER=$(dirname $G)/.modsync-owner-$(printf %s "$(realpath $G)" | sha256sum | cut -c1-16)
+rm -f "$M/game-directory" "$OWNER"
+dep purge >$W/out 2>$W/err; rc=$?
+ok "overlapping legacy manifests accepted and original restored" '[ $rc_a -eq 0 ] && [ $rc_b -eq 0 ] && [ $rc -eq 0 ] && [ "$(cat $G/Override/x.2da)" = ORIG ] && [ -z "$(ls $M/manifests)" ] && [ -z "$(find $M/backups -type f)" ]'
+
+echo "P33 a marker-less root that adopted ownership blocks a second explicit root"; new p33
+printf ORIG > $G/x.txt; stage $A x.txt FIRST; stage $Bc x.txt SECOND
+dep deploy --component $A >$W/deploy-a 2>$W/deploy-a.err; rc_a=$?
+OWNER=$(dirname $G)/.modsync-owner-$(printf %s "$(realpath $G)" | sha256sum | cut -c1-16)
+rm -f "$M/game-directory" "$OWNER"
+dep uninstall --component $C >$W/touch 2>$W/touch.err; rc_touch=$?
+M2=$W/managed2; mkdir -p "$M2"
+$B deployment deploy --component $Bc --game-dir "$G" --staging-dir "$S" --manifest-dir "$M2" >$W/out 2>$W/err; rc=$?
+ok "legacy claim adopted and second root refused without changing live bytes" '[ $rc_a -eq 0 ] && [ $rc_touch -eq 0 ] && [ -e "$OWNER" ] && [ $rc -ne 0 ] && [ "$(cat $G/x.txt)" = FIRST ] && [ -e $M/manifests/$A.json ] && [ -z "$(ls $M2/manifests)" ]'
+dep purge >$W/purge 2>$W/purge.err; rc_purge=$?
+ok "legacy owner still restores its original" '[ $rc_purge -eq 0 ] && [ "$(cat $G/x.txt)" = ORIG ]'
+
+echo "P34 an empty root does not adopt ownership on a no-op or failed deploy"; new p34
+OWNER=$(dirname $G)/.modsync-owner-$(printf %s "$(realpath $G)" | sha256sum | cut -c1-16)
+dep uninstall --component $A >$W/noop 2>$W/noop.err; rc_noop=$?
+ok "no-op uninstall leaves no owner record" '[ $rc_noop -eq 0 ] && [ ! -e "$OWNER" ]'
+dep deploy --component $A >$W/missing 2>$W/missing.err; rc_missing=$?
+ok "missing staging refuses without claiming ownership" '[ $rc_missing -ne 0 ] && [ ! -e "$OWNER" ]'
+printf ORIG > $G/x.txt; stage $A x.txt FIRST
+dep deploy --component $A >$W/deploy 2>$W/deploy.err; rc_deploy=$?
+ok "first successful deployment retains its ownership warning" '[ $rc_deploy -eq 0 ] && grep -q "could not be verified" $W/deploy.err'
+
+ echo "P35 mixed legacy path separators identify one live-owned path"; new p35
+mkdir -p $G/Override; printf ORIG > $G/Override/x.2da
+stage $A Override/x.2da FIRST; stage $Bc Override/x.2da SECOND
+dep deploy --component $A >$W/deploy-a 2>$W/deploy-a.err
+sleep 0.05
+dep deploy --component $Bc >$W/deploy-b 2>$W/deploy-b.err
+python3 - "$M/manifests/$A.json" <<'PYSEP'
+import json,sys
+p=sys.argv[1];m=json.load(open(p))
+for entry in m['Entries']:
+    entry['RelativePath']=entry['RelativePath'].replace('/',chr(92))
+open(p,'w').write(json.dumps(m))
+PYSEP
+OWNER=$(dirname $G)/.modsync-owner-$(printf %s "$(realpath $G)" | sha256sum | cut -c1-16)
+rm -f "$M/game-directory" "$OWNER"
+dep purge >$W/out 2>$W/err; rc=$?
+ok "mixed separator legacy overlap restores original" '[ $rc -eq 0 ] && [ "$(cat $G/Override/x.2da)" = ORIG ] && [ -z "$(ls $M/manifests)" ]'
 
 echo; echo "TOTAL pass=$pass fail=$fail"
 [ "$fail" -eq 0 ] || exit 1

@@ -12,7 +12,9 @@ echo "C# dll: $CS_DLL sha256=$(sha256sum "$CS_DLL" | cut -d' ' -f1)"
 echo "rust:   $B sha256=$(sha256sum "$B" | cut -d' ' -f1)"
 fail=0
 expect(){ if [ "$2" = "$3" ]; then echo "  PASS $1"; else echo "  FAIL $1: got '$2', want '$3'"; fail=1; fi; }
-P=/tmp/csprobe; rm -rf $P; mkdir -p $P/game/Override $P/mods/ModA/Override $P/cfg $P/home
+P=${PROBE_ROOT:-/tmp/csprobe}; mkdir -p "$P"
+[ -z "$(ls -A "$P")" ] || { echo "probe root must be empty: $P" >&2; exit 2; }
+mkdir -p $P/game/Override $P/mods/ModA/Override $P/cfg $P/home
 printf 'fake exe\n' > $P/game/swkotor.exe; printf ORIG > $P/game/Override/x.2da
 printf CSNEW > $P/mods/ModA/Override/x.2da; printf ADDED > $P/mods/ModA/Override/added.tga
 cat > $P/build.toml <<'TOML'

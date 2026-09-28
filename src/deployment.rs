@@ -225,6 +225,7 @@ impl Service {
     /// targets). Two live roots cannot share ownership of one game tree.
     pub fn ensure_exclusive_game(&self) -> Result<()> {
         self.ensure_own_game()?;
+        self.adopt_owner_record_if_unowned()?;
         for (name, root) in &self.peers {
             if !has_manifests(root) {
                 continue;
@@ -260,7 +261,7 @@ impl Service {
         let root = fs::canonicalize(&self.root).unwrap_or_else(|_| self.root.clone());
         if owner != root && has_manifests(&owner) {
             ensure!(
-                marker_game(&owner).is_none_or(|game| game != self.game),
+                marker_game(&owner).is_some_and(|game| game != self.game),
                 "Manifest root {} still has managed deployments in this game directory. Purge them there first; two live manifest roots cannot share one game tree.",
                 owner.display()
             );
@@ -302,15 +303,11 @@ impl Service {
     /// Refuse to touch this root's manifests against a game directory other
     /// than the one they were deployed into. A root with no marker predates it
     /// and is accepted only when every owned entry still hash-matches a live
-    /// file here; the next save records this game.
-    ///
-    /// Also opportunistically claims the game-directory owner record for a
-    /// root that already has manifests and confirmed it belongs here, when
-    /// that record is currently absent or free. A root deployed by an older
-    /// build (or before another root released its own manifests) may have no
-    /// record at all; without this, `ensure_unowned_or_self` would treat
-    /// "absent" as free and let a second explicit root deploy over it. This
-    /// runs under the caller's game lock, same as every mutating command.
+    /// file here; the next save records this game. Read-only: it makes no
+    /// filesystem change, so `reinstall_blockers` can call it without side
+    /// effects. Callers that go on to mutate this root call
+    /// `adopt_owner_record_if_unowned` themselves once this succeeds (see
+    /// `ensure_exclusive_game`, `uninstall_report`).
     pub fn ensure_own_game(&self) -> Result<()> {
         if !has_manifests(&self.root) {
             return Ok(());
@@ -324,33 +321,47 @@ impl Service {
             ),
             // No marker: this root predates it (see `write_marker`). Blindly
             // accepting it let a marker-less root move originals into the
-            // wrong game tree, so every owned entry (across every manifest)
-            // must still hash-match a live file in *this* game directory;
-            // a missing or mismatched entry, or no entries at all, refuses.
+            // wrong game tree, so every *live-owned* path must still
+            // hash-match a live file in *this* game directory before the
+            // root is accepted; a missing or mismatched path, or no owned
+            // paths at all, refuses.
+            //
+            // "Live-owned" means the newest manifest's entry for a path
+            // that more than one manifest recorded, not literally every
+            // entry ever written: a normal conflict (component B overwrote
+            // a path component A also deployed, as in P5/P6/P21/P26) leaves
+            // A's superseded entry recording bytes the live file no longer
+            // holds, and B's later deploy already backed those bytes up.
+            // Requiring A's stale entry to still match would refuse every
+            // legacy root with an ordinary conflict, which is not the gap
+            // this guards; `deployed()` is oldest-first, so inserting in
+            // that order and letting a later manifest's entry replace an
+            // earlier one for the same path keeps only the live claim.
             None => {
                 let manifests = self.deployed()?;
-                let mut total = 0usize;
-                let mut mismatch: Option<String> = None;
-                'entries: for manifest in &manifests {
+                let mut owned: BTreeMap<String, &Entry> = BTreeMap::new();
+                for manifest in &manifests {
                     for entry in &manifest.entries {
-                        total += 1;
-                        let matches = self
-                            .locate(&entry.relative_path)
-                            .ok()
-                            .flatten()
-                            .is_some_and(|(destination, _)| {
-                                hash(&destination).is_ok_and(|bytes| {
-                                    bytes.eq_ignore_ascii_case(&entry.source_hash)
-                                })
-                            });
-                        if !matches {
-                            mismatch = Some(entry.relative_path.clone());
-                            break 'entries;
-                        }
+                        owned.insert(entry.relative_path.replace('\\', "/").to_lowercase(), entry);
+                    }
+                }
+                let mut mismatch: Option<String> = None;
+                for entry in owned.values() {
+                    let matches = self
+                        .locate(&entry.relative_path)
+                        .ok()
+                        .flatten()
+                        .is_some_and(|(destination, _)| {
+                            hash(&destination)
+                                .is_ok_and(|bytes| bytes.eq_ignore_ascii_case(&entry.source_hash))
+                        });
+                    if !matches {
+                        mismatch = Some(entry.relative_path.clone());
+                        break;
                     }
                 }
                 ensure!(
-                    total > 0 && mismatch.is_none(),
+                    !owned.is_empty() && mismatch.is_none(),
                     "This manifest root has no game-directory marker and {}; it likely belongs to a different game directory. Use the correct game directory, or purge these manifests there first.",
                     match mismatch {
                         Some(path) => format!(
@@ -365,15 +376,22 @@ impl Service {
                 );
             }
         }
-        self.adopt_owner_record_if_unowned()?;
         Ok(())
     }
 
     /// Claim the game-directory owner record for this root when it is
     /// currently unclaimed (no record, the record already names this root, or
-    /// the recorded owner has no manifests left). Called only after
-    /// `ensure_own_game` has confirmed this root belongs to `self.game`.
+    /// the recorded owner has no manifests left). Callers run this only after
+    /// `ensure_own_game` has confirmed this root belongs to `self.game`, and
+    /// only on a path that goes on to mutate the root: a root deployed by an
+    /// older build (or one whose prior owner released its claim) may have no
+    /// record at all; without this, `ensure_unowned_or_self` would treat
+    /// "absent" as free and let a second explicit root deploy over it. This
+    /// runs under the caller's game lock, same as every mutating command.
     fn adopt_owner_record_if_unowned(&self) -> Result<()> {
+        if !has_manifests(&self.root) {
+            return Ok(());
+        }
         let path = owner_record_path(&self.game)?;
         if let Ok(meta) = fs::symlink_metadata(&path) {
             ensure!(!meta.file_type().is_symlink(), "Owner record is a symlink");
@@ -1201,6 +1219,7 @@ impl Service {
     pub fn uninstall_report(&self, component: &str) -> Result<UninstallReport> {
         let id = component_id(component)?;
         self.ensure_own_game()?;
+        self.adopt_owner_record_if_unowned()?;
         let mut report = UninstallReport {
             component: id.clone(),
             ..UninstallReport::default()
