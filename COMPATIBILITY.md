@@ -859,29 +859,48 @@ the S3 corpora remain open, and F15 stays partial.
 
 ## Fetch shared URL and destination — 2026-09-28 UTC
 
-`fetch-downloads` no longer transfers one file twice when several selected
-components name the same registry URL and file name. The plan marks each later
-target with `sharedDestination` `{"kind":"sameUrl","targetIndex":N}`. Only target
-`N` is requested; its outcome is copied to every sharing target, which keeps its
-own `targetIndex`, component and registry URL, gains `sharedWith: N`, and gets one
-event with the final phase. Every owner is therefore reported, recorded under
-`--record` and bound as a FOMOD consumer of the one archive, in guide order.
-Before, the later owner failed on the existing destination (`File exists` or
-`Download destination already exists`), was neither recorded nor bound, and Fetch
-exited 1 after two requests. A sharing target's own `ContentHashSHA256` is checked
-against the shared bytes. The first owner's sources and hash govern the one
-transfer, so a hash that rejects the bytes fails every sharing owner.
+`fetch-downloads` no longer lets two selected components race for one archive file.
+The plan links each later target that may publish an earlier target's file. That
+means equal `Files` names (ASCII case-insensitive), or the same registry URL when a
+name is revealed only by the transfer. The later target gets `sharedDestination`
+`{"kind":"sameUrl"|"differentUrl","targetIndex":N}`, where `N` owns the group and
+the kind only compares URLs. A group runs in one worker: owner first, then its
+linked targets in guide order, never concurrently. A linked target takes, with no
+request, a file an earlier member published under its name (for an unnamed target,
+from its own URL). This is the rule by which a rerun finds the file present by name.
+Its own `ContentHashSHA256` must still match. Otherwise it takes the unfinished
+outcome of an earlier member with an identical source list (same URL and fallbacks),
+since a repeat would ask the same sources again. Otherwise it runs its own sources,
+for example a different URL after the owner failed. A target that took another
+member's result keeps its own `targetIndex`, component and registry URL, gains
+`sharedWith: <member>`, and gets one event with its final phase. Every component is
+therefore reported, recorded under `--record` and bound as a FOMOD consumer of the
+one archive, in guide order.
 
-Known names compare ASCII case-insensitively, as existing-file detection and engine
-source matching do, so `Example.zip` and `example.zip` from one URL become one file.
-A name revealed only by the transfer is shared only by the same URL. A file name
-planned from two different URLs is `{"kind":"differentUrl",...}`: the later target
-fails at once with an explicit error naming both URLs and the owning component, and
-makes no request. C# has no such check: each component downloads on its own and a
-later publish overwrites the file, or finds it present and uses it whatever its
-URL. Two unknown names from different URLs that turn out equal still collide at
-publish, as before. The plan and report JSON changes are additive; rows with no
-shared destination are unchanged. Evidence:
-[shared-URL proof](docs/parity/fetch-shared-url-proof/README.md), 106/106 checks.
+Before, the later component failed on the existing destination and was neither
+recorded nor bound, and Fetch exited 1. With several workers, both components had
+requested the file and the loser got `File exists`. With `--workers 1` there was one
+request, and the second target failed before requesting with `Download destination
+already exists`.
+
+Consequences:
+
+- With identical sources, the first member's outcome governs: if the owner's
+  authored hash rejects the bytes, a later component with the same URL fails too,
+  even without a hash.
+- A component whose `Files` name another URL has just published takes that file, as
+  C# and a Rust rerun do, subject to its own hash.
+- On a case-sensitive filesystem, names that differ only in case now share one
+  destination: `Example.zip` and `example.zip` give one file, `Example.zip`.
+- For a page URL such as a Nexus mod page, an unnamed component takes the file an
+  earlier component named.
+
+C# deduplicates nothing: each component downloads on its own, and a later publish
+overwrites the file or finds it present and uses it. Two unknown names from
+different URLs that turn out equal still collide at publish, as before. So do a
+known and an unknown name from different URLs. The plan and report JSON changes are
+additive; rows with no link are unchanged. Evidence: commit `4bf5c54` plus its
+review follow-up,
+[shared-URL proof](docs/parity/fetch-shared-url-proof/README.md), 181/181 checks.
 This is Fetch/nxm acquisition only; the desktop download path does not use this
 orchestrator.

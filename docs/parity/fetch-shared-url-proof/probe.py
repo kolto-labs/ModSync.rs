@@ -43,9 +43,13 @@ def plain(text):
  return b.getvalue()
 FOMOD=package();PLAIN_A=plain('from url a\n');PLAIN_B=plain('from url b\n');SECOND=plain('second archive\n')
 SERVE={'/control/example.zip':FOMOD,'/shared-w4/example.zip':FOMOD,'/shared-w1/example.zip':FOMOD,'/a/example.zip':PLAIN_A,'/b/example.zip':PLAIN_B,
- '/hash/example.zip':PLAIN_A,'/interleaved/example.zip':PLAIN_A,'/interleaved/second.zip':SECOND,'/names/example.zip':PLAIN_A,'/case/example.zip':PLAIN_A}
-# Each archive response is held briefly, so two concurrent requests for one file overlap
-# (as before the fix with --workers 4) instead of finishing one after the other.
+ '/hash/example.zip':PLAIN_A,'/interleaved/example.zip':PLAIN_A,'/interleaved/second.zip':SECOND,'/names/example.zip':PLAIN_A,'/case/example.zip':PLAIN_A,
+ '/ha/example.zip':PLAIN_A,'/hb/example.zip':PLAIN_B,'/d/example.zip':PLAIN_B,'/hash-owner/example.zip':PLAIN_A,'/unknown/example.zip':PLAIN_A,
+ '/unknown-first/example.zip':PLAIN_A,'/chain-y/example.zip':PLAIN_B}
+# Not served (404): /missing/example.zip, /missing-a/example.zip, /chain-x/example.zip.
+# Every response, 404 included, is held briefly, so two concurrent requests overlap (as
+# before the fix with --workers 4) and a request made only after another has answered
+# starts at least DELAY after it.
 DELAY=0.4
 key=ROOT/'loopback.key';cert=ROOT/'loopback.pem'
 certargs=['openssl','req','-x509','-newkey','rsa:2048','-nodes','-keyout',str(key),'-out',str(cert),'-days','1','-subj','/CN=Loopback Fixture','-addext','subjectAltName=IP:127.0.0.1','-addext','basicConstraints=critical,CA:TRUE','-addext','keyUsage=critical,keyCertSign,cRLSign']
@@ -58,7 +62,7 @@ class Origin(http.server.BaseHTTPRequestHandler):
  def do_GET(self):
   row=dict(path=self.path,start=time.monotonic(),thread=threading.get_ident());REQUESTS.append(row)
   data=SERVE.get(self.path);code=200 if data is not None else 404;data=data if data is not None else b'missing'
-  if code==200:time.sleep(DELAY)
+  time.sleep(DELAY)
   self.send_response(code);self.send_header('Content-Type','application/zip');self.send_header('Content-Length',str(len(data)));self.end_headers();self.wfile.write(data)
   row['end']=time.monotonic()
  def log_message(self,*args):pass
@@ -70,10 +74,12 @@ TARGET_KEYS=['componentGuid','registryUrl','filename','expectedSha256','sources'
 OUTCOME_KEYS=['targetIndex','componentGuid','registryUrl','filename','status','source','path','sha256','manual','error']
 def choices(plugin='Beta',filename='example.zip'):
  return {'version':1,'archives':[{'archiveFileName':filename,'selections':[{'stepName':'Choose','groupName':'Variant','plugins':[plugin]}]}]}
-def comp(i,path,filename='example.zip',sha256=None,flag=True):
- meta={'Files':{filename:flag},'custom':'keep'}
+def comp(i,path,filename='example.zip',sha256=None,flag=True,url=None):
+ # filename=None authors no Files map: the name is revealed only by the transfer.
+ meta={'Files':{filename:flag}} if filename is not None else {}
+ meta['custom']='keep'
  if sha256:meta['ContentHashSHA256']=sha256
- return {'Guid':GUIDS[i],'Name':f'Example Consumer {i+1}','IsSelected':True,'Instructions':[{'Action':'Extract','Source':[f'<<modDirectory>>/{filename}']}],'ResourceRegistry':{BASE+path:meta},'CustomField':'keep'}
+ return {'Guid':GUIDS[i],'Name':f'Example Consumer {i+1}','IsSelected':True,'Instructions':[{'Action':'Extract','Source':[f"<<modDirectory>>/{filename or 'example.zip'}"]}],'ResourceRegistry':{url or BASE+path:meta},'CustomField':'keep'}
 def setup(name,components):
  case=ROOT/name;case.mkdir();mods=case/'mods';mods.mkdir();sd=case/'settings';sd.mkdir();scratch=case/'scratch';scratch.mkdir()
  guide=case/'guide.json';guide.write_text(json.dumps({'Components':components}))
@@ -112,6 +118,10 @@ def outcomes(r):return (r['data'] or {}).get('report',{}).get('outcomes',[])
 def statuses(r):return [(o['targetIndex'],o['componentGuid'],o['status'],o.get('sharedWith')) for o in outcomes(r)]
 def recorded(r):return ((r['data'] or {}).get('recordSummary') or {}).get('recorded')
 def consumers(r):return [(v['componentGuid'],v['archive'].rsplit('/',1)[-1],v['outcome']) for v in (r['data'] or {}).get('fomodConfiguration',{}).get('consumers',[])]
+def errors(r):return [o.get('error') for o in outcomes(r)]
+def events_of(r,i):return [e['phase']['phase'] for e in r['events'] if e['targetIndex']==i]
+def mods(r):return {k:v for k,v in r['after'].items() if k.startswith('mods/')}
+def starts(r,path):return [x['start'] for x in r['requests'] if x['path']==path]
 def terminal(r):
  # The last event of each target index: (component, phase), in index order.
  last={}
@@ -151,21 +161,40 @@ for workers in ['4','1']:
  check(n+'_follower_single_event',[(e['phase']['phase'],e['componentGuid']) for e in r['events'] if e['targetIndex']==1],[('completed',GUIDS[1])])
  check(n+'_mods_tree',{k:v for k,v in r['after'].items() if k.startswith('mods/')},{'mods/example.zip':hashlib.sha256(FOMOD).hexdigest()})
 
-# 3. Different URLs, one destination: the later target fails explicitly, without a request.
-# Null Files flags allow the file; recording would turn a completed owner's flag true.
+# 3. Different URLs, one file name, the owner succeeds: the later target takes the
+# published file by name (as a present file would be taken), with no request of its own.
+# Null Files flags allow the file; recording turns each completed owner's flag true.
 urla=BASE+'/a/example.zip';urlb=BASE+'/b/example.zip';c=setup('different_urls',[comp(0,'/a/example.zip',flag=None),comp(1,'/b/example.zip',flag=None)])
-targets=dry(c,'plan');check('different_plan_conflict',[t.get('sharedDestination') for t in targets],[None,{'kind':'differentUrl','targetIndex':0}])
+targets=dry(c,'plan');check('different_plan_linked',[t.get('sharedDestination') for t in targets],[None,{'kind':'differentUrl','targetIndex':0}])
 r=fetch(c,'fetch',['--workers','4','--record','--progress-json'])
-check('different_exit',r['exit'],1);check('different_requests',(asked(r,'/a/example.zip'),asked(r,'/b/example.zip')),(1,0))
-check('different_outcomes',statuses(r),[(0,GUIDS[0],'completed',None),(1,GUIDS[1],'failed',None)])
-error=(outcomes(r)[1:2] or [{}])[0].get('error') or ''
-check('different_explicit_error',f'Download destination example.zip is also planned from {urla} for component {GUIDS[0]}; one file cannot come from two URLs, so {urlb} was not requested'==error)
-check('different_not_a_race','already exists' not in error and 'File exists' not in error)
-check('different_follower_event',[(e['phase']['phase'],e['phase'].get('will_fallback')) for e in r['events'] if e['targetIndex']==1],[('sourceFailed',False)])
-check('different_recorded',recorded(r),[[GUIDS[0],urla,'example.zip']]);check('different_files_flags',[x['ResourceRegistry'][u]['Files'] for x,u in zip(components(c),[urla,urlb])],[{'example.zip':True},{'example.zip':None}])
-check('different_file_from_first',r['after'].get('mods/example.zip'),hashlib.sha256(PLAIN_A).hexdigest())
+check('different_exit',r['exit'],0);check('different_requests',(asked(r,'/a/example.zip'),asked(r,'/b/example.zip')),(1,0))
+check('different_outcomes',statuses(r),[(0,GUIDS[0],'completed',None),(1,GUIDS[1],'completed',0)])
+check('different_same_file',[((o['path'] or '').rsplit('/',1)[-1],o['sha256']) for o in outcomes(r)],[('example.zip',hashlib.sha256(PLAIN_A).hexdigest())]*2)
+check('different_follower_event',events_of(r,1),['completed'])
+check('different_recorded',recorded(r),[[GUIDS[0],urla,'example.zip'],[GUIDS[1],urlb,'example.zip']]);check('different_files_flags',[x['ResourceRegistry'][u]['Files'] for x,u in zip(components(c),[urla,urlb])],[{'example.zip':True}]*2)
+check('different_file_from_first',mods(r),{'mods/example.zip':hashlib.sha256(PLAIN_A).hexdigest()})
 
-# 4. A sharing component's own authored hash is checked against the shared bytes.
+# 4. The same, but the later target authors the hash of its own URL's bytes: the owner's
+# file fails that hash, so it fails without a request and is not recorded.
+urla=BASE+'/ha/example.zip';urlb=BASE+'/hb/example.zip';c=setup('different_hash',[comp(0,'/ha/example.zip'),comp(1,'/hb/example.zip',sha256=hashlib.sha256(PLAIN_B).hexdigest())])
+r=fetch(c,'fetch',['--workers','4','--record','--progress-json'])
+check('different_hash_exit',r['exit'],1);check('different_hash_requests',(asked(r,'/ha/example.zip'),asked(r,'/hb/example.zip')),(1,0))
+check('different_hash_outcomes',statuses(r),[(0,GUIDS[0],'completed',None),(1,GUIDS[1],'failed',0)])
+check('different_hash_error','SHA-256 mismatch: the shared download' in ((errors(r)[1:2] or [''])[0] or ''))
+check('different_hash_recorded',recorded(r),[[GUIDS[0],urla,'example.zip']]);check('different_hash_file',mods(r),{'mods/example.zip':hashlib.sha256(PLAIN_A).hexdigest()})
+
+# 5. Different URLs, one file name, the owner's URL is missing (404): the later target
+# then runs its own URL, after the owner in the same worker, and is recorded.
+urla=BASE+'/missing-a/example.zip';urlb=BASE+'/d/example.zip';c=setup('different_owner_404',[comp(0,'/missing-a/example.zip'),comp(1,'/d/example.zip')])
+targets=dry(c,'plan');check('different_owner_404_plan',[t.get('sharedDestination') for t in targets],[None,{'kind':'differentUrl','targetIndex':0}])
+r=fetch(c,'fetch',['--workers','4','--record','--progress-json'])
+check('different_owner_404_exit',r['exit'],1);check('different_owner_404_requests',(asked(r,'/missing-a/example.zip'),asked(r,'/d/example.zip')),(1,1))
+check('different_owner_404_serialized',[b-a>=DELAY for a,b in zip(starts(r,'/missing-a/example.zip'),starts(r,'/d/example.zip'))],[True])
+check('different_owner_404_outcomes',statuses(r),[(0,GUIDS[0],'failed',None),(1,GUIDS[1],'completed',None)])
+check('different_owner_404_terminal',terminal(r),[(GUIDS[0],'sourceFailed'),(GUIDS[1],'completed')])
+check('different_owner_404_recorded',recorded(r),[[GUIDS[1],urlb,'example.zip']]);check('different_owner_404_file',mods(r),{'mods/example.zip':hashlib.sha256(PLAIN_B).hexdigest()})
+
+# 6. A sharing component's own authored hash is checked against the shared bytes.
 c=setup('hash_follower',[comp(0,'/hash/example.zip'),comp(1,'/hash/example.zip',sha256='0'*64)]);url=BASE+'/hash/example.zip'
 r=fetch(c,'fetch',['--workers','4','--record','--progress-json'])
 check('hash_exit',r['exit'],1);check('hash_one_request',asked(r,'/hash/example.zip'),1)
@@ -173,7 +202,7 @@ check('hash_outcomes',statuses(r),[(0,GUIDS[0],'completed',None),(1,GUIDS[1],'fa
 check('hash_error','SHA-256 mismatch: the shared download' in ((outcomes(r)[1:2] or [{}])[0].get('error') or ''))
 check('hash_recorded',recorded(r),[[GUIDS[0],url,'example.zip']])
 
-# 5. Guide order and indices hold when the sharing target is not adjacent to its owner.
+# 7. Guide order and indices hold when the sharing target is not adjacent to its owner.
 c=setup('interleaved',[comp(0,'/interleaved/example.zip'),comp(1,'/interleaved/second.zip','second.zip'),comp(2,'/interleaved/example.zip')])
 urlx=BASE+'/interleaved/example.zip';urly=BASE+'/interleaved/second.zip'
 targets=dry(c,'plan');check('interleaved_plan',[t.get('sharedDestination') for t in targets],[None,None,{'kind':'sameUrl','targetIndex':0}])
@@ -183,7 +212,7 @@ check('interleaved_outcomes',statuses(r),[(0,GUIDS[0],'completed',None),(1,GUIDS
 check('interleaved_recorded',recorded(r),[[GUIDS[0],urlx,'example.zip'],[GUIDS[1],urly,'second.zip'],[GUIDS[2],urlx,'example.zip']])
 check('interleaved_terminal_events',terminal(r),[(GUIDS[0],'completed'),(GUIDS[1],'completed'),(GUIDS[2],'completed')])
 
-# 6. Control: one URL, two different names are two destinations, so nothing is merged.
+# 8. Control: one URL, two different names are two destinations, so nothing is merged.
 c=setup('distinct_names',[comp(0,'/names/example.zip'),comp(1,'/names/example.zip','copy.zip')]);url=BASE+'/names/example.zip'
 targets=dry(c,'plan');check('distinct_plan_unshared',[sorted(t) for t in targets],[sorted(TARGET_KEYS)]*2)
 r=fetch(c,'fetch',['--workers','4','--record','--progress-json'])
@@ -192,7 +221,7 @@ check('distinct_outcomes',statuses(r),[(0,GUIDS[0],'completed',None),(1,GUIDS[1]
 check('distinct_files',{k:v for k,v in r['after'].items() if k.startswith('mods/')},{'mods/example.zip':hashlib.sha256(PLAIN_A).hexdigest(),'mods/copy.zip':hashlib.sha256(PLAIN_A).hexdigest()})
 check('distinct_recorded',recorded(r),[[GUIDS[0],url,'example.zip'],[GUIDS[1],url,'copy.zip']])
 
-# 7. Known names compare ASCII case-insensitively (like existing-file detection and the
+# 9. Known names compare ASCII case-insensitively (like existing-file detection and the
 # engine's source matching): one file, and each component records its own key.
 c=setup('case_variant',[comp(0,'/case/example.zip','Example.zip'),comp(1,'/case/example.zip')]);url=BASE+'/case/example.zip'
 targets=dry(c,'plan');check('case_plan_shared',[t.get('sharedDestination') for t in targets],[None,{'kind':'sameUrl','targetIndex':0}])
@@ -201,6 +230,68 @@ check('case_exit',r['exit'],0);check('case_one_request',asked(r,'/case/example.z
 check('case_outcomes',statuses(r),[(0,GUIDS[0],'completed',None),(1,GUIDS[1],'completed',0)])
 check('case_one_file',{k:v for k,v in r['after'].items() if k.startswith('mods/')},{'mods/Example.zip':hashlib.sha256(PLAIN_A).hexdigest()})
 check('case_recorded',recorded(r),[[GUIDS[0],url,'Example.zip'],[GUIDS[1],url,'example.zip']])
+
+# 10. One URL and file name, the URL is missing (404): the owner's one request fails, and
+# the later target, whose source list is identical, takes that outcome without a request.
+url=BASE+'/missing/example.zip';c=setup('same_404',[comp(0,'/missing/example.zip'),comp(1,'/missing/example.zip')])
+r=fetch(c,'fetch',['--workers','4','--record','--progress-json'])
+check('same_404_exit',r['exit'],1);check('same_404_one_request',asked(r,'/missing/example.zip'),1)
+check('same_404_outcomes',statuses(r),[(0,GUIDS[0],'failed',None),(1,GUIDS[1],'failed',0)])
+check('same_404_same_error',[bool(e) and e==errors(r)[0] for e in errors(r)],[True,True])
+check('same_404_follower_event',events_of(r,1),['sourceFailed']);check('same_404_recorded',recorded(r),[]);check('same_404_no_file',mods(r),{})
+
+# 11. One manual-host URL (not automated) and file name: host classification needs no
+# network, and the namespace has no route, so any request would fail instead. Both
+# targets are manualRequired; the later one takes the owner's outcome.
+url='https://deadlystream.com/files/file/0000-example-mod/';c=setup('same_manual',[comp(0,None,url=url),comp(1,None,url=url)])
+targets=dry(c,'plan');check('same_manual_plan',[t.get('sharedDestination') for t in targets],[None,{'kind':'sameUrl','targetIndex':0}])
+r=fetch(c,'fetch',['--workers','4','--progress-json'])
+check('same_manual_exit',r['exit'],3);check('same_manual_no_request',r['requests'],[])
+check('same_manual_outcomes',statuses(r),[(0,GUIDS[0],'manualRequired',None),(1,GUIDS[1],'manualRequired',0)])
+check('same_manual_manual',[o.get('manual') for o in outcomes(r)],[{'url':url,'reason':'unsupported'}]*2)
+check('same_manual_events',[events_of(r,0),events_of(r,1)],[['resolving','manualRequired'],['manualRequired']]);check('same_manual_no_file',mods(r),{})
+
+# 12. The owner authors a wrong hash and the later target none, one URL: the owner's one
+# transfer fails its hash, and the later target, whose source list is identical, takes
+# that failure without a second request (the owner's hash governs the one transfer).
+url=BASE+'/hash-owner/example.zip';c=setup('hash_owner',[comp(0,'/hash-owner/example.zip',sha256='0'*64),comp(1,'/hash-owner/example.zip')])
+r=fetch(c,'fetch',['--workers','4','--record','--progress-json'])
+check('hash_owner_exit',r['exit'],1);check('hash_owner_one_request',asked(r,'/hash-owner/example.zip'),1)
+check('hash_owner_outcomes',statuses(r),[(0,GUIDS[0],'failed',None),(1,GUIDS[1],'failed',0)])
+check('hash_owner_same_error',['SHA-256 mismatch; download discarded' in (e or '') and e==errors(r)[0] for e in errors(r)],[True,True])
+check('hash_owner_recorded',recorded(r),[]);check('hash_owner_no_file',mods(r),{})
+
+# 13. One URL, a Files name first and none second: the name the transfer would reveal
+# comes from the same URL, so the second target takes the first one's file.
+url=BASE+'/unknown/example.zip';c=setup('unknown_follower',[comp(0,'/unknown/example.zip'),comp(1,'/unknown/example.zip',None)])
+targets=dry(c,'plan');check('unknown_follower_plan',[(t.get('filename'),t.get('sharedDestination')) for t in targets],[('example.zip',None),(None,{'kind':'sameUrl','targetIndex':0})])
+r=fetch(c,'fetch',['--workers','4','--record','--progress-json'])
+check('unknown_follower_exit',r['exit'],0);check('unknown_follower_one_request',asked(r,'/unknown/example.zip'),1)
+check('unknown_follower_outcomes',statuses(r),[(0,GUIDS[0],'completed',None),(1,GUIDS[1],'completed',0)])
+check('unknown_follower_recorded',recorded(r),[[GUIDS[0],url,'example.zip'],[GUIDS[1],url,'example.zip']])
+check('unknown_follower_saved_files',[x['ResourceRegistry'][url].get('Files') for x in components(c)],[{'example.zip':True}]*2)
+check('unknown_follower_one_file',mods(r),{'mods/example.zip':hashlib.sha256(PLAIN_A).hexdigest()})
+
+# 14. The reverse order: no Files name first, a Files name second. The second runs after
+# the first and takes its file when the revealed name is its own.
+url=BASE+'/unknown-first/example.zip';c=setup('unknown_first',[comp(0,'/unknown-first/example.zip',None),comp(1,'/unknown-first/example.zip')])
+targets=dry(c,'plan');check('unknown_first_plan',[(t.get('filename'),t.get('sharedDestination')) for t in targets],[(None,None),('example.zip',{'kind':'sameUrl','targetIndex':0})])
+r=fetch(c,'fetch',['--workers','4','--record','--progress-json'])
+check('unknown_first_exit',r['exit'],0);check('unknown_first_one_request',asked(r,'/unknown-first/example.zip'),1)
+check('unknown_first_outcomes',statuses(r),[(0,GUIDS[0],'completed',None),(1,GUIDS[1],'completed',0)])
+check('unknown_first_recorded',recorded(r),[[GUIDS[0],url,'example.zip'],[GUIDS[1],url,'example.zip']])
+check('unknown_first_one_file',mods(r),{'mods/example.zip':hashlib.sha256(PLAIN_A).hexdigest()})
+
+# 15. A link through a linked target: A (name, URL X), B (same name, URL Y) and C (no
+# name, URL Y) form one group owned by A. X is missing, so B runs its own URL, and C,
+# from B's URL, takes B's file (sharedWith 1).
+urlx=BASE+'/chain-x/example.zip';urly=BASE+'/chain-y/example.zip';c=setup('chain',[comp(0,'/chain-x/example.zip'),comp(1,'/chain-y/example.zip'),comp(2,'/chain-y/example.zip',None)])
+targets=dry(c,'plan');check('chain_plan',[t.get('sharedDestination') for t in targets],[None,{'kind':'differentUrl','targetIndex':0},{'kind':'differentUrl','targetIndex':0}])
+r=fetch(c,'fetch',['--workers','4','--record','--progress-json'])
+check('chain_exit',r['exit'],1);check('chain_requests',(asked(r,'/chain-x/example.zip'),asked(r,'/chain-y/example.zip')),(1,1))
+check('chain_outcomes',statuses(r),[(0,GUIDS[0],'failed',None),(1,GUIDS[1],'completed',None),(2,GUIDS[2],'completed',1)])
+check('chain_recorded',recorded(r),[[GUIDS[1],urly,'example.zip'],[GUIDS[2],urly,'example.zip']])
+check('chain_one_file',mods(r),{'mods/example.zip':hashlib.sha256(PLAIN_B).hexdigest()})
 
 srv.shutdown();srv.server_close()
 check('binary_unchanged',digest(BIN),BINARY_BEFORE)

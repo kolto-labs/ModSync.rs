@@ -100,21 +100,31 @@ pub struct ArchiveTarget {
     pub expected_sha256: Option<String>,
     /// Already in fallback order.
     pub sources: Vec<Source>,
-    /// Set by `download_orchestrator::plan` when an earlier target owns the same
-    /// destination file; `None` for a target that transfers for itself.
+    /// Set by `download_orchestrator::plan` when this target may publish the file of an
+    /// earlier target; `None` for a target that starts its own group.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub shared_destination: Option<SharedDestination>,
 }
 
-/// How a target relates to the earlier target (by plan index) that owns its destination.
+/// Links a target to the earlier, unlinked target (by plan index) whose group it joins.
+/// A group runs in one worker, owner first, then its linked targets in plan order, so
+/// targets that may publish one file never transfer at the same time. The kind says
+/// only whether the registry URL is the owner's.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase", tag = "kind", content = "targetIndex")]
 pub enum SharedDestination {
-    /// Same registry URL: that target transfers once and this one receives its outcome.
+    /// The owner's registry URL.
     SameUrl(usize),
-    /// A different registry URL: this target fails without a request, because one file
-    /// cannot come from two URLs.
+    /// Another registry URL.
     DifferentUrl(usize),
+}
+
+impl SharedDestination {
+    pub fn owner(self) -> usize {
+        match self {
+            Self::SameUrl(owner) | Self::DifferentUrl(owner) => owner,
+        }
+    }
 }
 
 impl ArchiveTarget {

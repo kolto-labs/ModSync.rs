@@ -69,11 +69,14 @@ is assigned because the remaining domains differ greatly in scope and proof cost
    requirement, a repair hint for unparseable saved choices, and the no-Extract route
    warning; [evidence](fomod-s2a-proof/README.md) is 224/224. The round-3 follow-up is
    `ae8d7e9`; S2a SPEC and QUALITY are [approved](fomod-s2a-review.md). Fetch now
-   plans components that share a URL and file name as one transfer whose outcome
-   goes to every owner (reported, recorded and bound as FOMOD consumers), and a
-   file planned from two different URLs fails explicitly for the later one instead
-   of racing; [evidence](fetch-shared-url-proof/README.md) is 106/106 (uncommitted,
-   not yet reviewed). Open: one-run `validate/install --fomod-choices` still
+   runs components that may publish one archive file as one serialized group
+   instead of a race (commit `4bf5c54` plus its review follow-up). A later component
+   takes a file already published under its name (subject to its own hash) or the
+   outcome of identical sources without a request; otherwise, for example a
+   different URL after the owner failed, it downloads for itself. Every component is
+   reported, recorded and bound as a FOMOD consumer;
+   [evidence](fetch-shared-url-proof/README.md) is 181/181. The review follow-up is
+   not yet re-reviewed. Open: one-run `validate/install --fomod-choices` still
    replaces all embedded archive choices.
    Remaining S2 semantic items and native acceptance follow.
    The [actual full.md conversion baseline](full-markdown-baseline/README.md)
