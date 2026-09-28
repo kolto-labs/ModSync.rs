@@ -208,26 +208,39 @@ enum Action {
         #[arg(long)]
         max_expanded_bytes: Option<u64>,
     },
-    /// Fetch one content-addressed archive from a BitTorrent swarm.
+    /// Fetch one content-addressed archive from a BitTorrent swarm through a SOCKS5 proxy.
     TorrentDownload {
         magnet: String,
         output: PathBuf,
         /// Required content identity; the torrent is discarded on mismatch.
         #[arg(long)]
         sha256: String,
-        /// Known seeder address from torrent-seed; repeat for fallbacks.
+        /// Known seeder address from torrent-seed; repeat for fallbacks. Dialed through the proxy.
         #[arg(long)]
         peer: Vec<std::net::SocketAddr>,
         /// Optional expanded-byte budget for the integrity check.
         #[arg(long)]
         max_expanded_bytes: Option<u64>,
+        /// Authored info dictionary (base64), from the guide's TorrentInfo or torrent-seed's torrentInfo.
+        #[arg(long)]
+        torrent_info: Option<String>,
+        #[command(flatten)]
+        proxy: TorrentProxyArgs,
     },
     /// Validate and seed one archive until Ctrl+C; prints its magnet and SHA-256.
     TorrentSeed {
         archive: PathBuf,
-        /// Optional tracker announce URL; repeat to add fallbacks. DHT remains available.
+        /// Optional tracker announce URL; repeat to add fallbacks. Only http(s) trackers are used through the proxy.
         #[arg(long)]
         tracker: Vec<String>,
+        /// Share under this authored magnet instead of creating a new torrent.
+        #[arg(long)]
+        authored_magnet: Option<String>,
+        /// Authored info dictionary (base64) to serve as is; needs --authored-magnet.
+        #[arg(long)]
+        torrent_info: Option<String>,
+        #[command(flatten)]
+        proxy: TorrentProxyArgs,
     },
     /// Download a JSON array of direct HTTPS jobs with bounded concurrency and retries.
     DownloadBatch {
@@ -548,6 +561,50 @@ impl From<PatcherEngineArg> for PatcherEngine {
             PatcherEngineArg::Ody => Self::OdyPatcher,
             PatcherEngineArg::K => Self::KPatcher,
             PatcherEngineArg::Holo => Self::HoloPatcher,
+        }
+    }
+}
+
+/// Privacy options shared by the torrent verbs.
+#[derive(Args, Debug)]
+struct TorrentProxyArgs {
+    /// SOCKS5 proxy for every peer and tracker connection (socks5://IP:PORT); repeat to add fallbacks.
+    #[arg(long)]
+    peer_proxy: Vec<String>,
+    /// Public SOCKS5 list tried when no --peer-proxy works. Default: the monosans list. Pass "" to disable.
+    #[arg(long)]
+    peer_proxy_list_url: Option<String>,
+    /// HTTP(S) tracker list URL; repeat to add more. Default: the ngosang HTTP and HTTPS lists.
+    #[arg(long)]
+    tracker_list_url: Vec<String>,
+    /// Connect to peers directly, with DHT, a listener and UPnP. Peers will see your IP address.
+    #[arg(long)]
+    no_proxy: bool,
+    /// Upload cap in KiB/s (default 100, minimum 16).
+    #[arg(long)]
+    upload_kibps: Option<u32>,
+    /// Download from peers without uploading to them.
+    #[arg(long)]
+    no_upload_while_downloading: bool,
+    /// With --authored-magnet: stop sharing after this many hours (default 24; 0 = no limit).
+    #[arg(long)]
+    share_hours: Option<f64>,
+    /// With --authored-magnet: stop sharing at this upload ratio (default 1.0; 0 = no limit).
+    #[arg(long)]
+    share_ratio: Option<f64>,
+}
+
+impl From<TorrentProxyArgs> for modsync::p2p::CliProxyOptions {
+    fn from(args: TorrentProxyArgs) -> Self {
+        Self {
+            no_proxy: args.no_proxy,
+            proxies: args.peer_proxy,
+            proxy_list_url: args.peer_proxy_list_url,
+            tracker_list_urls: args.tracker_list_url,
+            upload_kibps: args.upload_kibps,
+            no_upload_while_downloading: args.no_upload_while_downloading,
+            share_hours: args.share_hours,
+            share_ratio: args.share_ratio,
         }
     }
 }
@@ -1018,21 +1075,33 @@ fn run() -> Result<()> {
             sha256,
             peer,
             max_expanded_bytes,
-        }) => modsync::p2p::fetch(
+            torrent_info,
+            proxy,
+        }) => modsync::p2p::cli_download(
             &magnet,
+            torrent_info.as_deref(),
             &output,
             &sha256,
             peer,
-            &AtomicBool::new(false),
+            &proxy.into(),
             &modsync::archive::Options {
                 max_expanded_bytes,
                 ..Default::default()
             },
         ),
-        Some(Action::TorrentSeed { archive, tracker }) => {
-            modsync::p2p::seed(&archive, tracker)?;
-            Ok(())
-        }
+        Some(Action::TorrentSeed {
+            archive,
+            tracker,
+            authored_magnet,
+            torrent_info,
+            proxy,
+        }) => modsync::p2p::cli_seed(
+            &archive,
+            tracker,
+            authored_magnet.as_deref(),
+            torrent_info.as_deref(),
+            &proxy.into(),
+        ),
         Some(Action::DownloadBatch {
             input,
             workers,
