@@ -687,9 +687,11 @@ fn outcome(index: usize, target: &ArchiveTarget, status: TargetStatus) -> Target
 /// worker. A linked target takes, without a request, the file an earlier member
 /// published under its name (for a name only the transfer reveals, from its URL), as a
 /// present file is accepted by name. Otherwise it takes the unfinished outcome of an
-/// earlier member that ran the same source list (and, when this target knows its name,
-/// asked for that same name ignoring ASCII case), since a repeat would ask the same
-/// sources for the same file again. Otherwise it runs its own sources.
+/// earlier member that ran the same source list and asked for the same name (ignoring
+/// ASCII case), or, like this target, for no name, since a repeat would ask the same
+/// sources for the same file again. Otherwise it runs its own sources; a name its
+/// transfer reveals that an earlier member already published is then adopted as a
+/// present file ([`adopt_present`]).
 fn acquire_group(
     context: &RunContext<'_>,
     owner: usize,
@@ -718,13 +720,14 @@ fn acquire_group(
                 result.status != TargetStatus::Completed
                     && member.sources == linked.sources
                     // A known name selects the file (Nexus picks it by name), so only a
-                    // member that asked for this very name made this request.
-                    && linked.filename.as_deref().is_none_or(|name| {
-                        member
-                            .filename
-                            .as_deref()
-                            .is_some_and(|asked| asked.eq_ignore_ascii_case(name))
-                    })
+                    // member that asked for this very name made this request. A target
+                    // without a name made a request without one: a member that asked
+                    // for a name may have failed for that name alone.
+                    && match (&linked.filename, &member.filename) {
+                        (Some(name), Some(asked)) => asked.eq_ignore_ascii_case(name),
+                        (None, None) => true,
+                        _ => false,
+                    }
             })
         };
         let outcome = match published.or_else(repeated) {
@@ -824,8 +827,12 @@ enum Step {
     /// Try the next source. The kind is the source that failed last.
     Failed(String, SourceKind),
     /// Ends the target now; never falls through to a later source (O3: a failed or
-    /// unknown premium validation must not let Peer run).
+    /// unknown premium validation must not let Peer run; or a present file that
+    /// [`adopt_present`] refused, which every later source would find again).
     Terminal(String, SourceKind),
+    /// The name the source revealed is already present. `acquire_sources` adopts that
+    /// file ([`adopt_present`]) or ends the target; it is never replaced.
+    Present(download::DestinationExists, SourceKind),
 }
 
 /// Premium validation for a Nexus origin returned an error rather than a known
@@ -863,11 +870,13 @@ fn is_never_started(error: &anyhow::Error) -> bool {
 }
 
 /// Whether an Origin error must keep Peer from ever starting: a gate (login, captcha,
-/// free-wait, HTML landing) or a failed/unknown premium validation (O3).
+/// free-wait, HTML landing), a failed/unknown premium validation (O3), or a revealed name
+/// that is already present (the race then settles on that file).
 fn origin_denies_peer(error: &anyhow::Error) -> bool {
     if error
         .chain()
         .any(|e| e.downcast_ref::<PremiumValidationFailed>().is_some())
+        || download::destination_exists(error).is_some()
     {
         return true;
     }
@@ -928,6 +937,13 @@ fn acquire_sources(
             step
         } else {
             single_source(context, index, target, source)
+        };
+        let step = match step {
+            Step::Present(present, kind) => match adopt_present(context, target, &present) {
+                Ok(acquired) => Step::Done(acquired, kind),
+                Err(error) => Step::Terminal(error, kind),
+            },
+            step => step,
         };
         position += 1;
         let more = position < target.sources.len();
@@ -998,6 +1014,7 @@ fn acquire_sources(
                 );
                 last_error = Some(error);
             }
+            Step::Present(..) => unreachable!("a present file is adopted or refused above"),
             Step::Terminal(error, kind) => {
                 emit(
                     context,
@@ -1029,6 +1046,9 @@ fn step_from_error(error: anyhow::Error, kind: SourceKind) -> Step {
     {
         return Step::Terminal(format!("{error:#}"), kind);
     }
+    if let Some(present) = download::destination_exists(&error) {
+        return Step::Present(present.clone(), kind);
+    }
     match download::classify(&error) {
         Some(FailureClass::ManualRequired { url, reason }) => {
             Step::Manual(url.clone(), *reason, kind)
@@ -1036,6 +1056,56 @@ fn step_from_error(error: anyhow::Error, kind: SourceKind) -> Step {
         Some(FailureClass::Cancelled) => Step::Cancelled(kind),
         _ => Step::Failed(format!("{error:#}"), kind),
     }
+}
+
+/// Takes the file already present under the name a source revealed, by the rule a named
+/// target follows when it is `AlreadyPresent`: the target's own `ContentHashSHA256` must
+/// match, and the archive must verify. With no authored hash, the present file must hold
+/// exactly the bytes the source delivered; otherwise nothing says which bytes this
+/// component wants, so it fails. The present file is never replaced or removed.
+fn adopt_present(
+    context: &RunContext<'_>,
+    target: &ArchiveTarget,
+    present: &download::DestinationExists,
+) -> std::result::Result<Acquired, String> {
+    let path = &present.path;
+    let actual = sha256_file(path).map_err(|error| {
+        format!(
+            "The present file {} is unreadable: {error:#}",
+            path.display()
+        )
+    })?;
+    match target.expected_sha256.as_deref() {
+        Some(expected) if !actual.eq_ignore_ascii_case(expected) => {
+            return Err(format!(
+                "SHA-256 mismatch: the present file {} does not match this component's ContentHashSHA256; it was not replaced",
+                path.display()
+            ));
+        }
+        None if !actual.eq_ignore_ascii_case(&present.sha256) => {
+            return Err(format!(
+                "The present file {} differs from the downloaded bytes, and this component has no ContentHashSHA256 to choose between them; it was not replaced",
+                path.display()
+            ));
+        }
+        _ => {}
+    }
+    archive::verify(
+        path,
+        path,
+        &context.settings.archive,
+        &AtomicBool::new(false),
+    )
+    .map_err(|error| {
+        format!(
+            "The present file {} failed verification: {error:#}",
+            path.display()
+        )
+    })?;
+    Ok(Acquired {
+        path: path.clone(),
+        sha256: actual,
+    })
 }
 
 fn single_source(
@@ -1190,10 +1260,31 @@ impl PeerStaging {
             .and_then(|name| name.to_str())
             .context("Peer copy has no file name")?;
         let path = source_dir.join(download::one_component(name)?);
-        tempfile::TempPath::try_from_path(&staged.path)?
-            .persist_noclobber(&path)
-            .map_err(|error| error.error)
-            .with_context(|| format!("Could not publish the peer copy to {}", path.display()))?;
+        // For an unnamed target the name came from the torrent. When it is already
+        // present, the copy is not published (as an Origin transfer is not); the caller
+        // adopts the present file or refuses it, and the staged copy goes with staging.
+        let unnamed = self.destination == self.directory;
+        let exists = || {
+            anyhow::Error::new(download::DestinationExists {
+                path: path.clone(),
+                sha256: staged.sha256.clone(),
+            })
+        };
+        if unnamed && path.exists() {
+            return Err(exists());
+        }
+        match tempfile::TempPath::try_from_path(&staged.path)?.persist_noclobber(&path) {
+            Ok(()) => {}
+            Err(error) if unnamed && error.error.kind() == std::io::ErrorKind::AlreadyExists => {
+                return Err(exists());
+            }
+            Err(error) => {
+                return Err(anyhow::Error::new(error.error).context(format!(
+                    "Could not publish the peer copy to {}",
+                    path.display()
+                )));
+            }
+        }
         Ok(Acquired {
             path,
             sha256: staged.sha256,
@@ -1391,20 +1482,29 @@ fn race_origin_peer(
                         winner_path = Some(published.path.clone());
                         decided = Some(Step::Done(published, SourceKind::Peer));
                     }
-                    Err(error) => {
-                        let message = format!("{error:#}");
-                        emit(
-                            context,
-                            index,
-                            target,
-                            SourceKind::Peer,
-                            Phase::SourceFailed {
-                                error: message.clone(),
-                                will_fallback: running[ORIGIN],
-                            },
-                        );
-                        last_error = Some((message, SourceKind::Peer));
-                    }
+                    Err(error) => match download::destination_exists(&error).cloned() {
+                        // Settled on the present file, which may even be Origin's own
+                        // copy not yet reported: it is the winner, never discarded.
+                        Some(present) => {
+                            stop(ORIGIN);
+                            winner_path = Some(present.path.clone());
+                            decided = Some(Step::Present(present, SourceKind::Peer));
+                        }
+                        None => {
+                            let message = format!("{error:#}");
+                            emit(
+                                context,
+                                index,
+                                target,
+                                SourceKind::Peer,
+                                Phase::SourceFailed {
+                                    error: message.clone(),
+                                    will_fallback: running[ORIGIN],
+                                },
+                            );
+                            last_error = Some((message, SourceKind::Peer));
+                        }
+                    },
                 }
             }
             let (racer, result) = match receiver.recv_timeout(Duration::from_millis(20)) {
@@ -1429,7 +1529,10 @@ fn race_origin_peer(
                 {
                     discard(acquired, &mut notes);
                 }
-                if matches!(decided, Some(Step::Done(..) | Step::Manual(..))) && !superseded[racer]
+                if matches!(
+                    decided,
+                    Some(Step::Done(..) | Step::Manual(..) | Step::Present(..))
+                ) && !superseded[racer]
                 {
                     superseded[racer] = true;
                     emit(context, index, target, kinds[racer], Phase::Superseded);
@@ -1468,6 +1571,18 @@ fn race_origin_peer(
                             emit(context, index, target, SourceKind::Peer, Phase::Superseded);
                         }
                         decided = Some(gate);
+                    }
+                    Step::Present(present, kind) if racer == ORIGIN => {
+                        stop(PEER);
+                        if let Some(held) = held_peer.take() {
+                            discard(&held, &mut notes);
+                        }
+                        if peer_started.load(Ordering::SeqCst) && !superseded[PEER] {
+                            superseded[PEER] = true;
+                            emit(context, index, target, SourceKind::Peer, Phase::Superseded);
+                        }
+                        winner_path = Some(present.path.clone());
+                        decided = Some(Step::Present(present, kind));
                     }
                     terminal @ Step::Terminal(..) if racer == ORIGIN => {
                         stop(PEER);
@@ -1516,7 +1631,10 @@ fn race_origin_peer(
                 // Origin ended without a gate: the held copy is accepted.
                 match staging.publish(held, source_dir) {
                     Ok(published) => decided = Some(Step::Done(published, SourceKind::Peer)),
-                    Err(error) => last_error = Some((format!("{error:#}"), SourceKind::Peer)),
+                    Err(error) => match download::destination_exists(&error).cloned() {
+                        Some(present) => decided = Some(Step::Present(present, SourceKind::Peer)),
+                        None => last_error = Some((format!("{error:#}"), SourceKind::Peer)),
+                    },
                 }
             }
         }

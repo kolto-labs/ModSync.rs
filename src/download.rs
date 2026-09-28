@@ -107,6 +107,42 @@ fn fail(class: FailureClass, error: impl Into<anyhow::Error>) -> anyhow::Error {
     })
 }
 
+/// The file name of a [`Destination::Directory`] publish (for an unnamed one, the name the
+/// transfer revealed) is already taken when the transfer ends. The transfer and its
+/// digest are complete, but nothing was published: the present file is untouched and the
+/// temp file is removed. `sha256` is the digest of the transferred bytes (for a Peer
+/// source that learns the name before transferring, the authored digest every copy must
+/// have), so a caller can decide whether the present file is the same file without
+/// replacing it.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct DestinationExists {
+    pub path: PathBuf,
+    pub sha256: String,
+}
+
+impl fmt::Display for DestinationExists {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Download destination already exists: {}",
+            self.path.display()
+        )
+    }
+}
+
+impl std::error::Error for DestinationExists {}
+
+/// The [`DestinationExists`] carried by `error`, whether bare or inside a classified
+/// [`FetchError`].
+pub fn destination_exists(error: &anyhow::Error) -> Option<&DestinationExists> {
+    error.chain().find_map(|e| {
+        e.downcast_ref::<DestinationExists>().or_else(|| {
+            e.downcast_ref::<FetchError>()
+                .and_then(|fetch| fetch.error.downcast_ref::<DestinationExists>())
+        })
+    })
+}
+
 /// A manual boundary found before any transfer, e.g. a free Nexus key.
 pub fn manual_required(url: &str, reason: ManualReason, message: &str) -> anyhow::Error {
     fail(
@@ -463,7 +499,14 @@ fn fetch_inner(
                     .ok_or_else(|| anyhow::anyhow!("Server did not name the download"))?,
             };
             let path = directory.join(one_component(&name)?);
-            ensure!(!path.exists(), "Download destination already exists");
+            if path.exists() {
+                // Never replaced. The caller decides from the digest whether the present
+                // file is this download; `temp` is removed on return.
+                return Err(anyhow::Error::new(DestinationExists {
+                    path,
+                    sha256: digest,
+                }));
+            }
             path
         }
     };

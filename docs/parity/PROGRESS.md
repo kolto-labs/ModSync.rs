@@ -1,6 +1,6 @@
 # Full Rust functionality progress
 
-Updated 2026-09-28 04:54 UTC. Goal: every F01–F29 requirement in [ACCEPTANCE.md](ACCEPTANCE.md)
+Updated 2026-09-28 08:25 UTC. Goal: every F01–F29 requirement in [ACCEPTANCE.md](ACCEPTANCE.md)
 verified against pinned C# `d31ccbd3`, including identical K1/K2 full installs
 against C# and manual references. A delivered slice does not close a whole domain.
 
@@ -76,8 +76,16 @@ is assigned because the remaining domains differ greatly in scope and proof cost
    (subject to its own hash) or the outcome of identical sources for the same name
    without a request; otherwise, for example a different URL after the owner failed,
    it downloads for itself. Every component is reported, recorded and bound as a
-   FOMOD consumer; [evidence](fetch-shared-url-proof/README.md) is 266/266 (22 new
-   checks fail on `339b3d6`). The second follow-up is `3f0caf4`; SPEC and QUALITY are approved. Open: an unnamed target whose server-revealed name matches a file already present fails with `Download destination already exists` instead of adopting it under its own hash (`src/download.rs` ~466); an unnamed linked target can inherit a named member's name-specific failure (`src/download_orchestrator.rs` ~722). Also open:
+   FOMOD consumer. The second follow-up is `3f0caf4`; SPEC and QUALITY are approved.
+   A third follow-up (local on `45b3c64`, not yet reviewed) makes the two changes that
+   review recommended: an unnamed target whose transfer reveals a name already present
+   adopts that file under its own hash, or with no hash only when the bytes match, and
+   otherwise fails clearly without replacing it (grouped, ungrouped with one worker,
+   and on reruns; the Peer publish paths match by source only); and an unnamed target
+   inherits only an unnamed member's failure. [Evidence](fetch-shared-url-proof/README.md)
+   is 354/354 (38 new or changed checks fail on `45b3c64`). Still open here: an unnamed
+   Nexus target whose API-revealed name is present fails before transferring, and
+   concurrent no-clobber publish collisions outside a group remain. Also open:
    one-run `validate/install --fomod-choices` still replaces all embedded archive
    choices.
    Remaining S2 semantic items and native acceptance follow.
