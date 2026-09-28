@@ -1,0 +1,8 @@
+from pathlib import Path
+import tempfile,subprocess,json,hashlib
+r=Path(tempfile.mkdtemp(prefix='legacy-source-oracle-'));out=Path('/home/brunner56/.cache/modsync-resume/legacy-source-oracle');out.mkdir(exist_ok=True)
+for x in ['home','config','cache','tmp']:(r/x).mkdir()
+g=r/'legacy.md';g.write_text('''# Guide\n\n## Mod List\n\n### Example Component\n\nSome description.\n\n<!--<<ModSync>>\n- **GUID:** aaaaaaaa-0000-0000-0000-000000000050\n#### Instructions\n1. **GUID:** aaaaaaaa-0000-0000-0000-000000000051\n   **Action:** Copy\n   **Overwrite:** true\n   **Source:** folder\\example.tga\n   **Destination:** <<kotorDirectory>>/Override\n-->\n''')
+dll=Path('/tmp/modsync-validation-reference-20260927-5813/artifacts/bin/ModSync.Core/debug_net9.0/ModSync.Core.dll');dest=r/'out.json'
+args=['bwrap','--unshare-net','--ro-bind','/','/','--dev','/dev','--proc','/proc','--bind',str(r),str(r),'--setenv','HOME',str(r/'home'),'--setenv','XDG_CONFIG_HOME',str(r/'config'),'--setenv','XDG_CACHE_HOME',str(r/'cache'),'--setenv','TMPDIR',str(r/'tmp'),'--chdir',str(r),'--','dotnet',str(dll),'convert','--input',str(g),'--output',str(dest),'--format','json','--plaintext','--non-interactive']
+p=subprocess.run(args,capture_output=True,text=True,timeout=60);v={'argv':args,'exit':p.returncode,'stdout':p.stdout,'stderr':p.stderr,'csharpSha256':hashlib.sha256(dll.read_bytes()).hexdigest(),'input':g.read_text(),'output':json.loads(dest.read_text()) if dest.exists() else None,'scope':'Pinned C# legacy Markdown production conversion only; no install or Rust parity claim.'};(out/'receipt.json').write_text(json.dumps(v,indent=2)+'\n');(out/'legacy.md').write_text(g.read_text());print(json.dumps({'exit':v['exit'],'output':v['output']},indent=2))
