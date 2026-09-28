@@ -2,10 +2,11 @@
 
 Bounded slice H1a of [host-providers-plan.md](../host-providers-plan.md) (H1 contract
 items 1-2 and the redirect/encoding parts of its controlled production proof).
-Source is commit `33e2612` (on top of `c02a060`) plus the uncommitted review
-follow-up in `src/updates.rs` and `src/download_orchestrator.rs` described below;
-`854c89e` on top of `33e2612` only adds `docs/parity/nexus-h1a-review.md`. Line numbers
-are those of the working tree with the follow-up applied. It does not cover the rest of H1 (bare-page discovery, categories,
+Source is commit `5cbd19c` (review follow-up on `33e2612`, which is on `c02a060`;
+`854c89e` between them only adds `docs/parity/nexus-h1a-review.md`). Line numbers are
+those of `5cbd19c`. Controller re-ran the probe on the clean `5cbd19c` tree: 138/138,
+`gitHead` `5cbd19c`, empty source porcelain, cloud Linux debug binary SHA256
+`7c9d530f6d1f50bdf9ae295c91ffa95cfc78e50da31793cca96b92e2613ecb49` (host-specific). It does not cover the rest of H1 (bare-page discovery, categories,
 per-file hashes, premium/free/expired/rate-limit matrix), live Nexus behavior, UI
 authorization or F13.
 

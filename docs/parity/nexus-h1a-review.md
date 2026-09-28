@@ -38,3 +38,18 @@ only touches the query holding the appended pairs and matches C#
 | - | pre-existing | `join("./")` drops the last segment of a base without a trailing slash. |
 
 All follow-ups dispatched to a fresh implementer; re-review follows.
+
+## Re-review of `5cbd19c`: QUALITY APPROVED
+
+Verified against reqwest 0.12.28 (the pinned major): `previous()` includes the
+origin URL, so `> 10` follows exactly 10 hops (11 requests); every reqwest error
+site is redacted, including redirect-policy errors, whose only URL is the keyed
+one, and no anyhow context re-inserts the key; trailing-slash normalization handles
+query/fragment/root bases; `quiesce()` cannot deadlock or pass vacuously; mtime
+binding errs toward refusal. One docs nit (stale "uncommitted" provenance) fixed by
+the controller after a clean-tree re-run: 138/138 at `5cbd19c`, empty porcelain.
+
+Nexus H1a is accepted: SPEC and QUALITY approved. It does not promote H1, F13 or
+live Nexus behavior. Open for later H1 slices: runtime https-to-http downgrade
+(needs a narrowly scoped trust seam), typed invalid/missing/expired authorization,
+premium/free/rate-limit matrix, bare-page discovery and per-file hashes.
