@@ -667,6 +667,21 @@ pub fn run_with_loopback_ca(
     })
 }
 
+/// The report of a run cancelled before its first target: one `Cancelled` outcome per
+/// target, as `run` reports targets it never started, plus the plan's skips.
+pub fn cancelled_report(plan: &AcquisitionPlan) -> RunReport {
+    RunReport {
+        outcomes: plan
+            .targets
+            .iter()
+            .enumerate()
+            .map(|(index, target)| outcome(index, target, TargetStatus::Cancelled))
+            .collect(),
+        skipped: plan.skipped.clone(),
+        cancelled: true,
+    }
+}
+
 fn outcome(index: usize, target: &ArchiveTarget, status: TargetStatus) -> TargetOutcome {
     TargetOutcome {
         target_index: index,

@@ -1,9 +1,9 @@
 {
  "binding": {
   "binary": "/home/user/ModSync.rs/target/debug/modsync",
-  "binarySha256": "80f4286c2ff527953fdc518dd80bf95784468dc5f39f22fe71b6de5dc049cd06",
-  "gitHead": "6ac257fb0804e75cb01bf41495b920dedc8c639a",
-  "gitPorcelain": "M src/ui.rs\n M src/ui/downloads_panel.rs",
+  "binarySha256": "73c3de88f0594f49b57d6adb70fa37d05d244dab9b17959c7ac62cb57cbb8d1d",
+  "gitHead": "ab08b4d93371e8f6a875510246406eaa2746ecc5",
+  "gitPorcelain": "M src/download_orchestrator.rs\n M src/ui.rs",
   "sourceSha256": {
    "src/acquisition.rs": "92a13616b529eb58b10b887481b0977b36fff82ec915646e1882c5dcf51abb6f",
    "src/archive.rs": "51dccfef9ea640067483ae92aba1a2bc5ec808ab26b966c800ffa9efec1b9763",
@@ -14,7 +14,7 @@
    "src/direct_markdown.rs": "70bf715188348e1700936adad2c304156846bd20b3fb3896f070983fb5b00521",
    "src/download.rs": "effcc722ca140b1c7ba2d3693ce909934398400078b4622458d2de99f2074ced",
    "src/download_hosts.rs": "2f6197607eaeb07e8eeaeb5050778701da31e9e6abd9891b60b204b94a4cee70",
-   "src/download_orchestrator.rs": "62d923e895b48930a7aad7e926af2fc8264df2ca997b65c25a3324a7870094cb",
+   "src/download_orchestrator.rs": "4298c77d1f0346075508c2d3cbafcf5919efc31775835a560c074ac9948cb811",
    "src/download_plan.rs": "52edd1844819e65bef31c11d4c065123810da98310b1bed75405695e73222ff0",
    "src/download_queue.rs": "3f91eefa75b26aa46153b1e9948bbb05237180af89fe79fec923d3f04eeb8467",
    "src/draft.rs": "86525e213956a05155b3b9c7353935ad1cb9202f7980bce5454dfddc39ba1703",
@@ -52,7 +52,7 @@
    "src/ui/downloads_panel.rs": "b6f70b5b817a5c5e3360f3a833c72b0e738cfdd2493a388e4613a44783570086",
    "src/ui/installing_page.rs": "51af2238e2d6d4a52f0e787dd656e30a5356408d227797237b3ceafd2c2279dd",
    "src/ui/validation_page.rs": "9f6f25a3c20e241a4a03bb8cecb0756c81b923501788e14e800cbc1df93404a5",
-   "src/ui.rs": "28d3cd896ca3213f771e09ec3fda6a91b04cebc8d7202b80a61bc5a9401fd18e",
+   "src/ui.rs": "0c87fecf6ceb67b5e40b8bf106a22fae9aa5f1ee370f5beb3c51303792343c70",
    "src/updates.rs": "7e0dff211af1f430315369101ae4bd30fb7a5ad359f6eb6ab414651a084e40c9",
    "src/validation/presentation.rs": "3d28c2acbf3883178bf287a4c452aa61974284dfde449957526cdff7a6cfd034",
    "src/validation.rs": "86123bc263f4c42dfb225ddb2ba2fa66e9f63624258f77d30dc10bb63cad15b0",
@@ -66,9 +66,9 @@
  "parentNetworkNamespace": "net:[4026531833]",
  "routes": "",
  "display": ":93",
- "root": "/tmp/downloads-gui-63vlzkbe",
- "originBase": "https://127.0.0.1:36279",
- "apiBase": "http://127.0.0.1:33671/v1",
+ "root": "/tmp/downloads-gui-577wftta",
+ "originBase": "https://127.0.0.1:36303",
+ "apiBase": "http://127.0.0.1:37925/v1",
  "certificateCommand": [
   "openssl",
   "req",
@@ -77,9 +77,9 @@
   "rsa:2048",
   "-nodes",
   "-keyout",
-  "/tmp/downloads-gui-63vlzkbe/loopback.key",
+  "/tmp/downloads-gui-577wftta/loopback.key",
   "-out",
-  "/tmp/downloads-gui-63vlzkbe/loopback.pem",
+  "/tmp/downloads-gui-577wftta/loopback.pem",
   "-days",
   "1",
   "-subj",
@@ -93,333 +93,333 @@
  ],
  "events": [
   {
-   "t": 11.002,
+   "t": 11.263,
    "kind": "launch",
    "label": "main",
    "argv": [
     "/home/user/ModSync.rs/target/debug/modsync",
     "gui",
     "--settings-dir",
-    "/tmp/downloads-gui-63vlzkbe/main/settings",
+    "/tmp/downloads-gui-577wftta/main/settings",
     "--input",
-    "/tmp/downloads-gui-63vlzkbe/main/guide.json",
+    "/tmp/downloads-gui-577wftta/main/guide.json",
     "--game-dir",
-    "/tmp/downloads-gui-63vlzkbe/main/game",
+    "/tmp/downloads-gui-577wftta/main/game",
     "--source-dir",
-    "/tmp/downloads-gui-63vlzkbe/main/mods",
+    "/tmp/downloads-gui-577wftta/main/mods",
     "--nexus-mods-api-key",
     "synthetic-probe-key-5d2e",
     "--nexus-api-base",
-    "http://127.0.0.1:33671/v1",
+    "http://127.0.0.1:37925/v1",
     "--extra-ca-file",
-    "/tmp/downloads-gui-63vlzkbe/loopback.pem",
+    "/tmp/downloads-gui-577wftta/loopback.pem",
     "--protocol",
     "nxm://kotor/mods/1/files/2?key=nxm-link-key-0f7a&expires=4102444800"
    ]
   },
   {
-   "t": 12.723,
+   "t": 12.984,
    "kind": "observed",
    "what": "nxm archive"
   },
   {
-   "t": 14.328,
+   "t": 14.589,
    "kind": "screenshot",
    "name": "01-nxm-handoff-terminal",
    "sha256": "b0ec6653c3dfcba289f145e2bd74ff061038526aef332230f52f5a249870d813"
   },
   {
-   "t": 14.719,
+   "t": 14.968,
    "kind": "click",
    "x": 1205,
    "y": 694,
    "target": "Next (to DownloadsExplain)"
   },
   {
-   "t": 15.698,
+   "t": 15.955,
    "kind": "click",
    "x": 1205,
    "y": 694,
    "target": "Next (to DownloadsExplain)"
   },
   {
-   "t": 16.673,
+   "t": 16.956,
    "kind": "click",
    "x": 1205,
    "y": 694,
    "target": "Next (to DownloadsExplain)"
   },
   {
-   "t": 17.665,
+   "t": 17.97,
    "kind": "click",
    "x": 1205,
    "y": 694,
    "target": "Next (to DownloadsExplain)"
   },
   {
-   "t": 18.376,
+   "t": 18.672,
    "kind": "screenshot",
    "name": "02-downloads-explain-idle",
-   "sha256": "58c7479d4e84237d6699e8d20bfb11dc0183c0c63769901e804a44f8ac600e1c"
+   "sha256": "bbe6661b40bf2430ad93d1b686a3f3a3b121cd006aeaa1e0edbd01300d02ae99"
   },
   {
-   "t": 18.635,
+   "t": 18.931,
    "kind": "click",
    "x": 1027,
    "y": 261,
    "target": "Fetch Downloads"
   },
   {
-   "t": 19.786,
+   "t": 20.082,
    "kind": "screenshot",
    "name": "03-fetch-preparing",
-   "sha256": "d868260ee6ebce14fc47a9ce25769bfa9ad1b1e981ef59251fc89e9ba388bc17"
+   "sha256": "3e86003ff4ae66c4971e88a1389335e628a2ee3e8f1873b8f087276d3f796528"
   },
   {
-   "t": 22.002,
+   "t": 22.103,
    "kind": "observed",
    "what": "two live transfers"
   },
   {
-   "t": 22.753,
+   "t": 22.836,
    "kind": "screenshot",
    "name": "04-two-live-rows",
-   "sha256": "155cdb179428a6bfe6963c90ed9bf89c5b375350140912a52f1f8ffa32270539"
+   "sha256": "c37bc7935181d5f6ff44bbc275a8872eb3aad6cb2dcae7beadd54edd83b77665"
   },
   {
-   "t": 23.184,
+   "t": 23.252,
    "kind": "click",
    "x": 1205,
    "y": 678,
    "target": "Next (to Validate while downloading)"
   },
   {
-   "t": 24.714,
+   "t": 24.777,
    "kind": "screenshot",
    "name": "05-status-after-navigation",
-   "sha256": "369126f144481b74a9bae1259715f40d06a18191c192ddc34f8038e01bc7a8f0"
+   "sha256": "cb0434be3d4de9be7607f9160fb24ae81c06c4b42173283a792e14e14cabb5bb"
   },
   {
-   "t": 27.875,
+   "t": 28.003,
    "kind": "observed",
    "what": "transfers finished"
   },
   {
-   "t": 33.011,
+   "t": 33.113,
    "kind": "screenshot",
    "name": "06-terminal-validate-page",
-   "sha256": "f03a7e0608a07814dcf0965e571a5c03b366d1721eeb8f6791bf1b36fb55e2dc"
+   "sha256": "22d5637bdc6ae695e122d55c6d57c0d24518ae6afb736efe880600b9d69f1992"
   },
   {
-   "t": 35.218,
+   "t": 35.31,
    "kind": "screenshot",
    "name": "07-manual-and-failed-rows",
-   "sha256": "0ef259d8ed5b9fd2b537a393143ec5b13a2ff32d0c8fe527abf7d2c951d86abc"
+   "sha256": "5127a4132123255b9324837f64aac6e7c2b79fa541826fe465f70b89683cb0ba"
   },
   {
-   "t": 36.422,
+   "t": 36.515,
    "kind": "resize",
    "width": 600,
    "height": 400
   },
   {
-   "t": 36.509,
+   "t": 36.604,
    "kind": "screenshot",
    "name": "08-terminal-600x400",
-   "sha256": "1c1852a092266460524ff73e82368073bad1d8f36c72437214abe90dd660e961"
+   "sha256": "ecc4ec1dcced1c0114ae09cfb922a45265ed33599dc32b2e894435fd6d997070"
   },
   {
-   "t": 37.83,
+   "t": 37.93,
    "kind": "screenshot",
    "name": "09-terminal-600x400-scrolled",
    "sha256": "7b9af0b5182bccc757abf1ad2cda826eca86ea84863cd84b98e367a40c5dd43d"
   },
   {
-   "t": 39.034,
+   "t": 39.135,
    "kind": "resize",
    "width": 1280,
    "height": 800
   },
   {
-   "t": 39.05,
+   "t": 39.151,
    "kind": "closed",
    "code": -15
   },
   {
-   "t": 61.898,
+   "t": 60.221,
    "kind": "cli",
    "argv": [
     "/home/user/ModSync.rs/target/debug/modsync",
     "fetch-downloads",
     "--input",
-    "/tmp/downloads-gui-63vlzkbe/cli/guide.json",
+    "/tmp/downloads-gui-577wftta/cli/guide.json",
     "--source-dir",
-    "/tmp/downloads-gui-63vlzkbe/cli/mods",
+    "/tmp/downloads-gui-577wftta/cli/mods",
     "--settings-dir",
-    "/tmp/downloads-gui-63vlzkbe/cli/settings",
+    "/tmp/downloads-gui-577wftta/cli/settings",
     "--use-file-selection",
     "--record",
     "--extra-ca-file",
-    "/tmp/downloads-gui-63vlzkbe/loopback.pem"
+    "/tmp/downloads-gui-577wftta/loopback.pem"
    ],
    "exit": 1
   },
   {
-   "t": 61.909,
+   "t": 60.231,
    "kind": "launch",
    "label": "stop",
    "argv": [
     "/home/user/ModSync.rs/target/debug/modsync",
     "gui",
     "--settings-dir",
-    "/tmp/downloads-gui-63vlzkbe/stop/settings",
+    "/tmp/downloads-gui-577wftta/stop/settings",
     "--input",
-    "/tmp/downloads-gui-63vlzkbe/stop/guide.json",
+    "/tmp/downloads-gui-577wftta/stop/guide.json",
     "--game-dir",
-    "/tmp/downloads-gui-63vlzkbe/stop/game",
+    "/tmp/downloads-gui-577wftta/stop/game",
     "--source-dir",
-    "/tmp/downloads-gui-63vlzkbe/stop/mods",
+    "/tmp/downloads-gui-577wftta/stop/mods",
     "--nexus-mods-api-key",
     "synthetic-probe-key-5d2e",
     "--nexus-api-base",
-    "http://127.0.0.1:33671/v1",
+    "http://127.0.0.1:37925/v1",
     "--extra-ca-file",
-    "/tmp/downloads-gui-63vlzkbe/loopback.pem"
+    "/tmp/downloads-gui-577wftta/loopback.pem"
    ]
   },
   {
-   "t": 64.087,
+   "t": 62.381,
    "kind": "click",
    "x": 1205,
    "y": 728,
    "target": "Next (to DownloadsExplain)"
   },
   {
-   "t": 65.106,
+   "t": 63.346,
    "kind": "click",
    "x": 1205,
    "y": 728,
    "target": "Next (to DownloadsExplain)"
   },
   {
-   "t": 66.129,
+   "t": 64.377,
    "kind": "click",
    "x": 1205,
    "y": 728,
    "target": "Next (to DownloadsExplain)"
   },
   {
-   "t": 67.121,
+   "t": 65.355,
    "kind": "click",
    "x": 1205,
    "y": 728,
    "target": "Next (to DownloadsExplain)"
   },
   {
-   "t": 67.981,
+   "t": 66.216,
    "kind": "click",
    "x": 1027,
    "y": 261,
    "target": "Fetch Downloads"
   },
   {
-   "t": 71.001,
+   "t": 69.131,
    "kind": "observed",
    "what": "large transfer mid-body"
   },
   {
-   "t": 71.15,
+   "t": 69.248,
    "kind": "screenshot",
    "name": "10-large-transfer-live",
-   "sha256": "efe3a267bba7922cd9058203fe17a629721ef197204ba5a597ec35aa95bd8cbf"
+   "sha256": "d644b4766554c0a103ef7e000e64c7481b911f30e99e33ac3aac2ede8152a186"
   },
   {
-   "t": 71.416,
+   "t": 69.506,
    "kind": "click",
    "x": 1150,
    "y": 261,
    "target": "Stop Downloads"
   },
   {
-   "t": 72.69,
+   "t": 70.732,
    "kind": "screenshot",
    "name": "11-stop-confirmation",
-   "sha256": "2541ec712231a78ef6d69ca24b5c9880899b4ba3dc3d322c0a8850e58c34f83b"
+   "sha256": "8606bd589761e4fd231908ad6408492212c573f80d5d6a6c4ad9a8c7d3817ba7"
   },
   {
-   "t": 72.953,
+   "t": 70.99,
    "kind": "click",
    "x": 397,
    "y": 434,
    "target": "Stop downloads (confirmation)"
   },
   {
-   "t": 73.934,
+   "t": 71.984,
    "kind": "screenshot",
    "name": "12-stopping",
-   "sha256": "b8b9b034f7a2f7a4a5582bcac4ec1c55847d933ed9fab4d8ab8fa3de631ba433"
+   "sha256": "71077646be8a9b4bda9eeb92be4acc09cb60a7a86a749bf4ee5b8322f52c2485"
   },
   {
-   "t": 75.439,
+   "t": 73.689,
    "kind": "observed",
    "what": "first large request ended"
   },
   {
-   "t": 78.076,
+   "t": 76.327,
    "kind": "screenshot",
    "name": "13-stopped-summary",
-   "sha256": "06d78d18b0ea67a0fd9fcb959653b4a652a2286d339045c7e84894f2322d5fa0"
+   "sha256": "fd4d338071de441dad1306e31fef03d57ab7c151d8600004942ca6bb99eeb842"
   },
   {
-   "t": 78.335,
+   "t": 76.587,
    "kind": "click",
    "x": 1027,
    "y": 261,
    "target": "Fetch Downloads (retry after stop)"
   },
   {
-   "t": 79.845,
+   "t": 78.095,
    "kind": "observed",
    "what": "retry transfer"
   },
   {
-   "t": 79.974,
+   "t": 78.225,
    "kind": "screenshot",
    "name": "14-retry-live",
-   "sha256": "78425e697411c0a788613983ef10cf06aa2584c3de5e8ce499012888c1adc2d4"
+   "sha256": "cf70ae2ab3ed5f75ac4a96a81abc68c867c3cd149851ea2c86702b01495829a8"
   },
   {
-   "t": 80.239,
+   "t": 78.498,
    "kind": "click",
    "x": 1150,
    "y": 261,
    "target": "Stop Downloads (retry)"
   },
   {
-   "t": 81.599,
+   "t": 79.867,
    "kind": "click",
    "x": 397,
    "y": 434,
    "target": "Stop downloads (confirmation)"
   },
   {
-   "t": 84.303,
+   "t": 82.573,
    "kind": "observed",
    "what": "retry request ended"
   },
   {
-   "t": 86.914,
+   "t": 85.189,
    "kind": "screenshot",
    "name": "15-retry-stopped",
-   "sha256": "b703acc0c74b7347462849ea886b1570d1878c0cf8bc7bacbb3d6b3b0a5dc42c"
+   "sha256": "716a4980faacd5752b940dabe88fbf3c0684ff2e0917a67612ecb539d5d17c6c"
   },
   {
-   "t": 86.931,
+   "t": 85.205,
    "kind": "closed",
    "code": -15
   },
   {
-   "t": 86.945,
+   "t": 85.215,
    "kind": "refusal",
    "name": "no_settings_dir",
    "argv": [
@@ -432,14 +432,14 @@
    "stderr": "Error: Probe options require --settings-dir with a private settings directory"
   },
   {
-   "t": 86.973,
+   "t": 85.24,
    "kind": "refusal",
    "name": "default_settings_dir",
    "argv": [
     "/home/user/ModSync.rs/target/debug/modsync",
     "gui",
     "--settings-dir",
-    "/tmp/downloads-gui-63vlzkbe/home/.config/ModSync",
+    "/tmp/downloads-gui-577wftta/home/.config/ModSync",
     "--nexus-mods-api-key",
     "synthetic-probe-key-5d2e"
    ],
@@ -447,122 +447,122 @@
    "stderr": "Error: Probe options require a settings directory separate from the default settings directory"
   },
   {
-   "t": 87.012,
+   "t": 85.271,
    "kind": "refusal",
    "name": "alias_of_default",
    "argv": [
     "/home/user/ModSync.rs/target/debug/modsync",
     "gui",
     "--settings-dir",
-    "/tmp/downloads-gui-63vlzkbe/alias-settings",
+    "/tmp/downloads-gui-577wftta/alias-settings",
     "--extra-ca-file",
-    "/tmp/downloads-gui-63vlzkbe/loopback.pem"
+    "/tmp/downloads-gui-577wftta/loopback.pem"
    ],
    "exit": 1,
    "stderr": "Error: Probe options require a settings directory separate from the default settings directory"
   },
   {
-   "t": 87.042,
+   "t": 85.297,
    "kind": "refusal",
    "name": "nested_in_default",
    "argv": [
     "/home/user/ModSync.rs/target/debug/modsync",
     "gui",
     "--settings-dir",
-    "/tmp/downloads-gui-63vlzkbe/home/.config/ModSync/nested",
+    "/tmp/downloads-gui-577wftta/home/.config/ModSync/nested",
     "--extra-ca-file",
-    "/tmp/downloads-gui-63vlzkbe/loopback.pem"
+    "/tmp/downloads-gui-577wftta/loopback.pem"
    ],
    "exit": 1,
    "stderr": "Error: Probe options require a settings directory separate from the default settings directory"
   },
   {
-   "t": 87.083,
+   "t": 85.328,
    "kind": "refusal",
    "name": "api_base_without_key",
    "argv": [
     "/home/user/ModSync.rs/target/debug/modsync",
     "gui",
     "--settings-dir",
-    "/tmp/downloads-gui-63vlzkbe/private-settings",
+    "/tmp/downloads-gui-577wftta/private-settings",
     "--nexus-api-base",
-    "http://127.0.0.1:33671/v1"
+    "http://127.0.0.1:37925/v1"
    ],
    "exit": 1,
    "stderr": "Error: --nexus-api-base requires an explicit --nexus-mods-api-key"
   },
   {
-   "t": 87.115,
+   "t": 85.352,
    "kind": "refusal",
    "name": "unreadable_ca",
    "argv": [
     "/home/user/ModSync.rs/target/debug/modsync",
     "gui",
     "--settings-dir",
-    "/tmp/downloads-gui-63vlzkbe/private-settings",
+    "/tmp/downloads-gui-577wftta/private-settings",
     "--extra-ca-file",
-    "/tmp/downloads-gui-63vlzkbe/absent.pem"
+    "/tmp/downloads-gui-577wftta/absent.pem"
    ],
    "exit": 1,
    "stderr": "Error: Cannot read loopback CA certificate"
   },
   {
-   "t": 87.145,
+   "t": 85.371,
    "kind": "launch",
    "label": "wrong-ca",
    "argv": [
     "/home/user/ModSync.rs/target/debug/modsync",
     "gui",
     "--settings-dir",
-    "/tmp/downloads-gui-63vlzkbe/wrong-ca/settings",
+    "/tmp/downloads-gui-577wftta/wrong-ca/settings",
     "--input",
-    "/tmp/downloads-gui-63vlzkbe/wrong-ca/guide.json",
+    "/tmp/downloads-gui-577wftta/wrong-ca/guide.json",
     "--game-dir",
-    "/tmp/downloads-gui-63vlzkbe/wrong-ca/game",
+    "/tmp/downloads-gui-577wftta/wrong-ca/game",
     "--source-dir",
-    "/tmp/downloads-gui-63vlzkbe/wrong-ca/mods",
+    "/tmp/downloads-gui-577wftta/wrong-ca/mods",
     "--nexus-mods-api-key",
     "synthetic-probe-key-5d2e",
     "--nexus-api-base",
-    "http://127.0.0.1:33671/v1",
+    "http://127.0.0.1:37925/v1",
     "--extra-ca-file",
-    "/tmp/downloads-gui-63vlzkbe/wrong.pem",
+    "/tmp/downloads-gui-577wftta/wrong.pem",
     "--protocol",
     "nxm://kotor/mods/1/files/2?key=nxm-link-key-0f7a&expires=4102444800"
    ]
   },
   {
-   "t": 88.886,
+   "t": 87.108,
    "kind": "observed",
    "what": "download link requested"
   },
   {
-   "t": 92.988,
+   "t": 91.223,
    "kind": "screenshot",
    "name": "16-wrong-ca-refused",
    "sha256": "f96a57f8ab785f57dbfa4a72cb41604908061100672bf3f5c97593fb2ff96d0a"
   },
   {
-   "t": 93.004,
+   "t": 91.234,
    "kind": "closed",
    "code": -15
   },
   {
-   "t": 98.898,
+   "t": 97.107,
    "kind": "cli-totals",
    "argv": [
     "/home/user/ModSync.rs/target/debug/modsync",
     "fetch-downloads",
     "--input",
-    "/tmp/downloads-gui-63vlzkbe/totals/guide.json",
+    "/tmp/downloads-gui-577wftta/totals/guide.json",
     "--source-dir",
-    "/tmp/downloads-gui-63vlzkbe/totals/mods",
+    "/tmp/downloads-gui-577wftta/totals/mods",
     "--settings-dir",
-    "/tmp/downloads-gui-63vlzkbe/totals/settings",
+    "/tmp/downloads-gui-577wftta/totals/settings",
     "--use-file-selection",
     "--progress-json",
     "--extra-ca-file",
-    "/tmp/downloads-gui-63vlzkbe/loopback.pem"
+    "/tmp/downloads-gui-577wftta/loopback.pem"
    ],
    "exit": 0,
    "totals": [
@@ -570,7 +570,7 @@
    ]
   },
   {
-   "t": 98.898,
+   "t": 97.108,
    "kind": "closed",
    "code": -15
   }
@@ -579,10 +579,10 @@
   {
    "path": "/cdn/nexus-example.zip",
    "query": "md5=signed-cdn-token-3b8c&expires=4102444800",
-   "start": 11.156,
+   "start": 11.408,
    "sent": 154,
    "complete": true,
-   "end": 11.157,
+   "end": 11.408,
    "headers": [
     "accept",
     "host"
@@ -591,10 +591,34 @@
   {
    "path": "/page/landing",
    "query": "",
-   "start": 21.924,
+   "start": 22.044,
    "sent": 125,
    "complete": true,
-   "end": 21.924,
+   "end": 22.044,
+   "headers": [
+    "accept",
+    "host"
+   ]
+  },
+  {
+   "path": "/slow/two.zip",
+   "query": "",
+   "start": 22.047,
+   "sent": 3145856,
+   "complete": true,
+   "end": 27.966,
+   "headers": [
+    "accept",
+    "host"
+   ]
+  },
+  {
+   "path": "/slow/one.zip",
+   "query": "",
+   "start": 22.051,
+   "sent": 3145856,
+   "complete": true,
+   "end": 27.966,
    "headers": [
     "accept",
     "host"
@@ -603,22 +627,10 @@
   {
    "path": "/missing/gone.zip",
    "query": "",
-   "start": 21.929,
+   "start": 22.053,
    "sent": 7,
    "complete": true,
-   "end": 21.929,
-   "headers": [
-    "accept",
-    "host"
-   ]
-  },
-  {
-   "path": "/slow/one.zip",
-   "query": "",
-   "start": 21.932,
-   "sent": 3145856,
-   "complete": true,
-   "end": 27.874,
+   "end": 22.054,
    "headers": [
     "accept",
     "host"
@@ -627,46 +639,10 @@
   {
    "path": "/wide/wide.zip",
    "query": "",
-   "start": 21.935,
+   "start": 22.056,
    "sent": 149,
    "complete": true,
-   "end": 21.935,
-   "headers": [
-    "accept",
-    "host"
-   ]
-  },
-  {
-   "path": "/slow/two.zip",
-   "query": "",
-   "start": 21.938,
-   "sent": 3145856,
-   "complete": true,
-   "end": 27.874,
-   "headers": [
-    "accept",
-    "host"
-   ]
-  },
-  {
-   "path": "/slow/two.zip",
-   "query": "",
-   "start": 42.303,
-   "sent": 3145856,
-   "complete": true,
-   "end": 48.206,
-   "headers": [
-    "accept",
-    "host"
-   ]
-  },
-  {
-   "path": "/slow/one.zip",
-   "query": "",
-   "start": 42.307,
-   "sent": 3145856,
-   "complete": true,
-   "end": 48.208,
+   "end": 22.056,
    "headers": [
     "accept",
     "host"
@@ -675,10 +651,22 @@
   {
    "path": "/page/landing",
    "query": "",
-   "start": 42.31,
+   "start": 42.481,
    "sent": 125,
    "complete": true,
-   "end": 42.31,
+   "end": 42.482,
+   "headers": [
+    "accept",
+    "host"
+   ]
+  },
+  {
+   "path": "/slow/one.zip",
+   "query": "",
+   "start": 42.484,
+   "sent": 3145856,
+   "complete": true,
+   "end": 48.431,
    "headers": [
     "accept",
     "host"
@@ -687,10 +675,22 @@
   {
    "path": "/missing/gone.zip",
    "query": "",
-   "start": 42.312,
+   "start": 42.489,
    "sent": 7,
    "complete": true,
-   "end": 42.313,
+   "end": 42.49,
+   "headers": [
+    "accept",
+    "host"
+   ]
+  },
+  {
+   "path": "/slow/two.zip",
+   "query": "",
+   "start": 42.492,
+   "sent": 3145856,
+   "complete": true,
+   "end": 48.431,
    "headers": [
     "accept",
     "host"
@@ -699,10 +699,10 @@
   {
    "path": "/wide/wide.zip",
    "query": "",
-   "start": 42.316,
+   "start": 42.494,
    "sent": 149,
    "complete": true,
-   "end": 42.316,
+   "end": 42.494,
    "headers": [
     "accept",
     "host"
@@ -711,11 +711,11 @@
   {
    "path": "/stop/huge.zip",
    "query": "",
-   "start": 67.894,
+   "start": 66.128,
    "sent": 327680,
    "complete": false,
    "aborted": "SSLEOFError",
-   "end": 75.401,
+   "end": 73.63,
    "headers": [
     "accept",
     "host"
@@ -724,11 +724,11 @@
   {
    "path": "/stop/huge.zip",
    "query": "",
-   "start": 78.248,
+   "start": 76.501,
    "sent": 262144,
    "complete": false,
    "aborted": "SSLEOFError",
-   "end": 84.252,
+   "end": 82.507,
    "headers": [
     "accept",
     "host"
@@ -737,7 +737,7 @@
   {
    "path": "/slow/one.zip",
    "query": "",
-   "start": 93.028,
+   "start": 91.252,
    "sent": 3145856,
    "complete": false,
    "headers": [
@@ -751,25 +751,25 @@
    "path": "/v1/games/kotor/mods/1/files/2.json",
    "query": "",
    "apikey": "synthetic-probe-key-5d2e",
-   "t": 11.148
+   "t": 11.4
   },
   {
    "path": "/v1/games/kotor/mods/1/files/2/download_link.json",
    "query": "key=nxm-link-key-0f7a&expires=4102444800",
    "apikey": "synthetic-probe-key-5d2e",
-   "t": 11.15
+   "t": 11.402
   },
   {
    "path": "/v1/games/kotor/mods/1/files/2.json",
    "query": "",
    "apikey": "synthetic-probe-key-5d2e",
-   "t": 87.264
+   "t": 85.482
   },
   {
    "path": "/v1/games/kotor/mods/1/files/2/download_link.json",
    "query": "key=nxm-link-key-0f7a&expires=4102444800",
    "apikey": "synthetic-probe-key-5d2e",
-   "t": 87.267
+   "t": 85.485
   }
  ],
  "forwarded": [],
@@ -798,14 +798,14 @@
       {
        "targetIndex": 0,
        "componentGuid": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-       "registryUrl": "https://127.0.0.1:36279/slow/one.zip",
+       "registryUrl": "https://127.0.0.1:36303/slow/one.zip",
        "filename": "one.zip",
        "status": "completed",
        "source": {
         "kind": "origin",
         "provider": "direct"
        },
-       "path": "/tmp/downloads-gui-63vlzkbe/cli/mods/one.zip",
+       "path": "/tmp/downloads-gui-577wftta/cli/mods/one.zip",
        "sha256": "5335eb049afb079d7f20ffdb590f5a992c8f4f31340eeae888ed8ab7e411d665",
        "manual": null,
        "error": null
@@ -813,14 +813,14 @@
       {
        "targetIndex": 1,
        "componentGuid": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
-       "registryUrl": "https://127.0.0.1:36279/slow/two.zip",
+       "registryUrl": "https://127.0.0.1:36303/slow/two.zip",
        "filename": "two.zip",
        "status": "completed",
        "source": {
         "kind": "origin",
         "provider": "direct"
        },
-       "path": "/tmp/downloads-gui-63vlzkbe/cli/mods/two.zip",
+       "path": "/tmp/downloads-gui-577wftta/cli/mods/two.zip",
        "sha256": "3a3eebb568e29a887afca1d0ec991531d697de183a948a71cb73f254ee6dc1c6",
        "manual": null,
        "error": null
@@ -828,7 +828,7 @@
       {
        "targetIndex": 2,
        "componentGuid": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
-       "registryUrl": "https://127.0.0.1:36279/page/landing",
+       "registryUrl": "https://127.0.0.1:36303/page/landing",
        "filename": "manual.zip",
        "status": "manualRequired",
        "source": {
@@ -838,7 +838,7 @@
        "path": null,
        "sha256": null,
        "manual": {
-        "url": "https://127.0.0.1:36279/page/landing",
+        "url": "https://127.0.0.1:36303/page/landing",
         "reason": "htmlLanding"
        },
        "error": null
@@ -846,7 +846,7 @@
       {
        "targetIndex": 3,
        "componentGuid": "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
-       "registryUrl": "https://127.0.0.1:36279/missing/gone.zip",
+       "registryUrl": "https://127.0.0.1:36303/missing/gone.zip",
        "filename": "gone.zip",
        "status": "failed",
        "source": null,
@@ -858,14 +858,14 @@
       {
        "targetIndex": 4,
        "componentGuid": "gggggggg-gggg-4ggg-8ggg-gggggggggggg",
-       "registryUrl": "https://127.0.0.1:36279/wide/wide.zip",
+       "registryUrl": "https://127.0.0.1:36303/wide/wide.zip",
        "filename": "wide.zip",
        "status": "completed",
        "source": {
         "kind": "origin",
         "provider": "direct"
        },
-       "path": "/tmp/downloads-gui-63vlzkbe/cli/mods/wide.zip",
+       "path": "/tmp/downloads-gui-577wftta/cli/mods/wide.zip",
        "sha256": "8b289e4c2447251f189bd4211afbb6aba51eae242d921cad7f3e66aa6cb4f5ed",
        "manual": null,
        "error": null
@@ -874,15 +874,15 @@
      "skipped": [
       {
        "componentGuid": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
-       "registryUrl": "https://127.0.0.1:36279/present/present.zip",
+       "registryUrl": "https://127.0.0.1:36303/present/present.zip",
        "filename": "present.zip",
        "reason": "alreadyPresent",
-       "path": "/tmp/downloads-gui-63vlzkbe/cli/mods/present.zip",
+       "path": "/tmp/downloads-gui-577wftta/cli/mods/present.zip",
        "detail": null
       },
       {
        "componentGuid": "hhhhhhhh-hhhh-4hhh-8hhh-hhhhhhhhhhhh",
-       "registryUrl": "https://127.0.0.1:36279/unselected/never.zip",
+       "registryUrl": "https://127.0.0.1:36303/unselected/never.zip",
        "filename": null,
        "reason": "allFilesFlaggedFalse",
        "path": null,
@@ -895,22 +895,22 @@
      "recorded": [
       [
        "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-       "https://127.0.0.1:36279/slow/one.zip",
+       "https://127.0.0.1:36303/slow/one.zip",
        "one.zip"
       ],
       [
        "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
-       "https://127.0.0.1:36279/slow/two.zip",
+       "https://127.0.0.1:36303/slow/two.zip",
        "two.zip"
       ],
       [
        "gggggggg-gggg-4ggg-8ggg-gggggggggggg",
-       "https://127.0.0.1:36279/wide/wide.zip",
+       "https://127.0.0.1:36303/wide/wide.zip",
        "wide.zip"
       ],
       [
        "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
-       "https://127.0.0.1:36279/present/present.zip",
+       "https://127.0.0.1:36303/present/present.zip",
        "present.zip"
       ]
      ],
@@ -1037,8 +1037,8 @@
   },
   {
    "name": "guide_file_not_saved_by_gui",
-   "actual": "40217fc1dd1e4e4dafa9476a0646b368cec330c5429bdcb3ad5b40bcbba076f8",
-   "expected": "40217fc1dd1e4e4dafa9476a0646b368cec330c5429bdcb3ad5b40bcbba076f8",
+   "actual": "ff739857bdc735150d6e5576ef8aef6af960c78d09629760038be5bc9bae5ffa",
+   "expected": "ff739857bdc735150d6e5576ef8aef6af960c78d09629760038be5bc9bae5ffa",
    "passed": true
   },
   {
@@ -1195,12 +1195,12 @@
    "name": "stop_no_residue",
    "actual": {
     "game/swkotor.exe": "0aa3664a0a34289e5ae41919982b0001452750765574d935a574f984d27e3cf2",
-    "guide.json": "655a343a6edcce2ffcb45fce3b44010caaeca6a95b25e421579246a5e29fb6ab",
+    "guide.json": "059ee1a503db8ae1b512dc802e6a7de53b0b8fe9702535347ae339acceea7488",
     "settings/settings.json": "0cb2df7b8a22860280d9761806c05c22d89ec2139dbaabf18e1327aa58a1eec5"
    },
    "expected": {
     "game/swkotor.exe": "0aa3664a0a34289e5ae41919982b0001452750765574d935a574f984d27e3cf2",
-    "guide.json": "655a343a6edcce2ffcb45fce3b44010caaeca6a95b25e421579246a5e29fb6ab",
+    "guide.json": "059ee1a503db8ae1b512dc802e6a7de53b0b8fe9702535347ae339acceea7488",
     "settings/settings.json": "0cb2df7b8a22860280d9761806c05c22d89ec2139dbaabf18e1327aa58a1eec5"
    },
    "passed": true
@@ -1227,12 +1227,12 @@
    "name": "retry_no_residue",
    "actual": {
     "game/swkotor.exe": "0aa3664a0a34289e5ae41919982b0001452750765574d935a574f984d27e3cf2",
-    "guide.json": "655a343a6edcce2ffcb45fce3b44010caaeca6a95b25e421579246a5e29fb6ab",
+    "guide.json": "059ee1a503db8ae1b512dc802e6a7de53b0b8fe9702535347ae339acceea7488",
     "settings/settings.json": "0cb2df7b8a22860280d9761806c05c22d89ec2139dbaabf18e1327aa58a1eec5"
    },
    "expected": {
     "game/swkotor.exe": "0aa3664a0a34289e5ae41919982b0001452750765574d935a574f984d27e3cf2",
-    "guide.json": "655a343a6edcce2ffcb45fce3b44010caaeca6a95b25e421579246a5e29fb6ab",
+    "guide.json": "059ee1a503db8ae1b512dc802e6a7de53b0b8fe9702535347ae339acceea7488",
     "settings/settings.json": "0cb2df7b8a22860280d9761806c05c22d89ec2139dbaabf18e1327aa58a1eec5"
    },
    "passed": true

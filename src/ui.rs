@@ -689,11 +689,7 @@ impl App {
                     // still record, exactly as a run cancelled before its first target.
                     if cancelled.load(Ordering::SeqCst) {
                         return Ok(Box::new(downloads_panel::Finished {
-                            report: orchestrator::RunReport {
-                                outcomes: Vec::new(),
-                                skipped: plan.skipped.clone(),
-                                cancelled: true,
-                            },
+                            report: orchestrator::cancelled_report(&plan),
                             fomod: None,
                         }));
                     }
