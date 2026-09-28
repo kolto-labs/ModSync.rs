@@ -1,0 +1,188 @@
+[
+  {
+    "Guid": "00000000-0000-4000-8000-000000000300",
+    "Name": "Probe C",
+    "NameSpoilerFree": "",
+    "Heading": "",
+    "Author": "",
+    "Category": [],
+    "Tier": "",
+    "Language": [],
+    "ResourceRegistry": {},
+    "ExcludedDownloads": [],
+    "Description": "",
+    "DescriptionSpoilerFree": "",
+    "InstallationMethod": "",
+    "Directions": "",
+    "DirectionsSpoilerFree": "",
+    "DownloadInstructions": "",
+    "DownloadInstructionsSpoilerFree": "",
+    "UsageWarning": "",
+    "UsageWarningSpoilerFree": "",
+    "Screenshots": "",
+    "ScreenshotsSpoilerFree": "",
+    "KnownBugs": "",
+    "InstallationWarning": "",
+    "CompatibilityWarning": "",
+    "SteamNotes": "",
+    "Dependencies": [],
+    "DependencyNames": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "IsSelected": true,
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "<<modDirectory>>/Probe_C*.zip"
+        ],
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [
+      {
+        "Guid": "00000000-0000-4000-8000-000000000301",
+        "Name": "One",
+        "NameSpoilerFree": "",
+        "Heading": "",
+        "Author": "",
+        "Category": [],
+        "Tier": "",
+        "Language": [],
+        "ResourceRegistry": {},
+        "ExcludedDownloads": [],
+        "Description": "",
+        "DescriptionSpoilerFree": "",
+        "InstallationMethod": "",
+        "Directions": "",
+        "DirectionsSpoilerFree": "",
+        "DownloadInstructions": "",
+        "DownloadInstructionsSpoilerFree": "",
+        "UsageWarning": "",
+        "UsageWarningSpoilerFree": "",
+        "Screenshots": "",
+        "ScreenshotsSpoilerFree": "",
+        "KnownBugs": "",
+        "InstallationWarning": "",
+        "CompatibilityWarning": "",
+        "SteamNotes": "",
+        "Dependencies": [],
+        "DependencyNames": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>/x/*.tga"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "WidescreenOnly": false
+      }
+    ],
+    "WidescreenOnly": false
+  },
+  {
+    "Guid": "00000000-0000-4000-8000-000000000310",
+    "Name": "Probe C Other",
+    "NameSpoilerFree": "",
+    "Heading": "",
+    "Author": "",
+    "Category": [],
+    "Tier": "",
+    "Language": [],
+    "ResourceRegistry": {},
+    "ExcludedDownloads": [],
+    "Description": "",
+    "DescriptionSpoilerFree": "",
+    "InstallationMethod": "",
+    "Directions": "",
+    "DirectionsSpoilerFree": "",
+    "DownloadInstructions": "",
+    "DownloadInstructionsSpoilerFree": "",
+    "UsageWarning": "",
+    "UsageWarningSpoilerFree": "",
+    "Screenshots": "",
+    "ScreenshotsSpoilerFree": "",
+    "KnownBugs": "",
+    "InstallationWarning": "",
+    "CompatibilityWarning": "",
+    "SteamNotes": "",
+    "Dependencies": [],
+    "DependencyNames": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "IsSelected": true,
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "<<modDirectory>>/Probe_C_Other*.zip"
+        ],
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [
+      {
+        "Guid": "00000000-0000-4000-8000-000000000311",
+        "Name": "Solo",
+        "NameSpoilerFree": "",
+        "Heading": "",
+        "Author": "",
+        "Category": [],
+        "Tier": "",
+        "Language": [],
+        "ResourceRegistry": {},
+        "ExcludedDownloads": [],
+        "Description": "",
+        "DescriptionSpoilerFree": "",
+        "InstallationMethod": "",
+        "Directions": "",
+        "DirectionsSpoilerFree": "",
+        "DownloadInstructions": "",
+        "DownloadInstructionsSpoilerFree": "",
+        "UsageWarning": "",
+        "UsageWarningSpoilerFree": "",
+        "Screenshots": "",
+        "ScreenshotsSpoilerFree": "",
+        "KnownBugs": "",
+        "InstallationWarning": "",
+        "CompatibilityWarning": "",
+        "SteamNotes": "",
+        "Dependencies": [],
+        "DependencyNames": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>/z/*.tga"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "WidescreenOnly": false
+      }
+    ],
+    "WidescreenOnly": false
+  }
+]

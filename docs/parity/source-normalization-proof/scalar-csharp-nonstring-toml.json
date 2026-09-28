@@ -1,0 +1,47 @@
+[
+  {
+    "Guid": "11111111-1111-1111-1111-111111111111",
+    "Name": "Example scalar",
+    "NameSpoilerFree": "",
+    "Heading": "",
+    "Author": "",
+    "Category": [],
+    "Tier": "",
+    "Language": [],
+    "ResourceRegistry": {},
+    "ExcludedDownloads": [],
+    "Description": "",
+    "DescriptionSpoilerFree": "",
+    "InstallationMethod": "",
+    "Directions": "",
+    "DirectionsSpoilerFree": "",
+    "DownloadInstructions": "",
+    "DownloadInstructionsSpoilerFree": "",
+    "UsageWarning": "",
+    "UsageWarningSpoilerFree": "",
+    "Screenshots": "",
+    "ScreenshotsSpoilerFree": "",
+    "KnownBugs": "",
+    "InstallationWarning": "",
+    "CompatibilityWarning": "",
+    "SteamNotes": "",
+    "Dependencies": [],
+    "DependencyNames": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "IsSelected": true,
+    "Instructions": [
+      {
+        "Action": "Copy",
+        "Source": [],
+        "Destination": "<<kotorDirectory>>/Override",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "WidescreenOnly": false
+  }
+]

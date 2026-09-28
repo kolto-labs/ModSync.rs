@@ -1,0 +1,43 @@
+[[thisMod]]
+Guid = "00000000-0000-4000-8000-000000000950"
+Name = "Probe J"
+IsSelected = true
+
+[[thisMod.Instructions]]
+Guid = "88888888-0000-4000-8000-000000000950"
+Action = "Extract"
+Source = ["<<modDirectory>>\\Probe_B*.zip"]
+
+[[thisMod.Options]]
+Guid = "00000000-0000-4000-8000-000000000951"
+Name = "First"
+IsSelected = false
+[[thisMod.Options.Instructions]]
+Guid = "77777777-0000-4000-8000-000000000951"
+Action = "Move"
+Parent = "00000000-0000-4000-8000-000000000951"
+Source = ["<<modDirectory>>\\x\\*.tga"]
+Destination = "<<kotorDirectory>>\\Override"
+
+[[thisMod.Options]]
+Guid = "00000000-0000-4000-8000-000000000952"
+Name = "Second Name"
+IsSelected = false
+[[thisMod.Options.Instructions]]
+Guid = "77777777-0000-4000-8000-000000000952"
+Action = "Move"
+Parent = "00000000-0000-4000-8000-000000000952"
+Source = ["<<modDirectory>>/x/*.tga"]
+Destination = "<<kotorDirectory>>\\Override"
+
+[[thisMod.Options]]
+Guid = "00000000-0000-4000-8000-000000000953"
+Name = "DestSlash"
+IsSelected = false
+[[thisMod.Options.Instructions]]
+Guid = "77777777-0000-4000-8000-000000000953"
+Action = "Move"
+Parent = "00000000-0000-4000-8000-000000000953"
+Source = ["<<modDirectory>>\\x\\*.tga"]
+Destination = "<<kotorDirectory>>/Override"
+

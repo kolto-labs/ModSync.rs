@@ -1,0 +1,95 @@
+[
+  {
+    "Guid": "00000000-0000-4000-8000-000000000100",
+    "Name": "Probe A",
+    "Author": "",
+    "Description": "",
+    "Directions": "",
+    "Tier": "",
+    "Category": [],
+    "IsSelected": true,
+    "Dependencies": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "Instructions": [
+      {
+        "Guid": "88888888-0000-4000-8000-000000000100",
+        "Action": "Extract",
+        "Source": [
+          "<<modDirectory>>/Probe_A*.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [
+      {
+        "Guid": "00000000-0000-4000-8000-000000000101",
+        "Name": "Same",
+        "Author": "",
+        "Description": "",
+        "Directions": "",
+        "Tier": "",
+        "Category": [],
+        "IsSelected": false,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [
+          {
+            "Guid": "77777777-0000-4000-8000-000000000101",
+            "Parent": "00000000-0000-4000-8000-000000000101",
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>/x/*.tga"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "ResourceRegistry": {}
+      },
+      {
+        "Guid": "00000000-0000-4000-8000-000000000103",
+        "Name": "Other",
+        "Author": "",
+        "Description": "",
+        "Directions": "",
+        "Tier": "",
+        "Category": [],
+        "IsSelected": false,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [
+          {
+            "Guid": "77777777-0000-4000-8000-000000000103",
+            "Parent": "00000000-0000-4000-8000-000000000103",
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>/y/*.tga"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "ResourceRegistry": {}
+      }
+    ],
+    "ResourceRegistry": {}
+  }
+]

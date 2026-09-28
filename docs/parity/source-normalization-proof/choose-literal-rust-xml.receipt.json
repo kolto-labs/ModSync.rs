@@ -1,0 +1,14 @@
+{
+  "label": "choose-literal-rust-xml",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "convert",
+    "/tmp/source-normalization-proof-l9cqv8ew/choose-literal-xml.xml",
+    "/tmp/source-normalization-proof-l9cqv8ew/choose-literal-rust-xml.json",
+    "-f",
+    "json"
+  ],
+  "exit": 0,
+  "stdout": "",
+  "stderr": ""
+}

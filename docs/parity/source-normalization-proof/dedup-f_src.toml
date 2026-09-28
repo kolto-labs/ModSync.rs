@@ -1,0 +1,37 @@
+[[thisMod]]
+Guid = "00000000-0000-4000-8000-000000000900"
+Name = "Probe F"
+IsSelected = true
+
+[[thisMod.Instructions]]
+Guid = "88888888-0000-4000-8000-000000000900"
+Action = "Extract"
+Source = ["<<modDirectory>>\\Probe_E*.zip"]
+
+[[thisMod.Instructions]]
+Guid = "98888888-0000-4000-8000-000000000900"
+Action = "Choose"
+Source = ["00000000-0000-4000-8000-000000000901", "00000000-0000-4000-8000-000000000902"]
+
+[[thisMod.Options]]
+Guid = "00000000-0000-4000-8000-000000000901"
+Name = "F Opt"
+IsSelected = false
+[[thisMod.Options.Instructions]]
+Guid = "77777777-0000-4000-8000-000000000901"
+Action = "Move"
+Parent = "00000000-0000-4000-8000-000000000901"
+Source = ["<<modDirectory>>\\x\\*.tga"]
+Destination = "<<kotorDirectory>>\\Override"
+
+[[thisMod.Options]]
+Guid = "00000000-0000-4000-8000-000000000902"
+Name = "F Opt"
+IsSelected = false
+[[thisMod.Options.Instructions]]
+Guid = "77777777-0000-4000-8000-000000000902"
+Action = "Move"
+Parent = "00000000-0000-4000-8000-000000000902"
+Source = ["<<modDirectory>>\\y\\*.tga"]
+Destination = "<<kotorDirectory>>\\Override"
+

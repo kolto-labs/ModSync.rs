@@ -1,0 +1,14 @@
+{
+  "label": "scalar-rust-nonstring-yaml",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "convert",
+    "/tmp/source-normalization-proof-ws_qwkss/nonstring-yaml.yaml",
+    "/tmp/source-normalization-proof-ws_qwkss/scalar-rust-nonstring-yaml.json",
+    "-f",
+    "json"
+  ],
+  "exit": 1,
+  "stdout": "",
+  "stderr": "Error: data did not match any variant of untagged enum Value\n"
+}

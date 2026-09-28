@@ -1,0 +1,60 @@
+[[thisMod]]
+Guid = "00000000-0000-4000-8000-000000000960"
+Name = "Probe K"
+IsSelected = true
+
+[[thisMod.Options]]
+Guid = "00000000-0000-4000-8000-000000000961"
+Name = "Base"
+IsSelected = false
+[[thisMod.Options.Instructions]]
+Guid = "77777777-0000-4000-8000-000000000961"
+Action = "Move"
+Parent = "00000000-0000-4000-8000-000000000961"
+Source = ['<<modDirectory>>\x\a.tga']
+Destination = '<<kotorDirectory>>\Override'
+
+[[thisMod.Options]]
+Guid = "00000000-0000-4000-8000-000000000962"
+Name = "DoubledTrailing"
+IsSelected = false
+[[thisMod.Options.Instructions]]
+Guid = "77777777-0000-4000-8000-000000000962"
+Action = "Move"
+Parent = "00000000-0000-4000-8000-000000000962"
+Source = ['<<modDirectory>>\\x//a.tga\\']
+Destination = '<<kotorDirectory>>\Override'
+
+[[thisMod.Options]]
+Guid = "00000000-0000-4000-8000-000000000963"
+Name = "Unprefixed"
+IsSelected = false
+[[thisMod.Options.Instructions]]
+Guid = "77777777-0000-4000-8000-000000000963"
+Action = "Move"
+Parent = "00000000-0000-4000-8000-000000000963"
+Source = ['x/a.tga']
+Destination = '<<kotorDirectory>>\Override'
+
+[[thisMod.Options]]
+Guid = "00000000-0000-4000-8000-000000000964"
+Name = "UpperPrefix"
+IsSelected = false
+[[thisMod.Options.Instructions]]
+Guid = "77777777-0000-4000-8000-000000000964"
+Action = "Move"
+Parent = "00000000-0000-4000-8000-000000000964"
+Source = ['<<MODDIRECTORY>>/x/a.tga']
+Destination = '<<kotorDirectory>>\Override'
+
+[[thisMod.Options]]
+Guid = "00000000-0000-4000-8000-000000000965"
+Name = "LeadingBackslash"
+IsSelected = false
+[[thisMod.Options.Instructions]]
+Guid = "77777777-0000-4000-8000-000000000965"
+Action = "Move"
+Parent = "00000000-0000-4000-8000-000000000965"
+Source = ['\x\a.tga']
+Destination = '<<kotorDirectory>>\Override'
+

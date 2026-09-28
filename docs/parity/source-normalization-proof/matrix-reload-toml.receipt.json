@@ -1,0 +1,14 @@
+{
+  "label": "matrix-reload-toml",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "convert",
+    "/tmp/source-normalization-proof-ws_qwkss/matrix-rust-toml.json",
+    "/tmp/source-normalization-proof-ws_qwkss/matrix-reload-toml.json",
+    "-f",
+    "json"
+  ],
+  "exit": 0,
+  "stdout": "",
+  "stderr": ""
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "Guid": "aaaaaaaa-0000-0000-0000-000000000050",
+    "Name": "Example Component",
+    "Author": "",
+    "Description": "",
+    "Directions": "",
+    "Tier": "",
+    "Category": [],
+    "IsSelected": true,
+    "Dependencies": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "Instructions": [
+      {
+        "Action": "Copy",
+        "Source": [
+          "<<modDirectory>>/x/foo.tga"
+        ],
+        "Destination": "<<kotorDirectory>>/Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "ResourceRegistry": {},
+    "WidescreenOnly": false
+  }
+]

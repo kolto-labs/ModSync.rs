@@ -1,0 +1,10 @@
+[[thisMod]]
+Guid = "7dba506c-74ba-5047-8799-5056c9a2a7d1"
+Name = "Choose literal"
+IsSelected = true
+[[thisMod.Instructions]]
+Action = "CHOOSE"
+Source = ["  ", "\\literal\\path", "{AAAAAAAA-1111-4111-8111-111111111111}"]
+Destination = "<<kotorDirectory>>\\literal//destination/"
+Arguments = " literal\\argument "
+

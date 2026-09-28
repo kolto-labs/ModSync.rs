@@ -1,0 +1,25 @@
+[[thisMod]]
+Guid = "00000000-0000-4000-8000-000000000600"
+Name = "Probe H"
+IsSelected = true
+
+[[thisMod.Instructions]]
+Guid = "88888888-0000-4000-8000-000000000600"
+Action = "Extract"
+Source = ["<<modDirectory>>\\Probe_H*.zip"]
+
+[[thisMod.Instructions]]
+Guid = "98888888-0000-4000-8000-000000000600"
+Action = "Choose"
+Source = ["00000000-0000-4000-8000-000000000601", "00000000-0000-4000-8000-000000000602"]
+
+[[thisMod.Options]]
+Guid = "00000000-0000-4000-8000-000000000601"
+Name = "Empty1"
+IsSelected = false
+
+[[thisMod.Options]]
+Guid = "00000000-0000-4000-8000-000000000602"
+Name = "Empty2"
+IsSelected = false
+

@@ -1,0 +1,62 @@
+[
+  {
+    "Guid": "00000000-0000-4000-8000-000000000600",
+    "Name": "Probe H",
+    "Author": "",
+    "Description": "",
+    "Directions": "",
+    "Tier": "",
+    "Category": [],
+    "IsSelected": true,
+    "Dependencies": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "Instructions": [
+      {
+        "Guid": "88888888-0000-4000-8000-000000000600",
+        "Action": "Extract",
+        "Source": [
+          "<<modDirectory>>/Probe_H*.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Guid": "98888888-0000-4000-8000-000000000600",
+        "Action": "Choose",
+        "Source": [
+          "00000000-0000-4000-8000-000000000601"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [
+      {
+        "Guid": "00000000-0000-4000-8000-000000000601",
+        "Name": "Empty1",
+        "Author": "",
+        "Description": "",
+        "Directions": "",
+        "Tier": "",
+        "Category": [],
+        "IsSelected": false,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {}
+      }
+    ],
+    "ResourceRegistry": {}
+  }
+]

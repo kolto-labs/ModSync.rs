@@ -1,0 +1,33 @@
+[
+  {
+    "Guid": "7dba506c-74ba-5047-8799-5056c9a2a7d1",
+    "Name": "Choose literal",
+    "Author": "",
+    "Description": "",
+    "Directions": "",
+    "Tier": "",
+    "Category": [],
+    "IsSelected": true,
+    "Dependencies": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "Instructions": [
+      {
+        "Action": "Choose",
+        "Source": [
+          "  ",
+          "\\literal\\path",
+          "{AAAAAAAA-1111-4111-8111-111111111111}"
+        ],
+        "Destination": "<<kotorDirectory>>\\literal//destination/",
+        "Arguments": " literal\\argument ",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "ResourceRegistry": {}
+  }
+]

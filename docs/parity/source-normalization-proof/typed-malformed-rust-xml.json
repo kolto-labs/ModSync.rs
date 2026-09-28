@@ -1,0 +1,32 @@
+[
+  {
+    "Guid": "87099b3e-cd41-5424-949f-7bdc449c79fb",
+    "Name": "Malformed",
+    "Author": "",
+    "Description": "",
+    "Directions": "",
+    "Tier": "",
+    "Category": [],
+    "IsSelected": true,
+    "Dependencies": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "Instructions": [
+      {
+        "Action": "Copy",
+        "Source": [
+          "<<modDirectory>>/x",
+          "<<modDirectory>>/42"
+        ],
+        "Destination": "<<kotorDirectory>>\\literal//destination/",
+        "Arguments": " literal\\argument ",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "ResourceRegistry": {}
+  }
+]

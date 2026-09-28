@@ -1,0 +1,31 @@
+[
+  {
+    "Guid": "11111111-1111-1111-1111-111111111111",
+    "Name": "Example scalar",
+    "Author": "",
+    "Description": "",
+    "Directions": "",
+    "Tier": "",
+    "Category": [],
+    "IsSelected": true,
+    "Dependencies": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "Instructions": [
+      {
+        "Action": "Copy",
+        "Source": [
+          "<<modDirectory>>/x/file.txt"
+        ],
+        "Destination": "<<kotorDirectory>>/Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "ResourceRegistry": {}
+  }
+]

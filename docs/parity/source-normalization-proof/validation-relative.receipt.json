@@ -1,0 +1,17 @@
+{
+  "label": "validation-relative",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "validate",
+    "--input",
+    "/tmp/source-normalization-proof-lupm9ev7/relative.json",
+    "--game-dir",
+    "/tmp/source-normalization-proof-lupm9ev7/game",
+    "--source-dir",
+    "/tmp/source-normalization-proof-lupm9ev7/mods",
+    "--use-file-selection"
+  ],
+  "exit": 0,
+  "stdout": "Example Copy / 1: Copy\n",
+  "stderr": ""
+}

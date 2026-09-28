@@ -1,0 +1,14 @@
+{
+  "label": "supplement-rust-json",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "convert",
+    "/tmp/source-normalization-proof-l9cqv8ew/supplement-json.json",
+    "/tmp/source-normalization-proof-l9cqv8ew/supplement-rust-json.json",
+    "-f",
+    "json"
+  ],
+  "exit": 0,
+  "stdout": "",
+  "stderr": "Component 'Choose parent': Duplicate option detected - 'Second option' (GUID: bbbbbbbb-2222-4222-8222-222222222222) has identical instructions to 'First option' (GUID: AAAAAAAA-1111-4111-8111-111111111111). Removing duplicate.\n"
+}

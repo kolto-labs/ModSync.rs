@@ -1,0 +1,14 @@
+{
+  "label": "scalar-rust-relative-json",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "convert",
+    "/tmp/source-normalization-proof-ws_qwkss/relative-json.json",
+    "/tmp/source-normalization-proof-ws_qwkss/scalar-rust-relative-json.json",
+    "-f",
+    "json"
+  ],
+  "exit": 0,
+  "stdout": "",
+  "stderr": ""
+}

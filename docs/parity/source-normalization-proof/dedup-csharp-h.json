@@ -1,0 +1,92 @@
+[
+  {
+    "Guid": "00000000-0000-4000-8000-000000000600",
+    "Name": "Probe H",
+    "NameSpoilerFree": "",
+    "Heading": "",
+    "Author": "",
+    "Category": [],
+    "Tier": "",
+    "Language": [],
+    "ResourceRegistry": {},
+    "ExcludedDownloads": [],
+    "Description": "",
+    "DescriptionSpoilerFree": "",
+    "InstallationMethod": "",
+    "Directions": "",
+    "DirectionsSpoilerFree": "",
+    "DownloadInstructions": "",
+    "DownloadInstructionsSpoilerFree": "",
+    "UsageWarning": "",
+    "UsageWarningSpoilerFree": "",
+    "Screenshots": "",
+    "ScreenshotsSpoilerFree": "",
+    "KnownBugs": "",
+    "InstallationWarning": "",
+    "CompatibilityWarning": "",
+    "SteamNotes": "",
+    "Dependencies": [],
+    "DependencyNames": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "IsSelected": true,
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "<<modDirectory>>/Probe_H*.zip"
+        ],
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Choose",
+        "Source": [
+          "00000000-0000-4000-8000-000000000601"
+        ],
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [
+      {
+        "Guid": "00000000-0000-4000-8000-000000000601",
+        "Name": "Empty1",
+        "NameSpoilerFree": "",
+        "Heading": "",
+        "Author": "",
+        "Category": [],
+        "Tier": "",
+        "Language": [],
+        "ResourceRegistry": {},
+        "ExcludedDownloads": [],
+        "Description": "",
+        "DescriptionSpoilerFree": "",
+        "InstallationMethod": "",
+        "Directions": "",
+        "DirectionsSpoilerFree": "",
+        "DownloadInstructions": "",
+        "DownloadInstructionsSpoilerFree": "",
+        "UsageWarning": "",
+        "UsageWarningSpoilerFree": "",
+        "Screenshots": "",
+        "ScreenshotsSpoilerFree": "",
+        "KnownBugs": "",
+        "InstallationWarning": "",
+        "CompatibilityWarning": "",
+        "SteamNotes": "",
+        "Dependencies": [],
+        "DependencyNames": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "IsSelected": false,
+        "Instructions": [],
+        "Options": [],
+        "WidescreenOnly": false
+      }
+    ],
+    "WidescreenOnly": false
+  }
+]

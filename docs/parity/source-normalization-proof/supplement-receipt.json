@@ -1,0 +1,1068 @@
+{
+  "root": "/tmp/source-normalization-proof-l9cqv8ew",
+  "rustSha256": "a665ace4f9db3f9ae4dcf6be95b075e1b5ff1d6f822ed0885493e984ffca31b8",
+  "oldRustSha256": "c3e2f60f1fbae36b2efc666173052c47d7e1ebf87326cc4c8490e1a4b67934cf",
+  "checks": {
+    "supplement-json": {
+      "rust": 0,
+      "csharp": 0,
+      "idempotent": true,
+      "equal": false,
+      "rustProjection": [
+        {
+          "name": "Missing",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Null",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Empty array",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Blank array",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Colon",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": [
+                "<<modDirectory>>/http://example/asset"
+              ]
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Leading slashes",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": [
+                "<<modDirectory>>/x/file.txt"
+              ]
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Choose parent",
+          "instructions": [
+            {
+              "action": "Choose",
+              "source": [
+                "AAAAAAAA-1111-4111-8111-111111111111",
+                "literal GUID text"
+              ]
+            }
+          ],
+          "options": [
+            {
+              "name": "First option",
+              "instructions": [
+                {
+                  "action": "Copy",
+                  "source": [
+                    "<<modDirectory>>/x/file.txt"
+                  ]
+                }
+              ],
+              "options": [
+                {
+                  "name": "Grandchild",
+                  "instructions": [
+                    {
+                      "action": "Copy",
+                      "source": [
+                        "<<modDirectory>>/nested/deep/asset"
+                      ]
+                    }
+                  ],
+                  "options": []
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "csharpProjection": [
+        {
+          "name": "Missing",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Null",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Empty array",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Blank array",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Colon",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": [
+                "<<modDirectory>>/http://example/asset"
+              ]
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Leading slashes",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": [
+                "<<modDirectory>>/x/file.txt"
+              ]
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Choose parent",
+          "instructions": [
+            {
+              "action": "Choose",
+              "source": [
+                "AAAAAAAA-1111-4111-8111-111111111111",
+                "literal GUID text"
+              ]
+            }
+          ],
+          "options": [
+            {
+              "name": "First option",
+              "instructions": [
+                {
+                  "action": "Copy",
+                  "source": [
+                    "<<modDirectory>>/x/file.txt"
+                  ]
+                }
+              ],
+              "options": []
+            }
+          ]
+        }
+      ],
+      "unrelatedFieldsUnchanged": true,
+      "nullRepresentation": "authored null"
+    },
+    "choose-literal-json": {
+      "rust": 0,
+      "csharp": 0,
+      "rustProjection": [
+        {
+          "name": "Choose literal",
+          "instructions": [
+            {
+              "action": "Choose",
+              "source": [
+                "  ",
+                "\\literal\\path",
+                "{AAAAAAAA-1111-4111-8111-111111111111}"
+              ]
+            }
+          ],
+          "options": []
+        }
+      ],
+      "csharpProjection": [
+        {
+          "name": "Choose literal",
+          "instructions": [
+            {
+              "action": "Choose",
+              "source": [
+                "\\literal\\path",
+                "{AAAAAAAA-1111-4111-8111-111111111111}"
+              ]
+            }
+          ],
+          "options": []
+        }
+      ]
+    },
+    "typed-malformed-json": {
+      "rust": 1,
+      "csharp": 0,
+      "oldRust": 1,
+      "rustProjection": null,
+      "csharpProjection": [
+        {
+          "name": "Malformed",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": [
+                "<<modDirectory>>/x",
+                "<<modDirectory>>/42"
+              ]
+            }
+          ],
+          "options": []
+        }
+      ]
+    },
+    "supplement-toml": {
+      "rust": 0,
+      "csharp": 0,
+      "idempotent": true,
+      "equal": false,
+      "rustProjection": [
+        {
+          "name": "Missing",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Null",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Empty array",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Blank array",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Colon",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": [
+                "<<modDirectory>>/http://example/asset"
+              ]
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Leading slashes",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": [
+                "<<modDirectory>>/x/file.txt"
+              ]
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Choose parent",
+          "instructions": [
+            {
+              "action": "Choose",
+              "source": [
+                "AAAAAAAA-1111-4111-8111-111111111111",
+                "literal GUID text"
+              ]
+            }
+          ],
+          "options": [
+            {
+              "name": "First option",
+              "instructions": [
+                {
+                  "action": "Copy",
+                  "source": [
+                    "<<modDirectory>>/x/file.txt"
+                  ]
+                }
+              ],
+              "options": [
+                {
+                  "name": "Grandchild",
+                  "instructions": [
+                    {
+                      "action": "Copy",
+                      "source": [
+                        "<<modDirectory>>/nested/deep/asset"
+                      ]
+                    }
+                  ],
+                  "options": []
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "csharpProjection": [
+        {
+          "name": "Missing",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Null",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Empty array",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Blank array",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Colon",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": [
+                "<<modDirectory>>/http://example/asset"
+              ]
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Leading slashes",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": [
+                "<<modDirectory>>/x/file.txt"
+              ]
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Choose parent",
+          "instructions": [
+            {
+              "action": "Choose",
+              "source": [
+                "AAAAAAAA-1111-4111-8111-111111111111",
+                "literal GUID text"
+              ]
+            }
+          ],
+          "options": [
+            {
+              "name": "First option",
+              "instructions": [
+                {
+                  "action": "Copy",
+                  "source": [
+                    "<<modDirectory>>/x/file.txt"
+                  ]
+                }
+              ],
+              "options": []
+            }
+          ]
+        }
+      ],
+      "unrelatedFieldsUnchanged": true,
+      "nullRepresentation": "omitted (format has no null token)"
+    },
+    "choose-literal-toml": {
+      "rust": 0,
+      "csharp": 0,
+      "rustProjection": [
+        {
+          "name": "Choose literal",
+          "instructions": [
+            {
+              "action": "Choose",
+              "source": [
+                "  ",
+                "\\literal\\path",
+                "{AAAAAAAA-1111-4111-8111-111111111111}"
+              ]
+            }
+          ],
+          "options": []
+        }
+      ],
+      "csharpProjection": [
+        {
+          "name": "Choose literal",
+          "instructions": [
+            {
+              "action": "Choose",
+              "source": [
+                "\\literal\\path",
+                "{AAAAAAAA-1111-4111-8111-111111111111}"
+              ]
+            }
+          ],
+          "options": []
+        }
+      ]
+    },
+    "typed-malformed-toml": {
+      "rust": 1,
+      "csharp": 0,
+      "oldRust": 1,
+      "rustProjection": null,
+      "csharpProjection": [
+        {
+          "name": "Malformed",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": [
+                "<<modDirectory>>/x",
+                "<<modDirectory>>/42"
+              ]
+            }
+          ],
+          "options": []
+        }
+      ]
+    },
+    "supplement-yaml": {
+      "rust": 0,
+      "csharp": 0,
+      "idempotent": true,
+      "equal": false,
+      "rustProjection": [
+        {
+          "name": "Missing",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Null",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Empty array",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Blank array",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Colon",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": [
+                "<<modDirectory>>/http://example/asset"
+              ]
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Leading slashes",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": [
+                "<<modDirectory>>/x/file.txt"
+              ]
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Choose parent",
+          "instructions": [
+            {
+              "action": "Choose",
+              "source": [
+                "AAAAAAAA-1111-4111-8111-111111111111",
+                "literal GUID text"
+              ]
+            }
+          ],
+          "options": [
+            {
+              "name": "First option",
+              "instructions": [
+                {
+                  "action": "Copy",
+                  "source": [
+                    "<<modDirectory>>/x/file.txt"
+                  ]
+                }
+              ],
+              "options": [
+                {
+                  "name": "Grandchild",
+                  "instructions": [
+                    {
+                      "action": "Copy",
+                      "source": [
+                        "<<modDirectory>>/nested/deep/asset"
+                      ]
+                    }
+                  ],
+                  "options": []
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "csharpProjection": [
+        {
+          "name": "Missing",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Null",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Empty array",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Blank array",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Colon",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": [
+                "<<modDirectory>>/http://example/asset"
+              ]
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Leading slashes",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": [
+                "<<modDirectory>>/x/file.txt"
+              ]
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Choose parent",
+          "instructions": [
+            {
+              "action": "Choose",
+              "source": [
+                "AAAAAAAA-1111-4111-8111-111111111111",
+                "literal GUID text"
+              ]
+            }
+          ],
+          "options": [
+            {
+              "name": "First option",
+              "instructions": [
+                {
+                  "action": "Copy",
+                  "source": [
+                    "<<modDirectory>>/x/file.txt"
+                  ]
+                }
+              ],
+              "options": []
+            }
+          ]
+        }
+      ],
+      "unrelatedFieldsUnchanged": true,
+      "nullRepresentation": "authored null"
+    },
+    "choose-literal-yaml": {
+      "rust": 0,
+      "csharp": 0,
+      "rustProjection": [
+        {
+          "name": "Choose literal",
+          "instructions": [
+            {
+              "action": "Choose",
+              "source": [
+                "  ",
+                "\\literal\\path",
+                "{AAAAAAAA-1111-4111-8111-111111111111}"
+              ]
+            }
+          ],
+          "options": []
+        }
+      ],
+      "csharpProjection": [
+        {
+          "name": "Choose literal",
+          "instructions": [
+            {
+              "action": "Choose",
+              "source": [
+                "\\literal\\path",
+                "{AAAAAAAA-1111-4111-8111-111111111111}"
+              ]
+            }
+          ],
+          "options": []
+        }
+      ]
+    },
+    "typed-malformed-yaml": {
+      "rust": 1,
+      "csharp": 0,
+      "oldRust": 1,
+      "rustProjection": null,
+      "csharpProjection": [
+        {
+          "name": "Malformed",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": [
+                "<<modDirectory>>/x",
+                "<<modDirectory>>/42"
+              ]
+            }
+          ],
+          "options": []
+        }
+      ]
+    },
+    "supplement-xml": {
+      "rust": 0,
+      "csharp": 0,
+      "idempotent": true,
+      "equal": false,
+      "rustProjection": [
+        {
+          "name": "Missing",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Null",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Empty array",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Blank array",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Colon",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": [
+                "<<modDirectory>>/http://example/asset"
+              ]
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Leading slashes",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": [
+                "<<modDirectory>>/x/file.txt"
+              ]
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Choose parent",
+          "instructions": [
+            {
+              "action": "Choose",
+              "source": [
+                "AAAAAAAA-1111-4111-8111-111111111111",
+                "literal GUID text"
+              ]
+            }
+          ],
+          "options": [
+            {
+              "name": "First option",
+              "instructions": [
+                {
+                  "action": "Copy",
+                  "source": [
+                    "<<modDirectory>>/x/file.txt"
+                  ]
+                }
+              ],
+              "options": [
+                {
+                  "name": "Grandchild",
+                  "instructions": [
+                    {
+                      "action": "Copy",
+                      "source": [
+                        "<<modDirectory>>/nested/deep/asset"
+                      ]
+                    }
+                  ],
+                  "options": []
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "csharpProjection": [
+        {
+          "name": "Missing",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Null",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Empty array",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": [
+                "<<modDirectory>>/System.Collections.Generic.Dictionary`2[System.String,System.Object]"
+              ]
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Blank array",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": []
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Colon",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": [
+                "<<modDirectory>>/http://example/asset"
+              ]
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Leading slashes",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": [
+                "<<modDirectory>>/x/file.txt"
+              ]
+            }
+          ],
+          "options": []
+        },
+        {
+          "name": "Choose parent",
+          "instructions": [
+            {
+              "action": "Choose",
+              "source": [
+                "AAAAAAAA-1111-4111-8111-111111111111",
+                "literal GUID text"
+              ]
+            }
+          ],
+          "options": [
+            {
+              "name": "First option",
+              "instructions": [
+                {
+                  "action": "Copy",
+                  "source": [
+                    "<<modDirectory>>/x/file.txt"
+                  ]
+                }
+              ],
+              "options": []
+            }
+          ]
+        }
+      ],
+      "unrelatedFieldsUnchanged": true,
+      "nullRepresentation": "omitted (format has no null token)"
+    },
+    "choose-literal-xml": {
+      "rust": 0,
+      "csharp": 0,
+      "rustProjection": [
+        {
+          "name": "Choose literal",
+          "instructions": [
+            {
+              "action": "Choose",
+              "source": [
+                "  ",
+                "\\literal\\path",
+                "{AAAAAAAA-1111-4111-8111-111111111111}"
+              ]
+            }
+          ],
+          "options": []
+        }
+      ],
+      "csharpProjection": [
+        {
+          "name": "Choose literal",
+          "instructions": [
+            {
+              "action": "Choose",
+              "source": [
+                "\\literal\\path",
+                "{AAAAAAAA-1111-4111-8111-111111111111}"
+              ]
+            }
+          ],
+          "options": []
+        }
+      ]
+    },
+    "typed-malformed-xml": {
+      "rust": 0,
+      "csharp": 0,
+      "oldRust": 0,
+      "rustProjection": [
+        {
+          "name": "Malformed",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": [
+                "<<modDirectory>>/x",
+                "<<modDirectory>>/42"
+              ]
+            }
+          ],
+          "options": []
+        }
+      ],
+      "csharpProjection": [
+        {
+          "name": "Malformed",
+          "instructions": [
+            {
+              "action": "Copy",
+              "source": [
+                "<<modDirectory>>/x",
+                "<<modDirectory>>/42"
+              ]
+            }
+          ],
+          "options": []
+        }
+      ]
+    }
+  },
+  "commands": 36
+}

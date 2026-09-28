@@ -1,0 +1,14 @@
+{
+  "label": "typed-malformed-rust-toml",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "convert",
+    "/tmp/source-normalization-proof-l9cqv8ew/malformed-toml.toml",
+    "/tmp/source-normalization-proof-l9cqv8ew/typed-malformed-rust-toml.json",
+    "-f",
+    "json"
+  ],
+  "exit": 1,
+  "stdout": "",
+  "stderr": "Error: data did not match any variant of untagged enum Value\n"
+}

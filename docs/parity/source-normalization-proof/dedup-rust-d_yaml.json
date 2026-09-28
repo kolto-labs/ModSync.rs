@@ -1,0 +1,111 @@
+[
+  {
+    "Guid": "00000000-0000-4000-8000-000000000400",
+    "Name": "Probe D",
+    "Author": "",
+    "Description": "",
+    "Directions": "",
+    "Tier": "",
+    "Category": [],
+    "IsSelected": true,
+    "Dependencies": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "Instructions": [
+      {
+        "Guid": "88888888-0000-4000-8000-000000000400",
+        "Action": "Extract",
+        "Source": [
+          "<<modDirectory>>/Probe_D*.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Guid": "98888888-0000-4000-8000-000000000400",
+        "Action": "Choose",
+        "Source": [
+          "00000000-0000-4000-8000-000000000401",
+          "00000000-0000-4000-8000-000000000403",
+          "not-a-guid"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [
+      {
+        "Guid": "00000000-0000-4000-8000-000000000401",
+        "Name": "Keep",
+        "Author": "",
+        "Description": "",
+        "Directions": "",
+        "Tier": "",
+        "Category": [],
+        "IsSelected": false,
+        "Dependencies": [],
+        "Restrictions": [
+          "00000000-0000-4000-8000-000000000402"
+        ],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [
+          {
+            "Guid": "77777777-0000-4000-8000-000000000401",
+            "Parent": "00000000-0000-4000-8000-000000000401",
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>/x/*.tga"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "ResourceRegistry": {}
+      },
+      {
+        "Guid": "00000000-0000-4000-8000-000000000403",
+        "Name": "Distinct",
+        "Author": "",
+        "Description": "",
+        "Directions": "",
+        "Tier": "",
+        "Category": [],
+        "IsSelected": false,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [
+          {
+            "Guid": "77777777-0000-4000-8000-000000000403",
+            "Parent": "00000000-0000-4000-8000-000000000403",
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>/y/*.tga"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "ResourceRegistry": {}
+      }
+    ],
+    "ResourceRegistry": {}
+  }
+]

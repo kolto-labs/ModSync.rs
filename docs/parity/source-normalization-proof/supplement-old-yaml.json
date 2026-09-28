@@ -1,0 +1,261 @@
+[
+  {
+    "Guid": "fdf0fa65-27f8-562f-82a8-c9618268c1a7",
+    "Name": "Missing",
+    "Author": "",
+    "Description": "",
+    "Directions": "",
+    "Tier": "",
+    "Category": [],
+    "IsSelected": true,
+    "Dependencies": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "Instructions": [
+      {
+        "Action": "Copy",
+        "Source": [],
+        "Destination": "<<kotorDirectory>>\\literal//destination/",
+        "Arguments": " literal\\argument ",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "ResourceRegistry": {}
+  },
+  {
+    "Guid": "ee500f0c-08cd-52bb-91bd-33b1063f320b",
+    "Name": "Null",
+    "Author": "",
+    "Description": "",
+    "Directions": "",
+    "Tier": "",
+    "Category": [],
+    "IsSelected": true,
+    "Dependencies": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "Instructions": [
+      {
+        "Action": "Copy",
+        "Source": [],
+        "Destination": "<<kotorDirectory>>\\literal//destination/",
+        "Arguments": " literal\\argument ",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "ResourceRegistry": {}
+  },
+  {
+    "Guid": "ad092daf-97e5-5de3-84a3-c3ece25bbdb4",
+    "Name": "Empty array",
+    "Author": "",
+    "Description": "",
+    "Directions": "",
+    "Tier": "",
+    "Category": [],
+    "IsSelected": true,
+    "Dependencies": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "Instructions": [
+      {
+        "Action": "Copy",
+        "Source": [],
+        "Destination": "<<kotorDirectory>>\\literal//destination/",
+        "Arguments": " literal\\argument ",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "ResourceRegistry": {}
+  },
+  {
+    "Guid": "5556c0d7-cb68-5204-ab81-9877f2184850",
+    "Name": "Blank array",
+    "Author": "",
+    "Description": "",
+    "Directions": "",
+    "Tier": "",
+    "Category": [],
+    "IsSelected": true,
+    "Dependencies": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "Instructions": [
+      {
+        "Action": "Copy",
+        "Source": [
+          "",
+          "  "
+        ],
+        "Destination": "<<kotorDirectory>>\\literal//destination/",
+        "Arguments": " literal\\argument ",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "ResourceRegistry": {}
+  },
+  {
+    "Guid": "0acbc431-95ca-563e-841b-593432390969",
+    "Name": "Colon",
+    "Author": "",
+    "Description": "",
+    "Directions": "",
+    "Tier": "",
+    "Category": [],
+    "IsSelected": true,
+    "Dependencies": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "Instructions": [
+      {
+        "Action": "Copy",
+        "Source": [
+          "http:////example//asset/"
+        ],
+        "Destination": "<<kotorDirectory>>\\literal//destination/",
+        "Arguments": " literal\\argument ",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "ResourceRegistry": {}
+  },
+  {
+    "Guid": "43f9fefa-5914-5bef-9a60-8937961dfd44",
+    "Name": "Leading slashes",
+    "Author": "",
+    "Description": "",
+    "Directions": "",
+    "Tier": "",
+    "Category": [],
+    "IsSelected": true,
+    "Dependencies": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "Instructions": [
+      {
+        "Action": "Copy",
+        "Source": [
+          "////x////file.txt"
+        ],
+        "Destination": "<<kotorDirectory>>\\literal//destination/",
+        "Arguments": " literal\\argument ",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "ResourceRegistry": {}
+  },
+  {
+    "Guid": "adf2e448-f736-5344-b8a7-3d9b5da93fd3",
+    "Name": "Choose parent",
+    "Author": "",
+    "Description": "",
+    "Directions": "",
+    "Tier": "",
+    "Category": [],
+    "IsSelected": true,
+    "Dependencies": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "Instructions": [
+      {
+        "Action": "Choose",
+        "Source": [
+          "AAAAAAAA-1111-4111-8111-111111111111",
+          "literal GUID text"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [
+      {
+        "Guid": "AAAAAAAA-1111-4111-8111-111111111111",
+        "Name": "First option",
+        "Author": "",
+        "Description": "",
+        "Directions": "",
+        "Tier": "",
+        "Category": [],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [
+          {
+            "Action": "Copy",
+            "Source": [
+              "\\x\\file.txt"
+            ],
+            "Destination": "<<kotorDirectory>>\\literal//destination/",
+            "Arguments": " literal\\argument ",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [
+          {
+            "Guid": "e58a3f68-c793-5b84-9dc1-a6db8fc430cc",
+            "Name": "Grandchild",
+            "Author": "",
+            "Description": "",
+            "Directions": "",
+            "Tier": "",
+            "Category": [],
+            "IsSelected": true,
+            "Dependencies": [],
+            "Restrictions": [],
+            "InstallBefore": [],
+            "InstallAfter": [],
+            "Instructions": [
+              {
+                "Action": "Copy",
+                "Source": [
+                  "nested\\deep//asset/"
+                ],
+                "Destination": "<<kotorDirectory>>\\literal//destination/",
+                "Arguments": " literal\\argument ",
+                "Overwrite": true,
+                "Dependencies": [],
+                "Restrictions": []
+              }
+            ],
+            "Options": [],
+            "ResourceRegistry": {}
+          }
+        ],
+        "ResourceRegistry": {}
+      }
+    ],
+    "ResourceRegistry": {}
+  }
+]

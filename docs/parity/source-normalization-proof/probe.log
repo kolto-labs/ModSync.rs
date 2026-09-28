@@ -1,0 +1,1442 @@
+{
+  "matrix-json": {
+    "rust": 0,
+    "csharp": 0,
+    "equal": true,
+    "idempotent": true,
+    "rustProjection": [
+      {
+        "name": "Example relative",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": [
+          {
+            "name": "Example Option",
+            "instructions": [
+              {
+                "action": "Copy",
+                "source": [
+                  "<<modDirectory>>/nested/file.txt"
+                ]
+              }
+            ],
+            "options": []
+          }
+        ]
+      },
+      {
+        "name": "Example array_filtered",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example backslash",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example repeated",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/sub/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example mod",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example game",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<gameDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example kotor",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<kotorDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example mixed_case",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<MODDIRECTORY>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example unknown",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/<<unknownDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example drive",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/C:/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example absolute",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example traversal",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/../../outside.txt"
+            ]
+          }
+        ],
+        "options": []
+      }
+    ],
+    "csharpProjection": [
+      {
+        "name": "Example relative",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": [
+          {
+            "name": "Example Option",
+            "instructions": [
+              {
+                "action": "Copy",
+                "source": [
+                  "<<modDirectory>>/nested/file.txt"
+                ]
+              }
+            ],
+            "options": []
+          }
+        ]
+      },
+      {
+        "name": "Example array_filtered",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example backslash",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example repeated",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/sub/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example mod",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example game",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<gameDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example kotor",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<kotorDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example mixed_case",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<MODDIRECTORY>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example unknown",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/<<unknownDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example drive",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/C:/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example absolute",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example traversal",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/../../outside.txt"
+            ]
+          }
+        ],
+        "options": []
+      }
+    ]
+  },
+  "matrix-toml": {
+    "rust": 0,
+    "csharp": 0,
+    "equal": true,
+    "idempotent": true,
+    "rustProjection": [
+      {
+        "name": "Example relative",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": [
+          {
+            "name": "Example Option",
+            "instructions": [
+              {
+                "action": "Copy",
+                "source": [
+                  "<<modDirectory>>/nested/file.txt"
+                ]
+              }
+            ],
+            "options": []
+          }
+        ]
+      },
+      {
+        "name": "Example array_filtered",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example backslash",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example repeated",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/sub/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example mod",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example game",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<gameDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example kotor",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<kotorDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example mixed_case",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<MODDIRECTORY>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example unknown",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/<<unknownDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example drive",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/C:/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example absolute",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example traversal",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/../../outside.txt"
+            ]
+          }
+        ],
+        "options": []
+      }
+    ],
+    "csharpProjection": [
+      {
+        "name": "Example relative",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": [
+          {
+            "name": "Example Option",
+            "instructions": [
+              {
+                "action": "Copy",
+                "source": [
+                  "<<modDirectory>>/nested/file.txt"
+                ]
+              }
+            ],
+            "options": []
+          }
+        ]
+      },
+      {
+        "name": "Example array_filtered",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example backslash",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example repeated",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/sub/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example mod",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example game",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<gameDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example kotor",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<kotorDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example mixed_case",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<MODDIRECTORY>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example unknown",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/<<unknownDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example drive",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/C:/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example absolute",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example traversal",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/../../outside.txt"
+            ]
+          }
+        ],
+        "options": []
+      }
+    ]
+  },
+  "matrix-yaml": {
+    "rust": 0,
+    "csharp": 0,
+    "equal": true,
+    "idempotent": true,
+    "rustProjection": [
+      {
+        "name": "Example relative",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": [
+          {
+            "name": "Example Option",
+            "instructions": [
+              {
+                "action": "Copy",
+                "source": [
+                  "<<modDirectory>>/nested/file.txt"
+                ]
+              }
+            ],
+            "options": []
+          }
+        ]
+      },
+      {
+        "name": "Example array_filtered",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example backslash",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example repeated",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/sub/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example mod",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example game",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<gameDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example kotor",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<kotorDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example mixed_case",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<MODDIRECTORY>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example unknown",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/<<unknownDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example drive",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/C:/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example absolute",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example traversal",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/../../outside.txt"
+            ]
+          }
+        ],
+        "options": []
+      }
+    ],
+    "csharpProjection": [
+      {
+        "name": "Example relative",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": [
+          {
+            "name": "Example Option",
+            "instructions": [
+              {
+                "action": "Copy",
+                "source": [
+                  "<<modDirectory>>/nested/file.txt"
+                ]
+              }
+            ],
+            "options": []
+          }
+        ]
+      },
+      {
+        "name": "Example array_filtered",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example backslash",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example repeated",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/sub/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example mod",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example game",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<gameDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example kotor",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<kotorDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example mixed_case",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<MODDIRECTORY>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example unknown",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/<<unknownDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example drive",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/C:/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example absolute",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example traversal",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/../../outside.txt"
+            ]
+          }
+        ],
+        "options": []
+      }
+    ]
+  },
+  "matrix-xml": {
+    "rust": 0,
+    "csharp": 0,
+    "equal": true,
+    "idempotent": true,
+    "rustProjection": [
+      {
+        "name": "Example relative",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": [
+          {
+            "name": "Example Option",
+            "instructions": [
+              {
+                "action": "Copy",
+                "source": [
+                  "<<modDirectory>>/nested/file.txt"
+                ]
+              }
+            ],
+            "options": []
+          }
+        ]
+      },
+      {
+        "name": "Example array_filtered",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example backslash",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example repeated",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/sub/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example mod",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example game",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<gameDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example kotor",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<kotorDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example mixed_case",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<MODDIRECTORY>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example unknown",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/<<unknownDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example drive",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/C:/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example absolute",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example traversal",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/../../outside.txt"
+            ]
+          }
+        ],
+        "options": []
+      }
+    ],
+    "csharpProjection": [
+      {
+        "name": "Example relative",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": [
+          {
+            "name": "Example Option",
+            "instructions": [
+              {
+                "action": "Copy",
+                "source": [
+                  "<<modDirectory>>/nested/file.txt"
+                ]
+              }
+            ],
+            "options": []
+          }
+        ]
+      },
+      {
+        "name": "Example array_filtered",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example backslash",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example repeated",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/sub/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example mod",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example game",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<gameDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example kotor",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<kotorDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example mixed_case",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<MODDIRECTORY>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example unknown",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/<<unknownDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example drive",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/C:/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example absolute",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/file.txt"
+            ]
+          }
+        ],
+        "options": []
+      },
+      {
+        "name": "Example traversal",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/../../outside.txt"
+            ]
+          }
+        ],
+        "options": []
+      }
+    ]
+  },
+  "embedded-yaml": {
+    "rust": 0,
+    "csharp": 0,
+    "equal": true,
+    "rustProjection": [
+      {
+        "name": "Example Component",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/foo.tga"
+            ]
+          }
+        ],
+        "options": []
+      }
+    ],
+    "csharpProjection": [
+      {
+        "name": "Example Component",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/foo.tga"
+            ]
+          }
+        ],
+        "options": []
+      }
+    ]
+  },
+  "embedded-toml": {
+    "rust": 0,
+    "csharp": 0,
+    "equal": true,
+    "rustProjection": [
+      {
+        "name": "Example Component",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/foo.tga"
+            ]
+          }
+        ],
+        "options": []
+      }
+    ],
+    "csharpProjection": [
+      {
+        "name": "Example Component",
+        "instructions": [
+          {
+            "action": "Copy",
+            "source": [
+              "<<modDirectory>>/x/foo.tga"
+            ]
+          }
+        ],
+        "options": []
+      }
+    ]
+  },
+  "copy-rust": {
+    "exit": 0,
+    "manifest": {
+      "Override/file.txt": "4edc2ebc3b8f737678840127749239b1e288264249da9590249e64b421ee7341"
+    },
+    "guideSha256": "03d4f6ef9fca4907a527891abc05b2cf3c674aaf1b40e82189fd856862282e36",
+    "skipValidation": false
+  },
+  "copy-csharp-full-validation": {
+    "exit": 1,
+    "manifest": {},
+    "guideSha256": "03d4f6ef9fca4907a527891abc05b2cf3c674aaf1b40e82189fd856862282e36",
+    "skipValidation": false
+  },
+  "copy-csharp-skip-validation": {
+    "exit": 0,
+    "manifest": {
+      ".modsync/last_good_backup.zip": "276ef3a046fa7edac176d66a781f0210c949e85cfe5281f5a1954f15cd7e3db0",
+      ".modsync/install_session.json": "0d78090a0b37461220233bd244692c2b13d35cb95534e61da9774d717db940f5",
+      "Override/file.txt": "4edc2ebc3b8f737678840127749239b1e288264249da9590249e64b421ee7341",
+      ".modsync/checkpoints/Override/file.txt": "4edc2ebc3b8f737678840127749239b1e288264249da9590249e64b421ee7341",
+      ".modsync/checkpoints/.git/index": "53f1ce11b0493f6fcdbe903effe3447ead02fc9547b8b0e147b977324ed86f13",
+      ".modsync/checkpoints/.git/config": "c4a5f4286f745a5761fee60f89204e5f3d4ebe89ce2ad3e0928bbb8297cdd129",
+      ".modsync/checkpoints/.git/HEAD": "f6f2b945f6c411b02ba3da9c7ace88dcf71b6af65ba2e0d89aa82900042b5a10",
+      ".modsync/checkpoints/.git/description": "85ab6c163d43a17ea9cf7788308bca1466f1b0a8d1cc92e26e9bf63da4062aee",
+      ".modsync/checkpoints/.git/logs/HEAD": "2e8b39c972f367233bbfb03b168bead0993c328954aea1a388b46a3cfaaabcf2",
+      ".modsync/checkpoints/.git/info/exclude": "fdb7dc7be17051c3c5067cdf2b8fdf2ca3a8daf2b5e91f34c6ce1ff3a94c5f6a",
+      ".modsync/checkpoints/.git/hooks/README.sample": "7319d7f1803fda2b3416143e426b9ec4c3c3c817c75188b2b82cb3e68ff293ab",
+      ".modsync/checkpoints/.git/objects/20/7e363644406b4bde6187603a4352b098ad4b4c": "08f205047b427119e4ba91480e15b0877a03ad940b2a95cb7129f4e9f84aac2e",
+      ".modsync/checkpoints/.git/objects/bb/4bedab26d40d3ae641f5e6b71eb1172a762e76": "6fa717c47093945d8c369f5a68ccc7205316d8b66cbe5067734ddabe917cd109",
+      ".modsync/checkpoints/.git/objects/a5/57c96576077dd0660f69313b49e9e7a102a470": "32295f0c56b82793f0f088fa7783f256e8a4b369123b94db8f74b958156dadf9",
+      ".modsync/checkpoints/.git/objects/90/399cbb7e8b45bacf184e13d602023ef74060c4": "8a34f0f69819217913f3204085ba40f5033ef47fb050ff892a7f90b5ccd91ac2",
+      ".modsync/checkpoints/.git/objects/df/cbce7dced2839878244c5c41b2c4f176f64c6f": "493f5867f70e993ca516f29f9f2186a80fa42b67f503a32fa62db29d053009d6",
+      ".modsync/checkpoints/.git/objects/4b/825dc642cb6eb9a060e54bf8d69288fbee4904": "e72602cad67ed061ec84b13e92568f873172efac19a512a1b561dbf54e2c8426",
+      ".modsync/checkpoints/.git/refs/heads/master": "3c3bf4f72a19aa4414019b48228de71118edfbda88bc45983e6076f1f6418681",
+      ".modsync/checkpoints/.git/logs/refs/heads/master": "2e8b39c972f367233bbfb03b168bead0993c328954aea1a388b46a3cfaaabcf2"
+    },
+    "guideSha256": "03d4f6ef9fca4907a527891abc05b2cf3c674aaf1b40e82189fd856862282e36",
+    "skipValidation": true
+  },
+  "absolute-inside": {
+    "exit": 0,
+    "manifest": {
+      "Override/outside.txt": "4edc2ebc3b8f737678840127749239b1e288264249da9590249e64b421ee7341"
+    },
+    "guideSha256": "9ddc6269628e7594a9a83f8e5fd5b13506e8e36388c20e567e989c90af24c9e8",
+    "skipValidation": false
+  },
+  "reject-traversal": {
+    "exit": 1,
+    "manifest": {},
+    "guideSha256": "7930bcc1d334932a118af3b2d2bf6f59de708a0a7748b28f38a766bea5e5884c",
+    "skipValidation": false
+  },
+  "reject-drive": {
+    "exit": 1,
+    "manifest": {},
+    "guideSha256": "e77e6546b87dd075d4d19b1bad038294de87585cf38c96632bfe39818a164f2e",
+    "skipValidation": false
+  },
+  "reject-unknown": {
+    "exit": 1,
+    "manifest": {},
+    "guideSha256": "f31791000ccfcf8660cca1963c77554b7752f0c547abd6d3be2fce0b9bed7402",
+    "skipValidation": false
+  },
+  "reject-symlink": {
+    "exit": 1,
+    "manifest": {},
+    "guideSha256": "4392f217613217ce3f1bb8a47798a40c500deb90e18d405df04de91798ec4061",
+    "skipValidation": false
+  },
+  "reject-mixed": {
+    "exit": 1,
+    "manifest": {},
+    "guideSha256": "7948e48661e83d8e408fef2e444e9170b056ab89ddc3c374f6f44a1147332850",
+    "skipValidation": false
+  }
+}

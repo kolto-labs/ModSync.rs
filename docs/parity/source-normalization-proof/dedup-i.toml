@@ -1,0 +1,47 @@
+[[thisMod]]
+Guid = "00000000-0000-4000-8000-000000000700"
+Name = "Probe I"
+IsSelected = true
+
+[[thisMod.Instructions]]
+Guid = "88888888-0000-4000-8000-000000000700"
+Action = "Extract"
+Source = ["<<modDirectory>>\\Probe_I*.zip"]
+
+[[thisMod.Options]]
+Guid = "00000000-0000-4000-8000-000000000701"
+Name = "DepLower"
+IsSelected = false
+[[thisMod.Options.Instructions]]
+Guid = "77777777-0000-4000-8000-000000000701"
+Action = "Move"
+Parent = "00000000-0000-4000-8000-000000000701"
+Source = ["<<modDirectory>>\\x\\a.tga"]
+Destination = "<<kotorDirectory>>\\Override"
+Dependencies = ["00000000-0000-4000-8000-000000000009"]
+
+[[thisMod.Options]]
+Guid = "00000000-0000-4000-8000-000000000702"
+Name = "DepUpperBraced"
+IsSelected = false
+[[thisMod.Options.Instructions]]
+Guid = "77777777-0000-4000-8000-000000000702"
+Action = "Move"
+Parent = "00000000-0000-4000-8000-000000000702"
+Source = ["<<modDirectory>>\\x\\a.tga"]
+Destination = "<<kotorDirectory>>\\Override"
+Dependencies = ["{00000000-0000-4000-8000-000000000009}"]
+
+[[thisMod.Options]]
+Guid = "00000000-0000-4000-8000-000000000703"
+Name = "NoOverwrite"
+IsSelected = false
+[[thisMod.Options.Instructions]]
+Guid = "77777777-0000-4000-8000-000000000703"
+Action = "Move"
+Parent = "00000000-0000-4000-8000-000000000703"
+Source = ["<<modDirectory>>\\x\\a.tga"]
+Destination = "<<kotorDirectory>>\\Override"
+Dependencies = ["00000000-0000-4000-8000-000000000009"]
+Overwrite = false
+

@@ -1,0 +1,14 @@
+{
+  "label": "dedup-rust-k",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "convert",
+    "/tmp/source-normalization-proof-ws_qwkss/dedup-k.toml",
+    "/tmp/source-normalization-proof-ws_qwkss/dedup-rust-k.json",
+    "-f",
+    "json"
+  ],
+  "exit": 0,
+  "stdout": "",
+  "stderr": "Component 'Probe K': Duplicate option detected - 'DoubledTrailing' (GUID: 00000000-0000-4000-8000-000000000962) has identical instructions to 'Base' (GUID: 00000000-0000-4000-8000-000000000961). Removing duplicate.\nComponent 'Probe K': Duplicate option detected - 'Unprefixed' (GUID: 00000000-0000-4000-8000-000000000963) has identical instructions to 'Base' (GUID: 00000000-0000-4000-8000-000000000961). Removing duplicate.\nComponent 'Probe K': Duplicate option detected - 'LeadingBackslash' (GUID: 00000000-0000-4000-8000-000000000965) has identical instructions to 'Base' (GUID: 00000000-0000-4000-8000-000000000961). Removing duplicate.\n"
+}

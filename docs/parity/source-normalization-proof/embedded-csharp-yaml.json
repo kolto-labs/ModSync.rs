@@ -1,0 +1,49 @@
+[
+  {
+    "Guid": "aaaaaaaa-0000-0000-0000-000000000050",
+    "Name": "Example Component",
+    "NameSpoilerFree": "",
+    "Heading": "",
+    "Author": "",
+    "Category": [],
+    "Tier": "",
+    "Language": [],
+    "ResourceRegistry": {},
+    "ExcludedDownloads": [],
+    "Description": "",
+    "DescriptionSpoilerFree": "",
+    "InstallationMethod": "",
+    "Directions": "",
+    "DirectionsSpoilerFree": "",
+    "DownloadInstructions": "",
+    "DownloadInstructionsSpoilerFree": "",
+    "UsageWarning": "",
+    "UsageWarningSpoilerFree": "",
+    "Screenshots": "",
+    "ScreenshotsSpoilerFree": "",
+    "KnownBugs": "",
+    "InstallationWarning": "",
+    "CompatibilityWarning": "",
+    "SteamNotes": "",
+    "Dependencies": [],
+    "DependencyNames": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "IsSelected": true,
+    "Instructions": [
+      {
+        "Action": "Copy",
+        "Source": [
+          "<<modDirectory>>/x/foo.tga"
+        ],
+        "Destination": "<<kotorDirectory>>/Override",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "WidescreenOnly": false
+  }
+]

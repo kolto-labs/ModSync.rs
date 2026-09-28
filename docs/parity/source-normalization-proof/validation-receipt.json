@@ -1,0 +1,45 @@
+{
+  "root": "/tmp/source-normalization-proof-lupm9ev7",
+  "checks": {
+    "relative": {
+      "exit": 0,
+      "unchanged": true,
+      "before": {
+        "mods/x/file.txt": "5e4c10d85fbfcbcc38c0d4da9d05fcac8273ccdc44a9e1152624014a34f8f5c0"
+      },
+      "after": {
+        "mods/x/file.txt": "5e4c10d85fbfcbcc38c0d4da9d05fcac8273ccdc44a9e1152624014a34f8f5c0"
+      }
+    },
+    "bare-empty": {
+      "exit": 1,
+      "unchanged": true,
+      "before": {
+        "mods/x/file.txt": "5e4c10d85fbfcbcc38c0d4da9d05fcac8273ccdc44a9e1152624014a34f8f5c0"
+      },
+      "after": {
+        "mods/x/file.txt": "5e4c10d85fbfcbcc38c0d4da9d05fcac8273ccdc44a9e1152624014a34f8f5c0"
+      }
+    },
+    "bare-whitespace": {
+      "exit": 1,
+      "unchanged": true,
+      "before": {
+        "mods/x/file.txt": "5e4c10d85fbfcbcc38c0d4da9d05fcac8273ccdc44a9e1152624014a34f8f5c0"
+      },
+      "after": {
+        "mods/x/file.txt": "5e4c10d85fbfcbcc38c0d4da9d05fcac8273ccdc44a9e1152624014a34f8f5c0"
+      }
+    },
+    "filtered-empty": {
+      "exit": 1,
+      "unchanged": true,
+      "before": {
+        "mods/x/file.txt": "5e4c10d85fbfcbcc38c0d4da9d05fcac8273ccdc44a9e1152624014a34f8f5c0"
+      },
+      "after": {
+        "mods/x/file.txt": "5e4c10d85fbfcbcc38c0d4da9d05fcac8273ccdc44a9e1152624014a34f8f5c0"
+      }
+    }
+  }
+}

@@ -1,0 +1,1 @@
+[{"Guid": "87099b3e-cd41-5424-949f-7bdc449c79fb", "Name": "Malformed", "IsSelected": true, "Instructions": [{"Action": "Copy", "Source": ["x", 42], "Destination": "<<kotorDirectory>>\\literal//destination/", "Arguments": " literal\\argument "}]}]

@@ -1,0 +1,126 @@
+[
+  {
+    "Guid": "00000000-0000-4000-8000-000000000300",
+    "Name": "Probe C",
+    "Author": "",
+    "Description": "",
+    "Directions": "",
+    "Tier": "",
+    "Category": [],
+    "IsSelected": true,
+    "Dependencies": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "Instructions": [
+      {
+        "Guid": "88888888-0000-4000-8000-000000000300",
+        "Action": "Extract",
+        "Source": [
+          "<<modDirectory>>/Probe_C*.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [
+      {
+        "Guid": "00000000-0000-4000-8000-000000000301",
+        "Name": "One",
+        "Author": "",
+        "Description": "",
+        "Directions": "",
+        "Tier": "",
+        "Category": [],
+        "IsSelected": false,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [
+          {
+            "Guid": "77777777-0000-4000-8000-000000000301",
+            "Parent": "00000000-0000-4000-8000-000000000301",
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>/x/*.tga"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "ResourceRegistry": {}
+      }
+    ],
+    "ResourceRegistry": {}
+  },
+  {
+    "Guid": "00000000-0000-4000-8000-000000000310",
+    "Name": "Probe C Other",
+    "Author": "",
+    "Description": "",
+    "Directions": "",
+    "Tier": "",
+    "Category": [],
+    "IsSelected": true,
+    "Dependencies": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "Instructions": [
+      {
+        "Guid": "88888888-0000-4000-8000-000000000310",
+        "Action": "Extract",
+        "Source": [
+          "<<modDirectory>>/Probe_C_Other*.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [
+      {
+        "Guid": "00000000-0000-4000-8000-000000000311",
+        "Name": "Solo",
+        "Author": "",
+        "Description": "",
+        "Directions": "",
+        "Tier": "",
+        "Category": [],
+        "IsSelected": false,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [
+          {
+            "Guid": "77777777-0000-4000-8000-000000000311",
+            "Parent": "00000000-0000-4000-8000-000000000311",
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>/z/*.tga"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "ResourceRegistry": {}
+      }
+    ],
+    "ResourceRegistry": {}
+  }
+]

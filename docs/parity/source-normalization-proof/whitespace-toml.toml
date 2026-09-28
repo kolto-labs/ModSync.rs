@@ -1,0 +1,8 @@
+[[thisMod]]
+Guid="11111111-1111-1111-1111-111111111111"
+Name="Example scalar"
+IsSelected=true
+[[thisMod.Instructions]]
+Action="Copy"
+Source="  "
+Destination="<<kotorDirectory>>/Override"

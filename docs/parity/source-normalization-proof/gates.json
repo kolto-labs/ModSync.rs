@@ -1,0 +1,82 @@
+{
+  "sourceCommit": "62b6f70",
+  "cwd": "/home/brunner56/.cache/modsync-wt-integ",
+  "target": "/home/brunner56/.cache/modsync-rs-target-lead",
+  "commands": [
+    {
+      "argv": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderrFile": "fmt.log"
+    },
+    {
+      "argv": [
+        "cargo",
+        "build",
+        "--lib",
+        "--bin",
+        "modsync",
+        "--no-default-features",
+        "-j2"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderrFile": "build-cli.log"
+    },
+    {
+      "argv": [
+        "cargo",
+        "clippy",
+        "--lib",
+        "--bin",
+        "modsync",
+        "--no-default-features",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderrFile": "clippy-cli.log"
+    },
+    {
+      "argv": [
+        "cargo",
+        "build",
+        "--lib",
+        "--bin",
+        "modsync",
+        "-j2"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderrFile": "build-default.log"
+    },
+    {
+      "argv": [
+        "cargo",
+        "clippy",
+        "--lib",
+        "--bin",
+        "modsync",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderrFile": "clippy-default.log"
+    }
+  ],
+  "sourceSha256": "b54f38f1b2c5103a9b92e855e4ed6edee7e1aba558717c7a4939930a37579354",
+  "binarySha256": "a665ace4f9db3f9ae4dcf6be95b075e1b5ff1d6f822ed0885493e984ffca31b8",
+  "scope": "Production library and CLI builds only; no Rust tests or custom Rust harness created, compiled, changed or run."
+}

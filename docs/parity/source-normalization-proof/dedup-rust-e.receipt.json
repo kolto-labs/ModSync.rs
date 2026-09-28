@@ -1,0 +1,14 @@
+{
+  "label": "dedup-rust-e",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "convert",
+    "/tmp/source-normalization-proof-ws_qwkss/dedup-e.toml",
+    "/tmp/source-normalization-proof-ws_qwkss/dedup-rust-e.json",
+    "-f",
+    "json"
+  ],
+  "exit": 0,
+  "stdout": "",
+  "stderr": ""
+}

@@ -1,0 +1,14 @@
+{
+  "label": "dedup-rust-a",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "convert",
+    "/tmp/source-normalization-proof-ws_qwkss/dedup-a.toml",
+    "/tmp/source-normalization-proof-ws_qwkss/dedup-rust-a.json",
+    "-f",
+    "json"
+  ],
+  "exit": 0,
+  "stdout": "",
+  "stderr": "Component 'Probe A': Duplicate option detected - 'Same' (GUID: 00000000-0000-4000-8000-000000000102) has identical instructions to 'Same' (GUID: 00000000-0000-4000-8000-000000000101). Removing duplicate.\n"
+}

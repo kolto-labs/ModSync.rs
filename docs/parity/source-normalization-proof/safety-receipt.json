@@ -1,0 +1,89 @@
+{
+  "root": "/tmp/source-normalization-proof-4avemryd",
+  "sourceCommit": "62b6f707147b734714e4dda7f46118beff3d6140",
+  "rustSha256": "a665ace4f9db3f9ae4dcf6be95b075e1b5ff1d6f822ed0885493e984ffca31b8",
+  "csharpSha256": "89d9b2361aee4364f95151b41db59a4133122a6ad41bc2703e232cf10a4f5a6b",
+  "checks": {
+    "copy-rust": {
+      "exit": 0,
+      "manifest": {
+        "Override/file.txt": "4edc2ebc3b8f737678840127749239b1e288264249da9590249e64b421ee7341"
+      },
+      "guideSha256": "03d4f6ef9fca4907a527891abc05b2cf3c674aaf1b40e82189fd856862282e36",
+      "skipValidation": false
+    },
+    "copy-csharp-full-validation": {
+      "exit": 1,
+      "manifest": {},
+      "guideSha256": "03d4f6ef9fca4907a527891abc05b2cf3c674aaf1b40e82189fd856862282e36",
+      "skipValidation": false
+    },
+    "copy-csharp-skip-validation": {
+      "exit": 0,
+      "manifest": {
+        ".modsync/last_good_backup.zip": "9f0b15b2c177c3e229adb57c841fea67f33658c727240e4f27ce3ecc9b74c2a9",
+        ".modsync/install_session.json": "f5e01cd8f31ec1a8eef750aa0b76e9d40d6c6ed7880f3ae725c22e9c9eab3e6d",
+        "Override/file.txt": "4edc2ebc3b8f737678840127749239b1e288264249da9590249e64b421ee7341",
+        ".modsync/checkpoints/Override/file.txt": "4edc2ebc3b8f737678840127749239b1e288264249da9590249e64b421ee7341",
+        ".modsync/checkpoints/.git/index": "5ba1e08301030dda5d67134a1aa2fa35ce20315acaffa6ab05ef88d482870dbc",
+        ".modsync/checkpoints/.git/config": "c4a5f4286f745a5761fee60f89204e5f3d4ebe89ce2ad3e0928bbb8297cdd129",
+        ".modsync/checkpoints/.git/HEAD": "f6f2b945f6c411b02ba3da9c7ace88dcf71b6af65ba2e0d89aa82900042b5a10",
+        ".modsync/checkpoints/.git/description": "85ab6c163d43a17ea9cf7788308bca1466f1b0a8d1cc92e26e9bf63da4062aee",
+        ".modsync/checkpoints/.git/logs/HEAD": "6792205e3effabef0f6ca8858a2160329cd823843771f73895f724685afa0053",
+        ".modsync/checkpoints/.git/info/exclude": "fdb7dc7be17051c3c5067cdf2b8fdf2ca3a8daf2b5e91f34c6ce1ff3a94c5f6a",
+        ".modsync/checkpoints/.git/hooks/README.sample": "7319d7f1803fda2b3416143e426b9ec4c3c3c817c75188b2b82cb3e68ff293ab",
+        ".modsync/checkpoints/.git/objects/e3/055f1f38d0798aaa95146da76e6f2d3cd5aa0b": "3afa3c62419756c191741d1ec22983ee8d4a1afd1eb5e10ebab40bc15226c050",
+        ".modsync/checkpoints/.git/objects/bb/4bedab26d40d3ae641f5e6b71eb1172a762e76": "6fa717c47093945d8c369f5a68ccc7205316d8b66cbe5067734ddabe917cd109",
+        ".modsync/checkpoints/.git/objects/a5/57c96576077dd0660f69313b49e9e7a102a470": "32295f0c56b82793f0f088fa7783f256e8a4b369123b94db8f74b958156dadf9",
+        ".modsync/checkpoints/.git/objects/90/399cbb7e8b45bacf184e13d602023ef74060c4": "8a34f0f69819217913f3204085ba40f5033ef47fb050ff892a7f90b5ccd91ac2",
+        ".modsync/checkpoints/.git/objects/63/5266ace208f0830e86abe207c7be12aacf33d9": "0073a99623ea3676d8f178bffc25f43332a0115ad181e38c8777cb654fab5178",
+        ".modsync/checkpoints/.git/objects/4b/825dc642cb6eb9a060e54bf8d69288fbee4904": "e72602cad67ed061ec84b13e92568f873172efac19a512a1b561dbf54e2c8426",
+        ".modsync/checkpoints/.git/refs/heads/master": "ace76fdbb7e65b62dec77ae7c6c2a7efedb0b597a298da0de208893085be807f",
+        ".modsync/checkpoints/.git/logs/refs/heads/master": "6792205e3effabef0f6ca8858a2160329cd823843771f73895f724685afa0053"
+      },
+      "guideSha256": "03d4f6ef9fca4907a527891abc05b2cf3c674aaf1b40e82189fd856862282e36",
+      "skipValidation": true
+    },
+    "absolute-inside": {
+      "exit": 0,
+      "manifest": {
+        "Override/outside.txt": "4edc2ebc3b8f737678840127749239b1e288264249da9590249e64b421ee7341"
+      },
+      "guideSha256": "a450353c2d717028b002d8a8abac023d4148f6ac5802aa79ef949b23730a9bb6",
+      "skipValidation": false
+    },
+    "reject-traversal": {
+      "exit": 1,
+      "manifest": {},
+      "guideSha256": "7930bcc1d334932a118af3b2d2bf6f59de708a0a7748b28f38a766bea5e5884c",
+      "skipValidation": false
+    },
+    "reject-drive": {
+      "exit": 1,
+      "manifest": {},
+      "guideSha256": "e77e6546b87dd075d4d19b1bad038294de87585cf38c96632bfe39818a164f2e",
+      "skipValidation": false
+    },
+    "reject-unknown": {
+      "exit": 1,
+      "manifest": {},
+      "guideSha256": "f31791000ccfcf8660cca1963c77554b7752f0c547abd6d3be2fce0b9bed7402",
+      "skipValidation": false
+    },
+    "reject-symlink": {
+      "exit": 1,
+      "manifest": {},
+      "guideSha256": "4392f217613217ce3f1bb8a47798a40c500deb90e18d405df04de91798ec4061",
+      "skipValidation": false
+    },
+    "reject-mixed": {
+      "exit": 1,
+      "manifest": {},
+      "guideSha256": "7948e48661e83d8e408fef2e444e9170b056ab89ddc3c374f6f44a1147332850",
+      "skipValidation": false
+    },
+    "outside-sentinel-preserved": true,
+    "payloadSha256": "4edc2ebc3b8f737678840127749239b1e288264249da9590249e64b421ee7341"
+  },
+  "commands": 9
+}

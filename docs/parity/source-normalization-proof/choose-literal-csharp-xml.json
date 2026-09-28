@@ -1,0 +1,48 @@
+[
+  {
+    "Guid": "7dba506c-74ba-5047-8799-5056c9a2a7d1",
+    "Name": "Choose literal",
+    "NameSpoilerFree": "",
+    "Heading": "",
+    "Author": "",
+    "Category": [],
+    "Tier": "",
+    "Language": [],
+    "ResourceRegistry": {},
+    "ExcludedDownloads": [],
+    "Description": "",
+    "DescriptionSpoilerFree": "",
+    "InstallationMethod": "",
+    "Directions": "",
+    "DirectionsSpoilerFree": "",
+    "DownloadInstructions": "",
+    "DownloadInstructionsSpoilerFree": "",
+    "UsageWarning": "",
+    "UsageWarningSpoilerFree": "",
+    "Screenshots": "",
+    "ScreenshotsSpoilerFree": "",
+    "KnownBugs": "",
+    "InstallationWarning": "",
+    "CompatibilityWarning": "",
+    "SteamNotes": "",
+    "Dependencies": [],
+    "DependencyNames": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "IsSelected": true,
+    "Instructions": [
+      {
+        "Action": "Choose",
+        "Source": [
+          "\\literal\\path",
+          "{AAAAAAAA-1111-4111-8111-111111111111}"
+        ],
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "WidescreenOnly": false
+  }
+]

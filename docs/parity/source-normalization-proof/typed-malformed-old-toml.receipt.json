@@ -1,0 +1,14 @@
+{
+  "label": "typed-malformed-old-toml",
+  "argv": [
+    "/home/brunner56/.cache/modsync-resume/wave2-reviewed-binary",
+    "convert",
+    "/tmp/source-normalization-proof-l9cqv8ew/malformed-toml.toml",
+    "/tmp/source-normalization-proof-l9cqv8ew/malformed-old-toml.json",
+    "-f",
+    "json"
+  ],
+  "exit": 1,
+  "stdout": "",
+  "stderr": "Error: data did not match any variant of untagged enum Value\n"
+}

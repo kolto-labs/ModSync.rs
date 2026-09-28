@@ -1,0 +1,1 @@
+[{"Guid": "924e6928-b8f6-5ea3-b2b5-1f3cf37fee8e", "Name": "Example Copy", "IsSelected": true, "Instructions": [{"Action": "Copy", "Source": "", "Destination": "<<kotorDirectory>>/Override", "Arguments": "literal\\argument"}]}]

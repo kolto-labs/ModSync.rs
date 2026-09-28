@@ -1,0 +1,17 @@
+{
+  "label": "reject-unknown",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "install",
+    "--input",
+    "/tmp/source-normalization-proof-4avemryd/reject-unknown-guide.json",
+    "--game-dir",
+    "/tmp/source-normalization-proof-4avemryd/reject-unknown-game",
+    "--source-dir",
+    "/tmp/source-normalization-proof-4avemryd/mods",
+    "--use-file-selection"
+  ],
+  "exit": 1,
+  "stdout": "",
+  "stderr": "Error: Example Copy / step 1 (Copy): Unsafe path: <<unknownDirectory>>/x/file.txt\n"
+}

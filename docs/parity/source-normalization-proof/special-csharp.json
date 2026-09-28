@@ -1,0 +1,105 @@
+[
+  {
+    "Guid": "924e6928-b8f6-5ea3-b2b5-1f3cf37fee8e",
+    "Name": "Example Copy",
+    "NameSpoilerFree": "",
+    "Heading": "",
+    "Author": "",
+    "Category": [],
+    "Tier": "",
+    "Language": [],
+    "ResourceRegistry": {},
+    "ExcludedDownloads": [],
+    "Description": "",
+    "DescriptionSpoilerFree": "",
+    "InstallationMethod": "",
+    "Directions": "",
+    "DirectionsSpoilerFree": "",
+    "DownloadInstructions": "",
+    "DownloadInstructionsSpoilerFree": "",
+    "UsageWarning": "",
+    "UsageWarningSpoilerFree": "",
+    "Screenshots": "",
+    "ScreenshotsSpoilerFree": "",
+    "KnownBugs": "",
+    "InstallationWarning": "",
+    "CompatibilityWarning": "",
+    "SteamNotes": "",
+    "Dependencies": [],
+    "DependencyNames": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "IsSelected": true,
+    "Instructions": [
+      {
+        "Action": "Copy",
+        "Source": [
+          "<<modDirectory>>/x/file.txt"
+        ],
+        "Destination": "<<kotorDirectory>>/Override",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Choose",
+        "Source": [
+          "11111111-1111-1111-1111-111111111111"
+        ],
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [
+      {
+        "Guid": "11111111-1111-1111-1111-111111111111",
+        "Name": "Option A",
+        "NameSpoilerFree": "",
+        "Heading": "",
+        "Author": "",
+        "Category": [],
+        "Tier": "",
+        "Language": [],
+        "ResourceRegistry": {},
+        "ExcludedDownloads": [],
+        "Description": "",
+        "DescriptionSpoilerFree": "",
+        "InstallationMethod": "",
+        "Directions": "",
+        "DirectionsSpoilerFree": "",
+        "DownloadInstructions": "",
+        "DownloadInstructionsSpoilerFree": "",
+        "UsageWarning": "",
+        "UsageWarningSpoilerFree": "",
+        "Screenshots": "",
+        "ScreenshotsSpoilerFree": "",
+        "KnownBugs": "",
+        "InstallationWarning": "",
+        "CompatibilityWarning": "",
+        "SteamNotes": "",
+        "Dependencies": [],
+        "DependencyNames": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "IsSelected": true,
+        "Instructions": [
+          {
+            "Action": "Copy",
+            "Source": [
+              "<<modDirectory>>/x/file.txt"
+            ],
+            "Destination": "<<kotorDirectory>>/Override",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "WidescreenOnly": false
+      }
+    ],
+    "WidescreenOnly": false
+  }
+]

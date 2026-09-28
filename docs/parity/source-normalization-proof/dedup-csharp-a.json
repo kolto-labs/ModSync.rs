@@ -1,0 +1,142 @@
+[
+  {
+    "Guid": "00000000-0000-4000-8000-000000000100",
+    "Name": "Probe A",
+    "NameSpoilerFree": "",
+    "Heading": "",
+    "Author": "",
+    "Category": [],
+    "Tier": "",
+    "Language": [],
+    "ResourceRegistry": {},
+    "ExcludedDownloads": [],
+    "Description": "",
+    "DescriptionSpoilerFree": "",
+    "InstallationMethod": "",
+    "Directions": "",
+    "DirectionsSpoilerFree": "",
+    "DownloadInstructions": "",
+    "DownloadInstructionsSpoilerFree": "",
+    "UsageWarning": "",
+    "UsageWarningSpoilerFree": "",
+    "Screenshots": "",
+    "ScreenshotsSpoilerFree": "",
+    "KnownBugs": "",
+    "InstallationWarning": "",
+    "CompatibilityWarning": "",
+    "SteamNotes": "",
+    "Dependencies": [],
+    "DependencyNames": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "IsSelected": true,
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "<<modDirectory>>/Probe_A*.zip"
+        ],
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [
+      {
+        "Guid": "00000000-0000-4000-8000-000000000101",
+        "Name": "Same",
+        "NameSpoilerFree": "",
+        "Heading": "",
+        "Author": "",
+        "Category": [],
+        "Tier": "",
+        "Language": [],
+        "ResourceRegistry": {},
+        "ExcludedDownloads": [],
+        "Description": "",
+        "DescriptionSpoilerFree": "",
+        "InstallationMethod": "",
+        "Directions": "",
+        "DirectionsSpoilerFree": "",
+        "DownloadInstructions": "",
+        "DownloadInstructionsSpoilerFree": "",
+        "UsageWarning": "",
+        "UsageWarningSpoilerFree": "",
+        "Screenshots": "",
+        "ScreenshotsSpoilerFree": "",
+        "KnownBugs": "",
+        "InstallationWarning": "",
+        "CompatibilityWarning": "",
+        "SteamNotes": "",
+        "Dependencies": [],
+        "DependencyNames": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>/x/*.tga"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "WidescreenOnly": false
+      },
+      {
+        "Guid": "00000000-0000-4000-8000-000000000103",
+        "Name": "Other",
+        "NameSpoilerFree": "",
+        "Heading": "",
+        "Author": "",
+        "Category": [],
+        "Tier": "",
+        "Language": [],
+        "ResourceRegistry": {},
+        "ExcludedDownloads": [],
+        "Description": "",
+        "DescriptionSpoilerFree": "",
+        "InstallationMethod": "",
+        "Directions": "",
+        "DirectionsSpoilerFree": "",
+        "DownloadInstructions": "",
+        "DownloadInstructionsSpoilerFree": "",
+        "UsageWarning": "",
+        "UsageWarningSpoilerFree": "",
+        "Screenshots": "",
+        "ScreenshotsSpoilerFree": "",
+        "KnownBugs": "",
+        "InstallationWarning": "",
+        "CompatibilityWarning": "",
+        "SteamNotes": "",
+        "Dependencies": [],
+        "DependencyNames": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>/y/*.tga"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "WidescreenOnly": false
+      }
+    ],
+    "WidescreenOnly": false
+  }
+]

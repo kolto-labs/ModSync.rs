@@ -1,0 +1,146 @@
+[
+  {
+    "Guid": "00000000-0000-4000-8000-000000000700",
+    "Name": "Probe I",
+    "NameSpoilerFree": "",
+    "Heading": "",
+    "Author": "",
+    "Category": [],
+    "Tier": "",
+    "Language": [],
+    "ResourceRegistry": {},
+    "ExcludedDownloads": [],
+    "Description": "",
+    "DescriptionSpoilerFree": "",
+    "InstallationMethod": "",
+    "Directions": "",
+    "DirectionsSpoilerFree": "",
+    "DownloadInstructions": "",
+    "DownloadInstructionsSpoilerFree": "",
+    "UsageWarning": "",
+    "UsageWarningSpoilerFree": "",
+    "Screenshots": "",
+    "ScreenshotsSpoilerFree": "",
+    "KnownBugs": "",
+    "InstallationWarning": "",
+    "CompatibilityWarning": "",
+    "SteamNotes": "",
+    "Dependencies": [],
+    "DependencyNames": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "IsSelected": true,
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "<<modDirectory>>/Probe_I*.zip"
+        ],
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [
+      {
+        "Guid": "00000000-0000-4000-8000-000000000701",
+        "Name": "DepLower",
+        "NameSpoilerFree": "",
+        "Heading": "",
+        "Author": "",
+        "Category": [],
+        "Tier": "",
+        "Language": [],
+        "ResourceRegistry": {},
+        "ExcludedDownloads": [],
+        "Description": "",
+        "DescriptionSpoilerFree": "",
+        "InstallationMethod": "",
+        "Directions": "",
+        "DirectionsSpoilerFree": "",
+        "DownloadInstructions": "",
+        "DownloadInstructionsSpoilerFree": "",
+        "UsageWarning": "",
+        "UsageWarningSpoilerFree": "",
+        "Screenshots": "",
+        "ScreenshotsSpoilerFree": "",
+        "KnownBugs": "",
+        "InstallationWarning": "",
+        "CompatibilityWarning": "",
+        "SteamNotes": "",
+        "Dependencies": [],
+        "DependencyNames": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>/x/a.tga"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Overwrite": true,
+            "Dependencies": [
+              "00000000-0000-4000-8000-000000000009"
+            ],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "WidescreenOnly": false
+      },
+      {
+        "Guid": "00000000-0000-4000-8000-000000000703",
+        "Name": "NoOverwrite",
+        "NameSpoilerFree": "",
+        "Heading": "",
+        "Author": "",
+        "Category": [],
+        "Tier": "",
+        "Language": [],
+        "ResourceRegistry": {},
+        "ExcludedDownloads": [],
+        "Description": "",
+        "DescriptionSpoilerFree": "",
+        "InstallationMethod": "",
+        "Directions": "",
+        "DirectionsSpoilerFree": "",
+        "DownloadInstructions": "",
+        "DownloadInstructionsSpoilerFree": "",
+        "UsageWarning": "",
+        "UsageWarningSpoilerFree": "",
+        "Screenshots": "",
+        "ScreenshotsSpoilerFree": "",
+        "KnownBugs": "",
+        "InstallationWarning": "",
+        "CompatibilityWarning": "",
+        "SteamNotes": "",
+        "Dependencies": [],
+        "DependencyNames": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "IsSelected": false,
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>/x/a.tga"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Overwrite": false,
+            "Dependencies": [
+              "00000000-0000-4000-8000-000000000009"
+            ],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "WidescreenOnly": false
+      }
+    ],
+    "WidescreenOnly": false
+  }
+]

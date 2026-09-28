@@ -1,0 +1,14 @@
+{
+  "label": "dedup-rust-b",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "convert",
+    "/tmp/source-normalization-proof-ws_qwkss/dedup-b.toml",
+    "/tmp/source-normalization-proof-ws_qwkss/dedup-rust-b.json",
+    "-f",
+    "json"
+  ],
+  "exit": 0,
+  "stdout": "",
+  "stderr": "Component 'Probe B': Duplicate option detected - 'Second Name' (GUID: 00000000-0000-4000-8000-000000000202) has identical instructions to 'First' (GUID: 00000000-0000-4000-8000-000000000201). Removing duplicate.\n"
+}

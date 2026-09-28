@@ -1,0 +1,14 @@
+{
+  "label": "matrix-reload-json",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "convert",
+    "/tmp/source-normalization-proof-ws_qwkss/matrix-rust-json.json",
+    "/tmp/source-normalization-proof-ws_qwkss/matrix-reload-json.json",
+    "-f",
+    "json"
+  ],
+  "exit": 0,
+  "stdout": "",
+  "stderr": ""
+}

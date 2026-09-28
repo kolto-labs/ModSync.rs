@@ -1,0 +1,64 @@
+[[thisMod]]
+Guid = "00000000-0000-4000-8000-000000000300"
+Name = "Probe C"
+IsSelected = true
+
+[[thisMod.Instructions]]
+Guid = "88888888-0000-4000-8000-000000000300"
+Action = "Extract"
+Source = ["<<modDirectory>>\\Probe_C*.zip"]
+
+[[thisMod.Options]]
+Guid = "00000000-0000-4000-8000-000000000301"
+Name = "One"
+IsSelected = false
+[[thisMod.Options.Instructions]]
+Guid = "77777777-0000-4000-8000-000000000301"
+Action = "Move"
+Parent = "00000000-0000-4000-8000-000000000301"
+Source = ["<<modDirectory>>\\x\\*.tga"]
+Destination = "<<kotorDirectory>>\\Override"
+
+[[thisMod.Options]]
+Guid = "00000000-0000-4000-8000-000000000302"
+Name = "Two"
+IsSelected = false
+[[thisMod.Options.Instructions]]
+Guid = "77777777-0000-4000-8000-000000000302"
+Action = "Move"
+Parent = "00000000-0000-4000-8000-000000000302"
+Source = ["<<modDirectory>>\\x\\*.tga"]
+Destination = "<<kotorDirectory>>\\Override"
+
+[[thisMod.Options]]
+Guid = "00000000-0000-4000-8000-000000000303"
+Name = "Three"
+IsSelected = false
+[[thisMod.Options.Instructions]]
+Guid = "77777777-0000-4000-8000-000000000303"
+Action = "Move"
+Parent = "00000000-0000-4000-8000-000000000303"
+Source = ["<<modDirectory>>\\x\\*.tga"]
+Destination = "<<kotorDirectory>>\\Override"
+
+[[thisMod]]
+Guid = "00000000-0000-4000-8000-000000000310"
+Name = "Probe C Other"
+IsSelected = true
+
+[[thisMod.Instructions]]
+Guid = "88888888-0000-4000-8000-000000000310"
+Action = "Extract"
+Source = ["<<modDirectory>>\\Probe_C_Other*.zip"]
+
+[[thisMod.Options]]
+Guid = "00000000-0000-4000-8000-000000000311"
+Name = "Solo"
+IsSelected = false
+[[thisMod.Options.Instructions]]
+Guid = "77777777-0000-4000-8000-000000000311"
+Action = "Move"
+Parent = "00000000-0000-4000-8000-000000000311"
+Source = ["<<modDirectory>>\\z\\*.tga"]
+Destination = "<<kotorDirectory>>\\Override"
+

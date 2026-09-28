@@ -1,0 +1,82 @@
+[
+  {
+    "Guid": "00000000-0000-4000-8000-000000000960",
+    "Name": "Probe K",
+    "Author": "",
+    "Description": "",
+    "Directions": "",
+    "Tier": "",
+    "Category": [],
+    "IsSelected": true,
+    "Dependencies": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "Instructions": [],
+    "Options": [
+      {
+        "Guid": "00000000-0000-4000-8000-000000000961",
+        "Name": "Base",
+        "Author": "",
+        "Description": "",
+        "Directions": "",
+        "Tier": "",
+        "Category": [],
+        "IsSelected": false,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [
+          {
+            "Guid": "77777777-0000-4000-8000-000000000961",
+            "Parent": "00000000-0000-4000-8000-000000000961",
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>/x/a.tga"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "ResourceRegistry": {}
+      },
+      {
+        "Guid": "00000000-0000-4000-8000-000000000964",
+        "Name": "UpperPrefix",
+        "Author": "",
+        "Description": "",
+        "Directions": "",
+        "Tier": "",
+        "Category": [],
+        "IsSelected": false,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [
+          {
+            "Guid": "77777777-0000-4000-8000-000000000964",
+            "Parent": "00000000-0000-4000-8000-000000000964",
+            "Action": "Move",
+            "Source": [
+              "<<MODDIRECTORY>>/x/a.tga"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "ResourceRegistry": {}
+      }
+    ],
+    "ResourceRegistry": {}
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "label": "dedup-rust-h",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "convert",
+    "/tmp/source-normalization-proof-ws_qwkss/dedup-h.toml",
+    "/tmp/source-normalization-proof-ws_qwkss/dedup-rust-h.json",
+    "-f",
+    "json"
+  ],
+  "exit": 0,
+  "stdout": "",
+  "stderr": "Component 'Probe H': Duplicate option detected - 'Empty2' (GUID: 00000000-0000-4000-8000-000000000602) has identical instructions to 'Empty1' (GUID: 00000000-0000-4000-8000-000000000601). Removing duplicate.\n"
+}

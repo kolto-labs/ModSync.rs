@@ -1,0 +1,14 @@
+{
+  "label": "supplement-reload-json",
+  "argv": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "convert",
+    "/tmp/source-normalization-proof-l9cqv8ew/supplement-rust-json.json",
+    "/tmp/source-normalization-proof-l9cqv8ew/supplement-reload-json.json",
+    "-f",
+    "json"
+  ],
+  "exit": 0,
+  "stdout": "",
+  "stderr": ""
+}
