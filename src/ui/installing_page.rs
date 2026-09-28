@@ -151,7 +151,7 @@ impl State {
         self.active() && self.run == run && self.stamp == stamp
     }
 
-    fn elapsed(&self) -> Duration {
+    pub(super) fn elapsed(&self) -> Duration {
         self.ended
             .or_else(|| self.started.map(|s| s.elapsed()))
             .unwrap_or_default()
@@ -217,6 +217,11 @@ impl State {
         } {
             self.push_log(line);
         }
+    }
+
+    /// This run's step log, oldest first, as shown under Install steps.
+    pub(super) fn log_lines(&self) -> impl Iterator<Item = &str> {
+        self.log.iter().map(String::as_str)
     }
 
     /// Keep the newest lines; the oldest drop first.
@@ -436,13 +441,13 @@ fn clock(duration: Duration) -> String {
 }
 
 /// C# cards set padding and radius only: no fill, stroke or brush.
-fn card(radius: u8, x: i8, y: i8) -> egui::Frame {
+pub(super) fn card(radius: u8, x: i8, y: i8) -> egui::Frame {
     egui::Frame::default()
         .corner_radius(radius)
         .inner_margin(egui::Margin::symmetric(x, y))
 }
 
-fn faded(ui: &egui::Ui, opacity: f32) -> egui::Color32 {
+pub(super) fn faded(ui: &egui::Ui, opacity: f32) -> egui::Color32 {
     ui.visuals().text_color().gamma_multiply(opacity)
 }
 
@@ -489,7 +494,7 @@ fn bar(ui: &mut egui::Ui, height: f32, radius: f32, fraction: Option<f32>, hover
 }
 
 /// Equal columns with a fixed gap, like a XAML `*,gap,*` grid row.
-fn columns<const N: usize>(
+pub(super) fn columns<const N: usize>(
     ui: &mut egui::Ui,
     gap: f32,
     align: egui::Align,

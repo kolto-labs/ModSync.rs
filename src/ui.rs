@@ -1,3 +1,4 @@
+mod completion_pages;
 mod installing_page;
 mod validation_page;
 use anyhow::Result;
@@ -23,7 +24,9 @@ enum Message {
     ValidationTerminal(u64, modsync::validation::Report),
     ValidationDone(u64, Result<()>),
     InstallProgress(u64, modsync::install_progress::Progress),
-    InstallTerminal(u64, Result<()>, bool),
+    /// Run, engine result, pending recovery for the captured roots, and the
+    /// completion receipt read after an engine success released its lock.
+    InstallTerminal(u64, Result<()>, bool, Option<completion_pages::Terminal>),
     Log(String),
     Updates(Guide, modsync::updates::Summary),
     Done(Result<()>),
@@ -68,6 +71,8 @@ pub struct App {
     validation_input_stamp: Option<String>,
     validation_page: validation_page::State,
     installing_page: installing_page::State,
+    /// Phase receipts copied at each accepted install terminal.
+    completion: completion_pages::State,
     stop_confirmation: bool,
     selected: usize,
     spoiler_free: bool,
@@ -148,7 +153,7 @@ impl App {
                     self.installing_page.progress(progress);
                 }
             }
-            Message::InstallTerminal(run, result, pending) => {
+            Message::InstallTerminal(run, result, pending, terminal) => {
                 // `pending` was read from the roots captured for this run, never
                 // from the editable paths. The engine result wins over a late Stop.
                 self.receiver = None;
@@ -156,6 +161,8 @@ impl App {
                 self.refresh_input_stamp();
                 let accepted = self.installing_page.accepts(run, &self.input_stamp);
                 let engine_succeeded = result.is_ok();
+                // Read before installed_phase records the base completion.
+                let base_phase = self.completed_base.is_none();
                 let final_result = if accepted && engine_succeeded {
                     result.and_then(|()| self.installed_phase())
                 } else {
@@ -168,6 +175,22 @@ impl App {
                     &final_result,
                     pending,
                 );
+                // Only a success accepted for this run and stamp fills a receipt.
+                // Copy time and log now: the next phase replaces the page state.
+                if accepted
+                    && final_result.is_ok()
+                    && let Some(terminal) = terminal
+                {
+                    self.completion.record(
+                        base_phase,
+                        terminal,
+                        self.installing_page.elapsed(),
+                        self.installing_page
+                            .log_lines()
+                            .map(str::to_owned)
+                            .collect(),
+                    );
+                }
                 self.pending_base.clear();
                 self.install_context = None;
                 self.phase_failed = !engine_succeeded && pending;
@@ -437,6 +460,7 @@ impl App {
             Page::WidescreenInstalling if self.selected_widescreen() == 0 => {
                 // An empty phase has no operation to dispatch and no installed mods.
                 self.installing_page.skip();
+                self.completion.skip_remaining();
                 self.finished = true;
                 self.logs
                     .push("Widescreen phase skipped: no widescreen mods selected.".into());
@@ -702,7 +726,7 @@ impl App {
                 });
                 if let Some(g) = &self.guide { ui.label(format!("{} components loaded", g.components.len())); }
             }
-            Page::Preamble | Page::AspyrNotice | Page::WidescreenNotice => {
+            Page::Preamble | Page::AspyrNotice => {
                 let (camel, pascal) = match page {
                     Page::Preamble => ("preambleContent", "PreambleContent"),
                     Page::AspyrNotice => ("aspyrExclusiveWarningContent", "AspyrExclusiveWarningContent"),
@@ -754,16 +778,10 @@ impl App {
             }
             // Rendered by installing_content before this match.
             Page::Installing | Page::WidescreenInstalling => {}
-            Page::BaseInstallComplete | Page::WidescreenComplete | Page::Finished => {
-                if page == Page::BaseInstallComplete { ui.label(format!("{} base components completed by the shared installer.", self.completed_base.as_ref().map_or(0, Vec::len))); }
-                else if self.finished && self.selected_widescreen() == 0 { ui.label("Base installation completed. No widescreen mods were installed."); }
-                else { ui.label("The requested installation phases completed. Review Activity for the actual operations."); }
-                ui.label("Keep the recovery data until you have checked your installation.");
-                if ui.button("Open game folder").clicked() { self.open_folder(ctx, &self.game.clone()); }
-                if ui.button("Open mod workspace").clicked() { self.open_folder(ctx, &self.mods.clone()); }
-                if ui.button("Copy installation log").clicked() { ctx.copy_text(self.logs.join("\n")); }
-                if page == Page::Finished { ui.label("Finish returns to the loaded project."); }
-            }
+            Page::WidescreenNotice => self.widescreen_notice_content(ui),
+            Page::BaseInstallComplete => self.base_install_complete_content(ui, ctx),
+            Page::WidescreenComplete => self.widescreen_complete_content(ui),
+            Page::Finished => self.finished_content(ui),
         });
         self.refresh_input_stamp();
     }
@@ -1649,6 +1667,7 @@ impl App {
             validation_input_stamp: None,
             validation_page: validation_page::State::default(),
             installing_page: installing_page::State::default(),
+            completion: completion_pages::State::default(),
             stop_confirmation: false,
             selected: 0,
             spoiler_free: false,
@@ -1707,6 +1726,7 @@ impl App {
         self.conflicts = None;
         validation_page::clear_report(&mut self.validation_report, &mut self.validation_page);
         self.installing_page.reset();
+        self.completion = completion_pages::State::default();
     }
 
     fn finish_wizard(&mut self) {
@@ -2247,7 +2267,7 @@ impl App {
         let pending =
             roots.is_some_and(|roots| recovery::state_dir(roots).join("pending").exists());
         self.job = Job::Install;
-        self.handle_message(Message::InstallTerminal(run, Err(error), pending));
+        self.handle_message(Message::InstallTerminal(run, Err(error), pending, None));
         if roots.is_none() {
             self.phase_failed = earlier;
         }
@@ -2458,6 +2478,8 @@ impl App {
         let ctx = ctx.clone();
         // Captured before the engine takes ownership of settings.
         let install_roots = settings.roots.clone();
+        // The completed prefix the engine is given; the receipt minus it is this phase.
+        let prefix = completed.as_ref().map_or(0, Vec::len);
         std::thread::spawn(move || {
             let result =
                 std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> Result<()> {
@@ -2540,7 +2562,11 @@ impl App {
             let _ = tx.send(match install_run {
                 Some(run) => {
                     let pending = recovery::state_dir(&install_roots).join("pending").exists();
-                    Message::InstallTerminal(run, result, pending)
+                    // The engine and its recovery lock are gone by now.
+                    let terminal = result
+                        .is_ok()
+                        .then(|| completion_pages::Terminal::read(prefix, install_roots.clone()));
+                    Message::InstallTerminal(run, result, pending, terminal)
                 }
                 None if job == Job::Validate => Message::ValidationDone(validation_run, result),
                 None => Message::Done(result),
