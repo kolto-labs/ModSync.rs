@@ -171,7 +171,17 @@ fn durable_write(path: &Path, bytes: &[u8]) -> Result<()> {
         use std::os::unix::fs::PermissionsExt;
         fs::set_permissions(path, fs::Permissions::from_mode(0o600))?;
     }
-    File::open(path.parent().context("Sharing path has no parent")?)?.sync_all()?;
+    sync_dir(path.parent().context("Sharing path has no parent")?)?;
+    Ok(())
+}
+
+/// Persists a rename in `dir`. Windows cannot open a directory as a file; its
+/// rename durability comes from the atomic replace itself.
+fn sync_dir(dir: &Path) -> Result<()> {
+    #[cfg(unix)]
+    File::open(dir)?.sync_all()?;
+    #[cfg(not(unix))]
+    let _ = dir;
     Ok(())
 }
 
@@ -200,13 +210,9 @@ fn read_record(path: &Path, identity: &str) -> Result<Record> {
 
 impl Catalog {
     pub fn open(settings: &SettingsFile) -> Result<Self> {
+        // A symlinked settings directory is a legitimate user choice; only the
+        // sharing root below it must be a real private directory.
         fs::create_dir_all(&settings.directory)?;
-        ensure!(
-            !fs::symlink_metadata(&settings.directory)?
-                .file_type()
-                .is_symlink(),
-            "Settings directory is a symlink"
-        );
         let root = settings.directory.join("peer-sharing-v1");
         private_dir(&root)?;
         private_dir(&root.join("pending"))?;
@@ -225,7 +231,12 @@ impl Catalog {
         let file = lock_file(&self.root.join("owner.lock"))?;
         match fs2::FileExt::try_lock_exclusive(&file) {
             Ok(()) => Ok(Some(OwnerLock(file))),
-            Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => Ok(None),
+            Err(error)
+                if error.kind() == std::io::ErrorKind::WouldBlock
+                    || error.raw_os_error() == fs2::lock_contended_error().raw_os_error() =>
+            {
+                Ok(None)
+            }
             Err(error) => Err(error.into()),
         }
     }
@@ -288,7 +299,7 @@ impl Catalog {
                 durable_write(&target, &serde_json::to_vec(&record)?)?;
             }
             fs::remove_file(&pending)?;
-            File::open(self.root.join("pending"))?.sync_all()?;
+            sync_dir(&self.root.join("pending"))?;
             consumed += 1;
         }
         Ok(consumed)
@@ -306,7 +317,7 @@ impl Catalog {
             if name.starts_with('.') {
                 continue;
             }
-            if after.is_some_and(|cursor| name.as_str() <= cursor) {
+            if after.is_some_and(|cursor| name.strip_suffix(".json").unwrap_or(&name) <= cursor) {
                 continue;
             }
             ensure!(

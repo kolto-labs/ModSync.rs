@@ -424,10 +424,11 @@ impl PeerSettings {
         }) {
             out.mode = PeerMode::Off;
         } else if let Some(v) = get("peerMode").and_then(|v| v.as_str()) {
+            // An unrecognized mode is malformed and fails closed.
             out.mode = match v.to_ascii_lowercase().as_str() {
-                "off" => PeerMode::Off,
+                "race" => PeerMode::Race,
                 "fallback" => PeerMode::Fallback,
-                _ => PeerMode::Race,
+                _ => PeerMode::Off,
             };
         }
         if let Some(v) = get("peerProxies") {
