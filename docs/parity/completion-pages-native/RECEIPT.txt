@@ -1,0 +1,104 @@
+ModSync.rs Task 2 completion-pages native verification receipt
+Generated: 2026-09-28T00:37:13Z
+
+== Source ==
+Rust worktree HEAD: 10f0fe298c9562b618398e97f248f032e1bbd77e
+Dirty files: src/ui.rs (M), src/ui/installing_page.rs (M), src/ui/completion_pages.rs (A, new)
+Dirty diff sha256: 749e80c3d0bff4c6246204c859f15bdd16929b40bb1bd260f55118499dd735b4
+C# oracle commit (pinned, confirmed via git rev-parse HEAD in that worktree): d31ccbd3bfcddb4705917eafa6483715c166de3b
+
+== Build ==
+CARGO_TARGET_DIR=/home/brunner56/.cache/modsync-rs-target-p2p, debug profile, run via host-spawn -j2
+cargo fmt --check: PASS (no output)
+cargo build --bin modsync (default features/desktop): PASS
+cargo build --no-default-features: PASS
+cargo clippy --lib --bins -- -D warnings (default): PASS, no warnings
+cargo clippy --lib --bins --no-default-features -- -D warnings: PASS, no warnings
+git --no-pager diff --check: PASS (no output)
+Color32/FontId literal gate: only pre-approved installing_page.rs faded()/card()/columns() visibility changes
+(pub -> pub(super)); no new literal in completion_pages.rs.
+
+== N/A filter check against C# oracle ==
+Rust completion_pages.rs GAME FILES CHANGED: .filter(|n| *n > 0).map_or_else(N/A, ...)
+C# BaseInstallCompletePage.axaml.cs:98: filesModified > 0 ? filesModified.ToString() : "N/A"
+Match confirmed: Rust mirrors the C# > 0 condition exactly. No code change needed.
+
+== Binary ==
+modsync (desktop build) sha256: 717a419f6f9bcbe33d29c48b14769a10c63349a08230ad501addcdb51bf16cb0
+Same binary used for every screenshot below; copied to /tmp/modsync-cpages-native/modsync (identical hash).
+
+== Native matrix (Xvfb :96, private HOME/XDG/dbus, disposable fixtures under /tmp/modsync-cpages-native) ==
+
+probe-base (base-only guide, no widescreen component), Light theme, 1280x800:
+  BaseInstallComplete: MODS INSTALLED 2, RECOVERY SNAPSHOT Released, TIME ELAPSED 0s, GAME FILES CHANGED 2
+  Externally verified: game/Override/existing.txt content changed to mods/existing.txt bytes (1 changed);
+  game/Override/added.txt is new (1 added). Matches displayed 2.
+  Copy Log: 'Copied 11 log lines from this install.'; clipboard capture has exactly 11 lines, matching the
+  run-scoped log, not app-wide self.logs.
+  Recovery modal: truthful text, no rollback promise (12-recovery-modal.png).
+  Finished: 'All mods have been successfully installed.' (correct: guide has no widescreen component at all).
+
+probe-wide (base + one widescreen component, selected), Light theme, 1280x800:
+  BaseInstallComplete after base phase: MODS INSTALLED 2 (base-only count; widescreen prefix excluded).
+  WidescreenNotice: heading, bordered scrollable box, raw text incl. literal ':::note' and '**stars**' (unrendered).
+  WidescreenComplete: 'All widescreen mods have been successfully installed.'
+  Finished: 'All mods have been successfully installed.' plus a 'Guide notes' box showing the raw epilogueContent
+  markdown, byte-identical to guide.json's epilogueContent field, in a bordered scroll box.
+
+probe-skip (widescreen component present but deselected, 0 selected), Light theme, 1280x800:
+  completion.json sha256 unchanged across the widescreen phase
+  (8d5a8a3ae55611b174d280141f859501aa067615c300ecf49a8931bde1e17ab9 before and after): confirms no engine run.
+  Installing (skip state) and WidescreenComplete: 'No widescreen mods were selected, so nothing was installed.'
+  Finished: 'Base mods were installed. No widescreen mods were selected.'
+
+probe-base2 (base-only, fresh root, re-run to cover theme + small-window + button-feedback gaps):
+  BaseInstallComplete, Light/K1/K2 all captured (a/b/c-*.png). K1 and K2 confirmed to genuinely repaint
+  (blue KOTOR1 / green KOTOR2 palettes, correct button highlighted in each, matches C# theme switch);
+  the first Light+K1/K2 pass in probe-skip mistakenly clicked the 600-wide K1/K2 x-positions while the
+  window was 1280 wide and only re-captured Light both times (corrected here).
+  Quick Actions button feedback (K2 theme): 'Open Game Folder' -> 'Asked the system to open the game folder:
+  .../probe-base2/game'; 'Open Mod Folder' -> '.../probe-base2/mods'; Recovery modal 'Open recovery folder' ->
+  '.../probe-base2/.modsync-8271e8dfeeba47ab'. All three produced the expected feedback line, no crash.
+  Side effect: ctx.open_url(file://...) opened real Firefox windows on :96 (xdg-open-style handler registered
+  for file:// in this environment). All three spawned Firefox processes were killed by PID
+  (1993805, 1996456, 2003199); no other processes were touched.
+  600x400 on BaseInstallComplete: window genuinely resized to 600x400 (confirmed via xdotool getwindowgeometry).
+  The main content ScrollArea (src/ui.rs ~3118) is real and scrolls (confirmed reaching the 'Base Installati...'
+  heading at the top after scrolling up, and confirmed reaching page end on the Finished page in the first pass).
+  However the visible viewport for the scroll region is only ~25-40px tall at 600x400 on BaseInstallComplete,
+  because the shared wizard chrome (title block, Downloads side panel, footer nav, Activity dock) consumes
+  most of the 400px height. Content is reachable but not comfortably readable at this size on this page.
+  This matches the plan's recorded C# D12 difference ('expected to clip'); it is a shared-layout constraint,
+  not specific to completion_pages.rs, and is recorded here rather than silently passed.
+
+== Fixture bug (not a Rust/product defect), confirmed with a referent ==
+python3 -c "import json; print(json.load(open('probe-wide/guide.json'))['metadata']['widescreenWarningContent'][:40])"
+  -> ':::note\nWidescreen notice line 1: raw tex' (real newline)
+python3 -c "import json; print(json.load(open('probe-skip/guide.json'))['metadata']['widescreenWarningContent'][:40])"
+  -> ':::note\\nWidescreen notice line 1: raw te' (literal backslash-n)
+The two guide.json SOURCE FILES differ (probe-skip/guide.json contains a literal backslash-n where probe-wide's
+contains a real newline), from a shell-quoting difference between the two make_fixture.sh invocations.
+The widescreen notice arm renders each file's raw content correctly and identically as written; this is
+confirmed a fixture-generation artifact, not a rendering discrepancy between the two runs.
+
+== Not run / not checked here ==
+- No Rust tests were created, changed, or run. No temporary test harness was written (per user freeze).
+- The Task 2b CLI surface (a standalone 'completion-summary' query in src/main.rs) is NOT present in this
+  worktree (grep for completion_summary/CompletionSummary/completion-summary in src/main.rs: no hits).
+  Probes 4, 4b, 6 and 7 in the plan, which the plan says can only be verified through that CLI, were not run.
+  This is out of Task 2's file ownership (src/ui.rs, src/ui/completion_pages.rs, src/ui/installing_page.rs
+  visibility only) and is recorded as a genuine gap, not exercised in this pass.
+- Probe 5 (cancellation during widescreen phase) and probe 8 (folder removed after completion) were not run
+  in this pass, time-boxed on a resume of an already-substantial change.
+- TIME ELAPSED only exercised the under-60s branch (0s) in every scenario; the >=60s '{m}:{ss}' branch was
+  not exercised natively (fixtures install near-instantly).
+
+== File hashes ==
+See receipt/screenshots.sha256 (54 files),
+receipt/guide-json.sha256, receipt/completion-json.sha256 alongside this file.
+
+== Cleanup ==
+All modsync GUI process instances (started by this task) were killed by PID after each scenario.
+The three stray Firefox processes opened via ctx.open_url were killed by PID.
+The Xvfb :96 server (PID 905318, started by the resumed agent this session continues) was stopped at the end
+of this pass.
