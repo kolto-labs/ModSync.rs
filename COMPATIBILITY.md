@@ -120,8 +120,9 @@ plan/run/record/FOMOD-followup library and concrete proxy-only Peer adapter.
   with the reason in the plan warnings (`planWarnings` in the CLI summary),
   when the file list fails, when no file is eligible, when two eligible files
   share a name, or when an authored `ContentHashSHA256` would have to cover
-  several files. Several files never use Peer. A named Nexus file that matches
-  more than one listed file now fails instead of taking the first. Recording
+  several files. Several files never use Peer. A named Nexus file listed more
+  than once resolves to its one MAIN, UPDATE or MISCELLANEOUS copy, and fails
+  instead of taking the first when that is still ambiguous. Recording
   writes `ContentHashSHA256` only for a resource's single archive (no production
   caller records hashes today). Per-file hashes need a registry schema decision
   and are not stored. A Nexus rate limit during discovery waits up to 60

@@ -495,7 +495,13 @@ fn bare_nexus_page(target: &ArchiveTarget) -> Option<(&str, OriginRequirement)> 
             provider: Provider::Nexus,
             requires,
         } if !url.trim_start().to_ascii_lowercase().starts_with("nxm://")
-            && nexus_page(url).is_ok_and(|(_, _, file_id)| file_id.is_none()) =>
+            && nexus_page(url).is_ok()
+            // Any `file_id` key, even an unparsable one, names a file: never expand it.
+            && !reqwest::Url::parse(url).is_ok_and(|parsed| {
+                parsed
+                    .query_pairs()
+                    .any(|(key, _)| key.eq_ignore_ascii_case("file_id"))
+            }) =>
         {
             Some((url.as_str(), *requires))
         }
@@ -2068,7 +2074,16 @@ fn origin_once(
             .lock()
             .unwrap()
             .nxm_download_link(&link)
-            .map_err(download::request_failure)?;
+            .map_err(|error| {
+                // Left unwrapped: a classified `FetchError` hides its inner error from
+                // `chain()`, and this one must stay visible as terminal. Unclassified, it
+                // is never retried.
+                if nexus_authorization_failed(&error) {
+                    error
+                } else {
+                    download::request_failure(error)
+                }
+            })?;
         (resolved.uri, Some(resolved.file_name))
     } else {
         (url.clone(), None)
@@ -2147,16 +2162,28 @@ fn nexus_link(
                 .lock()
                 .unwrap()
                 .get_mod_files(&game_domain, &mod_id.to_string())?;
-            let mut matching = files
+            let matching: Vec<_> = files
                 .iter()
-                .filter(|file| file.file_name.eq_ignore_ascii_case(name));
-            let file = matching
-                .next()
-                .with_context(|| format!("Nexus mod {mod_id} lists no file named {name}"))?;
-            ensure!(
-                matching.next().is_none(),
-                "Nexus mod {mod_id} lists more than one file named {name}; add a file_id to the URL"
-            );
+                .filter(|file| file.file_name.eq_ignore_ascii_case(name))
+                .collect();
+            // An old or optional copy of a name yields to the live one; two live copies
+            // are ambiguous and never resolved by list order.
+            let eligible: Vec<_> = matching
+                .iter()
+                .copied()
+                .filter(|file| {
+                    NEXUS_PAGE_CATEGORIES
+                        .iter()
+                        .any(|category| file.category_name.eq_ignore_ascii_case(category))
+                })
+                .collect();
+            let file = match (matching.as_slice(), eligible.as_slice()) {
+                ([], _) => bail!("Nexus mod {mod_id} lists no file named {name}"),
+                ([only], _) | (_, [only]) => *only,
+                _ => bail!(
+                    "Nexus mod {mod_id} lists more than one file named {name}; add a file_id to the URL"
+                ),
+            };
             u64::try_from(file.file_id)?
         }
         (None, None) => {
