@@ -440,16 +440,11 @@ fn fetch_inner(
     if let Some(referer) = &context.referer {
         request = request.header(reqwest::header::REFERER, referer.as_str());
     }
-    let mut response = request.send().map_err(|e| {
-        network_failure(
-            if loopback_ca.is_some() {
-                e.without_url()
-            } else {
-                e
-            }
-            .into(),
-        )
-    })?;
+    // A provider link can carry a session secret in its query (DeadlyStream `csrfKey`).
+    let strip_url = loopback_ca.is_some() || context.cookie.is_some() || context.confine_origin;
+    let mut response = request
+        .send()
+        .map_err(|e| network_failure(if strip_url { e.without_url() } else { e }.into()))?;
     let final_url = response.url().clone();
     let status = response.status();
     let header = |name: &str| {

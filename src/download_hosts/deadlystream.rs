@@ -7,9 +7,11 @@
 //! hash and archive checks and no-clobber publishing stay shared. The direct downloader
 //! still rejects HTML; only this bounded reader ever parses a page.
 //!
-//! Every request stays on one origin: the page's own, or the explicit loopback fixture
-//! base. Redirects are followed here, one vetted hop at a time. The cookie jar is host
-//! only and never sent to another origin. No stored credential is used or sent.
+//! Every request stays on one site: the page's own origin (`deadlystream.com` and
+//! `www.deadlystream.com` count as one site), or the explicit loopback fixture base.
+//! Redirects are followed here, one vetted hop at a time. The cookie jar is one host-only
+//! jar, sent to that apex/www pair and never to another host. No stored credential is
+//! used or sent.
 //! Source only; not built or exercised.
 use super::{Provider, provider};
 use crate::{
@@ -25,6 +27,7 @@ use reqwest::{
 };
 use std::{
     collections::BTreeMap,
+    fmt,
     io::Read,
     sync::{
         OnceLock,
@@ -45,8 +48,33 @@ const MAX_REQUESTS: usize = 200;
 /// Cookies kept per session.
 const MAX_COOKIES: usize = 32;
 
+/// A bound of this reader was exceeded (requests, page size, nesting or link count). It is
+/// terminal: `resolve` never skips it as a stale link, so a page that is too big fails
+/// visibly instead of returning a truncated file list. It carries no `FailureClass`, so
+/// it is never retried as transient.
+#[derive(Debug)]
+struct LimitExceeded(String);
+
+impl fmt::Display for LimitExceeded {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
+impl std::error::Error for LimitExceeded {}
+
+fn limit(message: String) -> anyhow::Error {
+    anyhow::Error::new(LimitExceeded(message))
+}
+
+fn is_limit(error: &anyhow::Error) -> bool {
+    error
+        .chain()
+        .any(|source| source.downcast_ref::<LimitExceeded>().is_some())
+}
+
 /// One archive behind a DeadlyStream page.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct File {
     /// A safe single file name from Content-Disposition or the link.
     pub name: String,
@@ -56,6 +84,22 @@ pub struct File {
     pub referer: String,
     /// The session cookies at the end of resolution, for the archive endpoint only.
     pub cookie: Option<String>,
+}
+
+/// A URL without its query and fragment: the query can carry the session `csrfKey`.
+fn redact(url: &str) -> &str {
+    url.split(['?', '#']).next().unwrap_or("")
+}
+
+impl fmt::Debug for File {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("File")
+            .field("name", &self.name)
+            .field("url", &redact(&self.url))
+            .field("referer", &redact(&self.referer))
+            .field("cookie", &self.cookie.as_ref().map(|_| "<redacted>"))
+            .finish()
+    }
 }
 
 /// Normalizes an accepted page form: an exact DeadlyStream host (`download_hosts::provider`,
@@ -140,6 +184,25 @@ impl<'a> Transport<'a> {
         moved
     }
 
+    /// The session's origin, or (outside fixture mode) the other of `deadlystream.com` and
+    /// `www.deadlystream.com`, https on the default port only. Any other host is refused.
+    /// The session's one host-only jar is therefore sent to both names of that pair and to
+    /// no other host.
+    fn same_site(&self, link: &Url) -> bool {
+        if link.origin() == self.origin.origin() {
+            return true;
+        }
+        let site = |url: &Url| {
+            url.scheme() == "https"
+                && url.port().is_none()
+                && matches!(
+                    url.host_str(),
+                    Some("deadlystream.com" | "www.deadlystream.com")
+                )
+        };
+        !self.fixture && site(link) && site(&self.origin)
+    }
+
     /// The only gate for a page link or redirect target. A fixture run maps a link to the
     /// logical DeadlyStream host onto the fixture base; anything else must already be on
     /// the session's origin. A loopback CA additionally confines every hop to loopback.
@@ -154,7 +217,7 @@ impl<'a> Transport<'a> {
             link
         };
         ensure!(
-            link.origin() == self.origin.origin(),
+            self.same_site(&link),
             "Refusing a DeadlyStream link outside the page's origin ({})",
             link.host_str().unwrap_or("no host")
         );
@@ -246,7 +309,7 @@ fn gate(
     match download::gate_reason(false, body) {
         ManualReason::Captcha if !has_link => Some(ManualReason::Captcha),
         ManualReason::LoginRequired if !has_link => Some(ManualReason::LoginRequired),
-        ManualReason::FreeUserWait => Some(ManualReason::FreeUserWait),
+        ManualReason::FreeUserWait if !has_link => Some(ManualReason::FreeUserWait),
         _ => None,
     }
 }
@@ -328,10 +391,11 @@ impl Session<'_> {
                 return Err(download::cancelled(anyhow::anyhow!("Download cancelled")));
             }
             self.requests += 1;
-            ensure!(
-                self.requests <= MAX_REQUESTS,
-                "The DeadlyStream page needs more than {MAX_REQUESTS} requests; stopping"
-            );
+            if self.requests > MAX_REQUESTS {
+                return Err(limit(format!(
+                    "The DeadlyStream page needs more than {MAX_REQUESTS} requests; stopping"
+                )));
+            }
             let mut request = self
                 .client
                 .request(method.clone(), current.clone())
@@ -376,10 +440,11 @@ impl Session<'_> {
                     .take(MAX_PAGE_BYTES + 1)
                     .read_to_end(&mut bytes)
                     .map_err(|error| download::request_failure(error.into()))?;
-                ensure!(
-                    bytes.len() as u64 <= MAX_PAGE_BYTES,
-                    "A DeadlyStream page is larger than {MAX_PAGE_BYTES} bytes"
-                );
+                if bytes.len() as u64 > MAX_PAGE_BYTES {
+                    return Err(limit(format!(
+                        "A DeadlyStream page is larger than {MAX_PAGE_BYTES} bytes"
+                    )));
+                }
                 Some(String::from_utf8_lossy(&bytes).into_owned())
             } else {
                 None
@@ -440,7 +505,9 @@ impl Session<'_> {
                 ));
             }
             if depth >= MAX_DEPTH {
-                bail!("DeadlyStream selection pages nest deeper than {MAX_DEPTH} levels");
+                return Err(limit(format!(
+                    "DeadlyStream selection pages nest deeper than {MAX_DEPTH} levels"
+                )));
             }
             let inner = links(confirmed(&anchors(html)), &reply.url, &self.transport)?;
             if inner.is_empty() {
@@ -484,7 +551,7 @@ fn file_name(reply: &Reply) -> Option<String> {
 /// one, the page's own `?do=download` links, which is what a topic's attachments are),
 /// then each link's file name. `page` is the authored URL; `base` is the explicit
 /// per-invocation fixture base (loopback HTTPS with `loopback_ca` only). Names are safe
-/// single components and unique ignoring ASCII case. Errors keep their class: a gate is
+/// single components and unique ignoring ASCII case. Exceeding a bound (requests, page size, nesting, link count) fails the whole page. Errors keep their class: a gate is
 /// `ManualRequired`, a rate limit or server error `Transient`, a stop `Cancelled`; a
 /// missing CSRF key or link is a plain failure. A link is never guessed.
 pub fn resolve(
@@ -534,7 +601,9 @@ pub fn resolve(
             }
             // A rate limit or server error is retried; any other refusal falls back to
             // the page's own links, as C# does.
-            Err(error) if download::classify(&error).is_some() => return Err(error),
+            Err(error) if download::classify(&error).is_some() || is_limit(&error) => {
+                return Err(error);
+            }
             Err(_) => {}
         }
     }
@@ -559,7 +628,9 @@ pub fn resolve(
         let before = found.len();
         match session.probe(link, referer, 0, &mut found) {
             Ok(()) => {}
-            Err(error) if download::classify(&error).is_some() => return Err(error),
+            Err(error) if download::classify(&error).is_some() || is_limit(&error) => {
+                return Err(error);
+            }
             Err(error) => {
                 found.truncate(before);
                 last_error = Some(error);
@@ -760,10 +831,11 @@ fn links(hrefs: Vec<&str>, base: &Url, transport: &Transport<'_>) -> Result<Vec<
             Err(_) => refused += 1,
         }
     }
-    ensure!(
-        found.len() <= MAX_LINKS,
-        "The DeadlyStream page lists more than {MAX_LINKS} download links"
-    );
+    if found.len() > MAX_LINKS {
+        return Err(limit(format!(
+            "The DeadlyStream page lists more than {MAX_LINKS} download links"
+        )));
+    }
     if found.is_empty() && refused > 0 {
         bail!(
             "The DeadlyStream page links {refused} download(s) outside its own origin; refusing them"

@@ -140,18 +140,22 @@ plan/run/record/FOMOD-followup library and concrete proxy-only Peer adapter.
   as for Nexus; a named target picks its archive from the page at run time. The
   original page URL stays the `registry_url`. Only exact DeadlyStream hosts are
   accepted (C# accepts any URL containing the text). Every request and redirect
-  stays on the page's origin, the cookie is never sent elsewhere, and the C#
-  bearer header is not sent. A login, challenge or countdown page, or an
+  stays on the page's site: `deadlystream.com` and `www.deadlystream.com` (https,
+  default port) count as one site, any other host is refused. The one host-only
+  cookie jar is sent to that pair and never elsewhere, and the C# bearer header is
+  not sent. Archive transfer errors drop the URL, so a `csrfKey` is not logged. A login, challenge or countdown page, or an
   unexplained page where a file was promised, is a manual boundary with no Peer;
   a missing CSRF key, missing link, unsafe or duplicate name, or a wrong name
   under `Files` is a visible failure, never a guessed link. As in C#, one link
   that fails plainly is skipped while the page's other files stay usable; only a
-  page with no usable file fails. Peer is granted only
+  page with no usable file fails. Exceeding a bound (200 requests, 2 MiB per page,
+  two selection levels, 32 links) fails the whole page rather than returning a
+  partial list, and is not retried. Peer is granted only
   after these gates clear; a rate limit or server error retries. The archive then
   goes through the direct downloader's HTML guard, hashes, verification and
   no-clobber publish. Each named target reads the page again, so a multi-file
-  page costs one session per archive. Cross-origin (CDN) archive redirects are
-  refused. The hidden `fetch-downloads --deadlystream-base <https-loopback-url>`
+  page costs one session per archive. Cross-host (CDN) archive redirects are
+  still refused, including any host other than the apex/www pair. The hidden `fetch-downloads --deadlystream-base <https-loopback-url>`
   option (needs `--extra-ca-file`) sends every page, selection and archive
   request to that fixture with proxies off, reads no stored Nexus key and
   persists nothing and starts no peers; it does not make localhost a DeadlyStream host. Source only;
