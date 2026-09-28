@@ -5,11 +5,17 @@ Plan: [downloads-gui-plan.md](../downloads-gui-plan.md), serialized boundary 1 o
 FOMOD queue, navigation) and step 3 (full native acceptance) are not started.
 Nothing here is accepted: independent SPEC and QUALITY reviews have not run.
 
-Source: uncommitted working tree on `baio/nice-archimedes-fmxu3k` at `70067ef`,
-changing only `src/ui.rs`, new `src/ui/downloads_panel.rs` and `src/main.rs` (GUI
+Source: commit `6ac257f` on `baio/nice-archimedes-fmxu3k` plus an uncommitted
+review follow-up in `src/ui.rs` and `src/ui/downloads_panel.rs` (a test-only
+`record_nxm_download` restored for a frozen test; proxy secrets merged into the
+redactor before a changed context freezes the rows; Stop during planning skips the
+transfer; the default settings directory compared through its nearest existing
+ancestor; the binding context derived from the input stamp instead of a second
+per-frame guide serialization; unreachable Fetch/NXM arms made explicit). Step 1
+changes only `src/ui.rs`, new `src/ui/downloads_panel.rs` and `src/main.rs` (GUI
 arguments). [receipt.json](receipt.json) binds git HEAD, porcelain, the SHA-256 of
 every `src/**/*.rs`, `Cargo.toml` and `Cargo.lock`, and the desktop binary
-`ef63801ff8251617949e4274269d19fde057f79eef7483139e00570d8f0f5395`.
+`80f4286c2ff527953fdc518dd80bf95784468dc5f39f22fe71b6de5dc049cd06`.
 
 ## What changed
 
@@ -48,6 +54,10 @@ every `src/**/*.rs`, `Cargo.toml` and `Cargo.lock`, and the desktop binary
   confirmation that explains no install rollback is involved. It cancels that run's
   own token; the panel shows Stopping… until the workers join and the terminal
   arrives; a new Fetch cannot start before that. Retry plans afresh.
+  **Known limitation:** planning (including existing-archive hash verification) is
+  not interruptible. A Stop pressed while Fetch is preparing takes effect only when
+  planning returns, so Stopping… can last as long as that verification; the run then
+  transfers nothing and records only archives already present.
 - **Redaction.** API keys, the raw nxm link, peer proxy endpoints, URL user info,
   queries and fragments are removed from panel text and activity lines, including
   rejected protocol links.

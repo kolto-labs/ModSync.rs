@@ -239,6 +239,12 @@ impl Panel {
         let Some(active) = &mut self.active else {
             return;
         };
+        // Secrets (proxy endpoints) reach the redactor even when the rows are frozen below.
+        if let Update::Prepared { secrets, .. } = &update {
+            let mut all = self.redactor.secrets.clone();
+            all.extend(secrets.iter().cloned());
+            self.redactor = Redactor::new(&all);
+        }
         // A changed context freezes the rows: they describe the captured folders only.
         if active.context_changed {
             return;
@@ -247,12 +253,9 @@ impl Panel {
             Update::Prepared {
                 plan,
                 selected_components,
-                secrets,
+                ..
             } => {
                 active.prepared = true;
-                let mut all = self.redactor.secrets.clone();
-                all.extend(secrets);
-                self.redactor = Redactor::new(&all);
                 let names = &active.binding.names;
                 if active.kind == Kind::Fetch {
                     self.header.push(format!(

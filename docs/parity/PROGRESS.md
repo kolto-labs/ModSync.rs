@@ -50,15 +50,16 @@ is assigned because the remaining domains differ greatly in scope and proof cost
    The [loopback HTTPS proof slice](origin-loopback-probe-plan.md) implementation at `6c08656` has passed independent source SPEC and QUALITY reviews. Its 53 isolated runtime cases, both production gates and
    frozen-source comparison are retained in [the receipt](origin-loopback-proof/README.md).
    Shared wizard/panel/settings wiring follows. [Downloads GUI](downloads-gui-plan.md)
-   step 1 is implemented but not reviewed, in the working tree on `70067ef`: the
+   step 1 is implemented but not reviewed: commit `6ac257f` plus an uncommitted
+   review follow-up. It covers the
    desktop job adapter (Fetch, the nxm handoff through the shared orchestrator,
    run-bound progress, Stop, record-on-clone and redaction) and safe probe/settings
    initialization. [Native Xvfb proof](downloads-gui/README.md) passes 46/46 checks
    in an isolated network namespace, including a same-fixture CLI comparison. The
    regression probes still pass (S2b 254, S2a 224, S1 339, inherited 41, H1a 138,
    fetch-shared-url 381). Next: its SPEC then QUALITY review, then step 2 (settings,
-   guarded FOMOD queue, navigation) and step 3 (native acceptance).
-   persistent sharing and remaining CLI FOMOD behavior have separately approved plans. Standalone torrent verbs
+   guarded FOMOD queue, navigation) and step 3 (native acceptance). Persistent
+   sharing and remaining CLI FOMOD behavior have separately approved plans. Standalone torrent verbs
    and library presence do not satisfy those frontend/lifecycle tasks.
 3. Fix loader Source normalization. [Seven JSON cases](source-normalization-probe/receipt.json)
    and equivalent [TOML/YAML/XML cases](source-normalization-formats/receipt.json)

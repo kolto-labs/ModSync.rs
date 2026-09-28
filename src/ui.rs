@@ -138,6 +138,7 @@ impl App {
             Message::Downloaded(run, path, options) => {
                 // Offer the editor only for the guide and folders this download started
                 // with; a changed context never receives another guide's follow-up.
+                self.refresh_input_stamp();
                 let bound = self
                     .direct_download
                     .as_ref()
@@ -316,15 +317,16 @@ impl App {
                     && self.validation_report.as_ref().is_some_and(|r| r.success)
                     && self.job == Job::Validate
                     && self.validation_input_stamp.as_ref() == Some(&self.input_stamp);
-                self.logs.push(match result { Ok(()) => match self.job { Job::Conflicts => "Conflict analysis complete. Review the report and its limitations.", Job::Validate if !self.validated => "Validation result discarded. Run validation again.", Job::Validate => "Validation passed. External program effects, if any, remain unverified.", Job::Install => unreachable!("install terminals arrive as InstallTerminal"), Job::Restore => "Snapshot restored and file hashes verified.", Job::Download => "Archive downloaded and integrity checked.", Job::NxmDownload | Job::Fetch => "Downloads finished.", Job::ProtocolOpen => "ModSync build link loaded.", Job::Update => "Nexus update check complete." }.into(), Err(e) => format!("Stopped: {}", self.downloads.redact(&format!("{e:#}"))) });
+                self.logs.push(match result { Ok(()) => match self.job { Job::Conflicts => "Conflict analysis complete. Review the report and its limitations.", Job::Validate if !self.validated => "Validation result discarded. Run validation again.", Job::Validate => "Validation passed. External program effects, if any, remain unverified.", Job::Install => unreachable!("install terminals arrive as InstallTerminal"), Job::NxmDownload | Job::Fetch => unreachable!("acquisition terminals arrive as Acquisition"), Job::Restore => "Snapshot restored and file hashes verified.", Job::Download => "Archive downloaded and integrity checked.", Job::ProtocolOpen => "ModSync build link loaded.", Job::Update => "Nexus update check complete." }.into(), Err(e) => format!("Stopped: {}", self.downloads.redact(&format!("{e:#}"))) });
                 let job = match self.job {
                     Job::Conflicts => "conflicts",
                     Job::Validate => "validation",
                     Job::Install => "installation",
                     Job::Restore => "restore",
                     Job::Download => "download",
-                    Job::NxmDownload => "nxm_download",
-                    Job::Fetch => "fetch_downloads",
+                    Job::NxmDownload | Job::Fetch => {
+                        unreachable!("acquisition terminals arrive as Acquisition")
+                    }
                     Job::ProtocolOpen => "protocol_open",
                     Job::Update => "update",
                 };
@@ -514,16 +516,16 @@ impl App {
         }
     }
 
-    /// What an acquisition run is bound to: guide revision, normalized workspace and
-    /// game identity, and the completed-base context.
+    /// What an acquisition run is bound to: the input stamp (guide revision, workspace
+    /// and game folders among the installation inputs), the normalized workspace and the
+    /// completed-base context. Callers refresh the input stamp first; this never
+    /// serializes the guide again.
     fn acquisition_context(&self) -> String {
         format!(
             "{:?}",
             (
-                serde_json::to_string(&self.guide).unwrap_or_default(),
-                &self.mods,
+                &self.input_stamp,
                 std::fs::canonicalize(self.mods.trim()).ok(),
-                &self.game,
                 &self.completed_base,
             )
         )
@@ -606,6 +608,7 @@ impl App {
             self.logs.push(format!("Fetch Downloads: {reason}"));
             return;
         }
+        self.refresh_input_stamp();
         let prepared = self
             .archive_options()
             .and_then(|archive| Ok((archive, self.acquisition_binding()?)));
@@ -682,6 +685,18 @@ impl App {
                         selected_components: candidates.len(),
                         secrets: peer_settings.proxies.clone(),
                     });
+                    // Stop pressed during planning: transfer nothing; present archives
+                    // still record, exactly as a run cancelled before its first target.
+                    if cancelled.load(Ordering::SeqCst) {
+                        return Ok(Box::new(downloads_panel::Finished {
+                            report: orchestrator::RunReport {
+                                outcomes: Vec::new(),
+                                skipped: plan.skipped.clone(),
+                                cancelled: true,
+                            },
+                            fomod: None,
+                        }));
+                    }
                     let peer: Option<Arc<dyn modsync::acquisition::Acquire>> = match peer_mode {
                         orchestrator::PeerMode::Off => None,
                         _ => Some(Arc::new(modsync::peer_acquire::PeerAcquire::new(
@@ -723,6 +738,7 @@ impl App {
         if !self.downloads.accepts(run) {
             return;
         }
+        self.refresh_input_stamp();
         let current = self.acquisition_context();
         self.downloads.check_context(&current);
         match update {
@@ -2247,6 +2263,7 @@ impl App {
         let Some(raw) = self.pending_nxm.pop_front() else {
             return;
         };
+        self.refresh_input_stamp();
         let prepared = (|| -> Result<_> {
             let link = modsync::protocol::parse(&raw)?;
             let archive = self.archive_options()?;
@@ -2328,6 +2345,27 @@ impl App {
             .unwrap_or_else(|_| Err(anyhow::anyhow!("The download worker stopped unexpectedly.")));
             send(downloads_panel::Update::Terminal(result));
         });
+    }
+
+    /// Marks one resolved registry file downloaded in the current guide (test surface of
+    /// the pre-orchestrator NXM completion path).
+    #[cfg(test)]
+    fn record_nxm_download(
+        &mut self,
+        matched: modsync::protocol::NxmComponentMatch,
+        file_name: &str,
+    ) -> Result<()> {
+        let component = self
+            .guide
+            .as_mut()
+            .and_then(|guide| {
+                guide
+                    .components
+                    .iter_mut()
+                    .find(|component| component.guid == matched.component_guid)
+            })
+            .ok_or_else(|| anyhow::anyhow!("Resolved component changed before download"))?;
+        modsync::updates::record_nxm_download(component, &matched.registry_url, file_name)
     }
 
     fn apply_category_selection(&mut self) {
@@ -2910,8 +2948,9 @@ impl App {
                 Job::Install => "Installing…",
                 Job::Restore => "Restoring snapshot…",
                 Job::Download => "Downloading…",
-                Job::NxmDownload => "Downloading linked Nexus file…",
-                Job::Fetch => "Fetching downloads…",
+                Job::NxmDownload | Job::Fetch => {
+                    unreachable!("acquisition runs start in their own entry points")
+                }
                 Job::ProtocolOpen => "Downloading ModSync build link…",
                 Job::Update => "Checking Nexus updates…",
             }
@@ -3346,11 +3385,6 @@ impl eframe::App for App {
         for message in messages {
             self.handle_message(message);
         }
-        // Checked every frame as well as at the terminal.
-        if self.downloads.is_active() {
-            let context = self.acquisition_context();
-            self.downloads.check_context(&context);
-        }
         if self.logs.len() > 5000 {
             self.logs.drain(..self.logs.len() - 5000);
         }
@@ -3553,6 +3587,11 @@ impl eframe::App for App {
                 });
         }
         self.refresh_input_stamp();
+        // Checked every frame (after the stamp refresh) as well as at the terminal.
+        if self.downloads.is_active() {
+            let context = self.acquisition_context();
+            self.downloads.check_context(&context);
+        }
         if !self.utility && self.wizard.is_some() {
             egui::TopBottomPanel::bottom("wizard_navigation")
                 .frame(
@@ -3777,6 +3816,26 @@ pub fn launch(
     .map_err(|e| anyhow::anyhow!("Desktop startup failed: {e}"))
 }
 
+/// Canonicalizes the nearest existing ancestor of `path` and re-appends the missing
+/// rest, so a not-yet-created directory still compares through resolved aliases.
+fn canonical_with_missing_tail(path: &Path) -> PathBuf {
+    let absolute = std::path::absolute(path).unwrap_or_else(|_| path.to_path_buf());
+    let mut existing = absolute.as_path();
+    let mut tail = Vec::new();
+    loop {
+        if let Ok(resolved) = std::fs::canonicalize(existing) {
+            return tail.iter().rev().fold(resolved, |acc, part| acc.join(part));
+        }
+        match (existing.parent(), existing.file_name()) {
+            (Some(parent), Some(name)) => {
+                tail.push(name.to_owned());
+                existing = parent;
+            }
+            _ => return absolute,
+        }
+    }
+}
+
 /// Mirrors the CLI's probe rules: an API base needs an explicit nonblank key, the CA is
 /// per invocation, and the settings directory must be explicit, existing and neither the
 /// default settings directory nor nested with it, compared after resolving aliases.
@@ -3792,9 +3851,7 @@ fn probe_context(probe: Probe, settings_dir: Option<&Path>) -> Result<ProbeConte
         "The probe settings directory must be an existing directory"
     );
     if let Ok(default) = modsync::profiles::settings_directory(None) {
-        let default = std::fs::canonicalize(&default)
-            .or_else(|_| std::path::absolute(&default))
-            .unwrap_or(default);
+        let default = canonical_with_missing_tail(&default);
         anyhow::ensure!(
             !resolved.starts_with(&default) && !default.starts_with(&resolved),
             "Probe options require a settings directory separate from the default settings directory"

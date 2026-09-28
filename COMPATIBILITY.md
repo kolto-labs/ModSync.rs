@@ -2,10 +2,13 @@
 
 ## Desktop acquisition, step 1 — 2026-09-28 (unreviewed)
 
-Step 1 of the [downloads GUI plan](docs/parity/downloads-gui-plan.md) is in the
-working tree on `70067ef`. It changes `src/ui.rs`, adds `src/ui/downloads_panel.rs`,
-and adds hidden GUI arguments in `src/main.rs`. It has not had SPEC or QUALITY
-review, and nothing in it is accepted.
+Step 1 of the [downloads GUI plan](docs/parity/downloads-gui-plan.md) is commit
+`6ac257f` plus an uncommitted review follow-up (restored test-only
+`record_nxm_download`, proxy secrets redacted even after a context change, Stop
+during planning skips the transfer, alias-resolved default-directory check,
+per-frame context derived from the input stamp). It changes `src/ui.rs`, adds
+`src/ui/downloads_panel.rs`, and adds hidden GUI arguments in `src/main.rs`. It has
+not had SPEC or QUALITY review, and nothing in it is accepted.
 
 - The desktop **Fetch Downloads** (Downloads panel, from DownloadsExplain onward and
   in the utility view) and the **nxm handoff** now use the shared orchestrator
@@ -48,6 +51,8 @@ Still open:
   and install gating on unresolved FOMOD work (steps 2–3);
 - a GUI guide record diff (the portal save dialog), Peer races, cancel mid-race,
   close-during-work, and stale-message runtime cases.
+- Known limitation: planning is not interruptible, so Stop during Fetch preparation
+  takes effect when planning returns; the run then transfers nothing.
 
 ## Selected-guide acquisition CLI — 2026-09-28
 
