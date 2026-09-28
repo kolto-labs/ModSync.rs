@@ -987,6 +987,74 @@ impl ChoicesFile {
     }
 }
 
+/// Supported routes for missing, stale or C#-only FOMOD configuration.
+pub const CHOICES_RECOVERY_HINT: &str = "Capture choices with `modsync fomod-inspect <archive> --interactive --save-choices <file>`, then persist them with `modsync fetch-downloads --record --fomod-choices <file>` (or pass --fomod-choices <file> to validate/install for one run).";
+
+/// The component's saved choices for one archive, or an actionable error.
+/// Prompt status, including a C# `configured` marker, is never executable choices:
+/// C# persists generated instructions and a status, not a choices representation.
+pub fn required_saved_choices(
+    component: &crate::Component,
+    filename: &str,
+) -> Result<ArchiveChoices> {
+    let missing = |what: &str| match prompt_status(component, filename).as_deref() {
+        Some("configured") => anyhow::anyhow!(
+            "FOMOD archive '{filename}' is marked configured in handlerMetadata.fomodPromptStatus but has {what}. Prompt status is not executable choices; configuration recorded by the C# app (generated instructions plus status) is not imported. {CHOICES_RECOVERY_HINT}"
+        ),
+        Some(status) => anyhow::anyhow!(
+            "FOMOD archive '{filename}' (prompt status '{status}') has {what}. {CHOICES_RECOVERY_HINT}"
+        ),
+        None => anyhow::anyhow!("FOMOD archive '{filename}' has {what}. {CHOICES_RECOVERY_HINT}"),
+    };
+    let raw = component
+        .metadata
+        .get("FomodChoices")
+        .ok_or_else(|| missing("no explicit FomodChoices configuration"))?;
+    let file = ChoicesFile::parse(&serde_json::to_string(raw)?).with_context(|| {
+        format!(
+            "Saved FomodChoices of component {} are invalid",
+            component.guid
+        )
+    })?;
+    file.archive(filename)
+        .cloned()
+        .ok_or_else(|| missing("no saved FomodChoices entry for this archive"))
+}
+
+/// Context for choices that no longer fit the archive now on disk. Choices carry
+/// only the archive filename (as in C#), so identity is the current installer
+/// accepting every saved step/group/plugin name and mapping safely.
+pub fn stale_choices_context(filename: &str) -> String {
+    format!(
+        "Saved FOMOD choices for '{filename}' do not apply to the current archive, which may have changed since they were saved (to recover: {})",
+        CHOICES_RECOVERY_HINT.trim_end_matches('.')
+    )
+}
+
+/// Apply choices to the current archive's installer and map them without writing.
+/// Returns the normalized capture (authored names, every group) for comparison.
+pub fn current_archive_choices(
+    module: &ArchiveModule,
+    choices: &ArchiveChoices,
+    filename: &str,
+) -> Result<ArchiveChoices> {
+    let mut steps = module.config.steps.clone();
+    choices.apply_to(&mut steps)?;
+    let mapped = ArchiveModule {
+        module_path: module.module_path.clone(),
+        content_root: module.content_root.clone(),
+        config: ModuleConfig {
+            steps,
+            ..module.config.clone()
+        },
+        info: None,
+    };
+    mapped.copy_instructions("fomod-extracted")?;
+    Ok(ChoicesFile::capture(filename, &mapped.config.steps)?
+        .archives
+        .remove(0))
+}
+
 /// Find a saved archive session; refuse conflicting component configurations.
 pub fn saved_archive_choices(
     guide: &crate::Guide,

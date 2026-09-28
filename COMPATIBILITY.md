@@ -823,3 +823,22 @@ become wildcard install inputs. The game-tree scan is unchanged, and recovery
 snapshots still cover the complete source tree and reject symlinks. A direct CLI
 install copied an accepted file while leaving the staged peer payload untouched.
 This is a source-discovery safeguard, not complete peer acquisition or F29 proof.
+
+## FOMOD S2a reconfiguration and stale choices — 2026-09-28 UTC
+
+`fetch-downloads` with an explicit choices entry (`--fomod-choices` or
+`MODSYNC_FOMOD_CHOICES`) now replaces different or stale saved choices for that
+archive (`reconfigured`). It keeps a single entry per archive, keeps other
+archives' entries unchanged, and makes no edit when the choices are identical.
+Interactive, warn and skip still never touch configured consumers.
+`validate --validation-report` now applies saved choices to the current archive
+instead of checking only that an entry exists. Stale or invalid choices, and
+C#-configured guides with no `FomodChoices`, fail with the supported import route.
+Prompt status is never treated as executable choices.
+
+A registered FOMOD archive with valid choices but no selected `Extract` passes with
+a warning: configuration alone installs no files. Choices carry no byte identity (as
+in C#). A replacement archive that still accepts the saved names is mapped fresh
+from its current bytes. Evidence: [S2a proof](docs/parity/fomod-s2a-proof/README.md),
+117/117 checks. Unicode matching, desktop reconfiguration and the S3 corpora remain
+open, and F15 stays partial.

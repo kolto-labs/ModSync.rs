@@ -63,7 +63,11 @@ is assigned because the remaining domains differ greatly in scope and proof cost
    its missing legacy-bullet metadata route remain separate approved work.
 4. The first [FOMOD integration slice](fomod-remaining-plan.md) is now the sole
    production implementation: CLI policy/dispatch, consumer binding and cancellable
-   terminal input. Persistence and remaining semantic/native acceptance follow.
+   terminal input. S2a (uncommitted on `5f81e82`) adds explicit same-archive
+   reconfiguration, stale-choice refusal against the current archive, an actionable
+   C#-configured import requirement, and the no-Extract route warning;
+   [evidence](fomod-s2a-proof/README.md) is 117/117 and needs SPEC/QUALITY review.
+   Remaining S2 semantic items and native acceptance follow.
    The [actual full.md conversion baseline](full-markdown-baseline/README.md)
    retains eight production conversions and an independent anonymous comparison.
    Both engines draft 72 instructions for 186 K1 components and 56 for 145 K2

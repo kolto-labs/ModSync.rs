@@ -25,11 +25,10 @@ enum Mode {
 }
 
 impl Options {
-    /// Resolve only after positive FOMOD detection. Explicit skip/choices never
-    /// consult mode settings, preserving generic Fetch's credential/settings bypass.
-    fn resolve(&self) -> Result<Mode> {
+    /// The explicit choices source (flag, then MODSYNC_FOMOD_CHOICES), unless skip wins.
+    fn explicit_choices(&self) -> Result<Option<fomod::ChoicesFile>> {
         if self.skip {
-            return Ok(Mode::Skip);
+            return Ok(None);
         }
         let explicit = self
             .choices
@@ -38,11 +37,23 @@ impl Options {
         let environment = std::env::var_os("MODSYNC_FOMOD_CHOICES")
             .map(PathBuf::from)
             .filter(|p| !p.to_string_lossy().trim().is_empty());
-        if let Some(path) = explicit.or(environment.as_ref()) {
-            return Ok(Mode::Choices(fomod::ChoicesFile::parse(
-                &std::fs::read_to_string(path)
-                    .with_context(|| format!("Reading FOMOD choices {}", path.display()))?,
-            )?));
+        let Some(path) = explicit.or(environment.as_ref()) else {
+            return Ok(None);
+        };
+        Ok(Some(fomod::ChoicesFile::parse(
+            &std::fs::read_to_string(path)
+                .with_context(|| format!("Reading FOMOD choices {}", path.display()))?,
+        )?))
+    }
+
+    /// Resolve only after positive FOMOD detection. Explicit skip/choices never
+    /// consult mode settings, preserving generic Fetch's credential/settings bypass.
+    fn resolve(&self, explicit: Option<fomod::ChoicesFile>) -> Result<Mode> {
+        if self.skip {
+            return Ok(Mode::Skip);
+        }
+        if let Some(file) = explicit {
+            return Ok(Mode::Choices(file));
         }
         let settings =
             crate::profiles::SettingsFile::resolve(self.settings_dir.as_deref())?.load()?;
@@ -81,6 +92,8 @@ impl Options {
 pub enum Outcome {
     Resolved,
     Configured,
+    /// An explicit choices entry replaced different or stale saved choices.
+    Reconfigured,
     Skipped,
     Warned,
     Suppressed,
@@ -170,25 +183,52 @@ impl Report {
     }
 }
 
-fn saved_valid(
+/// Saved choices for this archive, normalized against the current archive. Stale or
+/// invalid saved choices are an error naming the recovery routes.
+fn saved_current(
     component: &crate::Component,
-    module: &mut fomod::ArchiveModule,
+    module: &fomod::ArchiveModule,
     filename: &str,
-) -> Result<bool> {
+) -> Result<Option<fomod::ArchiveChoices>> {
     let Some(value) = component.metadata.get("FomodChoices") else {
-        return Ok(false);
+        return Ok(None);
     };
-    let file = fomod::ChoicesFile::parse(&serde_json::to_string(value)?)?;
+    let file = fomod::ChoicesFile::parse(&serde_json::to_string(value)?).with_context(|| {
+        format!(
+            "Saved FomodChoices are invalid. {}",
+            fomod::CHOICES_RECOVERY_HINT
+        )
+    })?;
     let Some(choices) = file.archive(filename) else {
-        return Ok(false);
+        return Ok(None);
     };
-    let old = module.config.steps.clone();
-    let checked = choices
-        .apply_to(&mut module.config.steps)
-        .and_then(|()| module.copy_instructions("fomod-extracted").map(|_| ()));
-    module.config.steps = old;
-    checked?;
-    Ok(true)
+    fomod::current_archive_choices(module, choices, filename)
+        .with_context(|| fomod::stale_choices_context(filename))
+        .map(Some)
+}
+
+/// A pending consumer whose status says configured has no executable choices:
+/// typically a guide configured by the C# app, whose generated instructions and
+/// status are not imported. Suppression hides the prompt, so name the route.
+fn configured_without_choices(guide: &Guide, guids: &[String], filename: &str) -> bool {
+    guide.components.iter().any(|c| {
+        guids.contains(&c.guid)
+            && fomod::prompt_status(c, filename).as_deref() == Some("configured")
+    })
+}
+
+fn configured_only_message(filename: &str) -> String {
+    format!(
+        "FOMOD {filename} is marked configured but has no FomodChoices; prompt status is not executable choices and C# configuration is not imported. {}",
+        fomod::CHOICES_RECOVERY_HINT
+    )
+}
+
+type Explicit = std::result::Result<Option<fomod::ChoicesFile>, String>;
+
+/// Load the explicit choices source once, and only when a consumer needs it.
+fn explicit<'a>(cache: &'a mut Option<Explicit>, options: &Options) -> &'a Explicit {
+    cache.get_or_insert_with(|| options.explicit_choices().map_err(|e| format!("{e:#}")))
 }
 
 /// The report/guide pair is the captured acquisition context. No second guide
@@ -208,6 +248,7 @@ pub fn dispatch(
     // Resolved lazily, once, for the first archive that needs a policy, so malformed
     // settings or a missing choices file cannot fail a run that needs no policy.
     let mut mode: Option<Result<Mode>> = None;
+    let mut explicit_cache: Option<Explicit> = None;
     let mut input: Option<TerminalInput> = None;
     let mut stop_prompting = false;
     for archive in &mut scan.archives {
@@ -220,17 +261,20 @@ pub fn dispatch(
             continue;
         };
         let start = report.consumers.len();
+        let mut saved = Vec::new();
         for consumer in &archive.consumers {
             let validity = guide
                 .components
                 .iter()
                 .find(|c| c.guid == consumer.component_guid)
                 .context("Captured FOMOD consumer disappeared")
-                .and_then(|component| saved_valid(component, &mut archive.module, &filename));
-            let (usable_choices, error) = match validity {
+                .and_then(|component| saved_current(component, &archive.module, &filename));
+            let (current, error) = match validity {
                 Ok(value) => (value, None),
-                Err(error) => (false, Some(format!("{error:#}"))),
+                Err(error) => (None, Some(format!("{error:#}"))),
             };
+            let usable_choices = current.is_some();
+            saved.push(current);
             report.consumers.push(ConsumerOutcome {
                 component_guid: consumer.component_guid.clone(),
                 archive: archive.archive.clone(),
@@ -248,6 +292,107 @@ pub fn dispatch(
                 should_prompt: consumer.should_prompt,
             });
         }
+        // Same-archive reconfiguration: an explicit choices entry for this archive
+        // replaces different or stale saved choices (and configures pending
+        // consumers) in one atomic session. Other archives' entries are untouched.
+        // Without saved choices this is exactly the lazy Choices mode below.
+        let has_saved = saved
+            .iter()
+            .zip(&report.consumers[start..])
+            .any(|(current, c)| current.is_some() || c.error.is_some());
+        let entry = if has_saved && !cancelled.load(Ordering::SeqCst) {
+            match explicit(&mut explicit_cache, options) {
+                Ok(Some(file)) => file.archive(&filename).cloned(),
+                _ => None,
+            }
+        } else {
+            None
+        };
+        if let Some(entry) = entry {
+            let all: Vec<_> = (start..report.consumers.len()).collect();
+            let result = (|| -> Result<Option<(Vec<usize>, Edit)>> {
+                let normalized = fomod::current_archive_choices(&archive.module, &entry, &filename)
+                    .with_context(|| {
+                        format!("Choices file entry for '{filename}' does not apply to the current archive")
+                    })?;
+                let wanted = serde_json::to_value(&normalized.selections)?;
+                let mut targets = Vec::new();
+                for (offset, current) in saved.iter().enumerate() {
+                    let same = match current {
+                        Some(current) => serde_json::to_value(&current.selections)? == wanted,
+                        None => false,
+                    };
+                    if !same {
+                        targets.push(start + offset);
+                    }
+                }
+                if targets.is_empty() {
+                    return Ok(None);
+                }
+                let guids: Vec<_> = targets
+                    .iter()
+                    .map(|i| report.consumers[*i].component_guid.clone())
+                    .collect();
+                let mut candidate = guide.clone();
+                fomod::apply_bound_archive(
+                    &mut candidate,
+                    &guids,
+                    &filename,
+                    Some(&normalized),
+                    fomod::PromptStatus::Configured,
+                    completed,
+                )?;
+                if cancelled.load(Ordering::SeqCst) {
+                    return Ok(None);
+                }
+                *guide = candidate;
+                Ok(Some((
+                    targets,
+                    Edit {
+                        guids,
+                        filename: filename.clone(),
+                        choices: Some(normalized),
+                        status: fomod::PromptStatus::Configured,
+                    },
+                )))
+            })();
+            match result {
+                Ok(Some((targets, edit))) => {
+                    for index in &targets {
+                        let consumer = &mut report.consumers[*index];
+                        consumer.outcome =
+                            if saved[*index - start].is_some() || consumer.error.is_some() {
+                                Outcome::Reconfigured
+                            } else {
+                                Outcome::Configured
+                            };
+                        consumer.usable_choices = true;
+                        consumer.error = None;
+                    }
+                    report.accepted_sessions.push(AcceptedSession {
+                        archive: archive.archive.clone(),
+                        component_guids: edit.guids.clone(),
+                        choices: edit.choices.clone().unwrap(),
+                    });
+                    report.edits.push(edit);
+                }
+                Ok(None) if cancelled.load(Ordering::SeqCst) => {
+                    for index in &all {
+                        if !report.consumers[*index].usable_choices {
+                            report.consumers[*index].outcome = Outcome::SignalCancelled;
+                        }
+                    }
+                }
+                Ok(None) => {}
+                Err(error) => {
+                    for index in &all {
+                        report.consumers[*index].outcome = Outcome::Error;
+                        report.consumers[*index].error = Some(format!("{error:#}"));
+                    }
+                }
+            }
+            continue;
+        }
         let pending: Vec<_> = report.consumers[start..]
             .iter()
             .enumerate()
@@ -258,7 +403,10 @@ pub fn dispatch(
             continue;
         }
         if mode.is_none() && !cancelled.load(Ordering::SeqCst) {
-            let resolved = options.resolve();
+            let resolved = match explicit(&mut explicit_cache, options) {
+                Ok(file) => options.resolve(file.clone()),
+                Err(error) => Err(anyhow::anyhow!("{error}")),
+            };
             if let Err(error) = &resolved {
                 report.errors.push(format!("{error:#}"));
             }
@@ -315,6 +463,9 @@ pub fn dispatch(
                         .iter()
                         .any(|c| c.should_prompt && guids.contains(&c.component_guid))
                     {
+                        if configured_without_choices(guide, &guids, &filename) {
+                            eprintln!("{}", configured_only_message(&filename));
+                        }
                         return Ok((Outcome::Suppressed, None));
                     }
                     if input.is_none() {
@@ -397,9 +548,13 @@ pub fn dispatch(
                 if unchanged {
                     return Ok((outcome, None));
                 }
-                eprintln!(
-                    "FOMOD {filename} requires choices before installation; use --fomod-choices or --interactive."
-                );
+                if configured_without_choices(guide, &guids, &filename) {
+                    eprintln!("{}", configured_only_message(&filename));
+                } else {
+                    eprintln!(
+                        "FOMOD {filename} requires choices before installation; use --fomod-choices or --interactive."
+                    );
+                }
             }
             *guide = candidate;
             Ok((

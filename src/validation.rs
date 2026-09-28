@@ -249,12 +249,36 @@ impl Report {
             self.stages.last_mut().unwrap().summary = "Install order is correct.".into();
         }
     }
-    pub(crate) fn fomod_configuration(&mut self, outcome: Result<(), String>) {
-        let passed = self.push(Stage::FomodConfiguration, outcome);
-        if passed {
+    /// Warnings (configured archives without an install route) keep the stage
+    /// passing but are counted and shown, like dry-run warnings.
+    pub(crate) fn fomod_configuration(&mut self, outcome: Result<Vec<String>, String>) {
+        let warnings = match outcome {
+            Ok(warnings) => warnings,
+            Err(error) => {
+                self.push(Stage::FomodConfiguration, Err(error));
+                return;
+            }
+        };
+        if warnings.is_empty() {
+            self.push(Stage::FomodConfiguration, Ok(()));
             self.stages.last_mut().unwrap().summary =
                 "All detected FOMOD archives are configured.".into();
+            return;
         }
+        self.warning_count += warnings.len();
+        self.stages.push(StageResult {
+            stage: Stage::FomodConfiguration,
+            passed: true,
+            has_warnings: true,
+            summary: format!(
+                "All detected FOMOD archives are configured; {} configured archive(s) have no install route.",
+                warnings.len()
+            ),
+            messages: warnings
+                .into_iter()
+                .map(|warning| format!("WARNING: {warning}"))
+                .collect(),
+        });
     }
     pub(crate) fn dry_run(&mut self, issues: Vec<DryRunIssue>) {
         let errors = issues
