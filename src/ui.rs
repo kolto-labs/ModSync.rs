@@ -688,6 +688,112 @@ impl App {
         }
     }
 
+    /// A direct Install control enters the same review and confirmation path as
+    /// the wizard footer. Recovery and remaining-phase installs keep their own
+    /// page-specific routes.
+    fn install_review_ready(&self) -> bool {
+        let route_available = self.wizard.as_ref().is_none_or(|wizard| {
+            wizard
+                .pages()
+                .iter()
+                .position(|page| *page == Page::InstallStart)
+                .is_some_and(|review| wizard.current_index() <= review)
+        });
+        self.receiver.is_none()
+            && !self.fomod_pending()
+            && self.completed_base.is_none()
+            && !self.phase_failed
+            && !self.installing_page.active()
+            && !self.installing_page.failed()
+            && !self.installing_page.not_applied()
+            && self.guide.is_some()
+            && self.selected_base() > 0
+            && self.validated
+            && self.validation_report.as_ref().is_some_and(|report| report.success)
+            && self.validation_input_stamp.as_ref() == Some(&self.input_stamp)
+            && route_available
+    }
+
+    fn open_install_review(&mut self, ctx: &egui::Context) {
+        self.refresh_input_stamp();
+        if !self.install_review_ready() {
+            self.logs.push(
+                "Installation review blocked: finish any recovery and run successful validation for the current guide and folders."
+                    .into(),
+            );
+            return;
+        }
+        if self.wizard.is_none() {
+            self.wizard = self.guide.as_ref().map(Wizard::new);
+        }
+        // Fresh validation already checked the current guide and folders. Advance
+        // earlier reading pages to Validate without launching the engine, then use
+        // the ordinary validated transition to the InstallStart review page.
+        while self
+            .wizard
+            .as_ref()
+            .is_some_and(|wizard| {
+                wizard.current() != Page::Validate && wizard.current() != Page::InstallStart
+            })
+        {
+            if !self.wizard.as_mut().is_some_and(|wizard| {
+                wizard.next(Gate {
+                    can_navigate_forward: true,
+                    validation_passed: true,
+                })
+            }) {
+                self.logs.push("Installation review page is unavailable.".into());
+                return;
+            }
+        }
+        self.utility = false;
+        if self
+            .wizard
+            .as_ref()
+            .is_some_and(|wizard| wizard.current() == Page::Validate)
+        {
+            self.advance_wizard(ctx);
+        }
+    }
+
+    /// A failed phase cannot reuse the validation cleared when it started.
+    /// Once its own snapshot is restored, return to the matching phase's
+    /// validation page without clearing the completed base receipt.
+    fn reopen_failed_phase_validation(&mut self) {
+        if self.receiver.is_some()
+            || self.phase_failed
+            || !self.installing_page.failed()
+            || self.installing_page.pending()
+            || !self.installing_page.same_folders(&self.mods, &self.game)
+        {
+            return;
+        }
+        let Some(guide) = self.guide.as_ref() else {
+            return;
+        };
+        let target = if self.completed_base.is_some() {
+            Page::WidescreenModSelection
+        } else {
+            Page::Validate
+        };
+        let mut wizard = Wizard::new(guide);
+        while wizard.current() != target {
+            if !wizard.next(Gate {
+                can_navigate_forward: true,
+                validation_passed: true,
+            }) {
+                self.logs.push("Retry validation page is unavailable.".into());
+                return;
+            }
+        }
+        self.installing_page.reset();
+        self.invalidate_validation();
+        self.wizard = Some(wizard);
+        self.utility = false;
+        self.logs
+            .push("Run validation again before reviewing and retrying this phase.".into());
+    }
+
     fn downloads_visible(&self) -> bool {
         self.downloads.has_history()
             || self
@@ -1367,14 +1473,15 @@ impl App {
                         self.receiver.is_none()
                             && !self.phase_failed
                             && self.installing_page.same_folders(&self.mods, &self.game),
-                        egui::Button::new("Retry phase").min_size(egui::vec2(100.0, 32.0)),
+                        egui::Button::new("Revalidate phase")
+                            .min_size(egui::vec2(100.0, 32.0)),
                     )
                     .on_disabled_hover_text(
                         "Set the game and mod folders back to the ones this install used",
                     )
                     .clicked()
             {
-                self.start(Job::Install, ctx);
+                self.reopen_failed_phase_validation();
             }
             // A stale success was not applied to this project and has no
             // Back or Continue; restart through the existing wizard path.
@@ -2259,6 +2366,17 @@ impl App {
                     }
                     if ui.button("Run validation").clicked() {
                         self.start(Job::Validate, ctx);
+                    }
+                    if ui
+                        .add_enabled(
+                            self.install_review_ready(),
+                            egui::Button::new("Install selected mods"),
+                        )
+                        .on_disabled_hover_text("Run successful validation with the current guide and folders before installing.")
+                        .on_hover_text("Review the install, then confirm the snapshot and installation.")
+                        .clicked()
+                    {
+                        self.open_install_review(ctx);
                     }
 
                     let captured = self
@@ -3145,6 +3263,17 @@ impl App {
             return;
         }
         self.refresh_input_stamp();
+        if job == Job::Install
+            && (!self.validated
+                || !self.validation_report.as_ref().is_some_and(|r| r.success)
+                || self.validation_input_stamp.as_ref() != Some(&self.input_stamp))
+        {
+            self.logs.push(
+                "Installation blocked: run successful validation for the current guide and folders first."
+                    .into(),
+            );
+            return;
+        }
         // Bind this run to the exact inputs before anything can fail.
         let install_run =
             (job == Job::Install).then(|| self.installing_page.begin(&self.input_stamp));

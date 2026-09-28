@@ -271,6 +271,7 @@ impl App {
         });
         ui.add_space(4.0);
         let mut run = false;
+        let mut install = false;
         frame(8, 16, 12).show(ui, |ui| {
             ui.set_width((width - 32.0).max(1.0));
             let compact = width < 560.0;
@@ -282,6 +283,20 @@ impl App {
                         egui::Button::new("🔍 Run Validation"),
                     )
                     .on_hover_text("Check for compatibility issues and missing files")
+                    .clicked();
+                // The direct action uses the wizard's InstallStart review and
+                // confirmation route after fresh validation.
+                install = ui
+                    .add_enabled(
+                        !busy && selected > 0 && self.install_review_ready(),
+                        egui::Button::new("Install selected mods"),
+                    )
+                    .on_disabled_hover_text(
+                        "Finish downloads and FOMOD choices, then run successful validation before installing.",
+                    )
+                    .on_hover_text(
+                        "Review the install, then confirm the snapshot and installation.",
+                    )
                     .clicked();
                 if compact {
                     if self.validation_page.active && ui.button("Stop").clicked() {
@@ -318,6 +333,9 @@ impl App {
         });
         if run {
             self.start(Job::Validate, ctx);
+        }
+        if install {
+            self.open_install_review(ctx);
         }
         let state = &mut self.validation_page;
         if state.active {
