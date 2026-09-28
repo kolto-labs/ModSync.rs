@@ -77,7 +77,7 @@ is assigned because the remaining domains differ greatly in scope and proof cost
    without a request; otherwise, for example a different URL after the owner failed,
    it downloads for itself. Every component is reported, recorded and bound as a
    FOMOD consumer; [evidence](fetch-shared-url-proof/README.md) is 266/266 (22 new
-   checks fail on `339b3d6`). The second follow-up is not yet re-reviewed. Open:
+   checks fail on `339b3d6`). The second follow-up is `3f0caf4`; SPEC and QUALITY are approved. Open: an unnamed target whose server-revealed name matches a file already present fails with `Download destination already exists` instead of adopting it under its own hash (`src/download.rs` ~466); an unnamed linked target can inherit a named member's name-specific failure (`src/download_orchestrator.rs` ~722). Also open:
    one-run `validate/install --fomod-choices` still replaces all embedded archive
    choices.
    Remaining S2 semantic items and native acceptance follow.

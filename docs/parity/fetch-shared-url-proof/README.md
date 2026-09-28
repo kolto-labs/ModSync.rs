@@ -62,7 +62,7 @@ The current source works as follows:
   `None`. `SharedDestination` is `SameUrl(owner)` or `DifferentUrl(owner)`, and
   serializes as `{"kind":"sameUrl"|"differentUrl","targetIndex":owner}`. `owner()`
   returns the index. The kind only says whether the URL equals the owner's.
-- **Linking.** `src/download_orchestrator.rs:294-345`. `plan` sets each target's
+- **Linking.** `src/download_orchestrator.rs:294-347`. `plan` sets each target's
   link from `shared_destinations`. `may_share_file` holds when both names are known
   and equal ignoring ASCII case, or when either name is unknown (revealed only by
   the transfer) and the registry URL is the same. `shared_destinations` is a
@@ -82,7 +82,7 @@ The current source works as follows:
   Since any two targets that may publish one file are in one group, two transfers
   never write one destination at the same time. Results are sorted by
   `targetIndex`, so `report.outcomes` is still one per target in plan order.
-- **Settling a group.** `src/download_orchestrator.rs:685-741`. After the owner,
+- **Settling a group.** `src/download_orchestrator.rs:686-741`. After the owner,
   `acquire_group` takes each linked target in plan order. It keeps a list of the
   members that ran their own sources, and applies the first rule that fits:
   1. **Published file.** An earlier member completed and published this target's
