@@ -1,0 +1,5 @@
+67cfec69840feafabbfe346d03535492e49199edb0669ba6aad4fa8b043a5b7a  base-install-complete-1280x800.png
+bb65a465f4242239dcb9f8904d853f7bc92c75f2ffabc0a6abc3e870342b2913  base-install-complete-600x400-stats.png
+a66e0aa02f0f3cced4237ccc3cf2e4a64e08add65e6c172e6c4a213d07df9b50  base-install-complete-600x400-top.png
+43cf801c0ef60a44bd6e46c3f9ed975eb80b96ba6f6522eab6e5fb907bce3a39  quick-actions-k2-theme.png
+79bda90e61a34e6bc0d7c166a2518f3947e0af8886b1a4f7b41135f05bf39b07  RECEIPT.txt
