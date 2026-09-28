@@ -810,22 +810,35 @@ pub fn resource_matches_archive(component: &crate::Component, archive: &str) -> 
         .any(|resource| resource_matches(resource, &filename))
 }
 
-/// Whether this component registers the archive or names it (by filename, wildcards
-/// allowed) in one of its own Extract sources. Options are separate components.
+/// Whether an Extract source could resolve to the archive under the engine's source
+/// matching: a glob (`*`, `?`, `[...]`) over the file name, or a folder source that
+/// contains the archive at any depth. The archive's folder is unknown here, so any
+/// source whose last component is not an archive file name may be that folder, and
+/// an unparseable glob is kept too: over-inclusion only applies a named entry.
+fn source_may_extract(source: &str, filename: &str) -> bool {
+    let source = source.trim().replace('\\', "/");
+    let last = source
+        .trim_end_matches('/')
+        .rsplit('/')
+        .next()
+        .unwrap_or("");
+    !crate::engine::is_archive(last)
+        || glob::Pattern::new(&fold_case(last)).map_or(true, |pattern| {
+            crate::engine::source_glob_matches(&pattern, &fold_case(filename))
+        })
+}
+
+/// Whether this component registers the archive or may extract it through one of its
+/// own Extract sources (see [`source_may_extract`]). Options are separate components.
 fn references_archive(component: &crate::Component, archive: &str) -> bool {
-    let filename = fold_case(&archive_name(archive));
+    let filename = archive_name(archive);
     resource_matches_archive(component, archive)
         || component
             .instructions
             .iter()
             .filter(|instruction| instruction.action == "Extract")
             .flat_map(|instruction| &instruction.source)
-            .any(|source| {
-                crate::reference_paths::pattern_matches(
-                    &filename,
-                    &fold_case(&archive_name(source)),
-                )
-            })
+            .any(|source| source_may_extract(source, &filename))
 }
 
 /// Read the C#-compatible per-archive prompt status from the matching resource entry.

@@ -2,8 +2,9 @@
 
 Scope is the bounded S2b slice of [the remaining plan](../fomod-remaining-plan.md) S2,
 continuing [S2a](../fomod-s2a-proof/README.md#what-remains-of-s2). The base is `b6d1d88`;
-the slice is commit `37cd4cc` plus an uncommitted review follow-up (see "Review
-follow-up" below).
+the slice is commit `37cd4cc`, its review follow-up commit `c28dee0`, and an
+uncommitted second follow-up that aligns run-choice scope with engine source matching
+(see "Review follow-up" below).
 Ownership propagation, desktop work and S3 are out of scope. This slice does not
 change F15 or F29 status.
 
@@ -157,18 +158,27 @@ Standing invariants:
 | Prompt-status key | — | Key `ärchive.zip` is read for `Ärchive.zip` (and ASCII `example.zip` for `Example.zip`). Fetch `--record` with a folded or exact entry updates it in place to one key, `configured`, then installs `b`. |
 | Gate, plain validate/install | Missing, stale and configured-only choices on a registered-only FOMOD archive, and a missing archive with recorded state: exit 1 with the actionable text. Install leaves the game and mods untouched. | Valid choices give exit 0 plus one ` / 0: WARNING: ` route event, and install copies `notes`. The same guide with `Extract` has no warning. A registered non-FOMOD archive and a missing archive without state pass. |
 | Unicode iota subscript | — | `ᾈΛΦΑ` selects plugin `ᾀλφα` and `ᾼΒ` selects `ᾳβ` on report and install. |
-| Run-choice scope | A registering-only component with a stale embedded choice fails plain validate. | An unrelated component with unparseable `FomodChoices` does not fail install/report/plain with a file for another component's archive (`b`,`notes`). The registering-only component takes the file entry (exit 0). A second archive keeps its own embedded choice (`b`,`c`). |
+| Run-choice scope | A registering-only component with a stale embedded choice fails plain validate. Without a file, a folder-source (`<<modDirectory>>/Pack`) and a character-class (`[e]xample.zip`) Extract fail install (no choices), game untouched. | An unrelated component with unparseable `FomodChoices` does not fail install/report/plain with a file for another component's archive (`b`,`notes`). The registering-only component takes the file entry (exit 0). A second archive keeps its own embedded choice (`b`,`c`). The folder-source and character-class components take the file entry: install gives `b`, report and plain validate exit 0. |
 | Gate unpack count (inotify on `--scratch-dir`) | — | Plain validate spools a non-FOMOD archive registered by two components 0 times, a FOMOD archive (3 entries) registered by two components 3 entries (once), the same with one Extract 6 (gate once plus simulation once), and a non-FOMOD archive registered twice and extracted once 1 (simulation only). |
 | Fallback warnings | — | All five C# warnings, each once and with C#'s exact text, on report/plain/install/`fomod-inspect`/Fetch stderr. The report keeps `warningCount` 0 and no stage warning. Install writes `b`,`e`,`g`. A resolved Fetch and a clean installer log nothing. |
 
 ### Results (cloud Linux)
 
-- `probe.py`: **232/232 checks, 81 production invocations**. The binary is the
+- `probe.py`: **254/254 checks, 89 production invocations**. The binary is the
   default-feature debug build; its SHA-256 is host-specific and recorded in the
-  receipt. The working tree is `37cd4cc` plus the uncommitted review follow-up, bound
-  by source hash in the receipt. (The original slice recorded 200/200 with 67
-  invocations on an uncommitted `b6d1d88` tree.)
-- Follow-up pre-fix demonstration: the same probe against a `--no-default-features`
+  receipt. The working tree is `c28dee0` plus the uncommitted scope follow-up, bound
+  by source hash in the receipt. (`c28dee0` recorded 232/232 with 81 invocations; the
+  original slice recorded 200/200 with 67 invocations on an uncommitted `b6d1d88`
+  tree.)
+- Scope follow-up pre-fix demonstration: the same probe against a default-feature
+  binary built from a `git archive` of `c28dee0` in a scratch directory with its own
+  `CARGO_TARGET_DIR` (`FOMOD_S2B_ALLOW_UNBOUND=1`, output
+  `target/cloud-proof/fomod-s2b-prec28dee0`) gives **244/254; 10 checks fail**:
+  `scope_{folder,char_class}_install_exit`, `_install_bytes`, `_report_exit`,
+  `_report_stage_passed` and `_plain_exit`. Each run failed with "FOMOD archive
+  'example.zip' has no explicit FomodChoices configuration": the file entry never
+  reached the component. The `_needs_choices_*` controls pass at both commits.
+- First follow-up (`c28dee0`) pre-fix demonstration: its 232-check probe against a `--no-default-features`
   binary built from a `git archive` of `37cd4cc` in a scratch directory with its own
   `CARGO_TARGET_DIR` (`FOMOD_S2B_ALLOW_UNBOUND=1`, output
   `target/cloud-proof/fomod-s2b-pre37cd4cc`) gives **213/232; 19 checks fail**: all
@@ -215,8 +225,8 @@ Standing invariants:
 
 ## Review follow-up
 
-The independent review of `37cd4cc` found five issues; the uncommitted follow-up fixes
-them and the proof above covers each:
+The independent review of `37cd4cc` found five issues; commit `c28dee0` fixes them and
+the proof above covers each:
 
 - The gate unpacked every registered archive and re-unpacked non-FOMOD and shared
   archives; it now lists first, spools only FOMOD archives and inspects each path once
@@ -228,6 +238,23 @@ them and the proof above covers each:
   unparseable `FomodChoices` failed the run (`scope_*`).
 - Phased runs and the `--json` stdout claim are now documented precisely (above and in
   `COMPATIBILITY.md`).
+
+The re-review of `c28dee0` found that its scope check compared only an Extract
+source's last path component with the archive name, so a folder source or a glob
+character class lost its choices (a regression from `37cd4cc`). The uncommitted second
+follow-up matches the way the engine resolves sources (`scope_folder_*`,
+`scope_char_class_*`):
+
+- The last source component is matched with the engine's own glob matcher
+  (`*`, `?`, `[...]`, case-insensitive after Unicode folding).
+- The archive's folder is not known when choices are applied, so any source whose last
+  component is not an archive file name (`.zip`, `.7z`, `.rar`, `.exe`, `.tar`, `.gz`)
+  is treated as a possible folder containing it. An unparseable glob is kept as well.
+  Over-inclusion only applies an entry for a named archive to a component that may not
+  extract it.
+- Completed components are never touched. A completed component that no entry
+  references was also untouched in the base phase, so its recorded definition
+  still matches.
 
 ## What remains of S2
 

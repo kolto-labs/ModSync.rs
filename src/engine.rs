@@ -147,6 +147,32 @@ impl Content {
     }
 }
 
+/// The glob half of Extract/Copy source matching; a source also matches every file
+/// below it as a folder (see `Engine::source_matches`).
+pub(crate) fn source_glob_matches(pattern: &glob::Pattern, candidate: &str) -> bool {
+    pattern.matches_with(
+        candidate,
+        glob::MatchOptions {
+            case_sensitive: false,
+            require_literal_separator: true,
+            require_literal_leading_dot: false,
+        },
+    )
+}
+
+/// File names the FOMOD gate treats as archives; also the folder-source heuristic
+/// for run-scoped FOMOD choices.
+pub(crate) fn is_archive(name: &str) -> bool {
+    matches!(
+        Path::new(name)
+            .extension()
+            .and_then(|extension| extension.to_str())
+            .map(|extension| extension.to_ascii_lowercase())
+            .as_deref(),
+        Some("zip" | "7z" | "rar" | "exe" | "tar" | "gz")
+    )
+}
+
 fn key(path: &Path) -> String {
     path.to_string_lossy().replace('\\', "/").to_lowercase()
 }
@@ -696,16 +722,6 @@ impl Engine {
     /// logs them, outside the report. Reads archives into scratch only; never writes
     /// the game or mod trees.
     fn validate_fomod_configuration(&mut self, guide: &Guide) -> Result<Vec<String>> {
-        fn is_archive(name: &str) -> bool {
-            matches!(
-                std::path::Path::new(name)
-                    .extension()
-                    .and_then(|extension| extension.to_str())
-                    .map(|extension| extension.to_ascii_lowercase())
-                    .as_deref(),
-                Some("zip" | "7z" | "rar" | "exe" | "tar" | "gz")
-            )
-        }
         fn configured_choices(
             component: &Component,
             filename: &str,
@@ -1277,14 +1293,7 @@ impl Engine {
     }
 
     fn source_matches(prefix: &str, pattern: &glob::Pattern, candidate: &str) -> bool {
-        pattern.matches_with(
-            candidate,
-            glob::MatchOptions {
-                case_sensitive: false,
-                require_literal_separator: true,
-                require_literal_leading_dot: false,
-            },
-        ) || candidate.starts_with(prefix)
+        source_glob_matches(pattern, candidate) || candidate.starts_with(prefix)
     }
 
     fn instruction_sources(&self, sources: &[String]) -> Result<Vec<PathBuf>> {

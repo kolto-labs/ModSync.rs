@@ -866,10 +866,15 @@ keep theirs. The guide is never written, and with `Retained` completion context
 completed components are not touched. `--phase remaining` still applies the file to
 the reconstructed completed definitions, and the receipt refuses a different file
 before any write. Both phases must therefore use the same binary: a base recorded by
-a build before `37cd4cc`, or by `37cd4cc` without its review follow-up, reconstructs
+a build before `37cd4cc`, by `37cd4cc` without its review follow-up, or by `c28dee0`
+for a guide with folder or glob character-class Extract sources, reconstructs
 different completed definitions and must be re-run. A file entry is applied only to
-components (and options) that register the archive or name it in their own Extract
-source, so an unrelated component's unparseable `FomodChoices` do not fail the run.
+components (and options) that register the archive or may extract it through their
+own Extract source, so an unrelated component's unparseable `FomodChoices` do not fail
+the run. A source may extract the archive when its last component matches the archive
+name with the engine's glob rules (including `[...]` classes) or is not an archive file
+name, since the engine also extracts every archive below a folder source; this may
+include a component that turns out not to extract it.
 Unparseable embedded `FomodChoices` on a component the file applies to fail with the
 repair hint instead of being replaced. This supersedes the earlier whole-file replacement noted
 under "CLI configured FOMOD installation" and in the S2a section.
@@ -895,9 +900,9 @@ They are logged by the gate, by Fetch configuration and by `fomod-inspect`. Thes
 verbs mirror the log to stderr, and the `--validation-report` JSON is unchanged.
 Plain `validate`/`install --json` stdout gains one `WARNING:` event line per no-route
 archive from the gate. C# has no warning for group defaults or auto-selection, so Rust
-adds none. Evidence: [S2b proof](docs/parity/fomod-s2b-proof/README.md), 232/232 checks
-at `37cd4cc` plus its review follow-up (70 of the original 200 fail on `b6d1d88`; 19
-of 232 fail on `37cd4cc`). Ownership propagation, gate dependency scope, the missing-archive soft
+adds none. Evidence: [S2b proof](docs/parity/fomod-s2b-proof/README.md), 254/254 checks
+at `c28dee0` plus its scope follow-up (70 of the original 200 fail on `b6d1d88`; 19
+of 232 fail on `37cd4cc`; 10 of 254 fail on `c28dee0`). Ownership propagation, gate dependency scope, the missing-archive soft
 warning, desktop reconfiguration and the S3 corpora remain open, and F15 stays partial.
 
 ## Fetch shared URL and destination — 2026-09-28 UTC
