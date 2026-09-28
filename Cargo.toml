@@ -39,6 +39,7 @@ rfd = { version = "0.15.4", optional = true }
 librqbit = { version = "9.0.1", features = ["disable-upload"] }
 tokio = { version = "1", features = ["rt-multi-thread", "signal"] }
 uuid = { version = "1", features = ["v4"] }
+mega = { version = "0.8.0", default-features = false }
 
 [profile.dev]
 debug = 0

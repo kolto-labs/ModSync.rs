@@ -2,6 +2,7 @@ use anyhow::{Result, bail};
 use serde::Serialize;
 
 pub mod deadlystream;
+pub mod mega;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]

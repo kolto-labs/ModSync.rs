@@ -907,32 +907,35 @@ impl Redactor {
         for secret in &self.secrets {
             text = text.replace(secret.as_str(), "<redacted>");
         }
-        url.replace_all(&text, |captures: &regex::Captures<'_>| {
-            let scheme = captures[1].to_ascii_lowercase();
-            if scheme.starts_with("socks") {
-                return format!("{scheme}://<proxy>");
-            }
-            format!(
-                "{scheme}://{}{}{}{}{}",
-                if captures.get(2).is_some() {
-                    "<redacted>@"
-                } else {
-                    ""
-                },
-                &captures[3],
-                &captures[4],
-                if captures.get(5).is_some() {
-                    "?<redacted>"
-                } else {
-                    ""
-                },
-                if captures.get(6).is_some() {
-                    "#<redacted>"
-                } else {
-                    ""
-                },
-            )
-        })
-        .into_owned()
+        let text = url
+            .replace_all(&text, |captures: &regex::Captures<'_>| {
+                let scheme = captures[1].to_ascii_lowercase();
+                if scheme.starts_with("socks") {
+                    return format!("{scheme}://<proxy>");
+                }
+                format!(
+                    "{scheme}://{}{}{}{}{}",
+                    if captures.get(2).is_some() {
+                        "<redacted>@"
+                    } else {
+                        ""
+                    },
+                    &captures[3],
+                    &captures[4],
+                    if captures.get(5).is_some() {
+                        "?<redacted>"
+                    } else {
+                        ""
+                    },
+                    if captures.get(6).is_some() {
+                        "#<redacted>"
+                    } else {
+                        ""
+                    },
+                )
+            })
+            .into_owned();
+        // Scheme-less and percent-encoded (`%23`) MEGA links keep their key past the URL pattern.
+        modsync::download_hosts::mega::redact(&text)
     }
 }
