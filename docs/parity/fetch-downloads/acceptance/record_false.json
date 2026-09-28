@@ -4,20 +4,20 @@
     "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
     "fetch-downloads",
     "--input",
-    "/tmp/fetch-acceptance-024xvxp3/record_false/guide.json",
+    "/tmp/fetch-acceptance-mp60st79/record_false/guide.json",
     "--source-dir",
-    "/tmp/fetch-acceptance-024xvxp3/record_false/mods",
+    "/tmp/fetch-acceptance-mp60st79/record_false/mods",
     "--settings-dir",
-    "/tmp/fetch-acceptance-024xvxp3/record_false/settings",
+    "/tmp/fetch-acceptance-mp60st79/record_false/settings",
     "--scratch-dir",
-    "/tmp/fetch-acceptance-024xvxp3/record_false/scratch",
+    "/tmp/fetch-acceptance-mp60st79/record_false/scratch",
     "--peer-mode",
     "off",
     "--record",
     "--progress-json"
   ],
   "exit": 0,
-  "stdout": "{\"type\":\"summary\",\"summary\":{\"report\":{\"outcomes\":[],\"skipped\":[{\"componentGuid\":\"aaaaaaaa-1111-4111-8111-111111111111\",\"registryUrl\":\"https://mega.nz/file/example\",\"filename\":\"example.zip\",\"reason\":\"alreadyPresent\",\"path\":\"/tmp/fetch-acceptance-024xvxp3/record_false/mods/example.zip\",\"detail\":null}],\"cancelled\":false},\"recordSummary\":{\"recorded\":[[\"aaaaaaaa-1111-4111-8111-111111111111\",\"https://mega.nz/file/example\",\"example.zip\"]],\"keptFalse\":[],\"hashesRecorded\":0},\"fomodFollowups\":{\"followups\":[],\"inspectionErrors\":[]}}}\n",
+  "stdout": "{\"type\":\"summary\",\"summary\":{\"report\":{\"outcomes\":[],\"skipped\":[{\"componentGuid\":\"aaaaaaaa-1111-4111-8111-111111111111\",\"registryUrl\":\"https://mega.nz/file/example\",\"filename\":\"example.zip\",\"reason\":\"alreadyPresent\",\"path\":\"/tmp/fetch-acceptance-mp60st79/record_false/mods/example.zip\",\"detail\":null}],\"cancelled\":false},\"recordSummary\":{\"recorded\":[[\"aaaaaaaa-1111-4111-8111-111111111111\",\"https://mega.nz/file/example\",\"example.zip\"]],\"keptFalse\":[],\"hashesRecorded\":0},\"fomodFollowups\":{\"followups\":[],\"inspectionErrors\":[]}}}\n",
   "stderr": "",
   "data": {
     "report": {
@@ -28,7 +28,7 @@
           "registryUrl": "https://mega.nz/file/example",
           "filename": "example.zip",
           "reason": "alreadyPresent",
-          "path": "/tmp/fetch-acceptance-024xvxp3/record_false/mods/example.zip",
+          "path": "/tmp/fetch-acceptance-mp60st79/record_false/mods/example.zip",
           "detail": null
         }
       ],
@@ -54,30 +54,30 @@
   "connections": [],
   "apiRequests": [],
   "before": {
-    "guide.json": "2b4e789b3489a57b693b7bbbc948f4b429b9614ff1c3ec27983dd3af292f9a63",
+    "guide.json": "465e291398daba08cffce909d1d6abc24bf6372e4fe29f2e49c75d776cd9dbc9",
     "mods": "directory",
-    "mods/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+    "mods/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
     "scratch": "directory",
     "settings": "directory",
-    "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+    "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
   },
   "after": {
-    "guide.json": "8df5b5c2950ee861fb5716ae107b043c04924b951c1078964cb7479da8c8ffc4",
+    "guide.json": "29ff377d86d463e52e91422815ecfb421e936244dc33b17e2ed340e3f9077260",
     "mods": "directory",
-    "mods/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+    "mods/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
     "scratch": "directory",
     "settings": "directory",
-    "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+    "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
   },
-  "guideAfter": "[\n  {\n    \"Guid\": \"aaaaaaaa-1111-4111-8111-111111111111\",\n    \"Name\": \"Example A\",\n    \"Author\": \"\",\n    \"Description\": \"\",\n    \"Directions\": \"\",\n    \"Tier\": \"\",\n    \"Category\": [],\n    \"IsSelected\": false,\n    \"Dependencies\": [],\n    \"Restrictions\": [],\n    \"InstallBefore\": [],\n    \"InstallAfter\": [],\n    \"Instructions\": [],\n    \"Options\": [],\n    \"ResourceRegistry\": {\n      \"https://mega.nz/file/example\": {\n        \"Files\": {\n          \"example.zip\": true\n        },\n        \"ContentHashSHA256\": \"25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b\",\n        \"Magnet\": \"magnet:?xt=urn:btih:09c985227992b7b949e1522b167d057b130a829b&dn=example.zip\",\n        \"TorrentInfo\": \"ZDY6bGVuZ3RoaTEwNDg3MTJlNDpuYW1lMTE6ZXhhbXBsZS56aXAxMjpwaWVjZSBsZW5ndGhpNjU1MzZlNjpwaWVjZXMzNDA6vdG+KW2YgstldkZC0eNgCoy/zkd7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FADhEchbgA9IF8iK//fD+YE6sa0/KmU=\"\n      }\n    }\n  }\n]",
+  "guideAfter": "[\n  {\n    \"Guid\": \"aaaaaaaa-1111-4111-8111-111111111111\",\n    \"Name\": \"Example A\",\n    \"Author\": \"\",\n    \"Description\": \"\",\n    \"Directions\": \"\",\n    \"Tier\": \"\",\n    \"Category\": [],\n    \"IsSelected\": false,\n    \"Dependencies\": [],\n    \"Restrictions\": [],\n    \"InstallBefore\": [],\n    \"InstallAfter\": [],\n    \"Instructions\": [],\n    \"Options\": [],\n    \"ResourceRegistry\": {\n      \"https://mega.nz/file/example\": {\n        \"Files\": {\n          \"example.zip\": true\n        },\n        \"ContentHashSHA256\": \"4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910\",\n        \"Magnet\": \"magnet:?xt=urn:btih:afca95989fe9b738cba33463eef5cb4eab8cef0f&dn=example.zip\",\n        \"TorrentInfo\": \"ZDY6bGVuZ3RoaTEwNDg3MTJlNDpuYW1lMTE6ZXhhbXBsZS56aXAxMjpwaWVjZSBsZW5ndGhpNjU1MzZlNjpwaWVjZXMzNDA6qILS4L2+mgmXLgPoYQk5EbqmxnN7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FADmmkgdWlDmgPbv7G6ibWTCyf5humU=\"\n      }\n    }\n  }\n]",
   "envBefore": {
     "HOME": {},
     "XDG_CONFIG_HOME": {
       "ModSync": "directory",
       "ModSync/peer-share": "directory",
-      "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-      "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+      "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+      "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
       "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     "XDG_CACHE_HOME": {
@@ -90,9 +90,9 @@
     "XDG_CONFIG_HOME": {
       "ModSync": "directory",
       "ModSync/peer-share": "directory",
-      "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-      "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+      "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+      "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
       "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     "XDG_CACHE_HOME": {

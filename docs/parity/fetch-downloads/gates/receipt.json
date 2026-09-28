@@ -9,7 +9,7 @@
         "--check"
       ],
       "exit": 0,
-      "seconds": 0.9973969459533691,
+      "seconds": 1.1361851692199707,
       "log": "0.log"
     },
     {
@@ -23,7 +23,7 @@
         "-j2"
       ],
       "exit": 0,
-      "seconds": 10.634085893630981,
+      "seconds": 5.494463205337524,
       "log": "1.log"
     },
     {
@@ -40,7 +40,7 @@
         "warnings"
       ],
       "exit": 0,
-      "seconds": 6.676333665847778,
+      "seconds": 2.1954729557037354,
       "log": "2.log"
     },
     {
@@ -53,7 +53,7 @@
         "-j2"
       ],
       "exit": 0,
-      "seconds": 8.465242147445679,
+      "seconds": 5.7849791049957275,
       "log": "3.log"
     },
     {
@@ -69,7 +69,7 @@
         "warnings"
       ],
       "exit": 0,
-      "seconds": 6.056573152542114,
+      "seconds": 3.0243945121765137,
       "log": "4.log"
     }
   ],
@@ -118,7 +118,7 @@
     "src/lib.rs": "2e1931fcff2da668d0ea058ff067c1af32ef7e2217348ad3227293ca064b2c40",
     "src/peer_acquire.rs": "0560a6d74a8e9e88270e49f4297fd8bf065a5f259386c56b3d547afb1cd95251",
     "src/download_orchestrator.rs": "3faac51f2b2a8ddf0f1d0aeca16b23de6b4995da5c56c503722ad46edf6b5f35",
-    "src/main.rs": "bc4071e2a4771ffd116736f5a6e478cf389240d4a9d341b062058f7e26fed23c",
+    "src/main.rs": "e71dda24932aa0bef699d0581dd99e85c9eeeb14ce0e9b8a50af0b1efeea8346",
     "src/archive_generation/merge.rs": "be352a71eb5cc125148bfbd27275248c89f45af28f0a9d04910a9714a3487a1e",
     "src/fomod/xml.rs": "ddc98afd42ccb71cf0d8d249bd3ec673b86a2e86a817d94e35913ce87b43546c",
     "src/ui/validation_page.rs": "9f6f25a3c20e241a4a03bb8cecb0756c81b923501788e14e800cbc1df93404a5",

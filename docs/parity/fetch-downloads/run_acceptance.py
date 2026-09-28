@@ -130,9 +130,15 @@ def execute(name, guide, flags=(), settings=None, raw_settings=None, existing=No
     try:
         if '--progress-json' in flags and stdout:
             objects=[json.loads(line) for line in stdout.splitlines()]
-            check(name+'_ndjson_summary_last',objects[-1].get('type'),'summary')
-            check(name+'_ndjson_event_envelopes',all(o.get('type')=='acquisition' and 'event' in o for o in objects[:-1]))
-            data=objects[-1]['summary'];events=[o['event'] for o in objects[:-1]]
+            if '--dry-run' in flags:
+                check(name+'_one_plan_line',len(objects),1)
+                check(name+'_plan_envelope',sorted(objects[0]),['plan','type'])
+                check(name+'_plan_type',objects[0].get('type'),'plan')
+                data=objects[0]['plan']
+            else:
+                check(name+'_ndjson_summary_last',objects[-1].get('type'),'summary')
+                check(name+'_ndjson_event_envelopes',all(o.get('type')=='acquisition' and 'event' in o for o in objects[:-1]))
+                data=objects[-1]['summary'];events=[o['event'] for o in objects[:-1]]
         else: data=json.loads(stdout)
     except (ValueError,KeyError): pass
     record=dict(name=name,argv=argv,exit=code,stdout=stdout,stderr=stderr,data=data,events=events,connections=connects[cb:],apiRequests=requests[rb:],before=before,after=snapshot(case),guideAfter=path.read_text(),envBefore=env_before,envAfter={k:snapshot(pathlib.Path(ENV[k])) for k in env_before})
@@ -209,6 +215,8 @@ def main():
         g={'Components':[component(metadata),component(metadata,'Example B','bbbbbbbb-2222-4222-8222-222222222222')]};g['Components'][0]['IsSelected']=False
         for name,flags,count in [('default',[],2),('file',['--use-file-selection'],1),('select',['--select',g['Components'][0]['Guid']],1),('deselect',['--deselect',g['Components'][0]['Guid']],1)]:
             r=execute('dry_'+name,g,['--dry-run','--peer-mode','off']+flags,settings);check(r['name']+'_targets',len(r['data']['targets']),count);check(r['name']+'_no_writes',r['before'],r['after']);no_transfer(r)
+        r=execute('dry_progress_json',g,['--dry-run','--progress-json'],settings)
+        check('dry_progress_json_exit',r['exit'],0);check('dry_progress_json_effective_mode',r['data']['peerMode'],'fallback');check('dry_progress_json_targets',len(r['data']['targets']),2);check('dry_progress_json_no_writes',r['before'],r['after']);no_transfer(r)
         # Explicit option/filter selection must not inherit unrelated default selection.
         g=copy.deepcopy(guide);g['Components'][0]['Category']=['Examples']
         opt=component({},'Example Option','cccccccc-3333-4333-8333-333333333333');opt['IsSelected']=False

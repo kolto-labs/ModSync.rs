@@ -4,9 +4,11 @@ Candidate implementation; independent spec and quality review are still required
 F12–F15/F26 remain partial. These receipts cover the bounded fetch CLI slice,
 not full acquisition parity, GUI integration, host automation, or release readiness.
 The incomplete earlier draft receipt and single empty-ZIP driver are superseded.
+The prior candidate at `efefba1` and its evidence remain in history (`54383a8`);
+this receipt is rebound after the FETCH-QUALITY-01 output correction.
 
-Final candidate source: `efefba1420ff7eb167f4de39a17db0acbce77b6e`. Default-feature production binary SHA256:
-`f7c7f2ba55ea9a59ab6968416aa86075e3980a6978a820214d7458cec5909bc3`. Final isolated fixture run: **305/305
+Final candidate source: `2889ec5032c7d4b2b3d4c4d5cee70b381900d536`. Default-feature production binary SHA256:
+`1ba0f02f7577114030d559ea66dd5bcca8f9c3c9c835f6119af77738da947e74`. Final isolated fixture run: **312/312
 assertions passed**, exit 0. Five production gates exited 0. `source-binding.json`
 checks each changed source hash against that commit; before/after fixture hashes
 match. Assertion counts include individual event identity checks, not independent
@@ -89,8 +91,11 @@ Measured cases:
 - `--record` preserves authored false and excluded true selection values. Existing
   valid archives skip transfer. A real synthetic FOMOD archive returns a manual
   followup (exit 3), without installing it or changing authored selection.
-- NDJSON consists of `type: acquisition` event envelopes and one final single-line
-  `type: summary` envelope; ordinary output is parsed as one JSON summary.
+- Acquisition NDJSON consists of `type: acquisition` event envelopes and one final
+  single-line `type: summary` envelope. Combined `--dry-run --progress-json` emits
+  exactly one compact `type: plan` envelope containing the effective plan, with
+  no acquisition events or summary and no side effects. Ordinary output remains
+  a pretty JSON summary (or a pretty raw plan for ordinary dry-run).
 
 ## Explicitly unrun and incomplete
 

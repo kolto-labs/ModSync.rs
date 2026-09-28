@@ -1,7 +1,7 @@
 {
-  "sourceCommit": "efefba1420ff7eb167f4de39a17db0acbce77b6e",
+  "sourceCommit": "2889ec5032c7d4b2b3d4c4d5cee70b381900d536",
   "sourceSha256": {
-    "src/main.rs": "bc4071e2a4771ffd116736f5a6e478cf389240d4a9d341b062058f7e26fed23c",
+    "src/main.rs": "e71dda24932aa0bef699d0581dd99e85c9eeeb14ce0e9b8a50af0b1efeea8346",
     "src/download_orchestrator.rs": "3faac51f2b2a8ddf0f1d0aeca16b23de6b4995da5c56c503722ad46edf6b5f35",
     "src/peer_acquire.rs": "0560a6d74a8e9e88270e49f4297fd8bf065a5f259386c56b3d547afb1cd95251",
     "src/model.rs": "3a91f51099bb64c7fadda3e4dfb49608c6e03b3725046b029288cfed958c5475",
@@ -11,9 +11,9 @@
     "src/lib.rs": "2e1931fcff2da668d0ea058ff067c1af32ef7e2217348ad3227293ca064b2c40"
   },
   "binary": "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
-  "binarySha256": "f7c7f2ba55ea9a59ab6968416aa86075e3980a6978a820214d7458cec5909bc3",
-  "assertionsPassed": 305,
-  "assertionsTotal": 305,
+  "binarySha256": "1ba0f02f7577114030d559ea66dd5bcca8f9c3c9c835f6119af77738da947e74",
+  "assertionsPassed": 312,
+  "assertionsTotal": 312,
   "productionGateExits": [
     0,
     0,

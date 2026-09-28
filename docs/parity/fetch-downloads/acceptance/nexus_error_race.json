@@ -4,23 +4,23 @@
     "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
     "fetch-downloads",
     "--input",
-    "/tmp/fetch-acceptance-024xvxp3/nexus_error_race/guide.json",
+    "/tmp/fetch-acceptance-mp60st79/nexus_error_race/guide.json",
     "--source-dir",
-    "/tmp/fetch-acceptance-024xvxp3/nexus_error_race/mods",
+    "/tmp/fetch-acceptance-mp60st79/nexus_error_race/mods",
     "--settings-dir",
-    "/tmp/fetch-acceptance-024xvxp3/nexus_error_race/settings",
+    "/tmp/fetch-acceptance-mp60st79/nexus_error_race/settings",
     "--scratch-dir",
-    "/tmp/fetch-acceptance-024xvxp3/nexus_error_race/scratch",
+    "/tmp/fetch-acceptance-mp60st79/nexus_error_race/scratch",
     "--peer-mode",
     "race",
     "--nexus-mods-api-key",
     "fixture-key",
     "--nexus-api-base",
-    "http://127.0.0.1:36719/v1/",
+    "http://127.0.0.1:45477/v1/",
     "--progress-json"
   ],
   "exit": 1,
-  "stdout": "{\"type\":\"acquisition\",\"event\":{\"targetIndex\":0,\"componentGuid\":\"aaaaaaaa-1111-4111-8111-111111111111\",\"filename\":\"example.zip\",\"source\":{\"kind\":\"origin\",\"provider\":\"nexus\"},\"phase\":{\"phase\":\"resolving\"}}}\n{\"type\":\"acquisition\",\"event\":{\"targetIndex\":0,\"componentGuid\":\"aaaaaaaa-1111-4111-8111-111111111111\",\"filename\":\"example.zip\",\"source\":{\"kind\":\"origin\",\"provider\":\"nexus\"},\"phase\":{\"phase\":\"sourceFailed\",\"error\":\"Nexus key validation failed: HTTP status server error (500 Internal Server Error) for url (http://127.0.0.1:36719/v1/users/validate.json)\",\"will_fallback\":false}}}\n{\"type\":\"summary\",\"summary\":{\"report\":{\"outcomes\":[{\"targetIndex\":0,\"componentGuid\":\"aaaaaaaa-1111-4111-8111-111111111111\",\"registryUrl\":\"https://www.nexusmods.com/kotor/mods/1?tab=files&file_id=1\",\"filename\":\"example.zip\",\"status\":\"failed\",\"source\":null,\"path\":null,\"sha256\":null,\"manual\":null,\"error\":\"Nexus key validation failed: HTTP status server error (500 Internal Server Error) for url (http://127.0.0.1:36719/v1/users/validate.json)\"}],\"skipped\":[],\"cancelled\":false},\"recordSummary\":null,\"fomodFollowups\":{\"followups\":[],\"inspectionErrors\":[]}}}\n",
+  "stdout": "{\"type\":\"acquisition\",\"event\":{\"targetIndex\":0,\"componentGuid\":\"aaaaaaaa-1111-4111-8111-111111111111\",\"filename\":\"example.zip\",\"source\":{\"kind\":\"origin\",\"provider\":\"nexus\"},\"phase\":{\"phase\":\"resolving\"}}}\n{\"type\":\"acquisition\",\"event\":{\"targetIndex\":0,\"componentGuid\":\"aaaaaaaa-1111-4111-8111-111111111111\",\"filename\":\"example.zip\",\"source\":{\"kind\":\"origin\",\"provider\":\"nexus\"},\"phase\":{\"phase\":\"sourceFailed\",\"error\":\"Nexus key validation failed: HTTP status server error (500 Internal Server Error) for url (http://127.0.0.1:45477/v1/users/validate.json)\",\"will_fallback\":false}}}\n{\"type\":\"summary\",\"summary\":{\"report\":{\"outcomes\":[{\"targetIndex\":0,\"componentGuid\":\"aaaaaaaa-1111-4111-8111-111111111111\",\"registryUrl\":\"https://www.nexusmods.com/kotor/mods/1?tab=files&file_id=1\",\"filename\":\"example.zip\",\"status\":\"failed\",\"source\":null,\"path\":null,\"sha256\":null,\"manual\":null,\"error\":\"Nexus key validation failed: HTTP status server error (500 Internal Server Error) for url (http://127.0.0.1:45477/v1/users/validate.json)\"}],\"skipped\":[],\"cancelled\":false},\"recordSummary\":null,\"fomodFollowups\":{\"followups\":[],\"inspectionErrors\":[]}}}\n",
   "stderr": "",
   "data": {
     "report": {
@@ -35,7 +35,7 @@
           "path": null,
           "sha256": null,
           "manual": null,
-          "error": "Nexus key validation failed: HTTP status server error (500 Internal Server Error) for url (http://127.0.0.1:36719/v1/users/validate.json)"
+          "error": "Nexus key validation failed: HTTP status server error (500 Internal Server Error) for url (http://127.0.0.1:45477/v1/users/validate.json)"
         }
       ],
       "skipped": [],
@@ -70,7 +70,7 @@
       },
       "phase": {
         "phase": "sourceFailed",
-        "error": "Nexus key validation failed: HTTP status server error (500 Internal Server Error) for url (http://127.0.0.1:36719/v1/users/validate.json)",
+        "error": "Nexus key validation failed: HTTP status server error (500 Internal Server Error) for url (http://127.0.0.1:45477/v1/users/validate.json)",
         "will_fallback": false
       }
     }
@@ -80,28 +80,28 @@
     "/v1/users/validate.json"
   ],
   "before": {
-    "guide.json": "2db243f15708c1cafddc0f081053a559a4791b77b8ae2573549d1660f5b06aab",
+    "guide.json": "13876a4b41540d4890599e925bb9967840935892d6d791d755687241fef8a504",
     "mods": "directory",
     "scratch": "directory",
     "settings": "directory",
-    "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+    "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
   },
   "after": {
-    "guide.json": "2db243f15708c1cafddc0f081053a559a4791b77b8ae2573549d1660f5b06aab",
+    "guide.json": "13876a4b41540d4890599e925bb9967840935892d6d791d755687241fef8a504",
     "mods": "directory",
     "scratch": "directory",
     "settings": "directory",
-    "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+    "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
   },
-  "guideAfter": "{\"Components\": [{\"Guid\": \"aaaaaaaa-1111-4111-8111-111111111111\", \"Name\": \"Example A\", \"IsSelected\": true, \"Instructions\": [], \"ResourceRegistry\": {\"https://www.nexusmods.com/kotor/mods/1?tab=files&file_id=1\": {\"Files\": {\"example.zip\": true}, \"ContentHashSHA256\": \"25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b\", \"Magnet\": \"magnet:?xt=urn:btih:09c985227992b7b949e1522b167d057b130a829b&dn=example.zip\", \"TorrentInfo\": \"ZDY6bGVuZ3RoaTEwNDg3MTJlNDpuYW1lMTE6ZXhhbXBsZS56aXAxMjpwaWVjZSBsZW5ndGhpNjU1MzZlNjpwaWVjZXMzNDA6vdG+KW2YgstldkZC0eNgCoy/zkd7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FADhEchbgA9IF8iK//fD+YE6sa0/KmU=\"}}}]}",
+  "guideAfter": "{\"Components\": [{\"Guid\": \"aaaaaaaa-1111-4111-8111-111111111111\", \"Name\": \"Example A\", \"IsSelected\": true, \"Instructions\": [], \"ResourceRegistry\": {\"https://www.nexusmods.com/kotor/mods/1?tab=files&file_id=1\": {\"Files\": {\"example.zip\": true}, \"ContentHashSHA256\": \"4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910\", \"Magnet\": \"magnet:?xt=urn:btih:afca95989fe9b738cba33463eef5cb4eab8cef0f&dn=example.zip\", \"TorrentInfo\": \"ZDY6bGVuZ3RoaTEwNDg3MTJlNDpuYW1lMTE6ZXhhbXBsZS56aXAxMjpwaWVjZSBsZW5ndGhpNjU1MzZlNjpwaWVjZXMzNDA6qILS4L2+mgmXLgPoYQk5EbqmxnN7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FADmmkgdWlDmgPbv7G6ibWTCyf5humU=\"}}}]}",
   "envBefore": {
     "HOME": {},
     "XDG_CONFIG_HOME": {
       "ModSync": "directory",
       "ModSync/peer-share": "directory",
-      "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-      "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+      "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+      "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
       "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     "XDG_CACHE_HOME": {
@@ -114,9 +114,9 @@
     "XDG_CONFIG_HOME": {
       "ModSync": "directory",
       "ModSync/peer-share": "directory",
-      "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-      "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+      "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+      "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
       "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     "XDG_CACHE_HOME": {

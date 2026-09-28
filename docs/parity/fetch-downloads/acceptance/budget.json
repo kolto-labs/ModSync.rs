@@ -4,13 +4,13 @@
     "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
     "fetch-downloads",
     "--input",
-    "/tmp/fetch-acceptance-024xvxp3/budget/guide.json",
+    "/tmp/fetch-acceptance-mp60st79/budget/guide.json",
     "--source-dir",
-    "/tmp/fetch-acceptance-024xvxp3/budget/mods",
+    "/tmp/fetch-acceptance-mp60st79/budget/mods",
     "--settings-dir",
-    "/tmp/fetch-acceptance-024xvxp3/budget/settings",
+    "/tmp/fetch-acceptance-mp60st79/budget/settings",
     "--scratch-dir",
-    "/tmp/fetch-acceptance-024xvxp3/budget/scratch",
+    "/tmp/fetch-acceptance-mp60st79/budget/scratch",
     "--progress-json",
     "--max-expanded-bytes",
     "1"
@@ -129,39 +129,39 @@
   "connections": [
     {
       "host": "127.0.0.1",
-      "port": 39651,
-      "time": 661214.912640624
+      "port": 43659,
+      "time": 661819.635062459
     },
     {
       "host": "127.0.0.1",
-      "port": 39651,
-      "time": 661214.995436601
+      "port": 43659,
+      "time": 661819.72882367
     }
   ],
   "apiRequests": [],
   "before": {
-    "guide.json": "561d5a6641b7956e2e89d4bf84caacfa6148bd71232e615af5b1e28a477db2b5",
+    "guide.json": "d8ab3e78ab879d0fbaa4fc4a3148e695fd5ad4d8af6651c04164cd4b5d20235d",
     "mods": "directory",
     "scratch": "directory",
     "settings": "directory",
-    "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+    "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
   },
   "after": {
-    "guide.json": "561d5a6641b7956e2e89d4bf84caacfa6148bd71232e615af5b1e28a477db2b5",
+    "guide.json": "d8ab3e78ab879d0fbaa4fc4a3148e695fd5ad4d8af6651c04164cd4b5d20235d",
     "mods": "directory",
     "scratch": "directory",
     "settings": "directory",
-    "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+    "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
   },
-  "guideAfter": "{\"Components\": [{\"Guid\": \"aaaaaaaa-1111-4111-8111-111111111111\", \"Name\": \"Example A\", \"IsSelected\": true, \"Instructions\": [], \"ResourceRegistry\": {\"https://mega.nz/file/example\": {\"Files\": {\"example.zip\": true}, \"ContentHashSHA256\": \"25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b\", \"Magnet\": \"magnet:?xt=urn:btih:09c985227992b7b949e1522b167d057b130a829b&dn=example.zip\", \"TorrentInfo\": \"ZDY6bGVuZ3RoaTEwNDg3MTJlNDpuYW1lMTE6ZXhhbXBsZS56aXAxMjpwaWVjZSBsZW5ndGhpNjU1MzZlNjpwaWVjZXMzNDA6vdG+KW2YgstldkZC0eNgCoy/zkd7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FADhEchbgA9IF8iK//fD+YE6sa0/KmU=\"}}}]}",
+  "guideAfter": "{\"Components\": [{\"Guid\": \"aaaaaaaa-1111-4111-8111-111111111111\", \"Name\": \"Example A\", \"IsSelected\": true, \"Instructions\": [], \"ResourceRegistry\": {\"https://mega.nz/file/example\": {\"Files\": {\"example.zip\": true}, \"ContentHashSHA256\": \"4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910\", \"Magnet\": \"magnet:?xt=urn:btih:afca95989fe9b738cba33463eef5cb4eab8cef0f&dn=example.zip\", \"TorrentInfo\": \"ZDY6bGVuZ3RoaTEwNDg3MTJlNDpuYW1lMTE6ZXhhbXBsZS56aXAxMjpwaWVjZSBsZW5ndGhpNjU1MzZlNjpwaWVjZXMzNDA6qILS4L2+mgmXLgPoYQk5EbqmxnN7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FADmmkgdWlDmgPbv7G6ibWTCyf5humU=\"}}}]}",
   "envBefore": {
     "HOME": {},
     "XDG_CONFIG_HOME": {
       "ModSync": "directory",
       "ModSync/peer-share": "directory",
-      "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-      "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+      "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+      "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
       "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     "XDG_CACHE_HOME": {
@@ -174,9 +174,9 @@
     "XDG_CONFIG_HOME": {
       "ModSync": "directory",
       "ModSync/peer-share": "directory",
-      "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-      "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+      "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+      "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
       "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     "XDG_CACHE_HOME": {

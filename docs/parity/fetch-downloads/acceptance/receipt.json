@@ -1,7 +1,7 @@
 {
-  "binaryBeforeSha256": "f7c7f2ba55ea9a59ab6968416aa86075e3980a6978a820214d7458cec5909bc3",
+  "binaryBeforeSha256": "1ba0f02f7577114030d559ea66dd5bcca8f9c3c9c835f6119af77738da947e74",
   "sourceBeforeSha256": {
-    "src/main.rs": "bc4071e2a4771ffd116736f5a6e478cf389240d4a9d341b062058f7e26fed23c",
+    "src/main.rs": "e71dda24932aa0bef699d0581dd99e85c9eeeb14ce0e9b8a50af0b1efeea8346",
     "src/download_orchestrator.rs": "3faac51f2b2a8ddf0f1d0aeca16b23de6b4995da5c56c503722ad46edf6b5f35",
     "src/peer_acquire.rs": "0560a6d74a8e9e88270e49f4297fd8bf065a5f259386c56b3d547afb1cd95251",
     "src/model.rs": "3a91f51099bb64c7fadda3e4dfb49608c6e03b3725046b029288cfed958c5475",
@@ -10,13 +10,13 @@
     "src/p2p.rs": "b2c3f7a2029a9173529a7603cc48200a7050755814d75bccd6e2c0ef857a78d5",
     "src/lib.rs": "2e1931fcff2da668d0ea058ff067c1af32ef7e2217348ad3227293ca064b2c40"
   },
-  "root": "/tmp/fetch-acceptance-024xvxp3",
-  "namespace": "net:[4026532920]",
+  "root": "/tmp/fetch-acceptance-mp60st79",
+  "namespace": "net:[4026532919]",
   "routes": "",
   "binary": "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
-  "binarySha256": "f7c7f2ba55ea9a59ab6968416aa86075e3980a6978a820214d7458cec5909bc3",
+  "binarySha256": "1ba0f02f7577114030d559ea66dd5bcca8f9c3c9c835f6119af77738da947e74",
   "sourceSha256": {
-    "src/main.rs": "bc4071e2a4771ffd116736f5a6e478cf389240d4a9d341b062058f7e26fed23c",
+    "src/main.rs": "e71dda24932aa0bef699d0581dd99e85c9eeeb14ce0e9b8a50af0b1efeea8346",
     "src/download_orchestrator.rs": "3faac51f2b2a8ddf0f1d0aeca16b23de6b4995da5c56c503722ad46edf6b5f35",
     "src/peer_acquire.rs": "0560a6d74a8e9e88270e49f4297fd8bf065a5f259386c56b3d547afb1cd95251",
     "src/model.rs": "3a91f51099bb64c7fadda3e4dfb49608c6e03b3725046b029288cfed958c5475",
@@ -46,20 +46,8 @@
     },
     {
       "name": "known_bytes_example.zip",
-      "actual": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
-      "expected": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
-      "passed": true
-    },
-    {
-      "name": "known_event_identity_0",
-      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
-      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
-      "passed": true
-    },
-    {
-      "name": "known_event_filename_0",
-      "actual": "example.zip",
-      "expected": "example.zip",
+      "actual": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
+      "expected": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
       "passed": true
     },
     {
@@ -160,8 +148,8 @@
     },
     {
       "name": "unknown_bytes_example.zip",
-      "actual": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
-      "expected": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+      "actual": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
+      "expected": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
       "passed": true
     },
     {
@@ -250,26 +238,14 @@
     },
     {
       "name": "unknown_magnet_bytes_example.zip",
-      "actual": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
-      "expected": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+      "actual": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
+      "expected": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
       "passed": true
     },
     {
       "name": "unknown_magnet_event_identity_0",
       "actual": "aaaaaaaa-1111-4111-8111-111111111111",
       "expected": "aaaaaaaa-1111-4111-8111-111111111111",
-      "passed": true
-    },
-    {
-      "name": "unknown_magnet_event_identity_0",
-      "actual": "aaaaaaaa-1111-4111-8111-111111111111",
-      "expected": "aaaaaaaa-1111-4111-8111-111111111111",
-      "passed": true
-    },
-    {
-      "name": "unknown_magnet_event_filename_0",
-      "actual": "example.zip",
-      "expected": "example.zip",
       "passed": true
     },
     {
@@ -352,14 +328,14 @@
     },
     {
       "name": "shared_pool_bytes_example.zip",
-      "actual": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
-      "expected": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+      "actual": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
+      "expected": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
       "passed": true
     },
     {
       "name": "shared_pool_bytes_second.zip",
-      "actual": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
-      "expected": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+      "actual": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
+      "expected": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
       "passed": true
     },
     {
@@ -1159,9 +1135,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -1174,9 +1150,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -1201,18 +1177,18 @@
     {
       "name": "dry_default_no_writes",
       "actual": {
-        "guide.json": "a433bd3f8ea880da33134af4d88870e0a69f16475101bd09ef445d02b5b41917",
+        "guide.json": "674169229244e6ea3d8661a11c5db46b175171e9539d92c929e14301aa3de2cd",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
-        "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+        "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
       },
       "expected": {
-        "guide.json": "a433bd3f8ea880da33134af4d88870e0a69f16475101bd09ef445d02b5b41917",
+        "guide.json": "674169229244e6ea3d8661a11c5db46b175171e9539d92c929e14301aa3de2cd",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
-        "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+        "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
       },
       "passed": true
     },
@@ -1235,9 +1211,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -1250,9 +1226,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -1277,18 +1253,18 @@
     {
       "name": "dry_file_no_writes",
       "actual": {
-        "guide.json": "a433bd3f8ea880da33134af4d88870e0a69f16475101bd09ef445d02b5b41917",
+        "guide.json": "674169229244e6ea3d8661a11c5db46b175171e9539d92c929e14301aa3de2cd",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
-        "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+        "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
       },
       "expected": {
-        "guide.json": "a433bd3f8ea880da33134af4d88870e0a69f16475101bd09ef445d02b5b41917",
+        "guide.json": "674169229244e6ea3d8661a11c5db46b175171e9539d92c929e14301aa3de2cd",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
-        "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+        "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
       },
       "passed": true
     },
@@ -1311,9 +1287,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -1326,9 +1302,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -1353,18 +1329,18 @@
     {
       "name": "dry_select_no_writes",
       "actual": {
-        "guide.json": "a433bd3f8ea880da33134af4d88870e0a69f16475101bd09ef445d02b5b41917",
+        "guide.json": "674169229244e6ea3d8661a11c5db46b175171e9539d92c929e14301aa3de2cd",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
-        "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+        "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
       },
       "expected": {
-        "guide.json": "a433bd3f8ea880da33134af4d88870e0a69f16475101bd09ef445d02b5b41917",
+        "guide.json": "674169229244e6ea3d8661a11c5db46b175171e9539d92c929e14301aa3de2cd",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
-        "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+        "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
       },
       "passed": true
     },
@@ -1387,9 +1363,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -1402,9 +1378,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -1429,18 +1405,18 @@
     {
       "name": "dry_deselect_no_writes",
       "actual": {
-        "guide.json": "a433bd3f8ea880da33134af4d88870e0a69f16475101bd09ef445d02b5b41917",
+        "guide.json": "674169229244e6ea3d8661a11c5db46b175171e9539d92c929e14301aa3de2cd",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
-        "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+        "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
       },
       "expected": {
-        "guide.json": "a433bd3f8ea880da33134af4d88870e0a69f16475101bd09ef445d02b5b41917",
+        "guide.json": "674169229244e6ea3d8661a11c5db46b175171e9539d92c929e14301aa3de2cd",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
-        "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+        "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
       },
       "passed": true
     },
@@ -1457,15 +1433,39 @@
       "passed": true
     },
     {
-      "name": "selector_option_no_env_cache_write",
+      "name": "dry_progress_json_one_plan_line",
+      "actual": 1,
+      "expected": 1,
+      "passed": true
+    },
+    {
+      "name": "dry_progress_json_plan_envelope",
+      "actual": [
+        "plan",
+        "type"
+      ],
+      "expected": [
+        "plan",
+        "type"
+      ],
+      "passed": true
+    },
+    {
+      "name": "dry_progress_json_plan_type",
+      "actual": "plan",
+      "expected": "plan",
+      "passed": true
+    },
+    {
+      "name": "dry_progress_json_no_env_cache_write",
       "actual": {
         "HOME": {},
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -1478,9 +1478,97 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
+          "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "XDG_CACHE_HOME": {
+          "com.rqbit.dht": "directory"
+        },
+        "XDG_DATA_HOME": {}
+      },
+      "passed": true
+    },
+    {
+      "name": "dry_progress_json_no_api",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "dry_progress_json_exit",
+      "actual": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "dry_progress_json_effective_mode",
+      "actual": "fallback",
+      "expected": "fallback",
+      "passed": true
+    },
+    {
+      "name": "dry_progress_json_targets",
+      "actual": 2,
+      "expected": 2,
+      "passed": true
+    },
+    {
+      "name": "dry_progress_json_no_writes",
+      "actual": {
+        "guide.json": "674169229244e6ea3d8661a11c5db46b175171e9539d92c929e14301aa3de2cd",
+        "mods": "directory",
+        "scratch": "directory",
+        "settings": "directory",
+        "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
+      },
+      "expected": {
+        "guide.json": "674169229244e6ea3d8661a11c5db46b175171e9539d92c929e14301aa3de2cd",
+        "mods": "directory",
+        "scratch": "directory",
+        "settings": "directory",
+        "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
+      },
+      "passed": true
+    },
+    {
+      "name": "dry_progress_json_no_proxy",
+      "actual": [],
+      "expected": [],
+      "passed": true
+    },
+    {
+      "name": "dry_progress_json_no_peer_events",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "selector_option_no_env_cache_write",
+      "actual": {
+        "HOME": {},
+        "XDG_CONFIG_HOME": {
+          "ModSync": "directory",
+          "ModSync/peer-share": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
+          "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "XDG_CACHE_HOME": {
+          "com.rqbit.dht": "directory"
+        },
+        "XDG_DATA_HOME": {}
+      },
+      "expected": {
+        "HOME": {},
+        "XDG_CONFIG_HOME": {
+          "ModSync": "directory",
+          "ModSync/peer-share": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -1509,18 +1597,18 @@
     {
       "name": "selector_option_no_writes",
       "actual": {
-        "guide.json": "ed0e75c9ab129c37b273cf0eaa54c873a8a01bbeabeeec905f2b888e705d7ac1",
+        "guide.json": "00e0f7b000188cd649ff8def5208fa9edc0d841ccf87d02686203b26ae62e5c5",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
-        "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+        "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
       },
       "expected": {
-        "guide.json": "ed0e75c9ab129c37b273cf0eaa54c873a8a01bbeabeeec905f2b888e705d7ac1",
+        "guide.json": "00e0f7b000188cd649ff8def5208fa9edc0d841ccf87d02686203b26ae62e5c5",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
-        "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+        "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
       },
       "passed": true
     },
@@ -1531,9 +1619,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -1546,9 +1634,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -1577,18 +1665,18 @@
     {
       "name": "selector_category_no_writes",
       "actual": {
-        "guide.json": "ed0e75c9ab129c37b273cf0eaa54c873a8a01bbeabeeec905f2b888e705d7ac1",
+        "guide.json": "00e0f7b000188cd649ff8def5208fa9edc0d841ccf87d02686203b26ae62e5c5",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
-        "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+        "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
       },
       "expected": {
-        "guide.json": "ed0e75c9ab129c37b273cf0eaa54c873a8a01bbeabeeec905f2b888e705d7ac1",
+        "guide.json": "00e0f7b000188cd649ff8def5208fa9edc0d841ccf87d02686203b26ae62e5c5",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
-        "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+        "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
       },
       "passed": true
     },
@@ -1599,9 +1687,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -1614,9 +1702,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -1645,18 +1733,18 @@
     {
       "name": "selector_search_no_writes",
       "actual": {
-        "guide.json": "ed0e75c9ab129c37b273cf0eaa54c873a8a01bbeabeeec905f2b888e705d7ac1",
+        "guide.json": "00e0f7b000188cd649ff8def5208fa9edc0d841ccf87d02686203b26ae62e5c5",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
-        "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+        "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
       },
       "expected": {
-        "guide.json": "ed0e75c9ab129c37b273cf0eaa54c873a8a01bbeabeeec905f2b888e705d7ac1",
+        "guide.json": "00e0f7b000188cd649ff8def5208fa9edc0d841ccf87d02686203b26ae62e5c5",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
-        "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+        "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
       },
       "passed": true
     },
@@ -1667,9 +1755,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -1682,9 +1770,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -1715,18 +1803,18 @@
     {
       "name": "disabled_files_no_writes",
       "actual": {
-        "guide.json": "9fcf8e7941b470d0e086d0fb6991e2f20d325d3dd0edf3b2fec5243a25a4d330",
+        "guide.json": "4c77da1bf56b01aba62235c06309d09460a288b30bd9f64fe98b7eb87f5f0b93",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
-        "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+        "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
       },
       "expected": {
-        "guide.json": "9fcf8e7941b470d0e086d0fb6991e2f20d325d3dd0edf3b2fec5243a25a4d330",
+        "guide.json": "4c77da1bf56b01aba62235c06309d09460a288b30bd9f64fe98b7eb87f5f0b93",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
-        "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+        "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
       },
       "passed": true
     },
@@ -1737,9 +1825,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -1752,9 +1840,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -1779,18 +1867,18 @@
     {
       "name": "resolution_no_writes",
       "actual": {
-        "guide.json": "49bf8ffd121347dddd1155ac6e03422aaf564c933221388a87cd40dd353e584b",
+        "guide.json": "b23963c0ad61616bef548d0486231544ad4d8fed20c9f9663591244f01696b65",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
-        "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+        "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
       },
       "expected": {
-        "guide.json": "49bf8ffd121347dddd1155ac6e03422aaf564c933221388a87cd40dd353e584b",
+        "guide.json": "b23963c0ad61616bef548d0486231544ad4d8fed20c9f9663591244f01696b65",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
-        "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+        "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
       },
       "passed": true
     },
@@ -1801,9 +1889,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -1816,9 +1904,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -1843,14 +1931,14 @@
     {
       "name": "settings_off_no_writes",
       "actual": {
-        "guide.json": "561d5a6641b7956e2e89d4bf84caacfa6148bd71232e615af5b1e28a477db2b5",
+        "guide.json": "d8ab3e78ab879d0fbaa4fc4a3148e695fd5ad4d8af6651c04164cd4b5d20235d",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
         "settings/settings.json": "f373cf78b6dec18535de6910fec6481f0035e427bdedc3bdc030a53b24128243"
       },
       "expected": {
-        "guide.json": "561d5a6641b7956e2e89d4bf84caacfa6148bd71232e615af5b1e28a477db2b5",
+        "guide.json": "d8ab3e78ab879d0fbaa4fc4a3148e695fd5ad4d8af6651c04164cd4b5d20235d",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
@@ -1877,9 +1965,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -1892,9 +1980,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -1919,14 +2007,14 @@
     {
       "name": "settings_fallback_no_writes",
       "actual": {
-        "guide.json": "561d5a6641b7956e2e89d4bf84caacfa6148bd71232e615af5b1e28a477db2b5",
+        "guide.json": "d8ab3e78ab879d0fbaa4fc4a3148e695fd5ad4d8af6651c04164cd4b5d20235d",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
         "settings/settings.json": "b9df457edb2cbfdcbbe4d32d51119441e5751303d116fada080ec8a5d20a06e2"
       },
       "expected": {
-        "guide.json": "561d5a6641b7956e2e89d4bf84caacfa6148bd71232e615af5b1e28a477db2b5",
+        "guide.json": "d8ab3e78ab879d0fbaa4fc4a3148e695fd5ad4d8af6651c04164cd4b5d20235d",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
@@ -1953,9 +2041,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -1968,9 +2056,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -1995,14 +2083,14 @@
     {
       "name": "settings_race_no_writes",
       "actual": {
-        "guide.json": "561d5a6641b7956e2e89d4bf84caacfa6148bd71232e615af5b1e28a477db2b5",
+        "guide.json": "d8ab3e78ab879d0fbaa4fc4a3148e695fd5ad4d8af6651c04164cd4b5d20235d",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
         "settings/settings.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
       },
       "expected": {
-        "guide.json": "561d5a6641b7956e2e89d4bf84caacfa6148bd71232e615af5b1e28a477db2b5",
+        "guide.json": "d8ab3e78ab879d0fbaa4fc4a3148e695fd5ad4d8af6651c04164cd4b5d20235d",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
@@ -2029,9 +2117,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -2044,9 +2132,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -2071,14 +2159,14 @@
     {
       "name": "settings_disabled_no_writes",
       "actual": {
-        "guide.json": "561d5a6641b7956e2e89d4bf84caacfa6148bd71232e615af5b1e28a477db2b5",
+        "guide.json": "d8ab3e78ab879d0fbaa4fc4a3148e695fd5ad4d8af6651c04164cd4b5d20235d",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
         "settings/settings.json": "200a241c64d4f6f8ddde09e9b9c5e1c1c02a7396749384550afc472dedddc8a4"
       },
       "expected": {
-        "guide.json": "561d5a6641b7956e2e89d4bf84caacfa6148bd71232e615af5b1e28a477db2b5",
+        "guide.json": "d8ab3e78ab879d0fbaa4fc4a3148e695fd5ad4d8af6651c04164cd4b5d20235d",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
@@ -2105,9 +2193,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -2120,9 +2208,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -2147,14 +2235,14 @@
     {
       "name": "settings_override_no_writes",
       "actual": {
-        "guide.json": "561d5a6641b7956e2e89d4bf84caacfa6148bd71232e615af5b1e28a477db2b5",
+        "guide.json": "d8ab3e78ab879d0fbaa4fc4a3148e695fd5ad4d8af6651c04164cd4b5d20235d",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
         "settings/settings.json": "f373cf78b6dec18535de6910fec6481f0035e427bdedc3bdc030a53b24128243"
       },
       "expected": {
-        "guide.json": "561d5a6641b7956e2e89d4bf84caacfa6148bd71232e615af5b1e28a477db2b5",
+        "guide.json": "d8ab3e78ab879d0fbaa4fc4a3148e695fd5ad4d8af6651c04164cd4b5d20235d",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
@@ -2181,9 +2269,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -2196,9 +2284,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -2239,9 +2327,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -2254,9 +2342,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -2297,9 +2385,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -2312,9 +2400,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -2349,9 +2437,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -2364,9 +2452,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -2397,18 +2485,18 @@
     {
       "name": "all_false_json_no_writes",
       "actual": {
-        "guide.json": "2b4e789b3489a57b693b7bbbc948f4b429b9614ff1c3ec27983dd3af292f9a63",
+        "guide.json": "465e291398daba08cffce909d1d6abc24bf6372e4fe29f2e49c75d776cd9dbc9",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
-        "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+        "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
       },
       "expected": {
-        "guide.json": "2b4e789b3489a57b693b7bbbc948f4b429b9614ff1c3ec27983dd3af292f9a63",
+        "guide.json": "465e291398daba08cffce909d1d6abc24bf6372e4fe29f2e49c75d776cd9dbc9",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
-        "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+        "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
       },
       "passed": true
     },
@@ -2419,9 +2507,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -2434,9 +2522,9 @@
         "XDG_CONFIG_HOME": {
           "ModSync": "directory",
           "ModSync/peer-share": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF": "directory",
-          "ModSync/peer-share/.modsync-share-TsEOuF/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-          "ModSync/peer-share/.modsync-share-TsEOuF/example.zip": "25713253adfd9ebcc272edff2d9bee27b848ef1bfc7703bf02ad65e7c9be2e8b",
+          "ModSync/peer-share/.modsync-share-ex6mYa": "directory",
+          "ModSync/peer-share/.modsync-share-ex6mYa/.modsync-share-owner": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "ModSync/peer-share/.modsync-share-ex6mYa/example.zip": "4c9e0325e5ca635e2ed470d9d28f40cdb19962123d8b4777ada637c097c4d910",
           "ModSync/peer-share/.modsync-share.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         },
         "XDG_CACHE_HOME": {
@@ -2467,18 +2555,18 @@
     {
       "name": "all_false_md_no_writes",
       "actual": {
-        "guide.md": "d248fc42c2e66a64c486f6bfc4b1ea8d6769107c563d38131551d48952c16fb4",
+        "guide.md": "2abb18aa623cd41e1550c6896c7a285029d6d53ecf8e04e8bf7b884784038998",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
-        "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+        "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
       },
       "expected": {
-        "guide.md": "d248fc42c2e66a64c486f6bfc4b1ea8d6769107c563d38131551d48952c16fb4",
+        "guide.md": "2abb18aa623cd41e1550c6896c7a285029d6d53ecf8e04e8bf7b884784038998",
         "mods": "directory",
         "scratch": "directory",
         "settings": "directory",
-        "settings/settings.json": "fafc290a415e948625180f8b4a06cf76d5034325d46e54774b24c7b682a43037"
+        "settings/settings.json": "1ab823a6f0ea75d01cf8dce525c1217e133d06f357f09ccc1151ce84436cd634"
       },
       "passed": true
     },
@@ -2605,7 +2693,7 @@
     {
       "name": "sources_unchanged_during_run",
       "actual": {
-        "src/main.rs": "bc4071e2a4771ffd116736f5a6e478cf389240d4a9d341b062058f7e26fed23c",
+        "src/main.rs": "e71dda24932aa0bef699d0581dd99e85c9eeeb14ce0e9b8a50af0b1efeea8346",
         "src/download_orchestrator.rs": "3faac51f2b2a8ddf0f1d0aeca16b23de6b4995da5c56c503722ad46edf6b5f35",
         "src/peer_acquire.rs": "0560a6d74a8e9e88270e49f4297fd8bf065a5f259386c56b3d547afb1cd95251",
         "src/model.rs": "3a91f51099bb64c7fadda3e4dfb49608c6e03b3725046b029288cfed958c5475",
@@ -2615,7 +2703,7 @@
         "src/lib.rs": "2e1931fcff2da668d0ea058ff067c1af32ef7e2217348ad3227293ca064b2c40"
       },
       "expected": {
-        "src/main.rs": "bc4071e2a4771ffd116736f5a6e478cf389240d4a9d341b062058f7e26fed23c",
+        "src/main.rs": "e71dda24932aa0bef699d0581dd99e85c9eeeb14ce0e9b8a50af0b1efeea8346",
         "src/download_orchestrator.rs": "3faac51f2b2a8ddf0f1d0aeca16b23de6b4995da5c56c503722ad46edf6b5f35",
         "src/peer_acquire.rs": "0560a6d74a8e9e88270e49f4297fd8bf065a5f259386c56b3d547afb1cd95251",
         "src/model.rs": "3a91f51099bb64c7fadda3e4dfb49608c6e03b3725046b029288cfed958c5475",
@@ -2628,98 +2716,98 @@
     },
     {
       "name": "binary_unchanged_during_run",
-      "actual": "f7c7f2ba55ea9a59ab6968416aa86075e3980a6978a820214d7458cec5909bc3",
-      "expected": "f7c7f2ba55ea9a59ab6968416aa86075e3980a6978a820214d7458cec5909bc3",
+      "actual": "1ba0f02f7577114030d559ea66dd5bcca8f9c3c9c835f6119af77738da947e74",
+      "expected": "1ba0f02f7577114030d559ea66dd5bcca8f9c3c9c835f6119af77738da947e74",
       "passed": true
     }
   ],
-  "passed": 305,
-  "total": 305,
+  "passed": 312,
+  "total": 312,
   "connections": [
     {
       "host": "127.0.0.1",
-      "port": 39651,
-      "time": 661207.054463004
+      "port": 43659,
+      "time": 661812.129748143
     },
     {
       "host": "127.0.0.1",
-      "port": 39651,
-      "time": 661207.173558903
+      "port": 43659,
+      "time": 661812.192510994
     },
     {
       "host": "127.0.0.1",
-      "port": 39651,
-      "time": 661208.553936594
+      "port": 43659,
+      "time": 661813.445326474
     },
     {
       "host": "127.0.0.1",
-      "port": 39651,
-      "time": 661208.657084014
+      "port": 43659,
+      "time": 661813.508569323
     },
     {
       "host": "127.0.0.1",
-      "port": 39651,
-      "time": 661209.945691685
+      "port": 43659,
+      "time": 661814.740458295
     },
     {
       "host": "127.0.0.1",
-      "port": 39651,
-      "time": 661210.009617225
+      "port": 43659,
+      "time": 661814.801996841
     },
     {
       "host": "127.0.0.1",
-      "port": 39651,
-      "time": 661210.055304425
+      "port": 43659,
+      "time": 661814.847567249
     },
     {
       "host": "127.0.0.1",
-      "port": 39651,
-      "time": 661211.394107718
+      "port": 43659,
+      "time": 661816.110265454
     },
     {
       "host": "127.0.0.1",
-      "port": 39651,
-      "time": 661211.495400906
+      "port": 43659,
+      "time": 661816.192021618
     },
     {
       "host": "127.0.0.1",
-      "port": 39651,
-      "time": 661212.77220808
+      "port": 43659,
+      "time": 661817.454241107
     },
     {
       "host": "127.0.0.1",
-      "port": 39651,
-      "time": 661212.868530279
+      "port": 43659,
+      "time": 661817.534289268
     },
     {
       "host": "127.0.0.1",
-      "port": 39651,
-      "time": 661214.912640624
+      "port": 43659,
+      "time": 661819.635062459
     },
     {
       "host": "127.0.0.1",
-      "port": 39651,
-      "time": 661214.995436601
+      "port": 43659,
+      "time": 661819.72882367
     },
     {
       "host": "127.0.0.1",
-      "port": 39651,
-      "time": 661216.259670157
+      "port": 43659,
+      "time": 661821.001411297
     },
     {
       "host": "127.0.0.1",
-      "port": 39651,
-      "time": 661216.355475351
+      "port": 43659,
+      "time": 661821.102298129
     },
     {
       "host": "127.0.0.1",
-      "port": 39651,
-      "time": 661217.604752269
+      "port": 43659,
+      "time": 661822.440813171
     },
     {
       "host": "127.0.0.1",
-      "port": 39651,
-      "time": 661217.690511099
+      "port": 43659,
+      "time": 661822.519907162
     }
   ],
   "apiRequests": [
@@ -2729,7 +2817,7 @@
     "/v1/users/validate.json"
   ],
   "childExits": {
-    "1168921": 0,
-    "1171008": 130
+    "1253925": 0,
+    "1255234": 130
   }
 }
