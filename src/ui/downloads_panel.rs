@@ -199,6 +199,14 @@ impl Panel {
         self.next_run
     }
 
+    pub fn latest_run_is(&self, run: u64) -> bool {
+        self.next_run == run
+    }
+
+    pub fn has_history(&self) -> bool {
+        self.next_run != 0
+    }
+
     pub fn is_active(&self) -> bool {
         self.active.is_some()
     }
@@ -485,7 +493,7 @@ impl Panel {
         {
             for followup in &fomod.followups {
                 self.fomod.push(format!(
-                    "{}: FOMOD installer in {}. Configure it from Validation tools with Configure FOMOD archive… before validating.",
+                    "{}: FOMOD installer in {}. Detected for the FOMOD choice queue. After closing the prompt, use Validation tools to reopen it if needed.",
                     names
                         .get(&followup.component_guid)
                         .map_or(followup.component_guid.as_str(), String::as_str),

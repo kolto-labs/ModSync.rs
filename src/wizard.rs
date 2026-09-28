@@ -52,7 +52,7 @@ impl Page {
             Self::GameDirectory => "Point to your KOTOR installation folder",
             Self::AspyrNotice => "Important information about Aspyr-specific mods",
             Self::ModSelection => "Choose the mods you want to install",
-            Self::DownloadsExplain => "Downloading required mod files",
+            Self::DownloadsExplain => "Fetch archives, then answer installer choices",
             Self::Validate => "Validating your mod selection and installation environment",
             Self::InstallStart => "Review your selections and begin installation",
             Self::Installing => "Please wait while mods are being installed...",

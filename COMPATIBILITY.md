@@ -1,5 +1,28 @@
 # Compatibility and proof boundaries
 
+## Desktop acquisition, step 2 — 2026-09-28
+
+Step 1 was subsequently reviewed and merged in PR #5 (`d438528`), including the
+fix that reports cancelled targets when Stop occurs during planning. The older
+step-1 snapshot below retains its historical evidence and limitations.
+
+The step-2 source adds preserving peer-settings controls and disclosure, a serial
+FOMOD queue bound to download run/guide generation/roots/completed-base context,
+and validation/install readiness guards. Saved-choice or choice-application errors
+remain blocked behind explicit Retry/Dismiss actions. Settings read/save workers
+keep filesystem I/O off the paint path, and Fetch waits for a successful settings
+snapshot. Unknown settings and secrets survive explicit peer-setting edits.
+
+Backward navigation retains download status. Narrow windows place Downloads in
+scrollable main content, and FOMOD dialogs size to the viewport. Source/spec and
+quality review are recorded in [the step-2 review](docs/parity/downloads-gui-step2-review.md).
+[Native evidence](docs/parity/downloads-gui-step2/README.md) passes 46/46 assertions
+across five isolated scenarios on the final Linux aarch64 binary, including actual
+600x400 choices/navigation and preserving an authored low upload cap without an
+implicit save. All five production gates pass; 53 frozen files/regions are unchanged.
+The retained controller verdict accepts this bounded step-2 slice. Persistent seeding, provider
+automation, cross-platform native acceptance and F29 remain open.
+
 ## Desktop acquisition, step 1 — 2026-09-28 (unreviewed)
 
 Step 1 of the [downloads GUI plan](docs/parity/downloads-gui-plan.md) is commit

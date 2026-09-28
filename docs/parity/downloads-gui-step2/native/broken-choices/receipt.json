@@ -1,0 +1,588 @@
+{
+  "identity": {
+    "binary": "/root/modsync-downloads-step2-20260928/target/modsync-desktop-candidate",
+    "binary_sha256": "70fe6d1105d393d29c007b9bfe46d7ed4fbeab038764455f775f749845a6295c",
+    "probe_sha256": "1209b1ebc5fb8374014a2984da23d729751587dde40014b442d2886c5a25524d",
+    "source": {
+      "src/acquisition.rs": "92a13616b529eb58b10b887481b0977b36fff82ec915646e1882c5dcf51abb6f",
+      "src/archive.rs": "51dccfef9ea640067483ae92aba1a2bc5ec808ab26b966c800ffa9efec1b9763",
+      "src/archive_generation/merge.rs": "be352a71eb5cc125148bfbd27275248c89f45af28f0a9d04910a9714a3487a1e",
+      "src/archive_generation.rs": "ca62b3c22e105108168c83b076b8c7d3fc64d1113373f47c9cf0cffd8f52660f",
+      "src/conflicts.rs": "c6f5dff2d21d2e4151cb53d3656e5b892e9d59e1f337ce9deaeba4671447d9a6",
+      "src/deployment.rs": "fab3726d33ebbac72878322856f3c70fe106a4ae29a8a70501b36c73280b339e",
+      "src/direct_markdown.rs": "70bf715188348e1700936adad2c304156846bd20b3fb3896f070983fb5b00521",
+      "src/download.rs": "effcc722ca140b1c7ba2d3693ce909934398400078b4622458d2de99f2074ced",
+      "src/download_hosts.rs": "2f6197607eaeb07e8eeaeb5050778701da31e9e6abd9891b60b204b94a4cee70",
+      "src/download_orchestrator.rs": "4298c77d1f0346075508c2d3cbafcf5919efc31775835a560c074ac9948cb811",
+      "src/download_plan.rs": "52edd1844819e65bef31c11d4c065123810da98310b1bed75405695e73222ff0",
+      "src/download_queue.rs": "3f91eefa75b26aa46153b1e9948bbb05237180af89fe79fec923d3f04eeb8467",
+      "src/draft.rs": "86525e213956a05155b3b9c7353935ad1cb9202f7980bce5454dfddc39ba1703",
+      "src/editor.rs": "a769237d78447abe2185ff23e78b3776ae7b701784bec7df7a915f04b7fd4a9d",
+      "src/engine.rs": "ead136850ec8729e463d79f32d6ee13bf4be3f9fcf6160ce47f1cb9216de816e",
+      "src/fomod/xml.rs": "7e087c643dd6d24e144b4cdd277e58d512694a991feca17d05912e9d145d8daf",
+      "src/fomod.rs": "6411c24801943357e2c8db1f96b3c7a30c68f80c611ce5588130b5b68ed02beb",
+      "src/fomod_cli.rs": "f5bcc513e952d86773a487eced9aa25a5a7a76ab700c4b5d2072691884c06cd8",
+      "src/fomod_ui.rs": "2e8c88e60e40471fda69a3971a333840b9b43d1ac37f918159be9470dc8988c2",
+      "src/game.rs": "7074ba4dd69436bae90a86f019496a7d4434900a55979e7d193173b4b850ae0e",
+      "src/install_progress.rs": "415720600e897cf79c11e8f5c784fe17da06831f01d243522e31413b3a79f163",
+      "src/lib.rs": "5249e749c8392537f60c0603a697b2eb46f4713764c7fe5fa7a7a14dd29e28c5",
+      "src/logging.rs": "58542a9bfd7b3fbbb90f137e31917d2369b5ded812cf269e4ecfaaf1446bef96",
+      "src/main.rs": "10b7a3d19714628e3cec85b33737e4e251dee6e642447f35e387a57177ab8012",
+      "src/markdown/extract.rs": "148e999ab50fe36aeda8c34c276e6a3e9ea23513ac46542b17ce4f0a07547614",
+      "src/markdown.rs": "6f8dd4ba1d144b5a87b2b950bab6c96b367a300b073e549c05ad2b944d86af97",
+      "src/merge.rs": "9274989f4b9978b58ac06204a77ce92b36bbc3e4c15f494b68110b38262f719d",
+      "src/model.rs": "b54f38f1b2c5103a9b92e855e4ed6edee7e1aba558717c7a4939930a37579354",
+      "src/p2p.rs": "b2c3f7a2029a9173529a7603cc48200a7050755814d75bccd6e2c0ef857a78d5",
+      "src/patcher.rs": "50ebe6ff192e6137facecfd22fbd05d02e985af716a31bde5e7f098a34f2b1a1",
+      "src/paths.rs": "a5c719d40ec7c14770ec4d4a0f367a27fdd0d316db20bf3da25f32a8b09231c3",
+      "src/peer_acquire.rs": "5273cc7d89092a1481b77294c5f57629bc377822f018a8655b3d31d74022d8fc",
+      "src/phase.rs": "de3a6a526898c42fc8dad9a48565d7943c20012a6e9cb8d9df176132a4d905a3",
+      "src/profile_cli.rs": "4f60ec7a28e133b2cf2f4b273964768956369fe34e08490964b03e22bd534e18",
+      "src/profiles.rs": "e0824e2782b1ceca635d5f1c4c75ff2aec6036cebe3767f05a09bda80079f263",
+      "src/protocol.rs": "13877fc8bb295fb8787e3a9e11bcbca9d998cf7b7dd8209cda5f5144511f0faf",
+      "src/protocol_registration.rs": "3a240dffb690af41379a07e372889979ee2b40aa75b21b2a7ba2071db6c1bf9c",
+      "src/recovery.rs": "48407a4e8216ae5497106bc58219a75d0e7403015b1c57a2b1c51d9e508ee00b",
+      "src/reference_paths.rs": "1666e78a9c8ca8114d9673c4878854cf8f4e831a7e2ce928b4e9c44cb58abb2e",
+      "src/resources.rs": "678adda2640a7f8abb61319c311f44956d51a19a654a8546aaf4ca8689501433",
+      "src/selection.rs": "777cef0bde01e91df76fd5c498c44ce31d4018ed59dbf2bb800761f64d1fede2",
+      "src/single_instance.rs": "fc52211eac20d32e034f541c91058bbbb406fb26a43b4d9e2f085bb8f108e34f",
+      "src/telemetry.rs": "01283b3865d572eeda7b5de5901dc0f209193e5d5bd8185972be21eb44355ece",
+      "src/ui/completion_pages.rs": "7e122bc441ea74bf8bf5e48d9cb1a6cde68a0817e0c926c0179bc8646d4e608b",
+      "src/ui/downloads_panel.rs": "13a1e98f92511c1abf2b9d83c6606715c107e396dac76fa3b44109ad76eab94f",
+      "src/ui/installing_page.rs": "51af2238e2d6d4a52f0e787dd656e30a5356408d227797237b3ceafd2c2279dd",
+      "src/ui/validation_page.rs": "6506318221fbaa673706c92da5d58119f064c739d85af79a06ca4a32dadc890e",
+      "src/ui.rs": "e8e6c5a1895dabeeadafd429928d9c4a2077655c619c8a53d66f2d20aa241e87",
+      "src/updates.rs": "7e0dff211af1f430315369101ae4bd30fb7a5ad359f6eb6ab414651a084e40c9",
+      "src/validation/presentation.rs": "3d28c2acbf3883178bf287a4c452aa61974284dfde449957526cdff7a6cfd034",
+      "src/validation.rs": "86123bc263f4c42dfb225ddb2ba2fa66e9f63624258f77d30dc10bb63cad15b0",
+      "src/wizard.rs": "fb8fd6ebc6dd3a62609d0fee178a5b1a11006b49112e099566e173fdc9dbecd7",
+      "src/xml.rs": "d15737f2909f85a969c098843e93fd57b607b84228c46018c8e12aaa7f6e4000",
+      "Cargo.toml": "6ee6aadcb17656ced1493d3b6fdd7dc09269f1c9235e07bb1811cd1400ae50f1",
+      "Cargo.lock": "9fa1a428475faee574c48b9f1f287a6eb9c34e7fb589235b1ad7d811c43853e5"
+    },
+    "namespaces": {
+      "parent_network": "net:[4026531833]",
+      "network": "net:[4026537960]",
+      "user": "user:[4026537959]"
+    },
+    "uname": "Linux beatapostapita.bolabaden.org 6.17.0-1018-oracle #18~24.04.1-Ubuntu SMP Mon Jun 22 18:23:57 UTC 2026 aarch64 aarch64 aarch64 GNU/Linux"
+  },
+  "completed": true,
+  "scenarios": [
+    "broken-choices"
+  ],
+  "checks": [
+    {
+      "name": "malformed_choices_blocker_explains_gate",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "malformed_choices_no_second_editor",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "retry_same_failure_no_second_editor",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "retry_does_not_redownload",
+      "actual": 2,
+      "expected": 2,
+      "passed": true
+    },
+    {
+      "name": "retry_preserves_authored_choices",
+      "actual": "2bd40f05881fc87d47219594e65ce94b8e6f998184834f4e3188e1f3b8fb345e",
+      "expected": "2bd40f05881fc87d47219594e65ce94b8e6f998184834f4e3188e1f3b8fb345e",
+      "passed": true
+    },
+    {
+      "name": "malformed_choices_no_automatic_relaunch",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "malformed_choices_no_game_mutation",
+      "actual": {
+        "override/original.txt": "60624fbaf6192999be32cdb5a22da7878d40b83636498cef75f59cb5348c3f54",
+        "swkotor.exe": "35fa3166b6e751a4a1710872e4297882fa69f862dc3cf22c5e30b1f56e5ae303"
+      },
+      "expected": {
+        "override/original.txt": "60624fbaf6192999be32cdb5a22da7878d40b83636498cef75f59cb5348c3f54",
+        "swkotor.exe": "35fa3166b6e751a4a1710872e4297882fa69f862dc3cf22c5e30b1f56e5ae303"
+      },
+      "passed": true
+    },
+    {
+      "name": "malformed_choices_guide_preserved",
+      "actual": "2bd40f05881fc87d47219594e65ce94b8e6f998184834f4e3188e1f3b8fb345e",
+      "expected": "2bd40f05881fc87d47219594e65ce94b8e6f998184834f4e3188e1f3b8fb345e",
+      "passed": true
+    },
+    {
+      "name": "explicit_error_dismissals_release_validation",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    }
+  ],
+  "events": [
+    {
+      "t": 0.127,
+      "kind": "identity",
+      "binary": "/root/modsync-downloads-step2-20260928/target/modsync-desktop-candidate",
+      "binary_sha256": "70fe6d1105d393d29c007b9bfe46d7ed4fbeab038764455f775f749845a6295c",
+      "probe_sha256": "1209b1ebc5fb8374014a2984da23d729751587dde40014b442d2886c5a25524d",
+      "source": {
+        "src/acquisition.rs": "92a13616b529eb58b10b887481b0977b36fff82ec915646e1882c5dcf51abb6f",
+        "src/archive.rs": "51dccfef9ea640067483ae92aba1a2bc5ec808ab26b966c800ffa9efec1b9763",
+        "src/archive_generation/merge.rs": "be352a71eb5cc125148bfbd27275248c89f45af28f0a9d04910a9714a3487a1e",
+        "src/archive_generation.rs": "ca62b3c22e105108168c83b076b8c7d3fc64d1113373f47c9cf0cffd8f52660f",
+        "src/conflicts.rs": "c6f5dff2d21d2e4151cb53d3656e5b892e9d59e1f337ce9deaeba4671447d9a6",
+        "src/deployment.rs": "fab3726d33ebbac72878322856f3c70fe106a4ae29a8a70501b36c73280b339e",
+        "src/direct_markdown.rs": "70bf715188348e1700936adad2c304156846bd20b3fb3896f070983fb5b00521",
+        "src/download.rs": "effcc722ca140b1c7ba2d3693ce909934398400078b4622458d2de99f2074ced",
+        "src/download_hosts.rs": "2f6197607eaeb07e8eeaeb5050778701da31e9e6abd9891b60b204b94a4cee70",
+        "src/download_orchestrator.rs": "4298c77d1f0346075508c2d3cbafcf5919efc31775835a560c074ac9948cb811",
+        "src/download_plan.rs": "52edd1844819e65bef31c11d4c065123810da98310b1bed75405695e73222ff0",
+        "src/download_queue.rs": "3f91eefa75b26aa46153b1e9948bbb05237180af89fe79fec923d3f04eeb8467",
+        "src/draft.rs": "86525e213956a05155b3b9c7353935ad1cb9202f7980bce5454dfddc39ba1703",
+        "src/editor.rs": "a769237d78447abe2185ff23e78b3776ae7b701784bec7df7a915f04b7fd4a9d",
+        "src/engine.rs": "ead136850ec8729e463d79f32d6ee13bf4be3f9fcf6160ce47f1cb9216de816e",
+        "src/fomod/xml.rs": "7e087c643dd6d24e144b4cdd277e58d512694a991feca17d05912e9d145d8daf",
+        "src/fomod.rs": "6411c24801943357e2c8db1f96b3c7a30c68f80c611ce5588130b5b68ed02beb",
+        "src/fomod_cli.rs": "f5bcc513e952d86773a487eced9aa25a5a7a76ab700c4b5d2072691884c06cd8",
+        "src/fomod_ui.rs": "2e8c88e60e40471fda69a3971a333840b9b43d1ac37f918159be9470dc8988c2",
+        "src/game.rs": "7074ba4dd69436bae90a86f019496a7d4434900a55979e7d193173b4b850ae0e",
+        "src/install_progress.rs": "415720600e897cf79c11e8f5c784fe17da06831f01d243522e31413b3a79f163",
+        "src/lib.rs": "5249e749c8392537f60c0603a697b2eb46f4713764c7fe5fa7a7a14dd29e28c5",
+        "src/logging.rs": "58542a9bfd7b3fbbb90f137e31917d2369b5ded812cf269e4ecfaaf1446bef96",
+        "src/main.rs": "10b7a3d19714628e3cec85b33737e4e251dee6e642447f35e387a57177ab8012",
+        "src/markdown/extract.rs": "148e999ab50fe36aeda8c34c276e6a3e9ea23513ac46542b17ce4f0a07547614",
+        "src/markdown.rs": "6f8dd4ba1d144b5a87b2b950bab6c96b367a300b073e549c05ad2b944d86af97",
+        "src/merge.rs": "9274989f4b9978b58ac06204a77ce92b36bbc3e4c15f494b68110b38262f719d",
+        "src/model.rs": "b54f38f1b2c5103a9b92e855e4ed6edee7e1aba558717c7a4939930a37579354",
+        "src/p2p.rs": "b2c3f7a2029a9173529a7603cc48200a7050755814d75bccd6e2c0ef857a78d5",
+        "src/patcher.rs": "50ebe6ff192e6137facecfd22fbd05d02e985af716a31bde5e7f098a34f2b1a1",
+        "src/paths.rs": "a5c719d40ec7c14770ec4d4a0f367a27fdd0d316db20bf3da25f32a8b09231c3",
+        "src/peer_acquire.rs": "5273cc7d89092a1481b77294c5f57629bc377822f018a8655b3d31d74022d8fc",
+        "src/phase.rs": "de3a6a526898c42fc8dad9a48565d7943c20012a6e9cb8d9df176132a4d905a3",
+        "src/profile_cli.rs": "4f60ec7a28e133b2cf2f4b273964768956369fe34e08490964b03e22bd534e18",
+        "src/profiles.rs": "e0824e2782b1ceca635d5f1c4c75ff2aec6036cebe3767f05a09bda80079f263",
+        "src/protocol.rs": "13877fc8bb295fb8787e3a9e11bcbca9d998cf7b7dd8209cda5f5144511f0faf",
+        "src/protocol_registration.rs": "3a240dffb690af41379a07e372889979ee2b40aa75b21b2a7ba2071db6c1bf9c",
+        "src/recovery.rs": "48407a4e8216ae5497106bc58219a75d0e7403015b1c57a2b1c51d9e508ee00b",
+        "src/reference_paths.rs": "1666e78a9c8ca8114d9673c4878854cf8f4e831a7e2ce928b4e9c44cb58abb2e",
+        "src/resources.rs": "678adda2640a7f8abb61319c311f44956d51a19a654a8546aaf4ca8689501433",
+        "src/selection.rs": "777cef0bde01e91df76fd5c498c44ce31d4018ed59dbf2bb800761f64d1fede2",
+        "src/single_instance.rs": "fc52211eac20d32e034f541c91058bbbb406fb26a43b4d9e2f085bb8f108e34f",
+        "src/telemetry.rs": "01283b3865d572eeda7b5de5901dc0f209193e5d5bd8185972be21eb44355ece",
+        "src/ui/completion_pages.rs": "7e122bc441ea74bf8bf5e48d9cb1a6cde68a0817e0c926c0179bc8646d4e608b",
+        "src/ui/downloads_panel.rs": "13a1e98f92511c1abf2b9d83c6606715c107e396dac76fa3b44109ad76eab94f",
+        "src/ui/installing_page.rs": "51af2238e2d6d4a52f0e787dd656e30a5356408d227797237b3ceafd2c2279dd",
+        "src/ui/validation_page.rs": "6506318221fbaa673706c92da5d58119f064c739d85af79a06ca4a32dadc890e",
+        "src/ui.rs": "e8e6c5a1895dabeeadafd429928d9c4a2077655c619c8a53d66f2d20aa241e87",
+        "src/updates.rs": "7e0dff211af1f430315369101ae4bd30fb7a5ad359f6eb6ab414651a084e40c9",
+        "src/validation/presentation.rs": "3d28c2acbf3883178bf287a4c452aa61974284dfde449957526cdff7a6cfd034",
+        "src/validation.rs": "86123bc263f4c42dfb225ddb2ba2fa66e9f63624258f77d30dc10bb63cad15b0",
+        "src/wizard.rs": "fb8fd6ebc6dd3a62609d0fee178a5b1a11006b49112e099566e173fdc9dbecd7",
+        "src/xml.rs": "d15737f2909f85a969c098843e93fd57b607b84228c46018c8e12aaa7f6e4000",
+        "Cargo.toml": "6ee6aadcb17656ced1493d3b6fdd7dc09269f1c9235e07bb1811cd1400ae50f1",
+        "Cargo.lock": "9fa1a428475faee574c48b9f1f287a6eb9c34e7fb589235b1ad7d811c43853e5"
+      },
+      "namespaces": {
+        "parent_network": "net:[4026531833]",
+        "network": "net:[4026537960]",
+        "user": "user:[4026537959]"
+      },
+      "uname": "Linux beatapostapita.bolabaden.org 6.17.0-1018-oracle #18~24.04.1-Ubuntu SMP Mon Jun 22 18:23:57 UTC 2026 aarch64 aarch64 aarch64 GNU/Linux"
+    },
+    {
+      "t": 1.99,
+      "kind": "observed",
+      "name": "private X server accepts connections"
+    },
+    {
+      "t": 1.991,
+      "kind": "launch",
+      "argv": [
+        "/root/modsync-downloads-step2-20260928/target/modsync-desktop-candidate",
+        "gui",
+        "--settings-dir",
+        "/tmp/modsync-step2-plixvzz3/broken-choices/settings",
+        "--input",
+        "/tmp/modsync-step2-plixvzz3/broken-choices/guide.json",
+        "--source-dir",
+        "/tmp/modsync-step2-plixvzz3/broken-choices/mods",
+        "--game-dir",
+        "/tmp/modsync-step2-plixvzz3/broken-choices/game",
+        "--extra-ca-file",
+        "/tmp/modsync-step2-plixvzz3/ca.pem"
+      ]
+    },
+    {
+      "t": 7.31,
+      "kind": "screen",
+      "file": "screenshots/0003-before-next-to-downloads-0.png",
+      "sha256": "d9421e36d03f39c3e36ff027e2ba0d1f97f85453124023d62d25706623f155b3",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard K1 * K2 Welcome Step 1 of 10 Welcome to the ModSync Installation Wizard Welcome to ModSync The complete multi-mod installation solution for Knights of the Old Republic \u00a9 Automatic Dependencies O Cross-Platform \u00a9 One-Click Install The Problem The Solution Installing multiple KOTOR mods is tedious and error-prone: ModSync automates installation for you: * Manual file copying and deletion * Select mods you want, click Install * Complex install order requirements * Automatic dependency resolution * One mistake = start over from scratch * Smart install order management * Hours spent clicking through installers *No manual file operations needed * Confusing compatibility instructions * Built-in compatibility checking Installation Process 1. Configure Directories Point to your KOTOR installation and mod workspace folder 2. Load Instruction File Choose a curated mod build from popular configurations 3. Select Your Mods Browse by category or tier \u2014 dependencies auto-select 4. Download Mod Archives Select Fetch Downloads to acquire missing archives From direct and supported hosts. Hosts that need a login, CAPTCHA or wait stay manual in your browser. 5. Validation & Install Verify everything is ready, then install automatically Key Features Smart Dependencies Pre-Install Validation Resolves and installs required mods in the correct order Catches compatibility issues before installation starts Checkpoint System Cross-Platform Back Next Activity Copyreport Save report... Loaded 2 components"
+    },
+    {
+      "t": 7.422,
+      "kind": "click",
+      "action": "Next to downloads 0",
+      "label": "Next",
+      "position": [
+        1218,
+        740
+      ],
+      "calibrated": false
+    },
+    {
+      "t": 9.877,
+      "kind": "screen",
+      "file": "screenshots/0005-before-next-to-downloads-1.png",
+      "sha256": "4953e85b62fdb0691a4eeba0c1d32d010771d80f003ad5c0f9ebcf32b0d92bb0",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard K1 * K2 Step 2 of 10 Mod Workspace Directory Choose where mod archives are downloaded and processed Choose an existing workspace for downloaded archives and processed mod files. Keep it separate from your game installation. Mod workspace _/tmp/modsync-step2-plixvzz3/broken-choices/mods Browse... Directory exists Back Activity Copyreport Save report... Loaded 2 components"
+    },
+    {
+      "t": 10.016,
+      "kind": "click",
+      "action": "Next to downloads 1",
+      "label": "Next",
+      "position": [
+        1218,
+        740
+      ],
+      "calibrated": true
+    },
+    {
+      "t": 11.884,
+      "kind": "screen",
+      "file": "screenshots/0007-before-next-to-downloads-2.png",
+      "sha256": "ea4e404092ae8469fad6547e884f1aff4a19a8a9088d6414ef03955e44ff1274",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard K1 * K2 Step 3 of 10 KOTOR Game Directory Point to your KOTOR installation folder Choose the folder containing your supported PC KOTOR installation. Game directory /tmp/modsync-step2-plixvzz3/broken-choices/game Browse... Detected game: Kotor1 Back Activity Copyreport Save report... Loaded 2 components"
+    },
+    {
+      "t": 12.038,
+      "kind": "click",
+      "action": "Next to downloads 2",
+      "label": "Next",
+      "position": [
+        1218,
+        740
+      ],
+      "calibrated": true
+    },
+    {
+      "t": 15.472,
+      "kind": "screen",
+      "file": "screenshots/0009-before-next-to-downloads-3.png",
+      "sha256": "4205e6e4367dd83607b6d2297ed1b1e1a3de553e5045dc85d11be5daea7f60db",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard * Ki K2 Mod Selection Step 4 of 10 Choose the mods you want to install Check Nexus updates Select all Deselect all Search displayed name or description Clear filters Spoiler-free names and descriptions NA All tiers Select through tier All categories \u00a5 Select category Base build: 2 of 2 mods selected \u2014 All mods selected For installation Required: 0 Optional: 2 Base build: Showing all 2 mods Select multiple categories... Expand all Deselect group 2/2 selected > Other (2 mods) Example Component 0 Download links https://127.0.0.1:37529/one.zip 1 install steps Back Activity Copyreport Save report... Loaded 2 components"
+    },
+    {
+      "t": 15.804,
+      "kind": "click",
+      "action": "Next to downloads 3",
+      "label": "Next",
+      "position": [
+        1218,
+        740
+      ],
+      "calibrated": true
+    },
+    {
+      "t": 19.276,
+      "kind": "screen",
+      "file": "screenshots/0011-wait.png",
+      "sha256": "21cdff5f16257c9c9ef047e10fe03a1de4ff008a1f72feb1e5548bc592929c70",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard * Ki K2 Mod Selection Step 4 of 10 Choose the mods you want to install Downloads Download your mod files Peer sharing defaults to Race: Origin and Peer 2 base and 0 widescreen mods selected compete. Peer transfers use public proxies only and fail closed if no proxy works. Nothing downloads automatically. Select Fetch Downloads in the Downloads panel to acquire the missing archives of every selected mod into your workspace; archives already there are verified and kept. When enabled, discovery can fetch public proxy and Downloads continue while you read later pages, and the Downloads panel keeps their status. Changing the guide, selection or folders waits until downloads Finish. Run tracker lists. Sharing Off prevents peer discovery and validation after downloads finish; installation still requires a Fresh validation. transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside the app. Refresh peer settings \u00bb Peer-sharing settings Peer: Fallback; upload cap 16 KiB/s. Fetch Downloads plans every selected mod's archives (base and widescreen), keeps verified archives already in the workspace and downloads the rest. Nothing starts until you select it. @ Fetch Downloads Open workspace No downloads started Direct archive download For provider pages, use the source links below and download in your browser. https://.../mod.zip Archive filename Expected SHA-256 (optional) Download archive \u00bb Selected mod sources Every archive is verified before it is kept. Progress shows measured bytes; a percentage appears only when the host reports a size. Back \u2014 Activity Copyreport Save report... Loaded 2 components"
+    },
+    {
+      "t": 23.569,
+      "kind": "screen",
+      "file": "screenshots/0012-before-fetch-malformed-saved-choices.png",
+      "sha256": "0ccdafda460ca767210c9c33a778cb8f02734f8487e4f0aa7120d7bc404a5f94",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard K1 * K2 Download Process Step 5 of 10 Fetch archives, then answer installer choices Downloads Download your mod files Peer sharing defaults to Race: Origin and Peer 2 base and 0 widescreen mods selected compete. Peer transfers use public proxies only and fail closed if no proxy works. Nothing downloads automatically. Select Fetch Downloads in the Downloads panel to acquire the missing archives of every selected mod into your workspace; archives already there are verified and kept. When enabled, discovery can fetch public proxy and Downloads continue while you read later pages, and the Downloads panel keeps their status. Changing the guide, selection or folders waits until downloads Finish. Run tracker lists. Sharing Off prevents peer discovery and validation after downloads Finish; installation still requires a Fresh validation. transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside the app. Refresh peer settings \u00bb Peer-sharing settings Peer: Fallback; upload cap 16 KiB/s. Fetch Downloads plans every selected mod's archives (base and widescreen), keeps verified archives already in the workspace and downloads the rest. Nothing starts until you select it. @ Fetch Downloads Open workspace No downloads started Direct archive download For provider pages, use the source links below and download in your browser. https://.../mod.zip Archive filename Expected SHA-256 (optional) Download archive \u00bb Selected mod sources Every archive is verified before it is kept. Progress shows measured bytes; a percentage appears only when the host reports a size. No downloads started Back Next Activity Copyreport Save report... Loaded 2 components"
+    },
+    {
+      "t": 23.742,
+      "kind": "click",
+      "action": "Fetch malformed saved choices",
+      "label": "Fetch Downloads",
+      "position": [
+        1035,
+        414
+      ],
+      "calibrated": false
+    },
+    {
+      "t": 26.801,
+      "kind": "screen",
+      "file": "screenshots/0014-wait.png",
+      "sha256": "ae7de65074b65606837a98247c736c11938c53c30549f7cce0730eadcad97c30",
+      "text": "FOMOD choices need attention FOMOD choices: invalid type: string \"invalid saved choices fixture\", expected struct ChoicesFile at line 1 column 31 Validation and installation are blocked. Correct the saved choices and retry, or explicitly dismiss this prompt. Retry FOMOD choices Dismiss FOMOD prompt"
+    },
+    {
+      "t": 28.843,
+      "kind": "screen",
+      "file": "screenshots/0015-broken-choices-blocker.png",
+      "sha256": "ae7de65074b65606837a98247c736c11938c53c30549f7cce0730eadcad97c30",
+      "text": "FOMOD choices need attention FOMOD choices: invalid type: string \"invalid saved choices fixture\", expected struct ChoicesFile at line 1 column 31 Validation and installation are blocked. Correct the saved choices and retry, or explicitly dismiss this prompt. Retry FOMOD choices Dismiss FOMOD prompt"
+    },
+    {
+      "t": 28.843,
+      "kind": "assertion",
+      "name": "malformed_choices_blocker_explains_gate",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "t": 28.843,
+      "kind": "assertion",
+      "name": "malformed_choices_no_second_editor",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "t": 30.256,
+      "kind": "screen",
+      "file": "screenshots/0018-before-retry-fomod-choices.png",
+      "sha256": "ae7de65074b65606837a98247c736c11938c53c30549f7cce0730eadcad97c30",
+      "text": "FOMOD choices need attention FOMOD choices: invalid type: string \"invalid saved choices fixture\", expected struct ChoicesFile at line 1 column 31 Validation and installation are blocked. Correct the saved choices and retry, or explicitly dismiss this prompt. Retry FOMOD choices Dismiss FOMOD prompt"
+    },
+    {
+      "t": 30.381,
+      "kind": "click",
+      "action": "Retry FOMOD choices",
+      "label": "Retry FOMOD choices",
+      "position": [
+        436,
+        443
+      ],
+      "calibrated": false
+    },
+    {
+      "t": 32.815,
+      "kind": "screen",
+      "file": "screenshots/0020-wait.png",
+      "sha256": "7c9dd69657109bcf481e3bee6f21b8a5a103b8b36a278dfc3230c91d7df45ae5",
+      "text": "FOMOD choices need attention FOMOD choices: invalid type: string \"invalid saved choices fixture\", expected struct ChoicesFile at line 1 column 31 Validation and installation are blocked. Correct the saved choices and retry, or explicitly dismiss this prompt. Dismiss FOMOD prompt"
+    },
+    {
+      "t": 34.91,
+      "kind": "screen",
+      "file": "screenshots/0021-broken-choices-retry.png",
+      "sha256": "7c9dd69657109bcf481e3bee6f21b8a5a103b8b36a278dfc3230c91d7df45ae5",
+      "text": "FOMOD choices need attention FOMOD choices: invalid type: string \"invalid saved choices fixture\", expected struct ChoicesFile at line 1 column 31 Validation and installation are blocked. Correct the saved choices and retry, or explicitly dismiss this prompt. Dismiss FOMOD prompt"
+    },
+    {
+      "t": 34.91,
+      "kind": "assertion",
+      "name": "retry_same_failure_no_second_editor",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "t": 34.91,
+      "kind": "assertion",
+      "name": "retry_does_not_redownload",
+      "actual": 2,
+      "expected": 2,
+      "passed": true
+    },
+    {
+      "t": 34.91,
+      "kind": "assertion",
+      "name": "retry_preserves_authored_choices",
+      "actual": "2bd40f05881fc87d47219594e65ce94b8e6f998184834f4e3188e1f3b8fb345e",
+      "expected": "2bd40f05881fc87d47219594e65ce94b8e6f998184834f4e3188e1f3b8fb345e",
+      "passed": true
+    },
+    {
+      "t": 36.502,
+      "kind": "screen",
+      "file": "screenshots/0025-before-dismiss-fomod-prompt.png",
+      "sha256": "7c9dd69657109bcf481e3bee6f21b8a5a103b8b36a278dfc3230c91d7df45ae5",
+      "text": "FOMOD choices need attention FOMOD choices: invalid type: string \"invalid saved choices fixture\", expected struct ChoicesFile at line 1 column 31 Validation and installation are blocked. Correct the saved choices and retry, or explicitly dismiss this prompt. Dismiss FOMOD prompt"
+    },
+    {
+      "t": 36.613,
+      "kind": "click",
+      "action": "Dismiss FOMOD prompt",
+      "label": "Dismiss FOMOD prompt",
+      "position": [
+        581,
+        443
+      ],
+      "calibrated": false
+    },
+    {
+      "t": 38.681,
+      "kind": "screen",
+      "file": "screenshots/0027-wait.png",
+      "sha256": "7c47efc7bbaab47adacc515046e227eed2237268eb7e5da205c345035cc3be12",
+      "text": "FOMOD choices need attention FOMOD choices: invalid type: string \"invalid saved choices fixture\", expected struct ChoicesFile at line 1 column 31 Validation and installation are blocked. Correct the saved choices and retry, or explicitly dismiss this prompt. Retry FOMOD choices"
+    },
+    {
+      "t": 40.255,
+      "kind": "screen",
+      "file": "screenshots/0028-broken-choices-second-item.png",
+      "sha256": "7c47efc7bbaab47adacc515046e227eed2237268eb7e5da205c345035cc3be12",
+      "text": "FOMOD choices need attention FOMOD choices: invalid type: string \"invalid saved choices fixture\", expected struct ChoicesFile at line 1 column 31 Validation and installation are blocked. Correct the saved choices and retry, or explicitly dismiss this prompt. Retry FOMOD choices"
+    },
+    {
+      "t": 41.669,
+      "kind": "screen",
+      "file": "screenshots/0029-before-dismiss-second-malformed-choices-item.png",
+      "sha256": "7c47efc7bbaab47adacc515046e227eed2237268eb7e5da205c345035cc3be12",
+      "text": "FOMOD choices need attention FOMOD choices: invalid type: string \"invalid saved choices fixture\", expected struct ChoicesFile at line 1 column 31 Validation and installation are blocked. Correct the saved choices and retry, or explicitly dismiss this prompt. Retry FOMOD choices"
+    },
+    {
+      "t": 41.779,
+      "kind": "click",
+      "action": "Dismiss second malformed choices item",
+      "label": "Dismiss FOMOD prompt",
+      "position": [
+        581,
+        443
+      ],
+      "calibrated": true
+    },
+    {
+      "t": 49.614,
+      "kind": "screen",
+      "file": "screenshots/0031-broken-choices-dismissed.png",
+      "sha256": "0844f76448370bc657e1c5b1ebbc5fe7c5b69e65b176d7df27142e8db584385b",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard K1 * K2 Download Process Step 5 of 10 Fetch archives, then answer installer choices Downloads Download your mod files Peer sharing defaults to Race: Origin and Peer 2 base and 0 widescreen mods selected compete. Peer transfers use public proxies only and fail closed if no proxy works. Nothing downloads automatically. Select Fetch Downloads in the Downloads panel to acquire the missing archives of every selected mod into your workspace; archives already there are verified and kept. When enabled, discovery can fetch public proxy and Downloads continue while you read later pages, and the Downloads panel keeps their status. Changing the guide, selection or folders waits until downloads Finish. Run tracker lists. Sharing Off prevents peer discovery and validation after downloads finish; installation still requires a fresh validation. transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside the app. Refresh peer settings \u00bb Peer-sharing settings Peer: Fallback; upload cap 16 KiB/s. Fetch Downloads plans every selected mod's archives (base and widescreen), keeps verified archives already in the workspace and downloads the rest. Nothing starts until you select it. @ Fetch Downloads Open workspace Fetch Downloads Finished: every planned archive is ready Fetch Downloads: workspace /tmp/modsync-step2-plixvzz3/broken-choices/mods 2 selected components with resources (base and widescreen) 2 archive targets planned, 0 skipped before transfer; peer mode Fallback Archive targets: 2 planned; 2 completed, 0 manual, 0 failed, 0 cancelled. Skipped before transfer: 0 already present and verified, 0 not eligible. Guide resource records: 2 Files marked downloaded, 0 kept as authored false. Fetch Downloads finished: every planned archive is ready Back Next Activity Copyreport Save report... FOMOD choices: invalid type: string \u201cinvalid saved choices fixture\", expected struct ChoicesFile at line 1 column 31 FOMOD configuration error explicitly dismissed; validation will diagnose missing choices. FOMOD choices: invalid type: string \u201cinvalid saved choices fixture\", expected struct ChoicesFile at line 1 column 31 FOMOD configuration error explicitly dismissed; validation will diagnose missing choices."
+    },
+    {
+      "t": 49.614,
+      "kind": "assertion",
+      "name": "malformed_choices_no_automatic_relaunch",
+      "actual": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "t": 49.614,
+      "kind": "assertion",
+      "name": "malformed_choices_no_game_mutation",
+      "actual": {
+        "override/original.txt": "60624fbaf6192999be32cdb5a22da7878d40b83636498cef75f59cb5348c3f54",
+        "swkotor.exe": "35fa3166b6e751a4a1710872e4297882fa69f862dc3cf22c5e30b1f56e5ae303"
+      },
+      "expected": {
+        "override/original.txt": "60624fbaf6192999be32cdb5a22da7878d40b83636498cef75f59cb5348c3f54",
+        "swkotor.exe": "35fa3166b6e751a4a1710872e4297882fa69f862dc3cf22c5e30b1f56e5ae303"
+      },
+      "passed": true
+    },
+    {
+      "t": 49.614,
+      "kind": "assertion",
+      "name": "malformed_choices_guide_preserved",
+      "actual": "2bd40f05881fc87d47219594e65ce94b8e6f998184834f4e3188e1f3b8fb345e",
+      "expected": "2bd40f05881fc87d47219594e65ce94b8e6f998184834f4e3188e1f3b8fb345e",
+      "passed": true
+    },
+    {
+      "t": 53.518,
+      "kind": "screen",
+      "file": "screenshots/0035-before-navigate-after-explicit-malformed-choices-dismissals.png",
+      "sha256": "0844f76448370bc657e1c5b1ebbc5fe7c5b69e65b176d7df27142e8db584385b",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard K1 * K2 Download Process Step 5 of 10 Fetch archives, then answer installer choices Downloads Download your mod files Peer sharing defaults to Race: Origin and Peer 2 base and 0 widescreen mods selected compete. Peer transfers use public proxies only and fail closed if no proxy works. Nothing downloads automatically. Select Fetch Downloads in the Downloads panel to acquire the missing archives of every selected mod into your workspace; archives already there are verified and kept. When enabled, discovery can fetch public proxy and Downloads continue while you read later pages, and the Downloads panel keeps their status. Changing the guide, selection or folders waits until downloads Finish. Run tracker lists. Sharing Off prevents peer discovery and validation after downloads finish; installation still requires a fresh validation. transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside the app. Refresh peer settings \u00bb Peer-sharing settings Peer: Fallback; upload cap 16 KiB/s. Fetch Downloads plans every selected mod's archives (base and widescreen), keeps verified archives already in the workspace and downloads the rest. Nothing starts until you select it. @ Fetch Downloads Open workspace Fetch Downloads Finished: every planned archive is ready Fetch Downloads: workspace /tmp/modsync-step2-plixvzz3/broken-choices/mods 2 selected components with resources (base and widescreen) 2 archive targets planned, 0 skipped before transfer; peer mode Fallback Archive targets: 2 planned; 2 completed, 0 manual, 0 failed, 0 cancelled. Skipped before transfer: 0 already present and verified, 0 not eligible. Guide resource records: 2 Files marked downloaded, 0 kept as authored false. Fetch Downloads finished: every planned archive is ready Back Next Activity Copyreport Save report... FOMOD choices: invalid type: string \u201cinvalid saved choices fixture\", expected struct ChoicesFile at line 1 column 31 FOMOD configuration error explicitly dismissed; validation will diagnose missing choices. FOMOD choices: invalid type: string \u201cinvalid saved choices fixture\", expected struct ChoicesFile at line 1 column 31 FOMOD configuration error explicitly dismissed; validation will diagnose missing choices."
+    },
+    {
+      "t": 53.638,
+      "kind": "click",
+      "action": "Navigate after explicit malformed choices dismissals",
+      "label": "Next",
+      "position": [
+        1218,
+        690
+      ],
+      "calibrated": false
+    },
+    {
+      "t": 58.67,
+      "kind": "screen",
+      "file": "screenshots/0037-before-validate-after-malformed-choices-dismissals.png",
+      "sha256": "fea5572973fe9ccfb492e76c73cbfbb939ecf0c3848f8f66863473dfb11c67b7",
+      "text": "ModSync.rs_ Install mods in guide order Guide and settings Guide editor Return to wizard * Ki K2 Validation Step 6 of 10 Validating your mod selection and installation environment Downloads Peer sharing defaults to Race: Origin and Peer Q Pre-Installation Validation compete. Peer transfers use public proxies only and fail closed if no proxy works. We'll check For potential issues before starting the installation to ensure everything works smoothly. When enabled, discovery can fetch public proxy and tracker lists. Sharing Off prevents peer discovery and transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside | Q Run Validation the app. Refresh peer settings \u00bb Peer-sharing settings Peer: Fallback; upload cap 16 KiB/s. Fetch Downloads plans every selected mod's archives (base and widescreen), keeps verified archives already in the workspace and downloads the rest. Nothing starts until you select it. @ Fetch Downloads Open workspace Fetch Downloads Finished: every planned archive is ready Fetch Downloads: workspace /tmp/modsync-step2-plixvzz3/broken-choices/mods 2 selected components with resources (base and widescreen) 2 archive targets planned, 0 skipped before transfer; peer mode Fallback Archive targets: 2 planned; 2 completed, 0 manual, 0 failed, 0 cancelled. Skipped before transfer: 0 already present and verified, 0 not eligible. Guide resource records: 2 files marked downloaded, 0 ERRORS WARNINGS PASSED kept as authored false. Click \u2018Run Validation\u2019 to begin Downloads never validate or install. Run validation Ready to validate 2 of 2 mod(s). Click Run Validation to check your setup. 0 0 0 after downloads finish. Example Component 0: FOMOD installer in one.zip. Detected for the FOMOD choice queue. After closing needed. the prompt, use Validation tools to reopen it if Fetch Downloads Finished: every planned archive is ready Complete this page before continuing. Back Next"
+    },
+    {
+      "t": 58.781,
+      "kind": "click",
+      "action": "Validate after malformed choices dismissals",
+      "label": "Run Validation",
+      "position": [
+        96,
+        280
+      ],
+      "calibrated": true
+    },
+    {
+      "t": 64.97,
+      "kind": "screen",
+      "file": "screenshots/0039-wait.png",
+      "sha256": "8619c2208829a10ad02b0468d60530dec786f10cf9f5000753b64f7315203d49",
+      "text": "ModSync.rs_ Install mods in guide order Return to wizard Guide and settings Guide editor * K1 K2 Step 6 of 10 Validation Validating your mod selection and installation environment Downloads Peer sharing defaults to Race: Origin and Peer Q Pre-Installation Validation compete. Peer transfers use public proxies only and fail closed if no proxy works. We'll check For potential issues before starting the installation to ensure everything works smoothly. When enabled, discovery can fetch public proxy and tracker lists. Sharing Off prevents peer discovery and transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside Validation Failed the app. Refresh peer settings \u00bb Peer-sharing settings |G Validation Log) 100% |Gotofirst issue] |Copy report| Drag the splitter below to resize Peer: Fallback; upload cap 16 KiB/s. Fetch Downloads plans every selected mod's archives see Ce eee wees twee wee RL reps eee eee Ce eee Poon wey Sep ey ore ww ence we eee (base and widescreen), keeps verified archives already fomod-inspect <archive> --interactive --save-choices <file>\u201d and rec ord them with \u201cmodsync fetch-downloads --record --fomod-choices <file>\" invalid type: string \u201cinvalid saved choices fixture\", expected struct ChoicesFile at line 1 column in the workspace and downloads the rest. Nothing 31 starts until you select it. Step 6: Running instruction execution validation (dry-run) @ Fetch Downloads Open workspace Found 2 error(s) and @ warning(s) Fetch Downloads Finished: every planned archive is x EngineSimulation] Example Component \u00a9 / step 1 (Extract): Saved FomodChoices of component ready 00000000-0000-4000-8000-000000000000 cannot be parsed. Repair this component's FomodChoices in the guide (removing it discards every archive's saved choices for this component); \u2018fetch-downloads --fomod-choices*\u2019 does not overwrite unparseable Fetch Downloads: workspace saved choices. Afterwards, capture any missing choices with \u2018\u201cmodsync fomod-inspect <archive> --interactive --save-choices /tmp/modsync-step2-plixvzz3/broken-choices/mods <file>\u2019 and record them with \u2018\u201cmodsync fetch-downloads --record --fomod-choices <file>* invalid type: string \u201cinvalid saved choices fixture\". exnected struct ChnicesFile at line 1 column 31 2 selected components with resources (base and widescreen) 2 archive targets planned, 0 skipped before transfer; peer mode Fallback Archive targets: 2 planned; 2 completed, 0 manual, 0 failed, 0 cancelled. x FOMOD Configuration Skipped before transfer: 0 already present and Failed verified, 0 not eligible. Guide resource records: 2 Files marked downloaded, 0 kept as authored false. Downloads never validate or install. Run validation ERRORS WARNINGS PASSED after downloads finish. x Validation Failed Example Component 0: FOMOD installer in one.zip. Please resolve all critical errors before continuing. Check the results above For details. 3 0 4 Detected for the FOMOD choice queue. After closing the prompt, use Validation tools to reopen it if needed. Fetch Downloads finished: every planned archive is ready Complete this page before continuing. Back Next"
+    },
+    {
+      "t": 69.781,
+      "kind": "screen",
+      "file": "screenshots/0040-broken-choices-validation.png",
+      "sha256": "8619c2208829a10ad02b0468d60530dec786f10cf9f5000753b64f7315203d49",
+      "text": "ModSync.rs_ Install mods in guide order Return to wizard Guide and settings Guide editor * K1 K2 Step 6 of 10 Validation Validating your mod selection and installation environment Downloads Peer sharing defaults to Race: Origin and Peer Q Pre-Installation Validation compete. Peer transfers use public proxies only and fail closed if no proxy works. We'll check For potential issues before starting the installation to ensure everything works smoothly. When enabled, discovery can fetch public proxy and tracker lists. Sharing Off prevents peer discovery and transfers. Changes apply to the next run. Each run reads saved settings; refresh here after edits outside Validation Failed the app. Refresh peer settings \u00bb Peer-sharing settings |G Validation Log) 100% |Gotofirst issue] |Copy report| Drag the splitter below to resize Peer: Fallback; upload cap 16 KiB/s. Fetch Downloads plans every selected mod's archives see Ce eee wees twee wee RL reps eee eee Ce eee Poon wey Sep ey ore ww ence we eee (base and widescreen), keeps verified archives already fomod-inspect <archive> --interactive --save-choices <file>\u201d and rec ord them with \u201cmodsync fetch-downloads --record --fomod-choices <file>\" invalid type: string \u201cinvalid saved choices fixture\", expected struct ChoicesFile at line 1 column in the workspace and downloads the rest. Nothing 31 starts until you select it. Step 6: Running instruction execution validation (dry-run) @ Fetch Downloads Open workspace Found 2 error(s) and @ warning(s) Fetch Downloads Finished: every planned archive is x EngineSimulation] Example Component \u00a9 / step 1 (Extract): Saved FomodChoices of component ready 00000000-0000-4000-8000-000000000000 cannot be parsed. Repair this component's FomodChoices in the guide (removing it discards every archive's saved choices for this component); \u2018fetch-downloads --fomod-choices*\u2019 does not overwrite unparseable Fetch Downloads: workspace saved choices. Afterwards, capture any missing choices with \u2018\u201cmodsync fomod-inspect <archive> --interactive --save-choices /tmp/modsync-step2-plixvzz3/broken-choices/mods <file>\u2019 and record them with \u2018\u201cmodsync fetch-downloads --record --fomod-choices <file>* invalid type: string \u201cinvalid saved choices fixture\". exnected struct ChnicesFile at line 1 column 31 2 selected components with resources (base and widescreen) 2 archive targets planned, 0 skipped before transfer; peer mode Fallback Archive targets: 2 planned; 2 completed, 0 manual, 0 failed, 0 cancelled. x FOMOD Configuration Skipped before transfer: 0 already present and Failed verified, 0 not eligible. Guide resource records: 2 Files marked downloaded, 0 kept as authored false. Downloads never validate or install. Run validation ERRORS WARNINGS PASSED after downloads finish. x Validation Failed Example Component 0: FOMOD installer in one.zip. Please resolve all critical errors before continuing. Check the results above For details. 3 0 4 Detected for the FOMOD choice queue. After closing the prompt, use Validation tools to reopen it if needed. Fetch Downloads finished: every planned archive is ready Complete this page before continuing. Back Next"
+    },
+    {
+      "t": 69.781,
+      "kind": "assertion",
+      "name": "explicit_error_dismissals_release_validation",
+      "actual": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "t": 69.797,
+      "kind": "close",
+      "exit": -15
+    },
+    {
+      "t": 69.797,
+      "kind": "scenario_complete",
+      "scenario": "broken-choices"
+    }
+  ],
+  "requests": [
+    {
+      "path": "/one.zip",
+      "status": 200,
+      "bytes": 1028
+    },
+    {
+      "path": "/two.zip",
+      "status": 200,
+      "bytes": 1028
+    }
+  ],
+  "pending": [
+    "Stale editor outcome after an actual guide/root replacement: source review only until a safe UI route is reachable.",
+    "Completed-base choice preservation: requires an established completed-base fixture."
+  ],
+  "accepted": false,
+  "fixture_root": "/tmp/modsync-step2-plixvzz3",
+  "note": "Acceptance requires review of pending cases and screenshots; an exit code alone does not prove gates."
+}

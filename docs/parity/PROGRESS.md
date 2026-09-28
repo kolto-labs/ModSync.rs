@@ -9,6 +9,15 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current work
 
+- Current continuation starts from merged downloads GUI step 1, `d438528` (PR #5).
+  Step 2 adds peer-settings disclosure/preserving saves, a bound serial FOMOD queue,
+  error retry/dismiss ownership, readiness guards and responsive navigation.
+  Independent source reviews are in [the step-2 review](downloads-gui-step2-review.md);
+  production/native evidence is tracked in [the step-2 proof](downloads-gui-step2/README.md).
+  The bounded step-2 slice is accepted: five production gates, 46/46 native
+  assertions across five isolated scenarios, and 53 unchanged frozen files/regions.
+  Next: the remaining downloads step-3 native matrix, then persistent sharing.
+  Earlier in-flight statements below are historical to their recorded commits.
 - Wave 1 is recorded at `origin/main` `4bfacda`. Wave 2 is local on
   `codex/rust-parity-wave2-resume` in the isolated integration worktree.
 - Seven earlier approved lanes are merged: P2P proxy core, profiles/settings,

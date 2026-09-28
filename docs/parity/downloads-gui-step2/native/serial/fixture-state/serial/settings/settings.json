@@ -1,0 +1,18 @@
+{
+  "peerProxyListUrl": null,
+  "peerTrackerListUrl": [],
+  "peerTrackers": [],
+  "peerExtraPeers": [],
+  "peerProxies": [],
+  "telemetryOptIn": false,
+  "nexusModsApiKey": "synthetic-preserved-secret",
+  "fixtureUnknownKey": {
+    "nested": [
+      1,
+      "preserve"
+    ]
+  },
+  "peerUploadKiBps": 1,
+  "peerMode": "off",
+  "peerSharing": false
+}
