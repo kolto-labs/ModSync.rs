@@ -1,0 +1,78 @@
+{
+  "csharp_sha256": "89d9b2361aee4364f95151b41db59a4133122a6ad41bc2703e232cf10a4f5a6b",
+  "rust_sha256": "5d79343886439a86e2865604d40ab64f8a2eafc2f4233ae0d94b19032628ad0b",
+  "input_sha256": "197637db24b97907b0f4ef4a7738d467cf85b4ab832427348548900df8a7530d",
+  "rows": [
+    {
+      "case": "leading_backslash",
+      "input": "\\x\\foo.tga",
+      "csharp": [
+        "<<modDirectory>>/x/foo.tga"
+      ],
+      "rust": [
+        "\\x\\foo.tga"
+      ]
+    },
+    {
+      "case": "relative",
+      "input": "x/foo.tga",
+      "csharp": [
+        "<<modDirectory>>/x/foo.tga"
+      ],
+      "rust": [
+        "x/foo.tga"
+      ]
+    },
+    {
+      "case": "placeholder",
+      "input": "<<modDirectory>>\\x\\\\foo.tga",
+      "csharp": [
+        "<<modDirectory>>/x/foo.tga"
+      ],
+      "rust": [
+        "<<modDirectory>>\\x\\\\foo.tga"
+      ]
+    },
+    {
+      "case": "game_alias",
+      "input": "<<GAMEdirectory>>/Override/foo.tga",
+      "csharp": [
+        "<<GAMEdirectory>>/Override/foo.tga"
+      ],
+      "rust": [
+        "<<GAMEdirectory>>/Override/foo.tga"
+      ]
+    },
+    {
+      "case": "repeated",
+      "input": "x///foo.tga",
+      "csharp": [
+        "<<modDirectory>>/x/foo.tga"
+      ],
+      "rust": [
+        "x///foo.tga"
+      ]
+    },
+    {
+      "case": "trailing",
+      "input": "x/foo.tga/",
+      "csharp": [
+        "<<modDirectory>>/x/foo.tga"
+      ],
+      "rust": [
+        "x/foo.tga/"
+      ]
+    },
+    {
+      "case": "choose",
+      "input": "bbbbbbbb-0000-0000-0000-000000000001",
+      "csharp": [
+        "bbbbbbbb-0000-0000-0000-000000000001"
+      ],
+      "rust": [
+        "bbbbbbbb-0000-0000-0000-000000000001"
+      ]
+    }
+  ],
+  "scope": "Direct JSON loader/converter comparison only. No filesystem install or Markdown behavior measured."
+}

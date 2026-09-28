@@ -1,0 +1,73 @@
+{
+  "root": "/tmp/wave2-keys-x7h7bmhc",
+  "binary_sha256": "9f9d55d637b0a6436d6e2fcddb29a6dcf9ddc3c2f0ef61ec42ed9993fdc67f1b",
+  "checks": [
+    {
+      "name": "override refuses implicit environment key",
+      "passed": true
+    },
+    {
+      "name": "override uses only explicit key",
+      "passed": true
+    },
+    {
+      "name": "unsafe server filename refused",
+      "passed": true
+    },
+    {
+      "name": "normal endpoint explicit key bypasses unreadable settings in isolated network",
+      "passed": true
+    }
+  ],
+  "commands": [
+    {
+      "args": [
+        "/home/brunner56/.cache/modsync-resume/wave2-cli",
+        "nxm-download",
+        "nxm://kotor/mods/1/files/2?key=fixture&expires=9999999999&user_id=1",
+        "/tmp/wave2-keys-x7h7bmhc/output",
+        "--nexus-api-base",
+        "http://127.0.0.1:44105/",
+        "--settings-dir",
+        "/tmp/wave2-keys-x7h7bmhc/not-directory"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --nexus-api-base requires an explicit --nexus-mods-api-key\n"
+    },
+    {
+      "args": [
+        "/home/brunner56/.cache/modsync-resume/wave2-cli",
+        "nxm-download",
+        "nxm://kotor/mods/1/files/2?key=fixture&expires=9999999999&user_id=1",
+        "/tmp/wave2-keys-x7h7bmhc/output",
+        "--nexus-api-base",
+        "http://127.0.0.1:44105/",
+        "--settings-dir",
+        "/tmp/wave2-keys-x7h7bmhc/not-directory",
+        "--nexus-mods-api-key",
+        "EXPLICIT_FIXTURE"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: Downloaded filename \"../escape.zip\" contains a path separator\n"
+    },
+    {
+      "args": [
+        "unshare",
+        "-rn",
+        "/home/brunner56/.cache/modsync-resume/wave2-cli",
+        "nxm-download",
+        "nxm://kotor/mods/1/files/2?key=fixture&expires=9999999999&user_id=1",
+        "/tmp/wave2-keys-x7h7bmhc/normal",
+        "--settings-dir",
+        "/tmp/wave2-keys-x7h7bmhc/not-directory",
+        "--nexus-mods-api-key",
+        "EXPLICIT_FIXTURE"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: error sending request for url (https://api.nexusmods.com/v1/games/kotor/mods/1/files/2/download_link.json?key=fixture&expires=9999999999): client error (Connect): tcp connect error: Network is unreachable (os error 101)\n"
+    }
+  ]
+}

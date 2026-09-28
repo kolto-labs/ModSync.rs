@@ -1,0 +1,22 @@
+{
+  "args": [
+    "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+    "gui",
+    "--allow-multiple-instances",
+    "--settings-dir",
+    "/tmp/wave2-native-hhx6lz1p/settings",
+    "--input",
+    "/tmp/wave2-accepted-rjssod4t/guide.json",
+    "--game-dir",
+    "/tmp/wave2-accepted-rjssod4t/game",
+    "--source-dir",
+    "/tmp/wave2-accepted-rjssod4t/mods"
+  ],
+  "display": ":1",
+  "window": "2097156",
+  "pid": 462616,
+  "alive_at_capture": true,
+  "screenshot_sha256": "a3e6e00600959eddb61fadeb34ead150386a80c52ada88cb45b0cf6383c62c79",
+  "binary_sha256": "362d1e580ee3c6cdc837db29304be7eb6f4afadbfa41384cc4f38bc40cd67c93",
+  "boundary": "Launch/preload rendering only; no GUI install or completion navigation performed."
+}

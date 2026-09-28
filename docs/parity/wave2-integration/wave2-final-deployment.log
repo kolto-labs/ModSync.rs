@@ -1,0 +1,196 @@
+binary: /home/brunner56/.cache/modsync-rs-target-lead/debug/modsync sha256=e1982dd2d8a0a05fc66e40011b3ede5b7e8a98a2082c5a7e94d1380d93a10a3f mtime=2026-09-27 21:17:32.841119010 -0500
+source: 285f55df1c25df1519bee4a775bec653e317883f
+P1 deploy into empty target
+  before: (none)
+  after:  aaaaaaaa[Override/a.tga/hl]
+  PASS file deployed
+  PASS hardlinked (same inode)
+  PASS DeployedUtc 7 fractional digits
+  uninstall: (none)
+  PASS removed and pruned
+P2 deploy over pre-existing file, uninstall restores
+warning: Claiming ownership of /tmp/depprobe/wave2-integrated/p2/game for the first time while deploying aaaaaaaa-0000-0000-0000-000000000001, and 1 existing file(s) in its target paths will be backed up and overwritten; if another manager already tracks these files this could not be verified.
+  after deploy: aaaaaaaa[Override/a.tga+bk/hl] backup=ORIG
+  PASS new bytes live
+  after uninstall: (none)
+  PASS original restored
+  PASS backup tree removed (nested empty dirs pruned)
+P3 same component deployed twice
+warning: Claiming ownership of /tmp/depprobe/wave2-integrated/p3/game for the first time while deploying aaaaaaaa-0000-0000-0000-000000000001, and 1 existing file(s) in its target paths will be backed up and overwritten; if another manager already tracks these files this could not be verified.
+  second deploy rc=1: Error: Component aaaaaaaa-0000-0000-0000-000000000001 is already deployed. Uninstall it first so the files it displaced stay backed up.
+  manifests: aaaaaaaa[Override/a.tga+bk/hl] backup=ORIG
+  PASS second deploy refused
+  PASS original backup intact
+  PASS original back after uninstall
+P4 user-modified deployed file is preserved
+warning: Claiming ownership of /tmp/depprobe/wave2-integrated/p4/game for the first time while deploying aaaaaaaa-0000-0000-0000-000000000001, and 1 existing file(s) in its target paths will be backed up and overwritten; if another manager already tracks these files this could not be verified.
+  before: aaaaaaaa[Override/a.tga+bk/hl,Override/b.tga/hl]
+  after: (none)  report: {'deleted': ['Override/b.tga'], 'restored': [], 'skipped': ['Override/a.tga']}
+  PASS user file kept
+  PASS b removed
+  PASS original backup retained
+  PASS skipped reported
+P5 purge order across three components
+  before: aaaaaaaa[Override/x.2da+bk/hl] bbbbbbbb[Override/x.2da+bk/hl] cccccccc[Override/c.txt/hl,Override/x.2da+bk/hl]
+  conflict warnings: 2
+  after: (none) order=['cccccccc', 'bbbbbbbb', 'aaaaaaaa']
+  PASS purge newest first
+  PASS original restored after purge
+  PASS two conflict warnings
+P6 out-of-order uninstall hands the original backup to the later owner
+warning: Claiming ownership of /tmp/depprobe/wave2-integrated/p6/game for the first time while deploying aaaaaaaa-0000-0000-0000-000000000001, and 1 existing file(s) in its target paths will be backed up and overwritten; if another manager already tracks these files this could not be verified.
+  before: aaaaaaaa[Override/x.2da+bk/hl] bbbbbbbb[Override/x.2da+bk/hl] Bbackup=A
+  after A uninstall: bbbbbbbb[Override/x.2da+bk/hl] Bbackup=ORIG transferred=['Override/x.2da']
+  PASS B still live
+  PASS B backup now original
+  PASS original restored after B uninstall
+  PASS no orphan backups
+P7 bracketed / trailing-dot filenames
+  rc=0 after: aaaaaaaa[Movies/intro[1].bik/hl,Override/odd./hl]
+  PASS deployed bracket name
+  PASS removed
+P8 symlinked Override inside game dir is refused, nothing changed
+  rc=1: Error: Refusing to deploy through a symlink: /tmp/depprobe/wave2-integrated/p8/game/Override
+  after: (none)
+  PASS refused
+  PASS nothing written outside
+  PASS no partial deploy
+P9 staged symlink refused
+  rc=1: Error: Symlinks are unsupported in staged trees: /tmp/depprobe/wave2-integrated/p9/staging/aaaaaaaa-0000-0000-0000-000000000001/link.txt
+  PASS refused
+P10 mid-deploy failure rolls back
+  rc=1: Error: Deploy of aaaaaaaa-0000-0000-0000-000000000001 failed at Override/z/b.tga; this batch was rolled back: Permission denied (os error 13
+  after: (none)
+  PASS failed
+  PASS original back in place
+  PASS no manifest, no backups
+P11 case-aware destination
+warning: Claiming ownership of /tmp/depprobe/wave2-integrated/p11/game for the first time while deploying aaaaaaaa-0000-0000-0000-000000000001, and 1 existing file(s) in its target paths will be backed up and overwritten; if another manager already tracks these files this could not be verified.
+  after: aaaaaaaa[Override/A.TGA+bk/hl] dirs=Override
+  PASS reused Override/A.TGA
+  PASS restored
+P12 corrupt manifest during status/purge
+  before: aaaaaaaa[Override/a.tga/hl] dddddddd-0000-0000-0000-000000000004.json:CORRUPT
+  status rc=0 purge rc=0 warnings=2 after: dddddddd-0000-0000-0000-000000000004.json:CORRUPT
+  PASS status and purge succeed
+  PASS good component purged, corrupt kept
+P13 GUID casing normalized
+  PASS manifest file lowercase
+  PASS uppercase uninstall finds it
+P14 two profiles into one game dir, switch with purge
+One.json
+Two.json
+warning: Claiming ownership of /tmp/depprobe/wave2-integrated/p14/game for the first time while deploying aaaaaaaa-0000-0000-0000-000000000001, and 1 existing file(s) in its target paths will be backed up and overwritten; if another manager already tracks these files this could not be verified.
+  One: aaaaaaaa[Override/x.2da+bk/hl] live=ONE
+  switch: One -> Two purged 1 staged ['bbbbbbbb-0000-0000-0000-000000000002']
+  PASS One purged, original live
+warning: Claiming ownership of /tmp/depprobe/wave2-integrated/p14/game for the first time while deploying bbbbbbbb-0000-0000-0000-000000000002, and 1 existing file(s) in its target paths will be backed up and overwritten; if another manager already tracks these files this could not be verified.
+  Two (active): bbbbbbbb[Override/x.2da+bk/hl] live=TWO
+  PASS active profile resolves roots
+  PASS purge via --profile
+P15 patcher provenance (snapshot/record)
+  after record: aaaaaaaa[Override/new.2da/cp,dialog.tlk+bk/cp] backup=DIALOG0
+  PASS both recorded, dialog backed up
+  PASS uninstall restores pre-patcher dialog.tlk, removes new file
+  PASS modified pre-existing file without backup source is skipped
+P16 legacy uppercase manifest (written by the pre-normalization CLI)
+  before: AAAAAAAA[Override/a.tga+bk/hl]
+  redeploy rc=1: Error: Component aaaaaaaa-0000-0000-0000-000000000001 is already deployed. Uninstall it fi
+  PASS redeploy over legacy manifest refused
+  after purge: (none) live=ORIG
+  PASS purge finds legacy manifest and restores
+P17 switch without --purge-current is refused while the current profile is live
+  rc=1: Error: Profile 'One' still has 1 deployment(s) in this game directory. Two live profiles cannot share one game tree; pas
+  PASS refused, One still active, files in place
+P18 a second profile cannot deploy into a game dir another profile still owns
+warning: Claiming ownership of /tmp/depprobe/wave2-integrated/p18/game for the first time while deploying aaaaaaaa-0000-0000-0000-000000000001, and 1 existing file(s) in its target paths will be backed up and overwritten; if another manager already tracks these files this could not be verified.
+  rc=1: Error: Profile 'One' still has managed deployments in this game directory. Purge them before deploying from another prof
+  PASS Two refused, ONE live
+warning: Claiming ownership of /tmp/depprobe/wave2-integrated/p18/game for the first time while deploying bbbbbbbb-0000-0000-0000-000000000002, and 1 existing file(s) in its target paths will be backed up and overwritten; if another manager already tracks these files this could not be verified.
+  PASS after One is purged Two deploys, and purge gives ORIG
+P19 case-colliding game directories are refused even with an exact spelling
+  rc=1: Error: Case-colliding entries for Override in /tmp/depprobe/wave2-integrated/p19/game
+  PASS refused, nothing deployed
+P20 patcher changes a file the component already deployed
+warning: Claiming ownership of /tmp/depprobe/wave2-integrated/p20/game for the first time while deploying aaaaaaaa-0000-0000-0000-000000000001, and 1 existing file(s) in its target paths will be backed up and overwritten; if another manager already tracks these files this could not be verified.
+  after record: aaaaaaaa[dialog.tlk+bk/cp] staged=PATCHED
+  PASS owned path updated, staging kept in step
+  PASS uninstall removes patcher output and restores ORIG
+P21 provenance on an older component keeps ownership order
+warning: Claiming ownership of /tmp/depprobe/wave2-integrated/p21/game for the first time while deploying aaaaaaaa-0000-0000-0000-000000000001, and 1 existing file(s) in its target paths will be backed up and overwritten; if another manager already tracks these files this could not be verified.
+  PASS record_live left A's DeployedUtc unchanged
+  PASS handoff still works: final bytes ORIG, no orphan backups
+P22 deployment refuses while another ModSync process holds the game lock
+  rc=1: Error: Another ModSync process is using the game directory: Resource temporarily unavailable (os error 11)
+  PASS refused while locked, nothing deployed
+  PASS deploys once the lock is free
+P23 a pre-patcher copy that does not match the snapshot is not used as a backup
+  PASS skipped, no backup left behind
+P24 uninstall uses the recorded spelling after a case variant appears
+warning: Claiming ownership of /tmp/depprobe/wave2-integrated/p24/game for the first time while deploying aaaaaaaa-0000-0000-0000-000000000001, and 1 existing file(s) in its target paths will be backed up and overwritten; if another manager already tracks these files this could not be verified.
+  PASS original restored, manifest removed
+P25 provenance refuses a path a newer component owns, nothing mutated
+warning: Claiming ownership of /tmp/depprobe/wave2-integrated/p25/game for the first time while deploying aaaaaaaa-0000-0000-0000-000000000001, and 1 existing file(s) in its target paths will be backed up and overwritten; if another manager already tracks these files this could not be verified.
+  rc=1: Error: Refusing to record provenance: 'Override/y.2da' is owned by component 'bbbbbbbb-0000-0000-0000-000000000002', dep
+  after record: aaaaaaaa[Override/x.2da+bk/hl] bbbbbbbb[Override/y.2da+bk/hl]
+  PASS refused (nonzero exit), not skip-with-warning
+  PASS A's manifest untouched, not recorded, no backup made
+P25b provenance refuses this component's own path changed before the patcher, with no prior copy given
+warning: Claiming ownership of /tmp/depprobe/wave2-integrated/p25b/game for the first time while deploying aaaaaaaa-0000-0000-0000-000000000001, and 1 existing file(s) in its target paths will be backed up and overwritten; if another manager already tracks these files this could not be verified.
+  rc=1: Error: Refusing to record provenance: 'dialog.tlk' is owned by this component but changed before the patcher ran. Nothin
+  after record: aaaaaaaa[dialog.tlk+bk/hl]
+  PASS refused (nonzero exit), staging and manifest untouched
+P25c explicit --manifest-dir roots enforce the same game-wide exclusivity as profiles
+warning: Claiming ownership of /tmp/depprobe/wave2-integrated/p25c/game for the first time while deploying aaaaaaaa-0000-0000-0000-000000000001, and 1 existing file(s) in its target paths will be backed up and overwritten; if another manager already tracks these files this could not be verified.
+  root1 live: ONE
+  rc=1: Error: Manifest root /tmp/depprobe/wave2-integrated/p25c/managed still has managed deployments in this game directory. Purge them there first; two liv
+  PASS second explicit root refused while first still owns the game dir
+  after root1 purge, root2 rc=0: live=TWO
+  PASS ownership transfers once the first root has no manifests left
+P25d a marker-less legacy manifest root is refused against the wrong game directory
+  before: aaaaaaaa[Override/a.tga/hl] (no game-directory marker, hash does not match this game dir)
+  rc=0: 
+  PASS status still succeeds (read-only, no ensure_own_game gate)
+  uninstall rc=1: Error: This manifest root has no game-directory marker and its entry 'Override/a.tga' does not match a file in /tmp/depprobe/wave2-integrated/p25d/gam
+  PASS marker-less root refused: no owned entry hash-matches this game dir
+P26 a failed backup handoff leaves both backups and both manifests
+warning: Claiming ownership of /tmp/depprobe/wave2-integrated/p26/game for the first time while deploying aaaaaaaa-0000-0000-0000-000000000001, and 1 existing file(s) in its target paths will be backed up and overwritten; if another manager already tracks these files this could not be verified.
+  rc=1: Error: Could not hand the original of 'Override/x.2da' to the later owner's backup at /tmp/depprobe/wave2-integrated/p26
+  PASS refused; B's slot still holds A, A still holds ORIG
+  PASS retry hands off; final bytes ORIG
+P27 a failed provenance record removes the backups it made
+  rc=1: Error: Provenance was not recorded; backups made by this call were removed: Permission denied (os error 13) at path "/tm
+  PASS failed, no backup files, no manifest
+  PASS retry records both with backups
+  PASS uninstall restores both originals
+P28 a manifest root refuses a different game directory
+  rc=1: Error: These deployments belong to game directory /tmp/depprobe/wave2-integrated/p28/game, not /tmp/depprobe/wave2-integ
+  PASS refused, manifest and file kept
+P29 a root deployed by an older build (no owner-record support) adopts the record on its next command, closing the window for a second explicit root
+  old-binary deploy rc=0: aaaaaaaa[Override/x.2da+bk/hl]
+  PASS old binary deployed with a marker but no owner record
+  after fixed-binary touch: owner=/tmp/depprobe/wave2-integrated/p29/managed
+  PASS fixed binary adopted the owner record for this root
+  second explicit root rc=1: Error: Manifest root /tmp/depprobe/wave2-integrated/p29/managed still has managed deployments in this game directory. Purge them there first; two live
+  PASS second root refused; original root's file untouched
+P30 a marker-less root with one matching and one mismatching entry refuses, and the untouched game dir stays untouched
+  manifest entries: a.tga matches both dirs by coincidence, b.tga only matches game2
+  rc=1 against the wrong dir: Error: This manifest root has no game-directory marker and its entry 'Override/b.tga' does not match a file in /tmp/depprobe/wave2-integrated/p30/game
+  PASS refused, names the first mismatch, wrong dir untouched
+  PASS the real game dir was never touched
+P31 the same marker-less root is accepted once every owned entry matches (the real game dir)
+  rc=0 against the real dir: (none)
+  PASS accepted: both entries matched, manifest consumed, files removed
+P32 a marker-less legacy root with overlapping deployments purges newest first
+  PASS overlapping legacy manifests accepted and original restored
+P33 a marker-less root that adopted ownership blocks a second explicit root
+  PASS legacy claim adopted and second root refused without changing live bytes
+  PASS legacy owner still restores its original
+P34 an empty root does not adopt ownership on a no-op or failed deploy
+  PASS no-op uninstall leaves no owner record
+  PASS missing staging refuses without claiming ownership
+  PASS first successful deployment retains its ownership warning
+P35 mixed legacy path separators identify one live-owned path
+  PASS mixed separator legacy overlap restores original
+
+TOTAL pass=82 fail=0

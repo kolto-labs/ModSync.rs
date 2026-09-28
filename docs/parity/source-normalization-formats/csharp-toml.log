@@ -1,0 +1,640 @@
+[09/27/2026 21:37:49] Logging initialized at 09/27/2026 21:37:49
+[09/27/2026 21:37:50] [Verbose] MainConfig initialized
+[09/27/2026 21:37:50] [Verbose] No settings.json found, using defaults
+[09/27/2026 21:37:50] [Verbose] Convert mode: /home/brunner56/.cache/modsync-wt-integ/docs/parity/source-normalization-formats/input.toml
+[09/27/2026 21:37:50] [Verbose] Output format: json
+Loading components from input file...
+[09/27/2026 21:37:50] [Verbose] Loading from string with format: toml
+[09/27/2026 21:37:50] [Verbose] Loading from TOML string
+[09/27/2026 21:37:50] [Verbose] TOML table keys: thisMod
+[09/27/2026 21:37:50] [Verbose] Checking key: 'thisMod' - Contains Options: False, Contains Instructions: False
+[09/27/2026 21:37:50] [Verbose] Checking key for Options Instructions: 'thisMod' - Contains Options: False, Contains Instructions: False
+[09/27/2026 21:37:50] [Verbose] === Processing TOML component ===
+[09/27/2026 21:37:50] [Verbose] tomlComponent type: TomlTable
+[09/27/2026 21:37:50] [Verbose] componentDict type: TomlTable
+[09/27/2026 21:37:50] [Verbose] componentDict keys: Guid, Name, Author, Description, Directions, Tier, Category, IsSelected, Dependencies, Restrictions, InstallBefore, InstallAfter, Instructions, ResourceRegistry
+[09/27/2026 21:37:50] [Verbose] Found Guid key: 'Guid' (case-insensitive match)
+[09/27/2026 21:37:50] [Verbose] TOML component has Instructions field: type=TomlTableArray, value: Tomlyn.Model.TomlTableArray
+[09/27/2026 21:37:50] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Guid', type=String, value=aaaaaaaa-0000-0000-0000-000000000001
+[09/27/2026 21:37:50] [Verbose] GetValue<Guid>: key='Guid', type=string, value='aaaaaaaa-0000-0000-0000-000000000001'
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Name', type=String, value=Example leading_backslash
+[09/27/2026 21:37:50] [Verbose]  == Deserialize next component 'Example leading_backslash' ==
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Author', type=String, value=
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Category', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Category', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:50] [Warning] Could not deserialize key 'Category': Object must implement IConvertible. - using default value
+[09/27/2026 21:37:50] [Verbose] Deserialization error details for 'Category': System.InvalidCastException: Object must implement IConvertible.
+   at System.Convert.ChangeType(Object value, Type conversionType, IFormatProvider provider)
+   at ModSync.Core.Services.ModComponentSerializationService.GetValue[T](IDictionary`2 dict, String key, Boolean required) in /home/brunner56/.codex/worktrees/5813/ModSync/src/ModSync.Core/Services/ModComponentSerializationService.cs:line 3279
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Tier', type=String, value=
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Description', type=String, value=
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Directions', type=String, value=
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] DeserializeResourceRegistry: Found ResourceRegistry field, type: TomlTable
+[09/27/2026 21:37:50] [Verbose] DeserializeResourceRegistry: ResourceRegistry is IDictionary<string, object> with 0 entries
+[09/27/2026 21:37:50] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Dependencies', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:50] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Restrictions', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:50] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'InstallBefore', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:50] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'InstallAfter', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:50] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'IsSelected', type=Boolean, value=True
+[09/27/2026 21:37:50] [Verbose] === Processing Instructions for component 'Example leading_backslash' ===
+[09/27/2026 21:37:50] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 21:37:50] [Verbose] Instructions object type: TomlTableArray, value: Tomlyn.Model.TomlTableArray
+[09/27/2026 21:37:50] [Verbose] Instructions is TomlTableArray with 1 items
+[09/27/2026 21:37:50] [Verbose] DeserializeInstructions called for 'Example leading_backslash' with 1 items
+[09/27/2026 21:37:50] [Verbose]   instructionsSerializedList[0] type: TomlTable, value: Tomlyn.Model.TomlTable
+[09/27/2026 21:37:50] [Verbose] Processing instruction 1 for 'Example leading_backslash': Tomlyn.Model.TomlTable
+[09/27/2026 21:37:50] [Verbose] Serialized instruction dict: Guid, Action, Source, Destination, Arguments, Overwrite, Dependencies, Restrictions
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:50] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 8 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Arguments', type=String, value=
+[09/27/2026 21:37:50] [Verbose] GetValue<Boolean>: Attempting to get key 'Overwrite' from dict with 8 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Overwrite', type=Boolean, value=True
+[09/27/2026 21:37:50] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 8 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Restrictions', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:50] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 8 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Dependencies', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:50] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 8 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.String]
+[09/27/2026 21:37:50] [Verbose] [Instruction.set_Source] Setting new source and calling OnPropertyChanged
+[09/27/2026 21:37:50] [Verbose] [Instruction.set_Source] OnPropertyChanged completed
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 8 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 21:37:50] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] Successfully deserialized component 'Example leading_backslash'
+[09/27/2026 21:37:50] [Verbose] === Processing TOML component ===
+[09/27/2026 21:37:50] [Verbose] tomlComponent type: TomlTable
+[09/27/2026 21:37:50] [Verbose] componentDict type: TomlTable
+[09/27/2026 21:37:50] [Verbose] componentDict keys: Guid, Name, Author, Description, Directions, Tier, Category, IsSelected, Dependencies, Restrictions, InstallBefore, InstallAfter, Instructions, ResourceRegistry
+[09/27/2026 21:37:50] [Verbose] Found Guid key: 'Guid' (case-insensitive match)
+[09/27/2026 21:37:50] [Verbose] TOML component has Instructions field: type=TomlTableArray, value: Tomlyn.Model.TomlTableArray
+[09/27/2026 21:37:50] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Guid', type=String, value=aaaaaaaa-0000-0000-0000-000000000002
+[09/27/2026 21:37:50] [Verbose] GetValue<Guid>: key='Guid', type=string, value='aaaaaaaa-0000-0000-0000-000000000002'
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Name', type=String, value=Example relative
+[09/27/2026 21:37:50] [Verbose]  == Deserialize next component 'Example relative' ==
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Author', type=String, value=
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Category', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Category', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:50] [Warning] Could not deserialize key 'Category': Object must implement IConvertible. - using default value
+[09/27/2026 21:37:50] [Verbose] Deserialization error details for 'Category': System.InvalidCastException: Object must implement IConvertible.
+   at System.Convert.ChangeType(Object value, Type conversionType, IFormatProvider provider)
+   at ModSync.Core.Services.ModComponentSerializationService.GetValue[T](IDictionary`2 dict, String key, Boolean required) in /home/brunner56/.codex/worktrees/5813/ModSync/src/ModSync.Core/Services/ModComponentSerializationService.cs:line 3279
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Tier', type=String, value=
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Description', type=String, value=
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Directions', type=String, value=
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] DeserializeResourceRegistry: Found ResourceRegistry field, type: TomlTable
+[09/27/2026 21:37:50] [Verbose] DeserializeResourceRegistry: ResourceRegistry is IDictionary<string, object> with 0 entries
+[09/27/2026 21:37:50] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Dependencies', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:50] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Restrictions', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:50] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'InstallBefore', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:50] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'InstallAfter', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:50] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'IsSelected', type=Boolean, value=True
+[09/27/2026 21:37:50] [Verbose] === Processing Instructions for component 'Example relative' ===
+[09/27/2026 21:37:50] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 21:37:50] [Verbose] Instructions object type: TomlTableArray, value: Tomlyn.Model.TomlTableArray
+[09/27/2026 21:37:50] [Verbose] Instructions is TomlTableArray with 1 items
+[09/27/2026 21:37:50] [Verbose] DeserializeInstructions called for 'Example relative' with 1 items
+[09/27/2026 21:37:50] [Verbose]   instructionsSerializedList[0] type: TomlTable, value: Tomlyn.Model.TomlTable
+[09/27/2026 21:37:50] [Verbose] Processing instruction 1 for 'Example relative': Tomlyn.Model.TomlTable
+[09/27/2026 21:37:50] [Verbose] Serialized instruction dict: Guid, Action, Source, Destination, Arguments, Overwrite, Dependencies, Restrictions
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:50] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 8 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Arguments', type=String, value=
+[09/27/2026 21:37:50] [Verbose] GetValue<Boolean>: Attempting to get key 'Overwrite' from dict with 8 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Overwrite', type=Boolean, value=True
+[09/27/2026 21:37:50] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 8 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Restrictions', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:50] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 8 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Dependencies', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:50] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 8 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.String]
+[09/27/2026 21:37:50] [Verbose] [Instruction.set_Source] Setting new source and calling OnPropertyChanged
+[09/27/2026 21:37:50] [Verbose] [Instruction.set_Source] OnPropertyChanged completed
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 8 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 21:37:50] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] Successfully deserialized component 'Example relative'
+[09/27/2026 21:37:50] [Verbose] === Processing TOML component ===
+[09/27/2026 21:37:50] [Verbose] tomlComponent type: TomlTable
+[09/27/2026 21:37:50] [Verbose] componentDict type: TomlTable
+[09/27/2026 21:37:50] [Verbose] componentDict keys: Guid, Name, Author, Description, Directions, Tier, Category, IsSelected, Dependencies, Restrictions, InstallBefore, InstallAfter, Instructions, ResourceRegistry
+[09/27/2026 21:37:50] [Verbose] Found Guid key: 'Guid' (case-insensitive match)
+[09/27/2026 21:37:50] [Verbose] TOML component has Instructions field: type=TomlTableArray, value: Tomlyn.Model.TomlTableArray
+[09/27/2026 21:37:50] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Guid', type=String, value=aaaaaaaa-0000-0000-0000-000000000003
+[09/27/2026 21:37:50] [Verbose] GetValue<Guid>: key='Guid', type=string, value='aaaaaaaa-0000-0000-0000-000000000003'
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Name', type=String, value=Example placeholder
+[09/27/2026 21:37:50] [Verbose]  == Deserialize next component 'Example placeholder' ==
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Author', type=String, value=
+[09/27/2026 21:37:50] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 14 keys
+[09/27/2026 21:37:50] [Verbose] GetValue: Found key 'Category', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Category', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Warning] Could not deserialize key 'Category': Object must implement IConvertible. - using default value
+[09/27/2026 21:37:51] [Verbose] Deserialization error details for 'Category': System.InvalidCastException: Object must implement IConvertible.
+   at System.Convert.ChangeType(Object value, Type conversionType, IFormatProvider provider)
+   at ModSync.Core.Services.ModComponentSerializationService.GetValue[T](IDictionary`2 dict, String key, Boolean required) in /home/brunner56/.codex/worktrees/5813/ModSync/src/ModSync.Core/Services/ModComponentSerializationService.cs:line 3279
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Tier', type=String, value=
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Description', type=String, value=
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Directions', type=String, value=
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] DeserializeResourceRegistry: Found ResourceRegistry field, type: TomlTable
+[09/27/2026 21:37:51] [Verbose] DeserializeResourceRegistry: ResourceRegistry is IDictionary<string, object> with 0 entries
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Dependencies', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Restrictions', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'InstallBefore', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'InstallAfter', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'IsSelected', type=Boolean, value=True
+[09/27/2026 21:37:51] [Verbose] === Processing Instructions for component 'Example placeholder' ===
+[09/27/2026 21:37:51] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 21:37:51] [Verbose] Instructions object type: TomlTableArray, value: Tomlyn.Model.TomlTableArray
+[09/27/2026 21:37:51] [Verbose] Instructions is TomlTableArray with 1 items
+[09/27/2026 21:37:51] [Verbose] DeserializeInstructions called for 'Example placeholder' with 1 items
+[09/27/2026 21:37:51] [Verbose]   instructionsSerializedList[0] type: TomlTable, value: Tomlyn.Model.TomlTable
+[09/27/2026 21:37:51] [Verbose] Processing instruction 1 for 'Example placeholder': Tomlyn.Model.TomlTable
+[09/27/2026 21:37:51] [Verbose] Serialized instruction dict: Guid, Action, Source, Destination, Arguments, Overwrite, Dependencies, Restrictions
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:51] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Arguments', type=String, value=
+[09/27/2026 21:37:51] [Verbose] GetValue<Boolean>: Attempting to get key 'Overwrite' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Overwrite', type=Boolean, value=True
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Restrictions', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Dependencies', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.String]
+[09/27/2026 21:37:51] [Verbose] [Instruction.set_Source] Setting new source and calling OnPropertyChanged
+[09/27/2026 21:37:51] [Verbose] [Instruction.set_Source] OnPropertyChanged completed
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 21:37:51] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] Successfully deserialized component 'Example placeholder'
+[09/27/2026 21:37:51] [Verbose] === Processing TOML component ===
+[09/27/2026 21:37:51] [Verbose] tomlComponent type: TomlTable
+[09/27/2026 21:37:51] [Verbose] componentDict type: TomlTable
+[09/27/2026 21:37:51] [Verbose] componentDict keys: Guid, Name, Author, Description, Directions, Tier, Category, IsSelected, Dependencies, Restrictions, InstallBefore, InstallAfter, Instructions, ResourceRegistry
+[09/27/2026 21:37:51] [Verbose] Found Guid key: 'Guid' (case-insensitive match)
+[09/27/2026 21:37:51] [Verbose] TOML component has Instructions field: type=TomlTableArray, value: Tomlyn.Model.TomlTableArray
+[09/27/2026 21:37:51] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Guid', type=String, value=aaaaaaaa-0000-0000-0000-000000000004
+[09/27/2026 21:37:51] [Verbose] GetValue<Guid>: key='Guid', type=string, value='aaaaaaaa-0000-0000-0000-000000000004'
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Name', type=String, value=Example game_alias
+[09/27/2026 21:37:51] [Verbose]  == Deserialize next component 'Example game_alias' ==
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Author', type=String, value=
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Category', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Category', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Warning] Could not deserialize key 'Category': Object must implement IConvertible. - using default value
+[09/27/2026 21:37:51] [Verbose] Deserialization error details for 'Category': System.InvalidCastException: Object must implement IConvertible.
+   at System.Convert.ChangeType(Object value, Type conversionType, IFormatProvider provider)
+   at ModSync.Core.Services.ModComponentSerializationService.GetValue[T](IDictionary`2 dict, String key, Boolean required) in /home/brunner56/.codex/worktrees/5813/ModSync/src/ModSync.Core/Services/ModComponentSerializationService.cs:line 3279
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Tier', type=String, value=
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Description', type=String, value=
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Directions', type=String, value=
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] DeserializeResourceRegistry: Found ResourceRegistry field, type: TomlTable
+[09/27/2026 21:37:51] [Verbose] DeserializeResourceRegistry: ResourceRegistry is IDictionary<string, object> with 0 entries
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Dependencies', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Restrictions', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'InstallBefore', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'InstallAfter', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'IsSelected', type=Boolean, value=True
+[09/27/2026 21:37:51] [Verbose] === Processing Instructions for component 'Example game_alias' ===
+[09/27/2026 21:37:51] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 21:37:51] [Verbose] Instructions object type: TomlTableArray, value: Tomlyn.Model.TomlTableArray
+[09/27/2026 21:37:51] [Verbose] Instructions is TomlTableArray with 1 items
+[09/27/2026 21:37:51] [Verbose] DeserializeInstructions called for 'Example game_alias' with 1 items
+[09/27/2026 21:37:51] [Verbose]   instructionsSerializedList[0] type: TomlTable, value: Tomlyn.Model.TomlTable
+[09/27/2026 21:37:51] [Verbose] Processing instruction 1 for 'Example game_alias': Tomlyn.Model.TomlTable
+[09/27/2026 21:37:51] [Verbose] Serialized instruction dict: Guid, Action, Source, Destination, Arguments, Overwrite, Dependencies, Restrictions
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:51] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Arguments', type=String, value=
+[09/27/2026 21:37:51] [Verbose] GetValue<Boolean>: Attempting to get key 'Overwrite' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Overwrite', type=Boolean, value=True
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Restrictions', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Dependencies', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.String]
+[09/27/2026 21:37:51] [Verbose] [Instruction.set_Source] Setting new source and calling OnPropertyChanged
+[09/27/2026 21:37:51] [Verbose] [Instruction.set_Source] OnPropertyChanged completed
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 21:37:51] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] Successfully deserialized component 'Example game_alias'
+[09/27/2026 21:37:51] [Verbose] === Processing TOML component ===
+[09/27/2026 21:37:51] [Verbose] tomlComponent type: TomlTable
+[09/27/2026 21:37:51] [Verbose] componentDict type: TomlTable
+[09/27/2026 21:37:51] [Verbose] componentDict keys: Guid, Name, Author, Description, Directions, Tier, Category, IsSelected, Dependencies, Restrictions, InstallBefore, InstallAfter, Instructions, ResourceRegistry
+[09/27/2026 21:37:51] [Verbose] Found Guid key: 'Guid' (case-insensitive match)
+[09/27/2026 21:37:51] [Verbose] TOML component has Instructions field: type=TomlTableArray, value: Tomlyn.Model.TomlTableArray
+[09/27/2026 21:37:51] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Guid', type=String, value=aaaaaaaa-0000-0000-0000-000000000005
+[09/27/2026 21:37:51] [Verbose] GetValue<Guid>: key='Guid', type=string, value='aaaaaaaa-0000-0000-0000-000000000005'
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Name', type=String, value=Example repeated
+[09/27/2026 21:37:51] [Verbose]  == Deserialize next component 'Example repeated' ==
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Author', type=String, value=
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Category', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Category', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Warning] Could not deserialize key 'Category': Object must implement IConvertible. - using default value
+[09/27/2026 21:37:51] [Verbose] Deserialization error details for 'Category': System.InvalidCastException: Object must implement IConvertible.
+   at System.Convert.ChangeType(Object value, Type conversionType, IFormatProvider provider)
+   at ModSync.Core.Services.ModComponentSerializationService.GetValue[T](IDictionary`2 dict, String key, Boolean required) in /home/brunner56/.codex/worktrees/5813/ModSync/src/ModSync.Core/Services/ModComponentSerializationService.cs:line 3279
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Tier', type=String, value=
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Description', type=String, value=
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Directions', type=String, value=
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] DeserializeResourceRegistry: Found ResourceRegistry field, type: TomlTable
+[09/27/2026 21:37:51] [Verbose] DeserializeResourceRegistry: ResourceRegistry is IDictionary<string, object> with 0 entries
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Dependencies', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Restrictions', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'InstallBefore', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'InstallAfter', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'IsSelected', type=Boolean, value=True
+[09/27/2026 21:37:51] [Verbose] === Processing Instructions for component 'Example repeated' ===
+[09/27/2026 21:37:51] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 21:37:51] [Verbose] Instructions object type: TomlTableArray, value: Tomlyn.Model.TomlTableArray
+[09/27/2026 21:37:51] [Verbose] Instructions is TomlTableArray with 1 items
+[09/27/2026 21:37:51] [Verbose] DeserializeInstructions called for 'Example repeated' with 1 items
+[09/27/2026 21:37:51] [Verbose]   instructionsSerializedList[0] type: TomlTable, value: Tomlyn.Model.TomlTable
+[09/27/2026 21:37:51] [Verbose] Processing instruction 1 for 'Example repeated': Tomlyn.Model.TomlTable
+[09/27/2026 21:37:51] [Verbose] Serialized instruction dict: Guid, Action, Source, Destination, Arguments, Overwrite, Dependencies, Restrictions
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:51] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Arguments', type=String, value=
+[09/27/2026 21:37:51] [Verbose] GetValue<Boolean>: Attempting to get key 'Overwrite' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Overwrite', type=Boolean, value=True
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Restrictions', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Dependencies', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.String]
+[09/27/2026 21:37:51] [Verbose] [Instruction.set_Source] Setting new source and calling OnPropertyChanged
+[09/27/2026 21:37:51] [Verbose] [Instruction.set_Source] OnPropertyChanged completed
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 21:37:51] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] Successfully deserialized component 'Example repeated'
+[09/27/2026 21:37:51] [Verbose] === Processing TOML component ===
+[09/27/2026 21:37:51] [Verbose] tomlComponent type: TomlTable
+[09/27/2026 21:37:51] [Verbose] componentDict type: TomlTable
+[09/27/2026 21:37:51] [Verbose] componentDict keys: Guid, Name, Author, Description, Directions, Tier, Category, IsSelected, Dependencies, Restrictions, InstallBefore, InstallAfter, Instructions, ResourceRegistry
+[09/27/2026 21:37:51] [Verbose] Found Guid key: 'Guid' (case-insensitive match)
+[09/27/2026 21:37:51] [Verbose] TOML component has Instructions field: type=TomlTableArray, value: Tomlyn.Model.TomlTableArray
+[09/27/2026 21:37:51] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Guid', type=String, value=aaaaaaaa-0000-0000-0000-000000000006
+[09/27/2026 21:37:51] [Verbose] GetValue<Guid>: key='Guid', type=string, value='aaaaaaaa-0000-0000-0000-000000000006'
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Name', type=String, value=Example trailing
+[09/27/2026 21:37:51] [Verbose]  == Deserialize next component 'Example trailing' ==
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Author', type=String, value=
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Category', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Category', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Warning] Could not deserialize key 'Category': Object must implement IConvertible. - using default value
+[09/27/2026 21:37:51] [Verbose] Deserialization error details for 'Category': System.InvalidCastException: Object must implement IConvertible.
+   at System.Convert.ChangeType(Object value, Type conversionType, IFormatProvider provider)
+   at ModSync.Core.Services.ModComponentSerializationService.GetValue[T](IDictionary`2 dict, String key, Boolean required) in /home/brunner56/.codex/worktrees/5813/ModSync/src/ModSync.Core/Services/ModComponentSerializationService.cs:line 3279
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Tier', type=String, value=
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Description', type=String, value=
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Directions', type=String, value=
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] DeserializeResourceRegistry: Found ResourceRegistry field, type: TomlTable
+[09/27/2026 21:37:51] [Verbose] DeserializeResourceRegistry: ResourceRegistry is IDictionary<string, object> with 0 entries
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Dependencies', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Restrictions', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'InstallBefore', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'InstallAfter', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'IsSelected', type=Boolean, value=True
+[09/27/2026 21:37:51] [Verbose] === Processing Instructions for component 'Example trailing' ===
+[09/27/2026 21:37:51] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 21:37:51] [Verbose] Instructions object type: TomlTableArray, value: Tomlyn.Model.TomlTableArray
+[09/27/2026 21:37:51] [Verbose] Instructions is TomlTableArray with 1 items
+[09/27/2026 21:37:51] [Verbose] DeserializeInstructions called for 'Example trailing' with 1 items
+[09/27/2026 21:37:51] [Verbose]   instructionsSerializedList[0] type: TomlTable, value: Tomlyn.Model.TomlTable
+[09/27/2026 21:37:51] [Verbose] Processing instruction 1 for 'Example trailing': Tomlyn.Model.TomlTable
+[09/27/2026 21:37:51] [Verbose] Serialized instruction dict: Guid, Action, Source, Destination, Arguments, Overwrite, Dependencies, Restrictions
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:51] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Arguments', type=String, value=
+[09/27/2026 21:37:51] [Verbose] GetValue<Boolean>: Attempting to get key 'Overwrite' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Overwrite', type=Boolean, value=True
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Restrictions', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Dependencies', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.String]
+[09/27/2026 21:37:51] [Verbose] [Instruction.set_Source] Setting new source and calling OnPropertyChanged
+[09/27/2026 21:37:51] [Verbose] [Instruction.set_Source] OnPropertyChanged completed
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 21:37:51] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] Successfully deserialized component 'Example trailing'
+[09/27/2026 21:37:51] [Verbose] === Processing TOML component ===
+[09/27/2026 21:37:51] [Verbose] tomlComponent type: TomlTable
+[09/27/2026 21:37:51] [Verbose] componentDict type: TomlTable
+[09/27/2026 21:37:51] [Verbose] componentDict keys: Guid, Name, Author, Description, Directions, Tier, Category, IsSelected, Dependencies, Restrictions, InstallBefore, InstallAfter, Instructions, ResourceRegistry
+[09/27/2026 21:37:51] [Verbose] Found Guid key: 'Guid' (case-insensitive match)
+[09/27/2026 21:37:51] [Verbose] TOML component has Instructions field: type=TomlTableArray, value: Tomlyn.Model.TomlTableArray
+[09/27/2026 21:37:51] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Guid', type=String, value=aaaaaaaa-0000-0000-0000-000000000007
+[09/27/2026 21:37:51] [Verbose] GetValue<Guid>: key='Guid', type=string, value='aaaaaaaa-0000-0000-0000-000000000007'
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Name', type=String, value=Example choose
+[09/27/2026 21:37:51] [Verbose]  == Deserialize next component 'Example choose' ==
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Author', type=String, value=
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Category', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Category', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Warning] Could not deserialize key 'Category': Object must implement IConvertible. - using default value
+[09/27/2026 21:37:51] [Verbose] Deserialization error details for 'Category': System.InvalidCastException: Object must implement IConvertible.
+   at System.Convert.ChangeType(Object value, Type conversionType, IFormatProvider provider)
+   at ModSync.Core.Services.ModComponentSerializationService.GetValue[T](IDictionary`2 dict, String key, Boolean required) in /home/brunner56/.codex/worktrees/5813/ModSync/src/ModSync.Core/Services/ModComponentSerializationService.cs:line 3279
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Tier', type=String, value=
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Description', type=String, value=
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Directions', type=String, value=
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] DeserializeResourceRegistry: Found ResourceRegistry field, type: TomlTable
+[09/27/2026 21:37:51] [Verbose] DeserializeResourceRegistry: ResourceRegistry is IDictionary<string, object> with 0 entries
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Dependencies', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Restrictions', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'InstallBefore', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'InstallAfter', type=TomlArray, value=Tomlyn.Model.TomlArray
+[09/27/2026 21:37:51] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 14 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'IsSelected', type=Boolean, value=True
+[09/27/2026 21:37:51] [Verbose] === Processing Instructions for component 'Example choose' ===
+[09/27/2026 21:37:51] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 21:37:51] [Verbose] Instructions object type: TomlTableArray, value: Tomlyn.Model.TomlTableArray
+[09/27/2026 21:37:51] [Verbose] Instructions is TomlTableArray with 1 items
+[09/27/2026 21:37:51] [Verbose] DeserializeInstructions called for 'Example choose' with 1 items
+[09/27/2026 21:37:51] [Verbose]   instructionsSerializedList[0] type: TomlTable, value: Tomlyn.Model.TomlTable
+[09/27/2026 21:37:51] [Verbose] Processing instruction 1 for 'Example choose': Tomlyn.Model.TomlTable
+[09/27/2026 21:37:51] [Verbose] Serialized instruction dict: Guid, Action, Source, Destination, Arguments, Overwrite, Dependencies, Restrictions
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:51] [Verbose] GetValue: Found key 'Action', type=String, value=Choose
+[09/27/2026 21:37:51] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:52] [Verbose] GetValue: Found key 'Action', type=String, value=Choose
+[09/27/2026 21:37:52] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:52] [Verbose] GetValue: Found key 'Action', type=String, value=Choose
+[09/27/2026 21:37:52] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:52] [Verbose] GetValue: Found key 'Action', type=String, value=Choose
+[09/27/2026 21:37:52] [Verbose]  -- Deserialize instruction #1 action 'Choose'
+[09/27/2026 21:37:52] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 8 keys
+[09/27/2026 21:37:52] [Verbose] GetValue: Found key 'Arguments', type=String, value=
+[09/27/2026 21:37:52] [Verbose] GetValue<Boolean>: Attempting to get key 'Overwrite' from dict with 8 keys
+[09/27/2026 21:37:52] [Verbose] GetValue: Found key 'Overwrite', type=Boolean, value=True
+[09/27/2026 21:37:52] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 8 keys
+[09/27/2026 21:37:52] [Verbose] GetValue: Found key 'Restrictions', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:52] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 8 keys
+[09/27/2026 21:37:52] [Verbose] GetValue: Found key 'Dependencies', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:52] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 8 keys
+[09/27/2026 21:37:52] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:52] [Verbose] [Instruction.set_Source] Setting new source and calling OnPropertyChanged
+[09/27/2026 21:37:52] [Verbose] [Instruction.set_Source] OnPropertyChanged completed
+[09/27/2026 21:37:52] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 8 keys
+[09/27/2026 21:37:52] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 21:37:52] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 14 keys
+[09/27/2026 21:37:52] [Verbose] Successfully deserialized component 'Example choose'
+[09/27/2026 21:37:52] [Verbose] [DownloadCacheService] Created cache directory: /tmp/source-normalization-formats-pqt_qbcq/home/.local/share/ModSync
+[09/27/2026 21:37:52] [Verbose] [Cache] No resource index found, starting fresh
+[09/27/2026 21:37:52] [Verbose] Successfully resolved dependencies and reordered 7 components
+[09/27/2026 21:37:52] [Verbose] Auto-fix enabled, applying fixes to loaded components
+[09/27/2026 21:37:52] [Verbose] [Cache] No resource index found, starting fresh
+[09/27/2026 21:37:52] [Verbose] Successfully resolved dependencies for 7 components
+Loaded 7 components
+Serializing to output format...
+[09/27/2026 21:37:52] [Verbose] Saving to string with format: json
+[09/27/2026 21:37:52] [Verbose] [Cache] No resource index found, starting fresh
+[09/27/2026 21:37:52] [Verbose] [Cache] No resource index found, starting fresh
+[09/27/2026 21:37:52] [Verbose] Saving to JSON string
+✓ Conversion completed successfully, saved to: /home/brunner56/.cache/modsync-wt-integ/docs/parity/source-normalization-formats/csharp-toml.json

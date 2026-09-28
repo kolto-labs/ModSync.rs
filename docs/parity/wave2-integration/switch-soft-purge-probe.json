@@ -1,0 +1,113 @@
+{
+  "source_commit": "2252894f4c3d1ffe7ae92d0b615e15c83a39a22d",
+  "binary_sha256": "e31cd130d69fe14ef729c7125d53967bdd67c853b7f29b8b2e4e0733f9dc1aae",
+  "timestamp": "2026-09-28T02:35:34.710774+00:00",
+  "fixture_root": "/tmp/modsync-switch-soft-l2073vnc",
+  "setup": "Create profiles A/B, activate A, deploy nested example/dir/data.txt, rename installed dir out of game, replace dir by symlink to disposable unrelated outside directory. Purge emits warning and retains unsafe entry without returning hard I/O error; Switch must refuse activation.",
+  "calls": [
+    {
+      "argv": [
+        "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+        "profile",
+        "--action",
+        "create",
+        "--name",
+        "A",
+        "--settings-dir",
+        "/tmp/modsync-switch-soft-l2073vnc/settings"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"Name\": \"A\",\n  \"KotorDirectory\": null,\n  \"ModDirectory\": null,\n  \"InstructionFilePath\": null,\n  \"ComponentSelections\": {},\n  \"CreatedUtc\": \"2026-09-28T02:35:34.261Z\",\n  \"LastUsedUtc\": \"2026-09-28T02:35:34.261Z\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+        "profile",
+        "--action",
+        "create",
+        "--name",
+        "B",
+        "--settings-dir",
+        "/tmp/modsync-switch-soft-l2073vnc/settings"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"Name\": \"B\",\n  \"KotorDirectory\": null,\n  \"ModDirectory\": null,\n  \"InstructionFilePath\": null,\n  \"ComponentSelections\": {},\n  \"CreatedUtc\": \"2026-09-28T02:35:34.272Z\",\n  \"LastUsedUtc\": \"2026-09-28T02:35:34.272Z\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+        "profile",
+        "--action",
+        "activate",
+        "--name",
+        "A",
+        "--settings-dir",
+        "/tmp/modsync-switch-soft-l2073vnc/settings"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"Name\": \"A\",\n  \"KotorDirectory\": null,\n  \"ModDirectory\": null,\n  \"InstructionFilePath\": null,\n  \"ComponentSelections\": {},\n  \"CreatedUtc\": \"2026-09-28T02:35:34.261Z\",\n  \"LastUsedUtc\": \"2026-09-28T02:35:34.285Z\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+        "deployment",
+        "deploy",
+        "--game-dir",
+        "/tmp/modsync-switch-soft-l2073vnc/game",
+        "--profile",
+        "A",
+        "--settings-dir",
+        "/tmp/modsync-switch-soft-l2073vnc/settings",
+        "--component",
+        "example"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"ComponentGuid\": \"example\",\n  \"DeployedUtc\": \"2026-09-28T02:35:34.2994758Z\",\n  \"Entries\": [\n    {\n      \"RelativePath\": \"dir/data.txt\",\n      \"SourceHash\": \"a51a6c19a1ffc7416827e89adf20749d23ad42452c396cf7e627409f2896922c\",\n      \"Size\": 9,\n      \"DeploymentMethod\": 0,\n      \"OverwroteExisting\": false\n    }\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+        "deployment",
+        "switch",
+        "--game-dir",
+        "/tmp/modsync-switch-soft-l2073vnc/game",
+        "--settings-dir",
+        "/tmp/modsync-switch-soft-l2073vnc/settings",
+        "--to",
+        "B",
+        "--purge-current"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "warning: 'dir/data.txt' cannot be resolved safely (case-colliding entries, or a symlink or file on the way); it stays in the manifest of example.\nError: Purge for profile 'A' left 1 deployment(s) still live in this game directory; refusing to activate 'B' while 'A' remains live.\n"
+    },
+    {
+      "argv": [
+        "/home/brunner56/.cache/modsync-rs-target-lead/debug/modsync",
+        "deployment",
+        "status",
+        "--game-dir",
+        "/tmp/modsync-switch-soft-l2073vnc/game",
+        "--profile",
+        "A",
+        "--settings-dir",
+        "/tmp/modsync-switch-soft-l2073vnc/settings"
+      ],
+      "exit_code": 0,
+      "stdout": "[\n  {\n    \"ComponentGuid\": \"example\",\n    \"DeployedUtc\": \"2026-09-28T02:35:34.2994758Z\",\n    \"Entries\": [\n      {\n        \"RelativePath\": \"dir/data.txt\",\n        \"SourceHash\": \"a51a6c19a1ffc7416827e89adf20749d23ad42452c396cf7e627409f2896922c\",\n        \"Size\": 9,\n        \"DeploymentMethod\": 0,\n        \"OverwroteExisting\": false\n      }\n    ]\n  }\n]\n",
+      "stderr": ""
+    }
+  ],
+  "checks": {
+    "switch_refused_after_soft_purge": true,
+    "active_unchanged": true,
+    "manifest_retained": true,
+    "outside_unchanged": true,
+    "installed_bytes_preserved": true
+  },
+  "all_passed": true
+}

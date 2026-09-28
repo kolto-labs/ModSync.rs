@@ -1,0 +1,94 @@
+{
+  "root": "/tmp/wave2-accepted-rjssod4t",
+  "binary": "/home/brunner56/.cache/modsync-resume/wave2-cli",
+  "binary_sha256": "9f9d55d637b0a6436d6e2fcddb29a6dcf9ddc3c2f0ef61ec42ed9993fdc67f1b",
+  "checks": [
+    {
+      "name": "install completed",
+      "passed": true
+    },
+    {
+      "name": "accepted bytes installed",
+      "passed": true
+    },
+    {
+      "name": "peer bytes not installed",
+      "passed": true
+    },
+    {
+      "name": "peer source preserved",
+      "passed": true
+    },
+    {
+      "name": "completion receipt available",
+      "passed": true
+    },
+    {
+      "name": "plain completion available",
+      "passed": true
+    },
+    {
+      "name": "summary is read-only",
+      "passed": true
+    },
+    {
+      "name": "mismatched receipt roots refused",
+      "passed": true
+    }
+  ],
+  "commands": [
+    {
+      "args": [
+        "install",
+        "--input",
+        "/tmp/wave2-accepted-rjssod4t/guide.json",
+        "--game-dir",
+        "/tmp/wave2-accepted-rjssod4t/game",
+        "--source-dir",
+        "/tmp/wave2-accepted-rjssod4t/mods",
+        "--json"
+      ],
+      "exit": 0,
+      "stdout": "{\"component\":\"\",\"step\":0,\"message\":\"Creating recovery snapshot of game and mod directories\"}\n{\"component\":\"Example Asset\",\"step\":1,\"message\":\"Copy\"}\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "completion-summary",
+        "--game-dir",
+        "/tmp/wave2-accepted-rjssod4t/game",
+        "--source-dir",
+        "/tmp/wave2-accepted-rjssod4t/mods",
+        "--json"
+      ],
+      "exit": 0,
+      "stdout": "{\n  \"components\": [\n    {\n      \"guid\": \"aaaaaaaa-0000-0000-0000-000000000001\",\n      \"name\": \"Example Asset\"\n    }\n  ],\n  \"gameFiles\": 2,\n  \"gameDeltaSinceRunStart\": {\n    \"added\": 1,\n    \"changed\": 0,\n    \"removed\": 0\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "completion-summary",
+        "--game-dir",
+        "/tmp/wave2-accepted-rjssod4t/game",
+        "--source-dir",
+        "/tmp/wave2-accepted-rjssod4t/mods"
+      ],
+      "exit": 0,
+      "stdout": "Components in receipt: 1\n  Example Asset (aaaaaaaa-0000-0000-0000-000000000001)\nGame files in receipt: 2\nGame files changed since run start: 1 added, 0 changed, 0 removed\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "completion-summary",
+        "--game-dir",
+        "/tmp/wave2-accepted-rjssod4t/game",
+        "--source-dir",
+        "/tmp/wave2-accepted-rjssod4t/other-mods",
+        "--json"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: Completion roots differ\n"
+    }
+  ]
+}

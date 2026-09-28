@@ -51,3 +51,21 @@ case. Re-run loader-dedup direct probes and confirm existing Rust test sources
 remain byte-identical. Record source/binary hashes and any intentional deviation.
 
 No new normalization behavior or full-install proof is claimed by this plan.
+
+## Measured JSON-loader baseline (2026-09-28 UTC)
+
+[Seven direct conversion cases](source-normalization-probe/receipt.json) now
+reproduce the mismatch against the pinned validation-reference C# DLL. The C#
+process ran in a bubblewrap sandbox with an isolated network and temporary
+settings/cache locations. Five authored Source shapes differ after loading:
+leading backslashes, relative paths, repeated placeholder separators, repeated
+relative separators, and a trailing separator. An existing game placeholder
+and Choose GUID remain identical. Saved input and both converter outputs are
+retained beside the receipt. This measures JSON conversion only; it does not
+settle Markdown routing, validation behavior, or installed file equivalence.
+
+A subsequent [structured-format comparison](source-normalization-formats/receipt.json)
+reproduces the same five differing Source shapes in TOML, YAML and XML inputs
+rendered from that JSON by the production Rust converter. Both converters exited
+zero for those formats. Rust Markdown export exits one with `Markdown export is
+not yet implemented`, so no Markdown normalization result follows from this probe.

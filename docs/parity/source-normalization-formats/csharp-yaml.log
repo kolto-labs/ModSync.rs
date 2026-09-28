@@ -1,0 +1,706 @@
+[09/27/2026 21:37:53] Logging initialized at 09/27/2026 21:37:52
+[09/27/2026 21:37:53] [Verbose] MainConfig initialized
+[09/27/2026 21:37:53] [Verbose] No settings.json found, using defaults
+[09/27/2026 21:37:53] [Verbose] Convert mode: /home/brunner56/.cache/modsync-wt-integ/docs/parity/source-normalization-formats/input.yaml
+[09/27/2026 21:37:53] [Verbose] Output format: json
+Loading components from input file...
+[09/27/2026 21:37:53] [Verbose] Loading from string with format: yaml
+[09/27/2026 21:37:53] [Verbose] Loading from YAML string
+[09/27/2026 21:37:53] [Verbose] ProcessInstructionsAndOptions: Found 8 instruction items
+[09/27/2026 21:37:53] [Verbose] ProcessInstructionsAndOptions: Found 8 KeyValuePair instruction items, grouping them
+[09/27/2026 21:37:53] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Guid = cccccccc-0000-0000-0000-000000000001
+[09/27/2026 21:37:53] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Action = Copy
+[09/27/2026 21:37:53] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Source = System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:53] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Destination = <<kotorDirectory>>/Override
+[09/27/2026 21:37:53] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Arguments = 
+[09/27/2026 21:37:53] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Overwrite = True
+[09/27/2026 21:37:53] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Dependencies = System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:53] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Restrictions = System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:53] [Verbose] GroupKeyValuePairsIntoInstructions: Grouped 8 KeyValuePairs into 1 instructions
+[09/27/2026 21:37:53] [Verbose] ProcessInstructionsAndOptions: Found 0 option items
+[09/27/2026 21:37:53] [Verbose] ProcessInstructionsAndOptions: No KeyValuePair option items, processing individually
+[09/27/2026 21:37:53] [Verbose] ProcessInstructionsAndOptions: Processed 0 options
+[09/27/2026 21:37:53] [Verbose] PreprocessComponentDictionary: ModLinkFilenames field not found after processing
+[09/27/2026 21:37:53] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 15 keys
+[09/27/2026 21:37:53] [Verbose] GetValue: Found key 'Guid', type=String, value=aaaaaaaa-0000-0000-0000-000000000001
+[09/27/2026 21:37:53] [Verbose] GetValue<Guid>: key='Guid', type=string, value='aaaaaaaa-0000-0000-0000-000000000001'
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Name', type=String, value=Example leading_backslash
+[09/27/2026 21:37:54] [Verbose]  == Deserialize next component 'Example leading_backslash' ==
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Author', type=String, value=
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Category', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Category', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Warning] Could not deserialize key 'Category': Object must implement IConvertible. - using default value
+[09/27/2026 21:37:54] [Verbose] Deserialization error details for 'Category': System.InvalidCastException: Object must implement IConvertible.
+   at System.Convert.ChangeType(Object value, Type conversionType, IFormatProvider provider)
+   at ModSync.Core.Services.ModComponentSerializationService.GetValue[T](IDictionary`2 dict, String key, Boolean required) in /home/brunner56/.codex/worktrees/5813/ModSync/src/ModSync.Core/Services/ModComponentSerializationService.cs:line 3279
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Tier', type=String, value=
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Description', type=String, value=
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Directions', type=String, value=
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] DeserializeResourceRegistry: Found ResourceRegistry field, type: List`1
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Dependencies', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Restrictions', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'InstallBefore', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'InstallAfter', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'IsSelected', type=String, value=true
+[09/27/2026 21:37:54] [Verbose] GetValue<Boolean>: key='IsSelected', type=string, value='true'
+[09/27/2026 21:37:54] [Verbose] === Processing Instructions for component 'Example leading_backslash' ===
+[09/27/2026 21:37:54] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 21:37:54] [Verbose] Instructions object type: List`1, value: System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] Instructions is IList<object> with 1 items
+[09/27/2026 21:37:54] [Verbose] DeserializeInstructions called for 'Example leading_backslash' with 1 items
+[09/27/2026 21:37:54] [Verbose]   instructionsSerializedList[0] type: Dictionary`2, value: System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 21:37:54] [Verbose] Processing instruction 1 for 'Example leading_backslash': System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 21:37:54] [Verbose] Serialized instruction dict: Guid, Action, Source, Destination, Arguments, Overwrite, Dependencies, Restrictions
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:54] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Arguments', type=String, value=
+[09/27/2026 21:37:54] [Verbose] GetValue<Boolean>: Attempting to get key 'Overwrite' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Overwrite', type=Boolean, value=True
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Restrictions', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Dependencies', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.String]
+[09/27/2026 21:37:54] [Verbose] [Instruction.set_Source] Setting new source and calling OnPropertyChanged
+[09/27/2026 21:37:54] [Verbose] [Instruction.set_Source] OnPropertyChanged completed
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 21:37:54] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Options', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] Successfully deserialized component 'Example leading_backslash'
+[09/27/2026 21:37:54] [Verbose] ProcessInstructionsAndOptions: Found 8 instruction items
+[09/27/2026 21:37:54] [Verbose] ProcessInstructionsAndOptions: Found 8 KeyValuePair instruction items, grouping them
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Guid = cccccccc-0000-0000-0000-000000000002
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Action = Copy
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Source = System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Destination = <<kotorDirectory>>/Override
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Arguments = 
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Overwrite = True
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Dependencies = System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Restrictions = System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Grouped 8 KeyValuePairs into 1 instructions
+[09/27/2026 21:37:54] [Verbose] ProcessInstructionsAndOptions: Found 0 option items
+[09/27/2026 21:37:54] [Verbose] ProcessInstructionsAndOptions: No KeyValuePair option items, processing individually
+[09/27/2026 21:37:54] [Verbose] ProcessInstructionsAndOptions: Processed 0 options
+[09/27/2026 21:37:54] [Verbose] PreprocessComponentDictionary: ModLinkFilenames field not found after processing
+[09/27/2026 21:37:54] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Guid', type=String, value=aaaaaaaa-0000-0000-0000-000000000002
+[09/27/2026 21:37:54] [Verbose] GetValue<Guid>: key='Guid', type=string, value='aaaaaaaa-0000-0000-0000-000000000002'
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Name', type=String, value=Example relative
+[09/27/2026 21:37:54] [Verbose]  == Deserialize next component 'Example relative' ==
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Author', type=String, value=
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Category', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Category', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Warning] Could not deserialize key 'Category': Object must implement IConvertible. - using default value
+[09/27/2026 21:37:54] [Verbose] Deserialization error details for 'Category': System.InvalidCastException: Object must implement IConvertible.
+   at System.Convert.ChangeType(Object value, Type conversionType, IFormatProvider provider)
+   at ModSync.Core.Services.ModComponentSerializationService.GetValue[T](IDictionary`2 dict, String key, Boolean required) in /home/brunner56/.codex/worktrees/5813/ModSync/src/ModSync.Core/Services/ModComponentSerializationService.cs:line 3279
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Tier', type=String, value=
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Description', type=String, value=
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Directions', type=String, value=
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] DeserializeResourceRegistry: Found ResourceRegistry field, type: List`1
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Dependencies', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Restrictions', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'InstallBefore', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'InstallAfter', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'IsSelected', type=String, value=true
+[09/27/2026 21:37:54] [Verbose] GetValue<Boolean>: key='IsSelected', type=string, value='true'
+[09/27/2026 21:37:54] [Verbose] === Processing Instructions for component 'Example relative' ===
+[09/27/2026 21:37:54] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 21:37:54] [Verbose] Instructions object type: List`1, value: System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] Instructions is IList<object> with 1 items
+[09/27/2026 21:37:54] [Verbose] DeserializeInstructions called for 'Example relative' with 1 items
+[09/27/2026 21:37:54] [Verbose]   instructionsSerializedList[0] type: Dictionary`2, value: System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 21:37:54] [Verbose] Processing instruction 1 for 'Example relative': System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 21:37:54] [Verbose] Serialized instruction dict: Guid, Action, Source, Destination, Arguments, Overwrite, Dependencies, Restrictions
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:54] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Arguments', type=String, value=
+[09/27/2026 21:37:54] [Verbose] GetValue<Boolean>: Attempting to get key 'Overwrite' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Overwrite', type=Boolean, value=True
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Restrictions', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Dependencies', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.String]
+[09/27/2026 21:37:54] [Verbose] [Instruction.set_Source] Setting new source and calling OnPropertyChanged
+[09/27/2026 21:37:54] [Verbose] [Instruction.set_Source] OnPropertyChanged completed
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 21:37:54] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Options', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] Successfully deserialized component 'Example relative'
+[09/27/2026 21:37:54] [Verbose] ProcessInstructionsAndOptions: Found 8 instruction items
+[09/27/2026 21:37:54] [Verbose] ProcessInstructionsAndOptions: Found 8 KeyValuePair instruction items, grouping them
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Guid = cccccccc-0000-0000-0000-000000000003
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Action = Copy
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Source = System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Destination = <<kotorDirectory>>/Override
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Arguments = 
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Overwrite = True
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Dependencies = System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Restrictions = System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Grouped 8 KeyValuePairs into 1 instructions
+[09/27/2026 21:37:54] [Verbose] ProcessInstructionsAndOptions: Found 0 option items
+[09/27/2026 21:37:54] [Verbose] ProcessInstructionsAndOptions: No KeyValuePair option items, processing individually
+[09/27/2026 21:37:54] [Verbose] ProcessInstructionsAndOptions: Processed 0 options
+[09/27/2026 21:37:54] [Verbose] PreprocessComponentDictionary: ModLinkFilenames field not found after processing
+[09/27/2026 21:37:54] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Guid', type=String, value=aaaaaaaa-0000-0000-0000-000000000003
+[09/27/2026 21:37:54] [Verbose] GetValue<Guid>: key='Guid', type=string, value='aaaaaaaa-0000-0000-0000-000000000003'
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Name', type=String, value=Example placeholder
+[09/27/2026 21:37:54] [Verbose]  == Deserialize next component 'Example placeholder' ==
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Author', type=String, value=
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Category', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Category', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Warning] Could not deserialize key 'Category': Object must implement IConvertible. - using default value
+[09/27/2026 21:37:54] [Verbose] Deserialization error details for 'Category': System.InvalidCastException: Object must implement IConvertible.
+   at System.Convert.ChangeType(Object value, Type conversionType, IFormatProvider provider)
+   at ModSync.Core.Services.ModComponentSerializationService.GetValue[T](IDictionary`2 dict, String key, Boolean required) in /home/brunner56/.codex/worktrees/5813/ModSync/src/ModSync.Core/Services/ModComponentSerializationService.cs:line 3279
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Tier', type=String, value=
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Description', type=String, value=
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Directions', type=String, value=
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] DeserializeResourceRegistry: Found ResourceRegistry field, type: List`1
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Dependencies', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Restrictions', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'InstallBefore', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'InstallAfter', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'IsSelected', type=String, value=true
+[09/27/2026 21:37:54] [Verbose] GetValue<Boolean>: key='IsSelected', type=string, value='true'
+[09/27/2026 21:37:54] [Verbose] === Processing Instructions for component 'Example placeholder' ===
+[09/27/2026 21:37:54] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 21:37:54] [Verbose] Instructions object type: List`1, value: System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] Instructions is IList<object> with 1 items
+[09/27/2026 21:37:54] [Verbose] DeserializeInstructions called for 'Example placeholder' with 1 items
+[09/27/2026 21:37:54] [Verbose]   instructionsSerializedList[0] type: Dictionary`2, value: System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 21:37:54] [Verbose] Processing instruction 1 for 'Example placeholder': System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 21:37:54] [Verbose] Serialized instruction dict: Guid, Action, Source, Destination, Arguments, Overwrite, Dependencies, Restrictions
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:54] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Arguments', type=String, value=
+[09/27/2026 21:37:54] [Verbose] GetValue<Boolean>: Attempting to get key 'Overwrite' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Overwrite', type=Boolean, value=True
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Restrictions', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Dependencies', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.String]
+[09/27/2026 21:37:54] [Verbose] [Instruction.set_Source] Setting new source and calling OnPropertyChanged
+[09/27/2026 21:37:54] [Verbose] [Instruction.set_Source] OnPropertyChanged completed
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 8 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 21:37:54] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Options', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] Successfully deserialized component 'Example placeholder'
+[09/27/2026 21:37:54] [Verbose] ProcessInstructionsAndOptions: Found 8 instruction items
+[09/27/2026 21:37:54] [Verbose] ProcessInstructionsAndOptions: Found 8 KeyValuePair instruction items, grouping them
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Guid = cccccccc-0000-0000-0000-000000000004
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Action = Copy
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Source = System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Destination = <<kotorDirectory>>/Override
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Arguments = 
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Overwrite = True
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Dependencies = System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Restrictions = System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GroupKeyValuePairsIntoInstructions: Grouped 8 KeyValuePairs into 1 instructions
+[09/27/2026 21:37:54] [Verbose] ProcessInstructionsAndOptions: Found 0 option items
+[09/27/2026 21:37:54] [Verbose] ProcessInstructionsAndOptions: No KeyValuePair option items, processing individually
+[09/27/2026 21:37:54] [Verbose] ProcessInstructionsAndOptions: Processed 0 options
+[09/27/2026 21:37:54] [Verbose] PreprocessComponentDictionary: ModLinkFilenames field not found after processing
+[09/27/2026 21:37:54] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Guid', type=String, value=aaaaaaaa-0000-0000-0000-000000000004
+[09/27/2026 21:37:54] [Verbose] GetValue<Guid>: key='Guid', type=string, value='aaaaaaaa-0000-0000-0000-000000000004'
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Name', type=String, value=Example game_alias
+[09/27/2026 21:37:54] [Verbose]  == Deserialize next component 'Example game_alias' ==
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Author', type=String, value=
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Category', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Category', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Warning] Could not deserialize key 'Category': Object must implement IConvertible. - using default value
+[09/27/2026 21:37:54] [Verbose] Deserialization error details for 'Category': System.InvalidCastException: Object must implement IConvertible.
+   at System.Convert.ChangeType(Object value, Type conversionType, IFormatProvider provider)
+   at ModSync.Core.Services.ModComponentSerializationService.GetValue[T](IDictionary`2 dict, String key, Boolean required) in /home/brunner56/.codex/worktrees/5813/ModSync/src/ModSync.Core/Services/ModComponentSerializationService.cs:line 3279
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Tier', type=String, value=
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Description', type=String, value=
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Directions', type=String, value=
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] DeserializeResourceRegistry: Found ResourceRegistry field, type: List`1
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Dependencies', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'Restrictions', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'InstallBefore', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'InstallAfter', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 15 keys
+[09/27/2026 21:37:54] [Verbose] GetValue: Found key 'IsSelected', type=String, value=true
+[09/27/2026 21:37:54] [Verbose] GetValue<Boolean>: key='IsSelected', type=string, value='true'
+[09/27/2026 21:37:54] [Verbose] === Processing Instructions for component 'Example game_alias' ===
+[09/27/2026 21:37:54] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 21:37:54] [Verbose] Instructions object type: List`1, value: System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:54] [Verbose] Instructions is IList<object> with 1 items
+[09/27/2026 21:37:55] [Verbose] DeserializeInstructions called for 'Example game_alias' with 1 items
+[09/27/2026 21:37:55] [Verbose]   instructionsSerializedList[0] type: Dictionary`2, value: System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 21:37:55] [Verbose] Processing instruction 1 for 'Example game_alias': System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 21:37:55] [Verbose] Serialized instruction dict: Guid, Action, Source, Destination, Arguments, Overwrite, Dependencies, Restrictions
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:55] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Arguments', type=String, value=
+[09/27/2026 21:37:55] [Verbose] GetValue<Boolean>: Attempting to get key 'Overwrite' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Overwrite', type=Boolean, value=True
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Restrictions', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Dependencies', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.String]
+[09/27/2026 21:37:55] [Verbose] [Instruction.set_Source] Setting new source and calling OnPropertyChanged
+[09/27/2026 21:37:55] [Verbose] [Instruction.set_Source] OnPropertyChanged completed
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 21:37:55] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Options', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] Successfully deserialized component 'Example game_alias'
+[09/27/2026 21:37:55] [Verbose] ProcessInstructionsAndOptions: Found 8 instruction items
+[09/27/2026 21:37:55] [Verbose] ProcessInstructionsAndOptions: Found 8 KeyValuePair instruction items, grouping them
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Guid = cccccccc-0000-0000-0000-000000000005
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Action = Copy
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Source = System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Destination = <<kotorDirectory>>/Override
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Arguments = 
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Overwrite = True
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Dependencies = System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Restrictions = System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Grouped 8 KeyValuePairs into 1 instructions
+[09/27/2026 21:37:55] [Verbose] ProcessInstructionsAndOptions: Found 0 option items
+[09/27/2026 21:37:55] [Verbose] ProcessInstructionsAndOptions: No KeyValuePair option items, processing individually
+[09/27/2026 21:37:55] [Verbose] ProcessInstructionsAndOptions: Processed 0 options
+[09/27/2026 21:37:55] [Verbose] PreprocessComponentDictionary: ModLinkFilenames field not found after processing
+[09/27/2026 21:37:55] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Guid', type=String, value=aaaaaaaa-0000-0000-0000-000000000005
+[09/27/2026 21:37:55] [Verbose] GetValue<Guid>: key='Guid', type=string, value='aaaaaaaa-0000-0000-0000-000000000005'
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Name', type=String, value=Example repeated
+[09/27/2026 21:37:55] [Verbose]  == Deserialize next component 'Example repeated' ==
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Author', type=String, value=
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Category', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Category', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Warning] Could not deserialize key 'Category': Object must implement IConvertible. - using default value
+[09/27/2026 21:37:55] [Verbose] Deserialization error details for 'Category': System.InvalidCastException: Object must implement IConvertible.
+   at System.Convert.ChangeType(Object value, Type conversionType, IFormatProvider provider)
+   at ModSync.Core.Services.ModComponentSerializationService.GetValue[T](IDictionary`2 dict, String key, Boolean required) in /home/brunner56/.codex/worktrees/5813/ModSync/src/ModSync.Core/Services/ModComponentSerializationService.cs:line 3279
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Tier', type=String, value=
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Description', type=String, value=
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Directions', type=String, value=
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] DeserializeResourceRegistry: Found ResourceRegistry field, type: List`1
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Dependencies', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Restrictions', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'InstallBefore', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'InstallAfter', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'IsSelected', type=String, value=true
+[09/27/2026 21:37:55] [Verbose] GetValue<Boolean>: key='IsSelected', type=string, value='true'
+[09/27/2026 21:37:55] [Verbose] === Processing Instructions for component 'Example repeated' ===
+[09/27/2026 21:37:55] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 21:37:55] [Verbose] Instructions object type: List`1, value: System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] Instructions is IList<object> with 1 items
+[09/27/2026 21:37:55] [Verbose] DeserializeInstructions called for 'Example repeated' with 1 items
+[09/27/2026 21:37:55] [Verbose]   instructionsSerializedList[0] type: Dictionary`2, value: System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 21:37:55] [Verbose] Processing instruction 1 for 'Example repeated': System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 21:37:55] [Verbose] Serialized instruction dict: Guid, Action, Source, Destination, Arguments, Overwrite, Dependencies, Restrictions
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:55] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Arguments', type=String, value=
+[09/27/2026 21:37:55] [Verbose] GetValue<Boolean>: Attempting to get key 'Overwrite' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Overwrite', type=Boolean, value=True
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Restrictions', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Dependencies', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.String]
+[09/27/2026 21:37:55] [Verbose] [Instruction.set_Source] Setting new source and calling OnPropertyChanged
+[09/27/2026 21:37:55] [Verbose] [Instruction.set_Source] OnPropertyChanged completed
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 21:37:55] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Options', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] Successfully deserialized component 'Example repeated'
+[09/27/2026 21:37:55] [Verbose] ProcessInstructionsAndOptions: Found 8 instruction items
+[09/27/2026 21:37:55] [Verbose] ProcessInstructionsAndOptions: Found 8 KeyValuePair instruction items, grouping them
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Guid = cccccccc-0000-0000-0000-000000000006
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Action = Copy
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Source = System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Destination = <<kotorDirectory>>/Override
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Arguments = 
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Overwrite = True
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Dependencies = System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Restrictions = System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Grouped 8 KeyValuePairs into 1 instructions
+[09/27/2026 21:37:55] [Verbose] ProcessInstructionsAndOptions: Found 0 option items
+[09/27/2026 21:37:55] [Verbose] ProcessInstructionsAndOptions: No KeyValuePair option items, processing individually
+[09/27/2026 21:37:55] [Verbose] ProcessInstructionsAndOptions: Processed 0 options
+[09/27/2026 21:37:55] [Verbose] PreprocessComponentDictionary: ModLinkFilenames field not found after processing
+[09/27/2026 21:37:55] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Guid', type=String, value=aaaaaaaa-0000-0000-0000-000000000006
+[09/27/2026 21:37:55] [Verbose] GetValue<Guid>: key='Guid', type=string, value='aaaaaaaa-0000-0000-0000-000000000006'
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Name', type=String, value=Example trailing
+[09/27/2026 21:37:55] [Verbose]  == Deserialize next component 'Example trailing' ==
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Author', type=String, value=
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Category', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Category', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Warning] Could not deserialize key 'Category': Object must implement IConvertible. - using default value
+[09/27/2026 21:37:55] [Verbose] Deserialization error details for 'Category': System.InvalidCastException: Object must implement IConvertible.
+   at System.Convert.ChangeType(Object value, Type conversionType, IFormatProvider provider)
+   at ModSync.Core.Services.ModComponentSerializationService.GetValue[T](IDictionary`2 dict, String key, Boolean required) in /home/brunner56/.codex/worktrees/5813/ModSync/src/ModSync.Core/Services/ModComponentSerializationService.cs:line 3279
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Tier', type=String, value=
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Description', type=String, value=
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Directions', type=String, value=
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] DeserializeResourceRegistry: Found ResourceRegistry field, type: List`1
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Dependencies', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Restrictions', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'InstallBefore', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'InstallAfter', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'IsSelected', type=String, value=true
+[09/27/2026 21:37:55] [Verbose] GetValue<Boolean>: key='IsSelected', type=string, value='true'
+[09/27/2026 21:37:55] [Verbose] === Processing Instructions for component 'Example trailing' ===
+[09/27/2026 21:37:55] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 21:37:55] [Verbose] Instructions object type: List`1, value: System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] Instructions is IList<object> with 1 items
+[09/27/2026 21:37:55] [Verbose] DeserializeInstructions called for 'Example trailing' with 1 items
+[09/27/2026 21:37:55] [Verbose]   instructionsSerializedList[0] type: Dictionary`2, value: System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 21:37:55] [Verbose] Processing instruction 1 for 'Example trailing': System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 21:37:55] [Verbose] Serialized instruction dict: Guid, Action, Source, Destination, Arguments, Overwrite, Dependencies, Restrictions
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Action', type=String, value=Copy
+[09/27/2026 21:37:55] [Verbose]  -- Deserialize instruction #1 action 'Copy'
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Arguments', type=String, value=
+[09/27/2026 21:37:55] [Verbose] GetValue<Boolean>: Attempting to get key 'Overwrite' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Overwrite', type=Boolean, value=True
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Restrictions', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Dependencies', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.String]
+[09/27/2026 21:37:55] [Verbose] [Instruction.set_Source] Setting new source and calling OnPropertyChanged
+[09/27/2026 21:37:55] [Verbose] [Instruction.set_Source] OnPropertyChanged completed
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 8 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 21:37:55] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Options', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] Successfully deserialized component 'Example trailing'
+[09/27/2026 21:37:55] [Verbose] ProcessInstructionsAndOptions: Found 8 instruction items
+[09/27/2026 21:37:55] [Verbose] ProcessInstructionsAndOptions: Found 8 KeyValuePair instruction items, grouping them
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Guid = cccccccc-0000-0000-0000-000000000007
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Action = Choose
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Source = System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Destination = <<kotorDirectory>>/Override
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Arguments = 
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Overwrite = True
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Dependencies = System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Processing Restrictions = System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GroupKeyValuePairsIntoInstructions: Grouped 8 KeyValuePairs into 1 instructions
+[09/27/2026 21:37:55] [Verbose] ProcessInstructionsAndOptions: Found 0 option items
+[09/27/2026 21:37:55] [Verbose] ProcessInstructionsAndOptions: No KeyValuePair option items, processing individually
+[09/27/2026 21:37:55] [Verbose] ProcessInstructionsAndOptions: Processed 0 options
+[09/27/2026 21:37:55] [Verbose] PreprocessComponentDictionary: ModLinkFilenames field not found after processing
+[09/27/2026 21:37:55] [Verbose] GetValue<Guid>: Attempting to get key 'Guid' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Guid', type=String, value=aaaaaaaa-0000-0000-0000-000000000007
+[09/27/2026 21:37:55] [Verbose] GetValue<Guid>: key='Guid', type=string, value='aaaaaaaa-0000-0000-0000-000000000007'
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Name' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Name', type=String, value=Example choose
+[09/27/2026 21:37:55] [Verbose]  == Deserialize next component 'Example choose' ==
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Author' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Author', type=String, value=
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Heading' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<List`1>: Attempting to get key 'Category' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Category', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Category' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Category', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:55] [Warning] Could not deserialize key 'Category': Object must implement IConvertible. - using default value
+[09/27/2026 21:37:55] [Verbose] Deserialization error details for 'Category': System.InvalidCastException: Object must implement IConvertible.
+   at System.Convert.ChangeType(Object value, Type conversionType, IFormatProvider provider)
+   at ModSync.Core.Services.ModComponentSerializationService.GetValue[T](IDictionary`2 dict, String key, Boolean required) in /home/brunner56/.codex/worktrees/5813/ModSync/src/ModSync.Core/Services/ModComponentSerializationService.cs:line 3279
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Tier' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Tier', type=String, value=
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Description' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Description', type=String, value=
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'DescriptionSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'InstallationMethod' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Directions' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue: Found key 'Directions', type=String, value=
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'DirectionsSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructions' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'DownloadInstructionsSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'UsageWarning' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'UsageWarningSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:55] [Verbose] GetValue<String>: Attempting to get key 'Screenshots' from dict with 15 keys
+[09/27/2026 21:37:56] [Verbose] GetValue<String>: Attempting to get key 'ScreenshotsSpoilerFree' from dict with 15 keys
+[09/27/2026 21:37:56] [Verbose] GetValue<List`1>: Attempting to get key 'Language' from dict with 15 keys
+[09/27/2026 21:37:56] [Verbose] GetValue<String>: Attempting to get key 'Language' from dict with 15 keys
+[09/27/2026 21:37:56] [Verbose] GetValue<List`1>: Attempting to get key 'ExcludedDownloads' from dict with 15 keys
+[09/27/2026 21:37:56] [Verbose] DeserializeResourceRegistry: Found ResourceRegistry field, type: List`1
+[09/27/2026 21:37:56] [Verbose] GetValue<List`1>: Attempting to get key 'ModLink' from dict with 15 keys
+[09/27/2026 21:37:56] [Verbose] GetValue<String>: Attempting to get key 'ModLink' from dict with 15 keys
+[09/27/2026 21:37:56] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 15 keys
+[09/27/2026 21:37:56] [Verbose] GetValue: Found key 'Dependencies', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:56] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 15 keys
+[09/27/2026 21:37:56] [Verbose] GetValue: Found key 'Restrictions', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:56] [Verbose] GetValue<List`1>: Attempting to get key 'InstallBefore' from dict with 15 keys
+[09/27/2026 21:37:56] [Verbose] GetValue: Found key 'InstallBefore', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:56] [Verbose] GetValue<List`1>: Attempting to get key 'InstallAfter' from dict with 15 keys
+[09/27/2026 21:37:56] [Verbose] GetValue: Found key 'InstallAfter', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:56] [Verbose] GetValue<Boolean>: Attempting to get key 'IsSelected' from dict with 15 keys
+[09/27/2026 21:37:56] [Verbose] GetValue: Found key 'IsSelected', type=String, value=true
+[09/27/2026 21:37:56] [Verbose] GetValue<Boolean>: key='IsSelected', type=string, value='true'
+[09/27/2026 21:37:56] [Verbose] === Processing Instructions for component 'Example choose' ===
+[09/27/2026 21:37:56] [Verbose] componentDict contains 'Instructions' key: True
+[09/27/2026 21:37:56] [Verbose] Instructions object type: List`1, value: System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:56] [Verbose] Instructions is IList<object> with 1 items
+[09/27/2026 21:37:56] [Verbose] DeserializeInstructions called for 'Example choose' with 1 items
+[09/27/2026 21:37:56] [Verbose]   instructionsSerializedList[0] type: Dictionary`2, value: System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 21:37:56] [Verbose] Processing instruction 1 for 'Example choose': System.Collections.Generic.Dictionary`2[System.String,System.Object]
+[09/27/2026 21:37:56] [Verbose] Serialized instruction dict: Guid, Action, Source, Destination, Arguments, Overwrite, Dependencies, Restrictions
+[09/27/2026 21:37:56] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:56] [Verbose] GetValue: Found key 'Action', type=String, value=Choose
+[09/27/2026 21:37:56] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:56] [Verbose] GetValue: Found key 'Action', type=String, value=Choose
+[09/27/2026 21:37:56] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:56] [Verbose] GetValue: Found key 'Action', type=String, value=Choose
+[09/27/2026 21:37:56] [Verbose] GetValue<String>: Attempting to get key 'Action' from dict with 8 keys
+[09/27/2026 21:37:56] [Verbose] GetValue: Found key 'Action', type=String, value=Choose
+[09/27/2026 21:37:56] [Verbose]  -- Deserialize instruction #1 action 'Choose'
+[09/27/2026 21:37:56] [Verbose] GetValue<String>: Attempting to get key 'Arguments' from dict with 8 keys
+[09/27/2026 21:37:56] [Verbose] GetValue: Found key 'Arguments', type=String, value=
+[09/27/2026 21:37:56] [Verbose] GetValue<Boolean>: Attempting to get key 'Overwrite' from dict with 8 keys
+[09/27/2026 21:37:56] [Verbose] GetValue: Found key 'Overwrite', type=Boolean, value=True
+[09/27/2026 21:37:56] [Verbose] GetValue<List`1>: Attempting to get key 'Restrictions' from dict with 8 keys
+[09/27/2026 21:37:56] [Verbose] GetValue: Found key 'Restrictions', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:56] [Verbose] GetValue<List`1>: Attempting to get key 'Dependencies' from dict with 8 keys
+[09/27/2026 21:37:56] [Verbose] GetValue: Found key 'Dependencies', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:56] [Verbose] GetValue<List`1>: Attempting to get key 'Source' from dict with 8 keys
+[09/27/2026 21:37:56] [Verbose] GetValue: Found key 'Source', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:56] [Verbose] [Instruction.set_Source] Setting new source and calling OnPropertyChanged
+[09/27/2026 21:37:56] [Verbose] [Instruction.set_Source] OnPropertyChanged completed
+[09/27/2026 21:37:56] [Verbose] GetValue<String>: Attempting to get key 'Destination' from dict with 8 keys
+[09/27/2026 21:37:56] [Verbose] GetValue: Found key 'Destination', type=String, value=<<kotorDirectory>>/Override
+[09/27/2026 21:37:56] [Verbose] GetValue<IList`1>: Attempting to get key 'Options' from dict with 15 keys
+[09/27/2026 21:37:56] [Verbose] GetValue: Found key 'Options', type=List`1, value=System.Collections.Generic.List`1[System.Object]
+[09/27/2026 21:37:56] [Verbose] Successfully deserialized component 'Example choose'
+[09/27/2026 21:37:56] [Verbose] [Cache] No resource index found, starting fresh
+[09/27/2026 21:37:56] [Verbose] Successfully resolved dependencies and reordered 7 components
+[09/27/2026 21:37:56] [Verbose] Auto-fix enabled, applying fixes to loaded components
+[09/27/2026 21:37:56] [Verbose] [Cache] No resource index found, starting fresh
+[09/27/2026 21:37:56] [Verbose] Successfully resolved dependencies for 7 components
+Loaded 7 components
+Serializing to output format...
+[09/27/2026 21:37:56] [Verbose] Saving to string with format: json
+[09/27/2026 21:37:56] [Verbose] [Cache] No resource index found, starting fresh
+[09/27/2026 21:37:56] [Verbose] [Cache] No resource index found, starting fresh
+[09/27/2026 21:37:56] [Verbose] Saving to JSON string
+✓ Conversion completed successfully, saved to: /home/brunner56/.cache/modsync-wt-integ/docs/parity/source-normalization-formats/csharp-yaml.json

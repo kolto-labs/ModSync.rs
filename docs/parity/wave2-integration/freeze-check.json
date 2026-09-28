@@ -1,0 +1,45 @@
+{
+  "base": "4bfacda",
+  "head": "90efdf295877bd04be63350e6e37d50df8a7d77a",
+  "AGENTS_and_tests_diff": "",
+  "ui_test_suffix_sha256": "641f24548fa5b1073f5ee9b623b6cad46454d278faf06d2ac621ba256ad01430",
+  "ui_test_suffix_byte_identical": true,
+  "scope": "Tracked AGENTS.md and tests/ directory, and complete cfg(test) suffixes in all pre-existing Rust source files. No tests executed.",
+  "all_existing_cfg_test_suffixes": [
+    {
+      "path": "src/direct_markdown.rs",
+      "unchanged": true,
+      "sha256": "ca331b01971f6265b6c7bd3afb86c649fd0d7f6522d106b3f81106be7a20341d"
+    },
+    {
+      "path": "src/fomod_ui.rs",
+      "unchanged": true,
+      "sha256": "529d29281a82e7f21919f2a43c6776b22950535d1252cedd1bd93f4efbce54c6"
+    },
+    {
+      "path": "src/game.rs",
+      "unchanged": true,
+      "sha256": "dde9ac92e516e75c1a3310814a9f782e6e3e668eade963323709ec75eac934a5"
+    },
+    {
+      "path": "src/p2p.rs",
+      "unchanged": true,
+      "sha256": "228f52729991a2b5bcb6f4ae2a56b6819717ad8ba8f5e904d07daf3bf3a72db1"
+    },
+    {
+      "path": "src/patcher.rs",
+      "unchanged": true,
+      "sha256": "de040816e79c797c70842baf442bd62cc438a78a6cbb7466fb08c5f8d80818cb"
+    },
+    {
+      "path": "src/ui.rs",
+      "unchanged": true,
+      "sha256": "641f24548fa5b1073f5ee9b623b6cad46454d278faf06d2ac621ba256ad01430"
+    },
+    {
+      "path": "src/validation.rs",
+      "unchanged": true,
+      "sha256": "ac60fbca2f31d05577c1934538955ec519e725681a3cfdbb0f1fb9c0005c5fa2"
+    }
+  ]
+}

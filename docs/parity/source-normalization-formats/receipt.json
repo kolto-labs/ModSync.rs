@@ -1,0 +1,383 @@
+{
+  "timestamp": "2026-09-28T02:39:49.004126+00:00",
+  "source_commit": "2252894f4c3d1ffe7ae92d0b615e15c83a39a22d",
+  "rust_sha256": "e31cd130d69fe14ef729c7125d53967bdd67c853b7f29b8b2e4e0733f9dc1aae",
+  "csharp_sha256": "89d9b2361aee4364f95151b41db59a4133122a6ad41bc2703e232cf10a4f5a6b",
+  "rows": [
+    {
+      "format": "toml",
+      "input_sha256": "b951c886072f88d33db6dbdd6c0891a684f83201ac6dca2c709e77ef07142dcc",
+      "csharp_exit": 0,
+      "rust_exit": 0,
+      "csharp": [
+        {
+          "name": "Example leading_backslash",
+          "sources": [
+            [
+              "<<modDirectory>>/x/foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example relative",
+          "sources": [
+            [
+              "<<modDirectory>>/x/foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example placeholder",
+          "sources": [
+            [
+              "<<modDirectory>>/x/foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example game_alias",
+          "sources": [
+            [
+              "<<GAMEdirectory>>/Override/foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example repeated",
+          "sources": [
+            [
+              "<<modDirectory>>/x/foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example trailing",
+          "sources": [
+            [
+              "<<modDirectory>>/x/foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example choose",
+          "sources": [
+            [
+              "bbbbbbbb-0000-0000-0000-000000000001"
+            ]
+          ]
+        }
+      ],
+      "rust": [
+        {
+          "name": "Example leading_backslash",
+          "sources": [
+            [
+              "\\x\\foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example relative",
+          "sources": [
+            [
+              "x/foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example placeholder",
+          "sources": [
+            [
+              "<<modDirectory>>\\x\\\\foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example game_alias",
+          "sources": [
+            [
+              "<<GAMEdirectory>>/Override/foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example repeated",
+          "sources": [
+            [
+              "x///foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example trailing",
+          "sources": [
+            [
+              "x/foo.tga/"
+            ]
+          ]
+        },
+        {
+          "name": "Example choose",
+          "sources": [
+            [
+              "bbbbbbbb-0000-0000-0000-000000000001"
+            ]
+          ]
+        }
+      ],
+      "different_source_rows": 5
+    },
+    {
+      "format": "yaml",
+      "input_sha256": "654b5c41fb6a22529a98b50e5e977235ccceb99d8e9d74cdd0f0834e5c46ca5d",
+      "csharp_exit": 0,
+      "rust_exit": 0,
+      "csharp": [
+        {
+          "name": "Example leading_backslash",
+          "sources": [
+            [
+              "<<modDirectory>>/x/foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example relative",
+          "sources": [
+            [
+              "<<modDirectory>>/x/foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example placeholder",
+          "sources": [
+            [
+              "<<modDirectory>>/x/foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example game_alias",
+          "sources": [
+            [
+              "<<GAMEdirectory>>/Override/foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example repeated",
+          "sources": [
+            [
+              "<<modDirectory>>/x/foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example trailing",
+          "sources": [
+            [
+              "<<modDirectory>>/x/foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example choose",
+          "sources": [
+            [
+              "bbbbbbbb-0000-0000-0000-000000000001"
+            ]
+          ]
+        }
+      ],
+      "rust": [
+        {
+          "name": "Example leading_backslash",
+          "sources": [
+            [
+              "\\x\\foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example relative",
+          "sources": [
+            [
+              "x/foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example placeholder",
+          "sources": [
+            [
+              "<<modDirectory>>\\x\\\\foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example game_alias",
+          "sources": [
+            [
+              "<<GAMEdirectory>>/Override/foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example repeated",
+          "sources": [
+            [
+              "x///foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example trailing",
+          "sources": [
+            [
+              "x/foo.tga/"
+            ]
+          ]
+        },
+        {
+          "name": "Example choose",
+          "sources": [
+            [
+              "bbbbbbbb-0000-0000-0000-000000000001"
+            ]
+          ]
+        }
+      ],
+      "different_source_rows": 5
+    },
+    {
+      "format": "xml",
+      "input_sha256": "3e24fc7f63a7611e69ea1bb35fe0678dc12454568aa5f72a509715ec3e24b577",
+      "csharp_exit": 0,
+      "rust_exit": 0,
+      "csharp": [
+        {
+          "name": "Example leading_backslash",
+          "sources": [
+            [
+              "<<modDirectory>>/x/foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example relative",
+          "sources": [
+            [
+              "<<modDirectory>>/x/foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example placeholder",
+          "sources": [
+            [
+              "<<modDirectory>>/x/foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example game_alias",
+          "sources": [
+            [
+              "<<GAMEdirectory>>/Override/foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example repeated",
+          "sources": [
+            [
+              "<<modDirectory>>/x/foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example trailing",
+          "sources": [
+            [
+              "<<modDirectory>>/x/foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example choose",
+          "sources": [
+            [
+              "bbbbbbbb-0000-0000-0000-000000000001"
+            ]
+          ]
+        }
+      ],
+      "rust": [
+        {
+          "name": "Example leading_backslash",
+          "sources": [
+            [
+              "\\x\\foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example relative",
+          "sources": [
+            [
+              "x/foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example placeholder",
+          "sources": [
+            [
+              "<<modDirectory>>\\x\\\\foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example game_alias",
+          "sources": [
+            [
+              "<<GAMEdirectory>>/Override/foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example repeated",
+          "sources": [
+            [
+              "x///foo.tga"
+            ]
+          ]
+        },
+        {
+          "name": "Example trailing",
+          "sources": [
+            [
+              "x/foo.tga/"
+            ]
+          ]
+        },
+        {
+          "name": "Example choose",
+          "sources": [
+            [
+              "bbbbbbbb-0000-0000-0000-000000000001"
+            ]
+          ]
+        }
+      ],
+      "different_source_rows": 5
+    }
+  ],
+  "markdown": {
+    "render_exit": 1,
+    "error": "Markdown export is not yet implemented",
+    "load_comparison": "not run; no normalization conclusion"
+  },
+  "scope": "Production converter-only cross-format baseline. Rust convert input.json input.FMT rendered authored JSON without normalization; both CLIs convert input.FMT to JSON. C# ran under bwrap read-only root, isolated HOME/XDG in unique /tmp root, writable artifact folder, --unshare-net. No validation or install proof."
+}
