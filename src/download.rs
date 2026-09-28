@@ -48,7 +48,7 @@ impl LoopbackCa {
     }
 }
 
-fn eligible_loopback(url: &reqwest::Url) -> bool {
+pub(crate) fn eligible_loopback(url: &reqwest::Url) -> bool {
     url.scheme() == "https"
         && match url.host() {
             Some(host) => {
@@ -61,6 +61,32 @@ fn eligible_loopback(url: &reqwest::Url) -> bool {
             }
             None => false,
         }
+}
+
+/// A blocking client for a provider's own page requests: https only, the shared timeouts
+/// and no automatic redirects, so the caller vets every hop and decides which cookies go
+/// where. `no_proxy` (an explicit fixture base) or a loopback CA disables proxies, and a
+/// loopback CA is trusted, as in `fetch_inner`.
+pub(crate) fn page_client(
+    loopback_ca: Option<&LoopbackCa>,
+    no_proxy: bool,
+) -> Result<reqwest::blocking::Client> {
+    let mut builder = reqwest::blocking::Client::builder()
+        .https_only(true)
+        .connect_timeout(CONNECT_TIMEOUT)
+        .timeout(IDLE_TIMEOUT)
+        .redirect(reqwest::redirect::Policy::none())
+        .user_agent(concat!("ModSync/", env!("CARGO_PKG_VERSION")));
+    if no_proxy {
+        builder = builder.no_proxy();
+    }
+    if let Some(ca) = loopback_ca {
+        builder = builder
+            .add_root_certificate(ca.0.clone())
+            .no_proxy()
+            .resolve("localhost", "127.0.0.1:0".parse().expect("literal address"));
+    }
+    Ok(builder.build()?)
 }
 
 /// Why a fetch failed. Callers decide retries and fallbacks from this, never from text.
@@ -272,6 +298,51 @@ pub fn fetch_to_with_loopback_ca(
     progress: &mut dyn FnMut(FetchProgress),
     loopback_ca: Option<&LoopbackCa>,
 ) -> Result<Fetched> {
+    fetch_to_with_context(
+        url,
+        destination,
+        sha256,
+        cancelled,
+        options,
+        progress,
+        &TransferContext::with_loopback_ca(loopback_ca),
+    )
+}
+
+/// Provider-supplied context for one archive transfer. The default adds nothing.
+#[derive(Clone, Default)]
+pub struct TransferContext<'a> {
+    /// Explicit trust restricted to HTTPS loopback on every hop.
+    pub loopback_ca: Option<&'a LoopbackCa>,
+    /// `Cookie` for the first request only, for the endpoint that authorized the link.
+    pub cookie: Option<String>,
+    /// `Referer` for the first request.
+    pub referer: Option<String>,
+    /// Redirects must stay on the first request's origin, so neither the cookie nor the
+    /// referer can be carried to another one.
+    pub confine_origin: bool,
+}
+
+impl<'a> TransferContext<'a> {
+    pub fn with_loopback_ca(loopback_ca: Option<&'a LoopbackCa>) -> Self {
+        Self {
+            loopback_ca,
+            ..Self::default()
+        }
+    }
+}
+
+/// As [`fetch_to_with_loopback_ca`], with a provider's [`TransferContext`]. The direct
+/// downloader's HTML, status, hash and archive checks all still apply.
+pub fn fetch_to_with_context(
+    url: &str,
+    destination: Destination<'_>,
+    sha256: Option<&str>,
+    cancelled: &AtomicBool,
+    options: &crate::archive::Options,
+    progress: &mut dyn FnMut(FetchProgress),
+    context: &TransferContext<'_>,
+) -> Result<Fetched> {
     fetch_inner(
         url,
         destination,
@@ -279,7 +350,7 @@ pub fn fetch_to_with_loopback_ca(
         cancelled,
         options,
         progress,
-        loopback_ca,
+        context,
     )
     .map_err(|error| {
         if classify(&error).is_some() {
@@ -299,8 +370,9 @@ fn fetch_inner(
     cancelled: &AtomicBool,
     options: &crate::archive::Options,
     progress: &mut dyn FnMut(FetchProgress),
-    loopback_ca: Option<&LoopbackCa>,
+    context: &TransferContext<'_>,
 ) -> Result<Fetched> {
+    let loopback_ca = context.loopback_ca;
     let url = reqwest::Url::parse(raw_url)?;
     ensure!(url.scheme() == "https", "Downloads require HTTPS");
     if loopback_ca.is_some() {
@@ -345,8 +417,30 @@ fn fetch_inner(
                 }
             }));
     }
+    if context.confine_origin {
+        let origin = url.origin();
+        let loopback = loopback_ca.is_some();
+        builder = builder.redirect(reqwest::redirect::Policy::custom(move |attempt| {
+            if attempt.url().origin() != origin {
+                attempt.error("Redirect leaves the download's origin")
+            } else if loopback && !eligible_loopback(attempt.url()) {
+                attempt.error("Loopback CA redirect requires an HTTPS loopback endpoint")
+            } else if attempt.previous().len() > 5 {
+                attempt.error("Too many redirects")
+            } else {
+                attempt.follow()
+            }
+        }));
+    }
     let client = builder.build()?;
-    let mut response = client.get(url).send().map_err(|e| {
+    let mut request = client.get(url);
+    if let Some(cookie) = &context.cookie {
+        request = request.header(reqwest::header::COOKIE, cookie.as_str());
+    }
+    if let Some(referer) = &context.referer {
+        request = request.header(reqwest::header::REFERER, referer.as_str());
+    }
+    let mut response = request.send().map_err(|e| {
         network_failure(
             if loopback_ca.is_some() {
                 e.without_url()
@@ -638,7 +732,7 @@ pub fn request_failure(error: anyhow::Error) -> anyhow::Error {
 
 /// Marker-based gate reason for an HTML (or challenge-flagged) response body prefix.
 /// The body is already lower-cased. An unexplained page is `HtmlLanding`, itself gated.
-fn gate_reason(challenge_header: bool, body: &str) -> ManualReason {
+pub(crate) fn gate_reason(challenge_header: bool, body: &str) -> ManualReason {
     const CHALLENGE: &[&str] = &[
         "/cdn-cgi/challenge-platform",
         "cf_chl_",
@@ -669,7 +763,7 @@ fn gate_reason(challenge_header: bool, body: &str) -> ManualReason {
 }
 
 /// RFC 6266 `filename*` (RFC 5987, UTF-8) wins over `filename`.
-fn disposition_filename(value: &str) -> Option<String> {
+pub(crate) fn disposition_filename(value: &str) -> Option<String> {
     let mut plain = None;
     for part in value.split(';').map(str::trim) {
         let Some((key, raw)) = part.split_once('=') else {
@@ -700,7 +794,7 @@ fn disposition_filename(value: &str) -> Option<String> {
 }
 
 /// Decodes `%XX` before the one-component check, so an encoded separator is still rejected.
-fn percent_decode(text: &str) -> String {
+pub(crate) fn percent_decode(text: &str) -> String {
     let bytes = text.as_bytes();
     let mut out = Vec::with_capacity(bytes.len());
     let mut i = 0;

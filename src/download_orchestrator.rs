@@ -10,7 +10,7 @@ use crate::{
     },
     archive,
     download::{self, Destination, FailureClass, FetchProgress},
-    download_hosts::{self, Provider},
+    download_hosts::{self, Provider, deadlystream},
     download_plan, download_queue, protocol,
     selection::DownloadCandidate,
     updates::NexusClient,
@@ -183,10 +183,10 @@ fn sources_for(
         Provider::Direct => origin(OriginRequirement::None),
         Provider::Nexus if key_present => origin(OriginRequirement::NexusPremium),
         Provider::Nexus => manual(ManualReason::FreeUserWait),
+        // The anonymous page/session flow runs in `origin_once`; a gate it finds is terminal.
+        Provider::DeadlyStream => origin(OriginRequirement::None),
         // Not automated yet (Task 1c / open questions 1 and 2).
-        Provider::GameFront | Provider::Mega | Provider::DeadlyStream => {
-            manual(ManualReason::Unsupported)
-        }
+        Provider::GameFront | Provider::Mega => manual(ManualReason::Unsupported),
     };
     match primary {
         Source::Origin { .. } => std::iter::once(primary).chain(peer).collect(),
@@ -509,6 +509,121 @@ fn bare_nexus_page(target: &ArchiveTarget) -> Option<(&str, OriginRequirement)> 
     })
 }
 
+/// The page URL of an unnamed target whose DeadlyStream origin names no file: the only
+/// DeadlyStream kind `discover` expands.
+fn bare_deadlystream_page(target: &ArchiveTarget) -> Option<&str> {
+    if target.filename.is_some() {
+        return None;
+    }
+    target.sources.iter().find_map(|source| match source {
+        Source::Origin {
+            url,
+            provider: Provider::DeadlyStream,
+            ..
+        } if deadlystream::page_url(url).is_ok() => Some(url.as_str()),
+        _ => None,
+    })
+}
+
+/// Expands one bare DeadlyStream page target into one named target per selected archive
+/// its page offers, as `expand_nexus_page` does. Each named target keeps the page as its
+/// Origin, which `run` reads again to reach that archive, since links and cookies belong
+/// to one session. `Err` leaves the target as planned.
+fn expand_deadlystream_page(
+    guide: &Guide,
+    target: &ArchiveTarget,
+    options: &PlanOptions,
+    settings: &RunSettings,
+    loopback_ca: Option<&download::LoopbackCa>,
+    cancelled: &AtomicBool,
+    result: &mut AcquisitionPlan,
+) -> Result<()> {
+    let page = bare_deadlystream_page(target).context("Target has no DeadlyStream page")?;
+    let component = guide
+        .components
+        .iter()
+        .find(|component| component.guid == target.component_guid)
+        .with_context(|| {
+            format!(
+                "Component {} is no longer in the guide",
+                target.component_guid
+            )
+        })?;
+    let files = deadlystream::resolve(
+        page,
+        settings.deadlystream_base.as_deref(),
+        loopback_ca,
+        cancelled,
+    )?;
+    let names: Vec<String> = files
+        .iter()
+        .map(|file| file.name.clone())
+        .filter(|name| resolution_allows(options.resolution, name))
+        .collect();
+    let selected = download_plan::select_filenames(
+        component,
+        &target.registry_url,
+        &names,
+        Some(&result.source_dir),
+    )?;
+    if selected.is_empty() {
+        // As `plan` drops named files the component's Extract patterns do not need.
+        result.warnings.push(format!(
+            "{}: no archive of this DeadlyStream page is needed by this component's Extract instructions",
+            target.registry_url
+        ));
+        return Ok(());
+    }
+    // One authored hash identifies one archive; which sibling it means is unknown.
+    ensure!(
+        selected.len() == 1 || target.expected_sha256.is_none(),
+        "The authored ContentHashSHA256 identifies one archive, but {} archives of this DeadlyStream page match; name the file under Files",
+        selected.len()
+    );
+    let single = selected.len() == 1;
+    for name in selected {
+        let sources = target
+            .sources
+            .iter()
+            .filter(|source| single || !matches!(source, Source::Peer { .. }))
+            .cloned()
+            .collect();
+        if let Some(path) = find_existing(&result.source_dir, &name)
+            && existing_valid(&path, target.expected_sha256.as_deref(), &options.archive)
+        {
+            result.skipped.push(PlannedSkip {
+                component_guid: target.component_guid.clone(),
+                registry_url: target.registry_url.clone(),
+                filename: Some(name),
+                reason: SkipReason::AlreadyPresent,
+                path: Some(path),
+                detail: None,
+            });
+            continue;
+        }
+        result.targets.push(ArchiveTarget {
+            component_guid: target.component_guid.clone(),
+            registry_url: target.registry_url.clone(),
+            filename: Some(name),
+            expected_sha256: target.expected_sha256.clone(),
+            sources,
+            shared_destination: None,
+        });
+    }
+    if !single
+        && target
+            .sources
+            .iter()
+            .any(|s| matches!(s, Source::Peer { .. }))
+    {
+        result.warnings.push(format!(
+            "{}: the page has several archives but a torrent holds one; peers not used",
+            target.registry_url
+        ));
+    }
+    Ok(())
+}
+
 /// Expands one bare Nexus page target. `Err` leaves the target as planned.
 fn expand_nexus_page(
     guide: &Guide,
@@ -650,7 +765,8 @@ fn expand_nexus_page(
     Ok(())
 }
 
-/// Execution-time Nexus page discovery; `plan` and dry-run never call it. Each unnamed
+/// Execution-time page discovery; `plan` and dry-run never call it. DeadlyStream pages
+/// expand too, see [`discover_with_loopback_ca`]. Each unnamed
 /// target whose Nexus origin is a mod page without `file_id` becomes one named target per
 /// selected MAIN, UPDATE or MISCELLANEOUS file, filtered by the component's `Files` flags
 /// and Extract patterns as `plan` filters named files. Callers show and run the returned
@@ -664,6 +780,23 @@ pub fn discover(
     settings: &RunSettings,
     cancelled: &AtomicBool,
 ) -> Result<AcquisitionPlan> {
+    discover_with_loopback_ca(guide, plan, options, settings, cancelled, None)
+}
+
+/// As [`discover`], with the run's per-invocation loopback CA, which a DeadlyStream
+/// fixture base needs. An unnamed target whose DeadlyStream origin is a page becomes one
+/// named target per archive the page offers that the component's `Files` flags and
+/// Extract patterns select, over an anonymous session made here (never in `plan`). A page
+/// a gate, missing CSRF key or changed layout stops stays as planned, fails or ends
+/// manual at run, and adds its reason to `warnings`.
+pub fn discover_with_loopback_ca(
+    guide: &Guide,
+    plan: &AcquisitionPlan,
+    options: &PlanOptions,
+    settings: &RunSettings,
+    cancelled: &AtomicBool,
+    loopback_ca: Option<&download::LoopbackCa>,
+) -> Result<AcquisitionPlan> {
     let mut result = AcquisitionPlan {
         targets: Vec::new(),
         ..plan.clone()
@@ -671,6 +804,42 @@ pub fn discover(
     let mut nexus: Option<NexusClient> = None;
     let mut premium: Option<bool> = None;
     for target in &plan.targets {
+        if bare_deadlystream_page(target).is_some() {
+            if cancelled.load(Ordering::SeqCst) {
+                result.targets.push(target.clone());
+                continue;
+            }
+            // All or nothing per page: a failure keeps no partial expansion.
+            let mut expanded = AcquisitionPlan {
+                source_dir: result.source_dir.clone(),
+                peer_mode: result.peer_mode,
+                targets: Vec::new(),
+                skipped: Vec::new(),
+                warnings: Vec::new(),
+            };
+            match expand_deadlystream_page(
+                guide,
+                target,
+                options,
+                settings,
+                loopback_ca,
+                cancelled,
+                &mut expanded,
+            ) {
+                Ok(()) => {
+                    result.targets.extend(expanded.targets);
+                    result.skipped.extend(expanded.skipped);
+                    result.warnings.extend(expanded.warnings);
+                }
+                Err(error) => {
+                    result
+                        .warnings
+                        .push(format!("{}: {error:#}", target.registry_url));
+                    result.targets.push(target.clone());
+                }
+            }
+            continue;
+        }
         let Some((page, requires)) = bare_nexus_page(target) else {
             result.targets.push(target.clone());
             continue;
@@ -739,6 +908,10 @@ pub struct RunSettings {
     pub nexus_api_key: Option<String>,
     /// Probe-only API base override (HTTPS, or loopback HTTP, enforced by `NexusClient`).
     pub nexus_api_base: Option<String>,
+    /// Probe-only DeadlyStream fixture base: every DeadlyStream page, selection and archive
+    /// request goes to this loopback HTTPS origin instead, and needs the run's loopback CA.
+    /// Provider identity stays with the guide's URL. Never persisted.
+    pub deadlystream_base: Option<String>,
     /// The Peer source (BitTorrent slice). `None` while the tunnel is down or sharing is
     /// off: every Peer step then fails closed and opens no sockets.
     pub peer: Option<Arc<dyn Acquire>>,
@@ -752,6 +925,7 @@ impl Default for RunSettings {
             archive: archive::Options::default(),
             nexus_api_key: None,
             nexus_api_base: None,
+            deadlystream_base: None,
             peer: None,
         }
     }
@@ -2038,7 +2212,7 @@ fn origin_once(
         bail!("Not an origin source");
     };
     let kind = source.kind();
-    let (fetch_url, name_hint) = if *provider == Provider::Nexus {
+    let (fetch_url, name_hint, transfer) = if *provider == Provider::Nexus {
         if *requires == OriginRequirement::NexusPremium {
             match &context.premium {
                 Some(Ok(true)) => {}
@@ -2084,9 +2258,31 @@ fn origin_once(
                     download::request_failure(error)
                 }
             })?;
-        (resolved.uri, Some(resolved.file_name))
+        (
+            resolved.uri,
+            Some(resolved.file_name),
+            download::TransferContext::with_loopback_ca(context.loopback_ca),
+        )
+    } else if *provider == Provider::DeadlyStream {
+        // The page, selection and link are read (and any gate found) before the first
+        // `Transferring` event, so Peer is granted only once every provider gate is clear.
+        let file = deadlystream_file(context, target, url, cancelled)?;
+        (
+            file.url,
+            Some(file.name),
+            download::TransferContext {
+                loopback_ca: context.loopback_ca,
+                cookie: file.cookie,
+                referer: Some(file.referer),
+                confine_origin: true,
+            },
+        )
     } else {
-        (url.clone(), None)
+        (
+            url.clone(),
+            None,
+            download::TransferContext::with_loopback_ca(context.loopback_ca),
+        )
     };
     let destination = target.destination(&context.plan.source_dir)?;
     let destination = match &target.filename {
@@ -2121,27 +2317,70 @@ fn origin_once(
             phase,
         });
     };
-    let fetched = download::fetch_to_with_loopback_ca(
+    let fetched = download::fetch_to_with_context(
         &fetch_url,
         destination,
         target.expected_sha256.as_deref(),
         cancelled,
         &context.settings.archive,
         &mut progress,
-        context.loopback_ca,
+        &transfer,
     )
     .map_err(|error| match (provider, download::classify(&error)) {
-        // A gate on a resolved Nexus CDN link: point the person at the mod page, not
-        // at a signed, expiring mirror URL.
-        (Provider::Nexus, Some(FailureClass::ManualRequired { reason, .. })) => {
-            download::manual_required(&target.registry_url, *reason, &format!("{error:#}"))
-        }
+        // A gate on a resolved Nexus CDN link or DeadlyStream archive link: point the
+        // person at the page, not at a signed, expiring or session-bound URL.
+        (
+            Provider::Nexus | Provider::DeadlyStream,
+            Some(FailureClass::ManualRequired { reason, .. }),
+        ) => download::manual_required(&target.registry_url, *reason, &format!("{error:#}")),
         _ => error,
     })?;
     Ok(Acquired {
         path: fetched.path,
         sha256: fetched.sha256,
     })
+}
+
+/// The archive of a DeadlyStream page that `target` wants: the one named by its filename
+/// (ASCII case-insensitive), or, unnamed, the page's only one. Never a guess between several.
+fn deadlystream_file(
+    context: &RunContext<'_>,
+    target: &ArchiveTarget,
+    url: &str,
+    cancelled: &AtomicBool,
+) -> Result<deadlystream::File> {
+    let mut files = deadlystream::resolve(
+        url,
+        context.settings.deadlystream_base.as_deref(),
+        context.loopback_ca,
+        cancelled,
+    )?;
+    match &target.filename {
+        Some(name) => {
+            let position = files
+                .iter()
+                .position(|file| file.name.eq_ignore_ascii_case(name));
+            match position {
+                Some(position) => Ok(files.swap_remove(position)),
+                None => bail!(
+                    "The DeadlyStream page lists no file named {name} (it lists {})",
+                    files
+                        .iter()
+                        .map(|file| file.name.as_str())
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                ),
+            }
+        }
+        None => {
+            ensure!(
+                files.len() == 1,
+                "The DeadlyStream page lists {} files; add a Files entry for the one this component needs",
+                files.len()
+            );
+            Ok(files.remove(0))
+        }
+    }
 }
 
 /// An nxm URL carries its own file id. A nexusmods.com page URL names the file through a

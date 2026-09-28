@@ -128,6 +128,34 @@ plan/run/record/FOMOD-followup library and concrete proxy-only Peer adapter.
   and are not stored. A Nexus rate limit during discovery waits up to 60
   seconds and does not see Stop until it ends. Source only; not built or
   exercised.
+- DeadlyStream is no longer a fixed manual host (its source order changed from Peer
+  then manual to Origin then Peer, so Peer racing now applies to it). Fetch (CLI and desktop, not
+  dry-run) reads the resource page over one anonymous cookie session, takes the
+  CSRF key from a hidden input, a script value or a link, requests the
+  `?do=download&csrfKey=` selection page, and names each archive from its
+  Content-Disposition or link, following up to two levels of selection pages. A
+  topic's `?do=download` attachments are read from the page itself. Relative and
+  HTML-escaped links resolve. An unnamed DeadlyStream target becomes one named
+  target per archive the component's `Files` flags and Extract patterns select,
+  as for Nexus; a named target picks its archive from the page at run time. The
+  original page URL stays the `registry_url`. Only exact DeadlyStream hosts are
+  accepted (C# accepts any URL containing the text). Every request and redirect
+  stays on the page's origin, the cookie is never sent elsewhere, and the C#
+  bearer header is not sent. A login, challenge or countdown page, or an
+  unexplained page where a file was promised, is a manual boundary with no Peer;
+  a missing CSRF key, missing link, unsafe or duplicate name, or a wrong name
+  under `Files` is a visible failure, never a guessed link. As in C#, one link
+  that fails plainly is skipped while the page's other files stay usable; only a
+  page with no usable file fails. Peer is granted only
+  after these gates clear; a rate limit or server error retries. The archive then
+  goes through the direct downloader's HTML guard, hashes, verification and
+  no-clobber publish. Each named target reads the page again, so a multi-file
+  page costs one session per archive. Cross-origin (CDN) archive redirects are
+  refused. The hidden `fetch-downloads --deadlystream-base <https-loopback-url>`
+  option (needs `--extra-ca-file`) sends every page, selection and archive
+  request to that fixture with proxies off, reads no stored Nexus key and
+  persists nothing and starts no peers; it does not make localhost a DeadlyStream host. Source only;
+  not built or exercised.
 - Real isolated Peer transfers cover known/unknown names, verification, budget/hash
   refusal and SIGINT cleanup. Unsupported-provider chains can end ManualRequired
   after a Peer failure; this is exit 3, not success. Other exits are 0 complete,
@@ -351,7 +379,7 @@ Reference: the local ModSync C# source at `d31ccbd3bfcddb4705917eafa6483715c166d
 | Validation | In-memory file index tracks changes across instruction boundaries; generated drafts require explicit review | Extracted content uses private temporary files outside game/mod trees; external program effects cannot be simulated |
 | Patching | OdyPatcher subprocess, namespace index or named INI, exit-status checking, output capture | Resolves configured path, PATH, and application Resources candidates; no embedded patcher, Wine, or patch-byte equivalence claim |
 | Recovery | Snapshot both roots, stop on first failure, block retry until verified restore | Full copies; restart whole guide after restore; not per-component resume or a power-loss atomic filesystem transaction |
-| Downloads | HTTPS and BitTorrent magnet transfers, streamed integrity checks, SHA-256 content identity, no-clobber publish; source-ordered DeadlyStream/MEGA/Nexus/GameFront provider routing | No host scraping, account management, CAPTCHA interaction, MEGA decryption, or automatic torrent discovery |
+| Downloads | HTTPS and BitTorrent magnet transfers, streamed integrity checks, SHA-256 content identity, no-clobber publish; source-ordered DeadlyStream/MEGA/Nexus/GameFront provider routing | No host scraping beyond the anonymous DeadlyStream page flow (source only; not built or exercised), account management, CAPTCHA interaction, MEGA decryption, or automatic torrent discovery |
 | Profiles | Persistent profile store and CLI CRUD/capture/apply/activation; profile-backed CLI validation/install | Desktop manager, default storage discovery and full schema/platform parity remain incomplete |
 | FOMOD | Archive discovery, XML/choices parsing, configured archive extraction and selected-copy installation; CLI and desktop selection flows | Full corpus, restart/recovery, and complete native interface parity remain open |
 | Managed deployment | Staged-tree manifest deploy/uninstall/purge CLI with hardlink-or-copy materialization, hash-guarded restoration, preflight and rollback, profile-scoped roots, profile switch with optional purge, and patcher provenance snapshot/record | Normal engine actions are not yet redirected into per-component staging (design in `docs/parity/deployment-csharp-audit.md`); no GUI management integration |

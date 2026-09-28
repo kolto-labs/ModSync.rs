@@ -1,6 +1,8 @@
 use anyhow::{Result, bail};
 use serde::Serialize;
 
+pub mod deadlystream;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum Provider {

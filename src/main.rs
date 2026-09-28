@@ -325,6 +325,10 @@ enum Action {
         /// Probe-only API base override (HTTPS, or loopback HTTP); requires an explicit key.
         #[arg(long, hide = true)]
         nexus_api_base: Option<String>,
+        /// Probe-only DeadlyStream base (HTTPS loopback only): every DeadlyStream page,
+        /// selection and archive request goes there. Requires --extra-ca-file.
+        #[arg(long, hide = true)]
+        deadlystream_base: Option<String>,
         /// Per-invocation CA for isolated loopback HTTPS archive probes.
         #[arg(long, hide = true)]
         extra_ca_file: Option<PathBuf>,
@@ -1448,6 +1452,7 @@ fn run() -> Result<()> {
             nexus_mods_api_key,
             settings_dir,
             nexus_api_base,
+            deadlystream_base,
             extra_ca_file,
             peer_mode,
             scratch_dir,
@@ -1499,6 +1504,8 @@ fn run() -> Result<()> {
             // credential bypass in C3 below.
             let (effective_mode, peer_settings) = match peer_mode {
                 Some(PeerModeArg::Off) => (p2p::PeerMode::Off, None),
+                // A DeadlyStream fixture run reads no stored settings and starts no peers.
+                _ if deadlystream_base.is_some() => (p2p::PeerMode::Off, None),
                 _ => {
                     let settings_value =
                         modsync::profiles::SettingsFile::resolve(settings_dir.as_deref())?
@@ -1543,7 +1550,8 @@ fn run() -> Result<()> {
             } else {
                 match nexus_mods_api_key {
                     Some(key) => Some(key),
-                    None if needs_nexus => {
+                    // A DeadlyStream fixture run reads no stored credential.
+                    None if needs_nexus && deadlystream_base.is_none() => {
                         let directory =
                             modsync::profiles::settings_directory(settings_dir.as_deref())?;
                         modsync::profiles::Store::new(&directory)?.nexus_api_key()?
@@ -1570,6 +1578,12 @@ fn run() -> Result<()> {
                 .as_deref()
                 .map(modsync::download::LoopbackCa::from_pem_file)
                 .transpose()?;
+            if deadlystream_base.is_some() {
+                anyhow::ensure!(
+                    loopback_ca.is_some(),
+                    "--deadlystream-base requires --extra-ca-file"
+                );
+            }
 
             // C4: dry-run prints the effective plan and returns before any policy
             // creation, signal handling, save or FOMOD extraction.
@@ -1602,16 +1616,18 @@ fn run() -> Result<()> {
                 archive: archive_options.clone(),
                 nexus_api_key: key,
                 nexus_api_base,
+                deadlystream_base,
                 peer,
             };
             let cancelled = p2p::stop_signal_flag()?;
             // Execution only: dry-run returned above without network discovery.
-            let plan = orchestrator::discover(
+            let plan = orchestrator::discover_with_loopback_ca(
                 &execution,
                 &plan,
                 &plan_options,
                 &run_settings,
                 &cancelled,
+                loopback_ca.as_ref(),
             )?;
             let stdout = std::sync::Mutex::new(std::io::stdout());
             let report = orchestrator::run_with_loopback_ca(
