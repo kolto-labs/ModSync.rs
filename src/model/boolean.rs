@@ -26,6 +26,16 @@ pub(super) fn optional(value: &Value) -> Result<bool> {
     })
 }
 
+// Newtonsoft JSON integers beyond Int64 are BigInteger (no IConvertible).
+pub(super) fn optional_for_format(value: &Value, format: super::keys::Format) -> Result<bool> {
+    if format == super::keys::Format::Json
+        && value.as_u64().is_some_and(|value| value > i64::MAX as u64)
+    {
+        return Ok(false);
+    }
+    optional(value)
+}
+
 pub(super) fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<bool, D::Error> {
     optional(&Value::deserialize(d)?).map_err(serde::de::Error::custom)
 }

@@ -8,6 +8,7 @@ mod installing_page;
 mod main_window;
 mod maintenance;
 mod merge_panel;
+mod protocol_load;
 mod protocol_settings;
 mod resource_watch;
 mod rich_content;
@@ -42,7 +43,7 @@ enum Message {
     Downloaded(u64, PathBuf, modsync::archive::Options),
     /// Shared acquisition (Fetch or nxm handoff) facts for one run.
     Acquisition(u64, downloads_panel::Update),
-    ProtocolGuide(Guide),
+    ProtocolTerminal(Box<protocol_load::Finished>),
     Conflicts(modsync::conflicts::Report),
     ValidationProgress(u64, modsync::validation::StageProgress),
     ValidationTerminal(u64, modsync::validation::Report),
@@ -113,7 +114,7 @@ enum SharingContinuation {
     Restore,
     Load,
     Update,
-    Protocol(Box<Guide>),
+    Protocol(Box<protocol_load::Ready>),
     Terminal(u64, Result<Box<downloads_panel::Finished>>),
     MergeSave(String),
     Deployment(modsync::deployment::ManagementAction, String),
@@ -182,6 +183,7 @@ pub struct App {
     category_selection: Option<std::collections::BTreeMap<String, bool>>,
     logs: Vec<String>,
     receiver: Option<Receiver<Message>>,
+    protocol_load: protocol_load::State,
     protocol_receiver: Option<Receiver<String>>,
     #[cfg(target_os = "macos")]
     native_protocol_receiver: Option<Receiver<String>>,
@@ -249,7 +251,7 @@ impl App {
                 }
             }
             Message::Acquisition(run, update) => self.acquisition_update(run, update),
-            Message::ProtocolGuide(guide) => self.apply_protocol_guide(guide),
+            Message::ProtocolTerminal(finished) => self.protocol_terminal(*finished),
             Message::Conflicts(report) => {
                 self.refresh_input_stamp();
                 if self.tools.conflict_context.as_ref() == Some(&self.input_stamp)
@@ -2919,6 +2921,7 @@ impl App {
             download_url: String::new(),
             download_name: String::new(),
             download_hash: String::new(),
+            protocol_load: Default::default(),
             pending_protocol: None,
             pending_nxm: Default::default(),
             telemetry: Default::default(),
@@ -3005,43 +3008,6 @@ impl App {
                 self.logs.push(format!("Load failed: {e:#}"));
             }
         }
-    }
-
-    fn open_pending_protocol(&mut self) {
-        let Some(raw) = self.pending_protocol.take() else {
-            return;
-        };
-        let (tx, rx) = mpsc::channel();
-        self.receiver = Some(rx);
-        self.job = Job::ProtocolOpen;
-        self.logs.push("Downloading ModSync build link…".into());
-        std::thread::spawn(move || {
-            let result = (|| -> Result<()> {
-                let (_, guide) = modsync::protocol::fetch_modsync_guide(&raw)?;
-                tx.send(Message::ProtocolGuide(guide))?;
-                Ok(())
-            })();
-            let _ = tx.send(Message::Done(result));
-        });
-    }
-
-    fn apply_protocol_guide(&mut self, guide: Guide) {
-        if !self.sharing_before(SharingContinuation::Protocol(Box::new(guide.clone()))) {
-            return;
-        }
-        self.reset_installation();
-        self.logs.push(format!(
-            "Loaded {} components from modsync link",
-            guide.components.len()
-        ));
-        self.loaded_input = None;
-        self.downloads.unsaved_records = false;
-        self.wizard = (!guide.components.is_empty()).then(|| Wizard::new(&guide));
-        self.utility = false;
-        self.guide = Some(guide);
-        self.selected = 0;
-        self.page = 0;
-        self.start_pending_nxm_if_ready();
     }
 
     fn accept_protocol(&mut self, url: String) {
@@ -4373,6 +4339,7 @@ impl eframe::App for App {
         for message in messages {
             self.handle_message(message);
         }
+        self.poll_protocol_worker();
         self.poll_editor_worker();
         self.poll_shell_worker();
         self.poll_standalone();
@@ -4413,7 +4380,7 @@ impl eframe::App for App {
                 SharingContinuation::Restore => self.restore_captured(ctx),
                 SharingContinuation::Load => self.load(),
                 SharingContinuation::Update => self.start_update_check(ctx),
-                SharingContinuation::Protocol(guide) => self.apply_protocol_guide(*guide),
+                SharingContinuation::Protocol(ready) => self.apply_protocol_ready(*ready),
                 SharingContinuation::Terminal(run, result) => {
                     self.acquisition_terminal(run, result)
                 }
@@ -4426,6 +4393,7 @@ impl eframe::App for App {
             && self.resource_watch.closed()
             && self.standalone.closed()
             && self.maintenance.closed()
+            && self.protocol_load.closed()
             && self.editor.settled()
             && self.shell.settled()
             && self.desktop.closed()
@@ -4457,6 +4425,7 @@ impl eframe::App for App {
                 && self.resource_watch.closed()
                 && self.standalone.closed()
                 && self.maintenance.closed()
+                && self.protocol_load.closed()
                 && self.editor.settled()
                 && self.shell.settled()
                 && self.desktop.closed()
@@ -4819,6 +4788,9 @@ impl eframe::App for App {
                 if install {
                     ui.heading("Stop the install?");
                     ui.label(self.installing_page.stop_warning());
+                } else if self.job == Job::ProtocolOpen {
+                    ui.heading("Stop loading the guide?");
+                    ui.label("The guide download is cancelled and its temporary document is removed. Your open guide stays available.");
                 } else {
                     ui.heading("Stop current operation?");
                     ui.label("Cancellation stops at the next safe engine checkpoint. A failed installation requires restoring its verified snapshot before retrying.");

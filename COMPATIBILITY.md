@@ -1837,3 +1837,29 @@ qualification; extra arguments and invalid qualified requests receive redacted
 errors. Explicit inspection remains available. See
 [the CLI contract](docs/parity/cli-validation-handoff-contract.md). These changes
 have independent source review; native/behavioral acceptance remains separate.
+
+
+### Cancellable protocol guide loading
+
+Protocol guide loading now has an additive cancellation-aware library API and
+uses real CLI stop flags. Guide-opening entry points share the 8 KiB handoff
+bound; direct HTTP fetch retains its existing URL intake. CLI cancellation errors
+return 130, with completed publication/ready success retaining existing priority.
+The desktop owns and joins its guide worker, discards cancelled or stale results,
+and retains run/input/token identity through sharing acknowledgement and close.
+See [the protocol loading contract](docs/parity/protocol-load-cancellation.md).
+Independent source specification and quality reviews accepted these scopes;
+runtime/native and FIFO/backpressure acceptance remain separate.
+
+
+### Bounded component text conversion
+
+Component Name/Author/Description/Directions/Tier and option Name/Description
+now use the qualified scalar getter; Category/Language separate scalar trimming
+from array-item preservation and bounded collection cleaning. Negative collection
+integers use one lazy captured native sign. The represented JSON UInt64 range
+above Int64 defaults optional Boolean/text conversion as Newtonsoft BigInteger.
+See [the text intake contract](docs/parity/component-text-intake.md) for generated
+text/work bounds, floating/type-name limits and the remaining YAML/JSON parser
+origin boundaries. Independent source review accepted this slice; broader
+conversion and behavioral acceptance remain open.

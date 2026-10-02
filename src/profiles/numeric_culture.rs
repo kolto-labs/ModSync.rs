@@ -54,6 +54,14 @@ impl NumberCultureSnapshot {
             anyhow::bail!("Current-culture numeric data is unavailable on this platform")
         }
     }
+    /// Default integral ToString uses decimal digits and the captured negative sign.
+    pub(crate) fn format_signed_magnitude(&self, magnitude: u64, negative: bool) -> String {
+        if negative {
+            format!("{}{magnitude}", self.negative)
+        } else {
+            magnitude.to_string()
+        }
+    }
     fn validate(self) -> Result<Self> {
         for symbol in [
             &self.decimal,

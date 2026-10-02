@@ -1880,12 +1880,20 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             Ok(())
         }
         Some(Action::ProtocolFetch { url, output }) => {
-            modsync::protocol::fetch_instruction(&url, &output)?;
+            let cancelled = modsync::p2p::stop_signal_flag()?;
+            finish_acquisition_result(
+                modsync::protocol::fetch_instruction_with_cancel(&url, &output, &cancelled),
+                &cancelled,
+            )?;
             println!("{}", output.display());
             Ok(())
         }
         Some(Action::ProtocolOpen { url }) => {
-            let (link, guide) = modsync::protocol::fetch_modsync_guide(&url)?;
+            let cancelled = modsync::p2p::stop_signal_flag()?;
+            let (link, guide) = finish_acquisition_result(
+                modsync::protocol::fetch_modsync_guide_with_cancel(&url, &cancelled),
+                &cancelled,
+            )?;
             println!(
                 "{}",
                 serde_json::to_string_pretty(&serde_json::json!({"Link": link, "Guide": guide}))?

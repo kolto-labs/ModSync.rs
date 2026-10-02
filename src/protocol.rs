@@ -1,10 +1,11 @@
 use crate::Component;
 use crate::Guide;
-use anyhow::{Result, bail};
+use anyhow::{Result, bail, ensure};
 use reqwest::Url;
 use serde::Serialize;
 use std::net::{IpAddr, ToSocketAddrs};
 use std::path::Path;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 mod fetch;
 pub use fetch::fetch_instruction_with_cancel;
@@ -93,6 +94,23 @@ pub fn fetch_instruction(raw: &str, destination: &Path) -> Result<()> {
 }
 
 pub fn fetch_modsync_guide(raw: &str) -> Result<(Link, Guide)> {
+    fetch_modsync_guide_with_cancel(raw, &AtomicBool::new(false))
+}
+
+/// Open a qualified, bounded handoff with cancellation through HTTP and around
+/// guide decoding. The temporary document never survives this operation.
+pub fn fetch_modsync_guide_with_cancel(raw: &str, cancelled: &AtomicBool) -> Result<(Link, Guide)> {
+    let check_cancel = || -> Result<()> {
+        ensure!(
+            !cancelled.load(Ordering::Acquire),
+            "Protocol guide load cancelled"
+        );
+        Ok(())
+    };
+    check_cancel()?;
+    crate::single_instance::validate_protocol_request(raw)
+        .map_err(|_| anyhow::anyhow!("Invalid or unsupported protocol guide request"))?;
+    check_cancel()?;
     let link = parse(raw)?;
     let Link::Modsync {
         instruction_url, ..
@@ -100,10 +118,15 @@ pub fn fetch_modsync_guide(raw: &str) -> Result<(Link, Guide)> {
     else {
         bail!("Only modsync:// links contain an instruction URL");
     };
+    check_cancel()?;
     let directory = tempfile::tempdir()?;
     let destination = directory.path().join("instruction.toml");
-    fetch_instruction(instruction_url, &destination)?;
-    Ok((link, Guide::load_for_install(&destination)?))
+    check_cancel()?;
+    fetch_instruction_with_cancel(instruction_url, &destination, cancelled)?;
+    check_cancel()?;
+    let guide = Guide::load_for_install(&destination)?;
+    check_cancel()?;
+    Ok((link, guide))
 }
 
 /// Resolves an nxm handoff against top-level guide components, like the C# resolver.

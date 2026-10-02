@@ -254,6 +254,20 @@ installs, packaging producers or CI ran. Protocol cancellation/owned desktop
 results and metadata scalar/list conversion remain subsequent source work;
 whole-domain behavioral acceptance stays open.
 
+
+
+The protocol/text source boundary adds cancellable library and CLI guide loading,
+an owned joined desktop protocol worker with run/input/token admission through
+sharing acknowledgement, qualified component/option scalar and list getters,
+and optional JSON BigInteger defaults within the represented UInt64 range.
+Independent SPEC and separate QUALITY reviews accepted all scopes. Linux default
+and no-default production builds/strict Clippy and Windows GNU no-default
+compile/link passed. Existing UI inline tests remain byte-identical; other frozen
+modules, casing tables and Cargo.lock are unchanged. No tests, harnesses, runtime,
+native/CLI probes, installs, producers or CI ran. See the
+[current source triage](../parity/source-triage-2026-10-02.md) for actual F05-F15 source gaps;
+parser-origin, floating getter, protocol FIFO and broader acceptance stay open.
+
 ## Integration and external blockers
 
 - [ ] Reconcile historical status prose and newly merged/uncommitted audits against current source; derive bounded tasks where a domain still lacks a current plan.

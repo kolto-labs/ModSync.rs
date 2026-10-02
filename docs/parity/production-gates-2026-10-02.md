@@ -844,3 +844,48 @@ e0ede6a9208e79f110b86691bc3bc3deefe88a63ecefa61eec855c36b3c88662  src/main.rs
 748856f76be963ecd8d4c99e8ef249a9d6e164fa2234753489c1239941f02c70  src/cli_compat.rs
 54f659dc394ed68be599cffdc0c583ce123ebe9c324eca4680a7b8efa060e93a  src/single_instance.rs
 ```
+
+
+## Owned protocol loading and bounded component text conversion
+
+Source following `79ebd5a` implements library/CLI cancellation and owned desktop
+protocol terminals. Joined results retain run/input/token identity through the
+sharing barrier, stale/cancelled results are refused, and close waits for worker
+ownership. Component/option scalar and Category/Language list conversion use a
+shared lazy culture snapshot, bounded generated text/work, and qualified JSON
+BigInteger defaults in the represented UInt64 range. Independent SPEC and
+separate QUALITY reviews accepted each frozen scope. The split-segment shared
+work-budget finding was fixed before final review.
+
+Parent production gates passed:
+
+- Formatting/whitespace: session4012 initial gate; final formatting/diff exit0.
+- Linux default library/binary build: session4012 exit0,59.72s;
+  final current-source refresh session97068 exit0,31.39s.
+- Linux default strict Clippy: session44311 exit0,5.31s after equivalent
+  protocol terminal predicate simplification reported in session1862.
+- Linux no-default library/binary build: session80658 exit0,35.17s.
+- Linux no-default strict Clippy: session20769 exit0,20.45s (including build-lock wait).
+- Windows GNU no-default library/binary compile/link: session84015 exit0,50.64s.
+
+Necessary UI production changes leave the existing inline test module and
+embedded test-only helpers unchanged. The other six previously frozen whole
+modules, existing casing/punctuation tables and Cargo.lock are byte-identical
+against `79ebd5a`. No tests, fixtures, custom harnesses, filesystem tests,
+application/runtime/CLI/native probes, Windows binary execution, installs,
+data/backend/package producers or CI ran. Source review/compilation is not
+behavioral, platform, corpus or F01-F29 acceptance. The current source triage
+retains concrete cleanup, inventory, source resolver and FOMOD metadata gaps.
+
+Source hashes:
+
+```text
+306ea3ef2e1742256f6aa16b0261a00bf5d16cbb0cb39de4e867046028e39b0f  src/protocol.rs
+c937448398e27e0f7a94b9ec86aee6eb5e39fbdb6543599f1fcc85a5a4dd4207  src/main.rs
+e39120269fe63ca32ef487c7c4e23cf43a6a670b0f7328999601bf6b1bdff178  src/ui.rs
+180663e4b27ee7e050b62e4195be890cf27b4730e6c39ee9fe4f3ee62667f112  src/ui/protocol_load.rs
+433e7d99545bcd2f35bf8ba5626df4815fd7cbbf88779ad52cbb0c3a624e0f5f  src/model.rs
+562c0115c50ed04c213e243163358c882137277525e52fbc15f0cf758acfbc21  src/model/getter.rs
+f5cb58779cbc6c48f8095de922ef70ebb0154e94fe53e5ff1d4bf2beb5e2afc8  src/model/boolean.rs
+de773d4aa4f13de423d9205aa1fc5d6569f687e3d4f6f4a46cfc23ea0cde9c74  src/profiles/numeric_culture.rs
+```

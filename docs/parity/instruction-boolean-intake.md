@@ -9,11 +9,14 @@ For represented structured values:
 | Value | Result |
 | --- | --- |
 | Boolean | Unchanged |
-| Number | Zero, including negative floating zero, is false; nonzero is true |
+| Represented native number | Zero, including negative floating zero, is false; nonzero is true |
+| JSON integer above Int64 within serde's unsigned range | False: Newtonsoft reads BigInteger, which fails optional IConvertible conversion |
 | String | Ordinal-ignore-case true after admitted boundary trimming is true; false and malformed text yield false |
 | Null, array or object | False, matching failed optional conversion/defaulting |
 
 Boolean strings are limited to4096 bytes; exceeding that intake limit returns an error. The exact boundary characters are NUL plus .NET9 Char.IsWhiteSpace: U+0009–000D,0020,0085,00A0,1680,2000–200A,2028,2029,202F,205F,3000. Boundary characters can occur on either end. Interior NULs/whitespace are not removed, numeric strings are not interpreted as booleans, and no process locale is consulted. This is a policy for values representable by the existing structured parser; it does not add special floating-point tokens to that parser.
+
+Format-aware normalization preserves the JSON BigInteger distinction from [Newtonsoft13.0.4 JsonTextReader.cs](https://raw.githubusercontent.com/JamesNK/Newtonsoft.Json/13.0.4/Src/Newtonsoft.Json/JsonTextReader.cs)2021–2060. Direct serde/internal intake has no JSON-origin evidence and keeps its represented-number policy. Plain YAML scalar typing remains a separate intake boundary: the current Rust parser automatically types values that pinned YamlDotNet's default object reader can retain as strings; represented-number conversion is not a claim that this wire distinction is resolved.
 
 ## Presence and ordering
 

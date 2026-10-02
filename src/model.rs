@@ -1,5 +1,6 @@
 mod action;
 mod boolean;
+mod getter;
 pub(crate) mod keys;
 mod text;
 use anyhow::{Context, Result, bail, ensure};
@@ -207,6 +208,7 @@ impl Guide {
             "xml" => Self::from_value_with_format(crate::xml::parse(text)?, keys::Format::Xml)?,
             "yaml" => {
                 let mut guide = Self::default();
+                let mut text_context = getter::Context::default();
                 let separators = regex::Regex::new(r"(?m)^---[ \t]*(?:#[^\r\n]*)?\r?$")?;
                 let directive_start = regex::Regex::new(r"(?m)^%")?;
                 let mut directives = String::new();
@@ -243,7 +245,11 @@ impl Guide {
                             ensure!(value.is_object(), "YAML metadata must be a mapping");
                             guide.metadata.insert("metadata".into(), value);
                         } else {
-                            let parsed = Self::from_value_with_format(value, keys::Format::Yaml)?;
+                            let parsed = Self::from_value_with_text_context(
+                                value,
+                                keys::Format::Yaml,
+                                &mut text_context,
+                            )?;
                             guide.components.extend(parsed.components);
                             guide.metadata.extend(parsed.metadata);
                         }
@@ -299,8 +305,16 @@ impl Guide {
     }
 
     pub(crate) fn from_value_with_format(
+        value: serde_json::Value,
+        format: keys::Format,
+    ) -> Result<Self> {
+        Self::from_value_with_text_context(value, format, &mut getter::Context::default())
+    }
+
+    fn from_value_with_text_context(
         mut value: serde_json::Value,
         format: keys::Format,
+        text_context: &mut getter::Context,
     ) -> Result<Self> {
         use serde_json::Value;
         crate::draft::validate_raw_review_aliases(&value)?;
@@ -349,7 +363,7 @@ impl Guide {
             .iter_mut()
             .zip(&access)
         {
-            normalize_component(component, access)?;
+            normalize_component(component, access, format, false, text_context)?;
         }
         Ok(serde_json::from_value(value)?)
     }
@@ -646,6 +660,9 @@ fn canonical_format(format: &str) -> Option<&'static str> {
 fn normalize_component(
     value: &mut serde_json::Value,
     access: &keys::ComponentAccess,
+    format: keys::Format,
+    option: bool,
+    text_context: &mut getter::Context,
 ) -> Result<()> {
     use serde_json::Value;
     let object = value
@@ -653,7 +670,17 @@ fn normalize_component(
         .context("Component must be an object")?;
     object.retain(|_, value| !value.is_null());
     if let Some(selected) = object.get_mut("IsSelected") {
-        *selected = Value::Bool(boolean::optional(selected)?);
+        *selected = Value::Bool(boolean::optional_for_format(selected, format)?);
+    }
+    let text_fields: &[&str] = if option {
+        &["Name", "Description"]
+    } else {
+        &["Name", "Author", "Description", "Directions", "Tier"]
+    };
+    for field in text_fields {
+        if let Some(value) = object.get_mut(*field) {
+            *value = Value::String(text_context.scalar(value, format)?);
+        }
     }
     if let Some(tier) = object.get_mut("Tier")
         && let Some(text) = tier.as_str()
@@ -670,31 +697,10 @@ fn normalize_component(
         .map_or(text.trim(), |(_, normalized)| normalized)
         .into();
     }
-    for field in ["Category", "Language"] {
-        if let Some(value) = object.get_mut(field) {
-            let string = value.as_str().or_else(|| {
-                value
-                    .as_array()
-                    .filter(|a| a.len() == 1)
-                    .and_then(|a| a[0].as_str())
-            });
-            if let Some(string) = string {
-                if !string.contains([',', ';']) {
-                    if string.trim().is_empty() {
-                        *value = Value::Array(Vec::new());
-                    } else if value.is_string() {
-                        *value = Value::Array(vec![string.into()]);
-                    }
-                    continue;
-                }
-                *value = Value::Array(
-                    string
-                        .split([',', ';'])
-                        .map(str::trim)
-                        .filter(|s| !s.is_empty())
-                        .map(|s| Value::String(s.into()))
-                        .collect(),
-                );
+    if !option {
+        for field in ["Category", "Language"] {
+            if let Some(value) = object.get_mut(field) {
+                *value = Value::Array(text_context.list(value, format)?);
             }
         }
     }
@@ -728,7 +734,7 @@ fn normalize_component(
             // keys::component already enforced literal Overwrite presence.
             // An admitted but invalid value defaults false, not action-default.
             if let Some(overwrite) = instruction.get_mut("Overwrite") {
-                *overwrite = Value::Bool(boolean::optional(overwrite)?);
+                *overwrite = Value::Bool(boolean::optional_for_format(overwrite, format)?);
             }
             let action = action::intake(instruction.get("Action").unwrap_or(&Value::Null))?;
             if let Some(Value::Array(paths)) = instruction.get_mut("Source") {
@@ -760,7 +766,7 @@ fn normalize_component(
     }
     if let Some(options) = object.get_mut("Options").and_then(Value::as_array_mut) {
         for (option, access) in options.iter_mut().zip(&access.options) {
-            normalize_component(option, access)?;
+            normalize_component(option, access, format, true, text_context)?;
         }
     }
     Ok(())
