@@ -1,11 +1,9 @@
 use crate::Component;
-use crate::unicode_case::{invariant_lower_key, ordinal_eq};
+use crate::unicode_case::{char_is_punctuation, invariant_lower_key, ordinal_eq};
 
 mod preview;
 pub use preview::{Preview, apply_preview, preview};
-use regex::Regex;
 use std::collections::BTreeSet;
-use std::sync::LazyLock;
 
 /// Mirrors C# `MergeHeuristicsOptions`; defaults match `CreateDefault()`.
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
@@ -170,9 +168,7 @@ fn same_guid(a: &str, b: &str) -> bool {
     trim(a) == trim(b)
 }
 
-static PUNCTUATION: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\p{P}").unwrap());
-
-/// C# `Normalize`: trim, drop Unicode punctuation (not symbols), then lowercase.
+/// C# `Normalize`: trim, drop punctuation code units, then lowercase.
 fn normalized(value: &str, options: &Heuristics) -> String {
     let mut text = if options.trim_whitespace {
         value.trim()
@@ -181,7 +177,7 @@ fn normalized(value: &str, options: &Heuristics) -> String {
     }
     .to_string();
     if options.ignore_punctuation {
-        text = PUNCTUATION.replace_all(&text, "").into_owned();
+        text.retain(|value| !char_is_punctuation(value));
     }
     if options.ignore_case {
         text = invariant_lower_key(&text);
@@ -220,7 +216,19 @@ fn host(url: &str) -> Option<String> {
     } else {
         authority.split(':').next()?
     };
-    (!host.trim().is_empty()).then(|| host.to_lowercase())
+    if host.trim().is_empty() {
+        return None;
+    }
+    let host = invariant_lower_key(host);
+    // DomainNameHelper canonicalizes this exact DNS alias. Limit the correction
+    // to known HTTP syntax; custom/file schemes need separate host-type parsing.
+    if (scheme.eq_ignore_ascii_case("http") || scheme.eq_ignore_ascii_case("https"))
+        && host == "loopback"
+    {
+        Some("localhost".into())
+    } else {
+        Some(host)
+    }
 }
 
 fn primary_domain(component: &Component) -> Option<String> {

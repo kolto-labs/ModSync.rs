@@ -197,6 +197,24 @@ struct LocalValue {
     ambiguous_dst: bool,
 }
 impl Zone {
+    pub(super) fn utc() -> Self {
+        Self {
+            base: 0,
+            rules: Vec::new(),
+        }
+    }
+    pub(super) fn from_native(row: Tzi, disabled: bool) -> Result<Self> {
+        let base = offset_minutes(-i64::from(row.bias))?;
+        // Native disabled retry skips transition construction entirely. Registry
+        // loading constructs/validates all rules before discarding them instead.
+        let mut rules = Vec::new();
+        if !disabled
+            && let Some(rule) = Rule::from_tzi(&row, row.bias, date(1, 1, 1)?, date(9999, 12, 31)?)?
+        {
+            rules.push(rule);
+        }
+        Ok(Self { base, rules })
+    }
     pub(super) fn from_registry(
         default: Tzi,
         annual: Vec<(i32, Tzi)>,

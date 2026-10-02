@@ -125,11 +125,12 @@ impl Future {
         let standard = -offset(text, &mut at)?.context("Missing timezone standard offset")?;
         let standard_delta = minute_delta(standard - base);
         let mut standard = base + standard_delta;
-        ensure!(
-            (-50400..=50400).contains(&standard),
-            "Timezone future standard offset exceeds .NET range"
-        );
         if at == text.len() {
+            // Without daylight transitions, standard is the effective rule offset.
+            ensure!(
+                (-50400..=50400).contains(&standard),
+                "Timezone future effective offset exceeds supported range"
+            );
             return Ok(Some(Self {
                 standard,
                 daylight: None,
@@ -166,9 +167,12 @@ impl Future {
             !start.same_definition(&end),
             "Timezone future transitions are identical"
         );
+        // Reference admission checks the effective daylight total. The single
+        // day transfer can place standard outside fourteen hours; the delta
+        // bound above and this total bound still limit it to [-28h, +37h].
         ensure!(
-            (-50400..=50400).contains(&standard) && (-50400..=50400).contains(&daylight),
-            "Timezone future offset exceeds 14 hours"
+            (-50400..=50400).contains(&daylight),
+            "Timezone future effective offset exceeds supported range"
         );
         Ok(Some(Self {
             standard,

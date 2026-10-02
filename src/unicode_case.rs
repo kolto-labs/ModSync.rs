@@ -5,6 +5,8 @@
 mod lowercase_data;
 #[path = "fomod/ordinal/data.rs"]
 mod ordinal_data;
+#[path = "unicode_case/punctuation.rs"]
+mod punctuation_data;
 
 // Metadata and table references for the maintenance policy's existing digest
 // verifier. These aliases neither copy tables nor change persisted descriptors.
@@ -24,6 +26,15 @@ fn invariant_lower_scalar(value: char) -> char {
         Ok(index) => char::from_u32(LOWERCASE[index].1).unwrap_or(value),
         Err(_) => value,
     }
+}
+
+/// The reference iterates UTF-16 chars, so supplementary punctuation survives.
+/// BMP membership uses .NET 9's pinned Unicode 15 General_Category dataset.
+pub(crate) fn char_is_punctuation(value: char) -> bool {
+    let scalar = value as u32;
+    let ranges = punctuation_data::BMP_PUNCTUATION;
+    let index = ranges.partition_point(|(first, _)| *first <= scalar);
+    index != 0 && scalar <= ranges[index - 1].1
 }
 
 pub(crate) fn ordinal_key(value: &str) -> String {

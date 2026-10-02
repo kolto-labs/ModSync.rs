@@ -102,6 +102,17 @@ discovery and broader invariant grammar remain named implementation follow-ups.
 Independent source review accepted this wave. Production evidence is recorded
 in the gate log; full domains and runtime acceptance remain open.
 
+The next source increment pins merge punctuation to the reference UTF-16 char
+operation and Unicode 15 category dataset, preserving supplementary punctuation.
+A narrow HTTP(S) loopback alias correction retains the separate full URI/IDN
+boundary. Profile fallback adds bounded weekday/AMPM/delimiter syntax; Unix
+future rules now validate effective daylight totals without independently
+rejecting the rebased standard component. Windows native discovery captures
+failed direct lookup, first-match registry search and qualified native/UTC
+fallback decisions twice. Independent source reviews, both Linux production
+build/strict-lint modes and Windows GNU compile/link passed for this wave.
+Native and corpus acceptance remain deferred; no full domain is closed.
+
 Continuation uses the actual `ModSync.rs` checkout through `eed8089` and its
 working changes. The [remaining-work tracker](../plans/2026-09-28-1130-remaining-work-tracker-plan.md)
 is the current source reconciliation. The sections below retain historical

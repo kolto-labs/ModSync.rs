@@ -6,10 +6,117 @@ use chrono::{Datelike, NaiveDate};
 
 pub(in super::super) fn parse(text: &str) -> Result<Option<DateValue>> {
     ensure!(text.len() <= 4096, "Fallback date exceeds text bound");
-    if let Some((date, rest)) = calendar_prefix(text.trim()) {
-        return iso_fallback(&format!("{}{rest}", date.format("%Y-%m-%d")));
+    let text = envelope(text)?;
+    let (prefix, text) = weekday_prefix(text)?;
+    let (suffix, text) = weekday_suffix(text)?;
+    ensure!(
+        prefix.is_none() || suffix.is_none(),
+        "Fallback weekday is repeated"
+    );
+    let weekday = prefix.or(suffix);
+    let canonical =
+        calendar_prefix(text).map(|(date, rest)| format!("{}{rest}", date.format("%Y-%m-%d")));
+    let candidate = canonical.as_deref().unwrap_or(text);
+    // Weekdays belong to the generic grammar. Do not pass one through
+    // the separate ISO-T parser, whose weekday handling is a different route.
+    if weekday.is_some() && matches!(candidate.as_bytes().get(10), Some(b'T' | b't')) {
+        return Ok(None);
     }
-    iso_fallback(text)
+    let parsed = iso_fallback(candidate)?;
+    if let (Some(expected), Some(value)) = (weekday, parsed.as_ref()) {
+        ensure!(
+            value.clock.weekday().num_days_from_sunday() == expected,
+            "Fallback weekday does not match rounded calendar date"
+        );
+    }
+    Ok(parsed)
+}
+fn envelope(text: &str) -> Result<&str> {
+    let text = if let Some(at) = text.find('\0') {
+        ensure!(
+            text[at..].bytes().all(|b| b == 0),
+            "Fallback date has nonterminal NUL"
+        );
+        &text[..at]
+    } else {
+        text
+    };
+    let text = text.trim();
+    if text.contains('#') {
+        ensure!(
+            text.len() >= 2
+                && text.starts_with('#')
+                && text.ends_with('#')
+                && !text[1..text.len() - 1].contains('#'),
+            "Fallback date hash delimiters must be paired"
+        );
+        Ok(text[1..text.len() - 1].trim())
+    } else {
+        Ok(text)
+    }
+}
+fn weekday_name(text: &str) -> Option<u32> {
+    const DAYS: [(&str, &str); 7] = [
+        ("Sunday", "Sun"),
+        ("Monday", "Mon"),
+        ("Tuesday", "Tue"),
+        ("Wednesday", "Wed"),
+        ("Thursday", "Thu"),
+        ("Friday", "Fri"),
+        ("Saturday", "Sat"),
+    ];
+    DAYS.iter()
+        .position(|(full, short)| {
+            text.eq_ignore_ascii_case(full) || text.eq_ignore_ascii_case(short)
+        })
+        .map(|index| index as u32)
+}
+fn weekday_prefix(text: &str) -> Result<(Option<u32>, &str)> {
+    let length = text.bytes().take_while(u8::is_ascii_alphabetic).count();
+    let Some(day) = weekday_name(&text[..length]) else {
+        return Ok((None, text));
+    };
+    let rest = &text[length..];
+    let rest = rest.strip_prefix(',').unwrap_or(rest);
+    // This slice intentionally admits only an explicit prefix token boundary.
+    if !rest.starts_with(|c: char| c.is_ascii_whitespace()) {
+        return Ok((None, text));
+    }
+    let rest = rest.trim_start_matches(|c: char| c.is_ascii_whitespace());
+    let next = rest.bytes().take_while(u8::is_ascii_alphabetic).count();
+    ensure!(
+        weekday_name(&rest[..next]).is_none(),
+        "Fallback weekday is repeated"
+    );
+    Ok((Some(day), rest))
+}
+fn weekday_suffix(text: &str) -> Result<(Option<u32>, &str)> {
+    let text = text.trim_end_matches(|c: char| c.is_ascii_whitespace());
+    let length = text
+        .bytes()
+        .rev()
+        .take_while(u8::is_ascii_alphabetic)
+        .count();
+    let at = text.len() - length;
+    let Some(day) = weekday_name(&text[at..]) else {
+        return Ok((None, text));
+    };
+    let before = &text[..at];
+    // Admit only a whitespace-separated terminal token, not general punctuation.
+    if !before.ends_with(|c: char| c.is_ascii_whitespace()) {
+        return Ok((None, text));
+    }
+    let before = before.trim_end_matches(|c: char| c.is_ascii_whitespace());
+    let previous = before
+        .bytes()
+        .rev()
+        .take_while(u8::is_ascii_alphabetic)
+        .count();
+    ensure!(
+        weekday_name(&before[before.len() - previous..]).is_none(),
+        "Fallback weekday is repeated"
+    );
+    Ok((Some(day), before))
 }
 // Explicit four-digit-year, fully specified invariant calendar forms only.
 // Month names are fixed CalendarData.Invariant data, not a locale guess.
@@ -20,7 +127,8 @@ fn calendar_prefix(text: &str) -> Option<(NaiveDate, &str)> {
     let end = text.find(char::is_whitespace).unwrap_or(text.len());
     let first = &text[..end];
     let rest = &text[end..];
-    let parts = first.split('/').collect::<Vec<_>>();
+    let separator = if first.contains('/') { '/' } else { '-' };
+    let parts = first.split(separator).collect::<Vec<_>>();
     if parts.len() == 3 {
         let (year, month, day) = if parts[0].len() == 4 {
             (parts[0], parts[1], parts[2])
@@ -123,28 +231,40 @@ fn iso_fallback(text: &str) -> Result<Option<DateValue>> {
             kind: Kind::Unspecified,
         }));
     }
-    if !matches!(b[10], b'T' | b' ') {
+    if !matches!(b[10], b'T' | b't' | b' ') {
         return Ok(None);
     }
     let mut rest = text[11..].trim_start_matches(|c: char| c.is_ascii_whitespace());
-    if rest.len() < 5 || rest.as_bytes().get(2) != Some(&b':') {
-        return Ok(None);
-    }
-    let (Some(hour), Some(minute)) = (number(&rest[..2]), number(&rest[3..5])) else {
+    let generic = b[10] == b' ';
+    let Some((mut hour, after)) = clock_number(rest, generic) else {
         return Ok(None);
     };
-    rest = &rest[5..];
+    rest = after;
+    let mut minute = 0;
+    let has_minute = if let Some(after) = rest.strip_prefix(':') {
+        let Some((value, after)) = clock_number(after, generic) else {
+            return Ok(None);
+        };
+        minute = value;
+        rest = after;
+        true
+    } else {
+        false
+    };
+    if !generic && !has_minute {
+        return Ok(None);
+    }
     let mut second = 0;
     let mut fraction = 0.0_f64;
     if let Some(after) = rest.strip_prefix(':') {
-        if after.len() < 2 {
+        if !has_minute {
             return Ok(None);
         }
-        let Some(value) = number(&after[..2]) else {
+        let Some((value, after)) = clock_number(after, generic) else {
             return Ok(None);
         };
         second = value;
-        rest = &after[2..];
+        rest = after;
         if rest.starts_with(['.', ',']) {
             rest = &rest[1..];
             let mut base = 0.1_f64;
@@ -160,6 +280,26 @@ fn iso_fallback(text: &str) -> Result<Option<DateValue>> {
             rest = &rest[count..];
         }
     }
+    rest = rest.trim_start_matches(|c: char| c.is_ascii_whitespace());
+    let mark = if generic { time_mark(rest) } else { None };
+    if let Some((pm, after)) = mark {
+        ensure!(
+            hour <= if pm { 23 } else { 12 },
+            "Fallback hour is invalid for AM/PM"
+        );
+        if pm && hour < 12 {
+            hour += 12;
+        } else if !pm && hour == 12 {
+            hour = 0;
+        }
+        rest = after.trim_start_matches(|c: char| c.is_ascii_whitespace());
+        ensure!(
+            time_mark(rest).is_none(),
+            "Fallback AM/PM marker is repeated"
+        );
+    } else if !has_minute {
+        return Ok(None);
+    }
     let Some(clock) = date.and_hms_opt(hour, minute, second) else {
         return Ok(None);
     };
@@ -171,7 +311,7 @@ fn iso_fallback(text: &str) -> Result<Option<DateValue>> {
     rest = rest.trim_matches(|c: char| c.is_ascii_whitespace());
     let kind = if rest.is_empty() {
         Kind::Unspecified
-    } else if rest == "Z" || rest == "z" {
+    } else if rest == "Z" || rest == "z" || (generic && rest.eq_ignore_ascii_case("GMT")) {
         Kind::Utc
     } else if matches!(rest.as_bytes().first(), Some(b'+' | b'-')) {
         let sign = if rest.starts_with('-') { -1 } else { 1 };
@@ -208,4 +348,27 @@ fn iso_fallback(text: &str) -> Result<Option<DateValue>> {
         return Ok(None);
     };
     Ok(Some(DateValue { clock, kind }))
+}
+
+fn clock_number(text: &str, generic: bool) -> Option<(u32, &str)> {
+    let count = text.bytes().take_while(u8::is_ascii_digit).count();
+    if !(if generic { 1..=2 } else { 2..=2 }).contains(&count) {
+        return None;
+    }
+    Some((text[..count].parse().ok()?, &text[count..]))
+}
+fn time_mark(text: &str) -> Option<(bool, &str)> {
+    let name = text.get(..2)?;
+    let pm = if name.eq_ignore_ascii_case("PM") {
+        true
+    } else if name.eq_ignore_ascii_case("AM") {
+        false
+    } else {
+        return None;
+    };
+    let rest = &text[2..];
+    if !rest.is_empty() && !rest.starts_with(|c: char| c.is_ascii_whitespace()) {
+        return None;
+    }
+    Some((pm, rest))
 }

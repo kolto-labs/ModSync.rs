@@ -42,6 +42,43 @@ IDN behavior and host comparison have a separate proof boundary; the current
 manual host parser is not established as equivalent to .NET Uri.Host by this
 casing change. Duplicate-warning extensions retain their existing scope.
 
+## Pinned UTF-16 punctuation continuation
+
+The reference normalization iterates `char` code units and calls
+`Char.IsPunctuation(char)`. Supplementary punctuation appears as two surrogate
+code units, neither punctuation, and therefore survives normalization. The old
+Rust scalar regex removed those characters. The production adapter now retains
+supplementary values and removes only BMP punctuation using a binary search over
+133 pinned ranges containing 625 code units. Trim, punctuation removal and
+invariant lowercase retain their reference order.
+
+.NET 9's [Unicode property generator](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.CoreLib/Tools/GenUnicodeProp/GenUnicodeProp.csproj)
+selects Unicode 15.0. The [Char overload](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.CoreLib/src/System/Char.cs)
+and [category source](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.CoreLib/src/System/Globalization/CharUnicodeInfo.cs)
+use the code unit's General_Category. A retained production generator selects
+Pc/Pd/Ps/Pe/Pi/Pf/Po from the existing exact-hash UCD, excluding non-BMP values
+and surrogates. It validates field/category/order/range structure and records
+source, license, generator and semantic-table digests. Existing lowercase and
+ordinal tables and persisted maintenance descriptors remain unchanged.
+
+The punctuation semantic SHA-256 is
+`2c7f77d76585808337b3b76d8e1ef0ff31a3859c29d074cf3656f707b1a0ba0f`.
+The provenance is retained beside `src/unicode_case/punctuation.rs`. This
+eliminates the merge punctuation consumer's dependence on the regex crate's
+Unicode category version. Source review and production gates are recorded
+separately; no runtime/corpus acceptance is inferred.
+
+## Narrow HTTP domain alias continuation
+
+For HTTP(S) domain extraction, the exact `loopback` DNS alias now projects to
+`localhost`, as in [.NET DomainNameHelper.ParseCanonicalName](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.Uri/src/System/DomainNameHelper.cs).
+Trailing-dot names remain distinct. Extracted hosts use the shared invariant
+lowercase operation. This correction is limited to known HTTP(S) syntax:
+[Uri host construction](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.Uri/src/System/Uri.cs)
+dispatches DNS, UNC, basic and unknown host types differently. The existing manual
+parser does not establish port, IDN, IPv4/IPv6 canonicalization, file/custom-scheme
+or complete Uri.Host equivalence. Those remain explicit source follow-ups.
+
 ## Evidence and limits
 
 Independent source specification/quality review accepted the frozen implementation.

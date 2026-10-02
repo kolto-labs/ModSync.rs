@@ -1,0 +1,23 @@
+{
+  "algorithm": "dotnet-char-punctuation-bmp-v1",
+  "unicodeVersion": "15.0.0",
+  "source": "../maintenance/casing/UnicodeData-15.0.0.txt",
+  "sourceSha256": "806e9aed65037197f1ec85e12be6e8cd870fc5608b4de0fffd990f689f376a73",
+  "license": "../maintenance/casing/LICENSE.txt",
+  "licenseSha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+  "categories": [
+    "Pc",
+    "Pd",
+    "Pe",
+    "Pf",
+    "Pi",
+    "Po",
+    "Ps"
+  ],
+  "rangeCount": 133,
+  "codeUnitCount": 625,
+  "tableSha256": "2c7f77d76585808337b3b76d8e1ef0ff31a3859c29d074cf3656f707b1a0ba0f",
+  "tableDigestEncoding": "ASCII algorithm LF version LF; sorted P:first:last uppercase four-digit hex lines with LF",
+  "generator": "generate_punctuation.py",
+  "generatorSha256": "a898bff5f4f046ec734f085bfc60780af1ef3709f7fee47ece1c581aafd0ee46"
+}

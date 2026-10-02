@@ -145,12 +145,19 @@ The user authorized the ModOrchestration workflow correction, which reached defa
 
 ### Current source continuation on main
 
-The reviewed continuation after `5102edc` adds shared pinned merge casing,
-bounded invariant full-date fallback with typed local range errors, and Windows
-year-marker/cross-year/day-transfer/endpoint rule mechanics. See the merge and
-profile date contracts and production-gate receipt. Native Windows discovery,
-remaining date grammar and the other domain acceptance requirements stay open.
-No tests, runtime probes or CI were used; implementation continues on `main`.
+The checkpoint `1d8ea0c` added shared pinned merge casing, bounded invariant
+full-date fallback with typed local range errors, and Windows rule mechanics.
+The next reviewed wave pins UTF-16 punctuation to Unicode 15, corrects the exact
+HTTP(S) loopback alias and extends deterministic full-date weekday, AM/PM,
+GMT, lowercase ISO separator, numeric dash and hash/NUL syntax. Unix future
+rules now validate the effective daylight total without separately limiting
+its rebased standard component. Windows native discovery now captures failed
+direct lookup, first-match ordered registry search, native construction retries
+and qualified UTC fallback through two equal bounded decision observations.
+Alternative IANA-ID mapping, broader format/date/URI contracts and all native
+acceptance remain open. The production receipt records the actual frozen
+source gates. No tests, runtime probes or CI were used; implementation continues
+in the sole checkout on `main`.
 
 ## Next sequence
 

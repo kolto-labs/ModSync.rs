@@ -2,7 +2,7 @@
 
 ## Status and integration
 
-The bounded Windows host-local provider is implemented in production source. Native intake and ordinary rules were independently reviewed and passed the parent-owned production gates at checkpoint `5102edc`. The pure rule extensions and fallback bridge described below have been independently source reviewed and passed the production gates recorded in the current gate receipt. Supported conversions canonicalize through an immutable native snapshot. Unsupported local dates retain authored text with a warning. Pure UTC and Unspecified canonicalization works independently of a host zone. This document records no native execution or platform acceptance.
+The bounded Windows host-local provider is implemented in production source. Native intake and ordinary rules were independently reviewed and passed the parent-owned production gates at checkpoint `5102edc`. Pure rule extensions and the parser fallback bridge passed gates at `1d8ea0c`. Native fallback discovery described below passed independent source review and the combined Linux production build/strict-lint and Windows GNU compile/link gates recorded in the production receipt. Supported conversions canonicalize through an immutable native snapshot. Unsupported local dates retain authored text with a warning. Pure UTC and Unspecified canonicalization works independently of a host zone. This document records no native execution or platform acceptance.
 
 The provider preserves the existing `DateValue`, `Kind` and `ContextSnapshot` interfaces. A decode/save call captures one immutable snapshot lazily and reuses it for both profile date fields, including a captured failure. Provider errors retain the authored string and emit the existing bounded warning containing the field key and provider context. Diagnostics omit authored profile text.
 
@@ -18,17 +18,25 @@ Source ownership:
 
 ## Reference authority
 
-The pinned [.NET 9 Windows loader](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.CoreLib/src/System/TimeZoneInfo.Win32.cs) obtains the local key and disabled-DST flag, then loads its registry rules. Historical conversion uses those rules; its separate one-year cache supports `DateTime.Now`. Default `TZI.Bias` supplies the base offset. Dynamic annual records extend the first rule toward year 1 and the last toward year 9999. Missing Dynamic DST uses the default record. Registry rule construction uses the bias delta and negated DaylightBias; StandardBias is not added. Successful registry loading with disabled DST removes all adjustment rules, including historical bias changes.
+The pinned [.NET 9 Windows loader](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.CoreLib/src/System/TimeZoneInfo.Win32.cs) uses the native key/disabled flag and historical registry rules; its separate one-year cache supports `DateTime.Now`. Default Bias supplies the base. First/last annual rules extend to DateTime bounds; missing Dynamic DST uses the default. Registry math uses the bias delta and negated DaylightBias, ignoring StandardBias. Disabled registry loading removes all adjustments, including bias changes.
 
 The native [GetDynamicTimeZoneInformation contract](https://learn.microsoft.com/en-us/windows/win32/api/timezoneapi/nf-timezoneapi-getdynamictimezoneinformation) identifies the configured local zone. [GetTimeZoneInformationForYear](https://learn.microsoft.com/en-us/windows/win32/api/timezoneapi/nf-timezoneapi-gettimezoneinformationforyear) exposes annual native information; it will not replace the reference registry loader or the pure conversion algorithm. The initial provider will not call native per-date conversion APIs.
 
 ## Immutable native capture
 
-Admission requires a valid, nonempty, NUL-terminated UTF-16 `TimeZoneKeyName`, at most 127 code units, containing one registry key component. Native failure, missing keys and fallback lookup forms remain unsupported with a warning; they do not invent UTC.
+Admission requires a valid NUL-terminated UTF-16 `TimeZoneKeyName`, at most 127 code units. A nonempty key must be one bounded registry component. Native standard/daylight names must terminate within their 32-code-unit fields. An empty key invokes discovery. If a nonempty direct lookup fails, discovery is qualified only for keys containing ASCII space or exact `UTC`; this is conservative intake, not classification as a valid Windows name. Other failed key shapes retain authored text pending alternative IANA-ID mapping support.
 
-Capture pins read-only handles under `HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones\<key>` and its optional `Dynamic DST` child, using the process-default registry view. It requires exact REG_BINARY 44-byte TZI records and exact REG_DWORD year bounds, with `1 <= FirstEntry <= LastEntry <= 9999`. Every required annual value must be present. Resource limits are 1,024 annual records and 1 MiB total admitted data across both passes, with a fixed bounded number of registry reads. There is no retry loop for a changing registry.
+Capture pins read-only handles under `HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones`, its candidate keys and optional `Dynamic DST` children, using the process-default registry view. Qualified rule records are REG_BINARY 44-byte TZI and REG_DWORD year bounds within years 1–9999. Missing or malformed records within admitted types are known semantic load failures and can select the reference fallback chain. Unsupported types, inaccessible data and over-budget intake remain warning failures. Limits are 1,024 keys per enumeration, 255 UTF-16 code units per enumerated name, 1,024 annual records per load and 2,048 bytes per value. The aggregate limits across both decision passes are 1 MiB admitted data and 32,768 registry calls. There is no changing-registry retry loop.
 
-The intake compares relevant [registry last-write stamps](https://learn.microsoft.com/en-us/windows/win32/api/winreg/nf-winreg-regqueryinfokeyw) before and after reading. It reopens the keys and rereads the complete payload once, then repeats the native zone query and compares its typed fields. Exact [value types and lengths](https://learn.microsoft.com/en-us/windows/win32/api/winreg/nf-winreg-regqueryvalueexw) are part of admission. Detected changes fail the shared snapshot. These observations provide a bounded consistency check; they do not constitute an atomic transaction across Windows configuration stores.
+The intake compares relevant [registry last-write stamps](https://learn.microsoft.com/en-us/windows/win32/api/winreg/nf-winreg-regqueryinfokeyw) before and after reading. It reopens keys and replays the complete decision witness once: failed direct lookup, ordered enumeration, visited candidate prefix, selected full-load observations and terminal branch. It then repeats the native zone query and compares typed fields. Exact [value types and lengths](https://learn.microsoft.com/en-us/windows/win32/api/winreg/nf-winreg-regqueryvalueexw) are part of admission. Detected changes fail the shared snapshot. These observations provide a bounded consistency check; they do not constitute an atomic transaction across Windows configuration stores.
+
+## Native fallback discovery
+
+Reference order is returned key, first comparison match, then native custom construction. First-match full-load failure stops search. Matching uses Bias/StandardBias/StandardDate and ordinal `Std`; equal native dates bypass daylight comparison, otherwise DaylightBias/DaylightDate must match. Search's disabled flag remains false; the original native flag is not copied. Native construction retries without transitions, then selects UTC if both attempts fail. Native `TIME_ZONE_ID_INVALID` selects UTC too. Operational or qualification failures never select UTC.
+
+[Native enumeration](https://learn.microsoft.com/en-us/windows/win32/api/winreg/nf-winreg-regenumkeyexw) may return keys in any order. The provider preserves native index order without sorting and compares the ordered list between passes. Its ordinal standard-name comparison follows [RegistryKey](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/Microsoft.Win32.Registry/src/Microsoft/Win32/RegistryKey.cs) string mechanics for admitted REG_SZ: odd final bytes are zero-padded and exactly one trailing NUL is removed. Native names use the terminated UTF-16 prefix. MUI resources and translations are not used for matching.
+
+Failed native queries discard their output fields. The explicit INVALID branch requires a second INVALID result; mixed invalid/success statuses retain authored text. Native custom construction uses one all-date rule, or the qualified constant native bias on disabled retry, matching the reference fallback rather than supplying historical registry data.
 
 Windows zone authority comes from the OS configuration. Unix `TZ`/`TZDIR` overrides are not applied to this provider. Snapshot lifetime remains per decode/save, an explicit difference from the reference's process-wide local-zone cache.
 
@@ -50,11 +58,12 @@ Marker predicates and the 24-hour delta transfer follow [.NET AdjustmentRule](ht
 
 The provider retains authored text with a warning for:
 
-- Missing, inaccessible, changing, oversized or malformed snapshots, including missing annual records.
-- Empty/bogus key fallback searches, native custom-zone fallback and dummy-UTC fallback.
-- Invalid or unsupported transition structures or effective offsets.
+- Inaccessible, changing or oversized discovery observations.
+- Non-REG_BINARY TZI forms, non-REG_DWORD annual-bound forms and other out-of-range years beyond the qualified 1–9999 profile. The reference's invalid `-1` sentinel or reversed bounds are known semantic rejection instead.
+- Expanded or unknown `Std` registry string forms and unsupported alternative-ID lookup shapes. Generic .NET registry byte-array coercions and environment expansion remain separate acceptance work.
+- Unqualified UTF-16 key/name forms or unsupported registry path components.
 - Checked transition/marker arithmetic that exceeds the DateTime range. The adapter preserves authored text rather than inventing a clamped transition; final fast-path conversion saturation remains a separate operation.
 
-Native fallback discovery remains a separate source scope. Parser acceptance beyond the admitted deterministic fallback remains separately tracked; this provider does not complete broad DateTime parsing or all local-zone parity.
+Parser acceptance beyond the admitted deterministic fallback remains separately tracked; this provider does not complete broad DateTime parsing or all local-zone parity. No operational, stability, budget or unsupported-form error is classified as a semantic constructor failure.
 
 No tests, fixtures, builds, runtime probes or native API calls were performed by the implementing agent. Source implementation, independent review, compilation and native acceptance remain separate receipts.

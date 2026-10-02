@@ -1726,3 +1726,30 @@ bytes are unchanged. Later Unicode/NLS, URI/IDN parsing and full merge corpus
 remain separate boundaries. See [the merge casing contract](docs/parity/merge-unicode-casing.md).
 This implementation passed independent source review; behavioral acceptance is
 unverified.
+
+### UTF-16 merge punctuation and deterministic date syntax continuation
+
+Merge punctuation now uses .NET 9's pinned Unicode 15 General_Category over
+BMP code units, preserving supplementary punctuation as the reference char
+iteration does. A retained production generator/table/provenance replaces the
+regex category dependency; existing casing descriptors and table bytes remain
+unchanged. The exact HTTP(S) loopback alias projects to localhost; full Uri.Host,
+IDN, port and custom/file-scheme behavior remains a separate source boundary.
+See the merge casing contract for the dataset and reference anchors.
+
+The profile fallback adds explicit weekday and AM/PM handling plus qualified
+hash/NUL envelopes, retaining separate specialized and ISO routes. The Unix
+future parser now admits standard components outside fourteen hours when its
+validated effective daylight total and normalized delta qualify. Refusal of
+out-of-range effective totals remains stricter than the reference's normalization
+and is documented. These are source changes with independent review; the
+production receipt records the final combined boundary and remaining limits.
+
+The same reviewed date extension includes terminal GMT, lowercase strict ISO
+`t`, homogeneous numeric dash dates and one terminal weekday. Windows discovery
+now retains failed direct-load observations, native first-match registry order,
+the reference's disabled-flag distinction, native enabled/disabled retries and
+qualified UTC fallback. Two complete bounded decision observations and repeated
+native state must agree. Operational, unsupported and unstable intake retains
+authored text with warnings. Alternative IANA-ID mapping remains separate. See
+the Windows contract for types, budgets and exclusions.
