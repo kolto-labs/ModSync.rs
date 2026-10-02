@@ -71,6 +71,25 @@ and Windows GNU library/CLI cross-compilation and linking passed for this
 reviewed boundary; see the production gate receipt. Native behavior remains
 unverified.
 
+The subsequent source continuation adds shared DateTime calendar mechanics,
+Unix neighboring-year marker seasons, historical/future seam selection, daylight
+day transfer and endpoint lookup. Windows now has bounded immutable native/
+registry capture and a pure ordinary adjustment-rule engine. Windows year markers,
+shifted cross-year windows, extreme delta rebasing, adjusted endpoints and native
+fallback discovery remain explicit follow-ups. Unsupported conversions retain
+authored text with bounded warnings. Both local providers received independent
+review corrections for negative-daylight local ambiguity; their distinct UTC
+intervals are unchanged.
+
+Telemetry source now shares canonical OTLP endpoint admission across readiness
+and transport, fixing migrated C# full-signal URLs without doubling paths.
+The desktop has an owned first-run consent prompt that persists both choices
+through matching save/lifecycle receipts, checks readback and retains retries
+on failure. Logging errors are separate from configuration errors. Independent
+source review accepted this slice; both Linux build/strict-lint modes and
+Windows GNU production compilation/linking passed in the current gate receipt.
+No native/transport acceptance is inferred from source review.
+
 Continuation uses the actual `ModSync.rs` checkout through `eed8089` and its
 working changes. The [remaining-work tracker](../plans/2026-09-28-1130-remaining-work-tracker-plan.md)
 is the current source reconciliation. The sections below retain historical

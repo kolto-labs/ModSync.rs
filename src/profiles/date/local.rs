@@ -1,14 +1,22 @@
 //! One lazily captured immutable local-zone context per profile decode/save.
+#[cfg(any(unix, windows))]
+#[path = "local/calendar.rs"]
+mod calendar;
 #[cfg(unix)]
 #[path = "local/unix.rs"]
 mod unix;
+#[cfg(windows)]
+#[path = "local/windows.rs"]
+mod windows;
 use anyhow::Result;
 use chrono::NaiveDateTime;
 #[cfg(unix)]
 use unix::Snapshot;
-#[cfg(not(unix))]
+#[cfg(windows)]
+use windows::Snapshot;
+#[cfg(not(any(unix, windows)))]
 struct Snapshot;
-#[cfg(not(unix))]
+#[cfg(not(any(unix, windows)))]
 impl Snapshot {
     fn capture() -> Result<Self> {
         anyhow::bail!("Native local timezone profile is not implemented on this platform")

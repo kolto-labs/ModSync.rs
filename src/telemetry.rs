@@ -18,6 +18,7 @@
 //! - Names, messages, paths and stack traces leave the process only as
 //!   truncated SHA-256 hashes.
 
+mod endpoint;
 pub mod lifecycle;
 
 use anyhow::{Context, Result};
@@ -250,6 +251,11 @@ impl Config {
     /// `active()` plus an OTLP exporter that has somewhere to send.
     pub fn exporter_ready(&self) -> bool {
         self.active() && self.enable_otlp_exporter && otlp_base(&self.endpoint).is_some()
+    }
+
+    /// Bounded endpoint diagnostics without exposing the authored URL.
+    pub fn endpoint_error(&self) -> Option<&'static str> {
+        endpoint::base(&self.endpoint).err()
     }
 
     /// URL for diagnostics: credentials, query and fragment never leave the editor.
@@ -810,21 +816,16 @@ pub fn encode_metrics(
     })
 }
 
-/// Trimmed base URL, or `None` unless it is an absolute http(s) URL.
+/// Canonical base URL; recognized final OTLP signal suffixes are removed.
 fn otlp_base(endpoint: &str) -> Option<String> {
-    let trimmed = endpoint.trim().trim_end_matches('/');
-    let url = reqwest::Url::parse(trimmed).ok()?;
-    (matches!(url.scheme(), "http" | "https")
-        && url.host_str().is_some()
-        && url.username().is_empty()
-        && url.password().is_none()
-        && url.query().is_none()
-        && url.fragment().is_none())
-    .then(|| trimmed.to_owned())
+    endpoint::base(endpoint).ok()
 }
 
 /// `{base}/v1/{signal}`, the OTLP/HTTP signal URL.
 pub fn otlp_url(endpoint: &str, signal: &str) -> Option<String> {
+    if !matches!(signal, "traces" | "metrics") {
+        return None;
+    }
     otlp_base(endpoint).map(|base| format!("{base}/v1/{signal}"))
 }
 

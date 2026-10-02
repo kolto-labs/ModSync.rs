@@ -204,3 +204,42 @@ creation, and publish a private replacement through the shared writer (0600 Unix
 protected current-user DACL in Windows source). No native ACL tests, filesystem
 probes, network telemetry calls or build/test commands were executed for this
 integration. Native storage and migration acceptance remain unproven.
+
+## Current endpoint and first-run continuation — 2026-10-02
+
+Current production source admits a configured base URL or a literal terminal
+`/v1/traces` or `/v1/metrics`, including trailing slashes. The shared endpoint
+projection removes one recognized suffix, preserves the preceding encoded path
+prefix and constructs each signal URL from that canonical base. Readiness and
+transport share the projection; a migrated full-signal C# endpoint no longer
+produces doubled signal paths. Authored configuration is retained.
+
+Endpoint admission is bounded to 8192 bytes and continues to refuse credentials,
+queries and fragments. Repeated or ambiguous terminal signal suffixes are
+refused. A single percent-decoding pass is used only to detect and refuse
+encoded/case-varied reserved terminal spellings; decoded bytes never construct
+a request URL. Arbitrary encoded prefixes remain encoded. Unknown signal names
+are refused by the OTLP URL helper. Diagnostics describe the failing rule without
+including the authored URL. No default remote host was added.
+
+The desktop now consumes genuine missing-configuration `is_first_run` after its
+owned settings load, with explicit allow/decline actions and usage/performance/
+hashed-error preferences. Load-error defaults do not count as first-run admission.
+The owned modal remains root-bound and survives until a matching save revision
+and configuration lifecycle ticket settle. Both choices persist a false first-run
+flag. Failed saves retain a retryable choice, keep event admission disabled and
+preserve the current session identity. Save verification compares the reloaded
+serialized configuration with the requested projection; intervening changes
+cannot silently turn a decline into a different enablement choice.
+
+Lifecycle configuration errors are now separate from persistent-log initialization
+errors. A successful disable/join can acknowledge a saved decline even when
+logging initialization failed; the logging diagnostic remains visible. Directory
+changes and close invalidate the pending prompt and retain existing owned worker
+shutdown. The ordinary settings editor cannot supersede a pending first-run
+choice. The prompt does not install a signing key or infer exporter readiness
+from consent alone.
+
+This is source implementation under independent review. Earlier audit sections
+remain historical and do not establish current runtime behavior. No first-run
+desktop, transport, filesystem or CI acceptance was run for this continuation.

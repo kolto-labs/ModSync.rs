@@ -19,6 +19,8 @@ pub struct Status {
     pub stopped: bool,
     pub export: Option<Export>,
     pub error: Option<String>,
+    /// Configuration outcome separately from persistent-log initialization.
+    pub configuration_error: Option<String>,
 }
 
 struct State {
@@ -204,6 +206,7 @@ fn run(
             state.status.stopped = true;
             state.status.export = Some(result);
             state.status.error = log_error;
+            state.status.configuration_error = None;
             return;
         }
         if state.pending.is_none() {
@@ -236,8 +239,11 @@ fn run(
         }
         state.status.completed = ticket;
         state.status.running = running && !revoke_pending;
-        state.status.error = log_error.clone().or_else(|| {
+        state.status.configuration_error = {
             (config.exporter_ready() && !running).then(|| "Telemetry exporter did not start".into())
-        });
+        };
+        state.status.error = log_error
+            .clone()
+            .or_else(|| state.status.configuration_error.clone());
     }
 }

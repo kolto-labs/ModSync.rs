@@ -96,6 +96,22 @@ framework fallback remain named implementation follow-ups. Both Linux production
 cross-compilation/linking passed for this source boundary. These gates do not
 close the behavioral acceptance rows.
 
+The current continuation adds shared DateTime calendar operations, Unix
+neighbor-year marker/ambiguity handling, final-rule replacement and endpoint
+lookup, plus bounded Windows native/registry capture and ordinary pure rules.
+Both providers preserve authored text for unsupported conversions. Windows
+year markers, shifted cross-year windows, extreme daylight rebasing, adjusted
+endpoints and native fallback discovery remain named source follow-ups; broad
+invariant fallback/rounding is also incomplete. Independent source review
+accepted the providers after local negative-daylight ambiguity corrections.
+
+Telemetry now projects admitted base or full-signal URLs into one canonical
+OTLP base, preserves encoded prefixes and refuses ambiguous terminal spellings.
+The owned first-run prompt persists allow/decline with save revision, readback
+and lifecycle-ticket checks; failures stay retryable and event-gated. Logging
+and configuration errors are distinct. These are reviewed source changes,
+with compilation and native/transport acceptance recorded separately.
+
 Rooted FOMOD phase preparation and Save Selection now resolve archive-shaped
 directories from actual members using the engine's source policy, preserving
 ordinary folder/glob ownership and future VFS archive scope. Registry ownership,

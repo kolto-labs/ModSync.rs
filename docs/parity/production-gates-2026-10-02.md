@@ -565,3 +565,56 @@ b9a1599452ace63e1d564566c1c98f3105d42922b2acff83befd6283d94ca84b  src/profiles/d
 8d1eddb9a1f3804f1c6d082eb3fb6ed437d9e5db029b8beebd39975156bdcca5  src/profiles/date/local/tzif.rs
 61513b7ffb72657b157176efcd4f271513f5ae06b27709a5f08dc17c03aa5f3a  src/ui/maintenance.rs
 ```
+
+## Local-zone continuation and telemetry endpoint/consent
+
+The reviewed source after `6f47e45` extends Unix neighboring-year/final-rule/
+endpoint selection, shares checked calendar primitives and adds a bounded
+Windows native/registry snapshot with pure ordinary adjustment rules. Independent
+review corrected negative daylight LOCAL ambiguity in both providers while
+preserving the distinct UTC interval. Windows marker/cross-year/day-transfer/
+adjusted-endpoint/fallback shapes and broader invariant parsing remain named
+implementation follow-ups.
+
+Telemetry now shares endpoint admission between readiness and URL construction,
+projects recognized literal full-signal URLs to their base, and refuses ambiguous
+reserved suffix spellings. The desktop owns first-run choices through verified
+save and lifecycle tickets, with disabled event admission, retryable failures
+and root/revision binding. Independent review corrected repeated/encoded suffix
+refusal, logging-versus-configuration error separation and initial-owner retry.
+The worker verifies serialized readback before configuration and retains session
+identity. No new host or signing key is supplied.
+
+Final production gates passed:
+
+- Formatting/frozen-source comparison: session50442, exit0.
+- Default Linux library/binary build: session89830, exit0, 1m29s.
+- Default strict Clippy: session86223, exit0, 35.12s.
+- No-default Linux library/binary build: session8346, exit0, 34.63s.
+- No-default strict Clippy: session40297, exit0, 15.29s.
+- Windows GNU no-default library/binary compile/link: session56247, exit0,1m17s.
+- Final formatting and whitespace checks: session97614, exit0.
+
+Read-only comparison against `6f47e45` confirms seven frozen inline-bearing
+source files and the existing UI helper source unchanged as whole files; no
+tracked test or fixture path changed. No tests, custom harnesses, filesystem
+tests, application/CLI/native/telemetry probes, Windows binary execution,
+packaging helpers/producers, installs or CI ran. Compilation and static review
+do not establish date equivalence on a live host, consent-off network behavior,
+provider/native acceptance or completion of any whole F01–F29 domain.
+
+Source-bound hashes:
+
+```text
+250e8ab8f9afdd9f5f0f5a85be28d2c834b580be4652066a63d0d683fa2ca53f  Cargo.toml
+24578aa09bf2483f0f720a5287fd39855ef46c0a920d269fa9a527b08d799559  src/profiles/date/local.rs
+814cad2e52f229a13478d9914f4d15abd283b9546fcc16876a77d93b7697baa8  src/profiles/date/local/calendar.rs
+6750addb054f71d2368bb6a9f39394d7926aa855f6ed348ddb74c54453691614  src/profiles/date/local/unix.rs
+605e4d697b61462d748459dd6c766a6072aaa8dc2b3048e8a2307c137de040ce  src/profiles/date/local/posix.rs
+59a11ccd018a00b9fd4b3d5da64248b30f87717fae10b54051b27d30a07b9d5e  src/profiles/date/local/windows.rs
+ea784dd45afc59179afbb3015848662dc7e065516b90d8505b56399a681dc343  src/profiles/date/local/windows/rules.rs
+b021cd5e3f3e70df174648eff9d49a4b62c4f059defcc793ac07a740f042b87b  src/telemetry.rs
+cde69d26a465a377661c045168c4d7e779f2ef2f872dec0da0dfd4fe70a4e31f  src/telemetry/endpoint.rs
+b22528abd4a7cf501ac9c04cf65e68e50ed9f148b38d4d04363d431344aac57c  src/telemetry/lifecycle.rs
+e89f86ac506751987a53a2cc50175bae90eaa4099cdd111e8c8ccc11378e59e2  src/ui/desktop_settings.rs
+```

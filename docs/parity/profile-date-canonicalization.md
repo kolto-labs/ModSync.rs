@@ -28,31 +28,50 @@ Date text is limited to4096bytes before parsing. The existing other Chrono-accep
 
 The provider models historical standard/daylight intervals, minute normalization of historical second offsets, adjustment offset limits, the pre-transition standard type, and supported POSIX future rules. Supported future forms include month/week/weekday, Julian dates, and the reference's restricted numeric-day rules. It deliberately reproduces the reference's transition-time day stripping. Fixed future offsets are range checked too. A file without transitions uses the last standard type as the base, matching the reference constructor.
 
-UTC-to-local conversion retains the ambiguous daylight-side bit. Serialization independently reselects the offset for the final local clock and fold bit, using the same 100 ns serializer as pure dates. Historical rule ends remain inclusive while ambiguity intervals remain end-exclusive; these are distinct source contracts. The original Unspecified wall clock is retained for Newtonsoft's out-of-range explicit-offset branch. Simple fixed zones can clamp to the DateTime endpoints. Complex endpoint rule selection is rejected rather than approximated.
+UTC-to-local conversion retains the ambiguous daylight-side bit. Serialization independently reselects the offset for the final local clock and fold bit, using the same 100 ns serializer as pure dates. Historical rule ends remain inclusive while ambiguity intervals remain end-exclusive; these are distinct source contracts. The original Unspecified wall clock is retained for Newtonsoft's out-of-range explicit-offset branch. UTC endpoint lookup now selects the local MinValue/MaxValue rule through the shared effective-rule selector, before conversion clamping. Arithmetic that exceeds the reference DateTime range still preserves authored text with a warning.
 
 Primary provider references are [.NET 9 Unix timezone construction](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.CoreLib/src/System/TimeZoneInfo.Unix.cs), [Unix zone-file selection](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.CoreLib/src/System/TimeZoneInfo.Unix.NonAndroid.cs), and [rule lookup and fold handling](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.CoreLib/src/System/TimeZoneInfo.cs).
 
 ## Remaining boundary and named follow-ups
 
-- Implement exact adjacent-year marker stitching for Jan-1-midnight POSIX tails, including adjoining historical rules and UTC transitions crossing calendar years.
-- Implement transition rebasing for future daylight deltas beyond 12 hours; historical deltas already transfer one day between daylight and standard components as the reference does.
-- Implement first/last DateTime-day rule selection and clamped historical daylight boundaries. These cases currently preserve authored text with a bounded warning.
-- Add a separate Windows native snapshot provider. Windows local dates currently remain authored with a warning; pure UTC/Unspecified dates continue canonicalizing.
+- Complete acceptance evidence for adjacent-year markers, daylight day transfers, cross-year transitions and endpoint selection. The shared reference operations below are implemented in source, but were not exercised by this source-only slice.
+- The bounded Windows native snapshot provider is implemented separately and independently source reviewed. Its admitted forms and remaining rule shapes are recorded in [the Windows date contract](profile-date-windows-contract.md); unsupported Windows values retain authored text with warnings.
 - Extend malformed/unusual zone-file acceptance only from primary source proof. Missing, unstable, oversized, inaccessible or unsupported snapshots preserve authored strings instead of silently inventing UTC. Warning text contains provider context, not authored profile date text.
 - The reference caches `TimeZoneInfo.Local` process-wide. Rust snapshots per decode/save, so a timezone/environment change between calls can produce different normalization; both fields within one call share the same captured data. This is an explicit cache-lifetime difference.
 - Broad invariant `DateTime.TryParse` acceptance and rounding remain incomplete. Existing other fallback strings remain authored; no guessed culture table or time-only/current-date parsing was added.
 
 This is a source implementation receipt. No tests, fixture generation, runtime date probes, builds or CI were run by the implementing agent. Production compilation and independent review are separately owned.
 
-## Next approved source contract (implementation held)
+## Neighbor-year and endpoint source continuation
 
-The next Unix slice will replace the listed explicit refusals in bounded steps. It is a design contract, not a claim that those paths currently normalize.
+The continuation replaces the earlier explicit marker, cross-year, extreme daylight-delta and endpoint refusals with shared bounded reference operations. Remaining invalid or unproved arithmetic retains the authored text.
 
 1. Canonical fixed/floating transition definitions retain the reference marker fields. Future daylight deltas use the one-day standard/daylight transfer before transition offsets are calculated. Anchor: `TimeZoneInfo.AdjustmentRule.cs` `AdjustDaylightDeltaToExpectedRange`, `ValidateAdjustmentRule`, and both year-marker predicates.
 2. A private effective-rule view represents historical intervals and the final POSIX replacement. UTC/local selection and previous/adjacent-year lookup share that view. Anchors: `TimeZoneInfo.cs` `GetAdjustmentRuleForTime`, `CompareAdjustmentRuleToDateTime`, `GetPreviousAdjustmentRule`, and `GetDaylightTime`.
 3. Marker stitching follows `GetIsDaylightSavingsFromUtc`, `TryGetStartOfDstIfYearEndWithDst`, and `TryGetEndOfDstIfYearStartWithDst`. Cross-year recurring comparisons follow `CheckIsDst`; ambiguity retains the source's adjacent-year retry. These are fixed-count neighboring lookups, not year enumeration or recursive rule expansion.
-4. Endpoint support is a separate follow-on using `GetUtcOffsetFromUtc`'s first/last-day selection and `DateTime.ToLocalTime` clamping. Checked arithmetic and clamping remain separate operations. Local reserialization continues to reselect the final offset with the retained fold bit.
+4. Endpoint support is implemented as a separate operation using `GetUtcOffsetFromUtc`'s first/last-day selection and `DateTime.ToLocalTime` clamping. Checked arithmetic and clamping remain separate operations. Local reserialization continues to reselect the final offset with the retained fold bit.
 
-A shared private calendar module is planned for Unix and the separately owned Windows provider: tick constants/conversion, checked and clamped shifts, exact `DateTime.AddYears` leap-day clipping, and month/week/weekday date construction. Calendar helpers share mechanics only; platform capture, rule selection and DST fold policy remain in their providers. No public profile structure changes are required.
+A shared private calendar module now supplies Unix and the separately owned Windows provider with: tick constants/conversion, checked and clamped shifts, exact `DateTime.AddYears` leap-day clipping, and month/week/weekday date construction. Calendar helpers share mechanics only; platform capture, rule selection and DST fold policy remain in their providers. No public profile structure changes are required.
 
-Additional primary anchor: [.NET 9 adjustment rule validation and marker predicates](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.CoreLib/src/System/TimeZoneInfo.AdjustmentRule.cs), and [DateTime calendar arithmetic and local conversion](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.CoreLib/src/System/DateTime.cs). Production edits remain held until the parent releases the next checkpoint boundary.
+Additional primary anchor: [.NET 9 adjustment rule validation and marker predicates](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.CoreLib/src/System/TimeZoneInfo.AdjustmentRule.cs), and [DateTime calendar arithmetic and local conversion](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.CoreLib/src/System/DateTime.cs). The effective-rule selector substitutes the final POSIX rule before local interval comparisons, including previous-rule offset use. It preserves the reference binary-search ordering. Neighbor-year lookups use this same selector across the historical/future seam. Historical interval comparisons remain inclusive; recurring ranges use the reference year adjustment and end-exclusive rule. Local ambiguity honors marker suppression, while UTC ambiguity retains adjacent-year retries. No year enumeration or additional zone reads occur.
+
+## Next invariant fallback research (production held)
+
+The pinned profile serializer does not override `Culture`. Newtonsoft's default is `InvariantCulture` (`JsonSerializerSettings.DefaultCulture`), and `JsonReader.ReadDateTimeString` invokes `DateTime.TryParse` with `RoundtripKind` after the specialized readers. This work therefore needs invariant Gregorian grammar, not current-user date ordering or native locale discovery.
+
+Current source classification, without runtime probes:
+
+| Input shape | Current route |
+| --- | --- |
+| Supported direct ISO/MS | Typed canonicalization and supported local normalization |
+| Full ISO date or zone-free full seconds clock, at most seven fraction digits | Deterministic canonical subset |
+| Chrono-admitted RFC3339/seconds clocks outside that subset, including longer fractions or surrounding whitespace with a zone | Authored string retained; framework rounding/normalization incomplete |
+| Full date with hours/minutes but no seconds | Rejected by the current required-seconds formats |
+| Comma fractional seconds | Rejected by current ISO/Chrono formats |
+| Invariant slash-separated full numeric dates or English month-name full dates | Rejected by current formats |
+
+A bounded next implementation should prioritize complete ISO-style dates with `HH:mm` or `HH:mm:ss`, decimal point/comma fraction, and explicit zone or no zone. Keep original-text specialized dispatch first. The fallback fraction algorithm must reproduce binary64 digit accumulation and nearest-even tick rounding; simple decimal truncation is not equivalent. Rounded carry must pass through checked calendar arithmetic.
+
+Fallback local conversion requires a distinct typed route. `DateTimeParse.AdjustTimeZoneToLocal` validates the explicit offset within fourteen hours and rejects some out-of-range results that the fast Newtonsoft route clamps. Its first-day adjustment also differs. Reusing fast-parser LocalRequired semantics would erase that distinction. A later bounded extension can add four-digit-year invariant numeric and English month-name full dates from `CalendarData.Invariant`; missing dates, time-only values and two-digit-year inference should remain outside the initial slice.
+
+Primary anchors: [Newtonsoft default invariant culture](https://raw.githubusercontent.com/JamesNK/Newtonsoft.Json/13.0.4/Src/Newtonsoft.Json/JsonSerializerSettings.cs), [reader fallback dispatch](https://raw.githubusercontent.com/JamesNK/Newtonsoft.Json/13.0.4/Src/Newtonsoft.Json/JsonReader.cs), [.NET fallback parser](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.CoreLib/src/System/Globalization/DateTimeParse.cs) (`ParseFraction`, `ParseISO8601`, `DetermineTimeZoneAdjustments`, `AdjustTimeZoneToLocal`), and [fixed invariant calendar data](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.CoreLib/src/System/Globalization/CalendarData.cs). This section records source research only; no new fallback production parser or runtime evidence is claimed.

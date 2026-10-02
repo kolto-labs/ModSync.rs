@@ -5,32 +5,13 @@ mod posix;
 #[path = "tzif.rs"]
 mod tzif;
 
+use super::calendar::{
+    EPOCH, MAX, TICKS, add_years, checked_shift, clamped_shift as shift, clock, clock_ticks,
+};
 use anyhow::{Context, Result, ensure};
-use chrono::{Datelike, NaiveDateTime, Timelike};
+use chrono::{Datelike, NaiveDate, NaiveDateTime};
 use std::{fs, io::Read, path::PathBuf};
 
-const TICKS: i64 = 10_000_000;
-const EPOCH: i64 = 621355968000000000;
-const MAX: i64 = 3155378975999999999;
-fn clock_ticks(clock: NaiveDateTime) -> i64 {
-    clock.and_utc().timestamp() * TICKS + EPOCH + i64::from(clock.nanosecond() / 100)
-}
-fn clock(ticks: i64) -> Result<NaiveDateTime> {
-    ensure!(
-        (0..=MAX).contains(&ticks),
-        "Local date exceeds DateTime range"
-    );
-    let unix = ticks - EPOCH;
-    chrono::DateTime::from_timestamp(
-        unix.div_euclid(TICKS),
-        (unix.rem_euclid(TICKS) * 100) as u32,
-    )
-    .map(|date| date.naive_utc())
-    .context("Local date calendar is unavailable")
-}
-fn shift(ticks: i64, seconds: i32) -> i64 {
-    (ticks + i64::from(seconds) * TICKS).clamp(0, MAX)
-}
 fn minute_delta(seconds: i32) -> i32 {
     if seconds % 60 == 0 {
         seconds
@@ -42,6 +23,64 @@ fn normalize(offset: i32, base: i32) -> i32 {
     (base + minute_delta(offset - base)).clamp(-50400, 50400)
 }
 
+fn date_ticks(year: i32, month: u32, day: u32) -> Result<i64> {
+    ensure!(
+        (1..=9999).contains(&year),
+        "Date year exceeds DateTime range"
+    );
+    Ok(clock_ticks(
+        NaiveDate::from_ymd_opt(year, month, day)
+            .context("Date unavailable")?
+            .and_hms_opt(0, 0, 0)
+            .context("Date midnight unavailable")?,
+    ))
+}
+fn check_dst(
+    start: i64,
+    mut time: i64,
+    mut end: i64,
+    ignore_year: bool,
+    historical: bool,
+) -> Result<bool> {
+    let start_year = clock(start)?.year();
+    let end_year = clock(end)?.year();
+    if !ignore_year && !historical {
+        if start_year != end_year {
+            end = add_years(end, start_year - end_year)?;
+        }
+        let year = clock(time)?.year();
+        if start_year != year {
+            time = add_years(time, start_year - year)?;
+        }
+    }
+    Ok(if start > end {
+        time < end || time >= start
+    } else if historical {
+        time >= start && time <= end
+    } else {
+        time >= start && time < end
+    })
+}
+fn ambiguous_range(time: i64, start: i64, end: i64) -> Result<bool> {
+    let start_year = clock(start)?.year();
+    let end_year = clock(end)?.year();
+    if time >= start && time < end {
+        return Ok(true);
+    }
+    if start_year != end_year {
+        for years in [1, -1] {
+            if let (Ok(start), Ok(end)) = (add_years(start, years), add_years(end, years))
+                && time >= start
+                && time < end
+            {
+                return Ok(true);
+            }
+        }
+    }
+    Ok(false)
+}
+
+#[derive(Clone, Copy)]
 struct Rule {
     start: i64,
     end: i64,
@@ -58,7 +97,6 @@ pub(super) struct Snapshot {
     base: i32,
     rules: Vec<Rule>,
     future: Option<posix::Future>,
-    future_start: i64,
 }
 struct LocalValue {
     ticks: i64,
@@ -134,7 +172,6 @@ impl Snapshot {
             base: 0,
             rules: Vec::new(),
             future: None,
-            future_start: MAX,
         }
     }
     fn from_data(data: tzif::Data, now: i64) -> Result<Self> {
@@ -164,7 +201,6 @@ impl Snapshot {
             base,
             rules: Vec::new(),
             future: None,
-            future_start: MAX,
         };
         if data.transitions.is_empty() {
             return Ok(result);
@@ -226,180 +262,211 @@ impl Snapshot {
                 .all(|rule| (-23 * 3600..=14 * 3600).contains(&rule.delta)),
             "Historical daylight delta exceeds .NET adjustment rule range"
         );
-        result.future_start = boundaries.last().context("Timezone transition missing")?.0;
         result.future = posix::Future::parse(&data.tail, base)?;
         Ok(result)
     }
-    fn future_utc(&self, ticks: i64) -> Result<Option<(i32, bool)>> {
-        if ticks < self.future_start {
-            return Ok(None);
+    fn effective(&self, index: usize) -> Rule {
+        let mut rule = self.rules[index];
+        if index + 1 == self.rules.len()
+            && let Some(future) = &self.future
+        {
+            rule.standard = future.standard;
+            rule.delta = future.daylight.map_or(0, |value| value - future.standard);
+            rule.dst = future.daylight.is_some();
         }
-        let Some(future) = &self.future else {
+        rule
+    }
+    fn recurring(&self, index: usize) -> bool {
+        index + 1 == self.rules.len()
+            && self
+                .future
+                .as_ref()
+                .is_some_and(|future| future.daylight.is_some())
+    }
+    fn markers(&self, index: usize) -> (bool, bool) {
+        if self.recurring(index) {
+            self.future
+                .as_ref()
+                .map_or((false, false), posix::Future::markers)
+        } else {
+            (false, false)
+        }
+    }
+    fn select(&self, ticks: i64, utc: bool) -> Option<usize> {
+        let mut low = 0;
+        let mut high = self.rules.len().checked_sub(1)?;
+        while low <= high {
+            let mid = low + (high - low) / 2;
+            let rule = self.effective(mid);
+            let previous = self.effective(mid.saturating_sub(1));
+            let start_compare = if utc {
+                ticks
+            } else {
+                shift(ticks, -previous.total())
+            };
+            if start_compare < rule.start {
+                high = mid.checked_sub(1)?;
+                continue;
+            }
+            let end_compare = if utc {
+                ticks
+            } else {
+                shift(ticks, -rule.total())
+            };
+            if end_compare > rule.end {
+                low = mid + 1;
+            } else {
+                return Some(mid);
+            }
+        }
+        None
+    }
+    fn daylight(&self, index: usize, year: i32) -> Result<(i64, i64)> {
+        if self.recurring(index) {
+            return self
+                .future
+                .as_ref()
+                .context("Future rule unavailable")?
+                .wall_changes(year)?
+                .context("Future transitions unavailable");
+        }
+        let rule = self.effective(index);
+        let previous = self.effective(index.saturating_sub(1));
+        Ok((
+            shift(rule.start, previous.total()),
+            shift(rule.end, rule.total()),
+        ))
+    }
+    fn previous_season_start(&self, year: i32) -> Result<Option<i64>> {
+        let at = date_ticks(year, 12, 31)?;
+        let Some(index) = self.select(at, false) else {
             return Ok(None);
         };
-        let year = clock(shift(ticks, self.base))?.year();
-        let Some((start, end)) = future.changes(year)? else {
-            return Ok(Some((future.standard, false)));
-        };
-        ensure!(
-            (0..=MAX).contains(&start)
-                && (0..=MAX).contains(&end)
-                && clock(start)?.year() == year
-                && clock(end)?.year() == year,
-            "Cross-year or boundary future timezone transition needs rule stitching"
-        );
-        let dst = if start > end {
-            ticks < end || ticks >= start
+        let (start, end) = self.daylight(index, year)?;
+        if self.markers(index).1 || start > end {
+            Ok(Some(checked_shift(start, -self.effective(index).standard)?))
         } else {
-            ticks >= start && ticks < end
+            Ok(None)
+        }
+    }
+    fn next_season_end(&self, year: i32) -> Result<Option<i64>> {
+        let at = date_ticks(year, 1, 1)?;
+        let Some(index) = self.select(at, false) else {
+            return Ok(None);
         };
-        let daylight = future
-            .daylight
-            .context("Timezone daylight offset missing")?;
-        let delta = i64::from(daylight - future.standard) * TICKS;
-        let ambiguous = dst
-            && if delta > 0 {
-                ticks >= end - delta && ticks < end
-            } else {
-                ticks >= start && ticks < start - delta
-            };
-        Ok(Some((
-            if dst { daylight } else { future.standard },
-            ambiguous,
-        )))
+        let rule = self.effective(index);
+        let (start_marker, end_marker) = self.markers(index);
+        if start_marker && end_marker {
+            return Ok(Some(checked_shift(
+                date_ticks(year, 12, 31)?,
+                -rule.total(),
+            )?));
+        }
+        let (start, end) = self.daylight(index, year)?;
+        if start_marker || (end < start && !end_marker) {
+            Ok(Some(checked_shift(end, -rule.total())?))
+        } else {
+            Ok(None)
+        }
     }
     fn utc_offset(&self, ticks: i64) -> Result<(i32, bool)> {
         ensure!(
             (0..=MAX).contains(&ticks),
             "UTC date exceeds DateTime range"
         );
-        // .NET selects endpoint adjustment rules through a separate local-clock
-        // lookup near MinValue/MaxValue. Preserve authored text until that path
-        // and its clamped ambiguous-DST state are implemented exactly.
-        ensure!(
-            self.rules.is_empty() || (86400 * TICKS..=MAX - 86400 * TICKS).contains(&ticks),
-            "Endpoint timezone adjustment-rule selection is not implemented"
-        );
-        if let Some(value) = self.future_utc(ticks)? {
-            return Ok(value);
-        }
-        let index = self.rules.partition_point(|rule| rule.start <= ticks);
-        let Some(rule) = index.checked_sub(1).and_then(|index| self.rules.get(index)) else {
+        let (index, year) = if ticks > date_ticks(9999, 12, 31)? {
+            (self.select(MAX, false), 9999)
+        } else if ticks < 86400 * TICKS {
+            (self.select(0, false), 1)
+        } else {
+            (
+                self.select(ticks, true),
+                clock(checked_shift(ticks, self.base)?)?.year(),
+            )
+        };
+        let Some(index) = index else {
             return Ok((self.base, false));
         };
-        ensure!(ticks <= rule.end, "Timezone rules do not cover UTC date");
-        let previous = &self.rules[index.saturating_sub(2)];
-        if rule.dst {
-            ensure!(
-                (0..=MAX).contains(&(rule.start + i64::from(previous.total()) * TICKS))
-                    && (0..=MAX).contains(&(rule.end + i64::from(rule.total()) * TICKS)),
-                "Clamped historical daylight boundaries need endpoint rule handling"
-            );
+        let rule = self.effective(index);
+        if !rule.dst {
+            return Ok((rule.standard, false));
         }
-        let delta = i64::from(rule.delta) * TICKS;
-        let ambiguous = rule.dst
-            && if delta > 0 {
-                ticks >= rule.end - delta && ticks < rule.end
+        let (wall_start, wall_end) = self.daylight(index, year)?;
+        let (start_marker, end_marker) = self.markers(index);
+        let start_offset = if self.recurring(index) {
+            rule.standard
+        } else {
+            self.effective(index.saturating_sub(1)).total()
+        };
+        let mut ignore_year = false;
+        let start = if start_marker && year > 1 {
+            if let Some(value) = self.previous_season_start(year - 1)? {
+                ignore_year = true;
+                value
             } else {
-                ticks >= rule.start && ticks < rule.start - delta
-            };
-        Ok((rule.total(), ambiguous))
+                checked_shift(date_ticks(year, 1, 1)?, -start_offset)?
+            }
+        } else {
+            checked_shift(wall_start, -start_offset)?
+        };
+        let end = if end_marker && year < 9999 {
+            if let Some(value) = self.next_season_end(year + 1)? {
+                ignore_year = true;
+                value
+            } else {
+                checked_shift(date_ticks(year + 1, 1, 1)? - 1, -rule.total())?
+            }
+        } else {
+            checked_shift(wall_end, -rule.total())?
+        };
+        let dst = check_dst(start, ticks, end, ignore_year, !self.recurring(index))?;
+        let delta = i64::from(rule.delta) * TICKS;
+        let (amb_start, amb_end) = if delta > 0 {
+            (end - delta, end)
+        } else {
+            (start, start - delta)
+        };
+        let ambiguous = dst && ambiguous_range(ticks, amb_start, amb_end)?;
+        Ok((rule.standard + if dst { rule.delta } else { 0 }, ambiguous))
     }
     fn local_offset(&self, ticks: i64, fold: Option<bool>) -> Result<i32> {
-        // Same binary-search interval comparison as CompareAdjustmentRuleToDateTime:
-        // a UTC start is converted with the previous rule, an end with this rule.
-        let mut low = 0;
-        let mut high = self.rules.len();
-        while low < high {
-            let mid = low + (high - low) / 2;
-            let rule = &self.rules[mid];
-            let previous = &self.rules[mid.saturating_sub(1)];
-            if shift(ticks, -previous.total()) < rule.start {
-                high = mid;
-                continue;
-            }
-            if shift(ticks, -rule.total()) > rule.end {
-                low = mid + 1;
-                continue;
-            }
-            if mid == self.rules.len() - 1 && self.future.is_some() {
-                return self.future_local(ticks, fold);
-            }
-            if !rule.dst {
-                return Ok(rule.standard);
-            }
-            let start = shift(rule.start, previous.total());
-            let end = shift(rule.end, rule.total());
-            let delta = i64::from(rule.delta) * TICKS;
-            let (start_check, end_check) = if fold.is_some() {
-                (start + delta, end)
-            } else if delta > 0 {
-                (start + delta, end - delta)
-            } else {
-                (start, end)
-            };
-            ensure!(
-                (0..=MAX).contains(&start_check) && (0..=MAX).contains(&end_check),
-                "Historical timezone boundary requires unsupported year-marker handling"
-            );
-            let mut dst = ticks >= start_check && ticks <= end_check;
+        let Some(index) = self.select(ticks, false) else {
+            return Ok(self.base);
+        };
+        let rule = self.effective(index);
+        if !rule.dst {
+            return Ok(rule.standard);
+        }
+        let year = clock(ticks)?.year();
+        let (start, end) = self.daylight(index, year)?;
+        let (start_marker, end_marker) = self.markers(index);
+        let delta = i64::from(rule.delta) * TICKS;
+        let start_check = if start_marker {
+            date_ticks(year, 1, 1)?
+        } else if fold.is_some() || delta > 0 {
+            start + delta
+        } else {
+            start
+        };
+        let end_check = if end_marker {
+            date_ticks(year + 1, 1, 1)? - 1
+        } else if fold.is_none() && delta > 0 {
+            end - delta
+        } else {
+            end
+        };
+        let mut dst = check_dst(start_check, ticks, end_check, false, !self.recurring(index))?;
+        if dst && let Some(fold) = fold {
             let ambiguous = if delta > 0 {
-                ticks >= end - delta && ticks < end
+                !end_marker && ambiguous_range(ticks, end - delta, end)?
             } else {
-                ticks >= start && ticks < start - delta
+                !start_marker && ambiguous_range(ticks, start + delta, start)?
             };
-            if dst
-                && ambiguous
-                && let Some(fold) = fold
-            {
+            if ambiguous {
                 dst = fold;
             }
-            return Ok(rule.standard + if dst { rule.delta } else { 0 });
         }
-        Ok(self.base)
-    }
-    fn future_local(&self, ticks: i64, fold: Option<bool>) -> Result<i32> {
-        let future = self
-            .future
-            .as_ref()
-            .context("Timezone future rule missing")?;
-        let Some((utc_start, utc_end)) = future.changes(clock(ticks)?.year())? else {
-            return Ok(future.standard);
-        };
-        let daylight = future
-            .daylight
-            .context("Timezone daylight offset missing")?;
-        let start = utc_start + i64::from(future.standard) * TICKS;
-        let end = utc_end + i64::from(daylight) * TICKS;
-        let delta = i64::from(daylight - future.standard) * TICKS;
-        let (start_check, end_check) = if fold.is_some() {
-            (start + delta, end)
-        } else if delta > 0 {
-            (start + delta, end - delta)
-        } else {
-            (start, end)
-        };
-        ensure!(
-            (0..=MAX).contains(&start_check) && (0..=MAX).contains(&end_check),
-            "Future timezone boundary exceeds DateTime range"
-        );
-        let mut dst = if start_check > end_check {
-            ticks < end_check || ticks >= start_check
-        } else {
-            ticks >= start_check && ticks < end_check
-        };
-        let ambiguous = if delta > 0 {
-            ticks >= end - delta && ticks < end
-        } else {
-            ticks >= start && ticks < start - delta
-        };
-        if dst
-            && ambiguous
-            && let Some(fold) = fold
-        {
-            dst = fold;
-        }
-        Ok(if dst { daylight } else { future.standard })
+        Ok(rule.standard + if dst { rule.delta } else { 0 })
     }
     fn to_local(&self, ticks: i64) -> Result<LocalValue> {
         let (offset, fold) = self.utc_offset(ticks)?;

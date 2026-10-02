@@ -1,8 +1,9 @@
 //! Future rules follow .NET 9 TZif_CreateTransitionTimeFromPosixRule, including
 //! its day-stripping transition-time behavior and limited numeric Julian support.
+use super::super::calendar::month_weekday;
 use super::{TICKS, clock_ticks, minute_delta};
 use anyhow::{Context, Result, ensure};
-use chrono::{Datelike, NaiveDate};
+use chrono::NaiveDate;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub(super) enum Day {
@@ -112,12 +113,6 @@ fn change(text: &str) -> Result<Option<Change>> {
     } else {
         7200
     };
-    // .NET treats Jan-1 midnight as a year-continuation marker. Its adjoining
-    // rule stitching needs a distinct implementation; do not approximate it.
-    ensure!(
-        seconds != 0 || !matches!(day, Day::Julian(1) | Day::Numeric(0) | Day::Month(1, _, _)),
-        "Year-marker timezone tails require additional rule stitching"
-    );
     Ok(Some(Change { day, seconds }))
 }
 impl Future {
@@ -129,7 +124,7 @@ impl Future {
         name(text, &mut at)?;
         let standard = -offset(text, &mut at)?.context("Missing timezone standard offset")?;
         let standard_delta = minute_delta(standard - base);
-        let standard = base + standard_delta;
+        let mut standard = base + standard_delta;
         ensure!(
             (-50400..=50400).contains(&standard),
             "Timezone future standard offset exceeds .NET range"
@@ -146,11 +141,15 @@ impl Future {
         let daylight = offset(text, &mut at)?
             .map(|offset| standard + minute_delta(minute_delta(-offset - base) - standard_delta))
             .unwrap_or(standard + 3600);
-        // Extreme future daylight deltas require rebasing both transition
-        // offsets after AdjustmentRule's day normalization.
+        let delta = daylight - standard;
+        if delta > 12 * 3600 {
+            standard += 24 * 3600;
+        } else if delta < -12 * 3600 {
+            standard -= 24 * 3600;
+        }
         ensure!(
-            (daylight - standard).abs() <= 12 * 3600,
-            "Extreme future daylight delta requires additional rule normalization"
+            (-23 * 3600..=14 * 3600).contains(&(daylight - standard)),
+            "Future daylight delta exceeds adjustment rule range"
         );
         ensure!(
             text.as_bytes().get(at) == Some(&b','),
@@ -178,17 +177,28 @@ impl Future {
             end: Some(end),
         }))
     }
-    pub fn changes(&self, year: i32) -> Result<Option<(i64, i64)>> {
+    pub fn wall_changes(&self, year: i32) -> Result<Option<(i64, i64)>> {
         let (Some(start), Some(end)) = (&self.start, &self.end) else {
             return Ok(None);
         };
-        let start = start.ticks(year)? - i64::from(self.standard) * TICKS;
-        let end =
-            end.ticks(year)? - i64::from(self.daylight.context("Missing daylight offset")?) * TICKS;
-        Ok(Some((start, end)))
+        Ok(Some((start.ticks(year)?, end.ticks(year)?)))
+    }
+    pub fn markers(&self) -> (bool, bool) {
+        (
+            self.start.as_ref().is_some_and(Change::marker),
+            self.end.as_ref().is_some_and(Change::marker),
+        )
     }
 }
 impl Change {
+    fn marker(&self) -> bool {
+        self.seconds == 0
+            && matches!(
+                self.day,
+                Day::Julian(1) | Day::Numeric(0) | Day::Month(1, _, _)
+            )
+    }
+
     fn same_definition(&self, other: &Self) -> bool {
         self.seconds == other.seconds
             && (self.day == other.day
@@ -203,16 +213,7 @@ impl Change {
     }
     fn ticks(&self, year: i32) -> Result<i64> {
         let date = match self.day {
-            Day::Month(month, week, weekday) => {
-                let first =
-                    NaiveDate::from_ymd_opt(year, month, 1).context("Timezone calendar range")?;
-                let mut day =
-                    1 + (weekday + 7 - first.weekday().num_days_from_sunday()) % 7 + (week - 1) * 7;
-                while NaiveDate::from_ymd_opt(year, month, day).is_none() {
-                    day -= 7;
-                }
-                NaiveDate::from_ymd_opt(year, month, day).context("Timezone month day")?
-            }
+            Day::Month(month, week, weekday) => month_weekday(year, month, week, weekday)?,
             Day::Julian(n) => {
                 let ordinal = if n >= 60 && NaiveDate::from_ymd_opt(year, 2, 29).is_some() {
                     n + 1

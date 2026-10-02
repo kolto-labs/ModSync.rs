@@ -1683,3 +1683,34 @@ destination grouping. Stale peer cleanup removes only canonically named empty
 old ordinary directories; nonempty contents are retained for inspection, and
 all Windows reparse points are excluded. These changes passed independent source
 review. No runtime, corpus or native acceptance is claimed by this section.
+
+### Telemetry endpoint migration and first-run consent continuation
+
+The shared OTLP endpoint projection accepts a configured base or a literal final
+traces/metrics signal URL, preserving prefixes and building both signals from
+the same admitted base. Ambiguous encoded/case-varied terminal spellings,
+credentials, query/fragment and oversized endpoints are explicit refusals with
+URL-free diagnostics. The desktop now has an owned first-run consent choice
+that persists allow/decline through matching settings and lifecycle receipts.
+Load-error defaults are not first-run authority; failure leaves the prompt
+retryable and event admission disabled. Readback checks the saved choice, and
+logging failure is separate from configuration failure. See the current section
+of [the telemetry audit](docs/parity/telemetry-csharp-audit.md). Source review,
+production compilation and native acceptance remain separate gates.
+
+### Profile local-zone source continuation
+
+Unix local normalization now uses shared checked calendar primitives, effective
+historical/future rule selection, neighboring-year marker seasons, daylight
+day transfer and special endpoint lookup. The Windows provider captures bounded
+read-only native/registry data twice, then applies pure ordinary annual rules
+with fixed/floating transitions and retained folds. Both providers reselect the
+serialization offset and keep checked shifts separate from endpoint clamping.
+
+Windows marker stitching, shifted cross-year windows, extreme daylight rebasing,
+adjusted endpoint rules and fallback zone discovery remain explicit authored-text
+refusals with bounded warnings. Broader invariant parsing/rounding is incomplete.
+See the [general date contract](docs/parity/profile-date-canonicalization.md) and
+[Windows date contract](docs/parity/profile-date-windows-contract.md). Independent
+source review accepted the implemented subset after correcting local negative
+daylight ambiguity intervals; native behavior is unverified.

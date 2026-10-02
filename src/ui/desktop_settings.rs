@@ -27,6 +27,13 @@ struct Finished {
     result: Result<Output>,
 }
 
+struct Consent {
+    draft: Config,
+    // A save revision is followed by its matching lifecycle ticket. The prompt
+    // stays owned until both receipts settle, and remains retryable on failure.
+    pending: Option<(u64, Option<u64>)>,
+}
+
 #[derive(Default)]
 pub(super) struct State {
     pub open: bool,
@@ -47,6 +54,7 @@ pub(super) struct State {
     pub logged: usize,
     status: String,
     diagnostics: String,
+    consent: Option<Consent>,
 }
 impl State {
     pub(super) fn settings_source(&self) -> Option<PathBuf> {
@@ -73,6 +81,7 @@ impl State {
     }
     pub fn ready(&self, config: &Config, directory: &str) -> bool {
         self.allowed
+            && self.consent.is_none()
             && self.directory == directory
             && config.exporter_ready()
             && self.owner.as_ref().is_some_and(|owner| {
@@ -83,6 +92,27 @@ impl State {
 }
 
 impl App {
+    fn start_desktop_owner(&mut self) -> Result<u64> {
+        let total = self.guide.as_ref().map_or(0, |g| g.components.len());
+        let selected = self
+            .guide
+            .as_ref()
+            .map_or(0, |g| g.components.iter().filter(|c| c.is_selected).count());
+        let owner = Lifecycle::start(
+            PathBuf::from(&self.profile_directory),
+            modsync::logging::Options {
+                debug_logging: self.desktop.settings.debug_logging,
+                ..Default::default()
+            },
+            self.telemetry.clone(),
+            total,
+            selected,
+        )?;
+        let ticket = owner.status().requested;
+        self.desktop.owner = Some(owner);
+        Ok(ticket)
+    }
+
     pub(super) fn begin_desktop_load(&mut self, explicit: Option<PathBuf>) {
         if self.desktop.busy() {
             return;
@@ -92,6 +122,7 @@ impl App {
         self.desktop.allowed = false;
         self.desktop.initialized = true;
         self.desktop.loaded = false;
+        self.desktop.consent = None;
         self.desktop.explicit = explicit.clone();
         let directory = self.desktop.directory.clone();
         let (tx, rx) = mpsc::channel();
@@ -108,7 +139,7 @@ impl App {
                 }
                 let mut warnings = report.warnings;
                 if report.used_defaults { warnings.push("Invalid stored settings were replaced by the typed defaults for this session.".into()); }
-                let config = Config::load_from_settings_directory(explicit.as_deref()).unwrap_or_else(|error| { warnings.push(format!("Telemetry disabled: {error:#}")); Config::default() });
+                let config = Config::load_from_settings_directory(explicit.as_deref()).unwrap_or_else(|error| { warnings.push(format!("Telemetry disabled: {error:#}")); Config { is_first_run: false, ..Config::default() } });
                 Ok(Output::Loaded(report.settings, patcher, config, warnings))
             }).unwrap_or_else(|_| Err(anyhow::anyhow!("Settings reader stopped unexpectedly")));
             let _ = tx.send(Finished { directory, result });
@@ -156,7 +187,13 @@ impl App {
             return;
         }
         self.desktop.allowed = false;
-        self.desktop.revision = self.desktop.revision.wrapping_add(1);
+        let Some(revision) = self.desktop.revision.checked_add(1) else {
+            self.desktop.status =
+                "Telemetry preference identity exhausted; restart before saving.".into();
+            modsync::telemetry::global().request_stop();
+            return;
+        };
+        self.desktop.revision = revision;
         // Stop old transport immediately; persistence and the joined receipt are
         // separate, and enabling requires the matching successful save.
         let mut disabled = self.telemetry.clone();
@@ -242,6 +279,7 @@ impl App {
             self.desktop.loaded = false;
             self.desktop.cancelled.store(true, Ordering::Release);
             self.desktop.queued = None;
+            self.desktop.consent = None;
             if let Some(owner) = &self.desktop.owner {
                 let _ = owner.shutdown(false, false);
             }
@@ -303,23 +341,17 @@ impl App {
                             } else {
                                 config
                             };
-                            let total = self.guide.as_ref().map_or(0, |g| g.components.len());
-                            let selected = self.guide.as_ref().map_or(0, |g| {
-                                g.components.iter().filter(|c| c.is_selected).count()
-                            });
-                            let logging = modsync::logging::Options {
-                                debug_logging: self.desktop.settings.debug_logging,
-                                ..Default::default()
-                            };
-                            match Lifecycle::start(
-                                PathBuf::from(&self.profile_directory),
-                                logging,
-                                self.telemetry.clone(),
-                                total,
-                                selected,
-                            ) {
-                                Ok(owner) => {
-                                    self.desktop.owner = Some(owner);
+                            if self.probe.is_none() && self.telemetry.is_first_run {
+                                self.desktop.consent = Some(Consent {
+                                    draft: self.telemetry.clone(),
+                                    pending: None,
+                                });
+                                // Missing configuration requires an explicit answer;
+                                // the log owner may start, but transport stays off.
+                                self.telemetry.set_consent(false);
+                            }
+                            match self.start_desktop_owner() {
+                                Ok(_) => {
                                     self.desktop.allowed = self.probe.is_none();
                                     self.desktop.status =
                                         "Preferences loaded; telemetry initialization is settling."
@@ -337,14 +369,32 @@ impl App {
                             self.telemetry = config;
                             self.desktop.status =
                                 "Telemetry preference saved; waiting for exporter receipt.".into();
-                            if !self.sharing.closing
-                                && let Some(owner) = &self.desktop.owner
-                            {
-                                match owner.configure(self.telemetry.clone()) {
-                                    Ok(_) => self.desktop.allowed = true,
+                            if !self.sharing.closing {
+                                let configured = if let Some(owner) = &self.desktop.owner {
+                                    owner.configure(self.telemetry.clone())
+                                } else {
+                                    // Retry a failed initial owner spawn only after
+                                    // the requested choice has a verified save.
+                                    self.start_desktop_owner()
+                                };
+                                match configured {
+                                    Ok(ticket) => {
+                                        self.desktop.allowed = true;
+                                        if let Some(consent) = &mut self.desktop.consent
+                                            && consent
+                                                .pending
+                                                .is_some_and(|(saved, _)| saved == revision)
+                                        {
+                                            consent.pending = Some((revision, Some(ticket)));
+                                        }
+                                    }
                                     Err(error) => {
                                         self.desktop.status =
-                                            format!("Telemetry configuration failed: {error:#}")
+                                            format!("Telemetry configuration failed: {error:#}");
+                                        self.desktop.allowed = false;
+                                        if let Some(consent) = &mut self.desktop.consent {
+                                            consent.pending = None;
+                                        }
                                     }
                                 }
                             }
@@ -367,7 +417,37 @@ impl App {
                     Err(error) => {
                         self.desktop.status = format!("Settings operation failed: {error:#}");
                         self.logs.push(self.desktop.status.clone());
+                        if let Some(consent) = &mut self.desktop.consent {
+                            consent.pending = None;
+                            self.desktop.allowed = false;
+                        }
                     }
+                }
+            }
+        }
+        if let Some((revision, Some(ticket))) =
+            self.desktop.consent.as_ref().and_then(|c| c.pending)
+            && revision == self.desktop.revision
+            && let Some(owner) = &self.desktop.owner
+        {
+            let status = owner.status();
+            if status.requested == ticket && status.completed == ticket && !status.stopping {
+                if status.configuration_error.is_none() {
+                    self.desktop.consent = None;
+                    self.desktop.status = if self.telemetry.exporter_ready() && status.running {
+                        "Telemetry choice saved; exporter ready.".into()
+                    } else {
+                        "Telemetry choice saved; remote export is disabled or unconfigured.".into()
+                    };
+                    if let Some(error) = status.error {
+                        self.logs.push(format!("Telemetry/log owner: {error}"));
+                    }
+                } else {
+                    self.desktop.allowed = false;
+                    if let Some(consent) = &mut self.desktop.consent {
+                        consent.pending = None;
+                    }
+                    modsync::telemetry::global().request_stop();
                 }
             }
         }
@@ -381,9 +461,20 @@ impl App {
             self.desktop.receiver = Some(rx);
             std::thread::spawn(move || {
                 let result = std::panic::catch_unwind(|| -> Result<Output> {
+                    anyhow::ensure!(
+                        modsync::profiles::settings_directory(explicit.as_deref())?
+                            == Path::new(&directory),
+                        "Settings root changed"
+                    );
                     config.save(Path::new(&directory))?;
                     let mut saved = Config::load_from_settings_directory(explicit.as_deref())?;
-                    saved.session_id = config.session_id;
+                    saved.session_id = config.session_id.clone();
+                    let mut expected = config;
+                    expected.is_first_run = false;
+                    anyhow::ensure!(
+                        serde_json::to_value(&saved)? == serde_json::to_value(&expected)?,
+                        "Telemetry configuration changed during save verification"
+                    );
                     Ok(Output::TelemetrySaved(revision, saved))
                 })
                 .unwrap_or_else(|_| {
@@ -478,6 +569,7 @@ impl App {
     }
 
     pub(super) fn desktop_window(&mut self, ctx: &egui::Context) {
+        self.first_run_consent_ui(ctx);
         if !self.desktop.open {
             return;
         }
@@ -521,7 +613,7 @@ impl App {
             });
             self.protocol_settings_ui(ui);
             ui.separator(); ui.heading("Telemetry consent");
-            ui.add_enabled_ui(self.desktop.loaded && self.probe.is_none() && !self.sharing.closing, |ui| {
+            ui.add_enabled_ui(self.desktop.loaded && self.probe.is_none() && !self.sharing.closing && self.desktop.consent.is_none(), |ui| {
                 let mut consent = self.telemetry.user_consented;
                 if ui.checkbox(&mut consent, "Share anonymous telemetry").changed() { self.telemetry.set_consent(consent); telemetry_save = true; }
                 let mut changed = false;
@@ -531,6 +623,7 @@ impl App {
                 changed |= ui.checkbox(&mut self.telemetry.enable_otlp_exporter, "Enable OTLP exporter").changed();
                 ui.horizontal(|ui| { ui.label("OTLP endpoint"); changed |= ui.text_edit_singleline(&mut self.telemetry.endpoint).changed(); });
                 telemetry_save |= changed || ui.button("Save telemetry configuration").clicked();
+                if let Some(error) = self.telemetry.endpoint_error() { ui.label(error); }
             });
             if self.desktop.ready(&self.telemetry, &self.profile_directory) { ui.label("Exporter ready: consent and matching lifecycle receipt verified."); }
             else { ui.label("Export is disabled or awaiting configuration/stop completion."); }
@@ -566,6 +659,54 @@ impl App {
                     result: Ok(Output::Diagnostics(report)),
                 });
             });
+        }
+    }
+
+    fn first_run_consent_ui(&mut self, ctx: &egui::Context) {
+        if self.sharing.closing
+            || self.probe.is_some()
+            || self.desktop.directory != self.profile_directory
+        {
+            return;
+        }
+        let available = self.desktop.loaded && !self.desktop.busy() && self.receiver.is_none();
+        let Some(consent) = &mut self.desktop.consent else {
+            return;
+        };
+        let mut answer = None;
+        egui::Modal::new(egui::Id::new(("first_run_telemetry", &self.desktop.directory))).show(ctx, |ui| {
+            ui.set_max_width(540.0);
+            ui.heading("Telemetry preference");
+            ui.label("Choose whether ModSync may send anonymous usage, performance and hashed error reports. You can change this later in Desktop settings and privacy.");
+            ui.label("Remote export also requires a configured endpoint and signing key. No remote server is selected by default.");
+            ui.add_enabled_ui(available && consent.pending.is_none(), |ui| {
+                ui.checkbox(&mut consent.draft.collect_usage_data, "Usage events");
+                ui.checkbox(&mut consent.draft.collect_performance_metrics, "Performance metrics");
+                ui.checkbox(&mut consent.draft.collect_crash_reports, "Hashed error reports");
+                ui.collapsing("Privacy details", |ui| {
+                    let mut summary = consent.draft.clone();
+                    summary.enabled = true;
+                    summary.user_consented = true;
+                    ui.label(summary.privacy_summary());
+                });
+                ui.horizontal(|ui| {
+                    if ui.button("Keep telemetry off").clicked() { answer = Some(false); }
+                    if ui.button("Allow configured telemetry").clicked() { answer = Some(true); }
+                });
+            });
+            if consent.pending.is_some() { ui.spinner(); }
+            ui.label(&self.desktop.status);
+        });
+        if let Some(enabled) = answer {
+            self.telemetry = consent.draft.clone();
+            self.telemetry.set_consent(enabled);
+            self.telemetry.is_first_run = false;
+            self.queue_telemetry_save();
+            if let Some((revision, _)) = &self.desktop.queued
+                && let Some(consent) = &mut self.desktop.consent
+            {
+                consent.pending = Some((*revision, None));
+            }
         }
     }
 }
