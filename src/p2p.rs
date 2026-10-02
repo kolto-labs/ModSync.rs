@@ -469,18 +469,20 @@ impl PeerSettings {
         if let Some(v) = get("peerUploadKiBps").and_then(|v| v.as_u64()) {
             out.upload_kibps = u32::try_from(v).unwrap_or(u32::MAX);
         }
-        if map.iter().any(|(key, value)| {
-            key.eq_ignore_ascii_case("peerMode")
-                && !matches!(value.as_str(), Some(mode) if !mode.eq_ignore_ascii_case("off"))
-        }) {
+        let modes: Vec<_> = map
+            .iter()
+            .filter(|(key, _)| key.eq_ignore_ascii_case("peerMode"))
+            .map(|(_, value)| value.as_str().map(str::to_ascii_lowercase))
+            .collect();
+        if modes
+            .iter()
+            .any(|mode| !matches!(mode.as_deref(), Some("race" | "fallback")))
+        {
             out.mode = PeerMode::Off;
-        } else if let Some(v) = get("peerMode").and_then(|v| v.as_str()) {
-            // An unrecognized mode is malformed and fails closed.
-            out.mode = match v.to_ascii_lowercase().as_str() {
-                "race" => PeerMode::Race,
-                "fallback" => PeerMode::Fallback,
-                _ => PeerMode::Off,
-            };
+        } else if modes.iter().any(|mode| mode.as_deref() == Some("fallback")) {
+            out.mode = PeerMode::Fallback;
+        } else if !modes.is_empty() {
+            out.mode = PeerMode::Race;
         }
         if let Some(v) = get("peerProxies") {
             out.proxies = strings(v);

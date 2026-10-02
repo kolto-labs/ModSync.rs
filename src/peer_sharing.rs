@@ -295,6 +295,101 @@ impl Catalog {
         Ok(true)
     }
 
+    /// Publish a verified batch under one transaction. Cancellation or a write
+    /// failure removes only this batch's new pending files; existing entries and
+    /// their accounting remain intact. The owner cannot consume a partial batch.
+    fn admit_batch_cancelled(
+        &self,
+        records: &[Record],
+        cancelled: &AtomicBool,
+    ) -> Result<Vec<bool>> {
+        ensure!(
+            !cancelled.load(Ordering::Acquire),
+            "Sharing enrollment cancelled"
+        );
+        if records.is_empty() {
+            return Ok(Vec::new());
+        }
+        let file = lock_file(&self.root.join("transaction.lock"))?;
+        loop {
+            ensure!(
+                !cancelled.load(Ordering::Acquire),
+                "Sharing enrollment cancelled"
+            );
+            match fs2::FileExt::try_lock_exclusive(&file) {
+                Ok(()) => break,
+                Err(error)
+                    if error.kind() == std::io::ErrorKind::WouldBlock
+                        || error.raw_os_error() == fs2::lock_contended_error().raw_os_error() =>
+                {
+                    thread::sleep(Duration::from_millis(20));
+                }
+                Err(error) => return Err(error.into()),
+            }
+        }
+        let _tx = TransactionLock(file);
+        let mut created = Vec::new();
+        let result = (|| -> Result<Vec<bool>> {
+            let mut admissions = Vec::with_capacity(records.len());
+            for record in records {
+                ensure!(
+                    !cancelled.load(Ordering::Acquire),
+                    "Sharing enrollment cancelled"
+                );
+                ensure!(
+                    record.version == VERSION,
+                    "Unsupported sharing record version"
+                );
+                let pending = self.path("pending", &record.identity)?;
+                let existing = self.path("records", &record.identity)?;
+                let history = self.path("history", &record.identity)?;
+                if let Some(path) = [&history, &existing, &pending]
+                    .into_iter()
+                    .find(|path| path.exists())
+                {
+                    read_record(path, &record.identity)?;
+                    admissions.push(false);
+                    continue;
+                }
+                let bytes = serde_json::to_vec(record)?;
+                // Track before publication: a directory-sync failure can occur
+                // after durable_write has already renamed the pending file.
+                created.push(pending.clone());
+                durable_write(&pending, &bytes)?;
+                admissions.push(true);
+            }
+            ensure!(
+                !cancelled.load(Ordering::Acquire),
+                "Sharing enrollment cancelled"
+            );
+            Ok(admissions)
+        })();
+        match result {
+            Ok(admissions) => Ok(admissions),
+            Err(error) => {
+                let mut rollback_errors = Vec::new();
+                for path in created.into_iter().rev() {
+                    match fs::remove_file(&path) {
+                        Ok(()) => {}
+                        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+                        Err(error) => rollback_errors.push(error.to_string()),
+                    }
+                }
+                if let Err(error) = sync_dir(&self.root.join("pending")) {
+                    rollback_errors.push(error.to_string());
+                }
+                if rollback_errors.is_empty() {
+                    Err(error)
+                } else {
+                    Err(error.context(format!(
+                        "Sharing batch rollback failed: {}",
+                        rollback_errors.join("; ")
+                    )))
+                }
+            }
+        }
+    }
+
     /// Move up to one bounded page. A crash after catalog commit replays the
     /// pending file as a duplicate; an error leaves pending data recoverable.
     pub fn consume_page(&self) -> Result<usize> {
@@ -604,6 +699,7 @@ pub fn enroll_report_cancelled(
     cancelled: &AtomicBool,
 ) -> Enrollment {
     let mut result = Enrollment::default();
+    let mut records = Vec::new();
     if !accepted
         || report.cancelled
         || plan.peer_mode == crate::download_orchestrator::PeerMode::Off
@@ -650,11 +746,7 @@ pub fn enroll_report_cancelled(
                 && target.filename.as_deref().is_none_or(|name| name == record.archive_name)
                 && target.sources.iter().any(|source| matches!(source, Source::Peer { magnet, sha256, .. }
                     if sha256.eq_ignore_ascii_case(&record.authored_sha256)
-                    && p2p::sanitize_magnet(magnet, &[]).is_ok_and(|m| m.info_hash == record.info_hash))) => match catalog.admit(&record) {
-                Ok(true) => { result.admitted += 1; result.identities.push(record.identity.clone()); },
-                Ok(false) => { result.duplicates += 1; result.identities.push(record.identity.clone()); },
-                Err(error) => result.failures.push(format!("{}: {error:#}", record.identity)),
-            },
+                    && p2p::sanitize_magnet(magnet, &[]).is_ok_and(|m| m.info_hash == record.info_hash))) => records.push(record),
             _ => result.rejected += 1,
         }
     }
@@ -684,21 +776,24 @@ pub fn enroll_report_cancelled(
             guide_path,
             cancelled,
         ) {
-            Ok(record) => match catalog.admit(&record) {
-                Ok(true) => {
-                    result.admitted += 1;
-                    result.identities.push(record.identity.clone());
-                }
-                Ok(false) => {
-                    result.duplicates += 1;
-                    result.identities.push(record.identity.clone());
-                }
-                Err(error) => result
-                    .failures
-                    .push(format!("{}: {error:#}", record.identity)),
-            },
+            Ok(record) => records.push(record),
             Err(_) => result.rejected += 1,
         }
+    }
+    match catalog.admit_batch_cancelled(&records, cancelled) {
+        Ok(admissions) => {
+            for (record, admitted) in records.into_iter().zip(admissions) {
+                if admitted {
+                    result.admitted += 1;
+                } else {
+                    result.duplicates += 1;
+                }
+                result.identities.push(record.identity);
+            }
+        }
+        Err(error) => result
+            .failures
+            .push(format!("Sharing enrollment: {error:#}")),
     }
     result
 }

@@ -812,10 +812,13 @@ impl App {
                 !self.fomod_pending()
                     && self.validated
                     && self.validation_report.as_ref().is_some_and(|r| r.success)
+                    && self.validation_input_stamp.as_ref() == Some(&self.input_stamp)
             }
             Page::InstallStart => {
                 !self.fomod_pending()
                     && self.validated
+                    && self.validation_report.as_ref().is_some_and(|r| r.success)
+                    && self.validation_input_stamp.as_ref() == Some(&self.input_stamp)
                     && self.selected_base() > 0
                     && Path::new(&self.mods).is_dir()
                     && self.receiver.is_none()
@@ -825,7 +828,10 @@ impl App {
                 !self.phase_failed
                     && !self.fomod_pending()
                     && self.receiver.is_none()
-                    && (self.selected_widescreen() == 0 || self.validated)
+                    && (self.selected_widescreen() == 0
+                        || (self.validated
+                            && self.validation_report.as_ref().is_some_and(|r| r.success)
+                            && self.validation_input_stamp.as_ref() == Some(&self.input_stamp)))
             }
             Page::WidescreenInstalling => self.finished && !self.phase_failed,
             Page::Finished => false,

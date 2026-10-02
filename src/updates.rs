@@ -88,6 +88,42 @@ pub struct NexusValidateResult {
     pub message: String,
 }
 
+/// API authorization refusal, retained separately from transfer failures so an
+/// acquisition cannot bypass it by trying a peer source.
+#[derive(Debug)]
+pub struct NexusAuthorizationRefused(pub u16);
+
+impl std::fmt::Display for NexusAuthorizationRefused {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            formatter,
+            "Nexus Mods refused API authorization (HTTP {})",
+            self.0
+        )
+    }
+}
+
+impl std::error::Error for NexusAuthorizationRefused {}
+
+fn optional_download_metadata(result: Result<NexusModFile>) -> Result<Option<NexusModFile>> {
+    match result {
+        Ok(metadata) => Ok(Some(metadata)),
+        Err(error) => {
+            let status = error
+                .chain()
+                .find_map(|cause| cause.downcast_ref::<reqwest::Error>())
+                .and_then(reqwest::Error::status);
+            match status {
+                Some(reqwest::StatusCode::NOT_FOUND) => Ok(None),
+                Some(status) if matches!(status.as_u16(), 401 | 403) => {
+                    Err(NexusAuthorizationRefused(status.as_u16()).into())
+                }
+                _ => Err(error),
+            }
+        }
+    }
+}
+
 fn lowercase_optional<'de, D: serde::Deserializer<'de>>(
     deserializer: D,
 ) -> Result<String, D::Error> {
@@ -467,11 +503,9 @@ impl NexusClient {
                 return Err(NxmAuthorization::Invalid.into());
             }
         }
-        let metadata = self
-            .get_json::<NexusModFile>(&format!(
-                "games/{game_domain}/mods/{mod_id}/files/{file_id}.json"
-            ))
-            .ok();
+        let metadata = optional_download_metadata(self.get_json::<NexusModFile>(&format!(
+            "games/{game_domain}/mods/{mod_id}/files/{file_id}.json"
+        )))?;
         let mut url = self.base_url.join(&format!(
             "games/{game_domain}/mods/{mod_id}/files/{file_id}/download_link.json"
         ))?;
@@ -496,6 +530,9 @@ impl NexusClient {
             match status {
                 Some(status) if keyed && matches!(status.as_u16(), 401 | 403 | 410) => {
                     anyhow::Error::new(NxmAuthorization::Refused(status.as_u16()))
+                }
+                Some(status) if matches!(status.as_u16(), 401 | 403) => {
+                    anyhow::Error::new(NexusAuthorizationRefused(status.as_u16()))
                 }
                 _ => error,
             }
@@ -564,24 +601,14 @@ impl NexusClient {
                 return Err(NxmAuthorization::Invalid.into());
             }
         }
-        let metadata = match cancellable::get(
-            self,
-            &format!("games/{game_domain}/mods/{mod_id}/files/{file_id}.json"),
-            cancelled,
-        )
-        .and_then(|value| Ok(serde_json::from_value::<NexusModFile>(value)?))
-        {
-            Ok(metadata) => Some(metadata),
-            Err(error)
-                if matches!(
-                    crate::download::classify(&error),
-                    Some(crate::download::FailureClass::Transient { .. })
-                ) =>
-            {
-                return Err(error);
-            }
-            Err(_) => None,
-        };
+        let metadata = optional_download_metadata(
+            cancellable::get(
+                self,
+                &format!("games/{game_domain}/mods/{mod_id}/files/{file_id}.json"),
+                cancelled,
+            )
+            .and_then(|value| Ok(serde_json::from_value::<NexusModFile>(value)?)),
+        )?;
         anyhow::ensure!(
             !cancelled.load(std::sync::atomic::Ordering::Acquire),
             "Nexus request cancelled"
@@ -610,6 +637,9 @@ impl NexusClient {
             match status {
                 Some(status) if keyed && matches!(status.as_u16(), 401 | 403 | 410) => {
                     anyhow::Error::new(NxmAuthorization::Refused(status.as_u16()))
+                }
+                Some(status) if matches!(status.as_u16(), 401 | 403) => {
+                    anyhow::Error::new(NexusAuthorizationRefused(status.as_u16()))
                 }
                 _ => error,
             }

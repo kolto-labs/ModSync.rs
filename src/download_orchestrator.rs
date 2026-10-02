@@ -1055,8 +1055,45 @@ struct RunContext<'a> {
     cancelled: &'a AtomicBool,
     events: mpsc::Sender<AcquisitionEvent>,
     nexus: Option<Mutex<NexusClient>>,
-    /// Validated once per run: Ok(true) premium, Ok(false) free/invalid, Err(text) failed.
+    /// One run-wide decision: Ok(true) premium, Ok(false) valid free, Err(text) failed.
     premium: Option<std::result::Result<bool, String>>,
+}
+
+fn validate_premium_with_retries(
+    client: &Mutex<NexusClient>,
+    settings: &RunSettings,
+    cancelled: &AtomicBool,
+) -> std::result::Result<bool, String> {
+    let mut attempt = 0;
+    loop {
+        if cancelled.load(Ordering::Acquire) {
+            return Err("Nexus key validation cancelled".into());
+        }
+        attempt += 1;
+        // Release the client lock before a cancel-aware retry delay.
+        let result = nexus_client_lock(client, cancelled)
+            .and_then(|mut client| client.validate_with_cancel(cancelled));
+        if cancelled.load(Ordering::Acquire) {
+            return Err("Nexus key validation cancelled".into());
+        }
+        match result {
+            Ok(result) if result.is_valid => return Ok(result.is_premium),
+            Ok(_) => return Err("Nexus API key is missing, invalid or unauthorized".into()),
+            Err(error) => {
+                if cancelled.load(Ordering::Acquire) {
+                    return Err("Nexus key validation cancelled".into());
+                }
+                let error = download::request_failure(error);
+                let delay = (attempt <= settings.retries)
+                    .then(|| download::transient_delay(&error, attempt))
+                    .flatten();
+                match delay {
+                    Some(delay) if download_queue::sleep_unless_cancelled(delay, cancelled) => {}
+                    _ => return Err(format!("Nexus key validation failed: {error:#}")),
+                }
+            }
+        }
+    }
 }
 
 pub fn run(
@@ -1118,16 +1155,11 @@ pub fn run_with_loopback_ca(
     } else {
         None
     };
-    // Premium is resolved exactly once per run, inside the library.
+    // Resolve one premium decision per run after bounded transient retries.
     let premium = match &nexus {
-        Some(client) if origins().any(|r| r == OriginRequirement::NexusPremium) => Some(
-            client
-                .lock()
-                .unwrap()
-                .validate_with_cancel(cancelled)
-                .map(|result| result.is_valid && result.is_premium)
-                .map_err(|error| format!("Nexus key validation failed: {error:#}")),
-        ),
+        Some(client) if origins().any(|r| r == OriginRequirement::NexusPremium) => {
+            Some(validate_premium_with_retries(client, settings, cancelled))
+        }
         _ => None,
     };
     let (events, receiver) = mpsc::channel();
@@ -1387,6 +1419,8 @@ impl std::error::Error for PremiumValidationFailed {}
 fn nexus_authorization_failed(error: &anyhow::Error) -> bool {
     error.chain().any(|e| {
         e.downcast_ref::<PremiumValidationFailed>().is_some()
+            || e.downcast_ref::<crate::updates::NexusAuthorizationRefused>()
+                .is_some()
             || e.downcast_ref::<crate::updates::NxmAuthorization>()
                 .is_some()
     })

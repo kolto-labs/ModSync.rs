@@ -5,3 +5,11 @@
 .claude/.skipper-*
 .skipper/*
 !.skipper/receipts/
+
+# Local agent sessions and archived checkouts remain outside published source.
+/.claude/
+/.claudeignore
+/.harnesskit/
+/.worktrees/
+__pycache__/
+*.pyc
