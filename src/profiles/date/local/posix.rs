@@ -1,7 +1,7 @@
 //! Future rules follow .NET 9 TZif_CreateTransitionTimeFromPosixRule, including
 //! its day-stripping transition-time behavior and limited numeric Julian support.
 use super::super::calendar::month_weekday;
-use super::{TICKS, clock_ticks, minute_delta};
+use super::{TICKS, adjustment_offsets, clock_ticks, minute_delta};
 use anyhow::{Context, Result, ensure};
 use chrono::NaiveDate;
 
@@ -124,13 +124,9 @@ impl Future {
         name(text, &mut at)?;
         let standard = -offset(text, &mut at)?.context("Missing timezone standard offset")?;
         let standard_delta = minute_delta(standard - base);
-        let mut standard = base + standard_delta;
+        let standard = base + standard_delta;
         if at == text.len() {
-            // Without daylight transitions, standard is the effective rule offset.
-            ensure!(
-                (-50400..=50400).contains(&standard),
-                "Timezone future effective offset exceeds supported range"
-            );
+            let (standard, _) = adjustment_offsets(standard, 0)?;
             return Ok(Some(Self {
                 standard,
                 daylight: None,
@@ -142,16 +138,6 @@ impl Future {
         let daylight = offset(text, &mut at)?
             .map(|offset| standard + minute_delta(minute_delta(-offset - base) - standard_delta))
             .unwrap_or(standard + 3600);
-        let delta = daylight - standard;
-        if delta > 12 * 3600 {
-            standard += 24 * 3600;
-        } else if delta < -12 * 3600 {
-            standard -= 24 * 3600;
-        }
-        ensure!(
-            (-23 * 3600..=14 * 3600).contains(&(daylight - standard)),
-            "Future daylight delta exceeds adjustment rule range"
-        );
         ensure!(
             text.as_bytes().get(at) == Some(&b','),
             "Timezone daylight rules are missing"
@@ -167,16 +153,10 @@ impl Future {
             !start.same_definition(&end),
             "Timezone future transitions are identical"
         );
-        // Reference admission checks the effective daylight total. The single
-        // day transfer can place standard outside fourteen hours; the delta
-        // bound above and this total bound still limit it to [-28h, +37h].
-        ensure!(
-            (-50400..=50400).contains(&daylight),
-            "Timezone future effective offset exceeds supported range"
-        );
+        let (standard, delta) = adjustment_offsets(standard, daylight - standard)?;
         Ok(Some(Self {
             standard,
-            daylight: Some(daylight),
+            daylight: Some(standard + delta),
             start: Some(start),
             end: Some(end),
         }))

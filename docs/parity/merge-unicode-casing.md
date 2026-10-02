@@ -88,3 +88,36 @@ source slice. Full merge corpus and native acceptance remain open. See
 [maintenance Unicode admission](maintenance-unicode-contract.md) and
 [ordinal dataset provenance](ordinal-name-matching.md) for retained source/license
 and exact semantic digests.
+
+## Qualified HTTP IP domain continuation
+
+HTTP(S) domain extraction now canonicalizes qualified numeric IP authorities
+before the existing DNS path. The new private adapter requires at most one
+userinfo separator and an empty or ASCII-decimal port within65535 (a bare colon
+is admitted). IPv4 parsing supports one to four components with decimal,
+leading-zero octal and `0x`/`0X` hexadecimal. Prefix components must fit one byte;
+the last component has32/24/16/8bits according to the component count. Checked
+u32 accumulation rejects overflow and malformed parts. Successful values emit
+four decimal bytes. A failed IP parse retains the existing DNS path.
+
+Bracketed standard IPv6 addresses parse into eight16-bit words. Formatting
+follows the pinned longest zero run (minimum two, first tie), lowercase hex
+and embedded IPv4 decisions for compatible/mapped, SIIT and ISATAP shapes.
+The formatter checks embedded output at word6 before compression, preserving
+the reference behavior for an ISATAP tail of zero words. Brackets are retained
+in the host and URI ports are omitted from the domain key.
+
+Primary sources are [.NET Uri host construction](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.Uri/src/System/Uri.cs)
+`CheckAuthorityHelper` and `CreateHostStringHelper`, [IPv4 canonicalization](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.Uri/src/System/IPv4AddressHelper.cs),
+[IPv4 grammar](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/Common/src/System/Net/IPv4AddressHelper.Common.cs),
+[IPv6 formatting](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.Uri/src/System/IPv6AddressHelper.cs)
+and [IPv6 compression/embedding decisions](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/Common/src/System/Net/IPv6AddressHelper.Common.cs).
+The reference implementation is distributed under the .NET Foundation MIT license.
+
+Rust's standard IPv6 parser supplies a qualified admission subset. Scope IDs,
+prefix lengths, unusual embedded spellings, Unicode IRI/IDN, full malformed
+authority handling and custom/file schemes remain separate boundaries. The
+legacy fallback is unchanged for inputs outside this correction; this slice
+does not establish whole Uri.Host admission equivalence. Source specification
+and quality review and parent production gates are recorded separately. No
+runtime URL parsing, test fixtures, probes or harnesses were run.

@@ -721,3 +721,46 @@ f033ac66ac32d31734487ac007cce067b1c77e744ea86f78edd91dc450d020c8  src/merge.rs
 ee9cf88ec77ac31ad7c6813b1d292353007f5ef97efc43c6b6be580096e0c488  src/profiles/date/local/windows.rs
 1d643172434d034f6ff1349808540cf7613d55a0f61381f53d98d5646b35a524  src/profiles/date/local/windows/rules.rs
 ```
+
+## Format property access, effective offsets, IP domains and Windows alternative IDs
+
+The source following `ab06435` implements format-specific known-property access
+and raw review fences, shared Unix effective-total clamping with conditional
+second rule construction, qualified HTTP(S) IPv4/IPv6 host formatting, and
+bounded alternative Windows ICU timezone-ID mapping. Independent specification
+and quality reviews accepted the frozen combined source. The format contract
+retains YAML option-collision and scalar-conversion boundaries; the Windows
+contract qualifies combined System32 ICU with repeated decision witnesses.
+
+Parent-owned production gates all passed:
+
+- Formatting and whitespace: session19605 exit0.
+- Linux default library/binary build: session54951 exit0,1m29s.
+- Linux default strict Clippy: session36071 exit0,33.52s.
+- Linux no-default library/binary build: session44899 exit0,1m35s.
+- Linux no-default strict Clippy: session68246 exit0,22.98s.
+- Windows GNU no-default library/binary compile/link: session35911 exit0,54.71s.
+
+The seven frozen inline-bearing modules, existing generated casing tables and
+Cargo.lock remain unchanged against `ab06435`. No tests, fixtures, custom
+harnesses, filesystem tests, runtime/CLI/native probes, binary execution,
+installs, producer execution or CI ran. Compilation and source review do not
+establish behavioral or whole-domain acceptance. Action parsing, GUID contracts,
+input/autodetection and broader IRI admission remain subsequent source work.
+
+Source hashes:
+
+```text
+7ca3c729d0b0d1ff2c5bdbf3c820830c4ee3b55094c9d0a5f844acc6c0c90288  Cargo.toml
+bc4f016faaca8e0ee9dd9fe08fa1bb32692733999015b22a4542817b236d2f5f  src/model.rs
+f4411efa2251464e1d03fbb245cd502b28719308d4c4a383108be36b9ec9b01b  src/model/keys.rs
+602bc8d5abc67448a0dae8fcdf79b18dd033a42ee91b76b60607af0a5280516b  src/xml.rs
+547033a8f14c4504ab844e3ca973934f0e81e1c060d638d16b1acdd5dc17e1e7  src/draft.rs
+5174f8ff794618f7282dd60b28c43765e50f730876fd93bed6edb2adca3edb80  src/markdown.rs
+d7c2dbb8f8414e350e029413279e29b42c04e0160f19ddc8c95e5c1645331aa4  src/merge.rs
+bfa184fba5101faa82638a5acfe02042a3c3697c35b63026b45725842b17e9ae  src/merge/ip_host.rs
+abd1f685482f6b4647ed7b6cea456990eaad47753563c30ed334926f96bd53cf  src/profiles/date/local/unix.rs
+71c58f2bcb55e974c995f38c0b0875ffe9adce34bdd8765d0773fc705d8b32f6  src/profiles/date/local/posix.rs
+69f2f4b25067c0ee1c8fb8da538a7e84569528b67f5ee7035d20bfb3724d9a0c  src/profiles/date/local/windows.rs
+92d5b1d9074ff370b8283ed4910ab686fcf067cad7c77d4f9c33a2f270a9bffd  src/profiles/date/local/windows/iana.rs
+```

@@ -110,7 +110,7 @@ pub fn parse(text: &str) -> Result<Value> {
     }
     let mut components = array(value, "ModComponents");
     for component in &mut components {
-        normalize(component, false)?;
+        normalize(component, false, false)?;
     }
     Ok(Value::Array(components))
 }
@@ -132,22 +132,27 @@ fn array(value: Value, name: &str) -> Vec<Value> {
         value => vec![value],
     }
 }
-fn normalize(value: &mut Value, instruction: bool) -> Result<()> {
+fn normalize(value: &mut Value, instruction: bool, option: bool) -> Result<()> {
+    crate::draft::validate_raw_review_aliases(value)?;
     let object = value
         .as_object_mut()
         .context("XML component/instruction must be an object")?;
+    crate::model::keys::xml_dictionary(object, instruction, option)?;
     for field in [
         "IsSelected",
         "Overwrite",
         "WidescreenOnly",
         "AspyrExclusive",
     ] {
-        if let Some(Value::String(value)) = object.get(field) {
+        let Some(key) = crate::model::keys::getter(object, field) else {
+            continue;
+        };
+        if let Some(Value::String(value)) = object.get(&key) {
             let parsed = value
                 .to_ascii_lowercase()
                 .parse::<bool>()
                 .with_context(|| format!("Invalid boolean for {field}"))?;
-            object.insert(field.into(), Value::Bool(parsed));
+            object.insert(key, Value::Bool(parsed));
         }
     }
     for field in [
@@ -159,29 +164,30 @@ fn normalize(value: &mut Value, instruction: bool) -> Result<()> {
         "InstallAfter",
         "Source",
     ] {
-        if let Some(value) = object.remove(field) {
-            object.insert(field.into(), Value::Array(array(value, field)));
+        if let Some(key) = crate::model::keys::getter(object, field)
+            && let Some(value) = object.remove(&key)
+        {
+            object.insert(key, Value::Array(array(value, field)));
         }
     }
     if instruction {
         return Ok(());
     }
     for field in ["Instructions", "Options"] {
-        if let Some(value) = object.remove(field) {
+        if let Some(key) = crate::model::keys::getter(object, field)
+            && let Some(value) = object.remove(&key)
+        {
             let mut values = array(value, field);
             for value in &mut values {
-                normalize(value, field == "Instructions")?;
+                normalize(value, field == "Instructions", field == "Options")?;
             }
-            object.insert(field.into(), Value::Array(values));
+            object.insert(key, Value::Array(values));
         }
     }
-    for field in [
-        "ResourceRegistry",
-        "ModLinkFilenames",
-        "resourceRegistry",
-        "modLinkFilenames",
-    ] {
-        if let Some(value) = object.remove(field) {
+    for field in ["ResourceRegistry", "ModLinkFilenames"] {
+        if let Some(key) = crate::model::keys::getter(object, field)
+            && let Some(value) = object.remove(&key)
+        {
             let mut registry = Map::new();
             for entry in array(value, field) {
                 let mut entry = entry
@@ -195,6 +201,7 @@ fn normalize(value: &mut Value, instruction: bool) -> Result<()> {
                     .or_else(|| entry.remove("primaryUrl"))
                     .context("XML resource needs Url")?;
                 let url = url.as_str().context("Resource Url must be text")?;
+                crate::model::keys::resource(&mut entry, crate::model::keys::Format::Xml)?;
                 for field in ["FileSize", "ContentLength", "SchemaVersion"] {
                     if let Some(Value::String(text)) = entry.get(field)
                         && let Ok(number) = text.parse::<u64>()
@@ -220,7 +227,10 @@ fn normalize(value: &mut Value, instruction: bool) -> Result<()> {
                 if entry.get("HandlerMetadata").is_some_and(|v| v == "") {
                     entry.insert("HandlerMetadata".into(), Value::Object(Map::new()));
                 }
-                let mut value = entry.remove("Value").unwrap_or(Value::Object(entry));
+                let mut value = entry
+                    .remove("Value")
+                    .or_else(|| entry.remove("value"))
+                    .unwrap_or(Value::Object(entry));
                 if field.eq_ignore_ascii_case("ModLinkFilenames")
                     && let Value::Object(files) = &mut value
                 {
@@ -234,7 +244,7 @@ fn normalize(value: &mut Value, instruction: bool) -> Result<()> {
                 }
                 registry.insert(url.to_owned(), value);
             }
-            object.insert(field.into(), Value::Object(registry));
+            object.insert(key, Value::Object(registry));
         }
     }
     Ok(())

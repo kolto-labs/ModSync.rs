@@ -19,8 +19,37 @@ fn minute_delta(seconds: i32) -> i32 {
         (seconds % 86400) / 60 * 60
     }
 }
-fn normalize(offset: i32, base: i32) -> i32 {
-    (base + minute_delta(offset - base)).clamp(-50400, 50400)
+/// Internal AdjustmentRule construction transfers at most one day per call.
+fn transfer_day(standard: &mut i32, delta: &mut i32) {
+    if *delta > 12 * 3600 {
+        *delta -= 24 * 3600;
+        *standard += 24 * 3600;
+    } else if *delta < -12 * 3600 {
+        *delta += 24 * 3600;
+        *standard -= 24 * 3600;
+    }
+}
+
+/// Reproduce initial construction, then effective-total normalization. The
+/// latter reconstructs the rule and therefore applies a second day transfer
+/// only when the effective offset actually required clamping.
+fn adjustment_offsets(mut standard: i32, mut delta: i32) -> Result<(i32, i32)> {
+    transfer_day(&mut standard, &mut delta);
+    ensure!(
+        (-23 * 3600..=14 * 3600).contains(&delta),
+        "Timezone daylight delta exceeds adjustment rule range"
+    );
+    let total = standard + delta;
+    let adjustment = total.clamp(-50400, 50400) - total;
+    if adjustment != 0 {
+        standard += adjustment;
+        transfer_day(&mut standard, &mut delta);
+        ensure!(
+            (-23 * 3600..=14 * 3600).contains(&delta),
+            "Normalized timezone daylight delta exceeds adjustment rule range"
+        );
+    }
+    Ok((standard, delta))
 }
 
 fn date_ticks(year: i32, month: u32, day: u32) -> Result<i64> {
@@ -225,43 +254,29 @@ impl Snapshot {
         if boundaries.is_empty() {
             anyhow::bail!("Timezone has no supported in-range transition rules");
         }
-        let make = |start, end, index: usize| {
+        let make = |start, end, index: usize| -> Result<Rule> {
             let kind = &data.types[index];
-            let total = normalize(kind.offset, base);
-            let mut delta = if kind.dst {
-                minute_delta(kind.offset - base)
+            let offset = minute_delta(kind.offset - base);
+            let (standard, delta) = if kind.dst {
+                adjustment_offsets(base, offset)?
             } else {
-                0
+                adjustment_offsets(base + offset, 0)?
             };
-            // AdjustmentRule normalizes extreme daylight deltas by one day,
-            // moving the opposite day into BaseUtcOffsetDelta (total unchanged).
-            if delta > 12 * 3600 {
-                delta -= 24 * 3600;
-            } else if delta < -12 * 3600 {
-                delta += 24 * 3600;
-            }
-            Rule {
+            Ok(Rule {
                 start,
                 end,
-                standard: total - delta,
+                standard,
                 delta,
                 dst: kind.dst,
-            }
+            })
         };
-        result.rules.push(make(0, boundaries[0].0 - 1, early));
+        result.rules.push(make(0, boundaries[0].0 - 1, early)?);
         for (position, &(at, index)) in boundaries.iter().enumerate() {
             let end = boundaries
                 .get(position + 1)
                 .map_or(MAX, |(next, _)| next - 1);
-            result.rules.push(make(at, end, index));
+            result.rules.push(make(at, end, index)?);
         }
-        ensure!(
-            result
-                .rules
-                .iter()
-                .all(|rule| (-23 * 3600..=14 * 3600).contains(&rule.delta)),
-            "Historical daylight delta exceeds .NET adjustment rule range"
-        );
         result.future = posix::Future::parse(&data.tail, base)?;
         Ok(result)
     }

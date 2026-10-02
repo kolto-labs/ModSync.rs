@@ -1,6 +1,7 @@
 use crate::Component;
 use crate::unicode_case::{char_is_punctuation, invariant_lower_key, ordinal_eq};
 
+mod ip_host;
 mod preview;
 pub use preview::{Preview, apply_preview, preview};
 use std::collections::BTreeSet;
@@ -210,6 +211,11 @@ fn host(url: &str) -> Option<String> {
         return None;
     }
     let authority = rest.split(['/', '?', '#', '\\']).next()?;
+    if (scheme.eq_ignore_ascii_case("http") || scheme.eq_ignore_ascii_case("https"))
+        && let Some(host) = ip_host::canonical(authority)
+    {
+        return Some(host);
+    }
     let authority = authority.rsplit_once('@').map_or(authority, |(_, h)| h);
     let host = if authority.starts_with('[') {
         authority.split_inclusive(']').next()?

@@ -26,7 +26,7 @@ Date text is limited to4096bytes before parsing. The existing other Chrono-accep
 
 `profiles/date/local` captures a lazy immutable zone once per profile decode, reused for both date fields. Persisted save validation also decodes both fields with one snapshot. It reads a bounded ordinary TZif file selected by `TZ`, `TZDIR` and Unix localtime paths, checks file identity and metadata around intake, and parses at most 1 MiB, 65,536 transitions, and 256 types. Empty `TZ` selects UTC. Native APIs that mutate process locale or timezone are not used.
 
-The provider models historical standard/daylight intervals, minute normalization of historical second offsets, adjustment offset limits, the pre-transition standard type, and supported POSIX future rules. Supported future forms include month/week/weekday, Julian dates, and the reference's restricted numeric-day rules. It deliberately reproduces the reference's transition-time day stripping. Fixed future offsets are range checked too. A file without transitions uses the last standard type as the base, matching the reference constructor.
+The provider models historical standard/daylight intervals, minute normalization of historical second offsets, adjustment offset limits, the pre-transition standard type, and supported POSIX future rules. Supported future forms include month/week/weekday, Julian dates, and the reference's restricted numeric-day rules. It deliberately reproduces the reference's transition-time day stripping. Fixed future offsets use the same effective-total normalization. A file without transitions uses the last standard type as the base, matching the reference constructor.
 
 UTC-to-local conversion retains the ambiguous daylight-side bit. Serialization independently reselects the offset for the final local clock and fold bit, using the same 100 ns serializer as pure dates. Historical rule ends remain inclusive while ambiguity intervals remain end-exclusive; these are distinct source contracts. The original Unspecified wall clock is retained for Newtonsoft's out-of-range explicit-offset branch. UTC endpoint lookup now selects the local MinValue/MaxValue rule through the shared effective-rule selector, before conversion clamping. Arithmetic that exceeds the reference DateTime range still preserves authored text with a warning.
 
@@ -76,7 +76,7 @@ Fallback local conversion uses a distinct typed route. `DateTimeParse.AdjustTime
 
 Primary anchors: [Newtonsoft default invariant culture](https://raw.githubusercontent.com/JamesNK/Newtonsoft.Json/13.0.4/Src/Newtonsoft.Json/JsonSerializerSettings.cs), [reader fallback dispatch](https://raw.githubusercontent.com/JamesNK/Newtonsoft.Json/13.0.4/Src/Newtonsoft.Json/JsonReader.cs), [.NET fallback parser](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.CoreLib/src/System/Globalization/DateTimeParse.cs) (`ParseFraction`, `ParseISO8601`, `DetermineTimeZoneAdjustments`, `AdjustTimeZoneToLocal`), and [fixed invariant calendar data](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.CoreLib/src/System/Globalization/CalendarData.cs). This section records source implementation and primary reference review; runtime acceptance is not claimed.
 
-The Unix future-rule correction validates the effective daylight total within fourteen hours after one-day transfer, without separately limiting a DST rule’s standard component. The admitted normalized delta and effective-total bounds constrain that component to [-28,+37] hours. Fixed no-DST rules still require their standard offset within fourteen hours. Effective totals outside fourteen hours remain explicitly unsupported rather than reproducing the reference’s later clamping pass.
+The Unix rule constructor first performs the reference one-day transfer and validates the resulting daylight delta. Effective daylight totals outside fourteen hours then shift the standard component into the supported total range. Fixed no-DST rules clamp their standard component through the same operation. Historical intervals and future rules share this construction order. Standard components of daylight rules are not independently limited to fourteen hours.
 
 
 ## Bounded weekday, AM/PM and delimiter extension
@@ -98,3 +98,29 @@ Numeric full dates can use homogeneous slashes or dashes. A four-digit first fie
 A single invariant weekday may appear at the beginning or as a whitespace-separated final token, including after the generic zone token. Duplicate prefix/suffix weekdays reject. Both positions use the rounded wall date before local conversion, and neither is passed through the separate ISO parser. Terminal commas and other additional weekday punctuation remain outside this bounded route.
 
 Primary anchors: `DateTimeParse.cs` timezone token handling1021–1038 (GMT/Z), weekday uniqueness893–907, post-rounding weekday check2555–2564, and the generic state reset2500–2506; `DateTimeFormatInfo.cs` token insertion1970–1975 and case-insensitive token matching2143–2145 establish lowercase `t` and GMT case handling. The reference's invariant short-date pattern supplies month/day/year ordering. This extension is source-only; no runtime parser evaluation, tests or harnesses were run.
+
+## Effective-total normalization continuation
+
+The private Unix adjustment constructor now mirrors the source's two-stage
+construction. First it moves one day between the standard component and daylight
+delta, then validates the delta within [-23,+14] hours. Only when the effective
+total lies outside [-14,+14] hours does it shift the standard component by the
+clamp difference and reconstruct the rule. That reconstruction invokes the
+same single-day transfer once more; it is not a repeated normalization loop.
+A remaining delta outside [-12,+12] after the first call can therefore change
+during the second construction while the clamped effective total stays fixed.
+
+The shared constructor covers historical DST/standard intervals, recurring
+POSIX rules and fixed future offsets. Future transition creation still occurs
+before rule construction, so an unsupported numeric-day tail retains the final
+historical rule rather than failing early on an unused future delta. Existing
+TZif intake and POSIX hour bounds keep all component arithmetic within i32; the
+base offset still must qualify within fourteen hours. Invalid initial deltas
+remain errors before any total clamping, as in the reference.
+
+Primary anchors: [.NET Unix rule generation and normalization](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.CoreLib/src/System/TimeZoneInfo.Unix.cs)
+`TZif_GenerateAdjustmentRule`, `TZif_CreateAdjustmentRuleForPosixFormat` and
+`NormalizeAdjustmentRuleOffset`; [internal adjustment factory](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.CoreLib/src/System/TimeZoneInfo.AdjustmentRule.cs)
+`CreateAdjustmentRule`, `AdjustDaylightDeltaToExpectedRange` and validation.
+This is source implementation; independent review and parent production gates
+are recorded separately. No runtime zone-file evaluation, tests or harnesses ran.

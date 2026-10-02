@@ -1,5 +1,7 @@
 //! Immutable Windows registry snapshot for the pinned .NET 9 local-zone rules.
 //! Unsupported intake/conversion returns to the authored-text warning adapter.
+#[path = "windows/iana.rs"]
+mod iana;
 #[path = "windows/rules.rs"]
 mod rules;
 
@@ -252,7 +254,7 @@ impl Key {
             let name = String::from_utf16(&units[..length as usize])
                 .context("Windows timezone registry key contains invalid UTF-16")?;
             ensure!(
-                !name.contains(['\\', '/', '\0']) && name != "." && name != "..",
+                !name.contains(['\\', '\0', '\n', '\r']) && name != "." && name != "..",
                 "Windows timezone registry key is not one bounded component"
             );
             names.push(name);
@@ -347,7 +349,7 @@ fn native_state() -> Result<Option<NativeState>> {
     let key = String::from_utf16(&value.TimeZoneKeyName[..length])
         .context("Windows timezone key contains invalid UTF-16")?;
     ensure!(
-        !key.contains(['\\', '/', '\0']) && key != "." && key != "..",
+        !key.contains(['\\', '\0', '\n', '\r']) && key != "." && key != "..",
         "Windows timezone key is not one bounded registry component"
     );
     ensure!(
@@ -498,6 +500,50 @@ fn build_registry(data: Option<RegistryData>, disabled: bool) -> Option<rules::Z
 }
 
 #[derive(PartialEq, Eq)]
+struct AlternativeLoad {
+    mapping: iana::Observation,
+    load: Option<LoadObservation>,
+}
+#[derive(PartialEq, Eq)]
+struct GenericLoad {
+    primary: LoadObservation,
+    alternative: Option<AlternativeLoad>,
+}
+fn complete_load(
+    primary: LoadObservation,
+    data: Option<RegistryData>,
+    disabled: bool,
+    mapper: &mut iana::Mapper,
+    budget: &mut Budget,
+) -> Result<(GenericLoad, Option<rules::Zone>)> {
+    if let Some(zone) = build_registry(data, disabled) {
+        return Ok((
+            GenericLoad {
+                primary,
+                alternative: None,
+            },
+            Some(zone),
+        ));
+    }
+    // .NET's generic TryGetTimeZone maps every semantic non-success, including
+    // the first comparison-selected ID. Operational intake errors stay warnings.
+    let mapping = mapper.map(&primary.name)?;
+    let (load, zone) = if let Some(id) = mapping.mapped_id() {
+        let (load, data) = registry_data(id, budget)?;
+        (Some(load), build_registry(data, disabled))
+    } else {
+        (None, None)
+    };
+    Ok((
+        GenericLoad {
+            primary,
+            alternative: Some(AlternativeLoad { mapping, load }),
+        },
+        zone,
+    ))
+}
+
+#[derive(PartialEq, Eq)]
 struct MatchObservation {
     stamp: u64,
     record: Value,
@@ -563,7 +609,7 @@ struct SearchRoot {
     stamp: u64,
     names: Vec<String>,
     visited: Vec<Candidate>,
-    selected: Option<LoadObservation>,
+    selected: Option<GenericLoad>,
 }
 #[derive(PartialEq, Eq)]
 struct SearchObservation {
@@ -572,6 +618,7 @@ struct SearchObservation {
 fn find_registry(
     native: &NativeState,
     budget: &mut Budget,
+    mapper: &mut iana::Mapper,
 ) -> Result<(SearchObservation, Option<rules::Zone>)> {
     let Some(root) = Key::open(HKEY_LOCAL_MACHINE, REGISTRY_ROOT, budget)? else {
         return Ok((SearchObservation { root: None }, None));
@@ -604,12 +651,13 @@ fn find_registry(
             );
             // Pinned TryCompareTimeZoneInformationToRegistry initializes
             // dstDisabled=false and never changes it. Do not infer it here.
-            result = build_registry(data, false);
+            let (load, zone) = complete_load(load, data, false, mapper, budget)?;
+            result = zone;
             selected = Some(load);
         }
         visited.push(candidate);
-        // Even a failed full load of the first match proceeds to native fallback,
-        // never to a later matching registry key.
+        // The selected generic load may resolve an alternative ID; otherwise it
+        // proceeds to native fallback, never to a later comparison match.
         if matched {
             break;
         }
@@ -640,16 +688,21 @@ enum Branch {
 }
 #[derive(PartialEq, Eq)]
 struct Witness {
-    direct: Option<LoadObservation>,
+    direct: Option<GenericLoad>,
     search: Option<SearchObservation>,
     branch: Branch,
 }
-fn discovery(native: &NativeState, budget: &mut Budget) -> Result<(Witness, rules::Zone)> {
+fn discovery(
+    native: &NativeState,
+    budget: &mut Budget,
+    mapper: &mut iana::Mapper,
+) -> Result<(Witness, rules::Zone)> {
     let direct = if native.key.is_empty() {
         None
     } else {
         let (load, data) = registry_data(&native.key, budget)?;
-        if let Some(zone) = build_registry(data, native.disabled) {
+        let (load, zone) = complete_load(load, data, native.disabled, mapper, budget)?;
+        if let Some(zone) = zone {
             return Ok((
                 Witness {
                     direct: Some(load),
@@ -661,13 +714,7 @@ fn discovery(native: &NativeState, budget: &mut Budget) -> Result<(Witness, rule
         }
         Some(load)
     };
-    // Alternative-ID mapping is a separate ICU scope. This conservative shape
-    // qualification is not a claim that the failed key is a valid Windows ID.
-    ensure!(
-        native.key.is_empty() || native.key.contains(' ') || native.key == "UTC",
-        "Windows alternate timezone ID lookup is unsupported for this failed key shape"
-    );
-    let (search, zone) = find_registry(native, budget)?;
+    let (search, zone) = find_registry(native, budget, mapper)?;
     if let Some(zone) = zone {
         return Ok((
             Witness {
@@ -718,10 +765,13 @@ impl Snapshot {
             });
         };
         let mut budget = Budget::default();
-        let (witness, zone) = discovery(state, &mut budget)?;
+        // Lazily pin one qualified ICU image only if a generic load needs mapping.
+        // Its handle remains alive throughout both complete decision witnesses.
+        let mut mapper = iana::Mapper::default();
+        let (witness, zone) = discovery(state, &mut budget, &mut mapper)?;
         // Reopen and replay the complete decision once, including failed direct
         // lookup and the ordered search prefix that determined the first match.
-        let (current, _) = discovery(state, &mut budget)?;
+        let (current, _) = discovery(state, &mut budget, &mut mapper)?;
         ensure!(
             witness == current && native_state()? == native,
             "Windows local timezone changed while taking immutable snapshot"

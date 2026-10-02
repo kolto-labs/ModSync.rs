@@ -1,3 +1,4 @@
+pub(crate) mod keys;
 mod text;
 use anyhow::{Context, Result, bail, ensure};
 use serde::{Deserialize, Deserializer, Serialize};
@@ -181,13 +182,15 @@ impl Guide {
             bail!("Cannot detect a supported instruction format");
         }
         let mut guide: Self = match canonical_format(&format).unwrap_or(&format) {
-            "toml" => Self::from_value(toml::from_str(text).context("Parse ModSync TOML")?)?,
+            "toml" => Self::from_value_with_format(
+                toml::from_str(text).context("Parse ModSync TOML")?,
+                keys::Format::Toml,
+            )?,
             "json" => {
-                let mut value = serde_json::from_str(text)?;
-                crate::resources::prepare_json(&mut value);
-                Self::from_value(value)?
+                let value = serde_json::from_str(text)?;
+                Self::from_value_with_format(value, keys::Format::Json)?
             }
-            "xml" => Self::from_value(crate::xml::parse(text)?)?,
+            "xml" => Self::from_value_with_format(crate::xml::parse(text)?, keys::Format::Xml)?,
             "yaml" => {
                 let mut guide = Self::default();
                 let separators = regex::Regex::new(r"(?m)^---[ \t]*(?:#[^\r\n]*)?\r?$")?;
@@ -226,7 +229,7 @@ impl Guide {
                             ensure!(value.is_object(), "YAML metadata must be a mapping");
                             guide.metadata.insert("metadata".into(), value);
                         } else {
-                            let parsed = Self::from_value(value)?;
+                            let parsed = Self::from_value_with_format(value, keys::Format::Yaml)?;
                             guide.components.extend(parsed.components);
                             guide.metadata.extend(parsed.metadata);
                         }
@@ -277,12 +280,23 @@ impl Guide {
         Ok(guide)
     }
 
-    pub(crate) fn from_value(mut value: serde_json::Value) -> Result<Self> {
+    pub(crate) fn from_value(value: serde_json::Value) -> Result<Self> {
+        Self::from_value_with_format(value, keys::Format::Internal)
+    }
+
+    pub(crate) fn from_value_with_format(
+        mut value: serde_json::Value,
+        format: keys::Format,
+    ) -> Result<Self> {
         use serde_json::Value;
-        crate::draft::validate_review_records(&value)?;
+        crate::draft::validate_raw_review_aliases(&value)?;
         if value.is_array() {
             value = serde_json::json!({"thisMod": value});
-        } else if value.get("Guid").is_some() {
+        } else if value
+            .as_object()
+            .and_then(|object| keys::getter(object, "Guid"))
+            .is_some()
+        {
             value = serde_json::json!({"thisMod": [value]});
         }
         let object = value
@@ -293,12 +307,27 @@ impl Guide {
         {
             object.insert("thisMod".into(), components);
         }
-        for component in object
+        let mut work = 0;
+        let components = object
+            .get_mut("thisMod")
+            .and_then(Value::as_array_mut)
+            .context("Guide needs a component array")?;
+        let mut access = Vec::with_capacity(components.len());
+        for component in components {
+            access.push(keys::component(component, format, false, 0, &mut work)?);
+        }
+        crate::draft::validate_review_records(&value)?;
+        if format == keys::Format::Json {
+            crate::resources::prepare_json(&mut value);
+        }
+        for (component, access) in value
             .get_mut("thisMod")
             .and_then(Value::as_array_mut)
             .context("Guide needs a component array")?
+            .iter_mut()
+            .zip(&access)
         {
-            normalize_component(component)?;
+            normalize_component(component, access)?;
         }
         Ok(serde_json::from_value(value)?)
     }
@@ -616,7 +645,10 @@ fn action<'de, D: Deserializer<'de>>(d: D) -> Result<String, D::Error> {
     .unwrap_or(&value)
     .to_owned())
 }
-fn normalize_component(value: &mut serde_json::Value) -> Result<()> {
+fn normalize_component(
+    value: &mut serde_json::Value,
+    access: &keys::ComponentAccess,
+) -> Result<()> {
     use serde_json::Value;
     let object = value
         .as_object_mut()
@@ -646,6 +678,14 @@ fn normalize_component(value: &mut serde_json::Value) -> Result<()> {
                     .and_then(|a| a[0].as_str())
             });
             if let Some(string) = string {
+                if !string.contains([',', ';']) {
+                    if string.trim().is_empty() {
+                        *value = Value::Array(Vec::new());
+                    } else if value.is_string() {
+                        *value = Value::Array(vec![string.into()]);
+                    }
+                    continue;
+                }
                 *value = Value::Array(
                     string
                         .split([',', ';'])
@@ -679,23 +719,26 @@ fn normalize_component(value: &mut serde_json::Value) -> Result<()> {
     }
     crate::resources::migrate(object);
     if let Some(instructions) = object.get_mut("Instructions").and_then(Value::as_array_mut) {
-        for instruction in instructions {
+        for (instruction, evidence) in instructions.iter_mut().zip(&access.instructions) {
             let instruction = instruction
                 .as_object_mut()
                 .context("Instruction must be an object")?;
             instruction.retain(|_, value| !value.is_null());
-            if !instruction
-                .get("Action")
-                .and_then(Value::as_str)
-                .is_some_and(|s| s.eq_ignore_ascii_case("Choose"))
+            if let Some(Value::Array(paths)) = instruction.get_mut("Source") {
+                paths.retain(|path| {
+                    !path.is_null() && !path.as_str().is_some_and(|text| text.trim().is_empty())
+                });
+            }
+            if evidence.source
+                && !instruction
+                    .get("Action")
+                    .and_then(Value::as_str)
+                    .is_some_and(|s| s.eq_ignore_ascii_case("Choose"))
                 && let Some(source) = instruction.get_mut("Source")
             {
                 match source {
                     Value::String(path) => *path = normalize_source(path),
                     Value::Array(paths) => {
-                        paths.retain(|path| {
-                            !path.as_str().is_some_and(|text| text.trim().is_empty())
-                        });
                         for path in paths {
                             if let Value::String(text) = path {
                                 *text = normalize_source(text);
@@ -715,8 +758,8 @@ fn normalize_component(value: &mut serde_json::Value) -> Result<()> {
         }
     }
     if let Some(options) = object.get_mut("Options").and_then(Value::as_array_mut) {
-        for option in options {
-            normalize_component(option)?;
+        for (option, access) in options.iter_mut().zip(&access.options) {
+            normalize_component(option, access)?;
         }
     }
     Ok(())

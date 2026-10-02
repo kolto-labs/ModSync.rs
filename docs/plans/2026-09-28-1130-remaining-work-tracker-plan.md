@@ -219,6 +219,16 @@ reimplement those paths.
 - [ ] **F28 — Packaging:** native artifacts/resources/patchers, migration, installation/launch and supported-platform release validation.
 - [ ] **F29 — Full builds:** K1 and K2 Rust/C#/manual lanes with identical guides, archives and selections; per-step and final-content comparisons; CLI/GUI equivalence and live-game proof.
 
+
+The next integrated source boundary adds format-specific known-property access
+and raw review fences, Unix effective-total offset clamping with conditional
+rule reconstruction, qualified HTTP(S) numeric IP merge domains and bounded
+System32 ICU alternative Windows timezone IDs. Independent specification and
+quality review and both Linux production build/strict-lint configurations passed;
+Windows GNU no-default compile/link also passed. See the format-property, merge
+and profile-date contracts and production receipt. Behavioral/native acceptance
+and the remaining Action, GUID, input/autodetection and IRI source work stay open.
+
 ## Integration and external blockers
 
 - [ ] Reconcile historical status prose and newly merged/uncommitted audits against current source; derive bounded tasks where a domain still lacks a current plan.

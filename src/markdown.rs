@@ -310,8 +310,12 @@ fn component(section: &str, index: usize) -> Result<Option<(Component, String)>>
         object.insert("Language".into(), json!([language]));
     }
     if let Some(metadata) = metadata {
-        let parsed: Value = if legacy::recognized(&metadata) {
-            legacy::parse(&metadata, object["Guid"].as_str().unwrap())?
+        let (parsed, format): (Value, crate::model::keys::Format) = if legacy::recognized(&metadata)
+        {
+            (
+                legacy::parse(&metadata, object["Guid"].as_str().unwrap())?,
+                crate::model::keys::Format::Internal,
+            )
         } else if metadata.contains("[[thisMod]]")
             || metadata.contains("[thisMod]")
             || metadata.lines().any(|line| {
@@ -319,12 +323,18 @@ fn component(section: &str, index: usize) -> Result<Option<(Component, String)>>
                     .is_some_and(|(key, _)| key.trim() == "Guid")
             })
         {
-            toml::from_str(&metadata).context("Parse Markdown TOML metadata")?
+            (
+                toml::from_str(&metadata).context("Parse Markdown TOML metadata")?,
+                crate::model::keys::Format::Toml,
+            )
         } else {
-            serde_yaml_ng::from_str(&metadata).context("Parse Markdown YAML metadata")?
+            (
+                serde_yaml_ng::from_str(&metadata).context("Parse Markdown YAML metadata")?,
+                crate::model::keys::Format::Yaml,
+            )
         };
-        crate::draft::validate_review_records(&parsed)?;
-        let source = Guide::from_value(parsed).context("Invalid Markdown component metadata")?;
+        let source = Guide::from_value_with_format(parsed, format)
+            .context("Invalid Markdown component metadata")?;
         ensure!(
             source.components.len() == 1,
             "A Markdown section must contain exactly one metadata component"

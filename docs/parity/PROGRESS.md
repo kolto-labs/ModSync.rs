@@ -297,6 +297,16 @@ behavioral acceptance remain unverified.
    isolated K1/K2 installs with identical inputs/selections, ordered per-step
    comparisons, final resource content checks, and live-game evidence.
 
+
+The next integrated source boundary adds format-specific known-property access
+and raw review fences, Unix effective-total offset clamping with conditional
+rule reconstruction, qualified HTTP(S) numeric IP merge domains and bounded
+System32 ICU alternative Windows timezone IDs. Independent specification and
+quality review and both Linux production build/strict-lint configurations passed;
+Windows GNU no-default compile/link also passed. See the format-property, merge
+and profile-date contracts and production receipt. Behavioral/native acceptance
+and the remaining Action, GUID, input/autodetection and IRI source work stay open.
+
 ## Rules and unresolved proof boundaries
 
 - Fresh implementer per task; specification review before code-quality review.

@@ -1753,3 +1753,39 @@ qualified UTC fallback. Two complete bounded decision observations and repeated
 native state must agree. Operational, unsupported and unstable intake retains
 authored text with warnings. Alternative IANA-ID mapping remains separate. See
 the Windows contract for types, budgets and exclusions.
+
+### Effective date offsets and qualified numeric merge domains
+
+Unix historical and future rule construction now share initial one-day daylight
+transfer and delta validation. An effective total outside fourteen hours shifts
+the standard component into range and reconstructs the rule, applying the
+reference's second single-day transfer only when clamping occurred. Fixed
+future offsets use the same normalization. Invalid initial deltas remain
+unsupported before clamping; broad malformed TZif intake remains separate.
+See the profile date contract for source anchors and arithmetic bounds.
+
+Merge now canonicalizes qualified HTTP(S) IPv4 forms into four decimal bytes
+and standard bracketed IPv6 through the pinned compression/embedded-address
+decisions. The IP adapter checks its bounded port grammar and userinfo separator
+count. Invalid or unsupported inputs retain the existing DNS/manual fallback;
+this correction does not establish full Uri.Host admission equivalence. Scope,
+prefix, Unicode IRI/IDN and custom/file schemes remain separate. See the merge
+contract for exact radix, word and source policies. These increments received
+source review separately from parent production gates and behavioral acceptance.
+
+### Format-aware intake and alternative Windows timezone IDs
+
+Known guide properties now follow explicit TOML, JSON, YAML and XML access
+policies, preserving raw review fences before canonical projection. Ignored
+executable aliases cannot acquire meaning through conversion. Instruction
+Source filtering and literal-property preprocessing remain distinct. See
+[the property contract](docs/parity/format-property-access.md) for duplicate,
+option, resource and scalar boundaries.
+
+Windows alternative timezone-ID lookup uses a bounded, qualified combined
+System32 ICU module with repeated configuration/data/mapping witnesses. Semantic
+no-map continues native fallback; operational or unsupported observations retain
+authored text with a warning. App-local/split ICU and unobserved AppContext
+configuration remain outside this profile. Both changes have independent source
+review and the production gates recorded in the current receipt; native and
+behavioral acceptance remain open.

@@ -82,6 +82,110 @@ pub struct DraftResult {
 
 /// Check before model normalization, which removes null component properties.
 /// A malformed review record must never disappear or become an accepted draft.
+/// Reject reserved aliases before format precedence can conceal review state.
+/// Dynamic dictionaries are deliberately outside this traversal.
+pub(crate) fn validate_raw_review_aliases(value: &serde_json::Value) -> anyhow::Result<()> {
+    use anyhow::ensure;
+    use serde_json::Value;
+    fn reserved(object: &serde_json::Map<String, Value>, names: &[&str]) -> anyhow::Result<()> {
+        for name in names {
+            let aliases = object
+                .keys()
+                .filter(|key| crate::unicode_case::ordinal_eq(key, name))
+                .collect::<Vec<_>>();
+            ensure!(
+                aliases.len() <= 1 && aliases.first().is_none_or(|key| key.as_str() == *name),
+                "Noncanonical or ambiguous reserved review property"
+            );
+        }
+        Ok(())
+    }
+    fn receipt(value: &Value, depth: usize, work: &mut usize) -> anyhow::Result<()> {
+        ensure!(depth <= 64, "Review nesting exceeds 64");
+        *work += 1;
+        ensure!(*work <= 100_000, "Review record bound exceeded");
+        let Some(object) = value.as_object() else {
+            return Ok(());
+        };
+        *work += object.len();
+        ensure!(*work <= 100_000, "Review property bound exceeded");
+        reserved(
+            object,
+            &[
+                "RequiresReview",
+                "Result",
+                "OriginalResult",
+                "Resolution",
+                "ReviewedIdentity",
+                "ComponentGuid",
+                "DraftInstructionCount",
+                "UnparsedGaps",
+                "ConditionalDrafts",
+                "RejectedDrafts",
+                "expectedIdentity",
+                "gapDecisions",
+                "conditionDecisions",
+                "rejectedDecisions",
+                "reviewNote",
+            ],
+        )?;
+        for field in ["Result", "OriginalResult", "Resolution"] {
+            if let Some(value) = object.get(field) {
+                receipt(value, depth + 1, work)?;
+            }
+        }
+        Ok(())
+    }
+    fn visit(value: &Value, depth: usize, work: &mut usize) -> anyhow::Result<()> {
+        ensure!(depth <= 64, "Review component nesting exceeds 64");
+        *work += 1;
+        ensure!(*work <= 100_000, "Review component record bound exceeded");
+        if let Some(values) = value.as_array() {
+            for value in values {
+                visit(value, depth + 1, work)?;
+            }
+        } else if let Some(object) = value.as_object() {
+            *work += object.len();
+            ensure!(*work <= 100_000, "Review property bound exceeded");
+            reserved(object, &["DraftReview", "UnresolvedMasters"])?;
+            if let Some(review) = object.get("DraftReview") {
+                ensure!(review.is_object(), "DraftReview must be an object");
+                receipt(review, depth + 1, work)?;
+            }
+            let warnings = object
+                .iter()
+                .filter(|(key, _)| crate::unicode_case::ordinal_eq(key, "InstallationWarning"))
+                .collect::<Vec<_>>();
+            if warnings.iter().any(|(_, value)| {
+                value
+                    .as_str()
+                    .is_some_and(|text| text.contains(REVIEW_FLAG))
+            }) {
+                ensure!(
+                    warnings.len() == 1 && warnings[0].0 == "InstallationWarning",
+                    "Ambiguous draft warning property"
+                );
+            }
+            for (key, child) in object {
+                if [
+                    "Options",
+                    "Option",
+                    "thisMod",
+                    "Components",
+                    "ModComponents",
+                ]
+                .iter()
+                .any(|field| crate::unicode_case::ordinal_eq(key, field))
+                {
+                    visit(child, depth + 1, work)?;
+                }
+            }
+        }
+        Ok(())
+    }
+    visit(value, 0, &mut 0)
+}
+
 pub(crate) fn validate_review_records(value: &serde_json::Value) -> anyhow::Result<()> {
     use serde_json::Value;
     // Match Guide::from_value's supported envelopes and precedence. Resource
