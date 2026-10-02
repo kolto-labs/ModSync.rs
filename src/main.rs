@@ -40,8 +40,6 @@ struct Cli {
 }
 #[derive(Subcommand)]
 enum Action {
-    #[command(external_subcommand)]
-    ProtocolHandoff(Vec<OsString>),
     /// Manage non-destructive staged deployments and their manifests.
     Deployment(DeploymentArgs),
     /// Manage stored install profiles.
@@ -786,6 +784,17 @@ struct InstallArgs {
     dry_run_only: bool,
 }
 
+/// Report selectors apply only to validate; installation event formats have
+/// their own independent flags and must not be suppressed by report selectors.
+fn validation_only_flags(args: &InstallArgs) -> bool {
+    args.validation_report
+        || args.validation_output.is_some()
+        || args.errors_only
+        || args.full
+        || args.dry_run
+        || args.dry_run_only
+}
+
 /// Selection changes applied after --select, in command-line order together with --option.
 #[derive(Args)]
 struct SelectionFlags {
@@ -1404,20 +1413,6 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
     }
     match command {
         Some(Action::Maintenance(args)) => args.run(),
-        Some(Action::ProtocolHandoff(arguments)) => {
-            ensure!(
-                arguments.len() == 1,
-                "Protocol handoff accepts exactly one URL"
-            );
-            let raw = arguments[0]
-                .to_str()
-                .context("Protocol URL must be valid UTF-8")?;
-            println!(
-                "{}",
-                serde_json::to_string_pretty(&modsync::protocol::parse(raw)?)?
-            );
-            Ok(())
-        }
         None => gui(None, None, None, None, None, false, GuiProbe::default()),
         Some(Action::Gui {
             settings_dir,
@@ -2938,14 +2933,12 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             let dispatch_cancelled = modsync::p2p::stop_signal_flag()?;
             let dispatch = (|| -> Result<()> {
                 ensure!(
-                    args.phase == PhaseArg::All || !args.direct_markdown,
-                    "Phased Direct Markdown is unsupported: separate-invocation definitions are not stable"
+                    (!install && !conflicts) || !validation_only_flags(&args),
+                    "Validation report/output/full/dry-run/error-filter options are only supported by validate"
                 );
                 ensure!(
-                    args.phase == PhaseArg::All
-                        || !(install || conflicts)
-                        || !args.validation_report,
-                    "Validation-report flags are only supported by phased validate"
+                    args.phase == PhaseArg::All || !args.direct_markdown,
+                    "Phased Direct Markdown is unsupported: separate-invocation definitions are not stable"
                 );
                 ensure!(
                     args.phase != PhaseArg::Remaining || !args.dry_run_only,
@@ -3032,15 +3025,6 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                 ensure!(
                     !args.managed || (install && component_checkpoints),
                     "--managed requires install --component-checkpoints or checkpoint resume"
-                );
-                ensure!(
-                    (!install && !conflicts)
-                        || (args.validation_output.is_none()
-                            && !args.errors_only
-                            && !args.full
-                            && !args.dry_run
-                            && !args.dry_run_only),
-                    "Validation output/full/dry-run options are only supported by validate"
                 );
                 // Preserve implicit-directory provenance, including legacy fallback.
                 // Reading preferences does not discover or launch a backend.

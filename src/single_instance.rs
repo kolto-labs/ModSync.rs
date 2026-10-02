@@ -77,6 +77,16 @@ fn validate_message(message: &str) -> Result<()> {
     }
     Ok(())
 }
+
+/// Pure URL admission for launch adapters, using the same byte bound and parser
+/// as instance delivery. Activation is an internal message, not a protocol URL.
+pub fn validate_protocol_request(message: &str) -> Result<()> {
+    ensure!(
+        message != ACTIVATE_MESSAGE,
+        "Activation is not a protocol handoff URL"
+    );
+    validate_message(message)
+}
 fn admit(
     request: Request,
     sender: &SyncSender<String>,

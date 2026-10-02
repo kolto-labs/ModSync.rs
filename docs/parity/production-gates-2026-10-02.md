@@ -804,3 +804,43 @@ d204eb219005b0acbb2cf5277c9253f5aea88fd82642dd1af32d059605b581d1  src/merge.rs
 25a9d3fce986d7351d8526544eb79eaa4f33f48ae3ec6412a7cad86bba175fca  src/merge/ip_host.rs
 ae2326b82bbcfb2e334f9b827a45c0cc4aa945c37976e5ef59ff20a91806f0a4  src/merge/dns_iri.rs
 ```
+
+
+## Boolean/XML intake, JSON shapes, GUID merge and CLI handoff
+
+Frozen source following `51d7455` passed independent specification and separate
+quality reviews. Optional Boolean conversion preserves field presence/defaults;
+XML qualifies candidate nulls after real container selection and restores opaque
+metadata before resource conversion. JSON filtering follows raw review guards.
+Merge compares parsed GUID values and keeps authored spelling/union order. CLI
+rejects six validation-only flags early and routes qualified bare URLs to GUI.
+
+Parent production gates:
+
+- Formatting/whitespace: session1518 exit0; final check exit0.
+- Linux default library/binary build: session77983 exit0,1m24s.
+- Linux default strict Clippy: session4603 exit0,15.95s after simplifying one
+  equivalent Boolean expression reported in session92940.
+- Linux no-default library/binary build: session62638 exit0,28.49s.
+- Linux no-default strict Clippy: session35884 exit0,17.48s.
+- Windows GNU no-default library/binary compile/link: session95768 exit0,50.76s.
+
+The seven previously frozen inline-bearing whole modules, both existing casing
+and punctuation tables, and Cargo.lock remain unchanged against `51d7455`.
+The single-instance production addition leaves its existing test/helper suffix
+byte-identical. No tests, fixtures, custom harnesses, filesystem tests, runtime
+or CLI/native probes, Windows execution, installs, data/backend/package producer
+execution or CI ran. Compilation/source review does not close F01-F29 acceptance.
+Protocol cancellation and metadata scalar/list conversions are the next scopes.
+
+Source hashes:
+
+```text
+6a7b8a4a5365e7a1dfd372a80c8770c1a4ed8ef9f03bd076f7d762ec45135390  src/model.rs
+ddd8ef8144a2cfff2ba2c3e55748bfb2ee118df560e05fbcc6909a13d1b7743e  src/model/boolean.rs
+cb0347120eaf8f118cb6fa6ff60aacc6cd22d8481f421f8431450c81702bd6d6  src/xml.rs
+c4c90b58cda6c0605fa4df01398355adb2da9e62819e8742942c17e33994fbbe  src/merge.rs
+e0ede6a9208e79f110b86691bc3bc3deefe88a63ecefa61eec855c36b3c88662  src/main.rs
+748856f76be963ecd8d4c99e8ef249a9d6e164fa2234753489c1239941f02c70  src/cli_compat.rs
+54f659dc394ed68be599cffdc0c583ce123ebe9c324eca4680a7b8efa060e93a  src/single_instance.rs
+```

@@ -7,23 +7,27 @@ struct Element {
     name: String,
     text: String,
     array: bool,
+    attributes: bool,
     fields: Map<String, Value>,
 }
 
 /// Read Newtonsoft's repeated-element collection shape without resolving DTDs or entities.
 pub fn parse(text: &str) -> Result<Value> {
     let mut reader = Reader::from_str(text);
-    reader.config_mut().expand_empty_elements = true;
+    reader.config_mut().expand_empty_elements = false;
     let mut stack = vec![Element::default()];
     loop {
-        match reader.read_event()? {
+        let event = reader.read_event()?;
+        let self_closing = matches!(&event, Event::Empty(_));
+        match event {
             Event::Start(start) | Event::Empty(start) => {
-                // Empty tags are expanded by the reader configuration below.
                 ensure!(stack.len() < 128, "XML nesting is too deep");
                 let name = decode_name(std::str::from_utf8(start.name().as_ref())?)?;
                 let mut array = false;
+                let mut attributes = false;
                 for attr in start.attributes() {
                     let attr = attr?;
+                    attributes = true;
                     let key = std::str::from_utf8(attr.key.as_ref())?;
                     if key == "json:Array" {
                         array = attr.value.as_ref() == b"true";
@@ -36,40 +40,15 @@ pub fn parse(text: &str) -> Result<Value> {
                 stack.push(Element {
                     name,
                     array,
+                    attributes,
                     ..Default::default()
                 });
+                if self_closing {
+                    finish_element(&mut stack, true)?;
+                }
             }
             Event::End(_) => {
-                ensure!(stack.len() > 1, "Unexpected XML end tag");
-                let element = stack.pop().unwrap();
-                let value = if element.fields.is_empty() {
-                    Value::String(element.text)
-                } else {
-                    ensure!(
-                        element.text.trim().is_empty(),
-                        "Mixed XML content is unsupported"
-                    );
-                    Value::Object(element.fields)
-                };
-                let value = if element.array {
-                    Value::Array(vec![value])
-                } else {
-                    value
-                };
-                let parent = stack.last_mut().unwrap();
-                match parent.fields.entry(element.name) {
-                    serde_json::map::Entry::Vacant(entry) => {
-                        entry.insert(value);
-                    }
-                    serde_json::map::Entry::Occupied(mut entry) => {
-                        if let Value::Array(values) = entry.get_mut() {
-                            values.push(value);
-                        } else {
-                            let old = entry.insert(Value::Null);
-                            entry.insert(Value::Array(vec![old, value]));
-                        }
-                    }
-                }
+                finish_element(&mut stack, false)?;
             }
             Event::Text(text) => stack
                 .last_mut()
@@ -109,10 +88,54 @@ pub fn parse(text: &str) -> Result<Value> {
             .context("XML has no ModComponents")?;
     }
     let mut components = array(value, "ModComponents");
+    let mut restoration_work = 0;
     for component in &mut components {
-        normalize(component, false, false)?;
+        normalize(component, false, false, &mut restoration_work)?;
     }
     Ok(Value::Array(components))
+}
+
+// The reference distinguishes selfclosing null from an explicit empty string.
+// Preserve that distinction only for this slice's two optional Boolean fields.
+fn finish_element(stack: &mut Vec<Element>, self_closing: bool) -> Result<()> {
+    ensure!(stack.len() > 1, "Unexpected XML end tag");
+    let element = stack.pop().unwrap();
+    let value = if self_closing
+        && !element.attributes
+        && ["IsSelected", "Overwrite"]
+            .iter()
+            .any(|field| crate::unicode_case::ordinal_eq(&element.name, field))
+    {
+        Value::Null
+    } else if element.fields.is_empty() {
+        Value::String(element.text)
+    } else {
+        ensure!(
+            element.text.trim().is_empty(),
+            "Mixed XML content is unsupported"
+        );
+        Value::Object(element.fields)
+    };
+    let value = if element.array {
+        Value::Array(vec![value])
+    } else {
+        value
+    };
+    let parent = stack.last_mut().unwrap();
+    match parent.fields.entry(element.name) {
+        serde_json::map::Entry::Vacant(entry) => {
+            entry.insert(value);
+        }
+        serde_json::map::Entry::Occupied(mut entry) => {
+            if let Value::Array(values) = entry.get_mut() {
+                values.push(value);
+            } else {
+                let old = entry.insert(Value::Null);
+                entry.insert(Value::Array(vec![old, value]));
+            }
+        }
+    }
+    Ok(())
 }
 
 fn array(value: Value, name: &str) -> Vec<Value> {
@@ -132,18 +155,72 @@ fn array(value: Value, name: &str) -> Vec<Value> {
         value => vec![value],
     }
 }
-fn normalize(value: &mut Value, instruction: bool, option: bool) -> Result<()> {
+fn restore_untyped_nulls(value: &mut Value, depth: usize, work: &mut usize) -> Result<()> {
+    ensure!(
+        depth <= 256,
+        "XML Boolean restoration nesting exceeds bound"
+    );
+    *work += 1;
+    ensure!(
+        *work <= 100_000,
+        "XML Boolean restoration work exceeds bound"
+    );
+    match value {
+        Value::Null => *value = Value::String(String::new()),
+        Value::Array(values) => {
+            for value in values {
+                restore_untyped_nulls(value, depth + 1, work)?;
+            }
+        }
+        Value::Object(object) => {
+            for value in object.values_mut() {
+                restore_untyped_nulls(value, depth + 1, work)?;
+            }
+        }
+        _ => (),
+    }
+    Ok(())
+}
+
+fn normalize(
+    value: &mut Value,
+    instruction: bool,
+    option: bool,
+    restoration_work: &mut usize,
+) -> Result<()> {
     crate::draft::validate_raw_review_aliases(value)?;
     let object = value
         .as_object_mut()
         .context("XML component/instruction must be an object")?;
     crate::model::keys::xml_dictionary(object, instruction, option)?;
-    for field in [
-        "IsSelected",
-        "Overwrite",
-        "WidescreenOnly",
-        "AspyrExclusive",
-    ] {
+    // Only this reader's selfclosing Boolean candidates are represented as raw
+    // Null. Qualify them after actual array-wrapper selection, not guessed paths.
+    // Restore every opaque occurrence to the pre-existing empty-string shape.
+    let containers: Vec<_> = if instruction {
+        Vec::new()
+    } else {
+        ["Options", "Instructions"]
+            .into_iter()
+            .filter_map(|field| crate::model::keys::getter(object, field))
+            .collect()
+    };
+    for (key, value) in object.iter_mut() {
+        let boolean = crate::unicode_case::ordinal_eq(
+            key,
+            if instruction {
+                "Overwrite"
+            } else {
+                "IsSelected"
+            },
+        );
+        let container = containers.contains(key);
+        if !(container || boolean && value.is_null()) {
+            restore_untyped_nulls(value, 0, restoration_work)?;
+        }
+    }
+    // Selection and Overwrite flow through the shared optional Boolean getter
+    // after property projection; keep their original spelling/presence intact.
+    for field in ["WidescreenOnly", "AspyrExclusive"] {
         let Some(key) = crate::model::keys::getter(object, field) else {
             continue;
         };
@@ -179,7 +256,12 @@ fn normalize(value: &mut Value, instruction: bool, option: bool) -> Result<()> {
         {
             let mut values = array(value, field);
             for value in &mut values {
-                normalize(value, field == "Instructions", field == "Options")?;
+                normalize(
+                    value,
+                    field == "Instructions",
+                    field == "Options",
+                    restoration_work,
+                )?;
             }
             object.insert(key, Value::Array(values));
         }

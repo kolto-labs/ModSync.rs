@@ -1,4 +1,5 @@
 mod action;
+mod boolean;
 pub(crate) mod keys;
 mod text;
 use anyhow::{Context, Result, bail, ensure};
@@ -44,6 +45,7 @@ pub struct Component {
     pub tier: String,
     #[serde(deserialize_with = "strings")]
     pub category: Vec<String>,
+    #[serde(deserialize_with = "boolean::deserialize")]
     pub is_selected: bool,
     #[serde(deserialize_with = "strings")]
     pub dependencies: Vec<String>,
@@ -75,7 +77,7 @@ pub struct Instruction {
     pub destination: String,
     #[serde(default)]
     pub arguments: String,
-    #[serde(default = "yes")]
+    #[serde(default = "yes", deserialize_with = "boolean::deserialize")]
     pub overwrite: bool,
     #[serde(default)]
     #[serde(deserialize_with = "strings")]
@@ -324,6 +326,14 @@ impl Guide {
             .get_mut("thisMod")
             .and_then(Value::as_array_mut)
             .context("Guide needs a component array")?;
+        if format == keys::Format::Json {
+            let original = components.len();
+            components.retain(Value::is_object);
+            let ignored = original - components.len();
+            if ignored != 0 {
+                eprintln!("Warning: ignored {ignored} nonobject JSON component entries");
+            }
+        }
         let mut access = Vec::with_capacity(components.len());
         for component in components {
             access.push(keys::component(component, format, false, 0, &mut work)?);
@@ -642,6 +652,9 @@ fn normalize_component(
         .as_object_mut()
         .context("Component must be an object")?;
     object.retain(|_, value| !value.is_null());
+    if let Some(selected) = object.get_mut("IsSelected") {
+        *selected = Value::Bool(boolean::optional(selected)?);
+    }
     if let Some(tier) = object.get_mut("Tier")
         && let Some(text) = tier.as_str()
     {
@@ -712,6 +725,11 @@ fn normalize_component(
                 .as_object_mut()
                 .context("Instruction must be an object")?;
             instruction.retain(|_, value| !value.is_null());
+            // keys::component already enforced literal Overwrite presence.
+            // An admitted but invalid value defaults false, not action-default.
+            if let Some(overwrite) = instruction.get_mut("Overwrite") {
+                *overwrite = Value::Bool(boolean::optional(overwrite)?);
+            }
             let action = action::intake(instruction.get("Action").unwrap_or(&Value::Null))?;
             if let Some(Value::Array(paths)) = instruction.get_mut("Source") {
                 paths.retain(|path| {

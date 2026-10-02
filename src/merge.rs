@@ -161,11 +161,17 @@ pub fn components_reporting(
 }
 
 fn blank_guid(guid: &str) -> bool {
+    if let Some(value) = crate::guid::try_parse(guid) {
+        return value.is_nil();
+    }
     guid.chars()
         .all(|c| c == '0' || c == '-' || c == '{' || c == '}' || c.is_whitespace())
 }
 
 fn same_guid(a: &str, b: &str) -> bool {
+    if let (Some(a), Some(b)) = (crate::guid::try_parse(a), crate::guid::try_parse(b)) {
+        return a == b;
+    }
     let trim = |g: &str| g.trim().trim_matches(['{', '}']).to_ascii_lowercase();
     trim(a) == trim(b)
 }
@@ -299,9 +305,27 @@ fn best_match(
     best
 }
 
+#[derive(PartialEq, Eq, PartialOrd, Ord)]
+enum GuidKey {
+    Known(uuid::Uuid),
+    Opaque(String),
+}
+
+fn guid_key(value: &str) -> GuidKey {
+    crate::guid::try_parse(value).map_or_else(
+        || GuidKey::Opaque(value.to_ascii_lowercase()),
+        GuidKey::Known,
+    )
+}
+
 fn union(target: &mut Vec<String>, source: &[String]) {
+    if source.is_empty() {
+        return;
+    }
+    let mut seen = BTreeSet::new();
+    target.retain(|value| seen.insert(guid_key(value)));
     for value in source {
-        if !target.iter().any(|known| known.eq_ignore_ascii_case(value)) {
+        if seen.insert(guid_key(value)) {
             target.push(value.clone());
         }
     }
@@ -481,7 +505,7 @@ fn merge_options(
         let label = format!("{scope}, option '{}'", target[first].name);
         {
             let target_option = &mut target[first];
-            if target_option.guid.is_empty() && !source_option.guid.is_empty() {
+            if blank_guid(&target_option.guid) && !blank_guid(&source_option.guid) {
                 target_option.guid.clone_from(&source_option.guid);
             }
             if !source_option.description.trim().is_empty() {

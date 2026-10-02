@@ -318,6 +318,20 @@ proofs are not rewritten. No tests, harnesses, runtime or CI ran. Boolean getter
 JSON nonobject intake, merge GUID comparison and CLI routing remain next source
 contracts; behavioral and whole-domain acceptance stay open.
 
+
+
+The Boolean/JSON/merge/CLI source boundary now implements optional Boolean
+conversion and XML selfclosing-null qualification in consumed containers, JSON
+nonobject component filtering after raw review fences, typed GUID merge equality
+and target-first set unions, early validation-only flag refusal, and bounded bare
+protocol GUI routing. Independent SPEC and QUALITY reviews accepted all scopes.
+Linux default/no-default production builds and strict Clippy plus Windows GNU
+no-default compile/link passed. Frozen inline test regions, existing tables and
+Cargo.lock remain unchanged. No tests, harnesses, runtime/CLI/native probes,
+installs, packaging producers or CI ran. Protocol cancellation/owned desktop
+results and metadata scalar/list conversion remain subsequent source work;
+whole-domain behavioral acceptance stays open.
+
 ## Rules and unresolved proof boundaries
 
 - Fresh implementer per task; specification review before code-quality review.

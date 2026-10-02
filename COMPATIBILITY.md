@@ -1814,3 +1814,26 @@ normalizes NFC and applies pinned lowercase. Empty resulting hosts do not earn a
 domain-match score. Unsupported authorities retain the existing manual fallback;
 full URI admission and native/corpus acceptance remain separate. See
 [the merge contract](docs/parity/merge-unicode-casing.md).
+
+### Boolean intake, JSON shapes, GUID merge values and CLI handoff
+
+IsSelected and surviving literal Overwrite fields now use the pinned optional
+Boolean getter. XML distinguishes attribute-free selfclosing Boolean leaves
+from explicit empty text in actual consumed model containers, restoring candidate
+values in opaque metadata. Selection defaults and action-dependent Overwrite
+presence remain separate. See
+[the Boolean contract](docs/parity/instruction-boolean-intake.md).
+
+JSON ignores nonobject top-level component entries after raw review checks, with
+one aggregate advisory, while retaining object errors and empty-guide refusal.
+Merge compares known GUID values and performs target-first set unions without
+rewriting emitted spellings or persisted identities. Empty source fields remain
+untouched. See [guide input](docs/parity/guide-input-contract.md) and
+[merge GUIDs](docs/parity/merge-guid-contract.md).
+
+Install/conflicts reject all six validation-only flags before preparation. Bare
+protocol URLs reach the existing GUI/handoff path through shared bounded pure
+qualification; extra arguments and invalid qualified requests receive redacted
+errors. Explicit inspection remains available. See
+[the CLI contract](docs/parity/cli-validation-handoff-contract.md). These changes
+have independent source review; native/behavioral acceptance remains separate.

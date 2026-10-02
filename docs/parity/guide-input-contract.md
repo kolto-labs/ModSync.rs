@@ -37,8 +37,16 @@ load-time duplicate-option handling are unchanged.
 
 YAML remains fail closed if a document is invalid, whereas the reference can
 skip an invalid document and retain later valid documents. Silently discarding
-installation components is excluded from this Rust admission policy. Mixed
-JSON scalar/component arrays, broader format extensions, guide GUID repair and
+installation components is excluded from this Rust admission policy.
+
+## JSON component shapes
+
+Mixed JSON scalar/component arrays received a subsequent source correction: after raw
+review-alias validation, JSON discards nonobject component entries with one
+aggregate nonsecret advisory, following the reference JObject-only loop at
+740–747. Every object still undergoes normal validation, and an empty result
+still fails at guide admission. Other formats retain their prior behavior.
+Broader format extensions, guide GUID repair and
 other scalar/property conversion contracts remain separate source work.
 
 Source review and production compilation are separate from parser corpus and

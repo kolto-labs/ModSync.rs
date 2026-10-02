@@ -25,6 +25,26 @@ pub fn normalize_args(arguments: Vec<OsString>) -> Result<Vec<OsString>> {
     if arguments.get(verb).is_some_and(|value| value == "convert") {
         return normalize_convert_merge(arguments, verb);
     }
+    if let Some(raw) = arguments
+        .get(verb)
+        .and_then(|argument| argument.to_str())
+        .filter(|raw| protocol(raw))
+    {
+        ensure!(
+            arguments.len() == verb + 1,
+            "Protocol handoff accepts exactly one URL without additional arguments"
+        );
+        // Qualification is pure and bounded. Never expose a URL's credentials
+        // through the underlying parser error, or reinterpret additional args.
+        // Borrow the legacy-normalized payload until its bound is qualified.
+        let raw = raw.trim().trim_matches(['\'', '"']);
+        modsync::single_instance::validate_protocol_request(raw)
+            .map_err(|_| anyhow::anyhow!("Invalid or unsupported protocol handoff request"))?;
+        let mut normalized = arguments[..verb].to_vec();
+        normalized.push("gui".into());
+        normalized.push(format!("--protocol={raw}").into());
+        return Ok(normalized);
+    }
     if first
         .to_str()
         .is_none_or(|text| !text.starts_with('-') && !protocol(text))
