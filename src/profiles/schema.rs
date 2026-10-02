@@ -135,26 +135,7 @@ fn date(value: Option<&Value>, key: &str) -> Result<String> {
                 .ok()
                 .map(|d| d.year())
         })
-        .or_else(|| {
-            let body = candidate.strip_prefix("/Date(")?.strip_suffix(")/")?;
-            let end = body
-                .char_indices()
-                .skip(1)
-                .find(|(_, c)| matches!(c, '+' | '-'))
-                .map_or(body.len(), |(index, _)| index);
-            let (milliseconds, offset) = body.split_at(end);
-            if !offset.is_empty() {
-                if offset.len() != 5 || !offset[1..].bytes().all(|b| b.is_ascii_digit()) {
-                    return None;
-                }
-                let hours: u32 = offset[1..3].parse().ok()?;
-                let minutes: u32 = offset[3..].parse().ok()?;
-                if hours > 14 || minutes > 59 || (hours == 14 && minutes != 0) {
-                    return None;
-                }
-            }
-            chrono::DateTime::from_timestamp_millis(milliseconds.parse().ok()?).map(|d| d.year())
-        });
+        .or_else(|| date_compat::microsoft_year(candidate));
     ensure!(
         year.is_some_and(|year| (1..=9999).contains(&year)),
         "Profile {key} is not a supported reference DateTime"

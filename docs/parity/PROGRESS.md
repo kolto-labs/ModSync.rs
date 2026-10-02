@@ -19,8 +19,22 @@ generation preview are also implemented; see the numeric and GUI-tools receipts.
 The install source fallback and -g/-s aliases are corrected. The combined source
 passes both Linux production feature configurations, strict Clippy, formatting and
 the Windows GNU CLI build/link boundary recorded in the latest production receipt.
-Basic validation without roots remains a concrete CLI report-stage gap.
-Acceptance rows remain open.
+The subsequent rootless basic-validation adapter now produces a bounded read-only
+component report and failed FOMOD stage, with independent review corrections for
+authored selection, JSON setup errors and explicit archive directory membership.
+Convert/merge TOML defaults, private legacy Nexus-key import shared by CLI/desktop,
+and Microsoft-date grammar are also implemented and source reviewed. Production
+checks for this combined boundary passed in both Linux feature modes; older
+Windows gates do not cover it.
+The source also implements explicit Linux maintenance through shared CLI/desktop
+preview, apply, status and reverse recovery, with owned workers and manual sharing
+resume. Independent review corrected interruption, persistence, path and work
+bounds. Root-aware FOMOD choice attachment now handles real archive-shaped
+directories without dropping ordinary folder or future VFS archive ownership.
+Both slices are reviewed and passed the same production gates. Native platform,
+cross-process acquisition fencing, dependency/corpus and behavioral acceptance
+remain open. See the maintenance and rooted-choice contracts. Acceptance rows
+remain open.
 
 Continuation uses the actual `ModSync.rs` checkout through `eed8089` and its
 working changes. The [remaining-work tracker](../plans/2026-09-28-1130-remaining-work-tracker-plan.md)

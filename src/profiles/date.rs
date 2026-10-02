@@ -3,6 +3,43 @@
 //! persisted profile strings keep their existing authored representation.
 use chrono::{Datelike, NaiveDate};
 
+/// DateTimeUtils.TryParseMicrosoftDate/TryReadOffset, not DateTimeOffset rules.
+/// Only acceptance is projected; the caller preserves the original text. The
+/// numeric zone is ignored by DateTime after selecting Local kind, whose host
+/// normalization is deliberately not claimed by this string-backed schema.
+pub(super) fn microsoft_year(text: &str) -> Option<i32> {
+    let body = text.strip_prefix("/Date(")?.strip_suffix(")/")?;
+    // The reference searches '+' first, then '-', beginning after the first
+    // epoch character so a negative epoch does not become an offset marker.
+    let tail = body.get(1..)?;
+    let offset = tail.find('+').or_else(|| tail.find('-')).map(|i| i + 1);
+    let epoch = offset.map_or(body, |i| &body[..i]);
+    let digits = epoch.strip_prefix('-').unwrap_or(epoch);
+    if digits.is_empty() || digits.len() > 19 || !digits.bytes().all(|b| b.is_ascii_digit()) {
+        return None;
+    }
+    if let Some(index) = offset {
+        // Read the same fixed UTF-16 pairs as Newtonsoft. Its second pair is
+        // optional only for +HH; trailing content after +HHmm is ignored.
+        // Int32TryParse permits '-' followed by one digit in a two-char pair.
+        let mut units = text[6 + index + 1..].encode_utf16();
+        let pair = |first: u16, second: u16| {
+            (first == u16::from(b'-') || (u16::from(b'0')..=u16::from(b'9')).contains(&first))
+                && (u16::from(b'0')..=u16::from(b'9')).contains(&second)
+        };
+        if !pair(units.next()?, units.next()?) {
+            return None;
+        }
+        let third = units.next()?;
+        let fourth = units.next()?;
+        if units.next().is_some() && !pair(third, fourth) {
+            return None;
+        }
+    }
+    let date = chrono::DateTime::from_timestamp_millis(epoch.parse().ok()?)?;
+    (1..=9999).contains(&date.year()).then_some(date.year())
+}
+
 pub(super) fn iso_year(text: &str) -> Option<i32> {
     let bytes = text.as_bytes();
     if !(19..=40).contains(&bytes.len()) {

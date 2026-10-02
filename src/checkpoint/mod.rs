@@ -5,6 +5,8 @@ mod auxiliary;
 mod capability;
 pub use capability::CapabilityReport;
 pub(crate) use capability::prepare_existing;
+pub(crate) use capability::prepare_existing_for_maintenance;
+pub(crate) use read::safe_path;
 mod finalize;
 mod guard;
 mod history;

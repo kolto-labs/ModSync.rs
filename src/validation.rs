@@ -1,6 +1,16 @@
 use serde::Serialize;
 
+pub mod basic;
 pub mod presentation;
+
+/// A component validator's independent return value and collected diagnostics.
+/// C# can return false without recording an error; preserve that distinction.
+#[derive(Clone, Debug, Default)]
+pub struct ComponentOutcome {
+    pub is_valid: bool,
+    pub errors: Vec<String>,
+    pub warnings: Vec<String>,
+}
 
 /// Actual stage boundaries; start and completion share the one-based step.
 /// Completion messages start with `Completed: `, including failed outcomes.
@@ -149,6 +159,57 @@ impl ErrorReport {
     }
 }
 impl Report {
+    /// Aggregate the basic validator's diagnostics as the reference pipeline does:
+    /// component errors suppress that component's warnings, and stage errors
+    /// suppress warnings in the report totals. A silent false contributes no OK
+    /// message but does not itself fail the stage.
+    pub fn component_outcomes(&mut self, outcomes: &[(&crate::Component, ComponentOutcome)]) {
+        let mut errors = 0;
+        let mut warnings = 0;
+        let mut messages = Vec::new();
+        for (component, outcome) in outcomes {
+            if !outcome.errors.is_empty() {
+                errors += outcome.errors.len();
+                messages.extend(
+                    outcome
+                        .errors
+                        .iter()
+                        .map(|message| format!("ERROR: {}: {message}", component.name)),
+                );
+            } else if !outcome.warnings.is_empty() {
+                warnings += outcome.warnings.len();
+                messages.extend(
+                    outcome
+                        .warnings
+                        .iter()
+                        .map(|message| format!("WARNING: {}: {message}", component.name)),
+                );
+            } else if outcome.is_valid {
+                messages.push(format!("OK: {}", component.name));
+            }
+        }
+        if errors > 0 {
+            self.error_count += errors;
+        } else if warnings > 0 {
+            self.warning_count += warnings;
+        } else {
+            self.passed_count += 1;
+        }
+        self.stages.push(StageResult {
+            stage: Stage::ComponentValidation,
+            passed: errors == 0,
+            has_warnings: warnings > 0,
+            summary: if errors > 0 {
+                format!("{errors} component error(s)")
+            } else if warnings > 0 {
+                format!("{warnings} warning(s)")
+            } else {
+                "All components passed archive validation.".into()
+            },
+            messages,
+        });
+    }
+
     /// Returns the first error, or the first warning when there are no errors.
     ///
     /// The desktop uses this for its "Go to first issue" control, matching

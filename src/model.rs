@@ -87,7 +87,24 @@ impl Guide {
     /// File-open/install ingestion drafts prose Markdown, matching the C# file loader.
     /// Conversion remains opt-in through draft::generate.
     pub fn load_for_install(path: &Path) -> Result<Self> {
-        let mut guide = Self::load(path)?;
+        Self::load_for_install_with_selection_default(path, true)
+    }
+
+    /// Draft install Markdown while retaining authored all-false selection.
+    /// CLI adapters apply profile or default-all selection after this ingestion.
+    pub fn load_for_install_preserving_selection(path: &Path) -> Result<Self> {
+        Self::load_for_install_with_selection_default(path, false)
+    }
+
+    fn load_for_install_with_selection_default(
+        path: &Path,
+        default_selection: bool,
+    ) -> Result<Self> {
+        let mut guide = if default_selection {
+            Self::load(path)?
+        } else {
+            Self::load_preserving_selection(path)?
+        };
         if canonical_format(path.extension().and_then(|s| s.to_str()).unwrap_or("")) == Some("md") {
             crate::draft::generate(&mut guide);
         }

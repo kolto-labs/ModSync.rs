@@ -1561,8 +1561,59 @@ subsequent thread failure. Picker cancellation still waits for dialog dismissal.
 
 Install now reaches its existing input-guide-parent fallback when --source-dir
 is omitted; -g and -s are accepted for game/source directories. Profile path
-precedence and mode-specific dispatch checks remain intact. Basic rootless
-validation still differs from the reference: Rust stops during setup, whereas
-the reference runs component validation and then fails FOMOD configuration for
-the unavailable source directory. That report-stage contract remains open;
-source review did not substitute a successful structural-only result.
+precedence and mode-specific dispatch checks remain intact.
+
+### Basic validation, conversion defaults and legacy settings continuation
+
+Ordinary validation with either effective root absent now runs a dedicated
+read-only component report followed by the reference's failed FOMOD stage. It
+does not initialize the engine or invent roots. Literal paths receive bounded
+ordinary-file checks; archive membership retains spelling and distinguishes
+explicit directory entries from inferred file parents. Cancellation aborts the
+report. CLI setup errors retain the JSON report boundary, and both rooted and
+rootless validation preserve authored all-false selection until explicit
+selection/default policy is applied. Empty effective selection remains an error.
+
+The reference's guide/directory autofixes are deliberately not reproduced during
+validation. The model also cannot recover its null-versus-empty Source distinction.
+Complete-root validation retains the existing Rust engine extension. See
+[the basic report contract](docs/parity/basic-validation-without-roots.md) for
+bounds, exact scope and remaining differences. This is source implementation and
+review; invocation/runtime and full F08/F26 acceptance remain deferred.
+
+Convert and merge now default to TOML regardless of the output filename, matching
+the pinned CLI's explicit format default. Explicit output formats are unchanged.
+The shared Nexus key getter imports a bounded private legacy nexusmods.config
+only when its own effective settings key is blank, under the settings lock.
+Desktop settings loading calls the same getter. Malformed or unsafe keys remain
+errors without exposing their contents. See
+[the migration contract](docs/parity/legacy-nexus-key-import.md).
+
+The profile decoder additionally accepts the pinned Microsoft-date offset
+grammar, retaining authored date strings. Host-local canonicalization and the
+broader invariant-culture DateTime fallback remain separate source work; see
+[the date contract](docs/parity/profile-date-compatibility.md).
+
+### Explicit maintenance and rooted FOMOD choice scope
+
+The case and permission commands now share explicit preview/apply/status/recover
+with the maintenance library. Linux source refuses unsupported object/security
+state, binds a reviewed digest to actual roots/content/identity, uses native
+exclusive rename and owner-only permission additions, and journals inverse
+operations before changes. Interrupted cleanup retains recoverable terminal
+state. Ordinary install/checkpoint/deployment writers are fenced while maintenance
+is pending. CLI outcomes and the desktop's owned worker retain recovery status;
+sharing needs explicit resume after mutation. Windows/macOS mutation, Unicode
+mapping and cross-process acquisition admission remain separate implementation
+work. This is source review, not native interruption or full F24/F25 acceptance.
+See [maintenance authority and limits](docs/parity/maintenance-contract.md).
+
+Rooted phase preparation and Save Selection use actual archive members to scope
+external choices when a directory itself has an archive suffix. Ordinary
+folder/glob sources retain lexical ownership, including archives produced by
+earlier VFS instructions. Registry ownership, completed-prefix exclusion,
+cancellation and atomic overlay publication are shared. A registered missing
+archive without recorded prompt state now has a bounded soft warning; recorded
+prompt state retains its hard error. Pure rootless APIs retain their prior
+contract. Dependency expansion and corpus/native acceptance remain open; see
+[the rooted-choice contract](docs/parity/fomod-root-aware-choices.md).

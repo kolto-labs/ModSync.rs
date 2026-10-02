@@ -932,6 +932,10 @@ impl Engine {
                                 "Registered FOMOD archive '{filename}' is missing from the mod directory after configuration state was recorded"
                             );
                         }
+                        warnings.push(format!(
+                            "Registered archive '{}' is missing from the mod directory. Re-download it, then configure its FOMOD installer if present before installation.",
+                            crate::fomod::warning_text(filename)
+                        ));
                         continue;
                     }
                     checked.insert((self.path_policy.key(&path), component.guid.clone()));

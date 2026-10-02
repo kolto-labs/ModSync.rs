@@ -143,6 +143,8 @@ impl App {
         let guide = self.guide.clone();
         let input = self.loaded_input.clone();
         let choices_path = self.fomod_choices.clone();
+        let choice_roots = (self.mods.clone(), self.game.clone());
+        let choice_case_insensitive = self.desktop.settings.case_insensitive_pathing;
         let completed_base = self.completed_base.clone();
         let logs = self.logs.join("\n");
         let context = self.input_stamp.clone();
@@ -197,13 +199,30 @@ impl App {
                         Work::SaveSelection => {
                             let mut guide = guide.context("Load a guide first")?;
                             if !choices_path.trim().is_empty() {
-                                modsync::fomod::ChoicesFile::load(std::path::Path::new(
-                                    &choices_path,
-                                ))?
-                                .apply_to_remaining(
-                                    &mut guide,
-                                    completed_base.as_deref().unwrap_or_default(),
+                                let choices = modsync::fomod::ChoicesFile::load(
+                                    std::path::Path::new(&choices_path),
                                 )?;
+                                let completed = completed_base.as_deref().unwrap_or_default();
+                                if choice_roots.0.trim().is_empty()
+                                    || choice_roots.1.trim().is_empty()
+                                {
+                                    choices.apply_to_remaining(&mut guide, completed)?;
+                                } else {
+                                    let game = modsync::game::resolve_install_root(
+                                        std::path::Path::new(choice_roots.1.trim()),
+                                    );
+                                    let roots = modsync::paths::Roots::new(
+                                        std::path::Path::new(choice_roots.0.trim()),
+                                        &game,
+                                    )?;
+                                    choices.apply_to_remaining_with_roots(
+                                        &mut guide,
+                                        completed,
+                                        &roots,
+                                        choice_case_insensitive,
+                                        &flag,
+                                    )?;
+                                }
                             }
                             let path = rfd::FileDialog::new()
                                 .set_file_name("selection.toml")
@@ -389,7 +408,8 @@ impl App {
                     if ui.add_enabled(available,egui::Button::new("Editor Mode")).clicked(){self.utility=true;self.page=3;ui.close();}
                     for(label,open)in[("Manage Checkpoints",&mut self.checkpoints.open),("Settings",&mut self.desktop.open),("Managed Deployment Status / Purge",&mut self.deployment.open),("Show Output Log",&mut self.shell.log_open),("Merge guides",&mut self.merge.open),("Conflict analysis",&mut self.tools.conflicts_open),("Provider updates",&mut self.tools.updates_open)]{if ui.button(label).clicked(){*open=true;ui.close();}}
                     if ui.add_enabled(available, egui::Button::new("Run standalone HoloPatcher")).clicked() { self.standalone.open = true; }
-                    for label in ["Fix iOS case sensitivity", "Fix file/folder permissions"] {ui.add_enabled(false,egui::Button::new(label)).on_disabled_hover_text("No shared desktop action is available; see F24/F25 compatibility. Install patcher instructions through the validated guide instead.");}
+                    if ui.add_enabled(available, egui::Button::new("Fix iOS case sensitivity")).clicked() { self.maintenance_open(false); ui.close(); }
+                    if ui.add_enabled(available, egui::Button::new("Fix file/folder permissions")).clicked() { self.maintenance_open(true); ui.close(); }
                 });
                 ui.menu_button("Help", |ui| {
                     ui.hyperlink_to("Create GitHub Issue", "https://github.com/th3w1zard1/ModSync/issues/new");

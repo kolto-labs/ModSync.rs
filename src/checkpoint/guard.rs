@@ -6,6 +6,7 @@ use std::{fs, path::Path};
 /// Read-only game-scoped fence for callers that do not possess source roots.
 /// Bound session roots are validated rather than guessing a source directory.
 pub(crate) fn ensure_game_checkpoint_clean(game: &Path) -> Result<()> {
+    crate::maintenance::ensure_clear_game(game)?;
     let canonical = fs::canonicalize(game)?;
     ensure!(
         canonical == game && safe_path(game)?.is_some_and(|m| m.is_dir()),

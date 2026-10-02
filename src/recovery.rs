@@ -58,7 +58,21 @@ impl Lock {
         Ok(lock)
     }
     pub fn acquire(roots: &Roots) -> Result<Self> {
-        crate::checkpoint::prepare_existing(roots)?;
+        crate::maintenance::ensure_clear_game(&roots.game)?;
+        let lock = Self::acquire_impl(roots, false)?;
+        crate::maintenance::ensure_clear_game(&roots.game)?;
+        Ok(lock)
+    }
+    pub(crate) fn acquire_maintenance(roots: &Roots) -> Result<Self> {
+        ensure_checkpoint_clean(roots)?;
+        Self::acquire_impl(roots, true)
+    }
+    fn acquire_impl(roots: &Roots, maintenance: bool) -> Result<Self> {
+        if maintenance {
+            crate::checkpoint::prepare_existing_for_maintenance(roots)?;
+        } else {
+            crate::checkpoint::prepare_existing(roots)?;
+        }
         let dir = state_dir(roots);
         ensure!(
             !dir.starts_with(&roots.mods) && !roots.mods.starts_with(&dir),
@@ -448,7 +462,7 @@ pub fn completion_summary(roots: &Roots) -> Result<Option<CompletionSummary>> {
     }))
 }
 
-fn ensure_checkpoint_clean(roots: &Roots) -> Result<()> {
+pub(crate) fn ensure_checkpoint_clean(roots: &Roots) -> Result<()> {
     crate::checkpoint::ensure_external_process_clear(&roots.game)?;
     match fs::symlink_metadata(state_dir(roots).join("checkpoints-v1")) {
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
@@ -465,6 +479,7 @@ fn ensure_checkpoint_clean(roots: &Roots) -> Result<()> {
 }
 
 pub fn ensure_clean(roots: &Roots) -> Result<()> {
+    crate::maintenance::ensure_clear_game(&roots.game)?;
     ensure_checkpoint_clean(roots)?;
     ensure!(
         !state_dir(roots).join("pending").exists(),

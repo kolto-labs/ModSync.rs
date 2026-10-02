@@ -389,3 +389,60 @@ e7fbf6f02e4b1523f2a9e2a5abeff169c2288705f02530464ba9a6d5cfc66818  src/profiles/n
 13446755d067ac94fb5c4612bf31090787e2cd01d72d774abc5c96abe0318b9a  src/ui/editor_panel.rs
 1dc27563c606c2e008aafbe209c504e12eb33e52dc6741041f03c40578289934  src/ui/editor_panel/generation.rs
 ```
+
+
+## Basic validation, legacy key/date reader, maintenance and rooted choices
+
+The reviewed source after consolidation `1fc4251` adds rootless read-only basic
+validation and authored selection preservation, TOML conversion/merge defaults,
+private legacy Nexus-key import, Microsoft-date grammar, rooted FOMOD choice
+scope, and shared Linux maintenance with explicit CLI/desktop authority and
+reverse recovery. Independent source reviews accepted the bounded implementation
+and follow-up publication, terminal recovery, path, projection and worker fixes.
+
+Final combined production gates passed in session29594, exit0:
+
+- `cargo fmt --all -- --check` and `git diff --check` passed.
+- Default Linux `cargo build --locked --lib --bin modsync -j2`: passed,1m37s.
+- Default strict Clippy with the same targets and `-- -D warnings`: passed,20.34s.
+- No-default Linux production build: passed,1m11s.
+- No-default strict Clippy: passed,39.23s.
+
+Earlier attempts stopped on expression/style lint findings. Their inclusive
+range, result return, tuple alias, button/guard let-chains and Boolean corrections
+were independently source reviewed before the complete successful rerun.
+Formatting used edition2024 and preserved existing frozen regions.
+
+Read-only source comparison against HEAD confirmed seven inline test modules
+(`direct_markdown`, `fomod_ui`, `game`, `p2p`, `patcher`, `ui`, `validation`) and
+the two existing UI test helpers retain identical bytes. No tracked test or
+fixture path changed. No Rust test, custom harness, filesystem test, runtime
+app/CLI/backend probe, packaging helper, native mutation, install or CI ran.
+The previous Windows receipt covers its earlier boundary, not these changes.
+Native maintenance, cross-process acquisition admission, broader profile dates,
+FOMOD dependency/corpus behavior and all F01-F29 acceptance remain open.
+
+Source-bound hashes:
+
+```text
+88f8c8036361837036d2955fadd60f07187bb4cfbfc6ba524018ebd0f2f34276  src/maintenance.rs
+f2caccdca077163f78735a3b4220a10760d2a9dddbe1ebdf8427f2cbb29a1804  src/maintenance/plan.rs
+00b6f5f082c3e13ab0f7a96dabc169ff4e440efab6131bd30b8b32929b5081e5  src/maintenance/journal.rs
+a287e709634487f10f131d8f32c46e729dafbf7a97692714129d9097f3116d44  src/maintenance/platform.rs
+00453e55ccab31aad54a3d8ca489d185106cc20f27f6ce669400e43414553b32  src/maintenance_cli.rs
+05ee40a493728783a22abe79eb774d8129b0cbd88c0d06b204c2ae0c19ddb356  src/ui/maintenance.rs
+217326c4b87fa4bf055ff5fa1d30bb79b64fb438e539a12ff24f487847ae2f10  src/recovery.rs
+c702d71552eeba404831bfac4ecc587bead0b9664413d412a3cda249c69b13b9  src/fomod.rs
+8244e80f7047af2fbc557e6dcd1bce439332199af98b69ac733a86f238dcacc4  src/fomod/resolved_choices.rs
+1280c9cc1634175fcaa6e451a75842a8152ff8e135a67d1d3b405511a13d4a45  src/phase.rs
+3a3f98314a111de7a661a2773694bcaae05b02d9c17cbd63bd3238c8cb63bdd9  src/main.rs
+040f75a9c51942fed2c10986cd63655fbc43dcdc563dcaa73a3225347b03812a  src/ui.rs
+c60e1b7959e1923d2a0af8f9262bdbb53fb6ea6a5ccced6f3ca8e75754b0aece  src/archive.rs
+d24f831b937f64897925144d6c05f6050e0b7333c8e8325e704a0339db354237  src/model.rs
+02268edee42433cd723b01af97fed271237b7cd3d38eb8c36e147a91c9c2cb7c  src/validation.rs
+fdfd334615b12c47fa238d8079c6d50066cf82d8edcd34a8e91aa69a5b02afae  src/validation/basic.rs
+e412291dd5fe4873f5c42d3714f42cfdce8ae7422211c188b5400f659cd5aef4  src/profiles.rs
+4b89e04cd99acd188d84aac9c2c192ef911358c3eda486c41b9f8fd6b42b015f  src/profiles/date.rs
+d41ee6431e5e58b8e19a18569d74409ae6ab8e78dc18325254424f45b2e75d48  src/profiles/schema.rs
+a244410913dfd1ec1161ef5bd28e3a521bad3a1b3bf72fb0e6f3400068ef0ce6  src/ui/desktop_settings.rs
+```

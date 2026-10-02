@@ -59,6 +59,7 @@ pub(super) struct View {
     mutation_ready: bool,
     startup_pause: Option<PauseReason>,
     shutdown_failed: bool,
+    manual_resume_required: bool,
     pub closing: bool,
     pub close_confirm: bool,
     pub status: String,
@@ -79,6 +80,7 @@ impl Default for View {
             mutation_ready: true,
             startup_pause: None,
             shutdown_failed: false,
+            manual_resume_required: false,
             closing: false,
             close_confirm: false,
             status: String::new(),
@@ -86,6 +88,12 @@ impl Default for View {
     }
 }
 impl View {
+    pub fn require_manual_resume(&mut self) {
+        self.manual_resume_required = true;
+    }
+    pub fn requires_manual_resume(&self) -> bool {
+        self.manual_resume_required
+    }
     pub fn ready(&self) -> bool {
         !self.shutdown_failed
             && self.mutation_ready
@@ -157,6 +165,8 @@ impl View {
             return;
         }
         if let Some(owner) = &self.owner {
+            // This path is called only by the enabled explicit Resume control.
+            self.manual_resume_required = false;
             self.mutation_ready = false;
             self.pending = Some(match guide {
                 Some(guide) => Pending {
@@ -244,7 +254,10 @@ impl View {
                                     "Completed sharing is owned by another application instance."
                                         .into();
                             } else if !self.closing {
-                                if let Some(reason) = self.startup_pause.take() {
+                                if self.manual_resume_required {
+                                    self.startup_pause = None;
+                                    self.pause(PauseReason::Mutation);
+                                } else if let Some(reason) = self.startup_pause.take() {
                                     self.pause(reason);
                                 } else if let Some(owner) = &self.owner {
                                     self.pending = Some(Pending {
@@ -380,7 +393,9 @@ impl View {
                             self.status = "Sharing paused; owned worker cleanup completed.".into();
                         }
                         After::ResumeAuthorization => {
-                            if let Some(owner) = &self.owner {
+                            if self.manual_resume_required {
+                                self.pause(PauseReason::Mutation);
+                            } else if let Some(owner) = &self.owner {
                                 self.pending = Some(Pending {
                                     receiver: owner.request_resume(),
                                     after: After::Resume,
@@ -388,25 +403,37 @@ impl View {
                             }
                         }
                         After::Resume => {
-                            self.mutation_ready = false;
-                            self.status = "Sharing resumed with remaining budgets; each source is revalidated.".into();
+                            if self.manual_resume_required {
+                                self.pause(PauseReason::Mutation);
+                            } else {
+                                self.mutation_ready = false;
+                                self.status = "Sharing resumed with remaining budgets; each source is revalidated.".into();
+                            }
                         }
                         After::Authorize => {
                             self.status =
                                 "Sharing enrollment authorized for the current guide.".into();
                         }
                         After::Admit | After::RevalidateMutation => {
-                            self.mutation_ready = false;
-                            if let Some(owner) = &self.owner {
-                                self.pending = Some(Pending {
-                                    receiver: owner.request_resume_after_mutation(),
-                                    after: After::ResumeMutation,
-                                });
+                            if self.manual_resume_required {
+                                self.pause(PauseReason::Mutation);
+                            } else {
+                                self.mutation_ready = false;
+                                if let Some(owner) = &self.owner {
+                                    self.pending = Some(Pending {
+                                        receiver: owner.request_resume_after_mutation(),
+                                        after: After::ResumeMutation,
+                                    });
+                                }
                             }
                         }
                         After::ResumeMutation => {
-                            self.mutation_ready = false;
-                            self.status = "Sharing context checked; user stops and settings pauses remain in effect.".into();
+                            if self.manual_resume_required {
+                                self.pause(PauseReason::Mutation);
+                            } else {
+                                self.mutation_ready = false;
+                                self.status = "Sharing context checked; user stops and settings pauses remain in effect.".into();
+                            }
                         }
                     },
                 }
@@ -457,7 +484,7 @@ impl View {
         }
     }
     pub fn resume_after_mutation(&mut self, guide: Option<&Guide>) {
-        if self.closing || self.busy() {
+        if self.closing || self.busy() || self.manual_resume_required {
             return;
         }
         if let (Some(owner), Some(guide)) = (&self.owner, guide) {

@@ -29,6 +29,10 @@ impl Store {
     /// Qualify every recorded location before lock acquisition. Repeat under lock.
     /// Includes incomplete sessions, orphan checkpoints and lifecycle trash.
     pub fn prepare_write(&self) -> Result<()> {
+        crate::maintenance::ensure_clear_game(&self.roots.game)?;
+        self.prepare_write_profile()
+    }
+    fn prepare_write_profile(&self) -> Result<()> {
         let origin = persistence::writer_origin()?;
         self.validate_location()?;
         for path in [&self.roots.mods, &self.roots.game, &self.directory] {
@@ -151,6 +155,17 @@ pub(crate) fn prepare_existing(roots: &crate::paths::Roots) -> Result<()> {
     let path = crate::recovery::state_dir(roots).join("checkpoints-v1");
     match fs::symlink_metadata(path) {
         Ok(_) => Store::open(roots)?.prepare_write(),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(error) => Err(error.into()),
+    }
+}
+
+/// Maintenance recovery owns a separate intent. Qualify checkpoint capabilities
+/// while leaving its own maintenance fence in place for ordinary mutations.
+pub(crate) fn prepare_existing_for_maintenance(roots: &crate::paths::Roots) -> Result<()> {
+    let path = crate::recovery::state_dir(roots).join("checkpoints-v1");
+    match fs::symlink_metadata(path) {
+        Ok(_) => Store::open(roots)?.prepare_write_profile(),
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
         Err(error) => Err(error.into()),
     }

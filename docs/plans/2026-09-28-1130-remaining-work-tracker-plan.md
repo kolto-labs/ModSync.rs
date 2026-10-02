@@ -61,19 +61,40 @@ acceptance and the documented Windows ICU/NLS difference remain open. Local
 archive instruction generation now has an identity-bound preview/adoption flow;
 provider-link filename discovery uses the same guarded preview/adoption flow.
 
-The disabled case-normalization and permission repair commands still have no
-shared maintenance transaction. Reference inspection found recursive renaming
-and broad permission/ownership changes. Their disabled state follows the current
-main-window plan; it is not evidence of implemented repair behavior.
+Case-normalization and permission repair now use a shared explicit maintenance
+transaction, with CLI and worker-owned desktop preview/apply/status/recover.
+Linux source includes bounded identity/content planning, native exclusive rename,
+owner permissions, durable progress and verified reverse rollback. Independent
+review corrected intent publication, terminal cleanup/recovery, projection bounds,
+portable path admission and pending-write fences. Sharing requires explicit resume
+after a mutation attempt. Windows/macOS mutation support, Unicode mapping,
+cross-process acquisition admission and native interruption acceptance remain
+open. See [the maintenance contract](../parity/maintenance-contract.md).
+
+Rooted FOMOD phase preparation and Save Selection now resolve archive-shaped
+directories from actual members using the engine's source policy, preserving
+ordinary folder/glob ownership and future VFS archive scope. Registry ownership,
+bounded cancellation, completed-prefix exclusion and atomic overlay publication
+received independent source review. Missing registered archives without prompt
+state produce a soft warning; recorded state retains its hard error. Rootless
+pure preparation is unchanged. Hard-dependency and corpus/native acceptance
+remain open; see [the rooted-choice contract](../parity/fomod-root-aware-choices.md).
 
 The install input-parent source default is now reachable from argument parsing,
-and -g/-s aliases match the reference. A newly verified F26 gap remains: basic
-validation without roots is accepted by the reference parser, runs component
-validation, then fails FOMOD configuration because the source root is unavailable.
-Rust currently rejects missing roots during setup. A rootless report adapter must
-preserve this failure and honestly represent unavailable archive/destination
-checks; fabricated directories or an unconditional structural-only pass are not
-an equivalent implementation. Exact component diagnostics remain to be ported.
+and -g/-s aliases match the reference. Basic validation without roots now has a
+dedicated read-only component report and failed FOMOD stage, independently source
+reviewed. Exact-case archive inventories retain entry type and bounded readers;
+authored all-false selection is preserved in both validation paths. Automatic
+guide/directory fixes and the model's lost null/empty Source distinction remain
+explicit differences. JSON setup errors use the report boundary. Convert/merge
+default to TOML independent of output extension. Runtime acceptance is deferred.
+See [the basic report contract](../parity/basic-validation-without-roots.md).
+
+The shared Nexus getter now imports a bounded private legacy nexusmods.config
+under the settings lock when no effective key exists; desktop settings loading
+uses the same migration. Microsoft-date acceptance follows the pinned offset
+grammar, with authored strings retained. Both changes have independent source
+review. Broader invariant/local date normalization remains open.
 
 ## Current execution policy
 

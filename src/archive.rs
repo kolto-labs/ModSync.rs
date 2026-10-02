@@ -34,6 +34,8 @@ struct Output<'a> {
     limit: u64,
     total: u64,
     names: BTreeSet<String>,
+    original_entries: Option<Vec<OriginalEntry>>,
+    original_name_bytes: usize,
     files: Vec<Entry>,
 }
 impl Output<'_> {
@@ -58,6 +60,23 @@ impl Output<'_> {
                 .insert(path.to_string_lossy().replace('\\', "/").to_lowercase()),
             "Duplicate archive entry: {name}"
         );
+        if let Some(entries) = &mut self.original_entries {
+            // Only callers requesting authored names incur this inventory's
+            // allocation and additional budget. Existing list/unpack/verify
+            // callers keep their established admission rules and storage.
+            self.original_name_bytes = self
+                .original_name_bytes
+                .checked_add(path.as_os_str().len())
+                .ok_or_else(|| anyhow::anyhow!("Archive name inventory size overflow"))?;
+            ensure!(
+                self.original_name_bytes <= 16 * 1024 * 1024,
+                "Archive original-name inventory exceeds 16 MiB budget"
+            );
+            entries.push(OriginalEntry {
+                path: path.to_string_lossy().replace('\\', "/"),
+                is_directory: directory,
+            });
+        }
         Ok(path)
     }
     fn temp(&self) -> Result<tempfile::NamedTempFile> {
@@ -117,10 +136,10 @@ pub fn unpack(
     options: &Options,
     cancelled: &AtomicBool,
 ) -> Result<Vec<Entry>> {
-    process(path, name, options, cancelled, true).map(|(files, _)| files)
+    process(path, name, options, cancelled, true, false).map(|result| result.files)
 }
 pub fn verify(path: &Path, name: &Path, options: &Options, cancelled: &AtomicBool) -> Result<()> {
-    process(path, name, options, cancelled, false).map(|_| ())
+    process(path, name, options, cancelled, false, false).map(|_| ())
 }
 /// Verify like [`verify`] and return every entry name (lowercase, `/`-separated),
 /// without spooling any entry to scratch storage.
@@ -130,7 +149,45 @@ pub fn list(
     options: &Options,
     cancelled: &AtomicBool,
 ) -> Result<BTreeSet<String>> {
-    process(path, name, options, cancelled, false).map(|(_, names)| names)
+    process(path, name, options, cancelled, false, false).map(|result| result.names)
+}
+
+/// Verified entry names with authored case retained and `/` separators. Like
+/// [`list`], this never spools extracted files or invokes external programs.
+/// Existing case-collision and path/link admission rules remain identical.
+/// The authored name inventory has an additional 16 MiB aggregate byte bound.
+pub fn list_original(
+    path: &Path,
+    name: &Path,
+    options: &Options,
+    cancelled: &AtomicBool,
+) -> Result<BTreeSet<String>> {
+    list_original_with_size(path, name, options, cancelled)
+        .map(|(entries, _)| entries.into_iter().map(|entry| entry.path).collect())
+}
+
+/// Retain explicit directory/file kind for reference archive-path matching.
+#[derive(Clone)]
+pub(crate) struct OriginalEntry {
+    pub(crate) path: String,
+    pub(crate) is_directory: bool,
+}
+
+pub(crate) fn list_original_with_size(
+    path: &Path,
+    name: &Path,
+    options: &Options,
+    cancelled: &AtomicBool,
+) -> Result<(Vec<OriginalEntry>, u64)> {
+    process(path, name, options, cancelled, false, true)
+        .map(|result| (result.original_entries, result.expanded_bytes))
+}
+
+struct ProcessResult {
+    files: Vec<Entry>,
+    names: BTreeSet<String>,
+    original_entries: Vec<OriginalEntry>,
+    expanded_bytes: u64,
 }
 fn process(
     path: &Path,
@@ -138,7 +195,8 @@ fn process(
     options: &Options,
     cancelled: &AtomicBool,
     spool: bool,
-) -> Result<(Vec<Entry>, BTreeSet<String>)> {
+    original_inventory: bool,
+) -> Result<ProcessResult> {
     ensure!(
         !cancelled.load(Ordering::Relaxed),
         "Archive operation cancelled"
@@ -163,6 +221,8 @@ fn process(
             .min(available),
         total: 0,
         names: BTreeSet::new(),
+        original_entries: original_inventory.then(Vec::new),
+        original_name_bytes: 0,
         files: Vec::new(),
     };
     let mut file = crate::paths::open_regular_read(path)?;
@@ -314,7 +374,12 @@ fn process(
             "Unsupported archive signature. ZIP, 7z, RAR, TAR and GZip are supported. Only embedded 7z SFX payloads are decoded; executables are never run as archives."
         );
     }
-    Ok((output.files, output.names))
+    Ok(ProcessResult {
+        files: output.files,
+        names: output.names,
+        original_entries: output.original_entries.unwrap_or_default(),
+        expanded_bytes: output.total,
+    })
 }
 fn read_tar(reader: impl Read, output: &mut Output<'_>) -> Result<()> {
     let mut archive = tar::Archive::new(reader);

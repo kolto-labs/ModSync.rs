@@ -6,6 +6,7 @@ mod downloads_panel;
 mod editor_panel;
 mod installing_page;
 mod main_window;
+mod maintenance;
 mod merge_panel;
 mod protocol_settings;
 mod resource_watch;
@@ -47,6 +48,7 @@ enum Message {
     ValidationTerminal(u64, modsync::validation::Report),
     ValidationDone(u64, Result<()>),
     InstallProgress(u64, modsync::install_progress::Progress),
+    InstallPrepared(u64, Box<Guide>),
     /// Run, engine result, pending recovery for the captured roots, and the
     /// completion receipt read after an engine success released its lock.
     InstallTerminal(u64, Result<()>, bool, Option<completion_pages::Terminal>),
@@ -117,6 +119,7 @@ enum SharingContinuation {
     Deployment(modsync::deployment::ManagementAction, String),
     Shell(main_window::Work, String),
     Standalone(standalone_patcher::Request),
+    Maintenance(maintenance::Request),
 }
 
 pub struct App {
@@ -128,6 +131,7 @@ pub struct App {
     deployment: deployment_panel::State,
     shell: main_window::State,
     standalone: standalone_patcher::State,
+    maintenance: maintenance::State,
     resource_watch: resource_watch::State,
     sharing: sharing::View,
     sharing_continuation: Option<SharingContinuation>,
@@ -279,6 +283,20 @@ impl App {
                 // The stamp is refreshed every frame; the terminal refreshes it again.
                 if self.installing_page.accepts(run, &self.input_stamp) {
                     self.installing_page.progress(progress);
+                }
+            }
+            Message::InstallPrepared(run, guide) => {
+                self.refresh_input_stamp();
+                if self.installing_page.accepts(run, &self.input_stamp) {
+                    self.installing_page.prepared(&guide);
+                    if self.completed_base.is_none() {
+                        self.pending_base = guide
+                            .ordered()
+                            .unwrap_or_default()
+                            .into_iter()
+                            .cloned()
+                            .collect();
+                    }
                 }
             }
             Message::InstallTerminal(run, result, pending, terminal) => {
@@ -2831,6 +2849,7 @@ impl App {
             deployment: Default::default(),
             shell: Default::default(),
             standalone: Default::default(),
+            maintenance: Default::default(),
             resource_watch: Default::default(),
             sharing: Default::default(),
             sharing_continuation: None,
@@ -3868,35 +3887,9 @@ impl App {
         };
         self.cancelled = settings.cancelled.clone();
         let (guide, completed) = if matches!(job, Job::Validate | Job::Install | Job::Conflicts) {
-            let choices = (|| -> Result<_> {
-                if self.fomod_choices.trim().is_empty() {
-                    Ok(None)
-                } else {
-                    Ok(Some(modsync::fomod::ChoicesFile::parse(
-                        &std::fs::read_to_string(&self.fomod_choices)?,
-                    )?))
-                }
-            })();
-            let choices = match choices {
-                Ok(choices) => choices,
-                Err(error) => {
-                    if let Some(run) = install_run {
-                        self.install_not_started(
-                            run,
-                            error.context("FOMOD choices"),
-                            Some(&settings.roots),
-                        );
-                        return;
-                    }
-                    if job == Job::Validate {
-                        self.validation_page
-                            .fail(&format!("FOMOD choices: {error:#}"));
-                    }
-                    self.logs.push(format!("FOMOD choices: {error:#}"));
-                    return;
-                }
-            };
-            match self.prepare_phase(job, choices.as_ref()) {
+            // Paint-time phase projection is pure. Archive attribution and the
+            // external choices file are resolved by the captured worker below.
+            match self.prepare_phase(job, None) {
                 Ok(prepared) => {
                     if install_run.is_some() {
                         // Directions come from the exact guide handed to the engine.
@@ -4019,6 +4012,18 @@ impl App {
         let managed_settings = self.profile_directory.clone();
         let managed_profile = self.active_profile_name.clone();
         let case_insensitive_pathing = self.desktop.settings.case_insensitive_pathing;
+        let preparation_guide = self.guide.clone();
+        let retained_prefix = self.completed_base.clone();
+        let choices_path = self.fomod_choices.clone();
+        let preparation_phase = if resume.is_some() {
+            modsync::phase::Phase::All
+        } else if retained_prefix.is_some() {
+            modsync::phase::Phase::Remaining
+        } else if job == Job::Validate {
+            modsync::phase::Phase::All
+        } else {
+            modsync::phase::Phase::Base
+        };
         std::thread::spawn(move || {
             let mut install_report = None;
             let result =
@@ -4047,7 +4052,44 @@ impl App {
                         ));
                         return Ok(());
                     }
-                    let guide = guide.ok_or_else(|| anyhow::anyhow!("Load a guide first"))?;
+                    let guide = if matches!(job, Job::Validate | Job::Install | Job::Conflicts) {
+                        let original = preparation_guide
+                            .as_ref()
+                            .ok_or_else(|| anyhow::anyhow!("Load a guide first"))?;
+                        let choices = if choices_path.trim().is_empty() {
+                            None
+                        } else {
+                            Some(modsync::fomod::ChoicesFile::load(Path::new(&choices_path))?)
+                        };
+                        let context = if preparation_phase == modsync::phase::Phase::Remaining {
+                            modsync::phase::CompletionContext::Retained {
+                                ids: retained_prefix
+                                    .as_deref()
+                                    .ok_or_else(|| anyhow::anyhow!("Missing retained prefix"))?,
+                            }
+                        } else {
+                            modsync::phase::CompletionContext::None
+                        };
+                        let prepared = modsync::phase::prepare_with_roots(
+                            original,
+                            preparation_phase,
+                            context,
+                            choices.as_ref(),
+                            &settings.roots,
+                            case_insensitive_pathing,
+                            &settings.cancelled,
+                        )?;
+                        if let Some(run) = install_run {
+                            let _ = tx.send(Message::InstallPrepared(
+                                run,
+                                Box::new(prepared.guide.clone()),
+                            ));
+                            ctx.request_repaint();
+                        }
+                        prepared.guide
+                    } else {
+                        guide.ok_or_else(|| anyhow::anyhow!("Load a guide first"))?
+                    };
                     let emit = |e: modsync::Event| {
                         let _ = tx.send(Message::Log(format!(
                             "{} / {}: {}",
@@ -4323,6 +4365,7 @@ impl eframe::App for App {
         self.poll_editor_worker();
         self.poll_shell_worker();
         self.poll_standalone();
+        self.poll_maintenance();
         if self.logs.len() > 5000 {
             let removed = self.logs.len() - 5000;
             self.logs.drain(..removed);
@@ -4341,6 +4384,7 @@ impl eframe::App for App {
             && let Some(action) = self.sharing_continuation.take()
         {
             match action {
+                SharingContinuation::Maintenance(request) => self.maintenance_start(request, ctx),
                 SharingContinuation::Standalone(request) => self.standalone_start(request, ctx),
                 SharingContinuation::Shell(work, context) => {
                     self.shell_work(work, Some(context), ctx)
@@ -4370,6 +4414,7 @@ impl eframe::App for App {
         if self.sharing.closing
             && self.resource_watch.closed()
             && self.standalone.closed()
+            && self.maintenance.closed()
             && self.editor.settled()
             && self.shell.settled()
             && self.desktop.closed()
@@ -4384,6 +4429,7 @@ impl eframe::App for App {
         self.merge_window(ctx);
         self.deployment_window(ctx);
         self.standalone_window(ctx);
+        self.maintenance_window(ctx);
         self.tools_windows(ctx);
         self.checkpoint_window(ctx);
         self.show_fomod(ctx);
@@ -4399,6 +4445,7 @@ impl eframe::App for App {
             && !(self.sharing.closing
                 && self.resource_watch.closed()
                 && self.standalone.closed()
+                && self.maintenance.closed()
                 && self.editor.settled()
                 && self.shell.settled()
                 && self.desktop.closed()
@@ -4430,7 +4477,10 @@ impl eframe::App for App {
                 && self.sharing_continuation.is_none()
                 && self.peer_view.receiver.is_none()
                 && self.peer_view.queued.is_empty()
-                && !self.fomod_pending();
+                && !self.fomod_pending()
+                && self
+                    .maintenance
+                    .resume_allowed(&self.input_stamp, self.sharing.requires_manual_resume());
             self.sharing.show(ui, self.guide.as_ref(), allow_resume);
             if let Some(error) = &self.peer_view.error {
                 ui.colored_label(egui::Color32::RED, error);

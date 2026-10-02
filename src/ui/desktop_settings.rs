@@ -100,7 +100,12 @@ impl App {
         std::thread::spawn(move || {
             let result = std::panic::catch_unwind(|| -> Result<Output> {
                 let store = Store::from_settings_directory(explicit.as_deref())?;
-                let (report, patcher) = store.desktop_settings_with_patcher();
+                let migration_failed = store.nexus_api_key().is_err();
+                let (mut report, patcher) = store.desktop_settings_with_patcher();
+                if migration_failed {
+                    report.settings.nexus_mods_api_key = None;
+                    report.warnings.push("Nexus API key migration failed; the key remains unset for this session.".into());
+                }
                 let mut warnings = report.warnings;
                 if report.used_defaults { warnings.push("Invalid stored settings were replaced by the typed defaults for this session.".into()); }
                 let config = Config::load_from_settings_directory(explicit.as_deref()).unwrap_or_else(|error| { warnings.push(format!("Telemetry disabled: {error:#}")); Config::default() });

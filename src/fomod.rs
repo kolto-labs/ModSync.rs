@@ -1,4 +1,5 @@
-//! Shared FOMOD selection rules. Archive configuration and installation are not yet wired.
+//! Shared FOMOD selection, configuration and archive ownership rules.
+mod resolved_choices;
 use anyhow::{Context, Result, ensure};
 use serde::{Deserialize, Serialize};
 
@@ -1198,11 +1199,47 @@ impl ChoicesFile {
     /// component (or option) receives only the entries for archives it registers or
     /// extracts itself; other components, including ones with unparseable saved
     /// choices, are left untouched.
+    pub fn apply_to_remaining_with_roots(
+        &self,
+        guide: &mut crate::Guide,
+        completed: &[String],
+        roots: &crate::paths::Roots,
+        case_insensitive: bool,
+        cancelled: &std::sync::atomic::AtomicBool,
+    ) -> Result<()> {
+        ensure!(
+            !cancelled.load(std::sync::atomic::Ordering::Acquire),
+            "Cancelled while resolving FOMOD choices"
+        );
+        // A completed component protects its entire subtree, so no descendant
+        // can make an otherwise ineligible top-level component relevant here.
+        let eligible = guide.components.iter().any(|component| {
+            !completed
+                .iter()
+                .any(|id| id.eq_ignore_ascii_case(&component.guid))
+        });
+        if self.archives.is_empty() || !eligible {
+            return Ok(());
+        }
+        let inventory = resolved_choices::Inventory::read(roots, case_insensitive, cancelled)?;
+        self.update_guide_resolved(guide, completed, Some(&inventory))
+    }
+
     fn update_guide(&self, guide: &mut crate::Guide, completed: &[String]) -> Result<()> {
+        self.update_guide_resolved(guide, completed, None)
+    }
+
+    fn update_guide_resolved(
+        &self,
+        guide: &mut crate::Guide,
+        completed: &[String],
+        inventory: Option<&resolved_choices::Inventory<'_>>,
+    ) -> Result<()> {
         fn update(
             components: &mut [crate::Component],
             edits: &ChoicesFile,
             completed: &[String],
+            inventory: Option<&resolved_choices::Inventory<'_>>,
         ) -> Result<()> {
             for component in components {
                 if completed
@@ -1211,16 +1248,22 @@ impl ChoicesFile {
                 {
                     continue;
                 }
-                let relevant: Vec<_> = edits
-                    .archives
-                    .iter()
-                    .filter(|archive| references_archive(component, &archive.archive_file_name))
-                    .cloned()
-                    .collect();
+                let mut relevant = Vec::new();
+                for archive in &edits.archives {
+                    let matches = match inventory {
+                        Some(inventory) => {
+                            inventory.references(component, &archive.archive_file_name)?
+                        }
+                        None => references_archive(component, &archive.archive_file_name),
+                    };
+                    if matches {
+                        relevant.push(archive.clone());
+                    }
+                }
                 if !relevant.is_empty() {
                     merge_relevant(component, &relevant)?;
                 }
-                update(&mut component.options, edits, completed)?;
+                update(&mut component.options, edits, completed, inventory)?;
             }
             Ok(())
         }
@@ -1252,7 +1295,10 @@ impl ChoicesFile {
             Ok(())
         }
         let mut candidate = guide.clone();
-        update(&mut candidate.components, self, completed)?;
+        update(&mut candidate.components, self, completed, inventory)?;
+        if let Some(inventory) = inventory {
+            inventory.check_cancelled()?;
+        }
         *guide = candidate;
         Ok(())
     }

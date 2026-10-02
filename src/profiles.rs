@@ -484,7 +484,45 @@ impl Store {
         setting_text(&self.lookup_settings()?, "fomodPostDownloadMode")
     }
     pub fn nexus_api_key(&self) -> Result<Option<String>> {
-        setting_text(&self.lookup_settings()?, "nexusModsApiKey")
+        if let Some(key) = setting_text(&self.lookup_settings()?, "nexusModsApiKey")?
+            && !key.trim().is_empty()
+        {
+            return Ok(Some(key));
+        }
+        // Authority stays with this Store's root, including explicit roots.
+        // Never discover a credential from a different global directory here.
+        let legacy = self.root.join("nexusmods.config");
+        let Some(bytes) = storage::read_bounded(&legacy, 64 * 1024)? else {
+            return Ok(None);
+        };
+        let key = std::str::from_utf8(without_bom(&bytes))
+            .map_err(|_| anyhow::anyhow!("Legacy Nexus key is not UTF-8"))?
+            .trim();
+        if key.is_empty() {
+            return Ok(None);
+        }
+        ensure!(
+            !key.chars().any(char::is_control),
+            "Legacy Nexus key contains control characters"
+        );
+        let _lock = self.lock()?;
+        let mut settings = self.read_settings(false)?;
+        // A key saved after the initial lookup must win over the import.
+        if let Some(current) = setting_text(&settings, "nexusModsApiKey")?
+            && !current.trim().is_empty()
+        {
+            return Ok(Some(current));
+        }
+        let object = settings
+            .as_object_mut()
+            .context("Settings must be an object")?;
+        object.retain(|name, _| !name.eq_ignore_ascii_case("nexusModsApiKey"));
+        object.insert("nexusModsApiKey".into(), key.into());
+        storage::write(
+            &self.root.join("settings.json"),
+            &serde_json::to_vec_pretty(&settings)?,
+        )?;
+        Ok(Some(key.to_owned()))
     }
     pub fn save_nexus_api_key(&self, key: &str) -> Result<()> {
         let _lock = self.lock()?;

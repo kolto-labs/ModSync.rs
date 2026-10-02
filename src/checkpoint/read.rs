@@ -59,7 +59,7 @@ fn ordinary(metadata: &Metadata) -> Result<()> {
 
 /// Reject links and special files at every existing ancestor, including the leaf.
 /// The final open also refuses following a replaced leaf on Unix.
-pub(super) fn safe_path(path: &Path) -> Result<Option<Metadata>> {
+pub(crate) fn safe_path(path: &Path) -> Result<Option<Metadata>> {
     let mut result = None;
     for ancestor in path.ancestors().collect::<Vec<_>>().into_iter().rev() {
         match fs::symlink_metadata(ancestor) {

@@ -40,3 +40,21 @@ reference edge-case spellings outside these explicit forms, and all native/runti
 acceptance remain separate. No culture-name table or guessed day/month ordering
 was introduced. Existing parser acceptance outside this additional path was not
 changed. No tests, fixtures, harnesses, builds or runtime probes were performed.
+
+## Microsoft-date correction
+
+The Microsoft-date branch now follows the same primary source's
+`TryParseMicrosoftDate` and `TryReadOffset`: signed decimal epoch milliseconds,
+plus-before-minus offset search after the first epoch character, and fixed UTF-16
+hour/minute pairs. An hours-only offset is accepted; minute pairs are read when
+the remaining full token is longer than five UTF-16 units. The reference ignores
+content following those pairs, and does not impose DateTimeOffset's 14-hour or
+minute-59 limits. Those acceptance details are preserved, including the source's
+signed two-character integer pairs. Milliseconds must fit i64 and the resulting
+UTC calendar year must be 1–9999. Input remains bounded by the persisted profile
+reader. Negative epochs remain signed; no arithmetic wraps.
+
+The offset's presence selects Local kind in Newtonsoft, whose DateTime reader
+discards the numeric offset before host-local conversion. Rust still preserves
+the authored string and does not claim host-zone canonicalization. Broad
+invariant fallback and local serialization remain separate source work.

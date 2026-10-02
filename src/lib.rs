@@ -43,6 +43,7 @@ pub mod protocol_registration;
 pub mod single_instance;
 
 pub mod logging;
+pub mod maintenance;
 pub mod selection;
 pub mod telemetry;
 pub mod updates;

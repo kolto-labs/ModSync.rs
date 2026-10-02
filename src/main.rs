@@ -2,6 +2,7 @@ mod checkpoint_cli;
 mod cli_acquisition;
 mod cli_compat;
 mod cli_session;
+mod maintenance_cli;
 mod profile_cli;
 mod protocol_cli;
 use anyhow::{Context, Result, ensure};
@@ -53,6 +54,8 @@ enum Action {
     SetNexusApiKey(profile_cli::SetNexusApiKeyArgs),
     /// Capture, inspect and verify checkpoint history for explicit roots.
     Checkpoint(checkpoint_cli::CheckpointArgs),
+    /// Preview, apply, inspect or recover explicit filesystem maintenance.
+    Maintenance(maintenance_cli::MaintenanceArgs),
     /// Open the desktop installer (also the default with no command).
     Gui {
         #[arg(long)]
@@ -257,6 +260,7 @@ enum Action {
         incoming_path: Option<PathBuf>,
         #[arg(short = 'o', long = "output", conflicts_with = "output")]
         output_path: Option<PathBuf>,
+        /// Output format; defaults to TOML.
         #[arg(short, long)]
         format: Option<String>,
         #[command(flatten)]
@@ -329,7 +333,7 @@ enum Action {
         output_path: Option<PathBuf>,
         #[arg(long, conflicts_with = "input")]
         stdin: bool,
-        /// Output format; defaults to TOML, or the output extension.
+        /// Output format; defaults to TOML.
         #[arg(short, long)]
         format: Option<String>,
         /// Draft instructions from prose; generated steps require review before installation.
@@ -912,6 +916,154 @@ fn apply_selection(
     Ok(outcomes)
 }
 
+fn require_validation_selection(guide: &Guide, args: &InstallArgs) -> Result<()> {
+    ensure!(
+        guide
+            .components
+            .iter()
+            .any(|component| component.is_selected),
+        "{}",
+        if !args.select.is_empty() {
+            "No components match the selection criteria."
+        } else if args.use_file_selection {
+            "No components are marked IsSelected in the instruction file."
+        } else {
+            "No components are selected for validation."
+        }
+    );
+    Ok(())
+}
+
+fn present_validation_report(
+    report: &modsync::validation::Report,
+    errors_only: bool,
+    report_mode: bool,
+) -> Result<()> {
+    if report_mode {
+        println!("{}", serde_json::to_string_pretty(report)?);
+    } else {
+        for stage in &report.stages {
+            if !errors_only {
+                println!("{:?}: {}", stage.stage, stage.summary);
+            }
+            for message in &stage.messages {
+                if !errors_only
+                    || (!message.starts_with("WARNING:")
+                        && !message.starts_with("INFO:")
+                        && (message.starts_with("ERROR:") || !stage.passed))
+                {
+                    println!("{message}");
+                }
+            }
+        }
+        if !errors_only {
+            println!(
+                "Validation {}: {} errors, {} warnings",
+                if report.success { "passed" } else { "failed" },
+                report.error_count,
+                report.warning_count
+            );
+        }
+    }
+    if !report.success {
+        // A failing report owns the diagnostics; Exit avoids duplicate stderr.
+        return Err(cli_session::Exit(1).into());
+    }
+    Ok(())
+}
+
+fn validate_without_roots(
+    args: &InstallArgs,
+    profile: Option<&modsync::profiles::Profile>,
+    game: Option<&std::path::Path>,
+    report_mode: bool,
+    cancelled: &AtomicBool,
+    report_emitted: &mut bool,
+) -> Result<()> {
+    let unsupported = [
+        (args.download, "--download"),
+        (args.nexus_mods_api_key.is_some(), "--nexus-mods-api-key"),
+        (args.concurrent, "--concurrent"),
+        // Omitted and explicit default-equivalent 48 are the same inert value.
+        (
+            args.download_timeout_hours != 48,
+            "--download-timeout-hours",
+        ),
+        (args.component_checkpoints, "--component-checkpoints"),
+        (args.no_checkpoint, "--no-checkpoint"),
+        (args.best_effort, "--best-effort"),
+        (args.managed, "--managed"),
+        (args.staging_dir.is_some(), "--staging-dir"),
+        (args.manifest_dir.is_some(), "--manifest-dir"),
+        (args.fomod_skip, "--fomod-skip"),
+        (args.interactive, "--interactive"),
+        (args.non_interactive, "--non-interactive"),
+        (args.direct_markdown, "--direct-markdown"),
+        (args.allow_processes, "--allow-processes"),
+        (args.patcher.is_some(), "--patcher"),
+        (args.patcher_engine.is_some(), "--patcher-engine"),
+        (args.scratch_dir.is_some(), "--scratch-dir"),
+        (args.max_expanded_bytes.is_some(), "--max-expanded-bytes"),
+        (args.install_progress_json, "--install-progress-json"),
+    ]
+    .into_iter()
+    .filter_map(|(supplied, flag)| supplied.then_some(flag))
+    .collect::<Vec<_>>();
+    ensure!(
+        unsupported.is_empty(),
+        "Basic validation without both game and source roots does not support {}; supply both --game-dir and --source-dir for execution settings",
+        unsupported.join(", ")
+    );
+    let input = args
+        .input
+        .clone()
+        .or_else(|| {
+            profile
+                .and_then(|profile| profile.instruction_file_path.as_deref())
+                .filter(|path| !path.is_empty())
+                .map(PathBuf::from)
+        })
+        .context("Supply --input or configure the profile's input path")?;
+    conversion_cancelled(cancelled)?;
+    let mut guide = Guide::load_for_install_preserving_selection(&input)?;
+    if let Some(profile) = profile {
+        profile.apply(&mut guide);
+    } else if args.select.is_empty() && !args.use_file_selection {
+        for component in &mut guide.components {
+            component.is_selected = true;
+        }
+    }
+    let detected =
+        game.map(|game| modsync::game::detect(&modsync::game::resolve_install_root(game)));
+    apply_selection(
+        &mut guide.components,
+        detected,
+        &args.select,
+        &args.option,
+        &args.selection_flags,
+        !report_mode && !args.errors_only,
+    )?;
+    require_validation_selection(&guide, args)?;
+    let choices = args
+        .fomod_choices
+        .as_ref()
+        .map(|path| modsync::fomod::ChoicesFile::load(path))
+        .transpose()?;
+    let prepared = modsync::phase::prepare(
+        &guide,
+        modsync::phase::Phase::All,
+        modsync::phase::CompletionContext::None,
+        choices.as_ref(),
+    )?;
+    conversion_cancelled(cancelled)?;
+    let result = modsync::validation::basic::validate(&prepared.guide, cancelled);
+    conversion_cancelled(cancelled)?;
+    let mut report = result?;
+    report.input_path = Some(input.to_string_lossy().into_owned());
+    *report_emitted = true;
+    present_validation_report(&report, args.errors_only, report_mode)
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
 enum PhaseArg {
     All,
@@ -1219,6 +1371,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
         modsync::logging::set_mirror_stderr(true);
     }
     match command {
+        Some(Action::Maintenance(args)) => args.run(),
         Some(Action::ProtocolHandoff(arguments)) => {
             ensure!(
                 arguments.len() == 1,
@@ -2016,13 +2169,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             let cancelled = modsync::p2p::stop_signal_flag()?;
             process_conversion(&mut incoming, &processing, Some(&incoming_path), &cancelled)?;
             let output = output_path.or(output);
-            let format = format.as_deref().unwrap_or_else(|| {
-                output
-                    .as_ref()
-                    .and_then(|path| path.extension())
-                    .and_then(|v| v.to_str())
-                    .unwrap_or("toml")
-            });
+            let format = format.as_deref().unwrap_or("toml");
             conversion_cancelled(&cancelled)?;
             let rendered = incoming.render(format)?;
             conversion_cancelled(&cancelled)?;
@@ -2085,14 +2232,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                     .with_context(|| format!("Unknown component GUID: {id}"))?;
                 modsync::draft::mark_reviewed(component)?;
             }
-            let format = format.as_deref().unwrap_or_else(|| {
-                output_path
-                    .as_ref()
-                    .or(output.as_ref())
-                    .and_then(|p| p.extension())
-                    .and_then(|s| s.to_str())
-                    .unwrap_or("toml")
-            });
+            let format = format.as_deref().unwrap_or("toml");
             conversion_cancelled(&cancelled)?;
             let text = guide.render(format)?;
             conversion_cancelled(&cancelled)?;
@@ -2697,55 +2837,21 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             else {
                 unreachable!()
             };
-            ensure!(
-                install || !args.download,
-                "--download is only supported by install, convert and merge"
-            );
-            ensure!(
-                !args.download || resume.is_none(),
-                "Checkpoint resume requires acquisition to be completed separately before reviewing the resume boundary"
-            );
-            ensure!(
-                !args.install_progress_json || install,
-                "--install-progress-json is only supported by install"
-            );
-            ensure!(
-                install || !(args.component_checkpoints || args.no_checkpoint || args.best_effort),
-                "Checkpoint and failure-continuation flags are only supported by install"
-            );
-            ensure!(
-                !args.best_effort,
-                "--best-effort/--continue-on-error cannot preserve guide order after a failure. Restore the verified boundary before the failed component, fix its cause, then resume the ordered suffix. Installation always stops on failure."
-            );
-            ensure!(
-                !args.no_checkpoint || resume.is_none(),
-                "Checkpoint resume requires retained component history"
-            );
             let component_checkpoints = args.component_checkpoints || resume.is_some();
-            ensure!(
-                !args.managed || (install && component_checkpoints),
-                "--managed requires install --component-checkpoints or checkpoint resume"
-            );
-            ensure!(
-                (!install && !conflicts)
-                    || (args.validation_output.is_none()
-                        && !args.errors_only
-                        && !args.full
-                        && !args.dry_run
-                        && !args.dry_run_only),
-                "Validation output/full/dry-run options are only supported by validate"
-            );
             let pipeline_mode = args.validation_report
                 || args.validation_output.is_some()
                 || args.errors_only
                 || args.full
                 || args.dry_run
                 || args.dry_run_only;
-            let report_mode = (args.validation_report
+            let mut report_mode = (args.validation_report
                 || args.validation_output == Some(ValidationOutput::Json))
                 && !install
                 && !conflicts;
-            let install_cancelled = install.then(modsync::p2p::stop_signal_flag).transpose()?;
+            let validation_json = args.json && !install && !conflicts;
+            let mut validation_started = false;
+            let mut validation_emitted = false;
+            let dispatch_cancelled = modsync::p2p::stop_signal_flag()?;
             let dispatch = (|| -> Result<()> {
                 ensure!(
                     args.phase == PhaseArg::All || !args.direct_markdown,
@@ -2760,6 +2866,97 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                 ensure!(
                     args.phase != PhaseArg::Remaining || !args.dry_run_only,
                     "Remaining reports always run full validation and dry run; --dry-run-only is incompatible"
+                );
+                let profile = if args.profile.is_some() || args.active_profile {
+                    let store = modsync::profiles::Store::from_settings_directory(
+                        args.settings_dir.as_deref(),
+                    )?;
+                    let name = if args.active_profile {
+                        store
+                            .active_name()?
+                            .context("No active profile is configured")?
+                    } else {
+                        args.profile.clone().unwrap()
+                    };
+                    Some(store.require(&name)?)
+                } else {
+                    None
+                };
+                let basic_validation = !install
+                    && !conflicts
+                    && args.phase == PhaseArg::All
+                    && !args.full
+                    && !args.dry_run
+                    && !args.dry_run_only;
+                if basic_validation {
+                    let game = args.game_dir.clone().or_else(|| {
+                        profile
+                            .as_ref()
+                            .and_then(|profile| profile.kotor_directory.as_deref())
+                            .filter(|path| !path.is_empty())
+                            .map(PathBuf::from)
+                    });
+                    let source = args.source_dir.clone().or_else(|| {
+                        profile
+                            .as_ref()
+                            .and_then(|profile| profile.mod_directory.as_deref())
+                            .filter(|path| !path.is_empty())
+                            .map(PathBuf::from)
+                    });
+                    if game.is_none() || source.is_none() {
+                        // The reference's basic mode ignores even supplied roots.
+                        // Complete roots retain this CLI's existing engine extension;
+                        // missing roots use the guide-only path without fake folders.
+                        // Rootless --json reports the same single document as
+                        // --output json; complete roots retain their event stream.
+                        report_mode |= args.json;
+                        return validate_without_roots(
+                            &args,
+                            profile.as_ref(),
+                            game.as_deref(),
+                            report_mode,
+                            &dispatch_cancelled,
+                            &mut validation_emitted,
+                        );
+                    }
+                }
+                ensure!(
+                    install || !args.download,
+                    "--download is only supported by install, convert and merge"
+                );
+                ensure!(
+                    !args.download || resume.is_none(),
+                    "Checkpoint resume requires acquisition to be completed separately before reviewing the resume boundary"
+                );
+                ensure!(
+                    !args.install_progress_json || install,
+                    "--install-progress-json is only supported by install"
+                );
+                ensure!(
+                    install
+                        || !(args.component_checkpoints || args.no_checkpoint || args.best_effort),
+                    "Checkpoint and failure-continuation flags are only supported by install"
+                );
+                ensure!(
+                    !args.best_effort,
+                    "--best-effort/--continue-on-error cannot preserve guide order after a failure. Restore the verified boundary before the failed component, fix its cause, then resume the ordered suffix. Installation always stops on failure."
+                );
+                ensure!(
+                    !args.no_checkpoint || resume.is_none(),
+                    "Checkpoint resume requires retained component history"
+                );
+                ensure!(
+                    !args.managed || (install && component_checkpoints),
+                    "--managed requires install --component-checkpoints or checkpoint resume"
+                );
+                ensure!(
+                    (!install && !conflicts)
+                        || (args.validation_output.is_none()
+                            && !args.errors_only
+                            && !args.full
+                            && !args.dry_run
+                            && !args.dry_run_only),
+                    "Validation output/full/dry-run options are only supported by validate"
                 );
                 // Preserve implicit-directory provenance, including legacy fallback.
                 // Reading preferences does not discover or launch a backend.
@@ -2778,21 +2975,6 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                             .map(|preferences| preferences.engine)
                     })
                     .unwrap_or_default();
-                let profile = if args.profile.is_some() || args.active_profile {
-                    let store = modsync::profiles::Store::from_settings_directory(
-                        args.settings_dir.as_deref(),
-                    )?;
-                    let name = if args.active_profile {
-                        store
-                            .active_name()?
-                            .context("No active profile is configured")?
-                    } else {
-                        args.profile.clone().unwrap()
-                    };
-                    Some(store.require(&name)?)
-                } else {
-                    None
-                };
                 let paths = if let Some(profile) = &profile {
                     profile.install_paths(
                         args.input.as_deref(),
@@ -2825,7 +3007,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                         "Direct Markdown mode requires a .md input file"
                     );
                 }
-                let mut guide = Guide::load_for_install(&paths.input)?;
+                let mut guide = Guide::load_for_install_preserving_selection(&paths.input)?;
                 if let Some(profile) = &profile {
                     profile.apply(&mut guide);
                 }
@@ -2849,20 +3031,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                 // Ordinary validation rejects an empty effective selection before
                 // pipeline construction, so JSON uses the setup ErrorReport shape.
                 if !install && !conflicts && args.phase == PhaseArg::All {
-                    ensure!(
-                        guide
-                            .components
-                            .iter()
-                            .any(|component| component.is_selected),
-                        "{}",
-                        if !args.select.is_empty() {
-                            "No components match the selection criteria."
-                        } else if args.use_file_selection {
-                            "No components are marked IsSelected in the instruction file."
-                        } else {
-                            "No components are selected for validation."
-                        }
-                    );
+                    require_validation_selection(&guide, &args)?;
                 }
                 if args.direct_markdown {
                     ensure!(
@@ -2899,13 +3068,18 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                 } else {
                     modsync::phase::CompletionContext::None
                 };
-                let prepared =
-                    modsync::phase::prepare(&guide, args.phase.into(), context, choices.as_ref())?;
-                let mut guide = prepared.guide;
                 let mut settings = Settings::new(&paths.source, &paths.game)?;
-                if let Some(cancelled) = &install_cancelled {
-                    settings.cancelled = cancelled.clone();
-                }
+                settings.cancelled = dispatch_cancelled.clone();
+                let prepared = modsync::phase::prepare_with_roots(
+                    &guide,
+                    args.phase.into(),
+                    context,
+                    choices.as_ref(),
+                    &settings.roots,
+                    case_insensitive_pathing,
+                    &settings.cancelled,
+                )?;
+                let mut guide = prepared.guide;
                 settings.allow_processes = args.allow_processes;
                 settings.patcher = args.patcher.or_else(|| {
                     patcher_preferences
@@ -3050,53 +3224,41 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                         )
                     };
                     report.input_path = Some(paths.input.to_string_lossy().into_owned());
-                    if report_mode {
-                        println!("{}", serde_json::to_string_pretty(&report)?);
-                    } else {
-                        for stage in &report.stages {
-                            if !args.errors_only {
-                                println!("{:?}: {}", stage.stage, stage.summary);
-                            }
-                            for message in &stage.messages {
-                                if !args.errors_only
-                                    || (!message.starts_with("WARNING:")
-                                        && !message.starts_with("INFO:")
-                                        && (message.starts_with("ERROR:") || !stage.passed))
-                                {
-                                    println!("{message}");
-                                }
-                            }
-                        }
-                        if !args.errors_only {
-                            println!(
-                                "Validation {}: {} errors, {} warnings",
-                                if report.success { "passed" } else { "failed" },
-                                report.error_count,
-                                report.warning_count
-                            );
-                        }
-                    }
-                    if !report.success {
-                        // The pipeline report is the machine output; a failing report
-                        // exits nonzero without an extra stderr line, matching C#.
-                        return Err(cli_session::Exit(1).into());
-                    }
-                    Ok(())
+                    validation_emitted = true;
+                    present_validation_report(&report, args.errors_only, report_mode)
                 } else if args.phase == PhaseArg::Remaining {
+                    validation_started = true;
                     engine.validate_remaining(&guide, &prepared.completed, emit)
                 } else {
+                    validation_started = true;
                     engine.validate(&guide, emit)
                 }
             })();
-            if let Err(error) = &dispatch
-                && install_cancelled
-                    .as_ref()
-                    .is_some_and(|flag| flag.load(std::sync::atomic::Ordering::Relaxed))
-            {
-                eprintln!("Installation cancelled: {error:#}");
+            // A completed installation and its receipt win over a late signal.
+            if dispatch_cancelled.load(Ordering::Acquire) && (!install || dispatch.is_err()) {
+                if (report_mode || (validation_json && !validation_started)) && !validation_emitted
+                {
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(&modsync::validation::ErrorReport::new(
+                            "Validation cancelled".into()
+                        ))?
+                    );
+                } else if !(validation_emitted || validation_json && validation_started) {
+                    eprintln!(
+                        "{} cancelled",
+                        if install {
+                            "Installation"
+                        } else if conflicts {
+                            "Conflict analysis"
+                        } else {
+                            "Validation"
+                        }
+                    );
+                }
                 return Err(cli_session::Exit(130).into());
             }
-            if report_mode {
+            if report_mode || (validation_json && !validation_started) {
                 if let Err(error) = dispatch {
                     if error.is::<cli_session::Exit>() {
                         return Err(error);

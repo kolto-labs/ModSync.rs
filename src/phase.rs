@@ -45,6 +45,35 @@ pub fn prepare(
     context: CompletionContext<'_>,
     choices: Option<&ChoicesFile>,
 ) -> Result<PreparedPhase> {
+    prepare_impl(selected, phase, context, choices, None)
+}
+
+/// Read-only preparation with filesystem-resolved external-choice ownership.
+pub fn prepare_with_roots(
+    selected: &Guide,
+    phase: Phase,
+    context: CompletionContext<'_>,
+    choices: Option<&ChoicesFile>,
+    roots: &crate::paths::Roots,
+    case_insensitive: bool,
+    cancelled: &std::sync::atomic::AtomicBool,
+) -> Result<PreparedPhase> {
+    prepare_impl(
+        selected,
+        phase,
+        context,
+        choices,
+        Some((roots, case_insensitive, cancelled)),
+    )
+}
+
+fn prepare_impl(
+    selected: &Guide,
+    phase: Phase,
+    context: CompletionContext<'_>,
+    choices: Option<&ChoicesFile>,
+    resolved: Option<(&crate::paths::Roots, bool, &std::sync::atomic::AtomicBool)>,
+) -> Result<PreparedPhase> {
     let mut guide = selected.clone();
     let completed = match (phase, context) {
         (Phase::All | Phase::Base, CompletionContext::None) => Vec::new(),
@@ -91,12 +120,26 @@ pub fn prepare(
         );
     }
     if let Some(choices) = choices {
-        match context {
-            CompletionContext::Retained { .. } => {
-                choices.apply_to_remaining(&mut guide, &completed)?
-            }
-            CompletionContext::None | CompletionContext::Reconstruct => {
-                choices.apply_to_guide(&mut guide)?
+        if let Some((roots, case_insensitive, cancelled)) = resolved {
+            let immutable = match context {
+                CompletionContext::Retained { .. } => completed.as_slice(),
+                _ => &[],
+            };
+            choices.apply_to_remaining_with_roots(
+                &mut guide,
+                immutable,
+                roots,
+                case_insensitive,
+                cancelled,
+            )?;
+        } else {
+            match context {
+                CompletionContext::Retained { .. } => {
+                    choices.apply_to_remaining(&mut guide, &completed)?
+                }
+                CompletionContext::None | CompletionContext::Reconstruct => {
+                    choices.apply_to_guide(&mut guide)?
+                }
             }
         }
     }
