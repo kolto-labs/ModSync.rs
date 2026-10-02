@@ -1863,3 +1863,58 @@ See [the text intake contract](docs/parity/component-text-intake.md) for generat
 text/work bounds, floating/type-name limits and the remaining YAML/JSON parser
 origin boundaries. Independent source review accepted this slice; broader
 conversion and behavioral acceptance remain open.
+
+### Bounded protocol inbox and FOMOD metadata inspection
+
+Pending desktop Modsync links now use a FIFO instead of one replaceable slot.
+The combined Modsync/NXM pending capacity is 64; transport intake stops before
+receiving when full and processes at most 64 messages per frame. macOS alternates
+transport preference. Ordering is per transport and protocol queue, without a
+claimed total order across sources. Closing stops intake and warns that pending
+links will be discarded. The queue is not durable. See
+[the inbox contract](docs/parity/protocol-inbox.md).
+
+Module/info XML inspection now reads verified spools in cancellable 64 KiB chunks
+with an 8 MiB per-document ceiling and strict UTF-8. XML event processing retains
+the depth rule and adds 100,000 node/attribute ceilings and a 32 MiB cumulative
+logical string budget, including ancestor text copies. Semantic mapping checks
+cancellation at its boundaries. Engine extraction passes its actual cancellation
+flag. These are explicit Rust admission limits; metadata parsing does not grant
+installation permission. See [metadata bounds](docs/parity/fomod-metadata-bounds.md).
+Production and behavioral evidence are recorded separately in the gate receipt.
+
+### Bounded cleanup and filename inventory
+
+Cleanup now retains original selected names, uses pinned invariant token casing
+and ordinal comparisons, and recognizes all five BOM profiles with replacement
+semantics independent of guide intake. It decodes and qualifies all selected
+paths before deleting files. DelDuplicate counts compatible extensions but
+examines every immediate candidate, including extensionless names when Arguments
+is empty. Its count is not decremented while planning. Rust stops on deletion
+failures and retains recovery instead of continuing a guide after a failure.
+The bounded policy and primary sources are in
+[the cleanup contract](docs/parity/engine-cleanup-contract.md).
+
+Filename selection now uses one lazy, read-only inventory per planning or
+discovery invocation, with cumulative work/storage limits and cancellation.
+Registry names remain component-specific; there is no GUID memoization. Shared
+ancestor qualification rejects unsafe paths and Windows reparse points. Local
+qualification failures propagate rather than authorizing unnamed provider
+fallback. Inventory names are advisory and do not prove archive integrity or
+publication eligibility. Explicit candidate duplicates and inferred first-spelling
+ordinal uniqueness are retained. Existing wildcard/URL lookup policies are
+unchanged. See [inventory bounds](docs/parity/download-filename-inventory.md).
+
+### YAML default-object scalar and alias intake
+
+Structured and embedded Markdown YAML now retain decoded style/tag/key context
+before projection. Untagged default object scalars remain strings under the
+pinned YamlDotNet reader; plain nonkey null spellings and explicit null tags keep
+their separate rules. Explicit Boolean, Int32 and finite Double tags use qualified
+reference conversion; nonfinite values, timestamps and typed/complex map keys
+have explicit representation refusals. Ordered exact-key replacement and
+anchor rebinding preserve their recorded reader policy. Forward/cyclic aliases
+fail; acyclic expansion is bounded with budgets shared across guide documents
+and Markdown blocks. No merge-key expansion is introduced. This replaces plain
+scalar inference but does not close all native YAML type contracts. See
+[the YAML intake contract](docs/parity/yaml-scalar-intake.md).

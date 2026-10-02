@@ -3,6 +3,7 @@ mod boolean;
 mod getter;
 pub(crate) mod keys;
 mod text;
+pub(crate) mod yaml;
 use anyhow::{Context, Result, bail, ensure};
 use serde::{Deserialize, Deserializer, Serialize};
 use std::{
@@ -174,7 +175,31 @@ impl Guide {
         result
     }
 
+    pub(crate) fn parse_yaml_without_dedup(
+        text: &str,
+        default_selection: bool,
+        budget: &mut yaml::Budget,
+    ) -> Result<Self> {
+        Self::parse_with_yaml_budget(text, "yaml", false, default_selection, budget)
+    }
+
     fn parse_with(text: &str, format: &str, dedup: bool, default_selection: bool) -> Result<Self> {
+        Self::parse_with_yaml_budget(
+            text,
+            format,
+            dedup,
+            default_selection,
+            &mut yaml::Budget::default(),
+        )
+    }
+
+    fn parse_with_yaml_budget(
+        text: &str,
+        format: &str,
+        dedup: bool,
+        default_selection: bool,
+        yaml_budget: &mut yaml::Budget,
+    ) -> Result<Self> {
         ensure!(
             text.len() as u64 <= text::GUIDE_LIMIT,
             "Guide exceeds 8 MiB"
@@ -236,8 +261,7 @@ impl Guide {
                         .get(..10)
                         .is_some_and(|prefix| prefix.eq_ignore_ascii_case("# Metadata"));
                     let document_source = format!("{}{}", std::mem::take(&mut directives), source);
-                    for document in serde_yaml_ng::Deserializer::from_str(&document_source) {
-                        let value = serde_json::Value::deserialize(document)?;
+                    for value in yaml::documents(&document_source, yaml_budget)? {
                         if value.is_null() {
                             continue;
                         }

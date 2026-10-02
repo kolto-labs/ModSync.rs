@@ -62,6 +62,35 @@ impl NumberCultureSnapshot {
             magnitude.to_string()
         }
     }
+    /// YamlDotNet's explicit Double tag uses Float|AllowThousands with fixed symbols.
+    pub(crate) fn parse_yaml_double(text: &str) -> Result<Value> {
+        ensure!(
+            text.len() <= 4096,
+            "Explicit YAML Double exceeds intake bound"
+        );
+        let mut symbols = Self::invariant();
+        symbols.group = "_".into();
+        symbols.nan = ".nan".into();
+        symbols.infinity = ".inf".into();
+        symbols.negative_infinity = "-.inf".into();
+        let special = text.trim();
+        let special = special.strip_prefix(['+', '-']).unwrap_or(special);
+        ensure!(
+            !special.eq_ignore_ascii_case(".inf") && !special.eq_ignore_ascii_case(".nan"),
+            "Non-finite YAML Double values cannot be represented by the guide model"
+        );
+        let normalized = symbols
+            .float(text.trim_start_matches(ascii_white))
+            .context("Invalid explicitly tagged YAML Double")?;
+        let value: f64 = normalized.parse().context("Invalid YAML Double value")?;
+        ensure!(
+            value.is_finite(),
+            "Non-finite YAML Double values cannot be represented by the guide model"
+        );
+        Ok(serde_json::Number::from_f64(value)
+            .context("Unrepresentable YAML Double")?
+            .into())
+    }
     fn validate(self) -> Result<Self> {
         for symbol in [
             &self.decimal,

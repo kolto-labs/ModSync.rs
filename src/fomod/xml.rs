@@ -4,7 +4,7 @@ use super::{
 };
 use anyhow::{Result, bail, ensure};
 use quick_xml::{Reader, events::Event};
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, sync::atomic::AtomicBool};
 
 #[derive(Default)]
 struct Node {
@@ -32,28 +32,68 @@ impl Node {
     }
 }
 
-fn tree(text: &str) -> Result<Node> {
+const NODE_LIMIT: usize = 100_000;
+const ATTRIBUTE_LIMIT: usize = 100_000;
+const STRING_LIMIT: usize = 32 * 1024 * 1024;
+
+#[derive(Default)]
+struct Budget {
+    nodes: usize,
+    attributes: usize,
+    strings: usize,
+}
+impl Budget {
+    fn strings(&mut self, bytes: usize) -> Result<()> {
+        ensure!(
+            bytes <= STRING_LIMIT.saturating_sub(self.strings),
+            "FOMOD XML retained string budget exceeded"
+        );
+        self.strings += bytes;
+        Ok(())
+    }
+}
+
+fn tree(text: &str, cancelled: &AtomicBool) -> Result<Node> {
+    super::metadata::check(cancelled)?;
+    ensure!(
+        text.len() <= super::metadata::INPUT_LIMIT,
+        "FOMOD metadata exceeds 8 MiB"
+    );
+    let mut budget = Budget::default();
     let mut reader = Reader::from_str(text);
     reader.config_mut().expand_empty_elements = true;
     let mut stack = vec![Node::default()];
     loop {
+        super::metadata::check(cancelled)?;
         match reader.read_event()? {
             Event::Start(start) => {
                 ensure!(stack.len() < 128, "FOMOD XML nesting is too deep");
+                ensure!(budget.nodes < NODE_LIMIT, "FOMOD XML node budget exceeded");
+                budget.nodes += 1;
+                let local = start.local_name();
+                let name = std::str::from_utf8(local.as_ref())?;
+                budget.strings(name.len())?;
                 let mut node = Node {
-                    name: String::from_utf8(start.local_name().as_ref().to_vec())?,
+                    name: name.to_owned(),
                     ..Default::default()
                 };
                 for attr in start.attributes() {
-                    let attr = attr?;
-                    node.attrs.insert(
-                        String::from_utf8(attr.key.local_name().as_ref().to_vec())?,
-                        attr.decoded_and_normalized_value(
-                            quick_xml::XmlVersion::Implicit1_0,
-                            reader.decoder(),
-                        )?
-                        .into_owned(),
+                    super::metadata::check(cancelled)?;
+                    ensure!(
+                        budget.attributes < ATTRIBUTE_LIMIT,
+                        "FOMOD XML attribute budget exceeded"
                     );
+                    budget.attributes += 1;
+                    let attr = attr?;
+                    let local = attr.key.local_name();
+                    let name = std::str::from_utf8(local.as_ref())?;
+                    let value = attr.decoded_and_normalized_value(
+                        quick_xml::XmlVersion::Implicit1_0,
+                        reader.decoder(),
+                    )?;
+                    budget.strings(name.len())?;
+                    budget.strings(value.len())?;
+                    node.attrs.insert(name.to_owned(), value.into_owned());
                 }
                 stack.push(node);
             }
@@ -61,35 +101,35 @@ fn tree(text: &str) -> Result<Node> {
                 ensure!(stack.len() > 1, "Unexpected FOMOD XML end tag");
                 let node = stack.pop().unwrap();
                 if stack.len() > 1 {
+                    budget.strings(node.text.len())?;
                     stack.last_mut().unwrap().text.push_str(&node.text);
                 }
                 stack.last_mut().unwrap().children.push(node);
             }
-            Event::Text(text) => stack
-                .last_mut()
-                .unwrap()
-                .text
-                .push_str(&text.xml10_content()?),
-            Event::CData(text) => stack
-                .last_mut()
-                .unwrap()
-                .text
-                .push_str(&text.xml10_content()?),
+            Event::Text(text) => {
+                let value = text.xml10_content()?;
+                budget.strings(value.len())?;
+                stack.last_mut().unwrap().text.push_str(&value);
+            }
+            Event::CData(text) => {
+                let value = text.xml10_content()?;
+                budget.strings(value.len())?;
+                stack.last_mut().unwrap().text.push_str(&value);
+            }
             Event::GeneralRef(reference) => {
-                stack
-                    .last_mut()
-                    .unwrap()
-                    .text
-                    .push_str(&quick_xml::escape::unescape(&format!(
-                        "&{};",
-                        reference.decode()?
-                    ))?)
+                let decoded = reference.decode()?;
+                budget.strings(decoded.len().saturating_add(2))?;
+                let encoded = format!("&{decoded};");
+                let value = quick_xml::escape::unescape(&encoded)?;
+                budget.strings(value.len())?;
+                stack.last_mut().unwrap().text.push_str(&value);
             }
             Event::DocType(_) => bail!("FOMOD XML DTDs and external entities are forbidden"),
             Event::Eof => break,
             _ => {}
         }
     }
+    super::metadata::check(cancelled)?;
     ensure!(stack.len() == 1, "Unclosed FOMOD XML element");
     let mut root = stack.pop().unwrap();
     ensure!(
@@ -135,7 +175,12 @@ pub fn parse_selection_xml(text: &str) -> Result<Vec<StepSelection>> {
 
 /// Parse module data without resolving paths or executing file directives.
 pub fn parse_module_xml(text: &str) -> Result<ModuleConfig> {
-    let root = tree(text)?;
+    parse_module_xml_with_cancel(text, &AtomicBool::new(false))
+}
+
+/// Parse bounded metadata, observing cancellation at each XML event and mapping boundaries.
+pub fn parse_module_xml_with_cancel(text: &str, cancelled: &AtomicBool) -> Result<ModuleConfig> {
+    let root = tree(text, cancelled)?;
     ensure!(
         root.name.eq_ignore_ascii_case("config"),
         "FOMOD root must be config"
@@ -224,7 +269,7 @@ pub fn parse_module_xml(text: &str) -> Result<ModuleConfig> {
             });
         }
     }
-    Ok(ModuleConfig {
+    let config = ModuleConfig {
         name: root
             .child("moduleName")
             .map_or("", |n| n.text.as_str())
@@ -232,7 +277,9 @@ pub fn parse_module_xml(text: &str) -> Result<ModuleConfig> {
         required_files: files(root.child("requiredInstallFiles")),
         steps,
         conditional_files,
-    })
+    };
+    super::metadata::check(cancelled)?;
+    Ok(config)
 }
 
 fn files(container: Option<&Node>) -> Vec<FileInstall> {
@@ -253,13 +300,20 @@ fn files(container: Option<&Node>) -> Vec<FileInstall> {
 /// Like the reference parser, root names are unrestricted and the first matching
 /// direct child supplies each field. DTDs remain forbidden at the shared XML boundary.
 pub fn parse_info_xml(text: &str) -> Result<super::FomodInfo> {
-    let root = tree(text)?;
+    parse_info_xml_with_cancel(text, &AtomicBool::new(false))
+}
+
+/// Parse bounded optional metadata with the caller's cancellation flag.
+pub fn parse_info_xml_with_cancel(text: &str, cancelled: &AtomicBool) -> Result<super::FomodInfo> {
+    let root = tree(text, cancelled)?;
     let value = |name| root.child(name).map_or("", |n| n.text.as_str()).to_owned();
-    Ok(super::FomodInfo {
+    let info = super::FomodInfo {
         name: value("Name"),
         author: value("Author"),
         version: value("Version"),
         website: value("Website"),
         description: value("Description"),
-    })
+    };
+    super::metadata::check(cancelled)?;
+    Ok(info)
 }

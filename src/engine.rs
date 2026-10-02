@@ -1,4 +1,5 @@
 mod checkpoint_coordinator;
+mod cleanlist;
 mod managed;
 pub use managed::{ManagedLiveEdit, ManagedRunReport};
 
@@ -31,7 +32,6 @@ use serde::Serialize;
 use std::{
     collections::{BTreeMap, BTreeSet, btree_map},
     fs,
-    io::{BufRead, BufReader},
     path::{Path, PathBuf},
     process::Command,
     sync::{
@@ -654,7 +654,7 @@ impl Engine {
             .components
             .iter()
             .filter(|component| component.is_selected)
-            .map(|component| component.name.to_lowercase())
+            .map(|component| component.name.clone())
             .collect();
         let mut issues = Vec::new();
         for component in ordered {
@@ -1177,7 +1177,7 @@ impl Engine {
             .components
             .iter()
             .filter(|component| component.is_selected)
-            .map(|component| component.name.to_lowercase())
+            .map(|component| component.name.clone())
             .collect();
         // C# InstallationService blocks installation on FomodConfigurationGate issues.
         self.fomod_gate(guide, &mut emit)
@@ -1433,7 +1433,7 @@ impl Engine {
             .components
             .iter()
             .filter(|c| c.is_selected)
-            .map(|c| c.name.to_lowercase())
+            .map(|c| c.name.clone())
             .collect();
         for (index, c) in ordered.iter().enumerate() {
             ensure!(
@@ -1938,8 +1938,10 @@ impl Engine {
                         &self.settings.cancelled,
                     )?;
                     let configured = if let Some(mut module) =
-                        crate::fomod::inspect_entries(&entries)?
-                    {
+                        crate::fomod::inspect_entries_with_cancel(
+                            &entries,
+                            &self.settings.cancelled,
+                        )? {
                         let filename = source
                             .file_name()
                             .and_then(|n| n.to_str())
@@ -2058,59 +2060,129 @@ impl Engine {
             }
             "DelDuplicate" => {
                 let dir = self.path(&i.destination, false)?;
-                let extensions = if i.source.is_empty() {
-                    vec![".dds".to_string(), ".tpc".to_string(), ".tga".to_string()]
-                } else {
-                    i.source.iter().map(|s| s.to_lowercase()).collect()
-                };
-                let mut groups: BTreeMap<String, Vec<PathBuf>> = BTreeMap::new();
-                for (p, _) in self.files.values().filter(|(p, _)| {
-                    p.parent()
-                        .is_some_and(|d| self.path_policy.key(d) == self.path_policy.key(&dir))
-                }) {
-                    let ext = format!(".{}", p.extension().unwrap_or_default().to_string_lossy())
-                        .to_lowercase();
-                    if extensions.contains(&ext) {
-                        groups
-                            .entry(self.path_policy.key(Path::new(p.file_stem().unwrap())))
-                            .or_default()
-                            .push(p.clone());
+                ensure!(
+                    self.directories.contains_key(&self.path_policy.key(&dir)),
+                    "DelDuplicate destination cannot be found"
+                );
+                let cancelled = self.settings.cancelled.clone();
+                let mut budget = cleanlist::Budget::new(&cancelled);
+                let mut extensions = BTreeSet::new();
+                for extension in &i.source {
+                    budget.text(extension)?;
+                    if !cleanlist::blank(extension) {
+                        extensions.insert(crate::unicode_case::ordinal_key(extension));
                     }
                 }
-                ensure!(
-                    !i.arguments.is_empty(),
-                    "DelDuplicate Arguments must name the extension to remove"
-                );
-                for group in groups.values().filter(|g| g.len() > 1) {
-                    for p in group {
-                        if format!(".{}", p.extension().unwrap_or_default().to_string_lossy())
-                            .eq_ignore_ascii_case(&i.arguments)
-                        {
-                            self.delete(p)?;
-                        }
+                if extensions.is_empty() {
+                    extensions.extend([".DDS", ".TPC", ".TGA"].map(str::to_owned));
+                }
+                budget.text(&i.arguments)?;
+                let preferred = crate::unicode_case::ordinal_key(&i.arguments);
+                budget.text(&dir.to_string_lossy())?;
+                let directory_key = self.path_policy.key(&dir);
+                let mut candidates = Vec::new();
+                let mut counts: BTreeMap<String, usize> = BTreeMap::new();
+                for (path, _) in self.files.values() {
+                    budget.charge(1)?;
+                    budget.text(&path.to_string_lossy())?;
+                    if path
+                        .parent()
+                        .is_none_or(|parent| self.path_policy.key(parent) != directory_key)
+                    {
+                        continue;
                     }
+                    ensure!(
+                        candidates.len() < 100_000,
+                        "DelDuplicate exceeds 100,000 candidates"
+                    );
+                    let name = path
+                        .file_name()
+                        .and_then(|name| name.to_str())
+                        .context("DelDuplicate filename is not Unicode")?;
+                    budget.text(name)?;
+                    let (stem, extension) = cleanlist::name_parts(name);
+                    let stem = crate::unicode_case::ordinal_key(stem);
+                    let extension = crate::unicode_case::ordinal_key(extension);
+                    if extensions.contains(&extension) {
+                        *counts.entry(stem.clone()).or_default() += 1;
+                    }
+                    candidates.push((path.clone(), stem, extension));
+                }
+                let mut planned = Vec::new();
+                for (path, stem, extension) in candidates {
+                    budget.charge(1)?;
+                    // Empty Arguments selects extensionless candidates as in the
+                    // reference; preferred extensions need not be compatible.
+                    if !stem.is_empty()
+                        && counts.get(&stem).copied().unwrap_or(0) > 1
+                        && extension == preferred
+                    {
+                        self.settings.roots.check(&path)?;
+                        planned.push(path);
+                    }
+                }
+                for path in planned {
+                    budget.check()?;
+                    self.delete(&path)?;
                 }
             }
             "CleanList" => {
                 let dir = self.path(&i.destination, false)?;
                 let sources = self.matches(&i.source, false)?;
                 let source = sources.first().context("CleanList needs a source file")?;
+                let cancelled = self.settings.cancelled.clone();
+                let mut budget = cleanlist::Budget::new(&cancelled);
+                let matcher = cleanlist::Matcher::new(&self.selected_names, &mut budget)?;
                 let data = self.files[&self.path_policy.key(source)].1.open()?;
-                for line in BufReader::new(data).lines() {
-                    for line in line?.split('\r') {
-                        self.check_cancelled()?;
-                        let Some((name, files)) = line.split_once(',') else {
-                            continue;
-                        };
-                        if cleanlist_selected(name.trim(), &self.selected_names) {
-                            for raw in files.split(',').map(str::trim).filter(|s| !s.is_empty()) {
-                                let p = self.actual(&dir.join(relative(raw, false)?));
-                                if self.files.contains_key(&self.path_policy.key(&p)) {
-                                    self.delete(&p)?;
-                                }
+                let rows = cleanlist::read_rows(data, &mut budget)?;
+                let mut planned = Vec::new();
+                let mut seen = BTreeSet::new();
+                for line in rows {
+                    budget.charge(1)?;
+                    if cleanlist::blank(&line) {
+                        continue;
+                    }
+                    let Some((name, files)) = line.split_once(',') else {
+                        self.validation_warning(
+                            "CleanList",
+                            "Invalid CleanList row: no files specified".into(),
+                            source,
+                        );
+                        if self.install {
+                            emit(Event {
+                                component: component.name.clone(),
+                                step: 0,
+                                message: "Warning: invalid CleanList row: no files specified"
+                                    .into(),
+                            });
+                        }
+                        continue;
+                    };
+                    if matcher.matches(cleanlist::trim(name), &mut budget)? {
+                        for raw in files
+                            .split(',')
+                            .map(cleanlist::trim)
+                            .filter(|s| !s.is_empty())
+                        {
+                            budget.text(raw)?;
+                            let path = self.actual(&dir.join(relative(raw, false)?));
+                            self.settings.roots.check(&path)?;
+                            let key = self.path_policy.key(&path);
+                            if self.files.contains_key(&key) && seen.insert(key) {
+                                ensure!(
+                                    planned.len() < 100_000,
+                                    "CleanList exceeds 100,000 deletions"
+                                );
+                                planned.push(path);
                             }
                         }
                     }
+                }
+                // No deletion occurs until decoding, work admission, and every
+                // selected path have been qualified. Errors retain recovery.
+                for path in planned {
+                    budget.check()?;
+                    self.delete(&path)?;
                 }
             }
             "Execute" | "Run" | "Patcher" => self.process(i, emit)?,
@@ -2435,60 +2507,4 @@ fn patcher_log_error_lines(content: &str) -> Vec<String> {
         })
         .map(str::to_owned)
         .collect()
-}
-
-// Match ModComponent.ExecuteSingleInstructionAsync's CleanList selection rules.
-fn cleanlist_selected(name: &str, selected: &BTreeSet<String>) -> bool {
-    let name = name.to_lowercase();
-    if name.trim().is_empty() {
-        return false;
-    }
-    if name.starts_with("mandatory deletions") {
-        return true;
-    }
-    fn tokens(name: &str) -> BTreeSet<String> {
-        const STOP: &[&str] = &[
-            "by",
-            "for",
-            "the",
-            "and",
-            "of",
-            "mod",
-            "pack",
-            "k1",
-            "k2",
-            "hd",
-            "kotor",
-            "kotorn",
-            "version",
-            "recolored",
-            "reskin",
-            "retexture",
-            "fix",
-            "fixes",
-        ];
-        name.split(|c: char| !c.is_ascii_lowercase() && !c.is_ascii_digit())
-            .filter(|word| !word.is_empty() && !STOP.contains(word))
-            .map(|word| {
-                if word.len() > 3 {
-                    word.strip_suffix('s').unwrap_or(word)
-                } else {
-                    word
-                }
-            })
-            .map(str::to_owned)
-            .collect()
-    }
-    let target = tokens(&name);
-    if target.is_empty() {
-        return false;
-    }
-    selected.iter().any(|candidate| {
-        if name.contains(candidate) || candidate.contains(&name) {
-            return true;
-        }
-        let other = tokens(candidate);
-        let shared = target.intersection(&other).count();
-        shared >= 2 && shared * 5 >= target.len().min(other.len()) * 3
-    })
 }

@@ -50,6 +50,16 @@ repository policy permits production library/binary build and Clippy checks whil
 freezing Rust tests and custom harnesses. Filesystem test creation/execution and CI
 remain deferred. Build success does not establish behavioral acceptance.
 
+The current bounded source batch adds pending protocol FIFOs/backpressure,
+BOM-aware cleanup with complete deletion planning, one cancellable filename
+inventory per planning/discovery invocation, and bounded FOMOD metadata/XML
+inspection using the real engine cancellation flag. It also replaces YAML plain
+scalar inference with the pinned default-object reader profile, retaining tags,
+style, null-key context, ordered mappings and bounded alias expansion. The four
+bounded contracts and YAML intake contract record explicit Rust admission and
+representation differences. Independent source reviews and production compilation
+are recorded in the production receipt; runtime and domain acceptance remain open.
+
 ## Latest source continuation
 
 The current source additionally includes worker-owned Save Selection, an isolated

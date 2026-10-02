@@ -59,7 +59,7 @@ impl Engine {
             .components
             .iter()
             .filter(|component| component.is_selected)
-            .map(|component| component.name.to_lowercase())
+            .map(|component| component.name.clone())
             .collect();
         for (index, component) in ordered.iter().enumerate() {
             let started = std::time::Instant::now();

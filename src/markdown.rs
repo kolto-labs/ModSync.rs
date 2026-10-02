@@ -32,6 +32,18 @@ const FIELDS: &[(&str, &str)] = &[
 ];
 
 pub(crate) fn parse_with_selection_default(text: &str, default_selection: bool) -> Result<Guide> {
+    parse_with_yaml_budget(
+        text,
+        default_selection,
+        &mut crate::model::yaml::Budget::default(),
+    )
+}
+
+pub(crate) fn parse_with_yaml_budget(
+    text: &str,
+    default_selection: bool,
+    yaml_budget: &mut crate::model::yaml::Budget,
+) -> Result<Guide> {
     let text = text.replace("\r\n", "\n");
     // Preserve guides wrapped in fenced blocks, including documents with decorative headings.
     // Reject mixed executable/prose input rather than silently dropping either set of components.
@@ -43,7 +55,11 @@ pub(crate) fn parse_with_selection_default(text: &str, default_selection: bool) 
         } else if let Some((lang, content)) = block.split_once('\n')
             && matches!(lang.trim(), "toml" | "json" | "yaml" | "yml" | "xml")
         {
-            let parsed = Guide::parse_without_dedup(content, lang.trim(), default_selection)?;
+            let parsed = if matches!(lang.trim(), "yaml" | "yml") {
+                Guide::parse_yaml_without_dedup(content, default_selection, yaml_budget)?
+            } else {
+                Guide::parse_without_dedup(content, lang.trim(), default_selection)?
+            };
             structured.components.extend(parsed.components);
             structured.metadata.extend(parsed.metadata);
         }
@@ -112,7 +128,7 @@ pub(crate) fn parse_with_selection_default(text: &str, default_selection: bool) 
     let mut positions = Vec::new();
     for (index, (position, section)) in sections.iter().enumerate() {
         // The reference drops sections with neither a Name field nor a heading.
-        let Some((mut component, dependencies)) = component(section, index)? else {
+        let Some((mut component, dependencies)) = component(section, index, yaml_budget)? else {
             continue;
         };
         component
@@ -249,7 +265,11 @@ pub(crate) fn parse_with_selection_default(text: &str, default_selection: bool) 
     Ok(guide)
 }
 
-fn component(section: &str, index: usize) -> Result<Option<(Component, String)>> {
+fn component(
+    section: &str,
+    index: usize,
+    yaml_budget: &mut crate::model::yaml::Budget,
+) -> Result<Option<(Component, String)>> {
     let mut prose = section.to_owned();
     let mut metadata = None;
     if let Some(start) = prose.to_ascii_lowercase().find("<!--<<modsync>>") {
@@ -329,7 +349,8 @@ fn component(section: &str, index: usize) -> Result<Option<(Component, String)>>
             )
         } else {
             (
-                serde_yaml_ng::from_str(&metadata).context("Parse Markdown YAML metadata")?,
+                crate::model::yaml::one(&metadata, yaml_budget)
+                    .context("Parse Markdown YAML metadata")?,
                 crate::model::keys::Format::Yaml,
             )
         };

@@ -392,8 +392,12 @@ pub fn visible_steps(steps: &[StepSelection]) -> Vec<usize> {
         .collect()
 }
 
+mod metadata;
 mod xml;
-pub use xml::{parse_info_xml, parse_module_xml, parse_selection_xml};
+pub use xml::{
+    parse_info_xml, parse_info_xml_with_cancel, parse_module_xml, parse_module_xml_with_cancel,
+    parse_selection_xml,
+};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct FileInstall {
@@ -731,7 +735,7 @@ pub fn inspect_archive(
     cancelled: &std::sync::atomic::AtomicBool,
 ) -> Result<Option<ArchiveModule>> {
     let entries = crate::archive::unpack(path, path, options, cancelled)?;
-    inspect_entries(&entries)
+    inspect_entries_with_cancel(&entries, cancelled)
 }
 
 /// Like [`inspect_archive`], but a verified listing decides first: only an archive
@@ -746,34 +750,57 @@ pub(crate) fn inspect_listed(
     if !names.iter().any(|name| is_module_config_path(name)) {
         return Ok(None);
     }
-    inspect_entries(&crate::archive::unpack(path, name, options, cancelled)?)
+    inspect_entries_with_cancel(
+        &crate::archive::unpack(path, name, options, cancelled)?,
+        cancelled,
+    )
 }
 
-pub(crate) fn inspect_entries(entries: &[crate::archive::Entry]) -> Result<Option<ArchiveModule>> {
-    let mut modules = entries
-        .iter()
-        .filter(|e| is_module_config_path(&e.path.to_string_lossy()));
-    let Some(module) = modules.next() else {
+pub(crate) fn inspect_entries_with_cancel(
+    entries: &[crate::archive::Entry],
+    cancelled: &std::sync::atomic::AtomicBool,
+) -> Result<Option<ArchiveModule>> {
+    metadata::check(cancelled)?;
+    let mut module = None;
+    for entry in entries {
+        metadata::check(cancelled)?;
+        if is_module_config_path(&entry.path.to_string_lossy()) {
+            ensure!(
+                module.is_none(),
+                "Archive contains multiple FOMOD installers"
+            );
+            module = Some(entry);
+        }
+    }
+    let Some(module) = module else {
+        metadata::check(cancelled)?;
         return Ok(None);
     };
-    ensure!(
-        modules.next().is_none(),
-        "Archive contains multiple FOMOD installers"
-    );
     let directory = module.path.parent().unwrap();
     let info_path = directory
         .join("info.xml")
         .to_string_lossy()
         .to_ascii_lowercase();
-    let info = entries
-        .iter()
-        .find(|e| e.path.to_string_lossy().to_ascii_lowercase() == info_path)
-        .map(|e| -> Result<FomodInfo> { parse_info_xml(&std::fs::read_to_string(e.file.path())?) })
+    let mut info_entry = None;
+    for entry in entries {
+        metadata::check(cancelled)?;
+        if entry.path.to_string_lossy().to_ascii_lowercase() == info_path {
+            info_entry = Some(entry);
+            break;
+        }
+    }
+    let info = info_entry
+        .map(|entry| -> Result<FomodInfo> {
+            parse_info_xml_with_cancel(&metadata::read(entry.file.path(), cancelled)?, cancelled)
+        })
         .transpose()?;
     Ok(Some(ArchiveModule {
         module_path: module.path.clone(),
         content_root: directory.parent().unwrap().to_path_buf(),
-        config: parse_module_xml(&std::fs::read_to_string(module.file.path())?)?,
+        config: parse_module_xml_with_cancel(
+            &metadata::read(module.file.path(), cancelled)?,
+            cancelled,
+        )?,
         info,
     }))
 }

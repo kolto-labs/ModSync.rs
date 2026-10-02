@@ -153,6 +153,16 @@ also passed with the documented production-only unrar_sys target correction.
 Native Windows execution, the separate GUI launcher, package delivery and all
 behavioral acceptance remain unverified.
 
+The current bounded source batch adds pending protocol FIFOs/backpressure,
+BOM-aware cleanup with complete deletion planning, one cancellable filename
+inventory per planning/discovery invocation, and bounded FOMOD metadata/XML
+inspection using the real engine cancellation flag. It also replaces YAML plain
+scalar inference with the pinned default-object reader profile, retaining tags,
+style, null-key context, ordered mappings and bounded alias expansion. The four
+bounded contracts and YAML intake contract record explicit Rust admission and
+representation differences. Independent source reviews and production compilation
+are recorded in the production receipt; runtime and domain acceptance remain open.
+
 ## Historical work snapshot — 2026-09-28
 
 - Current continuation starts from merged downloads GUI step 1, `d438528` (PR #5).

@@ -3570,6 +3570,7 @@ dependencies = [
  "tokio",
  "toml",
  "unrar",
+ "unsafe-libyaml",
  "uuid",
  "walkdir",
  "windows-sys 0.61.2",

@@ -299,6 +299,8 @@ pub fn plan_with_cancel(
     options: &PlanOptions,
     cancelled: &AtomicBool,
 ) -> Result<AcquisitionPlan> {
+    let mut filename_selection =
+        download_plan::SelectionContext::new(Some(&options.source_dir), cancelled)?;
     let mut result = AcquisitionPlan {
         source_dir: options.source_dir.clone(),
         peer_mode: options.peer_mode,
@@ -331,7 +333,14 @@ pub fn plan_with_cancel(
                 !cancelled.load(Ordering::Relaxed),
                 "Acquisition planning cancelled"
             );
-            plan_url(component, url, metadata, options, &mut result, cancelled)?;
+            plan_url(
+                component,
+                url,
+                metadata,
+                options,
+                &mut result,
+                &mut filename_selection,
+            )?;
             ensure!(
                 !cancelled.load(Ordering::Relaxed),
                 "Acquisition planning cancelled"
@@ -424,8 +433,9 @@ fn plan_url(
     metadata: &Value,
     options: &PlanOptions,
     plan: &mut AcquisitionPlan,
-    cancelled: &AtomicBool,
+    filename_selection: &mut download_plan::SelectionContext<'_>,
 ) -> Result<()> {
+    let cancelled = filename_selection.cancelled();
     let skip = |filename: Option<&str>, reason, path: Option<PathBuf>, detail: Option<String>| {
         PlannedSkip {
             component_guid: component.guid.clone(),
@@ -501,7 +511,8 @@ fn plan_url(
     let filenames: Vec<Option<String>> = if keys.is_empty() {
         vec![None]
     } else {
-        download_plan::select_filenames(component, url, &names, Some(&options.source_dir))?
+        filename_selection
+            .select(component, url, &names)?
             .into_iter()
             .map(Some)
             .collect()
@@ -606,9 +617,10 @@ fn expand_deadlystream_page(
     options: &PlanOptions,
     settings: &RunSettings,
     loopback_ca: Option<&download::LoopbackCa>,
-    cancelled: &AtomicBool,
     result: &mut AcquisitionPlan,
+    filename_selection: &mut download_plan::SelectionContext<'_>,
 ) -> Result<()> {
+    let cancelled = filename_selection.cancelled();
     let page = bare_deadlystream_page(target).context("Target has no DeadlyStream page")?;
     let component = guide
         .components
@@ -631,12 +643,7 @@ fn expand_deadlystream_page(
         .map(|file| file.name.clone())
         .filter(|name| resolution_allows(options.resolution, name))
         .collect();
-    let selected = download_plan::select_filenames(
-        component,
-        &target.registry_url,
-        &names,
-        Some(&result.source_dir),
-    )?;
+    let selected = filename_selection.select(component, &target.registry_url, &names)?;
     if selected.is_empty() {
         // As `plan` drops named files the component's Extract patterns do not need.
         result.warnings.push(format!(
@@ -707,9 +714,10 @@ fn expand_nexus_page(
     page: &str,
     options: &PlanOptions,
     client: &mut NexusClient,
-    cancelled: &AtomicBool,
     result: &mut AcquisitionPlan,
+    filename_selection: &mut download_plan::SelectionContext<'_>,
 ) -> Result<()> {
+    let cancelled = filename_selection.cancelled();
     let (game_domain, mod_id, _) = nexus_page(page)?;
     let component = guide
         .components
@@ -760,12 +768,7 @@ fn expand_nexus_page(
         .map(|file| file.file_name.clone())
         .filter(|name| resolution_allows(options.resolution, name))
         .collect();
-    let selected = download_plan::select_filenames(
-        component,
-        &target.registry_url,
-        &names,
-        Some(&result.source_dir),
-    )?;
+    let selected = filename_selection.select(component, &target.registry_url, &names)?;
     if selected.is_empty() {
         // As `plan` drops named files the component's Extract patterns do not need.
         result.warnings.push(format!(
@@ -879,6 +882,8 @@ pub fn discover_with_loopback_ca(
     cancelled: &AtomicBool,
     loopback_ca: Option<&download::LoopbackCa>,
 ) -> Result<AcquisitionPlan> {
+    let mut filename_selection =
+        download_plan::SelectionContext::new(Some(&plan.source_dir), cancelled)?;
     let mut result = AcquisitionPlan {
         targets: Vec::new(),
         ..plan.clone()
@@ -905,8 +910,8 @@ pub fn discover_with_loopback_ca(
                 options,
                 settings,
                 loopback_ca,
-                cancelled,
                 &mut expanded,
+                &mut filename_selection,
             ) {
                 Ok(()) => {
                     result.targets.extend(expanded.targets);
@@ -914,6 +919,9 @@ pub fn discover_with_loopback_ca(
                     result.warnings.extend(expanded.warnings);
                 }
                 Err(error) => {
+                    if error.is::<download_plan::QualificationError>() {
+                        return Err(error);
+                    }
                     result
                         .warnings
                         .push(format!("Provider filename discovery failed: {error:#}"));
@@ -967,8 +975,8 @@ pub fn discover_with_loopback_ca(
             page,
             options,
             client,
-            cancelled,
             &mut expanded,
+            &mut filename_selection,
         ) {
             Ok(()) => {
                 result.targets.extend(expanded.targets);
@@ -976,6 +984,9 @@ pub fn discover_with_loopback_ca(
                 result.warnings.extend(expanded.warnings);
             }
             Err(error) => {
+                if error.is::<download_plan::QualificationError>() {
+                    return Err(error);
+                }
                 result
                     .warnings
                     .push(format!("Provider filename discovery failed: {error:#}"));

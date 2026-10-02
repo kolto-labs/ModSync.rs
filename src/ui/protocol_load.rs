@@ -111,7 +111,7 @@ impl App {
         {
             return;
         }
-        let Some(raw) = self.pending_protocol.take() else {
+        let Some(raw) = self.pending_protocol.pop_front() else {
             return;
         };
         if modsync::single_instance::validate_protocol_request(&raw).is_err() {

@@ -889,3 +889,56 @@ e39120269fe63ca32ef487c7c4e23cf43a6a670b0f7328999601bf6b1bdff178  src/ui.rs
 f5cb58779cbc6c48f8095de922ef70ebb0154e94fe53e5ff1d4bf2beb5e2afc8  src/model/boolean.rs
 de773d4aa4f13de423d9205aa1fc5d6569f687e3d4f6f4a46cfc23ea0cde9c74  src/profiles/numeric_culture.rs
 ```
+
+
+## Bounded inbox, cleanup, filename inventory, FOMOD metadata and YAML intake
+
+Source following `843455a` implements five independently specification- and
+quality-reviewed scopes: protocol FIFO/backpressure, complete bounded cleanup
+planning and BOM decoding, invocation-owned filename inventory, FOMOD metadata
+read/XML bounds with real engine cancellation, and decoded YAML scalar/alias
+intake with shared guide budgets. The contract documents retain native/type,
+wildcard, mapping and cooperative filesystem limitations. No domain is closed.
+
+Parent production gates:
+
+- Formatting and whitespace: sessions948603 and2230 exit0; final session95791 exit0.
+- Linux default library/binary build: session2230 exit0,71s before three
+  mechanical lint corrections; final current-source refresh session95791 exit0,134s.
+- Linux default strict Clippy: session25663 exit0,24.89s. Session86942 reported
+  the unsafe-library alias, indexed decoder loop and nonminimal predicate;
+  each was corrected without changing policy.
+- Linux no-default library/binary build: session50964 exit0,35.58s.
+- Linux no-default strict Clippy: session49605 exit0,30.36s.
+- Windows GNU no-default library/binary compile/link: session99083 exit0,65s.
+
+The existing UI inline test suffix is byte-identical to `843455a`; no test or
+fixture paths changed. Cargo.lock adds only the root dependency on the already
+locked unsafe-libyaml package, with no package version changes. No tests,
+fixtures, custom harnesses, filesystem tests, binary/runtime/CLI/native probes,
+installations, backend/package/data producers or CI ran. The sole checkout is
+`main`; fresh fetch session76443 showed HEAD and origin/main at the same prior
+commit. Source review and compilation do not establish native behavior, corpus,
+provider, restored-game or full F01-F29 acceptance.
+
+Source hashes:
+
+```text
+f06ab5e1e0cfd37670b39ab27200ebb50d6904d5003cbb27ce9b348e06d5ec4a  src/ui.rs
+b82bcc497d0df5b8b6eeb9f6da6ee39888955e4b1a2cb03e3a6c6addaea53d95  src/ui/protocol_inbox.rs
+d588a4fb05ff6c9d50c313f466bc6cf0fc5a9eedde80e75d53d35e8887128faf  src/ui/protocol_load.rs
+2a465d6ef603cca5f5929205b9f75d021f22d426652732cd7c12f507bd8a0ca7  src/engine.rs
+d44fd8151b6db12f9d503b8477e018e045abdcc40ee0f11bda7eb8e484ff9e74  src/engine/cleanlist.rs
+fcf62ffeb9b1540eed569622930d86e9b44311b9ea2fa0a36acfc16291ba202a  src/engine/checkpoint_coordinator.rs
+f201e7afdb368a5f9183a1f89dec7be228b6989d5c4a7a09b39dae89cec45506  src/download_plan.rs
+f9de1f329753a4370cb7da9791bedecee37a015dcd4191121d4b0de20d737f0e  src/download_orchestrator.rs
+1776ac42061e728bb11177e65ca078e31366ad9d1f0b09499e4bc2dad937f76c  src/fomod.rs
+c8c7d22941cf4a00443e423a3f28eda47a42e6a3fbfa632d33556c35c9fdff82  src/fomod/metadata.rs
+04a6b68552847f0ca88143c3f07533d02382e410feff11604b18d3f73c3d8e4c  src/fomod/xml.rs
+4e6b4f41a1ea5ce9a3158af9bd064c14d616fe2cd383eb4a19e8b5291fa9799a  src/model.rs
+6cd53c5cae5f6fc8d2de300ec92cecb0b1c5c45a30da3228b062bf1f580eef2f  src/model/yaml.rs
+1158ff0c047de5dcaa0eb417b8fa64a502a33e3c12528d45c472c657d47e1959  src/markdown.rs
+506b2e50a10d6e8422b40a1a3568ac1ddca9232b054ddae38cd8185486c75b40  src/profiles/numeric_culture.rs
+84e73c3d490ca06a88e4a1d1ded043c932bf7b2c5a888074c32ef9ec807a304b  Cargo.toml
+fe436da3c421455e1e872d8fb36bec5011dc6daf4bccf8bb45012e883082955c  Cargo.lock
+```

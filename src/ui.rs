@@ -8,6 +8,7 @@ mod installing_page;
 mod main_window;
 mod maintenance;
 mod merge_panel;
+mod protocol_inbox;
 mod protocol_load;
 mod protocol_settings;
 mod resource_watch;
@@ -184,6 +185,8 @@ pub struct App {
     logs: Vec<String>,
     receiver: Option<Receiver<Message>>,
     protocol_load: protocol_load::State,
+    #[cfg(target_os = "macos")]
+    protocol_inbox: protocol_inbox::State,
     protocol_receiver: Option<Receiver<String>>,
     #[cfg(target_os = "macos")]
     native_protocol_receiver: Option<Receiver<String>>,
@@ -204,7 +207,7 @@ pub struct App {
     download_url: String,
     download_name: String,
     download_hash: String,
-    pending_protocol: Option<String>,
+    pending_protocol: std::collections::VecDeque<String>,
     pending_nxm: std::collections::VecDeque<String>,
     telemetry: modsync::telemetry::Config,
     /// Shared acquisition runs (Fetch and nxm) and their presentation.
@@ -2068,17 +2071,17 @@ impl App {
                 if ui.button("Load guide").clicked() {
                     self.load();
                 }
-                if let Some(url) = self.pending_protocol.clone() {
+                if let Some(url) = self.pending_protocol.front().cloned() {
                     ui.separator();
                     ui.strong("Open ModSync build link?");
-                    ui.label(&url);
+                    ui.label(self.downloads.redact(&url));
                     ui.label("Only continue for links you trust.");
                     ui.horizontal(|ui| {
                         if ui.button("Download & Open").clicked() {
                             self.open_pending_protocol();
                         }
                         if ui.button("Cancel").clicked() {
-                            self.pending_protocol = None;
+                            self.pending_protocol.pop_front();
                             self.logs.push("Declined ModSync build link.".into());
                         }
                     });
@@ -2922,7 +2925,9 @@ impl App {
             download_name: String::new(),
             download_hash: String::new(),
             protocol_load: Default::default(),
-            pending_protocol: None,
+            #[cfg(target_os = "macos")]
+            protocol_inbox: Default::default(),
+            pending_protocol: Default::default(),
             pending_nxm: Default::default(),
             telemetry: Default::default(),
             downloads: Default::default(),
@@ -3006,26 +3011,6 @@ impl App {
                 self.guide = None;
                 self.wizard = None;
                 self.logs.push(format!("Load failed: {e:#}"));
-            }
-        }
-    }
-
-    fn accept_protocol(&mut self, url: String) {
-        if self.sharing.closing {
-            return;
-        }
-        match modsync::protocol::parse(&url) {
-            Ok(modsync::protocol::Link::Modsync { .. }) => self.pending_protocol = Some(url),
-            Ok(modsync::protocol::Link::Nxm { .. }) => {
-                self.pending_nxm.push_back(url);
-                self.start_pending_nxm_if_ready();
-            }
-            Err(error) => {
-                let text = format!("{error:#}");
-                self.logs.push(format!(
-                    "Protocol link rejected: {}",
-                    self.downloads.redact(&text)
-                ));
             }
         }
     }
@@ -4309,28 +4294,7 @@ impl App {
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.poll_resource_watch();
-        let protocol_messages: Vec<_> = self
-            .protocol_receiver
-            .as_ref()
-            .map(|receiver| receiver.try_iter().collect())
-            .unwrap_or_default();
-        #[cfg(target_os = "macos")]
-        let protocol_messages: Vec<_> = protocol_messages
-            .into_iter()
-            .chain(
-                self.native_protocol_receiver
-                    .as_ref()
-                    .into_iter()
-                    .flat_map(|receiver| receiver.try_iter()),
-            )
-            .collect();
-        for url in protocol_messages {
-            if url == modsync::single_instance::ACTIVATE_MESSAGE {
-                ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
-            } else {
-                self.accept_protocol(url);
-            }
-        }
+        self.poll_protocol_inbox(ctx);
         let messages: Vec<_> = self
             .receiver
             .as_ref()
@@ -4441,7 +4405,7 @@ impl eframe::App for App {
         if self.sharing.close_confirm {
             egui::Modal::new(egui::Id::new("close_sharing_workers")).show(ctx, |ui| {
                 ui.heading("Stop work and close?");
-                ui.label("Downloads, sharing, editor work, settings saves and telemetry finish cleanup before the window closes. Dismiss any open file dialog to let cancellation finish.");
+                ui.label("Downloads, sharing, editor work, settings saves and telemetry finish cleanup before the window closes. Pending protocol links are discarded when the app closes. Dismiss any open file dialog to let cancellation finish.");
                 if ui.button("Stop and close").clicked() {
                     self.cancelled.store(true, Ordering::Release);
                     self.downloads.request_stop();
