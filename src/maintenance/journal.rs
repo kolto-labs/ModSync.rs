@@ -1,5 +1,5 @@
 use super::{
-    Action, Operation, Outcome, OutcomeStatus, Status, check_cancelled,
+    Action, Operation, Outcome, OutcomeStatus, Status, TreeDisposition, check_cancelled, fence,
     plan::{self, Entry, MAX_DOCUMENT, MAX_ENTRIES, Plan, Work},
     platform,
 };
@@ -192,12 +192,11 @@ fn valid_transition(previous: &Cursor, next: &Cursor) -> Result<()> {
 }
 
 fn valid_plan(plan: &Plan) -> Result<()> {
-    platform::require_capability()?;
-    ensure!(
-        plan.capability == platform::capability(),
-        "Maintenance platform capability differs from recorded writer"
-    );
+    platform::validate_capability(&plan.capability)?;
     plan::validate_roots(&plan.roots())?;
+    for identity in &plan.root_identities {
+        platform::validate_identity(identity, &plan.capability)?;
+    }
     let subtree = crate::paths::relative(&plan.subtree, false)?
         .to_string_lossy()
         .replace('\\', "/");
@@ -240,6 +239,7 @@ fn valid_plan(plan: &Plan) -> Result<()> {
     });
     let mut expected = Vec::new();
     for (path, entry) in entries {
+        platform::validate_identity(&entry.identity, &plan.capability)?;
         let relative = crate::paths::relative(path, false)?
             .to_string_lossy()
             .replace('\\', "/");
@@ -424,10 +424,19 @@ fn load(roots: &Roots) -> Result<Option<Loaded>> {
 }
 
 pub(super) fn status(roots: &Roots) -> Result<Status> {
+    let mod_fence = fence::load(&roots.mods)?;
     let Some((intent, cursor, _, _)) = load(roots)? else {
         if crate::checkpoint::safe_path(&directory(roots))?.is_some() {
             crate::checkpoint::persistence::namespace_boundary(&directory(roots))?;
         }
+        if let Some(record) = mod_fence {
+            ensure!(
+                record.roots().game == roots.game,
+                "Mod fence is bound to another game root"
+            );
+            return Ok(record.status());
+        }
+        fence::ensure_clear(&roots.mods)?;
         return Ok(Status {
             pending: false,
             digest: None,
@@ -435,12 +444,54 @@ pub(super) fn status(roots: &Roots) -> Result<Status> {
             phase: None,
         });
     };
+    if let Some(record) = mod_fence {
+        record.matches_plan(&intent.plan, &intent.digest, &intent.nonce)?;
+        let flag = AtomicBool::new(false);
+        let mut work = Work::new();
+        validate_terminal_pair(&intent, &cursor, &record, &flag, &mut work)?;
+    }
     Ok(Status {
         pending: true,
         digest: Some(intent.digest),
         operation_count: intent.plan.operations.len(),
         phase: Some(format!("{:?}", cursor.direction)),
     })
+}
+
+fn disposition(cursor: &Cursor) -> TreeDisposition {
+    match cursor.direction {
+        Direction::Applying => TreeDisposition::AppliedTree,
+        Direction::RollingBack => TreeDisposition::RestoredOriginalTree,
+    }
+}
+
+fn validate_terminal_pair(
+    intent: &Intent,
+    cursor: &Cursor,
+    record: &fence::Record,
+    flag: &AtomicBool,
+    work: &mut Work,
+) -> Result<()> {
+    if let Some(terminal) = &record.terminal {
+        valid_terminal(&intent.plan, cursor)?;
+        ensure!(
+            terminal.disposition == disposition(cursor),
+            "Mod and primary maintenance terminal cursors disagree"
+        );
+        if let Some(primary) = &intent.terminal {
+            ensure!(
+                primary == cursor,
+                "Primary maintenance terminal differs from its durable progress"
+            );
+        }
+        let entries = plan::project(&intent.plan, cursor.completed, None, flag, work)?;
+        ensure!(
+            terminal.entry_count == entries.len()
+                && terminal.entries_digest == plan::inventory_digest(&entries, flag, work)?,
+            "Mod terminal proof differs from the immutable primary plan"
+        );
+    }
+    Ok(())
 }
 
 struct Writer {
@@ -486,6 +537,44 @@ fn publish_intent(directory: &Path, intent: &Intent, replace: bool) -> Result<()
         read_bounded(&directory.join("plan.json"))? == bytes,
         "Maintenance published intent differs from its flushed private document"
     );
+    Ok(())
+}
+
+fn finish_cleanup(intent: &Intent, terminal: &Cursor, record: &fence::Record) -> Result<()> {
+    let directory = directory(&intent.plan.roots());
+    let current: Intent = serde_json::from_slice(&read_bounded(&directory.join("plan.json"))?)?;
+    ensure!(
+        current.digest == intent.digest
+            && current.nonce == intent.nonce
+            && current.plan.digest()? == intent.digest,
+        "Maintenance immutable intent changed before terminal cleanup"
+    );
+    valid_terminal(&intent.plan, terminal)?;
+    let mut terminal_intent = intent.clone();
+    terminal_intent.terminal = Some(terminal.clone());
+    publish_intent(&directory, &terminal_intent, true)?;
+    // Keep the target's fence until last. Mod-only acquisition may resume
+    // after a Game-target fence clears, while the terminal primary still
+    // fences game-only deployment writers and preserves the Game tree proof.
+    if intent.plan.target == super::TreeRoot::Game {
+        fence::clear(record)?;
+    }
+    let journal = directory.join("journal.jsonl");
+    if crate::checkpoint::safe_path(&journal)?.is_some() {
+        safe_state(&journal)?;
+        fs::remove_file(journal)?;
+    }
+    crate::checkpoint::persistence::namespace_boundary(&directory)?;
+    fs::remove_file(directory.join("plan.json"))?;
+    if let Err(error) = crate::checkpoint::persistence::namespace_boundary(&directory) {
+        return match publish_intent(&directory, &terminal_intent, false) {
+            Ok(()) => Err(error).context("Maintenance cleanup flush failed; terminal intent retained for explicit recovery"),
+            Err(republish) => Err(error).context(format!("Maintenance cleanup flush and terminal intent republication failed: {republish:#}; target namespace cleanup remains unqualified; absence guards must flush before admitting writers")),
+        };
+    }
+    if intent.plan.target == super::TreeRoot::Mods {
+        fence::clear(record)?;
+    }
     Ok(())
 }
 
@@ -536,7 +625,7 @@ impl Writer {
             identity: platform::identity(&metadata)?,
             length: metadata.len(),
             modified: metadata.modified()?,
-            plan_bytes: plan::document(intent)?.len(),
+            plan_bytes: plan::document(intent)?.len() + fence::MAX_FENCE,
             file,
         })
     }
@@ -566,7 +655,7 @@ impl Writer {
         self.modified = self.file.metadata()?.modified()?;
         Ok(())
     }
-    fn clear(self, intent: &Intent, terminal: &Cursor) -> Result<()> {
+    fn clear(self, intent: &Intent, terminal: &Cursor, work: &mut Work) -> Result<()> {
         let current: Intent =
             serde_json::from_slice(&read_bounded(&self.directory.join("plan.json"))?)?;
         ensure!(
@@ -583,23 +672,17 @@ impl Writer {
             "Maintenance journal changed before cleanup"
         );
         valid_terminal(&intent.plan, terminal)?;
-        let mut terminal_intent = intent.clone();
-        terminal_intent.terminal = Some(terminal.clone());
-        publish_intent(&self.directory, &terminal_intent, true)?;
-        // Removing progress first leaves a complete immutable original plan
-        // with the durably published terminal cursor.
-        // Clearing the intent first would strand unauthenticated progress.
+        let finishing = AtomicBool::new(false);
+        let record = fence::terminal(
+            &intent.plan,
+            &intent.digest,
+            &intent.nonce,
+            disposition(terminal),
+            &finishing,
+            work,
+        )?;
         drop(self.file);
-        fs::remove_file(self.directory.join("journal.jsonl"))?;
-        crate::checkpoint::persistence::namespace_boundary(&self.directory)?;
-        fs::remove_file(self.directory.join("plan.json"))?;
-        if let Err(error) = crate::checkpoint::persistence::namespace_boundary(&self.directory) {
-            return match publish_intent(&self.directory, &terminal_intent, false) {
-                Ok(()) => Err(error).context("Maintenance cleanup flush failed; terminal intent retained for explicit recovery"),
-                Err(republish) => Err(error).context(format!("Maintenance cleanup flush and terminal-fence re-publication failed: {republish:#}; empty-state queries and mutation guards require a successful namespace flush before reporting idle")),
-            };
-        }
-        Ok(())
+        finish_cleanup(intent, terminal, &record)
     }
 }
 
@@ -941,18 +1024,18 @@ pub(super) fn apply(plan: Plan, lock: &Lock, flag: &AtomicBool) -> Result<Outcom
         },
     };
     let bytes = plan::document(&intent)?;
+    let progress_reservation = intent
+        .plan
+        .operations
+        .len()
+        .checked_mul(2048)
+        .context("Maintenance journal reservation overflow")?;
     // Reserve sufficient bounded progress space for forward and reverse legs.
     ensure!(
         bytes
             .len()
-            .checked_add(
-                intent
-                    .plan
-                    .operations
-                    .len()
-                    .checked_mul(2048)
-                    .context("Maintenance journal reservation overflow")?
-            )
+            .checked_add(fence::MAX_FENCE)
+            .and_then(|size| size.checked_add(progress_reservation))
             .is_some_and(|size| size <= MAX_DOCUMENT),
         "Maintenance immutable plan plus recovery journal exceeds 64 MiB reservation"
     );
@@ -973,6 +1056,17 @@ pub(super) fn apply(plan: Plan, lock: &Lock, flag: &AtomicBool) -> Result<Outcom
             recovered: false,
             status: OutcomeStatus::RecoveryRequired,
             failure: Some(failure(&error)),
+            disposition: None,
+        });
+    }
+    if let Err(error) = fence::ensure_active(&intent.plan, &intent.digest, &intent.nonce) {
+        return Ok(Outcome {
+            digest,
+            completed_operations: 0,
+            recovered: false,
+            status: OutcomeStatus::RecoveryRequired,
+            failure: Some(failure(&error)),
+            disposition: None,
         });
     }
     let mut cursor = Cursor {
@@ -989,18 +1083,20 @@ pub(super) fn apply(plan: Plan, lock: &Lock, flag: &AtomicBool) -> Result<Outcom
                 recovered: false,
                 status: OutcomeStatus::RecoveryRequired,
                 failure: Some(failure(&error)),
+                disposition: None,
             });
         }
     };
     let mut work = Work::new();
     match forward(&intent, &mut writer, &mut cursor, flag, &mut work) {
-        Ok(()) => match writer.clear(&intent, &cursor) {
+        Ok(()) => match writer.clear(&intent, &cursor, &mut work) {
             Ok(()) => Ok(Outcome {
                 digest,
                 completed_operations: intent.plan.operations.len(),
                 recovered: false,
                 status: OutcomeStatus::Applied,
                 failure: None,
+                disposition: Some(TreeDisposition::AppliedTree),
             }),
             Err(error) => Ok(Outcome {
                 digest,
@@ -1008,6 +1104,7 @@ pub(super) fn apply(plan: Plan, lock: &Lock, flag: &AtomicBool) -> Result<Outcom
                 recovered: false,
                 status: OutcomeStatus::RecoveryRequired,
                 failure: Some(failure(&error)),
+                disposition: None,
             }),
         },
         Err(error) => {
@@ -1015,7 +1112,7 @@ pub(super) fn apply(plan: Plan, lock: &Lock, flag: &AtomicBool) -> Result<Outcom
             let cancelled = flag.load(Ordering::Acquire);
             let mut cleanup_work = Work::new();
             let cleanup = rollback(&intent, &mut writer, &mut cursor, &mut cleanup_work)
-                .and_then(|()| writer.clear(&intent, &cursor));
+                .and_then(|()| writer.clear(&intent, &cursor, &mut cleanup_work));
             match cleanup {
                 Ok(()) => Ok(Outcome {
                     digest,
@@ -1027,6 +1124,7 @@ pub(super) fn apply(plan: Plan, lock: &Lock, flag: &AtomicBool) -> Result<Outcom
                         OutcomeStatus::FailedAndRolledBack
                     },
                     failure: Some(failure(&error)),
+                    disposition: Some(TreeDisposition::RestoredOriginalTree),
                 }),
                 Err(cleanup) => Ok(Outcome {
                     digest,
@@ -1043,6 +1141,7 @@ pub(super) fn apply(plan: Plan, lock: &Lock, flag: &AtomicBool) -> Result<Outcom
                         .take(4096)
                         .collect(),
                     ),
+                    disposition: None,
                 }),
             }
         }
@@ -1059,44 +1158,106 @@ pub(super) fn recover(
         lock.guards(roots),
         "Maintenance recovery requires matching held root locks"
     );
-    let (mut intent, mut cursor, bytes, valid_length) =
-        load(roots)?.context("No pending maintenance transaction")?;
+    let Some((intent, mut cursor, bytes, valid_length)) = load(roots)? else {
+        let record = fence::load(&roots.mods)?.context("No pending maintenance transaction")?;
+        ensure!(
+            record.roots().game == roots.game && record.digest == expected_digest,
+            "Terminal mod fence differs from selected roots or operation identity"
+        );
+        check_cancelled(flag)?;
+        if crate::checkpoint::safe_path(&directory(roots))?.is_some() {
+            crate::checkpoint::persistence::namespace_boundary(&directory(roots))?;
+        }
+        let mut work = Work::new();
+        let result = record
+            .verify_terminal(flag, &mut work)
+            .and_then(|verified| {
+                fence::clear(&record)?;
+                Ok(verified)
+            });
+        return match result {
+            Ok(verified) => Ok(Outcome {
+                digest: record.digest,
+                completed_operations: if verified == TreeDisposition::AppliedTree {
+                    record.operation_count
+                } else {
+                    0
+                },
+                recovered: true,
+                status: OutcomeStatus::Applied,
+                failure: None,
+                disposition: Some(verified),
+            }),
+            Err(error) => Ok(Outcome {
+                digest: record.digest,
+                completed_operations: 0,
+                recovered: true,
+                status: OutcomeStatus::RecoveryRequired,
+                failure: Some(failure(&error)),
+                disposition: None,
+            }),
+        };
+    };
     ensure!(
         intent.digest == expected_digest,
         "Maintenance recovery operation identity differs from selected digest"
     );
     check_cancelled(flag)?;
-    let finishing = AtomicBool::new(false);
     let mut work = Work::new();
-    let result = (|| -> Result<()> {
+    let result = (|| -> Result<TreeDisposition> {
+        let record = fence::ensure_active(&intent.plan, &intent.digest, &intent.nonce)?;
+        validate_terminal_pair(&intent, &cursor, &record, flag, &mut work)?;
+        if intent.terminal.is_some() || record.terminal.is_some() {
+            // A verified terminal publication commits the disposition. Recovery
+            // cannot change a completed apply back into an original-tree rollback.
+            let terminal = intent.terminal.as_ref().unwrap_or(&cursor);
+            valid_terminal(&intent.plan, terminal)?;
+            let record = fence::terminal(
+                &intent.plan,
+                &intent.digest,
+                &intent.nonce,
+                disposition(terminal),
+                flag,
+                &mut work,
+            )?;
+            let verified = record.verify_terminal(flag, &mut work)?;
+            let journal_path = directory(roots).join("journal.jsonl");
+            if crate::checkpoint::safe_path(&journal_path)?.is_some() {
+                ensure!(
+                    read_bounded(&journal_path)? == bytes && bytes.len() == valid_length,
+                    "Terminal maintenance journal changed or has a partial suffix"
+                );
+            }
+            finish_cleanup(&intent, terminal, &record)?;
+            return Ok(verified);
+        }
         // Prove actual state before discarding an interrupted append suffix.
         let journal_path = directory(roots).join("journal.jsonl");
-        let normalized = reconcile(&intent, &cursor, &finishing, &mut work)?;
+        let normalized = reconcile(&intent, &cursor, flag, &mut work)?;
         if crate::checkpoint::safe_path(&journal_path)?.is_some() {
             ensure!(
                 read_bounded(&journal_path)? == bytes,
                 "Maintenance journal changed during recovery qualification"
             );
         }
-        if intent.terminal.is_some() {
-            if crate::checkpoint::safe_path(&journal_path)?.is_none() {
-                intent.progress_origin = cursor.clone();
-            }
-            intent.terminal = None;
-            publish_intent(&directory(roots), &intent, true)?;
-        }
         let mut writer = Writer::open(&intent, Some(valid_length))?;
         cursor = normalized;
         rollback(&intent, &mut writer, &mut cursor, &mut work)?;
-        writer.clear(&intent, &cursor)
+        writer.clear(&intent, &cursor, &mut work)?;
+        Ok(TreeDisposition::RestoredOriginalTree)
     })();
     match result {
-        Ok(()) => Ok(Outcome {
+        Ok(verified) => Ok(Outcome {
             digest: intent.digest,
-            completed_operations: 0,
+            completed_operations: if verified == TreeDisposition::AppliedTree {
+                intent.plan.operations.len()
+            } else {
+                0
+            },
             recovered: true,
             status: OutcomeStatus::Applied,
             failure: None,
+            disposition: Some(verified),
         }),
         Err(error) => Ok(Outcome {
             digest: intent.digest,
@@ -1104,6 +1265,7 @@ pub(super) fn recover(
             recovered: true,
             status: OutcomeStatus::RecoveryRequired,
             failure: Some(failure(&error)),
+            disposition: None,
         }),
     }
 }

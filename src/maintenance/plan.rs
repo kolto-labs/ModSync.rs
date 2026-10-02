@@ -164,6 +164,18 @@ pub(super) fn validate_roots(roots: &Roots) -> Result<()> {
 pub(super) fn build(request: &Request, flag: &AtomicBool) -> Result<Plan> {
     validate_roots(&request.roots)?;
     platform::require_capability()?;
+    // Qualify the independent fence namespace before publishing any intent.
+    let parent = request
+        .roots
+        .mods
+        .parent()
+        .context("Mod root has no fence parent")?;
+    let metadata = crate::checkpoint::safe_path(parent)?.context("Mod fence parent disappeared")?;
+    platform::qualify(parent, &metadata)?;
+    ensure!(
+        platform::mode(&metadata)? & 0o700 == 0o700,
+        "Maintenance mod fence requires a current-owner readable, writable and searchable sibling namespace"
+    );
     let mut work = Work::new();
     let relative = crate::paths::relative(&request.subtree, false)?;
     let subtree = relative
@@ -294,7 +306,7 @@ pub(super) fn build(request: &Request, flag: &AtomicBool) -> Result<Plan> {
     }
     let size = document(&plan)?.len();
     ensure!(
-        size.checked_add(4096)
+        size.checked_add(4096 + super::fence::MAX_FENCE)
             .and_then(|size| plan
                 .operations
                 .len()
@@ -534,4 +546,29 @@ pub(super) fn verify_tree(
         "Maintenance subtree contains foreign content, identity, names or mode changes; recovery intent retained"
     );
     Ok(())
+}
+
+/// Stable bounded proof of names, identities, contents and complete modes.
+/// It is a terminal cleanup proof, never a source of mutation instructions.
+pub(super) fn inventory_digest(
+    entries: &BTreeMap<String, Entry>,
+    flag: &AtomicBool,
+    work: &mut Work,
+) -> Result<String> {
+    let mut hash = Sha256::new();
+    let mut total = 0usize;
+    for entry in entries {
+        work.check(flag)?;
+        let bytes = serde_json::to_vec(&entry)?;
+        total = total
+            .checked_add(bytes.len() + 1)
+            .context("Maintenance proof size overflow")?;
+        ensure!(
+            total <= MAX_DOCUMENT,
+            "Maintenance terminal proof exceeds document budget"
+        );
+        hash.update(&bytes);
+        hash.update(b"\n");
+    }
+    Ok(format!("{:x}", hash.finalize()))
 }

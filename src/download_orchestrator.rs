@@ -393,6 +393,75 @@ fn shared_destinations(targets: &[ArchiveTarget]) -> Vec<Option<SharedDestinatio
         .collect()
 }
 
+/// Keyed grouping for captured-run admission. Known names join regardless of
+/// URL; different known names on one URL join only through an unknown-name
+/// member. This produces the same transitive groups as `may_share_file`.
+fn shared_destinations_guarded(
+    targets: &[ArchiveTarget],
+    cancelled: &AtomicBool,
+) -> Result<Vec<Option<SharedDestination>>> {
+    fn root(parent: &mut [usize], mut index: usize) -> usize {
+        while parent[index] != index {
+            parent[index] = parent[parent[index]];
+            index = parent[index];
+        }
+        index
+    }
+    #[derive(Default)]
+    struct UrlGroup {
+        unknown: Option<usize>,
+        known: Vec<usize>,
+    }
+    let mut parent: Vec<usize> = (0..targets.len()).collect();
+    let mut names = std::collections::BTreeMap::<String, usize>::new();
+    let mut urls = std::collections::BTreeMap::<&str, UrlGroup>::new();
+    let mut edges = 0usize;
+    let mut join = |left, right| -> Result<()> {
+        ensure!(!cancelled.load(Ordering::Acquire), "Acquisition cancelled");
+        edges += 1;
+        ensure!(
+            edges <= 2_000_000,
+            "Acquisition destination grouping exceeds 2000000 edges; reduce or split the plan"
+        );
+        let (a, b) = (root(&mut parent, left), root(&mut parent, right));
+        parent[a.max(b)] = a.min(b);
+        Ok(())
+    };
+    for (index, target) in targets.iter().enumerate() {
+        ensure!(!cancelled.load(Ordering::Acquire), "Acquisition cancelled");
+        if let Some(name) = &target.filename {
+            let owner = *names.entry(name.to_ascii_lowercase()).or_insert(index);
+            if owner != index {
+                join(index, owner)?;
+            }
+        }
+        let url = urls.entry(target.registry_url.as_str()).or_default();
+        match (target.filename.is_some(), url.unknown) {
+            (_, Some(owner)) => join(index, owner)?,
+            (true, None) => url.known.push(index),
+            (false, None) => {
+                for owner in url.known.drain(..) {
+                    join(index, owner)?;
+                }
+                url.unknown = Some(index);
+            }
+        }
+    }
+    let mut links = Vec::with_capacity(targets.len());
+    for index in 0..targets.len() {
+        ensure!(!cancelled.load(Ordering::Acquire), "Acquisition cancelled");
+        let owner = root(&mut parent, index);
+        links.push((owner != index).then(|| {
+            if targets[owner].registry_url == targets[index].registry_url {
+                SharedDestination::SameUrl(owner)
+            } else {
+                SharedDestination::DifferentUrl(owner)
+            }
+        }));
+    }
+    Ok(links)
+}
+
 fn plan_url(
     component: &Component,
     url: &str,
@@ -1110,16 +1179,204 @@ pub fn run_with_loopback_ca(
     plan: &AcquisitionPlan,
     settings: &RunSettings,
     cancelled: &AtomicBool,
+    observe: impl FnMut(AcquisitionEvent) + Send,
+    loopback_ca: Option<&download::LoopbackCa>,
+) -> Result<RunReport> {
+    run_guarded(plan, settings, None, cancelled, observe, loopback_ca)
+}
+
+/// Execute with current guide authority for revalidating planning-time existing files.
+/// Invalid or missing existing files require a fresh plan; no network or sweep starts.
+pub fn run_with_source_context(
+    plan: &AcquisitionPlan,
+    settings: &RunSettings,
+    guide: &Guide,
+    cancelled: &AtomicBool,
+    observe: impl FnMut(AcquisitionEvent) + Send,
+    loopback_ca: Option<&download::LoopbackCa>,
+) -> Result<RunReport> {
+    run_guarded(plan, settings, Some(guide), cancelled, observe, loopback_ca)
+}
+
+fn run_guarded(
+    plan: &AcquisitionPlan,
+    settings: &RunSettings,
+    guide: Option<&Guide>,
+    cancelled: &AtomicBool,
     mut observe: impl FnMut(AcquisitionEvent) + Send,
     loopback_ca: Option<&download::LoopbackCa>,
 ) -> Result<RunReport> {
+    ensure!(!cancelled.load(Ordering::Acquire), "Acquisition cancelled");
     ensure!(
-        settings.workers > 0,
-        "Download worker count must be positive"
+        (1..=32).contains(&settings.workers),
+        "Orchestrated acquisition requires 1 to 32 workers"
     );
+    ensure!(
+        settings.retries <= 10,
+        "Orchestrated acquisition allows at most 10 retries"
+    );
+    ensure!(
+        plan.targets.len().saturating_add(plan.skipped.len()) <= 100_000,
+        "Acquisition plan exceeds 100000 entries"
+    );
+    let mut owners = std::collections::BTreeMap::new();
+    if let Some(guide) = guide {
+        ensure!(
+            guide.components.len() <= 100_000,
+            "Acquisition guide exceeds 100000 components"
+        );
+        for component in &guide.components {
+            ensure!(!cancelled.load(Ordering::Acquire), "Acquisition cancelled");
+            owners
+                .entry(component.guid.to_ascii_lowercase())
+                .and_modify(|owner| *owner = None)
+                .or_insert(Some(component));
+        }
+    }
+    let mut visits = 0usize;
+    let mut visit = || -> Result<()> {
+        ensure!(!cancelled.load(Ordering::Acquire), "Acquisition cancelled");
+        visits += 1;
+        ensure!(
+            visits <= 2_000_000,
+            "Existing-file ownership verification exceeds 2000000 visits"
+        );
+        Ok(())
+    };
+    let root_lock = crate::recovery::ModRootLock::acquire(&plan.source_dir)?;
+    let original_root = std::path::absolute(&plan.source_dir)?;
+    let mut canonical = plan.clone();
+    canonical.source_dir = root_lock.root().to_path_buf();
+    for skip in &mut canonical.skipped {
+        if skip.reason != SkipReason::AlreadyPresent {
+            continue;
+        }
+        ensure!(!cancelled.load(Ordering::Acquire), "Acquisition cancelled");
+        ensure!(
+            guide.is_some(),
+            "Existing-file skips require run_with_source_context with the current guide; replan before acquisition"
+        );
+        let component = owners
+            .get(&skip.component_guid.to_ascii_lowercase())
+            .copied()
+            .flatten()
+            .context("Existing-file consumer is absent or ambiguous; replan acquisition")?;
+        ensure!(
+            component.is_selected,
+            "Existing-file consumer is no longer selected; replan acquisition"
+        );
+        let metadata = component
+            .resource_registry
+            .get(&skip.registry_url)
+            .context("Existing-file resource ownership changed; replan acquisition")?;
+        let filename = download::one_component(
+            skip.filename
+                .as_deref()
+                .context("Existing-file skip has no filename")?,
+        )?;
+        let authored = std::path::absolute(
+            skip.path
+                .as_ref()
+                .context("Existing-file skip has no path")?,
+        )?;
+        let relative = authored
+            .strip_prefix(&original_root)
+            .context("Existing-file skip is outside its planned root")?;
+        ensure!(
+            relative.components().count() == 1
+                && relative
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .is_some_and(|name| name.eq_ignore_ascii_case(filename)),
+            "Existing-file skip path does not identify its declared archive"
+        );
+        let path = root_lock.root().join(relative);
+        root_lock.contains_destination(&path)?;
+        ensure!(
+            std::fs::symlink_metadata(&path)?.file_type().is_file(),
+            "Existing-file skip is no longer an ordinary file; replan acquisition"
+        );
+        // Recheck authored ownership, not the planner's *unsatisfied* patterns:
+        // this file now exists and can itself satisfy the Extract pattern.
+        let mut known = None;
+        if let Some(files) = metadata.get("Files").and_then(Value::as_object) {
+            let mut enabled = files.is_empty();
+            for (name, flag) in files {
+                visit()?;
+                enabled |= flag != &Value::Bool(false);
+                if known.is_none() && name.eq_ignore_ascii_case(filename) {
+                    known = Some((name, flag));
+                }
+            }
+            ensure!(
+                enabled,
+                "Existing-file resource is no longer enabled; replan acquisition"
+            );
+        }
+        let allowed = if let Some((_, flag)) = known {
+            flag != &Value::Bool(false)
+        } else {
+            let mut has_extract = false;
+            let mut matched = false;
+            for instruction in component.instructions.iter().chain(
+                component
+                    .options
+                    .iter()
+                    .flat_map(|option| &option.instructions),
+            ) {
+                visit()?;
+                if instruction.action != "Extract" {
+                    continue;
+                }
+                has_extract = true;
+                for source in &instruction.source {
+                    visit()?;
+                    let pattern = source
+                        .replace("<<modDirectory>>\\", "")
+                        .replace("<<modDirectory>>/", "");
+                    let pattern = pattern.trim_start_matches(['\\', '/']);
+                    let basename = Path::new(pattern)
+                        .file_name()
+                        .and_then(|name| name.to_str())
+                        .unwrap_or("");
+                    matched |= crate::reference_paths::pattern_matches(
+                        &format!("<<modDirectory>>\\{filename}"),
+                        source,
+                    ) || crate::reference_paths::pattern_matches(filename, basename);
+                }
+            }
+            !has_extract || matched
+        };
+        ensure!(
+            allowed,
+            "Existing-file archive is no longer selected by its consumer; replan acquisition"
+        );
+        let before = std::fs::symlink_metadata(&path)?;
+        let valid = existing_valid(
+            &path,
+            metadata_str(metadata, "ContentHashSHA256"),
+            &settings.archive,
+            cancelled,
+        );
+        ensure!(!cancelled.load(Ordering::Acquire), "Acquisition cancelled");
+        ensure!(
+            valid,
+            "Existing-file hash or archive integrity changed; replan acquisition"
+        );
+        root_lock.contains_destination(&path)?;
+        let after = std::fs::symlink_metadata(&path)?;
+        ensure!(
+            after.file_type().is_file()
+                && before.len() == after.len()
+                && before.modified()? == after.modified()?,
+            "Existing-file archive changed during revalidation; replan acquisition"
+        );
+        skip.path = Some(path);
+    }
+    let plan = &canonical;
     // A hand-built plan must link exactly as `plan` would, or two workers could write one
     // file again.
-    let links = shared_destinations(&plan.targets);
+    let links = shared_destinations_guarded(&plan.targets, cancelled)?;
     for (index, (target, link)) in plan.targets.iter().zip(links).enumerate() {
         ensure!(
             target.shared_destination == link,
@@ -1178,13 +1435,14 @@ pub fn run_with_loopback_ca(
             // Only group owners are queued. The owner's worker settles every other member
             // of its group after it, and any two targets that may publish one file are in
             // one group (`shared_destinations`), so they never run at the same time.
-            let owners = plan
+            let owners: Vec<_> = plan
                 .targets
                 .iter()
                 .enumerate()
                 .filter(|(_, target)| target.shared_destination.is_none())
                 .collect();
-            download_queue::run_ordered(owners, settings.workers, |_, (index, target)| {
+            let active_workers = settings.workers.min(owners.len().max(1));
+            download_queue::run_ordered(owners, active_workers, |_, (index, target)| {
                 acquire_group(context, index, target)
             })
             .map(|finished| {
@@ -1217,7 +1475,8 @@ pub fn run_with_loopback_ca(
 }
 
 /// The report of a run cancelled before its first target: one `Cancelled` outcome per
-/// target, as `run` reports targets it never started, plus the plan's skips.
+/// target, as `run` reports targets it never started. Existing-file skips are
+/// omitted because this path has not revalidated them under the mod-root lock.
 pub fn cancelled_report(plan: &AcquisitionPlan) -> RunReport {
     RunReport {
         outcomes: plan
@@ -1226,7 +1485,12 @@ pub fn cancelled_report(plan: &AcquisitionPlan) -> RunReport {
             .enumerate()
             .map(|(index, target)| outcome(index, target, TargetStatus::Cancelled))
             .collect(),
-        skipped: plan.skipped.clone(),
+        skipped: plan
+            .skipped
+            .iter()
+            .filter(|skip| skip.reason != SkipReason::AlreadyPresent)
+            .cloned()
+            .collect(),
         cancelled: true,
     }
 }

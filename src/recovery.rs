@@ -1,11 +1,13 @@
+mod root_lock;
 use crate::paths::Roots;
 use anyhow::{Context, Result, ensure};
 use fs2::FileExt;
+pub use root_lock::ModRootLock;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::{
     collections::BTreeMap,
-    fs::{self, File, OpenOptions},
+    fs::{self, File},
     io,
     path::{Path, PathBuf},
 };
@@ -59,8 +61,10 @@ impl Lock {
     }
     pub fn acquire(roots: &Roots) -> Result<Self> {
         crate::maintenance::ensure_clear_game(&roots.game)?;
+        crate::maintenance::ensure_clear_mods(&roots.mods)?;
         let lock = Self::acquire_impl(roots, false)?;
         crate::maintenance::ensure_clear_game(&roots.game)?;
+        crate::maintenance::ensure_clear_mods(&roots.mods)?;
         Ok(lock)
     }
     pub(crate) fn acquire_maintenance(roots: &Roots) -> Result<Self> {
@@ -102,49 +106,7 @@ impl Lock {
         let mut roots = [&roots.game, &roots.mods];
         roots.sort();
         for root in roots {
-            let hash = format!("{:x}", Sha256::digest(root.to_string_lossy().as_bytes()));
-            let path = root
-                .parent()
-                .unwrap()
-                .join(format!(".modsync-lock-{}", &hash[..16]));
-            match fs::symlink_metadata(&path) {
-                Ok(meta) => ensure!(
-                    meta.is_file() && !meta.file_type().is_symlink(),
-                    "Lock path is not a regular file"
-                ),
-                Err(error) if error.kind() == io::ErrorKind::NotFound => {}
-                Err(error) => return Err(error.into()),
-            }
-            let mut options = OpenOptions::new();
-            options.create(true).truncate(false).read(true).write(true);
-            #[cfg(unix)]
-            {
-                use std::os::unix::fs::OpenOptionsExt;
-                options.custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK);
-            }
-            #[cfg(windows)]
-            {
-                use std::os::windows::fs::OpenOptionsExt;
-                options.custom_flags(
-                    windows_sys::Win32::Storage::FileSystem::FILE_FLAG_OPEN_REPARSE_POINT,
-                );
-            }
-            let file = options.open(path)?;
-            let metadata = file.metadata()?;
-            ensure!(metadata.is_file(), "Lock path is not a regular file");
-            #[cfg(windows)]
-            {
-                use std::os::windows::fs::MetadataExt;
-                ensure!(
-                    metadata.file_attributes()
-                        & windows_sys::Win32::Storage::FileSystem::FILE_ATTRIBUTE_REPARSE_POINT
-                        == 0,
-                    "Recovery lock handle is a reparse point"
-                );
-            }
-            file.try_lock_exclusive()
-                .context("Another ModSync process is using the game or mod directory")?;
-            lock.files.push(file);
+            lock.files.push(root_lock::open(root)?);
         }
         Ok(lock)
     }
@@ -480,6 +442,7 @@ pub(crate) fn ensure_checkpoint_clean(roots: &Roots) -> Result<()> {
 
 pub fn ensure_clean(roots: &Roots) -> Result<()> {
     crate::maintenance::ensure_clear_game(&roots.game)?;
+    crate::maintenance::ensure_clear_mods(&roots.mods)?;
     ensure_checkpoint_clean(roots)?;
     ensure!(
         !state_dir(roots).join("pending").exists(),

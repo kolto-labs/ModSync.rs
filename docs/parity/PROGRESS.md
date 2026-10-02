@@ -36,6 +36,21 @@ cross-process acquisition fencing, dependency/corpus and behavioral acceptance
 remain open. See the maintenance and rooted-choice contracts. Acceptance rows
 remain open.
 
+The subsequent source slice adds a durable mod-root maintenance fence and
+target-dependent terminal cleanup, shared acquisition/root locks, current-guide
+revalidation of existing-file skips, standalone output guards, bounded worker and
+retry settings, cancellable keyed execution grouping and direct torrent metadata
+cancellation. Independent review corrected stale claims, matching work bounds,
+GUID identity, session cleanup and the game-only terminal cleanup window.
+The Darwin maintenance source profile now uses pinned native ACL/flag checks and
+exclusive rename, with stable capability admission preserving old Linux records.
+Native execution is unverified. An offline OdyPatcher producer source now binds
+the exact root package, source/license and emitted executable to a retained
+receipt; it has not been invoked and the backend allowlist remains empty.
+See the acquisition, maintenance and package contracts and current production
+gate receipt. Windows maintenance, Unicode mapping, broader date normalization,
+actual backend provenance and all domain/native acceptance remain open.
+
 Continuation uses the actual `ModSync.rs` checkout through `eed8089` and its
 working changes. The [remaining-work tracker](../plans/2026-09-28-1130-remaining-work-tracker-plan.md)
 is the current source reconciliation. The sections below retain historical

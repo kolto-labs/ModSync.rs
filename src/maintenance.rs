@@ -1,5 +1,6 @@
 //! Explicit, previewed maintenance transactions. Never an installation component.
 //! See docs/parity/maintenance-contract.md for authority and platform limits.
+mod fence;
 mod journal;
 mod plan;
 mod platform;
@@ -38,6 +39,9 @@ pub struct Capability {
     pub platform: String,
     pub durability: String,
     pub restrictions: Vec<String>,
+    /// Stable admission contract; absent in the original Linux intent format.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub profile: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -74,6 +78,13 @@ pub enum OutcomeStatus {
     RecoveryRequired,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum TreeDisposition {
+    AppliedTree,
+    RestoredOriginalTree,
+}
+
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Outcome {
@@ -82,6 +93,7 @@ pub struct Outcome {
     pub recovered: bool,
     pub status: OutcomeStatus,
     pub failure: Option<String>,
+    pub disposition: Option<TreeDisposition>,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -128,8 +140,8 @@ pub fn status(roots: &Roots) -> Result<Status> {
     journal::status(roots)
 }
 
-/// Recover only the caller-selected durable operation identity, by restoring
-/// the verified original state. Never silently resumes a forward transaction.
+/// Recover the caller-selected durable operation. Nonterminal operations restore
+/// original state; verified terminal operations finish metadata cleanup only.
 pub fn recover(roots: &Roots, expected_digest: &str, cancelled: &AtomicBool) -> Result<Outcome> {
     check_cancelled(cancelled)?;
     platform::require_capability()?;
@@ -174,6 +186,39 @@ pub(crate) fn ensure_clear_game(game: &Path) -> Result<()> {
         crate::checkpoint::persistence::namespace_boundary(&directory)?;
     }
     Ok(())
+}
+
+/// Acquisition guard using only the canonical mod root. Presence of any
+/// maintenance fence, including malformed or foreign metadata, blocks writers.
+pub(crate) fn ensure_clear_mods(root: &Path) -> Result<()> {
+    fence::ensure_clear(root)
+}
+
+/// Finalize a terminal mod-side fence under its matching held root lock. This
+/// path may only prove the recorded tree and remove owned metadata.
+pub fn recover_mod_fence(
+    root: &Path,
+    expected_digest: &str,
+    cancelled: &AtomicBool,
+) -> Result<Outcome> {
+    platform::require_capability()?;
+    check_cancelled(cancelled)?;
+    let lock = recovery::ModRootLock::acquire_maintenance(root)?;
+    recover_mod_fence_locked(lock.root(), expected_digest, cancelled, &lock)
+}
+
+pub(crate) fn recover_mod_fence_locked(
+    root: &Path,
+    expected_digest: &str,
+    cancelled: &AtomicBool,
+    lock: &recovery::ModRootLock,
+) -> Result<Outcome> {
+    ensure!(
+        lock.guards(root),
+        "Mod fence recovery requires its held root lock"
+    );
+    check_cancelled(cancelled)?;
+    fence::recover_only(root, expected_digest, cancelled)
 }
 
 fn check_cancelled(flag: &AtomicBool) -> Result<()> {

@@ -17,6 +17,52 @@ pub struct Job {
     pub destination: PathBuf,
     pub sha256: Option<String>,
 }
+
+/// Bounded, cancellable intake for the standalone batch adapter.
+pub fn load_jobs(path: &std::path::Path, cancelled: &AtomicBool) -> Result<Vec<Job>> {
+    use std::io::Read;
+    let mut file = crate::paths::open_regular_read(path)?;
+    let metadata = file.metadata()?;
+    const LIMIT: usize = 64 * 1024 * 1024;
+    ensure!(
+        metadata.len() <= LIMIT as u64,
+        "Acquisition job document exceeds 64 MiB"
+    );
+    let mut bytes = Vec::new();
+    let mut buffer = [0u8; 65536];
+    loop {
+        ensure!(
+            !cancelled.load(Ordering::Acquire),
+            "Acquisition job loading cancelled"
+        );
+        let count = file.read(&mut buffer)?;
+        if count == 0 {
+            break;
+        }
+        ensure!(
+            bytes
+                .len()
+                .checked_add(count)
+                .is_some_and(|length| length <= LIMIT),
+            "Acquisition job document exceeds 64 MiB"
+        );
+        bytes.extend_from_slice(&buffer[..count]);
+    }
+    let after = file.metadata()?;
+    ensure!(
+        metadata.len() == bytes.len() as u64
+            && after.len() == metadata.len()
+            && after.modified()? == metadata.modified()?,
+        "Acquisition job document changed while reading"
+    );
+    let jobs: Vec<Job> = serde_json::from_slice(&bytes)?;
+    ensure!(jobs.len() <= 10_000, "Acquisition exceeds 10000 jobs");
+    ensure!(
+        !cancelled.load(Ordering::Acquire),
+        "Acquisition job loading cancelled"
+    );
+    Ok(jobs)
+}
 #[derive(Clone, Debug, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub enum Status {
@@ -41,15 +87,53 @@ pub fn fetch_all(
     cancelled: &AtomicBool,
     options: crate::archive::Options,
 ) -> Result<Vec<ResultItem>> {
-    run_with(jobs, workers, retries, cancelled, move |job, stop| {
-        crate::download::fetch_with_options(
-            &job.url,
-            &job.destination,
-            job.sha256.as_deref(),
-            stop,
-            &options,
-        )
-    })
+    fetch_all_in_source_root(jobs, None, workers, retries, cancelled, options)
+}
+
+/// Acquire the declared source-root lock for every worker and retry. Without a
+/// declared root, scope each output's immediate parent directory.
+pub fn fetch_all_in_source_root(
+    mut jobs: Vec<Job>,
+    source_root: Option<&std::path::Path>,
+    workers: usize,
+    retries: usize,
+    cancelled: &AtomicBool,
+    options: crate::archive::Options,
+) -> Result<Vec<ResultItem>> {
+    ensure!(
+        (1..=32).contains(&workers),
+        "Standalone acquisition requires 1 to 32 workers"
+    );
+    ensure!(
+        retries <= 10,
+        "Standalone acquisition allows at most 10 retries"
+    );
+    ensure!(jobs.len() <= 10_000, "Acquisition exceeds 10000 jobs");
+    let destinations = jobs
+        .iter()
+        .map(|job| job.destination.clone())
+        .collect::<Vec<_>>();
+    let guard = crate::acquisition_guard::Scope::acquire(&destinations, source_root, cancelled)?;
+    for (job, destination) in jobs.iter_mut().zip(guard.destinations()) {
+        job.destination = destination.clone();
+    }
+    let active_workers = workers.min(jobs.len().max(1));
+    run_with(
+        jobs,
+        active_workers,
+        retries,
+        cancelled,
+        move |job, stop| {
+            guard.verify_destination(&job.destination)?;
+            crate::download::fetch_with_options(
+                &job.url,
+                &job.destination,
+                job.sha256.as_deref(),
+                stop,
+                &options,
+            )
+        },
+    )
 }
 
 pub fn run_with<F>(

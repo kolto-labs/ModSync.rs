@@ -214,6 +214,9 @@ enum Action {
         url: String,
         /// The archive path; with --input, the mod workspace directory instead.
         output: PathBuf,
+        /// Declared mod root for a nested archive output without --input.
+        #[arg(long, conflicts_with = "input")]
+        source_dir: Option<PathBuf>,
         /// Guide to resolve the link against. Runs the shared acquisition path
         /// (nxm_target, run, record) and prints the run report.
         #[arg(long)]
@@ -361,6 +364,9 @@ enum Action {
     Download {
         url: String,
         output: PathBuf,
+        /// Coordinate nested outputs with installation/maintenance of this root.
+        #[arg(long)]
+        source_dir: Option<PathBuf>,
         #[arg(long)]
         sha256: Option<String>,
         /// Optional expanded-byte budget for the integrity check.
@@ -371,6 +377,9 @@ enum Action {
     TorrentDownload {
         magnet: String,
         output: PathBuf,
+        /// Coordinate nested outputs with installation/maintenance of this root.
+        #[arg(long)]
+        source_dir: Option<PathBuf>,
         /// Required content identity; the torrent is discarded on mismatch.
         #[arg(long)]
         sha256: String,
@@ -404,6 +413,9 @@ enum Action {
     /// Download a JSON array of direct HTTPS jobs with bounded concurrency and retries.
     DownloadBatch {
         input: PathBuf,
+        /// Every output must be beneath this existing mod root.
+        #[arg(long)]
+        source_dir: Option<PathBuf>,
         #[arg(long, default_value_t = 4)]
         workers: usize,
         #[arg(long, default_value_t = 1)]
@@ -1323,6 +1335,26 @@ fn command_definition() -> clap::Command {
         })
 }
 
+fn finish_acquisition_result<T>(result: Result<T>, cancelled: &AtomicBool) -> Result<T> {
+    match result {
+        // Published success wins over a signal that arrived after completion.
+        Ok(value) => Ok(value),
+        Err(_) if cancelled.load(Ordering::Acquire) => Err(cli_session::Exit(130).into()),
+        Err(error) => Err(error),
+    }
+}
+
+fn acquisition_scope(
+    output: &std::path::Path,
+    source: Option<&std::path::Path>,
+    cancelled: &AtomicBool,
+) -> Result<modsync::acquisition_guard::Scope> {
+    finish_acquisition_result(
+        modsync::acquisition_guard::Scope::acquire(&[output.to_path_buf()], source, cancelled),
+        cancelled,
+    )
+}
+
 fn run() -> Result<()> {
     let arguments = cli_compat::normalize_args(std::env::args_os().collect())?;
     let matches = command_definition().get_matches_from(arguments);
@@ -1896,6 +1928,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
         Some(Action::NxmDownload {
             url,
             output,
+            source_dir,
             input,
             record,
             nexus_mods_api_key,
@@ -1941,7 +1974,14 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                     nexus_api_base,
                     ..Default::default()
                 };
-                let report = orchestrator::run(&plan, &settings, &AtomicBool::new(false), |_| {})?;
+                let report = orchestrator::run_with_source_context(
+                    &plan,
+                    &settings,
+                    &guide,
+                    &AtomicBool::new(false),
+                    |_| {},
+                    None,
+                )?;
                 let metadata = orchestrator::collect_metadata(
                     &plan,
                     &report,
@@ -1971,12 +2011,20 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                 );
                 return Ok(());
             }
+            let cancelled = modsync::p2p::stop_signal_flag()?;
+            let guard = acquisition_scope(&output, source_dir.as_deref(), &cancelled)?;
+            let output = &guard.destinations()[0];
             let mut client = match nexus_api_base {
                 Some(base) => modsync::updates::NexusClient::with_base_url(key, &base)?,
                 None => modsync::updates::NexusClient::new(key)?,
             };
-            let download_link = client.nxm_download_link(&link)?;
-            download::fetch(&download_link.uri, &output, None, &AtomicBool::new(false))?;
+            let result = (|| -> Result<_> {
+                let download_link = client.nxm_download_link_with_cancel(&link, &cancelled)?;
+                guard.verify_destination(output)?;
+                download::fetch(&download_link.uri, output, None, &cancelled)?;
+                Ok(download_link)
+            })();
+            let download_link = finish_acquisition_result(result, &cancelled)?;
             println!("{}", serde_json::to_string_pretty(&download_link)?);
             Ok(())
         }
@@ -2531,9 +2579,10 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                 loopback_ca.as_ref(),
             )?;
             let stdout = std::sync::Mutex::new(std::io::stdout());
-            let report = orchestrator::run_with_loopback_ca(
+            let report = orchestrator::run_with_source_context(
                 &plan,
                 &run_settings,
+                &execution,
                 &cancelled,
                 |event| {
                     if progress_json {
@@ -2689,38 +2738,55 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
         Some(Action::Download {
             url,
             output,
+            source_dir,
             sha256,
             max_expanded_bytes,
-        }) => download::fetch_with_options(
-            &url,
-            &output,
-            sha256.as_deref(),
-            &AtomicBool::new(false),
-            &modsync::archive::Options {
-                max_expanded_bytes,
-                ..Default::default()
-            },
-        ),
+        }) => {
+            let cancelled = modsync::p2p::stop_signal_flag()?;
+            let guard = acquisition_scope(&output, source_dir.as_deref(), &cancelled)?;
+            finish_acquisition_result(
+                download::fetch_with_options(
+                    &url,
+                    &guard.destinations()[0],
+                    sha256.as_deref(),
+                    &cancelled,
+                    &modsync::archive::Options {
+                        max_expanded_bytes,
+                        ..Default::default()
+                    },
+                ),
+                &cancelled,
+            )
+        }
         Some(Action::TorrentDownload {
             magnet,
             output,
+            source_dir,
             sha256,
             peer,
             max_expanded_bytes,
             torrent_info,
             proxy,
-        }) => modsync::p2p::cli_download(
-            &magnet,
-            torrent_info.as_deref(),
-            &output,
-            &sha256,
-            peer,
-            &proxy.into(),
-            &modsync::archive::Options {
-                max_expanded_bytes,
-                ..Default::default()
-            },
-        ),
+        }) => {
+            let cancelled = modsync::p2p::stop_signal_flag()?;
+            let guard = acquisition_scope(&output, source_dir.as_deref(), &cancelled)?;
+            finish_acquisition_result(
+                modsync::p2p::cli_download_with_cancel(
+                    &magnet,
+                    torrent_info.as_deref(),
+                    &guard.destinations()[0],
+                    &sha256,
+                    peer,
+                    &proxy.into(),
+                    &modsync::archive::Options {
+                        max_expanded_bytes,
+                        ..Default::default()
+                    },
+                    &cancelled,
+                ),
+                &cancelled,
+            )
+        }
         Some(Action::TorrentSeed {
             archive,
             tracker,
@@ -2736,23 +2802,38 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
         ),
         Some(Action::DownloadBatch {
             input,
+            source_dir,
             workers,
             retries,
             scratch_dir,
             max_expanded_bytes,
         }) => {
-            let jobs = serde_json::from_slice(&std::fs::read(input)?)?;
-            let results = modsync::download_queue::fetch_all(
-                jobs,
-                workers,
-                retries,
-                &AtomicBool::new(false),
-                modsync::archive::Options {
-                    scratch_dir,
-                    max_expanded_bytes,
-                },
+            let cancelled = modsync::p2p::stop_signal_flag()?;
+            let jobs = finish_acquisition_result(
+                modsync::download_queue::load_jobs(&input, &cancelled),
+                &cancelled,
+            )?;
+            let results = finish_acquisition_result(
+                modsync::download_queue::fetch_all_in_source_root(
+                    jobs,
+                    source_dir.as_deref(),
+                    workers,
+                    retries,
+                    &cancelled,
+                    modsync::archive::Options {
+                        scratch_dir,
+                        max_expanded_bytes,
+                    },
+                ),
+                &cancelled,
             )?;
             println!("{}", serde_json::to_string_pretty(&results)?);
+            if results
+                .iter()
+                .any(|item| item.status == modsync::download_queue::Status::Cancelled)
+            {
+                return Err(cli_session::Exit(130).into());
+            }
             ensure!(
                 results
                     .iter()

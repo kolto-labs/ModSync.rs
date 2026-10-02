@@ -1246,8 +1246,8 @@ impl App {
                         selected_components: candidates.len(),
                         secrets: peer_settings.proxies.clone(),
                     });
-                    // Stop pressed during planning: transfer nothing; present archives
-                    // still record, exactly as a run cancelled before its first target.
+                    // Stop pressed during planning: transfer nothing. Present archives
+                    // remain unrecorded until revalidated under the acquisition lock.
                     if cancelled.load(Ordering::SeqCst) {
                         return Ok(Box::new(downloads_panel::Finished {
                             report: orchestrator::cancelled_report(&plan),
@@ -1274,9 +1274,10 @@ impl App {
                         mega_api_base: None,
                         peer,
                     };
-                    let report = orchestrator::run_with_loopback_ca(
+                    let report = orchestrator::run_with_source_context(
                         &plan,
                         &settings,
+                        &guide,
                         &cancelled,
                         |event| send(downloads_panel::Update::Event(Box::new(event))),
                         loopback_ca.as_ref(),
@@ -3136,6 +3137,7 @@ impl App {
         self.receiver = Some(rx);
         self.job = Job::NxmDownload;
         self.logs.push("Downloading linked Nexus file…".into());
+        let source_guide = self.guide.clone();
         let repaint = self.repaint.clone();
         std::thread::spawn(move || {
             use modsync::download_orchestrator as orchestrator;
@@ -3160,9 +3162,12 @@ impl App {
                         nexus_api_base: api_base,
                         ..Default::default()
                     };
-                    let report = orchestrator::run_with_loopback_ca(
+                    let report = orchestrator::run_with_source_context(
                         &plan,
                         &settings,
+                        source_guide.as_ref().ok_or_else(|| {
+                            anyhow::anyhow!("Load a guide before acquiring its linked resource")
+                        })?,
                         &cancelled,
                         |event| send(downloads_panel::Update::Event(Box::new(event))),
                         loopback_ca.as_ref(),
@@ -4038,6 +4043,12 @@ impl App {
                             "Enter one archive filename"
                         );
                         let output = settings.roots.mods.join(name);
+                        let guard = modsync::acquisition_guard::Scope::acquire(
+                            std::slice::from_ref(&output),
+                            Some(&settings.roots.mods),
+                            &settings.cancelled,
+                        )?;
+                        let output = guard.destinations()[0].clone();
                         download::fetch_with_options(
                             &url,
                             &output,

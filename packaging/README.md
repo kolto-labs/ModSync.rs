@@ -34,6 +34,34 @@ Outputs use no-clobber publication. A manual artifact-only workflow is included;
 
 The allowlist entries carry target, engine, sha256, source, license and licenseSha256. The same allowlist is compiled into the Rust runtime. A manifest-bound patcher must match it and its file digest is checked again when constructing the process command. Resolution captures immutable manifest bytes by digest and the selected path/provenance: deleting or changing the manifest later fails instead of switching trust rules. Target OS/architecture must match the running process. Package lookup precedes development/PATH discovery. A package declaring no backend does not silently acquire a PATH or Python backend. An explicitly configured external backend remains a separate user trust decision and does not establish bundled capability.
 
+### Backend producing receipt source
+
+`produce_patcher.py` provides an explicit offline producing step for a reviewed
+OdyPatcher checkout. It requires an exact clean full commit, retained target,
+installed exact Rust toolchain and previously reviewed `LICENSE` SHA-256. It
+admits the standalone root package `odypatcher` with its declared
+`AGPL-3.0-or-later` expression, and refuses unbound submodules. Its output must be
+a new directory outside both source checkouts.
+
+The helper builds only that package's CLI binary with `--locked --offline
+--release --no-default-features`. Offline Cargo metadata binds the root manifest
+to the compiler's emitted package ID and binary target. The receipt retains the
+tracked source archive, unchanged start/end commit/manifest/lock/license hashes,
+toolchain/host/commands, metadata and compiler artifact inventory digests, copied
+license, architecture-checked executable hash and failure evidence. It never
+executes the backend, installs dependencies, modifies the checkout or adds an
+allowlist entry. No helper invocation or backend build was performed for this
+source change.
+
+This is a nonhermetic build receipt: ignored local Cargo configuration, inherited
+configuration, external path dependencies, registry/git caches and native tools
+can affect compilation beyond the retained tracked source archive. Matching
+hashes do not authenticate a producer. Dependency license review and complete
+source-distribution obligations remain pending; the archive is retained review
+evidence. Successful production and independent provenance review are required
+before reviewing any allowlist addition. The currently empty allowlist remains
+the runtime authority.
+
 ## Linux per-user launcher
 
 After extracting a verified package into its permanent location, run `python3 install.py install` to create a package-specific user desktop launcher. `--register` delegates both schemes to the packaged shared `protocol register` API; replacing another handler additionally requires `--replace`. The package token includes full commit and producing-build receipt digest prefix and matches the manifest/macOS ownership marker. External command failures are fatal. `python3 install.py uninstall` compares the retained package identity and desktop-entry hash before removing its launcher and calls shared `protocol unregister` with the same recorded token. The shared platform API owns association comparison/restoration; the Python installer does not rewrite MIME state. A newer package's association is left alone. The extracted payload remains; the operator can remove it after unregistering.

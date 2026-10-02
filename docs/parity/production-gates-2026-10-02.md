@@ -446,3 +446,48 @@ e412291dd5fe4873f5c42d3714f42cfdce8ae7422211c188b5400f659cd5aef4  src/profiles.r
 d41ee6431e5e58b8e19a18569d74409ae6ab8e78dc18325254424f45b2e75d48  src/profiles/schema.rs
 a244410913dfd1ec1161ef5bd28e3a521bad3a1b3bf72fb0e6f3400068ef0ce6  src/ui/desktop_settings.rs
 ```
+
+## Durable maintenance/acquisition and native profile continuation
+
+The reviewed source after `a185ced` implements a durable mod-root fence,
+target-dependent terminal cleanup and disposition, shared acquisition root
+coordination, existing-file/current-guide revalidation, standalone guards,
+worker/retry bounds, keyed execution admission and direct torrent metadata
+cancellation. A Darwin native source profile and offline OdyPatcher producer
+source are included; Linux gates do not compile Darwin-only code or execute the
+producer.
+
+Independent reviews corrected the game-only cleanup crash window, root-only
+canonical binding, skip/GUID ownership and work bounds, worker/retry exhaustion,
+quadratic execution grouping, torrent pre-session parsing/metadata cancellation,
+native capability presentation and producer package/executable binding.
+
+Final allowed Linux production gates passed:
+
+- Formatting: session89887, exit0.
+- Default library/binary build: session64755, exit0, 1m30s.
+- Default strict Clippy: session19733, 49.63s.
+- No-default library/binary build: session19733, 51.16s.
+- No-default strict Clippy: session19733, 47.45s. Combined session exit0.
+- Whitespace checks passed.
+
+Read-only comparison against `a185ced` confirms seven inline test modules and
+the two frozen UI helpers remain byte-identical. No tracked test/fixture path
+changed. No tests, custom harnesses, filesystem tests, application/backend/native
+probes, package helpers, installs or CI ran. Earlier Windows receipts retain
+their older source bindings. Native interruption/platform behavior, Unicode,
+broader date normalization, producing/backend obligations and all F01–F29
+acceptance remain open.
+
+```text
+33302fb20ebb2d62d4f31b9b3bf2dcc0d109351858f2c749d22c9080d20f3740  src/acquisition_guard.rs
+a522dc717e052214f8c85743a59852d90f215af982bddd0cdef0532ca1e4b7cf  src/recovery/root_lock.rs
+7aa928139b3e92f943cf6b21e6fab7f6888f7bdabf7e0542eb37196f21142c5c  src/download_orchestrator.rs
+baef794bdd93674039bda5360af46b2d2649129a4eedab1624f1072e95ec7864  src/download_queue.rs
+3c37f3e102d0c87c416c5b25ce70278d12de375c99feedec4472c42e5065b1df  src/maintenance/fence.rs
+0bacd982547d9064215d0f85567ac5d109d773d013e5a2a8bd376f9257140210  src/maintenance/journal.rs
+6a70e526d0488599209861a60d0bea0cfb17b6310bb2cc419b6b4e063d4b2345  src/maintenance/platform.rs
+26ebbd30e54b0593da32df9f17d35022023f46a3314f87d6f6766c7176058d6e  src/maintenance/platform/macos.rs
+e466202cedff6a7acf4480693f980dea974d561a53dac82cb1b38bf5f8e529fd  src/p2p.rs
+e7bb86bc7b8d9bedc97b63046dc5ea5f2b7e7397fe1befee99f6e5127d547b78  packaging/produce_patcher.py
+```

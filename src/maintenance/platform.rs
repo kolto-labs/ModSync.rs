@@ -3,6 +3,13 @@ use anyhow::{Context, Result, ensure};
 use serde::{Deserialize, Serialize};
 use std::{fs, path::Path};
 
+#[cfg(target_os = "macos")]
+mod macos;
+
+pub(super) const LINUX_PROFILE: &str = "linux-owner-noreplace-v1";
+pub(super) const MACOS_PROFILE: &str = "macos-owner-rename-excl-v1";
+pub(super) const MACOS_ALLOWED_FLAGS: u32 = 0x8001; // UF_NODUMP | UF_HIDDEN.
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(super) struct Identity {
@@ -10,12 +17,17 @@ pub(super) struct Identity {
     pub inode: u64,
     pub owner: u32,
     pub group: u32,
+    // Omission preserves the original Linux intent's serialization and digest.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub native_flags: Option<u32>,
 }
 
-pub(super) fn capability() -> Capability {
+/// Frozen admission allowlist for pre-profile Linux writers. Do not edit its
+/// prose when changing current capability presentation: old digests include it.
+fn legacy_linux_capability() -> Capability {
     Capability {
-        supported: cfg!(target_os = "linux"),
-        platform: std::env::consts::OS.into(),
+        supported: true,
+        platform: "linux".into(),
         durability: "Linux file and directory fsync; native no-replace rename; power-loss and native-platform acceptance pending".into(),
         restrictions: vec![
             "ASCII names only for lowercase; Unicode mapping is not qualified against .NET".into(),
@@ -25,7 +37,68 @@ pub(super) fn capability() -> Capability {
             "Windows ACL/identity-preserving readonly mutation and other Unix rename/ACL profiles are unsupported".into(),
             "No permission takeover, chmod 777, concurrent external editing or automatic forward resume".into(),
         ],
+        profile: None,
     }
+}
+
+pub(super) fn capability() -> Capability {
+    let mut capability = legacy_linux_capability();
+    capability.platform = std::env::consts::OS.into();
+    capability.supported = cfg!(any(target_os = "linux", target_os = "macos"));
+    capability.profile = match std::env::consts::OS {
+        "linux" => Some(LINUX_PROFILE.into()),
+        "macos" => Some(MACOS_PROFILE.into()),
+        _ => None,
+    };
+    if cfg!(target_os = "linux") {
+        capability.restrictions[4] = "Windows native maintenance remains unsupported; macOS has a separate source profile with native acceptance pending".into();
+    }
+    if cfg!(target_os = "macos") {
+        capability.durability = "macOS flushed file and directory data; descriptor-relative native exclusive rename; process-interruption recovery design only; native interruption, OS crash and power-loss acceptance pending".into();
+        capability.restrictions = vec![
+            "ASCII names only for lowercase; Unicode mapping is not qualified against .NET".into(),
+            "Current-owner ordinary objects only; no symlinks, hardlinked files, native extended ACLs or foreign ownership".into(),
+            "Readable files/searchable directories required before preview; no permission changes to inspect unreadable trees".into(),
+            "Only preserved UF_NODUMP/UF_HIDDEN native flags are admitted; immutable, append, compressed, firmlink, dataless and unknown flags are refused".into(),
+            "SGID objects require membership in the preserved group; mode special bits are retained and verified".into(),
+            "No permission takeover, chmod 777, concurrent external editing or automatic forward resume".into(),
+        ];
+    }
+    capability
+}
+
+pub(super) fn validate_capability(recorded: &Capability) -> Result<()> {
+    require_capability()?;
+    let current = capability();
+    let profiled = recorded.supported
+        && recorded.platform == current.platform
+        && recorded.profile.is_some()
+        && recorded.profile == current.profile;
+    let legacy = cfg!(target_os = "linux") && *recorded == legacy_linux_capability();
+    ensure!(
+        profiled || legacy,
+        "Maintenance platform capability differs from recorded writer"
+    );
+    Ok(())
+}
+
+/// Called after capability admission for every persisted root and entry.
+pub(super) fn validate_identity(identity: &Identity, recorded: &Capability) -> Result<()> {
+    let valid = match recorded.platform.as_str() {
+        "linux" => identity.native_flags.is_none(),
+        "macos" => {
+            recorded.profile.as_deref() == Some(MACOS_PROFILE)
+                && identity
+                    .native_flags
+                    .is_some_and(|flags| flags & !MACOS_ALLOWED_FLAGS == 0)
+        }
+        _ => false,
+    };
+    ensure!(
+        valid,
+        "Maintenance persisted native identity/flags are unsupported"
+    );
+    Ok(())
 }
 
 pub(super) fn require_capability() -> Result<()> {
@@ -45,6 +118,10 @@ pub(super) fn identity(metadata: &fs::Metadata) -> Result<Identity> {
             inode: metadata.ino(),
             owner: metadata.uid(),
             group: metadata.gid(),
+            #[cfg(target_os = "macos")]
+            native_flags: Some(std::os::macos::fs::MetadataExt::st_flags(metadata)),
+            #[cfg(not(target_os = "macos"))]
+            native_flags: None,
         })
     }
     #[cfg(not(unix))]
@@ -74,32 +151,11 @@ pub(super) fn qualify(path: &Path, metadata: &fs::Metadata) -> Result<()> {
         "Maintenance refuses links and special files: {}",
         path.display()
     );
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
+    qualify_unix_owner(path, metadata)?;
     #[cfg(target_os = "linux")]
     {
-        use std::os::unix::{ffi::OsStrExt, fs::MetadataExt};
-        ensure!(
-            metadata.uid() == unsafe { libc::geteuid() },
-            "Maintenance refuses foreign ownership: {}",
-            path.display()
-        );
-        ensure!(
-            !metadata.is_file() || metadata.nlink() == 1,
-            "Maintenance refuses hardlinked files: {}",
-            path.display()
-        );
-        if mode(metadata)? & 0o2000 != 0 && metadata.gid() != unsafe { libc::getegid() } {
-            let count = unsafe { libc::getgroups(0, std::ptr::null_mut()) };
-            ensure!(
-                (0..=65536).contains(&count),
-                "Could not qualify supplementary groups for SGID preservation"
-            );
-            let mut groups = vec![0 as libc::gid_t; count as usize];
-            let actual = unsafe { libc::getgroups(count, groups.as_mut_ptr()) };
-            ensure!(
-                actual == count && groups.contains(&metadata.gid()),
-                "Maintenance cannot preserve SGID for a foreign group"
-            );
-        }
+        use std::os::unix::ffi::OsStrExt;
         let path_bytes = std::ffi::CString::new(path.as_os_str().as_bytes())?;
         let size = unsafe { libc::llistxattr(path_bytes.as_ptr(), std::ptr::null_mut(), 0) };
         if size < 0 {
@@ -134,6 +190,37 @@ pub(super) fn qualify(path: &Path, metadata: &fs::Metadata) -> Result<()> {
                 );
             }
         }
+    }
+    #[cfg(target_os = "macos")]
+    macos::qualify(path, metadata)?;
+    Ok(())
+}
+
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+fn qualify_unix_owner(path: &Path, metadata: &fs::Metadata) -> Result<()> {
+    use std::os::unix::fs::MetadataExt;
+    ensure!(
+        metadata.uid() == unsafe { libc::geteuid() },
+        "Maintenance refuses foreign ownership: {}",
+        path.display()
+    );
+    ensure!(
+        !metadata.is_file() || metadata.nlink() == 1,
+        "Maintenance refuses hardlinked files: {}",
+        path.display()
+    );
+    if mode(metadata)? & 0o2000 != 0 && metadata.gid() != unsafe { libc::getegid() } {
+        let count = unsafe { libc::getgroups(0, std::ptr::null_mut()) };
+        ensure!(
+            (0..=65536).contains(&count),
+            "Could not qualify supplementary groups for SGID preservation"
+        );
+        let mut groups = vec![0 as libc::gid_t; count as usize];
+        let actual = unsafe { libc::getgroups(count, groups.as_mut_ptr()) };
+        ensure!(
+            actual == count && groups.contains(&metadata.gid()),
+            "Maintenance cannot preserve SGID for a foreign group"
+        );
     }
     Ok(())
 }
@@ -190,7 +277,11 @@ pub(super) fn rename(from: &Path, to: &Path, parent_identity: &Identity) -> Resu
         directory.sync_all()?;
         Ok(())
     }
-    #[cfg(not(target_os = "linux"))]
+    #[cfg(target_os = "macos")]
+    {
+        macos::rename(from, to, parent_identity)
+    }
+    #[cfg(not(any(target_os = "linux", target_os = "macos")))]
     {
         let _ = (from, to, parent_identity);
         anyhow::bail!("Native no-replace maintenance rename is unsupported")
@@ -260,7 +351,11 @@ pub(super) fn publish(from: &Path, to: &Path, replace: bool) -> Result<()> {
         source_parent.sync_all()?;
         Ok(())
     }
-    #[cfg(not(target_os = "linux"))]
+    #[cfg(target_os = "macos")]
+    {
+        macos::publish(from, to, replace)
+    }
+    #[cfg(not(any(target_os = "linux", target_os = "macos")))]
     {
         let _ = (from, to, replace);
         anyhow::bail!("Maintenance atomic intent publication is unsupported")
@@ -299,7 +394,11 @@ pub(super) fn chmod(path: &Path, desired: u32, expected: &Identity) -> Result<()
         );
         Ok(())
     }
-    #[cfg(not(target_os = "linux"))]
+    #[cfg(target_os = "macos")]
+    {
+        macos::chmod(path, desired, expected)
+    }
+    #[cfg(not(any(target_os = "linux", target_os = "macos")))]
     {
         let _ = (path, desired, expected);
         anyhow::bail!("Owner-writable maintenance is unsupported on this platform")

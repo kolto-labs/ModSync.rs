@@ -247,7 +247,14 @@ fn before_process_inner(
     check_cancelled(cancelled)?;
     let plan = orchestration::discover(&candidate, &plan, &plan_options, &settings, cancelled)?;
     valid_skips(&plan)?;
-    let report = orchestration::run(&plan, &settings, cancelled, |_| {})?;
+    let report = orchestration::run_with_source_context(
+        &plan,
+        &settings,
+        &candidate,
+        cancelled,
+        |_| {},
+        None,
+    )?;
     check_cancelled(cancelled)?;
     if report.cancelled
         || report

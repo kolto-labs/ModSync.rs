@@ -82,6 +82,21 @@ Their relative layout and bytes are preserved, copied bytes are rehashed, and
 all five files enter the existing package manifest inventory. This is a scoped
 notice-delivery correction, not a complete dependency-license audit.
 
+## Backend producing source continuation
+
+`packaging/produce_patcher.py` now defines an explicit offline OdyPatcher CLI
+producer for an exact clean caller-supplied backend checkout. It retains a source
+archive and license, verifies an explicit reviewed license digest, binds the root
+Cargo package through metadata and emitted binary records, checks copied
+executable architecture/digest, and records clean source boundaries and failures.
+It neither runs the backend nor populates the provenance allowlist. The receipt
+explicitly reports a nonhermetic build and pending dependency-license review;
+tracked source alone does not cover inherited/ignored configuration or external
+path dependencies. This source was independently reviewed, including correction
+of a workspace default-member/package ambiguity. Actual producing builds,
+authenticated source/license obligations, admission and installed patcher
+acceptance remain open. No helper or backend was executed.
+
 Assembly also captures full clean Git status (including every untracked file),
 HEAD and lockfile digest before intake, then compares the same state immediately
 before no-clobber archive publication. Persistent source drift during resource or

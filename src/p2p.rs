@@ -122,7 +122,6 @@ fn fetch_direct(
         .tempdir_in(parent)?;
     let runtime = tokio::runtime::Runtime::new()?;
     runtime.block_on(async {
-        let session = session(download.path().to_path_buf()).await?;
         let add = match torrent {
             Some(torrent) => AddTorrent::from_bytes(torrent.torrent.clone()),
             None => AddTorrent::from_url(magnet),
@@ -131,22 +130,30 @@ fn fetch_direct(
             Some(_) => Some(sanitize_magnet(magnet, &[])?.all_trackers),
             None => None,
         };
-        let handle = session
-            .add_torrent(
+        let session = session(download.path().to_path_buf()).await?;
+        let result = async {
+            ensure!(!cancelled.load(Ordering::Acquire), "Download cancelled");
+            let pending = session.add_torrent(
                 add,
                 Some(librqbit::AddTorrentOptions {
                     initial_peers: (!peers.is_empty()).then_some(peers),
                     trackers,
                     ..Default::default()
                 }),
-            )
-            .await?
-            .into_handle()
-            .context("Torrent did not start")?;
-        let result = tokio::select! {
-            result = handle.wait_until_completed() => result,
-            _ = wait_for_cancel(cancelled) => Err(anyhow::anyhow!("Download cancelled")),
-        };
+            );
+            let handle = tokio::select! {
+                added = pending => added?.into_handle().context("Torrent did not start")?,
+                _ = wait_for_cancel(cancelled) => anyhow::bail!("Download cancelled"),
+                _ = tokio::time::sleep(Duration::from_secs(120)) => {
+                    return Err(PeerUnavailable::Stalled.into());
+                }
+            };
+            tokio::select! {
+                result = handle.wait_until_completed() => result,
+                _ = wait_for_cancel(cancelled) => Err(anyhow::anyhow!("Download cancelled")),
+            }
+        }
+        .await;
         session.stop().await;
         result?;
         Ok::<_, anyhow::Error>(())
@@ -2374,6 +2381,31 @@ pub fn cli_download(
     proxy: &CliProxyOptions,
     options: &crate::archive::Options,
 ) -> Result<()> {
+    let cancelled = stop_signal_flag()?;
+    cli_download_with_cancel(
+        magnet,
+        torrent_info,
+        destination,
+        sha256,
+        peers,
+        proxy,
+        options,
+        &cancelled,
+    )
+}
+
+/// Caller-owned cancellation, including the explicitly unproxied CLI path.
+#[allow(clippy::too_many_arguments)]
+pub fn cli_download_with_cancel(
+    magnet: &str,
+    torrent_info: Option<&str>,
+    destination: &Path,
+    sha256: &str,
+    peers: Vec<SocketAddr>,
+    proxy: &CliProxyOptions,
+    options: &crate::archive::Options,
+    cancelled: &AtomicBool,
+) -> Result<()> {
     let info = decode_cli_info(torrent_info)?;
     if proxy.no_proxy {
         let checked = match &info {
@@ -2389,12 +2421,11 @@ pub fn cli_download(
             destination,
             sha256,
             peers,
-            &AtomicBool::new(false),
+            cancelled,
             options,
         );
     }
     let policy = proxy.policy(Vec::new(), peers)?;
-    let cancelled = stop_signal_flag()?;
     fetch_authored(
         AuthoredTorrent {
             magnet,
@@ -2403,7 +2434,7 @@ pub fn cli_download(
         destination,
         sha256,
         &policy,
-        &cancelled,
+        cancelled,
         options,
         |_| {},
     )?;

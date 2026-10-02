@@ -1,4 +1,5 @@
 pub mod acquisition;
+pub mod acquisition_guard;
 pub mod archive;
 pub mod archive_generation;
 pub mod deployment;

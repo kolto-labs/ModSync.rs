@@ -67,9 +67,20 @@ Linux source includes bounded identity/content planning, native exclusive rename
 owner permissions, durable progress and verified reverse rollback. Independent
 review corrected intent publication, terminal cleanup/recovery, projection bounds,
 portable path admission and pending-write fences. Sharing requires explicit resume
-after a mutation attempt. Windows/macOS mutation support, Unicode mapping,
-cross-process acquisition admission and native interruption acceptance remain
-open. See [the maintenance contract](../parity/maintenance-contract.md).
+after a mutation attempt. The next reviewed source slice adds the Darwin native
+maintenance profile, durable mod-root fence, target-dependent terminal cleanup,
+shared acquisition locks and current-guide existing-file revalidation. Standalone
+CLI/desktop acquisition guards, worker/retry bounds, keyed execution grouping
+and direct torrent metadata cancellation are also source reviewed. Windows
+maintenance, Unicode mapping and native interruption/acquisition acceptance
+remain open. See [the maintenance contract](../parity/maintenance-contract.md)
+and [acquisition coordination](../parity/acquisition-root-coordination.md).
+
+Backend packaging now has an explicit offline OdyPatcher producer source with
+reviewed root-package/compiler artifact binding, retained source/license/archive
+digests and nonhermetic/failure receipts. It has not been executed and does not
+populate the empty payload allowlist. Actual producing evidence, dependency
+license/source obligations and native bundled backend acceptance remain open.
 
 Rooted FOMOD phase preparation and Save Selection now resolve archive-shaped
 directories from actual members using the engine's source policy, preserving

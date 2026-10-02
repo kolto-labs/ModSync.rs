@@ -1603,9 +1603,10 @@ exclusive rename and owner-only permission additions, and journals inverse
 operations before changes. Interrupted cleanup retains recoverable terminal
 state. Ordinary install/checkpoint/deployment writers are fenced while maintenance
 is pending. CLI outcomes and the desktop's owned worker retain recovery status;
-sharing needs explicit resume after mutation. Windows/macOS mutation, Unicode
-mapping and cross-process acquisition admission remain separate implementation
-work. This is source review, not native interruption or full F24/F25 acceptance.
+sharing needs explicit resume after mutation. The next source slice adds a
+Darwin profile with pinned native ACL/flag checks and exclusive rename, retaining
+stable capability admission and old Linux intent compatibility. Windows mutation,
+Unicode mapping and native interruption/full F24/F25 acceptance remain open.
 See [maintenance authority and limits](docs/parity/maintenance-contract.md).
 
 Rooted phase preparation and Save Selection use actual archive members to scope
@@ -1617,3 +1618,30 @@ archive without recorded prompt state now has a bounded soft warning; recorded
 prompt state retains its hard error. Pure rootless APIs retain their prior
 contract. Dependency expansion and corpus/native acceptance remain open; see
 [the rooted-choice contract](docs/parity/fomod-root-aware-choices.md).
+
+### Durable maintenance and acquisition coordination
+
+Maintenance publishes a bounded sibling mod-root fence before tree effects.
+Terminal records bind the final/original inventory and optional outcome
+disposition. Cleanup clears the selected target's fence last, preserving
+game-only or mod-only admission after interruption. Explicit terminal recovery
+verifies that tree and removes metadata; it does not reverse a completed apply.
+Fence-only mod cleanup contains no content-write authority. The owned sibling
+namespace restriction and native acceptance limits are described in the
+[maintenance contract](docs/parity/maintenance-contract.md).
+
+Orchestrated transfers retain the same root lock through workers and revalidate
+planning-time existing files against current guide/resource/hash/integrity
+authority. Standalone transfers can bind nested outputs with `--source-dir`;
+otherwise they guard only immediate output parents. Worker/retry limits,
+cancellable keyed execution grouping and direct torrent metadata cancellation
+are implemented. These are cooperating-writer locks and path preflight, with
+external namespace races and native behavior still unverified. See
+[acquisition coordination](docs/parity/acquisition-root-coordination.md).
+
+The backend producer now has source for an explicit locked offline OdyPatcher
+CLI build receipt, exact root-package/compiler-executable binding and retained
+source/license/artifact digests. It is nonhermetic, has not been invoked and
+does not admit a bundled payload. The provenance allowlist is still empty;
+dependency/source obligations, actual producing review and installed acceptance
+remain open. See [package construction](packaging/README.md).
