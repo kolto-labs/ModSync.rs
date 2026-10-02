@@ -278,6 +278,19 @@ native/CLI probes, installs, producers or CI ran. See the
 [current source triage](../parity/source-triage-2026-10-02.md) for actual F05-F15 source gaps;
 parser-origin, floating getter, protocol FIFO and broader acceptance stay open.
 
+
+The source recovery boundary adds miss-only Extract/Copy/Move/Patcher recovery
+(registry auto-extraction, descendants, Move variants, redundant game Moves)
+staged before publication, typed GUID comparison through execution, validation,
+conflicts and the checkpoint coordinator, JSON number-origin preservation with
+native TOML/YAML rendering, Nexus mod-info scalar conversion and named refusal of
+unsafe reference install flags. Independent SPEC and QUALITY reviews accepted all
+scopes; both Linux production build/strict-lint configurations, formatting and
+Windows GNU no-default compile/link passed. No tests, harnesses, runtime or CI
+ran. Coordinated ordinal path identity, guide `LastModified` handling and YAML
+timestamp/typed-key intake remain source decisions; see the
+[current source triage](../parity/source-triage-2026-10-02.md).
+
 ## Integration and external blockers
 
 - [ ] Reconcile historical status prose and newly merged/uncommitted audits against current source; derive bounded tasks where a domain still lacks a current plan.

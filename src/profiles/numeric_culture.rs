@@ -62,6 +62,23 @@ impl NumberCultureSnapshot {
             magnitude.to_string()
         }
     }
+    /// Same as `format_signed_magnitude` but for an exact decimal-digit
+    /// string wider than `u64`, used for JSON integers beyond Int64 in
+    /// collection formatting. Validates the digits are ASCII decimal and
+    /// bounds the length to guard against unbounded allocation.
+    pub(crate) fn format_signed_digits(&self, digits: &str, negative: bool) -> Result<String> {
+        ensure!(
+            !digits.is_empty()
+                && digits.len() <= 1024
+                && digits.bytes().all(|b| b.is_ascii_digit()),
+            "Invalid wide integer digit string"
+        );
+        Ok(if negative {
+            format!("{}{digits}", self.negative)
+        } else {
+            digits.to_string()
+        })
+    }
     /// YamlDotNet's explicit Double tag uses Float|AllowThousands with fixed symbols.
     pub(crate) fn parse_yaml_double(text: &str) -> Result<Value> {
         ensure!(

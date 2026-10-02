@@ -59,5 +59,6 @@ pub mod wizard;
 pub mod native_url;
 
 mod guid;
+mod json_native;
 pub mod resource_watcher;
 mod unicode_case;

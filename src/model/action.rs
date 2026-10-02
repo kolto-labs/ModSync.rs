@@ -47,19 +47,28 @@ pub(super) fn intake(value: &Value) -> Result<Intake> {
         canonical,
     })
 }
-fn numeric(value: &serde_json::Number) -> Option<i32> {
+fn numeric(value: &serde_json::Number) -> Result<Option<i32>> {
     if let Some(value) = value.as_i64() {
-        return i32::try_from(value).ok();
+        return Ok(i32::try_from(value).ok());
     }
     if let Some(value) = value.as_u64() {
-        return i32::try_from(value).ok();
+        return Ok(i32::try_from(value).ok());
     }
-    let value = value.as_f64()?;
-    (value.is_finite()
+    if crate::json_native::wide_integer_lexeme(value).is_some() {
+        // Beyond Int64/u64 and integer-shaped: no native-type evidence;
+        // falls through to the Unset default in `intake`.
+        return Ok(None);
+    }
+    let Some(value) = value.as_f64() else {
+        // as_f64 only returns None here for a non-finite decimal/exponent
+        // lexeme; refuse rather than silently defaulting to Unset.
+        bail!("Non-finite numeric value is not a valid Action");
+    };
+    Ok((value.is_finite()
         && value.fract() == 0.0
         && value >= f64::from(i32::MIN)
         && value <= f64::from(i32::MAX))
-    .then_some(value as i32)
+    .then_some(value as i32))
 }
 fn getter_text(value: &Value) -> Result<Option<String>> {
     match value {
@@ -67,7 +76,7 @@ fn getter_text(value: &Value) -> Result<Option<String>> {
             ensure!(text.len() <= MAX_TEXT, "Action text exceeds intake bound");
             Ok(Some(text.clone()))
         }
-        Value::Number(value) => Ok(numeric(value).map(|value| value.to_string())),
+        Value::Number(value) => Ok(numeric(value)?.map(|value| value.to_string())),
         Value::Null | Value::Bool(_) | Value::Object(_) => Ok(None),
         Value::Array(items) => {
             ensure!(
@@ -108,7 +117,7 @@ fn append(value: &Value, text: &mut String, count: &mut usize, invalid: &mut boo
             value.as_str()
         }
         Value::Number(value) => {
-            let Some(value) = numeric(value) else {
+            let Some(value) = numeric(value)? else {
                 *invalid = true;
                 return Ok(());
             };

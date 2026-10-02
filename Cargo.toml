@@ -21,7 +21,7 @@ dirs = "6"
 chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
 clap = { version = "4", features = ["derive"] }
 serde = { version = "1", features = ["derive"] }
-serde_json = { version = "1", features = ["preserve_order"] }
+serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision"] }
 toml = { version = "0.9", features = ["preserve_order"] }
 serde_yaml_ng = "0.10"
 unsafe-libyaml = "0.2.11"
@@ -73,4 +73,5 @@ objc2-foundation = { version = "=0.3.2", default-features = false, features = ["
 
 # unrar_sys 0.5.8 build-host/target correction; see vendor/unrar_sys/README.md.
 [patch.crates-io]
+serde_json = { path = "vendor/serde_json" }
 unrar_sys = { path = "vendor/unrar_sys" }

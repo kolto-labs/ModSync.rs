@@ -1,6 +1,6 @@
 # Full Rust functionality progress
 
-Updated 2026-09-28 14:20 UTC. Goal: every F01–F29 requirement in [ACCEPTANCE.md](ACCEPTANCE.md)
+Updated 2026-10-02. Goal: every F01–F29 requirement in [ACCEPTANCE.md](ACCEPTANCE.md)
 verified against pinned C# `d31ccbd3`, including identical K1/K2 full installs
 against C# and manual references. A delivered slice does not close a whole domain.
 
@@ -8,6 +8,20 @@ against C# and manual references. A delivered slice does not close a whole domai
 is assigned because the remaining domains differ greatly in scope and proof cost.
 
 ## Current working source — 2026-10-02
+
+Latest source wave (after `f528e4b`): Extract, Copy, Move and Patcher recover a
+missing source only after a direct miss, through registry auto-extraction,
+extracted descendants, Move variants and redundant game Moves, all staged before
+publication; direct hits keep their previous behavior. Execution, validation and
+conflicts compare component GUIDs by value without rewriting stored IDs. JSON
+numbers keep their source lexeme through a vendored `serde_json` patch, and
+TOML/YAML saves render them natively with shared size bounds. Nexus mod-info
+Name/Version accept numbers and booleans as the reference does, and install,
+validate and conflicts refuse the reference skip/continue/auto-confirm flags by
+name. Independent SPEC and QUALITY reviews accepted each scope. See the
+source-resolution, GUID, JSON number-origin, vendor provenance and update-check
+contracts and the production-gate receipt. No tests, runtime or CI ran;
+behavioral acceptance stays open.
 
 Latest source continuation adds worker-owned Save Selection with bounded remaining
 FOMOD overlay and stale-result guards, raw UUID generation/copy, drop-dialog

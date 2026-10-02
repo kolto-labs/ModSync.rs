@@ -942,3 +942,66 @@ c8c7d22941cf4a00443e423a3f28eda47a42e6a3fbfa632d33556c35c9fdff82  src/fomod/meta
 84e73c3d490ca06a88e4a1d1ded043c932bf7b2c5a888074c32ef9ec807a304b  Cargo.toml
 fe436da3c421455e1e872d8fb36bec5011dc6daf4bccf8bb45012e883082955c  Cargo.lock
 ```
+
+
+## Source recovery, GUID execution, JSON origin, F22/F26 boundary — 2026-10-02
+
+Scopes: miss-only Extract/Copy/Move/Patcher source recovery
+([contract](source-resolution-contract.md)); typed GUID comparison in execution,
+validation, conflicts and the checkpoint coordinator
+([contract](guid-selection-ordering.md)); vendored `serde_json` 1.0.151 with
+`arbitrary_precision` and native TOML/YAML number rendering
+([contract](json-number-origin-contract.md),
+[provenance](serde-json-vendor-provenance.md)); Nexus mod-info scalar
+Name/Version conversion ([contract](update-check-wire-contract.md)); named refusal
+of the reference `--skip-validation`, `--continue-on-missing-sources`,
+`--continue-on-mod-failure`, `--ignore-errors` and `-y`/`--yes` install flags.
+
+Independent SPEC and QUALITY reviews accepted every scope. The one open review
+note is the documented residual risk that a `visit_map`-only consumer of the
+private number protocol would see the legacy wrapper; no such consumer exists in
+`src/`.
+
+Sequential host gates on the frozen source, all exit 0:
+
+```text
+cargo fmt --all -- --check
+cargo build --locked --lib --bin modsync -j2
+cargo clippy --locked --lib --bin modsync -j2 -- -D warnings
+cargo build --locked --lib --bin modsync --no-default-features -j2
+cargo clippy --locked --lib --bin modsync --no-default-features -j2 -- -D warnings
+cargo build --locked --lib --bin modsync --no-default-features --target x86_64-pc-windows-gnu -j2
+```
+
+The `src/validation.rs` inline test suffix is byte-identical to `f528e4b`
+(SHA-256 `ac60fbca2f31d05577c1934538955ec519e725681a3cfdbb0f1fb9c0005c5fa2`).
+No other file with an inline test region changed. Cargo.lock only drops the
+`serde_json` registry source and checksum for the path patch. No tests,
+fixtures, harnesses, runtime/CLI/native probes, installs or CI ran. Source review
+and compilation do not establish behavioral or F01-F29 acceptance.
+
+Source hashes:
+
+```text
+94470058f32636d9bcdd891d4f41f38da2e94afb5822c6710e14c06f54066c14  Cargo.toml
+aa6c736484afd44261de64b1bb0d5919a4e66d2e691dbc7a30c6abb023a9e1d2  Cargo.lock
+b4cba4a0b36f68b36c3f80dd28ffa09250a483ad8bb1d361b3e27315dfb09f9c  src/engine.rs
+0e9b6694409ebc3429ee2c8c1545cc551b4790d2db975687e7272bdf310c289b  src/engine/source_resolution.rs
+def2d78dfec0c39527cb41686f4cf7e3891afa4fb0caa1dd98f1dfbf2ff073a0  src/engine/checkpoint_coordinator.rs
+b3bcd280f88c459953551f1a5f0b794eeed0b27c4b557b783a26d3ead6ee141c  src/engine/patcher_simulation.rs
+8e060a59e36a98627855ddfd2ea5cd5a82f32eba8e13f13b4dd9e5b1c1926817  src/guid.rs
+d241ac266794f0b4871a4b2a5a06846129002a12313e36b2073670b36d19c555  src/selection.rs
+5da1c7aa9d45a95a68ea6d37d8d5fb3d4aa9b392c19eb0f557b4e2cd875f4d8c  src/model.rs
+85eb66ffb0f617beaeb4e691c76fb6426c19fb3d7fa83bf783282e4f01cf813d  src/model/action.rs
+703ded12e0547ecbde2ce451610177ca6c22c541ceaf31e99679d6f84d99dd8a  src/model/boolean.rs
+441ebbba872fdb933de158d45fb8fdf3a13fe436b8d48a2c10d4bba00fbbac34  src/model/getter.rs
+d6a06e5273f4294646400b0b2f2451c320f3cbf6e6f849555f03c05077488053  src/json_native.rs
+c6e03553572a73221e8bd64cd7fa42063aa8daddac4a87e318e9f4b536e0a807  src/markdown/export.rs
+e8263b24efa970aeb41f60b6cf4aa0c2e05f41ce3c2ab653bf8aee8be0aa02f2  src/profiles/numeric_culture.rs
+52bc7a5bb1491b25f5245a85e8ea19b7e1401cb5af414618a7428e6079504703  src/updates.rs
+7e6eafaef78afebac18a5ce63847937966a8b9cfd8127f178cdae758fc41408d  src/main.rs
+a07068a76d3ce2c812f10dde75d984b0403eb5de4f70f05089f0fd74005a3acf  src/conflicts.rs
+76c631a0a7ef9c7443e3908112e4f2fffb598b6653e0c1a4a7a100e8f17f9012  src/validation.rs
+7a34cb90ea5158a6bee8f4dca96d5ad4e027168bd2f1b2c9275efa10f78b89e2  src/validation/basic.rs
+2cc293596fefaca2a7f68c827c5b589527cd948064be55e2b084ec334662603b  src/lib.rs
+```

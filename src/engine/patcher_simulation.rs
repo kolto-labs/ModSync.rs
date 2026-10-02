@@ -100,7 +100,11 @@ impl Engine {
         Ini::parse(&text, &self.settings.cancelled)
     }
 
-    fn simulation_configuration(&self, base: &Path, arguments: &str) -> Result<Option<PathBuf>> {
+    pub(super) fn simulation_configuration(
+        &self,
+        base: &Path,
+        arguments: &str,
+    ) -> Result<Option<PathBuf>> {
         let arguments = arguments.trim();
         let data = if base
             .file_name()

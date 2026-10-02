@@ -54,7 +54,7 @@ impl Engine {
                 expected.session_id, expected.checkpoint_id
             ),
         });
-        self.selected = guide.selected_ids();
+        self.selected = selected_guid_keys(guide);
         self.selected_names = guide
             .components
             .iter()

@@ -88,15 +88,16 @@ impl Presentation {
                     .iter()
                     .map(|writer| {
                         names
-                            .entry(writer.component_guid.to_ascii_lowercase())
+                            .entry(crate::guid::key_ascii(&writer.component_guid))
                             .or_insert_with(|| writer.component_name.clone());
                         WriterRow {
                             component_guid: writer.component_guid.clone(),
                             component_name: writer.component_name.clone(),
                             instruction_index: writer.instruction_index,
-                            is_winner: writer
-                                .component_guid
-                                .eq_ignore_ascii_case(&conflict.winner_component_guid),
+                            is_winner: crate::guid::eq_ascii(
+                                &writer.component_guid,
+                                &conflict.winner_component_guid,
+                            ),
                         }
                     })
                     .collect(),
@@ -114,7 +115,7 @@ impl Presentation {
             .map(|(guid, count)| ComponentCount {
                 component_guid: guid.clone(),
                 component_name: names
-                    .get(&guid.to_ascii_lowercase())
+                    .get(&crate::guid::key_ascii(guid))
                     .filter(|name| !name.is_empty())
                     .cloned()
                     .unwrap_or_else(|| guid.clone()),
@@ -160,10 +161,10 @@ impl Tracker {
             .histories
             .entry(path.to_lowercase())
             .or_insert_with(|| (path, Vec::new()));
-        if history.last().is_some_and(|old| {
-            old.component_guid
-                .eq_ignore_ascii_case(&writer.component_guid)
-        }) {
+        if history
+            .last()
+            .is_some_and(|old| crate::guid::eq_ascii(&old.component_guid, &writer.component_guid))
+        {
             history.pop();
         }
         history.push(writer.clone());
@@ -174,7 +175,7 @@ impl Tracker {
             ..Report::default()
         };
         if self.external_effects {
-            report.limitations.push("External program and patcher writes cannot be simulated; this report excludes their effects.".into());
+            report.limitations.push("External program writes and binary patch effects are excluded; the report includes only the supported patcher InstallList writes.".into());
         }
         for (_, (destination_path, writers)) in self.histories {
             if writers.len() < 2 {

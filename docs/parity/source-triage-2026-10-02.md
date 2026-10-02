@@ -10,12 +10,12 @@ acceptance and does not close F01-F29.
 
 | Domain | Current source | Concrete remaining implementation |
 | --- | --- | --- |
-| F05 actions | All non-Unset action dispatches exist; shared virtual/install engine | Registry archive auto-extraction and descendant/variant/redundant Move source recovery |
+| F05 actions | All non-Unset action dispatches exist; shared virtual/install engine; miss-only source recovery (registry auto-extract, descendants, Move variant, redundant game Move) implemented | Ordinal (.NET OrdinalIgnoreCase) path identity coordinated across engine VFS, managed and checkpoint keys |
 | F06 archives | ZIP/7z/RAR/tar/gzip/embedded 7z SFX, streaming, integrity, containment, timestamps | No new missing decoder demonstrated; encrypted/multipart/executed SFX retain declared refusal |
 | F07 cleanup | CleanList and texture cleanup exist | Bounded ordinal/count-versus-candidate and BOM-aware corrections now implemented; runtime comparison deferred |
-| F08 validation | Full/basic reports, dry-run, stages, FOMOD gates exist | F05 source recovery must also reach virtual validation; external chmod/backend probes remain forbidden here |
+| F08 validation | Full/basic reports, dry-run, stages, FOMOD gates exist; source recovery shared by virtual validation | External chmod/backend probes remain forbidden here |
 | F09 patchers | Native/Python/package discovery, argv, fresh log checks and InstallList simulation exist | No new missing invocation function demonstrated; real patched-resource/platform comparison remains proof |
-| F10 coordinator | Cancellation, component progress, failure receipts/recovery, optional checkpoints exist | Execution GUID value comparison still needs reconciliation; unsafe continuation stays refused |
+| F10 coordinator | Cancellation, component progress, failure receipts/recovery, optional checkpoints exist; execution GUID value comparison implemented | Unsafe continuation stays refused, including named refusal of reference skip/continue/auto-confirm flags |
 | F11 checkpoints | Component CAS/provenance/restore/resume/browser source exists | Power-loss, platform and restored-game acceptance remain proof |
 | F12 resources | Planning, filename filtering, discovery, metadata/cache recording exist | Bounded invocation inventory and propagated qualification errors now implemented; live acceptance deferred |
 | F13 hosts | Nexus, anonymous DeadlyStream, MEGA and provider paths exist | No new absent provider function demonstrated; GameFront manual handling matches the pinned reference |
@@ -28,13 +28,23 @@ Source presence is not proof of their outcomes.
 
 ## Next bounded source queue
 
-- F23/F07/F12/F15: bounded FIFO, cleanup, inventory and metadata contracts
-  implemented; compile receipts and runtime acceptance remain separate.
-- F05/F08: derive and implement the shared read-only virtual source resolver.
-- F04/F10: typed GUID graph identity without rewriting stored receipts or IDs.
-- F01: preserve pinned YAML plain-scalar/tag/null/alias semantics; separately
-  retain JSON integer origin beyond the current unsigned storage range.
-- F01: broader floating/string getter and complex native-type contracts.
+Implemented on the current source after `f528e4b`: F05/F08 miss-only source
+recovery, F04/F10 typed execution GUID comparison, F01 JSON integer origin with
+native TOML/YAML number rendering and wide-integer getter coercions, F22 scalar
+Name/Version conversion and F26 named refusal of unsafe reference install flags.
+See the source-resolution, GUID, JSON number-origin and update-check contracts.
+
+Remaining source work found by the post-wave audit:
+
+- F05/F18/F11: one ordinal path key (.NET `OrdinalIgnoreCase`) shared by the
+  engine VFS, managed deployment and checkpoint keys. Persisted indexes need a
+  compatible migration; an engine-only change would split them.
+- F01: guide `LastModified` metadata uses `DateTime.TryParse` in the reference;
+  Rust keeps the authored text. Decide whether save output must normalize it.
+- F01: YAML timestamp tags and typed mapping keys are refused; YamlDotNet
+  accepts them. Current refusal is the documented contract.
+- F11: checkpoint duplicate-definition check folds GUID text with Unicode
+  lowercase. Equivalent for valid GUIDs; admission is intentionally unchanged.
 
 The detailed tracker and acceptance ledger retain all remaining domains. This
 source triage replaces neither their requirements nor their acceptance owners.

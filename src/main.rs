@@ -689,6 +689,18 @@ struct InstallArgs {
     /// Compatibility flag; installs reject continuing after a failed step.
     #[arg(long, visible_alias = "continue-on-error")]
     best_effort: bool,
+    // Reference install flags that skip validation, auto-confirm or continue
+    // past a failure. Parsed only so they are refused by name.
+    #[arg(long, hide = true)]
+    skip_validation: bool,
+    #[arg(long, hide = true)]
+    continue_on_missing_sources: bool,
+    #[arg(long, hide = true)]
+    continue_on_mod_failure: bool,
+    #[arg(long, hide = true)]
+    ignore_errors: bool,
+    #[arg(short = 'y', long, hide = true)]
+    yes: bool,
     /// Stage and track managed deployment effects within component checkpoints.
     #[arg(long)]
     managed: bool,
@@ -2049,7 +2061,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             output,
             summary,
         }) => {
-            let mut guide = Guide::load(&input)?;
+            let mut guide = Guide::load_preserving_selection(&input)?;
             let report =
                 modsync::updates::apply(&mut guide, &modsync::updates::load_versions(&versions)?);
             guide.save(&output)?;
@@ -2940,6 +2952,24 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             let mut validation_emitted = false;
             let dispatch_cancelled = modsync::p2p::stop_signal_flag()?;
             let dispatch = (|| -> Result<()> {
+                let refused = [
+                    (args.skip_validation, "--skip-validation"),
+                    (
+                        args.continue_on_missing_sources,
+                        "--continue-on-missing-sources",
+                    ),
+                    (args.continue_on_mod_failure, "--continue-on-mod-failure"),
+                    (args.ignore_errors, "--ignore-errors"),
+                    (args.yes, "--yes"),
+                ]
+                .into_iter()
+                .filter_map(|(supplied, flag)| supplied.then_some(flag))
+                .collect::<Vec<_>>();
+                ensure!(
+                    refused.is_empty(),
+                    "{} would skip validation, auto-confirm, or continue past a missing source, failed mod or dependency error. ModSync always validates and stops on failure: fix the reported cause, or restore the verified boundary and resume the ordered suffix.",
+                    refused.join(", ")
+                );
                 ensure!(
                     (!install && !conflicts) || !validation_only_flags(&args),
                     "Validation report/output/full/dry-run/error-filter options are only supported by validate"

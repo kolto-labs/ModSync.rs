@@ -190,3 +190,25 @@ fn x(text: &str) -> Option<Uuid> {
     }
     Some(fields(a, b, c, tail))
 }
+
+/// Ephemeral comparison identity. Stored and emitted guide spellings stay untouched.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub(crate) enum Identity {
+    Known(Uuid),
+    Opaque(String),
+}
+
+/// Required GUID policy remains with callers; opaque legacy identities keep ASCII folding.
+pub(crate) fn key_ascii(text: &str) -> Identity {
+    try_parse(text).map_or_else(
+        || Identity::Opaque(text.to_ascii_lowercase()),
+        Identity::Known,
+    )
+}
+
+pub(crate) fn eq_ascii(left: &str, right: &str) -> bool {
+    match (try_parse(left), try_parse(right)) {
+        (Some(left), Some(right)) => left == right,
+        _ => left.eq_ignore_ascii_case(right),
+    }
+}

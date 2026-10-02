@@ -1,6 +1,7 @@
 mod checkpoint_coordinator;
 mod cleanlist;
 mod managed;
+mod source_resolution;
 pub use managed::{ManagedLiveEdit, ManagedRunReport};
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -248,12 +249,20 @@ pub struct Engine {
     )>,
     managed: Option<managed::Run>,
     stage_managed_writes: bool,
-    selected: BTreeSet<String>,
-    completed: BTreeSet<String>,
+    selected: BTreeSet<crate::guid::Identity>,
+    completed: BTreeSet<crate::guid::Identity>,
     selected_names: BTreeSet<String>,
     conflicts: Option<crate::conflicts::Tracker>,
     validation_target: Option<(String, String, Option<usize>)>,
     validation_warnings: Vec<crate::validation::DryRunIssue>,
+}
+
+fn selected_guid_keys(guide: &Guide) -> BTreeSet<crate::guid::Identity> {
+    guide
+        .selected_ids()
+        .iter()
+        .map(|id| crate::guid::key_ascii(id))
+        .collect()
 }
 
 impl Engine {
@@ -541,7 +550,7 @@ impl Engine {
                 component.is_selected
                     && !self
                         .completed
-                        .contains(&component.guid.to_ascii_lowercase())
+                        .contains(&crate::guid::key_ascii(&component.guid))
             })
             .collect();
         let mut report = crate::validation::Report::new(validated_components.len());
@@ -567,7 +576,16 @@ impl Engine {
             }
             boundary(Stage::Conflicts, "Checking conflicts", false);
             let mut selected = guide.selected_ids();
-            selected.extend(self.completed.iter().cloned());
+            selected.extend(
+                guide
+                    .components
+                    .iter()
+                    .filter(|component| {
+                        self.completed
+                            .contains(&crate::guid::key_ascii(&component.guid))
+                    })
+                    .map(|component| component.guid.clone()),
+            );
             report.declared_conflicts(guide, &validated_components, &selected);
             boundary(Stage::Conflicts, "Checking conflicts", true);
             boundary(
@@ -649,7 +667,7 @@ impl Engine {
                 )];
             }
         };
-        self.selected = guide.selected_ids();
+        self.selected = selected_guid_keys(guide);
         self.selected_names = guide
             .components
             .iter()
@@ -660,7 +678,7 @@ impl Engine {
         for component in ordered {
             if self
                 .completed
-                .contains(&component.guid.to_ascii_lowercase())
+                .contains(&crate::guid::key_ascii(&component.guid))
             {
                 continue;
             }
@@ -739,14 +757,14 @@ impl Engine {
     ) -> Result<Vec<Result<(), String>>> {
         recovery::ensure_clean(&self.settings.roots)?;
         recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
-        self.selected = guide.selected_ids();
+        self.selected = selected_guid_keys(guide);
         self.selected.extend(self.completed.iter().cloned());
         let mut outcomes = Vec::new();
         for component in guide.components.iter().filter(|component| {
             component.is_selected
                 && !self
                     .completed
-                    .contains(&component.guid.to_ascii_lowercase())
+                    .contains(&crate::guid::key_ascii(&component.guid))
         }) {
             let outcome = self
                 .validate_component_archives(component)
@@ -882,13 +900,13 @@ impl Engine {
 
         // C# gates registered download artifacts even when no Extract instruction names them.
         // A previously recorded prompt state makes a missing artifact fail closed.
-        self.selected = guide.selected_ids();
+        self.selected = selected_guid_keys(guide);
         self.selected.extend(self.completed.iter().cloned());
         let mut scope = Vec::new();
         for component in guide.ordered()? {
             if self
                 .completed
-                .contains(&component.guid.to_ascii_lowercase())
+                .contains(&crate::guid::key_ascii(&component.guid))
             {
                 continue;
             }
@@ -1136,7 +1154,7 @@ impl Engine {
                     definition
                         .get("Guid")
                         .and_then(serde_json::Value::as_str)
-                        .map(str::to_ascii_lowercase)
+                        .map(crate::guid::key_ascii)
                         .context("Resume prefix has no component Guid")
                 })
                 .collect::<Result<BTreeSet<_>>>()?;
@@ -1172,7 +1190,7 @@ impl Engine {
         if resume_plan.is_none() {
             recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
         }
-        self.selected = guide.selected_ids();
+        self.selected = selected_guid_keys(guide);
         self.selected_names = guide
             .components
             .iter()
@@ -1378,7 +1396,10 @@ impl Engine {
 
     fn set_completed_prefix(&mut self, guide: &Guide, completed: &[String]) -> Result<()> {
         let ordered = guide.ordered()?;
-        let ids: BTreeSet<_> = completed.iter().map(|id| id.to_ascii_lowercase()).collect();
+        let ids: BTreeSet<_> = completed
+            .iter()
+            .map(|id| crate::guid::key_ascii(id))
+            .collect();
         ensure!(
             ids.len() == completed.len(),
             "Duplicate completed component ID"
@@ -1390,7 +1411,7 @@ impl Engine {
         let prefix: BTreeSet<_> = ordered
             .iter()
             .take(ids.len())
-            .map(|c| c.guid.to_ascii_lowercase())
+            .map(|c| crate::guid::key_ascii(&c.guid))
             .collect();
         ensure!(
             ids == prefix,
@@ -1412,7 +1433,7 @@ impl Engine {
         Ok(guide
             .ordered()?
             .into_iter()
-            .filter(|c| !self.completed.contains(&c.guid.to_ascii_lowercase()))
+            .filter(|c| !self.completed.contains(&crate::guid::key_ascii(&c.guid)))
             .collect())
     }
 
@@ -1428,7 +1449,7 @@ impl Engine {
         emit: &mut impl FnMut(Event),
         mut progress: Option<&mut InstallObserver<'_>>,
     ) -> Result<()> {
-        self.selected = guide.selected_ids();
+        self.selected = selected_guid_keys(guide);
         self.selected_names = guide
             .components
             .iter()
@@ -1513,7 +1534,7 @@ impl Engine {
                 };
                 if let Some(tracker) = &mut self.conflicts {
                     if let Some(writer) = &mut tracker.current
-                        && writer.component_guid.eq_ignore_ascii_case(&c.guid)
+                        && crate::guid::eq_ascii(&writer.component_guid, &c.guid)
                     {
                         writer.instruction_index = n;
                     }
@@ -1578,14 +1599,14 @@ impl Engine {
         );
         for dependency in &c.dependencies {
             ensure!(
-                self.selected.contains(&dependency.to_ascii_lowercase()),
+                self.selected.contains(&crate::guid::key_ascii(dependency)),
                 "{} requires {dependency}",
                 c.name
             );
         }
         for restriction in &c.restrictions {
             ensure!(
-                !self.selected.contains(&restriction.to_ascii_lowercase()),
+                !self.selected.contains(&crate::guid::key_ascii(restriction)),
                 "{} conflicts with {restriction}",
                 c.name
             );
@@ -1597,11 +1618,11 @@ impl Engine {
         instruction
             .dependencies
             .iter()
-            .all(|id| self.selected.contains(&id.to_ascii_lowercase()))
+            .all(|id| self.selected.contains(&crate::guid::key_ascii(id)))
             && !instruction
                 .restrictions
                 .iter()
-                .any(|id| self.selected.contains(&id.to_ascii_lowercase()))
+                .any(|id| self.selected.contains(&crate::guid::key_ascii(id)))
     }
 
     /// The same immediate-option selection used by execution and read-only gates.
@@ -1614,7 +1635,7 @@ impl Engine {
                 component
                     .options
                     .iter()
-                    .any(|option| option.guid.eq_ignore_ascii_case(id)),
+                    .any(|option| crate::guid::eq_ascii(&option.guid, id)),
                 "Unknown option {id}"
             );
         }
@@ -1626,7 +1647,7 @@ impl Engine {
                     && instruction
                         .source
                         .iter()
-                        .any(|id| option.guid.eq_ignore_ascii_case(id))
+                        .any(|id| crate::guid::eq_ascii(&option.guid, id))
             })
             .collect())
     }
@@ -1928,7 +1949,9 @@ impl Engine {
                 if !i.destination.is_empty() {
                     self.path(&i.destination, false)?;
                 }
-                for source in self.instruction_sources(&i.source)? {
+                let mut resolution = self.resolve_instruction(component, i)?;
+                self.publish_resolution(&mut resolution)?;
+                for source in resolution.sources {
                     let content = self.files[&self.path_policy.key(&source)].1.clone();
                     let dest = self.extraction_destination(i, &source)?;
                     let entries = archive::unpack(
@@ -2005,7 +2028,17 @@ impl Engine {
                 let sources = if i.action == "Rename" {
                     self.matches(&i.source, false)?
                 } else {
-                    self.instruction_sources(&i.source)?
+                    let mut resolution = self.resolve_instruction(component, i)?;
+                    if resolution.satisfied {
+                        emit(Event {
+                            component: component.name.clone(),
+                            step: 0,
+                            message: "Move already satisfied at its qualified game targets".into(),
+                        });
+                        return Ok(());
+                    }
+                    self.publish_resolution(&mut resolution)?;
+                    resolution.sources
                 };
                 for source in sources {
                     self.check_cancelled()?;
@@ -2185,21 +2218,23 @@ impl Engine {
                     self.delete(&path)?;
                 }
             }
-            "Execute" | "Run" | "Patcher" => self.process(i, emit)?,
+            "Patcher" => {
+                let mut resolution = self.resolve_instruction(component, i)?;
+                self.publish_resolution(&mut resolution)?;
+                let path = resolution
+                    .sources
+                    .first()
+                    .context("Patcher has no resolved binding")?;
+                self.process_path(i, path, &[], emit)?;
+            }
+            "Execute" | "Run" => self.process(i, emit)?,
             other => bail!("Unsupported action {other}; refusing to skip it"),
         }
         Ok(())
     }
 
+    /// Execute/Run only; Patcher binds through `resolve_instruction`.
     fn process(&mut self, i: &Instruction, emit: &mut impl FnMut(Event)) -> Result<()> {
-        if i.action == "Patcher" {
-            ensure!(
-                i.source.len() == 1,
-                "Patcher needs exactly one source to bind its configuration and logs"
-            );
-            let path = self.actual(&self.path(&i.source[0], false)?);
-            return self.process_path(i, &path, &[], emit);
-        }
         ensure!(
             self.settings.allow_processes,
             "{} needs explicit trust: enable external programs (--allow-processes)",
@@ -2263,10 +2298,7 @@ impl Engine {
             } else {
                 self.actual(&self.path(&i.destination, false)?)
             };
-            let base = if path
-                .extension()
-                .is_some_and(|e| e.eq_ignore_ascii_case("exe"))
-            {
+            let base = if self.files.contains_key(&self.path_policy.key(path)) {
                 path.parent().unwrap()
             } else {
                 path

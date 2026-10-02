@@ -1,12 +1,17 @@
 //! Additive base-build selection rules from the reference wizard.
-use crate::{Component, game};
+use crate::{
+    Component, game,
+    guid::{self, Identity},
+};
+
+type VisitKey = (bool, Identity);
 use serde::Serialize;
 use std::collections::{BTreeMap, BTreeSet};
 
 fn component_index(components: &[Component], guid: &str) -> Option<usize> {
     components
         .iter()
-        .position(|component| component.guid.eq_ignore_ascii_case(guid))
+        .position(|component| guid::eq_ascii(&component.guid, guid))
 }
 
 fn option_index(components: &[Component], guid: &str) -> Option<(usize, usize)> {
@@ -17,7 +22,7 @@ fn option_index(components: &[Component], guid: &str) -> Option<(usize, usize)> 
             parent
                 .options
                 .iter()
-                .position(|option| option.guid.eq_ignore_ascii_case(guid))
+                .position(|option| guid::eq_ascii(&option.guid, guid))
                 .map(|option| (component, option))
         })
 }
@@ -25,11 +30,11 @@ fn option_index(components: &[Component], guid: &str) -> Option<(usize, usize)> 
 fn component_checked(
     components: &mut [Component],
     index: usize,
-    visited_components: &mut BTreeSet<String>,
-    visited_options: &mut BTreeSet<String>,
+    visited_components: &mut BTreeSet<VisitKey>,
+    visited_options: &mut BTreeSet<VisitKey>,
 ) {
-    let guid = components[index].guid.to_ascii_lowercase();
-    if !visited_components.insert(guid.clone()) {
+    let guid = components[index].guid.clone();
+    if !visited_components.insert((true, guid::key_ascii(&guid))) {
         return;
     }
     components[index].is_selected = true;
@@ -70,7 +75,7 @@ fn component_checked(
                 && component
                     .restrictions
                     .iter()
-                    .any(|restriction| restriction.eq_ignore_ascii_case(&guid))
+                    .any(|restriction| guid::eq_ascii(restriction, &guid))
         })
         .map(|(index, _)| index)
         .collect();
@@ -79,10 +84,14 @@ fn component_checked(
     }
 }
 
-fn component_unchecked(components: &mut [Component], index: usize, visited: &mut BTreeSet<String>) {
-    let guid = components[index].guid.to_ascii_lowercase();
+fn component_unchecked(
+    components: &mut [Component],
+    index: usize,
+    visited: &mut BTreeSet<VisitKey>,
+) {
+    let guid = components[index].guid.clone();
     components[index].is_selected = false;
-    if !visited.insert(format!("-{guid}")) {
+    if !visited.insert((false, guid::key_ascii(&guid))) {
         return;
     }
     let dependents: Vec<_> = components
@@ -93,7 +102,7 @@ fn component_unchecked(components: &mut [Component], index: usize, visited: &mut
                 && component
                     .dependencies
                     .iter()
-                    .any(|dependency| dependency.eq_ignore_ascii_case(&guid))
+                    .any(|dependency| guid::eq_ascii(dependency, &guid))
         })
         .map(|(index, _)| index)
         .collect();
@@ -106,11 +115,11 @@ fn option_checked(
     components: &mut [Component],
     parent: usize,
     option: usize,
-    visited_components: &mut BTreeSet<String>,
-    visited_options: &mut BTreeSet<String>,
+    visited_components: &mut BTreeSet<VisitKey>,
+    visited_options: &mut BTreeSet<VisitKey>,
 ) {
-    let guid = components[parent].options[option].guid.to_ascii_lowercase();
-    if !visited_options.insert(guid.clone()) {
+    let guid = components[parent].options[option].guid.clone();
+    if !visited_options.insert((true, guid::key_ascii(&guid))) {
         return;
     }
     components[parent].options[option].is_selected = true;
@@ -150,7 +159,7 @@ fn option_checked(
                 && component
                     .dependencies
                     .iter()
-                    .any(|dependency| dependency.eq_ignore_ascii_case(&guid))
+                    .any(|dependency| guid::eq_ascii(dependency, &guid))
         })
         .map(|(index, _)| index)
         .collect();
@@ -165,7 +174,7 @@ fn option_checked(
                 && component
                     .restrictions
                     .iter()
-                    .any(|restriction| restriction.eq_ignore_ascii_case(&guid))
+                    .any(|restriction| guid::eq_ascii(restriction, &guid))
         })
         .map(|(index, _)| index)
         .collect();
@@ -178,12 +187,12 @@ fn option_unchecked(
     components: &mut [Component],
     parent: usize,
     option: usize,
-    visited_components: &mut BTreeSet<String>,
-    visited_options: &mut BTreeSet<String>,
+    visited_components: &mut BTreeSet<VisitKey>,
+    visited_options: &mut BTreeSet<VisitKey>,
 ) {
-    let guid = components[parent].options[option].guid.to_ascii_lowercase();
+    let guid = components[parent].options[option].guid.clone();
     components[parent].options[option].is_selected = false;
-    if !visited_options.insert(format!("-{guid}")) {
+    if !visited_options.insert((false, guid::key_ascii(&guid))) {
         return;
     }
     let option_dependents: Vec<_> = components
@@ -199,7 +208,7 @@ fn option_unchecked(
                         && option
                             .dependencies
                             .iter()
-                            .any(|dependency| dependency.eq_ignore_ascii_case(&guid))
+                            .any(|dependency| guid::eq_ascii(dependency, &guid))
                 })
                 .map(move |(option, _)| (component, option))
         })
@@ -221,7 +230,7 @@ fn option_unchecked(
                 && component
                     .dependencies
                     .iter()
-                    .any(|dependency| dependency.eq_ignore_ascii_case(&guid))
+                    .any(|dependency| guid::eq_ascii(dependency, &guid))
         })
         .map(|(index, _)| index)
         .collect();
@@ -355,7 +364,7 @@ pub fn apply_cli_selection(
         if selector.is_empty() {
             warnings.push("Invalid empty selection; expected a component name/GUID, category:Name, or tier:Name".into());
         } else if components.iter().any(|c| {
-            c.guid.eq_ignore_ascii_case(selector) || crate::fomod::eq_ignore_case(&c.name, selector)
+            guid::eq_ascii(&c.guid, selector) || crate::fomod::eq_ignore_case(&c.name, selector)
         }) {
             exact.push(selector.to_owned());
         } else if let Some((kind, value)) = selector.split_once(':') {
@@ -374,8 +383,10 @@ pub fn apply_cli_selection(
 
     for value in &exact {
         anyhow::ensure!(
-            components.iter().any(|c| c.guid.eq_ignore_ascii_case(value)
-                || crate::fomod::eq_ignore_case(&c.name, value)),
+            components
+                .iter()
+                .any(|c| guid::eq_ascii(&c.guid, value)
+                    || crate::fomod::eq_ignore_case(&c.name, value)),
             "Unknown component: {value}"
         );
     }
@@ -383,7 +394,7 @@ pub fn apply_cli_selection(
     let has_valid_selector = has_filter || !exact.is_empty();
     for c in components.iter_mut() {
         let exact_match = exact.iter().any(|value| {
-            c.guid.eq_ignore_ascii_case(value) || crate::fomod::eq_ignore_case(&c.name, value)
+            guid::eq_ascii(&c.guid, value) || crate::fomod::eq_ignore_case(&c.name, value)
         });
         let filtered = has_filter && matches_category_tier(c, &categories, &tiers);
         c.is_selected = !has_valid_selector || exact_match || filtered;
@@ -977,7 +988,7 @@ pub fn describe(components: &[Component], guid: &str) -> String {
     all_nodes(components)
         .into_iter()
         .map(|path| node(components, &path))
-        .find(|c| c.guid.eq_ignore_ascii_case(guid))
+        .find(|c| guid::eq_ascii(&c.guid, guid))
         .map_or_else(|| guid.to_owned(), |c| format!("{} ({})", c.name, c.guid))
 }
 
@@ -1069,7 +1080,7 @@ fn all_nodes(components: &[Component]) -> Vec<NodePath> {
 fn find_option(components: &[Component], guid: &str) -> Option<NodePath> {
     all_nodes(components)
         .into_iter()
-        .find(|path| path.len() > 1 && node(components, path).guid.eq_ignore_ascii_case(guid))
+        .find(|path| path.len() > 1 && guid::eq_ascii(&node(components, path).guid, guid))
 }
 
 enum Target {
@@ -1085,7 +1096,7 @@ fn resolve(components: &[Component], guid: &str) -> Option<Target> {
 }
 
 fn lists(values: &[String], guid: &str) -> bool {
-    values.iter().any(|value| value.eq_ignore_ascii_case(guid))
+    values.iter().any(|value| guid::eq_ascii(value, guid))
 }
 
 /// Selected and every ancestor selected.
@@ -1095,8 +1106,8 @@ fn effective(components: &[Component], path: &[usize]) -> bool {
 
 #[derive(Default)]
 struct Visited {
-    components: BTreeSet<String>,
-    options: BTreeSet<String>,
+    components: BTreeSet<VisitKey>,
+    options: BTreeSet<VisitKey>,
 }
 
 // The cascade below mirrors component_checked / component_unchecked /
@@ -1105,8 +1116,8 @@ struct Visited {
 // option, which the old helpers do only in set_option_selected.
 
 fn cascade_component_checked(components: &mut [Component], index: usize, visited: &mut Visited) {
-    let guid = components[index].guid.to_ascii_lowercase();
-    if !visited.components.insert(guid.clone()) {
+    let guid = components[index].guid.clone();
+    if !visited.components.insert((true, guid::key_ascii(&guid))) {
         return;
     }
     components[index].is_selected = true;
@@ -1163,8 +1174,8 @@ fn cascade_option_chain_checked(
 
 fn cascade_option_checked(components: &mut [Component], path: &[usize], visited: &mut Visited) {
     let option = node(components, path);
-    let guid = option.guid.to_ascii_lowercase();
-    if !visited.options.insert(guid.clone()) {
+    let guid = option.guid.clone();
+    if !visited.options.insert((true, guid::key_ascii(&guid))) {
         return;
     }
     let dependencies = option.dependencies.clone();
@@ -1213,9 +1224,9 @@ fn cascade_option_checked(components: &mut [Component], path: &[usize], visited:
 }
 
 fn cascade_option_unchecked(components: &mut [Component], path: &[usize], visited: &mut Visited) {
-    let guid = node(components, path).guid.to_ascii_lowercase();
+    let guid = node(components, path).guid.clone();
     node_mut(components, path).is_selected = false;
-    if !visited.options.insert(format!("-{guid}")) {
+    if !visited.options.insert((false, guid::key_ascii(&guid))) {
         return;
     }
     let option_dependents: Vec<_> = all_nodes(components)
@@ -1301,10 +1312,7 @@ fn close_dependencies(components: &mut [Component], warnings: &mut Vec<String>) 
                 continue;
             }
             let other = node(components, &conflict);
-            let (a, b) = (
-                owner.guid.to_ascii_lowercase(),
-                other.guid.to_ascii_lowercase(),
-            );
+            let (a, b) = (guid::key_ascii(&owner.guid), guid::key_ascii(&other.guid));
             let key = if a <= b { (a, b) } else { (b, a) };
             if seen.insert(key) {
                 warnings.push(format!(
@@ -1322,14 +1330,14 @@ fn reset_from_selectors(
     components: &mut [Component],
     game: Option<game::Detected>,
     selectors: &[String],
-    direct: &mut BTreeMap<String, bool>,
+    direct: &mut BTreeMap<Identity, bool>,
 ) -> anyhow::Result<Vec<String>> {
     let mut categories = Vec::new();
     let mut tiers = Vec::new();
     let mut exact = Vec::new();
     let mut warnings = Vec::new();
     let named = |c: &Component, value: &str| {
-        c.guid.eq_ignore_ascii_case(value) || crate::fomod::eq_ignore_case(&c.name, value)
+        guid::eq_ascii(&c.guid, value) || crate::fomod::eq_ignore_case(&c.name, value)
     };
 
     for selector in selectors {
@@ -1373,7 +1381,7 @@ fn reset_from_selectors(
             continue;
         }
         c.is_selected = wanted;
-        direct.insert(c.guid.to_ascii_lowercase(), wanted);
+        direct.insert(guid::key_ascii(&c.guid), wanted);
     }
     Ok(warnings)
 }
@@ -1386,7 +1394,7 @@ fn snapshot(components: &[Component], nodes: &[NodePath]) -> Vec<bool> {
 }
 
 fn push_unique(list: &mut Vec<String>, guid: &str) {
-    if !list.iter().any(|seen| seen.eq_ignore_ascii_case(guid)) {
+    if !list.iter().any(|seen| guid::eq_ascii(seen, guid)) {
         list.push(guid.to_owned());
     }
 }
@@ -1405,8 +1413,8 @@ pub fn apply(
     let before = snapshot(components, &nodes);
     let before_top: Vec<bool> = components.iter().map(|c| c.is_selected).collect();
     let mut outcome = Outcome::default();
-    // GUID (lowercase) -> the value the action itself assigned.
-    let mut direct = BTreeMap::<String, bool>::new();
+    // GUID value (or legacy ASCII identity) -> the action's assigned value.
+    let mut direct = BTreeMap::<Identity, bool>::new();
     let mut close = false;
     let enforcing = action == Action::EnforceGame;
 
@@ -1451,7 +1459,7 @@ pub fn apply(
                 // Refused without mutation; enforcement and the diff still run.
                 outcome.warnings.push(refusal(&components[path[0]]));
             } else {
-                direct.insert(guid.to_ascii_lowercase(), selected);
+                direct.insert(guid::key_ascii(&guid), selected);
                 let mut visited = Visited::default();
                 if selected {
                     cascade_option_chain_checked(components, &path, &mut visited);
@@ -1472,7 +1480,7 @@ pub fn apply(
         Action::DeselectBase => {
             for c in components.iter_mut().filter(|c| base(c)) {
                 c.is_selected = false;
-                direct.insert(c.guid.to_ascii_lowercase(), false);
+                direct.insert(guid::key_ascii(&c.guid), false);
             }
         }
         Action::SetGroup {
@@ -1493,7 +1501,7 @@ pub fn apply(
                             );
                         } else {
                             components[index].is_selected = false;
-                            direct.insert(components[index].guid.to_ascii_lowercase(), false);
+                            direct.insert(guid::key_ascii(&components[index].guid), false);
                         }
                     }
                     close = selected;
@@ -1553,7 +1561,7 @@ pub fn apply(
             // re-selected by its cascade. Pre-existing selections get no warning;
             // their removal is listed in this action's own `auto_deselected`.
             let brought_in =
-                !before_top[index] || direct.get(&c.guid.to_ascii_lowercase()) == Some(&false);
+                !before_top[index] || direct.get(&guid::key_ascii(&c.guid)) == Some(&false);
             if c.is_selected && !game::selectable(c, detected) && !enforcing && brought_in {
                 outcome.warnings.push(refusal(c));
             }
@@ -1573,7 +1581,7 @@ pub fn apply(
         // Auto lists compare the final value with what the action itself
         // assigned. After ResetFromSelectors this names every closure addition,
         // including one that was already selected before the reset.
-        let automatic = match direct.get(&guid.to_ascii_lowercase()) {
+        let automatic = match direct.get(&guid::key_ascii(guid)) {
             Some(assigned) => *assigned != now,
             None => was != now,
         };
@@ -1609,7 +1617,7 @@ fn refusal(c: &Component) -> String {
 fn select_direct(
     c: &mut Component,
     game: Option<game::Detected>,
-    direct: &mut BTreeMap<String, bool>,
+    direct: &mut BTreeMap<Identity, bool>,
     warnings: &mut Vec<String>,
 ) {
     if refused(game, c) {
@@ -1617,7 +1625,7 @@ fn select_direct(
         return;
     }
     c.is_selected = true;
-    direct.insert(c.guid.to_ascii_lowercase(), true);
+    direct.insert(guid::key_ascii(&c.guid), true);
 }
 
 /// `game::enforce_selectable`, then clear the options of every component it
@@ -1654,14 +1662,14 @@ fn set_single(
     game: Option<game::Detected>,
     index: usize,
     selected: bool,
-    direct: &mut BTreeMap<String, bool>,
+    direct: &mut BTreeMap<Identity, bool>,
     warnings: &mut Vec<String>,
 ) {
     if selected && refused(game, &components[index]) {
         warnings.push(refusal(&components[index]));
         return;
     }
-    direct.insert(components[index].guid.to_ascii_lowercase(), selected);
+    direct.insert(guid::key_ascii(&components[index].guid), selected);
     let mut visited = Visited::default();
     if selected {
         cascade_component_checked(components, index, &mut visited);

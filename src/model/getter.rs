@@ -60,6 +60,25 @@ impl Context {
             .context("Missing captured number culture")?
             .format_signed_magnitude(magnitude, true))
     }
+    /// Exact decimal digits for an integer-shaped lexeme beyond Int64,
+    /// using the lazily captured NegativeSign (collections only).
+    fn signed_digits(&mut self, lexeme: &str) -> Result<String> {
+        let (negative, digits) = match lexeme.strip_prefix('-') {
+            Some(rest) => (true, rest),
+            None => (false, lexeme),
+        };
+        if !negative {
+            return crate::profiles::NumberCultureSnapshot::invariant()
+                .format_signed_digits(digits, false);
+        }
+        if self.culture.is_none() {
+            self.culture = Some(crate::profiles::NumberCultureSnapshot::current()?);
+        }
+        self.culture
+            .as_ref()
+            .context("Missing captured number culture")?
+            .format_signed_digits(digits, true)
+    }
     fn primitive(&mut self, value: &Value, format: Format, collection: bool) -> Result<String> {
         Ok(match value {
             Value::Null => String::new(),
@@ -75,6 +94,17 @@ impl Context {
                         String::new()
                     } else {
                         bail!("Wide unsigned scalar text requires native-type evidence");
+                    }
+                } else if let Some(lexeme) = crate::json_native::wide_integer_lexeme(value) {
+                    // Beyond Int64 and integer-shaped: collections format
+                    // the exact decimal digits using the lazily captured
+                    // NegativeSign; scalar text has no native-type evidence.
+                    if collection {
+                        self.signed_digits(lexeme)?
+                    } else if format == Format::Json {
+                        String::new()
+                    } else {
+                        bail!("Wide integer scalar text requires native-type evidence");
                     }
                 } else {
                     let value = value

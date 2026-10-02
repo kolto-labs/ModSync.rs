@@ -1,5 +1,5 @@
 //! Optional Boolean getter for represented structured-guide values.
-use anyhow::{Result, ensure};
+use anyhow::{Result, bail, ensure};
 use serde::{Deserialize, Deserializer};
 use serde_json::Value;
 
@@ -16,7 +16,18 @@ fn boundary(character: char) -> bool {
 pub(super) fn optional(value: &Value) -> Result<bool> {
     Ok(match value {
         Value::Bool(value) => *value,
-        Value::Number(value) => value.as_f64().is_some_and(|value| value != 0.0),
+        Value::Number(value) => {
+            if crate::json_native::wide_integer_lexeme(value).is_some() {
+                false
+            } else if let Some(value) = value.as_f64() {
+                value != 0.0
+            } else {
+                // as_f64 only returns None here for a non-finite
+                // decimal/exponent lexeme; refuse rather than silently
+                // defaulting to false.
+                bail!("Non-finite numeric value is not a valid Boolean");
+            }
+        }
         Value::String(value) => {
             ensure!(value.len() <= MAX_TEXT, "Boolean text exceeds intake bound");
             // False and failed conversion both return the optional getter default.

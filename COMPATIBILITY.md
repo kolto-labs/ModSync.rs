@@ -1272,7 +1272,10 @@ component boundary after restoring prior originals. Standalone virtual validatio
 does not forecast that reinstall state. Default installs retain whole-run recovery;
 `--no-checkpoint` explicitly selects that compatibility behavior. Continuing after
 failure (`--best-effort` or `--continue-on-error`) is rejected with ordered-recovery
-guidance. Checkpoint restore/recover/resume, deletion/GC/repair and desktop history are now implemented and production-gated; native and crash/replay acceptance remains open.
+guidance. The reference install flags `--skip-validation`,
+`--continue-on-missing-sources`, `--continue-on-mod-failure`, `--ignore-errors` and
+`-y`/`--yes` are refused by name for install, validate and conflicts. They stay hidden
+from help. `set-nexus-api-key --skip-validation` is a separate option and is unaffected. Checkpoint restore/recover/resume, deletion/GC/repair and desktop history are now implemented and production-gated; native and crash/replay acceptance remains open.
 
 Archive entries now retain decoder modification times through extraction and
 engine copies; managed deployment copy fallbacks preserve source times too.

@@ -223,6 +223,7 @@ fn prepare_metadata(value: &mut Value) {
 
 pub(crate) fn render(guide: &Guide, metadata: &Value) -> Result<String> {
     let mut output = String::new();
+    let mut budget = crate::json_native::ValueBudget::default();
     let preamble = content(metadata, "preambleContent");
     if nonblank(preamble) {
         validate_prose(preamble)?;
@@ -395,7 +396,7 @@ pub(crate) fn render(guide: &Guide, metadata: &Value) -> Result<String> {
             crate::model::encode_nullable_files(&mut value);
             crate::model::yaml_legacy_resources(&mut value);
             prepare_metadata(&mut value);
-            let yaml = serde_yaml_ng::to_string(&value)?;
+            let yaml = crate::json_native::to_yaml_string(&value, &mut budget)?;
             ensure!(
                 !yaml.contains("-->"),
                 "Markdown metadata contains an HTML comment terminator"

@@ -122,10 +122,7 @@ fn instructions(component: &Component) -> impl Iterator<Item = &Instruction> {
 }
 
 fn same_guid(left: &str, right: &str) -> bool {
-    match (uuid::Uuid::parse_str(left), uuid::Uuid::parse_str(right)) {
-        (Ok(left), Ok(right)) => left == right,
-        _ => left.eq_ignore_ascii_case(right),
-    }
+    crate::guid::eq_ascii(left, right)
 }
 
 /// Only archive collection consults these dependency/restriction conditions.

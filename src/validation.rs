@@ -403,11 +403,15 @@ impl Report {
         components: &[&crate::Component],
         selected: &std::collections::BTreeSet<String>,
     ) {
+        let selected: std::collections::BTreeSet<_> = selected
+            .iter()
+            .map(|id| crate::guid::key_ascii(id))
+            .collect();
         let name = |id: &String| {
             guide
                 .components
                 .iter()
-                .find(|component| component.guid.eq_ignore_ascii_case(id))
+                .find(|component| crate::guid::eq_ascii(&component.guid, id))
                 .map_or_else(|| id.clone(), |component| component.name.clone())
         };
         let mut messages = Vec::new();
@@ -417,7 +421,7 @@ impl Report {
             let missing: Vec<_> = component
                 .dependencies
                 .iter()
-                .filter(|id| !selected.contains(&id.to_ascii_lowercase()))
+                .filter(|id| !selected.contains(&crate::guid::key_ascii(id)))
                 .map(&name)
                 .collect();
             if !missing.is_empty() {
@@ -431,7 +435,7 @@ impl Report {
             let incompatible: Vec<_> = component
                 .restrictions
                 .iter()
-                .filter(|id| selected.contains(&id.to_ascii_lowercase()))
+                .filter(|id| selected.contains(&crate::guid::key_ascii(id)))
                 .map(&name)
                 .collect();
             if !incompatible.is_empty() {

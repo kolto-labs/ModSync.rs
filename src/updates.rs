@@ -33,13 +33,16 @@ pub struct Update {
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
 pub struct NexusModInfo {
-    #[serde(default)]
+    #[serde(default, deserialize_with = "null_string_default")]
     pub name: String,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "null_string_default")]
     pub version: String,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "integer_timestamp_default")]
     pub updated_timestamp: i64,
-    #[serde(default = "available_by_default")]
+    #[serde(
+        default = "available_by_default",
+        deserialize_with = "boolean_available_default"
+    )]
     pub available: bool,
 }
 
@@ -145,6 +148,102 @@ fn optional_number_to_i64<'de, D: serde::Deserializer<'de>>(
         serde_json::Value::String(text) => text.parse().ok(),
         _ => None,
     }))
+}
+
+// These wire conversions belong to mod-info intake, not guide coercion. They
+// follow the pinned `(string)JToken` cast after `JObject.Parse`: null is empty,
+// numbers and booleans convert, and objects/arrays are refused.
+fn null_string_default<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<String, D::Error> {
+    match Value::deserialize(deserializer)? {
+        Value::Null => Ok(String::new()),
+        Value::String(text) => Ok(text),
+        Value::Bool(value) => Ok(if value { "True" } else { "False" }.into()),
+        Value::Number(number) => Ok(dotnet_number_text(&number.to_string())),
+        _ => Err(serde::de::Error::custom(
+            "Nexus mod-info text field must be a string, number, boolean or null",
+        )),
+    }
+}
+
+/// Newtonsoft keeps an integer token's digits (`long` or `BigInteger`) and
+/// parses any other number as `double`, formatted with .NET's invariant
+/// shortest round-trip text.
+fn dotnet_number_text(lexeme: &str) -> String {
+    if !lexeme.contains(['.', 'e', 'E']) {
+        return if lexeme == "-0" { "0" } else { lexeme }.into();
+    }
+    let Ok(value) = lexeme.parse::<f64>() else {
+        return lexeme.into();
+    };
+    if value.is_infinite() {
+        return if value < 0.0 { "-Infinity" } else { "Infinity" }.into();
+    }
+    let sign = if value.is_sign_negative() { "-" } else { "" };
+    if value == 0.0 {
+        return format!("{sign}0");
+    }
+    // Shortest round-trip digits and decimal exponent, as in `d.ddd e exponent`.
+    let scientific = format!("{:e}", value.abs());
+    let (mantissa, exponent) = scientific.split_once('e').unwrap_or((&scientific, "0"));
+    let digits = mantissa.replace('.', "");
+    let exponent: i32 = exponent.parse().unwrap_or(0);
+    let position = exponent + 1;
+    // .NET "R"/"G": fixed notation while the decimal point stays within
+    // max(digit count, 15) places and the value is at least 1E-04.
+    if position > (digits.len() as i32).max(15) || position < -3 {
+        let fraction = if digits.len() > 1 {
+            format!(".{}", &digits[1..])
+        } else {
+            String::new()
+        };
+        let exponent_sign = if exponent < 0 { '-' } else { '+' };
+        return format!(
+            "{sign}{}{fraction}E{exponent_sign}{:02}",
+            &digits[..1],
+            exponent.unsigned_abs()
+        );
+    }
+    if position <= 0 {
+        format!(
+            "{sign}0.{}{digits}",
+            "0".repeat(position.unsigned_abs() as usize)
+        )
+    } else if position as usize >= digits.len() {
+        format!(
+            "{sign}{digits}{}",
+            "0".repeat(position as usize - digits.len())
+        )
+    } else {
+        let (whole, fraction) = digits.split_at(position as usize);
+        format!("{sign}{whole}.{fraction}")
+    }
+}
+
+fn integer_timestamp_default<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<i64, D::Error> {
+    let value = Value::deserialize(deserializer)?;
+    match value {
+        Value::Number(number)
+            if !number
+                .to_string()
+                .bytes()
+                .any(|byte| matches!(byte, b'.' | b'e' | b'E')) =>
+        {
+            number.as_i64().ok_or_else(|| {
+                serde::de::Error::custom("Nexus integer timestamp exceeds signed 64-bit range")
+            })
+        }
+        _ => Ok(0),
+    }
+}
+
+fn boolean_available_default<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<bool, D::Error> {
+    Ok(Value::deserialize(deserializer)?.as_bool().unwrap_or(true))
 }
 
 fn available_by_default() -> bool {
@@ -970,7 +1069,7 @@ fn apply_metadata(
         metadata.insert("ModVersion".into(), json!(version));
         metadata.insert("UpdateAvailable".into(), json!(false));
     } else {
-        let available = !installed.eq_ignore_ascii_case(version);
+        let available = !crate::fomod::eq_ignore_case(&installed, version);
         metadata.insert("UpdateAvailable".into(), json!(available));
         if available {
             summary.updates_found.push(Update {
@@ -1132,6 +1231,13 @@ fn nexus_key(url: &str) -> Option<String> {
         return None;
     }
     let segments: Vec<_> = url.path_segments()?.collect();
-    (segments.len() >= 3 && segments[1].eq_ignore_ascii_case("mods"))
-        .then(|| format!("{}/{}", segments[0].to_ascii_lowercase(), segments[2]))
+    if segments.len() < 3 || segments[0].is_empty() || !segments[1].eq_ignore_ascii_case("mods") {
+        return None;
+    }
+    let id = segments[2];
+    if id.is_empty() || !id.bytes().all(|byte| byte.is_ascii_digit()) {
+        return None;
+    }
+    let id: i64 = id.parse().ok()?;
+    Some(format!("{}/{id}", segments[0].to_ascii_lowercase()))
 }

@@ -434,22 +434,24 @@ impl Guide {
                         value["metadata"] = metadata.clone();
                     }
                     encode_nullable_files(&mut value);
-                    toml::to_string_pretty(&value)?
+                    let mut budget = crate::json_native::ValueBudget::default();
+                    crate::json_native::to_toml_pretty(&value, &mut budget)?
                 }
                 "json" => serde_json::to_string_pretty(&self.components)?,
                 "xml" => crate::xml::render(&serde_json::to_value(&self.components)?)?,
                 "yaml" => {
                     let mut text = String::new();
+                    let mut budget = crate::json_native::ValueBudget::default();
                     if metadata.as_object().is_none_or(|m| !m.is_empty()) {
                         text.push_str("---\n# Metadata\n");
-                        text.push_str(&serde_yaml_ng::to_string(&metadata)?);
+                        text.push_str(&crate::json_native::to_yaml_string(&metadata, &mut budget)?);
                     }
                     for component in &self.components {
                         text.push_str("---\n");
                         let mut value = serde_json::to_value(component)?;
                         encode_nullable_files(&mut value);
                         yaml_legacy_resources(&mut value);
-                        text.push_str(&serde_yaml_ng::to_string(&value)?);
+                        text.push_str(&crate::json_native::to_yaml_string(&value, &mut budget)?);
                     }
                     text
                 }
@@ -483,59 +485,58 @@ impl Guide {
 
     /// Stable topological sort: keep guide order whenever graph constraints allow it.
     pub fn ordered(&self) -> Result<Vec<&Component>> {
+        use crate::guid::{Identity, key_ascii};
         let selected: Vec<_> = self.components.iter().filter(|c| c.is_selected).collect();
         ensure!(!selected.is_empty(), "Select at least one component");
-        let all: BTreeSet<_> = self
-            .components
-            .iter()
-            .map(|c| c.guid.to_ascii_lowercase())
-            .collect();
-        let ids: BTreeSet<_> = selected
-            .iter()
-            .map(|c| c.guid.to_ascii_lowercase())
-            .collect();
-        let mut predecessors: BTreeMap<String, BTreeSet<String>> =
+        let all: BTreeSet<_> = self.components.iter().map(|c| key_ascii(&c.guid)).collect();
+        ensure!(
+            all.len() == self.components.len(),
+            "Duplicate component GUID values in ordering graph"
+        );
+        let ids: BTreeSet<_> = selected.iter().map(|c| key_ascii(&c.guid)).collect();
+        let mut predecessors: BTreeMap<Identity, BTreeSet<Identity>> =
             ids.iter().map(|id| (id.clone(), BTreeSet::new())).collect();
         for c in &selected {
-            let id = c.guid.to_ascii_lowercase();
+            let id = key_ascii(&c.guid);
             for required in &c.dependencies {
+                let required_key = key_ascii(required);
                 ensure!(
-                    ids.contains(&required.to_ascii_lowercase()),
+                    ids.contains(&required_key),
                     "{} requires selected component {required}",
                     c.name
                 );
-                predecessors
-                    .get_mut(&id)
-                    .unwrap()
-                    .insert(required.to_ascii_lowercase());
+                predecessors.get_mut(&id).unwrap().insert(required_key);
             }
             for conflict in &c.restrictions {
                 ensure!(
-                    !ids.contains(&conflict.to_ascii_lowercase()),
+                    !ids.contains(&key_ascii(conflict)),
                     "{} conflicts with {conflict}",
                     c.name
                 );
             }
             for after in &c.install_after {
-                let after = after.to_ascii_lowercase();
+                let after_key = key_ascii(after);
                 ensure!(
-                    all.contains(&after),
+                    all.contains(&after_key),
                     "{} references missing InstallAfter {after}",
                     c.name
                 );
-                if ids.contains(&after) {
-                    predecessors.get_mut(&id).unwrap().insert(after);
+                if ids.contains(&after_key) {
+                    predecessors.get_mut(&id).unwrap().insert(after_key);
                 }
             }
             for before in &c.install_before {
-                let before = before.to_ascii_lowercase();
+                let before_key = key_ascii(before);
                 ensure!(
-                    all.contains(&before),
+                    all.contains(&before_key),
                     "{} references missing InstallBefore {before}",
                     c.name
                 );
-                if ids.contains(&before) {
-                    predecessors.get_mut(&before).unwrap().insert(id.clone());
+                if ids.contains(&before_key) {
+                    predecessors
+                        .get_mut(&before_key)
+                        .unwrap()
+                        .insert(id.clone());
                 }
             }
         }
@@ -543,13 +544,13 @@ impl Guide {
         let mut done = BTreeSet::new();
         while result.len() < selected.len() {
             let next = selected.iter().find(|c| {
-                let id = c.guid.to_ascii_lowercase();
+                let id = key_ascii(&c.guid);
                 !done.contains(&id) && predecessors[&id].is_subset(&done)
             });
             let Some(c) = next else {
                 bail!("Dependency/order cycle among selected components");
             };
-            done.insert(c.guid.to_ascii_lowercase());
+            done.insert(key_ascii(&c.guid));
             result.push(*c);
         }
         Ok(result)
@@ -559,7 +560,7 @@ impl Guide {
 /// C# compares instruction Dependencies and Restrictions as `List<Guid>` and matches Choose
 /// sources with `Guid.TryParse`, so case and brace differences do not count.
 fn guid_key(value: &str) -> Option<uuid::Uuid> {
-    uuid::Uuid::parse_str(value.trim()).ok()
+    crate::guid::try_parse(value)
 }
 
 fn same_guids(left: &[String], right: &[String]) -> bool {
