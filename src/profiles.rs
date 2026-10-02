@@ -1,11 +1,20 @@
 //! Persistent profiles shared by command-line and desktop callers.
-use crate::{Guide, PatcherEngine, recovery};
+use crate::{Guide, PatcherEngine};
+mod numeric_culture;
+pub use numeric_culture::{
+    NumberCultureSnapshot, parse_cli_value_current_culture, set_cli_value_current_culture,
+};
+mod schema;
+mod settings;
+pub(crate) mod storage;
 use anyhow::{Context, Result, ensure};
+pub use schema::{DecodedProfile, IdentityFormat, ProfileListing};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
+pub use settings::{DesktopSettings, DesktopSettingsReport};
 use std::{
     collections::BTreeMap,
-    fs::{self, File, OpenOptions},
+    fs::{self, File},
     path::{Path, PathBuf},
 };
 
@@ -42,27 +51,7 @@ fn without_bom(bytes: &[u8]) -> &[u8] {
 /// Canonical GUID text as C# `Guid.ToString()` writes it (lowercase, hyphenated, no braces).
 /// Values that are not GUIDs are returned unchanged.
 pub fn normalize_guid(text: &str) -> String {
-    let trimmed = text.trim();
-    let inner = trimmed
-        .strip_prefix('{')
-        .and_then(|t| t.strip_suffix('}'))
-        .or_else(|| trimmed.strip_prefix('(').and_then(|t| t.strip_suffix(')')))
-        .unwrap_or(trimmed);
-    let hex: String = inner.chars().filter(|c| *c != '-').collect();
-    let hyphens_ok = !inner.contains('-')
-        || (inner.len() == 36 && [8, 13, 18, 23].iter().all(|&i| inner.as_bytes()[i] == b'-'));
-    if hex.len() != 32 || !hyphens_ok || !hex.chars().all(|c| c.is_ascii_hexdigit()) {
-        return text.to_owned();
-    }
-    let h = hex.to_ascii_lowercase();
-    format!(
-        "{}-{}-{}-{}-{}",
-        &h[0..8],
-        &h[8..12],
-        &h[12..16],
-        &h[16..20],
-        &h[20..32]
-    )
+    schema::guid(text).unwrap_or_else(|| text.to_owned())
 }
 
 /// The two fields `ModSyncSettings` reads: case-insensitive names, and a wrong type in
@@ -166,13 +155,59 @@ pub fn sanitize(name: &str) -> Result<String> {
     );
     Ok(result)
 }
+fn read_profile(path: &Path) -> Result<Option<Vec<u8>>> {
+    storage::read(path)
+}
 pub struct PatcherPreferences {
     pub engine: PatcherEngine,
     pub executable: Option<String>,
 }
 
+impl PatcherPreferences {
+    pub(super) fn decode(settings: &Value) -> Result<Self> {
+        let object = settings.as_object().context("Settings must be an object")?;
+        for (key, value) in object {
+            if [
+                "patcherEngine",
+                "kpatcherExecutablePath",
+                "holopatcherExecutablePath",
+                "odyPatcherExecutablePath",
+            ]
+            .iter()
+            .any(|known| key.eq_ignore_ascii_case(known))
+            {
+                ensure!(
+                    value.is_string() || value.is_null(),
+                    "Patcher settings must be text or null"
+                );
+            }
+        }
+        let engine = match setting_text(settings, "patcherEngine")?
+            .as_deref()
+            .unwrap_or("Holopatcher")
+            .to_ascii_lowercase()
+            .as_str()
+        {
+            "holopatcher" => PatcherEngine::HoloPatcher,
+            "kpatcher" => PatcherEngine::KPatcher,
+            "odypatcher" => PatcherEngine::OdyPatcher,
+            other => anyhow::bail!("Unsupported patcherEngine: {other}"),
+        };
+        let key = match engine {
+            PatcherEngine::KPatcher => "kpatcherExecutablePath",
+            PatcherEngine::OdyPatcher => "odyPatcherExecutablePath",
+            PatcherEngine::HoloPatcher => "holopatcherExecutablePath",
+        };
+        Ok(PatcherPreferences {
+            engine,
+            executable: setting_text(settings, key)?,
+        })
+    }
+}
+
 pub struct Store {
     root: PathBuf,
+    allow_legacy_fallback: bool,
 }
 impl Store {
     pub fn new(root: &Path) -> Result<Self> {
@@ -180,9 +215,19 @@ impl Store {
             !root.as_os_str().is_empty(),
             "Storage directory cannot be empty"
         );
+        let root = std::path::absolute(root)?;
+        storage::directory(&root, false)?;
         Ok(Self {
-            root: std::path::absolute(root)?,
+            root,
+            allow_legacy_fallback: false,
         })
+    }
+    /// Only an implicit default store can consult the global legacy settings file.
+    /// `new(root)` always treats its argument as an explicitly isolated root.
+    pub fn from_settings_directory(explicit: Option<&Path>) -> Result<Self> {
+        let mut store = Self::new(&settings_directory(explicit)?)?;
+        store.allow_legacy_fallback = explicit.is_none();
+        Ok(store)
     }
     pub fn directory(&self) -> PathBuf {
         self.root.join("profiles")
@@ -194,61 +239,98 @@ impl Store {
         Ok(self.directory().join(sanitize(name)?))
     }
     fn lock(&self) -> Result<File> {
-        fs::create_dir_all(self.directory())?;
-        let path = self.directory().join(".lock");
-        if let Ok(meta) = fs::symlink_metadata(&path) {
-            ensure!(!meta.file_type().is_symlink(), "Profile lock is a symlink");
-        }
-        let file = OpenOptions::new()
-            .read(true)
-            .write(true)
-            .create(true)
-            .truncate(false)
-            .open(path)?;
-        fs2::FileExt::lock_exclusive(&file)?;
-        Ok(file)
+        storage::directory(&self.root, true)?;
+        storage::lock(&self.directory())
+    }
+    pub fn load_report(&self, name: &str) -> Result<Option<DecodedProfile>> {
+        storage::directory(&self.root, false)?;
+        let path = self.path(name)?;
+        let bytes = match read_profile(&path)? {
+            Some(bytes) => bytes,
+            None => return Ok(None),
+        };
+        Profile::decode(&bytes)
+            .with_context(|| format!("Could not decode profile '{}'", path.display()))
+            .map(Some)
     }
     pub fn load(&self, name: &str) -> Result<Option<Profile>> {
-        Ok(fs::read(self.path(name)?)
-            .ok()
-            .and_then(|bytes| serde_json::from_slice(without_bom(&bytes)).ok()))
+        match self.load_report(name) {
+            Ok(Some(decoded)) => {
+                for warning in decoded.warnings {
+                    eprintln!("Warning: {warning}");
+                }
+                Ok(Some(decoded.profile))
+            }
+            Ok(None) => Ok(None),
+            Err(error) => {
+                eprintln!("Warning: {error:#}");
+                Ok(None)
+            }
+        }
     }
     pub fn require(&self, name: &str) -> Result<Profile> {
         self.load(name)?
             .with_context(|| format!("Profile '{name}' was not found"))
     }
     fn save_unlocked(&self, profile: &Profile) -> Result<()> {
-        recovery::atomic_write(
-            &self.path(&profile.name)?,
-            &serde_json::to_vec_pretty(profile)?,
-        )
+        let bytes = serde_json::to_vec_pretty(&profile.persisted_value()?)?;
+        ensure!(
+            bytes.len() <= schema::MAX_PROFILE_BYTES,
+            "Serialized profile exceeds 16 MiB limit"
+        );
+        storage::write(&self.path(&profile.name)?, &bytes)
     }
     pub fn save(&self, profile: &Profile) -> Result<()> {
         let _lock = self.lock()?;
         self.save_unlocked(profile)
     }
-    pub fn list(&self) -> Result<Vec<Profile>> {
-        let mut result = Vec::new();
-        if !self.directory().exists() {
-            return Ok(result);
-        }
-        for entry in fs::read_dir(self.directory())? {
+    pub fn list_report(&self) -> Result<ProfileListing> {
+        let mut report = ProfileListing::default();
+        storage::directory(&self.root, false)?;
+        storage::directory(&self.directory(), false)?;
+        let entries = match fs::read_dir(self.directory()) {
+            Ok(entries) => entries,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(report),
+            Err(error) => return Err(error.into()),
+        };
+        for (index, entry) in entries.enumerate() {
+            ensure!(index < 100_000, "Profile directory exceeds inventory bound");
             let path = entry?.path();
-            if path.extension().is_some_and(|s| s == "json")
-                && let Ok(bytes) = fs::read(path)
-                && let Ok(profile) = serde_json::from_slice::<Profile>(without_bom(&bytes))
-                && !profile.name.trim().is_empty()
-            {
-                result.push(profile);
+            if path.extension().is_none_or(|s| s != "json") {
+                continue;
+            }
+            let decoded = read_profile(&path).and_then(|bytes| {
+                Profile::decode(&bytes.context("Profile disappeared while listing")?)
+            });
+            match decoded {
+                Ok(decoded) if !decoded.profile.name.trim().is_empty() => {
+                    report.warnings.extend(decoded.warnings);
+                    report.profiles.push(decoded.profile);
+                }
+                Ok(_) => report.warnings.push(format!(
+                    "Skipping profile with blank name: {}",
+                    path.display()
+                )),
+                Err(error) => report.warnings.push(format!(
+                    "Skipping unreadable profile '{}': {error:#}",
+                    path.display()
+                )),
             }
         }
-        result.sort_by_key(|p| p.name.to_lowercase());
-        Ok(result)
+        report.profiles.sort_by_key(|p| p.name.to_lowercase());
+        Ok(report)
+    }
+    pub fn list(&self) -> Result<Vec<Profile>> {
+        let report = self.list_report()?;
+        for warning in report.warnings {
+            eprintln!("Warning: {warning}");
+        }
+        Ok(report.profiles)
     }
     pub fn create(&self, name: &str) -> Result<Profile> {
         let _lock = self.lock()?;
         ensure!(
-            !self.path(name)?.exists(),
+            !storage::exists(&self.path(name)?)?,
             "A profile named '{name}' already exists"
         );
         let timestamp = now();
@@ -269,7 +351,7 @@ impl Store {
         // The reference reports a missing source before a taken target name.
         let mut profile = self.require(from)?;
         ensure!(
-            !self.path(to)?.exists(),
+            !storage::exists(&self.path(to)?)?,
             "A profile named '{to}' already exists"
         );
         profile.name = to.trim().into();
@@ -282,7 +364,7 @@ impl Store {
         let old = self.path(from)?;
         let new = self.path(to)?;
         ensure!(
-            old == new || !new.exists(),
+            old == new || !storage::exists(&new)?,
             "A profile named '{to}' already exists"
         );
         let mut profile = self.require(from)?;
@@ -296,7 +378,7 @@ impl Store {
     pub fn delete(&self, name: &str) -> Result<bool> {
         let _lock = self.lock()?;
         let path = self.path(name)?;
-        if !path.exists() {
+        if !storage::exists(&path)? {
             return Ok(false);
         }
         fs::remove_file(path)?;
@@ -306,7 +388,7 @@ impl Store {
     pub fn delete_and_deactivate(&self, name: &str) -> Result<bool> {
         let _lock = self.lock()?;
         let path = self.path(name)?;
-        if !path.exists() {
+        if !storage::exists(&path)? {
             return Ok(false);
         }
         let mut settings = self.settings()?;
@@ -321,7 +403,7 @@ impl Store {
             }
             settings["activeProfileName"] = Value::Null;
             // Clear the setting first: a failed delete leaves a usable, inactive profile.
-            recovery::atomic_write(
+            storage::write(
                 &self.root.join("settings.json"),
                 &serde_json::to_vec_pretty(&settings)?,
             )?;
@@ -335,8 +417,10 @@ impl Store {
     /// refused so they are never replaced.
     fn settings(&self) -> Result<Value> {
         let current = self.root.join("settings.json");
-        if current.exists() {
-            let value: Value = serde_json::from_slice(without_bom(&fs::read(&current)?))?;
+        if storage::exists(&current)? {
+            let value: Value = serde_json::from_slice(without_bom(
+                &storage::read(&current)?.context("Settings disappeared while reading")?,
+            ))?;
             return match value {
                 Value::Null => Ok(json!({})),
                 Value::Object(_) => Ok(value),
@@ -350,17 +434,24 @@ impl Store {
     }
     fn read_settings(&self, managed_only: bool) -> Result<Value> {
         let current = self.root.join("settings.json");
-        let legacy = dirs::config_dir().map(|p| p.join("KOTORModSync/settings.json"));
-        let path = if current.exists() {
-            &current
-        } else if let Some(path) = legacy.as_ref().filter(|p| p.is_file()) {
-            path
+        let legacy = self
+            .allow_legacy_fallback
+            .then(dirs::config_dir)
+            .flatten()
+            .map(|p| p.join("KOTORModSync/settings.json"));
+        let (bytes, is_legacy) = if let Some(bytes) = storage::read(&current)? {
+            (bytes, false)
+        } else if let Some(path) = legacy {
+            let Some(bytes) = storage::read(&path)? else {
+                return Ok(json!({}));
+            };
+            (bytes, true)
         } else {
             return Ok(json!({}));
         };
-        let mut value: Value = serde_json::from_slice(without_bom(&fs::read(path)?))?;
+        let mut value: Value = serde_json::from_slice(without_bom(&bytes))?;
         ensure!(value.is_object(), "Settings must be an object");
-        if path != &current && managed_only {
+        if is_legacy && managed_only {
             // The C# profile CLI imports only its two managed-deployment fields.
             value.as_object_mut().unwrap().retain(|key, _| {
                 key.eq_ignore_ascii_case("activeProfileName")
@@ -379,13 +470,18 @@ impl Store {
     /// Read-only lookup: an unusable legacy file (no current file) warns and uses
     /// defaults; an unusable current file is still an error.
     fn lookup_settings(&self) -> Result<Value> {
-        if self.root.join("settings.json").exists() {
+        if storage::exists(&self.root.join("settings.json"))? {
             return self.read_settings(false);
         }
         Ok(self.read_settings(false).unwrap_or_else(|e| {
             eprintln!("Warning: failed to read legacy settings: {e:#}");
             json!({})
         }))
+    }
+    /// CLI mode has no implicit desktop default: absence preserves terminal-based
+    /// selection in the FOMOD resolver. Known setting names are case-insensitive.
+    pub fn fomod_post_download_mode(&self) -> Result<Option<String>> {
+        setting_text(&self.lookup_settings()?, "fomodPostDownloadMode")
     }
     pub fn nexus_api_key(&self) -> Result<Option<String>> {
         setting_text(&self.lookup_settings()?, "nexusModsApiKey")
@@ -400,7 +496,7 @@ impl Store {
         if !key.trim().is_empty() {
             settings["nexusModsApiKey"] = key.trim().into();
         }
-        recovery::atomic_write(
+        storage::write(
             &self.root.join("settings.json"),
             &serde_json::to_vec_pretty(&settings)?,
         )
@@ -428,33 +524,13 @@ impl Store {
             .unwrap()
             .retain(|k, _| !k.eq_ignore_ascii_case("spoilerFreeMode"));
         settings["spoilerFreeMode"] = enabled.into();
-        recovery::atomic_write(
+        storage::write(
             &self.root.join("settings.json"),
             &serde_json::to_vec_pretty(&settings)?,
         )
     }
     pub fn patcher_preferences(&self) -> Result<PatcherPreferences> {
-        let settings = self.lookup_settings()?;
-        let engine = match setting_text(&settings, "patcherEngine")?
-            .as_deref()
-            .unwrap_or("Holopatcher")
-            .to_ascii_lowercase()
-            .as_str()
-        {
-            "holopatcher" => PatcherEngine::HoloPatcher,
-            "kpatcher" => PatcherEngine::KPatcher,
-            "odypatcher" => PatcherEngine::OdyPatcher,
-            other => anyhow::bail!("Unsupported patcherEngine: {other}"),
-        };
-        let key = match engine {
-            PatcherEngine::KPatcher => "kpatcherExecutablePath",
-            PatcherEngine::OdyPatcher => "odyPatcherExecutablePath",
-            PatcherEngine::HoloPatcher => "holopatcherExecutablePath",
-        };
-        Ok(PatcherPreferences {
-            engine,
-            executable: setting_text(&settings, key)?,
-        })
+        PatcherPreferences::decode(&self.lookup_settings()?)
     }
     pub fn save_patcher_preferences(&self, engine: PatcherEngine, executable: &str) -> Result<()> {
         let _lock = self.lock()?;
@@ -471,7 +547,7 @@ impl Store {
         if !executable.trim().is_empty() {
             settings[key] = executable.trim().into();
         }
-        recovery::atomic_write(
+        storage::write(
             &self.root.join("settings.json"),
             &serde_json::to_vec_pretty(&settings)?,
         )
@@ -488,7 +564,7 @@ impl Store {
             .unwrap()
             .retain(|k, _| !k.eq_ignore_ascii_case("theme"));
         settings["theme"] = theme.into();
-        recovery::atomic_write(
+        storage::write(
             &self.root.join("settings.json"),
             &serde_json::to_vec_pretty(&settings)?,
         )
@@ -502,7 +578,7 @@ impl Store {
         });
         settings["sourcePath"] = source.into();
         settings["destinationPath"] = destination.into();
-        recovery::atomic_write(
+        storage::write(
             &self.root.join("settings.json"),
             &serde_json::to_vec_pretty(&settings)?,
         )
@@ -516,7 +592,7 @@ impl Store {
         // ModSyncSettings reads the typed fields from the current or legacy file, then
         // merges them into the current file only (a legacy file is never copied wholesale).
         let (enabled, _) = managed_fields(&self.settings()?);
-        let mut settings = if self.root.join("settings.json").exists() {
+        let mut settings = if storage::exists(&self.root.join("settings.json"))? {
             self.settings()?
         } else {
             json!({})
@@ -525,7 +601,7 @@ impl Store {
         settings["activeProfileName"] = profile.name.clone().into();
         profile.last_used_utc = now();
         self.save_unlocked(&profile)?;
-        recovery::atomic_write(
+        storage::write(
             &self.root.join("settings.json"),
             &serde_json::to_vec_pretty(&settings)?,
         )?;
@@ -551,14 +627,19 @@ impl Store {
             mod_directory: path_text(mods)?,
             instruction_file_path: path_text(input)?,
             created_utc: self
-                .load(name)?
-                .map_or_else(|| timestamp.clone(), |p| p.created_utc),
+                .load_report(name)?
+                .map_or_else(|| timestamp.clone(), |decoded| decoded.profile.created_utc),
             last_used_utc: timestamp,
             component_selections: BTreeMap::new(),
         };
         for c in &guide.components {
+            let key = normalize_guid(&c.guid);
+            ensure!(
+                !profile.component_selections.contains_key(&key),
+                "Guide has duplicate profile component identity: {key}"
+            );
             profile.component_selections.insert(
-                normalize_guid(&c.guid),
+                key,
                 Selection {
                     is_selected: c.is_selected,
                     selected_option_guids: c
@@ -652,7 +733,8 @@ impl SettingsFile {
                 None => p.to_owned(),
             })
             .filter(|p| !p.as_os_str().is_empty());
-        let directory = settings_directory(explicit.as_deref())?;
+        let directory = std::path::absolute(settings_directory(explicit.as_deref())?)?;
+        storage::directory(&directory, false)?;
         Ok(Self {
             path: directory.join("settings.json"),
             directory,
@@ -662,10 +744,8 @@ impl SettingsFile {
     /// The stored object, `{}` when absent or JSON `null`. An unreadable, unparseable,
     /// empty or non-object file is an error carrying the reason.
     pub fn load(&self) -> Result<Value> {
-        let bytes = match fs::read(&self.path) {
-            Ok(bytes) => bytes,
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(json!({})),
-            Err(e) => return Err(e.into()),
+        let Some(bytes) = storage::read(&self.path)? else {
+            return Ok(json!({}));
         };
         match serde_json::from_slice::<Value>(without_bom(&bytes))? {
             Value::Object(map) => Ok(Value::Object(map)),
@@ -677,33 +757,42 @@ impl SettingsFile {
     /// Update explicitly edited peer keys while retaining unrelated settings/secrets.
     /// Remove case aliases first: the peer reader accepts case-insensitive keys.
     pub fn update_peer_settings(&self, changes: &[(String, Value)]) -> Result<()> {
-        let mut root = self.load()?;
-        let map = root.as_object_mut().context("Settings must be an object")?;
-        for (key, value) in changes {
-            ensure!(
-                matches!(
-                    key.as_str(),
-                    "peerSharing" | "peerKeepSharing" | "peerMode" | "peerUploadKiBps"
-                ),
-                "Unsupported peer setting"
-            );
-            map.retain(|stored, _| !stored.eq_ignore_ascii_case(key));
-            map.insert(key.clone(), value.clone());
-        }
-        self.save(&root)
-    }
-
-    /// Owner-only atomic replacement (0600 on Unix, like the reference `SaveRoot`).
-    pub fn save(&self, root: &Value) -> Result<()> {
-        ensure!(root.is_object(), "Settings must be an object");
-        let path = std::path::absolute(&self.path)?;
-        recovery::atomic_write(&path, &serde_json::to_vec_pretty(root)?)?;
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            fs::set_permissions(&path, fs::Permissions::from_mode(0o600))?;
-        }
+        self.update(|root| {
+            let map = root.as_object_mut().context("Settings must be an object")?;
+            for (key, value) in changes {
+                ensure!(
+                    matches!(
+                        key.as_str(),
+                        "peerSharing" | "peerKeepSharing" | "peerMode" | "peerUploadKiBps"
+                    ),
+                    "Unsupported peer setting"
+                );
+                map.retain(|stored, _| !stored.eq_ignore_ascii_case(key));
+                map.insert(key.clone(), value.clone());
+            }
+            Ok(())
+        })?;
         Ok(())
+    }
+    /// Apply an edit under the same lock used by profile and desktop settings writes.
+    pub fn update(&self, edit: impl FnOnce(&mut Value) -> Result<()>) -> Result<Value> {
+        let store = Store::new(&self.directory)?;
+        let _lock = store.lock()?;
+        let mut root = self.load()?;
+        edit(&mut root)?;
+        self.save_unlocked(&root)?;
+        Ok(root)
+    }
+    fn save_unlocked(&self, root: &Value) -> Result<()> {
+        ensure!(root.is_object(), "Settings must be an object");
+        storage::write(&self.path, &serde_json::to_vec_pretty(root)?)
+    }
+    /// Explicit full-object replacement, serialized with all other settings writes.
+    pub fn save(&self, root: &Value) -> Result<()> {
+        let store = Store::new(&self.directory)?;
+        let _lock = store.lock()?;
+        self.load()?; // Never replace an unreadable current file.
+        self.save_unlocked(root)
     }
 }
 

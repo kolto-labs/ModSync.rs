@@ -1,0 +1,72 @@
+[
+  {
+    "Guid": "00000000-0000-4000-8000-000000000000",
+    "Name": "Example Component 0",
+    "Author": "",
+    "Description": "",
+    "Directions": "",
+    "Tier": "",
+    "Category": [],
+    "IsSelected": true,
+    "Dependencies": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "<<modDirectory>>/one.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "ResourceRegistry": {
+      "https://127.0.0.1:32829/one.zip": {
+        "Files": {
+          "one.zip": true
+        }
+      }
+    }
+  },
+  {
+    "Guid": "00000001-0000-4000-8000-000000000000",
+    "Name": "Example Component 1",
+    "Author": "",
+    "Description": "",
+    "Directions": "",
+    "Tier": "",
+    "Category": [],
+    "IsSelected": false,
+    "Dependencies": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "Instructions": [
+      {
+        "Action": "Extract",
+        "Source": [
+          "<<modDirectory>>/two.zip"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "ResourceRegistry": {
+      "https://127.0.0.1:32829/two.zip": {
+        "Files": {
+          "two.zip": false
+        }
+      }
+    }
+  }
+]

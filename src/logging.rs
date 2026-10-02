@@ -42,6 +42,21 @@ impl Level {
     }
 }
 
+/// Typed logger history is bounded separately from the legacy string API.
+pub const RECENT_RECORD_LIMIT: usize = 4096;
+const RECORD_BYTES_LIMIT: usize = 1024 * 1024;
+const MESSAGE_BYTES_LIMIT: usize = 64 * 1024;
+
+#[derive(Clone, Debug)]
+pub struct Record {
+    pub id: u64,
+    pub timestamp: chrono::DateTime<chrono::FixedOffset>,
+    pub level: Level,
+    /// Original producer message, without a synthesized severity prefix.
+    pub message: String,
+    pub truncated: bool,
+}
+
 #[derive(Clone, Debug)]
 pub struct Options {
     /// Write `Verbose` lines to the file, memory buffer and mirror.
@@ -70,10 +85,13 @@ struct Sink {
     file: Option<(String, File)>,
     options: Options,
     recent: VecDeque<String>,
+    records: VecDeque<Record>,
+    next_record: u64,
 }
 
+static STATE: OnceLock<Mutex<Sink>> = OnceLock::new();
+
 fn state() -> MutexGuard<'static, Sink> {
-    static STATE: OnceLock<Mutex<Sink>> = OnceLock::new();
     STATE
         .get_or_init(|| {
             Mutex::new(Sink {
@@ -81,6 +99,8 @@ fn state() -> MutexGuard<'static, Sink> {
                 file: None,
                 options: Options::default(),
                 recent: VecDeque::new(),
+                records: VecDeque::new(),
+                next_record: 0,
             })
         })
         .lock()
@@ -140,12 +160,14 @@ pub fn log_directory() -> Option<PathBuf> {
 }
 
 pub fn log(level: Level, message: impl AsRef<str>) {
-    let message = apply_prefix(message.as_ref(), level);
+    let raw_message = message.as_ref();
+    let message = apply_prefix(raw_message, level);
     let mut sink = state();
     if level == Level::Verbose && !sink.options.debug_logging {
         return;
     }
     let now = chrono::Local::now();
+    push_record(&mut sink, level, now.fixed_offset(), raw_message);
     sink.recent
         .push_back(format!("{} {message}", now.format("%H:%M:%S")));
     trim_recent(&mut sink);
@@ -213,29 +235,97 @@ pub fn recent(count: usize) -> Vec<String> {
 
 /// C# `Logger.ClearLogHistory`.
 pub fn clear_recent() {
-    state().recent.clear();
+    let mut sink = state();
+    sink.recent.clear();
+    sink.records.clear();
+}
+
+/// Newest bounded typed records, oldest first. No severity or timestamp parsing.
+/// Retention is at most min(memory_lines, 4096) records and 1 MiB of message
+/// bytes; individual messages are UTF-8 safely truncated at 64 KiB and marked.
+pub fn recent_records(count: usize) -> Vec<Record> {
+    let sink = state();
+    sink.records
+        .iter()
+        .skip(sink.records.len().saturating_sub(count))
+        .cloned()
+        .collect()
+}
+
+/// Nonblocking UI snapshot. None means busy, not an empty history.
+pub fn try_recent_records(count: usize) -> Option<Vec<Record>> {
+    let Some(mutex) = STATE.get() else {
+        return Some(Vec::new());
+    };
+    let sink = match mutex.try_lock() {
+        Ok(sink) => sink,
+        Err(std::sync::TryLockError::Poisoned(error)) => error.into_inner(),
+        Err(std::sync::TryLockError::WouldBlock) => return None,
+    };
+    Some(
+        sink.records
+            .iter()
+            .skip(sink.records.len().saturating_sub(count))
+            .cloned()
+            .collect(),
+    )
+}
+
+/// Nonblocking clear of both recent histories. False means retry later.
+pub fn try_clear_recent() -> bool {
+    let Some(mutex) = STATE.get() else {
+        return true;
+    };
+    let mut sink = match mutex.try_lock() {
+        Ok(sink) => sink,
+        Err(std::sync::TryLockError::Poisoned(error)) => error.into_inner(),
+        Err(std::sync::TryLockError::WouldBlock) => return false,
+    };
+    sink.recent.clear();
+    sink.records.clear();
+    true
 }
 
 /// Log panics before the previous hook runs (C# `UnhandledException` hook).
 /// Chains whatever hook was installed before, so default stderr output stays.
 pub fn install_panic_hook() {
-    let previous = std::panic::take_hook();
-    std::panic::set_hook(Box::new(move |info| {
-        let location = info
-            .location()
-            .map(|location| format!("{}:{}", location.file(), location.line()))
-            .unwrap_or_else(|| "unknown location".into());
-        let payload = info
-            .payload()
-            .downcast_ref::<&str>()
-            .map(|text| (*text).to_owned())
-            .or_else(|| info.payload().downcast_ref::<String>().cloned())
-            .unwrap_or_else(|| "non-text panic payload".into());
-        error(format!("Unhandled panic at {location}: {payload}"));
-        crate::telemetry::global().record_error("panic", &payload, Some(&location));
-        crate::telemetry::global().flush(std::time::Duration::from_secs(2));
-        previous(info);
-    }));
+    static INSTALLED: std::sync::Once = std::sync::Once::new();
+    INSTALLED.call_once(|| {
+        let previous = std::panic::take_hook();
+        std::panic::set_hook(Box::new(move |info| {
+            let location = info
+                .location()
+                .map(|location| format!("{}:{}", location.file(), location.line()))
+                .unwrap_or_else(|| "unknown location".into());
+            let payload = info
+                .payload()
+                .downcast_ref::<&str>()
+                .map(|text| (*text).to_owned())
+                .or_else(|| info.payload().downcast_ref::<String>().cloned())
+                .unwrap_or_else(|| "non-text panic payload".into());
+            // Panic hooks run before the panicking thread releases its guards.
+            // Never reacquire a sink/exporter mutex or wait for a flush here.
+            if let Some(mutex) = STATE.get()
+                && let Ok(mut sink) = mutex.try_lock()
+            {
+                let raw = format!("Unhandled panic at {location}: {payload}");
+                push_record(
+                    &mut sink,
+                    Level::Error,
+                    chrono::Local::now().fixed_offset(),
+                    &raw,
+                );
+                let message = format!("[Error] {raw}");
+                sink.recent.push_back(message.clone());
+                trim_recent(&mut sink);
+                if let Some((_, file)) = sink.file.as_mut() {
+                    let _ = writeln!(file, "{message}");
+                }
+            }
+            crate::telemetry::global().try_record_panic(&payload, &location);
+            previous(info);
+        }));
+    });
 }
 
 /// Plain-text snapshot for a "copy diagnostics" action or a bug report. It
@@ -288,11 +378,7 @@ pub fn diagnostics_report(
                 .signing_secret
                 .as_deref()
                 .is_some_and(|s| !s.is_empty()),
-            if config.endpoint.trim().is_empty() {
-                "(none)"
-            } else {
-                config.endpoint.trim()
-            }
+            config.endpoint_display()
         ));
         line(format!(
             "Telemetry exporter running: {} (records dropped: {})",
@@ -339,8 +425,38 @@ fn open_file(sink: &mut Sink, date: &str) -> Result<()> {
     Ok(())
 }
 
+fn push_record(
+    sink: &mut Sink,
+    level: Level,
+    timestamp: chrono::DateTime<chrono::FixedOffset>,
+    message: &str,
+) {
+    if sink.next_record == u64::MAX {
+        sink.records.clear();
+        sink.next_record = 0;
+    }
+    sink.next_record += 1;
+    let mut end = message.len().min(MESSAGE_BYTES_LIMIT);
+    while !message.is_char_boundary(end) {
+        end -= 1;
+    }
+    sink.records.push_back(Record {
+        id: sink.next_record,
+        timestamp,
+        level,
+        message: message[..end].to_owned(),
+        truncated: end < message.len(),
+    });
+}
+
 fn trim_recent(sink: &mut Sink) {
     let limit = sink.options.memory_lines.max(1);
+    let mut bytes: usize = sink.records.iter().map(|record| record.message.len()).sum();
+    while sink.records.len() > limit.min(RECENT_RECORD_LIMIT) || bytes > RECORD_BYTES_LIMIT {
+        if let Some(record) = sink.records.pop_front() {
+            bytes -= record.message.len();
+        }
+    }
     while sink.recent.len() > limit {
         sink.recent.pop_front();
     }

@@ -12,6 +12,7 @@ use std::time::Duration;
 
 /// Plain-text replacement for the C# rollback promise. Rust keeps one snapshot
 /// per run and offers restore only while that run's snapshot is pending.
+const HISTORY_TEXT: &str = "Verified component checkpoints remain in history. Open Checkpoint history to inspect, restore a selected boundary, or resume its ordered suffix. Failed operations must be recovered first.";
 const RECOVERY_TEXT: &str = "This run finished. Its snapshot was released, and the next install replaces it. Restore is offered only when an install stops partway.";
 
 /// What the install worker read after the engine returned Ok and released its
@@ -19,6 +20,7 @@ const RECOVERY_TEXT: &str = "This run finished. Its snapshot was released, and t
 pub(super) struct Terminal {
     /// Completed component ids the engine was given for this phase.
     prefix: usize,
+    report: Option<modsync::engine::InstallReport>,
     /// Roots captured for this run, not the editable folder text.
     roots: Roots,
     summary: Result<Option<CompletionSummary>, String>,
@@ -35,15 +37,44 @@ impl Terminal {
             );
         Self {
             prefix,
+            report: None,
             roots,
             summary,
         }
+    }
+    pub fn read_report(
+        prefix: usize,
+        roots: Roots,
+        report: Option<modsync::engine::InstallReport>,
+    ) -> Self {
+        let mut terminal = Self::read(prefix, roots);
+        if let Some(checkpoint) = report
+            .as_ref()
+            .and_then(|report| report.checkpoint.as_ref())
+        {
+            let inspection = modsync::checkpoint::Store::open(&terminal.roots).and_then(|store| {
+                store.inspect(&checkpoint.session_id, Some(&checkpoint.checkpoint_id))
+            });
+            match inspection {
+                Ok(inspection) => {
+                    terminal.prefix = inspection.session.initial_completed_components.len();
+                }
+                Err(error) => {
+                    terminal.summary = Err(format!(
+                        "Installed, but checkpoint phase summary is unavailable: {error:#}"
+                    ))
+                }
+            }
+        }
+        terminal.report = report;
+        terminal
     }
 }
 
 /// One accepted phase terminal, copied out before the Installing page state is
 /// replaced by the next phase.
 struct PhaseReceipt {
+    report: Option<modsync::engine::InstallReport>,
     /// Receipt components minus the prefix the engine was given.
     installed_in_phase: Option<usize>,
     elapsed: Duration,
@@ -69,6 +100,7 @@ impl State {
             _ => None,
         };
         let receipt = PhaseReceipt {
+            report: terminal.report,
             installed_in_phase,
             elapsed,
             summary: terminal.summary,
@@ -86,6 +118,7 @@ impl State {
     /// The empty widescreen phase: no engine run and no receipt change.
     pub fn skip_remaining(&mut self) {
         self.remaining = Some(PhaseReceipt {
+            report: None,
             installed_in_phase: Some(0),
             elapsed: Duration::ZERO,
             summary: Ok(None),
@@ -93,6 +126,28 @@ impl State {
             log: Vec::new(),
             roots: None,
         });
+    }
+
+    fn report(&self) -> Option<&modsync::engine::InstallReport> {
+        self.remaining
+            .as_ref()
+            .and_then(|receipt| receipt.report.as_ref())
+            .or_else(|| {
+                self.base
+                    .as_ref()
+                    .and_then(|receipt| receipt.report.as_ref())
+            })
+    }
+
+    fn recovery_text(&self) -> &'static str {
+        if self
+            .report()
+            .is_some_and(|report| report.checkpoint.is_some())
+        {
+            HISTORY_TEXT
+        } else {
+            RECOVERY_TEXT
+        }
     }
 
     fn widescreen_skipped(&self) -> bool {
@@ -178,7 +233,19 @@ impl App {
         };
         let stats = [
             ("MODS INSTALLED", mods),
-            ("RECOVERY SNAPSHOT", "Released".to_owned()),
+            (
+                "RECOVERY",
+                if self
+                    .completion
+                    .report()
+                    .is_some_and(|report| report.checkpoint.is_some())
+                {
+                    "History retained"
+                } else {
+                    "Snapshot released"
+                }
+                .to_owned(),
+            ),
             ("TIME ELAPSED", time),
             ("GAME FILES CHANGED", files),
         ];
@@ -280,7 +347,7 @@ impl App {
                                         "2. Test Your Game",
                                         "Launch KOTOR and verify everything is working correctly before starting a new playthrough",
                                     ),
-                                    ("3. Recovery Snapshot", RECOVERY_TEXT),
+                                    ("3. Recovery", self.completion.recovery_text()),
                                 ] {
                                     ui.vertical(|ui| {
                                         ui.spacing_mut().item_spacing.y = 6.0;
@@ -409,7 +476,36 @@ impl App {
             egui::Modal::new(egui::Id::new("completion_recovery_modal")).show(ctx, |ui| {
                 ui.set_max_width(420.0);
                 ui.heading("Recovery");
-                ui.add(egui::Label::new(RECOVERY_TEXT).wrap());
+                ui.add(egui::Label::new(self.completion.recovery_text()).wrap());
+                if let Some(report) = self.completion.report() {
+                    if let Some(checkpoint) = &report.checkpoint {
+                        ui.label(format!(
+                            "Session: {}\nCheckpoint: {}\nGeneration: {}",
+                            checkpoint.session_id, checkpoint.checkpoint_id, checkpoint.generation
+                        ));
+                        if ui.button("Browse checkpoint history").clicked() {
+                            self.checkpoints.open = true;
+                        }
+                    }
+                    if let Some(managed) = &report.managed {
+                        ui.label(format!(
+                            "Managed deployment: {} manifests; profile: {}",
+                            managed.manifests_written,
+                            managed
+                                .active_profile_name
+                                .as_deref()
+                                .unwrap_or("explicit directories")
+                        ));
+                        ui.label(format!(
+                            "Patcher provenance recorded: {}; untracked live edits: {}",
+                            managed.patcher_provenance_recorded,
+                            managed.untracked_live_edits.len()
+                        ));
+                    }
+                    if ui.button("Copy install report").clicked() {
+                        ctx.copy_text(serde_json::to_string_pretty(report).unwrap_or_default());
+                    }
+                }
                 ui.add_space(8.0);
                 ui.horizontal(|ui| {
                     open_folder = ui.button("Open recovery folder").clicked();
@@ -442,7 +538,7 @@ impl App {
                 ui.spacing_mut().item_spacing.y = 0.0;
                 ui.label("🖥️ Widescreen Mods");
                 ui.add_space(12.0);
-                // Raw text, as in C#: Markdown is not rendered here.
+                // Warning text remains literal, matching the reference notice.
                 let height = visible_below(ui, 12.0 + 24.0 + 12.0, 100.0);
                 bordered(ui).show(ui, |ui| {
                     ui.set_width(ui.available_width());
@@ -452,7 +548,10 @@ impl App {
                         .max_height(height - 24.0)
                         .auto_shrink([false, true])
                         .show(ui, |ui| {
-                            ui.add(egui::Label::new(content).wrap());
+                            if ui.small_button("Copy warning text").clicked() {
+                                ui.ctx().copy_text(content.clone());
+                            }
+                            ui.add(egui::Label::new(&content).wrap());
                         });
                 });
             });
@@ -499,7 +598,7 @@ impl App {
                         ui.vertical_centered(|ui| ui.label("🎮 Next Steps:"));
                         for step in [
                             "• Launch the game and enjoy your modded experience!".to_owned(),
-                            format!("• {RECOVERY_TEXT}"),
+                            format!("• {}", self.completion.recovery_text()),
                             "• Copy the activity log for installation details.".to_owned(),
                         ] {
                             wrapped(ui, RichText::new(step));
@@ -540,7 +639,7 @@ impl App {
                                         .max_height(240.0)
                                         .auto_shrink([false, true])
                                         .show(ui, |ui| {
-                                            ui.add(egui::Label::new(text).wrap());
+                                            super::rich_content::show(ui, "finished-epilogue", &text);
                                         });
                                 });
                             },

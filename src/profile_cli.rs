@@ -51,8 +51,8 @@ pub struct ProfileArgs {
 }
 impl ProfileArgs {
     pub fn run(self) -> Result<()> {
-        let directory = modsync::profiles::settings_directory(self.settings_dir.as_deref())?;
-        let store = Store::new(&directory)?;
+        let store = Store::from_settings_directory(self.settings_dir.as_deref())?;
+        let mut active_name = None;
         let required = |value: Option<&str>, flag: &str| -> Result<String> {
             let v = value
                 .context(format!("Profile action requires --{flag}"))?
@@ -67,6 +67,7 @@ impl ProfileArgs {
                     eprintln!("Warning: failed to read settings: {e:#}");
                     None
                 });
+                active_name = active.clone();
                 json!(store.list()?.iter().map(|p|json!({"Name":p.name,"KotorDirectory":p.kotor_directory,"ModDirectory":p.mod_directory,"InstructionFilePath":p.instruction_file_path,"ComponentSelectionCount":p.component_selections.len(),"CreatedUtc":p.created_utc,"LastUsedUtc":p.last_used_utc,"IsActive":active.as_ref().is_some_and(|s|s.eq_ignore_ascii_case(&p.name))})).collect::<Vec<_>>())
             }
             Action::Show => store
@@ -97,7 +98,7 @@ impl ProfileArgs {
                 .cli_value(),
             Action::Capture => {
                 let input = self.input.as_ref().context("Capture requires --input")?;
-                let guide = Guide::load(input)?;
+                let guide = Guide::load_preserving_selection(input)?;
                 store
                     .capture(
                         &required(self.name.as_deref(), "name")?,
@@ -112,7 +113,7 @@ impl ProfileArgs {
                 let input = self.input.as_ref().context("Apply requires --input")?;
                 let output = self.output.as_ref().context("Apply requires --output")?;
                 let name = required(self.name.as_deref(), "name")?;
-                let mut guide = Guide::load(input)?;
+                let mut guide = Guide::load_preserving_selection(input)?;
                 let profile = store.apply(&name, &mut guide)?;
                 let format = output
                     .extension()
@@ -123,15 +124,95 @@ impl ProfileArgs {
                 profile.cli_value()
             }
         };
-        // JSON is also the default output; --json matches the reference invocation.
-        let _ = self.json;
-        println!("{}", serde_json::to_string_pretty(&result)?);
+        if self.json {
+            println!("{}", serde_json::to_string_pretty(&result)?);
+        } else {
+            let name = result["Name"].as_str().unwrap_or_default();
+            match self.action {
+                Action::List => {
+                    let profiles = result.as_array().context("Profile listing shape differs")?;
+                    if profiles.is_empty() {
+                        println!("No profiles found in {}", store.directory().display());
+                    } else {
+                        println!("Profiles ({}):", profiles.len());
+                        for profile in profiles {
+                            println!(
+                                "  - {}{}",
+                                profile["Name"].as_str().unwrap_or_default(),
+                                if profile["IsActive"].as_bool() == Some(true) {
+                                    " *"
+                                } else {
+                                    ""
+                                }
+                            );
+                        }
+                        if let Some(active) = active_name.filter(|value| !value.trim().is_empty()) {
+                            println!("Active profile (settings.json): {active}");
+                        }
+                    }
+                }
+                Action::Show => {
+                    println!("Profile: {name}");
+                    for (label, key) in [
+                        ("KOTOR", "KotorDirectory"),
+                        ("Mod workspace", "ModDirectory"),
+                        ("Instruction file", "InstructionFilePath"),
+                    ] {
+                        println!("  {label}: {}", result[key].as_str().unwrap_or("(unset)"));
+                    }
+                    println!(
+                        "  Component selections: {}",
+                        result["ComponentSelections"]
+                            .as_object()
+                            .map_or(0, |values| values.len())
+                    );
+                }
+                Action::Create => println!(
+                    "Created profile '{name}' under {}",
+                    store.directory().display()
+                ),
+                Action::Delete => println!(
+                    "Deleted profile '{}'.",
+                    result["Deleted"].as_str().unwrap_or_default()
+                ),
+                Action::Activate => {
+                    println!("Activated profile '{name}' (saved to settings.json).")
+                }
+                Action::Clone | Action::Rename => {
+                    let from = self
+                        .from
+                        .as_deref()
+                        .or(self.name.as_deref())
+                        .unwrap_or_default()
+                        .trim();
+                    let verb = if matches!(self.action, Action::Clone) {
+                        "Cloned"
+                    } else {
+                        "Renamed"
+                    };
+                    println!("{verb} profile '{from}' to '{name}'.");
+                }
+                Action::Capture => println!(
+                    "Captured profile '{name}' under {}",
+                    store.directory().display()
+                ),
+                Action::Apply => println!(
+                    "Applied profile '{name}' to {}",
+                    self.output
+                        .as_ref()
+                        .context("Apply output missing")?
+                        .display()
+                ),
+            }
+        }
         Ok(())
     }
 }
 
 #[derive(Clone, Copy, ValueEnum)]
 enum SettingsAction {
+    /// Inspect all typed desktop settings with reference defaults applied.
+    Inspect,
     List,
     Get,
     Set,
@@ -173,6 +254,38 @@ impl SettingsArgs {
             Ok(())
         };
         match self.action {
+            SettingsAction::Inspect => {
+                let report = Store::from_settings_directory(self.settings_dir.as_deref())?
+                    .desktop_settings();
+                for warning in &report.warnings {
+                    eprintln!("Warning: {warning}");
+                }
+                let values = report.settings.output_value(self.reveal_secrets)?;
+                if self.json {
+                    return print(
+                        &json!({"settingsDirectory":file.directory,"settingsFile":settings_file,"values":values,"usedDefaults":report.used_defaults,"targetGame":report.settings.target_game(),"warnings":report.warnings}),
+                    );
+                }
+                println!(
+                    "Desktop settings{}:",
+                    if report.used_defaults {
+                        " (defaults after load error)"
+                    } else {
+                        ""
+                    }
+                );
+                for (key, value) in values
+                    .as_object()
+                    .context("Typed settings must be an object")?
+                {
+                    println!("  {key}={}", profiles::settings_text(value));
+                }
+                println!(
+                    "  targetGame={}",
+                    report.settings.target_game().unwrap_or("(none)")
+                );
+                Ok(())
+            }
             SettingsAction::List => {
                 // Reading matches the reference: an unusable file lists as empty.
                 let root = file.load().unwrap_or_else(|e| {
@@ -226,11 +339,26 @@ impl SettingsArgs {
                 let key = key()?;
                 // Deliberately stricter than the reference, which replaces an unreadable
                 // file with a new object: refuse instead of discarding the user's data.
-                let mut root = file.load().with_context(|| {
-                    format!("Refusing to overwrite unreadable settings file {settings_file}")
-                })?;
-                profiles::set_cli_value(&mut root, &key, self.value.as_deref())?;
-                file.save(&root)?;
+                // Native locale lookup and parsing complete before taking the settings lock.
+                let value = self
+                    .value
+                    .as_deref()
+                    .filter(|value| !value.trim().is_empty())
+                    .map(profiles::parse_cli_value_current_culture)
+                    .transpose()?;
+                let root = file
+                    .update(|root| {
+                        let object = root.as_object_mut().context("Settings must be an object")?;
+                        if let Some(value) = value {
+                            object.insert(key.clone(), value);
+                        } else {
+                            object.shift_remove(&key);
+                        }
+                        Ok(())
+                    })
+                    .with_context(|| {
+                        format!("Refusing to overwrite unreadable settings file {settings_file}")
+                    })?;
                 if self.json {
                     let shown = profiles::redacted(&root, false);
                     return print(&json!({
@@ -243,5 +371,64 @@ impl SettingsArgs {
                 Ok(())
             }
         }
+    }
+}
+
+/// Reference-compatible key command; validation is on unless explicitly skipped.
+#[derive(Args)]
+pub struct SetNexusApiKeyArgs {
+    /// Nexus personal API key. It is never included in command output.
+    api_key: String,
+    #[arg(long)]
+    skip_validation: bool,
+    #[arg(long)]
+    settings_dir: Option<PathBuf>,
+    #[arg(long)]
+    json: bool,
+}
+impl SetNexusApiKeyArgs {
+    pub fn run(self) -> Result<()> {
+        ensure!(
+            !self.api_key.trim().is_empty(),
+            "Nexus API key cannot be blank"
+        );
+        let store = Store::from_settings_directory(self.settings_dir.as_deref())?;
+        let cancelled = modsync::p2p::stop_signal_flag()?;
+        let result = if self.skip_validation {
+            ensure!(
+                !cancelled.load(std::sync::atomic::Ordering::Acquire),
+                "Nexus key save cancelled"
+            );
+            store.save_nexus_api_key(&self.api_key).map(|()| None)
+        } else {
+            store
+                .save_validated_nexus_api_key(&self.api_key, &cancelled)
+                .map(Some)
+        };
+        let validation = match result {
+            Err(_) if cancelled.load(std::sync::atomic::Ordering::Acquire) => {
+                eprintln!("Nexus key validation cancelled; no successful save was reported.");
+                return Err(crate::cli_session::Exit(130).into());
+            }
+            other => other?,
+        };
+        if self.json {
+            println!(
+                "{}",
+                serde_json::to_string_pretty(
+                    &json!({"saved":true,"validated":validation.is_some(),"validation":validation.as_ref().map(|value|json!({"isValid":value.is_valid,"userName":value.user_name,"isPremium":value.is_premium,"message":value.message}))})
+                )?
+            );
+        } else {
+            println!(
+                "Nexus Mods API key saved{}.",
+                if validation.is_some() {
+                    " and validated"
+                } else {
+                    " without validation"
+                }
+            );
+        }
+        Ok(())
     }
 }

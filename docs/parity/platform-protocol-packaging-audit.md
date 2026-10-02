@@ -129,3 +129,41 @@ The following evidence can be produced on Linux after implementation without cla
 - A plist containing scheme names does not prove macOS cold/warm URL delivery (`src/protocol_registration.rs:40-46`).
 - Finding a patcher-shaped file does not prove it launches, accepts the Rust argv, or produces correct patch bytes (`src/engine.rs:1565-1574`, `src/engine.rs:1700-1714`).
 - A workflow artifact is not a public release, and this scope does not authorize publication (`C# docs/manual-release.md:28-45`, `docs/parity/ACCEPTANCE.md:63-64`).
+
+## Owned registration source implementation (2026-10-02)
+
+`protocol_registration::owned` now exposes shared `Request`, `Scheme`, typed
+per-scheme ownership status and register/status/unregister operations. Identity
+binds a validated package token and channel to the canonical executable. Explicit
+replacement is required before another active association can be changed.
+CLI/UI adapters consume this API; source presence does not close F23.
+
+- Linux uses separate per-scheme desktop files, exact marker/command comparison,
+  durable prior-handler receipts, and bounded `xdg-mime` queries. Unregister removes
+  only this identity's exact artifact and MIME entries; an inactive old package
+  can clean its own artifact while preserving the selected newer handler. A prior
+  handler is restored only when this identity was still selected.
+- Windows uses HKCU Registry APIs, exact command/ownership values and subtree
+  shape checks before removal. Windows UserChoice overrides are reported and
+  preserved; users must change a protected default through Windows Settings.
+  The registered command enters `gui --protocol "%1"`.
+- macOS validates the package token/channel/executable and both declarations in
+  the actual bundle Info.plist, queries the selected application URL, registers
+  through Launch Services and verifies the resulting bundle location. Whole-bundle
+  unregister requires both schemes to remain owned and both to be requested;
+  per-scheme-only Launch Services unregister is not claimed. A loose executable
+  cannot register as an owned application bundle.
+
+Cooperating mutations are serialized with per-user regular-file locks, bounded
+waits and cancellation. Backends recheck ownership before removal; unrelated OS
+configuration tools do not honor these locks, so the APIs do not claim a transaction
+against arbitrary concurrent external configuration writers. OS helper commands
+have a 15-second deadline, retained child/process-group cleanup and bounded UTF-8
+output reads. Their 256KiB output-file ceiling is polled, not a hard disk quota.
+Failures propagate, including failures after an earlier scheme changed; there is
+no implicit rollback or partial-success claim.
+
+No registration, native protocol delivery, package installation, filesystem tests
+or acceptance probes were executed for this slice. Windows/macOS compilation and
+native association behavior remain acceptance obligations, as do Linux desktop
+integration and A-register/B-upgrade/A-uninstall acceptance with real packages.

@@ -4,13 +4,30 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::{collections::BTreeMap, sync::LazyLock};
 
+pub mod review;
+
 pub const REVIEW_FLAG: &str = "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.";
 const MODS: &str = "<<modDirectory>>";
 const GAME: &str = "<<kotorDirectory>>";
 
 pub fn requires_review(component: &Component) -> bool {
     if let Some(review) = component.metadata.get("DraftReview") {
-        return review.get("RequiresReview").and_then(|v| v.as_bool()) != Some(false);
+        if review.get("RequiresReview").and_then(|v| v.as_bool()) != Some(false)
+            || !review::receipt_matches(component, review)
+        {
+            return true;
+        }
+        // A flag alone is not a review receipt. Keep malformed, foreign, or
+        // unresolved diagnostics fenced even when a saved flag says otherwise.
+        return review
+            .get("Result")
+            .and_then(|value| serde_json::from_value::<DraftResult>(value.clone()).ok())
+            .is_none_or(|result| {
+                !result.component_guid.eq_ignore_ascii_case(&component.guid)
+                    || !result.unparsed_gaps.is_empty()
+                    || !result.conditional_drafts.is_empty()
+                    || result.rejected_drafts != 0
+            });
     }
     component
         .metadata
@@ -21,6 +38,13 @@ pub fn requires_review(component: &Component) -> bool {
 
 pub fn mark_reviewed(component: &mut Component) -> anyhow::Result<()> {
     use anyhow::{Context, ensure};
+    let reviewed_identity = review::identity(component)?;
+    if let Some(record) = component.metadata.get("DraftReview") {
+        anyhow::ensure!(
+            record.get("Resolution").is_none() || review::receipt_matches(component, record),
+            "Changed resolved drafts require a new explicit resolution"
+        );
+    }
     let review = component
         .metadata
         .get_mut("DraftReview")
@@ -32,11 +56,16 @@ pub fn mark_reviewed(component: &mut Component) -> anyhow::Result<()> {
             .context("Missing draft diagnostics")?,
     )?;
     ensure!(
+        result.component_guid.eq_ignore_ascii_case(&component.guid),
+        "Draft diagnostics belong to a different component"
+    );
+    ensure!(
         result.unparsed_gaps.is_empty()
             && result.conditional_drafts.is_empty()
             && result.rejected_drafts == 0,
         "Resolve unparsed, conditional, or rejected instructions before accepting this draft"
     );
+    review["ReviewedIdentity"] = reviewed_identity.into();
     review["RequiresReview"] = false.into();
     Ok(())
 }
@@ -51,11 +80,76 @@ pub struct DraftResult {
     pub rejected_drafts: usize,
 }
 
+/// Check before model normalization, which removes null component properties.
+/// A malformed review record must never disappear or become an accepted draft.
+pub(crate) fn validate_review_records(value: &serde_json::Value) -> anyhow::Result<()> {
+    use serde_json::Value;
+    // Match Guide::from_value's supported envelopes and precedence. Resource
+    // dictionaries and other arbitrary metadata are not component records.
+    if let Some(components) = value.as_array() {
+        for component in components {
+            validate_component_review(component)?;
+        }
+    } else if value.get("Guid").is_some() {
+        validate_component_review(value)?;
+    } else if let Some(components) = value
+        .get("thisMod")
+        .or_else(|| value.get("Components"))
+        .and_then(Value::as_array)
+    {
+        for component in components {
+            validate_component_review(component)?;
+        }
+    }
+    Ok(())
+}
+
+fn validate_component_review(value: &serde_json::Value) -> anyhow::Result<()> {
+    use anyhow::{Context, ensure};
+    use serde_json::Value;
+    if let Some(review) = value.get("DraftReview") {
+        let required = review
+            .get("RequiresReview")
+            .and_then(Value::as_bool)
+            .context("DraftReview.RequiresReview must be a boolean")?;
+        let result: DraftResult = serde_json::from_value(
+            review
+                .get("Result")
+                .cloned()
+                .context("DraftReview needs complete Result diagnostics")?,
+        )
+        .context("Invalid DraftReview.Result diagnostics")?;
+        ensure!(
+            value
+                .get("Guid")
+                .and_then(Value::as_str)
+                .is_some_and(|guid| guid.eq_ignore_ascii_case(&result.component_guid)),
+            "DraftReview diagnostics belong to a different component"
+        );
+        ensure!(
+            required
+                || (result.unparsed_gaps.is_empty()
+                    && result.conditional_drafts.is_empty()
+                    && result.rejected_drafts == 0),
+            "Reviewed draft still contains unresolved diagnostics"
+        );
+    }
+    if let Some(options) = value.get("Options").and_then(Value::as_array) {
+        for option in options {
+            validate_component_review(option)?;
+        }
+    }
+    Ok(())
+}
+
 /// Drafts are attached for review, never substituted for existing authored instructions.
 pub fn generate(guide: &mut Guide) -> Vec<DraftResult> {
     let mut results = Vec::new();
     for component in &mut guide.components {
-        if !component.instructions.is_empty() || component.directions.trim().is_empty() {
+        if !component.instructions.is_empty()
+            || component.directions.trim().is_empty()
+            || component.metadata.contains_key("DraftReview")
+        {
             continue;
         }
         let mut result = DraftResult {

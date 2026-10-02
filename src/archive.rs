@@ -1,4 +1,5 @@
 use crate::paths::relative;
+mod timestamps;
 use anyhow::{Result, bail, ensure};
 use std::{
     collections::BTreeSet,
@@ -9,6 +10,7 @@ use std::{
         Arc,
         atomic::{AtomicBool, Ordering},
     },
+    time::SystemTime,
 };
 
 #[derive(Clone, Debug, Default)]
@@ -21,6 +23,8 @@ pub struct Entry {
     pub path: PathBuf,
     pub file: Arc<tempfile::NamedTempFile>,
     pub mode: Option<u32>,
+    /// Authored modification time, when the decoder exposes one.
+    pub modified: Option<SystemTime>,
 }
 
 struct Output<'a> {
@@ -64,7 +68,13 @@ impl Output<'_> {
             None => builder.tempfile()?,
         })
     }
-    fn add(&mut self, name: &str, mode: Option<u32>, reader: &mut dyn Read) -> Result<()> {
+    fn add(
+        &mut self,
+        name: &str,
+        mode: Option<u32>,
+        modified: Option<SystemTime>,
+        reader: &mut dyn Read,
+    ) -> Result<()> {
         let path = self.name(name, mode, false)?;
         let mut temp = if self.spool { Some(self.temp()?) } else { None };
         let mut buffer = [0u8; 64 * 1024];
@@ -94,6 +104,7 @@ impl Output<'_> {
                 path,
                 file: Arc::new(file),
                 mode,
+                modified,
             });
         }
         Ok(())
@@ -154,7 +165,7 @@ fn process(
         names: BTreeSet::new(),
         files: Vec::new(),
     };
-    let mut file = File::open(path)?;
+    let mut file = crate::paths::open_regular_read(path)?;
     let mut signature = [0u8; 8];
     let n = file.read(&mut signature)?;
     let signature = &signature[..n];
@@ -179,6 +190,7 @@ fn process(
                 continue;
             }
             let size = header.unpacked_size;
+            let has_modified = header.file_time != 0;
             output.total = output
                 .total
                 .checked_add(size)
@@ -203,10 +215,16 @@ fn process(
                     ensure!(meta.nlink() == 1, "RAR hard links are forbidden");
                 }
                 let temp = tempfile::NamedTempFile::from_parts(File::open(&temp_path)?, temp_path);
+                let modified = if has_modified {
+                    Some(meta.modified()?)
+                } else {
+                    None
+                };
                 output.files.push(Entry {
                     path,
                     file: Arc::new(temp),
                     mode,
+                    modified,
                 });
             } else {
                 archive = entry.test()?;
@@ -222,7 +240,8 @@ fn process(
             if entry.is_dir() {
                 output.name(&name, mode, true)?;
             } else {
-                output.add(&name, mode, &mut entry)?;
+                let modified = timestamps::zip(&entry)?;
+                output.add(&name, mode, modified, &mut entry)?;
             }
         }
     } else if signature.starts_with(b"7z\xBC\xAF\x27\x1C") || signature.starts_with(b"MZ") {
@@ -246,7 +265,11 @@ fn process(
                     if entry.is_directory() {
                         output.name(entry.name(), mode, true)?;
                     } else {
-                        output.add(entry.name(), mode, reader)?;
+                        let modified = entry
+                            .has_last_modified_date
+                            .then(|| timestamps::windows(u64::from(entry.last_modified_date)))
+                            .transpose()?;
+                        output.add(entry.name(), mode, modified, reader)?;
                     }
                     Ok(())
                 })();
@@ -257,6 +280,12 @@ fn process(
         )?;
     } else if signature.starts_with(b"\x1f\x8b") {
         let gzip = flate2::read::MultiGzDecoder::new(file);
+        let modified = gzip
+            .header()
+            .map(|header| header.mtime())
+            .filter(|seconds| *seconds != 0)
+            .map(|seconds| timestamps::unix(u64::from(seconds)))
+            .transpose()?;
         let mut reader = BufReader::new(gzip);
         let header = reader.fill_buf()?;
         if name.to_string_lossy().to_lowercase().ends_with(".tar.gz")
@@ -273,7 +302,7 @@ fn process(
                 .file_stem()
                 .and_then(|s| s.to_str())
                 .ok_or_else(|| anyhow::anyhow!("GZip needs a filename"))?;
-            output.add(name, None, &mut reader)?;
+            output.add(name, None, modified, &mut reader)?;
         }
     } else if name
         .extension()
@@ -305,7 +334,8 @@ fn read_tar(reader: impl Read, output: &mut Output<'_>) -> Result<()> {
         if kind.is_dir() {
             output.name(&name, mode, true)?;
         } else {
-            output.add(&name, mode, &mut entry)?;
+            let modified = Some(timestamps::unix(entry.header().mtime()?)?);
+            output.add(&name, mode, modified, &mut entry)?;
         }
     }
     Ok(())

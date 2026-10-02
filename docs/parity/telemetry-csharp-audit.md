@@ -181,3 +181,26 @@ run the GUI with `XDG_CONFIG_HOME=<tmp>`, `MODSYNC_SIGNING_SECRET=<test>` and
   `bucketCounts`, `*TimeUnixNano`). Attributes use the `{key, value:{stringValue|
   boolValue|intValue|doubleValue}}` shape. Sums set `isMonotonic: true`, and
   both sums and histograms use `aggregationTemporality: 2`.
+
+## Private telemetry persistence source (2026-10-02)
+
+Telemetry configuration and signing-key reads now use the same private storage
+boundary as profiles/settings: bounded regular-file reads, ancestor/link/reparse
+checks, and current-user ownership checks. Configuration remains bounded to 1 MiB;
+key files are bounded to 16 KiB before reading their contents. A present unsafe,
+unreadable or invalid-UTF-8 key is refused rather than silently falling through to
+another directory's key. Environment-secret precedence remains unchanged.
+
+Explicit settings roots never consult legacy storage. Implicit defaults prefer
+current configuration; only absence permits the legacy configuration. Key lookup
+first considers the current root and then the legacy root only when needed, so an
+unused malformed legacy key cannot block a valid current key. Reading configuration
+alone does not write either root. Successful saves copy configuration forward,
+never serialize signing secrets, and leave legacy files untouched.
+
+Configuration saves share the profile/settings write lock, refuse malformed
+existing configuration, enforce the serialized size bound before directory/lock
+creation, and publish a private replacement through the shared writer (0600 Unix;
+protected current-user DACL in Windows source). No native ACL tests, filesystem
+probes, network telemetry calls or build/test commands were executed for this
+integration. Native storage and migration acceptance remain unproven.

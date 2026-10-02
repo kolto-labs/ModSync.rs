@@ -1,11 +1,13 @@
 //! Local archive inference shared by guide conversion and desktop callers.
 mod merge;
+pub mod resolved;
 use crate::{Component, Guide, Instruction, archive};
 use anyhow::{Context, Result, ensure};
 use serde::Serialize;
 use std::{
     collections::BTreeMap,
     fs,
+    io::Read,
     path::Path,
     sync::atomic::{AtomicBool, Ordering},
 };
@@ -23,9 +25,31 @@ pub struct GenerationResult {
 /// Fill instruction-free components from matching top-level downloads. Reports retain
 /// failures; an unsuccessful component is left unchanged and inputs are never deleted.
 pub fn generate_local(guide: &mut Guide, source: &Path) -> Result<Vec<GenerationResult>> {
-    ensure!(source.is_dir(), "Source path is not an existing directory");
+    generate_local_with_cancel(guide, source, &AtomicBool::new(false))
+}
+
+/// Cancellable local inference. No partial guide edits are published on cancellation.
+pub fn generate_local_with_cancel(
+    guide: &mut Guide,
+    source: &Path,
+    cancelled: &AtomicBool,
+) -> Result<Vec<GenerationResult>> {
+    let check = || -> Result<()> {
+        ensure!(
+            !cancelled.load(Ordering::Acquire),
+            "Local archive inference cancelled"
+        );
+        Ok(())
+    };
+    check()?;
+    let source = resolved::local_root(source)?;
     let mut archives = Vec::new();
-    for entry in fs::read_dir(source)? {
+    for (index, entry) in fs::read_dir(&source)?.enumerate() {
+        check()?;
+        ensure!(
+            index < 100_000,
+            "Local inference directory exceeds 100000 entries"
+        );
         let entry = entry?;
         if entry.file_type()?.is_file()
             && matches!(
@@ -38,7 +62,23 @@ pub fn generate_local(guide: &mut Guide, source: &Path) -> Result<Vec<Generation
                 Some("zip" | "rar" | "7z" | "exe")
             )
         {
-            archives.push((entry.path(), entry.metadata()?.modified()?));
+            let filename = entry.file_name();
+            let filename = filename.to_str().context("Archive filename is not UTF-8")?;
+            ensure!(
+                filename.len() <= 255
+                    && !filename.contains(['/', '\\'])
+                    && !filename.chars().any(char::is_control),
+                "Unsafe local archive filename"
+            );
+            ensure!(
+                crate::paths::relative(filename, false)?
+                    .components()
+                    .count()
+                    == 1,
+                "Unsafe local archive filename"
+            );
+            let handle = crate::paths::open_regular_read(&entry.path())?;
+            archives.push((entry.path(), handle.metadata()?.modified()?));
         }
     }
     archives.sort_by_key(|(path, _)| {
@@ -55,8 +95,12 @@ pub fn generate_local(guide: &mut Guide, source: &Path) -> Result<Vec<Generation
             _ => 3,
         }
     });
+    check()?;
+    let mut candidate = guide.clone();
     let mut results = Vec::new();
-    for component in &mut guide.components {
+    for original in &mut candidate.components {
+        check()?;
+        let mut component = original.clone();
         let mut report = GenerationResult {
             component_guid: component.guid.clone(),
             component_name: component.name.clone(),
@@ -101,10 +145,10 @@ pub fn generate_local(guide: &mut Guide, source: &Path) -> Result<Vec<Generation
                 .with_context(|| format!("No matching archive found for '{term}'"))?;
             ensure!(
                 generate_from_archive(
-                    component,
+                    &mut component,
                     matching.2,
                     &archive::Options::default(),
-                    &AtomicBool::new(false)
+                    cancelled
                 )?,
                 "No supported game files or patcher data found"
             );
@@ -113,15 +157,19 @@ pub fn generate_local(guide: &mut Guide, source: &Path) -> Result<Vec<Generation
                 .insert("IsDownloaded".into(), true.into());
             Ok(())
         })();
+        check()?;
         match outcome {
             Ok(()) => {
                 report.success = true;
                 report.instructions_generated = component.instructions.len();
+                *original = component;
             }
             Err(error) => report.skip_reason = format!("{error:#}"),
         }
         results.push(report);
     }
+    check()?;
+    *guide = candidate;
     Ok(results)
 }
 
@@ -216,6 +264,10 @@ pub fn generate_from_archive(
         }
         Err(error) => return Err(error),
     };
+    ensure!(
+        entries.len() <= 100_000,
+        "Archive inference exceeds 100000 entries"
+    );
     let paths: Vec<_> = entries
         .iter()
         .map(|e| e.path.to_string_lossy().replace('\\', "/"))
@@ -229,6 +281,10 @@ pub fn generate_from_archive(
     let mut folders = Vec::new();
     let mut loose = false;
     for (index, entry) in paths.iter().enumerate() {
+        ensure!(
+            !cancelled.load(Ordering::Acquire),
+            "Archive operation cancelled"
+        );
         let parts: Vec<_> = entry.split('/').collect();
         let name = parts.last().unwrap();
         if let Some(patch_index) = parts
@@ -276,10 +332,40 @@ pub fn generate_from_archive(
         &patcher_path
     };
     if let Some(index) = namespace_entry {
-        let namespaces = parse_namespaces(&fs::read_to_string(entries[index].file.path())?);
+        let mut file = crate::paths::open_regular_read(entries[index].file.path())?;
+        ensure!(
+            file.metadata()?.len() <= 1024 * 1024,
+            "Namespace INI exceeds one MiB"
+        );
+        let mut bytes = Vec::new();
+        let mut chunk = [0u8; 16 * 1024];
+        loop {
+            ensure!(
+                !cancelled.load(Ordering::Acquire),
+                "Archive operation cancelled"
+            );
+            let count = file.read(&mut chunk)?;
+            if count == 0 {
+                break;
+            }
+            ensure!(
+                bytes.len() + count <= 1024 * 1024,
+                "Namespace INI exceeds one MiB"
+            );
+            bytes.extend_from_slice(&chunk[..count]);
+        }
+        let namespaces = parse_namespaces(std::str::from_utf8(&bytes)?, cancelled)?;
         if let Some(values) = namespaces.get("namespaces") {
             let mut ids = Vec::new();
             for (index, (_, namespace)) in values.iter().enumerate() {
+                ensure!(
+                    !cancelled.load(Ordering::Acquire),
+                    "Archive operation cancelled"
+                );
+                ensure!(
+                    generated.options.len() < 4096,
+                    "Archive inference exceeds 4096 options"
+                );
                 if let Some(data) = namespaces.get(&namespace.to_lowercase()) {
                     let field = |name: &str| {
                         data.iter()
@@ -328,6 +414,14 @@ pub fn generate_from_archive(
         if folders.len() > 1 {
             let mut ids = Vec::new();
             for folder in folders {
+                ensure!(
+                    !cancelled.load(Ordering::Acquire),
+                    "Archive operation cancelled"
+                );
+                ensure!(
+                    generated.options.len() < 4096,
+                    "Archive inference exceeds 4096 options"
+                );
                 let source = format!("<<modDirectory>>\\{extracted}\\{folder}\\*");
                 if merge::folder_covered(&generated, &source) {
                     continue;
@@ -372,7 +466,19 @@ pub fn generate_from_archive(
         })
         .into(),
     );
+    ensure!(
+        generated.options.len() <= 4096 && generated.instructions.len() <= 16384,
+        "Archive inference model exceeds bounds"
+    );
+    ensure!(
+        !cancelled.load(Ordering::Acquire),
+        "Archive operation cancelled"
+    );
     merge::consolidate(&mut generated);
+    ensure!(
+        !cancelled.load(Ordering::Acquire),
+        "Archive operation cancelled"
+    );
     *component = generated;
     Ok(true)
 }
@@ -504,10 +610,26 @@ fn game_file(path: &str) -> bool {
     )
 }
 
-fn parse_namespaces(text: &str) -> BTreeMap<String, Vec<(String, String)>> {
+fn parse_namespaces(
+    text: &str,
+    cancelled: &AtomicBool,
+) -> Result<BTreeMap<String, Vec<(String, String)>>> {
     let mut sections = BTreeMap::<String, Vec<(String, String)>>::new();
     let mut section = None;
-    for line in text.trim_start_matches('\u{feff}').lines().map(str::trim) {
+    for (index, line) in text
+        .trim_start_matches('\u{feff}')
+        .lines()
+        .map(str::trim)
+        .enumerate()
+    {
+        ensure!(
+            !cancelled.load(Ordering::Acquire),
+            "Archive operation cancelled"
+        );
+        ensure!(
+            index < 4096 && line.len() <= 16384,
+            "Namespace INI exceeds line bounds"
+        );
         if line.starts_with('[') && line.ends_with(']') {
             let name = line[1..line.len() - 1].to_lowercase();
             sections.insert(name.clone(), Vec::new());
@@ -527,5 +649,5 @@ fn parse_namespaces(text: &str) -> BTreeMap<String, Vec<(String, String)>> {
             }
         }
     }
-    sections
+    Ok(sections)
 }

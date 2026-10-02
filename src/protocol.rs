@@ -4,11 +4,10 @@ use anyhow::{Result, bail};
 use reqwest::Url;
 use serde::Serialize;
 use std::net::{IpAddr, ToSocketAddrs};
-use std::{
-    io::{Read, Write},
-    path::Path,
-    time::Duration,
-};
+use std::path::Path;
+
+mod fetch;
+pub use fetch::fetch_instruction_with_cancel;
 
 #[derive(Clone, Debug, Serialize, PartialEq, Eq)]
 #[serde(tag = "scheme", rename_all = "lowercase")]
@@ -90,51 +89,7 @@ pub fn safe_instruction_url(raw: &str) -> Result<Url> {
 }
 
 pub fn fetch_instruction(raw: &str, destination: &Path) -> Result<()> {
-    const MAX_BYTES: u64 = 5 * 1024 * 1024;
-    let url = safe_instruction_url(raw)?;
-    if destination.exists() {
-        bail!("Instruction destination already exists");
-    }
-    let client = reqwest::blocking::Client::builder()
-        .timeout(Duration::from_secs(60))
-        .redirect(reqwest::redirect::Policy::custom(|attempt| {
-            if safe_instruction_url(attempt.url().as_str()).is_ok() {
-                attempt.follow()
-            } else {
-                attempt.error("Instruction redirect target is unsafe")
-            }
-        }))
-        .build()?;
-    let mut response = client.get(url).send()?.error_for_status()?;
-    safe_instruction_url(response.url().as_str())?;
-    if response
-        .content_length()
-        .is_some_and(|length| length > MAX_BYTES)
-    {
-        bail!("Instruction file exceeds the 5242880 byte download limit");
-    }
-    let parent = destination
-        .parent()
-        .ok_or_else(|| anyhow::anyhow!("Choose an instruction destination folder"))?;
-    let mut temporary = tempfile::NamedTempFile::new_in(parent)?;
-    let mut total = 0_u64;
-    let mut buffer = [0; 64 * 1024];
-    loop {
-        let count = response.read(&mut buffer)?;
-        if count == 0 {
-            break;
-        }
-        total += count as u64;
-        if total > MAX_BYTES {
-            bail!("Instruction file exceeds the 5242880 byte download limit");
-        }
-        temporary.write_all(&buffer[..count])?;
-    }
-    temporary.as_file().sync_all()?;
-    temporary
-        .persist_noclobber(destination)
-        .map_err(|error| error.error)?;
-    Ok(())
+    fetch_instruction_with_cancel(raw, destination, &std::sync::atomic::AtomicBool::new(false))
 }
 
 pub fn fetch_modsync_guide(raw: &str) -> Result<(Link, Guide)> {
@@ -216,12 +171,18 @@ fn ensure_public_ip(ip: IpAddr) -> Result<()> {
     let blocked = match ip {
         IpAddr::V4(ip) => {
             ip.is_loopback()
+                || ip.is_multicast()
+                || ip.is_broadcast()
+                || ip.octets()[0] == 0
                 || ip.is_private()
                 || ip.is_link_local()
                 || ip.is_unspecified()
                 || (ip.octets()[0] == 100 && (64..=127).contains(&ip.octets()[1]))
         }
         IpAddr::V6(ip) => {
+            if let Some(mapped) = ip.to_ipv4_mapped() {
+                return ensure_public_ip(IpAddr::V4(mapped));
+            }
             ip.is_loopback()
                 || ip.is_unspecified()
                 || ip.is_unique_local()

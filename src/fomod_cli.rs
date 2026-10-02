@@ -40,13 +40,9 @@ impl Options {
         let Some(path) = explicit.or(environment.as_ref()) else {
             return Ok(None);
         };
-        Ok(Some(
-            fomod::ChoicesFile::parse(
-                &std::fs::read_to_string(path)
-                    .with_context(|| format!("Reading FOMOD choices {}", path.display()))?,
-            )
-            .with_context(|| format!("Parsing FOMOD choices {}", path.display()))?,
-        ))
+        Ok(Some(fomod::ChoicesFile::load(path).with_context(|| {
+            format!("Loading FOMOD choices {}", path.display())
+        })?))
     }
 
     /// Whether `--fomod-choices` names a file and skip does not win. Only this flag
@@ -69,11 +65,11 @@ impl Options {
             return Ok(Mode::Choices(file));
         }
         let settings =
-            crate::profiles::SettingsFile::resolve(self.settings_dir.as_deref())?.load()?;
+            crate::profiles::Store::from_settings_directory(self.settings_dir.as_deref())?
+                .fomod_post_download_mode()?;
         let environment = std::env::var("MODSYNC_FOMOD_POST_DOWNLOAD_MODE").ok();
         let mode = settings
-            .get("fomodPostDownloadMode")
-            .and_then(|v| v.as_str())
+            .as_deref()
             .filter(|s| !s.trim().is_empty())
             .or(environment.as_deref())
             .unwrap_or("")

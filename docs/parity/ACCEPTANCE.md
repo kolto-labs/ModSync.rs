@@ -1,5 +1,21 @@
 # Full C# feature parity — active acceptance ledger
 
+## Working-source reconciliation — 2026-10-02
+
+Full parity remains incomplete. The current source implementation is tracked in
+[the remaining-work tracker](../plans/2026-09-28-1130-remaining-work-tracker-plan.md),
+including checkpoint/recovery, desktop acquisition, host providers, persistent
+sharing, profiles/settings, protocols, diagnostics, packaging, editing/merge,
+and CLI composition added after the historical checkpoints below. Historical
+"not present" statements are not a current source inventory.
+
+Source review and production build receipts remain distinct from acceptance.
+Only the source boundary named in each [production receipt](production-gates-2026-10-02.md)
+is covered by that receipt; subsequent changes are unverified by those builds.
+The user currently requires implementation before tests/CI and forbids filesystem
+test creation, editing and execution. Native, provider, full-build, platform and
+live-game acceptance remains deferred. No domain is closed by this reconciliation.
+
 ## Current integration status — 2026-09-28
 
 **Full parity is incomplete: F01–F28 remain partial and F29 is unverified.**

@@ -5,6 +5,8 @@ use serde_json::{Value, json};
 use std::collections::BTreeMap;
 use std::time::Duration;
 
+mod cancellable;
+
 #[derive(Clone, Debug, Default, Deserialize)]
 pub struct Versions(pub BTreeMap<String, String>);
 
@@ -55,6 +57,19 @@ pub struct NexusModFile {
     pub md5: String,
 }
 
+/// Optional wire fields for the metadata endpoint, separate from download discovery.
+#[derive(Clone, Debug, Deserialize)]
+pub struct NexusFileMetadata {
+    #[serde(default)]
+    pub file_name: Option<String>,
+    #[serde(default, deserialize_with = "optional_number_to_i64")]
+    pub size_kb: Option<i64>,
+    #[serde(default, deserialize_with = "optional_number_to_i64")]
+    pub uploaded_timestamp: Option<i64>,
+    #[serde(default)]
+    pub md5: Option<String>,
+}
+
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
 pub struct NexusMd5Result {
     #[serde(default)]
@@ -79,6 +94,21 @@ fn lowercase_optional<'de, D: serde::Deserializer<'de>>(
     Ok(Option::<String>::deserialize(deserializer)?
         .unwrap_or_default()
         .to_ascii_lowercase())
+}
+
+fn optional_number_to_i64<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<Option<i64>, D::Error> {
+    let value = Option::<serde_json::Value>::deserialize(deserializer)?;
+    Ok(value.and_then(|value| match value {
+        serde_json::Value::Number(number) => number.as_i64().or_else(|| {
+            let value = number.as_f64()?;
+            (value.is_finite() && value >= 0.0 && value < i64::MAX as f64)
+                .then_some(value.trunc() as i64)
+        }),
+        serde_json::Value::String(text) => text.parse().ok(),
+        _ => None,
+    }))
 }
 
 fn available_by_default() -> bool {
@@ -290,6 +320,62 @@ impl NexusClient {
         self.get_json(&format!("games/{game_domain}/mods/{mod_id}.json"))
     }
 
+    /// Cancels in-flight HTTP and body reads, including rate-limit waits.
+    pub fn get_mod_info_with_cancel(
+        &mut self,
+        game_domain: &str,
+        mod_id: &str,
+        cancelled: &std::sync::atomic::AtomicBool,
+    ) -> Result<NexusModInfo> {
+        Ok(serde_json::from_value(cancellable::get(
+            self,
+            &format!("games/{game_domain}/mods/{mod_id}.json"),
+            cancelled,
+        )?)?)
+    }
+
+    pub fn validate_with_cancel(
+        &mut self,
+        cancelled: &std::sync::atomic::AtomicBool,
+    ) -> Result<NexusValidateResult> {
+        if self
+            .api_key
+            .as_deref()
+            .is_none_or(|key| key.trim().is_empty())
+        {
+            return Ok(NexusValidateResult {
+                is_valid: false,
+                user_name: String::new(),
+                is_premium: false,
+                message: "No Nexus Mods API key configured.".into(),
+            });
+        }
+        let value = match cancellable::get(self, "users/validate.json", cancelled) {
+            Ok(value) => value,
+            Err(error)
+                if error
+                    .chain()
+                    .find_map(|cause| cause.downcast_ref::<reqwest::Error>())
+                    .and_then(reqwest::Error::status)
+                    == Some(reqwest::StatusCode::UNAUTHORIZED) =>
+            {
+                return Ok(NexusValidateResult {
+                    is_valid: false,
+                    user_name: String::new(),
+                    is_premium: false,
+                    message: "API key is invalid or unauthorized.".into(),
+                });
+            }
+            Err(error) => return Err(error),
+        };
+        Ok(NexusValidateResult {
+            is_valid: true,
+            user_name: value["name"].as_str().unwrap_or_default().into(),
+            is_premium: value["is_premium"].as_bool().unwrap_or(false),
+            message: "API key is valid.".into(),
+        })
+    }
+
     pub fn get_mod_files(&mut self, game_domain: &str, mod_id: &str) -> Result<Vec<NexusModFile>> {
         #[derive(Deserialize)]
         struct Files {
@@ -299,6 +385,58 @@ impl NexusClient {
         Ok(self
             .get_json::<Files>(&format!("games/{game_domain}/mods/{mod_id}/files.json"))?
             .files)
+    }
+
+    /// Read the bounded file listing while owning cancellable HTTP/body work.
+    pub fn get_mod_files_with_cancel(
+        &mut self,
+        game_domain: &str,
+        mod_id: &str,
+        cancelled: &std::sync::atomic::AtomicBool,
+    ) -> Result<Vec<NexusModFile>> {
+        #[derive(Deserialize)]
+        struct Files {
+            #[serde(default)]
+            files: Vec<NexusModFile>,
+        }
+        let response: Files = serde_json::from_value(cancellable::get(
+            self,
+            &format!("games/{game_domain}/mods/{mod_id}/files.json"),
+            cancelled,
+        )?)?;
+        Ok(response.files)
+    }
+
+    /// Fetch the metadata for one Nexus file.  This is kept separate from the list
+    /// endpoint because provider metadata must never guess a file when the authored
+    /// URL did not identify one.
+    pub fn get_mod_file(
+        &mut self,
+        game_domain: &str,
+        mod_id: &str,
+        file_id: &str,
+    ) -> Result<NexusFileMetadata> {
+        self.get_mod_file_with_cancel(
+            game_domain,
+            mod_id,
+            file_id,
+            &std::sync::atomic::AtomicBool::new(false),
+        )
+    }
+
+    /// Single-file metadata uses the same bounded, owned cancellable request path.
+    pub fn get_mod_file_with_cancel(
+        &mut self,
+        game_domain: &str,
+        mod_id: &str,
+        file_id: &str,
+        cancelled: &std::sync::atomic::AtomicBool,
+    ) -> Result<NexusFileMetadata> {
+        Ok(serde_json::from_value(cancellable::get(
+            self,
+            &format!("games/{game_domain}/mods/{mod_id}/files/{file_id}.json"),
+            cancelled,
+        )?)?)
     }
 
     pub fn nxm_download_link(&mut self, link: &crate::protocol::Link) -> Result<NxmDownloadLink> {
@@ -317,10 +455,10 @@ impl NexusClient {
         // With an API key, Nexus decides whether a forwarded one-time key still matters.
         // Without one, the key alone must authorize, so check its shape before any
         // request. Whether it has expired is Nexus's answer, not the local clock's.
-        if !self
+        if self
             .api_key
             .as_deref()
-            .is_some_and(|value| !value.trim().is_empty())
+            .is_none_or(|value| value.trim().is_empty())
         {
             if !keyed {
                 return Err(NxmAuthorization::Missing.into());
@@ -351,6 +489,120 @@ impl NexusClient {
             url.set_query(Some(&query));
         }
         let value = self.get_url_value(url).map_err(|error| {
+            let status = error
+                .chain()
+                .find_map(|e| e.downcast_ref::<reqwest::Error>())
+                .and_then(reqwest::Error::status);
+            match status {
+                Some(status) if keyed && matches!(status.as_u16(), 401 | 403 | 410) => {
+                    anyhow::Error::new(NxmAuthorization::Refused(status.as_u16()))
+                }
+                _ => error,
+            }
+        })?;
+        let links = value
+            .as_array()
+            .or_else(|| value.get("download_links").and_then(Value::as_array));
+        let uri = links
+            .and_then(|links| links.first())
+            .and_then(|link| link.get("URI").or_else(|| link.get("uri")))
+            .and_then(Value::as_str)
+            .filter(|uri| reqwest::Url::parse(uri).is_ok_and(|url| url.scheme() == "https"))
+            .ok_or_else(|| anyhow::anyhow!("Nexus returned no HTTPS download mirror"))?;
+        let file_name = metadata
+            .map(|metadata| metadata.file_name)
+            .filter(|name| !name.is_empty())
+            .or_else(|| {
+                reqwest::Url::parse(uri)
+                    .ok()
+                    .and_then(|url| url.path_segments()?.next_back().map(str::to_owned))
+            })
+            .filter(|name| !name.is_empty())
+            .unwrap_or_else(|| format!("nexus_{game_domain}_{mod_id}_{file_id}"));
+        validate_download_file_name(&file_name)?;
+        Ok(NxmDownloadLink {
+            file_name,
+            uri: uri.into(),
+        })
+    }
+
+    /// Resolve an NXM link with bounded documents and owned cancellable requests.
+    /// Optional filename metadata remains best effort; cancellation never falls through.
+    pub fn nxm_download_link_with_cancel(
+        &mut self,
+        link: &crate::protocol::Link,
+        cancelled: &std::sync::atomic::AtomicBool,
+    ) -> Result<NxmDownloadLink> {
+        anyhow::ensure!(
+            !cancelled.load(std::sync::atomic::Ordering::Acquire),
+            "Nexus request cancelled"
+        );
+        let crate::protocol::Link::Nxm {
+            game_domain,
+            mod_id,
+            file_id,
+            key,
+            expires,
+            ..
+        } = link
+        else {
+            bail!("Expected an nxm:// link");
+        };
+        let keyed = key.as_deref().is_some_and(|value| !value.is_empty());
+        // With an API key, Nexus decides whether a forwarded one-time key still matters.
+        // Without one, the key alone must authorize, so check its shape before any
+        // request. Whether it has expired is Nexus's answer, not the local clock's.
+        if self
+            .api_key
+            .as_deref()
+            .is_none_or(|value| value.trim().is_empty())
+        {
+            if !keyed {
+                return Err(NxmAuthorization::Missing.into());
+            }
+            if *expires == 0 {
+                return Err(NxmAuthorization::Invalid.into());
+            }
+        }
+        let metadata = match cancellable::get(
+            self,
+            &format!("games/{game_domain}/mods/{mod_id}/files/{file_id}.json"),
+            cancelled,
+        )
+        .and_then(|value| Ok(serde_json::from_value::<NexusModFile>(value)?))
+        {
+            Ok(metadata) => Some(metadata),
+            Err(error)
+                if matches!(
+                    crate::download::classify(&error),
+                    Some(crate::download::FailureClass::Transient { .. })
+                ) =>
+            {
+                return Err(error);
+            }
+            Err(_) => None,
+        };
+        anyhow::ensure!(
+            !cancelled.load(std::sync::atomic::Ordering::Acquire),
+            "Nexus request cancelled"
+        );
+        let mut url = self.base_url.join(&format!(
+            "games/{game_domain}/mods/{mod_id}/files/{file_id}/download_link.json"
+        ))?;
+        if let Some(key) = key.as_deref().filter(|key| !key.is_empty()) {
+            // Built by URL query encoding, never interpolation, so reserved characters
+            // stay part of the key. Spaces become %20 rather than form `+`; a literal `+`
+            // is already %2B, so strict and form decoders both recover the exact key.
+            // Unlike `download_orchestrator::nxm_url`, whose form `+` only ever goes back
+            // through `protocol::parse` (`query_pairs`), this URL goes to the Nexus server,
+            // whose decoder may not treat `+` as a space.
+            url.query_pairs_mut()
+                .append_pair("key", key)
+                .append_pair("expires", &expires.to_string());
+            let query = url.query().unwrap_or_default().replace('+', "%20");
+            url.set_query(Some(&query));
+        }
+        let value = cancellable::get_url(self, url, cancelled).map_err(|error| {
             let status = error
                 .chain()
                 .find_map(|e| e.downcast_ref::<reqwest::Error>())
@@ -547,10 +799,60 @@ pub fn apply(guide: &mut Guide, versions: &Versions) -> Summary {
 }
 
 pub fn check(guide: &mut Guide, client: &mut NexusClient) -> Summary {
+    check_inner(
+        guide,
+        client,
+        &std::sync::atomic::AtomicBool::new(false),
+        |client, domain, id, _| client.get_mod_info(domain, id),
+    )
+    .summary
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CheckOutcome {
+    pub summary: Summary,
+    pub cancelled: bool,
+}
+
+/// The caller owns the guide clone. Completed resources remain in that clone and
+/// in the partial report; cancellation is explicit and never converted to a
+/// successful full check. Desktop callers must not apply a cancelled clone.
+pub fn check_with_cancel(
+    guide: &mut Guide,
+    client: &mut NexusClient,
+    cancelled: &std::sync::atomic::AtomicBool,
+) -> CheckOutcome {
+    check_inner(
+        guide,
+        client,
+        cancelled,
+        NexusClient::get_mod_info_with_cancel,
+    )
+}
+
+fn check_inner(
+    guide: &mut Guide,
+    client: &mut NexusClient,
+    cancelled: &std::sync::atomic::AtomicBool,
+    mut lookup: impl FnMut(
+        &mut NexusClient,
+        &str,
+        &str,
+        &std::sync::atomic::AtomicBool,
+    ) -> Result<NexusModInfo>,
+) -> CheckOutcome {
+    use std::sync::atomic::Ordering;
     let mut summary = Summary::default();
     let mut cache = BTreeMap::<String, Result<NexusModInfo, String>>::new();
     for component in &mut guide.components {
         for (url, metadata) in &mut component.resource_registry {
+            if cancelled.load(Ordering::Acquire) {
+                return CheckOutcome {
+                    summary,
+                    cancelled: true,
+                };
+            }
             let Some(key) = nexus_key(url) else {
                 summary.skipped_count += 1;
                 continue;
@@ -561,7 +863,10 @@ pub fn check(guide: &mut Guide, client: &mut NexusClient) -> Summary {
             if !cache.contains_key(&key) {
                 if client.is_rate_limit_exhausted() {
                     summary.rate_limit_reached = true;
-                    return summary;
+                    return CheckOutcome {
+                        summary,
+                        cancelled: false,
+                    };
                 }
                 let Some((domain, mod_id)) = key.split_once('/') else {
                     summary
@@ -571,10 +876,14 @@ pub fn check(guide: &mut Guide, client: &mut NexusClient) -> Summary {
                 };
                 cache.insert(
                     key.clone(),
-                    client
-                        .get_mod_info(domain, mod_id)
-                        .map_err(|error| error.to_string()),
+                    lookup(client, domain, mod_id, cancelled).map_err(|error| error.to_string()),
                 );
+            }
+            if cancelled.load(Ordering::Acquire) {
+                return CheckOutcome {
+                    summary,
+                    cancelled: true,
+                };
             }
             let info = match cache.get(&key).expect("cached Nexus request") {
                 Ok(info) => info,
@@ -589,7 +898,10 @@ pub fn check(guide: &mut Guide, client: &mut NexusClient) -> Summary {
             apply_metadata(&mut summary, &component.name, url, metadata, &info.version);
         }
     }
-    summary
+    CheckOutcome {
+        summary,
+        cancelled: cancelled.load(Ordering::Acquire),
+    }
 }
 
 pub fn component_update_available(component: &Component) -> bool {
@@ -658,6 +970,128 @@ pub fn load_summary(directory: &std::path::Path) -> Result<Option<Summary>> {
         return Ok(None);
     }
     Ok(Some(serde_json::from_slice(&std::fs::read(path)?)?))
+}
+
+/// A result snapshot is display evidence, never authority to replace a guide.
+/// Both identities are retained because a successful check adds version metadata
+/// which may subsequently be saved as the user's current guide.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct StoredSummary {
+    pub schema_version: u32,
+    pub checked_at: String,
+    pub input_identity: String,
+    pub result_identity: String,
+    pub summary: Summary,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(tag = "state", rename_all = "camelCase")]
+pub enum StoredSummaryState {
+    Absent,
+    Valid { snapshot: StoredSummary },
+    IdentityMismatch { snapshot: StoredSummary },
+    UnsupportedVersion { version: u64 },
+    Corrupt { message: String },
+}
+
+/// Includes all guide fields, selected options and authored resource metadata.
+/// BTreeMap and serde_json's ordered maps give a stable JSON representation.
+pub fn guide_identity(guide: &Guide) -> Result<String> {
+    use sha2::{Digest, Sha256};
+    Ok(format!("{:x}", Sha256::digest(serde_json::to_vec(guide)?)))
+}
+
+impl StoredSummary {
+    pub fn new(input: &Guide, result: &Guide, summary: Summary) -> Result<Self> {
+        Ok(Self {
+            schema_version: 1,
+            checked_at: chrono::Utc::now().to_rfc3339(),
+            input_identity: guide_identity(input)?,
+            result_identity: guide_identity(result)?,
+            summary,
+        })
+    }
+
+    /// Only a fresh result with this original identity may update live guide state.
+    pub fn may_apply_to(&self, guide: &Guide) -> Result<bool> {
+        Ok(self.schema_version == 1 && self.input_identity == guide_identity(guide)?)
+    }
+
+    pub fn save(&self, directory: &std::path::Path) -> Result<()> {
+        validate_snapshot(self)?;
+        let bytes = serde_json::to_vec_pretty(self)?;
+        anyhow::ensure!(
+            bytes.len() <= 8 * 1024 * 1024,
+            "Update snapshot exceeds 8 MiB"
+        );
+        crate::recovery::atomic_write(&directory.join("update-check-snapshot.json"), &bytes)
+    }
+}
+
+fn validate_snapshot(snapshot: &StoredSummary) -> Result<()> {
+    anyhow::ensure!(
+        snapshot.schema_version == 1,
+        "Unsupported update snapshot version"
+    );
+    chrono::DateTime::parse_from_rfc3339(&snapshot.checked_at)?;
+    for identity in [&snapshot.input_identity, &snapshot.result_identity] {
+        anyhow::ensure!(
+            identity.len() == 64
+                && identity
+                    .bytes()
+                    .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)),
+            "Invalid update guide identity"
+        );
+    }
+    Ok(())
+}
+
+/// Bounded regular-file read. Corrupt/old/mismatched snapshots remain explicit
+/// display states; this function never applies resource metadata or saves a guide.
+pub fn load_snapshot(directory: &std::path::Path, guide: &Guide) -> StoredSummaryState {
+    let path = directory.join("update-check-snapshot.json");
+    match std::fs::symlink_metadata(&path) {
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            return StoredSummaryState::Absent;
+        }
+        Err(error) => {
+            return StoredSummaryState::Corrupt {
+                message: error.to_string(),
+            };
+        }
+        Ok(_) => (),
+    }
+    let load = || -> Result<StoredSummaryState> {
+        use std::io::Read;
+        const LIMIT: u64 = 8 * 1024 * 1024;
+        let mut bytes = Vec::new();
+        crate::paths::open_regular_read(&path)?
+            .take(LIMIT + 1)
+            .read_to_end(&mut bytes)?;
+        anyhow::ensure!(bytes.len() as u64 <= LIMIT, "Update snapshot exceeds 8 MiB");
+        let value: Value = serde_json::from_slice(&bytes)?;
+        let version = value
+            .get("schemaVersion")
+            .and_then(Value::as_u64)
+            .ok_or_else(|| anyhow::anyhow!("Missing update snapshot schema version"))?;
+        if version != 1 {
+            return Ok(StoredSummaryState::UnsupportedVersion { version });
+        }
+        let snapshot: StoredSummary = serde_json::from_value(value)?;
+        validate_snapshot(&snapshot)?;
+        let identity = guide_identity(guide)?;
+        Ok(
+            if snapshot.input_identity == identity || snapshot.result_identity == identity {
+                StoredSummaryState::Valid { snapshot }
+            } else {
+                StoredSummaryState::IdentityMismatch { snapshot }
+            },
+        )
+    };
+    load().unwrap_or_else(|error| StoredSummaryState::Corrupt {
+        message: format!("{error:#}"),
+    })
 }
 
 fn nexus_key(url: &str) -> Option<String> {

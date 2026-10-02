@@ -12,6 +12,7 @@ pub mod editor;
 pub mod engine;
 pub mod fomod_cli;
 pub mod game;
+pub mod host_metadata;
 pub mod install_progress;
 pub mod merge;
 pub mod model;
@@ -28,6 +29,7 @@ pub use engine::{Engine, Event, PatcherEngine, Settings};
 pub use model::{Component, Guide, Instruction};
 
 mod markdown;
+pub use markdown::spoiler;
 mod xml;
 
 mod resources;
@@ -47,5 +49,11 @@ pub mod updates;
 
 pub mod fomod;
 
+pub mod checkpoint;
 pub mod conflicts;
 pub mod wizard;
+
+#[cfg(target_os = "macos")]
+pub mod native_url;
+
+pub mod resource_watcher;

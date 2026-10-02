@@ -352,13 +352,21 @@ pub fn fetch_to_with_context(
     progress: &mut dyn FnMut(FetchProgress),
     context: &TransferContext<'_>,
 ) -> Result<Fetched> {
-    fetch_inner(
+    let started = std::time::Instant::now();
+    let mut observed_bytes = 0;
+    let mut observed_progress = |update| {
+        if let FetchProgress::Transferring { bytes, .. } = update {
+            observed_bytes = observed_bytes.max(bytes);
+        }
+        progress(update);
+    };
+    let result = fetch_inner(
         url,
         destination,
         sha256,
         cancelled,
         options,
-        progress,
+        &mut observed_progress,
         context,
     )
     .map_err(|error| {
@@ -369,7 +377,30 @@ pub fn fetch_to_with_context(
         } else {
             fail(FailureClass::Permanent, error)
         }
-    })
+    });
+    let name = result
+        .as_ref()
+        .ok()
+        .and_then(|fetched| fetched.path.file_name())
+        .map(|name| name.to_string_lossy().into_owned())
+        .unwrap_or_else(|| match destination {
+            Destination::File(path) => path
+                .file_name()
+                .unwrap_or_default()
+                .to_string_lossy()
+                .into_owned(),
+            Destination::Directory { name, .. } => name.unwrap_or("unnamed archive").into(),
+        });
+    let error = result.as_ref().err().map(|error| format!("{error:#}"));
+    crate::telemetry::global().record_download(
+        &name,
+        result.is_ok(),
+        started.elapsed(),
+        observed_bytes,
+        Some("https"),
+        error.as_deref(),
+    );
+    result
 }
 
 fn fetch_inner(
@@ -399,10 +430,10 @@ fn fetch_inner(
         Destination::Directory { directory, name } => {
             ensure!(directory.is_dir(), "Choose a destination folder");
             if let Some(name) = name {
-                ensure!(
-                    !directory.join(one_component(name)?).exists(),
-                    "Download destination already exists"
-                );
+                // A provider may reveal a name absent from the original plan.
+                // Retain the staged digest so the orchestrator can verify and
+                // adopt an existing file without ever overwriting it.
+                one_component(name)?;
             }
             directory
         }
@@ -449,11 +480,11 @@ fn fetch_inner(
     if let Some(referer) = &context.referer {
         request = request.header(reqwest::header::REFERER, referer.as_str());
     }
-    // A provider link can carry a session secret in its query (DeadlyStream `csrfKey`).
-    let strip_url = loopback_ca.is_some() || context.cookie.is_some() || context.confine_origin;
+    // Resolved origin links can carry authorization independently of cookies or CA policy.
+    // Never retain their URL in transport diagnostics (including redirected CDN URLs).
     let mut response = request
         .send()
-        .map_err(|e| network_failure(if strip_url { e.without_url() } else { e }.into()))?;
+        .map_err(|error| network_failure(error.without_url().into()))?;
     let final_url = response.url().clone();
     let status = response.status();
     let header = |name: &str| {
@@ -480,7 +511,7 @@ fn fetch_inner(
     if let Err(error) = (&mut response).take(SNIFF_LIMIT).read_to_end(&mut prefix)
         && status.is_success()
     {
-        return Err(network_failure(error.into()));
+        return Err(network_failure(redact_response_read_error(error).into()));
     }
     let body = text_prefix(&prefix);
     let markers = body
@@ -565,7 +596,7 @@ fn fetch_inner(
         }
         let n = response
             .read(&mut buffer)
-            .map_err(|e| network_failure(e.into()))?;
+            .map_err(|error| network_failure(redact_response_read_error(error).into()))?;
         if n == 0 {
             break;
         }
@@ -655,9 +686,7 @@ pub(crate) fn publish_staged(
     if let Err(error) = temp.persist_noclobber(&path) {
         // The name was taken while this transfer verified (a concurrent publish): the
         // same outcome as finding it present above, with the finished digest.
-        if matches!(destination, Destination::Directory { .. })
-            && error.error.kind() == std::io::ErrorKind::AlreadyExists
-        {
+        if error.error.kind() == std::io::ErrorKind::AlreadyExists {
             return Err(anyhow::Error::new(DestinationExists {
                 path,
                 sha256: digest,
@@ -681,6 +710,24 @@ pub fn one_component(name: &str) -> Result<&str> {
         "Downloaded filename {name:?} is not a single file name"
     );
     Ok(name)
+}
+
+/// Blocking response reads wrap reqwest errors inside I/O errors. Preserve the I/O
+/// kind and reqwest timeout/status metadata while removing any attached response URL.
+fn redact_response_read_error(error: std::io::Error) -> std::io::Error {
+    let kind = error.kind();
+    if error.get_ref().is_none() {
+        return error;
+    }
+    let inner = error.into_inner().expect("I/O error has an inner error");
+    let inner = match inner.downcast::<reqwest::Error>() {
+        Ok(error) => return std::io::Error::new(kind, error.without_url()),
+        Err(inner) => inner,
+    };
+    match inner.downcast::<std::io::Error>() {
+        Ok(error) => std::io::Error::new(kind, redact_response_read_error(*error)),
+        Err(inner) => std::io::Error::new(kind, inner),
+    }
 }
 
 /// Connect/reset/abort/timeout are transient; TLS, DNS and certificate errors are not.

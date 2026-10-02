@@ -7,7 +7,62 @@ against C# and manual references. A delivered slice does not close a whole domai
 **Overall: incomplete.** F01–F28 are partial; F29 is unverified. No percentage
 is assigned because the remaining domains differ greatly in scope and proof cost.
 
-## Current work
+## Current working source — 2026-10-02
+
+Latest source continuation adds worker-owned Save Selection with bounded remaining
+FOMOD overlay and stale-result guards, raw UUID generation/copy, drop-dialog
+cancellation/focus, explicit Help issue/sponsor links, and ordinary validation's
+empty-selection setup-error boundary. See the GUI-tools desktop receipt and
+production-gate log for implementation/review versus compilation evidence.
+Locale-aware settings parsing and editor section controls/local-archive
+generation preview are also implemented; see the numeric and GUI-tools receipts.
+The install source fallback and -g/-s aliases are corrected. The combined source
+passes both Linux production feature configurations, strict Clippy, formatting and
+the Windows GNU CLI build/link boundary recorded in the latest production receipt.
+Basic validation without roots remains a concrete CLI report-stage gap.
+Acceptance rows remain open.
+
+Continuation uses the actual `ModSync.rs` checkout through `eed8089` and its
+working changes. The [remaining-work tracker](../plans/2026-09-28-1130-remaining-work-tracker-plan.md)
+is the current source reconciliation. The sections below retain historical
+commit-bound evidence and must not be treated as a current missing-source list.
+
+Recent reviewed source includes explicit draft resolution, filename-based
+inference, shared conversion/merge/download composition, completed-prefix
+protection, active-profile execution binding, theme/game presentation context,
+visible bounded FOMOD warnings, Unicode selection and bounded guide ingestion.
+Owned standalone backend execution is implemented for Linux/macOS/Windows;
+engine and desktop integration are implemented and source reviewed. Nexus
+acquisition uses bounded cancellable readers, race-token-aware client waits and
+URL-safe diagnostics; desktop patcher settings use matching engine/path receipts.
+Native assets and packaging
+production sources are prepared with provenance; no package was produced here.
+
+Subsequent reviewed corrections invalidate readiness across resource-observer
+pauses/rebaselines and reject failed or mismatched packaging receipts. The
+desktop NXM preference now has a reviewed owned worker and settings consumer,
+including guarded replacement confirmation and independent preference disable.
+Further source corrections add component-removal confirmation with busy/focus
+guards, focused structured-log highlighting, additional pinned ISO date spellings
+and case-insensitive validation output/backend selectors. The combined source
+passed both Linux production feature gates, formatting and the Windows x86_64
+GNU CLI compilation/link boundary; native acceptance remains open.
+
+All F01–F28 acceptance rows remain partial and F29 remains unverified. The user
+requires implementation before tests/CI and prohibits filesystem-test creation,
+editing and execution. Source review does not establish runtime acceptance.
+The [production gates](production-gates-2026-10-02.md) now include both feature
+configurations for CLI composition, owned process execution, bounded Nexus intake
+and desktop bindings. They cover only their named source boundaries. The latest combined boundary additionally covers Windows checkpoint library and
+persistent external-job integration, staged patcher INI preparation, resource
+hierarchy/multi-selection, saved update rehydration, nonblocking typed logs and
+CLI preference/key provenance. Linux production build and strict Clippy passed
+in both feature modes. Windows x86_64 GNU CLI production compilation/linking
+also passed with the documented production-only unrar_sys target correction.
+Native Windows execution, the separate GUI launcher, package delivery and all
+behavioral acceptance remain unverified.
+
+## Historical work snapshot — 2026-09-28
 
 - Current continuation starts from merged downloads GUI step 1, `d438528` (PR #5).
   Step 2 adds peer-settings disclosure/preserving saves, a bound serial FOMOD queue,

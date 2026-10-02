@@ -14,8 +14,11 @@ pub enum Outcome {
 #[derive(Default)]
 pub struct Editor {
     module: Option<ArchiveModule>,
+    fallback_warnings: Vec<String>,
     filename: String,
     receiver: Option<Receiver<anyhow::Result<Option<ArchiveModule>>>>,
+    import_receiver: Option<Receiver<Option<ChoicesFile>>>,
+    imported_choices: Option<ChoicesFile>,
     cancel: Arc<AtomicBool>,
     error: String,
     open: bool,
@@ -23,7 +26,16 @@ pub struct Editor {
     detected_fomod: bool,
     step_cursor: usize,
 }
+
+struct Prepared {
+    module: Option<ArchiveModule>,
+    imported_choices: Option<ChoicesFile>,
+}
+
 impl Editor {
+    pub fn take_imported_choices(&mut self) -> Option<ChoicesFile> {
+        self.imported_choices.take()
+    }
     /// Includes asynchronous inspection and error dialogs, which may close without an Outcome.
     pub fn is_open(&self) -> bool {
         self.open
@@ -41,9 +53,28 @@ impl Editor {
         saved: Option<modsync::fomod::ArchiveChoices>,
         dismiss_non_fomod: bool,
     ) {
+        self.launch_bound(
+            path,
+            options,
+            saved.into_iter().collect(),
+            dismiss_non_fomod,
+            None,
+        );
+    }
+
+    pub fn launch_bound(
+        &mut self,
+        path: std::path::PathBuf,
+        options: modsync::archive::Options,
+        saved: Vec<modsync::fomod::ArchiveChoices>,
+        dismiss_non_fomod: bool,
+        sidecar: Option<std::path::PathBuf>,
+    ) {
         self.cancel.store(true, Ordering::Relaxed);
         self.cancel = Arc::new(AtomicBool::new(false));
         self.module = None;
+        self.fallback_warnings.clear();
+        self.imported_choices = None;
         self.step_cursor = 0;
         self.error.clear();
         self.open = true;
@@ -56,15 +87,56 @@ impl Editor {
             .into_owned();
         let (tx, rx) = mpsc::channel();
         self.receiver = Some(rx);
+        let (import_tx, import_rx) = mpsc::channel();
+        self.import_receiver = Some(import_rx);
         let cancel = self.cancel.clone();
         std::thread::spawn(move || {
-            let result = (|| -> anyhow::Result<Option<ArchiveModule>> {
+            let result = (|| -> anyhow::Result<Prepared> {
+                let imported_choices = sidecar
+                    .map(|path| -> anyhow::Result<ChoicesFile> {
+                        anyhow::ensure!(
+                            !cancel.load(Ordering::Relaxed),
+                            "FOMOD preparation cancelled"
+                        );
+                        ChoicesFile::load(&path)
+                    })
+                    .transpose()?;
                 let mut module = modsync::fomod::inspect_archive(&path, &options, &cancel)?;
-                if let (Some(module), Some(saved)) = (&mut module, saved) {
-                    saved.apply_to(&mut module.config.steps)?;
+                let filename = path
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .unwrap_or_default();
+                let external = imported_choices
+                    .as_ref()
+                    .and_then(|file| file.archive(filename))
+                    .cloned();
+                let candidates = external.map(|entry| vec![entry]).unwrap_or(saved);
+                if let Some(module) = &mut module {
+                    let mut normalized = None;
+                    for saved in candidates {
+                        let current =
+                            modsync::fomod::current_archive_choices(module, &saved, filename)?;
+                        if let Some(prior) = &normalized {
+                            anyhow::ensure!(
+                                serde_json::to_value(prior)? == serde_json::to_value(&current)?,
+                                "Bound FOMOD consumers have different saved selections; configure them individually"
+                            );
+                        }
+                        normalized = Some(current);
+                    }
+                    if let Some(saved) = normalized {
+                        saved.apply_to(&mut module.config.steps)?;
+                    }
                 }
-                Ok(module)
+                Ok(Prepared {
+                    module,
+                    imported_choices,
+                })
             })();
+            let result = result.map(|prepared| {
+                let _ = import_tx.send(prepared.imported_choices);
+                prepared.module
+            });
             let _ = tx.send(result);
         });
     }
@@ -77,9 +149,15 @@ impl Editor {
             match receiver.try_recv() {
                 Ok(result) => {
                     self.receiver = None;
+                    self.imported_choices = self
+                        .import_receiver
+                        .take()
+                        .and_then(|receiver| receiver.try_recv().ok())
+                        .flatten();
                     match result {
                         Ok(Some(module)) => {
                             self.detected_fomod = true;
+                            self.fallback_warnings = module.config.fallback_warnings();
                             self.module = Some(module);
                         }
                         Ok(None) if self.dismiss_non_fomod => self.open = false,
@@ -109,6 +187,21 @@ impl Editor {
             }
             if let Some(module) = &mut self.module {
                 ui.label(&module.config.name);
+                let warnings = &self.fallback_warnings;
+                if !warnings.is_empty() {
+                    ui.colored_label(
+                        egui::Color32::YELLOW,
+                        "Installer compatibility warnings — review before Finish",
+                    );
+                    egui::ScrollArea::vertical()
+                        .id_salt("fomod_compatibility_warnings")
+                        .max_height(120.0)
+                        .show(ui, |ui| {
+                            for warning in warnings {
+                                ui.label(warning);
+                            }
+                        });
+                }
                 let visible = visible_steps(&module.config.steps);
                 self.step_cursor = self.step_cursor.min(visible.len().saturating_sub(1));
                 if visible.is_empty() {
@@ -230,7 +323,6 @@ impl Drop for Editor {
         self.cancel.store(true, Ordering::Relaxed);
     }
 }
-
 #[cfg(test)]
 mod tests {
     use super::*;

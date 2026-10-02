@@ -1,8 +1,8 @@
+mod text;
 use anyhow::{Context, Result, bail, ensure};
 use serde::{Deserialize, Deserializer, Serialize};
 use std::{
     collections::{BTreeMap, BTreeSet},
-    fs,
     path::Path,
 };
 
@@ -105,15 +105,19 @@ impl Guide {
     }
 
     fn load_with_selection_default(path: &Path, default_selection: bool) -> Result<Self> {
-        let bytes = fs::read(path).with_context(|| format!("Read {}", path.display()))?;
-        let text = String::from_utf8_lossy(&bytes).replace('\u{fffd}', "_");
+        let text = text::read(path).with_context(|| format!("Read {}", path.display()))?;
         let extension = path.extension().and_then(|s| s.to_str()).unwrap_or("");
         let hint = canonical_format(extension);
-        Self::parse_with(&text, hint.unwrap_or("auto"), true, default_selection)
+        Self::parse_observed(&text, hint.unwrap_or("auto"), default_selection)
     }
 
     pub fn parse(text: &str, format: &str) -> Result<Self> {
-        Self::parse_with(text, format, true, true)
+        Self::parse_observed(text, format, true)
+    }
+
+    /// Parse an authored document without choosing components on its behalf.
+    pub fn parse_preserving_selection(text: &str, format: &str) -> Result<Self> {
+        Self::parse_observed(text, format, false)
     }
 
     /// Markdown's fenced instruction blocks parse through here: the C# Markdown ingest path
@@ -124,6 +128,28 @@ impl Guide {
         default_selection: bool,
     ) -> Result<Self> {
         Self::parse_with(text, format, false, default_selection)
+    }
+
+    fn parse_observed(text: &str, format: &str, default_selection: bool) -> Result<Self> {
+        let started = std::time::Instant::now();
+        let result = Self::parse_with(text, format, true, default_selection);
+        let normalized = format.trim().to_ascii_lowercase();
+        let kind = canonical_format(&normalized).unwrap_or(
+            if normalized.is_empty() || normalized == "auto" {
+                "auto"
+            } else {
+                "unsupported"
+            },
+        );
+        let error = result.as_ref().err().map(|error| format!("{error:#}"));
+        crate::telemetry::global().record_parsing_operation(
+            kind,
+            result.is_ok(),
+            result.as_ref().map_or(0, |guide| guide.components.len()),
+            started.elapsed(),
+            error.as_deref(),
+        );
+        result
     }
 
     fn parse_with(text: &str, format: &str, dedup: bool, default_selection: bool) -> Result<Self> {
@@ -236,6 +262,7 @@ impl Guide {
 
     pub(crate) fn from_value(mut value: serde_json::Value) -> Result<Self> {
         use serde_json::Value;
+        crate::draft::validate_review_records(&value)?;
         if value.is_array() {
             value = serde_json::json!({"thisMod": value});
         } else if value.get("Guid").is_some() {
@@ -291,7 +318,7 @@ impl Guide {
                 .or_insert_with(|| "2.0".into());
         }
         Ok(
-            match canonical_format(format).context("Save as TOML, JSON, YAML or XML")? {
+            match canonical_format(format).context("Save as TOML, JSON, YAML, XML or Markdown")? {
                 "toml" => {
                     let mut value = serde_json::to_value(self)?;
                     for key in CONTENT_FIELDS {
@@ -320,7 +347,8 @@ impl Guide {
                     }
                     text
                 }
-                _ => bail!("Markdown export is not yet implemented"),
+                "md" => crate::markdown::render(self, &metadata)?,
+                _ => unreachable!("canonical_format returned an unsupported format"),
             },
         )
     }
@@ -677,7 +705,7 @@ fn normalize_component(value: &mut serde_json::Value) -> Result<()> {
     Ok(())
 }
 
-fn yaml_legacy_resources(value: &mut serde_json::Value) {
+pub(crate) fn yaml_legacy_resources(value: &mut serde_json::Value) {
     use serde_json::{Map, Value};
     let Some(component) = value.as_object_mut() else {
         return;
@@ -713,7 +741,7 @@ fn yaml_legacy_resources(value: &mut serde_json::Value) {
     }
 }
 
-fn encode_nullable_files(value: &mut serde_json::Value) {
+pub(crate) fn encode_nullable_files(value: &mut serde_json::Value) {
     use serde_json::Value;
     match value {
         Value::Array(values) => {

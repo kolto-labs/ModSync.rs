@@ -4,6 +4,77 @@ Updated: 2026-09-28. Baseline: main `254b8d1`, downloads GUI step 2 merged in PR
 
 Purpose: one checklist of everything still needed for full Rust parity and the related session commitments. This is a tracker, not an implementation guide. Unchecked means implementation **or acceptance evidence** remains; it does not mean nothing exists. Check an item only when its scope is reviewed, verified and integrated.
 
+## Live implementation reconciliation — 2026-10-02
+
+Continuation is based on the actual ModSync.rs checkout and commits through
+`eed8089`, followed by the current working changes. Earlier acceptance remains
+bound to its recorded source. None of the rows below closes a full parity domain.
+
+| Area | Current implementation | Remaining work |
+| --- | --- | --- |
+| Downloads GUI step 3 | Direct Install review/confirmation routing landed in `a4f3cad`; retained static review exists | Remaining native/race/save cases and acceptance |
+| Persistent sharing | Catalog/CLI enrollment landed; application lifetime scheduler, observed transport/accounting and asynchronous desktop lifecycle implemented; scoped review corrections and both production feature gates passed | Runtime acceptance |
+| Host providers H1–H3 | Nexus discovery/authorization, DeadlyStream anonymous sessions and MEGA decryption landed through `eed8089` | Bounded cancellable Nexus intake and diagnostic URL redaction implemented and reviewed; controlled/live provider acceptance remains |
+| Host metadata H4 | Provider normalization, bounded reads, CLI/desktop collection and conservative record integration implemented; static review corrections applied | Provider runtime acceptance; the earlier library-only completion claim was incorrect |
+| Markdown M1–M3 | Exporter, strict legacy syntax, centralized review validation and recursive draft accounting implemented; scoped static reviews completed | Cross-format/reference/corpus/runtime acceptance; explicit draft resolution now implemented with retained diagnostics and edit invalidation, source reviewed |
+| Engine E1–E4/E7 | Expected-log failure handling, bounded InstallList VFS simulation, external source arrays and argument expansion implemented; shared owned process runner now covers engine execution, with terminal cleanup independently reviewed; E4 owned payload staging and INI preparation implemented and source reviewed; combined production gates passed | controlled backend, external-process and instruction matrix acceptance |
+| Patcher discovery E6 | Typed native/Python invocation and packaged-resource lookup implemented; independent source review and both production feature gates passed | Actual resource delivery and native backend/platform acceptance |
+| Archive times E5 | Decoder timestamp metadata reaches extraction/copy and managed fallback copies; source reviewed and production gates passed | Cross-format/native timestamp and archive corpus acceptance |
+| Checkpoint T1–T6 | Capture/history/journal, opt-in engine boundaries, managed participants, durable finalization, restore/recover/resume, deletion/GC/repair and desktop history implemented; source reviewed and production gates passed | Windows local-NTFS process-interruption library implemented and source reviewed; persistent external-job ownership, guards, explicit recovery and status integrated and source reviewed; temporary engine gate removed; runtime acceptance remains open |
+| Desktop FOMOD scope | Captured consumer bindings, targeted edits/dismissal and normalized prefill implemented; independent review and both production feature gates passed | Native acceptance |
+| GUI tools F19–F22 | Shared editor/conflict/update libraries and desktop adapters passed the prior production boundary; immutable F20 merge preview/apply and distinct-save adapters implemented and reviewed; bounded resource hierarchy/multi-selection and automatic saved update presentation now implemented and reviewed; combined production gates passed | Native/provider acceptance |
+| Profiles/settings F16/F17 | Bounded profile decoder, typed preferences, validated key persistence, private storage/locking and desktop integration implemented and source reviewed; Unix unmanaged case-policy consumer implemented | Resource watcher/migration and desktop NXM preference consumers implemented and reviewed; additional pinned ISO date forms implemented; broader culture/date normalization and native acceptance remain |
+| Protocol F23 | Authenticated Unix/Windows transport, package-channel identity, owned status/register/unregister CLI, and native macOS URL receiver implemented and source reviewed; legacy Linux registration delegates to ownership checks; confirmed desktop replacement rechecks the displayed owner under the platform mutation lock | Latest production gates and native platform acceptance |
+| Cancellation | Shared Nexus checks and DNS-pinned instruction fetch own cancellable request futures; CLI checks stale guide identity and cancellation before save | Combined production gates and runtime acceptance |
+| Packaging F28 | Offline artifact builder, staged-byte receipts, package-bound immutable patcher lookup, platform launchers/resources/install scripts implemented and source reviewed; actual backend provenance inventory recorded and manual producer/workflow source implemented | Target builds, reviewed backend source/license/build bindings, deliverable resources and native acceptance |
+| Deployment F18 | Managed engine/checkpoint integration exists; bounded manifest intake and reviewed-inventory management receipts implemented | Confirmed desktop management implemented; production gates and runtime acceptance |
+| Diagnostics F27 | Shared CLI/desktop lifetime, consent/configuration receipts, bounded log queue, automatic shared operation records and nonblocking panic telemetry implemented; source review corrections applied | Production gates and consent/transport/lifecycle runtime acceptance |
+| Wizard/main window F24/F25 | Shared bounded CommonMark renderer and full component summary cards implemented; desktop integration plus shell/menu/raw-document/keyboard controls implemented; literal notice rendering, reference help links and nonblocking typed log rows now implemented and reviewed; combined production gates passed | Observer suspension/rebaseline invalidation, component-removal confirmation and focused log highlighting implemented and independently reviewed; native acceptance remains |
+| CLI F26 | Legacy preload, validation output selectors, conversion/merge acquisition and spoiler overlay, URL filename draft generation, install source default, completed-prefix protection and standalone HoloPatcher implemented; desktop standalone adapter and CLI stored-backend/key provenance implemented and reviewed; combined production gates passed | Invocation/reference acceptance |
+
+T2 cleanup and desktop review corrections have since passed independent source
+review. Both production build/strict-Clippy feature modes and formatting passed
+at the boundary recorded in
+[`production-gates-2026-10-02.md`](../parity/production-gates-2026-10-02.md).
+The receipt also records the subsequent T3 opt-in engine/finalization/managed
+participant and E5 timestamp production gates, followed by the T4 and desktop
+FOMOD scope gates, then the T5/T6 and shared GUI-tools boundary. Subsequent
+profile, desktop tool, cancellation, single-instance, telemetry and packaging
+changes are not covered by those earlier results. The subsequent integrated
+receipt records both Linux feature modes and Windows x86_64 GNU CLI
+compilation/linking, including the durable archive dependency correction.
+Native execution and parity acceptance remain open.
+
+The user subsequently authorized continuing building/testing/working; the active
+repository policy permits production library/binary build and Clippy checks while
+freezing Rust tests and custom harnesses. Filesystem test creation/execution and CI
+remain deferred. Build success does not establish behavioral acceptance.
+
+## Latest source continuation
+
+The current source additionally includes worker-owned Save Selection, an isolated
+raw-document UUID helper, dropped-guide modal dismissal/focus, explicit issue and
+sponsor links, empty-selection validation setup errors with reference selector
+messages, and editor section expansion controls. Locale-aware settings parsing
+uses native symbols and parses before the settings lock; native dataset/parsing
+acceptance and the documented Windows ICU/NLS difference remain open. Local
+archive instruction generation now has an identity-bound preview/adoption flow;
+provider-link filename discovery uses the same guarded preview/adoption flow.
+
+The disabled case-normalization and permission repair commands still have no
+shared maintenance transaction. Reference inspection found recursive renaming
+and broad permission/ownership changes. Their disabled state follows the current
+main-window plan; it is not evidence of implemented repair behavior.
+
+The install input-parent source default is now reachable from argument parsing,
+and -g/-s aliases match the reference. A newly verified F26 gap remains: basic
+validation without roots is accepted by the reference parser, runs component
+validation, then fails FOMOD configuration because the source root is unavailable.
+Rust currently rejects missing roots during setup. A rootless report adapter must
+preserve this failure and honestly represent unavailable archive/destination
+checks; fabricated directories or an unconditional structural-only pass are not
+an equivalent implementation. Exact component diagnostics remain to be ported.
+
 ## Current execution policy
 
 User instruction on 2026-09-28: implement everything before testing or waiting for CI; do not run, edit, or create filesystem tests. Source implementation and independent static review continue. Runtime probes, test work, CI dispatch/polling, and acceptance runs are deferred. Earlier receipts apply only to their recorded source and do not validate later changes. Implementation may advance after static review while the acceptance checkbox remains open.
@@ -21,6 +92,13 @@ The user authorized the ModOrchestration workflow correction, which reached defa
 - [ ] Close the remaining domain checklist below, then complete F29 and the final acceptance audit.
 
 ## Known acquisition and FOMOD follow-ups
+
+The first five acquisition items have working-source changes: verified adoption
+retains eligible Peer fallback, planning/hash work accepts cancellation, both
+unnamed and known-name publication collisions use typed adoption, and Origin
+progress carries HTTP content length (or provider size for MEGA). The checkboxes
+remain open for deferred runtime acceptance. They are not instructions to
+reimplement those paths.
 
 - [ ] Fix Origin-present race adoption so refusal can still fall back to Peer.
 - [ ] Make existing-file hash/adoption cancellation responsive.

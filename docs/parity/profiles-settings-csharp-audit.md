@@ -131,3 +131,115 @@ Parse failure: `SettingsManager.LoadSettings` falls back to defaults for everyth
 | 13 | Strict GUID and DateTime typing (C# skips profiles with a bad GUID key or a bad date; Rust reads them as text) | Low | **Open**. Rust is more permissive |
 | 14 | Parse edge cases: `Infinity` stays a string only because host ICU uses `∞`; thousands separators vary by culture | Low | Matches an en-US host. Other locales are not modeled |
 | 15 | Native macOS and Windows folder checks | Low | Source-verified only |
+
+## Current F16 schema and CLI implementation (2026-10-02)
+
+The shared store now uses `Profile::decode` for persisted profiles. Known profile/selection property names match without regard to case, missing fields retain reference defaults, GUID D/N/B/P/X spellings normalize to lowercase D form, and date fields require valid supported DateTime text. ISO timestamps with/without offsets, date-only ISO, and the legacy Microsoft JSON date spelling are accepted; year bounds are 1–9999 and leap seconds are rejected. Broader invariant-culture DateTime parsing is not claimed. Explicit null selection dictionaries/lists are rejected because the reference's apply path dereferences them; no successful apply behavior is inferred from mere deserialization acceptance.
+
+Public `Profile` and `Selection` field types are unchanged. `Profile::decode_reference` rejects non-GUID selection identities. The compatibility decoder returns `DecodedProfile { profile, identity_format, warnings }`; legacy Rust guides could use arbitrary local text identities, so those are preserved with `LegacyOpaqueIds` warnings. Historical unmarked text IDs cannot be distinguished reliably from malformed GUIDs in purported C# profiles. They are never reported as reference-compatible. Saving such a profile adds `_modsyncRustIdentityFormat: "opaque-v1"`; it does not invent UUIDs or discard component/option entries. C# cannot load these opaque identities. Duplicate normalized GUID dictionary keys follow authored last-write precedence; capture rejects duplicate normalized component identities instead of silently overwriting a component.
+
+`Store::load_report` and `list_report` expose diagnostics to UI callers. Existing `load`/`list` wrappers log the warnings; unreadable profile records remain skipped by list. Reads are bounded to 16 MiB per profile and reject unsafe leaf files. Capture refuses to replace an existing profile that fails the decoder. General profile-root/symlink/locking hardening is a separate ownership slice.
+
+The profile CLI now uses readable default output for list/show/CRUD/activation. `--json` retains explicit machine-readable output, including Rust-only mutating verbs. Capture/apply have explicit readable confirmations. This intentionally changes the previous Rust JSON-by-default behavior. Frozen tests that assumed JSON without `--json` were neither edited nor compiled in this slice; no unchanged-test-contract claim is made.
+
+Settings-root isolation is explicit: `Store::new(root)` never consults the user's global legacy settings. Callers wanting automatic default migration must use `Store::from_settings_directory(None)`; `Some(path)` stays isolated even when the path happens to equal the default directory. CLI profile commands preserve the original optional directory argument. This deliberately differs from the old C# profile CLI's global fallback for explicit roots and prevents an isolated invocation from importing another settings store's paths, active profile or secrets.
+
+These changes supersede ranked gaps 11 and the implemented subset of 13 above, but do not close F16/F17. Typed whole-desktop settings/default application, native interaction/platform/locale evidence and the documented remaining parser differences remain separate work. The managed UI is concurrently evolving in the T6 lane; earlier absence statements in source audits describe their inspected snapshot, not the final current UI.
+
+## F17 typed library and CLI boundary (2026-10-02)
+
+`DesktopSettings` now models all 24 reference fields and defaults. `decode` checks known fields case-insensitively, including each occurrence before alias normalization; a wrong known type rejects the whole projection. `Store::desktop_settings` reports fallback to complete defaults with diagnostics, without overwriting the malformed source. Nullable text fields preserve null. Effective theme/encoding/FOMOD helpers apply the reference's null/blank fallback rules. Theme mapping checks Light first, then Kotor2/TSL, then Kotor/K1; it is a preference and does not claim installed-build detection.
+
+`save_desktop_settings` merges the recognized typed fields under the shared store lock, preserves unknown keys, bounds the final output, and refuses malformed input. The store's explicit-versus-default constructor distinction controls legacy migration. This deliberately preserves extensions where the reference whole-object save would discard them.
+
+The CLI exposes `settings --action inspect` for the typed/default projection with secrets masked unless `--reveal-secrets` is explicit. The new `SetNexusApiKeyArgs` implements the reference positional key command with explicit `--skip-validation`, plus settings-directory and JSON output. The shared `save_validated_nexus_api_key` performs cancellable validation, rejects invalid keys, rechecks the old stored key under lock, merges unrelated changes, and saves only after a final cancellation check. Responses never print the key. Existing unvalidated setters remain available for compatibility; callers must explicitly choose the validation API.
+
+This completes the typed library/CLI slice, not application of all flags to desktop/engine behavior. Flags such as copy-for-move, encoding, archive checks, watcher preference and output-directory policy require their consumers to use this projection. Native key validation/settings restart, HTTP behavior, locale parsing, and platform evidence were not run in this slice.
+
+## Storage isolation and private replacement source (2026-10-02)
+
+Profile and settings readers now share bounded 16 MiB regular-file reads, reject
+symlink/reparse paths and wrong-owner storage boundaries, and propagate current
+file errors rather than silently consulting the legacy store. Existing system
+ancestors are checked for ordinary directory shape, without requiring `/` or
+`/home` to belong to the application user. Explicit roots remain isolated; only
+the implicit default store may read the legacy file, which remains untouched.
+
+New Unix directories use 0700 and new/replacement files and locks use 0600.
+Existing directories are never chmod'd; a chosen directory writable by another
+user is rejected. Readable legacy files may be copied forward into private new
+files. Windows source creates new directories/files with an explicit protected
+current-user DACL, validates the current owner SID, refuses reparse points and
+publishes the prepared private file with same-volume replacement. Existing
+Windows directory ACLs are preserved, not rewritten. Filesystem protection still
+relies on the OS enforcing these owner/ACL boundaries; this is not a transaction
+against a malicious process running as the same account.
+
+All cooperating profile/desktop/settings writers use the same regular-file lock
+with a 15-second bounded wait. `SettingsFile::update` performs read/edit/write
+under that lock; CLI setting edits and peer-setting edits use it, preserving
+unrelated concurrent settings. The existing explicit full-object `save` API is
+retained and now also locks and refuses unreadable current files. Writes reject
+oversized serialized output before creating artifacts and sync file data before
+publication; Unix additionally syncs the parent directory. No filesystem test,
+native ACL probe or crash injection was executed. Windows/macOS native compilation
+and migration/permissions acceptance remain required evidence.
+
+### Case matching preference consumer (2026-10-02)
+
+The additive `Engine::new_with_case_insensitive_pathing(settings, bool)` selects
+matching before the first filesystem inventory. `Engine::new` retains its prior
+case-insensitive default and public `Settings` fields are unchanged. Fresh
+validation engines preserve the policy. Unix exact mode retains distinct UTF-8
+filename identities, uses exact source globs and directory prefixes, and does not
+case-fold duplicate-removal filename stems. Non-UTF-8 exact inventories are refused
+instead of being lossily aliased. On Unix volumes that resolve case aliases,
+resolved paths and output publication additionally check physical spelling and
+refuse an alias; checks are bounded and observe cancellation.
+
+This is deliberately a bounded consumer: exact mode rejects Windows construction,
+managed deployment, checkpoint resume/install and the existing case-folded conflict
+report. Checkpoint-mode refusal precedes the recovery lock/snapshot writes. The
+managed/history schemas do not yet encode path policy, so changing those semantics
+would not be a safe compatibility default. Archive member admission retains its
+cross-platform collision rules. External trusted process behavior and native
+filesystem semantics are not claimed to become case-sensitive through this flag.
+No runtime or filesystem tests were executed for this source slice.
+
+### Reference preference consumers audited at d31ccbd3 (2026-10-02)
+
+These findings come from production source, not runtime measurements:
+
+| Preference | Pinned source behavior | Implementation consequence |
+|---|---|---|
+| `useMultiThreadedIO` | `src/ModSync.Core/Instruction.cs:1065` and `:1194` choose semaphore maximum 16 or 1 but always initialize **one** permit; corresponding `finally` blocks (`:1121`, `:1258`) release exactly one. `Services/FileSystem/RealFileSystemProvider.cs:101` likewise starts one permit and releases once at `:276`. | Effective file-operation concurrency remains one in both modes. Rust serial publication matches that effective contract. Introducing concurrent mutation merely to consume this flag would add behavior beyond the pinned implementation. |
+| `validateAndReplaceInvalidArchives` | `Services/DownloadCacheService.cs:741` and `:819` gate log statements for existing files. The downloaded-file branch at `:1258` assigns literal `bool isValid = true` at `:1261`, making its corrupt-file deletion branch unreachable. | Do not replace Rust's verified, non-clobbering acquisition behavior with a guessed archive replacement policy. The stored preference has no demonstrated validation/deletion effect in these reference branches. |
+| `enableFileWatcher` | `SettingsDialog.cs:287` copies the flag to picker properties. `Controls/DirectoryPickerControl.axaml.cs:700` starts the watcher on path text changes; `:1034` never reads the flag. `Services/ComponentValidationWatcherService.cs:52` starts watching the current component's top-level registered filenames independently of the global flag. | The reference does have watcher behavior; its stored enable flag is ineffective in these consumers. Rust's bounded watcher uses the flag as an explicit opt-in/out improvement, with validation invalidation only and no automatic instruction validation or mutation. |
+
+The new shared `resource_watcher` observes at most 4096 registered relative resource
+paths with one-second metadata polling and a coalesced generation-tagged event
+slot. It reads no file contents, traverses no unregistered directory trees, and
+never changes installation state. UI ownership retains the thread, stops the old
+request before replacement, discards stale generations, and invalidates validation
+when observed metadata changes or observation fails. Missing registered files are
+tracked, so creation/deletion is observable. Polling is a change hint rather than
+content-integrity proof: changes preserving all observed metadata or occurring
+entirely between polls can be missed. Cancellation wakes the delay and is checked
+between metadata calls; the OS can still stall an individual filesystem call.
+No watcher runtime or filesystem test was executed for this source slice.
+
+The FOMOD CLI mode adapter now reads the shared Store's case-insensitive setting
+lookup and preserves the caller's explicit-versus-implicit directory provenance.
+An absent mode remains `None`, preserving terminal-based CLI fallback rather than
+injecting the desktop `warn-continue` default. Explicit skip and choices still
+bypass the mode lookup; settings then environment retain their existing precedence.
+
+## Native numeric symbols and additive parser (2026-10-02)
+
+The production settings CLI now uses an immutable native-culture snapshot and
+parses before the settings lock. This supersedes the en-US-only production setter
+gap while retaining the old public helper bodies. The
+[implementation receipt](settings-numeric-culture.md) documents native providers,
+integer/floating grammar, negative-zero preservation, bounded input, and remaining
+Windows ICU/NLS dataset and custom-culture differences. Empty-value removal avoids
+native lookup. Source review/compilation does not close native acceptance.

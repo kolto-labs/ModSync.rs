@@ -1,10 +1,14 @@
 use crate::Component;
+
+mod preview;
+pub use preview::{Preview, apply_preview, preview};
 use regex::Regex;
 use std::collections::BTreeSet;
 use std::sync::LazyLock;
 
 /// Mirrors C# `MergeHeuristicsOptions`; defaults match `CreateDefault()`.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[serde(default, rename_all = "camelCase")]
 pub struct Heuristics {
     /// Minimum total score (`MinNameSimilarity`) a heuristic candidate must reach.
     pub name_similarity: f64,
@@ -40,7 +44,8 @@ impl Default for Heuristics {
     }
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, serde::Serialize, serde::Deserialize)]
+#[serde(default, rename_all = "camelCase")]
 pub struct Options {
     pub exclude_existing_only: bool,
     pub exclude_incoming_only: bool,

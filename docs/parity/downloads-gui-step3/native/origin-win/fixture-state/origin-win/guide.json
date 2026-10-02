@@ -1,0 +1,27 @@
+{
+  "Components": [
+    {
+      "Guid": "aaaaaaaa-1111-4111-8111-111111111111",
+      "Name": "Example Component",
+      "IsSelected": true,
+      "Instructions": [
+        {
+          "Action": "Extract",
+          "Source": [
+            "<<modDirectory>>/example.zip"
+          ]
+        }
+      ],
+      "ResourceRegistry": {
+        "https://127.0.0.1:43279/origin-win": {
+          "Files": {
+            "example.zip": true
+          },
+          "ContentHashSHA256": "c04e6df2940915b0cd607c9dad90242b02434e513b09e3b6ed7415c2fa1e055e",
+          "Magnet": "magnet:?xt=urn:btih:33347e016d66e1aa349faae9f45b3f9913162940&dn=example.zip",
+          "TorrentInfo": "ZDY6bGVuZ3RoaTEwNDg3MTJlNDpuYW1lMTE6ZXhhbXBsZS56aXAxMjpwaWVjZSBsZW5ndGhpNjU1MzZlNjpwaWVjZXMzNDA6remj20U+NA80ybzXOSXiwEKceM97kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FABTJOjEVpk2rIX6wXmorIvNseA+LWU="
+        }
+      }
+    }
+  ]
+}

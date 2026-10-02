@@ -59,6 +59,7 @@ pub(super) enum Update {
 
 pub(super) struct Finished {
     pub report: RunReport,
+    pub metadata: modsync::download_orchestrator::MetadataReport,
     /// Computed off the UI thread for a noncancelled run; shown only when accepted.
     pub fomod: Option<FomodFollowups>,
 }
@@ -80,6 +81,8 @@ pub(super) struct Settled {
     pub kind: Kind,
     pub binding: Binding,
     pub context_changed: bool,
+    /// Exact prepared plan retained for accepted sharing enrollment.
+    pub plan: Option<AcquisitionPlan>,
 }
 
 struct Active {
@@ -90,6 +93,7 @@ struct Active {
     stopping: bool,
     context_changed: bool,
     prepared: bool,
+    plan: Option<AcquisitionPlan>,
 }
 
 #[derive(Clone, Debug)]
@@ -189,6 +193,7 @@ impl Panel {
             stopping: false,
             context_changed: false,
             prepared: false,
+            plan: None,
         });
         self.next_run
     }
@@ -264,6 +269,7 @@ impl Panel {
                 ..
             } => {
                 active.prepared = true;
+                active.plan = Some((*plan).clone());
                 let names = &active.binding.names;
                 if active.kind == Kind::Fetch {
                     self.header.push(format!(
@@ -389,6 +395,7 @@ impl Panel {
             kind: active.kind,
             binding: active.binding,
             context_changed: active.context_changed,
+            plan: active.plan,
         })
     }
 
@@ -442,7 +449,7 @@ impl Panel {
             .filter(|s| s.reason == SkipReason::AlreadyPresent)
             .count();
         let other_skips = report.skipped.len() - present;
-        self.headline = Some(if report.cancelled {
+        self.headline = Some(if report.cancelled || finished.metadata.cancelled {
             format!(
                 "{} stopped: {completed} of {} archive targets finished before Stop",
                 kind.label(),

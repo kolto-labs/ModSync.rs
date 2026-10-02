@@ -326,7 +326,7 @@ pub fn matches_category_tier(c: &Component, categories: &[String], tiers: &[Stri
         || c.category.iter().any(|category| {
             categories
                 .iter()
-                .any(|selected| category.eq_ignore_ascii_case(selected))
+                .any(|selected| crate::fomod::eq_ignore_case(category, selected))
         }))
         && (tiers.is_empty()
             || (!c.tier.is_empty()
@@ -334,7 +334,7 @@ pub fn matches_category_tier(c: &Component, categories: &[String], tiers: &[Stri
                     Some(selected) => {
                         cli_tier_priority(&c.tier).is_some_and(|component| component <= selected)
                     }
-                    None => c.tier.eq_ignore_ascii_case(tier),
+                    None => crate::fomod::eq_ignore_case(&c.tier, tier),
                 })))
 }
 
@@ -354,10 +354,9 @@ pub fn apply_cli_selection(
         let selector = selector.trim();
         if selector.is_empty() {
             warnings.push("Invalid empty selection; expected a component name/GUID, category:Name, or tier:Name".into());
-        } else if components
-            .iter()
-            .any(|c| c.guid.eq_ignore_ascii_case(selector) || c.name.eq_ignore_ascii_case(selector))
-        {
+        } else if components.iter().any(|c| {
+            c.guid.eq_ignore_ascii_case(selector) || crate::fomod::eq_ignore_case(&c.name, selector)
+        }) {
             exact.push(selector.to_owned());
         } else if let Some((kind, value)) = selector.split_once(':') {
             let value = value.trim();
@@ -375,18 +374,17 @@ pub fn apply_cli_selection(
 
     for value in &exact {
         anyhow::ensure!(
-            components
-                .iter()
-                .any(|c| c.guid.eq_ignore_ascii_case(value) || c.name.eq_ignore_ascii_case(value)),
+            components.iter().any(|c| c.guid.eq_ignore_ascii_case(value)
+                || crate::fomod::eq_ignore_case(&c.name, value)),
             "Unknown component: {value}"
         );
     }
     let has_filter = !categories.is_empty() || !tiers.is_empty();
     let has_valid_selector = has_filter || !exact.is_empty();
     for c in components.iter_mut() {
-        let exact_match = exact
-            .iter()
-            .any(|value| c.guid.eq_ignore_ascii_case(value) || c.name.eq_ignore_ascii_case(value));
+        let exact_match = exact.iter().any(|value| {
+            c.guid.eq_ignore_ascii_case(value) || crate::fomod::eq_ignore_case(&c.name, value)
+        });
         let filtered = has_filter && matches_category_tier(c, &categories, &tiers);
         c.is_selected = !has_valid_selector || exact_match || filtered;
     }
@@ -405,7 +403,7 @@ pub fn select_tier(components: &mut [Component], tier: &str) {
     let selected_priority = priority(tier);
     for component in components.iter_mut().filter(|c| base(c)) {
         if selected_priority.map_or_else(
-            || component.tier.eq_ignore_ascii_case(tier),
+            || crate::fomod::eq_ignore_case(&component.tier, tier),
             |selected| priority(&component.tier).is_some_and(|value| value <= selected),
         ) {
             component.is_selected = true;
@@ -506,13 +504,9 @@ pub fn display_description(c: &Component, spoiler_free: bool) -> String {
 }
 
 pub fn matches_search(c: &Component, search: &str, spoiler_free: bool) -> bool {
-    let query = search.to_lowercase();
-    display_name(c, spoiler_free)
-        .to_lowercase()
-        .contains(&query)
-        || display_description(c, spoiler_free)
-            .to_lowercase()
-            .contains(&query)
+    let query = crate::fomod::fold_case(search);
+    crate::fomod::fold_case(&display_name(c, spoiler_free)).contains(&query)
+        || crate::fomod::fold_case(&display_description(c, spoiler_free)).contains(&query)
 }
 
 /// The reference tooltip retains the full ordinary description.
@@ -661,11 +655,11 @@ pub fn matches_filters(
     spoiler_free: bool,
 ) -> bool {
     matches_search(c, search, spoiler_free)
-        && (tier.is_empty() || c.tier.eq_ignore_ascii_case(tier))
+        && (tier.is_empty() || crate::fomod::eq_ignore_case(&c.tier, tier))
         && (category.is_empty()
             || c.category
                 .iter()
-                .any(|cat| cat.eq_ignore_ascii_case(category)))
+                .any(|cat| crate::fomod::eq_ignore_case(cat, category)))
 }
 
 pub fn select_visible(
@@ -1031,7 +1025,7 @@ fn tier_matches(component_tier: &str, selected: &str) -> bool {
     !component_tier.is_empty()
         && match tier_priority(selected) {
             Some(selected) => tier_priority(component_tier).is_some_and(|tier| tier <= selected),
-            None => component_tier.eq_ignore_ascii_case(selected),
+            None => crate::fomod::eq_ignore_case(component_tier, selected),
         }
 }
 
@@ -1335,7 +1329,7 @@ fn reset_from_selectors(
     let mut exact = Vec::new();
     let mut warnings = Vec::new();
     let named = |c: &Component, value: &str| {
-        c.guid.eq_ignore_ascii_case(value) || c.name.eq_ignore_ascii_case(value)
+        c.guid.eq_ignore_ascii_case(value) || crate::fomod::eq_ignore_case(&c.name, value)
     };
 
     for selector in selectors {
@@ -1422,7 +1416,7 @@ pub fn apply(
                 .or_else(|| {
                     components
                         .iter()
-                        .position(|c| c.name.eq_ignore_ascii_case(&guid))
+                        .position(|c| crate::fomod::eq_ignore_case(&c.name, &guid))
                 })
                 .ok_or_else(|| anyhow::anyhow!("Unknown component: {guid}"))?;
             set_single(

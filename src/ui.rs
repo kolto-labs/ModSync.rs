@@ -1,6 +1,20 @@
+mod checkpoints;
 mod completion_pages;
+mod deployment_panel;
+mod desktop_settings;
 mod downloads_panel;
+mod editor_panel;
 mod installing_page;
+mod main_window;
+mod merge_panel;
+mod protocol_settings;
+mod resource_watch;
+mod rich_content;
+mod sharing;
+mod standalone_patcher;
+mod structured_log;
+mod summary_page;
+mod tools_panel;
 mod validation_page;
 use anyhow::Result;
 use eframe::egui;
@@ -17,6 +31,12 @@ use std::{
 };
 
 enum Message {
+    ShellTerminal(Box<main_window::Finished>),
+    DeploymentTerminal(Box<deployment_panel::Finished>),
+    MergeTerminal(Box<merge_panel::Finished>),
+    EditorTerminal(Box<editor_panel::Finished>),
+    CheckpointProgress(u64, String),
+    CheckpointTerminal(Box<checkpoints::Finished>),
     /// A direct URL download finished; the run binds its FOMOD follow-up.
     Downloaded(u64, PathBuf, modsync::archive::Options),
     /// Shared acquisition (Fetch or nxm handoff) facts for one run.
@@ -31,11 +51,15 @@ enum Message {
     /// completion receipt read after an engine success released its lock.
     InstallTerminal(u64, Result<()>, bool, Option<completion_pages::Terminal>),
     Log(String),
-    Updates(Guide, modsync::updates::Summary),
+    Updates(Box<tools_panel::UpdateResult>),
+    UpdateSummary(String, modsync::updates::StoredSummaryState),
     Done(Result<()>),
 }
 #[derive(Clone, Copy, PartialEq)]
 enum Job {
+    Editor,
+    Checkpoint,
+    UpdateSummary,
     Conflicts,
     Validate,
     Install,
@@ -68,6 +92,7 @@ struct FomodPending {
     path: PathBuf,
     options: modsync::archive::Options,
     dismiss_non_fomod: bool,
+    consumer_guids: Vec<String>,
 }
 
 #[derive(Default)]
@@ -77,14 +102,41 @@ struct PeerView {
     error: Option<String>,
     receiver: Option<Receiver<Result<modsync::p2p::PeerSettings>>>,
     saving: bool,
+    queued: Vec<(String, serde_json::Value)>,
+}
+
+enum SharingContinuation {
+    Checkpoint(checkpoints::Action, String),
+    Start(Job),
+    Restore,
+    Load,
+    Update,
+    Protocol(Box<Guide>),
+    Terminal(u64, Result<Box<downloads_panel::Finished>>),
+    MergeSave(String),
+    Deployment(modsync::deployment::ManagementAction, String),
+    Shell(main_window::Work, String),
+    Standalone(standalone_patcher::Request),
 }
 
 pub struct App {
+    checkpoints: checkpoints::State,
+    tools: tools_panel::State,
+    editor: editor_panel::State,
+    desktop: desktop_settings::State,
+    merge: merge_panel::State,
+    deployment: deployment_panel::State,
+    shell: main_window::State,
+    standalone: standalone_patcher::State,
+    resource_watch: resource_watch::State,
+    sharing: sharing::View,
+    sharing_continuation: Option<SharingContinuation>,
     theme: String,
     input: String,
     loaded_input: Option<PathBuf>,
     profile_directory: String,
     profile_name: String,
+    active_profile_name: String,
     profile_names: Vec<String>,
     profile_target: String,
     profile_delete: Option<(String, String)>,
@@ -101,6 +153,7 @@ pub struct App {
     fomod_owner: Option<(u64, String)>,
     fomod_active: Option<FomodPending>,
     fomod_failure: Option<(FomodPending, String)>,
+    fomod_import: Option<modsync::fomod::ChoicesFile>,
     peer_view: PeerView,
     expanded_budget: String,
     allow_processes: bool,
@@ -126,6 +179,8 @@ pub struct App {
     logs: Vec<String>,
     receiver: Option<Receiver<Message>>,
     protocol_receiver: Option<Receiver<String>>,
+    #[cfg(target_os = "macos")]
+    native_protocol_receiver: Option<Receiver<String>>,
     _instance_guard: Option<modsync::single_instance::Guard>,
     cancelled: Arc<AtomicBool>,
     job: Job,
@@ -149,7 +204,7 @@ pub struct App {
     /// Shared acquisition runs (Fetch and nxm) and their presentation.
     downloads: downloads_panel::Panel,
     /// The direct URL download's run and the acquisition context it was started for.
-    direct_download: Option<(u64, String)>,
+    direct_download: Option<(u64, String, Vec<String>)>,
     /// Settings directory given at launch, used as the Peer cache like the CLI's.
     explicit_settings: Option<PathBuf>,
     probe: Option<ProbeContext>,
@@ -159,6 +214,12 @@ pub struct App {
 impl App {
     fn handle_message(&mut self, message: Message) {
         match message {
+            Message::ShellTerminal(result) => self.shell_terminal(*result),
+            Message::DeploymentTerminal(result) => self.deployment_terminal(*result),
+            Message::MergeTerminal(result) => self.merge_terminal(*result),
+            Message::EditorTerminal(result) => self.editor_terminal(*result),
+            Message::CheckpointProgress(run, text) => self.checkpoints.progress(run, text),
+            Message::CheckpointTerminal(result) => self.checkpoint_terminal(*result),
             Message::Downloaded(run, path, options) => {
                 // Offer the editor only for the guide and folders this download started
                 // with; a changed context never receives another guide's follow-up.
@@ -166,7 +227,7 @@ impl App {
                 let bound = self
                     .direct_download
                     .as_ref()
-                    .is_some_and(|(bound, context)| {
+                    .is_some_and(|(bound, context, _)| {
                         *bound == run && *context == self.acquisition_context()
                     });
                 if !bound {
@@ -175,12 +236,27 @@ impl App {
                         path.display()
                     ));
                 } else if self.guide.is_some() && self.should_offer_fomod_editor(&path) {
-                    self.enqueue_fomod(run, path, options, true);
+                    let consumers = self
+                        .direct_download
+                        .as_ref()
+                        .map(|(_, _, guids)| guids.clone())
+                        .unwrap_or_default();
+                    self.enqueue_bound_fomod(run, path, options, true, consumers);
                 }
             }
             Message::Acquisition(run, update) => self.acquisition_update(run, update),
             Message::ProtocolGuide(guide) => self.apply_protocol_guide(guide),
-            Message::Conflicts(report) => self.conflicts = Some(report),
+            Message::Conflicts(report) => {
+                self.refresh_input_stamp();
+                if self.tools.conflict_context.as_ref() == Some(&self.input_stamp)
+                    && !self.cancelled.load(Ordering::Acquire)
+                {
+                    self.conflicts = Some(report);
+                } else {
+                    self.tools.conflict_error =
+                        Some("Inputs changed or analysis was cancelled; result discarded.".into());
+                }
+            }
             Message::ValidationProgress(run, progress) => {
                 self.refresh_input_stamp();
                 if self.validation_page.accepts(run) && !self.cancelled.load(Ordering::Relaxed) {
@@ -243,6 +319,15 @@ impl App {
                             .collect(),
                     );
                 }
+                if accepted && final_result.is_ok() {
+                    self.sharing.resume_after_mutation(self.guide.as_ref());
+                }
+                if self.checkpoints.resumed_run == Some(run) {
+                    if accepted && final_result.is_ok() {
+                        self.finished = true;
+                    }
+                    self.checkpoints.resumed_run = None;
+                }
                 self.pending_base.clear();
                 self.install_context = None;
                 self.phase_failed = !engine_succeeded && pending;
@@ -264,32 +349,37 @@ impl App {
                 self.start_pending_nxm_if_ready();
             }
             Message::Log(line) => self.logs.push(line),
-            Message::Updates(guide, summary) => {
-                self.guide_generation = self.guide_generation.wrapping_add(1);
-                self.guide = Some(guide);
-                self.logs.push(format!(
-                    "Nexus update check: checked {}, skipped {}, found {} updates{}{}.",
-                    summary.checked_count,
-                    summary.skipped_count,
-                    summary.updates_found.len(),
-                    if summary.rate_limit_reached {
-                        "; rate limit reached"
-                    } else {
-                        ""
-                    },
-                    if summary.errors.is_empty() {
-                        String::new()
-                    } else {
-                        format!("; {} errors", summary.errors.len())
-                    },
-                ));
+            Message::Updates(result) => self.update_result(*result),
+            Message::UpdateSummary(context, state) => {
+                self.receiver = None;
+                self.refresh_input_stamp();
+                if self.input_stamp == context {
+                    self.tools.update_state = Some(state);
+                    self.tools.update_note =
+                        "Saved result is presentation only; no guide metadata was applied.".into();
+                } else {
+                    self.tools.update_note = "Inputs changed while reading the saved result. Reload for the current guide.".into();
+                }
             }
             Message::Done(result) => {
+                if self.job == Job::Conflicts
+                    && let Err(error) = &result
+                {
+                    self.tools.conflict_error = Some(format!("{error:#}"));
+                }
+                if self.job == Job::Update
+                    && let Err(error) = &result
+                {
+                    self.tools.update_note = format!("Update check stopped: {error:#}");
+                }
                 self.receiver = None;
                 if self.job == Job::Download {
                     self.direct_download = None;
                 }
                 let succeeded = result.is_ok();
+                if succeeded && self.job == Job::Restore {
+                    self.sharing.resume_after_mutation(self.guide.as_ref());
+                }
                 // Install terminals arrive only as InstallTerminal. A restore
                 // clears a failed install's pending state only when it restored
                 // that install's own captured roots.
@@ -335,8 +425,11 @@ impl App {
                     && self.validation_report.as_ref().is_some_and(|r| r.success)
                     && self.job == Job::Validate
                     && self.validation_input_stamp.as_ref() == Some(&self.input_stamp);
-                self.logs.push(match result { Ok(()) => match self.job { Job::Conflicts => "Conflict analysis complete. Review the report and its limitations.", Job::Validate if !self.validated => "Validation result discarded. Run validation again.", Job::Validate => "Validation passed. External program effects, if any, remain unverified.", Job::Install => unreachable!("install terminals arrive as InstallTerminal"), Job::NxmDownload | Job::Fetch => unreachable!("acquisition terminals arrive as Acquisition"), Job::Restore => "Snapshot restored and file hashes verified.", Job::Download => "Archive downloaded and integrity checked.", Job::ProtocolOpen => "ModSync build link loaded.", Job::Update => "Nexus update check complete." }.into(), Err(e) => format!("Stopped: {}", self.downloads.redact(&format!("{e:#}"))) });
+                self.logs.push(match result { Ok(()) => match self.job { Job::Editor => unreachable!("editor has dedicated terminal"), Job::UpdateSummary => unreachable!("summary has dedicated terminal"), Job::Checkpoint => unreachable!("checkpoint terminals use their own path"), Job::Conflicts => "Conflict analysis complete. Review the report and its limitations.", Job::Validate if !self.validated => "Validation result discarded. Run validation again.", Job::Validate => "Validation passed. External program effects, if any, remain unverified.", Job::Install => unreachable!("install terminals arrive as InstallTerminal"), Job::NxmDownload | Job::Fetch => unreachable!("acquisition terminals arrive as Acquisition"), Job::Restore => "Snapshot restored and file hashes verified.", Job::Download => "Archive downloaded and integrity checked.", Job::ProtocolOpen => "ModSync build link loaded.", Job::Update => "Nexus update check complete." }.into(), Err(e) => format!("Stopped: {}", self.downloads.redact(&format!("{e:#}"))) });
                 let job = match self.job {
+                    Job::Checkpoint => "checkpoint",
+                    Job::UpdateSummary => "update_summary",
+                    Job::Editor => "editor",
                     Job::Conflicts => "conflicts",
                     Job::Validate => "validation",
                     Job::Install => "installation",
@@ -383,6 +476,13 @@ impl App {
                 &self.fomod_choices,
                 Self::choices_file_stamp(Path::new(&self.fomod_choices)),
                 self.allow_processes,
+                (
+                    &self.checkpoints.config,
+                    &self.profile_directory,
+                    &self.active_profile_name,
+                    self.resource_watch.epoch,
+                    self.desktop.settings.case_insensitive_pathing
+                ),
             )
         );
         if self.input_stamp != stamp {
@@ -437,6 +537,40 @@ impl App {
         options: modsync::archive::Options,
         dismiss_non_fomod: bool,
     ) {
+        let Some(component) = self
+            .guide
+            .as_ref()
+            .and_then(|guide| guide.components.get(self.selected))
+        else {
+            self.logs
+                .push("Select a component before configuring its FOMOD archive.".into());
+            return;
+        };
+        if !component.is_selected
+            || self.completed_base.as_ref().is_some_and(|ids| {
+                ids.iter()
+                    .any(|id| id.eq_ignore_ascii_case(&component.guid))
+            })
+        {
+            self.logs
+                .push("FOMOD configuration requires a selected, unfinished component.".into());
+            return;
+        }
+        let consumers = vec![component.guid.clone()];
+        self.enqueue_bound_fomod(run, path, options, dismiss_non_fomod, consumers);
+    }
+
+    fn enqueue_bound_fomod(
+        &mut self,
+        run: u64,
+        path: PathBuf,
+        options: modsync::archive::Options,
+        dismiss_non_fomod: bool,
+        consumer_guids: Vec<String>,
+    ) {
+        if consumer_guids.is_empty() {
+            return;
+        }
         self.refresh_input_stamp();
         let context = self.acquisition_context();
         let run = if run == 0 {
@@ -457,6 +591,7 @@ impl App {
             path,
             options,
             dismiss_non_fomod,
+            consumer_guids,
         });
         self.invalidate_validation();
     }
@@ -482,28 +617,54 @@ impl App {
             return;
         }
         if let Some(item) = self.fomod_queue.pop_front() {
-            match self.saved_fomod_choices(&item.path) {
-                Ok(saved) => {
+            self.fomod_active = Some(item.clone());
+            let saved = if item.consumer_guids.len() == 1 {
+                self.saved_fomod_choices(&item.path)
+                    .map(|value| value.into_iter().collect())
+            } else {
+                self.saved_fomod_sessions(&item.path)
+            };
+            match saved {
+                Ok(mut saved) => {
                     self.fomod_archive = item.path.to_string_lossy().into_owned();
                     self.fomod_active = Some(item.clone());
                     self.fomod_owner = Some((item.run, item.context));
-                    self.fomod_editor.launch(
-                        item.path,
-                        item.options,
-                        saved,
-                        item.dismiss_non_fomod,
-                    );
+                    let sidecar = (!self.fomod_choices.trim().is_empty())
+                        .then(|| PathBuf::from(&self.fomod_choices));
+                    if saved.len() <= 1 && sidecar.is_none() {
+                        self.fomod_editor.launch(
+                            item.path,
+                            item.options,
+                            saved.pop(),
+                            item.dismiss_non_fomod,
+                        );
+                    } else {
+                        self.fomod_editor.launch_bound(
+                            item.path,
+                            item.options,
+                            saved,
+                            item.dismiss_non_fomod,
+                            sidecar,
+                        );
+                    }
                 }
                 Err(error) => {
                     let error = self.downloads.redact(&format!("FOMOD choices: {error:#}"));
                     self.logs.push(error.clone());
                     self.fomod_failure = Some((item, error));
+                    self.fomod_active = None;
                 }
             }
         }
     }
 
     fn show_fomod(&mut self, ctx: &egui::Context) {
+        if self.sharing.closing {
+            return;
+        }
+        if self.fomod_pending() && (self.sharing.busy() || !self.sharing.mutation()) {
+            return;
+        }
         self.advance_fomod_queue();
         let was_open = self.fomod_editor.is_open();
         let outcome = self.fomod_editor.show(ctx);
@@ -517,6 +678,7 @@ impl App {
             if accepted {
                 match outcome {
                     crate::fomod_ui::Outcome::Choices(choices) => {
+                        self.fomod_import = self.fomod_editor.take_imported_choices();
                         if let Err(error) = self.apply_fomod_choices(&choices) {
                             let error = self.downloads.redact(&format!("FOMOD choices: {error:#}"));
                             self.logs.push(error.clone());
@@ -528,14 +690,22 @@ impl App {
                         }
                     }
                     crate::fomod_ui::Outcome::Dismissed(filename) => {
-                        if let Some(guide) = &mut self.guide {
-                            modsync::fomod::set_prompt_status_remaining(
+                        if let (Some(guide), Some(item)) = (&mut self.guide, &self.fomod_active) {
+                            match modsync::fomod::apply_bound_archive(
                                 guide,
+                                &item.consumer_guids,
                                 &filename,
+                                None,
                                 modsync::fomod::PromptStatus::Dismissed,
                                 self.completed_base.as_deref().unwrap_or_default(),
-                            );
-                            self.downloads.unsaved_records = true;
+                            ) {
+                                Ok(()) => self.downloads.unsaved_records = true,
+                                Err(error) => {
+                                    let error = format!("FOMOD dismissal: {error:#}");
+                                    self.logs.push(error.clone());
+                                    self.fomod_failure = Some((item.clone(), error));
+                                }
+                            }
                         }
                         self.invalidate_validation();
                         self.logs
@@ -561,6 +731,7 @@ impl App {
         }
         // Inspection/error Cancel may return None: closure still releases ownership.
         if was_open && !self.fomod_editor.is_open() {
+            self.fomod_import = None;
             self.fomod_owner = None;
             self.fomod_active = None;
             ctx.request_repaint();
@@ -831,8 +1002,11 @@ impl App {
 
     /// Why Fetch cannot start now, if it cannot.
     fn fetch_blocker(&self) -> Option<&'static str> {
-        if self.receiver.is_some() {
-            Some("Wait for the current operation to finish.")
+        if self.sharing.closing || self.sharing_continuation.is_some() {
+            return Some("Wait for sharing cleanup.");
+        }
+        if self.receiver.is_some() || self.desktop.busy() {
+            Some("Wait for the current operation or desktop settings to finish.")
         } else if self.peer_view.receiver.is_some() {
             Some("Wait for peer settings to finish loading or saving.")
         } else if self.peer_view.settings.is_none()
@@ -912,6 +1086,10 @@ impl App {
     /// Starts the selected-guide Fetch: shared plan/run/record, Scope::All candidates,
     /// four workers with one retry and a per-run Peer adapter, all off the UI thread.
     fn start_fetch(&mut self) {
+        self.start_fetch_scope(None);
+    }
+
+    fn start_fetch_scope(&mut self, component_guid: Option<String>) {
         if let Some(reason) = self.fetch_blocker() {
             self.logs.push(format!("Fetch Downloads: {reason}"));
             return;
@@ -928,12 +1106,41 @@ impl App {
             }
         };
         let guide = binding.guide.clone();
+        let completed = self.completed_base.clone().unwrap_or_default();
         let source_dir = binding.source_dir.clone();
         let key = self.acquisition_key();
         let (api_base, loopback_ca) = self.probe.as_ref().map_or((None, None), |probe| {
             (probe.nexus_api_base.clone(), probe.loopback_ca.clone())
         });
         let settings_dir = PathBuf::from(&self.profile_directory);
+        let resolution = if self.desktop.settings.filter_downloads_by_resolution {
+            self.repaint.as_ref().and_then(|ctx| {
+                ctx.input(|input| {
+                    let viewport = input.viewport();
+                    let size = viewport.monitor_size?;
+                    let scale = viewport.native_pixels_per_point?;
+                    let width = size.x * scale;
+                    let height = size.y * scale;
+                    (scale.is_finite()
+                        && scale > 0.0
+                        && width.is_finite()
+                        && height.is_finite()
+                        && width >= 1.0
+                        && height >= 1.0
+                        && width < u32::MAX as f32
+                        && height < u32::MAX as f32)
+                        .then_some((width.round() as u32, height.round() as u32))
+                })
+            })
+        } else {
+            None
+        };
+        if self.desktop.settings.filter_downloads_by_resolution && resolution.is_none() {
+            self.logs.push(
+                "Monitor resolution unavailable; downloads will not be filtered by resolution."
+                    .into(),
+            );
+        }
         // Like the CLI's explicit --settings-dir: the Peer cache follows an explicit
         // settings directory, and the default share root is used otherwise.
         let cache_dir = self.explicit_settings.clone();
@@ -972,19 +1179,31 @@ impl App {
                         modsync::p2p::PeerMode::Race => orchestrator::PeerMode::Race,
                         modsync::p2p::PeerMode::Fallback => orchestrator::PeerMode::Fallback,
                     };
-                    let candidates = modsync::selection::download_candidates(
+                    let mut candidates = modsync::selection::download_candidates(
                         &guide.components,
                         modsync::selection::Scope::All,
                     );
+                    if let Some(guid) = &component_guid {
+                        candidates.retain(|candidate| candidate.guid == *guid);
+                        anyhow::ensure!(
+                            !candidates.is_empty(),
+                            "Select this component before fetching its registered archives"
+                        );
+                    }
                     let plan_options = orchestrator::PlanOptions {
                         source_dir,
-                        resolution: None,
+                        resolution,
                         peer_mode,
                         user_peers: Vec::new(),
                         nexus_key_present: key.is_some(),
                         archive: archive.clone(),
                     };
-                    let plan = orchestrator::plan(&guide, &candidates, &plan_options)?;
+                    let plan = orchestrator::plan_with_cancel(
+                        &guide,
+                        &candidates,
+                        &plan_options,
+                        &cancelled,
+                    )?;
                     // Nexus page discovery runs before the rows exist, so every discovered
                     // archive gets its own row and the run reports into the same indices.
                     let plan = orchestrator::discover(
@@ -1008,6 +1227,7 @@ impl App {
                     if cancelled.load(Ordering::SeqCst) {
                         return Ok(Box::new(downloads_panel::Finished {
                             report: orchestrator::cancelled_report(&plan),
+                            metadata: Default::default(),
                             fomod: None,
                         }));
                     }
@@ -1037,11 +1257,24 @@ impl App {
                         |event| send(downloads_panel::Update::Event(Box::new(event))),
                         loopback_ca.as_ref(),
                     )?;
+                    let metadata = orchestrator::collect_metadata(
+                        &plan,
+                        &report,
+                        &settings,
+                        &cancelled,
+                        loopback_ca.as_ref(),
+                    );
                     let stopped = report.cancelled || cancelled.load(Ordering::SeqCst);
                     let fomod = (!stopped).then(|| {
-                        orchestrator::fomod_followups(&guide, &report, &archive, &cancelled)
+                        orchestrator::bound_fomod_followups(
+                            &guide, &report, &archive, &cancelled, &completed,
+                        )
                     });
-                    Ok(Box::new(downloads_panel::Finished { report, fomod }))
+                    Ok(Box::new(downloads_panel::Finished {
+                        report,
+                        metadata,
+                        fomod,
+                    }))
                 },
             ))
             .unwrap_or_else(|_| Err(anyhow::anyhow!("The download worker stopped unexpectedly.")));
@@ -1058,22 +1291,25 @@ impl App {
         let current = self.acquisition_context();
         self.downloads.check_context(&current);
         match update {
-            downloads_panel::Update::Terminal(result) => {
-                self.acquisition_terminal(run, result, &current)
-            }
+            downloads_panel::Update::Terminal(result) => self.acquisition_terminal(run, result),
             update => self.downloads.apply(update),
         }
     }
 
     /// The run terminal owns the report. Only an unchanged context records, on a clone
     /// of the bound guide that replaces the current guide only when `record` succeeds.
-    fn acquisition_terminal(
-        &mut self,
-        run: u64,
-        result: Result<Box<downloads_panel::Finished>>,
-        current: &str,
-    ) {
-        let Some(settled) = self.downloads.settle(run, current) else {
+    fn acquisition_terminal(&mut self, run: u64, result: Result<Box<downloads_panel::Finished>>) {
+        if !self.sharing.ready() && !self.sharing.closing {
+            self.sharing.mutation();
+            self.receiver = None;
+            self.sharing_continuation = Some(SharingContinuation::Terminal(run, result));
+            return;
+        }
+        // A sharing barrier can outlive changes to external guide/choice files
+        // or root bindings. Recompute at acceptance, including the close path.
+        self.refresh_input_stamp();
+        let current = self.acquisition_context();
+        let Some(settled) = self.downloads.settle(run, &current) else {
             return;
         };
         self.receiver = None;
@@ -1083,6 +1319,7 @@ impl App {
             downloads_panel::Kind::Fetch => "Fetch Downloads",
             downloads_panel::Kind::Nxm => "Nexus handoff",
         };
+        let mut enrollment = None;
         let succeeded = match result {
             Err(error) => {
                 let text = format!("{error:#}");
@@ -1103,8 +1340,19 @@ impl App {
             }
             Ok(finished) => {
                 let mut guide = settled.binding.guide.clone();
-                let recorded = modsync::download_orchestrator::record(&mut guide, &finished.report);
+                for warning in &finished.metadata.warnings {
+                    self.logs.push(warning.clone());
+                }
+                let recorded = modsync::download_orchestrator::record(&mut guide, &finished.report)
+                    .and_then(|summary| {
+                        modsync::download_orchestrator::record_metadata(
+                            &mut guide,
+                            &finished.metadata,
+                        )?;
+                        Ok(summary)
+                    });
                 let succeeded = !finished.report.cancelled
+                    && !finished.metadata.cancelled
                     && finished.report.outcomes.iter().all(|o| {
                         o.status == modsync::download_orchestrator::TargetStatus::Completed
                     });
@@ -1112,6 +1360,13 @@ impl App {
                     Ok(summary) => {
                         let changed = serde_json::to_string(&guide).ok()
                             != serde_json::to_string(&settled.binding.guide).ok();
+                        if !finished.metadata.cancelled
+                            && let Some(plan) = settled.plan.clone()
+                            && let Ok(options) = self.archive_options()
+                        {
+                            enrollment =
+                                Some((guide.clone(), plan, finished.report.clone(), options));
+                        }
                         self.guide = Some(guide);
                         if changed {
                             self.downloads.unsaved_records = true;
@@ -1123,12 +1378,24 @@ impl App {
                         {
                             if let Ok(options) = self.archive_options() {
                                 for followup in &followups.followups {
-                                    if self.should_offer_fomod_editor(&followup.archive) {
-                                        self.enqueue_fomod(
+                                    let consumers = followups
+                                        .followups
+                                        .iter()
+                                        .filter(|item| item.archive == followup.archive)
+                                        .map(|item| item.component_guid.clone())
+                                        .filter(|guid| {
+                                            !self.completed_base.as_ref().is_some_and(|ids| {
+                                                ids.iter().any(|id| id.eq_ignore_ascii_case(guid))
+                                            })
+                                        })
+                                        .collect();
+                                    {
+                                        self.enqueue_bound_fomod(
                                             run,
                                             followup.archive.clone(),
                                             options.clone(),
                                             true,
+                                            consumers,
                                         );
                                     }
                                 }
@@ -1155,6 +1422,23 @@ impl App {
             }
         };
         self.refresh_input_stamp();
+        if !self.sharing.closing
+            && let Some((guide, plan, report, options)) = enrollment
+        {
+            self.sharing.enroll(
+                self.acquisition_context(),
+                guide,
+                if self.downloads.unsaved_records {
+                    None
+                } else {
+                    self.loaded_input.clone()
+                },
+                self.profile_directory.clone(),
+                plan,
+                report,
+                options,
+            );
+        }
         self.emit_telemetry(
             "operation.completed",
             serde_json::Map::from_iter([
@@ -1179,7 +1463,26 @@ impl App {
     }
 
     fn request_peer_settings(&mut self, changes: Vec<(String, serde_json::Value)>) {
+        let off = changes.iter().any(|(key, value)| {
+            (key == "peerSharing" && value == &serde_json::json!(false))
+                || (key == "peerMode" && value == &serde_json::json!("off"))
+        });
+        let keep_off = changes
+            .iter()
+            .any(|(key, value)| key == "peerKeepSharing" && value == &serde_json::json!(false));
+        if off || keep_off {
+            self.sharing
+                .pause(modsync::peer_sharing::PauseReason::Settings);
+        }
+        if off
+            && self.receiver.is_some()
+            && matches!(self.job, Job::Download | Job::NxmDownload | Job::Fetch)
+        {
+            self.cancelled.store(true, Ordering::Release);
+            self.downloads.request_stop();
+        }
         if self.peer_view.receiver.is_some() {
+            self.peer_view.queued.extend(changes);
             return;
         }
         let directory = self.profile_directory.clone();
@@ -1236,6 +1539,10 @@ impl App {
                 }
             }
         }
+        if self.peer_view.receiver.is_none() && !self.peer_view.queued.is_empty() {
+            let changes = std::mem::take(&mut self.peer_view.queued);
+            self.request_peer_settings(changes);
+        }
         if self.peer_view.directory.as_deref() != Some(self.profile_directory.as_str())
             && self.peer_view.receiver.is_none()
         {
@@ -1269,35 +1576,78 @@ impl App {
         };
         ui.collapsing("Peer-sharing settings", |ui| {
             let mut changes = Vec::new();
-            ui.add_enabled_ui(self.receiver.is_none() && self.peer_view.receiver.is_none(), |ui| {
-                if ui.checkbox(&mut settings.sharing, "Sharing enabled").changed() {
-                    changes.push(("peerSharing".to_owned(), serde_json::json!(settings.sharing)));
-                }
-                let prior = settings.mode;
-                ui.horizontal_wrapped(|ui| {
-                    ui.label("Mode:");
-                    for (mode, label) in [(modsync::p2p::PeerMode::Off, "Off"), (modsync::p2p::PeerMode::Race, "Race"), (modsync::p2p::PeerMode::Fallback, "Fallback")] {
-                        ui.radio_value(&mut settings.mode, mode, label);
+            ui.add_enabled_ui(
+                self.receiver.is_none() && self.peer_view.receiver.is_none(),
+                |ui| {
+                    if ui
+                        .checkbox(&mut settings.sharing, "Sharing enabled")
+                        .changed()
+                    {
+                        changes.push((
+                            "peerSharing".to_owned(),
+                            serde_json::json!(settings.sharing),
+                        ));
                     }
-                });
-                if prior != settings.mode {
-                    let mode = match settings.mode {
-                        modsync::p2p::PeerMode::Off => "off",
-                        modsync::p2p::PeerMode::Race => "race",
-                        modsync::p2p::PeerMode::Fallback => "fallback",
-                    };
-                    changes.push(("peerMode".to_owned(), serde_json::json!(mode)));
-                }
-                ui.horizontal_wrapped(|ui| {
-                    ui.label("Upload cap (KiB/s):");
-                    if ui.add(egui::DragValue::new(&mut settings.upload_kibps).range(16..=u32::MAX).clamp_existing_to_range(false)).changed() {
-                        changes.push(("peerUploadKiBps".to_owned(), serde_json::json!(settings.upload_kibps)));
+                    let prior = settings.mode;
+                    ui.horizontal_wrapped(|ui| {
+                        ui.label("Mode:");
+                        for (mode, label) in [
+                            (modsync::p2p::PeerMode::Off, "Off"),
+                            (modsync::p2p::PeerMode::Race, "Race"),
+                            (modsync::p2p::PeerMode::Fallback, "Fallback"),
+                        ] {
+                            ui.radio_value(&mut settings.mode, mode, label);
+                        }
+                    });
+                    if prior != settings.mode {
+                        let mode = match settings.mode {
+                            modsync::p2p::PeerMode::Off => "off",
+                            modsync::p2p::PeerMode::Race => "race",
+                            modsync::p2p::PeerMode::Fallback => "fallback",
+                        };
+                        changes.push(("peerMode".to_owned(), serde_json::json!(mode)));
                     }
-                });
-            });
-            ui.label(format!("Effective mode: {:?}. Upload cap: {} KiB/s (minimum 16).", settings.effective_mode(), settings.upload_kibps.max(16)));
-            ui.label("The saved keep-sharing preference does not start a persistent seeder; that lifecycle is not available yet.");
-            if !changes.is_empty() { self.request_peer_settings(changes); }
+                    ui.horizontal_wrapped(|ui| {
+                        ui.label("Completed-sharing upload cap (KiB/s):");
+                        if ui
+                            .add(
+                                egui::DragValue::new(&mut settings.upload_kibps)
+                                    .range(16..=u32::MAX)
+                                    .clamp_existing_to_range(false),
+                            )
+                            .changed()
+                        {
+                            changes.push((
+                                "peerUploadKiBps".to_owned(),
+                                serde_json::json!(settings.upload_kibps),
+                            ));
+                        }
+                    });
+                },
+            );
+            ui.label(format!(
+                "Effective mode: {:?}. Upload cap: {} KiB/s (minimum 16).",
+                settings.effective_mode(),
+                settings.upload_kibps.max(16)
+            ));
+            if ui
+                .add_enabled(
+                    self.peer_view.receiver.is_none(),
+                    egui::Checkbox::new(
+                        &mut settings.keep_sharing,
+                        "Keep sharing verified completed archives",
+                    ),
+                )
+                .changed()
+            {
+                changes.push((
+                    "peerKeepSharing".to_owned(),
+                    serde_json::json!(settings.keep_sharing),
+                ));
+            }
+            if !changes.is_empty() {
+                self.request_peer_settings(changes);
+            }
         });
         ui.label(format!(
             "Peer: {:?}; upload cap {} KiB/s.",
@@ -1586,14 +1936,23 @@ impl App {
                     Page::AspyrNotice => ("aspyrExclusiveWarningContent", "AspyrExclusiveWarningContent"),
                     _ => ("widescreenWarningContent", "WidescreenWarningContent"),
                 };
-                if let Some(content) = self.guide.as_ref().and_then(|g| metadata_text(g, camel, pascal)) { ui.label(content); }
+                if let Some(content) = self.guide.as_ref().and_then(|g| metadata_text(g, camel, pascal)) {
+                    if page == Page::Preamble {
+                        rich_content::show(ui, camel, content);
+                    } else {
+                        if ui.small_button("Copy warning text").clicked() { ui.ctx().copy_text(content.to_owned()); }
+                        ui.add(egui::Label::new(content).wrap());
+                    }
+                }
             }
             Page::ModDirectory => {
+                if !self.sharing.edit_gate(ui) { return; }
                 ui.label("Choose an existing workspace for downloaded archives and processed mod files. Keep it separate from your game installation.");
                 if Self::path_row(ui, "Mod workspace", &mut self.mods, true) { self.invalidate_validation(); }
                 ui.label(if Path::new(&self.mods).is_dir() { "Directory exists" } else { "Choose an existing directory to continue." });
             }
             Page::GameDirectory => {
+                if !self.sharing.edit_gate(ui) { return; }
                 ui.label("Choose the folder containing your supported PC KOTOR installation.");
                 if Self::path_row(ui, "Game directory", &mut self.game, true) { self.invalidate_validation(); }
                 ui.label(format!("Detected game: {:?}", modsync::game::detect(&modsync::game::resolve_install_root(Path::new(&self.game)))));
@@ -1618,6 +1977,7 @@ impl App {
                 if !self.validated { ui.label("Inputs changed. Go Back and run validation again."); }
             }
             Page::WidescreenModSelection => {
+                if !self.sharing.edit_gate(ui) { return; }
                 let mut change = None;
                 if let Some(guide) = &mut self.guide { for (index, c) in guide.components.iter().enumerate() {
                     if c.metadata.get("WidescreenOnly").and_then(serde_json::Value::as_bool) == Some(true) {
@@ -1646,6 +2006,17 @@ impl App {
     }
 
     fn surface(&mut self, ui: &mut egui::Ui, ctx: &egui::Context, surface: usize) {
+        let mut summary_action = None;
+        let mut preference_save = false;
+        let deployed_guid = self
+            .guide
+            .as_ref()
+            .and_then(|g| g.components.get(self.selected))
+            .filter(|c| self.deployment_badge(&c.guid))
+            .map(|c| c.guid.clone());
+        if !self.sharing.edit_gate(ui) {
+            return;
+        }
         match surface {
             0 => {
                 ui.heading("Load an instruction file");
@@ -1739,18 +2110,9 @@ impl App {
                 ));
                 ui.label("Use separate folders. Put downloaded archives in the mod directory.");
                 if ui.button("Save directories for next launch").clicked() {
-                    let result = (|| -> Result<()> {
-                        anyhow::ensure!(
-                            !self.profile_directory.is_empty(),
-                            "Choose a settings directory"
-                        );
-                        modsync::profiles::Store::new(Path::new(&self.profile_directory))?
-                            .save_directory_preferences(&self.mods, &self.game)
-                    })();
-                    self.logs.push(match result {
-                        Ok(()) => "Directories saved in the selected settings directory.".into(),
-                        Err(e) => format!("Settings save failed: {e:#}"),
-                    });
+                    self.desktop.settings.source_path = Some(self.mods.clone());
+                    self.desktop.settings.destination_path = Some(self.game.clone());
+                    preference_save = true;
                 }
                 if self.probe.is_some() {
                     ui.label("Probe launch: the Nexus key comes only from the launch arguments and is never stored.");
@@ -1762,44 +2124,24 @@ impl App {
                                 .password(true)
                                 .desired_width(220.0),
                         );
-                        if ui.button("Save key").clicked() {
-                            let result = (|| -> Result<()> {
-                                anyhow::ensure!(
-                                    !self.profile_directory.is_empty(),
-                                    "Choose a settings directory"
-                                );
-                                modsync::profiles::Store::new(Path::new(&self.profile_directory))?
-                                    .save_nexus_api_key(&self.nexus_api_key)
-                            })();
-                            self.logs.push(match result {
-                                Ok(()) => "Nexus API key saved.".into(),
-                                Err(e) => format!("Nexus key save failed: {e:#}"),
-                            });
+                        if ui
+                            .add_enabled(
+                                !self.desktop.busy(),
+                                egui::Button::new("Validate and save key"),
+                            )
+                            .clicked()
+                        {
+                            self.validate_nexus_key();
                         }
+                        ui.label("Key validation status is shown in Desktop settings.");
                     });
                 }
-                ui.collapsing("Telemetry", |ui| {
-                        ui.label("Optional anonymous usage telemetry. It never includes mod names, file contents, or credentials.");
-                        let mut consent = self.telemetry.user_consented;
-                        if ui.checkbox(&mut consent, "Share anonymous telemetry").changed() {
-                            self.telemetry.set_consent(consent);
-                            match self.telemetry.save(Path::new(&self.profile_directory)) {
-                                Ok(()) => self.logs.push(if consent { "Telemetry enabled by consent." } else { "Telemetry disabled." }.into()),
-                                Err(error) => self.logs.push(format!("Telemetry preference save failed: {error:#}")),
-                            }
-                        }
-                        ui.horizontal(|ui| {
-                            ui.label("Endpoint");
-                            ui.add(egui::TextEdit::singleline(&mut self.telemetry.endpoint).hint_text("https://…").desired_width(260.0));
-                            if ui.button("Save telemetry settings").clicked() {
-                                match self.telemetry.save(Path::new(&self.profile_directory)) {
-                                    Ok(()) => self.logs.push("Telemetry settings saved.".into()),
-                                    Err(error) => self.logs.push(format!("Telemetry settings save failed: {error:#}")),
-                                }
-                            }
-                        });
-                        ui.label(if self.telemetry.active() { "Authenticated export is ready." } else { "Telemetry stays inactive until consent, endpoint, and a local signing secret are present." });
-                    });
+                if ui
+                    .button("Desktop settings, privacy and diagnostics")
+                    .clicked()
+                {
+                    self.desktop.open = true;
+                }
                 if let Some(g) = &self.guide {
                     ui.label(format!("{} components loaded", g.components.len()));
                 }
@@ -1874,20 +2216,8 @@ impl App {
                     .checkbox(&mut spoiler_free, "Spoiler-free names and descriptions")
                     .changed()
                 {
-                    let result = (|| -> Result<()> {
-                        anyhow::ensure!(
-                            !self.profile_directory.is_empty(),
-                            "Choose a settings directory"
-                        );
-                        modsync::profiles::Store::new(Path::new(&self.profile_directory))?
-                            .save_spoiler_free_preference(spoiler_free)
-                    })();
-                    match result {
-                        Ok(()) => self.spoiler_free = spoiler_free,
-                        Err(e) => self
-                            .logs
-                            .push(format!("Spoiler preference save failed: {e:#}")),
-                    }
+                    self.desktop.settings.spoiler_free_mode = spoiler_free;
+                    preference_save = true;
                 }
                 ui.horizontal_wrapped(|ui| {
                     let tiers: std::collections::BTreeSet<_> = g
@@ -2175,16 +2505,12 @@ impl App {
                                     )
                                 })
                             {
-                                ui.heading(modsync::selection::display_name(c, self.spoiler_free));
-                                ui.label(format!("{}  ·  {}", c.author, c.tier));
-                                ui.label(modsync::selection::display_description(
-                                    c,
-                                    self.spoiler_free,
-                                ))
-                                .on_hover_text(modsync::selection::tooltip(c, self.spoiler_free));
-                                if !c.directions.is_empty() && !self.spoiler_free {
-                                    ui.separator();
-                                    ui.label(&c.directions);
+                                if deployed_guid.as_deref() == Some(c.guid.as_str()) {
+                                    ui.strong("Deployed in the reviewed managed inventory");
+                                }
+                                let actions = summary_page::show(ui, c, self.spoiler_free, true);
+                                if actions.download || actions.jump_to_instruction.is_some() {
+                                    summary_action = Some((c.guid.clone(), actions));
                                 }
                                 option_change = Self::options(ui, c, self.spoiler_free);
                                 if option_change.is_some() {
@@ -2195,24 +2521,6 @@ impl App {
                                         &mut self.validation_page,
                                     );
                                 }
-                                ui.separator();
-                                ui.strong("Download links");
-                                for url in c.resource_registry.keys() {
-                                    ui.hyperlink(url);
-                                }
-                                for field in ["ModLink", "DownloadLink"] {
-                                    if let Some(value) = c.metadata.get(field) {
-                                        if let Some(url) = value.as_str() {
-                                            ui.hyperlink(url);
-                                        }
-                                        if let Some(urls) = value.as_array() {
-                                            for url in urls.iter().filter_map(|v| v.as_str()) {
-                                                ui.hyperlink(url);
-                                            }
-                                        }
-                                    }
-                                }
-                                ui.label(format!("{} install steps", c.instructions.len()));
                                 if c.metadata.contains_key("DraftReview") {
                                     ui.collapsing("Draft instructions and review notes", |ui| {
                                         ui.monospace(
@@ -2272,6 +2580,13 @@ impl App {
                     );
                 }
                 Self::path_row(ui, "FOMOD archive", &mut self.fomod_archive, false);
+                if let Some(component) = self
+                    .guide
+                    .as_ref()
+                    .and_then(|guide| guide.components.get(self.selected))
+                {
+                    ui.label(format!("FOMOD configuration target: {}", component.name));
+                }
                 if ui
                     .add_enabled(
                         !self.fomod_archive.trim().is_empty(),
@@ -2361,15 +2676,10 @@ impl App {
                         );
                     }
                     if ui.button("Save patcher setting").clicked() {
-                        match modsync::profiles::Store::new(Path::new(&self.profile_directory))
-                            .and_then(|store| {
-                                store.save_patcher_preferences(self.patcher_engine, &self.patcher)
-                            }) {
-                            Ok(()) => self.logs.push("Patcher setting saved.".into()),
-                            Err(error) => self
-                                .logs
-                                .push(format!("Patcher setting save failed: {error:#}")),
-                        }
+                        self.desktop.settings.patcher_engine =
+                            Some(format!("{:?}", self.patcher_engine));
+                        self.desktop.settings.kpatcher_executable_path = Some(self.patcher.clone());
+                        preference_save = true;
                     }
                 }
                 ui.horizontal(|ui| {
@@ -2408,13 +2718,8 @@ impl App {
                         // install is pending.
                         self.start(Job::Restore, ctx);
                     }
-                    if ui.button("Save selection…").clicked()
-                        && let Some(path) = rfd::FileDialog::new()
-                            .set_file_name("selection.toml")
-                            .save_file()
-                        && let Err(e) = self.save_selection(&path)
-                    {
-                        self.logs.push(format!("Save failed: {e:#}"));
+                    if ui.button("Save selection…").clicked() {
+                        self.shell_work(main_window::Work::SaveSelection, None, ctx);
                     }
                 });
                 ui.separator();
@@ -2462,43 +2767,28 @@ impl App {
                         }
                     });
                 }
-                if let Some(report) = &self.conflicts {
-                    ui.collapsing(format!("File conflicts: {} paths across {} analyzed components", report.conflicts.len(), report.analyzed_component_count), |ui| {
-                            ui.label("Simulated game-file writes for the current base selection. Last writer follows install order.");
-                            for limitation in &report.limitations { ui.colored_label(egui::Color32::DARK_RED, limitation); }
-                            if report.conflicts.is_empty() { ui.label("No conflicting simulated writes found."); }
-                            if ui.button("Copy conflict report").clicked() {
-                                match serde_json::to_string_pretty(report) {
-                                    Ok(text) => ui.ctx().copy_text(text),
-                                    Err(error) => self.logs.push(format!("Copy failed: {error}")),
-                                }
-                            }
-                            egui::ScrollArea::vertical().max_height(240.0).show(ui, |ui| {
-                                for conflict in &report.conflicts {
-                                    ui.collapsing(&conflict.destination_path, |ui| {
-                                        for (index, writer) in conflict.writers.iter().enumerate() {
-                                            ui.label(format!("{} — step {}{}", writer.component_name, writer.instruction_index + 1, if index + 1 == conflict.writers.len() { " (last writer)" } else { "" }));
-                                        }
-                                    });
-                                }
-                            });
-                        });
+                if self.conflicts.is_some() && ui.button("Show conflict details").clicked() {
+                    self.tools.conflicts_open = true;
                 }
             }
             _ => self.guide_editor(ui),
         }
+        if preference_save {
+            self.save_desktop_preferences();
+        }
+        if let Some((guid, actions)) = summary_action {
+            if actions.download {
+                self.start_fetch_scope(Some(guid));
+            } else if let Some(index) = actions.jump_to_instruction {
+                self.editor_jump(&guid, index);
+            }
+        }
     }
 
     fn emit_telemetry(&self, name: &str, attributes: serde_json::Map<String, serde_json::Value>) {
-        let config = self.telemetry.clone();
-        let event = modsync::telemetry::Event {
-            name: name.into(),
-            timestamp: chrono::Utc::now().timestamp(),
-            attributes: attributes.into_iter().collect(),
-        };
-        std::thread::spawn(move || {
-            let _ = modsync::telemetry::export(&config, "/v1/events", &event);
-        });
+        if self.desktop.ready(&self.telemetry, &self.profile_directory) && !self.sharing.closing {
+            modsync::telemetry::global().record_event(name, attributes.into_iter().collect());
+        }
     }
 
     /// The frozen tests' constructor: default settings directory, no probe.
@@ -2527,11 +2817,23 @@ impl App {
                 .unwrap_or_default(),
         };
         let mut app = Self {
+            checkpoints: Default::default(),
+            tools: Default::default(),
+            editor: Default::default(),
+            desktop: Default::default(),
+            merge: Default::default(),
+            deployment: Default::default(),
+            shell: Default::default(),
+            standalone: Default::default(),
+            resource_watch: Default::default(),
+            sharing: Default::default(),
+            sharing_continuation: None,
             theme: "/Styles/LightStyle.axaml".into(),
             input: string(input),
             loaded_input: None,
             profile_directory,
             profile_name: String::new(),
+            active_profile_name: String::new(),
             profile_names: Vec::new(),
             profile_target: String::new(),
             profile_delete: None,
@@ -2548,6 +2850,7 @@ impl App {
             fomod_owner: None,
             fomod_active: None,
             fomod_failure: None,
+            fomod_import: None,
             peer_view: Default::default(),
             expanded_budget: String::new(),
             allow_processes: false,
@@ -2572,6 +2875,8 @@ impl App {
             logs: Vec::new(),
             receiver: None,
             protocol_receiver: None,
+            #[cfg(target_os = "macos")]
+            native_protocol_receiver: None,
             _instance_guard: None,
             cancelled: Arc::new(AtomicBool::new(false)),
             job: Job::Validate,
@@ -2601,17 +2906,12 @@ impl App {
             // A probe never reads a stored key: only its explicit one is ever sent.
             Some(probe) => app.nexus_api_key = probe.nexus_api_key.clone().unwrap_or_default(),
             None => {
-                if let Ok(store) = modsync::profiles::Store::new(Path::new(&app.profile_directory))
-                {
+                if let Ok(store) = modsync::profiles::Store::from_settings_directory(
+                    app.explicit_settings.as_deref(),
+                ) {
                     app.nexus_api_key = store.nexus_api_key().ok().flatten().unwrap_or_default();
                 }
             }
-        }
-        match modsync::telemetry::Config::load(Path::new(&app.profile_directory)) {
-            Ok(config) => app.telemetry = config,
-            Err(error) => app
-                .logs
-                .push(format!("Telemetry configuration unavailable: {error:#}")),
         }
         if !app.input.is_empty() {
             app.load();
@@ -2641,7 +2941,20 @@ impl App {
         self.confirm_install = false;
     }
 
+    fn sharing_before(&mut self, action: SharingContinuation) -> bool {
+        if self.sharing.mutation() {
+            return true;
+        }
+        if self.sharing_continuation.is_none() {
+            self.sharing_continuation = Some(action);
+        }
+        false
+    }
+
     fn load(&mut self) {
+        if !self.sharing_before(SharingContinuation::Load) {
+            return;
+        }
         self.reset_installation();
         match Guide::load_for_install(Path::new(&self.input)) {
             Ok(g) => {
@@ -2652,17 +2965,7 @@ impl App {
                 self.wizard = (!g.components.is_empty()).then(|| Wizard::new(&g));
                 self.utility = false;
                 self.guide = Some(g);
-                self.emit_telemetry(
-                    "guide.loaded",
-                    serde_json::Map::from_iter([(
-                        "component_count".into(),
-                        serde_json::json!(
-                            self.guide
-                                .as_ref()
-                                .map_or(0, |guide| guide.components.len())
-                        ),
-                    )]),
-                );
+                // The lifecycle poll records guide load after its ready receipt.
                 self.selected = 0;
                 self.tier_filter.clear();
                 self.category_filter.clear();
@@ -2697,6 +3000,9 @@ impl App {
     }
 
     fn apply_protocol_guide(&mut self, guide: Guide) {
+        if !self.sharing_before(SharingContinuation::Protocol(Box::new(guide.clone()))) {
+            return;
+        }
         self.reset_installation();
         self.logs.push(format!(
             "Loaded {} components from modsync link",
@@ -2713,6 +3019,9 @@ impl App {
     }
 
     fn accept_protocol(&mut self, url: String) {
+        if self.sharing.closing {
+            return;
+        }
         match modsync::protocol::parse(&url) {
             Ok(modsync::protocol::Link::Modsync { .. }) => self.pending_protocol = Some(url),
             Ok(modsync::protocol::Link::Nxm { .. }) => {
@@ -2730,6 +3039,9 @@ impl App {
     }
 
     fn start_pending_nxm_if_ready(&mut self) {
+        if self.sharing.closing || self.desktop.busy() || self.sharing_continuation.is_some() {
+            return;
+        }
         if self.guide.is_some()
             && !self.mods.trim().is_empty()
             && self.receiver.is_none()
@@ -2744,7 +3056,14 @@ impl App {
     /// Dispatches the oldest queued nxm:// link through the shared path: re-resolved
     /// against the guide bound now, nxm_target, a single Peer-off plan, run and record.
     fn download_pending_nxm(&mut self) {
-        if self.receiver.is_some() || self.fomod_pending() || self.peer_view.saving {
+        if self.sharing.closing || self.sharing_continuation.is_some() {
+            return;
+        }
+        if self.receiver.is_some()
+            || self.desktop.busy()
+            || self.fomod_pending()
+            || self.peer_view.saving
+        {
             return;
         }
         let Some(raw) = self.pending_nxm.pop_front() else {
@@ -2823,8 +3142,16 @@ impl App {
                         |event| send(downloads_panel::Update::Event(Box::new(event))),
                         loopback_ca.as_ref(),
                     )?;
+                    let metadata = orchestrator::collect_metadata(
+                        &plan,
+                        &report,
+                        &settings,
+                        &cancelled,
+                        loopback_ca.as_ref(),
+                    );
                     Ok(Box::new(downloads_panel::Finished {
                         report,
+                        metadata,
                         fomod: None,
                     }))
                 },
@@ -2856,6 +3183,9 @@ impl App {
     }
 
     fn apply_category_selection(&mut self) {
+        if !self.sharing.mutation() {
+            return;
+        }
         let Some(categories) = self.category_selection.take() else {
             return;
         };
@@ -2873,6 +3203,27 @@ impl App {
             self.conflicts = None;
             validation_page::clear_report(&mut self.validation_report, &mut self.validation_page);
             self.confirm_install = false;
+        }
+    }
+
+    fn sync_target_presentation(&mut self, ctx: &egui::Context) {
+        let fallback = self.desktop.settings.target_game();
+        let mut theme = self.desktop.settings.effective_theme().to_owned();
+        if let Some(guide) = &self.guide {
+            let target = modsync::wizard::presentation_target(guide, fallback);
+            theme = match target.as_deref() {
+                Some("K1" | "KOTOR1") => "/Styles/KotorStyle.axaml".into(),
+                Some("TSL" | "KOTOR2") => "/Styles/Kotor2Style.axaml".into(),
+                Some(_) => "/Styles/LightStyle.axaml".into(),
+                None => theme,
+            };
+            if let Some(wizard) = &mut self.wizard {
+                wizard.apply_target_context(guide, fallback);
+            }
+        }
+        if self.theme != theme {
+            self.theme = theme;
+            self.apply_theme(ctx);
         }
     }
 
@@ -2902,6 +3253,7 @@ impl App {
         ctx.set_visuals(visuals);
     }
 
+    #[allow(dead_code)] // Retained test-facing synchronous helper; desktop saves use the owned worker.
     fn change_theme(&mut self, theme: &str, ctx: &egui::Context) -> Result<()> {
         anyhow::ensure!(
             !self.profile_directory.is_empty(),
@@ -2914,6 +3266,7 @@ impl App {
         Ok(())
     }
 
+    #[allow(dead_code)] // Retained for the frozen legacy settings API callers.
     fn restore_directory_preferences(&mut self) -> Result<()> {
         anyhow::ensure!(
             !self.profile_directory.is_empty(),
@@ -3005,7 +3358,46 @@ impl App {
         Ok(())
     }
 
+    fn refresh_active_profile_binding(&mut self) -> Result<()> {
+        let active = match modsync::profiles::Store::new(Path::new(&self.profile_directory))
+            .and_then(|store| store.active_name())
+        {
+            Ok(active) => active,
+            Err(error) => {
+                self.begin_desktop_load(Some(PathBuf::from(&self.profile_directory)));
+                return Err(error);
+            }
+        };
+        self.active_profile_name = active.clone().unwrap_or_default();
+        self.desktop.settings.active_profile_name = active;
+        self.invalidate_validation();
+        Ok(())
+    }
+
+    fn profile_ui_action(&mut self, activate: bool) -> Result<()> {
+        let result = self.profile_action(activate);
+        self.refresh_active_profile_binding()?;
+        result
+    }
+
+    fn manage_profile_ui(&mut self, action: &str) -> Result<()> {
+        let result = self.manage_profile(action);
+        self.refresh_active_profile_binding()?;
+        result
+    }
+
     fn profiles(&mut self, ui: &mut egui::Ui) {
+        if !self.desktop.preferences_ready(&self.profile_directory) || self.desktop.busy() {
+            ui.label("Wait for desktop preferences to finish loading or saving.");
+            return;
+        }
+        if self.peer_view.receiver.is_some() || !self.peer_view.queued.is_empty() {
+            ui.label("Wait for peer settings to finish saving or loading.");
+            return;
+        }
+        if !self.sharing.edit_gate(ui) {
+            return;
+        }
         ui.collapsing("Install profiles", |ui| {
             if Self::path_row(ui, "Settings directory", &mut self.profile_directory, true) {
                 self.profile_names.clear();
@@ -3017,7 +3409,7 @@ impl App {
                     .unwrap_or_default();
             }
             ui.horizontal(|ui| {
-                if ui.button("Refresh profiles").clicked() && let Err(e) = self.manage_profile("Refresh") {
+                if ui.button("Refresh profiles").clicked() && let Err(e) = self.manage_profile_ui("Refresh") {
                     self.logs.push(format!("Profile failed: {e:#}"));
                 }
                 egui::ComboBox::from_id_salt("stored_profiles").selected_text("Choose stored profile").show_ui(ui, |ui| {
@@ -3032,7 +3424,7 @@ impl App {
                 ui.label("New name for clone or rename");
                 ui.text_edit_singleline(&mut self.profile_target);
                 for action in ["Clone", "Rename"] {
-                    if ui.button(action).clicked() && let Err(e) = self.manage_profile(action) {
+                    if ui.button(action).clicked() && let Err(e) = self.manage_profile_ui(action) {
                         self.logs.push(format!("Profile failed: {e:#}"));
                     }
                 }
@@ -3043,7 +3435,7 @@ impl App {
             if self.profile_delete.as_ref() == Some(&(self.profile_directory.clone(), self.profile_name.clone())) {
                 ui.label(format!("Delete '{}'? This cannot be undone. Its active setting will be cleared; installed files are unchanged.", self.profile_name));
                 ui.horizontal(|ui| {
-                    if ui.button("Confirm delete").clicked() && let Err(e) = self.manage_profile("Delete") {
+                    if ui.button("Confirm delete").clicked() && let Err(e) = self.manage_profile_ui("Delete") {
                         self.logs.push(format!("Profile failed: {e:#}"));
                     }
                     if ui.button("Cancel deletion").clicked() { self.profile_delete = None; }
@@ -3053,7 +3445,7 @@ impl App {
             ui.horizontal(|ui| {
                 for (label, activate) in [("Save current profile", false), ("Activate profile", true)] {
                     if ui.add_enabled(self.guide.is_some(), egui::Button::new(label)).clicked() {
-                        let result = self.profile_action(activate);
+                        let result = self.profile_ui_action(activate);
                         self.logs.push(match result {
                             Ok(()) => format!("Profile '{}' {}.", self.profile_name, if activate { "activated" } else { "saved" }),
                             Err(e) => format!("Profile failed: {e:#}"),
@@ -3079,6 +3471,7 @@ impl App {
             .as_ref()
             .ok_or_else(|| anyhow::anyhow!("Load a guide first"))?;
         let (phase, context) = match self.completed_base.as_deref() {
+            _ if self.checkpoints.resume.is_some() => (Phase::All, CompletionContext::None),
             Some(ids) => (Phase::Remaining, CompletionContext::Retained { ids }),
             None if job == Job::Validate => (Phase::All, CompletionContext::None),
             None => (Phase::Base, CompletionContext::None),
@@ -3124,23 +3517,74 @@ impl App {
     }
 
     fn saved_fomod_choices(&self, path: &Path) -> Result<Option<modsync::fomod::ArchiveChoices>> {
+        let mut sessions = self.saved_fomod_sessions(path)?;
+        anyhow::ensure!(
+            sessions.len() <= 1,
+            "Multiple bound FOMOD sessions require normalized editor preparation"
+        );
+        Ok(sessions.pop())
+    }
+
+    fn saved_fomod_sessions(&self, path: &Path) -> Result<Vec<modsync::fomod::ArchiveChoices>> {
         let filename = path
             .file_name()
             .and_then(|n| n.to_str())
             .ok_or_else(|| anyhow::anyhow!("Invalid archive filename"))?;
-        if !self.fomod_choices.trim().is_empty() {
-            let choices =
-                modsync::fomod::ChoicesFile::parse(&std::fs::read_to_string(&self.fomod_choices)?)?;
-            Ok(choices.archive(filename).cloned())
-        } else if let Some(guide) = &self.guide {
-            modsync::fomod::saved_archive_choices_remaining(
-                guide,
-                filename,
-                self.completed_base.as_deref().unwrap_or_default(),
-            )
-        } else {
-            Ok(None)
+        let mut sessions = Vec::new();
+        if let Some(guide) = &self.guide {
+            for guid in self.fomod_bound_guids()? {
+                let component = guide
+                    .components
+                    .iter()
+                    .find(|c| c.guid == guid)
+                    .ok_or_else(|| anyhow::anyhow!("FOMOD consumer is missing"))?;
+                if let Some(choices) = modsync::fomod::saved_choices_file(component)?
+                    .and_then(|file| file.archive(filename).cloned())
+                {
+                    sessions.push(choices);
+                }
+            }
         }
+        Ok(sessions)
+    }
+
+    fn fomod_bound_guids(&self) -> Result<Vec<String>> {
+        let guide = self
+            .guide
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("Load a guide first"))?;
+        let guids = if let Some(item) = &self.fomod_active {
+            item.consumer_guids.clone()
+        } else {
+            vec![
+                guide
+                    .components
+                    .get(self.selected)
+                    .ok_or_else(|| anyhow::anyhow!("Select a FOMOD component"))?
+                    .guid
+                    .clone(),
+            ]
+        };
+        anyhow::ensure!(!guids.is_empty(), "FOMOD session has no bound consumers");
+        for guid in &guids {
+            anyhow::ensure!(
+                guide
+                    .components
+                    .iter()
+                    .filter(|c| c.guid == *guid && c.is_selected)
+                    .count()
+                    == 1,
+                "FOMOD consumer is missing, unselected or ambiguous"
+            );
+            anyhow::ensure!(
+                !self
+                    .completed_base
+                    .as_ref()
+                    .is_some_and(|ids| ids.iter().any(|id| id.eq_ignore_ascii_case(guid))),
+                "Completed FOMOD consumer cannot be edited"
+            );
+        }
+        Ok(guids)
     }
 
     fn should_offer_fomod_editor(&self, path: &Path) -> bool {
@@ -3177,17 +3621,46 @@ impl App {
             .guide
             .clone()
             .ok_or_else(|| anyhow::anyhow!("Load a guide first"))?;
-        if !self.fomod_choices.trim().is_empty() {
-            modsync::fomod::ChoicesFile::parse(&std::fs::read_to_string(&self.fomod_choices)?)?
-                .apply_to_remaining(
-                    &mut guide,
-                    self.completed_base.as_deref().unwrap_or_default(),
-                )?;
+        let guids = self.fomod_bound_guids()?;
+        anyhow::ensure!(
+            choices.archives.len() == 1,
+            "A bound editor must return exactly one archive session"
+        );
+        let edit = &choices.archives[0];
+        if let Some(item) = &self.fomod_active {
+            let filename = item
+                .path
+                .file_name()
+                .and_then(|name| name.to_str())
+                .ok_or_else(|| anyhow::anyhow!("Invalid archive filename"))?;
+            anyhow::ensure!(
+                modsync::fomod::eq_ignore_case(&edit.archive_file_name, filename),
+                "Editor archive differs from the captured binding"
+            );
         }
-        choices.merge_into_remaining(
+        let imported = if !self.fomod_choices.trim().is_empty() {
+            let imported = self.fomod_import.as_ref().ok_or_else(|| {
+                anyhow::anyhow!("External choices were not prepared; reopen the FOMOD editor")
+            })?;
+            imported.apply_to_remaining(
+                &mut guide,
+                self.completed_base.as_deref().unwrap_or_default(),
+            )?;
+            true
+        } else {
+            false
+        };
+        modsync::fomod::apply_bound_archive(
             &mut guide,
+            &guids,
+            &edit.archive_file_name,
+            Some(edit),
+            modsync::fomod::PromptStatus::Configured,
             self.completed_base.as_deref().unwrap_or_default(),
         )?;
+        if imported {
+            self.logs.push("Imported the selected external choices file; editor changes apply only to its bound components.".into());
+        }
         self.guide = Some(guide);
         self.fomod_choices.clear();
         self.validated = false;
@@ -3199,6 +3672,7 @@ impl App {
         Ok(())
     }
 
+    #[allow(dead_code)] // Retained for the frozen compatibility callers.
     fn save_selection(&self, path: &Path) -> Result<()> {
         let mut guide = self
             .guide
@@ -3222,6 +3696,7 @@ impl App {
         error: anyhow::Error,
         roots: Option<&modsync::paths::Roots>,
     ) {
+        self.checkpoints.resume = None;
         // Without roots nothing can be read for this run: report no pending
         // state for it, and keep the app-level state from earlier runs.
         let earlier = self.phase_failed;
@@ -3237,6 +3712,9 @@ impl App {
     /// Restore the snapshot of the failed install shown on the page, using the
     /// roots captured for that run rather than the editable folder paths.
     fn restore_captured(&mut self, ctx: &egui::Context) {
+        if !self.sharing_before(SharingContinuation::Restore) {
+            return;
+        }
         let Some(roots) = self.installing_page.restore_target().cloned() else {
             return;
         };
@@ -3263,7 +3741,20 @@ impl App {
     }
 
     fn start(&mut self, job: Job, ctx: &egui::Context) {
-        if self.receiver.is_some() || self.fomod_pending() {
+        if job == Job::Install
+            && self.checkpoints.config.managed
+            && (!self.desktop.preferences_ready(&self.profile_directory) || self.desktop.busy())
+        {
+            self.logs
+                .push("Wait for active profile preferences to finish loading or saving.".into());
+            return;
+        }
+        if matches!(job, Job::Install | Job::Restore | Job::Update)
+            && !self.sharing_before(SharingContinuation::Start(job))
+        {
+            return;
+        }
+        if self.receiver.is_some() || self.desktop.busy() || self.fomod_pending() {
             self.logs
                 .push("Wait for the current operation and FOMOD choices to finish.".into());
             return;
@@ -3275,7 +3766,13 @@ impl App {
             return;
         }
         self.refresh_input_stamp();
+        if job == Job::Conflicts {
+            self.tools.conflict_context = Some(self.input_stamp.clone());
+            self.tools.conflict_error = None;
+            self.tools.conflicts_open = true;
+        }
         if job == Job::Install
+            && self.checkpoints.resume.is_none()
             && (!self.validated
                 || !self.validation_report.as_ref().is_some_and(|r| r.success)
                 || self.validation_input_stamp.as_ref() != Some(&self.input_stamp))
@@ -3439,7 +3936,43 @@ impl App {
         // A direct download gets a run identity too; its FOMOD follow-up is bound to it.
         let direct_run = (job == Job::Download).then(|| {
             let run = self.downloads.direct_run();
-            self.direct_download = Some((run, self.acquisition_context()));
+            let consumers = self
+                .guide
+                .as_ref()
+                .map(|guide| {
+                    guide
+                        .components
+                        .iter()
+                        .filter(|component| {
+                            component.is_selected
+                                && !self.completed_base.as_ref().is_some_and(|ids| {
+                                    ids.iter()
+                                        .any(|id| id.eq_ignore_ascii_case(&component.guid))
+                                })
+                                && modsync::fomod::should_prompt(component, &filename)
+                                && modsync::fomod::saved_choices_file(component).is_ok_and(
+                                    |saved| {
+                                        saved
+                                            .as_ref()
+                                            .and_then(|file| file.archive(&filename))
+                                            .is_none()
+                                    },
+                                )
+                                && component.resource_registry.values().any(|resource| {
+                                    resource
+                                        .get("Files")
+                                        .or_else(|| resource.get("files"))
+                                        .and_then(serde_json::Value::as_object)
+                                        .is_some_and(|files| {
+                                            files.keys().any(|name| name.trim() == filename)
+                                        })
+                                })
+                        })
+                        .map(|component| component.guid.clone())
+                        .collect()
+                })
+                .unwrap_or_default();
+            self.direct_download = Some((run, self.acquisition_context(), consumers));
             run
         });
         let (tx, rx) = mpsc::channel();
@@ -3447,6 +3980,9 @@ impl App {
         self.job = job;
         self.logs.push(
             match job {
+                Job::Checkpoint => "Checkpoint operation…",
+                Job::UpdateSummary => "Reading update result…",
+                Job::Editor => "Editor operation…",
                 Job::Conflicts => "Analyzing file conflicts…",
                 Job::Validate => "Validating…",
                 Job::Install => "Installing…",
@@ -3465,7 +4001,20 @@ impl App {
         let install_roots = settings.roots.clone();
         // The completed prefix the engine is given; the receipt minus it is this phase.
         let prefix = completed.as_ref().map_or(0, Vec::len);
+        let resume = if job == Job::Install {
+            self.checkpoints.resume.take()
+        } else {
+            None
+        };
+        if resume.is_some() {
+            self.checkpoints.resumed_run = install_run;
+        }
+        let checkpoint_config = self.checkpoints.config.clone();
+        let managed_settings = self.profile_directory.clone();
+        let managed_profile = self.active_profile_name.clone();
+        let case_insensitive_pathing = self.desktop.settings.case_insensitive_pathing;
         std::thread::spawn(move || {
+            let mut install_report = None;
             let result =
                 std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> Result<()> {
                     if job == Job::Restore {
@@ -3500,7 +4049,25 @@ impl App {
                         )));
                         ctx.request_repaint();
                     };
-                    let engine = Engine::new(settings)?;
+                    let mut engine = Engine::new_with_case_insensitive_pathing(
+                        settings,
+                        case_insensitive_pathing,
+                    )?;
+                    if job == Job::Install {
+                        let mut config = checkpoint_config;
+                        if resume.is_some() {
+                            config.enabled = true;
+                        }
+                        engine = config.engine(
+                            engine,
+                            &install_roots,
+                            &managed_settings,
+                            &managed_profile,
+                        )?;
+                        if let Some(request) = resume {
+                            engine = engine.with_checkpoint_resume(request)?;
+                        }
+                    }
                     if job == Job::Conflicts {
                         let report = match completed {
                             Some(ids) => engine.analyze_conflicts_remaining(&guide, &ids)?,
@@ -3536,9 +4103,17 @@ impl App {
                     };
                     match (job, completed) {
                         (Job::Install, Some(ids)) => {
-                            engine.install_remaining_observed(&guide, &ids, emit, observe)
+                            install_report =
+                                Some(engine.install_remaining_observed_report(
+                                    &guide, &ids, emit, observe,
+                                )?);
+                            Ok(())
                         }
-                        (Job::Install, None) => engine.install_observed(&guide, emit, observe),
+                        (Job::Install, None) => {
+                            install_report =
+                                Some(engine.install_observed_report(&guide, emit, observe)?);
+                            Ok(())
+                        }
                         (_, Some(ids)) => engine.validate_remaining(&guide, &ids, emit),
                         (_, None) => engine.validate(&guide, emit),
                     }
@@ -3550,11 +4125,21 @@ impl App {
                 });
             let _ = tx.send(match install_run {
                 Some(run) => {
-                    let pending = recovery::state_dir(&install_roots).join("pending").exists();
+                    let pending = recovery::state_dir(&install_roots).join("pending").exists()
+                        || modsync::checkpoint::Store::open(&install_roots)
+                            .and_then(|store| {
+                                Ok(!store.pending_operations()?.is_empty()
+                                    || store.external_process_status()?.present)
+                            })
+                            .unwrap_or(true);
                     // The engine and its recovery lock are gone by now.
-                    let terminal = result
-                        .is_ok()
-                        .then(|| completion_pages::Terminal::read(prefix, install_roots.clone()));
+                    let terminal = result.is_ok().then(|| {
+                        completion_pages::Terminal::read_report(
+                            prefix,
+                            install_roots.clone(),
+                            install_report,
+                        )
+                    });
                     Message::InstallTerminal(run, result, pending, terminal)
                 }
                 None if job == Job::Validate => Message::ValidationDone(validation_run, result),
@@ -3565,65 +4150,72 @@ impl App {
     }
 
     fn start_update_check(&mut self, ctx: &egui::Context) {
-        if self.probe.is_some() {
-            // A probe's settings may hold sentinel secrets meant never to be sent.
-            self.logs
-                .push("Nexus update check is unavailable in a probe launch.".into());
+        if self.receiver.is_some() || self.fomod_pending() || self.sharing.closing {
             return;
         }
-        let Some(guide) = self.guide.clone() else {
-            self.logs
-                .push("Load a guide before checking Nexus updates.".into());
+        if !self.sharing_before(SharingContinuation::Update) {
+            return;
+        }
+        self.tools.updates_open = true;
+        if self.probe.is_some() {
+            self.tools.update_note = "Update checks are unavailable in a probe launch.".into();
+            return;
+        }
+        let Some(original) = self.guide.clone() else {
+            self.tools.update_note = "Load a guide first.".into();
             return;
         };
+        if self.desktop.busy() || !self.desktop.preferences_ready(&self.profile_directory) {
+            self.tools.update_note =
+                "Wait for the current settings directory to finish loading.".into();
+            return;
+        }
+        let explicit = self.desktop.settings_source();
+        self.refresh_input_stamp();
+        self.tools.update_context = Some(self.input_stamp.clone());
         let directory = PathBuf::from(&self.profile_directory);
-        let key = (|| -> Result<String> {
-            anyhow::ensure!(
-                !directory.as_os_str().is_empty(),
-                "Choose a settings directory"
-            );
-            modsync::profiles::Store::new(&directory)?
-                .nexus_api_key()?
-                .filter(|key| !key.trim().is_empty())
-                .ok_or_else(|| {
-                    anyhow::anyhow!(
-                        "Set nexusModsApiKey in settings.json before checking for updates"
-                    )
-                })
-        })();
-        let key = match key {
-            Ok(key) => key,
-            Err(error) => {
-                self.logs.push(format!("Nexus update check: {error:#}"));
-                return;
-            }
-        };
         let (tx, rx) = mpsc::channel();
         self.receiver = Some(rx);
         self.job = Job::Update;
-        self.cancelled.store(false, Ordering::Relaxed);
+        self.cancelled = Arc::new(AtomicBool::new(false));
+        let flag = self.cancelled.clone();
+        let ctx = ctx.clone();
         std::thread::spawn(move || {
-            let mut guide = guide;
-            let result = (|| -> Result<()> {
+            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> Result<()> {
+                anyhow::ensure!(!directory.as_os_str().is_empty(), "Choose a settings directory");
+                let resolved = modsync::profiles::settings_directory(explicit.as_deref())?;
+                anyhow::ensure!(std::path::absolute(&resolved)? == std::path::absolute(&directory)?, "Settings directory changed before update check");
+                let key = modsync::profiles::Store::from_settings_directory(explicit.as_deref())?.nexus_api_key()?.filter(|key| !key.trim().is_empty()).ok_or_else(|| anyhow::anyhow!("Set nexusModsApiKey in settings.json before checking for updates"))?;
                 let mut client = modsync::updates::NexusClient::new(Some(key))?;
-                let summary = modsync::updates::check(&mut guide, &mut client);
-                std::fs::create_dir_all(&directory)?;
-                modsync::updates::save_summary(&directory, &summary)?;
-                tx.send(Message::Updates(guide, summary))?;
+                let mut guide = original.clone();
+                let outcome = modsync::updates::check_with_cancel(&mut guide, &mut client, &flag);
+                let snapshot = modsync::updates::StoredSummary::new(&original, &guide, outcome.summary)?;
+                // Publication is the final cancellation boundary. A later Stop
+                // cannot turn an already-published report into an unsaved result.
+                let cancelled = outcome.cancelled || flag.load(Ordering::Acquire);
+                let persistence_error = if cancelled { None } else { snapshot.save(&directory).err().map(|error| format!("{error:#}")) };
+                let _ = tx.send(Message::Updates(Box::new(tools_panel::UpdateResult { guide, snapshot, cancelled, persistence_error })));
+                anyhow::ensure!(!cancelled, "Update check cancelled; partial result retained in this window, previous saved result unchanged");
                 Ok(())
-            })();
+            })).unwrap_or_else(|_| Err(anyhow::anyhow!("Update worker stopped unexpectedly")));
             let _ = tx.send(Message::Done(result));
+            ctx.request_repaint();
         });
-        ctx.request_repaint();
     }
 
     fn path_row(ui: &mut egui::Ui, label: &str, value: &mut String, folder: bool) -> bool {
         let mut changed = false;
         ui.horizontal(|ui| {
             ui.label(label);
-            changed |= ui
-                .add(egui::TextEdit::singleline(value).desired_width(520.0))
-                .changed();
+            let response = ui.add(egui::TextEdit::singleline(value).desired_width(520.0));
+            changed |= response.changed();
+            if response.lost_focus() && ui.input(|input| input.key_pressed(egui::Key::Enter)) {
+                *value = value.trim().to_owned();
+                changed = true;
+            }
+            if folder && !value.trim().is_empty() && !Path::new(value).is_dir() {
+                ui.colored_label(egui::Color32::YELLOW, "Directory not found");
+            }
             if ui.button("Browse…").clicked() {
                 let dialog = rfd::FileDialog::new();
                 let path = if folder {
@@ -3685,195 +4277,28 @@ impl App {
     }
 
     fn guide_editor(&mut self, ui: &mut egui::Ui) {
-        ui.heading("Guide editor");
-        ui.label("Edit components and executable instructions, then save a new guide file.");
-        let mut save = false;
-        ui.horizontal(|ui| {
-            if ui.button("Add component").clicked()
-                && let Some(guide) = &mut self.guide
-            {
-                self.selected = modsync::editor::add_component(&mut guide.components);
-            }
-            save = ui
-                .add_enabled(self.guide.is_some(), egui::Button::new("Save guide as…"))
-                .clicked();
-        });
-        if save
-            && let Some(path) = rfd::FileDialog::new()
-                .set_file_name("modsync-guide.toml")
-                .save_file()
-        {
-            let result = self
-                .guide
-                .as_ref()
-                .ok_or_else(|| anyhow::anyhow!("Load a guide first"))
-                .and_then(|guide| guide.save(&path));
-            if result.is_ok() {
-                self.downloads.unsaved_records = false;
-            }
-            self.logs.push(match result {
-                Ok(()) => format!("Saved edited guide to {}.", path.display()),
-                Err(error) => format!("Guide save failed: {error:#}"),
-            });
-        }
-
-        let Some(guide) = &mut self.guide else {
-            ui.label("Load a guide first.");
-            return;
-        };
-        if guide.components.is_empty() {
-            return;
-        }
-        self.selected = self.selected.min(guide.components.len() - 1);
-        egui::ComboBox::from_id_salt("editor-component")
-            .selected_text(&guide.components[self.selected].name)
-            .show_ui(ui, |ui| {
-                for (index, component) in guide.components.iter().enumerate() {
-                    ui.selectable_value(&mut self.selected, index, &component.name);
-                }
-            });
-
-        let guid = guide.components[self.selected].guid.clone();
-        let mut component_action = None;
-        ui.horizontal(|ui| {
-            if ui
-                .add_enabled(self.selected > 0, egui::Button::new("Move up"))
-                .clicked()
-            {
-                component_action = Some(-1);
-            }
-            if ui
-                .add_enabled(
-                    self.selected + 1 < guide.components.len(),
-                    egui::Button::new("Move down"),
-                )
-                .clicked()
-            {
-                component_action = Some(1);
-            }
-            if ui.button("Remove component").clicked() {
-                component_action = Some(0);
-            }
-        });
-        if let Some(offset) = component_action {
-            let result = if offset == 0 {
-                modsync::editor::remove_component(&mut guide.components, &guid).map(|_| ())
-            } else {
-                modsync::editor::move_component(&mut guide.components, &guid, offset)
-            };
-            match result {
-                Ok(()) => {
-                    self.selected = self
-                        .selected
-                        .checked_add_signed(offset)
-                        .unwrap_or(self.selected)
-                        .min(guide.components.len().saturating_sub(1));
-                    self.validated = false;
-                }
-                Err(error) => self.logs.push(format!("Edit failed: {error:#}")),
-            }
-            return;
-        }
-
-        let component = &mut guide.components[self.selected];
-        egui::Grid::new("component-fields")
-            .num_columns(2)
-            .show(ui, |ui| {
-                for (label, value) in [
-                    ("GUID", &mut component.guid),
-                    ("Name", &mut component.name),
-                    ("Author", &mut component.author),
-                    ("Tier", &mut component.tier),
-                ] {
-                    ui.label(label);
-                    ui.text_edit_singleline(value);
-                    ui.end_row();
-                }
-            });
-        ui.label("Description");
-        ui.text_edit_multiline(&mut component.description);
-        ui.label("Directions");
-        ui.text_edit_multiline(&mut component.directions);
-        Self::edit_lines(ui, "Categories (one per line)", &mut component.category);
-        Self::edit_lines(
-            ui,
-            "Dependencies (GUIDs, one per line)",
-            &mut component.dependencies,
-        );
-        Self::edit_lines(
-            ui,
-            "Restrictions (GUIDs, one per line)",
-            &mut component.restrictions,
-        );
-
-        ui.separator();
-        ui.heading("Instructions");
-        let mut instruction_action = None;
-        let instruction_count = component.instructions.len();
-        for index in 0..instruction_count {
-            ui.group(|ui| {
-                let instruction = &mut component.instructions[index];
-                ui.horizontal(|ui| {
-                    ui.strong(format!("Step {}", index + 1));
-                    if ui.add_enabled(index > 0, egui::Button::new("↑")).clicked() {
-                        instruction_action = Some((index, -1));
-                    }
-                    if ui
-                        .add_enabled(index + 1 < instruction_count, egui::Button::new("↓"))
-                        .clicked()
-                    {
-                        instruction_action = Some((index, 1));
-                    }
-                    if ui.button("Remove").clicked() {
-                        instruction_action = Some((index, 0));
-                    }
-                });
-                ui.horizontal(|ui| {
-                    ui.label("Action");
-                    ui.text_edit_singleline(&mut instruction.action);
-                    ui.checkbox(&mut instruction.overwrite, "Overwrite");
-                });
-                Self::edit_lines(ui, "Sources (one per line)", &mut instruction.source);
-                ui.horizontal(|ui| {
-                    ui.label("Destination");
-                    ui.text_edit_singleline(&mut instruction.destination);
-                });
-                ui.horizontal(|ui| {
-                    ui.label("Arguments");
-                    ui.text_edit_singleline(&mut instruction.arguments);
-                });
-            });
-        }
-        if let Some((index, offset)) = instruction_action {
-            let result = if offset == 0 {
-                modsync::editor::remove_instruction(component, index).map(|_| ())
-            } else {
-                modsync::editor::move_instruction(component, index, offset)
-            };
-            if let Err(error) = result {
-                self.logs.push(format!("Edit failed: {error:#}"));
-            }
-        }
-        if ui.button("Add instruction").clicked()
-            && let Err(error) =
-                modsync::editor::add_instruction(component, component.instructions.len())
-        {
-            self.logs.push(format!("Edit failed: {error:#}"));
-        }
-        self.validated = false;
-        self.conflicts = None;
-        validation_page::clear_report(&mut self.validation_report, &mut self.validation_page);
-        self.confirm_install = false;
+        self.editor_content(ui);
     }
 }
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        self.poll_resource_watch();
         let protocol_messages: Vec<_> = self
             .protocol_receiver
             .as_ref()
             .map(|receiver| receiver.try_iter().collect())
             .unwrap_or_default();
+        #[cfg(target_os = "macos")]
+        let protocol_messages: Vec<_> = protocol_messages
+            .into_iter()
+            .chain(
+                self.native_protocol_receiver
+                    .as_ref()
+                    .into_iter()
+                    .flat_map(|receiver| receiver.try_iter()),
+            )
+            .collect();
         for url in protocol_messages {
             if url == modsync::single_instance::ACTIVATE_MESSAGE {
                 ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
@@ -3889,24 +4314,162 @@ impl eframe::App for App {
         for message in messages {
             self.handle_message(message);
         }
+        self.poll_editor_worker();
+        self.poll_shell_worker();
+        self.poll_standalone();
         if self.logs.len() > 5000 {
-            self.logs.drain(..self.logs.len() - 5000);
+            let removed = self.logs.len() - 5000;
+            self.logs.drain(..removed);
+            self.desktop.logged = self.desktop.logged.saturating_sub(removed);
         }
         self.refresh_peer_presentation();
+        let sharing_context = self.acquisition_context();
+        self.sharing
+            .poll(&self.profile_directory, &sharing_context, &mut self.logs);
+        if self.sharing_continuation.is_some() && !self.sharing.closing {
+            self.sharing.mutation();
+        }
+        if self.sharing.ready()
+            && self.receiver.is_none()
+            && !self.sharing.closing
+            && let Some(action) = self.sharing_continuation.take()
+        {
+            match action {
+                SharingContinuation::Standalone(request) => self.standalone_start(request, ctx),
+                SharingContinuation::Shell(work, context) => {
+                    self.shell_work(work, Some(context), ctx)
+                }
+                SharingContinuation::Deployment(action, context) => {
+                    self.deployment_start(Some(action), Some(context), ctx)
+                }
+                SharingContinuation::MergeSave(context) => {
+                    self.merge_save_after_barrier(context, ctx)
+                }
+                SharingContinuation::Checkpoint(action, context) => {
+                    self.checkpoint_start(action, context, ctx)
+                }
+                SharingContinuation::Start(job) => self.start(job, ctx),
+                SharingContinuation::Restore => self.restore_captured(ctx),
+                SharingContinuation::Load => self.load(),
+                SharingContinuation::Update => self.start_update_check(ctx),
+                SharingContinuation::Protocol(guide) => self.apply_protocol_guide(*guide),
+                SharingContinuation::Terminal(run, result) => {
+                    self.acquisition_terminal(run, result)
+                }
+            }
+        }
+        self.poll_desktop(ctx);
+        self.rehydrate_update_summary(ctx);
+        self.sync_target_presentation(ctx);
+        if self.sharing.closing
+            && self.resource_watch.closed()
+            && self.standalone.closed()
+            && self.editor.settled()
+            && self.shell.settled()
+            && self.desktop.closed()
+            && self.receiver.is_none()
+            && self.sharing.closed()
+            && self.peer_view.receiver.is_none()
+        {
+            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+        }
+        self.shell_ui(ctx);
+        self.desktop_window(ctx);
+        self.merge_window(ctx);
+        self.deployment_window(ctx);
+        self.standalone_window(ctx);
+        self.tools_windows(ctx);
+        self.checkpoint_window(ctx);
         self.show_fomod(ctx);
+        ctx.request_repaint_after(Duration::from_millis(100));
         if self.peer_view.receiver.is_some() {
             ctx.request_repaint_after(Duration::from_millis(100));
         }
-        let busy = self.receiver.is_some();
-        if busy {
-            ctx.request_repaint_after(Duration::from_millis(100));
-            if ctx.input(|i| i.viewport().close_requested()) {
-                ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
-                self.stop_confirmation = true;
+        let busy = self.receiver.is_some()
+            || self.desktop.busy()
+            || self.sharing.closing
+            || self.sharing_continuation.is_some();
+        if ctx.input(|i| i.viewport().close_requested())
+            && !(self.sharing.closing
+                && self.resource_watch.closed()
+                && self.standalone.closed()
+                && self.editor.settled()
+                && self.shell.settled()
+                && self.desktop.closed()
+                && self.sharing.closed()
+                && self.receiver.is_none()
+                && self.peer_view.receiver.is_none())
+        {
+            ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
+            if !self.sharing.closing {
+                self.sharing.close_confirm = true;
             }
         }
+        if self.sharing.close_confirm {
+            egui::Modal::new(egui::Id::new("close_sharing_workers")).show(ctx, |ui| {
+                ui.heading("Stop work and close?");
+                ui.label("Downloads, sharing, editor work, settings saves and telemetry finish cleanup before the window closes. Dismiss any open file dialog to let cancellation finish.");
+                if ui.button("Stop and close").clicked() {
+                    self.cancelled.store(true, Ordering::Release);
+                    self.downloads.request_stop();
+                    self.sharing.close();
+                    if let Some(SharingContinuation::Terminal(run, result)) = self.sharing_continuation.take() { self.acquisition_terminal(run, result); }
+                }
+                if ui.button("Keep open").clicked() { self.sharing.close_confirm = false; }
+            });
+        }
+        egui::TopBottomPanel::top("completed_sharing").show(ctx, |ui| {
+            let allow_resume = (self.receiver.is_none()
+                || matches!(self.job, Job::Download | Job::NxmDownload | Job::Fetch))
+                && self.sharing_continuation.is_none()
+                && self.peer_view.receiver.is_none()
+                && self.peer_view.queued.is_empty()
+                && !self.fomod_pending();
+            self.sharing.show(ui, self.guide.as_ref(), allow_resume);
+            if let Some(error) = &self.peer_view.error {
+                ui.colored_label(egui::Color32::RED, error);
+            }
+            ui.horizontal(|ui| {
+                if ui
+                    .add_enabled(!self.sharing.closing, egui::Button::new("Sharing Off"))
+                    .clicked()
+                {
+                    self.request_peer_settings(vec![(
+                        "peerSharing".into(),
+                        serde_json::json!(false),
+                    )]);
+                }
+                if ui
+                    .add_enabled(!self.sharing.closing, egui::Button::new("KeepSharing Off"))
+                    .clicked()
+                {
+                    self.request_peer_settings(vec![(
+                        "peerKeepSharing".into(),
+                        serde_json::json!(false),
+                    )]);
+                }
+            });
+        });
         egui::TopBottomPanel::top("title").show(ctx, |ui| {
             ui.horizontal(|ui| {
+                if ui.button("Managed deployments").clicked() {
+                    self.deployment.open = true;
+                }
+                if ui.button("Merge guides").clicked() {
+                    self.merge.open = true;
+                }
+                if ui.button("Settings / privacy").clicked() {
+                    self.desktop.open = true;
+                }
+                if ui.button("Conflicts").clicked() {
+                    self.tools.conflicts_open = true;
+                }
+                if ui.button("Provider updates").clicked() {
+                    self.tools.updates_open = true;
+                }
+                if ui.button("Checkpoint history").clicked() {
+                    self.checkpoints.open = true;
+                }
                 ui.heading("ModSync.rs");
                 ui.label("Install mods in guide order");
             });
@@ -3977,9 +4540,9 @@ impl eframe::App for App {
                                     )
                                     .on_hover_text(tip)
                                     .clicked()
-                                    && let Err(e) = self.change_theme(path, ctx)
                                 {
-                                    self.logs.push(format!("Theme save failed: {e:#}"));
+                                    self.desktop.settings.theme = Some(path.into());
+                                    self.save_desktop_preferences();
                                 }
                             }
                         });
@@ -4061,13 +4624,14 @@ impl eframe::App for App {
                         if ui.button("Copy report").clicked() {
                             ctx.copy_text(self.logs.join("\n"));
                         }
-                        if ui.button("Save report…").clicked()
-                            && let Some(path) = rfd::FileDialog::new()
-                                .set_file_name("modsync-report.txt")
-                                .save_file()
-                            && let Err(e) = std::fs::write(path, self.logs.join("\n"))
+                        if ui
+                            .add_enabled(!busy, egui::Button::new("Save report…"))
+                            .clicked()
                         {
-                            self.logs.push(e.to_string());
+                            self.shell_work(main_window::Work::SaveLog, None, ctx);
+                        }
+                        if ui.button("Select / inspect log").clicked() {
+                            self.shell.log_open = true;
                         }
                     });
                     egui::ScrollArea::vertical()
@@ -4198,6 +4762,7 @@ impl eframe::App for App {
                 });
             });
             if stop_downloads {
+                self.sharing.pause(modsync::peer_sharing::PauseReason::User);
                 // The run's own token; the run stays busy and shows stopping until its
                 // workers join and the terminal arrives.
                 self.cancelled.store(true, Ordering::Relaxed);
@@ -4241,11 +4806,17 @@ pub fn launch(
     let primary = if separate {
         None
     } else {
-        modsync::single_instance::claim_or_forward(protocol.as_deref())?
+        let identity = modsync::protocol_registration::package_identity(&std::env::current_exe()?)?;
+        modsync::single_instance::claim_or_forward_for_channel(
+            protocol.as_deref(),
+            &identity.channel,
+        )?
     };
     if primary.is_none() && !separate {
         return Ok(());
     }
+    #[cfg(target_os = "macos")]
+    let (native_protocol_receiver, _native_url_guard) = modsync::native_url::install()?;
     let native = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([1280.0, 800.0])
@@ -4258,36 +4829,15 @@ pub fn launch(
         Box::new(move |creation| {
             let mut app = App::with_launch(input, game, mods, settings_dir, probe);
             app.repaint = Some(creation.egui_ctx.clone());
+            #[cfg(target_os = "macos")]
+            {
+                app.native_protocol_receiver = Some(native_protocol_receiver);
+            }
             if let Some((protocol_receiver, instance_guard)) = primary {
                 app.protocol_receiver = Some(protocol_receiver);
                 app._instance_guard = Some(instance_guard);
             }
-            if let Err(e) = app.restore_directory_preferences() {
-                app.logs.push(format!("Settings load failed: {e:#}"));
-            }
-            match modsync::profiles::Store::new(Path::new(&app.profile_directory))
-                .and_then(|store| store.theme_preference())
-            {
-                Ok(theme) => app.theme = theme,
-                Err(e) => app.logs.push(format!("Theme load failed: {e:#}")),
-            }
-            match modsync::profiles::Store::new(Path::new(&app.profile_directory))
-                .and_then(|store| store.patcher_preferences())
-            {
-                Ok(preferences) => {
-                    app.patcher_engine = preferences.engine;
-                    app.patcher = preferences.executable.unwrap_or_default();
-                }
-                Err(e) => app.logs.push(format!("Patcher setting load failed: {e:#}")),
-            }
-            match modsync::profiles::Store::new(Path::new(&app.profile_directory))
-                .and_then(|store| store.spoiler_free_preference())
-            {
-                Ok(enabled) => app.spoiler_free = enabled,
-                Err(e) => app
-                    .logs
-                    .push(format!("Spoiler preference load failed: {e:#}")),
-            }
+            app.begin_desktop_load(app.explicit_settings.clone());
             let mut fonts = egui::FontDefinitions::default();
             fonts.font_data.insert(
                 "validation-symbols".into(),

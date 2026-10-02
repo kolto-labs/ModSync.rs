@@ -1,0 +1,1 @@
+{"peerSharing": true, "peerMode": "race", "peerProxies": ["socks5://127.0.0.1:47117"], "peerProxyListUrl": "", "peerTrackerListUrl": null, "peerTrackers": [], "peerExtraPeers": ["127.0.0.1:40063"], "telemetryOptIn": false}

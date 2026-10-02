@@ -26,6 +26,117 @@ pub struct Report {
     pub limitations: Vec<String>,
 }
 
+/// Immutable desktop/CLI view of an already-computed report. No simulation or
+/// filesystem reads occur while building it.
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Presentation {
+    pub summary: String,
+    pub rows: Vec<ConflictRow>,
+    pub components: Vec<ComponentCount>,
+    pub limitations: Vec<String>,
+    pub report_json: String,
+}
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ConflictRow {
+    pub destination_path: String,
+    pub writers: Vec<WriterRow>,
+}
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WriterRow {
+    pub component_guid: String,
+    pub component_name: String,
+    pub instruction_index: usize,
+    pub is_winner: bool,
+}
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ComponentCount {
+    pub component_guid: String,
+    pub component_name: String,
+    pub conflicting_paths: usize,
+}
+
+impl Presentation {
+    pub fn from_report(report: &Report) -> serde_json::Result<Self> {
+        let summary = if report.conflicts.is_empty() {
+            if report.analyzed_component_count == 0 {
+                "No selected components to analyze.".into()
+            } else {
+                format!(
+                    "No simulated file conflicts among {} selected components.",
+                    report.analyzed_component_count
+                )
+            }
+        } else {
+            format!(
+                "{} conflicting file paths across {} selected components.",
+                report.conflicts.len(),
+                report.analyzed_component_count
+            )
+        };
+        let mut names = BTreeMap::new();
+        let mut rows: Vec<_> = report
+            .conflicts
+            .iter()
+            .map(|conflict| ConflictRow {
+                destination_path: conflict.destination_path.clone(),
+                writers: conflict
+                    .writers
+                    .iter()
+                    .map(|writer| {
+                        names
+                            .entry(writer.component_guid.to_ascii_lowercase())
+                            .or_insert_with(|| writer.component_name.clone());
+                        WriterRow {
+                            component_guid: writer.component_guid.clone(),
+                            component_name: writer.component_name.clone(),
+                            instruction_index: writer.instruction_index,
+                            is_winner: writer
+                                .component_guid
+                                .eq_ignore_ascii_case(&conflict.winner_component_guid),
+                        }
+                    })
+                    .collect(),
+            })
+            .collect();
+        rows.sort_by(|a, b| {
+            a.destination_path
+                .to_lowercase()
+                .cmp(&b.destination_path.to_lowercase())
+                .then(a.destination_path.cmp(&b.destination_path))
+        });
+        let mut components: Vec<_> = report
+            .conflict_counts_by_component
+            .iter()
+            .map(|(guid, count)| ComponentCount {
+                component_guid: guid.clone(),
+                component_name: names
+                    .get(&guid.to_ascii_lowercase())
+                    .filter(|name| !name.is_empty())
+                    .cloned()
+                    .unwrap_or_else(|| guid.clone()),
+                conflicting_paths: *count,
+            })
+            .collect();
+        components.sort_by(|a, b| {
+            b.conflicting_paths
+                .cmp(&a.conflicting_paths)
+                .then(a.component_name.cmp(&b.component_name))
+                .then(a.component_guid.cmp(&b.component_guid))
+        });
+        Ok(Self {
+            summary,
+            rows,
+            components,
+            limitations: report.limitations.clone(),
+            report_json: serde_json::to_string_pretty(report)?,
+        })
+    }
+}
+
 #[derive(Default)]
 pub(crate) struct Tracker {
     pub current: Option<Writer>,

@@ -3,7 +3,7 @@ use serde_json::{Map, Value, json};
 use sha1::{Digest, Sha1};
 
 // Mirrors UrlNormalizer for content identity; the original URL remains the key.
-fn normalized_url(input: &str) -> String {
+pub(crate) fn normalized_url(input: &str) -> String {
     let Ok(url) = reqwest::Url::parse(
         &input
             .trim()

@@ -1,0 +1,14 @@
+[
+  "/root/modsync-downloads-step2-20260928/target/debug/modsync",
+  "torrent-seed",
+  "/tmp/modsync-step3-h7ymmj6s/example.zip",
+  "--no-proxy",
+  "--authored-magnet",
+  "magnet:?xt=urn:btih:33347e016d66e1aa349faae9f45b3f9913162940&dn=example.zip",
+  "--torrent-info",
+  "ZDY6bGVuZ3RoaTEwNDg3MTJlNDpuYW1lMTE6ZXhhbXBsZS56aXAxMjpwaWVjZSBsZW5ndGhpNjU1MzZlNjpwaWVjZXMzNDA6remj20U+NA80ybzXOSXiwEKceM97kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FAB7kvZjxWTHZVlJNXnySkKcMT0UAHuS9mPFZMdlWUk1efJKQpwxPRQAe5L2Y8Vkx2VZSTV58kpCnDE9FABTJOjEVpk2rIX6wXmorIvNseA+LWU=",
+  "--share-ratio",
+  "0",
+  "--upload-kibps",
+  "10000"
+]

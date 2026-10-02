@@ -1,6 +1,11 @@
+mod checkpoint_cli;
+mod cli_acquisition;
+mod cli_compat;
+mod cli_session;
 mod profile_cli;
+mod protocol_cli;
 use anyhow::{Context, Result, ensure};
-use clap::{Args, Parser, Subcommand, ValueEnum};
+use clap::{Args, CommandFactory, FromArgMatches, Parser, Subcommand, ValueEnum};
 use modsync::{Engine, Guide, PatcherEngine, Settings, download, paths::Roots, recovery};
 use std::{
     ffi::OsString,
@@ -23,6 +28,12 @@ mod ui;
     about = "Install ModSync guides with a Rust desktop app or CLI"
 )]
 struct Cli {
+    /// Include diagnostic log output on stderr without changing structured stdout.
+    #[arg(short = 'v', long, global = true)]
+    verbose: bool,
+    /// Use plain text progress output (the CLI default).
+    #[arg(long, global = true)]
+    plaintext: bool,
     #[command(subcommand)]
     command: Option<Action>,
 }
@@ -36,6 +47,12 @@ enum Action {
     Profile(profile_cli::ProfileArgs),
     /// Get, set or list settings.json values.
     Settings(profile_cli::SettingsArgs),
+    /// Inspect or manage per-user protocol associations owned by this package.
+    Protocol(protocol_cli::ProtocolArgs),
+    /// Validate and store a Nexus Mods API key.
+    SetNexusApiKey(profile_cli::SetNexusApiKeyArgs),
+    /// Capture, inspect and verify checkpoint history for explicit roots.
+    Checkpoint(checkpoint_cli::CheckpointArgs),
     /// Open the desktop installer (also the default with no command).
     Gui {
         #[arg(long)]
@@ -62,6 +79,35 @@ enum Action {
         #[arg(long, hide = true)]
         extra_ca_file: Option<PathBuf>,
     },
+    /// Run an explicitly trusted HoloPatcher backend outside a guide install.
+    #[command(name = "holopatcher")]
+    HoloPatcher {
+        #[arg(long)]
+        patcher: Option<PathBuf>,
+        /// Explicitly authorize this backend to execute with your user permissions.
+        #[arg(long)]
+        allow_processes: bool,
+        /// Legacy argument string; parsed without a shell.
+        #[arg(
+            short = 'a',
+            long = "args",
+            conflicts_with = "arguments",
+            allow_hyphen_values = true
+        )]
+        legacy_arguments: Option<String>,
+        #[arg(long)]
+        working_directory: Option<PathBuf>,
+        #[arg(long, default_value_t = 3600, value_parser = clap::value_parser!(u64).range(1..=86400))]
+        timeout_seconds: u64,
+        /// Backend argv following --, preserved as native OS strings.
+        #[arg(last = true, allow_hyphen_values = true)]
+        arguments: Vec<OsString>,
+    },
+    /// Explain the unsupported reference Python.Included bootstrap operation.
+    InstallPythonDeps {
+        #[arg(long)]
+        force: bool,
+    },
     /// Inspect FOMOD metadata and selection defaults as JSON without installing.
     FomodInspect {
         archive: PathBuf,
@@ -84,6 +130,68 @@ enum Action {
     },
     /// List components and their download links as JSON.
     List { input: PathBuf },
+    /// Preview a merge with field, resource, option and heuristic decisions.
+    MergePreview {
+        existing: PathBuf,
+        incoming: PathBuf,
+        /// JSON merge Options; omitted fields use production defaults.
+        #[arg(long)]
+        options: Option<PathBuf>,
+    },
+    /// Revalidate both guide identities and save an approved merge preview.
+    MergeApply {
+        existing: PathBuf,
+        incoming: PathBuf,
+        preview: PathBuf,
+        output: PathBuf,
+    },
+    /// Prepare a non-approved resolution template for one generated component or option.
+    GuideDraftReview { input: PathBuf, component: String },
+    /// Apply an ordered JSON edit transaction and atomically save a distinct output.
+    GuideEdit {
+        input: PathBuf,
+        operations: PathBuf,
+        output: PathBuf,
+    },
+    /// Preview a local or previously fetched component document without editing.
+    GuideImportPreview {
+        input: PathBuf,
+        document: PathBuf,
+        #[arg(long, default_value = "auto")]
+        format: String,
+        /// A bounded custom regex profile; output includes match highlights.
+        #[arg(long, conflicts_with = "format")]
+        regex_profile: Option<PathBuf>,
+        #[arg(long, conflicts_with_all = ["parent", "index"])]
+        replace: Option<String>,
+        #[arg(long)]
+        parent: Option<String>,
+        #[arg(long)]
+        index: Option<usize>,
+    },
+    /// Apply a saved import preview only if the original guide has not changed.
+    GuideImportApply {
+        input: PathBuf,
+        preview: PathBuf,
+        output: PathBuf,
+    },
+    /// Browse exact registered resources and archive inventories without extracting.
+    GuideResources {
+        input: PathBuf,
+        component: String,
+        #[arg(long)]
+        source_dir: PathBuf,
+        #[arg(long)]
+        game_dir: PathBuf,
+        #[arg(long, default_value_t = 268_435_456)]
+        max_expanded_bytes: u64,
+    },
+    /// Read the timestamped update snapshot without changing guide metadata.
+    UpdateSummary {
+        input: PathBuf,
+        #[arg(long)]
+        settings_dir: Option<PathBuf>,
+    },
     /// Parse an nxm:// or modsync:// handoff URL without fetching it.
     ProtocolParse { url: String },
     /// Download an HTTP(S) instruction file with the protocol fetcher's SSRF and size guards.
@@ -138,9 +246,21 @@ enum Action {
     },
     /// Merge two guides, matching GUIDs then normalized names/authors.
     Merge {
-        existing: PathBuf,
-        incoming: PathBuf,
-        output: PathBuf,
+        #[arg(required_unless_present = "existing_path")]
+        existing: Option<PathBuf>,
+        #[arg(required_unless_present = "incoming_path")]
+        incoming: Option<PathBuf>,
+        output: Option<PathBuf>,
+        #[arg(short = 'e', long = "existing", conflicts_with = "existing")]
+        existing_path: Option<PathBuf>,
+        #[arg(short = 'n', long = "incoming", conflicts_with = "incoming")]
+        incoming_path: Option<PathBuf>,
+        #[arg(short = 'o', long = "output", conflicts_with = "output")]
+        output_path: Option<PathBuf>,
+        #[arg(short, long)]
+        format: Option<String>,
+        #[command(flatten)]
+        processing: ConversionProcessing,
         #[arg(long)]
         use_existing_order: bool,
         #[arg(long)]
@@ -199,6 +319,7 @@ enum Action {
         json: bool,
     },
     /// Convert TOML, JSON, YAML, XML, or Markdown input.
+    /// Use convert --merge --existing <guide> --incoming <guide> for legacy merge mode.
     Convert {
         input: Option<PathBuf>,
         output: Option<PathBuf>,
@@ -208,20 +329,17 @@ enum Action {
         output_path: Option<PathBuf>,
         #[arg(long, conflicts_with = "input")]
         stdin: bool,
-        /// Output format; defaults to TOML, or the positional output extension.
+        /// Output format; defaults to TOML, or the output extension.
         #[arg(short, long)]
         format: Option<String>,
         /// Draft instructions from prose; generated steps require review before installation.
         #[arg(long)]
         parse_directions: bool,
-        /// Infer missing instructions from local downloaded archives.
-        #[arg(long, requires = "source_path")]
-        auto_generate_local: bool,
-        #[arg(long)]
-        source_path: Option<PathBuf>,
         /// Mark a component's displayed drafts reviewed (GUID; repeat for multiple components).
         #[arg(long)]
         review_draft: Vec<String>,
+        #[command(flatten)]
+        processing: ConversionProcessing,
     },
     /// Report which host-provided filenames the guide would request; no downloads.
     DownloadPlan {
@@ -482,7 +600,90 @@ enum DeploymentAction {
     },
 }
 #[derive(Args)]
+struct ConversionProcessing {
+    /// Version-1 FOMOD choices for the download prephase.
+    #[arg(long)]
+    fomod_choices: Option<PathBuf>,
+    /// Suppress post-download configuration; unresolved installers still block processing.
+    #[arg(long)]
+    fomod_skip: bool,
+    #[arg(long, conflicts_with = "non_interactive")]
+    interactive: bool,
+    #[arg(long, conflicts_with = "interactive")]
+    non_interactive: bool,
+
+    /// Reset output selection by name/GUID, category:Name, or tier:Name (repeatable).
+    #[arg(short = 's', long)]
+    select: Vec<String>,
+    /// Infer missing instructions from local downloaded archives.
+    #[arg(long, requires = "source_path")]
+    auto_generate_local: bool,
+    /// Infer review-required instructions from resolved resource filenames.
+    #[arg(short = 'a', long = "auto")]
+    auto_generate: bool,
+    /// Download all guide resources before generating or rendering output.
+    #[arg(short = 'd', long, requires = "source_path")]
+    download: bool,
+    #[arg(long)]
+    source_path: Option<PathBuf>,
+    /// Use four acquisition workers instead of one.
+    #[arg(long, requires = "download")]
+    concurrent: bool,
+    #[arg(long)]
+    nexus_mods_api_key: Option<String>,
+    #[arg(long)]
+    settings_dir: Option<PathBuf>,
+    /// Overlay the five authored spoiler-free fields from a separate Markdown guide.
+    #[arg(long)]
+    spoiler_free: Option<PathBuf>,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, ValueEnum)]
+enum ValidationOutput {
+    Text,
+    Json,
+}
+
+#[derive(Args)]
 struct InstallArgs {
+    /// Suppress post-download configuration; unresolved installers still block installation.
+    #[arg(long)]
+    fomod_skip: bool,
+    #[arg(long, conflicts_with = "non_interactive")]
+    interactive: bool,
+    #[arg(long, conflicts_with = "interactive")]
+    non_interactive: bool,
+
+    /// Acquire selected resources before validation and the installation snapshot.
+    #[arg(short = 'd', long)]
+    download: bool,
+    #[arg(long, visible_alias = "nexus-api-key")]
+    nexus_mods_api_key: Option<String>,
+    /// Use four download workers instead of one.
+    #[arg(long, requires = "download")]
+    concurrent: bool,
+    /// Maximum hours for acquisition; zero uses the reference 48-hour default.
+    #[arg(long, default_value_t = 48)]
+    download_timeout_hours: u32,
+    /// Retain a verified checkpoint after every successful top-level component.
+    /// Failed operations require checkpoint recovery before retrying.
+    #[arg(long)]
+    component_checkpoints: bool,
+    /// Keep whole-run recovery without retaining per-component history.
+    #[arg(long, conflicts_with_all = ["component_checkpoints", "managed"])]
+    no_checkpoint: bool,
+    /// Compatibility flag; installs reject continuing after a failed step.
+    #[arg(long, visible_alias = "continue-on-error")]
+    best_effort: bool,
+    /// Stage and track managed deployment effects within component checkpoints.
+    #[arg(long)]
+    managed: bool,
+    /// Managed staging root; supply together with --manifest-dir.
+    #[arg(long, requires_all = ["managed", "manifest_dir"])]
+    staging_dir: Option<PathBuf>,
+    /// Managed manifest root; supply together with --staging-dir.
+    #[arg(long, requires_all = ["managed", "staging_dir"])]
+    manifest_dir: Option<PathBuf>,
     /// Run all selected components, the base, or the verified remaining suffix.
     #[arg(long, value_enum, default_value = "all")]
     phase: PhaseArg,
@@ -494,9 +695,10 @@ struct InstallArgs {
     fomod_choices: Option<PathBuf>,
     #[arg(long, short, required_unless_present_any = ["profile", "active_profile"])]
     input: Option<PathBuf>,
-    #[arg(long, required_unless_present_any = ["profile", "active_profile"])]
+    #[arg(long, short = 'g', required_unless_present_any = ["profile", "active_profile"])]
     game_dir: Option<PathBuf>,
-    #[arg(long, required_unless_present_any = ["profile", "active_profile"])]
+    /// Mod files directory; install defaults to the input guide's parent directory.
+    #[arg(long, short = 's')]
     source_dir: Option<PathBuf>,
     /// Apply this stored profile before explicit selection overrides.
     #[arg(long, conflicts_with = "active_profile")]
@@ -528,7 +730,7 @@ struct InstallArgs {
     )]
     patcher: Option<PathBuf>,
     /// CLI patcher backend for Patcher instructions.
-    #[arg(long, value_enum)]
+    #[arg(long, value_enum, ignore_case = true)]
     patcher_engine: Option<PatcherEngineArg>,
     /// Existing scratch folder outside the game and mod trees (defaults to system temp).
     #[arg(long)]
@@ -551,14 +753,20 @@ struct InstallArgs {
     /// Emit the structured validation pipeline report instead of validation events.
     #[arg(long, conflicts_with = "json")]
     validation_report: bool,
+    /// Validation report output, compatible with the reference text/json option.
+    #[arg(long = "output", value_enum, ignore_case = true, conflicts_with_all = ["json", "validation_report", "install_progress_json"])]
+    validation_output: Option<ValidationOutput>,
+    /// Suppress successful stage and warning text in validation output.
+    #[arg(long, conflicts_with = "json")]
+    errors_only: bool,
     /// Include a non-mutating engine dry-run result in the validation report.
-    #[arg(long, requires = "validation_report")]
+    #[arg(long, conflicts_with = "json")]
     dry_run: bool,
     /// Include environment, conflict, and install-order validation stages.
-    #[arg(long, requires = "validation_report")]
+    #[arg(long, conflicts_with = "json")]
     full: bool,
     /// Run only FOMOD configuration and VFS dry-run validation.
-    #[arg(long, requires = "validation_report")]
+    #[arg(long, conflicts_with = "json")]
     dry_run_only: bool,
 }
 
@@ -614,7 +822,7 @@ fn ordered_selection_steps(
     flags: &SelectionFlags,
 ) -> Vec<modsync::selection::Action> {
     use modsync::selection::{Action as Step, Filter};
-    let matches = <Cli as clap::CommandFactory>::command()
+    let matches = command_definition()
         .try_get_matches_from(std::env::args_os())
         .ok();
     let sub = matches
@@ -783,8 +991,220 @@ impl From<TorrentProxyArgs> for modsync::p2p::CliProxyOptions {
     }
 }
 
+fn install_nexus_key(explicit: Option<&str>) -> Result<Option<String>> {
+    if let Some(key) = explicit {
+        ensure!(
+            !key.trim().is_empty(),
+            "An explicit Nexus API key cannot be blank"
+        );
+        return Ok(Some(key.to_owned()));
+    }
+    for name in ["KOTOR_MODSYNC_NEXUS_API_KEY", "NEXUS_MODS_API_KEY"] {
+        match std::env::var(name) {
+            Ok(key) if !key.trim().is_empty() => return Ok(Some(key)),
+            Ok(_) | Err(std::env::VarError::NotPresent) => {}
+            Err(std::env::VarError::NotUnicode(_)) => {
+                anyhow::bail!("Nexus API key environment variable is not Unicode")
+            }
+        }
+    }
+    Ok(None)
+}
+
+fn conversion_cancelled(cancelled: &std::sync::atomic::AtomicBool) -> Result<()> {
+    if cancelled.load(Ordering::Acquire) {
+        return Err(cli_session::Exit(130).into());
+    }
+    Ok(())
+}
+
+fn process_conversion(
+    guide: &mut Guide,
+    options: &ConversionProcessing,
+    input: Option<&std::path::Path>,
+    cancelled: &std::sync::Arc<std::sync::atomic::AtomicBool>,
+) -> Result<()> {
+    let result = process_conversion_inner(guide, options, input, cancelled);
+    conversion_cancelled(cancelled)?;
+    result
+}
+
+fn process_conversion_inner(
+    guide: &mut Guide,
+    options: &ConversionProcessing,
+    input: Option<&std::path::Path>,
+    cancelled: &std::sync::Arc<std::sync::atomic::AtomicBool>,
+) -> Result<()> {
+    if let Some(path) = &options.spoiler_free {
+        let text = modsync::editor::read_document(path)?;
+        let overlay = modsync::spoiler::apply_markdown(guide, &text)?;
+        ensure!(
+            overlay.complete,
+            "Spoiler overlay has unresolved mappings: {}",
+            serde_json::to_string(&overlay.diagnostics)?
+        );
+        if !overlay.ignored_fields.is_empty() {
+            eprintln!(
+                "Spoiler overlay projection: {}",
+                serde_json::to_string(&overlay.ignored_fields)?
+            );
+        }
+        *guide = overlay.guide;
+    }
+    if options.download {
+        let result = cli_acquisition::before_process(
+            guide,
+            options
+                .source_path
+                .as_deref()
+                .context("--download requires --source-path")?,
+            None,
+            options.settings_dir.as_deref(),
+            &modsync::archive::Options::default(),
+            cancelled.clone(),
+            &cli_acquisition::Options {
+                guide_path: input.map(std::path::Path::to_owned),
+                nexus_api_key: options.nexus_mods_api_key.clone(),
+                workers: if options.concurrent { 4 } else { 1 },
+                fomod_choices: options.fomod_choices.clone(),
+                fomod_skip: options.fomod_skip,
+                fomod_interactive: options.interactive,
+                fomod_non_interactive: options.non_interactive,
+                timeout: None,
+                completed: Vec::new(),
+                include_unselected_authoring: true,
+            },
+        );
+        if cancelled.load(Ordering::Acquire) {
+            return Err(cli_session::Exit(130).into());
+        }
+        result?;
+    }
+    if options.auto_generate {
+        conversion_cancelled(cancelled)?;
+        let needs_nexus = guide.components.iter().any(|component| {
+            component.resource_registry.keys().any(|url| {
+                matches!(
+                    modsync::download_hosts::provider(url),
+                    Ok(modsync::download_hosts::Provider::Nexus)
+                )
+            })
+        });
+        let key = cli_acquisition::resolve_nexus_key(
+            options.nexus_mods_api_key.as_deref(),
+            options.settings_dir.as_deref(),
+            needs_nexus,
+        )?;
+        let resolved = modsync::download_orchestrator::filenames::resolve(guide, key, cancelled)?;
+        conversion_cancelled(cancelled)?;
+        ensure!(
+            !resolved.cancelled && resolved.diagnostics.is_empty(),
+            "Filename resolution is incomplete: {}",
+            serde_json::to_string(&resolved.diagnostics)?
+        );
+        let reports = modsync::archive_generation::resolved::generate(
+            guide,
+            &resolved.resolved,
+            options.source_path.as_deref(),
+            &modsync::archive::Options::default(),
+            cancelled,
+        )?;
+        conversion_cancelled(cancelled)?;
+        eprintln!("{}", serde_json::to_string_pretty(&reports)?);
+    }
+    if options.auto_generate_local {
+        conversion_cancelled(cancelled)?;
+        let reports = modsync::archive_generation::generate_local_with_cancel(
+            guide,
+            options
+                .source_path
+                .as_deref()
+                .context("Local generation requires --source-path")?,
+            cancelled,
+        );
+        conversion_cancelled(cancelled)?;
+        eprintln!("{}", serde_json::to_string_pretty(&reports?)?);
+    }
+    // Selection is an output projection after inference, as in the reference.
+    // Omission preserves the existing conversion selection behavior.
+    if !options.select.is_empty() {
+        for warning in
+            modsync::selection::apply_cli_selection(&mut guide.components, &options.select)?
+        {
+            eprintln!("Warning: {warning}");
+        }
+    }
+    conversion_cancelled(cancelled)?;
+    Ok(())
+}
+
+fn command_definition() -> clap::Command {
+    Cli::command()
+        .mut_subcommand("install", |command| {
+            command
+                .mut_arg("source_dir", |_| {
+                    clap::Arg::new("source_dir")
+                        .long("source-dir")
+                        .short('s')
+                        .help("Mod files directory; defaults to the input guide directory")
+                        .value_parser(clap::value_parser!(PathBuf))
+                })
+                .mut_arg("game_dir", |argument| argument.short('g'))
+        })
+        .mut_subcommand("validate", |command| {
+            // Missing validation roots are reported by the validation adapter, which
+            // can preserve --output json's single error document. Install keeps its
+            // parser-level required game root.
+            command
+                .mut_arg("game_dir", |_| {
+                    clap::Arg::new("game_dir")
+                        .long("game-dir")
+                        .short('g')
+                        .value_parser(clap::value_parser!(PathBuf))
+                })
+                .mut_arg("source_dir", |_| {
+                    clap::Arg::new("source_dir")
+                        .long("source-dir")
+                        .short('s')
+                        .value_parser(clap::value_parser!(PathBuf))
+                })
+        })
+}
+
 fn run() -> Result<()> {
-    let command = Cli::parse().command;
+    let arguments = cli_compat::normalize_args(std::env::args_os().collect())?;
+    let matches = command_definition().get_matches_from(arguments);
+    let parsed = Cli::from_arg_matches(&matches)?;
+    let command = parsed.command;
+    if matches!(&command, None | Some(Action::Gui { .. })) || cli_session::transport_probe(&matches)
+    {
+        return dispatch(command, true);
+    }
+    let session = cli_session::Session::start(cli_session::settings_directory(&matches));
+    if parsed.verbose {
+        modsync::logging::set_debug_logging(true);
+        modsync::logging::set_mirror_stderr(true);
+    }
+    // Progress is already plain text; the compatibility flag needs no renderer swap.
+    let _ = parsed.plaintext;
+    let result = dispatch(command, session.case_insensitive_pathing);
+    if let Err(error) = &result
+        && !error.is::<cli_session::Exit>()
+    {
+        modsync::logging::log_error(error, "CLI command stopped");
+    }
+    session.finish(result.is_ok());
+    result
+}
+
+fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<()> {
+    let (command, resume) = match command {
+        Some(Action::Checkpoint(args)) => match args.into_resume() {
+            Ok((install, resume)) => (Some(Action::Install(install)), Some(resume)),
+            Err(args) => (Some(Action::Checkpoint(*args)), None),
+        },
+        command => (command, None),
+    };
     // FOMOD mapper fallbacks are log warnings, as in C#; these verbs mirror the
     // log to stderr so they stay visible without touching machine stdout.
     if matches!(
@@ -909,7 +1329,8 @@ fn run() -> Result<()> {
                     purge_current,
                 } => {
                     let settings = modsync::profiles::settings_directory(settings_dir.as_deref())?;
-                    let store = modsync::profiles::Store::new(&settings)?;
+                    let store =
+                        modsync::profiles::Store::from_settings_directory(settings_dir.as_deref())?;
                     let target_profile = store.require(&to)?;
 
                     // Preflight and lock the target first: a known-bad target must
@@ -1002,6 +1423,44 @@ fn run() -> Result<()> {
                 }
             }
         }
+        Some(Action::InstallPythonDeps { force }) => {
+            let _ = force;
+            anyhow::bail!(
+                "install-python-deps targets the reference application's Python.Included runtime, which ModSync.rs does not own. Use a verified native HoloPatcher package or an externally managed Python environment with the backend's dependencies. No packages were installed."
+            )
+        }
+        Some(Action::HoloPatcher {
+            patcher,
+            allow_processes,
+            legacy_arguments,
+            working_directory,
+            timeout_seconds,
+            arguments,
+        }) => {
+            let cancelled = modsync::p2p::stop_signal_flag()?;
+            let result = modsync::patcher::standalone::run(
+                &modsync::patcher::standalone::Options {
+                    executable: patcher,
+                    arguments,
+                    legacy_arguments,
+                    working_directory,
+                    allow_processes,
+                    timeout: std::time::Duration::from_secs(timeout_seconds),
+                },
+                &cancelled,
+            );
+            conversion_cancelled(&cancelled)?;
+            let output = result?;
+            std::io::stdout().write_all(output.stdout.as_bytes())?;
+            std::io::stdout().flush()?;
+            std::io::stderr().write_all(output.stderr.as_bytes())?;
+            std::io::stderr().flush()?;
+            if output.exit_code == 0 {
+                Ok(())
+            } else {
+                Err(cli_session::Exit(output.exit_code).into())
+            }
+        }
         Some(Action::FomodInspect {
             archive,
             choices,
@@ -1023,7 +1482,7 @@ fn run() -> Result<()> {
                 modsync::fomod::log_fallback_warnings(&module.config);
             }
             if let Some(path) = choices {
-                let choices = modsync::fomod::ChoicesFile::parse(&std::fs::read_to_string(path)?)?;
+                let choices = modsync::fomod::ChoicesFile::load(&path)?;
                 let filename = archive
                     .file_name()
                     .and_then(|n| n.to_str())
@@ -1104,6 +1563,131 @@ fn run() -> Result<()> {
             println!("{}", serde_json::to_string_pretty(&report)?);
             Ok(())
         }
+        Some(Action::GuideDraftReview { input, component }) => {
+            let guide = modsync::editor::read_guide(&input)?;
+            let component = modsync::editor::find_component(&guide, &component)
+                .context("Unknown generated component or option GUID")?;
+            let diagnostics = modsync::draft::review::original_diagnostics(component)?;
+            anyhow::ensure!(
+                diagnostics
+                    .unparsed_gaps
+                    .len()
+                    .saturating_add(diagnostics.conditional_drafts.len())
+                    .saturating_add(diagnostics.rejected_drafts)
+                    <= 4096,
+                "Draft diagnostic count exceeds the review bound"
+            );
+            let operation = modsync::editor::EditOperation::ResolveDraft {
+                component: component.guid.clone(),
+                resolution: modsync::draft::review::Resolution {
+                    expected_identity: modsync::draft::review::identity(component)?,
+                    gap_decisions: vec![String::new(); diagnostics.unparsed_gaps.len()],
+                    condition_decisions: vec![String::new(); diagnostics.conditional_drafts.len()],
+                    rejected_decisions: vec![String::new(); diagnostics.rejected_drafts],
+                    review_note: String::new(),
+                },
+            };
+            println!(
+                "{}",
+                modsync::editor::render_preview(&serde_json::json!({
+                    "diagnostics": diagnostics,
+                    "requiresReview": modsync::draft::requires_review(component),
+                    "operations": [operation]
+                }))?
+            );
+            Ok(())
+        }
+        Some(Action::GuideEdit {
+            input,
+            operations,
+            output,
+        }) => {
+            let guide = Guide::load_preserving_selection(&input)?;
+            let operations = modsync::editor::load_operations(&operations)?;
+            let edited = modsync::editor::apply_operations(&guide, &operations)?;
+            modsync::editor::save_distinct(&edited, &input, &output)
+        }
+        Some(Action::GuideImportPreview {
+            input,
+            document,
+            format,
+            regex_profile,
+            replace,
+            parent,
+            index,
+        }) => {
+            let guide = Guide::load_preserving_selection(&input)?;
+            let mode = if let Some(guid) = replace {
+                modsync::editor::ImportMode::Replace { guid }
+            } else {
+                let length = if let Some(parent) = &parent {
+                    modsync::editor::find_component(&guide, parent)
+                        .context("Unknown import parent GUID")?
+                        .options
+                        .len()
+                } else {
+                    guide.components.len()
+                };
+                modsync::editor::ImportMode::Append {
+                    parent,
+                    index: index.unwrap_or(length),
+                }
+            };
+            let text = modsync::editor::read_document(&document)?;
+            if let Some(profile) = regex_profile {
+                let profile = serde_json::from_str(&modsync::editor::read_document(&profile)?)?;
+                let preview = modsync::editor::preview_regex_import(&guide, &text, &profile, mode)?;
+                println!("{}", modsync::editor::render_preview(&preview)?);
+            } else {
+                let preview = modsync::editor::preview_import(&guide, &text, &format, mode)?;
+                println!("{}", modsync::editor::render_preview(&preview)?);
+            }
+            Ok(())
+        }
+        Some(Action::GuideImportApply {
+            input,
+            preview,
+            output,
+        }) => {
+            let guide = Guide::load_preserving_selection(&input)?;
+            let value: serde_json::Value =
+                serde_json::from_str(&modsync::editor::read_document(&preview)?)?;
+            let preview = if value.get("preview").is_some() {
+                serde_json::from_value::<modsync::editor::RegexImportPreview>(value)?.preview
+            } else {
+                serde_json::from_value(value)?
+            };
+            let edited = modsync::editor::apply_preview(&guide, &preview)?;
+            modsync::editor::save_distinct(&edited, &input, &output)
+        }
+        Some(Action::GuideResources {
+            input,
+            component,
+            source_dir,
+            game_dir,
+            max_expanded_bytes,
+        }) => {
+            let guide = Guide::load_preserving_selection(&input)?;
+            let component = modsync::editor::find_component(&guide, &component)
+                .context("Unknown component GUID")?;
+            let roots = Roots::new(&source_dir, &game_dir)?;
+            let cancelled = modsync::p2p::stop_signal_flag()?;
+            let report = modsync::editor::resource_inventory(
+                component,
+                &roots,
+                &modsync::archive::Options {
+                    scratch_dir: None,
+                    max_expanded_bytes: Some(max_expanded_bytes),
+                },
+                &cancelled,
+            )?;
+            println!("{}", serde_json::to_string_pretty(&report)?);
+            ensure!(
+                report.resources.iter().all(|item| item.error.is_none()),
+                "Some registered resources could not be inspected; see report"
+            );
+            Ok(())
+        }
         Some(Action::List { input }) => {
             println!("{}", serde_json::to_string_pretty(&Guide::load(&input)?)?);
             Ok(())
@@ -1182,9 +1766,8 @@ fn run() -> Result<()> {
                 match nexus_mods_api_key {
                     Some(key) => Some(key),
                     None => {
-                        let directory =
-                            modsync::profiles::settings_directory(settings_dir.as_deref())?;
-                        modsync::profiles::Store::new(&directory)?.nexus_api_key()?
+                        modsync::profiles::Store::from_settings_directory(settings_dir.as_deref())?
+                            .nexus_api_key()?
                     }
                 }
                 .or_else(|| std::env::var("KOTOR_MODSYNC_NEXUS_API_KEY").ok())
@@ -1206,13 +1789,26 @@ fn run() -> Result<()> {
                     ..Default::default()
                 };
                 let report = orchestrator::run(&plan, &settings, &AtomicBool::new(false), |_| {})?;
+                let metadata = orchestrator::collect_metadata(
+                    &plan,
+                    &report,
+                    &settings,
+                    &AtomicBool::new(false),
+                    None,
+                );
                 if record {
                     let summary = orchestrator::record(&mut guide, &report)?;
-                    if !summary.recorded.is_empty() {
+                    let metadata_recorded = orchestrator::record_metadata(&mut guide, &metadata)?;
+                    if !summary.recorded.is_empty() || metadata_recorded > 0 {
                         guide.save(&input)?;
                     }
                 }
-                println!("{}", serde_json::to_string_pretty(&report)?);
+                let mut output_report = serde_json::to_value(&report)?;
+                output_report
+                    .as_object_mut()
+                    .expect("acquisition report is an object")
+                    .insert("providerMetadata".into(), serde_json::to_value(&metadata)?);
+                println!("{}", serde_json::to_string_pretty(&output_report)?);
                 anyhow::ensure!(
                     report
                         .outcomes
@@ -1229,6 +1825,18 @@ fn run() -> Result<()> {
             let download_link = client.nxm_download_link(&link)?;
             download::fetch(&download_link.uri, &output, None, &AtomicBool::new(false))?;
             println!("{}", serde_json::to_string_pretty(&download_link)?);
+            Ok(())
+        }
+        Some(Action::UpdateSummary {
+            input,
+            settings_dir,
+        }) => {
+            let guide = Guide::load_preserving_selection(&input)?;
+            let directory = modsync::profiles::settings_directory(settings_dir.as_deref())?;
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&modsync::updates::load_snapshot(&directory, &guide))?
+            );
             Ok(())
         }
         Some(Action::UpdateApply {
@@ -1260,25 +1868,106 @@ fn run() -> Result<()> {
             // An explicit flag wins without reading settings.
             let key = match nexus_mods_api_key {
                 Some(key) => Some(key),
-                None => modsync::profiles::Store::new(&directory)?.nexus_api_key()?,
+                None => modsync::profiles::Store::from_settings_directory(settings_dir.as_deref())?.nexus_api_key()?,
             }
                 .or_else(|| std::env::var("KOTOR_MODSYNC_NEXUS_API_KEY").ok())
                 .or_else(|| std::env::var("NEXUS_MODS_API_KEY").ok())
                 .filter(|key| !key.trim().is_empty())
                 .context("Set nexusModsApiKey in settings, an API-key flag, or a Nexus API-key environment variable")?;
-            let mut guide = Guide::load(&input)?;
+            let mut guide = Guide::load_preserving_selection(&input)?;
             let mut client = modsync::updates::NexusClient::new(Some(key))?;
-            let report = modsync::updates::check(&mut guide, &mut client);
+            let original = guide.clone();
+            let cancelled = modsync::p2p::stop_signal_flag()?;
+            let outcome = modsync::updates::check_with_cancel(&mut guide, &mut client, &cancelled);
+            if outcome.cancelled {
+                println!("{}", serde_json::to_string_pretty(&outcome)?);
+                return Err(cli_session::Exit(130).into());
+            }
+            let report = outcome.summary;
+            let snapshot = modsync::updates::StoredSummary::new(&original, &guide, report.clone())?;
+            let fresh = Guide::load_preserving_selection(&input)?;
+            anyhow::ensure!(
+                snapshot.may_apply_to(&fresh)?,
+                "Guide changed during the update check; results were not saved"
+            );
+            match std::fs::symlink_metadata(&output) {
+                Ok(metadata) => anyhow::ensure!(
+                    metadata.file_type().is_file(),
+                    "Update output must be a regular file"
+                ),
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+                Err(error) => return Err(error.into()),
+            }
+            if cancelled.load(std::sync::atomic::Ordering::SeqCst) {
+                let outcome = modsync::updates::CheckOutcome {
+                    summary: report,
+                    cancelled: true,
+                };
+                println!("{}", serde_json::to_string_pretty(&outcome)?);
+                return Err(cli_session::Exit(130).into());
+            }
             guide.save(&output)?;
             std::fs::create_dir_all(&directory)?;
             modsync::updates::save_summary(&directory, &report)?;
+            snapshot.save(&directory)?;
             println!("{}", serde_json::to_string_pretty(&report)?);
             Ok(())
+        }
+        Some(Action::MergePreview {
+            existing,
+            incoming,
+            options,
+        }) => {
+            let existing = modsync::editor::read_guide(&existing)?;
+            let incoming = modsync::editor::read_guide(&incoming)?;
+            let options = options
+                .as_deref()
+                .map(modsync::editor::read_document)
+                .transpose()?
+                .map(|text| serde_json::from_str::<modsync::merge::Options>(&text))
+                .transpose()?
+                .unwrap_or_default();
+            let preview = modsync::merge::preview(&existing, &incoming, &options)?;
+            println!("{}", modsync::editor::render_preview(&preview)?);
+            Ok(())
+        }
+        Some(Action::MergeApply {
+            existing,
+            incoming,
+            preview,
+            output,
+        }) => {
+            let candidate: modsync::merge::Preview =
+                serde_json::from_str(&modsync::editor::read_document(&preview)?)?;
+            let existing_guide = modsync::editor::read_guide(&existing)?;
+            let incoming_guide = modsync::editor::read_guide(&incoming)?;
+            let merged =
+                modsync::merge::apply_preview(&existing_guide, &incoming_guide, &candidate)?;
+            let absolute_output = std::path::absolute(&output)?;
+            let resolved_output = absolute_output
+                .parent()
+                .context("Merge output needs a parent")?
+                .canonicalize()?
+                .join(
+                    absolute_output
+                        .file_name()
+                        .context("Merge output needs a filename")?,
+                );
+            ensure!(
+                resolved_output != incoming.canonicalize()?,
+                "Merge output must differ from both input guides"
+            );
+            modsync::editor::save_distinct(&merged, &existing, &output)
         }
         Some(Action::Merge {
             existing,
             incoming,
             output,
+            existing_path,
+            incoming_path,
+            output_path,
+            format,
+            processing,
             use_existing_order,
             prefer_existing_fields,
             prefer_existing_name,
@@ -1295,8 +1984,14 @@ fn run() -> Result<()> {
             exclude_existing_only,
             exclude_incoming_only,
         }) => {
-            let existing = Guide::load(&existing)?;
-            let mut incoming = Guide::load(&incoming)?;
+            let existing_path = existing_path
+                .or(existing)
+                .context("Supply --existing or an existing guide path")?;
+            let incoming_path = incoming_path
+                .or(incoming)
+                .context("Supply --incoming or an incoming guide path")?;
+            let existing = Guide::load(&existing_path)?;
+            let mut incoming = Guide::load(&incoming_path)?;
             incoming.components = modsync::merge::components(
                 &existing.components,
                 &incoming.components,
@@ -1318,7 +2013,33 @@ fn run() -> Result<()> {
                     ..Default::default()
                 },
             );
-            incoming.save(&output)
+            let cancelled = modsync::p2p::stop_signal_flag()?;
+            process_conversion(&mut incoming, &processing, Some(&incoming_path), &cancelled)?;
+            let output = output_path.or(output);
+            let format = format.as_deref().unwrap_or_else(|| {
+                output
+                    .as_ref()
+                    .and_then(|path| path.extension())
+                    .and_then(|v| v.to_str())
+                    .unwrap_or("toml")
+            });
+            conversion_cancelled(&cancelled)?;
+            let rendered = incoming.render(format)?;
+            conversion_cancelled(&cancelled)?;
+            if let Some(output) = output {
+                let output = if processing.download {
+                    let resolved = modsync::editor::distinct_output_path(&existing_path, &output)?;
+                    modsync::editor::distinct_output_path(&incoming_path, &resolved)?
+                } else {
+                    std::path::absolute(output)?
+                };
+                let destination = std::path::absolute(output)?;
+                conversion_cancelled(&cancelled)?;
+                recovery::atomic_write(&destination, rendered.as_bytes())?;
+            } else {
+                println!("{rendered}");
+            }
+            Ok(())
         }
         Some(Action::Convert {
             input,
@@ -1328,32 +2049,34 @@ fn run() -> Result<()> {
             stdin,
             format,
             parse_directions,
-            auto_generate_local,
-            source_path,
             review_draft,
+            processing,
         }) => {
+            let input_file = input_path.or(input);
             let mut guide = if stdin {
                 use std::io::Read;
                 let mut text = String::new();
-                std::io::stdin().read_to_string(&mut text)?;
+                std::io::stdin()
+                    .take(8 * 1024 * 1024 + 1)
+                    .read_to_string(&mut text)?;
+                ensure!(
+                    text.len() <= 8 * 1024 * 1024,
+                    "Conversion input exceeds 8 MiB"
+                );
                 Guide::parse(&text, "auto")?
             } else {
                 Guide::load(
-                    &input_path
-                        .or(input)
+                    input_file
+                        .as_deref()
                         .context("Use --input <file> or --stdin")?,
                 )?
             };
             if parse_directions {
                 modsync::draft::generate(&mut guide);
             }
-            if auto_generate_local {
-                let reports = modsync::archive_generation::generate_local(
-                    &mut guide,
-                    source_path.as_deref().unwrap(),
-                )?;
-                eprintln!("{}", serde_json::to_string_pretty(&reports)?);
-            }
+            let cancelled = modsync::p2p::stop_signal_flag()?;
+            process_conversion(&mut guide, &processing, input_file.as_deref(), &cancelled)?;
+            conversion_cancelled(&cancelled)?;
             for id in review_draft {
                 let component = guide
                     .components
@@ -1363,15 +2086,29 @@ fn run() -> Result<()> {
                 modsync::draft::mark_reviewed(component)?;
             }
             let format = format.as_deref().unwrap_or_else(|| {
-                output
+                output_path
                     .as_ref()
+                    .or(output.as_ref())
                     .and_then(|p| p.extension())
                     .and_then(|s| s.to_str())
                     .unwrap_or("toml")
             });
+            conversion_cancelled(&cancelled)?;
             let text = guide.render(format)?;
+            conversion_cancelled(&cancelled)?;
             if let Some(path) = output_path.as_ref().or(output.as_ref()) {
-                recovery::atomic_write(&std::path::absolute(path)?, text.as_bytes())?;
+                if processing.download
+                    && let Some(input) = &input_file
+                {
+                    // The editor boundary rejects canonical aliases of the source.
+                    let destination = modsync::editor::distinct_output_path(input, path)?;
+                    conversion_cancelled(&cancelled)?;
+                    recovery::atomic_write(&destination, text.as_bytes())?;
+                    return Ok(());
+                }
+                let destination = std::path::absolute(path)?;
+                conversion_cancelled(&cancelled)?;
+                recovery::atomic_write(&destination, text.as_bytes())?;
             } else {
                 println!("{text}");
             }
@@ -1409,6 +2146,9 @@ fn run() -> Result<()> {
         }
         Some(Action::Profile(args)) => args.run(),
         Some(Action::Settings(args)) => args.run(),
+        Some(Action::Protocol(args)) => args.run(),
+        Some(Action::SetNexusApiKey(args)) => args.run(),
+        Some(Action::Checkpoint(args)) => args.run(),
         Some(Action::DownloadPlan {
             input,
             component,
@@ -1562,9 +2302,8 @@ fn run() -> Result<()> {
                         && deadlystream_base.is_none()
                         && mega_api_base.is_none() =>
                     {
-                        let directory =
-                            modsync::profiles::settings_directory(settings_dir.as_deref())?;
-                        modsync::profiles::Store::new(&directory)?.nexus_api_key()?
+                        modsync::profiles::Store::from_settings_directory(settings_dir.as_deref())?
+                            .nexus_api_key()?
                     }
                     None => None,
                 }
@@ -1582,7 +2321,13 @@ fn run() -> Result<()> {
                 nexus_key_present: key.is_some(),
                 archive: archive_options.clone(),
             };
-            let plan = orchestrator::plan(&execution, &candidates, &plan_options)?;
+            let cancelled = if dry_run {
+                Arc::new(AtomicBool::new(false))
+            } else {
+                p2p::stop_signal_flag()?
+            };
+            let plan =
+                orchestrator::plan_with_cancel(&execution, &candidates, &plan_options, &cancelled)?;
 
             let loopback_ca = extra_ca_file
                 .as_deref()
@@ -1636,7 +2381,6 @@ fn run() -> Result<()> {
                 mega_api_base,
                 peer,
             };
-            let cancelled = p2p::stop_signal_flag()?;
             // Execution only: dry-run returned above without network discovery.
             let plan = orchestrator::discover_with_loopback_ca(
                 &execution,
@@ -1663,6 +2407,14 @@ fn run() -> Result<()> {
                 },
                 loopback_ca.as_ref(),
             )?;
+
+            let metadata = orchestrator::collect_metadata(
+                &plan,
+                &report,
+                &run_settings,
+                &cancelled,
+                loopback_ca.as_ref(),
+            );
 
             let scan = orchestrator::collect_fomod_consumers(
                 &execution,
@@ -1697,6 +2449,7 @@ fn run() -> Result<()> {
             let record_summary = if record {
                 match (|| -> Result<orchestrator::RecordSummary> {
                     let summary = orchestrator::record(&mut guide, &report)?;
+                    let metadata_recorded = orchestrator::record_metadata(&mut guide, &metadata)?;
                     // FOMOD replay is all-or-nothing; on failure the guide still holds the
                     // acquisition facts, which are saved alone while the error fails the run.
                     let applied = match configuration.apply_recorded(&mut guide, &[]) {
@@ -1708,7 +2461,7 @@ fn run() -> Result<()> {
                             false
                         }
                     };
-                    if !summary.recorded.is_empty() || applied {
+                    if !summary.recorded.is_empty() || applied || metadata_recorded > 0 {
                         guide.save(&input)?;
                         fomod_recorded = applied;
                     }
@@ -1753,6 +2506,7 @@ fn run() -> Result<()> {
             let summary_value = serde_json::json!({
                 "report": report,
                 "recordSummary": record_summary,
+                "providerMetadata": metadata,
                 "fomodFollowups": fomod,
                 "fomodConfiguration": configuration,
                 "fomodConfigurationRecorded": fomod_recorded,
@@ -1772,7 +2526,7 @@ fn run() -> Result<()> {
             }
 
             if configuration.cancelled {
-                std::process::exit(130);
+                return Err(cli_session::Exit(130).into());
             }
             let failed = report
                 .outcomes
@@ -1781,14 +2535,14 @@ fn run() -> Result<()> {
             // Sharing enrollment failures are reported in the summary only; they
             // never turn a completed acquisition into a failed command.
             if failed || !fomod.inspection_errors.is_empty() || configuration.has_errors() {
-                std::process::exit(1);
+                return Err(cli_session::Exit(1).into());
             }
             let manual = report
                 .outcomes
                 .iter()
                 .any(|o| o.status == orchestrator::TargetStatus::ManualRequired);
             if manual || configuration.unresolved > 0 {
-                std::process::exit(3);
+                return Err(cli_session::Exit(3).into());
             }
             Ok(())
         }
@@ -1944,10 +2698,54 @@ fn run() -> Result<()> {
                 unreachable!()
             };
             ensure!(
+                install || !args.download,
+                "--download is only supported by install, convert and merge"
+            );
+            ensure!(
+                !args.download || resume.is_none(),
+                "Checkpoint resume requires acquisition to be completed separately before reviewing the resume boundary"
+            );
+            ensure!(
                 !args.install_progress_json || install,
                 "--install-progress-json is only supported by install"
             );
-            let report_mode = args.validation_report && !install && !conflicts;
+            ensure!(
+                install || !(args.component_checkpoints || args.no_checkpoint || args.best_effort),
+                "Checkpoint and failure-continuation flags are only supported by install"
+            );
+            ensure!(
+                !args.best_effort,
+                "--best-effort/--continue-on-error cannot preserve guide order after a failure. Restore the verified boundary before the failed component, fix its cause, then resume the ordered suffix. Installation always stops on failure."
+            );
+            ensure!(
+                !args.no_checkpoint || resume.is_none(),
+                "Checkpoint resume requires retained component history"
+            );
+            let component_checkpoints = args.component_checkpoints || resume.is_some();
+            ensure!(
+                !args.managed || (install && component_checkpoints),
+                "--managed requires install --component-checkpoints or checkpoint resume"
+            );
+            ensure!(
+                (!install && !conflicts)
+                    || (args.validation_output.is_none()
+                        && !args.errors_only
+                        && !args.full
+                        && !args.dry_run
+                        && !args.dry_run_only),
+                "Validation output/full/dry-run options are only supported by validate"
+            );
+            let pipeline_mode = args.validation_report
+                || args.validation_output.is_some()
+                || args.errors_only
+                || args.full
+                || args.dry_run
+                || args.dry_run_only;
+            let report_mode = (args.validation_report
+                || args.validation_output == Some(ValidationOutput::Json))
+                && !install
+                && !conflicts;
+            let install_cancelled = install.then(modsync::p2p::stop_signal_flag).transpose()?;
             let dispatch = (|| -> Result<()> {
                 ensure!(
                     args.phase == PhaseArg::All || !args.direct_markdown,
@@ -1963,21 +2761,14 @@ fn run() -> Result<()> {
                     args.phase != PhaseArg::Remaining || !args.dry_run_only,
                     "Remaining reports always run full validation and dry run; --dry-run-only is incompatible"
                 );
-                let settings_directory =
-                    if args.settings_dir.is_some() || args.profile.is_some() || args.active_profile
-                    {
-                        Some(modsync::profiles::settings_directory(
-                            args.settings_dir.as_deref(),
-                        )?)
-                    } else {
-                        None
-                    };
-                let patcher_preferences = settings_directory
-                    .as_deref()
-                    .map(modsync::profiles::Store::new)
-                    .transpose()?
-                    .map(|store| store.patcher_preferences())
-                    .transpose()?;
+                // Preserve implicit-directory provenance, including legacy fallback.
+                // Reading preferences does not discover or launch a backend.
+                let patcher_preferences = Some(
+                    modsync::profiles::Store::from_settings_directory(
+                        args.settings_dir.as_deref(),
+                    )?
+                    .patcher_preferences()?,
+                );
                 let patcher_engine = args
                     .patcher_engine
                     .map(Into::into)
@@ -1988,8 +2779,9 @@ fn run() -> Result<()> {
                     })
                     .unwrap_or_default();
                 let profile = if args.profile.is_some() || args.active_profile {
-                    let directory = settings_directory.as_ref().unwrap();
-                    let store = modsync::profiles::Store::new(directory)?;
+                    let store = modsync::profiles::Store::from_settings_directory(
+                        args.settings_dir.as_deref(),
+                    )?;
                     let name = if args.active_profile {
                         store
                             .active_name()?
@@ -2008,10 +2800,19 @@ fn run() -> Result<()> {
                         args.source_dir.as_deref(),
                     )?
                 } else {
+                    let input = args.input.clone().context("Supply --input")?;
+                    let source = match &args.source_dir {
+                        Some(source) => source.clone(),
+                        None if install => std::path::absolute(&input)?
+                            .parent()
+                            .context("Input guide has no parent directory")?
+                            .to_owned(),
+                        None => anyhow::bail!("Supply --source-dir"),
+                    };
                     modsync::profiles::InstallPaths {
-                        input: args.input.clone().context("Supply --input")?,
+                        input,
                         game: args.game_dir.clone().context("Supply --game-dir")?,
-                        source: args.source_dir.clone().context("Supply --source-dir")?,
+                        source,
                     }
                 };
                 if args.direct_markdown {
@@ -2045,6 +2846,24 @@ fn run() -> Result<()> {
                     &args.selection_flags,
                     !report_mode || args.phase == PhaseArg::All,
                 )?;
+                // Ordinary validation rejects an empty effective selection before
+                // pipeline construction, so JSON uses the setup ErrorReport shape.
+                if !install && !conflicts && args.phase == PhaseArg::All {
+                    ensure!(
+                        guide
+                            .components
+                            .iter()
+                            .any(|component| component.is_selected),
+                        "{}",
+                        if !args.select.is_empty() {
+                            "No components match the selection criteria."
+                        } else if args.use_file_selection {
+                            "No components are marked IsSelected in the instruction file."
+                        } else {
+                            "No components are selected for validation."
+                        }
+                    );
+                }
                 if args.direct_markdown {
                     ensure!(
                         patcher_engine == PatcherEngine::OdyPatcher,
@@ -2073,7 +2892,7 @@ fn run() -> Result<()> {
                 let choices = args
                     .fomod_choices
                     .as_ref()
-                    .map(|path| modsync::fomod::ChoicesFile::parse(&std::fs::read_to_string(path)?))
+                    .map(|path| modsync::fomod::ChoicesFile::load(path))
                     .transpose()?;
                 let context = if args.phase == PhaseArg::Remaining {
                     modsync::phase::CompletionContext::Reconstruct
@@ -2082,8 +2901,11 @@ fn run() -> Result<()> {
                 };
                 let prepared =
                     modsync::phase::prepare(&guide, args.phase.into(), context, choices.as_ref())?;
-                let guide = prepared.guide;
+                let mut guide = prepared.guide;
                 let mut settings = Settings::new(&paths.source, &paths.game)?;
+                if let Some(cancelled) = &install_cancelled {
+                    settings.cancelled = cancelled.clone();
+                }
                 settings.allow_processes = args.allow_processes;
                 settings.patcher = args.patcher.or_else(|| {
                     patcher_preferences
@@ -2093,9 +2915,71 @@ fn run() -> Result<()> {
                 settings.patcher_engine = patcher_engine;
                 settings.archive.scratch_dir = args.scratch_dir;
                 settings.archive.max_expanded_bytes = args.max_expanded_bytes;
-                let engine = Engine::new(settings)?;
+                if args.download {
+                    cli_acquisition::before_process(
+                        &mut guide,
+                        &paths.source,
+                        Some(&paths.game),
+                        args.settings_dir.as_deref(),
+                        &settings.archive,
+                        settings.cancelled.clone(),
+                        &cli_acquisition::Options {
+                            guide_path: Some(paths.input.clone()),
+                            nexus_api_key: args.nexus_mods_api_key.clone(),
+                            workers: if args.concurrent { 4 } else { 1 },
+                            timeout: Some(std::time::Duration::from_secs(
+                                u64::from(if args.download_timeout_hours == 0 {
+                                    48
+                                } else {
+                                    args.download_timeout_hours
+                                }) * 3600,
+                            )),
+                            fomod_choices: args.fomod_choices.clone(),
+                            fomod_skip: args.fomod_skip,
+                            fomod_interactive: args.interactive,
+                            fomod_non_interactive: args.non_interactive,
+                            completed: prepared.completed.clone(),
+                            include_unselected_authoring: false,
+                        },
+                    )?;
+                }
+                let mut engine =
+                    Engine::new_with_case_insensitive_pathing(settings, case_insensitive_pathing)?
+                        .with_component_checkpoints(component_checkpoints);
+                if args.managed {
+                    let deployment = modsync::deployment::Service::resolve_readonly(
+                        &paths.game,
+                        args.staging_dir.as_deref(),
+                        args.manifest_dir.as_deref(),
+                        args.settings_dir.as_deref(),
+                        // A guide profile may still supply selection and install
+                        // paths when explicit deployment roots override its artifacts.
+                        if args.staging_dir.is_some() {
+                            None
+                        } else {
+                            profile.as_ref().map(|profile| profile.name.as_str())
+                        },
+                    )?;
+                    engine = engine.with_managed_deployment(deployment)?;
+                }
+                if let Some(resume) = &resume {
+                    let roots = modsync::paths::Roots::new(
+                        &paths.source,
+                        &modsync::game::resolve_install_root(&paths.game),
+                    )?;
+                    let current =
+                        modsync::checkpoint::Store::open(&roots)?.inspect(&resume.session, None)?;
+                    engine = engine.with_checkpoint_resume(modsync::checkpoint::ResumeRequest {
+                        expected: modsync::checkpoint::ExpectedHead {
+                            session_id: current.session_id,
+                            checkpoint_id: current.head_checkpoint_id,
+                            generation: current.generation,
+                        },
+                        accept_source_changes: resume.accept_source_changes,
+                    })?;
+                }
                 let emit = |event: modsync::Event| {
-                    if args.validation_report {
+                    if pipeline_mode {
                         return;
                     }
                     if args.install_progress_json {
@@ -2118,8 +3002,8 @@ fn run() -> Result<()> {
                     println!("{}", serde_json::to_string_pretty(&report)?);
                     Ok(())
                 } else if install {
-                    if args.install_progress_json {
-                        let progress = |progress: modsync::install_progress::Progress| {
+                    let progress = |progress: modsync::install_progress::Progress| {
+                        if args.install_progress_json {
                             let envelope = serde_json::json!({
                                 "type": "installProgress",
                                 "progress": progress,
@@ -2128,23 +3012,32 @@ fn run() -> Result<()> {
                                 line.push(b'\n');
                                 let _ = std::io::stdout().lock().write_all(&line);
                             }
-                        };
-                        if args.phase == PhaseArg::Remaining {
-                            engine.install_remaining_observed(
-                                &guide,
-                                &prepared.completed,
-                                emit,
-                                progress,
-                            )
-                        } else {
-                            engine.install_observed(&guide, emit, progress)
                         }
-                    } else if args.phase == PhaseArg::Remaining {
-                        engine.install_remaining(&guide, &prepared.completed, emit)
+                    };
+                    let report = if args.phase == PhaseArg::Remaining {
+                        engine.install_remaining_observed_report(
+                            &guide,
+                            &prepared.completed,
+                            emit,
+                            progress,
+                        )?
                     } else {
-                        engine.install(&guide, emit)
+                        engine.install_observed_report(&guide, emit, progress)?
+                    };
+                    if args.managed || component_checkpoints {
+                        if args.json || args.install_progress_json {
+                            println!(
+                                "{}",
+                                serde_json::to_string(&serde_json::json!({
+                                    "type": "installResult", "report": report,
+                                }))?
+                            );
+                        } else {
+                            println!("Install result: {}", serde_json::to_string_pretty(&report)?);
+                        }
                     }
-                } else if args.validation_report {
+                    Ok(())
+                } else if pipeline_mode {
                     let mut report = if args.phase == PhaseArg::Remaining {
                         engine.validate_report_remaining(&guide, &prepared.completed, emit)?
                     } else {
@@ -2157,11 +3050,36 @@ fn run() -> Result<()> {
                         )
                     };
                     report.input_path = Some(paths.input.to_string_lossy().into_owned());
-                    println!("{}", serde_json::to_string_pretty(&report)?);
+                    if report_mode {
+                        println!("{}", serde_json::to_string_pretty(&report)?);
+                    } else {
+                        for stage in &report.stages {
+                            if !args.errors_only {
+                                println!("{:?}: {}", stage.stage, stage.summary);
+                            }
+                            for message in &stage.messages {
+                                if !args.errors_only
+                                    || (!message.starts_with("WARNING:")
+                                        && !message.starts_with("INFO:")
+                                        && (message.starts_with("ERROR:") || !stage.passed))
+                                {
+                                    println!("{message}");
+                                }
+                            }
+                        }
+                        if !args.errors_only {
+                            println!(
+                                "Validation {}: {} errors, {} warnings",
+                                if report.success { "passed" } else { "failed" },
+                                report.error_count,
+                                report.warning_count
+                            );
+                        }
+                    }
                     if !report.success {
                         // The pipeline report is the machine output; a failing report
                         // exits nonzero without an extra stderr line, matching C#.
-                        std::process::exit(1);
+                        return Err(cli_session::Exit(1).into());
                     }
                     Ok(())
                 } else if args.phase == PhaseArg::Remaining {
@@ -2170,8 +3088,19 @@ fn run() -> Result<()> {
                     engine.validate(&guide, emit)
                 }
             })();
+            if let Err(error) = &dispatch
+                && install_cancelled
+                    .as_ref()
+                    .is_some_and(|flag| flag.load(std::sync::atomic::Ordering::Relaxed))
+            {
+                eprintln!("Installation cancelled: {error:#}");
+                return Err(cli_session::Exit(130).into());
+            }
             if report_mode {
                 if let Err(error) = dispatch {
+                    if error.is::<cli_session::Exit>() {
+                        return Err(error);
+                    }
                     // Setup failed before any pipeline stage ran; emit the C#
                     // SerializeError shape as the sole machine output.
                     println!(
@@ -2180,7 +3109,7 @@ fn run() -> Result<()> {
                             format!("{error:#}")
                         ))?
                     );
-                    std::process::exit(1);
+                    return Err(cli_session::Exit(1).into());
                 }
                 Ok(())
             } else {
@@ -2248,6 +3177,9 @@ fn gui(
 
 fn main() {
     if let Err(error) = run() {
+        if let Some(exit) = error.downcast_ref::<cli_session::Exit>() {
+            std::process::exit(exit.0);
+        }
         eprintln!("Error: {error:#}");
         std::process::exit(1);
     }

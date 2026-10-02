@@ -11,6 +11,10 @@
 //! later owner, and patcher provenance never records an overwritten file
 //! without a backup of its prior bytes.
 
+mod intake;
+mod management;
+pub use management::{ManagementAction, ManagementReceipt, ManagementStatus};
+
 use anyhow::{Context, Result, bail, ensure};
 use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -132,12 +136,15 @@ pub struct ProvenanceReport {
     pub warnings: Vec<String>,
 }
 
+#[derive(Clone, Debug)]
 pub struct Service {
     game: PathBuf,
     staging: PathBuf,
     root: PathBuf,
     /// Other profiles' manifest roots (name, root) that must not be live on this game.
     peers: Vec<(String, PathBuf)>,
+    checkpoint_authorized: bool,
+    active_profile: Option<String>,
 }
 
 /// Exclusive hold on the per-game ModSync lock file. Released on drop.
@@ -174,22 +181,202 @@ struct Planned {
 }
 
 impl Service {
+    fn checkpoint_mutation_gate(&self) -> Result<()> {
+        if !self.checkpoint_authorized {
+            crate::checkpoint::ensure_game_checkpoint_clean(&self.game)?;
+        }
+        Ok(())
+    }
+
+    /// Resolve managed participants without creating, adopting, or locking them.
+    pub fn resolve_readonly(
+        game: &Path,
+        staging: Option<&Path>,
+        manifests: Option<&Path>,
+        settings: Option<&Path>,
+        profile: Option<&str>,
+    ) -> Result<Self> {
+        match (staging, manifests) {
+            (Some(staging), Some(root)) => Self::resolve_uninitialized(game, staging, root),
+            (None, None) => {
+                let store = crate::profiles::Store::from_settings_directory(settings)?;
+                let settings = crate::profiles::settings_directory(settings)?;
+                let name = match profile.map(str::trim).filter(|name| !name.is_empty()) {
+                    Some(name) => name.to_owned(),
+                    None => store.active_name()?.context(MISSING_ACTIVE_PROFILE)?,
+                };
+                Self::resolve_profile_uninitialized(&settings, &name, game)
+            }
+            _ => bail!("Managed staging and manifest directories must be supplied together"),
+        }
+    }
+
+    pub fn resolve_uninitialized(game: &Path, staging: &Path, root: &Path) -> Result<Self> {
+        let game = fs::canonicalize(game)?;
+        let staging = managed_path(staging, true)?;
+        let root = managed_path(root, true)?;
+        ensure!(
+            !staging.starts_with(&game)
+                && !game.starts_with(&staging)
+                && !root.starts_with(&game)
+                && !game.starts_with(&root)
+                && !root.starts_with(&staging)
+                && !staging.starts_with(&root),
+            "Managed participant roots overlap"
+        );
+        let service = Self {
+            game,
+            staging,
+            root,
+            peers: Vec::new(),
+            checkpoint_authorized: false,
+            active_profile: None,
+        };
+        service.validate_readonly()?;
+        Ok(service)
+    }
+
+    pub fn resolve_profile_uninitialized(
+        settings: &Path,
+        profile: &str,
+        game: &Path,
+    ) -> Result<Self> {
+        let store = crate::profiles::Store::new(settings)?;
+        store.require(profile)?;
+        let artifacts = store.artifact_directory(profile.trim())?;
+        let mut service = Self::resolve_uninitialized(
+            game,
+            &artifacts.join("staging"),
+            &artifacts.join("deployment"),
+        )?;
+        service.active_profile = Some(profile.trim().into());
+        for entry in fs::read_dir(store.directory())? {
+            let entry = entry?;
+            ensure!(
+                !entry.file_type()?.is_symlink(),
+                "Profile artifact is a symlink"
+            );
+            if entry.file_type()?.is_dir() && entry.path() != artifacts {
+                service.peers.push((
+                    entry.file_name().to_string_lossy().into_owned(),
+                    entry.path().join("deployment"),
+                ));
+            }
+        }
+        service.validate_readonly()?;
+        Ok(service)
+    }
+
+    pub(crate) fn checkpoint_stage_target(
+        &self,
+        component: &str,
+        relative: &Path,
+    ) -> Result<PathBuf> {
+        let id = component_id(component)?;
+        let relative = relative_parts(
+            relative
+                .to_str()
+                .context("Managed staged path needs UTF8")?,
+        )?;
+        managed_path(&self.staging.join(id).join(relative), false)
+    }
+    pub(crate) fn checkpoint_stage_root(&self, component: &str) -> Result<PathBuf> {
+        managed_path(&self.staging.join(component_id(component)?), true)
+    }
+
+    pub(crate) fn checkpoint_participants(
+        &self,
+    ) -> Result<BTreeMap<String, crate::checkpoint::ParticipantBinding>> {
+        use crate::checkpoint::{ParticipantBinding, ParticipantKind};
+        let owner = managed_path(&owner_record_path(&self.game)?, false)?;
+        [
+            ("managed-staging", &self.staging, ParticipantKind::Directory),
+            ("managed-deployment", &self.root, ParticipantKind::Directory),
+            ("managed-owner", &owner, ParticipantKind::File),
+        ]
+        .into_iter()
+        .map(|(name, path, kind)| {
+            Ok((
+                name.into(),
+                ParticipantBinding {
+                    path: path
+                        .to_str()
+                        .context("Managed participant needs UTF8 path")?
+                        .into(),
+                    kind,
+                },
+            ))
+        })
+        .collect()
+    }
+
+    pub(crate) fn validate_readonly(&self) -> Result<()> {
+        managed_path(&self.staging, true)?;
+        managed_path(&self.root, true)?;
+        self.ensure_own_game()?;
+        self.ensure_unowned_or_self()?;
+        for (name, root) in &self.peers {
+            ensure!(
+                !has_manifests(root) || intake::marker(root)?.is_some_and(|game| game != self.game),
+                "Profile '{name}' still owns managed files in this game"
+            );
+        }
+        let pending = self.root.join("append-pending");
+        match fs::symlink_metadata(&pending) {
+            Ok(meta) => {
+                ensure!(
+                    meta.is_dir() && !meta.file_type().is_symlink(),
+                    "Managed append recovery path is unsafe"
+                );
+                ensure!(
+                    fs::read_dir(&pending)?.next().is_none(),
+                    "Managed append recovery is pending"
+                );
+            }
+            Err(error) if error.kind() == ErrorKind::NotFound => {}
+            Err(error) => return Err(error.into()),
+        }
+        Ok(())
+    }
+
+    pub(crate) fn initialize_checkpointed(
+        &mut self,
+        lock: &crate::recovery::Lock,
+        roots: &crate::paths::Roots,
+    ) -> Result<()> {
+        ensure!(
+            lock.guards(roots) && roots.game == self.game,
+            "Managed initialization requires matching held recovery lock"
+        );
+        self.validate_readonly()?;
+        self.checkpoint_authorized = true;
+        fs::create_dir_all(&self.staging)?;
+        fs::create_dir_all(self.manifests())?;
+        fs::create_dir_all(self.root.join("backups"))?;
+        self.ensure_exclusive_game()
+    }
+
     pub fn new(game: &Path, staging: &Path, root: &Path) -> Result<Self> {
         let game = fs::canonicalize(game).context("Game directory is unavailable")?;
+        crate::checkpoint::ensure_game_checkpoint_clean(&game)?;
         let staging = fs::canonicalize(staging).context("Staging directory is unavailable")?;
         ensure!(
             game.is_dir() && staging.is_dir(),
             "Game and staging paths must be directories"
         );
         let root = std::path::absolute(root)?;
-        fs::create_dir_all(root.join("manifests"))?;
-        fs::create_dir_all(root.join("backups"))?;
-        Ok(Self {
+        let service = Self {
             game,
             staging,
             root,
             peers: Vec::new(),
-        })
+            checkpoint_authorized: false,
+            active_profile: None,
+        };
+        let _lock = service.lock()?;
+        fs::create_dir_all(service.root.join("manifests"))?;
+        fs::create_dir_all(service.root.join("backups"))?;
+        Ok(service)
     }
 
     /// Take the same `.modsync-lock-<hash>` file `recovery::Lock` takes for this
@@ -206,17 +393,43 @@ impl Service {
             .parent()
             .context("Game directory needs a parent")?
             .join(format!(".modsync-lock-{}", &key[..16]));
-        if let Ok(meta) = fs::symlink_metadata(&path) {
-            ensure!(!meta.file_type().is_symlink(), "Lock file is a symlink");
+        match fs::symlink_metadata(&path) {
+            Ok(metadata) => ensure!(
+                metadata.is_file() && !metadata.file_type().is_symlink(),
+                "Deployment lock path is not a regular file"
+            ),
+            Err(error) if error.kind() == ErrorKind::NotFound => {}
+            Err(error) => return Err(error.into()),
         }
-        let file = fs::OpenOptions::new()
-            .create(true)
-            .truncate(false)
-            .read(true)
-            .write(true)
-            .open(&path)?;
+        let mut options = fs::OpenOptions::new();
+        options.create(true).truncate(false).read(true).write(true);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::OpenOptionsExt;
+            options.custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK);
+        }
+        #[cfg(windows)]
+        {
+            use std::os::windows::fs::OpenOptionsExt;
+            options.custom_flags(0x00200000); // FILE_FLAG_OPEN_REPARSE_POINT
+        }
+        let file = options.open(&path)?;
+        let metadata = file.metadata()?;
+        ensure!(
+            metadata.is_file(),
+            "Deployment lock handle is not a regular file"
+        );
+        #[cfg(windows)]
+        {
+            use std::os::windows::fs::MetadataExt;
+            ensure!(
+                metadata.file_attributes() & 0x400 == 0,
+                "Deployment lock handle is a reparse point"
+            );
+        }
         fs2::FileExt::try_lock_exclusive(&file)
             .context("Another ModSync process is using the game directory")?;
+        crate::checkpoint::ensure_game_checkpoint_clean(&self.game)?;
         Ok(GameLock { _file: file })
     }
 
@@ -224,13 +437,14 @@ impl Service {
     /// this game directory (or in a root that does not say which game it
     /// targets). Two live roots cannot share ownership of one game tree.
     pub fn ensure_exclusive_game(&self) -> Result<()> {
+        self.checkpoint_mutation_gate()?;
         self.ensure_own_game()?;
         self.adopt_owner_record_if_unowned()?;
         for (name, root) in &self.peers {
             if !has_manifests(root) {
                 continue;
             }
-            let same = marker_game(root).is_none_or(|game| game == self.game);
+            let same = intake::marker(root)?.is_none_or(|game| game == self.game);
             ensure!(
                 !same,
                 "Profile '{name}' still has managed deployments in this game directory. Purge them before deploying from another profile; two live profiles cannot share one game tree."
@@ -250,7 +464,7 @@ impl Service {
         if let Ok(meta) = fs::symlink_metadata(&path) {
             ensure!(!meta.file_type().is_symlink(), "Owner record is a symlink");
         }
-        let Ok(recorded) = fs::read_to_string(&path) else {
+        let Some(recorded) = intake::optional_text(&path)? else {
             return Ok(());
         };
         let recorded = recorded.trim();
@@ -261,7 +475,7 @@ impl Service {
         let root = fs::canonicalize(&self.root).unwrap_or_else(|_| self.root.clone());
         if owner != root && has_manifests(&owner) {
             ensure!(
-                marker_game(&owner).is_some_and(|game| game != self.game),
+                intake::marker(&owner)?.is_some_and(|game| game != self.game),
                 "Manifest root {} still has managed deployments in this game directory. Purge them there first; two live manifest roots cannot share one game tree.",
                 owner.display()
             );
@@ -276,7 +490,7 @@ impl Service {
         let path = owner_record_path(&self.game)?;
         let root = fs::canonicalize(&self.root).unwrap_or_else(|_| self.root.clone());
         let text = root.to_string_lossy().into_owned();
-        if fs::read_to_string(&path).ok().as_deref() != Some(text.as_str()) {
+        if intake::optional_text(&path)?.as_deref() != Some(text.as_str()) {
             crate::recovery::atomic_write(&path, text.as_bytes())?;
         }
         Ok(())
@@ -289,7 +503,7 @@ impl Service {
             return Ok(());
         }
         let path = owner_record_path(&self.game)?;
-        let Ok(recorded) = fs::read_to_string(&path) else {
+        let Some(recorded) = intake::optional_text(&path)? else {
             return Ok(());
         };
         let owner = PathBuf::from(recorded.trim());
@@ -312,7 +526,7 @@ impl Service {
         if !has_manifests(&self.root) {
             return Ok(());
         }
-        match marker_game(&self.root) {
+        match intake::marker(&self.root)? {
             Some(game) => ensure!(
                 game == self.game,
                 "These deployments belong to game directory {}, not {}. Use that game directory, or purge them there first.",
@@ -396,7 +610,7 @@ impl Service {
         if let Ok(meta) = fs::symlink_metadata(&path) {
             ensure!(!meta.file_type().is_symlink(), "Owner record is a symlink");
         }
-        let recorded = fs::read_to_string(&path).ok();
+        let recorded = intake::optional_text(&path)?;
         let recorded = recorded.as_deref().map(str::trim).filter(|s| !s.is_empty());
         let root = fs::canonicalize(&self.root).unwrap_or_else(|_| self.root.clone());
         let unowned = match recorded {
@@ -415,7 +629,7 @@ impl Service {
     fn write_marker(&self) -> Result<()> {
         let path = self.root.join(GAME_MARKER);
         let game = self.game.to_string_lossy();
-        if fs::read_to_string(&path).ok().as_deref() != Some(game.as_ref()) {
+        if intake::optional_text(&path)?.as_deref() != Some(game.as_ref()) {
             crate::recovery::atomic_write(&path, game.as_bytes())?;
         }
         self.claim_owner_record()?;
@@ -425,27 +639,11 @@ impl Service {
     /// Roots owned by one profile: `<settings>/profiles/<profile>/{staging,deployment}`,
     /// matching C# `ManagedInstallSession.TryCreate`.
     pub fn for_profile(settings: &Path, profile: &str, game: &Path) -> Result<Self> {
-        let store = crate::profiles::Store::new(settings)?;
-        ensure!(
-            store.load(profile)?.is_some(),
-            "Managed deployment requires profile '{}', but it was not found on disk.",
-            profile.trim()
-        );
-        let artifacts = store.artifact_directory(profile.trim())?;
-        let staging = artifacts.join("staging");
-        let manifests = artifacts.join("deployment");
-        fs::create_dir_all(&staging)?;
-        fs::create_dir_all(&manifests)?;
-        let mut service = Self::new(game, &staging, &manifests)?;
-        for entry in fs::read_dir(store.directory())? {
-            let entry = entry?;
-            if entry.file_type()?.is_dir() && entry.path() != artifacts {
-                service.peers.push((
-                    entry.file_name().to_string_lossy().into_owned(),
-                    entry.path().join("deployment"),
-                ));
-            }
-        }
+        let service = Self::resolve_profile_uninitialized(settings, profile, game)?;
+        let _lock = service.lock()?;
+        fs::create_dir_all(&service.staging)?;
+        fs::create_dir_all(service.root.join("manifests"))?;
+        fs::create_dir_all(service.root.join("backups"))?;
         Ok(service)
     }
 
@@ -466,11 +664,11 @@ impl Service {
                 Self::new(game, staging, manifests)
             }
             (None, None) => {
+                let store = crate::profiles::Store::from_settings_directory(settings)?;
                 let settings = crate::profiles::settings_directory(settings)?;
                 let profile = match profile.map(str::trim).filter(|name| !name.is_empty()) {
                     Some(name) => name.to_owned(),
-                    None => crate::profiles::Store::new(&settings)?
-                        .active_name()?
+                    None => store.active_name()?
                         .filter(|name| !name.trim().is_empty())
                         .with_context(|| {
                             format!(
@@ -482,6 +680,10 @@ impl Service {
             }
             _ => bail!("--staging-dir and --manifest-dir must be given together"),
         }
+    }
+
+    pub fn active_profile_name(&self) -> Option<&str> {
+        self.active_profile.as_deref()
     }
 
     pub fn game_directory(&self) -> &Path {
@@ -515,38 +717,63 @@ impl Service {
     pub fn deployed_with_warnings(&self) -> Result<(Vec<Manifest>, Vec<String>)> {
         let mut manifests = Vec::new();
         let mut warnings = Vec::new();
-        for entry in fs::read_dir(self.manifests())? {
+        let mut retained_bytes = 0usize;
+        managed_path(&self.manifests(), true)?;
+        for (index, entry) in fs::read_dir(self.manifests())?.enumerate() {
+            ensure!(
+                index < intake::INVENTORY_LIMIT,
+                "Deployment inventory exceeds 10000 entries"
+            );
             let entry = entry?;
-            if !entry.file_type()?.is_file() || entry.path().extension().is_none_or(|x| x != "json")
-            {
+            if entry.path().extension().is_none_or(|x| x != "json") {
                 continue;
             }
-            match fs::read(entry.path())
-                .map_err(anyhow::Error::from)
-                .and_then(|bytes| Ok(serde_json::from_slice::<Manifest>(&bytes)?))
-            {
-                Ok(manifest) => manifests.push(manifest),
+            match intake::manifest(&entry.path()) {
+                Ok(manifest) => {
+                    retained_bytes = retained_bytes
+                        .checked_add(serde_json::to_vec(&manifest)?.len())
+                        .context("Deployment inventory size overflow")?;
+                    ensure!(
+                        retained_bytes <= 64 * 1024 * 1024,
+                        "Deployment inventory exceeds 64 MiB decoded metadata"
+                    );
+                    manifests.push(manifest);
+                }
                 Err(error) => warnings.push(format!(
                     "Failed to read deployment manifest '{}': {error}",
                     entry.path().display()
                 )),
             }
         }
-        manifests.sort_by_key(|manifest| manifest.deployed_utc);
+        manifests.sort_by(|a, b| {
+            a.deployed_utc
+                .cmp(&b.deployed_utc)
+                .then_with(|| a.component_guid.cmp(&b.component_guid))
+        });
+        warnings.sort();
         Ok((manifests, warnings))
     }
 
     pub fn manifest(&self, component: &str) -> Result<Option<Manifest>> {
         let path = self.manifest_path(&component_id(component)?);
-        if !path.exists() {
-            return Ok(None);
+        match fs::symlink_metadata(&path) {
+            Err(error) if error.kind() == ErrorKind::NotFound => return Ok(None),
+            Err(error) => return Err(error.into()),
+            Ok(_) => {}
         }
-        Ok(Some(serde_json::from_slice(&fs::read(path)?)?))
+        Ok(Some(intake::manifest(&path)?))
     }
     fn save(&self, manifest: &Manifest) -> Result<()> {
         let path = self.manifest_path(&component_id(&manifest.component_guid)?);
+        intake::validate(manifest)?;
+        let bytes = serde_json::to_vec_pretty(manifest)?;
+        ensure!(
+            bytes.len() <= intake::MANIFEST_LIMIT,
+            "Serialized deployment manifest exceeds 16 MiB"
+        );
+        managed_path(&path, false)?;
         self.write_marker()?;
-        crate::recovery::atomic_write(&path, &serde_json::to_vec_pretty(manifest)?)
+        crate::recovery::atomic_write(&path, &bytes)
     }
 
     fn staged_directory(&self, component: &str, id: &str) -> Result<PathBuf> {
@@ -603,8 +830,8 @@ impl Service {
         // tell "this call is the one establishing ownership" from "ownership
         // was already recorded". See docs/parity/deployment-csharp-audit.md
         // for why this stays a warning rather than a refusal.
-        let record_existed = owner_record_path(&self.game)
-            .is_ok_and(|path| fs::read_to_string(path).is_ok_and(|text| !text.trim().is_empty()));
+        let record_existed = intake::optional_text(&owner_record_path(&self.game)?)?
+            .is_some_and(|text| !text.trim().is_empty());
         self.ensure_exclusive_game()?;
         let staged = self.staged_directory(component, &id)?;
         ensure!(
@@ -836,9 +1063,11 @@ impl Service {
             Err(_) => {
                 let mut input = fs::File::open(source)?;
                 let mut temp = tempfile::NamedTempFile::new_in(parent)?;
+                let metadata = input.metadata()?;
                 std::io::copy(&mut input, temp.as_file_mut())?;
+                temp.as_file().set_modified(metadata.modified()?)?;
+                fs::set_permissions(temp.path(), metadata.permissions())?;
                 temp.as_file().sync_all()?;
-                fs::set_permissions(temp.path(), fs::metadata(source)?.permissions())?;
                 temp.persist_noclobber(destination).map_err(|e| e.error)?;
                 Method::Copy
             }
@@ -1179,6 +1408,7 @@ impl Service {
     /// install stages from scratch. With no manifest only the staging tree is
     /// cleared. The returned report is `removed == false` in that case.
     pub fn prepare_reinstall(&self, component: &str) -> Result<UninstallReport> {
+        self.checkpoint_mutation_gate()?;
         let id = component_id(component)?;
         let blockers = self.reinstall_blockers(&id)?;
         ensure!(
@@ -1217,6 +1447,7 @@ impl Service {
     /// whose bytes changed stay; when a later deployment overwrote them, this
     /// component's backup moves to that deployment so its uninstall restores it.
     pub fn uninstall_report(&self, component: &str) -> Result<UninstallReport> {
+        self.checkpoint_mutation_gate()?;
         let id = component_id(component)?;
         self.ensure_own_game()?;
         self.adopt_owner_record_if_unowned()?;
@@ -1421,6 +1652,7 @@ impl Service {
 
     /// MO2-style purge: uninstall every manifest, newest deployment first.
     pub fn purge_report(&self) -> Result<Vec<UninstallReport>> {
+        self.checkpoint_mutation_gate()?;
         self.ensure_own_game()?;
         let mut manifests = self.deployed()?;
         manifests.sort_by_key(|manifest| std::cmp::Reverse(manifest.deployed_utc));
@@ -1638,7 +1870,11 @@ impl Service {
                     // Copy to a temporary file, prove those exact bytes are the
                     // snapshot, then publish without clobbering.
                     let mut temp = tempfile::NamedTempFile::new_in(parent)?;
-                    std::io::copy(&mut fs::File::open(&prior)?, temp.as_file_mut())?;
+                    let mut input = crate::paths::open_regular_read(&prior)?;
+                    let metadata = input.metadata()?;
+                    std::io::copy(&mut input, temp.as_file_mut())?;
+                    temp.as_file().set_modified(metadata.modified()?)?;
+                    fs::set_permissions(temp.path(), metadata.permissions())?;
                     temp.as_file().sync_all()?;
                     if !hash(temp.path())?.eq_ignore_ascii_case(old_hash) {
                         report.skipped.push(relative.clone());
@@ -1698,7 +1934,11 @@ impl Service {
         }
         let parent = staged.parent().context("Staged path needs a parent")?;
         let mut temp = tempfile::NamedTempFile::new_in(parent)?;
-        std::io::copy(&mut fs::File::open(live)?, temp.as_file_mut())?;
+        let mut input = crate::paths::open_regular_read(live)?;
+        let metadata = input.metadata()?;
+        std::io::copy(&mut input, temp.as_file_mut())?;
+        temp.as_file().set_modified(metadata.modified()?)?;
+        fs::set_permissions(temp.path(), metadata.permissions())?;
         temp.as_file().sync_all()?;
         temp.persist(&staged).map_err(|e| e.error)?;
         Ok(())
@@ -1817,19 +2057,27 @@ fn check_ancestors(root: &Path, relative: &str) -> Result<()> {
 
 /// True when a manifest root holds at least one manifest file.
 fn has_manifests(root: &Path) -> bool {
-    fs::read_dir(root.join("manifests")).is_ok_and(|entries| {
-        entries
-            .filter_map(Result::ok)
-            .any(|entry| entry.path().extension().is_some_and(|x| x == "json"))
-    })
+    let directory = root.join("manifests");
+    if managed_path(&directory, true).is_err() {
+        return true;
+    }
+    match fs::read_dir(directory) {
+        Err(error) if error.kind() == ErrorKind::NotFound => false,
+        Err(_) => true,
+        Ok(entries) => entries.enumerate().any(|(index, entry)| {
+            index >= intake::INVENTORY_LIMIT
+                || entry.map_or(true, |entry| {
+                    entry.path().extension().is_some_and(|x| x == "json")
+                })
+        }),
+    }
 }
 
-/// The game directory a manifest root records, canonical when it still exists.
-/// `None` when the root has no marker (it predates the marker).
+// Retained legacy private helper signature; authoritative mutation gates use
+// the fallible reader so malformed metadata is not confused with absence.
+#[allow(dead_code)]
 fn marker_game(root: &Path) -> Option<PathBuf> {
-    let marker = fs::read_to_string(root.join(GAME_MARKER)).ok()?;
-    let marker = marker.trim();
-    (!marker.is_empty()).then(|| fs::canonicalize(marker).unwrap_or_else(|_| PathBuf::from(marker)))
+    intake::marker(root).ok().flatten()
 }
 
 fn existing_ignoring_case(directory: &Path, name: &str) -> PathBuf {
@@ -1877,9 +2125,12 @@ fn move_no_clobber(from: &Path, to: &Path) -> Result<()> {
         }
         Err(_) => {
             let mut temp = tempfile::NamedTempFile::new_in(parent)?;
-            std::io::copy(&mut fs::File::open(from)?, temp.as_file_mut())?;
+            let mut input = crate::paths::open_regular_read(from)?;
+            let metadata = input.metadata()?;
+            std::io::copy(&mut input, temp.as_file_mut())?;
+            temp.as_file().set_modified(metadata.modified()?)?;
+            fs::set_permissions(temp.path(), metadata.permissions())?;
             temp.as_file().sync_all()?;
-            fs::set_permissions(temp.path(), fs::metadata(from)?.permissions())?;
             temp.persist_noclobber(to).map_err(|e| e.error)?;
         }
     }
@@ -1944,4 +2195,43 @@ fn remove_empty_tree(directory: &Path) {
         }
     }
     let _ = fs::remove_dir(directory);
+}
+
+/// Resolve existing and absent paths without permitting symlink ancestors.
+fn managed_path(path: &Path, directory: bool) -> Result<PathBuf> {
+    ensure!(
+        !path
+            .components()
+            .any(|part| matches!(part, std::path::Component::ParentDir)),
+        "Managed path contains parent traversal"
+    );
+    let absolute = std::path::absolute(path)?;
+    let mut current = PathBuf::new();
+    for part in absolute.components() {
+        current.push(part.as_os_str());
+        match fs::symlink_metadata(&current) {
+            Ok(meta) => {
+                ensure!(!meta.file_type().is_symlink(), "Managed path is a symlink");
+                #[cfg(windows)]
+                {
+                    use std::os::windows::fs::MetadataExt;
+                    ensure!(
+                        meta.file_attributes() & 0x400 == 0,
+                        "Managed path is a reparse point"
+                    );
+                }
+                ensure!(
+                    if current == absolute && !directory {
+                        meta.is_file()
+                    } else {
+                        meta.is_dir()
+                    },
+                    "Managed path has an invalid file type"
+                );
+            }
+            Err(error) if error.kind() == ErrorKind::NotFound => {}
+            Err(error) => return Err(error.into()),
+        }
+    }
+    Ok(absolute)
 }

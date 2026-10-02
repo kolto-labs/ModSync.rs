@@ -4,7 +4,12 @@ use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 
+mod export;
 mod extract;
+mod legacy;
+pub mod spoiler;
+
+pub(crate) use export::render;
 
 // Field names used by the reference's default MarkdownImportProfile.
 const FIELDS: &[(&str, &str)] = &[
@@ -305,17 +310,20 @@ fn component(section: &str, index: usize) -> Result<Option<(Component, String)>>
         object.insert("Language".into(), json!([language]));
     }
     if let Some(metadata) = metadata {
-        let parsed: Value = if metadata.contains("[[thisMod]]")
+        let parsed: Value = if legacy::recognized(&metadata) {
+            legacy::parse(&metadata, object["Guid"].as_str().unwrap())?
+        } else if metadata.contains("[[thisMod]]")
             || metadata.contains("[thisMod]")
             || metadata.lines().any(|line| {
                 line.split_once('=')
                     .is_some_and(|(key, _)| key.trim() == "Guid")
-            }) {
+            })
+        {
             toml::from_str(&metadata).context("Parse Markdown TOML metadata")?
         } else {
-            serde_yaml_ng::from_str(&metadata)
-                .context("Parse Markdown YAML metadata (legacy bullet metadata is not supported)")?
+            serde_yaml_ng::from_str(&metadata).context("Parse Markdown YAML metadata")?
         };
+        crate::draft::validate_review_records(&parsed)?;
         let source = Guide::from_value(parsed).context("Invalid Markdown component metadata")?;
         ensure!(
             source.components.len() == 1,
@@ -336,6 +344,7 @@ fn component(section: &str, index: usize) -> Result<Option<(Component, String)>>
             "Tier",
             "ResourceRegistry",
             "Heading",
+            "DraftReview",
         ] {
             if let Some(item) = source.get(key) {
                 let empty = item.is_null()

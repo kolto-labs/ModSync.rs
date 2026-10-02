@@ -126,7 +126,59 @@ pub struct Wizard {
     widescreen_inserted: bool,
 }
 
+/// Resolve authored presentation identity without changing guide metadata or
+/// claiming that an installed game was detected.
+pub fn presentation_target(guide: &Guide, fallback: Option<&str>) -> Option<String> {
+    let explicit = guide
+        .metadata
+        .get("metadata")
+        .and_then(|value| value.get("targetGame").or_else(|| value.get("TargetGame")))
+        .or_else(|| {
+            guide
+                .metadata
+                .get("targetGame")
+                .or_else(|| guide.metadata.get("TargetGame"))
+        });
+    match explicit {
+        Some(value) => Some(value.as_str().unwrap_or_default().to_ascii_uppercase()),
+        None => fallback.map(str::to_ascii_uppercase),
+    }
+}
+
 impl Wizard {
+    /// Presentation-only target context. An authored target, even an unknown or
+    /// empty value, takes precedence over the settings-derived fallback.
+    pub fn apply_target_context(&mut self, guide: &Guide, fallback: Option<&str>) {
+        let target = presentation_target(guide, fallback);
+        let notice = matches!(target.as_deref(), Some("KOTOR2" | "TSL"))
+            && metadata_text(
+                guide,
+                "aspyrExclusiveWarningContent",
+                "AspyrExclusiveWarningContent",
+            )
+            .is_some_and(|value| !value.trim().is_empty());
+        let current = self.current();
+        self.pages.retain(|page| *page != Page::AspyrNotice);
+        if notice
+            && let Some(index) = self
+                .pages
+                .iter()
+                .position(|page| *page == Page::GameDirectory)
+        {
+            self.pages.insert(index + 1, Page::AspyrNotice);
+        }
+        self.current = self
+            .pages
+            .iter()
+            .position(|page| *page == current)
+            .or_else(|| {
+                self.pages
+                    .iter()
+                    .position(|page| *page == Page::GameDirectory)
+            })
+            .unwrap_or(0);
+    }
+
     pub fn new(guide: &Guide) -> Self {
         use Page::*;
         let nonblank = |camel, pascal| {

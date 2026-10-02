@@ -18,6 +18,8 @@
 //! - Names, messages, paths and stack traces leave the process only as
 //!   truncated SHA-256 hashes.
 
+pub mod lifecycle;
+
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -113,7 +115,7 @@ impl std::fmt::Debug for Config {
             .field("collect_crash_reports", &self.collect_crash_reports)
             .field("collect_machine_info", &self.collect_machine_info)
             .field("enable_otlp_exporter", &self.enable_otlp_exporter)
-            .field("endpoint", &self.endpoint)
+            .field("endpoint", &self.endpoint_display())
             .field("session_id", &self.session_id)
             .field("client_version", &self.client_version)
             .field("is_first_run", &self.is_first_run)
@@ -125,41 +127,108 @@ impl std::fmt::Debug for Config {
     }
 }
 
-fn secret(directory: &Path) -> Option<String> {
-    std::env::var("MODSYNC_SIGNING_SECRET")
+fn read_config_file(path: &Path, limit: usize) -> Result<Vec<u8>> {
+    crate::profiles::storage::read_bounded(path, limit)?
+        .context("Telemetry configuration file is missing")
+}
+
+fn secret(directory: &Path) -> Result<Option<String>> {
+    // Environment precedence remains unchanged. A present unsafe/unreadable key
+    // is an error, not authority to silently use another directory's secret.
+    let value = match std::env::var("MODSYNC_SIGNING_SECRET")
         .ok()
         .or_else(|| std::env::var("KOTORMODSYNC_SIGNING_SECRET").ok())
-        .or_else(|| std::fs::read_to_string(directory.join("telemetry.key")).ok())
+    {
+        Some(value) => Some(value),
+        None => {
+            crate::profiles::storage::read_bounded(&directory.join("telemetry.key"), 16 * 1024)?
+                .map(|bytes| {
+                    String::from_utf8(bytes)
+                        .map_err(|_| anyhow::anyhow!("Telemetry key is not UTF-8"))
+                })
+                .transpose()?
+        }
+    };
+    Ok(value
+        .filter(|value| value.len() <= 16 * 1024)
         .map(|value| value.trim().to_owned())
-        .filter(|value| !value.is_empty())
+        .filter(|value| !value.is_empty()))
 }
 
 impl Config {
-    pub fn load(directory: &Path) -> Result<Self> {
+    /// Preserve implicit-default migration authority. An explicit settings root
+    /// never consults the global legacy directory. Current configuration wins;
+    /// the legacy file/key remain untouched when a later save copies forward.
+    pub fn load_from_settings_directory(explicit: Option<&Path>) -> Result<Self> {
+        let directory = crate::profiles::settings_directory(explicit)?;
+        if explicit.is_some() {
+            return Self::load(&directory);
+        }
+        let legacy = dirs::config_dir().map(|base| base.join("KOTORModSync"));
         let path = directory.join("telemetry_config.json");
-        let mut config = match std::fs::read(&path) {
-            Ok(bytes) => {
-                let mut config: Self =
-                    serde_json::from_slice(&bytes).context("Parse telemetry configuration")?;
-                config.is_first_run = false;
-                config
+        let current_missing = !crate::profiles::storage::exists(&path)?;
+        let mut config = if current_missing {
+            if let Some(legacy) = legacy.as_ref()
+                && crate::profiles::storage::exists(&legacy.join("telemetry_config.json"))?
+            {
+                Self::load_config(legacy)?
+            } else {
+                Self::load_config(&directory)?
             }
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Self::default(),
-            Err(error) => return Err(error).context("Read telemetry configuration"),
+        } else {
+            Self::load_config(&directory)?
+        };
+        // A copied-forward config deliberately does not serialize its secret.
+        // Retain read-only access to the old key only for the implicit store.
+        config.signing_secret = secret(&directory)?.or(config.signing_secret);
+        if config.signing_secret.is_none()
+            && let Some(legacy) = legacy.as_deref()
+        {
+            config.signing_secret = secret(legacy)?;
+        }
+        Ok(config)
+    }
+
+    pub fn load(directory: &Path) -> Result<Self> {
+        let mut config = Self::load_config(directory)?;
+        config.signing_secret = secret(directory)?;
+        Ok(config)
+    }
+
+    fn load_config(directory: &Path) -> Result<Self> {
+        let path = directory.join("telemetry_config.json");
+        crate::profiles::storage::directory(directory, false)?;
+        let mut config = if crate::profiles::storage::exists(&path)? {
+            let bytes = read_config_file(&path, 1024 * 1024)?;
+            let mut config: Self = serde_json::from_slice(&bytes)
+                .map_err(|_| anyhow::anyhow!("Invalid telemetry configuration JSON"))?;
+            config.is_first_run = false;
+            config
+        } else {
+            Self::default()
         };
         if config.anonymous_user_id.trim().is_empty() {
             config.anonymous_user_id = uuid::Uuid::new_v4().to_string();
         }
         config.session_id = uuid::Uuid::new_v4().to_string();
-        config.signing_secret = secret(directory);
         Ok(config)
     }
 
     pub fn save(&self, directory: &Path) -> Result<()> {
-        crate::recovery::atomic_write(
-            &directory.join("telemetry_config.json"),
-            &serde_json::to_vec_pretty(self)?,
-        )
+        let path = directory.join("telemetry_config.json");
+        let bytes = serde_json::to_vec_pretty(self)?;
+        anyhow::ensure!(
+            bytes.len() <= 1024 * 1024,
+            "Telemetry configuration exceeds 1 MiB"
+        );
+        crate::profiles::storage::directory(directory, true)?;
+        let _lock = crate::profiles::storage::lock(&directory.join("profiles"))?;
+        if let Some(existing) = crate::profiles::storage::read_bounded(&path, 1024 * 1024)? {
+            serde_json::from_slice::<Self>(&existing).map_err(|_| {
+                anyhow::anyhow!("Refusing to replace malformed telemetry configuration")
+            })?;
+        }
+        crate::profiles::storage::write(&path, &bytes)
     }
 
     pub fn set_consent(&mut self, enabled: bool) {
@@ -183,12 +252,31 @@ impl Config {
         self.active() && self.enable_otlp_exporter && otlp_base(&self.endpoint).is_some()
     }
 
+    /// URL for diagnostics: credentials, query and fragment never leave the editor.
+    pub fn endpoint_display(&self) -> String {
+        if self.endpoint.trim().is_empty() {
+            return "(none)".into();
+        }
+        let Ok(mut url) = reqwest::Url::parse(self.endpoint.trim()) else {
+            return "(invalid endpoint)".into();
+        };
+        let _ = url.set_username("");
+        let _ = url.set_password(None);
+        url.set_query(None);
+        url.set_fragment(None);
+        url.to_string()
+    }
+
     /// Plain-text list of what is and is not collected (C# `GetPrivacySummary`).
     pub fn privacy_summary(&self) -> String {
-        if !self.enabled {
+        if !self.enabled || !self.user_consented {
             return "Telemetry is off. Nothing is collected.".into();
         }
-        let mut summary = String::from("Telemetry is on. ModSync collects:\n\n");
+        let mut summary = String::from(if self.exporter_ready() {
+            "Telemetry is ready. ModSync collects:\n\n"
+        } else {
+            "Telemetry is currently inactive. When configured, ModSync collects:\n\n"
+        });
         if self.collect_usage_data {
             summary.push_str("- Usage data: which features you use\n");
         }
@@ -209,7 +297,7 @@ impl Config {
         ));
         summary.push_str(&format!("Session ID: {}\n", self.session_id));
         if self.enable_otlp_exporter && !self.endpoint.trim().is_empty() {
-            summary.push_str(&format!("\nData goes to: {}\n", self.endpoint.trim()));
+            summary.push_str(&format!("\nData goes to: {}\n", self.endpoint_display()));
         }
         if !self.active() {
             summary.push_str("\nNothing is sent until a signing key is installed.\n");
@@ -278,9 +366,14 @@ pub fn export(config: &Config, path: &str, event: &Event) -> Result<Export> {
         .duration_since(UNIX_EPOCH)
         .context("System clock predates Unix epoch")?
         .as_secs() as i64;
-    let endpoint = format!("{}{}", config.endpoint.trim_end_matches('/'), path);
+    let endpoint = format!(
+        "{}{}",
+        otlp_base(&config.endpoint).context("Invalid telemetry endpoint")?,
+        path
+    );
     let body = serde_json::to_vec(event).context("Serialize telemetry event")?;
     let client = reqwest::blocking::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
         .timeout(std::time::Duration::from_secs(10))
         .build()
         .context("Build telemetry HTTP client")?;
@@ -721,7 +814,13 @@ pub fn encode_metrics(
 fn otlp_base(endpoint: &str) -> Option<String> {
     let trimmed = endpoint.trim().trim_end_matches('/');
     let url = reqwest::Url::parse(trimmed).ok()?;
-    matches!(url.scheme(), "http" | "https").then(|| trimmed.to_owned())
+    (matches!(url.scheme(), "http" | "https")
+        && url.host_str().is_some()
+        && url.username().is_empty()
+        && url.password().is_none()
+        && url.query().is_none()
+        && url.fragment().is_none())
+    .then(|| trimmed.to_owned())
 }
 
 /// `{base}/v1/{signal}`, the OTLP/HTTP signal URL.
@@ -851,10 +950,42 @@ impl Telemetry {
             .is_some_and(|worker| !worker.handle.is_finished())
     }
 
+    /// Request revocation without waiting for HTTP or resolver shutdown. Frontends
+    /// must subsequently await configure(off) or shutdown before reporting stopped.
+    pub fn request_stop(&self) {
+        if let Some(worker) = self.lock().as_mut() {
+            worker.gates = Gates::default();
+            worker.cancelled.store(true, Ordering::SeqCst);
+        }
+    }
+
     /// Records dropped since process start: queue full, span buffer full, or
     /// a metric attribute set folded into the overflow series.
     pub fn dropped_records(&self) -> u64 {
         DROPPED.load(Ordering::Relaxed)
+    }
+
+    /// Panic-hook recorder: never waits for a mutex, queue, network or flush.
+    /// A panic while the exporter slot is borrowed must still unwind normally.
+    pub(crate) fn try_record_panic(&self, message: &str, location: &str) {
+        let sender = match self.worker.try_lock() {
+            Ok(slot) => slot
+                .as_ref()
+                .filter(|worker| worker.gates.crash && !worker.cancelled.load(Ordering::Acquire))
+                .map(|worker| worker.sender.clone()),
+            Err(_) => None,
+        };
+        if let Some(sender) = sender {
+            let tags = attributes([
+                ("error.type", json!("panic")),
+                ("error.message.hash", json!(hash_string(message))),
+                ("error.stacktrace.hash", json!(hash_string(location))),
+            ]);
+            enqueue(
+                &sender,
+                Command::Metric("modsync.errors", 1.0, with_event_name("error", tags)),
+            );
+        }
     }
 
     /// Apply a configuration (C# `Initialize` + `UpdateConfiguration`).
@@ -890,10 +1021,9 @@ impl Telemetry {
             }
             return false;
         }
-        if slot
-            .as_ref()
-            .is_some_and(|worker| !worker.handle.is_finished())
-        {
+        if slot.as_ref().is_some_and(|worker| {
+            !worker.handle.is_finished() && !worker.cancelled.load(Ordering::SeqCst)
+        }) {
             let Some(worker) = slot.as_mut() else {
                 return false;
             };
@@ -919,6 +1049,9 @@ impl Telemetry {
             Ok(handle) => handle,
             Err(error) => {
                 drop(slot);
+                if let Some(worker) = dead {
+                    worker.stop();
+                }
                 crate::logging::warning(format!("[Telemetry] Could not start exporter: {error}"));
                 return false;
             }
@@ -1472,6 +1605,7 @@ impl Exporter {
         if self.client.is_none() {
             self.client = Some(
                 reqwest::blocking::Client::builder()
+                    .redirect(reqwest::redirect::Policy::none())
                     .timeout(REQUEST_TIMEOUT)
                     .connect_timeout(CONNECT_TIMEOUT)
                     .build()

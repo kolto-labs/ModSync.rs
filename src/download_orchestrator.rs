@@ -2,6 +2,7 @@
 //! which URLs and filenames are wanted, what already exists, source order, retries,
 //! cancellation, verification, guide write-back and FOMOD follow-up eligibility.
 //! Frontends only format `AcquisitionEvent`s and the reports returned here.
+pub mod filenames;
 use crate::{
     Component, Guide,
     acquisition::{
@@ -122,11 +123,13 @@ fn resolution_allows(resolution: Option<(u32, u32)>, text: &str) -> bool {
     }
 }
 
-fn sha256_file(path: &Path) -> Result<String> {
-    let mut file = std::fs::File::open(path)?;
+fn sha256_file_with_cancel(path: &Path, cancelled: &AtomicBool) -> Result<String> {
+    ensure!(!cancelled.load(Ordering::Relaxed), "Acquisition cancelled");
+    let mut file = crate::paths::open_regular_read(path)?;
     let mut hash = Sha256::new();
     let mut buffer = [0u8; 64 * 1024];
     loop {
+        ensure!(!cancelled.load(Ordering::Relaxed), "Acquisition cancelled");
         let n = file.read(&mut buffer)?;
         if n == 0 {
             return Ok(format!("{:x}", hash.finalize()));
@@ -138,7 +141,7 @@ fn sha256_file(path: &Path) -> Result<String> {
 /// ASCII case-insensitive, like C#'s `OrdinalIgnoreCase` `Files` dictionary.
 fn find_existing(source_dir: &Path, name: &str) -> Option<PathBuf> {
     let exact = source_dir.join(name);
-    if exact.is_file() {
+    if std::fs::symlink_metadata(&exact).is_ok_and(|metadata| metadata.file_type().is_file()) {
         return Some(exact);
     }
     std::fs::read_dir(source_dir)
@@ -155,13 +158,22 @@ fn find_existing(source_dir: &Path, name: &str) -> Option<PathBuf> {
 }
 
 /// A name match plus `archive::verify` (and the authored hash when present).
-fn existing_valid(path: &Path, expected: Option<&str>, options: &archive::Options) -> bool {
+fn existing_valid(
+    path: &Path,
+    expected: Option<&str>,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+) -> bool {
+    if !std::fs::symlink_metadata(path).is_ok_and(|metadata| metadata.file_type().is_file()) {
+        return false;
+    }
     if let Some(expected) = expected
-        && !sha256_file(path).is_ok_and(|actual| actual.eq_ignore_ascii_case(expected))
+        && !sha256_file_with_cancel(path, cancelled)
+            .is_ok_and(|actual| actual.eq_ignore_ascii_case(expected))
     {
         return false;
     }
-    archive::verify(path, path, options, &AtomicBool::new(false)).is_ok()
+    archive::verify(path, path, options, cancelled).is_ok()
 }
 
 fn sources_for(
@@ -208,6 +220,13 @@ fn sources_for(
     }
 }
 
+/// Diagnostics identify a resource without retaining its authored credentials or URL.
+fn diagnostic_resource(url: &str) -> String {
+    use sha2::Digest;
+    let digest = sha2::Sha256::digest(url.as_bytes());
+    format!("Resource {:x}", digest)[..25].to_owned()
+}
+
 /// Share-eligible only with a 64-hex `ContentHashSHA256`, a `magnet:?xt=urn:btih:` magnet
 /// and at most one archive under `Files`, since a torrent holds exactly one archive.
 /// Anything malformed is a warning and the resource stays Origin-only.
@@ -217,6 +236,7 @@ fn peer_metadata(
     file_count: usize,
     warnings: &mut Vec<String>,
 ) -> Option<(String, String)> {
+    let url = diagnostic_resource(url);
     let sha256 = metadata_str(metadata, "ContentHashSHA256");
     let magnet = metadata_str(metadata, "Magnet")?;
     let Some(sha256) = sha256 else {
@@ -269,6 +289,16 @@ pub fn plan(
     candidates: &[DownloadCandidate],
     options: &PlanOptions,
 ) -> Result<AcquisitionPlan> {
+    plan_with_cancel(guide, candidates, options, &AtomicBool::new(false))
+}
+
+/// Planning with cancellation during present-file hashing and archive verification.
+pub fn plan_with_cancel(
+    guide: &Guide,
+    candidates: &[DownloadCandidate],
+    options: &PlanOptions,
+    cancelled: &AtomicBool,
+) -> Result<AcquisitionPlan> {
     let mut result = AcquisitionPlan {
         source_dir: options.source_dir.clone(),
         peer_mode: options.peer_mode,
@@ -297,7 +327,15 @@ pub fn plan(
             continue;
         }
         for (url, metadata) in &component.resource_registry {
-            plan_url(component, url, metadata, options, &mut result)?;
+            ensure!(
+                !cancelled.load(Ordering::Relaxed),
+                "Acquisition planning cancelled"
+            );
+            plan_url(component, url, metadata, options, &mut result, cancelled)?;
+            ensure!(
+                !cancelled.load(Ordering::Relaxed),
+                "Acquisition planning cancelled"
+            );
         }
     }
     let links = shared_destinations(&result.targets);
@@ -361,6 +399,7 @@ fn plan_url(
     metadata: &Value,
     options: &PlanOptions,
     plan: &mut AcquisitionPlan,
+    cancelled: &AtomicBool,
 ) -> Result<()> {
     let skip = |filename: Option<&str>, reason, path: Option<PathBuf>, detail: Option<String>| {
         PlannedSkip {
@@ -445,7 +484,7 @@ fn plan_url(
     for filename in filenames {
         if let Some(name) = &filename
             && let Some(path) = find_existing(&options.source_dir, name)
-            && existing_valid(&path, expected.as_deref(), &options.archive)
+            && existing_valid(&path, expected.as_deref(), &options.archive, cancelled)
         {
             plan.skipped.push(skip(
                 Some(name),
@@ -480,11 +519,9 @@ fn nexus_page(url: &str) -> Result<(String, u64, Option<u64>)> {
         .unwrap_or_default();
     ensure!(
         segments.len() >= 3 && segments[1].eq_ignore_ascii_case("mods"),
-        "Nexus URL is not a mod page: {url}"
+        "Nexus URL is not a mod page"
     );
-    let mod_id = segments[2]
-        .parse()
-        .with_context(|| format!("Nexus URL has no mod id: {url}"))?;
+    let mod_id = segments[2].parse().context("Nexus URL has no mod id")?;
     let file_id = parsed
         .query_pairs()
         .find(|(key, _)| key.eq_ignore_ascii_case("file_id"))
@@ -579,7 +616,7 @@ fn expand_deadlystream_page(
         // As `plan` drops named files the component's Extract patterns do not need.
         result.warnings.push(format!(
             "{}: no archive of this DeadlyStream page is needed by this component's Extract instructions",
-            target.registry_url
+            diagnostic_resource(&target.registry_url)
         ));
         return Ok(());
     }
@@ -598,7 +635,12 @@ fn expand_deadlystream_page(
             .cloned()
             .collect();
         if let Some(path) = find_existing(&result.source_dir, &name)
-            && existing_valid(&path, target.expected_sha256.as_deref(), &options.archive)
+            && existing_valid(
+                &path,
+                target.expected_sha256.as_deref(),
+                &options.archive,
+                cancelled,
+            )
         {
             result.skipped.push(PlannedSkip {
                 component_guid: target.component_guid.clone(),
@@ -627,7 +669,7 @@ fn expand_deadlystream_page(
     {
         result.warnings.push(format!(
             "{}: the page has several archives but a torrent holds one; peers not used",
-            target.registry_url
+            diagnostic_resource(&target.registry_url)
         ));
     }
     Ok(())
@@ -640,6 +682,7 @@ fn expand_nexus_page(
     page: &str,
     options: &PlanOptions,
     client: &mut NexusClient,
+    cancelled: &AtomicBool,
     result: &mut AcquisitionPlan,
 ) -> Result<()> {
     let (game_domain, mod_id, _) = nexus_page(page)?;
@@ -653,7 +696,7 @@ fn expand_nexus_page(
                 target.component_guid
             )
         })?;
-    let files = client.get_mod_files(&game_domain, &mod_id.to_string())?;
+    let files = client.get_mod_files_with_cancel(&game_domain, &mod_id.to_string(), cancelled)?;
     let eligible: Vec<_> = files
         .iter()
         .filter(|file| {
@@ -702,7 +745,7 @@ fn expand_nexus_page(
         // As `plan` drops named files the component's Extract patterns do not need.
         result.warnings.push(format!(
             "{}: no eligible file of Nexus mod {mod_id} is needed by this component's Extract instructions",
-            target.registry_url
+            diagnostic_resource(&target.registry_url)
         ));
         return Ok(());
     }
@@ -739,7 +782,12 @@ fn expand_nexus_page(
             })
             .collect();
         if let Some(path) = find_existing(&result.source_dir, &name)
-            && existing_valid(&path, target.expected_sha256.as_deref(), &options.archive)
+            && existing_valid(
+                &path,
+                target.expected_sha256.as_deref(),
+                &options.archive,
+                cancelled,
+            )
         {
             result.skipped.push(PlannedSkip {
                 component_guid: target.component_guid.clone(),
@@ -768,7 +816,7 @@ fn expand_nexus_page(
     {
         result.warnings.push(format!(
             "{}: the page has several archives but a torrent holds one; peers not used",
-            target.registry_url
+            diagnostic_resource(&target.registry_url)
         ));
     }
     Ok(())
@@ -843,7 +891,7 @@ pub fn discover_with_loopback_ca(
                 Err(error) => {
                     result
                         .warnings
-                        .push(format!("{}: {error:#}", target.registry_url));
+                        .push(format!("Provider filename discovery failed: {error:#}"));
                     result.targets.push(target.clone());
                 }
             }
@@ -872,7 +920,7 @@ pub fn discover_with_loopback_ca(
         if requires == OriginRequirement::NexusPremium {
             let premium = *premium.get_or_insert_with(|| {
                 client
-                    .validate()
+                    .validate_with_cancel(cancelled)
                     .is_ok_and(|result| result.is_valid && result.is_premium)
             });
             if !premium {
@@ -888,7 +936,15 @@ pub fn discover_with_loopback_ca(
             skipped: Vec::new(),
             warnings: Vec::new(),
         };
-        match expand_nexus_page(guide, target, page, options, client, &mut expanded) {
+        match expand_nexus_page(
+            guide,
+            target,
+            page,
+            options,
+            client,
+            cancelled,
+            &mut expanded,
+        ) {
             Ok(()) => {
                 result.targets.extend(expanded.targets);
                 result.skipped.extend(expanded.skipped);
@@ -897,7 +953,7 @@ pub fn discover_with_loopback_ca(
             Err(error) => {
                 result
                     .warnings
-                    .push(format!("{}: {error:#}", target.registry_url));
+                    .push(format!("Provider filename discovery failed: {error:#}"));
                 result.targets.push(target.clone());
             }
         }
@@ -1068,7 +1124,7 @@ pub fn run_with_loopback_ca(
             client
                 .lock()
                 .unwrap()
-                .validate()
+                .validate_with_cancel(cancelled)
                 .map(|result| result.is_valid && result.is_premium)
                 .map_err(|error| format!("Nexus key validation failed: {error:#}")),
         ),
@@ -1357,12 +1413,10 @@ fn is_never_started(error: &anyhow::Error) -> bool {
 }
 
 /// Whether an Origin error must keep a still-waiting Peer from starting: a gate (login,
-/// captcha, free-wait, HTML landing), a failed/unknown premium validation (O3), or a
-/// revealed name that is already present. Origin reveals a present name only after its
-/// first `Transferring` event has already granted Peer, so for that case this denies
-/// nothing; the race stops Peer when it settles on the present file.
+/// captcha, free-wait, HTML landing), or a failed/unknown premium validation (O3).
+/// A present filename is settled through verification; refusal leaves Peer eligible.
 fn origin_denies_peer(error: &anyhow::Error) -> bool {
-    if nexus_authorization_failed(error) || download::destination_exists(error).is_some() {
+    if nexus_authorization_failed(error) {
         return true;
     }
     matches!(
@@ -1536,6 +1590,9 @@ fn acquire_sources(
 /// `cancelled` is the run's flag: a present file found after a cancel is never offered
 /// for adoption.
 fn step_from_error(error: anyhow::Error, kind: SourceKind, cancelled: &AtomicBool) -> Step {
+    if cancelled.load(Ordering::SeqCst) {
+        return Step::Cancelled(kind);
+    }
     if nexus_authorization_failed(&error) {
         return Step::Terminal(format!("{error:#}"), kind);
     }
@@ -1565,7 +1622,21 @@ fn adopt_present(
     present: &download::DestinationExists,
 ) -> std::result::Result<Acquired, String> {
     let path = &present.path;
-    let actual = sha256_file(path).map_err(|error| {
+    let contained = || -> Result<()> {
+        ensure!(
+            std::fs::symlink_metadata(path)?.file_type().is_file(),
+            "Existing destination is a symlink or special file"
+        );
+        let root = std::fs::canonicalize(&context.plan.source_dir)?;
+        let actual = std::fs::canonicalize(path)?;
+        ensure!(
+            actual.parent() == Some(root.as_path()),
+            "Existing destination is outside the captured mod workspace"
+        );
+        Ok(())
+    };
+    contained().map_err(|error| format!("Existing destination cannot be adopted: {error:#}"))?;
+    let actual = sha256_file_with_cancel(path, context.cancelled).map_err(|error| {
         format!(
             "The present file {} is unreadable: {error:#}",
             path.display()
@@ -1620,7 +1691,7 @@ fn single_source(
 ) -> Step {
     let kind = source.kind();
     match source {
-        Source::Existing { path } => match sha256_file(path) {
+        Source::Existing { path } => match sha256_file_with_cancel(path, context.cancelled) {
             Ok(sha256) => Step::Done(
                 Acquired {
                     path: path.clone(),
@@ -2101,16 +2172,49 @@ fn race_origin_peer(
                         decided = Some(gate);
                     }
                     Step::Present(present, kind) if racer == ORIGIN => {
-                        stop(PEER);
-                        if let Some(held) = held_peer.take() {
-                            discard(&held, &mut notes);
+                        // Origin has finished its gate checks, but a name collision
+                        // alone is not a winning result. Verify before stopping Peer.
+                        match adopt_present(context, target, &present) {
+                            _ if parent_cancelled() => {
+                                stop(PEER);
+                                if let Some(held) = held_peer.take() {
+                                    discard(&held, &mut notes);
+                                }
+                                decided = Some(Step::Cancelled(kind));
+                            }
+                            Ok(adopted) => {
+                                stop(PEER);
+                                if let Some(held) = held_peer.take() {
+                                    discard(&held, &mut notes);
+                                }
+                                if peer_started.load(Ordering::SeqCst) && !superseded[PEER] {
+                                    superseded[PEER] = true;
+                                    emit(
+                                        context,
+                                        index,
+                                        target,
+                                        SourceKind::Peer,
+                                        Phase::Superseded,
+                                    );
+                                }
+                                winner_path = Some(adopted.path.clone());
+                                decided = Some(Step::Done(adopted, kind));
+                            }
+                            Err(message) => {
+                                origin_failed = true;
+                                emit(
+                                    context,
+                                    index,
+                                    target,
+                                    kind,
+                                    Phase::SourceFailed {
+                                        error: message.clone(),
+                                        will_fallback: running[PEER] || held_peer.is_some(),
+                                    },
+                                );
+                                last_error = Some((message, kind));
+                            }
                         }
-                        if peer_started.load(Ordering::SeqCst) && !superseded[PEER] {
-                            superseded[PEER] = true;
-                            emit(context, index, target, SourceKind::Peer, Phase::Superseded);
-                        }
-                        winner_path = Some(present.path.clone());
-                        decided = Some(Step::Present(present, kind));
                     }
                     terminal @ Step::Terminal(..) if racer == ORIGIN => {
                         stop(PEER);
@@ -2258,11 +2362,9 @@ fn origin_once(
             .as_ref()
             .context("Nexus client missing for a Nexus origin")?;
         // API failures take the same typed retry policy as transfers.
-        let link = nexus_link(url, target, nexus).map_err(download::request_failure)?;
-        let resolved = nexus
-            .lock()
-            .unwrap()
-            .nxm_download_link(&link)
+        let link = nexus_link(url, target, nexus, cancelled).map_err(download::request_failure)?;
+        let resolved = nexus_client_lock(nexus, cancelled)?
+            .nxm_download_link_with_cancel(&link, cancelled)
             .map_err(|error| {
                 // Left unwrapped: a classified `FetchError` hides its inner error from
                 // `chain()`, and this one must stay visible as terminal. Unclassified, it
@@ -2440,12 +2542,36 @@ fn deadlystream_file(
     }
 }
 
+fn nexus_client_lock<'a>(
+    nexus: &'a Mutex<NexusClient>,
+    cancelled: &AtomicBool,
+) -> Result<std::sync::MutexGuard<'a, NexusClient>> {
+    loop {
+        if cancelled.load(Ordering::Acquire) {
+            return Err(download::fail(
+                FailureClass::Cancelled,
+                anyhow::anyhow!("Nexus request cancelled"),
+            ));
+        }
+        match nexus.try_lock() {
+            Ok(client) => return Ok(client),
+            Err(std::sync::TryLockError::Poisoned(_)) => {
+                anyhow::bail!("Nexus client stopped unexpectedly")
+            }
+            Err(std::sync::TryLockError::WouldBlock) => {
+                std::thread::sleep(std::time::Duration::from_millis(20))
+            }
+        }
+    }
+}
+
 /// An nxm URL carries its own file id. A nexusmods.com page URL names the file through a
 /// `file_id` query parameter or an authored `Files` name; anything else is not guessed.
 fn nexus_link(
     url: &str,
     target: &ArchiveTarget,
     nexus: &Mutex<NexusClient>,
+    cancelled: &AtomicBool,
 ) -> Result<protocol::Link> {
     if url.trim_start().to_ascii_lowercase().starts_with("nxm://") {
         return protocol::parse(url);
@@ -2454,10 +2580,11 @@ fn nexus_link(
     let file_id = match (query_file, &target.filename) {
         (Some(id), _) => id,
         (None, Some(name)) => {
-            let files = nexus
-                .lock()
-                .unwrap()
-                .get_mod_files(&game_domain, &mod_id.to_string())?;
+            let files = nexus_client_lock(nexus, cancelled)?.get_mod_files_with_cancel(
+                &game_domain,
+                &mod_id.to_string(),
+                cancelled,
+            )?;
             let matching: Vec<_> = files
                 .iter()
                 .filter(|file| file.file_name.eq_ignore_ascii_case(name))
@@ -2485,7 +2612,7 @@ fn nexus_link(
         (None, None) => {
             // `discover` names every page it can; the plan warnings say why this one stayed.
             bail!(
-                "Nexus page URL does not name a file; add a Files entry or a file_id (see the plan warnings): {url}"
+                "Nexus page URL does not name a file; add a Files entry or a file_id (see the plan warnings)"
             )
         }
     };
@@ -2652,7 +2779,7 @@ pub fn record_with(
         let metadata = component
             .resource_registry
             .get_mut(url.as_str())
-            .with_context(|| format!("Registry URL is no longer present: {url}"))?
+            .context("Resource registry entry is no longer present")?
             .as_object_mut()
             .context("Resource metadata must be an object")?;
         let sibling_recorded = metadata
@@ -2785,6 +2912,60 @@ pub fn pending_fomod_followups<'a>(
     followups
 }
 
+/// Desktop queue bindings retain every authorized consumer, even when several
+/// consume one archive. Valid saved sessions are preserved rather than replaced
+/// by another consumer's post-download choices.
+pub fn bound_fomod_followups(
+    guide: &Guide,
+    report: &RunReport,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+    completed: &[String],
+) -> FomodFollowups {
+    let scan = collect_fomod_consumers(guide, report, options, cancelled, completed);
+    let mut result = FomodFollowups {
+        followups: Vec::new(),
+        inspection_errors: scan.inspection_errors,
+    };
+    for archive in scan.archives {
+        let Some(filename) = archive.archive.file_name().and_then(|name| name.to_str()) else {
+            continue;
+        };
+        for consumer in archive.consumers {
+            if cancelled.load(Ordering::Relaxed) {
+                result.followups.clear();
+                return result;
+            }
+            let component = guide
+                .components
+                .iter()
+                .find(|c| c.guid == consumer.component_guid)
+                .expect("consumer came from the captured guide");
+            let saved = (|| -> Result<bool> {
+                let choices = crate::fomod::saved_choices_file(component)?;
+                let Some(choices) = choices.as_ref().and_then(|file| file.archive(filename)) else {
+                    return Ok(false);
+                };
+                crate::fomod::current_archive_choices(&archive.module, choices, filename)?;
+                Ok(true)
+            })();
+            match saved {
+                Ok(false) if consumer.should_prompt => result.followups.push(FomodFollowup {
+                    component_guid: consumer.component_guid,
+                    archive: archive.archive.clone(),
+                }),
+                Ok(_) => {}
+                Err(error) => result.inspection_errors.push(FomodInspectionError {
+                    component_guid: consumer.component_guid,
+                    archive: archive.archive.clone(),
+                    error: format!("Saved FOMOD choices need repair: {error:#}"),
+                }),
+            }
+        }
+    }
+    result
+}
+
 /// A GUID/path binding from the captured acquisition report, before inspection deduplication.
 pub struct FomodConsumer {
     pub component_guid: String,
@@ -2899,4 +3080,226 @@ fn offer_prompt(component: &Component, filename: &str) -> bool {
     }
     let (matched, pending) = visit(component, filename);
     !matched || pending
+}
+
+/// Provider observations carried separately from the stable acquisition report.
+/// Lookup failures are advisory and never turn a failed transfer into success.
+#[derive(Clone, Debug, Default, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MetadataReport {
+    pub entries: Vec<ResourceMetadataObservation>,
+    pub warnings: Vec<String>,
+    pub cancelled: bool,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ResourceMetadataObservation {
+    pub component_guid: String,
+    pub registry_url: String,
+    pub metadata: crate::host_metadata::Metadata,
+}
+
+/// Fetch metadata only after successful origin transfers, never during planning or
+/// dry-run and never to work around a detected gate or peer-only acquisition. GameFront
+/// is the exception: its provider-only observation needs no network request. One
+/// multi-file resource receives a metadata observation only when its origins agree;
+/// a discovered Nexus page is not relabelled as one of its individual file IDs.
+pub fn collect_metadata(
+    plan: &AcquisitionPlan,
+    report: &RunReport,
+    settings: &RunSettings,
+    cancelled: &AtomicBool,
+    loopback_ca: Option<&download::LoopbackCa>,
+) -> MetadataReport {
+    let mut result = MetadataReport::default();
+    if report.cancelled || cancelled.load(Ordering::Relaxed) {
+        result.cancelled = true;
+        return result;
+    }
+    let mut nexus = None;
+    let mut seen = BTreeSet::new();
+    for outcome in &report.outcomes {
+        if cancelled.load(Ordering::Relaxed) {
+            break;
+        }
+        let identity = (outcome.component_guid.clone(), outcome.registry_url.clone());
+        if seen.contains(&identity) {
+            continue;
+        }
+        let gamefront = matches!(
+            download_hosts::provider(&outcome.registry_url),
+            Ok(Provider::GameFront)
+        );
+        if !(gamefront
+            || outcome.status == TargetStatus::Completed
+                && matches!(outcome.source, Some(SourceKind::Origin(_))))
+        {
+            continue;
+        }
+        let Some(target) = plan.targets.get(outcome.target_index) else {
+            continue;
+        };
+        if target.component_guid != outcome.component_guid
+            || target.registry_url != outcome.registry_url
+        {
+            continue;
+        }
+        seen.insert(identity.clone());
+        let mut metadata_url = outcome.registry_url.clone();
+        // A direct NXM handoff carries its identity in the path; never retain its key.
+        if metadata_url.starts_with("nxm://") {
+            if let Ok(protocol::Link::Nxm {
+                game_domain,
+                mod_id,
+                file_id,
+                ..
+            }) = protocol::parse(&metadata_url)
+            {
+                metadata_url = format!(
+                    "https://www.nexusmods.com/{game_domain}/mods/{mod_id}?file_id={file_id}"
+                );
+            } else {
+                continue;
+            }
+        }
+        let provider = download_hosts::provider(&metadata_url).ok();
+        if provider == Some(Provider::Nexus) && nexus.is_none() && settings.nexus_api_key.is_some()
+        {
+            nexus = match settings.nexus_api_base.as_deref() {
+                Some(base) => NexusClient::with_base_url(settings.nexus_api_key.clone(), base),
+                None => NexusClient::new(settings.nexus_api_key.clone()),
+            }
+            .ok();
+        }
+        let observation = crate::host_metadata::resolve_with_endpoints(
+            &metadata_url,
+            nexus.as_mut(),
+            settings.deadlystream_base.as_deref(),
+            settings.mega_api_base.as_deref(),
+            loopback_ca,
+            cancelled,
+        );
+        if let Some(warning) = observation.warning {
+            result
+                .warnings
+                .push(format!("Component {}: {warning}", outcome.component_guid));
+        }
+        if let Some(metadata) = observation.metadata {
+            result.entries.push(ResourceMetadataObservation {
+                component_guid: identity.0,
+                registry_url: identity.1,
+                metadata,
+            });
+        }
+    }
+    if cancelled.load(Ordering::Relaxed) {
+        result.entries.clear();
+        result.cancelled = true;
+    }
+    result
+}
+
+/// Atomically add provider observations to registry entries. Authored nonempty values
+/// win, including `MetadataHash`, `FileSize`, provider keys and unrelated FOMOD state.
+/// A mismatched existing provider prevents mixing two provider contracts.
+pub fn record_metadata(guide: &mut Guide, report: &MetadataReport) -> Result<usize> {
+    if report.cancelled {
+        return Ok(0);
+    }
+    let mut working = guide.clone();
+    let mut changed = 0;
+    for observation in &report.entries {
+        let component = component_mut(&mut working.components, &observation.component_guid)
+            .context("Metadata component is no longer in the guide")?;
+        let resource = component
+            .resource_registry
+            .get_mut(&observation.registry_url)
+            .and_then(Value::as_object_mut)
+            .context("Metadata resource is no longer an object")?;
+        let before = resource.clone();
+        // Only the exact migration placeholder is replaceable. A matching authored
+        // copy is indistinguishable, so require both URL-SHA1 fields and no provider.
+        let legacy_hash = format!(
+            "{:x}",
+            sha1::Sha1::digest(
+                crate::resources::normalized_url(&observation.registry_url).as_bytes()
+            )
+        );
+        let legacy_placeholder = ["ContentKey", "MetadataHash"].iter().all(|key| {
+            resource
+                .get(&metadata_key(resource, key))
+                .and_then(Value::as_str)
+                == Some(legacy_hash.as_str())
+        }) && resource
+            .get(&metadata_key(resource, "HandlerMetadata"))
+            .and_then(Value::as_object)
+            .is_some_and(|handler| {
+                handler
+                    .get(&metadata_key(handler, "provider"))
+                    .is_none_or(empty_metadata_value)
+            });
+        let handler_key = metadata_key(resource, "HandlerMetadata");
+        let handler = resource
+            .entry(handler_key)
+            .or_insert_with(|| Value::Object(Default::default()));
+        if handler.is_null() {
+            *handler = Value::Object(Default::default());
+        }
+        let handler = handler
+            .as_object_mut()
+            .context("HandlerMetadata must be an object")?;
+        if handler
+            .get(&metadata_key(handler, "provider"))
+            .is_some_and(|v| {
+                !empty_metadata_value(v) && Some(v) != observation.metadata.get("provider")
+            })
+        {
+            continue;
+        }
+        for (key, value) in &observation.metadata {
+            let existing_key = metadata_key(handler, key);
+            if crate::host_metadata::PROVIDER_KEYS.contains(&key.as_str())
+                && handler.get(&existing_key).is_none_or(empty_metadata_value)
+            {
+                handler.insert(existing_key, value.clone());
+            }
+        }
+        let provider_fields: crate::host_metadata::Metadata = crate::host_metadata::PROVIDER_KEYS
+            .iter()
+            .filter_map(|key| {
+                handler
+                    .get(&metadata_key(handler, key))
+                    .map(|value| ((*key).to_owned(), value.clone()))
+            })
+            .collect();
+        let hash = crate::host_metadata::metadata_hash(&provider_fields);
+        let hash_key = metadata_key(resource, "MetadataHash");
+        if legacy_placeholder || resource.get(&hash_key).is_none_or(empty_metadata_value) {
+            resource.insert(hash_key, hash.into());
+        }
+        let size_key = metadata_key(resource, "FileSize");
+        if resource.get(&size_key).is_none_or(|v| {
+            empty_metadata_value(v) || (legacy_placeholder && v.as_u64() == Some(0))
+        }) && let Some(size) = crate::host_metadata::file_size(&provider_fields)
+        {
+            resource.insert(size_key, size.into());
+        }
+        if *resource != before {
+            changed += 1;
+        }
+    }
+    *guide = working;
+    Ok(changed)
+}
+
+fn empty_metadata_value(value: &Value) -> bool {
+    value.is_null() || value.as_str().is_some_and(|s| s.is_empty())
+}
+
+fn metadata_key(map: &serde_json::Map<String, Value>, key: &str) -> String {
+    map.keys()
+        .find(|existing| existing.eq_ignore_ascii_case(key))
+        .cloned()
+        .unwrap_or_else(|| key.into())
 }

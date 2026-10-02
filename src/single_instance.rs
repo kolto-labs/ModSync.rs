@@ -1,87 +1,166 @@
-use anyhow::Result;
-use std::sync::mpsc::Receiver;
-
-pub const ACTIVATE_MESSAGE: &str = "__MODSYNC_ACTIVATE__";
-
-#[cfg(unix)]
+//! Authenticated per-user single-instance delivery. An acknowledgement means the
+//! shared parser accepted the request and the bounded desktop queue retained it.
+use anyhow::{Result, ensure};
+use serde::{Deserialize, Serialize};
 use std::{
-    io::{Read, Write},
-    os::unix::net::{UnixListener, UnixStream},
-    path::PathBuf,
-    sync::mpsc,
+    collections::VecDeque,
+    sync::{
+        Arc,
+        atomic::{AtomicBool, Ordering},
+        mpsc::{Receiver, SyncSender},
+    },
+    thread::JoinHandle,
+    time::Duration,
 };
 
-#[cfg(unix)]
-pub struct Guard(PathBuf);
+pub const ACTIVATE_MESSAGE: &str = "__MODSYNC_ACTIVATE__";
+const MESSAGE_LIMIT: usize = 8192;
+const FRAME_LIMIT: usize = 64 * 1024;
+const QUEUE_LIMIT: usize = 64;
+const RECENT_LIMIT: usize = 256;
+const DEADLINE: Duration = Duration::from_secs(2);
+const POLL: Duration = Duration::from_millis(20);
 
 #[cfg(unix)]
+mod unix;
+#[cfg(windows)]
+mod windows;
+#[cfg(all(test, unix))]
+use std::path::PathBuf;
+
+pub struct Guard {
+    stop: Arc<AtomicBool>,
+    worker: Option<JoinHandle<()>>,
+}
 impl Drop for Guard {
     fn drop(&mut self) {
-        let _ = std::fs::remove_file(&self.0);
+        self.stop.store(true, Ordering::Release);
+        if let Some(worker) = self.worker.take() {
+            let _ = worker.join();
+        }
     }
 }
 
-/// Claims the per-user Unix socket or forwards a handoff/activation message to the primary.
-/// A stale socket is removed only after a connection attempt proves it has no listener.
-#[cfg(unix)]
-pub fn claim_or_forward(protocol: Option<&str>) -> Result<Option<(Receiver<String>, Guard)>> {
-    let user = std::env::var("USER")
-        .unwrap_or_else(|_| "default".into())
-        .chars()
-        .map(|c| if c.is_ascii_alphanumeric() { c } else { '_' })
-        .collect::<String>();
-    let directory = std::env::var_os("XDG_RUNTIME_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(std::env::temp_dir);
-    claim_at(directory.join(format!("modsync-rs-{user}.sock")), protocol)
+#[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Request {
+    version: u8,
+    id: String,
+    message: String,
 }
-
-#[cfg(unix)]
-fn claim_at(path: PathBuf, protocol: Option<&str>) -> Result<Option<(Receiver<String>, Guard)>> {
-    let listener = match UnixListener::bind(&path) {
-        Ok(listener) => listener,
-        Err(error) if error.kind() == std::io::ErrorKind::AddrInUse => {
-            if forward(&path, protocol.unwrap_or(ACTIVATE_MESSAGE)).is_ok() {
-                return Ok(None);
-            }
-            std::fs::remove_file(&path)?;
-            UnixListener::bind(&path)?
-        }
-        Err(error) => return Err(error.into()),
-    };
-    let (tx, rx) = mpsc::channel();
-    std::thread::spawn(move || {
-        for stream in listener.incoming().flatten() {
-            let mut stream = stream;
-            let mut message = String::new();
-            if Read::by_ref(&mut stream)
-                .take(8193)
-                .read_to_string(&mut message)
-                .is_ok()
-                && message.len() <= 8192
-                && !message.trim().is_empty()
-            {
-                let _ = tx.send(message.trim().into());
-            }
-        }
-    });
-    Ok(Some((rx, Guard(path))))
+#[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Ack {
+    version: u8,
+    id: String,
+    accepted: bool,
+    reason: String,
 }
-
-#[cfg(unix)]
-fn forward(path: &std::path::Path, protocol: &str) -> Result<()> {
-    let mut stream = UnixStream::connect(path)?;
-    stream.write_all(protocol.as_bytes())?;
+impl Request {
+    fn new(protocol: Option<&str>) -> Result<Self> {
+        let message = protocol.unwrap_or(ACTIVATE_MESSAGE).trim().to_owned();
+        validate_message(&message)?;
+        Ok(Self {
+            version: 1,
+            id: uuid::Uuid::new_v4().to_string(),
+            message,
+        })
+    }
+}
+fn validate_message(message: &str) -> Result<()> {
+    ensure!(
+        !message.is_empty() && message.len() <= MESSAGE_LIMIT,
+        "Protocol request must contain 1 to 8192 bytes"
+    );
+    if message != ACTIVATE_MESSAGE {
+        crate::protocol::parse(message)?;
+    }
+    Ok(())
+}
+fn admit(
+    request: Request,
+    sender: &SyncSender<String>,
+    recent: &mut VecDeque<(String, String)>,
+) -> Ack {
+    let result = (|| -> Result<()> {
+        ensure!(request.version == 1, "Unsupported handoff version");
+        uuid::Uuid::parse_str(&request.id)?;
+        validate_message(&request.message)?;
+        if let Some((_, old)) = recent.iter().find(|(id, _)| id == &request.id) {
+            ensure!(
+                old == &request.message,
+                "Request ID was reused for different content"
+            );
+            return Ok(());
+        }
+        sender
+            .try_send(request.message.clone())
+            .map_err(|_| anyhow::anyhow!("Primary request queue is full or closed"))?;
+        recent.push_back((request.id.clone(), request.message));
+        if recent.len() > RECENT_LIMIT {
+            recent.pop_front();
+        }
+        Ok(())
+    })();
+    Ack {
+        version: 1,
+        id: request.id,
+        accepted: result.is_ok(),
+        reason: result
+            .err()
+            .map_or_else(String::new, |error| error.to_string()),
+    }
+}
+fn check_ack(request: &Request, ack: Ack) -> Result<()> {
+    ensure!(
+        ack.version == 1 && ack.id == request.id,
+        "Primary acknowledgement identity differs"
+    );
+    ensure!(ack.accepted, "Primary rejected request: {}", ack.reason);
     Ok(())
 }
 
-#[cfg(not(unix))]
-pub struct Guard;
+pub fn claim_or_forward(protocol: Option<&str>) -> Result<Option<(Receiver<String>, Guard)>> {
+    claim_or_forward_for_channel(protocol, "stable")
+}
 
-#[cfg(not(unix))]
-pub fn claim_or_forward(_protocol: Option<&str>) -> Result<Option<(Receiver<String>, Guard)>> {
-    // ponytail: Windows needs named-pipe parity; add it when validating that target.
-    Ok(Some((std::sync::mpsc::channel().1, Guard)))
+/// Separate installed release channels while retaining the historic stable namespace.
+pub fn claim_or_forward_for_channel(
+    protocol: Option<&str>,
+    channel: &str,
+) -> Result<Option<(Receiver<String>, Guard)>> {
+    ensure!(
+        !channel.is_empty()
+            && channel.len() <= 128
+            && channel
+                .bytes()
+                .all(|byte| byte.is_ascii_alphanumeric() || b"._-".contains(&byte)),
+        "Invalid single-instance channel"
+    );
+    let namespace = if channel == "stable" {
+        "stable".into()
+    } else {
+        use sha2::{Digest, Sha256};
+        format!("channel-{:x}", Sha256::digest(channel.as_bytes()))[..32].to_owned()
+    };
+    #[cfg(unix)]
+    {
+        unix::claim_or_forward(protocol, &namespace)
+    }
+    #[cfg(windows)]
+    {
+        windows::claim_or_forward(protocol, namespace)
+    }
+    #[cfg(not(any(unix, windows)))]
+    {
+        let _ = (protocol, namespace);
+        anyhow::bail!("Single-instance transport is unsupported on this platform")
+    }
+}
+
+#[cfg(all(test, unix))]
+fn claim_at(path: PathBuf, protocol: Option<&str>) -> Result<Option<(Receiver<String>, Guard)>> {
+    unix::claim_at(path, protocol)
 }
 
 #[cfg(all(test, unix))]

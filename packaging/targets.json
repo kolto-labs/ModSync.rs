@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "targets": {
+    "x86_64-unknown-linux-gnu": {"os": "linux", "architecture": "x86_64", "vehicle": "tar.gz", "nativeAcceptance": "unverified"},
+    "aarch64-unknown-linux-gnu": {"os": "linux", "architecture": "aarch64", "vehicle": "tar.gz", "nativeAcceptance": "unverified"},
+    "i686-pc-windows-msvc": {"os": "windows", "architecture": "x86", "vehicle": "zip", "nativeAcceptance": "unverified"},
+    "x86_64-pc-windows-msvc": {"os": "windows", "architecture": "x86_64", "vehicle": "zip", "nativeAcceptance": "unverified"},
+    "aarch64-pc-windows-msvc": {"os": "windows", "architecture": "aarch64", "vehicle": "zip", "nativeAcceptance": "unverified"},
+    "x86_64-apple-darwin": {"os": "macos", "architecture": "x86_64", "vehicle": "zip", "nativeAcceptance": "unverified"},
+    "aarch64-apple-darwin": {"os": "macos", "architecture": "aarch64", "vehicle": "zip", "nativeAcceptance": "unverified"}
+  },
+  "osVersionExceptions": [
+    {"target": "win7-x86", "status": "unresolved", "reason": "Current Rust/dependency Windows minimum versions have not been proven compatible."},
+    {"target": "win7-x64", "status": "unresolved", "reason": "Current Rust/dependency Windows minimum versions have not been proven compatible."},
+    {"target": "win7-arm64", "status": "unresolved", "reason": "Reference OS-version lane retained as unresolved; no Windows 7 ARM64 support claim."}
+  ]
+}

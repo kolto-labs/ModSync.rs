@@ -1,3 +1,24 @@
+mod checkpoint_coordinator;
+mod managed;
+pub use managed::{ManagedLiveEdit, ManagedRunReport};
+
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct InstallReport {
+    pub managed: Option<ManagedRunReport>,
+    pub checkpoint: Option<CheckpointRunReport>,
+}
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct CheckpointRunReport {
+    pub session_id: String,
+    pub checkpoint_id: String,
+    pub generation: u64,
+}
+mod patcher_prepare;
+mod patcher_simulation;
+pub(crate) mod process_arguments;
+
 use crate::{
     archive,
     install_progress::{OwnerFrame, Phase as InstallPhase, Progress as InstallProgress},
@@ -10,7 +31,7 @@ use serde::Serialize;
 use std::{
     collections::{BTreeMap, BTreeSet, btree_map},
     fs,
-    io::{BufRead, BufReader, Read},
+    io::{BufRead, BufReader},
     path::{Path, PathBuf},
     process::Command,
     sync::{
@@ -132,18 +153,33 @@ impl<'a> InstallObserver<'a> {
 
 #[derive(Clone)]
 enum Content {
+    /// Presence inferred from InstallList; never publish or interpret as empty bytes.
+    Unknown,
     Disk(PathBuf),
-    Scratch(Arc<tempfile::NamedTempFile>, Option<u32>),
+    Scratch(
+        Arc<tempfile::NamedTempFile>,
+        Option<u32>,
+        Option<std::time::SystemTime>,
+    ),
 }
 impl Content {
-    fn path(&self) -> &Path {
+    fn path(&self) -> Result<&Path> {
         match self {
-            Self::Disk(path) => path,
-            Self::Scratch(file, _) => file.path(),
+            Self::Unknown => bail!("Patcher InstallList file content is unknown during simulation"),
+            Self::Disk(path) => Ok(path),
+            Self::Scratch(file, _, _) => Ok(file.path()),
         }
     }
     fn open(&self) -> Result<fs::File> {
-        Ok(fs::File::open(self.path())?)
+        Ok(fs::File::open(self.path()?)?)
+    }
+
+    fn modified(&self) -> Result<Option<std::time::SystemTime>> {
+        match self {
+            Self::Unknown => Ok(None),
+            Self::Disk(path) => Ok(Some(fs::metadata(path)?.modified()?)),
+            Self::Scratch(_, _, modified) => Ok(*modified),
+        }
     }
 }
 
@@ -173,10 +209,6 @@ pub(crate) fn is_archive(name: &str) -> bool {
     )
 }
 
-fn key(path: &Path) -> String {
-    path.to_string_lossy().replace('\\', "/").to_lowercase()
-}
-
 /// A resolver miss remains an error for strict validation and installation.
 #[derive(Debug)]
 struct MissingSource(String);
@@ -200,9 +232,22 @@ impl std::error::Error for MissingSourceFiles {}
 
 pub struct Engine {
     pub settings: Settings,
+    path_policy: crate::paths::PathPolicy,
+    patcher_invocation: Option<crate::patcher::Invocation>,
+    patcher_resolution_error: Option<String>,
     files: BTreeMap<String, (PathBuf, Content)>,
     directories: BTreeMap<String, PathBuf>,
     install: bool,
+    component_checkpoints: bool,
+    checkpoint_report: Option<CheckpointRunReport>,
+    checkpoint_resume: Option<crate::checkpoint::ResumeRequest>,
+    #[cfg(windows)]
+    checkpoint_process: Option<(
+        std::sync::Arc<recovery::Lock>,
+        crate::checkpoint::OperationIntent,
+    )>,
+    managed: Option<managed::Run>,
+    stage_managed_writes: bool,
     selected: BTreeSet<String>,
     completed: BTreeSet<String>,
     selected_names: BTreeSet<String>,
@@ -212,7 +257,66 @@ pub struct Engine {
 }
 
 impl Engine {
-    pub fn new(mut settings: Settings) -> Result<Self> {
+    /// Opt in without adding required fields to the existing Settings contract.
+    pub fn with_component_checkpoints(mut self, enabled: bool) -> Self {
+        self.component_checkpoints = enabled;
+        self
+    }
+
+    /// Resume only a validated checkpoint boundary; the shared store builds the
+    /// immutable continuation plan while the engine holds the root lock.
+    pub fn with_checkpoint_resume(
+        mut self,
+        request: crate::checkpoint::ResumeRequest,
+    ) -> Result<Self> {
+        ensure!(
+            self.component_checkpoints,
+            "Checkpoint resume requires component checkpoints"
+        );
+        ensure!(
+            self.path_policy.case_insensitive,
+            "Checkpoint resume requires case-insensitive path matching"
+        );
+        self.checkpoint_resume = Some(request);
+        Ok(self)
+    }
+
+    pub fn with_managed_deployment(mut self, service: crate::deployment::Service) -> Result<Self> {
+        ensure!(
+            self.path_policy.case_insensitive,
+            "Managed deployment requires case-insensitive path matching; exact policy is not encoded in managed manifests"
+        );
+        ensure!(
+            self.component_checkpoints,
+            "Managed installation requires component checkpoints"
+        );
+        ensure!(
+            service.game_directory() == self.settings.roots.game,
+            "Managed game root differs from engine game root"
+        );
+        for path in [service.staging_root(), service.manifest_root()] {
+            ensure!(
+                !path.starts_with(&self.settings.roots.mods)
+                    && !self.settings.roots.mods.starts_with(path),
+                "Managed participant overlaps mod root"
+            );
+        }
+        service.validate_readonly()?;
+        self.managed = Some(managed::Run::new(service));
+        Ok(self)
+    }
+
+    pub fn new(settings: Settings) -> Result<Self> {
+        Self::new_with_case_insensitive_pathing(settings, true)
+    }
+
+    /// Select path matching before the first scan so exact mode can retain
+    /// distinct Unix filenames instead of silently folding their identities.
+    pub fn new_with_case_insensitive_pathing(
+        mut settings: Settings,
+        case_insensitive: bool,
+    ) -> Result<Self> {
+        let path_policy = crate::paths::PathPolicy::new(case_insensitive)?;
         let scratch = fs::canonicalize(
             settings
                 .archive
@@ -227,13 +331,33 @@ impl Engine {
             "Archive scratch directory must be outside game and mod trees"
         );
         settings.archive.scratch_dir = Some(scratch);
-        settings.patcher =
-            crate::patcher::resolve(settings.patcher_engine, settings.patcher.as_deref())?;
+        let (patcher_invocation, patcher_resolution_error) =
+            match crate::patcher::resolve_invocation(
+                settings.patcher_engine,
+                settings.patcher.as_deref(),
+            ) {
+                Ok(invocation) => (invocation, None),
+                Err(error) if settings.patcher.is_some() => return Err(error),
+                Err(error) => (None, Some(format!("{error:#}"))),
+            };
+        settings.patcher = patcher_invocation
+            .as_ref()
+            .and_then(|invocation| invocation.native_path().map(Path::to_owned));
         let mut engine = Self {
             settings,
+            path_policy,
+            patcher_invocation,
+            patcher_resolution_error,
             files: BTreeMap::new(),
             directories: BTreeMap::new(),
             install: false,
+            component_checkpoints: false,
+            checkpoint_report: None,
+            checkpoint_resume: None,
+            #[cfg(windows)]
+            checkpoint_process: None,
+            managed: None,
+            stage_managed_writes: false,
             selected: BTreeSet::new(),
             completed: BTreeSet::new(),
             selected_names: BTreeSet::new(),
@@ -265,10 +389,17 @@ impl Engine {
                     entry.path().display()
                 );
                 let path = entry.path().to_path_buf();
+                ensure!(
+                    self.path_policy.case_insensitive || path.to_str().is_some(),
+                    "Exact path matching requires UTF-8 paths; refusing lossy filename identity"
+                );
                 if entry.file_type().is_file() {
                     ensure!(
                         self.files
-                            .insert(key(&path), (path.clone(), Content::Disk(path.clone())))
+                            .insert(
+                                self.path_policy.key(&path),
+                                (path.clone(), Content::Disk(path.clone()))
+                            )
                             .is_none(),
                         "Case-colliding files: {}",
                         path.display()
@@ -280,7 +411,9 @@ impl Engine {
                         path.display()
                     );
                     ensure!(
-                        self.directories.insert(key(&path), path.clone()).is_none(),
+                        self.directories
+                            .insert(self.path_policy.key(&path), path.clone())
+                            .is_none(),
                         "Case-colliding directories: {}",
                         path.display()
                     );
@@ -361,6 +494,17 @@ impl Engine {
         mut progress: impl FnMut(crate::validation::StageProgress),
     ) -> crate::validation::Report {
         use crate::validation::{Stage, StageProgress};
+        let started = std::time::Instant::now();
+        let finish = |report: crate::validation::Report| {
+            let report = report.finish();
+            crate::telemetry::global().record_validation(
+                "guide",
+                report.success,
+                report.error_count + report.warning_count,
+                started.elapsed(),
+            );
+            report
+        };
         let total = usize::from(full_validation) * 3
             + usize::from(!dry_run_only)
             + 1
@@ -383,7 +527,10 @@ impl Engine {
         };
         let settings = self.settings.clone();
         let fresh_engine = || -> Result<Engine> {
-            let mut engine = Engine::new(settings.clone())?;
+            let mut engine = Engine::new_with_case_insensitive_pathing(
+                settings.clone(),
+                self.path_policy.case_insensitive,
+            )?;
             engine.completed = self.completed.clone();
             Ok(engine)
         };
@@ -416,7 +563,7 @@ impl Engine {
                 true,
             );
             if !passed {
-                return report.finish();
+                return finish(report);
             }
             boundary(Stage::Conflicts, "Checking conflicts", false);
             let mut selected = guide.selected_ids();
@@ -481,7 +628,7 @@ impl Engine {
                 true,
             );
         }
-        report.finish()
+        finish(report)
     }
 
     fn validate_dry_run(mut self, guide: &Guide) -> Vec<crate::validation::DryRunIssue> {
@@ -641,12 +788,12 @@ impl Engine {
                 let dest = self.extraction_destination(instruction, &source)?;
                 self.settings.roots.check(&dest)?;
                 ensure!(
-                    !self.files.contains_key(&key(&dest)),
+                    !self.files.contains_key(&self.path_policy.key(&dest)),
                     "File blocks extraction destination: {}",
                     dest.display()
                 );
                 let entries = archive::unpack(
-                    self.files[&key(&source)].1.path(),
+                    self.files[&self.path_policy.key(&source)].1.path()?,
                     &source,
                     &self.settings.archive,
                     &self.settings.cancelled,
@@ -655,7 +802,7 @@ impl Engine {
                 for entry in entries {
                     let path = dest.join(entry.path);
                     self.settings.roots.check(&path)?;
-                    members.insert(key(&path));
+                    members.insert(self.path_policy.key(&path));
                 }
             }
         }
@@ -665,7 +812,7 @@ impl Engine {
                 "Copy" | "Move" | "CleanList" | "DelDuplicate" => {
                     let dest = self.path(&instruction.destination, false)?;
                     ensure!(
-                        self.directories.contains_key(&key(&dest)),
+                        self.directories.contains_key(&self.path_policy.key(&dest)),
                         "Destination cannot be found: {}",
                         instruction.destination
                     );
@@ -704,11 +851,11 @@ impl Engine {
                 if !has_archives || path.starts_with(&self.settings.roots.game) {
                     continue;
                 }
-                let prefix = format!("{}/", key(&path));
+                let prefix = format!("{}/", self.path_policy.key(&path));
                 ensure!(
                     members
                         .iter()
-                        .any(|member| Self::source_matches(&prefix, &pattern, member)),
+                        .any(|member| self.source_matches(&prefix, &pattern, member)),
                     "Failed to find '{source}' in any archives"
                 );
             }
@@ -756,6 +903,7 @@ impl Engine {
         let mut routes = BTreeSet::new();
         // Checked FOMOD archive paths whose mapper fallbacks were already logged.
         let mut logged = BTreeSet::new();
+        let mut warnings = crate::fomod::WarningCollector::default();
         for component in &scope {
             let mut registered = BTreeSet::new();
             for resource in component.resource_registry.values() {
@@ -786,8 +934,8 @@ impl Engine {
                         }
                         continue;
                     }
-                    checked.insert((key(&path), component.guid.clone()));
-                    let module = match inspected.entry(key(&path)) {
+                    checked.insert((self.path_policy.key(&path), component.guid.clone()));
+                    let module = match inspected.entry(self.path_policy.key(&path)) {
                         btree_map::Entry::Occupied(entry) => entry.into_mut(),
                         btree_map::Entry::Vacant(entry) => entry.insert(
                             crate::fomod::inspect_listed(
@@ -803,11 +951,16 @@ impl Engine {
                     };
                     if let Some(module) = module {
                         configured_choices(component, filename, module)?;
-                        if logged.insert(key(&path)) {
-                            crate::fomod::log_fallback_warnings(&module.config);
+                        if logged.insert(self.path_policy.key(&path)) {
+                            for warning in module.config.fallback_warnings() {
+                                warnings.push(format!(
+                                    "FOMOD archive '{}': {warning}",
+                                    crate::fomod::warning_text(filename)
+                                ));
+                            }
                         }
                         configured
-                            .entry(key(&path))
+                            .entry(self.path_policy.key(&path))
                             .or_insert_with(|| (filename.to_owned(), Vec::new()))
                             .1
                             .push(component.name.clone());
@@ -824,15 +977,15 @@ impl Engine {
                 // dry-run availability, not the independent FOMOD state gate.
                 for source in self.matches(&instruction.source, true)? {
                     // Any applying Extract of this path is an install route, FOMOD or not.
-                    routes.insert(key(&source));
-                    if checked.contains(&(key(&source), component.guid.clone())) {
+                    routes.insert(self.path_policy.key(&source));
+                    if checked.contains(&(self.path_policy.key(&source), component.guid.clone())) {
                         continue;
                     }
-                    let module = match inspected.entry(key(&source)) {
+                    let module = match inspected.entry(self.path_policy.key(&source)) {
                         btree_map::Entry::Occupied(entry) => entry.into_mut(),
                         btree_map::Entry::Vacant(entry) => {
                             entry.insert(crate::fomod::inspect_listed(
-                                self.files[&key(&source)].1.path(),
+                                self.files[&self.path_policy.key(&source)].1.path()?,
                                 &source,
                                 &self.settings.archive,
                                 &self.settings.cancelled,
@@ -847,8 +1000,13 @@ impl Engine {
                         .and_then(|name| name.to_str())
                         .context("FOMOD archive filename is invalid")?;
                     configured_choices(component, filename, module)?;
-                    if logged.insert(key(&source)) {
-                        crate::fomod::log_fallback_warnings(&module.config);
+                    if logged.insert(self.path_policy.key(&source)) {
+                        for warning in module.config.fallback_warnings() {
+                            warnings.push(format!(
+                                "FOMOD archive '{}': {warning}",
+                                crate::fomod::warning_text(filename)
+                            ));
+                        }
                     }
                 }
             }
@@ -856,25 +1014,34 @@ impl Engine {
         // C# FomodConfigurationGate soft-warns "configured" without archive-scoped
         // instructions. Rust keeps choices, so the analogue is a missing Extract route.
         // One warning per archive, naming every registering component.
-        Ok(configured
+        for warning in configured
             .into_iter()
             .filter(|(path, _)| !routes.contains(path))
             .map(|(_, (filename, names))| {
+                let omitted = names.len().saturating_sub(8);
                 let names = names
                     .iter()
-                    .map(|name| format!("'{name}'"))
+                    .take(8)
+                    .map(|name| format!("'{}'", crate::fomod::warning_text(name)))
                     .collect::<Vec<_>>()
                     .join(", ");
+                let extra = if omitted > 0 { format!(" and {omitted} other components") } else { String::new() };
+                let filename = crate::fomod::warning_text(&filename);
                 format!(
-                    "FOMOD archive '{filename}' registered by {names} has valid choices, but no selected Extract instruction installs it; configuration alone installs no files."
+                    "FOMOD archive '{filename}' has valid choices, but no selected Extract instruction installs it; configuration alone installs no files. Registered by {names}{extra}."
                 )
             })
-            .collect())
+        { warnings.push(warning); }
+        Ok(warnings.finish())
     }
 
     /// Analyze actual simulated writes without changing either installation tree.
     /// Failed instructions return an error rather than an incomplete success report.
     pub fn analyze_conflicts(mut self, guide: &Guide) -> Result<crate::conflicts::Report> {
+        ensure!(
+            self.path_policy.case_insensitive,
+            "Conflict reports currently require case-insensitive path matching"
+        );
         recovery::ensure_clean(&self.settings.roots)?;
         self.conflicts = Some(crate::conflicts::Tracker::default());
         self.run(guide, &mut |_| {})?;
@@ -889,21 +1056,184 @@ impl Engine {
     /// The observer is synchronous and non-fallible; it must not panic. Adapters
     /// may ignore failed channel delivery. Completed and Ok win over late cancel.
     pub fn install_observed(
+        self,
+        guide: &Guide,
+        emit: impl FnMut(Event),
+        progress: impl FnMut(InstallProgress),
+    ) -> Result<()> {
+        self.install_observed_report(guide, emit, progress)
+            .map(|_| ())
+    }
+
+    pub fn install_observed_report(
         mut self,
         guide: &Guide,
         mut emit: impl FnMut(Event),
         mut progress: impl FnMut(InstallProgress),
-    ) -> Result<()> {
-        let _lock = recovery::Lock::acquire(&self.settings.roots)?;
-        recovery::ensure_clean(&self.settings.roots)?;
+    ) -> Result<InstallReport> {
+        ensure!(
+            self.path_policy.case_insensitive
+                || (!self.component_checkpoints
+                    && self.checkpoint_resume.is_none()
+                    && self.managed.is_none()),
+            "Exact path matching cannot be combined with managed deployment or checkpoint history"
+        );
+        #[cfg(windows)]
+        let lock = if self.component_checkpoints {
+            let participants = self
+                .managed
+                .as_ref()
+                .map(|managed| managed.service.checkpoint_participants())
+                .transpose()?
+                .unwrap_or_default();
+            let context = crate::checkpoint::InstallContext {
+                participants,
+                ..crate::checkpoint::InstallContext::default()
+            };
+            crate::checkpoint::Store::open(&self.settings.roots)?
+                .acquire_lock_with_context(&context)?
+        } else {
+            recovery::Lock::acquire(&self.settings.roots)?
+        };
+        #[cfg(not(windows))]
+        let lock = recovery::Lock::acquire(&self.settings.roots)?;
+        let lock = std::sync::Arc::new(lock);
+        ensure!(
+            self.managed.is_none() || self.component_checkpoints,
+            "Managed installation requires component checkpoints"
+        );
+        ensure!(
+            self.checkpoint_resume.is_none() || self.component_checkpoints,
+            "Checkpoint resume requires component checkpoints"
+        );
+        let resume_plan = if let Some(request) = &self.checkpoint_resume {
+            let definitions = guide
+                .ordered()?
+                .iter()
+                .map(serde_json::to_value)
+                .collect::<std::result::Result<Vec<_>, _>>()?;
+            let participants = self
+                .managed
+                .as_ref()
+                .map(|managed| managed.service.checkpoint_participants())
+                .transpose()?
+                .unwrap_or_default();
+            let store = crate::checkpoint::Store::open(&self.settings.roots)?;
+            let plan = store.resume_plan(
+                request,
+                &definitions,
+                &participants,
+                &self.settings.cancelled,
+            )?;
+            let completed = plan
+                .completed_components
+                .iter()
+                .map(|definition| {
+                    definition
+                        .get("Guid")
+                        .and_then(serde_json::Value::as_str)
+                        .map(str::to_ascii_lowercase)
+                        .context("Resume prefix has no component Guid")
+                })
+                .collect::<Result<BTreeSet<_>>>()?;
+            ensure!(
+                self.completed.is_subset(&completed),
+                "Requested phase prefix advances beyond the checkpoint resume boundary"
+            );
+            self.completed = completed;
+            if !plan.source_changes.is_empty() || plan.source_root_mode_changed {
+                emit(Event {
+                    component: String::new(),
+                    step: 0,
+                    message: format!(
+                        "Accepted source changes for checkpoint branch: {}",
+                        serde_json::to_string(
+                            &serde_json::json!({"paths": &plan.source_changes, "rootModeChanged": plan.source_root_mode_changed})
+                        )?
+                    ),
+                });
+            }
+            Some(plan)
+        } else {
+            recovery::ensure_clean(&self.settings.roots)?;
+            None
+        };
+        if let Some(managed) = &self.managed {
+            managed.service.validate_readonly()?;
+        }
         self.scan()?;
-        recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
+        // A component HEAD can be newer than the legacy receipt until Finalize.
+        // ResumePlan already proves the exact checkpoint prefix and live inventory;
+        // its branch transaction reconciles the legacy receipt before execution.
+        if resume_plan.is_none() {
+            recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
+        }
+        self.selected = guide.selected_ids();
+        self.selected_names = guide
+            .components
+            .iter()
+            .filter(|component| component.is_selected)
+            .map(|component| component.name.to_lowercase())
+            .collect();
         // C# InstallationService blocks installation on FomodConfigurationGate issues.
         self.fomod_gate(guide, &mut emit)
             .context("Installation blocked before any write")?;
-        self.run(guide, &mut |_| {})?;
+        // Managed reinstall restores originals before each component. Simulating
+        // against the old deployed tree would validate the wrong inputs. Its
+        // source preflight runs inside the journaled boundary after reinstall.
+        if self.managed.is_none() {
+            self.run(guide, &mut |_| {})?;
+        } else {
+            for component in self.remaining_ordered(guide)? {
+                self.check_component(component)?;
+            }
+        }
         self.scan()?;
         let ordered = self.remaining_ordered(guide)?;
+        // Pure validation needs no backend or process permission. Installation still
+        // rejects missing authority/backend before taking its recovery snapshot.
+        for component in &ordered {
+            let mut scope = Vec::new();
+            self.collect_execution_components(component, &mut scope)?;
+            for owner in scope {
+                self.check_component(owner)?;
+                for instruction in &owner.instructions {
+                    if matches!(instruction.action.as_str(), "Execute" | "Run")
+                        && self.instruction_applies(instruction)
+                    {
+                        ensure!(
+                            self.settings.allow_processes,
+                            "{} needs explicit trust: enable external programs (--allow-processes)",
+                            instruction.action
+                        );
+                        ensure!(
+                            !instruction.source.is_empty(),
+                            "External program instruction has no Source"
+                        );
+                        process_arguments::expand(&instruction.arguments, &self.settings.roots)?;
+                    }
+                    if instruction.action == "Patcher" && self.instruction_applies(instruction) {
+                        ensure!(
+                            instruction.source.len() == 1,
+                            "Patcher needs exactly one source"
+                        );
+                        ensure!(
+                            self.settings.allow_processes,
+                            "Patcher needs explicit trust: enable external programs (--allow-processes)"
+                        );
+                        if let Some(error) = &self.patcher_resolution_error {
+                            bail!("Patcher backend unavailable: {error}");
+                        }
+                        let invocation = self.patcher_invocation.as_ref().context(
+                            "Configure an executable with --patcher or install complete packaged patcher resources",
+                        )?;
+                        // Prepare and validate the argv prefix without launching a
+                        // process or requiring a backend during pure simulation.
+                        let _ = invocation.command()?;
+                    }
+                }
+            }
+        }
         let mut observer = InstallObserver::new(ordered.len(), &mut progress);
         observer.emit(InstallPhase::Preparing, "Installation preflight completed");
         emit(Event {
@@ -916,27 +1246,50 @@ impl Engine {
             InstallPhase::CreatingSnapshot,
             "Creating recovery snapshot of game and mod directories",
         );
-        recovery::begin(&self.settings.roots)?;
+        if resume_plan.is_none() {
+            recovery::begin(&self.settings.roots)?;
+        }
         observer.current.snapshot_pending = true;
-        observer.emit(InstallPhase::CreatingSnapshot, "Recovery snapshot active");
-        self.install = true;
-        self.run_ordered(guide, &ordered, &mut emit, Some(&mut observer))
-            .with_context(|| {
-                format!(
-                    "Install stopped. Restore before retrying; snapshot: {}",
-                    recovery::state_dir(&self.settings.roots).display()
-                )
-            })?;
-        observer.clear_component();
         observer.emit(
-            InstallPhase::RecordingCompletion,
-            "Recording installation completion",
+            InstallPhase::CreatingSnapshot,
+            if resume_plan.is_some() {
+                "Preparing verified checkpoint continuation branch"
+            } else {
+                "Recovery snapshot active"
+            },
         );
-        recovery::record_completion(&self.settings.roots, guide)?;
-        recovery::finish(&self.settings.roots)?;
+        self.install = true;
+        if self.component_checkpoints {
+            self.run_checkpointed(
+                guide,
+                &ordered,
+                &lock,
+                resume_plan.as_ref(),
+                &mut emit,
+                &mut observer,
+            )?;
+        } else {
+            self.run_ordered(guide, &ordered, &mut emit, Some(&mut observer))
+                .with_context(|| {
+                    format!(
+                        "Install stopped. Restore before retrying; snapshot: {}",
+                        recovery::state_dir(&self.settings.roots).display()
+                    )
+                })?;
+            observer.clear_component();
+            observer.emit(
+                InstallPhase::RecordingCompletion,
+                "Recording installation completion",
+            );
+            recovery::record_completion(&self.settings.roots, guide)?;
+            recovery::finish(&self.settings.roots)?;
+        }
         observer.current.snapshot_pending = false;
         observer.emit(InstallPhase::Completed, "Installation complete");
-        Ok(())
+        Ok(InstallReport {
+            managed: self.managed.map(|managed| managed.report),
+            checkpoint: self.checkpoint_report,
+        })
     }
 
     /// Execute the remaining suffix while retaining selected dependency context.
@@ -960,6 +1313,17 @@ impl Engine {
     ) -> Result<()> {
         self.set_completed_prefix(guide, completed)?;
         self.install_observed(guide, emit, progress)
+    }
+
+    pub fn install_remaining_observed_report(
+        mut self,
+        guide: &Guide,
+        completed: &[String],
+        emit: impl FnMut(Event),
+        progress: impl FnMut(InstallProgress),
+    ) -> Result<InstallReport> {
+        self.set_completed_prefix(guide, completed)?;
+        self.install_observed_report(guide, emit, progress)
     }
 
     /// Simulate only the suffix, with the same saved completion contract
@@ -1083,7 +1447,18 @@ impl Engine {
                     format!("Installing: {}", c.name),
                 );
             }
-            self.component(c, emit, progress.as_deref_mut())?;
+            let started = std::time::Instant::now();
+            let result = self.component(c, emit, progress.as_deref_mut());
+            if self.install {
+                let error = result.as_ref().err().map(|error| format!("{error:#}"));
+                crate::telemetry::global().record_mod_installation(
+                    &c.name,
+                    result.is_ok(),
+                    started.elapsed(),
+                    error.as_deref(),
+                );
+            }
+            result?;
             if let Some(observer) = progress.as_deref_mut() {
                 observer.component(c, index + 1);
                 observer.emit(
@@ -1101,57 +1476,86 @@ impl Engine {
         emit: &mut impl FnMut(Event),
         mut progress: Option<&mut InstallObserver<'_>>,
     ) -> Result<()> {
-        self.validation_target = Some((c.name.clone(), c.guid.clone(), None));
-        self.check_component(c)?;
-        for (n, instruction) in c.instructions.iter().enumerate() {
-            self.validation_target = Some((c.name.clone(), c.guid.clone(), Some(n + 1)));
-            self.check_cancelled()?;
-            if !self.instruction_applies(instruction) {
+        let started = std::time::Instant::now();
+        let actual_install = self.install;
+        let result: Result<()> = (|| {
+            self.validation_target = Some((c.name.clone(), c.guid.clone(), None));
+            self.check_component(c)?;
+            for (n, instruction) in c.instructions.iter().enumerate() {
+                self.validation_target = Some((c.name.clone(), c.guid.clone(), Some(n + 1)));
+                self.check_cancelled()?;
+                if !self.instruction_applies(instruction) {
+                    emit(Event {
+                        component: c.name.clone(),
+                        step: n + 1,
+                        message: "Skipped by instruction conditions".into(),
+                    });
+                    if let Some(observer) = progress.as_deref_mut() {
+                        observer.instruction(c, n + 1, "Skipped by instruction conditions".into());
+                    }
+                    continue;
+                }
+                let message = if instruction.action == "Patcher" && !self.install {
+                    "Patcher: InstallList presence simulated; binary patch effects remain unmodeled"
+                        .into()
+                } else if matches!(instruction.action.as_str(), "Execute" | "Run") && !self.install
+                {
+                    format!(
+                        "{}: inputs checked; external effects cannot be simulated",
+                        instruction.action
+                    )
+                } else {
+                    instruction.action.clone()
+                };
+                if let Some(tracker) = &mut self.conflicts {
+                    if let Some(writer) = &mut tracker.current
+                        && writer.component_guid.eq_ignore_ascii_case(&c.guid)
+                    {
+                        writer.instruction_index = n;
+                    }
+                    tracker.external_effects |=
+                        matches!(instruction.action.as_str(), "Patcher" | "Execute" | "Run");
+                }
+                if let Some(observer) = progress.as_deref_mut() {
+                    // This is context for reached Choose frames, not an emitted success.
+                    observer.current.instruction_index = Some(n + 1);
+                }
+                self.stage_managed_writes = self.install
+                    && matches!(
+                        instruction.action.as_str(),
+                        "Extract" | "Copy" | "Move" | "Rename"
+                    );
+                if let Some(managed) = &mut self.managed {
+                    managed.action = instruction.action.clone();
+                }
+                let instruction_result =
+                    self.execute_observed(c, instruction, emit, progress.as_deref_mut());
+                self.stage_managed_writes = false;
+                instruction_result.with_context(|| {
+                    format!("{} / step {} ({})", c.name, n + 1, instruction.action)
+                })?;
                 emit(Event {
                     component: c.name.clone(),
                     step: n + 1,
-                    message: "Skipped by instruction conditions".into(),
+                    message: message.clone(),
                 });
                 if let Some(observer) = progress.as_deref_mut() {
-                    observer.instruction(c, n + 1, "Skipped by instruction conditions".into());
+                    observer.instruction(c, n + 1, message);
                 }
-                continue;
             }
-            let message = if matches!(instruction.action.as_str(), "Patcher" | "Execute" | "Run")
-                && !self.install
-            {
-                format!(
-                    "{}: inputs checked; external effects cannot be simulated",
-                    instruction.action
-                )
-            } else {
-                instruction.action.clone()
-            };
-            if let Some(tracker) = &mut self.conflicts {
-                if let Some(writer) = &mut tracker.current
-                    && writer.component_guid.eq_ignore_ascii_case(&c.guid)
-                {
-                    writer.instruction_index = n;
-                }
-                tracker.external_effects |=
-                    matches!(instruction.action.as_str(), "Patcher" | "Execute" | "Run");
-            }
-            if let Some(observer) = progress.as_deref_mut() {
-                // This is context for reached Choose frames, not an emitted success.
-                observer.current.instruction_index = Some(n + 1);
-            }
-            self.execute_observed(c, instruction, emit, progress.as_deref_mut())
-                .with_context(|| format!("{} / step {} ({})", c.name, n + 1, instruction.action))?;
-            emit(Event {
-                component: c.name.clone(),
-                step: n + 1,
-                message: message.clone(),
-            });
-            if let Some(observer) = progress.as_deref_mut() {
-                observer.instruction(c, n + 1, message);
-            }
+            Ok(())
+        })();
+        if actual_install {
+            let error = result.as_ref().err().map(|error| format!("{error:#}"));
+            crate::telemetry::global().record_component_execution(
+                &c.name,
+                result.is_ok(),
+                c.instructions.len(),
+                started.elapsed(),
+                error.as_deref(),
+            );
         }
-        Ok(())
+        result
     }
 
     fn check_component(&self, c: &Component) -> Result<()> {
@@ -1253,7 +1657,16 @@ impl Engine {
     }
 
     fn path(&self, raw: &str, wildcard: bool) -> Result<PathBuf> {
-        self.settings.roots.resolve(raw, wildcard)
+        let path = self.settings.roots.resolve(raw, wildcard)?;
+        if !wildcard {
+            let root = [&self.settings.roots.mods, &self.settings.roots.game]
+                .into_iter()
+                .find(|root| path.starts_with(root))
+                .context("Path outside install roots")?;
+            self.path_policy
+                .check_spelling(root, &path, &self.settings.cancelled)?;
+        }
+        Ok(path)
     }
 
     fn matches(&self, sources: &[String], missing_ok: bool) -> Result<Vec<PathBuf>> {
@@ -1261,11 +1674,11 @@ impl Engine {
         let mut found = BTreeMap::new();
         for source in sources {
             let (path, pattern) = self.source_pattern(source)?;
-            let prefix = format!("{}/", key(&path));
+            let prefix = format!("{}/", self.path_policy.key(&path));
             let matches: Vec<_> = self
                 .files
                 .iter()
-                .filter(|(k, _)| Self::source_matches(&prefix, &pattern, k))
+                .filter(|(k, _)| self.source_matches(&prefix, &pattern, k))
                 .collect();
             if !missing_ok && matches.is_empty() {
                 return Err(MissingSource(source.clone()).into());
@@ -1286,14 +1699,14 @@ impl Engine {
             .unwrap();
         let pattern = glob::Pattern::new(&format!(
             "{}/{}",
-            glob::Pattern::escape(&key(root)),
-            key(path.strip_prefix(root)?)
+            glob::Pattern::escape(&self.path_policy.key(root)),
+            self.path_policy.key(path.strip_prefix(root)?)
         ))?;
         Ok((path, pattern))
     }
 
-    fn source_matches(prefix: &str, pattern: &glob::Pattern, candidate: &str) -> bool {
-        source_glob_matches(pattern, candidate) || candidate.starts_with(prefix)
+    fn source_matches(&self, prefix: &str, pattern: &glob::Pattern, candidate: &str) -> bool {
+        self.path_policy.glob_matches(pattern, candidate) || candidate.starts_with(prefix)
     }
 
     fn instruction_sources(&self, sources: &[String]) -> Result<Vec<PathBuf>> {
@@ -1310,7 +1723,10 @@ impl Engine {
         })?;
         for path in &paths {
             // Reading must be possible even when virtual copying needs no bytes.
-            self.files[&key(path)].1.open()?;
+            let content = &self.files[&self.path_policy.key(path)].1;
+            if !matches!(content, Content::Unknown) || self.install {
+                content.open()?;
+            }
         }
         Ok(paths)
     }
@@ -1321,19 +1737,21 @@ impl Engine {
             Ok(default)
         } else {
             let path = self.path(&instruction.destination, false)?;
-            Ok(if key(&path) == key(source.parent().unwrap()) {
-                default
-            } else {
-                path
-            })
+            Ok(
+                if self.path_policy.key(&path) == self.path_policy.key(source.parent().unwrap()) {
+                    default
+                } else {
+                    path
+                },
+            )
         }
     }
 
     fn actual(&self, path: &Path) -> PathBuf {
-        if let Some((p, _)) = self.files.get(&key(path)) {
+        if let Some((p, _)) = self.files.get(&self.path_policy.key(path)) {
             return p.clone();
         }
-        if let Some(p) = self.directories.get(&key(path)) {
+        if let Some(p) = self.directories.get(&self.path_policy.key(path)) {
             return p.clone();
         }
         if let (Some(parent), Some(name)) = (path.parent(), path.file_name()) {
@@ -1344,66 +1762,126 @@ impl Engine {
     }
 
     fn put(&mut self, path: &Path, content: Content, overwrite: bool) -> Result<()> {
-        let path = self.actual(path);
-        self.settings.roots.check(&path)?;
-        ensure!(
-            !self.directories.contains_key(&key(&path)),
-            "Cannot overwrite directory with file: {}",
-            path.display()
-        );
-        if self.files.contains_key(&key(&path)) && !overwrite {
-            return Ok(());
-        }
-        let mut parent = path.parent();
-        while let Some(dir) = parent {
+        let started = std::time::Instant::now();
+        let actual_install = self.install;
+        let mut attempted = false;
+        let result: Result<()> = (|| {
+            let path = self.actual(path);
+            self.settings.roots.check(&path)?;
+            let root = [&self.settings.roots.mods, &self.settings.roots.game]
+                .into_iter()
+                .find(|root| path.starts_with(root))
+                .context("Output outside install roots")?;
+            self.path_policy
+                .check_spelling(root, &path, &self.settings.cancelled)?;
             ensure!(
-                !self.files.contains_key(&key(dir)),
-                "File blocks destination directory: {}",
-                dir.display()
+                !self.directories.contains_key(&self.path_policy.key(&path)),
+                "Cannot overwrite directory with file: {}",
+                path.display()
             );
-            self.directories.insert(key(dir), dir.to_path_buf());
-            parent = dir.parent();
-        }
-        let content = if self.install {
-            let permissions = match &content {
-                Content::Disk(source) => Some(fs::metadata(source)?.permissions()),
-                Content::Scratch(_, mode) => {
-                    #[cfg(unix)]
-                    {
-                        use std::os::unix::fs::PermissionsExt;
-                        mode.map(|mode| fs::Permissions::from_mode(mode & 0o777))
-                    }
-                    #[cfg(not(unix))]
-                    {
-                        let _ = mode;
-                        None
-                    }
-                }
-            };
-            recovery::atomic_copy(&path, content.open()?, &self.settings.cancelled)?;
-            if let Some(permissions) = permissions {
-                fs::set_permissions(&path, permissions)?;
+            if self.files.contains_key(&self.path_policy.key(&path)) && !overwrite {
+                return Ok(());
             }
-            Content::Disk(path.clone())
-        } else {
-            content
-        };
-        if let Some(tracker) = &mut self.conflicts
-            && let Ok(relative) = path.strip_prefix(&self.settings.roots.game)
-        {
-            tracker.write(&relative.to_string_lossy());
+            let mut parent = path.parent();
+            while let Some(dir) = parent {
+                ensure!(
+                    !self.files.contains_key(&self.path_policy.key(dir)),
+                    "File blocks destination directory: {}",
+                    dir.display()
+                );
+                self.directories
+                    .insert(self.path_policy.key(dir), dir.to_path_buf());
+                parent = dir.parent();
+            }
+            let content = if self.install {
+                attempted = true;
+                let modified = content.modified()?;
+                let permissions = match &content {
+                    Content::Unknown => bail!("Cannot publish unknown simulated patcher content"),
+                    Content::Disk(source) => Some(fs::metadata(source)?.permissions()),
+                    Content::Scratch(_, mode, _) => {
+                        #[cfg(unix)]
+                        {
+                            use std::os::unix::fs::PermissionsExt;
+                            mode.map(|mode| fs::Permissions::from_mode(mode & 0o777))
+                        }
+                        #[cfg(not(unix))]
+                        {
+                            let _ = mode;
+                            None
+                        }
+                    }
+                };
+                let physical = self.managed_output(&path)?;
+                recovery::atomic_copy(&physical, content.open()?, &self.settings.cancelled)?;
+                if let Some(modified) = modified {
+                    // Set time before readonly permissions, on the actual managed or
+                    // ordinary output. Metadata failure retains the install journal.
+                    fs::OpenOptions::new()
+                        .write(true)
+                        .open(&physical)?
+                        .set_modified(modified)?;
+                }
+                if let Some(permissions) = permissions {
+                    fs::set_permissions(&physical, permissions)?;
+                }
+                if physical != path
+                    && let Some(managed) = &mut self.managed
+                {
+                    managed
+                        .pending
+                        .insert(self.path_policy.key(&path), physical.clone());
+                }
+                Content::Disk(physical)
+            } else {
+                content
+            };
+            if let Some(tracker) = &mut self.conflicts
+                && let Ok(relative) = path.strip_prefix(&self.settings.roots.game)
+            {
+                tracker.write(&relative.to_string_lossy());
+            }
+            self.files
+                .insert(self.path_policy.key(&path), (path, content));
+            Ok(())
+        })();
+        if actual_install && attempted {
+            let error = result.as_ref().err().map(|error| format!("{error:#}"));
+            crate::telemetry::global().record_file_operation(
+                "write",
+                result.is_ok(),
+                1,
+                started.elapsed(),
+                error.as_deref(),
+            );
         }
-        self.files.insert(key(&path), (path, content));
-        Ok(())
+        result
     }
 
     fn delete(&mut self, path: &Path) -> Result<()> {
-        self.settings.roots.check(path)?;
-        if self.install {
-            fs::remove_file(path)?;
+        let started = std::time::Instant::now();
+        let actual_install = self.install;
+        let mut attempted = false;
+        let result: Result<()> = (|| {
+            self.settings.roots.check(path)?;
+            if self.install {
+                attempted = self.files.contains_key(&self.path_policy.key(path));
+                self.managed_delete(path)?;
+            }
+            self.files.remove(&self.path_policy.key(path));
+            Ok(())
+        })();
+        if actual_install && attempted {
+            let error = result.as_ref().err().map(|error| format!("{error:#}"));
+            crate::telemetry::global().record_file_operation(
+                "delete",
+                result.is_ok(),
+                1,
+                started.elapsed(),
+                error.as_deref(),
+            );
         }
-        self.files.remove(&key(path));
-        Ok(())
+        result
     }
 
     fn execute(
@@ -1447,10 +1925,10 @@ impl Engine {
                     self.path(&i.destination, false)?;
                 }
                 for source in self.instruction_sources(&i.source)? {
-                    let content = self.files[&key(&source)].1.clone();
+                    let content = self.files[&self.path_policy.key(&source)].1.clone();
                     let dest = self.extraction_destination(i, &source)?;
                     let entries = archive::unpack(
-                        content.path(),
+                        content.path()?,
                         &source,
                         &self.settings.archive,
                         &self.settings.cancelled,
@@ -1477,7 +1955,7 @@ impl Engine {
                     };
                     let archive_paths: BTreeSet<_> = entries
                         .iter()
-                        .map(|entry| key(&dest.join(&entry.path)))
+                        .map(|entry| self.path_policy.key(&dest.join(&entry.path)))
                         .collect();
                     if !configured.is_empty() && !i.overwrite {
                         ensure!(
@@ -1491,14 +1969,14 @@ impl Engine {
                         self.check_cancelled()?;
                         self.put(
                             &dest.join(entry.path),
-                            Content::Scratch(entry.file, entry.mode),
+                            Content::Scratch(entry.file, entry.mode, entry.modified),
                             i.overwrite,
                         )?;
                     }
                     for copy in configured {
                         for source in self.matches(&copy.source, false)? {
                             ensure!(
-                                archive_paths.contains(&key(&source)),
+                                archive_paths.contains(&self.path_policy.key(&source)),
                                 "FOMOD source is not supplied by the current archive: {}",
                                 source.display()
                             );
@@ -1535,11 +2013,11 @@ impl Engine {
                         dest.join(source.file_name().unwrap())
                     };
                     ensure!(
-                        key(&source) != key(&target),
+                        self.path_policy.key(&source) != self.path_policy.key(&target),
                         "Source equals destination: {}",
                         source.display()
                     );
-                    let exists = self.files.contains_key(&key(&target));
+                    let exists = self.files.contains_key(&self.path_policy.key(&target));
                     if exists && !i.overwrite {
                         self.validation_warning(
                             &format!("{}File", i.action),
@@ -1551,7 +2029,7 @@ impl Engine {
                         );
                         continue;
                     }
-                    let data = self.files[&key(&source)].1.clone();
+                    let data = self.files[&self.path_policy.key(&source)].1.clone();
                     self.put(&target, data, i.overwrite)?;
                     if i.action != "Copy" {
                         self.delete(&source)?;
@@ -1582,16 +2060,15 @@ impl Engine {
                     i.source.iter().map(|s| s.to_lowercase()).collect()
                 };
                 let mut groups: BTreeMap<String, Vec<PathBuf>> = BTreeMap::new();
-                for (p, _) in self
-                    .files
-                    .values()
-                    .filter(|(p, _)| p.parent().is_some_and(|d| key(d) == key(&dir)))
-                {
+                for (p, _) in self.files.values().filter(|(p, _)| {
+                    p.parent()
+                        .is_some_and(|d| self.path_policy.key(d) == self.path_policy.key(&dir))
+                }) {
                     let ext = format!(".{}", p.extension().unwrap_or_default().to_string_lossy())
                         .to_lowercase();
                     if extensions.contains(&ext) {
                         groups
-                            .entry(p.file_stem().unwrap().to_string_lossy().to_lowercase())
+                            .entry(self.path_policy.key(Path::new(p.file_stem().unwrap())))
                             .or_default()
                             .push(p.clone());
                     }
@@ -1614,7 +2091,7 @@ impl Engine {
                 let dir = self.path(&i.destination, false)?;
                 let sources = self.matches(&i.source, false)?;
                 let source = sources.first().context("CleanList needs a source file")?;
-                let data = self.files[&key(source)].1.open()?;
+                let data = self.files[&self.path_policy.key(source)].1.open()?;
                 for line in BufReader::new(data).lines() {
                     for line in line?.split('\r') {
                         self.check_cancelled()?;
@@ -1624,7 +2101,7 @@ impl Engine {
                         if cleanlist_selected(name.trim(), &self.selected_names) {
                             for raw in files.split(',').map(str::trim).filter(|s| !s.is_empty()) {
                                 let p = self.actual(&dir.join(relative(raw, false)?));
-                                if self.files.contains_key(&key(&p)) {
+                                if self.files.contains_key(&self.path_policy.key(&p)) {
                                     self.delete(&p)?;
                                 }
                             }
@@ -1639,30 +2116,72 @@ impl Engine {
     }
 
     fn process(&mut self, i: &Instruction, emit: &mut impl FnMut(Event)) -> Result<()> {
+        if i.action == "Patcher" {
+            ensure!(
+                i.source.len() == 1,
+                "Patcher needs exactly one source to bind its configuration and logs"
+            );
+            let path = self.actual(&self.path(&i.source[0], false)?);
+            return self.process_path(i, &path, &[], emit);
+        }
         ensure!(
             self.settings.allow_processes,
             "{} needs explicit trust: enable external programs (--allow-processes)",
             i.action
         );
+        let arguments = process_arguments::expand(&i.arguments, &self.settings.roots)?;
         ensure!(
-            i.source.len() == 1,
-            "External programs need exactly one source"
+            !i.source.is_empty(),
+            "External program instruction has no Source"
         );
-        let path = self.actual(&self.path(&i.source[0], false)?);
+        // Resolve every authored source before any child starts. Preserve source
+        // order, stable wildcard order, and first occurrence for overlapping globs.
+        let mut paths = Vec::new();
+        let mut seen = BTreeSet::new();
+        for source in &i.source {
+            for path in self.instruction_sources(std::slice::from_ref(source))? {
+                if seen.insert(self.path_policy.key(&path)) {
+                    paths.push(path);
+                }
+            }
+        }
+        for path in paths {
+            self.check_cancelled()?;
+            self.process_path(i, &path, &arguments, emit)?;
+        }
+        Ok(())
+    }
+
+    fn process_path(
+        &mut self,
+        i: &Instruction,
+        path: &Path,
+        arguments: &[std::ffi::OsString],
+        emit: &mut impl FnMut(Event),
+    ) -> Result<()> {
+        if self.install || i.action != "Patcher" {
+            ensure!(
+                self.settings.allow_processes,
+                "{} needs explicit trust: enable external programs (--allow-processes)",
+                i.action
+            );
+        }
+        self.settings.roots.check(path)?;
         ensure!(
-            self.files.contains_key(&key(&path)) || self.directories.contains_key(&key(&path)),
+            self.files.contains_key(&self.path_policy.key(path))
+                || self.directories.contains_key(&self.path_policy.key(path)),
             "Missing external program/mod: {}",
             path.display()
         );
+        let preimage = if self.install && self.managed.is_some() {
+            self.flush_managed()?;
+            Some(self.managed_preimage()?)
+        } else {
+            None
+        };
         let mut staged_patcher = None;
         let mut patcher_data = None;
         let mut command = if i.action == "Patcher" {
-            let patcher = self
-                .settings
-                .patcher
-                .as_ref()
-                .context("Configure a patcher executable with --patcher")?;
-            ensure!(patcher.is_file(), "Patcher executable is missing");
             let dest = if i.destination.is_empty() {
                 self.settings.roots.game.clone()
             } else {
@@ -1674,10 +2193,20 @@ impl Engine {
             {
                 path.parent().unwrap()
             } else {
-                &path
+                path
             };
-            patcher_data = Some(base.to_path_buf());
-            let mut cmd = self.patcher_command(patcher, &dest, base);
+            if !self.install {
+                self.simulate_patcher(base, &dest, &i.arguments, emit)?;
+                return Ok(());
+            }
+            let patcher = self
+                .patcher_invocation
+                .as_ref()
+                .context("Configure an executable with --patcher or install complete packaged patcher resources")?;
+            let (stage, staged_base) = patcher_prepare::stage(base, &self.settings.cancelled)?;
+            patcher_data = Some(staged_base.clone());
+            staged_patcher = Some(stage);
+            let mut cmd = self.patcher_command(patcher, &dest, &staged_base)?;
             if !i.arguments.trim().is_empty() {
                 if let Ok(index) = i.arguments.trim().parse::<usize>() {
                     cmd.arg("--namespace-option-index").arg(index.to_string());
@@ -1700,72 +2229,69 @@ impl Engine {
                     };
                     let ini = self.actual(&data.join(name));
                     ensure!(
-                        self.files.contains_key(&key(&ini)),
+                        self.files.contains_key(&self.path_policy.key(&ini)),
                         "Missing patcher INI: {}",
                         ini.display()
                     );
-                    if self.install {
-                        let stage = tempfile::tempdir()?;
-                        let target = stage.path().join("tslpatchdata");
-                        recovery::copy_tree(&self.actual(&data), &target)?;
-                        recovery::atomic_copy(
-                            &target.join("changes.ini"),
-                            self.files[&key(&ini)].1.open()?,
-                            &self.settings.cancelled,
-                        )?;
-                        for entry in fs::read_dir(&target)? {
+                    let actual_data = self.actual(&data);
+                    let target = staged_base.join(actual_data.strip_prefix(base)?);
+                    recovery::atomic_copy(
+                        &target.join("changes.ini"),
+                        crate::paths::open_regular_read(
+                            &staged_base.join(ini.strip_prefix(base)?),
+                        )?,
+                        &self.settings.cancelled,
+                    )?;
+                    let mut namespace_roots = vec![staged_base.clone()];
+                    if target != staged_base {
+                        namespace_roots.push(target);
+                    }
+                    for directory in namespace_roots {
+                        for entry in fs::read_dir(directory)? {
                             let entry = entry?;
                             if entry.file_name().eq_ignore_ascii_case("namespaces.ini") {
                                 fs::remove_file(entry.path())?;
                             }
                         }
-                        let destination = if i.destination.is_empty() {
-                            self.settings.roots.game.clone()
-                        } else {
-                            self.actual(&self.path(&i.destination, false)?)
-                        };
-                        cmd = self.patcher_command(patcher, &destination, stage.path());
-                        patcher_data = Some(stage.path().to_path_buf());
-                        staged_patcher = Some(stage);
                     }
                 }
             }
             cmd
         } else {
-            let mut cmd = Command::new(&path);
-            cmd.args(shlex::split(&i.arguments).context("Unclosed quote in Arguments")?);
+            let mut cmd = Command::new(path);
+            cmd.args(arguments);
             cmd
         };
         if self.install {
             if let Some(data) = &patcher_data {
-                for name in ["installlog.rtf", "installlog.txt"] {
-                    let _ = fs::remove_file(data.join(name));
-                }
+                patcher_prepare::normalize(data, &self.settings.cancelled)?;
+                clear_patcher_logs(data)?;
             }
-            let stdout = tempfile::NamedTempFile::new()?;
-            let stderr = tempfile::NamedTempFile::new()?;
-            let mut child = command
-                .current_dir(path.parent().unwrap())
-                .stdout(stdout.reopen()?)
-                .stderr(stderr.reopen()?)
-                .spawn()
-                .context("Start external program")?;
-            let status = loop {
-                if self.settings.cancelled.load(Ordering::Relaxed) {
-                    let _ = child.kill();
-                    let _ = child.wait();
-                    bail!("External program cancelled; restore before retrying");
+            command.current_dir(
+                patcher_data
+                    .as_deref()
+                    .unwrap_or_else(|| path.parent().unwrap()),
+            );
+            let receipt = self.run_external_command(command)?;
+            // Read and publish diagnostics before checking process success or dropping
+            // named-INI staging. The event owns its text after the directory is gone.
+            let patcher_result = patcher_data.as_ref().map(|data| {
+                let result = patcher_install_log(data);
+                match &result {
+                    Ok((log, content)) => emit(Event {
+                        component: i.action.clone(),
+                        step: 0,
+                        message: format!("Patcher install log {}:\n{content}", log.display()),
+                    }),
+                    Err(error) => emit(Event {
+                        component: i.action.clone(),
+                        step: 0,
+                        message: format!("Patcher install log verification failed: {error:#}"),
+                    }),
                 }
-                if let Some(status) = child.try_wait()? {
-                    break status;
-                }
-                std::thread::sleep(std::time::Duration::from_millis(100));
-            };
-            for file in [stdout, stderr] {
-                let mut output = String::new();
-                file.reopen()?
-                    .take(1024 * 1024)
-                    .read_to_string(&mut output)?;
+                result
+            });
+            for output in [receipt.stdout, receipt.stderr] {
                 if !output.is_empty() {
                     emit(Event {
                         component: i.action.clone(),
@@ -1774,14 +2300,29 @@ impl Engine {
                     });
                 }
             }
-            ensure!(status.success(), "External program failed with {status}");
-            if let Some(data) = &patcher_data {
-                let errors = patcher_log_errors(data)?;
+            ensure!(
+                !receipt.cancelled,
+                "External program cancelled; restore before retrying"
+            );
+            if let Some(failure) = receipt.failure {
+                bail!("External program failed: {failure}; restore before retrying");
+            }
+            ensure!(
+                receipt.exit_code == Some(0),
+                "External program failed with exit code {:?}",
+                receipt.exit_code
+            );
+            if let Some(result) = patcher_result {
+                let (_, content) = result?;
+                let errors = patcher_log_error_lines(&content);
                 ensure!(
                     errors.is_empty(),
                     "Patcher install log reported errors: {}",
                     errors.join(" | ")
                 );
+            }
+            if let Some(preimage) = &preimage {
+                self.record_managed_process(preimage)?;
             }
             self.scan()?;
         }
@@ -1789,8 +2330,13 @@ impl Engine {
         Ok(())
     }
 
-    fn patcher_command(&self, patcher: &Path, destination: &Path, data: &Path) -> Command {
-        let mut command = Command::new(patcher);
+    fn patcher_command(
+        &self,
+        patcher: &crate::patcher::Invocation,
+        destination: &Path,
+        data: &Path,
+    ) -> Result<Command> {
+        let mut command = patcher.command()?;
         if self.settings.patcher_engine == PatcherEngine::KPatcher && !cfg!(windows) {
             command.arg("--console");
         }
@@ -1803,25 +2349,88 @@ impl Engine {
         if self.settings.patcher_engine == PatcherEngine::OdyPatcher {
             command.arg("--cli").arg("-y");
         }
-        command
+        Ok(command)
     }
 }
 
-fn patcher_log_errors(data: &Path) -> Result<Vec<String>> {
-    let log = ["installlog.rtf", "installlog.txt"]
-        .into_iter()
-        .map(|name| data.join(name))
-        .find(|path| path.is_file());
-    let Some(log) = log else {
-        return Ok(Vec::new());
-    };
-    Ok(fs::read_to_string(log)?
-        .lines()
+// Only these paths at the resolved invocation root can prove this run's log
+// postcondition. RTF precedes TXT, matching the reference verifier.
+const PATCHER_LOG_NAMES: [&str; 2] = ["installlog.rtf", "installlog.txt"];
+
+fn clear_patcher_logs(data: &Path) -> Result<()> {
+    for name in PATCHER_LOG_NAMES {
+        let log = data.join(name);
+        match fs::remove_file(&log) {
+            Ok(()) => {}
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => {
+                return Err(error).with_context(|| {
+                    format!(
+                        "Cannot remove previous patcher install log {}",
+                        log.display()
+                    )
+                });
+            }
+        }
+    }
+    Ok(())
+}
+
+fn patcher_install_log(data: &Path) -> Result<(PathBuf, String)> {
+    for name in PATCHER_LOG_NAMES {
+        let log = data.join(name);
+        let metadata = match fs::symlink_metadata(&log) {
+            Ok(metadata) => metadata,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(error) => {
+                return Err(error).with_context(|| {
+                    format!("Cannot inspect patcher install log {}", log.display())
+                });
+            }
+        };
+        ensure!(
+            metadata.is_file(),
+            "Patcher install log must be a regular file: {}",
+            log.display()
+        );
+        // Failure diagnostics remain available after cancellation. This bounded
+        // read deliberately does not consult the action's cancellation flag.
+        use std::io::Read;
+        const MAX_LOG_BYTES: u64 = 8 * 1024 * 1024;
+        let file = crate::paths::open_regular_read(&log)
+            .with_context(|| format!("Cannot open patcher install log {}", log.display()))?;
+        ensure!(
+            file.metadata()?.len() <= MAX_LOG_BYTES,
+            "Patcher install log exceeds the 8 MiB limit: {}",
+            log.display()
+        );
+        let mut bytes = Vec::new();
+        file.take(MAX_LOG_BYTES + 1)
+            .read_to_end(&mut bytes)
+            .with_context(|| format!("Cannot read patcher install log {}", log.display()))?;
+        ensure!(
+            bytes.len() as u64 <= MAX_LOG_BYTES,
+            "Patcher install log exceeds the 8 MiB limit: {}",
+            log.display()
+        );
+        let content = String::from_utf8(bytes)
+            .with_context(|| format!("Patcher install log is not UTF-8: {}", log.display()))?;
+        return Ok((log, content));
+    }
+    bail!(
+        "Patcher install log not found at invocation root {} (expected installlog.rtf or installlog.txt)",
+        data.display()
+    )
+}
+
+fn patcher_log_error_lines(content: &str) -> Vec<String> {
+    content
+        .split(['\r', '\n'])
         .filter(|line| {
-            !line.trim().is_empty() && (line.contains("Error: ") || line.contains("[Error]"))
+            !line.trim().is_empty() && (line.contains("Error:") || line.contains("[Error]"))
         })
         .map(str::to_owned)
-        .collect())
+        .collect()
 }
 
 // Match ModComponent.ExecuteSingleInstructionAsync's CleanList selection rules.

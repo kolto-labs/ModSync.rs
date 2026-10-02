@@ -6,9 +6,14 @@ description = "A Rust desktop and command-line installer for ModSync instruction
 repository = "https://github.com/bodencrouch/ModSync.rs"
 license-file = "LICENSE.txt"
 
+[[bin]]
+name = "modsync-gui"
+path = "src/bin/modsync-gui.rs"
+required-features = ["desktop"]
+
 [features]
 default = ["desktop"]
-desktop = ["dep:eframe", "dep:rfd"]
+desktop = ["dep:eframe", "dep:rfd", "dep:pulldown-cmark"]
 
 [dependencies]
 anyhow = "1"
@@ -37,13 +42,16 @@ reqwest = { version = "0.12", default-features = false, features = ["blocking", 
 eframe = { version = "0.32.3", optional = true, default-features = false, features = ["default_fonts", "glow", "x11", "wayland", "accesskit"] }
 rfd = { version = "0.15.4", optional = true }
 librqbit = { version = "9.0.1", features = ["disable-upload"] }
-tokio = { version = "1", features = ["rt-multi-thread", "signal"] }
+tokio = { version = "1", features = ["rt-multi-thread", "signal", "net", "time", "io-util"] }
 uuid = { version = "1", features = ["v4"] }
-mega = { version = "0.8.0", default-features = false }
+mega = { version = "0.8.0", default-features = false, features = ["reqwest"] }
 aes = "0.8"
 ctr = "0.9"
 base64 = "0.22"
 futures = "0.3"
+icu_normalizer = "2"
+libloading = "=0.8.9"
+pulldown-cmark = { version = "=0.13.4", default-features = false, optional = true }
 
 [profile.dev]
 debug = 0
@@ -56,4 +64,12 @@ strip = true
 libc = "=0.2.189"
 
 [target.'cfg(windows)'.dependencies]
-windows-sys = { version = "=0.61.2", features = ["Win32_Foundation", "Win32_System_Console", "Win32_System_IO", "Win32_Storage_FileSystem"] }
+windows-sys = { version = "=0.61.2", features = ["Win32_Foundation", "Win32_System_Console", "Win32_System_IO", "Win32_Storage_FileSystem", "Win32_Security", "Win32_Security_Authorization", "Win32_System_Threading", "Win32_System_Pipes", "Win32_System_Memory", "Win32_UI_WindowsAndMessaging", "Win32_System_Registry", "Win32_System_JobObjects", "Win32_System_SystemServices", "Win32_Globalization"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "=0.6.4"
+objc2-foundation = { version = "=0.3.2", default-features = false, features = ["std", "NSObject", "NSString", "NSAppleEventDescriptor", "NSAppleEventManager"] }
+
+# unrar_sys 0.5.8 build-host/target correction; see vendor/unrar_sys/README.md.
+[patch.crates-io]
+unrar_sys = { path = "vendor/unrar_sys" }

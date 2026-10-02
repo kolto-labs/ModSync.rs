@@ -277,6 +277,23 @@ fn file_sha256(path: &Path) -> Result<String> {
     Ok(format!("{:x}", hash.finalize()))
 }
 
+fn file_sha256_cancelled(path: &Path, cancelled: &AtomicBool) -> Result<String> {
+    let mut file = crate::paths::open_regular_read(path)?;
+    let mut hash = Sha256::new();
+    let mut block = [0u8; 64 * 1024];
+    loop {
+        ensure!(
+            !cancelled.load(Ordering::Relaxed),
+            "Sharing preparation cancelled"
+        );
+        let count = file.read(&mut block)?;
+        if count == 0 {
+            return Ok(format!("{:x}", hash.finalize()));
+        }
+        hash.update(&block[..count]);
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Proxied peer acquisition (plan task P1).
 //
@@ -365,6 +382,40 @@ impl Default for PeerSettings {
 }
 
 impl PeerSettings {
+    /// Completed-sharing bootstrap, gated before any list request. Each request
+    /// has the existing 20-second bound; cancellation is checked between them.
+    pub fn sharing_policy(
+        &self,
+        cache_dir: PathBuf,
+        cancelled: &AtomicBool,
+    ) -> Result<Option<PeerPolicy>> {
+        if !self.sharing || !self.keep_sharing || self.mode == PeerMode::Off {
+            return Ok(None);
+        }
+        let mut configured = self.clone();
+        configured.tracker_list_urls.clear();
+        for (index, url) in self.tracker_list_urls.iter().enumerate() {
+            ensure!(
+                !cancelled.load(Ordering::Relaxed),
+                "Sharing bootstrap cancelled"
+            );
+            if let Ok(text) =
+                fetch_list(url, &format!("peer-tracker-list-{index}"), Some(&cache_dir))
+            {
+                configured.trackers.extend(
+                    text.lines()
+                        .map(str::trim)
+                        .filter(|line| !line.is_empty() && !line.starts_with('#'))
+                        .map(str::to_owned),
+                );
+            }
+        }
+        ensure!(
+            !cancelled.load(Ordering::Relaxed),
+            "Sharing bootstrap cancelled"
+        );
+        Ok(configured.policy(Some(cache_dir)))
+    }
     /// Read the `peer*` keys from a `settings.json` value. Missing or malformed
     /// keys keep their defaults.
     pub fn from_settings(settings: &serde_json::Value) -> Self {
@@ -654,12 +705,26 @@ impl ProxyPool {
     /// `targets`. Proxies that fail are marked bad. At most `max_attempts`
     /// health checks run per call. With no target, nothing is contacted.
     pub fn next_healthy(&self, targets: &[HealthTarget]) -> Option<HealthyProxy> {
+        self.next_healthy_cancelled(targets, &AtomicBool::new(false))
+    }
+
+    fn next_healthy_cancelled(
+        &self,
+        targets: &[HealthTarget],
+        cancelled: &AtomicBool,
+    ) -> Option<HealthyProxy> {
         if targets.is_empty() {
             return None;
         }
         let mut tried = 0;
+        if cancelled.load(Ordering::Relaxed) {
+            return None;
+        }
         let explicit = self.explicit.clone();
         for proxy in explicit.into_iter().chain(self.listed().iter().copied()) {
+            if cancelled.load(Ordering::Relaxed) {
+                return None;
+            }
             if tried >= self.max_attempts {
                 break;
             }
@@ -667,11 +732,10 @@ impl ProxyPool {
                 continue;
             }
             tried += 1;
-            if targets
-                .iter()
-                .take(3)
-                .any(|t| socks5_connect_check(proxy, t, self.connect_timeout))
-            {
+            if targets.iter().take(3).any(|t| {
+                !cancelled.load(Ordering::Relaxed)
+                    && socks5_connect_check(proxy, t, self.connect_timeout)
+            }) {
                 return Some(HealthyProxy(proxy));
             }
             self.bad.lock().unwrap().insert(proxy);
@@ -811,6 +875,10 @@ fn fetch_list(url: &str, cache_name: &str, cache_dir: Option<&Path>) -> Result<S
                 let path = parsed
                     .to_file_path()
                     .map_err(|_| anyhow::anyhow!("Invalid file URL"))?;
+                ensure!(
+                    std::fs::metadata(&path)?.is_file(),
+                    "List source must be a regular file"
+                );
                 let mut text = String::new();
                 File::open(path)?
                     .take(LIST_BYTES_LIMIT)
@@ -1085,6 +1153,10 @@ const SHARE_ROOT_LOCK: &str = ".modsync-share.lock";
 /// Hold the share root's lock while folders are created or swept, so a sweep
 /// never sees a folder whose owner lock is not taken yet.
 fn lock_share_root(root: &Path) -> Result<File> {
+    lock_share_root_cancelled(root, &AtomicBool::new(false))
+}
+
+fn lock_share_root_cancelled(root: &Path, cancelled: &AtomicBool) -> Result<File> {
     use fs2::FileExt;
     std::fs::create_dir_all(root)?;
     let lock = OpenOptions::new()
@@ -1092,7 +1164,22 @@ fn lock_share_root(root: &Path) -> Result<File> {
         .truncate(false)
         .write(true)
         .open(root.join(SHARE_ROOT_LOCK))?;
-    lock.lock_exclusive()?;
+    loop {
+        ensure!(
+            !cancelled.load(Ordering::Relaxed),
+            "Sharing preparation cancelled"
+        );
+        match lock.try_lock_exclusive() {
+            Ok(()) => break,
+            Err(error)
+                if error.kind() == std::io::ErrorKind::WouldBlock
+                    || error.raw_os_error() == fs2::lock_contended_error().raw_os_error() =>
+            {
+                std::thread::sleep(Duration::from_millis(100))
+            }
+            Err(error) => return Err(error.into()),
+        }
+    }
     Ok(lock)
 }
 
@@ -1135,15 +1222,23 @@ impl ShareCopy {
     /// Copy `archive` to `<root>/.modsync-share-*/<name>` and check the copy's
     /// SHA-256. Stale folders from dead processes are swept first. The
     /// folder carries an owner lock for as long as this value lives.
-    /// `std::fs::copy` clones where the platform can (clonefile on macOS;
-    /// copy_file_range on Linux, which the kernel may serve as a reflink on
-    /// the same filesystem) and copies bytes otherwise. Returns `None` when
+    /// Copies in bounded chunks and independently hashes the result. Returns `None` when
     /// the copy does not hash to `sha256`.
     fn create(archive: &Path, name: &str, root: &Path, sha256: &str) -> Result<Option<Self>> {
+        Self::create_cancelled(archive, name, root, sha256, &AtomicBool::new(false))
+    }
+
+    fn create_cancelled(
+        archive: &Path,
+        name: &str,
+        root: &Path,
+        sha256: &str,
+        cancelled: &AtomicBool,
+    ) -> Result<Option<Self>> {
         use fs2::FileExt;
         ensure!(safe_file_name(name), "Unsafe torrent file name");
         let (owner, dir) = {
-            let _root = lock_share_root(root)?;
+            let _root = lock_share_root_cancelled(root, cancelled)?;
             sweep_locked(root);
             let dir = tempfile::Builder::new()
                 .prefix(SHARE_PREFIX)
@@ -1153,15 +1248,31 @@ impl ShareCopy {
             (owner, dir)
         };
         let path = dir.path().join(name);
-        std::fs::copy(archive, &path)?;
-        if !file_sha256(&path)?.eq_ignore_ascii_case(sha256) {
-            return Ok(None);
-        }
-        Ok(Some(Self {
+        let copy = Self {
             _owner: owner,
             dir,
             path,
-        }))
+        };
+        let path = &copy.path;
+        let mut source = crate::paths::open_regular_read(archive)?;
+        let mut target = File::create(path)?;
+        let mut block = [0u8; 64 * 1024];
+        loop {
+            ensure!(
+                !cancelled.load(Ordering::Relaxed),
+                "Sharing preparation cancelled"
+            );
+            let count = source.read(&mut block)?;
+            if count == 0 {
+                break;
+            }
+            target.write_all(&block[..count])?;
+        }
+        drop(target);
+        if !file_sha256_cancelled(path, cancelled)?.eq_ignore_ascii_case(sha256) {
+            return Ok(None);
+        }
+        Ok(Some(copy))
     }
 }
 
@@ -1296,6 +1407,49 @@ pub fn fetch_observed(
 /// is added from its metadata: no magnet resolution, and other ModSync peers
 /// can connect to it from the first second.
 pub fn fetch_authored(
+    authored: AuthoredTorrent<'_>,
+    destination: &Path,
+    sha256: &str,
+    policy: &PeerPolicy,
+    cancelled: &AtomicBool,
+    options: &crate::archive::Options,
+    mut on: impl FnMut(PeerProgress),
+) -> Result<String> {
+    let started = std::time::Instant::now();
+    let mut bytes = 0;
+    let result = fetch_authored_inner(
+        authored,
+        destination,
+        sha256,
+        policy,
+        cancelled,
+        options,
+        |update| {
+            if let PeerProgress::Transferring {
+                bytes: observed, ..
+            } = &update
+            {
+                bytes = bytes.max(*observed);
+            }
+            on(update);
+        },
+    );
+    let error = result.as_ref().err().map(|error| format!("{error:#}"));
+    crate::telemetry::global().record_download(
+        &destination
+            .file_name()
+            .unwrap_or_default()
+            .to_string_lossy(),
+        result.is_ok(),
+        started.elapsed(),
+        bytes,
+        Some("peer"),
+        error.as_deref(),
+    );
+    result
+}
+
+fn fetch_authored_inner(
     authored: AuthoredTorrent<'_>,
     destination: &Path,
     sha256: &str,
@@ -1496,6 +1650,125 @@ pub enum ShareOutcome {
     },
 }
 
+/// Real transport events. Counters are cumulative across proxy rotations in
+/// this invocation; preparation, verification and between-session gaps are excluded.
+#[derive(Clone, Copy, Debug)]
+pub enum ShareEvent {
+    Started {
+        listen_addr: Option<SocketAddr>,
+    },
+    Progress {
+        uploaded_bytes: u64,
+        active: Duration,
+    },
+}
+
+/// Observed completed-sharing sibling; retains the original public wrapper and
+/// outcome schema. Cancellation also covers hashing, copying and identity rebuild.
+pub fn share_verified_authored_observed(
+    archive: &Path,
+    authored: AuthoredTorrent<'_>,
+    sha256: &str,
+    policy: &PeerPolicy,
+    until: ShareUntil,
+    cancelled: &AtomicBool,
+    observe: impl FnMut(ShareEvent),
+) -> Result<ShareOutcome> {
+    if !policy.keep_sharing {
+        return Ok(ShareOutcome::SharingOff);
+    }
+    ensure!(
+        !cancelled.load(Ordering::Relaxed),
+        "Sharing preparation cancelled"
+    );
+    // The no-info fallback reproduces the pinned engine's single-file layout,
+    // but checks cancellation during reads instead of an unyielding async loop.
+    // Its SHA-1 must still equal the authored magnet; it never authorizes a new swarm.
+    let rebuilt;
+    let authored = if authored.torrent_info.is_none() {
+        let magnet = sanitize_magnet(authored.magnet, &[])?;
+        let name = magnet
+            .name
+            .as_deref()
+            .or_else(|| archive.file_name()?.to_str())
+            .context("Missing archive name")?;
+        rebuilt = rebuild_single_info(archive, name, cancelled)?;
+        if !format!("{:x}", sha1::Sha1::digest(&rebuilt)).eq_ignore_ascii_case(&magnet.info_hash) {
+            return Ok(ShareOutcome::IdentityMismatch {
+                authored: magnet.info_hash,
+                rebuilt: format!("{:x}", sha1::Sha1::digest(&rebuilt)),
+            });
+        }
+        AuthoredTorrent {
+            magnet: authored.magnet,
+            torrent_info: Some(&rebuilt),
+        }
+    } else {
+        authored
+    };
+    share_authored_observed(
+        archive,
+        authored,
+        sha256,
+        ShareTransport::Proxied(policy),
+        until,
+        cancelled,
+        observe,
+    )
+}
+
+fn rebuild_single_info(path: &Path, name: &str, cancelled: &AtomicBool) -> Result<Vec<u8>> {
+    ensure!(safe_file_name(name), "Unsafe torrent name");
+    const PIECE: usize = 2 * 1024 * 1024;
+    let mut file = crate::paths::open_regular_read(path)?;
+    let mut buffer = [0u8; 64 * 1024];
+    let mut length = 0u64;
+    let mut remaining = PIECE;
+    let mut hash = sha1::Sha1::new();
+    let mut pieces = Vec::new();
+    loop {
+        ensure!(
+            !cancelled.load(Ordering::Relaxed),
+            "Sharing identity rebuild cancelled"
+        );
+        let capacity = remaining.min(buffer.len());
+        let read = file.read(&mut buffer[..capacity])?;
+        if read == 0 {
+            break;
+        }
+        length += read as u64;
+        remaining -= read;
+        hash.update(&buffer[..read]);
+        if remaining == 0 {
+            pieces.extend_from_slice(&hash.finalize_reset());
+            remaining = PIECE;
+            ensure!(
+                pieces.len() <= 32 * 1024,
+                "Rebuilt torrent info exceeds size limit"
+            );
+        }
+    }
+    // Preserve the pinned librqbit 9.0.1 creator's final-piece behavior, including
+    // its empty final checksum at an exact piece boundary. Hash comparison and
+    // the engine's subsequent piece recheck still fail closed.
+    if remaining > 0 && length > 0 {
+        pieces.extend_from_slice(&hash.finalize());
+    }
+    let mut info = format!(
+        "d6:lengthi{length}e4:name{}:{name}12:piece lengthi{PIECE}e6:pieces{}:",
+        name.len(),
+        pieces.len()
+    )
+    .into_bytes();
+    info.extend_from_slice(&pieces);
+    info.push(b'e');
+    ensure!(
+        info.len() <= 32 * 1024,
+        "Rebuilt torrent info exceeds size limit"
+    );
+    Ok(info)
+}
+
 /// How a sharing session reaches peers.
 #[derive(Clone, Copy)]
 enum ShareTransport<'a> {
@@ -1579,6 +1852,30 @@ fn share_authored(
     cancelled: &AtomicBool,
     mut on_started: impl FnMut(Option<SocketAddr>),
 ) -> Result<ShareOutcome> {
+    share_authored_observed(
+        archive,
+        authored,
+        sha256,
+        transport,
+        until,
+        cancelled,
+        |event| {
+            if let ShareEvent::Started { listen_addr } = event {
+                on_started(listen_addr);
+            }
+        },
+    )
+}
+
+fn share_authored_observed(
+    archive: &Path,
+    authored: AuthoredTorrent<'_>,
+    sha256: &str,
+    transport: ShareTransport<'_>,
+    until: ShareUntil,
+    cancelled: &AtomicBool,
+    mut observe: impl FnMut(ShareEvent),
+) -> Result<ShareOutcome> {
     ensure!(archive.is_file(), "Share archive does not exist");
     ensure!(
         sha256.len() == 64 && sha256.bytes().all(|b| b.is_ascii_hexdigit()),
@@ -1616,14 +1913,15 @@ fn share_authored(
     // Baseline of the user's file. It is never opened for writing, so any
     // change after this point is the user's (or an install's).
     let stamp = file_stamp(archive);
-    let actual = file_sha256(archive)?;
+    let actual = file_sha256_cancelled(archive, cancelled)?;
     if !actual.eq_ignore_ascii_case(sha256) {
         return Ok(ShareOutcome::HashMismatch {
             expected: sha256.to_ascii_lowercase(),
             actual,
         });
     }
-    let Some(copy) = ShareCopy::create(archive, &name, share_root, sha256)? else {
+    let Some(copy) = ShareCopy::create_cancelled(archive, &name, share_root, sha256, cancelled)?
+    else {
         return Ok(ShareOutcome::HashMismatch {
             expected: sha256.to_ascii_lowercase(),
             actual: "copy differs".to_owned(),
@@ -1679,7 +1977,7 @@ fn share_authored(
         ShareTransport::Proxied(_) => magnet.trackers.clone(),
         ShareTransport::Direct { .. } => magnet.all_trackers.clone(),
     };
-    let started = std::time::Instant::now();
+    let mut active = Duration::ZERO;
     let mut uploaded_before = 0u64;
     let mut announced = false;
     let mut attempts = 0;
@@ -1688,7 +1986,7 @@ fn share_authored(
             ShareTransport::Proxied(policy) => {
                 attempts += 1;
                 let next = (attempts <= policy.proxy.max_attempts)
-                    .then(|| policy.proxy.next_healthy(&targets))
+                    .then(|| policy.proxy.next_healthy_cancelled(&targets, cancelled))
                     .flatten();
                 match next {
                     Some(proxy) => Some(proxy),
@@ -1698,7 +1996,7 @@ fn share_authored(
                             reason: ShareStop::NoWorkingProxy,
                             info_hash: magnet.info_hash,
                             uploaded_bytes: uploaded_before,
-                            seconds: started.elapsed().as_secs(),
+                            seconds: active.as_secs(),
                         });
                     }
                 }
@@ -1706,7 +2004,10 @@ fn share_authored(
             ShareTransport::Direct { .. } => None,
         };
         let announced = &mut announced;
-        let on_started = &mut on_started;
+        let observe = &mut observe;
+        let mut transport_started = None;
+        let mut last_uploaded = 0u64;
+        let mut final_handle = None;
         let end = runtime.block_on(async {
             let session = match (transport, proxy) {
                 (ShareTransport::Proxied(policy), Some(proxy)) => {
@@ -1748,6 +2049,7 @@ fn share_authored(
                     .await?
                     .into_handle()
                     .context("Torrent did not start")?;
+                final_handle = Some(handle.clone());
                 // The paused add still rechecks the copy. Share only if every
                 // piece is already present, so nothing is ever downloaded.
                 loop {
@@ -1767,10 +2069,12 @@ fn share_authored(
                         _ = wait_for_cancel(cancelled) => return Ok((ShareStop::Cancelled, 0, false)),
                     }
                 }
+                ensure!(!cancelled.load(Ordering::Relaxed), "Sharing preparation cancelled");
                 session.unpause(&handle).await?;
+                transport_started = Some(std::time::Instant::now());
                 if !*announced {
                     *announced = true;
-                    on_started(session.listen_addr().map(|a| local_peer(a.port())));
+                    observe(ShareEvent::Started { listen_addr: session.listen_addr().map(|a| local_peer(a.port())) });
                 }
                 let total = handle.stats().total_bytes.max(1);
                 let recheck = async {
@@ -1793,14 +2097,17 @@ fn share_authored(
                 loop {
                     let stats = handle.stats();
                     uploaded = uploaded.max(stats.uploaded_bytes);
-                    let total_uploaded = uploaded_before + uploaded;
+                    last_uploaded = uploaded;
+                    let total_uploaded = uploaded_before.saturating_add(uploaded);
+                    let elapsed = active + transport_started.map_or(Duration::ZERO, |started: std::time::Instant| started.elapsed());
+                    observe(ShareEvent::Progress { uploaded_bytes: total_uploaded, active: elapsed });
                     if let Some(limit) = until.max_ratio
                         && total_uploaded as f64 / total as f64 >= limit
                     {
                         return Ok((ShareStop::Ratio, uploaded, false));
                     }
                     if let Some(limit) = until.max_duration
-                        && started.elapsed() >= limit
+                        && elapsed >= limit
                     {
                         return Ok((ShareStop::Duration, uploaded, false));
                     }
@@ -1815,9 +2122,17 @@ fn share_authored(
                     }
                 }
             };
-            let result = result.await;
+            let result = tokio::select! {
+                result = result => result,
+                _ = wait_for_cancel(cancelled) => Ok((ShareStop::Cancelled, 0, false)),
+            };
             session.stop().await;
-            result
+            if let Some(handle) = final_handle { last_uploaded = last_uploaded.max(handle.stats().uploaded_bytes); }
+            if let Some(started) = transport_started {
+                active += started.elapsed();
+            }
+            observe(ShareEvent::Progress { uploaded_bytes: uploaded_before.saturating_add(last_uploaded), active });
+            result.map(|(reason, uploaded, rotate)| (reason, uploaded.max(last_uploaded), rotate))
         });
         let (reason, uploaded, rotate) = end?;
         uploaded_before += uploaded;
@@ -1831,7 +2146,7 @@ fn share_authored(
             reason,
             info_hash: magnet.info_hash,
             uploaded_bytes: uploaded_before,
-            seconds: started.elapsed().as_secs(),
+            seconds: active.as_secs(),
         });
     }
 }

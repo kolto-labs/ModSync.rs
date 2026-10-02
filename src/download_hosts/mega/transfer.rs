@@ -57,6 +57,7 @@ pub struct Resolved {
     pub name: Option<String>,
     /// The file size in bytes, from the API. Zero is a valid (empty) file.
     pub size: u64,
+    metadata: crate::host_metadata::Metadata,
     /// The authored link a person can open, for a manual requirement. It may hold the
     /// key, so it appears only in `ManualRequired` (display redaction applies), never in
     /// an error message.
@@ -66,6 +67,13 @@ pub struct Resolved {
     key: [u8; 16],
     iv: [u8; 8],
     mac: [u8; 8],
+}
+
+impl Resolved {
+    /// Decrypted public attributes, excluding all key material.
+    pub fn metadata(&self) -> &crate::host_metadata::Metadata {
+        &self.metadata
+    }
 }
 
 impl fmt::Debug for Resolved {
@@ -256,7 +264,7 @@ fn split_key(key: &str) -> Result<([u8; 16], [u8; 8], [u8; 8])> {
 
 /// Decrypts the node attributes (AES-128-CBC, zero IV) and returns the node name. A wrong
 /// key or corrupted attributes are an error, never a panic.
-fn node_name(aes_key: &[u8; 16], encoded: &str) -> Result<String> {
+fn node_attributes(aes_key: &[u8; 16], encoded: &str) -> Result<serde_json::Value> {
     const BAD: &str =
         "MEGA node attributes could not be decrypted (wrong key or corrupted attributes)";
     ensure!(encoded.len() <= MAX_ATTRIBUTE_CHARS, BAD);
@@ -282,15 +290,7 @@ fn node_name(aes_key: &[u8; 16], encoded: &str) -> Result<String> {
         .unwrap_or(buffer.len());
     let attributes: serde_json::Value =
         serde_json::from_slice(&buffer[4..end]).map_err(|_| anyhow!(BAD))?;
-    let name = attributes
-        .get("n")
-        .and_then(serde_json::Value::as_str)
-        .ok_or_else(|| anyhow!("MEGA node attributes carry no file name"))?;
-    ensure!(
-        download::one_component(name).is_ok(),
-        "The MEGA file name is not a safe single file name"
-    );
-    Ok(name.to_owned())
+    Ok(attributes)
 }
 
 /// Resolves a public file link anonymously: one API request, then key and attribute
@@ -340,10 +340,18 @@ pub fn resolve(
         ));
     }
     let mut reply = Vec::new();
-    (&mut response)
-        .take(MAX_API_BYTES + 1)
-        .read_to_end(&mut reply)
-        .map_err(read_failure)?;
+    let mut limited = (&mut response).take(MAX_API_BYTES + 1);
+    let mut buffer = [0u8; 8192];
+    loop {
+        if cancelled.load(Ordering::Relaxed) {
+            return Err(cancelled_error());
+        }
+        let count = limited.read(&mut buffer).map_err(read_failure)?;
+        if count == 0 {
+            break;
+        }
+        reply.extend_from_slice(&buffer[..count]);
+    }
     if reply.len() as u64 > MAX_API_BYTES {
         return Err(permanent("The MEGA API reply is too large"));
     }
@@ -378,11 +386,44 @@ pub fn resolve(
         .get("at")
         .and_then(serde_json::Value::as_str)
         .ok_or_else(|| permanent("The MEGA API reply carries no node attributes"))?;
-    let name = match node_name(&aes_key, encoded) {
-        Ok(name) => Some(name),
-        Err(error) if need_name => return Err(permanent(error.to_string())),
-        Err(_) => None,
-    };
+    let attributes = node_attributes(&aes_key, encoded).map_err(|e| permanent(e.to_string()))?;
+    let name = attributes
+        .get("n")
+        .and_then(serde_json::Value::as_str)
+        .filter(|name| download::one_component(name).is_ok())
+        .map(str::to_owned);
+    if need_name && name.is_none() {
+        return Err(permanent(
+            "The MEGA file name is not a safe single file name",
+        ));
+    }
+    let mut metadata = serde_json::Map::new();
+    metadata.insert("provider".into(), "mega".into());
+    metadata.insert("nodeId".into(), link.handle().into());
+    metadata.insert("size".into(), size.into());
+    if let Some(name) = &name {
+        metadata.insert("name".into(), name.clone().into());
+    }
+    if let Some(fingerprint) = attributes.get("c").and_then(serde_json::Value::as_str) {
+        // MEGA's public attribute is a sparse checksum followed by a compact LE timestamp.
+        // It is neither the decryption key nor an archive SHA-256.
+        if let Ok(bytes) = URL_SAFE_NO_PAD.decode(fingerprint.trim_end_matches('='))
+            && let Some((&count, timestamp)) = bytes.get(16..).and_then(|b| b.split_first())
+            && count <= 8
+            && timestamp.len() == usize::from(count)
+        {
+            let mut raw = [0u8; 8];
+            raw[..usize::from(count)].copy_from_slice(timestamp);
+            let timestamp = u64::from_le_bytes(raw);
+            if timestamp <= i64::MAX as u64 {
+                metadata.insert("hash".into(), fingerprint.into());
+                metadata.insert("mtime".into(), timestamp.into());
+            }
+        }
+    }
+    if let Some(timestamp) = attributes.get("t").and_then(serde_json::Value::as_u64) {
+        metadata.insert("mtime".into(), timestamp.into());
+    }
 
     let mut storage = Url::parse(download_address)
         .map_err(|_| permanent("MEGA returned an invalid download address"))?;
@@ -402,6 +443,7 @@ pub fn resolve(
     // `IDLE_TIMEOUT` already bounds a stall between bytes, not the whole transfer.
     let client = download::client_with_policy(loopback_ca, fixture, same_origin_policy(&storage))?;
     Ok(Resolved {
+        metadata,
         name,
         size,
         manual_url,
@@ -441,7 +483,23 @@ pub fn transfer(
     options: &crate::archive::Options,
     progress: &mut dyn FnMut(FetchProgress),
 ) -> Result<download::Fetched> {
-    transfer_inner(resolved, destination, sha256, cancelled, options, progress).map_err(|error| {
+    let started = std::time::Instant::now();
+    let mut observed_bytes = 0;
+    let mut observed_progress = |update| {
+        if let FetchProgress::Transferring { bytes, .. } = update {
+            observed_bytes = observed_bytes.max(bytes);
+        }
+        progress(update);
+    };
+    let result = transfer_inner(
+        resolved,
+        destination,
+        sha256,
+        cancelled,
+        options,
+        &mut observed_progress,
+    )
+    .map_err(|error| {
         if download::classify(&error).is_some() {
             error
         } else if cancelled.load(Ordering::Relaxed) {
@@ -449,7 +507,17 @@ pub fn transfer(
         } else {
             download::fail(FailureClass::Permanent, error)
         }
-    })
+    });
+    let error = result.as_ref().err().map(|error| format!("{error:#}"));
+    crate::telemetry::global().record_download(
+        resolved.name.as_deref().unwrap_or("unnamed archive"),
+        result.is_ok(),
+        started.elapsed(),
+        observed_bytes,
+        Some("mega"),
+        error.as_deref(),
+    );
+    result
 }
 
 fn transfer_inner(

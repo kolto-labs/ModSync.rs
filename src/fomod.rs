@@ -202,6 +202,20 @@ pub struct NamedSelection {
 }
 
 impl ChoicesFile {
+    /// Read a bounded ordinary UTF-8 sidecar without following a symlink or
+    /// blocking on a FIFO. Desktop preparation calls this on its worker.
+    pub fn load(path: &std::path::Path) -> Result<Self> {
+        use std::io::Read;
+        let mut bytes = Vec::new();
+        crate::paths::open_regular_read(path)?
+            .take(8 * 1024 * 1024 + 1)
+            .read_to_end(&mut bytes)?;
+        ensure!(
+            bytes.len() <= 8 * 1024 * 1024,
+            "FOMOD choices file exceeds 8 MiB"
+        );
+        Self::parse(std::str::from_utf8(&bytes)?)
+    }
     pub fn parse(json: &str) -> Result<Self> {
         let choices: Self = serde_json::from_str(json)?;
         ensure!(
@@ -525,64 +539,101 @@ impl ModuleConfig {
     /// satisfied, skipped conditional patterns and dropped destination renames. They
     /// describe the installer, not a selection, so every authored entry is covered.
     pub fn fallback_warnings(&self) -> Vec<String> {
-        fn unevaluated(condition: &FlagCondition, labels: &mut Vec<String>) {
+        fn unevaluated(condition: &FlagCondition, warnings: &mut WarningCollector) {
             match condition {
-                FlagCondition::Always(label) => labels.push(label.clone()),
+                FlagCondition::Always(label) => warnings.push(format!(
+                    "{} is not evaluated; treating as satisfied.",
+                    warning_text(label)
+                )),
                 FlagCondition::All(children) | FlagCondition::Any(children) => {
                     for child in children {
-                        unevaluated(child, labels);
+                        unevaluated(child, warnings);
                     }
                 }
                 FlagCondition::Flag { .. } => {}
             }
         }
-        let mut labels = Vec::new();
-        for step in &self.steps {
-            if let Some(condition) = &step.visible {
-                unevaluated(condition, &mut labels);
+        fn rename(file: &FileInstall, warnings: &mut WarningCollector) {
+            if let Some((source, destination)) = dropped_rename(file) {
+                warnings.push(format!("FOMOD wants to install '{}' as '{}'; renames are not supported by the Copy action, the source file name is kept.", warning_text(&source), warning_text(&destination)));
             }
         }
-        let mut warnings = Vec::new();
+        let mut warnings = WarningCollector::default();
+        for step in &self.steps {
+            if let Some(condition) = &step.visible {
+                unevaluated(condition, &mut warnings);
+            }
+        }
         let plugins = self.plugins();
-        let mut files: Vec<_> = self.required_files.iter().collect();
-        files.extend(plugins.iter().flat_map(|(_, plugin)| &plugin.files));
+        for file in &self.required_files {
+            rename(file, &mut warnings);
+        }
+        for (_, plugin) in &plugins {
+            for file in &plugin.files {
+                rename(file, &mut warnings);
+            }
+        }
         for pattern in &self.conditional_files {
-            let (placement, ignored) = Self::place_pattern(pattern, &plugins);
-            labels.extend(ignored);
+            let (placement, _) = Self::place_pattern(pattern, &plugins);
             match placement {
-                PatternPlacement::Unsupported => warnings.push(
-                    "Skipping a conditionalFileInstalls pattern: only a flat And of flagDependency elements is supported in this slice.".to_owned(),
-                ),
-                PatternPlacement::Unattached => warnings.push(
-                    "Skipping a conditionalFileInstalls pattern: its flag dependencies are not all set by a single plugin.".to_owned(),
-                ),
+                PatternPlacement::Unsupported => warnings.push("Skipping a conditionalFileInstalls pattern: only a flat And of flagDependency elements is supported in this slice.".into()),
+                PatternPlacement::Unattached => warnings.push("Skipping a conditionalFileInstalls pattern: its flag dependencies are not all set by a single plugin.".into()),
                 PatternPlacement::Trailing | PatternPlacement::Plugin(_) => {
-                    files.extend(&pattern.files)
+                    unevaluated(&pattern.condition, &mut warnings);
+                    for file in &pattern.files { rename(file, &mut warnings); }
                 }
             }
         }
-        let mut seen = std::collections::BTreeSet::new();
-        for label in labels {
-            if seen.insert(label.clone()) {
-                warnings.push(format!("{label} is not evaluated; treating as satisfied."));
-            }
+        warnings.finish()
+    }
+}
+
+/// Bound authored diagnostic text before formatting or UI publication.
+pub(crate) fn warning_text(value: &str) -> String {
+    bounded_warning_text(value, 256)
+}
+fn bounded_warning_text(value: &str, limit: usize) -> String {
+    let mut chars = value.chars();
+    let mut text: String = chars
+        .by_ref()
+        .take(limit)
+        .map(|c| if c.is_control() { ' ' } else { c })
+        .collect();
+    if chars.next().is_some() {
+        text.push('…');
+    }
+    text
+}
+/// Shared bounded warning collection. Counts beyond the cap are occurrences,
+/// since retaining every omitted identity would itself be unbounded.
+#[derive(Default)]
+pub(crate) struct WarningCollector {
+    warnings: Vec<String>,
+    omitted: usize,
+}
+impl WarningCollector {
+    pub(crate) fn push(&mut self, warning: String) {
+        let warning = bounded_warning_text(&warning, 1024);
+        if self.warnings.contains(&warning) {
+            return;
         }
-        for file in files {
-            if let Some((source, destination)) = dropped_rename(file)
-                && seen.insert(format!("rename\0{source}\0{destination}"))
-            {
-                warnings.push(format!(
-                    "FOMOD wants to install '{source}' as '{destination}'; renames are not supported by the Copy action, the source file name is kept."
-                ));
-            }
+        if self.warnings.len() < 64 {
+            self.warnings.push(warning);
+        } else {
+            self.omitted = self.omitted.saturating_add(1);
         }
-        warnings
+    }
+    pub(crate) fn finish(mut self) -> Vec<String> {
+        if self.omitted > 0 {
+            self.warnings.push(format!("{} additional FOMOD warning occurrences omitted; review the installer before proceeding.", self.omitted));
+        }
+        self.warnings
     }
 }
 
 /// Log an installer's mapper fallbacks as warnings with C# `FomodToComponentMapper`'s
-/// exact `Logger.LogWarning` text (no archive prefix). The CLI mirrors the log to
-/// stderr; validation reports are unchanged.
+/// warning semantics. Authored text and count are bounded; hosts also expose
+/// these diagnostics in structured validation and the configuration editor.
 pub fn log_fallback_warnings(config: &ModuleConfig) {
     for warning in config.fallback_warnings() {
         crate::logging::warning(format!("[FomodToComponentMapper] {warning}"));

@@ -1,5 +1,13 @@
 # Remaining Rust parity work: plan coverage
 
+**2026-10-02 reconciliation:** the table below is the preserved plan-coverage
+snapshot. Current source has advanced across these domains; use the
+[remaining-work tracker](../plans/2026-09-28-1130-remaining-work-tracker-plan.md)
+and inspect the implementation before selecting work. Labels such as "gap" or
+"implementation pending" below describe the original documentation inventory,
+not verified current absence. Acceptance remains open under the current test/CI
+deferral.
+
 Documentation-only snapshot, 2026-09-28. This maps remaining work, not source implementation or new approval gates. [PROGRESS.md](PROGRESS.md) records reviewed wave-two integration plus accepted fetch, loopback HTTPS and Source normalization slices, and active FOMOD work; [ACCEPTANCE.md](ACCEPTANCE.md) keeps F01–F28 partial and F29 unverified against C# `d31ccbd3`. No completion percentage is meaningful.
 
 **Coverage labels:** **concrete** = a bounded implementation/proof contract exists for the named next task; **partial** = an older plan, design or inventory covers only part of remaining work; **gap** = no concrete current task plan found in the inspected parity documentation. A gap does not assert missing source. Existing plans still require implementation-state reconciliation before execution; their historical test instructions do not override the current Rust-test freeze.

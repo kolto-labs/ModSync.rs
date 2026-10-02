@@ -1154,3 +1154,415 @@ cancel, adoption after a lost unnamed publish),
 (10 fail on `d4ccbc1`; 38 of the earlier 354 fail on `45b3c64`).
 This is Fetch/nxm acquisition only. Desktop Fetch and nxm use this orchestrator from
 desktop step 1 (top of this file, unreviewed).
+
+## Provider metadata observations (H4 implementation, acceptance pending)
+
+The shared `download_orchestrator::collect_metadata` operation now supplies metadata
+for successful origin Fetch downloads to both CLI and desktop completion paths. CLI
+`fetch --record` persists the observations; without `--record`, its JSON
+`providerMetadata` report is read-only. Desktop Fetch records into the loaded guide
+and marks it unsaved. The NXM completion path uses the same operation. Planning and
+`fetch --dry-run` return before lookup. A metadata failure retains existing registry
+values and reports an advisory warning. Cancellation discards pending observations.
+No metadata lookup follows a failed/gated download or a peer success. GameFront
+produces provider-only metadata without website requests.
+
+Nexus metadata uses the URL path's game/mod IDs and explicit `file_id`, with a separate
+optional wire type that does not change the existing discovery type. An unqualified
+multi-file Nexus page is provider-only: one archive's metadata is never attributed to
+all of its siblings. DeadlyStream metadata uses the bounded anonymous page session,
+redirect rules, gate detection and cancellation checks already used by acquisition;
+size and ISO updated date are parsed only if present. Nexus metadata bodies are
+limited to 1 MiB and poll cancellation between reads; its MD5 is lowercased.
+Direct identity URLs reuse the legacy URL normalization function. Unlike the C# incidental defect,
+an authored changelog query is retained. MEGA metadata uses decrypted public node
+attributes (safe name, size, sparse fingerprint and optional modification timestamp).
+The fingerprint is never replaced with the fragment key, MAC or archive SHA-256.
+Direct metadata uses HEAD with a headers-only Range fallback when HEAD is unsupported,
+checks response success, uses Content-Range total for 206, validates server filenames,
+and confines extra CA trust to loopback HTTPS and same-origin redirects. Direct
+requests have a 20-second timeout; provider clients retain their existing bounded
+request timeouts, with cancellation checked between page/API reads and operations.
+
+Recording preserves existing key casing, nonempty authored metadata, FileSize,
+MetadataHash, registry Files flags and unrelated FOMOD state. Missing values are
+filled. The exact legacy migration placeholder is promoted only when ContentKey and
+MetadataHash both equal SHA1(normalized resource URL) and no provider is recorded;
+in that shape only, FileSize=0 is filled too. An authored copy of that exact placeholder
+is indistinguishable from migration output. Other authored zero sizes and hashes are
+preserved. Missing provider
+fields remain absent, a deliberate difference from C# defaults of zero/empty string.
+Metadata hashes are separate from verified archive content hashes. Fractional custom
+metadata outside the documented provider whitelist is not part of this hash contract.
+The existing CLI report/plan URL fields can contain authored MEGA fragments; do not
+publish unsanitized output. New advisory metadata warnings omit provider URLs/secrets.
+
+The MEGA dependency's reqwest feature enables its required Tokio dependency and also
+compiles its native-TLS adapter; ModSync's production MEGA requests continue to use the
+shared rustls client and confined provider transport. No native-TLS adapter is used by
+the provider. Production compilation/lint alone does not establish metadata protocol,
+persistence, native UI or live-host parity. H4 controlled production acceptance and
+F13/F22 acceptance remain open; no tests, harnesses or CI were run for this slice.
+
+## Virtual patcher InstallList effects (E2 implementation, acceptance pending)
+
+The shared engine now simulates bounded InstallList presence during validation,
+conflict analysis and installation preflight, using existing or previously extracted
+INI content, selected namespace/INI and configured destination. It writes only the
+VFS, retains external-effects warnings, and does not model binary patches. Missing
+payloads have an explicit unknown-content marker: virtual path operations can use
+presence, while operations requiring bytes fail visibly. No unknown content can be
+published by real installation. The source bounds, intentional reference differences
+and unexecuted acceptance matrix are in
+[`docs/parity/patcher-install-list-simulation.md`](docs/parity/patcher-install-list-simulation.md).
+No patcher/native/full-install parity promotion follows from this implementation.
+
+### Current Markdown and acquisition source changes (2026-10-02)
+
+Markdown export now emits the reference prose layout and embedded executable
+metadata through the public render/convert route. Rust DraftReview records are
+retained recursively; raw structured loaders reject malformed records before
+normalization. Export rejects executable metadata markers in prose and structured
+guide fences that would be reinterpreted on import. Legacy bullet metadata now
+has a strict parser using the ordinary contained Source normalization. These
+changes have source review; complete reference text/model/corpus and execution
+acceptance is still outstanding.
+
+The acquisition race verifies Origin-revealed existing files before stopping
+Peer; refused adoption leaves eligible Peer work available. Existing-file hash
+reads and planning now accept cancellation. Provider-revealed filenames and
+concurrent no-clobber publication conflicts retain a typed existing-file result
+for safe verification/adoption. Runtime race/cancellation acceptance remains open.
+
+### Checkpoint history, desktop sharing and patcher discovery (2026-10-02)
+
+Checkpoint capture/list/verify now have inspect/diff/provenance readers and
+lock-bound component journal primitives. These are additive APIs; the default
+installer still uses whole-run recovery. New pending checkpoint operations fence
+legacy installation and restore. Component commits do not claim final completion
+before receipt reconciliation. Managed auxiliary state, restore/resume, lifecycle
+and native history remain required; see `docs/parity/checkpoint-plan.md` and the
+current history/journal implementation note for crash-state details.
+
+The desktop now owns completed-sharing startup, admission and shutdown workers.
+Mutation barriers precede guide recording and install/restore access; delayed
+download terminals re-evaluate the current context before acceptance. Stop/Off,
+saved provenance, and controller shutdown errors are explicit state transitions.
+Static review corrections and implementation boundaries are recorded in
+`docs/parity/persistent-sharing-desktop.md`. Runtime transport, fairness, budget,
+restart and native interaction acceptance remains deferred.
+
+The patcher resolver has typed native/Python invocation with native-first resource
+discovery. Python fallback requires installed resources, interpreter and packages;
+it performs no runtime provisioning. Missing implicit resources do not block
+pure simulation or unrelated installation. See
+`docs/parity/patcher-backend-implementation.md` for the exact package contract and
+the remaining delivery/platform limitations. The production build and strict
+Clippy without desktop features passed after the initial T2/E6 integration;
+later review changes still require their own production checks. These checks
+do not establish package execution or full feature acceptance.
+
+### Opt-in managed checkpoints and archive times (2026-10-02)
+
+`install --component-checkpoints` now connects the engine to durable component
+boundaries and final receipt reconciliation. `--managed` requires that mode;
+explicit staging/manifest roots or the selected profile supply its auxiliary
+participants. Managed reinstallation validates instructions inside the journaled
+component boundary after restoring prior originals. Standalone virtual validation
+does not forecast that reinstall state. Default installs retain whole-run recovery;
+`--no-checkpoint` explicitly selects that compatibility behavior. Continuing after
+failure (`--best-effort` or `--continue-on-error`) is rejected with ordered-recovery
+guidance. Checkpoint restore/recover/resume, deletion/GC/repair and desktop history are now implemented and production-gated; native and crash/replay acceptance remains open.
+
+Archive entries now retain decoder modification times through extraction and
+engine copies; managed deployment copy fallbacks preserve source times too.
+ZIP extended/NTFS times take precedence over DOS local time, 7z uses Windows
+ticks, TAR/GZip use Unix seconds, and RAR uses the decoder-produced timestamp.
+These source rules and timezone/precision limits are documented in
+[`archive-timestamp-implementation.md`](docs/parity/archive-timestamp-implementation.md).
+Cross-format/native timestamp acceptance remains deferred; checkpoint inventory
+identity still consists of bytes and supported modes, not timestamp equivalence.
+
+Desktop FOMOD prompts now retain exact captured top-level consumer GUIDs through
+the editor. Accepting choices and dismissing prompts affect only those bindings;
+valid existing configurations are preserved during automatic follow-up. Manual
+reconfiguration targets the displayed selected component. Bound prefill is
+normalized against the current archive, with an external sidecar imported as
+the separately selected run-wide input. Source review passed; native acceptance
+remains pending. See `docs/parity/fomod-desktop-consumer-binding.md`.
+
+### Desktop tools, profiles and platform continuation (2026-10-02)
+
+The desktop editor now uses shared transactions for component/option/instruction
+edits, configurable regex/document previews, resource browsing and explicit safe
+saves. Conflict and update windows consume shared presentations and timestamped
+snapshots. Cancelled update results remain in memory; fresh metadata application
+requires matching captured inputs and guide identity. Both production feature
+builds and strict Clippy passed at the source boundary recorded in
+`docs/parity/production-gates-2026-10-02.md`; native and provider acceptance is open.
+
+Profiles have bounded compatibility decoding, visible legacy opaque-identity
+warnings and final serialized-size checks. Typed desktop settings preserve the
+24 reference keys and unknown extensions; the validated-key CLI defaults to a
+cancellable provider validation before saving. Explicit settings directories never
+consult the global legacy root. Full legacy date/locale, settings consumer and
+platform migration acceptance remains open.
+
+Single-instance delivery now uses bounded authenticated Unix sockets and Windows
+named pipes, identified acknowledgements, bounded queues and recent request-ID
+deduplication. Linux compilation is recorded; native cross-platform delivery is
+unverified. Owned registration and macOS URL-event integration are being completed.
+
+Subsequent telemetry lifecycle, CLI cleanup, macOS URL-event, merge-preview and
+packaging changes are working source and require their own gates. Telemetry
+configuration is bounded, diagnostics redact sensitive URL components, and signed
+HTTP exports reject redirects. The package builder requires explicit source/build
+receipts and reviewed patcher provenance; no native artifact, trusted patcher
+payload, release publication or runtime acceptance is implied by these files.
+
+### Further desktop, review and platform source (2026-10-02)
+
+Owned protocol registration is now implemented for Linux, Windows and macOS,
+including package/channel identity and compare-before-cleanup behavior. The
+legacy Linux registration entry point delegates to those ownership checks. macOS
+URL events feed the bounded shared admission route. These platform changes have
+source review only; native registration, delivery and package launch remain open.
+
+The current editor supports explicit diagnostic-by-diagnostic draft resolution
+with retained original provenance and normalized authoring identities. Ordinary
+edits invalidate reviews, including generated descendants in component
+replacement. The CLI can prepare an unapproved resolution template; desktop
+review uses the same transaction. Native usability and durable cross-format
+execution are not established by this source. See
+`docs/parity/draft-resolution-implementation.md`.
+
+Private profile/settings persistence now checks ordinary files, ancestors and
+current-user ownership and creates private replacement files. Telemetry config
+and key loading reuse that storage boundary. Implicit default-directory migration
+can read legacy configuration and signing keys without modifying them; explicit
+roots remain isolated. Panic logging and telemetry use nonblocking lock attempts
+and queue admission rather than reentering locks or waiting for export. Automatic
+HTTP, MEGA and proxied peer download records describe attempted transfers and
+maximum observed payload progress, not wire traffic or unique installed bytes.
+
+Case-sensitive matching is available on Unix unmanaged execution, selected before
+the first engine scan. Exact-mode managed/checkpoint runs and conflict reports
+are refused because their persisted contracts remain folded. Physical spelling
+checks reject native case aliases before a write. Virtual validation cannot prove
+how a case-insensitive volume will alias two newly created names; such a later
+physical failure retains the recovery requirement. Whole-run recovery is still
+the default; component checkpoints remain opt-in.
+
+Deployment management uses bounded manifests and a reviewed inventory identity
+under the shared game lock. Desktop uninstall/purge require explicit confirmation
+and display complete, partial, failed or cancelled receipts. Partial operations
+do not become successful installation state. Native ownership/interoperability
+acceptance remains open.
+
+Packaging includes a source for manual artifact production and an offline
+producer that records exact clean source, toolchain, compiler artifacts and output
+hashes. It has not been run. Native ICO/ICNS assets are now retained unchanged
+from the pinned reference with source and license provenance. The retained license
+explicitly excludes trademark/logo rights; no separate artwork permission is
+claimed. Exact backend source/license/build bindings and native package delivery
+remain open. No CI run or release
+was requested by adding these files. All changes in this section remain beyond
+the last recorded production gate boundary.
+
+
+### CLI composition source additions
+
+Legacy GUI preload arguments now normalize into the existing GUI command without
+changing modern command parsing. Convert and merge can apply a bounded spoiler
+metadata overlay and an explicit download/FOMOD prephase before output. Merge
+accepts named existing/incoming/output options and can render to stdout. Conversion
+keeps cancellation authority through final publication. Install can default its
+source directory to the input guide parent and acquire resources before engine
+construction; remaining-phase acquisition excludes completed components and
+verifies their definitions remain unchanged. Checkpoint resume still requires
+acquisition to be completed separately before reviewing its boundary.
+
+Validation accepts reference text/JSON output selectors, error-only text filtering,
+and standalone full/dry-run selectors. Missing roots produce a structured setup
+failure for JSON output; root-free validation success is not claimed. These CLI
+changes have source review, with production and behavioral gates still pending.
+
+
+Shared selection now uses simple Unicode case matching for component names,
+custom categories/tiers and displayed search text, consistent with the existing
+FOMOD name policy. Numeric tier order and GUID rules are unchanged. Unicode
+runtime-version and native filtering acceptance remains open; see
+`docs/parity/selection-unicode-source.md`.
+
+
+FOMOD mapper fallback warnings are bounded and now appear in structured engine
+validation and the choices editor before Finish. The fallback mapping rules
+remain the same. Desktop managed execution uses the persisted active profile
+identity independently of the profile-manager selection. Explicit guide game
+metadata controls presentation theme and conditional notice routing, with the
+stored theme used only as a fallback. These are reviewed source changes;
+native behavior and platform acceptance remain open.
+
+Installation acquisition adds the reference key alias/environment precedence,
+sequential default with explicit concurrency, and an owned 48-hour default deadline.
+The publication check enforces elapsed time independently of timer scheduling.
+Convert/merge selection, local inference, legacy convert-merge spelling, and
+FOMOD mode controls are wired through shared adapters. Unresolved FOMOD consumers
+still prevent composed processing. The reference Python.Included bootstrap verb
+returns an explicit unsupported error because this Rust application has no such
+runtime; no dependency installation or no-op success is implied.
+
+## Current source: process ownership, provider cancellation and desktop binding
+
+Engine Execute/Run/Patcher and standalone HoloPatcher now share owned process
+execution. Linux/macOS retain the unreaped group leader through cooperative group
+cleanup; Windows retains the suspended-launch Job Object until owned processes
+terminate. Cancellation and execution timeouts do not abandon cleanup or release
+the engine recovery lock while membership remains uncertain. Cleanup may wait
+indefinitely on OS failure. Captured streams are bounded; engine patcher-log and
+success-only managed reconciliation rules remain. See
+`docs/parity/engine-owned-processes.md` and
+`docs/parity/standalone-patcher-desktop-source.md`.
+
+Nexus acquisition/discovery now use bounded cancellable response intake, including
+per-race cancellation and cancellable shared-client waits. Deferred rate limits
+from optional metadata propagate to the retry owner. Origin diagnostics strip
+attached provider URLs; authored registry/manual-action fields retain their data
+contract. See `docs/parity/download-transport-diagnostics.md`.
+
+Desktop settings apply the selected backend's own stored executable from a paired
+snapshot. Preference saves validate and return the exact persisted pair under the
+settings lock. Desktop File/Open uses the shared installation guide loader. The
+Windows recovery lock rejects reparse-point handles. These changes have source
+review; production gates and native/runtime acceptance are separate. Windows checkpoint persistence was subsequently implemented under the limited
+process-interruption contract described below; Unix durability receipts do not
+establish Windows support.
+
+### Patcher INI preparation (2026-10-02 source boundary)
+
+Every Patcher installation now uses an owned, bounded, cancellable payload copy. Normal, numeric namespace and named-INI routes preserve original configuration bytes. Reference logging/game-folder/confirmation replacements apply only inside staging; the VFS path remains read-only. Named selection preserves actual directory spelling and removes both supported namespace-file locations. Strict invalid-Unicode rejection and explicit size/reparse limits are deliberate safety constraints. See `docs/parity/patcher-ini-preparation.md`; native backend acceptance remains deferred.
+
+### Windows checkpoint execution (2026-10-02 integrated source boundary)
+
+The local fixed-NTFS process-interruption capability now includes persistent named-job ownership for checkpointed external processes. LaunchIntent precedes JOB_LIST process creation; normal completion requires the owned job to drain. Independent process fences block ordinary checkpoint/deployment/legacy mutations and are settled only through explicit, identity-validated recovery. CLI/desktop expose read-only status and preserve partial recovery outcomes. The former blanket Windows engine block was removed after separate ownership/security and combined integration reviews. The guarantee is limited to same-user, same-logon/session process restart while the OS/filesystem remain running; OS/power-loss and native acceptance are unproven. See `docs/parity/windows-checkpoint-job-quiescence-plan.md`.
+
+### Desktop presentation completion (2026-10-02 source boundary)
+
+Aspyr and widescreen warnings display literal text while Preamble retains Markdown. Help/About/Other Projects restore the pinned reference destinations. The registered-resource editor now has bounded hierarchy and multiple source selection with explicit variable-path projection and draft confirmation. Saved update results rehydrate read-only after settings load, and provider checks retain implicit/explicit key provenance. The log surface exposes typed severity/time rows through nonblocking snapshots with exact-snapshot save and selected copy; raw activity remains separate. Native interaction/provider acceptance remains open. See `docs/parity/editor-resource-browser.md` and `docs/parity/structured-log-and-update-rehydration.md`.
+
+### Windows archive dependency build correction
+
+The local production-only `unrar_sys` 0.5.8 patch selects source units and system libraries using the Cargo target instead of the build host. It includes upstream `isnt.cpp` for Windows and corrects Windows header casing on case-sensitive build hosts. Original decoder/FFI behavior is retained; tests and disabled self-tests are excluded. Provenance and binding/UnRAR license boundaries are documented in `vendor/unrar_sys/README.md`. Cross-linking and native archive acceptance are separately recorded; a source review alone does not establish either.
+
+### CLI settings provenance (2026-10-02)
+
+Install, validation and conflicts load stored backend preferences while preserving
+explicit engine/path overrides; a stored executable is used only for its matching
+engine. Nexus acquisition consistently resolves explicit key, then stored key,
+then supported environment fallback. Implicit default settings retain legacy
+fallback; explicit settings directories remain isolated. Unrelated host work does
+not load an implicit Nexus key. Production compilation and static review cover
+these paths; invocation/provider acceptance remains deferred.
+
+### Resource observation and package receipt corrections (2026-10-02)
+
+Observer pauses, changed contexts and fresh baselines clear desktop validation,
+conflict results and install confirmation. Read-only update work retains
+observation. In-flight validation uses the observation epoch to reject stale
+results; install/download identity is preserved across expected observer pauses.
+The finished-worker event slot is drained after joining. Metadata observation
+remains advisory; it does not establish file-content integrity.
+
+Package assembly now requires a successful producing receipt with matching clean
+source boundaries, lockfile and artifact hashes. Windows resource receipts bind
+the current RC template and rendered source, and package/resource versions must
+agree. Packages retain the vendored UnRAR source-provenance and license notices.
+These are reviewed production-source corrections; no package was assembled and
+no native acceptance is implied.
+
+### Desktop NXM preference and confirmed registration
+
+The desktop consumes the stored NXM preference on Linux/Windows through owned
+background registration work. Already-owned registration is a startup no-op;
+foreign handlers are preserved. Explicit replacement binds the displayed
+scheme/state/handler to a fresh check under the shared platform mutation lock.
+The lock coordinates ModSync instances, not external OS tools, and the displayed
+handler string is not a file-content fingerprint. macOS removal requires explicit
+whole-bundle confirmation. Preference-only disable does not touch native handlers.
+Successful native changes remain reported if the separate settings merge fails.
+The merge preserves original settings-directory provenance and unrelated fields.
+See `docs/parity/desktop-protocol-preference.md`. Native acceptance is deferred.
+
+### Profile date and desktop/CLI action compatibility
+
+The profile reader additionally accepts confirmed Newtonsoft.Json 13.0.4 ISO
+forms: hour-only/compact numeric offsets, lowercase UTC marker, up to seven
+fractional digits and zero-only midnight24 rollover. Valid dates and the year9999
+boundary remain checked. Authored strings retain their existing representation;
+broader invariant-culture DateTime parsing and local-zone normalization are not
+closed. See `docs/parity/profile-date-compatibility.md`.
+
+Component/option removal from keyboard and button routes now requires a dialog
+bound to current guide/component identity, with Cancel initially focused. Selected
+application-log records have an independent highlight toggle via button or focused
+H shortcut. Validation output selectors accept case-insensitive text/json values.
+These are source corrections, with native and reference-invocation acceptance
+still open.
+
+### Selection saving, raw IDs and validation setup errors
+
+Legacy Save Selection uses the owned background worker and bounded FOMOD sidecar
+loading, preserving completed component definitions. A stale successful save
+reports its output without clearing current unsaved records or promoting current
+sharing provenance. The raw document UUID helper generates a separate value for
+copying and never rewrites component IDs. Drop confirmation supports Cancel,
+Escape/backdrop dismissal and prior focus restoration; Help includes explicit
+issue-form and sponsor links.
+
+Ordinary all-phase validation rejects a zero effective top-level selection before
+pipeline construction. JSON output therefore uses the setup-error schema and
+exit status1; install, conflict and phased-validation paths retain their own
+selection handling. These changes have source review; native/CLI behavior
+acceptance remains deferred.
+
+### Current-culture settings numbers
+
+Production CLI settings setters now obtain native numeric symbols before taking
+the settings lock. Linux/macOS use system ICU; macOS includes its native locale
+fallback. Windows uses NLS user-locale data with user overrides. The bounded
+parser preserves integer-first precedence, native decimal/group/sign syntax,
+floating negative zero, and explicit rejection of nonfinite JSON values.
+Whitespace-value removal requires no native locale provider. The previous public
+en-US helper remains intact for compatibility callers.
+
+Windows NLS data is not claimed identical to every .NET ICU/NLS configuration;
+app-local ICU, custom managed cultures and native locale acceptance remain open.
+See `docs/parity/settings-numeric-culture.md` for source contracts and bounds.
+
+### Editor section controls and archive-generation preview
+
+Five editor sections provide Expand All/Collapse All and begin collapsed. Local
+archive instruction inference now has a worker-based preview for components and
+nested options. Authors explicitly choose append or instructions-only replacement,
+review the candidate/diagnostics, and adopt into the draft before the existing
+Apply transaction. Shared inference preserves prior review provenance and leaves
+generated instructions requiring review. No archive is copied to the mod directory
+and no installation or guide save occurs during generation. Provider filename
+discovery is also exposed through explicit preview: incomplete discovery rejects
+the candidate and archive bytes are never downloaded by this action. Native
+behavior acceptance remains open.
+
+Provider generation is unavailable in isolated probe launches, with a worker-side
+check before discovery as well as the UI gate. Editor and shell worker handles
+remain owned through completion and close; a queued terminal result survives a
+subsequent thread failure. Picker cancellation still waits for dialog dismissal.
+
+### CLI directory arguments
+
+Install now reaches its existing input-guide-parent fallback when --source-dir
+is omitted; -g and -s are accepted for game/source directories. Profile path
+precedence and mode-specific dispatch checks remain intact. Basic rootless
+validation still differs from the reference: Rust stops during setup, whereas
+the reference runs component validation and then fails FOMOD configuration for
+the unavailable source directory. That report-stage contract remains open;
+source review did not substitute a successful structural-only result.

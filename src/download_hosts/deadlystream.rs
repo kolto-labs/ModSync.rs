@@ -436,10 +436,20 @@ impl Session<'_> {
                 content_type.contains("text/html") || content_type.contains("application/xhtml");
             let body = if method != Method::HEAD && (html || !status.is_success()) {
                 let mut bytes = Vec::new();
-                (&mut response)
-                    .take(MAX_PAGE_BYTES + 1)
-                    .read_to_end(&mut bytes)
-                    .map_err(|error| download::request_failure(error.into()))?;
+                let mut limited = (&mut response).take(MAX_PAGE_BYTES + 1);
+                let mut buffer = [0u8; 8192];
+                loop {
+                    if self.cancelled.load(Ordering::Relaxed) {
+                        return Err(download::cancelled(anyhow::anyhow!("Download cancelled")));
+                    }
+                    let count = limited
+                        .read(&mut buffer)
+                        .map_err(|error| download::request_failure(error.into()))?;
+                    if count == 0 {
+                        break;
+                    }
+                    bytes.extend_from_slice(&buffer[..count]);
+                }
                 if bytes.len() as u64 > MAX_PAGE_BYTES {
                     return Err(limit(format!(
                         "A DeadlyStream page is larger than {MAX_PAGE_BYTES} bytes"
@@ -842,4 +852,100 @@ fn links(hrefs: Vec<&str>, base: &Url, transport: &Transport<'_>) -> Result<Vec<
         );
     }
     Ok(found)
+}
+
+/// Read public page metadata through the same bounded anonymous session and gate
+/// classifier as acquisition. No selection/download request is made.
+pub fn metadata(
+    raw: &str,
+    base: Option<&str>,
+    loopback_ca: Option<&LoopbackCa>,
+    cancelled: &AtomicBool,
+) -> Result<crate::host_metadata::Metadata> {
+    let logical = page_url(raw)?;
+    let parsed = Url::parse(raw)?;
+    let page = Regex::new(r"(?i)/files/file/(\d+)")?;
+    let id = page
+        .captures(logical.path())
+        .context("DeadlyStream URL has no file page id")?;
+    let transport = Transport::new(&logical, base, loopback_ca)?;
+    let start = transport.admit(transport.locate(&logical))?;
+    let client = download::page_client(base.and(loopback_ca), transport.fixture)?;
+    let mut session = Session {
+        client,
+        transport,
+        jar: BTreeMap::new(),
+        manual_url: logical.to_string(),
+        cancelled,
+        requests: 0,
+    };
+    let reply = session.page(&start, None)?;
+    let html = reply
+        .body
+        .as_deref()
+        .context("DeadlyStream did not return a web page")?;
+    let mut metadata = serde_json::Map::new();
+    metadata.insert("provider".into(), "deadlystream".into());
+    metadata.insert("filePageId".into(), id[1].into());
+    // Preserve the authored query; C# accidentally strips it before reading this ID.
+    if let Some((_, id)) = parsed
+        .query_pairs()
+        .find(|(k, v)| k.eq_ignore_ascii_case("changelog") && v.parse::<u64>().is_ok())
+    {
+        metadata.insert("changelogId".into(), id.to_string().into());
+    }
+    let download_id = Regex::new(r"(?i)/files/download/(\d+)")?;
+    let page_anchors = anchors(html);
+    if let Some(id) = page_anchors
+        .iter()
+        .find_map(|a| download_id.captures(&a.href))
+    {
+        metadata.insert("fileId".into(), id[1].into());
+    }
+    let version =
+        Regex::new(r#"(?is)<span\b[^>]*\bitemprop\s*=\s*["']version["'][^>]*>(.*?)</span>"#)?;
+    if let Some(value) = version.captures(html) {
+        let tags = Regex::new(r"<[^>]*>")?;
+        let text = html_decode(&tags.replace_all(&value[1], ""));
+        if !text.trim().is_empty() {
+            metadata.insert("version".into(), text.trim().into());
+        }
+    }
+    let time = Regex::new(r#"(?is)<time\b[^>]*\bdatetime\s*=\s*["']([^"']+)["']"#)?;
+    if let Some(value) = time.captures(html) {
+        let value = html_decode(&value[1]);
+        if let Some(date) = value
+            .get(..10)
+            .and_then(|d| chrono::NaiveDate::parse_from_str(d, "%Y-%m-%d").ok())
+        {
+            metadata.insert("updated".into(), date.format("%Y-%m-%d").to_string().into());
+        }
+    }
+    let list_item = Regex::new(r"(?is)<li\b[^>]*>(.*?)</li>")?;
+    let size = Regex::new(r"(?i)\bSize\b[^0-9]*([0-9][0-9,.]*)\s*(KB|MB|GB|B)\b")?;
+    let tags = Regex::new(r"<[^>]*>")?;
+    for item in list_item.captures_iter(html) {
+        let text = html_decode(&tags.replace_all(&item[1], ""));
+        if let Some(value) = size.captures(&text) {
+            let multiplier = match value[2].to_ascii_uppercase().as_str() {
+                "KB" => 1024.0,
+                "MB" => 1048576.0,
+                "GB" => 1073741824.0,
+                _ => 1.0,
+            };
+            if let Ok(amount) = value[1].replace(',', "").parse::<f64>() {
+                let bytes = amount * multiplier;
+                if bytes.is_finite() && bytes >= 0.0 && bytes < i64::MAX as f64 {
+                    metadata.insert("size".into(), (bytes as u64).into());
+                }
+            }
+            break;
+        }
+    }
+    if cancelled.load(Ordering::Relaxed) {
+        return Err(download::cancelled(anyhow::anyhow!(
+            "Metadata lookup cancelled"
+        )));
+    }
+    Ok(metadata)
 }

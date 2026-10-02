@@ -38,8 +38,8 @@ pub fn apply(components: &mut [Component]) -> Result {
             component.is_selected = false;
             result.skipped_four_gb += 1;
         } else {
-            let needs_review = crate::draft::requires_review(component);
-            result.drafted_from_prose += needs_review as usize;
+            let needs_review = has_pending_review(component);
+            result.drafted_from_prose += has_draft_provenance(component) as usize;
             if needs_review || !has_actions(component) {
                 result.unresolved_components.push(component.name.clone());
             }
@@ -50,6 +50,22 @@ pub fn apply(components: &mut [Component]) -> Result {
 
 fn has_actions(component: &Component) -> bool {
     !component.instructions.is_empty() || component.options.iter().any(has_actions)
+}
+
+// Count provenance independently of acceptance: an explicitly reviewed draft
+// remains generated from prose, including drafts attached to nested options.
+fn has_draft_provenance(component: &Component) -> bool {
+    component.metadata.contains_key("DraftReview")
+        || component
+            .metadata
+            .get("InstallationWarning")
+            .and_then(serde_json::Value::as_str)
+            .is_some_and(|warning| warning.contains(crate::draft::REVIEW_FLAG))
+        || component.options.iter().any(has_draft_provenance)
+}
+
+fn has_pending_review(component: &Component) -> bool {
+    crate::draft::requires_review(component) || component.options.iter().any(has_pending_review)
 }
 
 #[cfg(test)]

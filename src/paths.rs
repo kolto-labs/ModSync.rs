@@ -4,6 +4,89 @@ use std::{
     path::{Path, PathBuf},
 };
 
+/// Matching policy for the engine's virtual filesystem. Exact mode is currently
+/// confined to Unix unmanaged execution; persisted managed/checkpoint indexes
+/// retain their existing case-folded contract.
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct PathPolicy {
+    pub(crate) case_insensitive: bool,
+}
+impl PathPolicy {
+    pub(crate) fn new(case_insensitive: bool) -> Result<Self> {
+        ensure!(
+            case_insensitive || cfg!(unix),
+            "Exact path matching is currently supported only on Unix unmanaged installs"
+        );
+        Ok(Self { case_insensitive })
+    }
+    pub(crate) fn key(self, path: &Path) -> String {
+        if self.case_insensitive {
+            path.to_string_lossy().replace('\\', "/").to_lowercase()
+        } else {
+            path.to_string_lossy().into_owned()
+        }
+    }
+    /// A case-insensitive Unix volume can resolve a differently spelled authored
+    /// name. Refuse that alias in exact mode before publishing through the OS.
+    pub(crate) fn check_spelling(
+        self,
+        root: &Path,
+        path: &Path,
+        cancelled: &std::sync::atomic::AtomicBool,
+    ) -> Result<()> {
+        if self.case_insensitive {
+            return Ok(());
+        }
+        let mut current = root.to_path_buf();
+        for part in path.strip_prefix(root)?.components() {
+            ensure!(
+                !cancelled.load(std::sync::atomic::Ordering::Acquire),
+                "Cancelled while checking exact path spelling"
+            );
+            let parent = current.clone();
+            current.push(part.as_os_str());
+            match fs::symlink_metadata(&current) {
+                Ok(_) => {
+                    let mut exact = false;
+                    for (index, entry) in fs::read_dir(&parent)?.enumerate() {
+                        ensure!(
+                            index < 100_000,
+                            "Exact path directory exceeds inventory bound"
+                        );
+                        ensure!(
+                            !cancelled.load(std::sync::atomic::Ordering::Acquire),
+                            "Cancelled while checking exact path spelling"
+                        );
+                        if entry?.file_name() == part.as_os_str() {
+                            exact = true;
+                            break;
+                        }
+                    }
+                    ensure!(
+                        exact,
+                        "The filesystem aliases a differently spelled path; exact matching refuses {}",
+                        current.display()
+                    );
+                }
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => break,
+                Err(error) => return Err(error.into()),
+            }
+        }
+        Ok(())
+    }
+
+    pub(crate) fn glob_matches(self, pattern: &glob::Pattern, candidate: &str) -> bool {
+        pattern.matches_with(
+            candidate,
+            glob::MatchOptions {
+                case_sensitive: !self.case_insensitive,
+                require_literal_separator: true,
+                require_literal_leading_dot: false,
+            },
+        )
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Roots {
     pub mods: PathBuf,
@@ -118,4 +201,41 @@ impl Roots {
         }
         Ok(())
     }
+}
+
+/// Open a regular archive without following a replaced final symlink or blocking
+/// on a FIFO. Parent-directory ownership remains the caller's responsibility.
+pub(crate) fn open_regular_read(path: &Path) -> Result<fs::File> {
+    ensure!(
+        std::fs::symlink_metadata(path)?.file_type().is_file(),
+        "Archive source must be a regular file, not a symlink or special file"
+    );
+    let mut options = fs::OpenOptions::new();
+    options.read(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        options.custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK);
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::OpenOptionsExt;
+        use windows_sys::Win32::Storage::FileSystem::FILE_FLAG_OPEN_REPARSE_POINT;
+        options.custom_flags(FILE_FLAG_OPEN_REPARSE_POINT);
+    }
+    let file = options.open(path)?;
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::MetadataExt;
+        use windows_sys::Win32::Storage::FileSystem::FILE_ATTRIBUTE_REPARSE_POINT;
+        ensure!(
+            file.metadata()?.file_attributes() & FILE_ATTRIBUTE_REPARSE_POINT == 0,
+            "Archive source is a reparse point"
+        );
+    }
+    ensure!(
+        file.metadata()?.is_file(),
+        "Archive source is not a regular file"
+    );
+    Ok(file)
 }
