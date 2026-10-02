@@ -307,6 +307,17 @@ Windows GNU no-default compile/link also passed. See the format-property, merge
 and profile-date contracts and production receipt. Behavioral/native acceptance
 and the remaining Action, GUID, input/autodetection and IRI source work stay open.
 
+
+The subsequent source boundary adds the pinned Action enum/getter profile,
+shared .NET character GUID parsing for profiles, bounded guide input and terminal
+autodetection errors, UTF-8 stdin replacement preservation and qualified Unicode
+DNS host canonicalization. Independent specification/quality reviews accepted
+all four scopes; both Linux production build/strict-lint configurations and
+Windows GNU no-default compile/link passed. Stored guide IDs and checkpoint
+proofs are not rewritten. No tests, harnesses, runtime or CI ran. Boolean getter,
+JSON nonobject intake, merge GUID comparison and CLI routing remain next source
+contracts; behavioral and whole-domain acceptance stay open.
+
 ## Rules and unresolved proof boundaries
 
 - Fresh implementer per task; specification review before code-quality review.

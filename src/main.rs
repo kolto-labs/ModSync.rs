@@ -2250,14 +2250,17 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             let input_file = input_path.or(input);
             let mut guide = if stdin {
                 use std::io::Read;
-                let mut text = String::new();
+                let mut bytes = Vec::new();
                 std::io::stdin()
                     .take(8 * 1024 * 1024 + 1)
-                    .read_to_string(&mut text)?;
+                    .read_to_end(&mut bytes)?;
                 ensure!(
-                    text.len() <= 8 * 1024 * 1024,
+                    bytes.len() <= 8 * 1024 * 1024,
                     "Conversion input exceeds 8 MiB"
                 );
+                // The qualified UTF-8 console path retains replacement characters;
+                // file ingestion separately replaces them with underscores.
+                let text = String::from_utf8_lossy(&bytes);
                 Guide::parse(&text, "auto")?
             } else {
                 Guide::load(

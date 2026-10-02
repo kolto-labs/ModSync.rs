@@ -31,48 +31,7 @@ pub struct ProfileListing {
 
 /// Canonicalize the D, N, B, P and X Guid forms accepted by the reference.
 pub(super) fn guid(text: &str) -> Option<String> {
-    let text = text.trim();
-    let unwrapped = text
-        .strip_prefix('{')
-        .and_then(|v| v.strip_suffix('}'))
-        .or_else(|| text.strip_prefix('(').and_then(|v| v.strip_suffix(')')))
-        .unwrap_or(text);
-    if unwrapped.starts_with("0x") || unwrapped.starts_with("0X") {
-        // Guid X: {0xdddddddd,0xdddd,0xdddd,{0xdd,...,0xdd}}.
-        let compact: String = text.chars().filter(|c| !c.is_whitespace()).collect();
-        let body = compact.strip_prefix('{')?.strip_suffix('}')?;
-        let (leading, tail) = body.split_once(",{")?;
-        let tail = tail.strip_suffix('}')?;
-        let values: Vec<_> = leading.split(',').chain(tail.split(',')).collect();
-        let widths = [8, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2];
-        if values.len() != widths.len() {
-            return None;
-        }
-        let mut hex = String::new();
-        for (value, width) in values.into_iter().zip(widths) {
-            let number = value
-                .strip_prefix("0x")
-                .or_else(|| value.strip_prefix("0X"))?;
-            if number.is_empty()
-                || number.len() > width
-                || !number.bytes().all(|b| b.is_ascii_hexdigit())
-            {
-                return None;
-            }
-            hex.push_str(&format!("{number:0>width$}"));
-        }
-        return uuid::Uuid::parse_str(&hex).ok().map(|id| id.to_string());
-    }
-    // uuid also accepts URNs; Guid does not, so constrain its accepted spellings.
-    if unwrapped != text && unwrapped.len() != 36 {
-        return None;
-    }
-    if !matches!(unwrapped.len(), 32 | 36) {
-        return None;
-    }
-    uuid::Uuid::parse_str(unwrapped)
-        .ok()
-        .map(|id| id.to_string())
+    crate::guid::try_parse(text).map(|id| id.to_string())
 }
 fn field<'a>(object: &'a Map<String, Value>, key: &str) -> Option<&'a Value> {
     object

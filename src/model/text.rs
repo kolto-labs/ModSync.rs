@@ -2,7 +2,7 @@
 use anyhow::{Result, ensure};
 use std::{io::Read, path::Path};
 
-const GUIDE_LIMIT: u64 = 8 * 1024 * 1024;
+pub(super) const GUIDE_LIMIT: u64 = 8 * 1024 * 1024;
 
 pub(super) fn read(path: &Path) -> Result<String> {
     let mut bytes = Vec::new();

@@ -764,3 +764,43 @@ abd1f685482f6b4647ed7b6cea456990eaad47753563c30ed334926f96bd53cf  src/profiles/d
 69f2f4b25067c0ee1c8fb8da538a7e84569528b67f5ee7035d20bfb3724d9a0c  src/profiles/date/local/windows.rs
 92d5b1d9074ff370b8283ed4910ab686fcf067cad7c77d4f9c33a2f270a9bffd  src/profiles/date/local/windows/iana.rs
 ```
+
+## Action intake, shared profile GUIDs, bounded guide input and DNS IRI hosts
+
+The frozen source following `6ea9a51` adds the pinned Action enum/getter profile,
+a constant-space .NET character GUID parser integrated only with profiles,
+early public-guide input bounds and terminal autodetection causes, qualified
+UTF-8 stdin decoding, and HTTP(S) Unicode DNS host canonicalization. All four
+scopes passed independent specification and separate quality reviews.
+
+Parent production gates passed:
+
+- Formatting/whitespace: session77817 exit0; final formatting/diff check passed.
+- Linux default library/binary build: session2684 exit0,1m54s.
+- Linux default strict Clippy: session75501 exit0,42.84s.
+- Linux no-default library/binary build: session97988 exit0,50.16s.
+- Linux no-default strict Clippy: session33067 exit0,26.87s.
+- Windows GNU no-default library/binary compile/link: session87857 exit0,1m05s.
+
+Seven frozen inline-bearing production modules, existing generated casing tables
+and Cargo.lock remain byte-identical against `6ea9a51`. No test/fixture changes,
+tests, harnesses, filesystem tests, CLI/native/runtime probes, Windows binary
+execution, installs, data/backend/package producers or CI ran. Native/behavioral
+acceptance is still open. Boolean coercion, JSON nonobject intake, merge GUID
+value equality and CLI validation/protocol routing are reviewed next contracts,
+not covered as implementations by this checkpoint.
+
+Source hashes:
+
+```text
+f878791ba9de47a95cf3edffc1e44ae108768de1d5d8b06845da1dbdb3a89abc  src/guid.rs
+73b052313c4032540eb9db2646e2e23103cc076a56408c63c5d6f2e555cde699  src/model/action.rs
+b322ce8a8266965c5753f7c80989f3165485b8a482f1daf9458517f1d83a7ae6  src/model.rs
+0803e35bc636170d564b36e799abe8e3343f11b8a4698847b3838f8a0365b774  src/model/text.rs
+190b52425a4d1b570e380dea035359e5d78e93a52850838ff28197dd8e4c07f7  src/main.rs
+c689cd7b00a5f2752f5bf36d34cfcda8b48ad425765e4af0938ce6ab005e2a44  src/lib.rs
+752646737162a8f649217e26dc7482d9bdfa60ca21ce2ee4739972e25cf3c910  src/profiles/schema.rs
+d204eb219005b0acbb2cf5277c9253f5aea88fd82642dd1af32d059605b581d1  src/merge.rs
+25a9d3fce986d7351d8526544eb79eaa4f33f48ae3ec6412a7cad86bba175fca  src/merge/ip_host.rs
+ae2326b82bbcfb2e334f9b827a45c0cc4aa945c37976e5ef59ff20a91806f0a4  src/merge/dns_iri.rs
+```

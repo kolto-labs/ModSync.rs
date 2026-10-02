@@ -35,7 +35,7 @@ pub(super) fn canonical(authority: &str) -> Option<String> {
     }
 }
 
-fn valid_port(suffix: &str) -> bool {
+pub(super) fn valid_port(suffix: &str) -> bool {
     if suffix.is_empty() {
         return true;
     }

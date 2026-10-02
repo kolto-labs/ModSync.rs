@@ -1,3 +1,4 @@
+mod action;
 pub(crate) mod keys;
 mod text;
 use anyhow::{Context, Result, bail, ensure};
@@ -60,13 +61,13 @@ pub struct Component {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "PascalCase", deny_unknown_fields)]
+#[serde(rename_all = "PascalCase")]
 pub struct Instruction {
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub guid: String,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub parent: String,
-    #[serde(deserialize_with = "action")]
+    #[serde(default = "action::unset", deserialize_with = "action::deserialize")]
     pub action: String,
     #[serde(default, deserialize_with = "strings")]
     pub source: Vec<String>,
@@ -171,15 +172,26 @@ impl Guide {
     }
 
     fn parse_with(text: &str, format: &str, dedup: bool, default_selection: bool) -> Result<Self> {
+        ensure!(
+            text.len() as u64 <= text::GUIDE_LIMIT,
+            "Guide exceeds 8 MiB"
+        );
         let text = text.trim_start_matches('\u{feff}');
         let format = format.trim().to_ascii_lowercase();
         if format.is_empty() || format == "auto" {
-            for hint in ["toml", "md", "yaml", "xml", "json"] {
+            for hint in ["toml", "md", "yaml"] {
                 if let Ok(guide) = Self::parse_with(text, hint, dedup, default_selection) {
                     return Ok(guide);
                 }
             }
-            bail!("Cannot detect a supported instruction format");
+            let terminal = if text.trim_start().starts_with('<') {
+                "xml"
+            } else {
+                "json"
+            };
+            return Self::parse_with(text, terminal, dedup, default_selection).with_context(|| {
+                format!("Autodetect instruction format: terminal {terminal} parser")
+            });
         }
         let mut guide: Self = match canonical_format(&format).unwrap_or(&format) {
             "toml" => Self::from_value_with_format(
@@ -621,30 +633,6 @@ fn canonical_format(format: &str) -> Option<&'static str> {
         _ => None,
     }
 }
-fn action<'de, D: Deserializer<'de>>(d: D) -> Result<String, D::Error> {
-    let value = String::deserialize(d)?;
-    if value.eq_ignore_ascii_case("TSLPatcher") || value.eq_ignore_ascii_case("HoloPatcher") {
-        return Ok("Patcher".into());
-    }
-    Ok([
-        "Unset",
-        "Extract",
-        "Execute",
-        "Patcher",
-        "Move",
-        "Copy",
-        "Rename",
-        "Delete",
-        "DelDuplicate",
-        "Choose",
-        "Run",
-        "CleanList",
-    ]
-    .into_iter()
-    .find(|action| action.eq_ignore_ascii_case(&value))
-    .unwrap_or(&value)
-    .to_owned())
-}
 fn normalize_component(
     value: &mut serde_json::Value,
     access: &keys::ComponentAccess,
@@ -724,16 +712,14 @@ fn normalize_component(
                 .as_object_mut()
                 .context("Instruction must be an object")?;
             instruction.retain(|_, value| !value.is_null());
+            let action = action::intake(instruction.get("Action").unwrap_or(&Value::Null))?;
             if let Some(Value::Array(paths)) = instruction.get_mut("Source") {
                 paths.retain(|path| {
                     !path.is_null() && !path.as_str().is_some_and(|text| text.trim().is_empty())
                 });
             }
             if evidence.source
-                && !instruction
-                    .get("Action")
-                    .and_then(Value::as_str)
-                    .is_some_and(|s| s.eq_ignore_ascii_case("Choose"))
+                && !action.raw_choose
                 && let Some(source) = instruction.get_mut("Source")
             {
                 match source {
@@ -748,13 +734,10 @@ fn normalize_component(
                     _ => {}
                 }
             }
-            if instruction
-                .get("Action")
-                .and_then(Value::as_str)
-                .is_some_and(|s| s.eq_ignore_ascii_case("Delete"))
-            {
+            if action.canonical == "Delete" {
                 instruction.entry("Overwrite").or_insert(Value::Bool(false));
             }
+            instruction.insert("Action".into(), Value::String(action.canonical));
         }
     }
     if let Some(options) = object.get_mut("Options").and_then(Value::as_array_mut) {

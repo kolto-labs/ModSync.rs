@@ -1,6 +1,7 @@
 use crate::Component;
 use crate::unicode_case::{char_is_punctuation, invariant_lower_key, ordinal_eq};
 
+mod dns_iri;
 mod ip_host;
 mod preview;
 pub use preview::{Preview, apply_preview, preview};
@@ -216,6 +217,11 @@ fn host(url: &str) -> Option<String> {
     {
         return Some(host);
     }
+    if (scheme.eq_ignore_ascii_case("http") || scheme.eq_ignore_ascii_case("https"))
+        && let Some(host) = dns_iri::canonical(authority)
+    {
+        return Some(host);
+    }
     let authority = authority.rsplit_once('@').map_or(authority, |(_, h)| h);
     let host = if authority.starts_with('[') {
         authority.split_inclusive(']').next()?
@@ -279,7 +285,9 @@ fn best_match(
         }
         if score < 0.5 && options.match_by_domain {
             let own = domain.get_or_insert_with(|| primary_domain(target));
-            if own.is_some() && *own == primary_domain(candidate) {
+            if own.as_ref().is_some_and(|host| !host.is_empty())
+                && *own == primary_domain(candidate)
+            {
                 score += 0.6;
             }
         }

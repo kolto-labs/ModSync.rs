@@ -121,3 +121,42 @@ legacy fallback is unchanged for inputs outside this correction; this slice
 does not establish whole Uri.Host admission equivalence. Source specification
 and quality review and parent production gates are recorded separately. No
 runtime URL parsing, test fixtures, probes or harnesses were run.
+## Qualified Unicode DNS host canonicalization
+
+For HTTP(S) authorities with at most one userinfo separator and the existing
+bounded port grammar, the new `merge/dns_iri.rs` path admits non-ASCII DNS hosts
+against the original labels. ASCII initial characters must be alphanumeric;
+remaining ASCII characters are alphanumeric, hyphen or underscore. Non-ASCII
+characters start at U+00A0 and must be assigned in the retained Unicode 15.0
+table. Dot, U+3002, U+FF0E and U+FF61 separate labels for admission; a single
+trailing separator is admitted and retained lexically.
+
+Label weight is original UTF-16 length plus four once for any non-ASCII label,
+plus one for each UTF-16 unit above U+00FF. Each label must weigh 1–63. A
+supplementary scalar therefore weighs four units before the once-per-label
+increment. Admission precedes transformation. The adapter removes precisely
+U+200E/U+200F/U+202A–U+202E, normalizes to NFC and then applies the shared pinned
+invariant lowercase map. The domain score requires a nonempty resulting host,
+including after Bidi removal. It retains variant dots and does not perform IDNA,
+punycode decoding or compatibility normalization.
+
+The primary .NET 9 source is
+[DomainNameHelper.IsValid](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.Uri/src/System/DomainNameHelper.cs),
+[Uri.CheckAuthorityHelperHandleDnsIri](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.Uri/src/System/Uri.cs)
+and [UriHelper.StripBidiControlCharacters](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.Uri/src/System/UriHelper.cs).
+The pinned C# merge consumes `Uri.Host.ToLowerInvariant`, not `IdnHost`.
+
+NFC uses the already locked `icu_normalizer`/`icu_normalizer_data` 2.3.0
+compiled data, whose retained crate README records ICU 78.1rc and CLDR 48.2.1.
+[ICU 78 uses Unicode 17](https://blog.unicode.org/2025/10/icu-78-released.html).
+[UAX #15 version stability](https://www.unicode.org/reports/tr15/#Versioning)
+allows the same normalization result for input assigned in both versions;
+the adapter restricts original input to Unicode 15.0 assignment. A future
+dependency/data update requires renewed source qualification. The API is
+[ComposingNormalizerBorrowed::new_nfc](https://docs.rs/icu_normalizer/2.3.0/icu_normalizer/struct.ComposingNormalizerBorrowed.html).
+
+Invalid or unsupported authority/label/data forms retain the earlier manual
+host fallback. This qualified correction does not establish complete URI
+admission: overall URL limits, ASCII-invalid authorities, scopes/prefixes,
+percent escapes, custom/file schemes and IDNA remain separate. No runtime,
+corpus or whole F20 acceptance is claimed.

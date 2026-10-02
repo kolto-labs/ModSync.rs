@@ -1789,3 +1789,28 @@ authored text with a warning. App-local/split ICU and unobserved AppContext
 configuration remain outside this profile. Both changes have independent source
 review and the production gates recorded in the current receipt; native and
 behavioral acceptance remain open.
+
+### Structured Action, profile GUIDs and guide input
+
+Instruction intake now implements the pinned signed Action enum grammar,
+including numeric values, composite names and raw-Choose/parsed-Delete ordering.
+Unknown instruction properties are discarded. Its bounded getter profile and
+culture-sensitive collection exclusions are recorded in
+[the Action contract](docs/parity/instruction-action-intake.md).
+
+Profile GUID normalization now shares the pinned .NET character parser, including
+ordinary forms and qualified D/X compatibility cases. Guide IDs and checkpoint
+proofs are not rewritten. See
+[the GUID contract](docs/parity/guid-parsing-contract.md).
+
+Public guide strings are bounded before BOM handling or autodetection. Terminal
+XML/JSON errors retain their causes, and qualified UTF-8 stdin retains decoding
+replacement characters. File ingestion keeps its separate underscore policy.
+See [the input contract](docs/parity/guide-input-contract.md).
+
+Qualified HTTP(S) Unicode DNS host comparison now validates original UTF-16
+label weights and retained Unicode 15 assignment, strips the reference Bidi set,
+normalizes NFC and applies pinned lowercase. Empty resulting hosts do not earn a
+domain-match score. Unsupported authorities retain the existing manual fallback;
+full URI admission and native/corpus acceptance remain separate. See
+[the merge contract](docs/parity/merge-unicode-casing.md).

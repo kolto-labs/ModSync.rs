@@ -58,5 +58,6 @@ pub mod wizard;
 #[cfg(target_os = "macos")]
 pub mod native_url;
 
+mod guid;
 pub mod resource_watcher;
 mod unicode_case;
