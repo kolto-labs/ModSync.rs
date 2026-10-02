@@ -1,13 +1,72 @@
 //! Bounded additional ISO forms accepted by Newtonsoft.Json 13.0.4's
 //! DateTimeParser + DateTimeUtils.CreateDateTime. This validates acceptance;
-//! persisted profile strings keep their existing authored representation.
-use chrono::{Datelike, NaiveDate};
+//! timezone-independent values serialize at 100 ns precision. Local conversion
+//! uses one bounded immutable Unix zone snapshot, retaining authored text with
+//! warnings when the platform or rule shape is unsupported.
+use chrono::{Datelike, NaiveDate, NaiveDateTime, Timelike};
+#[path = "date/local.rs"]
+pub(super) mod local;
+
+#[derive(Clone, Copy)]
+pub(super) enum Kind {
+    Utc,
+    Unspecified,
+    LocalRequired { offset_minutes: Option<i32> },
+}
+
+pub(super) struct DateValue {
+    clock: NaiveDateTime,
+    kind: Kind,
+}
+impl DateValue {
+    pub(super) fn normalize(
+        self,
+        authored: &str,
+        key: &str,
+        context: &mut local::ContextSnapshot,
+    ) -> String {
+        if let Kind::LocalRequired { offset_minutes } = self.kind {
+            match context.normalize(self.clock, offset_minutes) {
+                Ok(value) => value,
+                Err(error) => {
+                    context.warn(key, &error);
+                    authored.to_owned()
+                }
+            }
+        } else {
+            self.canonical().unwrap_or_else(|| authored.to_owned())
+        }
+    }
+    pub(super) fn canonical(&self) -> Option<String> {
+        if matches!(self.kind, Kind::LocalRequired { .. }) {
+            return None;
+        }
+        let mut text = format!(
+            "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}",
+            self.clock.year(),
+            self.clock.month(),
+            self.clock.day(),
+            self.clock.hour(),
+            self.clock.minute(),
+            self.clock.second()
+        );
+        let ticks = self.clock.nanosecond() / 100;
+        if ticks != 0 {
+            text.push('.');
+            text.push_str(format!("{ticks:07}").trim_end_matches('0'));
+        }
+        if matches!(self.kind, Kind::Utc) {
+            text.push('Z');
+        }
+        Some(text)
+    }
+}
 
 /// DateTimeUtils.TryParseMicrosoftDate/TryReadOffset, not DateTimeOffset rules.
-/// Only acceptance is projected; the caller preserves the original text. The
-/// numeric zone is ignored by DateTime after selecting Local kind, whose host
-/// normalization is deliberately not claimed by this string-backed schema.
-pub(super) fn microsoft_year(text: &str) -> Option<i32> {
+/// Offset-free values normalize to UTC. The numeric zone is ignored by
+/// DateTime after selecting Local kind; the shared decode context supplies
+/// supported host normalization without changing public string field types.
+pub(super) fn microsoft(text: &str) -> Option<DateValue> {
     let body = text.strip_prefix("/Date(")?.strip_suffix(")/")?;
     // The reference searches '+' first, then '-', beginning after the first
     // epoch character so a negative epoch does not become an offset marker.
@@ -37,10 +96,19 @@ pub(super) fn microsoft_year(text: &str) -> Option<i32> {
         }
     }
     let date = chrono::DateTime::from_timestamp_millis(epoch.parse().ok()?)?;
-    (1..=9999).contains(&date.year()).then_some(date.year())
+    (1..=9999).contains(&date.year()).then_some(DateValue {
+        clock: date.naive_utc(),
+        kind: if offset.is_some() {
+            Kind::LocalRequired {
+                offset_minutes: None,
+            }
+        } else {
+            Kind::Utc
+        },
+    })
 }
 
-pub(super) fn iso_year(text: &str) -> Option<i32> {
+pub(super) fn iso(text: &str) -> Option<DateValue> {
     let bytes = text.as_bytes();
     if !(19..=40).contains(&bytes.len()) {
         return None;
@@ -74,42 +142,71 @@ pub(super) fn iso_year(text: &str) -> Option<i32> {
         return None;
     }
     let mut position = 19;
+    let mut fraction = 0u32;
     if bytes.get(position) == Some(&b'.') {
         position += 1;
         let start = position;
         while bytes.get(position).is_some_and(u8::is_ascii_digit) {
-            if hour == 24 && bytes[position] != b'0' {
+            if position - start >= 7 || (hour == 24 && bytes[position] != b'0') {
                 return None;
             }
+            fraction = fraction * 10 + u32::from(bytes[position] - b'0');
             position += 1;
         }
         if !(1..=7).contains(&(position - start)) {
             return None;
         }
+        fraction *= 10u32.pow(7 - (position - start) as u32);
     }
-    match bytes.get(position..)? {
-        [] | [b'Z'] | [b'z'] => {}
+    let kind = match bytes.get(position..)? {
+        [] => Kind::Unspecified,
+        [b'Z'] | [b'z'] => Kind::Utc,
         zone => {
             if !matches!(zone.first(), Some(b'+' | b'-')) {
                 return None;
             }
             // The reference DateTime parser permits two-digit offset hours and
             // minutes through 99, unlike DateTimeOffset's ±14-hour constraint.
-            number(position + 1, 2)?;
-            match zone.len() {
-                3 => {}
-                5 => {
-                    number(position + 3, 2)?;
-                }
-                6 if zone[3] == b':' => {
-                    number(position + 4, 2)?;
-                }
+            let hours = number(position + 1, 2)?;
+            let minutes = match zone.len() {
+                3 => 0,
+                5 => number(position + 3, 2)?,
+                6 if zone[3] == b':' => number(position + 4, 2)?,
                 _ => return None,
+            };
+            Kind::LocalRequired {
+                offset_minutes: Some(
+                    (hours * 60 + minutes) as i32 * if zone[0] == b'-' { -1 } else { 1 },
+                ),
             }
         }
-    }
+    };
     if hour == 24 {
         date = date.succ_opt()?;
     }
-    (date.year() <= 9999).then_some(date.year())
+    (date.year() <= 9999).then_some(DateValue {
+        clock: date.and_hms_nano_opt(hour % 24, minute, second, fraction * 100)?,
+        kind,
+    })
+}
+
+/// Deterministic invariant fallback subset: a fully specified calendar date,
+/// optionally with a zone-free clock. No missing-date/current-date inference.
+pub(super) fn invariant(text: &str) -> Option<DateValue> {
+    let text = text.trim();
+    if text.len() == 10 {
+        return iso(&format!("{text}T00:00:00"));
+    }
+    let bytes = text.as_bytes();
+    if !(19..=40).contains(&bytes.len()) || !matches!(bytes.get(10), Some(b'T' | b' ')) {
+        return None;
+    }
+    // The framework fallback does not admit ISO 24:00 rollover.
+    if bytes.get(11..13)? == b"24" {
+        return None;
+    }
+    let mut candidate = text.to_owned();
+    candidate.replace_range(10..11, "T");
+    let value = iso(&candidate)?;
+    matches!(value.kind, Kind::Unspecified).then_some(value)
 }

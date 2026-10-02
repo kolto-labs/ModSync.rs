@@ -1,37 +1,18 @@
 //! Shared FOMOD selection, configuration and archive ownership rules.
+mod ordinal;
 mod resolved_choices;
 use anyhow::{Context, Result, ensure};
 use serde::{Deserialize, Serialize};
 
-/// Case key for FOMOD archive, step, group, plugin and flag names, following C#
-/// `StringComparison.OrdinalIgnoreCase`, which compares simple (one-to-one) uppercase
-/// mappings, so `Ä` and `ä` match. Rust's `char::to_uppercase` is the full mapping:
-/// a single-character result is the simple mapping; a multi-character expansion
-/// (`ß` -> `SS`) keeps the character, as .NET does, except the Greek iota-subscript
-/// letters (U+1F80-1FAF lowercase rows, U+1FB3, U+1FC3, U+1FF3), whose simple
-/// mapping is a titlecase letter (`ᾀ` -> `ᾈ`, UnicodeData.txt) and is spelled out below.
+/// Case key for FOMOD and shared selection/authoring names, using the explicit
+/// Unicode 15.0 simple-uppercase dataset and .NET 9 ICU ordinal exceptions.
+/// This never expands, normalizes or applies culture-specific string casing.
+/// Scalars without a mapping in that dataset retain their exact identity.
 pub fn fold_case(value: &str) -> String {
-    value
-        .chars()
-        .map(|c| {
-            let mut upper = c.to_uppercase();
-            match (upper.next(), upper.next()) {
-                (Some(single), None) => single,
-                _ => match u32::from(c) {
-                    0x1F80..=0x1F87 | 0x1F90..=0x1F97 | 0x1FA0..=0x1FA7 => {
-                        char::from_u32(u32::from(c) + 8).unwrap_or(c)
-                    }
-                    0x1FB3 => '\u{1FBC}',
-                    0x1FC3 => '\u{1FCC}',
-                    0x1FF3 => '\u{1FFC}',
-                    _ => c,
-                },
-            }
-        })
-        .collect()
+    ordinal::key(value)
 }
 
-/// Unicode-aware C# `OrdinalIgnoreCase` equality for FOMOD names.
+/// Equality under the declared Unicode 15.0 ordinal name-key contract.
 pub fn eq_ignore_case(left: &str, right: &str) -> bool {
     left.eq_ignore_ascii_case(right) || fold_case(left) == fold_case(right)
 }

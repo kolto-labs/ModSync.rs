@@ -171,11 +171,7 @@ pub(super) fn build(request: &Request, flag: &AtomicBool) -> Result<Plan> {
         .parent()
         .context("Mod root has no fence parent")?;
     let metadata = crate::checkpoint::safe_path(parent)?.context("Mod fence parent disappeared")?;
-    platform::qualify(parent, &metadata)?;
-    ensure!(
-        platform::mode(&metadata)? & 0o700 == 0o700,
-        "Maintenance mod fence requires a current-owner readable, writable and searchable sibling namespace"
-    );
+    platform::writable_directory(parent, &metadata)?;
     let mut work = Work::new();
     let relative = crate::paths::relative(&request.subtree, false)?;
     let subtree = relative
@@ -191,7 +187,7 @@ pub(super) fn build(request: &Request, flag: &AtomicBool) -> Result<Plan> {
         let metadata =
             crate::checkpoint::safe_path(root)?.context("Maintenance root disappeared")?;
         platform::qualify(root, &metadata)?;
-        identities.push(platform::identity(&metadata)?);
+        identities.push(platform::identity_at(root, &metadata)?);
     }
     let mut plan = Plan {
         roots,
@@ -217,6 +213,7 @@ pub(super) fn build(request: &Request, flag: &AtomicBool) -> Result<Plan> {
     let mut lowercase_destinations = BTreeMap::new();
     if request.action == Action::LowercaseNames {
         for (path, _) in &entries {
+            work.check(flag)?;
             if **path == plan.subtree {
                 continue;
             }
@@ -225,14 +222,11 @@ pub(super) fn build(request: &Request, flag: &AtomicBool) -> Result<Plan> {
                 .file_name()
                 .and_then(|name| name.to_str())
                 .context("Non-UTF8 maintenance name")?;
-            ensure!(
-                name.is_ascii(),
-                "Lowercase maintenance Unicode mapping is unsupported: {path}"
-            );
+            let lower = super::casing::lowercase(name, plan.capability.casing.as_ref())?;
             let destination = path_obj
                 .parent()
                 .unwrap_or(Path::new(""))
-                .join(name.to_ascii_lowercase())
+                .join(lower)
                 .to_string_lossy()
                 .replace('\\', "/");
             ensure!(
@@ -249,15 +243,19 @@ pub(super) fn build(request: &Request, flag: &AtomicBool) -> Result<Plan> {
             Action::LowercaseNames if *path != plan.subtree => {
                 let source = Path::new(path);
                 let name = source.file_name().unwrap().to_str().unwrap();
-                let lower = name.to_ascii_lowercase();
+                let lower = super::casing::lowercase(name, plan.capability.casing.as_ref())?;
                 if lower == name {
                     continue;
                 }
+                let absolute = root.join(path);
+                let metadata = crate::checkpoint::safe_path(&absolute)?
+                    .context("Maintenance rename source disappeared")?;
+                platform::qualify_rename(&absolute, &metadata)?;
                 let parent = source.parent().unwrap_or(Path::new(""));
                 let to = parent.join(lower).to_string_lossy().replace('\\', "/");
                 if let Some(metadata) = crate::checkpoint::safe_path(&root.join(&to))? {
                     ensure!(
-                        platform::identity(&metadata)? == entry.identity,
+                        platform::identity_at(&root.join(&to), &metadata)? == entry.identity,
                         "Lowercase destination already exists: {to}"
                     );
                 }
@@ -292,7 +290,8 @@ pub(super) fn build(request: &Request, flag: &AtomicBool) -> Result<Plan> {
                 });
             }
             Action::OwnerWritable => {
-                let after = entry.mode | if entry.directory { 0o700 } else { 0o600 };
+                let after =
+                    platform::owner_writable_mode(entry.mode, entry.directory, &plan.capability)?;
                 if after != entry.mode {
                     plan.operations.push(Operation::OwnerMode {
                         path: path.clone(),
@@ -326,12 +325,12 @@ pub(super) fn snapshot(path: &Path, flag: &AtomicBool, work: &mut Work) -> Resul
     work.check(flag)?;
     let metadata = crate::checkpoint::safe_path(path)?.context("Maintenance object disappeared")?;
     platform::qualify(path, &metadata)?;
-    let identity = platform::identity(&metadata)?;
+    let identity = platform::identity_at(path, &metadata)?;
     let mode = platform::mode(&metadata)?;
     let sha256 = if metadata.is_file() {
         let mut file = crate::paths::open_regular_read(path)?;
         ensure!(
-            platform::identity(&file.metadata()?)? == identity,
+            platform::identity_file(&file)? == identity,
             "Maintenance object changed during open"
         );
         let mut hash = Sha256::new();
@@ -357,7 +356,7 @@ pub(super) fn snapshot(path: &Path, flag: &AtomicBool, work: &mut Work) -> Resul
         ensure!(
             read == metadata.len()
                 && after.len() == metadata.len()
-                && platform::identity(&after)? == identity
+                && platform::identity_file(&file)? == identity
                 && platform::mode(&after)? == mode
                 && after.modified()? == metadata.modified()?,
             "Maintenance file changed while hashing"
@@ -465,7 +464,7 @@ impl Plan {
             let metadata = crate::checkpoint::safe_path(root)?.context("Bound root disappeared")?;
             platform::qualify(root, &metadata)?;
             ensure!(
-                platform::identity(&metadata)? == *identity,
+                platform::identity_at(root, &metadata)? == *identity,
                 "Maintenance root object was replaced"
             );
         }

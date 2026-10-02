@@ -5,10 +5,25 @@ use std::{fs, path::Path};
 
 #[cfg(target_os = "macos")]
 mod macos;
+#[cfg(windows)]
+mod windows;
 
 pub(super) const LINUX_PROFILE: &str = "linux-owner-noreplace-v1";
 pub(super) const MACOS_PROFILE: &str = "macos-owner-rename-excl-v1";
 pub(super) const MACOS_ALLOWED_FLAGS: u32 = 0x8001; // UF_NODUMP | UF_HIDDEN.
+pub(super) const WINDOWS_PROFILE: &str = "windows-owner-ntfs-process-interruption-v1";
+// DIRECTORY | HIDDEN | SYSTEM | ARCHIVE | NOT_CONTENT_INDEXED. READONLY is mode.
+pub(super) const WINDOWS_IMMUTABLE_ATTRIBUTES: u32 = 0x2036;
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(super) struct WindowsIdentity {
+    pub volume_serial: u64,
+    pub file_id: [u8; 16],
+    pub owner_sid: Vec<u8>,
+    pub security_sha256: String,
+    pub attributes: u32,
+}
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -20,6 +35,8 @@ pub(super) struct Identity {
     // Omission preserves the original Linux intent's serialization and digest.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub native_flags: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub windows: Option<WindowsIdentity>,
 }
 
 /// Frozen admission allowlist for pre-profile Linux writers. Do not edit its
@@ -38,30 +55,48 @@ fn legacy_linux_capability() -> Capability {
             "No permission takeover, chmod 777, concurrent external editing or automatic forward resume".into(),
         ],
         profile: None,
+        casing: None,
     }
 }
 
 pub(super) fn capability() -> Capability {
     let mut capability = legacy_linux_capability();
     capability.platform = std::env::consts::OS.into();
-    capability.supported = cfg!(any(target_os = "linux", target_os = "macos"));
+    capability.supported = cfg!(any(target_os = "linux", target_os = "macos", windows));
     capability.profile = match std::env::consts::OS {
         "linux" => Some(LINUX_PROFILE.into()),
         "macos" => Some(MACOS_PROFILE.into()),
+        "windows" => Some(WINDOWS_PROFILE.into()),
         _ => None,
     };
+    if capability.supported {
+        capability.casing = Some(super::casing::current_profile());
+        capability.restrictions[0] = "Unicode 15.0 simple scalar lowercase with invariant U+0130 preservation; unassigned scalars refused; declared dataset only".into();
+    }
     if cfg!(target_os = "linux") {
-        capability.restrictions[4] = "Windows native maintenance remains unsupported; macOS has a separate source profile with native acceptance pending".into();
+        capability.restrictions[4] =
+            "Windows and macOS have separate source profiles with native acceptance pending".into();
     }
     if cfg!(target_os = "macos") {
         capability.durability = "macOS flushed file and directory data; descriptor-relative native exclusive rename; process-interruption recovery design only; native interruption, OS crash and power-loss acceptance pending".into();
         capability.restrictions = vec![
-            "ASCII names only for lowercase; Unicode mapping is not qualified against .NET".into(),
+            "Unicode 15.0 simple scalar lowercase with invariant U+0130 preservation; unassigned scalars refused; declared dataset only".into(),
             "Current-owner ordinary objects only; no symlinks, hardlinked files, native extended ACLs or foreign ownership".into(),
             "Readable files/searchable directories required before preview; no permission changes to inspect unreadable trees".into(),
             "Only preserved UF_NODUMP/UF_HIDDEN native flags are admitted; immutable, append, compressed, firmlink, dataless and unknown flags are refused".into(),
             "SGID objects require membership in the preserved group; mode special bits are retained and verified".into(),
             "No permission takeover, chmod 777, concurrent external editing or automatic forward resume".into(),
+        ];
+    }
+    if cfg!(windows) {
+        capability.durability = "Windows local fixed NTFS; flushed file data and handle-relative exclusive rename; process-interruption recovery design only; no OS-crash or power-loss guarantee; native acceptance pending".into();
+        capability.restrictions = vec![
+            "Unicode 15.0 simple scalar lowercase with invariant U+0130 preservation; unassigned scalars refused; declared dataset only".into(),
+            "Current effective user must own ordinary objects; full native file ID and owner/group/DACL fingerprint retained; no reparse points or hardlinked files".into(),
+            "Existing DACL must permit current-owner use without privileges; ACL denial and ownership takeover are unsupported".into(),
+            "Only readonly, directory, hidden, system, archive and not-content-indexed attributes are admitted; file readonly alone is repaired, directory readonly is preserved".into(),
+            "Readonly file renames are refused; run OwnerWritable and create a new names preview; no stream, compressed, encrypted, offline or unknown attribute profiles".into(),
+            "No DACL changes to selected trees, broad Everyone access, concurrent external editing or automatic forward resume".into(),
         ];
     }
     capability
@@ -79,18 +114,41 @@ pub(super) fn validate_capability(recorded: &Capability) -> Result<()> {
         profiled || legacy,
         "Maintenance platform capability differs from recorded writer"
     );
+    super::casing::validate_profile(recorded.casing.as_ref())?;
     Ok(())
 }
 
 /// Called after capability admission for every persisted root and entry.
 pub(super) fn validate_identity(identity: &Identity, recorded: &Capability) -> Result<()> {
     let valid = match recorded.platform.as_str() {
-        "linux" => identity.native_flags.is_none(),
+        "linux" => identity.native_flags.is_none() && identity.windows.is_none(),
         "macos" => {
             recorded.profile.as_deref() == Some(MACOS_PROFILE)
+                && identity.windows.is_none()
                 && identity
                     .native_flags
                     .is_some_and(|flags| flags & !MACOS_ALLOWED_FLAGS == 0)
+        }
+        "windows" => {
+            recorded.profile.as_deref() == Some(WINDOWS_PROFILE)
+                && identity.native_flags.is_none()
+                && identity.owner == 0
+                && identity.group == 0
+                && identity.windows.as_ref().is_some_and(|native| {
+                    native.owner_sid.len() >= 8
+                        && native.owner_sid[0] == 1
+                        && native.owner_sid[1] <= 15
+                        && native.owner_sid.len() == 8 + usize::from(native.owner_sid[1]) * 4
+                        && native.security_sha256.len() == 64
+                        && native
+                            .security_sha256
+                            .bytes()
+                            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+                        && native.attributes & !WINDOWS_IMMUTABLE_ATTRIBUTES == 0
+                        && identity.device == native.volume_serial
+                        && identity.inode
+                            == u64::from_le_bytes(native.file_id[..8].try_into().unwrap())
+                })
         }
         _ => false,
     };
@@ -109,6 +167,7 @@ pub(super) fn require_capability() -> Result<()> {
     Ok(())
 }
 
+#[cfg(not(windows))]
 pub(super) fn identity(metadata: &fs::Metadata) -> Result<Identity> {
     #[cfg(unix)]
     {
@@ -122,6 +181,7 @@ pub(super) fn identity(metadata: &fs::Metadata) -> Result<Identity> {
             native_flags: Some(std::os::macos::fs::MetadataExt::st_flags(metadata)),
             #[cfg(not(target_os = "macos"))]
             native_flags: None,
+            windows: None,
         })
     }
     #[cfg(not(unix))]
@@ -131,13 +191,161 @@ pub(super) fn identity(metadata: &fs::Metadata) -> Result<Identity> {
     }
 }
 
+/// Windows security and full file IDs require the object handle, not Metadata.
+pub(super) fn identity_at(path: &Path, metadata: &fs::Metadata) -> Result<Identity> {
+    #[cfg(windows)]
+    {
+        windows::identity_at(path, metadata)
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = path;
+        identity(metadata)
+    }
+}
+
+pub(super) fn identity_file(file: &fs::File) -> Result<Identity> {
+    #[cfg(windows)]
+    {
+        windows::identity_file(file)
+    }
+    #[cfg(not(windows))]
+    {
+        identity(&file.metadata()?)
+    }
+}
+
+pub(super) fn validate_mode(mode: u32, recorded: &Capability) -> Result<()> {
+    ensure!(
+        if recorded.platform == "windows" {
+            mode <= 1
+        } else {
+            mode <= 0o7777
+        },
+        "Maintenance immutable permission state is malformed"
+    );
+    Ok(())
+}
+
+pub(super) fn validate_entry_type(identity: &Identity, directory: bool) -> Result<()> {
+    if let Some(native) = &identity.windows {
+        ensure!(
+            (native.attributes & 0x10 != 0) == directory,
+            "Maintenance Windows native directory flag differs from immutable entry type"
+        );
+    }
+    Ok(())
+}
+
+pub(super) fn owner_writable_mode(
+    mode: u32,
+    directory: bool,
+    recorded: &Capability,
+) -> Result<u32> {
+    validate_mode(mode, recorded)?;
+    Ok(if recorded.platform == "windows" {
+        if directory { mode } else { 0 }
+    } else {
+        mode | if directory { 0o700 } else { 0o600 }
+    })
+}
+
+pub(super) fn writable_directory(path: &Path, metadata: &fs::Metadata) -> Result<()> {
+    qualify(path, metadata)?;
+    ensure!(
+        metadata.is_dir(),
+        "Maintenance namespace must be an ordinary directory"
+    );
+    #[cfg(not(windows))]
+    ensure!(
+        mode(metadata)? & 0o700 == 0o700,
+        "Maintenance mod fence requires a current-owner readable, writable and searchable sibling namespace"
+    );
+    Ok(())
+}
+
+pub(super) fn qualify_rename(path: &Path, metadata: &fs::Metadata) -> Result<()> {
+    qualify(path, metadata)?;
+    #[cfg(windows)]
+    windows::qualify_rename(path, metadata)?;
+    Ok(())
+}
+
+pub(super) fn qualify_private(path: &Path, metadata: &fs::Metadata) -> Result<()> {
+    qualify(path, metadata)?;
+    #[cfg(windows)]
+    windows::qualify_private(path, metadata)?;
+    Ok(())
+}
+
+pub(super) fn private_temp(parent: &Path, prefix: &str) -> Result<tempfile::NamedTempFile> {
+    #[cfg(windows)]
+    {
+        windows::private_temp(parent, prefix)
+    }
+    #[cfg(not(windows))]
+    {
+        Ok(tempfile::Builder::new()
+            .prefix(prefix)
+            .tempfile_in(parent)?)
+    }
+}
+
+pub(super) fn create_file(path: &Path) -> Result<fs::File> {
+    #[cfg(windows)]
+    {
+        windows::create_file(path)
+    }
+    #[cfg(not(windows))]
+    {
+        let mut options = fs::OpenOptions::new();
+        options.read(true).write(true).create_new(true);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::OpenOptionsExt;
+            options
+                .mode(0o600)
+                .custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK);
+        }
+        Ok(options.open(path)?)
+    }
+}
+
+pub(super) fn publish_temp(
+    temporary: tempfile::NamedTempFile,
+    to: &Path,
+    replace: bool,
+) -> Result<()> {
+    temporary.as_file().sync_all()?;
+    let expected = identity_file(temporary.as_file())?;
+    let metadata = crate::checkpoint::safe_path(temporary.path())?
+        .context("Private maintenance file disappeared")?;
+    qualify_private(temporary.path(), &metadata)?;
+    ensure!(
+        identity_at(temporary.path(), &metadata)? == expected,
+        "Private maintenance file was replaced before publication"
+    );
+    #[cfg(windows)]
+    {
+        let temporary = temporary.into_temp_path();
+        windows::publish_checked(&temporary, to, replace, &expected)?;
+    }
+    #[cfg(not(windows))]
+    publish(temporary.path(), to, replace)?;
+    Ok(())
+}
+
 pub(super) fn mode(metadata: &fs::Metadata) -> Result<u32> {
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
         Ok(metadata.permissions().mode() & 0o7777)
     }
-    #[cfg(not(unix))]
+    #[cfg(windows)]
+    {
+        Ok(u32::from(metadata.permissions().readonly()))
+    }
+    #[cfg(not(any(unix, windows)))]
     {
         let _ = metadata;
         anyhow::bail!("Maintenance permission profile is unsupported")
@@ -193,6 +401,8 @@ pub(super) fn qualify(path: &Path, metadata: &fs::Metadata) -> Result<()> {
     }
     #[cfg(target_os = "macos")]
     macos::qualify(path, metadata)?;
+    #[cfg(windows)]
+    windows::qualify(path, metadata)?;
     Ok(())
 }
 
@@ -281,7 +491,11 @@ pub(super) fn rename(from: &Path, to: &Path, parent_identity: &Identity) -> Resu
     {
         macos::rename(from, to, parent_identity)
     }
-    #[cfg(not(any(target_os = "linux", target_os = "macos")))]
+    #[cfg(windows)]
+    {
+        windows::rename(from, to, parent_identity)
+    }
+    #[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
     {
         let _ = (from, to, parent_identity);
         anyhow::bail!("Native no-replace maintenance rename is unsupported")
@@ -290,6 +504,7 @@ pub(super) fn rename(from: &Path, to: &Path, parent_identity: &Identity) -> Resu
 
 /// Publish a private flushed intent atomically; use native no-replace for a new
 /// intent and replacement only for its verified owned terminal header.
+#[cfg(not(windows))]
 pub(super) fn publish(from: &Path, to: &Path, replace: bool) -> Result<()> {
     require_capability()?;
     #[cfg(target_os = "linux")]
@@ -355,7 +570,7 @@ pub(super) fn publish(from: &Path, to: &Path, replace: bool) -> Result<()> {
     {
         macos::publish(from, to, replace)
     }
-    #[cfg(not(any(target_os = "linux", target_os = "macos")))]
+    #[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
     {
         let _ = (from, to, replace);
         anyhow::bail!("Maintenance atomic intent publication is unsupported")
@@ -398,7 +613,11 @@ pub(super) fn chmod(path: &Path, desired: u32, expected: &Identity) -> Result<()
     {
         macos::chmod(path, desired, expected)
     }
-    #[cfg(not(any(target_os = "linux", target_os = "macos")))]
+    #[cfg(windows)]
+    {
+        windows::chmod(path, desired, expected)
+    }
+    #[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
     {
         let _ = (path, desired, expected);
         anyhow::bail!("Owner-writable maintenance is unsupported on this platform")

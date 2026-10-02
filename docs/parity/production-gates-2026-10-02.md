@@ -491,3 +491,77 @@ baef794bdd93674039bda5360af46b2d2649129a4eedab1624f1072e95ec7864  src/download_q
 e466202cedff6a7acf4480693f980dea974d561a53dac82cb1b38bf5f8e529fd  src/p2p.rs
 e7bb86bc7b8d9bedc97b63046dc5ea5f2b7e7397fe1befee99f6e5127d547b78  packaging/produce_patcher.py
 ```
+
+## Versioned casing, Windows maintenance and profile dates
+
+The reviewed source after `8be4382` adds a bounded native Windows NTFS
+maintenance profile, versioned Unicode 15.0 lowercase and ordinal uppercase
+projections, shared keyed planning/discovery/execution admission, safe empty-only
+stale peer cleanup and profile DateTime canonicalization with immutable Unix
+zone intake. Independent source reviews accepted the current source after
+corrections for named streams, journal truncation/append rights, private-file
+archive attributes, readonly flush handles and historical/future date rules.
+The Windows profile date document records the next proposed provider, whose
+implementation has not started in this source boundary.
+
+Final Linux production gates passed after the last POSIX rule-equivalence fix:
+
+- Formatting: session53046, exit0.
+- Default library/binary build: session11196, exit0, 32.92s.
+- Default strict Clippy: session25531, exit0, 16.65s.
+- No-default library/binary build: session31266, exit0, 36.37s.
+- No-default strict Clippy: session88047, exit0, 34.13s.
+- Whitespace checks passed.
+
+The first Windows GNU cross-build (session31366) stopped in `aws-lc-sys`
+before Rust source compilation: MinGW GCC/G++ were 16.2.1 while the installed
+CPP package was 16.1.1, leaving the driver without its `cc1` component. A
+targeted `dnf upgrade mingw64-cpp` (session75880, exit0) aligned all three
+packages at 16.2.1. The real driver then resolved its matching `cc1` path.
+The subsequent production cross-build result is recorded below.
+
+Read-only comparison against `8be4382` confirms seven frozen inline-bearing
+source modules and the existing UI helper source remain unchanged as whole
+files. No tracked test/fixture path changed. No tests, custom harnesses,
+filesystem tests, application/CLI/backend probes, Windows binary execution,
+packaging producers, installs or CI ran. Only production Unicode data
+generators were invoked. Linux build/lint and Windows cross-compilation do not
+establish native behavior or interruption acceptance.
+
+Maintenance Unicode source SHA-256 is
+`806e9aed65037197f1ec85e12be6e8cd870fc5608b4de0fffd990f689f376a73`;
+the lowercase semantic table SHA-256 is
+`cb52d6454792a898d04ae3102a8c227ea351f70f15321589f7d4cf9db6015400`.
+The ordinal uppercase semantic table SHA-256 is
+`e291cd8564cd0a84c4eb04b5dce57a3948b272f22613096dbbb042454502273c`.
+Retained provenance records bind each algorithm, source, generator and table.
+
+Windows GNU production library/CLI build and link passed in session20889,
+exit0,4m00s, after the narrow toolchain repair. Its sole deprecated TempPath
+call was then replaced by fallible path resolution before exclusive creation;
+cleanup is armed only after successful creation, preserving collision ownership.
+Independent source review accepted that correction. The final Windows rerun
+(session46315) passed exit0,15.80s, without warnings. Final formatting
+(session26428) and whitespace checks passed. Windows binaries were not executed.
+
+Source-bound hashes:
+
+```text
+ed583bc4f7dc52a378cc78265ff106c0b4f506fa171991871f8e92afa146ad7b  src/download_orchestrator.rs
+c3a7c34cf082de65f5e63edefccf11cb386e485f58a3fea595985c9e615bae0a  src/fomod.rs
+17ee9f5c5815c60098b6c7a2b91e8c3923d4f3ee4b8fbf44c8b35d8bbd521fc8  src/fomod/ordinal.rs
+20694af376521c3a93d23e965c87a8c15c3a4917a000387ebb9519e06cd2903d  src/fomod/ordinal/data.rs
+6c879ae71ca376661eb2fbe4884fc5be368fb5f0699b3af3bb285fb47a64d462  src/maintenance.rs
+830fa832acb808aecc63a7852a612cfdc3e323eb17ea0b79f59bb2bee49b8ad6  src/maintenance/casing.rs
+f127504a65e62eceee3759fbc34ba806ce80a0fa884c724410aa2141d734fad5  src/maintenance/casing/data.rs
+9a64be3cb2f8b8098f06a175be82848739af8540706ff15e52d3c9d4112936ea  src/maintenance/platform.rs
+42b06765f6a38aca803d5bbb1567e90924bd1bb4415b692c5aa7f0a0747d3ebb  src/maintenance/platform/windows.rs
+1343ab0a8d14bbb8c4f1545896aaeaea41ecd81215d2af5c7852c8ba38f04f72  src/maintenance/journal.rs
+14a0b2b7b9df1c6f93f1806b302f23110e1b265785c1293dc0dc52f45cd4fdf9  src/profiles/date.rs
+b57d3239e8f08bff5b4c2ce1561f0995a594cd76aa7740c76d4427f1e2878ba2  src/profiles/schema.rs
+33b5eb4f0c70014c8ae09b0b3c22ef47649710caf8a8b43830954c5aeee80e9e  src/profiles/date/local.rs
+8ed0552bc50a6a2690394f25acbda93a63ff078a08ba74c3989d27c556771465  src/profiles/date/local/unix.rs
+b9a1599452ace63e1d564566c1c98f3105d42922b2acff83befd6283d94ca84b  src/profiles/date/local/posix.rs
+8d1eddb9a1f3804f1c6d082eb3fb6ed437d9e5db029b8beebd39975156bdcca5  src/profiles/date/local/tzif.rs
+61513b7ffb72657b157176efcd4f271513f5ae06b27709a5f08dc17c03aa5f3a  src/ui/maintenance.rs
+```

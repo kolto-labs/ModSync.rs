@@ -38,18 +38,19 @@ The caller supplies the reviewed digest to apply and the selected durable operat
 
 | Behavior | Qualified source behavior |
 | --- | --- |
-| Lowercase names | ASCII descendant file and directory names only; the selected subtree's own name is excluded. Sibling destinations are checked before publication. Files and directories are never merged or overwritten. |
-| Owner writable | Selected directory and descendants retain all existing `07777` bits; files receive `mode \| 0600`, directories receive `mode \| 0700`. No ownership takeover or chmod 777. |
+| Lowercase names | New previews record a Unicode 15.0 invariant simple lowercase mapper. Absent recorded mapper means legacy ASCII-only admission. The selected subtree's own name is excluded. Sibling destinations are checked before publication. Files and directories are never merged or overwritten. |
+| Owner writable | Unix retains all existing `07777` bits; files receive `mode \| 0600`, directories receive `mode \| 0700`. Windows clears file readonly only and preserves directory readonly after DACL qualification. No ownership takeover or chmod 777. |
 | Linux rename | Native `renameat2(RENAME_NOREPLACE)` using an opened, identity-checked parent directory. Every rename goes through its exclusive intermediate name, including case-only changes. |
 | Linux permission change | Ordinary owned object opened with no-follow; identity checked on the handle, permissions changed through the handle, and exact resulting bits verified. |
 | macOS profile | Native descriptor-relative exclusive rename and preserved owner modes/native flags have a separate source implementation and stable profile ID. Only `UF_NODUMP` and `UF_HIDDEN` flags are admitted. Native platform acceptance remains unverified. |
-| Other platforms | Windows ACL/identity-preserving readonly attribute operations and other Unix rename/ACL profiles are unsupported. No generic `set_readonly(false)` substitute is used. |
+| Windows profile | Local fixed NTFS, full 128-bit identity, current effective owner and unchanged owner/group/DACL fingerprint; bounded default-stream admission, native exclusive rename and pinned readonly changes. See [the Windows contract](maintenance-windows-contract.md). Native execution remains unverified. |
+| Other platforms | Other Unix rename/ACL profiles are unsupported. No generic `set_readonly(false)` substitute is used. |
 
 Objects must already be readable and directories searchable to produce a trustworthy read-only preview. An initially unreadable `000` tree is refused; preview never repairs permissions to inspect it.
 
 The mod root's parent must also qualify as a current-owner ordinary readable, writable and searchable directory, without unsupported ACL/security state. The independent sibling fence needs that namespace for exclusive atomic publication and flushing. Preview checks this restriction before any intent exists; access to a usable mod tree beneath a foreign-owned parent alone is insufficient. The root-only cleanup facade canonicalizes its supplied path through the acquired root lock.
 
-The implementation rejects symlinks and special files at every existing ancestor and leaf, file hardlinks, foreign ownership, extended POSIX ACLs, Samba security ACLs, and file `security.capability` metadata. SGID objects require membership in the preserved group. These restrictions prevent permission changes from discarding security state the transaction could not restore. Full ACL, arbitrary xattr, ownership or .NET Unicode mapping equivalence is not claimed.
+The Unix implementation rejects symlinks and special files at every existing ancestor and leaf, file hardlinks, foreign ownership, extended POSIX ACLs, Samba security ACLs, and file `security.capability` metadata. SGID objects require membership in the preserved group. These restrictions prevent permission changes from discarding security state the transaction could not restore. Full ACL, arbitrary xattr or ownership equivalence is not claimed. The [Unicode contract](maintenance-unicode-contract.md) records the exact mapper, provenance, assigned-scalar admission and separate ICU/NLS proof boundary.
 
 Roots must be absolute, canonical, ordinary directories, must not be filesystem roots, and must not overlap each other or recovery storage. Inventory paths must round-trip through portable path admission without changing the actual relative filesystem path. Literal Unix backslashes, reserved Windows names and unsafe aliases are refused. The same rules constrain operations loaded from disk.
 

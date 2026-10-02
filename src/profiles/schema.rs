@@ -103,21 +103,38 @@ fn boolean(value: Option<&Value>) -> Result<bool> {
         _ => anyhow::bail!("Profile isSelected must be a Boolean"),
     }
 }
-fn date(value: Option<&Value>, key: &str) -> Result<String> {
+fn date(
+    value: Option<&Value>,
+    key: &str,
+    context: &mut date_compat::local::ContextSnapshot,
+) -> Result<String> {
     let Some(value) = value else {
         return Ok(unset_date());
     };
     let value = value
         .as_str()
         .with_context(|| format!("Profile {key} must be a DateTime string"))?;
+    ensure!(
+        value.len() <= 4096,
+        "Profile {key} exceeds the date text bound"
+    );
+    // Fast parser dispatch uses the original text. Trimming Microsoft syntax
+    // here would admit input the framework invariant fallback does not parse.
+    if let Some(parsed) = date_compat::iso(value).or_else(|| date_compat::microsoft(value)) {
+        return Ok(parsed.normalize(value, key, context));
+    }
+    if let Some(parsed) = date_compat::invariant(value) {
+        return parsed
+            .canonical()
+            .context("Invariant date subset unexpectedly requires local normalization");
+    }
+    // Retain existing bounded fallback acceptance without claiming its broad
+    // grammar/rounding or host-local serialization is fully reproduced.
     let candidate = value.trim();
-    let year = date_compat::iso_year(candidate)
-        .or_else(|| {
-            chrono::DateTime::parse_from_rfc3339(candidate)
-                .ok()
-                .filter(|d| d.nanosecond() < 1_000_000_000)
-                .map(|d| d.year())
-        })
+    let year = chrono::DateTime::parse_from_rfc3339(candidate)
+        .ok()
+        .filter(|d| d.nanosecond() < 1_000_000_000)
+        .map(|d| d.year())
         .or_else(|| {
             NaiveDateTime::parse_from_str(candidate, "%Y-%m-%dT%H:%M:%S%.f")
                 .ok()
@@ -134,8 +151,7 @@ fn date(value: Option<&Value>, key: &str) -> Result<String> {
             NaiveDate::parse_from_str(candidate, "%Y-%m-%d")
                 .ok()
                 .map(|d| d.year())
-        })
-        .or_else(|| date_compat::microsoft_year(candidate));
+        });
     ensure!(
         year.is_some_and(|year| (1..=9999).contains(&year)),
         "Profile {key} is not a supported reference DateTime"
@@ -213,6 +229,7 @@ impl Profile {
                 );
             }
         }
+        let mut date_context = date_compat::local::ContextSnapshot::new();
         let profile = Profile {
             name: text(field(object, "name"), "name")?.unwrap_or_default(),
             kotor_directory: text(field(object, "kotorDirectory"), "kotorDirectory")?,
@@ -222,15 +239,19 @@ impl Profile {
                 "instructionFilePath",
             )?,
             component_selections: selections,
-            created_utc: date(field(object, "createdUtc"), "createdUtc")?,
-            last_used_utc: date(field(object, "lastUsedUtc"), "lastUsedUtc")?,
+            created_utc: date(field(object, "createdUtc"), "createdUtc", &mut date_context)?,
+            last_used_utc: date(
+                field(object, "lastUsedUtc"),
+                "lastUsedUtc",
+                &mut date_context,
+            )?,
         };
         let identity_format = if opaque {
             IdentityFormat::LegacyOpaqueIds
         } else {
             IdentityFormat::ReferenceGuids
         };
-        let warnings = if opaque {
+        let mut warnings = if opaque {
             vec![format!(
                 "Profile '{}' contains {} Rust text selection identities; they are preserved, but C# Guid-based profiles cannot load them.{}",
                 profile.name,
@@ -244,6 +265,7 @@ impl Profile {
         } else {
             Vec::new()
         };
+        warnings.extend(date_context.warnings);
         Ok(DecodedProfile {
             profile,
             identity_format,
@@ -261,7 +283,8 @@ impl Profile {
     pub(super) fn persisted_value(&self) -> Result<Value> {
         let mut value = serde_json::to_value(self)?;
         let decoded = Self::decode(&serde_json::to_vec(&value)?)?;
-        // Serialize normalized GUIDs. Never replace opaque identities with new UUIDs.
+        // Serialize normalized GUIDs and supported pure dates. Never replace
+        // opaque identities with new UUIDs or approximate local date conversion.
         value = serde_json::to_value(&decoded.profile)?;
         if decoded.identity_format == IdentityFormat::LegacyOpaqueIds {
             value[IDENTITY_MARKER] = "opaque-v1".into();

@@ -6,11 +6,18 @@ The shared opener refuses special files, links/reparse points, replaced lock pat
 
 ## Orchestrated acquisition
 
-`download_orchestrator::run_with_source_context` takes the current execution guide. The mod guard is held before stale peer-stage cleanup or network acquisition until all scoped workers finish. The execution root is canonicalized once. The plan is limited to 100000 targets plus skips before its execution copy is made. Run admission uses keyed transitive destination grouping (known filename groups and unknown-name URL bridges), with cancellation and a 2000000-edge work limit; the original planner grouping remains unchanged. Worker configuration requires 1–32 workers and at most 10 retries; the active pool is capped by group-owner count. Component GUID lookup is indexed once (at most 100000 components); authored file/instruction/source matching is cancellation-aware and limited to 2000000 visits.
+`download_orchestrator::run_with_source_context` takes the current execution guide. The mod guard is held before stale peer-stage cleanup or network acquisition until all scoped workers finish. The execution root is canonicalized once. The plan is limited to 100000 targets plus skips before its execution copy is made. Planning, discovery and run admission share keyed transitive destination grouping (known filename groups and unknown-name URL bridges), with cancellation, a 100000-target bound and a 2000000-edge work limit. Worker configuration requires 1–32 workers and at most 10 retries; the active pool is capped by group-owner count. Component GUID lookup is indexed once (at most 100000 components); authored file/instruction/source matching is cancellation-aware and limited to 2000000 visits.
 
 An `AlreadyPresent` skip is revalidated while holding the guard: unique selected component, exact registry URL ownership, currently enabled resource/filename, contained ordinary file, current authored SHA256 when present, and archive integrity. Filename ownership follows the authored Files/Extract matching policy, without treating a file's newly satisfied Extract pattern as proof that its consumer no longer needs it. Length and modification time are compared across verification and safe containment is repeated. This does not constitute a cryptographic snapshot against noncooperating concurrent writers.
 
 Invalid or missing skips fail before cleanup or acquisition. They are not silently converted into new download targets. Existing `run` and `run_with_loopback_ca` signatures remain available, but refuse plans containing `AlreadyPresent` without source context. Production CLI, desktop and the CLI acquisition prephase use the bound API; include-unselected authoring passes its selected execution projection.
+
+Stale peer staging cleanup is cancellable and scans at most 100000 root entries.
+Only an old ordinary directory named `.peer-<32 lowercase hex nonnil UUID>.part`
+is eligible, and cleanup uses `remove_dir`, which removes only an empty directory.
+Historical nonempty staging is retained for inspection; the program cannot prove
+ownership from a name and timestamp. Recursive cleanup remains confined to the
+current run's owned stage after its transfer workers finish.
 
 A report constructed for cancellation before entering the runner omits `AlreadyPresent` skips, because those files have not been revalidated under the guard. Other skip diagnostics and cancelled target outcomes remain available. Such a report cannot record an unverified file or authorize its FOMOD followup.
 

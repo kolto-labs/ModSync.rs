@@ -338,68 +338,24 @@ pub fn plan_with_cancel(
             );
         }
     }
-    let links = shared_destinations(&result.targets);
+    let links = shared_destinations(&result.targets, cancelled)?;
     for (target, link) in result.targets.iter_mut().zip(links) {
         target.shared_destination = link;
     }
     Ok(result)
 }
 
-/// Whether two targets may publish one file: equal known names (ASCII
-/// case-insensitive, like `find_existing` and the C# `Files` map), or the same registry
-/// URL, and so the same bytes, when either name is revealed only by the transfer.
-fn may_share_file(a: &ArchiveTarget, b: &ArchiveTarget) -> bool {
-    match (&a.filename, &b.filename) {
-        (Some(a_name), Some(b_name)) => a_name.eq_ignore_ascii_case(b_name),
-        _ => a.registry_url == b.registry_url,
-    }
-}
-
-/// Two targets that publish one file must not transfer concurrently: the loser fails on
-/// the existing destination and is neither recorded nor bound. Groups are the connected
-/// components of `may_share_file` over all targets (a union-find that merges every
-/// earlier match, not just the first), so any two targets that may share a file are in
-/// one group. Each group is owned by its lowest plan index; every other member links to
-/// it. `run` rechecks a plan against this.
-fn shared_destinations(targets: &[ArchiveTarget]) -> Vec<Option<SharedDestination>> {
-    fn root(parent: &mut [usize], mut index: usize) -> usize {
-        while parent[index] != index {
-            parent[index] = parent[parent[index]];
-            index = parent[index];
-        }
-        index
-    }
-    let mut parent: Vec<usize> = (0..targets.len()).collect();
-    for (index, target) in targets.iter().enumerate() {
-        for (earlier, other) in targets[..index].iter().enumerate() {
-            if may_share_file(other, target) {
-                let (a, b) = (root(&mut parent, earlier), root(&mut parent, index));
-                // The lower root stays the root, so a root is always its group's lowest index.
-                parent[a.max(b)] = a.min(b);
-            }
-        }
-    }
-    (0..targets.len())
-        .map(|index| {
-            let owner = root(&mut parent, index);
-            (owner != index).then(|| {
-                if targets[owner].registry_url == targets[index].registry_url {
-                    SharedDestination::SameUrl(owner)
-                } else {
-                    SharedDestination::DifferentUrl(owner)
-                }
-            })
-        })
-        .collect()
-}
-
-/// Keyed grouping for captured-run admission. Known names join regardless of
-/// URL; different known names on one URL join only through an unknown-name
-/// member. This produces the same transitive groups as `may_share_file`.
-fn shared_destinations_guarded(
+/// Shared cancellable grouping for planning, discovery and execution admission.
+/// Known names join globally; different known names on one URL join only through
+/// an unknown-name member. Each transitive group retains its lowest plan index.
+fn shared_destinations(
     targets: &[ArchiveTarget],
     cancelled: &AtomicBool,
 ) -> Result<Vec<Option<SharedDestination>>> {
+    ensure!(
+        targets.len() <= 100_000,
+        "Acquisition exceeds 100000 targets"
+    );
     fn root(parent: &mut [usize], mut index: usize) -> usize {
         while parent[index] != index {
             parent[index] = parent[parent[index]];
@@ -1027,7 +983,7 @@ pub fn discover_with_loopback_ca(
             }
         }
     }
-    let links = shared_destinations(&result.targets);
+    let links = shared_destinations(&result.targets, cancelled)?;
     for (target, link) in result.targets.iter_mut().zip(links) {
         target.shared_destination = link;
     }
@@ -1376,7 +1332,7 @@ fn run_guarded(
     let plan = &canonical;
     // A hand-built plan must link exactly as `plan` would, or two workers could write one
     // file again.
-    let links = shared_destinations_guarded(&plan.targets, cancelled)?;
+    let links = shared_destinations(&plan.targets, cancelled)?;
     for (index, (target, link)) in plan.targets.iter().zip(links).enumerate() {
         ensure!(
             target.shared_destination == link,
@@ -1385,7 +1341,7 @@ fn run_guarded(
         );
     }
     // Before any race of this run exists, so nothing swept here can be ours.
-    sweep_stale_peer_staging(&plan.source_dir, std::time::SystemTime::now());
+    sweep_stale_peer_staging(&plan.source_dir, std::time::SystemTime::now(), cancelled);
     let origins = || {
         plan.targets
             .iter()
@@ -2069,23 +2025,47 @@ pub(crate) fn is_peer_staging(name: &std::ffi::OsStr) -> bool {
     })
 }
 
-/// Removes Peer staging folders left in `source_dir` by an earlier, killed run. Each race
-/// makes a fresh folder after its run starts, so one last modified before `started`
-/// belongs to no live race of this run. Best effort: a folder that stays is still
-/// ignored by the planner.
-fn sweep_stale_peer_staging(source_dir: &Path, started: std::time::SystemTime) {
+/// Reclaim only empty, canonically named old staging directories. A reserved
+/// name and timestamp do not establish authority to delete retained contents.
+/// Nonempty directories remain ignored by planning and available for inspection.
+fn sweep_stale_peer_staging(
+    source_dir: &Path,
+    started: std::time::SystemTime,
+    cancelled: &AtomicBool,
+) {
     let Ok(entries) = std::fs::read_dir(source_dir) else {
         return;
     };
-    for entry in entries.flatten() {
-        let stale = is_peer_staging(&entry.file_name())
+    for entry in entries.take(100_000).flatten() {
+        if cancelled.load(Ordering::Acquire) {
+            return;
+        }
+        let name = entry.file_name();
+        let canonical = name.to_str().is_some_and(|name| {
+            name.strip_prefix(PEER_STAGING_PREFIX)
+                .and_then(|name| name.strip_suffix(PEER_STAGING_SUFFIX))
+                .is_some_and(|nonce| {
+                    uuid::Uuid::parse_str(nonce)
+                        .is_ok_and(|id| id.simple().to_string() == nonce && !id.is_nil())
+                })
+        });
+        let stale = canonical
             && entry.file_type().is_ok_and(|kind| kind.is_dir())
-            && entry
-                .metadata()
-                .and_then(|metadata| metadata.modified())
-                .is_ok_and(|modified| modified < started);
+            && entry.metadata().is_ok_and(|metadata| {
+                #[cfg(windows)]
+                {
+                    use std::os::windows::fs::MetadataExt;
+                    if metadata.file_attributes() & 0x400 != 0 {
+                        // FILE_ATTRIBUTE_REPARSE_POINT includes cloud/custom tags
+                        // that Windows FileType::is_dir alone does not exclude.
+                        return false;
+                    }
+                }
+                metadata.is_dir() && metadata.modified().is_ok_and(|modified| modified < started)
+            });
         if stale {
-            let _ = std::fs::remove_dir_all(entry.path());
+            // remove_dir cannot remove a nonempty tree or follow a link.
+            let _ = std::fs::remove_dir(entry.path());
         }
     }
 }

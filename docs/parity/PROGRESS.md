@@ -51,6 +51,26 @@ See the acquisition, maintenance and package contracts and current production
 gate receipt. Windows maintenance, Unicode mapping, broader date normalization,
 actual backend provenance and all domain/native acceptance remain open.
 
+The next source continuation records the exact Unicode 15.0 maintenance mapper
+and preserves legacy ASCII intent admission. Shared FOMOD/selection/authoring
+name keys use a pinned simple-uppercase table with the .NET 9 ICU ordinal
+exceptions. Planning, discovery and execution now share keyed cancellation/work
+bounds; stale peer cleanup preserves nonempty contents and rejects Windows
+reparse points. These corrections have independent source review.
+
+Windows maintenance now has a local fixed NTFS source profile with full native
+identity, unchanged owner/group/DACL proof, default-stream-only admission,
+readonly repair, exclusive handle-relative rename and protected metadata at
+creation. Independent review corrected named-stream proof, interrupted journal
+truncation rights and checked EOF append semantics. Native acceptance remains
+open. Profile date source now canonicalizes UTC/Unspecified values and includes
+a bounded immutable Unix local-zone provider; unsupported local rules retain
+authored values with warnings. Exact remaining provider/fallback forms are
+listed in the date contract. Both Linux production build/lint configurations
+and Windows GNU library/CLI cross-compilation and linking passed for this
+reviewed boundary; see the production gate receipt. Native behavior remains
+unverified.
+
 Continuation uses the actual `ModSync.rs` checkout through `eed8089` and its
 working changes. The [remaining-work tracker](../plans/2026-09-28-1130-remaining-work-tracker-plan.md)
 is the current source reconciliation. The sections below retain historical

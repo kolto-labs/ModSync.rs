@@ -78,6 +78,7 @@ fn qualify_pinned(file: &fs::File, path: &Path) -> Result<()> {
         owner: stat.st_uid,
         group: stat.st_gid,
         native_flags: Some(stat.st_flags),
+        windows: None,
     };
     ensure!(
         observed == expected && u32::from(stat.st_mode) & 0o7777 == mode(&before)?,

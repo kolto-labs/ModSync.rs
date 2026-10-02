@@ -1,0 +1,19 @@
+{
+  "algorithm": "dotnet9-icu-ordinal-simple-upper-ucd15-v1",
+  "unicodeVersion": "15.0.0",
+  "source": "../../maintenance/casing/UnicodeData-15.0.0.txt",
+  "sourceUrl": "https://www.unicode.org/Public/15.0.0/ucd/UnicodeData.txt",
+  "sourceSha256": "806e9aed65037197f1ec85e12be6e8cd870fc5608b4de0fffd990f689f376a73",
+  "license": "../../maintenance/casing/LICENSE.txt",
+  "licenseSha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+  "mappingFieldZeroBased": 12,
+  "ordinalExceptions": [
+    "U+0131",
+    "U+017F"
+  ],
+  "mappingPairCount": 1448,
+  "tableSha256": "e291cd8564cd0a84c4eb04b5dce57a3948b272f22613096dbbb042454502273c",
+  "tableDigestEncoding": "ASCII algorithm LF version LF 0131=0131 LF 017F=017F LF; sorted uppercase six-digit source:destination hex lines with LF",
+  "referenceBmp": "https://github.com/dotnet/runtime/blob/v9.0.0/src/native/libs/System.Globalization.Native/pal_common.c",
+  "referenceSupplementary": "https://github.com/dotnet/runtime/blob/v9.0.0/src/libraries/System.Private.CoreLib/src/System/Globalization/OrdinalCasing.Icu.cs"
+}

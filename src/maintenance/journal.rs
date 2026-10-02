@@ -73,17 +73,31 @@ fn safe_state(path: &Path) -> Result<fs::Metadata> {
 
 fn read_bounded(path: &Path) -> Result<Vec<u8>> {
     let metadata = safe_state(path)?;
+    platform::qualify_private(path, &metadata)?;
     ensure!(
         metadata.is_file() && metadata.len() <= MAX_DOCUMENT as u64,
         "Maintenance journal is not a bounded regular file"
     );
     let mut bytes = Vec::new();
-    crate::paths::open_regular_read(path)?
+    let identity = platform::identity_at(path, &metadata)?;
+    let mut file = crate::paths::open_regular_read(path)?;
+    ensure!(
+        platform::identity_file(&file)? == identity,
+        "Maintenance metadata changed during open"
+    );
+    Read::by_ref(&mut file)
         .take(MAX_DOCUMENT as u64 + 1)
         .read_to_end(&mut bytes)?;
     ensure!(
         bytes.len() <= MAX_DOCUMENT,
         "Maintenance journal exceeds 64 MiB"
+    );
+    let after = safe_state(path)?;
+    ensure!(
+        platform::identity_at(path, &after)? == identity
+            && after.len() == metadata.len()
+            && after.modified()? == metadata.modified()?,
+        "Maintenance metadata changed during read"
     );
     Ok(bytes)
 }
@@ -219,10 +233,8 @@ fn valid_plan(plan: &Plan) -> Result<()> {
                 .and_then(|name| name.to_str())
                 .context("Malformed maintenance lowercase name")?;
             let parent = source.parent().unwrap_or(Path::new(""));
-            let target = parent
-                .join(name.to_ascii_lowercase())
-                .to_string_lossy()
-                .replace('\\', "/");
+            let lower = super::casing::lowercase(name, plan.capability.casing.as_ref())?;
+            let target = parent.join(lower).to_string_lossy().replace('\\', "/");
             ensure!(
                 lowercase_targets.insert(target),
                 "Maintenance immutable lowercase collision"
@@ -250,10 +262,10 @@ fn valid_plan(plan: &Plan) -> Result<()> {
                     || path.starts_with(&format!("{subtree}/"))),
             "Maintenance inventory path escapes its selected subtree"
         );
+        platform::validate_mode(entry.mode, &plan.capability)?;
+        platform::validate_entry_type(&entry.identity, entry.directory)?;
         ensure!(
-            entry.mode <= 0o7777
-                && entry.directory == entry.sha256.is_none()
-                && (!entry.directory || entry.size == 0),
+            entry.directory == entry.sha256.is_none() && (!entry.directory || entry.size == 0),
             "Maintenance immutable entry type/mode is malformed"
         );
         if let Some(hash) = &entry.sha256 {
@@ -285,20 +297,18 @@ fn valid_plan(plan: &Plan) -> Result<()> {
                     .file_name()
                     .and_then(|name| name.to_str())
                     .context("Maintenance name is malformed")?;
-                ensure!(
-                    name.is_ascii(),
-                    "Maintenance Unicode lowercase profile is unsupported"
-                );
+                let lower = super::casing::lowercase(name, plan.capability.casing.as_ref())?;
                 let parent = source.parent().unwrap_or(Path::new(""));
-                let to = parent
-                    .join(name.to_ascii_lowercase())
-                    .to_string_lossy()
-                    .replace('\\', "/");
+                let to = parent.join(&lower).to_string_lossy().replace('\\', "/");
                 ensure!(
                     siblings.insert(to.clone(), path).is_none(),
                     "Maintenance immutable lowercase collision"
                 );
-                if name != name.to_ascii_lowercase() {
+                if name != lower {
+                    ensure!(
+                        plan.capability.platform != "windows" || entry.directory || entry.mode == 0,
+                        "Recorded readonly file rename is unsupported; run OwnerWritable and create a new lowercase preview"
+                    );
                     let temporary = parent
                         .join(format!(
                             ".modsync-maint-{:x}-{:x}-{}",
@@ -324,7 +334,8 @@ fn valid_plan(plan: &Plan) -> Result<()> {
                 }
             }
             Action::OwnerWritable => {
-                let after = entry.mode | if entry.directory { 0o700 } else { 0o600 };
+                let after =
+                    platform::owner_writable_mode(entry.mode, entry.directory, &plan.capability)?;
                 if after != entry.mode {
                     expected.push(Operation::OwnerMode {
                         path: path.clone(),
@@ -518,21 +529,21 @@ fn valid_terminal(plan: &Plan, cursor: &Cursor) -> Result<()> {
 
 fn publish_intent(directory: &Path, intent: &Intent, replace: bool) -> Result<()> {
     let bytes = plan::document(intent)?;
-    let mut temporary = tempfile::Builder::new()
-        .prefix("maintenance-v1-private-")
-        .tempfile_in(
-            directory
-                .parent()
-                .context("Maintenance state needs a parent")?,
-        )?;
+    let mut temporary = platform::private_temp(
+        directory
+            .parent()
+            .context("Maintenance state needs a parent")?,
+        "maintenance-v1-private-",
+    )?;
     temporary.write_all(&bytes)?;
     temporary.as_file().sync_all()?;
-    let private_identity = platform::identity(&temporary.as_file().metadata()?)?;
+    let private_identity = platform::identity_file(temporary.as_file())?;
     ensure!(
-        platform::identity(&safe_state(temporary.path())?)? == private_identity,
+        platform::identity_at(temporary.path(), &safe_state(temporary.path())?)?
+            == private_identity,
         "Maintenance private intent was replaced before publication"
     );
-    platform::publish(temporary.path(), &directory.join("plan.json"), replace)?;
+    platform::publish_temp(temporary, &directory.join("plan.json"), replace)?;
     ensure!(
         read_bounded(&directory.join("plan.json"))? == bytes,
         "Maintenance published intent differs from its flushed private document"
@@ -578,25 +589,12 @@ fn finish_cleanup(intent: &Intent, terminal: &Cursor, record: &fence::Record) ->
     Ok(())
 }
 
-fn create_file(path: &Path) -> Result<File> {
-    let mut options = fs::OpenOptions::new();
-    options.read(true).write(true).create_new(true);
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::OpenOptionsExt;
-        options
-            .mode(0o600)
-            .custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK);
-    }
-    Ok(options.open(path)?)
-}
-
 impl Writer {
     fn open(intent: &Intent, truncate_to: Option<usize>) -> Result<Self> {
         let directory = directory(&intent.plan.roots());
         let path = directory.join("journal.jsonl");
         let file = if crate::checkpoint::safe_path(&path)?.is_none() {
-            create_file(&path)?
+            platform::create_file(&path)?
         } else {
             safe_state(&path)?;
             let mut options = fs::OpenOptions::new();
@@ -606,10 +604,26 @@ impl Writer {
                 use std::os::unix::fs::OpenOptionsExt;
                 options.custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK);
             }
+            #[cfg(windows)]
+            {
+                use std::os::windows::fs::OpenOptionsExt;
+                options
+                    .custom_flags(
+                        windows_sys::Win32::Storage::FileSystem::FILE_FLAG_OPEN_REPARSE_POINT,
+                    )
+                    .access_mode(
+                        windows_sys::Win32::Foundation::GENERIC_READ
+                            | windows_sys::Win32::Foundation::GENERIC_WRITE,
+                    );
+            }
             options.open(&path)?
         };
         let metadata = file.metadata()?;
-        platform::qualify(&path, &metadata)?;
+        platform::qualify_private(&path, &metadata)?;
+        ensure!(
+            platform::identity_file(&file)? == platform::identity_at(&path, &safe_state(&path)?)?,
+            "Maintenance journal identity changed during open"
+        );
         if let Some(length) = truncate_to {
             ensure!(
                 length as u64 <= metadata.len(),
@@ -622,7 +636,7 @@ impl Writer {
         let metadata = file.metadata()?;
         Ok(Self {
             directory,
-            identity: platform::identity(&metadata)?,
+            identity: platform::identity_file(&file)?,
             length: metadata.len(),
             modified: metadata.modified()?,
             plan_bytes: plan::document(intent)?.len() + fence::MAX_FENCE,
@@ -634,7 +648,7 @@ impl Writer {
         let path = self.directory.join("journal.jsonl");
         let metadata = safe_state(&path)?;
         ensure!(
-            platform::identity(&metadata)? == self.identity
+            platform::identity_at(&path, &metadata)? == self.identity
                 && metadata.len() == self.length
                 && metadata.modified()? == self.modified,
             "Maintenance journal was edited/replaced by a foreign writer"
@@ -649,6 +663,16 @@ impl Writer {
                     .is_some_and(|size| size <= MAX_DOCUMENT as u64),
             "Maintenance durable journal budget exhausted"
         );
+        #[cfg(windows)]
+        {
+            // Full write rights are needed for interrupted-tail truncation.
+            // That overrides std's append-only access mask, so seek explicitly.
+            let offset = std::io::Seek::seek(&mut self.file, std::io::SeekFrom::End(0))?;
+            ensure!(
+                offset == self.length,
+                "Maintenance journal length changed before Windows append"
+            );
+        }
         self.file.write_all(&bytes)?;
         self.file.sync_all()?;
         self.length += bytes.len() as u64;
@@ -666,7 +690,8 @@ impl Writer {
         );
         let metadata = safe_state(&self.directory.join("journal.jsonl"))?;
         ensure!(
-            platform::identity(&metadata)? == self.identity
+            platform::identity_at(&self.directory.join("journal.jsonl"), &metadata)?
+                == self.identity
                 && metadata.len() == self.length
                 && metadata.modified()? == self.modified,
             "Maintenance journal changed before cleanup"
@@ -764,7 +789,7 @@ fn rename(
         .entries
         .get(&parent_relative)
         .context("Maintenance parent is outside immutable inventory")?;
-    let parent_identity = platform::identity(&parent_metadata)?;
+    let parent_identity = platform::identity_at(parent, &parent_metadata)?;
     ensure!(
         parent_identity == parent_entry.identity
             && platform::mode(&parent_metadata)? == parent_entry.mode,
@@ -774,7 +799,7 @@ fn rename(
     platform::rename(&source, &target, &parent_identity)?;
     crate::checkpoint::persistence::namespace_boundary(parent)?;
     ensure!(
-        platform::identity(&safe_state(parent)?)? == parent_identity,
+        platform::identity_at(parent, &safe_state(parent)?)? == parent_identity,
         "Maintenance namespace parent changed during rename"
     );
     check_object(plan, to, expected, flag, work)

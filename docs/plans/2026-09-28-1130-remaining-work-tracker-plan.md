@@ -82,6 +82,20 @@ digests and nonhermetic/failure receipts. It has not been executed and does not
 populate the empty payload allowlist. Actual producing evidence, dependency
 license/source obligations and native bundled backend acceptance remain open.
 
+The next source continuation adds a recorded Unicode 15.0 maintenance mapper,
+shared versioned ordinal name matching, bounded keyed planning/discovery and
+empty-only stale peer cleanup. Windows maintenance now has a fixed local NTFS
+profile with full native identity, default-stream-only admission, unchanged
+owner/group/DACL proof, readonly repair, exclusive rename and protected metadata
+creation. Source review corrected stream admission and interrupted journal
+truncation/append rights. Native execution/interruption remains open. Profile
+dates now canonicalize UTC/Unspecified values and have a bounded immutable Unix
+local-zone provider. Unsupported forms retain authored text with warnings;
+Windows local dates, adjacent-year stitching, complex boundary dates and broad
+framework fallback remain named implementation follow-ups. Both Linux production build/strict-lint modes and Windows GNU library/CLI
+cross-compilation/linking passed for this source boundary. These gates do not
+close the behavioral acceptance rows.
+
 Rooted FOMOD phase preparation and Save Selection now resolve archive-shaped
 directories from actual members using the engine's source policy, preserving
 ordinary folder/glob ownership and future VFS archive scope. Registry ownership,

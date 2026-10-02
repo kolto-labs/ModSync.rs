@@ -1,0 +1,18 @@
+{
+  "algorithm": "dotnet-icu-invariant-simple-lower-v1",
+  "unicodeVersion": "15.0.0",
+  "sourceUrl": "https://www.unicode.org/Public/15.0.0/ucd/UnicodeData.txt",
+  "sourceSha256": "806e9aed65037197f1ec85e12be6e8cd870fc5608b4de0fffd990f689f376a73",
+  "tableSha256": "cb52d6454792a898d04ae3102a8c227ea351f70f15321589f7d4cf9db6015400",
+  "licenseUrl": "https://www.unicode.org/license.txt",
+  "licenseSha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+  "mappingFieldZeroBased": 13,
+  "invariantLowercaseExceptions": [
+    "U+0130"
+  ],
+  "assignedRangeCount": 707,
+  "assignedScalarCount": 286719,
+  "mappingPairCount": 1432,
+  "tableDigestEncoding": "ASCII algorithm LF version LF 0130=0130 LF; sorted A:first:last and M:source:destination lines with uppercase six-digit hex and LF",
+  "generator": "generate.py"
+}

@@ -1645,3 +1645,41 @@ source/license/artifact digests. It is nonhermetic, has not been invoked and
 does not admit a bundled payload. The provenance allowlist is still empty;
 dependency/source obligations, actual producing review and installed acceptance
 remain open. See [package construction](packaging/README.md).
+
+### Native maintenance, versioned casing, date serialization and acquisition continuation
+
+Windows maintenance has a separate local fixed NTFS source profile. It retains
+full 128-bit file identity, current effective ownership, owner/group/DACL hashes
+and admitted attributes. Named data streams are refused. Readonly repair and
+exclusive rename use pinned handles; new metadata has a protected owner-only
+DACL at creation. Partial-tail recovery requests truncation rights and every
+append verifies EOF. Native execution/interruption remain unverified; see
+[the Windows contract](docs/parity/maintenance-windows-contract.md).
+
+Maintenance now records an optional invariant simple lowercase profile with an
+exact Unicode 15.0 source/table digest. Preview and persisted recovery derive
+the same operations from that mapper. Absent metadata retains legacy ASCII-only
+admission, and unknown profiles or unassigned scalars are refused. The exact
+scope and native ICU/NLS limitation are in the
+[Unicode maintenance contract](docs/parity/maintenance-unicode-contract.md).
+
+Shared FOMOD/selection/authoring name keys use the pinned simple-uppercase
+table and .NET 9 ICU ordinal dotless-i/long-s exceptions, replacing Rust full
+uppercase heuristics. No normalization or expansion is applied. Newer datasets
+and every Windows NLS version remain separate acceptance boundaries; see
+[ordinal matching](docs/parity/ordinal-name-matching.md).
+
+Profile UTC and timezone-free dates now canonicalize with reference-style
+100-nanosecond precision, trailing fractional-zero trimming and Kind-specific Z
+suffixes. Fast parser dispatch uses the original string. A bounded immutable
+Unix timezone snapshot supports historical and admitted future conversions,
+retaining DST folds and reselecting the serialization offset. Unsupported rules
+retain authored text with warnings. Windows local conversion, adjacent-year
+stitching, complex boundary dates and broader framework fallback remain open; see
+[date canonicalization](docs/parity/profile-date-canonicalization.md).
+
+Planning, discovery and execution now share the same bounded cancellable keyed
+destination grouping. Stale peer cleanup removes only canonically named empty
+old ordinary directories; nonempty contents are retained for inspection, and
+all Windows reparse points are excluded. These changes passed independent source
+review. No runtime, corpus or native acceptance is claimed by this section.

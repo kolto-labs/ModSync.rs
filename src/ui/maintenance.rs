@@ -327,6 +327,18 @@ impl App {
                     Ok(Output::Outcome(outcome)) => {
                         recovery_required =
                             outcome.status == maintenance::OutcomeStatus::RecoveryRequired;
+                        lines.push(
+                            match outcome.disposition {
+                                Some(maintenance::TreeDisposition::AppliedTree) if outcome.recovered =>
+                                    "The applied tree was verified and its recovery metadata cleared.",
+                                Some(maintenance::TreeDisposition::AppliedTree) =>
+                                    "Maintenance completed; the applied tree was verified.",
+                                Some(maintenance::TreeDisposition::RestoredOriginalTree) =>
+                                    "The original tree was restored and verified.",
+                                None =>
+                                    "Tree recovery remains unresolved. Inspect the result and pending recovery status.",
+                            }.into(),
+                        );
                         if crate::maintenance_cli::outcome_exit(&outcome) != 0 {
                             self.maintenance.error = format!(
                                 "Maintenance outcome: {:?}. Inspect the result and recovery state.",

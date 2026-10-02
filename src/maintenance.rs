@@ -1,5 +1,6 @@
 //! Explicit, previewed maintenance transactions. Never an installation component.
 //! See docs/parity/maintenance-contract.md for authority and platform limits.
+mod casing;
 mod fence;
 mod journal;
 mod plan;
@@ -14,6 +15,17 @@ use std::{
 };
 
 pub use crate::checkpoint::TreeRoot;
+
+/// Exact supported dataset and algorithm for maintenance name mapping.
+/// Omitted capability metadata retains the original ASCII-only contract.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct CasingProfile {
+    pub algorithm: String,
+    pub unicode_version: String,
+    pub source_sha256: String,
+    pub table_sha256: String,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -42,6 +54,10 @@ pub struct Capability {
     /// Stable admission contract; absent in the original Linux intent format.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub profile: Option<String>,
+    /// Dataset admission is independent of the native mutation profile.
+    /// Absence retains the original ASCII-only serialized contract.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub casing: Option<CasingProfile>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

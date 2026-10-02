@@ -78,16 +78,16 @@ pub(super) fn ensure_clear(root: &Path) -> Result<()> {
 fn read(path: &Path) -> Result<Vec<u8>> {
     let metadata =
         crate::checkpoint::safe_path(path)?.context("Mod maintenance fence disappeared")?;
-    platform::qualify(path, &metadata)?;
+    platform::qualify_private(path, &metadata)?;
     ensure!(
         metadata.is_file() && metadata.len() <= MAX_FENCE as u64,
         "Mod maintenance fence is not a bounded owned regular file"
     );
     let mut bytes = Vec::new();
+    let identity = platform::identity_at(path, &metadata)?;
     let file = crate::paths::open_regular_read(path)?;
-    let opened = file.metadata()?;
     ensure!(
-        platform::identity(&opened)? == platform::identity(&metadata)?,
+        platform::identity_file(&file)? == identity,
         "Mod maintenance fence changed while opening"
     );
     file.take(MAX_FENCE as u64 + 1).read_to_end(&mut bytes)?;
@@ -98,7 +98,7 @@ fn read(path: &Path) -> Result<Vec<u8>> {
     let after = crate::checkpoint::safe_path(path)?
         .context("Mod maintenance fence disappeared during read")?;
     ensure!(
-        platform::identity(&after)? == platform::identity(&metadata)?
+        platform::identity_at(path, &after)? == identity
             && after.len() == metadata.len()
             && after.modified()? == metadata.modified()?,
         "Mod maintenance fence changed during read"
@@ -214,7 +214,7 @@ impl Record {
                 .context("Mod maintenance bound root disappeared")?;
             platform::qualify(root, &metadata)?;
             ensure!(
-                platform::identity(&metadata)? == *expected,
+                platform::identity_at(root, &metadata)? == *expected,
                 "Mod maintenance bound root was replaced"
             );
         }
@@ -252,19 +252,19 @@ fn publish(record: &Record, replace: bool) -> Result<()> {
         bytes.len() <= MAX_FENCE,
         "Mod maintenance fence exceeds 64 KiB"
     );
-    let mut temporary = tempfile::Builder::new()
-        .prefix("modsync-maintenance-private-")
-        .tempfile_in(path.parent().unwrap())?;
+    let mut temporary =
+        platform::private_temp(path.parent().unwrap(), "modsync-maintenance-private-")?;
     temporary.write_all(&bytes)?;
     temporary.as_file().sync_all()?;
     let metadata =
         crate::checkpoint::safe_path(temporary.path())?.context("Private mod fence disappeared")?;
-    platform::qualify(temporary.path(), &metadata)?;
+    platform::qualify_private(temporary.path(), &metadata)?;
     ensure!(
-        platform::identity(&metadata)? == platform::identity(&temporary.as_file().metadata()?)?,
+        platform::identity_at(temporary.path(), &metadata)?
+            == platform::identity_file(temporary.as_file())?,
         "Private mod fence was replaced"
     );
-    platform::publish(temporary.path(), &path, replace)?;
+    platform::publish_temp(temporary, &path, replace)?;
     ensure!(
         read(&path)? == bytes,
         "Published mod fence differs from its flushed document"
