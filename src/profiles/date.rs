@@ -1,9 +1,11 @@
 //! Bounded additional ISO forms accepted by Newtonsoft.Json 13.0.4's
 //! DateTimeParser + DateTimeUtils.CreateDateTime. This validates acceptance;
 //! timezone-independent values serialize at 100 ns precision. Local conversion
-//! uses one bounded immutable Unix zone snapshot, retaining authored text with
+//! uses one bounded immutable host timezone snapshot, retaining authored text with
 //! warnings when the platform or rule shape is unsupported.
 use chrono::{Datelike, NaiveDate, NaiveDateTime, Timelike};
+#[path = "date/fallback.rs"]
+pub(super) mod fallback;
 #[path = "date/local.rs"]
 pub(super) mod local;
 
@@ -12,6 +14,7 @@ pub(super) enum Kind {
     Utc,
     Unspecified,
     LocalRequired { offset_minutes: Option<i32> },
+    FallbackLocal { offset_minutes: i32 },
 }
 
 pub(super) struct DateValue {
@@ -24,21 +27,28 @@ impl DateValue {
         authored: &str,
         key: &str,
         context: &mut local::ContextSnapshot,
-    ) -> String {
-        if let Kind::LocalRequired { offset_minutes } = self.kind {
-            match context.normalize(self.clock, offset_minutes) {
-                Ok(value) => value,
-                Err(error) => {
-                    context.warn(key, &error);
-                    authored.to_owned()
-                }
+    ) -> anyhow::Result<String> {
+        let result = match self.kind {
+            Kind::LocalRequired { offset_minutes } => context.normalize(self.clock, offset_minutes),
+            Kind::FallbackLocal { offset_minutes } => {
+                context.normalize_fallback(self.clock, offset_minutes)
             }
-        } else {
-            self.canonical().unwrap_or_else(|| authored.to_owned())
+            _ => return Ok(self.canonical().unwrap_or_else(|| authored.to_owned())),
+        };
+        match result {
+            Ok(value) => Ok(value),
+            Err(error) if error.is::<local::InvalidFallbackDate>() => Err(error),
+            Err(error) => {
+                context.warn(key, &error);
+                Ok(authored.to_owned())
+            }
         }
     }
     pub(super) fn canonical(&self) -> Option<String> {
-        if matches!(self.kind, Kind::LocalRequired { .. }) {
+        if matches!(
+            self.kind,
+            Kind::LocalRequired { .. } | Kind::FallbackLocal { .. }
+        ) {
             return None;
         }
         let mut text = format!(

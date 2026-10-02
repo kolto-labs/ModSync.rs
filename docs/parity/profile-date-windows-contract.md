@@ -2,7 +2,7 @@
 
 ## Status and integration
 
-The bounded Windows host-local provider is implemented in production source and independently source reviewed and covered by the parent-owned production gates. Supported conversions canonicalize through an immutable native snapshot. Unsupported local dates retain authored text with a warning. Pure UTC and Unspecified canonicalization works independently of a host zone. This document records no native execution or platform acceptance.
+The bounded Windows host-local provider is implemented in production source. Native intake and ordinary rules were independently reviewed and passed the parent-owned production gates at checkpoint `5102edc`. The pure rule extensions and fallback bridge described below have been independently source reviewed and passed the production gates recorded in the current gate receipt. Supported conversions canonicalize through an immutable native snapshot. Unsupported local dates retain authored text with a warning. Pure UTC and Unspecified canonicalization works independently of a host zone. This document records no native execution or platform acceptance.
 
 The provider preserves the existing `DateValue`, `Kind` and `ContextSnapshot` interfaces. A decode/save call captures one immutable snapshot lazily and reuses it for both profile date fields, including a captured failure. Provider errors retain the authored string and emit the existing bounded warning containing the field key and provider context. Diagnostics omit authored profile text.
 
@@ -36,24 +36,25 @@ Windows zone authority comes from the OS configuration. Unix `TZ`/`TZDIR` overri
 
 The immutable representation contains a base offset and ordered adjustment rules with date ranges, effective standard offsets, daylight deltas and fixed/floating transitions. Reference operation names guide the port: `get_adjustment_rule_for_time`, `get_utc_offset_from_utc`, `get_daylight_time`, `get_is_daylight_savings_from_utc`, `get_is_daylight_savings`, `check_is_dst` and `transition_time_to_date_time`.
 
-The shared [.NET rule engine](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.CoreLib/src/System/TimeZoneInfo.cs) selects ordinary UTC rules using the date after adding the current base offset. Transition UTC offsets differ at start and end. Ordinary northern and southern seasons, positive and negative daylight deltas, and daylight-side ambiguous intervals require separate UTC and local calculations. The proposed port will preserve these distinctions and its carried fold bit.
+The shared [.NET rule engine](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.CoreLib/src/System/TimeZoneInfo.cs) selects ordinary UTC rules using the date after adding the current base offset. Transition UTC offsets differ at start and end. The port preserves northern/southern seasons, positive/negative daylight deltas and the carried fold bit. Year markers consult one neighboring year; successful stitching suppresses calendar-year rebasing. Bias-only rules retain their sentinel transitions for these helpers. Cross-year ambiguity retries use `AddYears(+1)`, then `AddYears(-1)`, swallowing range errors only in those optional retries. Endpoint UTC lookup selects local MinValue/MaxValue rules below January 2, year 1, or above December 31 midnight, year 9999. Rule admission validates the effective daylight total; a separately limited standard component would reject reference-admitted rules.
 
 All calculations use 100 ns ticks. Common calendar helpers centralize tick conversion, separately named checked/clamped shifts, calendar-year changes with leap-day clamping, and nth/last weekday construction. Rule lookup, marker stitching and fold policy remain provider-specific. The existing Unix normalization algorithm is unchanged by Windows intake.
 
-Numeric ISO zones identify an instant for host conversion; Microsoft offset tokens request host conversion without using the token's numerical offset. The final local clock and fold bit will be passed through a second local-offset selection for serialization. Existing Newtonsoft out-of-range handling remains part of this flow. [.NET DateTime](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.CoreLib/src/System/DateTime.cs) preserves ambiguity when conversion is in range and clamps its endpoints; its `AddYears` calendar behavior supplies the shared leap-day contract.
+Numeric ISO zones identify an instant for host conversion; Microsoft offset tokens request host conversion without using the token's numerical offset. The final local clock and fold bit pass through a second local-offset selection for serialization. Existing Newtonsoft out-of-range handling remains part of this flow. [.NET DateTime](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.CoreLib/src/System/DateTime.cs) preserves ambiguity when conversion is in range and clamps its endpoints, clearing the fold bit on saturation. Transition arithmetic remains checked; `AddYears` supplies the shared leap-day contract.
 
-## Initial unsupported forms and follow-ups
+The full-date numeric-offset fallback has a separate `normalize_fallback` seam following [.NET DateTimeParse.AdjustTimeZoneToLocal](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.CoreLib/src/System/Globalization/DateTimeParse.cs). It includes first-day handling and reselects the original Unspecified wall offset when adjusted UTC is out of range. Its final out-of-range result produces a typed invalid-date error rather than fast-path clamping. The existing snapshot and final local serializer are shared.
 
-The first slice retains authored text with a warning for:
+Marker predicates and the 24-hour delta transfer follow [.NET AdjustmentRule](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.CoreLib/src/System/TimeZoneInfo.AdjustmentRule.cs). Floating January transitions can be markers too. Delta construction transfers exactly one day between daylight and standard components before validating the resulting delta and effective offset; it does not repeatedly reduce the delta. A separate `has_daylight` flag preserves sentinel transitions without enabling daylight calculations for bias-only rules.
+
+## Remaining unsupported forms and follow-ups
+
+The provider retains authored text with a warning for:
 
 - Missing, inaccessible, changing, oversized or malformed snapshots, including missing annual records.
 - Empty/bogus key fallback searches, native custom-zone fallback and dummy-UTC fallback.
-- Beginning/end-of-year daylight markers requiring adjacent-rule stitching.
-- Shifted transition or ambiguity windows crossing a calendar year beyond ordinary southern-season ordering.
-- Daylight deltas outside ±12 hours requiring the reference's transfer of one day between daylight and base components.
-- Adjusted endpoint dates requiring special daylight rule selection; constant zones can use exact endpoint clamping.
 - Invalid or unsupported transition structures or effective offsets.
+- Checked transition/marker arithmetic that exceeds the DateTime range. The adapter preserves authored text rather than inventing a clamped transition; final fast-path conversion saturation remains a separate operation.
 
-Marker predicates and the 24-hour delta transfer are distinct contracts in [.NET AdjustmentRule](https://raw.githubusercontent.com/dotnet/runtime/v9.0.0/src/libraries/System.Private.CoreLib/src/System/TimeZoneInfo.AdjustmentRule.cs). Marker detection must not be restricted to fixed-date rules. These cases are named follow-ups; the scoped provider does not complete broad DateTime parsing or all local-zone parity.
+Native fallback discovery remains a separate source scope. Parser acceptance beyond the admitted deterministic fallback remains separately tracked; this provider does not complete broad DateTime parsing or all local-zone parity.
 
 No tests, fixtures, builds, runtime probes or native API calls were performed by the implementing agent. Source implementation, independent review, compilation and native acceptance remain separate receipts.

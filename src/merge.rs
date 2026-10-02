@@ -1,4 +1,5 @@
 use crate::Component;
+use crate::unicode_case::{invariant_lower_key, ordinal_eq};
 
 mod preview;
 pub use preview::{Preview, apply_preview, preview};
@@ -183,7 +184,7 @@ fn normalized(value: &str, options: &Heuristics) -> String {
         text = PUNCTUATION.replace_all(&text, "").into_owned();
     }
     if options.ignore_case {
-        text = text.to_lowercase();
+        text = invariant_lower_key(&text);
     }
     text
 }
@@ -286,15 +287,15 @@ fn union(target: &mut Vec<String>, source: &[String]) {
 
 fn instruction_key(instruction: &crate::Instruction) -> (String, String) {
     (
-        instruction.action.to_lowercase(),
-        instruction.destination.to_lowercase(),
+        invariant_lower_key(&instruction.action),
+        invariant_lower_key(&instruction.destination),
     )
 }
 
 fn same_instruction(a: &crate::Instruction, b: &crate::Instruction) -> bool {
     a.action.eq_ignore_ascii_case(&b.action)
         && a.source == b.source
-        && a.destination.eq_ignore_ascii_case(&b.destination)
+        && ordinal_eq(&a.destination, &b.destination)
         && a.arguments == b.arguments
         && a.overwrite == b.overwrite
         && a.dependencies == b.dependencies
@@ -345,10 +346,8 @@ fn merge_instructions(
         let prior = &target[existing];
         if incoming.action.eq_ignore_ascii_case(&prior.action)
             && incoming.source == prior.source
-            && incoming
-                .destination
-                .eq_ignore_ascii_case(&prior.destination)
-            && incoming.arguments.eq_ignore_ascii_case(&prior.arguments)
+            && ordinal_eq(&incoming.destination, &prior.destination)
+            && ordinal_eq(&incoming.arguments, &prior.arguments)
         {
             replacement.source.clone_from(&prior.source);
         }
@@ -409,7 +408,7 @@ fn merge_resources(
 }
 
 fn option_name(option: &Component) -> String {
-    option.name.trim().to_lowercase()
+    invariant_lower_key(option.name.trim())
 }
 
 /// C# option merge: names match against the target's original options only, and
@@ -527,17 +526,25 @@ fn merge_language(target: &mut Component, source: &Component) {
         return;
     }
     let mut merged = Vec::new();
-    union(&mut merged, &metadata_strings(target, "Language"));
+    language_union(&mut merged, &metadata_strings(target, "Language"));
     let incoming: Vec<_> = incoming
         .into_iter()
         .filter(|value| !value.trim().is_empty())
         .collect();
-    union(&mut merged, &incoming);
+    language_union(&mut merged, &incoming);
     let key = metadata_key(target, "Language").unwrap_or_else(|| "Language".into());
     target.metadata.insert(
         key,
         serde_json::Value::Array(merged.into_iter().map(Into::into).collect()),
     );
+}
+
+fn language_union(target: &mut Vec<String>, source: &[String]) {
+    for value in source {
+        if !target.iter().any(|known| ordinal_eq(known, value)) {
+            target.push(value.clone());
+        }
+    }
 }
 
 fn merge_installation_method(target: &mut Component, source: &Component, prefer: bool) {

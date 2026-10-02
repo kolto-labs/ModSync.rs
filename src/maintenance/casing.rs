@@ -6,8 +6,7 @@ use anyhow::{Result, ensure};
 use sha2::{Digest, Sha256};
 use std::sync::OnceLock;
 
-#[path = "casing/data.rs"]
-mod data;
+use crate::unicode_case as data;
 
 pub(super) fn current_profile() -> CasingProfile {
     CasingProfile {

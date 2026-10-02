@@ -121,7 +121,10 @@ fn date(
     // Fast parser dispatch uses the original text. Trimming Microsoft syntax
     // here would admit input the framework invariant fallback does not parse.
     if let Some(parsed) = date_compat::iso(value).or_else(|| date_compat::microsoft(value)) {
-        return Ok(parsed.normalize(value, key, context));
+        return parsed.normalize(value, key, context);
+    }
+    if let Some(parsed) = date_compat::fallback::parse(value)? {
+        return parsed.normalize(value, key, context);
     }
     if let Some(parsed) = date_compat::invariant(value) {
         return parsed

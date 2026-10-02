@@ -143,6 +143,15 @@ User instruction on 2026-09-28: implement everything before testing or waiting f
 
 The user authorized the ModOrchestration workflow correction, which reached default-branch head `66e468a7` before this deferral. Its latest observed CI run reached real installs but failed on fontconfig timestamp stderr; subsequent CI work is deferred. The K2 schema question is prepared only, per the user's contact preference; no author message is authorized.
 
+### Current source continuation on main
+
+The reviewed continuation after `5102edc` adds shared pinned merge casing,
+bounded invariant full-date fallback with typed local range errors, and Windows
+year-marker/cross-year/day-transfer/endpoint rule mechanics. See the merge and
+profile date contracts and production-gate receipt. Native Windows discovery,
+remaining date grammar and the other domain acceptance requirements stay open.
+No tests, runtime probes or CI were used; implementation continues on `main`.
+
 ## Next sequence
 
 - [ ] Finish downloads GUI step 3: peer races/cancellation, window close, completion-page status, Save/record diffs, stale guide/root outcomes, direct Install blocking, remaining sizes/platforms.

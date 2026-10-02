@@ -1,5 +1,5 @@
-//! Pure bounded port of .NET 9 TimeZoneInfo's ordinary Windows adjustment rules.
-//! Year markers, cross-year transition windows and adjusted endpoints are refused.
+//! Pure port of the pinned .NET 9 Windows adjustment-rule operations.
+//! Capture qualification and authored-text preservation remain in the adapters.
 use super::super::calendar::{
     MAX, TICKS, add_years, checked_shift, clamped_shift, clock, clock_ticks, month_weekday,
 };
@@ -83,7 +83,8 @@ struct Rule {
     end: NaiveDate,
     standard: i32,
     delta: i32,
-    transitions: Option<(Transition, Transition)>,
+    transitions: (Transition, Transition),
+    has_daylight: bool,
 }
 impl Rule {
     fn from_tzi(
@@ -93,13 +94,30 @@ impl Rule {
         end: NaiveDate,
     ) -> Result<Option<Self>> {
         if row.standard.month == 0 {
+            if row.bias == default_bias {
+                return Ok(None);
+            }
             let standard = offset_minutes(-i64::from(row.bias))?;
-            return Ok((row.bias != default_bias).then_some(Self {
+            // Adjacent-year marker helpers inspect these sentinels even though
+            // this rule has no daylight saving. Retain the source representation.
+            return Ok(Some(Self {
                 start,
                 end,
                 standard,
                 delta: 0,
-                transitions: None,
+                transitions: (
+                    Transition {
+                        month: 1,
+                        day: Day::Fixed(1),
+                        time: 0,
+                    },
+                    Transition {
+                        month: 1,
+                        day: Day::Fixed(1),
+                        time: 10_000,
+                    },
+                ),
+                has_daylight: false,
             }));
         }
         let daylight = Transition::from_system_time(&row.daylight)?;
@@ -107,35 +125,38 @@ impl Rule {
         if daylight == standard_transition {
             return Ok(None);
         }
-        let standard = offset_minutes(-i64::from(row.bias))?;
-        let delta = -i64::from(row.daylight_bias) * 60;
+        let mut standard = -i64::from(row.bias) * 60;
+        let mut delta = -i64::from(row.daylight_bias) * 60;
+        // AdjustmentRule.AdjustDaylightDeltaToExpectedRange performs one transfer,
+        // before validation. Preserve the effective daylight offset.
+        if delta > 43200 {
+            delta -= 86400;
+            standard += 86400;
+        } else if delta < -43200 {
+            delta += 86400;
+            standard -= 86400;
+        }
         ensure!(
-            (-43200..=43200).contains(&delta),
-            "Windows timezone daylight delta requires unsupported 24-hour rebasing"
-        );
-        let delta = delta as i32;
-        ensure!(
-            (-50400..=50400).contains(&(standard + delta)),
-            "Windows timezone daylight offset exceeds .NET range"
+            (-23 * 3600..=14 * 3600).contains(&delta),
+            "Windows timezone daylight delta exceeds .NET adjustment-rule range"
         );
         let has_daylight = delta != 0 || daylight.time != 0 || standard_transition.time != 10_000;
+        ensure!(
+            (-50400..=50400).contains(&(standard + if has_daylight { delta } else { 0 })),
+            "Windows timezone daylight offset exceeds .NET range"
+        );
         Ok(Some(Self {
             start,
             end,
-            standard,
-            delta,
-            transitions: has_daylight.then_some((daylight, standard_transition)),
+            standard: i32::try_from(standard)
+                .context("Windows standard offset exceeds storage range")?,
+            delta: delta as i32,
+            transitions: (daylight, standard_transition),
+            has_daylight,
         }))
     }
     fn get_daylight_time(&self, year: i32) -> Result<(i64, i64)> {
-        let (start, end) = self
-            .transitions
-            .as_ref()
-            .context("Windows daylight rule has no transitions")?;
-        ensure!(
-            !start.marker() && !end.marker(),
-            "Windows timezone year markers require adjacent-rule stitching"
-        );
+        let (start, end) = &self.transitions;
         Ok((
             start.transition_time_to_date_time(year)?,
             end.transition_time_to_date_time(year)?,
@@ -154,6 +175,17 @@ fn offset_minutes(minutes: i64) -> Result<i32> {
 }
 fn date(year: i32, month: u32, day: u32) -> Result<NaiveDate> {
     NaiveDate::from_ymd_opt(year, month, day).context("Windows timezone rule date is invalid")
+}
+fn midnight(year: i32, month: u32, day: u32) -> Result<i64> {
+    ensure!(
+        (1..=9999).contains(&year),
+        "Windows rule year exceeds DateTime range"
+    );
+    Ok(clock_ticks(
+        date(year, month, day)?
+            .and_hms_opt(0, 0, 0)
+            .context("Windows rule midnight is unavailable")?,
+    ))
 }
 
 pub(super) struct Zone {
@@ -210,25 +242,74 @@ impl Zone {
             .and_then(|index| self.rules.get(index))
             .filter(|rule| day <= rule.end))
     }
-    fn check_is_dst(start: i64, ticks: i64, end: i64) -> Result<bool> {
-        let year = clock(start)?.year();
-        let end_year = clock(end)?.year();
-        let tick_year = clock(ticks)?.year();
-        let end = if end_year == year {
-            end
-        } else {
-            add_years(end, year - end_year)?
-        };
-        let ticks = if tick_year == year {
-            ticks
-        } else {
-            add_years(ticks, year - tick_year)?
-        };
+    fn check_is_dst(
+        start: i64,
+        mut ticks: i64,
+        mut end: i64,
+        ignore_year_adjustment: bool,
+    ) -> Result<bool> {
+        if !ignore_year_adjustment {
+            let year = clock(start)?.year();
+            let end_year = clock(end)?.year();
+            let tick_year = clock(ticks)?.year();
+            if end_year != year {
+                end = add_years(end, year - end_year)?;
+            }
+            if tick_year != year {
+                ticks = add_years(ticks, year - tick_year)?;
+            }
+        }
         Ok(if start > end {
             ticks < end || ticks >= start
         } else {
             ticks >= start && ticks < end
         })
+    }
+    fn try_get_start_of_dst_if_year_end_with_dst(&self, year: i32) -> Result<Option<i64>> {
+        let Some(rule) = self.get_adjustment_rule_for_time(midnight(year, 12, 31)?)? else {
+            return Ok(None);
+        };
+        let (start, end) = rule.get_daylight_time(year)?;
+        if rule.transitions.1.marker() || start > end {
+            return Ok(Some(checked_shift(start, -rule.standard)?));
+        }
+        Ok(None)
+    }
+    fn try_get_end_of_dst_if_year_start_with_dst(&self, year: i32) -> Result<Option<i64>> {
+        let Some(rule) = self.get_adjustment_rule_for_time(midnight(year, 1, 1)?)? else {
+            return Ok(None);
+        };
+        if rule.transitions.0.marker() {
+            let end = if rule.transitions.1.marker() {
+                // The reference helper uses Dec 31 midnight, not next Jan 1 minus a tick.
+                midnight(year, 12, 31)?
+            } else {
+                rule.get_daylight_time(year)?.1
+            };
+            return Ok(Some(checked_shift(end, -(rule.standard + rule.delta))?));
+        }
+        let (start, end) = rule.get_daylight_time(year)?;
+        if end < start && !rule.transitions.1.marker() {
+            return Ok(Some(checked_shift(end, -(rule.standard + rule.delta))?));
+        }
+        Ok(None)
+    }
+    fn ambiguity_contains(ticks: i64, start: i64, end: i64) -> Result<bool> {
+        if ticks >= start && ticks < end {
+            return Ok(true);
+        }
+        if clock(start)?.year() != clock(end)?.year() {
+            // Only these optional AddYears retries swallow DateTime range errors.
+            for years in [1, -1] {
+                if let (Ok(start), Ok(end)) = (add_years(start, years), add_years(end, years))
+                    && ticks >= start
+                    && ticks < end
+                {
+                    return Ok(true);
+                }
+            }
+        }
+        Ok(false)
     }
     fn get_is_daylight_savings_from_utc(
         &self,
@@ -237,25 +318,36 @@ impl Zone {
         rule: &Rule,
     ) -> Result<(bool, bool)> {
         let (start, end) = rule.get_daylight_time(year)?;
-        let start = checked_shift(start, -rule.standard)?;
-        let end = checked_shift(end, -(rule.standard + rule.delta))?;
-        ensure!(
-            clock(start)?.year() == year && clock(end)?.year() == year,
-            "Windows UTC transition crosses calendar year; rule stitching is unsupported"
-        );
+        let mut ignore_year_adjustment = false;
+        let start = if rule.transitions.0.marker() && year > 1 {
+            if let Some(start) = self.try_get_start_of_dst_if_year_end_with_dst(year - 1)? {
+                ignore_year_adjustment = true;
+                start
+            } else {
+                checked_shift(midnight(year, 1, 1)?, -rule.standard)?
+            }
+        } else {
+            checked_shift(start, -rule.standard)?
+        };
+        let end = if rule.transitions.1.marker() && year < 9999 {
+            if let Some(end) = self.try_get_end_of_dst_if_year_start_with_dst(year + 1)? {
+                ignore_year_adjustment = true;
+                end
+            } else {
+                checked_shift(midnight(year + 1, 1, 1)? - 1, -(rule.standard + rule.delta))?
+            }
+        } else {
+            checked_shift(end, -(rule.standard + rule.delta))?
+        };
         let (ambiguous_start, ambiguous_end) = if rule.delta > 0 {
             (checked_shift(end, -rule.delta)?, end)
         } else {
             (start, checked_shift(start, -rule.delta)?)
         };
-        ensure!(
-            clock(ambiguous_start)?.year() == clock(ambiguous_end)?.year(),
-            "Windows UTC ambiguity crosses calendar year; rule stitching is unsupported"
-        );
-        let dst = Self::check_is_dst(start, ticks, end)?;
+        let dst = Self::check_is_dst(start, ticks, end, ignore_year_adjustment)?;
         Ok((
             dst,
-            dst && ticks >= ambiguous_start && ticks < ambiguous_end,
+            dst && Self::ambiguity_contains(ticks, ambiguous_start, ambiguous_end)?,
         ))
     }
     fn get_utc_offset_from_utc(&self, ticks: i64) -> Result<(i32, bool)> {
@@ -266,15 +358,19 @@ impl Zone {
         if self.rules.is_empty() {
             return Ok((self.base, false));
         }
-        ensure!(
-            self.rules.is_empty() || (86400 * TICKS..=MAX - 86400 * TICKS).contains(&ticks),
-            "Windows endpoint adjustment-rule selection is not implemented"
-        );
-        let target = checked_shift(ticks, self.base)?;
+        // GetUtcOffsetFromUtc selects endpoint rules through local date-only
+        // lookup; ordinary dates instead use the global base-adjusted target.
+        let target = if ticks > midnight(9999, 12, 31)? {
+            MAX
+        } else if ticks < 86400 * TICKS {
+            0
+        } else {
+            checked_shift(ticks, self.base)?
+        };
         let Some(rule) = self.get_adjustment_rule_for_time(target)? else {
             return Ok((self.base, false));
         };
-        if rule.transitions.is_none() {
+        if !rule.has_daylight {
             return Ok((rule.standard, false));
         }
         let (dst, fold) =
@@ -284,46 +380,70 @@ impl Zone {
     fn get_is_daylight_savings(ticks: i64, rule: &Rule, fold: Option<bool>) -> Result<bool> {
         let year = clock(ticks)?.year();
         let (start, end) = rule.get_daylight_time(year)?;
+        let marker_start = rule.transitions.0.marker();
+        let marker_end = rule.transitions.1.marker();
         let (start_check, end_check) = if fold.is_some() {
-            (checked_shift(start, rule.delta)?, end)
-        } else if rule.delta > 0 {
             (
-                checked_shift(start, rule.delta)?,
-                checked_shift(end, -rule.delta)?,
+                if marker_start {
+                    midnight(year, 1, 1)?
+                } else {
+                    checked_shift(start, rule.delta)?
+                },
+                if marker_end {
+                    midnight(year + 1, 1, 1)? - 1
+                } else {
+                    end
+                },
             )
         } else {
-            (start, end)
+            (
+                if marker_start {
+                    midnight(year, 1, 1)?
+                } else if rule.delta > 0 {
+                    checked_shift(start, rule.delta)?
+                } else {
+                    start
+                },
+                if marker_end {
+                    midnight(year + 1, 1, 1)? - 1
+                } else if rule.delta > 0 {
+                    checked_shift(end, -rule.delta)?
+                } else {
+                    end
+                },
+            )
         };
-        ensure!(
-            clock(start_check)?.year() == year && clock(end_check)?.year() == year,
-            "Windows local daylight interval crosses calendar year; rule stitching is unsupported"
-        );
-        let mut dst = Self::check_is_dst(start_check, ticks, end_check)?;
-        if dst && let Some(fold) = fold {
-            let (ambiguous_start, ambiguous_end) = if rule.delta > 0 {
-                (checked_shift(end, -rule.delta)?, end)
-            } else {
-                (checked_shift(start, rule.delta)?, start)
-            };
-            ensure!(
-                clock(ambiguous_start)?.year() == clock(ambiguous_end)?.year(),
-                "Windows local ambiguity crosses calendar year; rule stitching is unsupported"
-            );
-            if ticks >= ambiguous_start && ticks < ambiguous_end {
-                dst = fold;
-            }
+        let mut dst = Self::check_is_dst(start_check, ticks, end_check, false)?;
+        if dst
+            && let Some(fold) = fold
+            && Self::get_is_ambiguous_time(ticks, rule, start, end)?
+        {
+            dst = fold;
         }
         Ok(dst)
     }
+    fn get_is_ambiguous_time(ticks: i64, rule: &Rule, start: i64, end: i64) -> Result<bool> {
+        if rule.delta == 0 {
+            return Ok(false);
+        }
+        let (start, end) = if rule.delta > 0 {
+            if rule.transitions.1.marker() {
+                return Ok(false);
+            }
+            (checked_shift(end, -rule.delta)?, end)
+        } else {
+            if rule.transitions.0.marker() {
+                return Ok(false);
+            }
+            (checked_shift(start, rule.delta)?, start)
+        };
+        Self::ambiguity_contains(ticks, start, end)
+    }
     fn local_offset(&self, ticks: i64, fold: Option<bool>) -> Result<i32> {
-        ensure!(
-            self.rules.is_empty() || (86400 * TICKS..=MAX - 86400 * TICKS).contains(&ticks),
-            "Windows endpoint local adjustment-rule selection is not implemented"
-        );
         let Some(rule) = self.get_adjustment_rule_for_time(ticks)? else {
             return Ok(self.base);
         };
-        if rule.transitions.is_none() {
+        if !rule.has_daylight {
             return Ok(rule.standard);
         }
         Ok(rule.standard
@@ -357,6 +477,35 @@ impl Zone {
         } else {
             self.to_local(wall_ticks)?
         };
+        self.serialize_local(local)
+    }
+    pub(super) fn normalize_fallback(&self, wall: NaiveDateTime, offset: i32) -> Result<String> {
+        // DateTimeParse.AdjustTimeZoneToLocal(full date, bTimeOnly=false) is
+        // distinct from Newtonsoft's fast ISO path: its result must not clamp.
+        let original = clock_ticks(wall);
+        let mut ticks = original - i64::from(offset) * 60 * TICKS;
+        let mut fold = false;
+        if original < 86400 * TICKS {
+            ticks += i64::from(self.local_offset(original, None)?) * TICKS;
+            if ticks < 0 {
+                ticks += 86400 * TICKS;
+            }
+        } else if !(0..=MAX).contains(&ticks) {
+            ticks += i64::from(self.local_offset(original, None)?) * TICKS;
+        } else {
+            let (adjustment, ambiguous) = self.get_utc_offset_from_utc(ticks)?;
+            ticks += i64::from(adjustment) * TICKS;
+            fold = ambiguous;
+        }
+        if !(0..=MAX).contains(&ticks) {
+            return Err(super::super::InvalidFallbackDate.into());
+        }
+        self.serialize_local(LocalValue {
+            ticks,
+            ambiguous_dst: fold,
+        })
+    }
+    fn serialize_local(&self, local: LocalValue) -> Result<String> {
         let offset = self.local_offset(local.ticks, Some(local.ambiguous_dst))?;
         let mut text = super::super::super::DateValue {
             clock: clock(local.ticks)?,

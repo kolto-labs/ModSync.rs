@@ -274,4 +274,7 @@ impl Snapshot {
     pub(super) fn normalize(&self, wall: NaiveDateTime, offset: Option<i32>) -> Result<String> {
         self.rules.normalize(wall, offset)
     }
+    pub(super) fn normalize_fallback(&self, wall: NaiveDateTime, offset: i32) -> Result<String> {
+        self.rules.normalize_fallback(wall, offset)
+    }
 }

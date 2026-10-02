@@ -90,6 +90,18 @@ source review accepted this slice; both Linux build/strict-lint modes and
 Windows GNU production compilation/linking passed in the current gate receipt.
 No native/transport acceptance is inferred from source review.
 
+The next reviewed source wave shares compiled pinned Unicode casing across
+maintenance, FOMOD and merge, preserving recorded table bytes and descriptors.
+Merge name/author/instruction/option keys use simple invariant lowercase;
+destination/argument comparisons and Language union use ordinal casing.
+Profile fallback now admits bounded complete ISO, slash and English month-name
+forms, with binary64 nearest-even fractions and distinct typed fallback-local
+range handling. Windows rules now cover year markers, neighboring seasons,
+cross-year fold retries, single-day rebasing and endpoint lookup. Native fallback
+discovery and broader invariant grammar remain named implementation follow-ups.
+Independent source review accepted this wave. Production evidence is recorded
+in the gate log; full domains and runtime acceptance remain open.
+
 Continuation uses the actual `ModSync.rs` checkout through `eed8089` and its
 working changes. The [remaining-work tracker](../plans/2026-09-28-1130-remaining-work-tracker-plan.md)
 is the current source reconciliation. The sections below retain historical

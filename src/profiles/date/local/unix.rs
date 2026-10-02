@@ -497,6 +497,33 @@ impl Snapshot {
         } else {
             self.to_local(wall_ticks)?
         };
+        self.serialize_local(local)
+    }
+    pub(super) fn normalize_fallback(&self, wall: NaiveDateTime, offset: i32) -> Result<String> {
+        let original = clock_ticks(wall);
+        let mut ticks = original - i64::from(offset) * 60 * TICKS;
+        let mut fold = false;
+        if original < 86400 * TICKS {
+            ticks += i64::from(self.local_offset(original, None)?) * TICKS;
+            if ticks < 0 {
+                ticks += 86400 * TICKS;
+            }
+        } else if !(0..=MAX).contains(&ticks) {
+            ticks += i64::from(self.local_offset(original, None)?) * TICKS;
+        } else {
+            let (adjustment, ambiguous) = self.utc_offset(ticks)?;
+            ticks += i64::from(adjustment) * TICKS;
+            fold = ambiguous;
+        }
+        if !(0..=MAX).contains(&ticks) {
+            return Err(super::InvalidFallbackDate.into());
+        }
+        self.serialize_local(LocalValue {
+            ticks,
+            ambiguous_dst: fold,
+        })
+    }
+    fn serialize_local(&self, local: LocalValue) -> Result<String> {
         let offset = self.local_offset(local.ticks, Some(local.ambiguous_dst))?;
         let clock = clock(local.ticks)?;
         let mut text = super::super::DateValue {

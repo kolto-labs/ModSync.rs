@@ -1714,3 +1714,15 @@ See the [general date contract](docs/parity/profile-date-canonicalization.md) an
 [Windows date contract](docs/parity/profile-date-windows-contract.md). Independent
 source review accepted the implemented subset after correcting local negative
 daylight ambiguity intervals; native behavior is unverified.
+
+### Shared merge casing source continuation
+
+Merge name/author, instruction and option keys now use the pinned Unicode 15
+invariant simple-lower operation. Destination/argument preservation and Language
+union use the separate ordinal-ignore-case mapping, with streaming equality
+and retained first spelling. Maintenance and FOMOD reference the same compiled
+tables through policy wrappers; maintenance descriptor admission and generated
+bytes are unchanged. Later Unicode/NLS, URI/IDN parsing and full merge corpus
+remain separate boundaries. See [the merge casing contract](docs/parity/merge-unicode-casing.md).
+This implementation passed independent source review; behavioral acceptance is
+unverified.

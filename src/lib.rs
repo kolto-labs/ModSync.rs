@@ -59,3 +59,4 @@ pub mod wizard;
 pub mod native_url;
 
 pub mod resource_watcher;
+mod unicode_case;
