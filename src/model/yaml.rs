@@ -381,7 +381,7 @@ fn scalar(text: &str, tag: Option<&str>, plain: bool, key: bool) -> Result<Value
     }
     // The reference converts valid Boolean/Int32/Double keys and keys its
     // dictionary by the converted value, which no schema property can match.
-    // Keep the key as its .NET invariant text so the field stays preserved metadata.
+    // Keep the converted key as text so the field stays preserved metadata.
     Ok(match value {
         Value::Bool(true) => "True".into(),
         Value::Bool(false) => "False".into(),
