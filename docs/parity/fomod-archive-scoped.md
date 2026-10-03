@@ -88,9 +88,9 @@ reference loader behaviour.
 
 - The C# gate's issue texts (unreadable or missing archive with state) keep their Rust
   wording.
-- Soft gate warnings are still dropped when a later readiness error fails the gate,
-  such as an unselected dependency. That behaviour is shared with the missing-archive
-  warning and predates this slice.
+- Soft gate warnings were dropped when a later readiness error failed the gate, such
+  as an unselected dependency. That is now fixed by
+  [fomod-gate-warnings.md](fomod-gate-warnings.md).
 - C#'s mapper keeps the extension in the folder name for archives other than
   `.zip`/`.7z`/`.rar`/`.exe`, but the merger strips any extension. So C# warns for
   every such archive. Rust does not reproduce that mismatch.

@@ -129,7 +129,9 @@ rv=validate(c,'report',flags=FILESEL);check('dep_stale_names_archive',[('do not 
 # dependency GUID and a selected restriction conflict fail it as before.
 okdep=[comp(0,Dependencies=[GUIDS[1]]),comp(1,selected=False,files=('example.zip',),saved=choices(entry('example.zip')),status={'example.zip':'configured'})]
 c=setup('dep_configured',okdep,{'example.zip':FIRST})
-rv=validate(c,'report',flags=FILESEL);s=stage(rv);check('dep_configured_order_error',(rv['exit'],s['passed'],[ORDER_ERROR in m for m in s['messages']]),(1,False,[True]))
+# Its errors only: the gate's soft route warning now stays in the failed stage
+# (fomod-gate-warnings-proof).
+rv=validate(c,'report',flags=FILESEL);s=stage(rv);check('dep_configured_order_error',(rv['exit'],s['passed'],[ORDER_ERROR in m for m in s['messages'] if not m.startswith('WARNING:')]),(1,False,[True]))
 c=setup('dep_plain_archive',[comp(0,Dependencies=[GUIDS[1]]),comp(1,selected=False,files=('example.zip',))],{'example.zip':PLAIN})
 rv=validate(c,'report',flags=FILESEL);s=stage(rv);check('dep_plain_archive_order_error',(s['passed'],[ORDER_ERROR in m for m in s['messages']]),(False,[True]))
 c=setup('dep_unknown',[comp(0,Dependencies=[UNKNOWN],files=('example.zip',),saved=choices(entry('example.zip')),status={'example.zip':'configured'},instructions=(extract('example.zip'),))],{'example.zip':FIRST})

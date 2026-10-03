@@ -27,7 +27,9 @@ pinned C# `d31ccbd3`; paths below are under `src/ModSync.Core/` there. Evidence:
   stricter readiness checks (unselected dependency, restriction conflict, invalid
   order, unreviewed drafts) still fail the gate afterwards, so no run that failed
   before now passes: C# only warns for a missing dependency, Rust keeps rejecting it.
-  Readiness checks for an option still run only after the gate's findings.
+  Readiness checks for an option still run only after the gate's findings. Soft gate
+  warnings collected before such a failure are kept
+  ([fomod-gate-warnings.md](fomod-gate-warnings.md)).
 - **Completed components (Rust-only divergence).** C# gates completed components
   too, because its gate runs on every selected component before resume. Rust skips
   completed seeds (as before this slice) and completed dependencies without walking

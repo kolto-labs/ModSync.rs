@@ -31,6 +31,10 @@ binary SHA-256, git HEAD/porcelain and source hashes.
   `missing_install_event`, `missing_two_messages` (old wording, one deduplicated
   warning), and both `help_*_per_archive`. The folder, ownership, preservation and
   control checks pass at both builds: those behaviors were already in source.
+- Later change: since [fomod-gate-warnings](../fomod-gate-warnings.md), the failed stage
+  of `dep_configured` also keeps the Rust-only route warning, so
+  `dep_configured_order_error` compares only non-`WARNING:` messages. It passes on
+  `15b11cb`, `438bb73` and later builds; the counts above are unchanged.
 - Regressions, each in its own namespace: S1 `probe.py` **339/339**,
   `inherited_controller.py` **41/41**, S2a **224/224**, S2b **254/254**.
 - Gates, all exit 0: `cargo fmt --all -- --check`; `cargo clippy --locked --lib --bin

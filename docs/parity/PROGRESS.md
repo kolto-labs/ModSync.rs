@@ -37,6 +37,14 @@ choice, the same partition as a live reference oracle. The proof is 37/37 (7 fai
 `223ed92`), and the regression probes still pass. See
 [fomod-archive-scoped.md](fomod-archive-scoped.md).
 
+FOMOD gate warnings after a failure (2026-10-03e): soft gate warnings (missing archive,
+"configured but has no matching archive-scoped instructions", no route) collected before a
+later hard failure of the gate (an unselected dependency, a restriction conflict or an
+in-gate issue) are no longer dropped. They stay in the failed report stage before the error,
+as in C#, and are emitted as `WARNING:` events on plain validate and install. Errors and
+exits are unchanged. The proof is 55/55 (17 fail on `438bb73`), and the regression probes
+still pass. See [fomod-gate-warnings.md](fomod-gate-warnings.md).
+
 Runtime revalidation of `25296da` (2026-10-03b): all retained CLI suites and the C#/Rust differentials pass, native GUI probes recalibrated, one Windows Clippy fix; see [runtime-revalidation-2026-10-03b.md](runtime-revalidation-2026-10-03b.md).
 
 Step-2 broken-choices follow-up (2026-10-03b): unparseable saved `FomodChoices` on a
@@ -353,6 +361,8 @@ are recorded in the production receipt; runtime and domain acceptance remain ope
    per-archive preservation are proved at runtime; and the `--fomod-choices` help says
    it merges per archive. [Evidence](fomod-gate-scope-proof/README.md) is 74/74 (12
    fail on `15b11cb`); S1 339/339, inherited 41/41, S2a 224/224 and S2b 254/254 hold.
+   Soft gate warnings now survive a later hard gate failure
+   ([gate-warnings contract](fomod-gate-warnings.md), 55/55; 17 fail on `438bb73`).
    Desktop reconfiguration, the S3 corpora and native acceptance follow.
    The [actual full.md conversion baseline](full-markdown-baseline/README.md)
    retains eight production conversions and an independent anonymous comparison.

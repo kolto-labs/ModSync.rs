@@ -1131,6 +1131,17 @@ plugin installs files. Evidence: [archive-scoped proof](docs/parity/fomod-archiv
 37/37 checks (7 fail on `223ed92`), with a live reference oracle; contract in
 [fomod-archive-scoped.md](docs/parity/fomod-archive-scoped.md).
 
+These soft gate warnings, and the Rust-only no-route warning, now survive a later hard
+failure of the same gate, such as an unselected dependency, a restriction conflict or a
+FOMOD issue on a later component. As in C#, the failed FOMOD report stage lists the
+warnings first and then the error; the warnings count in `warningCount` and the error once
+in `errorCount`. Plain `validate` and `install` emit the `WARNING:` events before failing.
+The error text and exit code are unchanged. "Go to first issue" still points at the error.
+Rust still stops at its first FOMOD issue, so warnings for later components are not
+collected. Evidence: [gate-warnings proof](docs/parity/fomod-gate-warnings-proof/README.md),
+55/55 checks (17 fail on `438bb73`); contract in
+[fomod-gate-warnings.md](docs/parity/fomod-gate-warnings.md).
+
 ## Fetch shared URL and destination — 2026-09-28 UTC
 
 `fetch-downloads` no longer lets two selected components race for one archive file.
