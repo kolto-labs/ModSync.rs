@@ -537,10 +537,9 @@ fn transfer_inner(
         Destination::Directory { directory, name } => {
             ensure!(directory.is_dir(), "Choose a destination folder");
             if let Some(name) = name {
-                ensure!(
-                    !directory.join(download::one_component(name)?).exists(),
-                    "Download destination already exists"
-                );
+                // A present name is settled after the transfer (`publish_staged`
+                // returns `DestinationExists` with the digest), never replaced.
+                download::one_component(name)?;
             }
             directory
         }

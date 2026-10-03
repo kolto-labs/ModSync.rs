@@ -2532,8 +2532,11 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             } else {
                 p2p::stop_signal_flag()?
             };
-            let plan =
-                orchestrator::plan_with_cancel(&execution, &candidates, &plan_options, &cancelled)?;
+            // A Ctrl+C during planning (present-file hashing) exits 130 like one during the run.
+            let plan = finish_acquisition_result(
+                orchestrator::plan_with_cancel(&execution, &candidates, &plan_options, &cancelled),
+                &cancelled,
+            )?;
 
             let loopback_ca = extra_ca_file
                 .as_deref()

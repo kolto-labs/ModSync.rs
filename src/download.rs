@@ -490,6 +490,9 @@ fn fetch_inner(
         .map_err(|error| network_failure(error.without_url().into()))?;
     let final_url = response.url().clone();
     let status = response.status();
+    // Read before the prefix: once body bytes are consumed, `content_length` is the
+    // remaining length, not the download's total.
+    let total = response.content_length();
     let header = |name: &str| {
         response
             .headers()
@@ -582,7 +585,6 @@ fn fetch_inner(
         };
         return Err(fail(class, anyhow::anyhow!("HTTP status {status}")));
     }
-    let total = response.content_length();
     let mut temp = tempfile::NamedTempFile::new_in(directory)?;
     let mut hash = Sha256::new();
     let mut buffer = [0u8; 64 * 1024];
