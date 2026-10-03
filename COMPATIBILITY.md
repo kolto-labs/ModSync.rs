@@ -1067,6 +1067,12 @@ through the shared engine. The gate inspects each archive path once per run, how
 many components register or extract it, and spools an archive to scratch only when
 its verified listing names `fomod/ModuleConfig.xml`.
 
+(Superseded for `validate`/`install` since `f68dcfc`; see
+[visible FOMOD fallbacks](docs/parity/fomod-visible-fallbacks.md): those verbs now
+report each fallback once as a FomodConfiguration warning prefixed
+`FOMOD archive '<name>': `, counted in `warningCount`, and no longer log the C# line.
+Fetch configuration and `fomod-inspect` still log the C# wording below. The
+2026-10-03 FOMOD S2b proof rerun checks the new contract.)
 C#'s mapper fallback warnings are logged with its exact `[FomodToComponentMapper]`
 wording and no archive prefix:
 unevaluated file/game dependencies, skipped conditional patterns and dropped renames.
@@ -1198,9 +1204,12 @@ The existing CLI report/plan URL fields can contain authored MEGA fragments; do 
 publish unsanitized output. New advisory metadata warnings omit provider URLs/secrets.
 
 The MEGA dependency's reqwest feature enables its required Tokio dependency and also
-compiles its native-TLS adapter; ModSync's production MEGA requests continue to use the
-shared rustls client and confined provider transport. No native-TLS adapter is used by
-the provider. Production compilation/lint alone does not establish metadata protocol,
+compiles its native-TLS adapter. Because that feature also turns on reqwest's
+`default-tls`, reqwest then selects native TLS as the builder default. Every ModSync
+client builder therefore pins `use_rustls_tls()` explicitly (2026-10-03 correction:
+between `f68dcfc` and that fix, production clients silently used OpenSSL with the
+system trust store). MEGA requests use the shared rustls client and confined provider
+transport; no native-TLS adapter is used by the provider. Production compilation/lint alone does not establish metadata protocol,
 persistence, native UI or live-host parity. H4 controlled production acceptance and
 F13/F22 acceptance remain open; no tests, harnesses or CI were run for this slice.
 
@@ -1921,3 +1930,33 @@ fail; acyclic expansion is bounded with budgets shared across guide documents
 and Markdown blocks. No merge-key expansion is introduced. This replaces plain
 scalar inference but does not close all native YAML type contracts. See
 [the YAML intake contract](docs/parity/yaml-scalar-intake.md).
+
+### Runtime revalidation, 2026-10-03
+
+Re-running the retained production CLI proofs against `main` `73e8819` found five
+regressions introduced by later source work; all are corrected. Evidence and the
+fresh C#/Rust K1/K2 differential are in
+[runtime revalidation](docs/parity/runtime-revalidation-2026-10-03.md).
+
+- **TLS backend.** The MEGA crate's `reqwest` feature turned on reqwest's
+  `default-tls`, so every ModSync HTTPS client silently used OpenSSL and the system
+  trust store instead of rustls. All client builders now pin `use_rustls_tls()`.
+- **FOMOD prompt status key.** A fresh status was written under camelCase
+  `handlerMetadata`, which the next load canonicalized to `HandlerMetadata`, so a
+  no-op or failed `--record` run still changed guide bytes. New entries use the
+  canonical spelling; an authored camelCase-only entry keeps its spelling.
+- **FOMOD choices errors.** Read and parse failures again say `Reading FOMOD choices`
+  or `Parsing FOMOD choices` with the path, for Fetch, validate and install.
+- **Draft review reload.** Rust's own YAML and XML exports of drafted guides failed to
+  reload (`DraftReview.RequiresReview must be a boolean`) because both formats carry
+  scalars as text and XML omits empty lists. The review record's Rust-written typed
+  spellings are restored before validation; anything else still fails closed.
+- **YAML typed fields.** Under the pinned YamlDotNet string profile, YAML
+  `WidescreenOnly`/`AspyrExclusive`, resource `FileSize`/`ContentLength`/
+  `SchemaVersion` and `UpdateAvailable` arrived as text, so desktop/install checks
+  read `WidescreenOnly: true` as false. They are now typed as XML already did
+  (`UpdateAvailable` also for XML). Invalid Boolean text is an error.
+
+One adjacent correction: H4 metadata collection skipped nothing for a different-URL
+follower, so `--record` could store the headers of a URL whose bytes were never
+downloaded. Such followers now get no metadata lookup.

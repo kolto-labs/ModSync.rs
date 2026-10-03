@@ -899,6 +899,7 @@ fn fetch_list(url: &str, cache_name: &str, cache_dir: Option<&Path>) -> Result<S
                 // requests for public data, and ALL_PROXY/HTTPS_PROXY must not
                 // silently reroute them.
                 let client = reqwest::blocking::Client::builder()
+                    .use_rustls_tls()
                     .no_proxy()
                     .timeout(Duration::from_secs(20))
                     .build()?;

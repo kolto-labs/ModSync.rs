@@ -31,6 +31,7 @@ pub(super) fn get_url(
         .build()?;
     let result = runtime.block_on(async {
         let transport = reqwest::Client::builder()
+            .use_rustls_tls()
             .timeout(Duration::from_secs(60))
             .redirect(api_redirect_policy(&client.base_url))
             .build()?;

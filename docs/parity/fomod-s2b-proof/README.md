@@ -123,7 +123,7 @@ are covered.
 - **Gate at install and plain validate** follows C#. The desktop install now runs it
   too, through the shared engine. The missing-archive-without-state soft warning and
   hard-dependency scope expansion stay out of scope (S3 gate/report scope).
-- **Fallback warnings are log lines, not report warnings.** C# logs them from the
+- **(Superseded 2026-10-03: since `f68dcfc` validate/install report fallbacks as counted FomodConfiguration warnings; see `../fomod-visible-fallbacks.md` and `../runtime-revalidation-2026-10-03.md`. The probe now checks that contract.)** **Fallback warnings are log lines, not report warnings.** C# logs them from the
   mapper, which runs at configuration time. Rust maps fresh at validate/install, so
   logging there is the minimal equivalent. Adding them to `warningCount` would change
   the report compared with C#.

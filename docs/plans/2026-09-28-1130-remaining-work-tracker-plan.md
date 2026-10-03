@@ -147,6 +147,17 @@ uses the same migration. Microsoft-date acceptance follows the pinned offset
 grammar, with authored strings retained. Both changes have independent source
 review. Broader invariant/local date normalization remains open.
 
+## Runtime revalidation — 2026-10-03
+
+The first runtime pass since the source-only waves re-ran six retained CLI proof
+suites and the C#/Rust deployment differential on `main` `73e8819`, plus a fresh
+public-pin K1/K2 conversion and interchange differential. It found and fixed five
+regressions (OpenSSL replacing rustls, a non-canonical FOMOD status key, lost choices
+diagnostics, unreloadable YAML/XML drafted guides, untyped YAML fields) and one
+metadata-recording hole. All suites pass again: 1378/1378 checks. See
+[runtime revalidation](../parity/runtime-revalidation-2026-10-03.md). Domain
+acceptance rows stay open; this pass covers only the named CLI contracts.
+
 ## Current execution policy
 
 User instruction on 2026-09-28: implement everything before testing or waiting for CI; do not run, edit, or create filesystem tests. Source implementation and independent static review continue. Runtime probes, test work, CI dispatch/polling, and acceptance runs are deferred. Earlier receipts apply only to their recorded source and do not validate later changes. Implementation may advance after static review while the acceptance checkbox remains open.

@@ -40,6 +40,7 @@ impl LoopbackCa {
             "Invalid loopback CA certificate"
         );
         reqwest::blocking::Client::builder()
+            .use_rustls_tls()
             .no_proxy()
             .add_root_certificate(certificate.clone())
             .build()
@@ -81,6 +82,7 @@ pub(crate) fn client_with_policy(
     policy: reqwest::redirect::Policy,
 ) -> Result<reqwest::blocking::Client> {
     let mut builder = reqwest::blocking::Client::builder()
+        .use_rustls_tls()
         .https_only(true)
         .connect_timeout(CONNECT_TIMEOUT)
         .timeout(IDLE_TIMEOUT)
@@ -439,6 +441,7 @@ fn fetch_inner(
         }
     };
     let mut builder = reqwest::blocking::Client::builder()
+        .use_rustls_tls()
         .https_only(true)
         .connect_timeout(CONNECT_TIMEOUT)
         .timeout(IDLE_TIMEOUT);

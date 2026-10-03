@@ -25,7 +25,7 @@ def run(name,guide,flags,settings=None,raw=None):
  data=None
  try:data=json.loads(r.stdout)
  except:pass
- record={'name':name,'argv':args,'exit':r.returncode,'stdout':r.stdout,'stderr':r.stderr,'data':data,'guideBeforeSha256':before,'guideAfterSha256':hashlib.sha256(inp.read_bytes()).hexdigest(),'newCasePaths':sorted(set(str(p.relative_to(case)) for p in case.rglob('*'))-set(beforefiles))}
+ record={'name':name,'argv':args,'exit':r.returncode,'stdout':r.stdout,'stderr':r.stderr,'data':data,'guideBeforeSha256':before,'guideAfterSha256':hashlib.sha256(inp.read_bytes()).hexdigest(),'newCasePaths':sorted(x for x in set(str(p.relative_to(case)) for p in case.rglob('*'))-set(beforefiles) if not x.startswith('settings/Logs'))}  # settings/Logs: dated application log, mirrors C# NLog (src/logging.rs)
  (out/(name+'.json')).write_text(json.dumps(record,indent=2)+'\n');results.append(record);return record
 checks=[]
 def check(name,actual,expected):checks.append({'name':name,'actual':actual,'expected':expected,'passed':actual==expected})

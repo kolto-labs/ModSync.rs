@@ -105,7 +105,7 @@ def choices(*archives):return {'version':1,'archives':list(archives)}
 def entry(filename,plugin='Beta'):return archive_choices(filename,sel(plugin))
 def registry(files,status=None,url=None):
  meta={'Files':{f:True for f in files},'custom':'keep'}
- if status:meta['handlerMetadata']={'fomodPromptStatus':dict(status),'unrelated':'keep'}
+ if status:meta['HandlerMetadata']={'fomodPromptStatus':dict(status),'unrelated':'keep'}
  return {url or (BASE+'/'+files[0]):meta}
 def comp(i=0,instructions=(),saved=None,files=(),status=None,url=None,**extra):
  c={'Guid':GUIDS[i],'Name':f'Example Consumer {i+1}','IsSelected':True,'Instructions':list(instructions),'CustomField':'keep',**extra}
@@ -276,7 +276,7 @@ for label,name in [('folded_entry','ärchive.zip'),('exact_entry','Ärchive.zip'
  r=fetch(c,'record',['--record',*sidecar(c,unicode_choices(archive=name))]);n=f'unicode_fetch_{label}'
  check(n+'_exit',r['exit'],0);check(n+'_outcomes',r['consumers'],['configured'])
  meta=list(components(c)[0]['ResourceRegistry'].values())[0]
- check(n+'_status_in_place',meta['handlerMetadata']['fomodPromptStatus'],{'ärchive.zip':'configured'})
+ check(n+'_status_in_place',meta['HandlerMetadata']['fomodPromptStatus'],{'ärchive.zip':'configured'})
  check(n+'_saved',[a['archiveFileName'] for a in components(c)[0].get('FomodChoices',{}).get('archives',[])],['Ärchive.zip'])
  ri=install(c,'install');check(n+'_install_exit',ri['exit'],0);check(n+'_install_bytes',ri['game'],files('b'))
 
@@ -312,10 +312,14 @@ ri=install(c,'install');check('gate_plain_archive_install_exit',ri['exit'],0);ch
 # for every verb that maps; reports and stdout JSON are unchanged.
 fb=[comp(instructions=(extract('fallback.zip'),),saved=choices(entry('fallback.zip')),files=('fallback.zip',),status={'fallback.zip':'configured'})]
 c=setup('fallback',fb,{'fallback.zip':FALLBACK})
-rv=validate(c,'report');check('fallback_report_exit',rv['exit'],0);check('fallback_report_warnings',warned(rv['stderr']),FALLBACK_WARNINGS)
-check('fallback_report_once',len(mapper_lines(rv['stderr'])),len(FALLBACK_WARNINGS));check('fallback_report_unchanged',(rv['data']['warningCount'],stage(rv)['hasWarnings']),(0,False))
-rv=validate(c,'plain',report=False);check('fallback_plain_exit',rv['exit'],0);check('fallback_plain_warnings',warned(rv['stderr']),FALLBACK_WARNINGS)
-ri=install(c,'install');check('fallback_install_exit',ri['exit'],0);check('fallback_install_warnings',warned(ri['stderr']),FALLBACK_WARNINGS)
+# Since f68dcfc (docs/parity/fomod-visible-fallbacks.md) validate/install report the mapper
+# fallbacks as FomodConfiguration warnings, once each, prefixed with the archive name.
+# fomod-inspect and Fetch still log the C# mapper lines on stderr (checked below).
+def reported(lines):return [w for w in FALLBACK_WARNINGS if any(l.endswith("WARNING: FOMOD archive 'fallback.zip': "+w) for l in lines)]
+rv=validate(c,'report');check('fallback_report_exit',rv['exit'],0);check('fallback_report_warnings',reported(stage(rv)['messages']),FALLBACK_WARNINGS)
+check('fallback_report_once',len(stage(rv)['messages']),len(FALLBACK_WARNINGS));check('fallback_report_counted',(rv['data']['warningCount'],stage(rv)['hasWarnings']),(len(FALLBACK_WARNINGS),True))
+rv=validate(c,'plain',report=False);check('fallback_plain_exit',rv['exit'],0);check('fallback_plain_warnings',reported(rv['stdout'].splitlines()),FALLBACK_WARNINGS)
+ri=install(c,'install');check('fallback_install_exit',ri['exit'],0);check('fallback_install_warnings',reported(ri['stdout'].splitlines()),FALLBACK_WARNINGS)
 # Beta: its flag attaches the game-dependency pattern; the hidden step shows (file dependency satisfied).
 check('fallback_install_bytes',ri['game'],files('b','e','g'))
 r=execute(c,'inspect',[str(BIN),'fomod-inspect',str(c['mods']/'fallback.zip'),'--scratch-dir',str(c['scratch'])])
