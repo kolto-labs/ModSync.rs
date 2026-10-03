@@ -30,8 +30,10 @@ OUT = Path(os.environ.get('MODSYNC_PROOF_OUT', str(Path(__file__).parent))).reso
 ROOT = Path(tempfile.mkdtemp(prefix='modsync-step3-'))
 DISPLAY = os.environ.get('MODSYNC_DISPLAY', ':94')
 MAP = json.loads(Path(os.environ['MODSYNC_UI_MAP']).read_text()) if os.environ.get('MODSYNC_UI_MAP') else {}
-CALIBRATED = {'Choose Beta at 600x400': [60, 239], 'Apply choices at 600x400': [126, 277],
-              'Dismiss second editor': [53, 298],
+# Recalibrated 2026-10-03 (runtime-revalidation-2026-10-03b.md): the completed-sharing
+# strip and FOMOD fallback warnings moved these controls; OCR also matched prose.
+CALIBRATED = {'Choose Beta at 600x400': [60, 278], 'Apply choices at 600x400': [125, 316],
+              'Dismiss second editor': [52, 337], 'Navigate to validation before Fetch': [1218, 740],
               'Dismiss second malformed choices item': [581, 443],
               'Dismiss repaired second': [392, 497]}
 CASE_NAMES = ['install-gate']
@@ -129,7 +131,7 @@ def click(label, action=None, last=False):
     if label == 'Run Validation':
         # Native 1280x800 validation button, visually calibrated in final2's
         # validation-before-fetch image. OCR repeatedly corrupts its icon/text.
-        hits = [(96, 280)]
+        hits = [(96, 395)]
     point = MAP.get(action) or CALIBRATED.get(action) or (hits[-1 if last else 0] if hits else None)
     # Calibrated from the retained 1280x800 Welcome/Workspace screenshots. Native
     # OCR can omit the focused grey Next button; navigation actions run at this

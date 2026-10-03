@@ -125,6 +125,8 @@ pub(crate) fn writable_file(path: &Path) -> Result<()> {
         ensure!(metadata.is_file(), "Owned writable target changed type");
         if metadata.permissions().readonly() {
             let mut permissions = metadata.permissions();
+            // Windows-only: clears FILE_ATTRIBUTE_READONLY; no Unix mode bits exist here.
+            #[allow(clippy::permissions_set_readonly_false)]
             permissions.set_readonly(false);
             fs::set_permissions(path, permissions)?;
         }
@@ -271,10 +273,10 @@ mod windows {
         volume(path)?;
         // Validate every existing creation ancestor, without creating anything.
         for ancestor in path.ancestors() {
-            if let Some(metadata) = safe_path(ancestor)? {
-                if metadata.is_dir() {
-                    directory(ancestor)?;
-                }
+            if let Some(metadata) = safe_path(ancestor)?
+                && metadata.is_dir()
+            {
+                directory(ancestor)?;
             }
         }
         Ok(())

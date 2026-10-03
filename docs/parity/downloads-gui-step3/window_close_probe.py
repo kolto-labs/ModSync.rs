@@ -370,16 +370,15 @@ try:
     event('live_transfer_observation', text=progress)
     request_window_close(wid)
     event('window_manager_close', window=wid)
-    await_text('Stop downloads?')
-    check('close_confirmation_separates_downloads_from_rollback',
-          'no install rollback' in screen('close-confirmation')[1].casefold())
-    click('Stop downloads')
-    stopping = screen('stopping')[1]
-    check('stop_keeps_window_open', GUI.poll(), None)
-    event('stopping_observation', text=stopping)
-    await_text('cancelled', timeout=30)
-    terminal = screen('cancelled-terminal')[1]
-    check('cancelled_terminal_visible', 'cancelled' in terminal.casefold())
+    # The close request now shows one exit confirmation for downloads and sharing
+    # (persistent-sharing-plan.md, "Exit confirmation mentions both downloads and
+    # sharing"); confirming cancels, joins cleanup and then closes the window.
+    await_text('Stop work and close?')
+    confirmation = screen('close-confirmation')[1].casefold()
+    check('close_confirmation_names_downloads_and_sharing', 'downloads' in confirmation and 'sharing' in confirmation)
+    click('Stop and close')
+    await_state(lambda: GUI.poll() is not None, 'window closed after cleanup', timeout=60)
+    check('stop_and_close_exits_cleanly', GUI.poll(), 0)
     check('no_cancelled_archive_publication', sorted(p.name for p in (case / 'mods').glob('*.zip')), [])
     check('cancelled_guide_not_saved', digest(case / 'guide.json'), guide_before)
     check('cancelled_game_unchanged', manifest(case / 'game'), game_before)

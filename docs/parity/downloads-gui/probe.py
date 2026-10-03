@@ -12,7 +12,7 @@ Generic fixture names only. `explore` as the first argument sets up the first sc
 launches the GUI and waits (for calibrating click positions); it records nothing.
 """
 import hashlib, http.server, io, json, os, pathlib, random, shutil, socket, ssl, subprocess
-import sys, tempfile, threading, time, zipfile
+import re, sys, tempfile, threading, time, zipfile
 
 sys.dont_write_bytecode = True
 REPO = pathlib.Path(__file__).resolve().parents[3]
@@ -179,6 +179,15 @@ ENV = {'PATH': '/usr/bin:/bin', 'HOME': str(HOME), 'USER': USER, 'XDG_RUNTIME_DI
        **{k: str(v) for k, v in XDG.items()}}
 
 def snapshot(p): return {str(f.relative_to(p)): digest(f) for f in sorted(p.rglob('*')) if f.is_file()}
+EMPTY = hashlib.sha256(b'').hexdigest()
+def documented_state(name, value):
+    # Dated NLog-style log (runtime-revalidation-2026-10-03.md) and empty cooperating-writer
+    # lock files: sibling .modsync-lock-<hash> (acquisition-root-coordination.md) and the
+    # peer-sharing owner/transaction locks (persistent-sharing-plan.md).
+    return (re.fullmatch(r'settings/Logs/kotormodsync_\d{4}-\d{2}-\d{2}\.log', name) is not None
+            or (value == EMPTY and (re.fullmatch(r'\.modsync-lock-[0-9a-f]{16}', name) is not None
+                                    or name in ('settings/peer-sharing-v1/owner.lock', 'settings/peer-sharing-v1/transaction.lock'))))
+def content(p): return {k: v for k, v in snapshot(p).items() if not documented_state(k, v)}
 GUIDS = [f'{c * 8}-{c * 4}-4{c * 3}-8{c * 3}-{c * 12}' for c in 'abcdefghij']
 def comp(i, name, url, filename, selected=True, flag=True, wide=False):
     meta = {'Files': {filename: flag}} if filename else {'Files': {}}
@@ -284,7 +293,7 @@ def next_page(what):
 def requests(path): return [r for r in REQUESTS if r.get('path') == path]
 def mods_files(case): return {f.name: digest(f) for f in case['mods'].iterdir()}
 
-FETCH = (1027, 261); STOP = (1150, 261)
+FETCH = (1027, 530); STOP = (1150, 530)  # recalibrated: peer-sharing text moved the button row
 RESULTS = {}
 try:
     # ============ Scenario 1: nxm handoff at launch, then Fetch at 1280x800
@@ -326,7 +335,7 @@ try:
           {'one.zip': hashlib.sha256(SLOW_ONE).hexdigest(), 'two.zip': hashlib.sha256(SLOW_TWO).hexdigest(), 'wide.zip': hashlib.sha256(WIDE).hexdigest()})
     check('guide_file_not_saved_by_gui', digest(main['guide']), before_main['guide.json'])
     check('game_untouched', {k: v for k, v in snapshot(main['case']).items() if k.startswith('game/')}, {k: v for k, v in before_main.items() if k.startswith('game/')})
-    check('settings_unchanged', {k: v for k, v in snapshot(main['case']).items() if k.startswith('settings/')}, {k: v for k, v in before_main.items() if k.startswith('settings/')})
+    check('settings_unchanged', {k: v for k, v in content(main['case']).items() if k.startswith('settings/')}, {k: v for k, v in before_main.items() if k.startswith('settings/')})
     check('no_partial_files_in_workspace', [n for n in after_main if n.startswith('.') or n.endswith(('.part', '.tmp'))], [])
 
     # ============ Scenario 2: the same fixture through the production CLI
@@ -350,7 +359,7 @@ try:
 
     # ============ Scenario 3: Stop mid-body
     stop = scenario('stop', [comp(0, 'Example Large', f'{BASE}/stop/huge.zip', 'huge.zip')])
-    before_stop = snapshot(stop['case'])
+    before_stop = content(stop['case'])
     wid = launch(stop, label='stop')
     for _ in range(4): next_page('to DownloadsExplain')
     click(*FETCH, 'Fetch Downloads')
@@ -363,7 +372,7 @@ try:
     check('stop_request_ends_incomplete', wait_for(lambda: first.get('end') is not None, 'first large request ended', 30) and not first['complete'], True)
     time.sleep(2.5); shot('13-stopped-summary')
     check('stop_gui_still_running', GUI[0].poll(), None)
-    check('stop_no_residue', snapshot(stop['case']), before_stop)
+    check('stop_no_residue', content(stop['case']), before_stop)
     # Retry: a fresh run plans again and makes a new request; then stop it too.
     click(*FETCH, 'Fetch Downloads (retry after stop)')
     check('retry_new_request', wait_for(lambda: len(requests('/stop/huge.zip')) == 2 and requests('/stop/huge.zip')[-1]['sent'] >= 2 * CHUNK, 'retry transfer', 60), True)
@@ -373,7 +382,7 @@ try:
     second = requests('/stop/huge.zip')[-1]
     check('retry_stopped', wait_for(lambda: second.get('end') is not None, 'retry request ended', 30) and not second['complete'], True)
     time.sleep(2.5); shot('15-retry-stopped')
-    check('retry_no_residue', snapshot(stop['case']), before_stop)
+    check('retry_no_residue', content(stop['case']), before_stop)
     close_gui()
 
     # ============ Scenario 4: probe launches that must be refused before any window
