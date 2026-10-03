@@ -104,9 +104,7 @@ impl Presentation {
             })
             .collect();
         rows.sort_by(|a, b| {
-            a.destination_path
-                .to_lowercase()
-                .cmp(&b.destination_path.to_lowercase())
+            crate::unicode_case::ordinal_cmp(&a.destination_path, &b.destination_path)
                 .then(a.destination_path.cmp(&b.destination_path))
         });
         let mut components: Vec<_> = report
@@ -159,7 +157,7 @@ impl Tracker {
         let path = format!("<<kotorDirectory>>/{}", relative.replace('\\', "/"));
         let (_, history) = self
             .histories
-            .entry(path.to_lowercase())
+            .entry(crate::unicode_case::ordinal_key(&path))
             .or_insert_with(|| (path, Vec::new()));
         if history
             .last()
@@ -193,6 +191,10 @@ impl Tracker {
                 writers,
             });
         }
+        // The reference sorts by OrdinalIgnoreCase UTF-16 order, not by key bytes.
+        report.conflicts.sort_by(|a, b| {
+            crate::unicode_case::ordinal_cmp(&a.destination_path, &b.destination_path)
+        });
         report
     }
 }

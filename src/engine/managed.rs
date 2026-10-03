@@ -195,11 +195,14 @@ impl Engine {
         let managed = self.managed.as_mut().context("No managed service")?;
         let (id, name) = managed.owner()?.clone();
         let after = game_index(managed.service.game_directory(), &self.settings.cancelled)?;
-        let after_keys: BTreeSet<_> = after.keys().map(|path| path.to_lowercase()).collect();
+        let after_keys: BTreeSet<_> = after
+            .keys()
+            .map(|path| crate::unicode_case::ordinal_key(path))
+            .collect();
         for relative in preimage
             .before
             .keys()
-            .filter(|path| !after_keys.contains(&path.to_lowercase()))
+            .filter(|path| !after_keys.contains(&crate::unicode_case::ordinal_key(path)))
         {
             let retained = managed
                 .service

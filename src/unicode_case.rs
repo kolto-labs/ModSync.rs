@@ -49,6 +49,14 @@ pub(crate) fn ordinal_eq(left: &str, right: &str) -> bool {
             .eq(right.chars().map(ordinal_scalar))
 }
 
+/// `string.Compare(left, right, StringComparison.OrdinalIgnoreCase)`: UTF-16
+/// code units compared after the same simple uppercase mapping.
+pub(crate) fn ordinal_cmp(left: &str, right: &str) -> std::cmp::Ordering {
+    ordinal_key(left)
+        .encode_utf16()
+        .cmp(ordinal_key(right).encode_utf16())
+}
+
 fn ordinal_scalar(value: char) -> char {
     match ordinal_data::UPPERCASE.binary_search_by_key(&(value as u32), |(source, _)| *source) {
         Ok(index) => char::from_u32(ordinal_data::UPPERCASE[index].1).unwrap_or(value),

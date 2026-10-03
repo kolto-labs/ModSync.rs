@@ -5,8 +5,9 @@ use std::{
 };
 
 /// Matching policy for the engine's virtual filesystem. Exact mode is currently
-/// confined to Unix unmanaged execution; persisted managed/checkpoint indexes
-/// retain their existing case-folded contract.
+/// confined to Unix unmanaged execution. Case-insensitive keys use the reference
+/// `StringComparer.OrdinalIgnoreCase` identity shared with managed deployment
+/// and conflict analysis and checkpoint tree alias checks.
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct PathPolicy {
     pub(crate) case_insensitive: bool,
@@ -21,7 +22,7 @@ impl PathPolicy {
     }
     pub(crate) fn key(self, path: &Path) -> String {
         if self.case_insensitive {
-            path.to_string_lossy().replace('\\', "/").to_lowercase()
+            crate::unicode_case::ordinal_key(&path.to_string_lossy().replace('\\', "/"))
         } else {
             path.to_string_lossy().into_owned()
         }
