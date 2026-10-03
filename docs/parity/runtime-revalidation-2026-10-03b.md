@@ -168,6 +168,12 @@ The retained probes were updated as follows:
   acquisition order. The existing queue then raises "FOMOD choices need attention"
   with Retry/Dismiss and keeps Validate/Install blocked. Errors from archives that
   could not be inspected stay log-only, as before. The Activity line is kept.
+  Review follow-up: the repair case is identified by a typed `repair` flag on
+  `FomodInspectionError` (set only by `bound_fomod_followups`; serialized only when
+  true), not by message text. The modal appears for unparseable records; choices that
+  parse but no longer fit open the ordinary editor pre-filled, and readiness stays
+  blocked while it is open. A shared archive item's dismissal also drops its other
+  consumers, which validation then reports.
 - Probe: the scenario now expects the queue's per-item consumer binding. Only the
   malformed component's archive (`one.zip`) blocks. After its explicit dismissal,
   `two.zip`, whose component has no saved choices, opens its ordinary editor

@@ -33,10 +33,6 @@ use std::{
     time::Duration,
 };
 
-/// Prefix `download_orchestrator::bound_fomod_followups` gives a consumer whose saved
-/// `FomodChoices` are unparseable or do not fit the detected archive.
-const SAVED_CHOICES_REPAIR: &str = "Saved FOMOD choices need repair";
-
 enum Message {
     ShellTerminal(Box<main_window::Finished>),
     DeploymentTerminal(Box<deployment_panel::Finished>),
@@ -1418,7 +1414,7 @@ impl App {
                             // be inspected are not follow-ups and stay log-only.
                             let repair =
                                 |error: &&modsync::download_orchestrator::FomodInspectionError| {
-                                    error.error.starts_with(SAVED_CHOICES_REPAIR)
+                                    error.repair
                                         && self.guide.as_ref().is_some_and(|guide| {
                                             guide.components.iter().any(|c| {
                                                 c.guid == error.component_guid
