@@ -13,7 +13,7 @@ orchestrator) after the download-residuals change. Evidence:
    it was not replaced. The present file is never replaced. C# would download and
    overwrite.
    - **With an authored hash**, a name already present before the transfer is settled
-     at once, with no request: the present file alone decides (adopt on the hash,
+     at once, with no transfer (provider API or page requests that reveal the name still run): the present file alone decides (adopt on the hash,
      refuse otherwise). A name revealed by the provider before the transfer (a Nexus
      API name) is settled the same way. A name taken only while the transfer runs still
      goes through the no-clobber publish and is adopted or refused after it.
@@ -27,7 +27,7 @@ orchestrator) after the download-residuals change. Evidence:
    replaced"). With no hash it costs a transfer, then fails with "differs from the
    downloaded bytes ...". The file is kept either way.
 3. **Unnamed Nexus targets**: a name revealed by the API that is already present is
-   settled by the same rule after the transfer, or before it with no request when the
+   settled by the same rule after the transfer, or before it with no transfer when the
    component authors a hash (item 1). MEGA follows the same rule (source only).
 4. **Ctrl+C during planning** (for example while hashing a large present archive)
    **or during execution-time discovery** (for example while a bare Nexus mod page's
