@@ -195,15 +195,20 @@ in the sole checkout on `main`.
 The first five acquisition items have working-source changes: verified adoption
 retains eligible Peer fallback, planning/hash work accepts cancellation, both
 unnamed and known-name publication collisions use typed adoption, and Origin
-progress carries HTTP content length (or provider size for MEGA). The checkboxes
-remain open for deferred runtime acceptance. They are not instructions to
-reimplement those paths.
+progress carries HTTP content length (or provider size for MEGA). Items 2-5 now
+have production-CLI acceptance in
+[`download-residuals-proof`](../parity/download-residuals-proof/README.md) (102/102),
+which also fixed two runtime gaps: a known name taken *before* its transfer still
+failed untyped, and Origin `total` was the length left after the sniff prefix.
+The race item stays open only for runtime acceptance: it needs a Peer source,
+which this cloud kernel cannot seed (no IPv6). It is not an instruction to
+reimplement that path.
 
-- [ ] Fix Origin-present race adoption so refusal can still fall back to Peer.
-- [ ] Make existing-file hash/adoption cancellation responsive.
-- [ ] Handle an unnamed Nexus target whose API-revealed filename already exists.
-- [ ] Handle concurrent known-name publication outside a serialized group.
-- [ ] Report actual Origin download totals where available.
+- [ ] Fix Origin-present race adoption so refusal can still fall back to Peer (source done; Peer runtime acceptance open).
+- [x] Make existing-file hash/adoption cancellation responsive.
+- [x] Handle an unnamed Nexus target whose API-revealed filename already exists.
+- [x] Handle concurrent known-name publication outside a serialized group.
+- [x] Report actual Origin download totals where available.
 - [ ] Reconcile residual FOMOD ownership, hard-dependency scope, missing-archive warnings and folder sources named like archives.
 - [ ] Verify per-archive embedded/run-choice preservation; reconcile the older replacement warning against merged S2b.
 - [ ] Finish desktop FOMOD reconfiguration and S3 semantic/corpus acceptance.

@@ -1146,10 +1146,13 @@ Consequences:
   Peer even when it is Origin's own copy not yet reported (Peer paths source only).
 
 C# deduplicates nothing: each component downloads on its own, and a later publish
-overwrites the file or finds it present and uses it. A known and an unknown name
-from different URLs that no third target links still collide at publish when they
-run at once and the known name's publish loses: it fails with `File exists`. An unnamed Nexus target whose name the API reveals still fails before
-transferring when that name is present. The plan and report JSON changes are
+overwrites the file or finds it present and uses it. A component with a `Files`
+name follows the same adoption rule when its name is taken after planning by a target
+it is not grouped with: before its transfer starts (it still transfers, to compare
+bytes) or by a concurrent publish that wins the no-clobber move. An unnamed Nexus
+target whose name the API reveals transfers and adopts or refuses a present file the
+same way ([download residuals proof](docs/parity/download-residuals-proof/README.md);
+the MEGA equivalent is source only). The plan and report JSON changes are
 additive; rows with no link are unchanged. Evidence: commit `4bf5c54`, its review
 follow-up `339b3d6`, a second follow-up `3f0caf4` (transitive groups, name-matched
 failure inheritance), a third follow-up `d4ccbc1` (present-file adoption for unnamed
@@ -1241,7 +1244,13 @@ The acquisition race verifies Origin-revealed existing files before stopping
 Peer; refused adoption leaves eligible Peer work available. Existing-file hash
 reads and planning now accept cancellation. Provider-revealed filenames and
 concurrent no-clobber publication conflicts retain a typed existing-file result
-for safe verification/adoption. Runtime race/cancellation acceptance remains open.
+for safe verification/adoption. Runtime acceptance for known-name and Nexus-revealed
+collisions, planning hash cancellation (Ctrl+C during planning now exits 130, like one
+during the run) and Origin `transferring.total` is in the
+[download residuals proof](docs/parity/download-residuals-proof/README.md). That proof
+also fixed Origin totals: `total` was read after the 64 KiB sniff prefix, so it was the
+remaining length (`0` for a small file), and now it is the response's Content-Length
+(`null` when the server sends none). The Peer race refusal path remains source only.
 
 ### Checkpoint history, desktop sharing and patcher discovery (2026-10-02)
 

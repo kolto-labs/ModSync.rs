@@ -2700,13 +2700,14 @@ fn origin_once(
             download::TransferContext::with_loopback_ca(context.loopback_ca),
         )
     };
-    let destination = target.destination(&context.plan.source_dir)?;
-    let destination = match &target.filename {
-        Some(_) => Destination::File(&destination),
-        None => Destination::Directory {
-            directory: &destination,
-            name: name_hint.as_deref(),
-        },
+    // Validates the authored name before any request.
+    target.destination(&context.plan.source_dir)?;
+    // A known name publishes like a revealed one: when that name is taken before the
+    // transfer or by a concurrent publish, the transfer still completes and returns
+    // `DestinationExists` with its digest, so `adopt_present` decides (never a clobber).
+    let destination = Destination::Directory {
+        directory: &context.plan.source_dir,
+        name: target.filename.as_deref().or(name_hint.as_deref()),
     };
     let mut last = None::<Instant>;
     let mut progress = |progress: FetchProgress| {

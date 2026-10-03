@@ -315,12 +315,17 @@ are recorded in the production receipt; runtime and domain acceptance remain ope
    instead of failing with `File exists`; and the README states the reported source and
    what `origin_denies_peer` does. [Evidence](fetch-shared-url-proof/README.md) is
    381/381 (10 new checks fail on `d4ccbc1`; the race and Fallback changes are
-   source-only). Still open here: when Origin finds its name present inside a race, Peer is
-   stopped before adoption is decided, so a refused adoption cannot fall back to Peer as
-   Fallback mode does (`src/download_orchestrator.rs` ~1624); `adopt_present`'s hash pass
-   ignores cancellation; and an unnamed Nexus target whose API-revealed name is
-   present fails before transferring, and a known name's publish that loses a
-   no-clobber race outside a group still fails with `File exists`. Also open:
+   source-only). The later residuals are settled in source: an Origin-present name in a
+   race is adopted before Peer stops and a refusal leaves Peer running; hash passes take
+   the run's cancel flag; and revealed or known names adopt through `DestinationExists`.
+   The [download residuals proof](download-residuals-proof/README.md) (102/102; 16 fail
+   on `9548a73`) accepts these over the production CLI. It also fixes two runtime gaps:
+   a known name taken by an ungrouped target *before* its transfer started failed with
+   the untyped `Download destination already exists` (Origin now publishes a known name
+   through the same `Directory` path, and MEGA drops its pre-transfer check), and Origin
+   `transferring.total` was read after the sniff prefix (`0` for a small archive). Ctrl+C
+   during planning now exits 130. Only the race's refusal-to-Peer path is still without
+   runtime evidence (no Peer seeding on this kernel). Also open:
    one-run `validate/install --fomod-choices` still replaces all embedded archive
    choices.
    Remaining S2 semantic items and native acceptance follow.
