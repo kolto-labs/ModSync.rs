@@ -287,3 +287,8 @@ Residual (documented at merge): a folder source whose own name ends in an archiv
 extension is compared as a file name, so its component fails for lack of choices rather
 than installing unconfigured; an included component with unparseable `FomodChoices`
 fails with the repair hint.
+
+Update 2026-10-03: rooted resolution (`a185ced`) closed this residual for the CLI; a
+suffixed directory now owns only the archives it contains. Ownership propagation, gate
+dependency scope and the missing-archive soft warning are settled in
+[the gate-scope contract](../fomod-gate-scope.md).
