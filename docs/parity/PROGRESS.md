@@ -16,6 +16,12 @@ alias checks use the same key. Production gates only; see COMPATIBILITY.
 
 Runtime revalidation of `25296da` (2026-10-03b): all retained CLI suites and the C#/Rust differentials pass, native GUI probes recalibrated, one Windows Clippy fix; see [runtime-revalidation-2026-10-03b.md](runtime-revalidation-2026-10-03b.md).
 
+Step-2 broken-choices follow-up (2026-10-03b): unparseable saved `FomodChoices` on a
+prompt-eligible Fetch consumer again raise the blocking "FOMOD choices need attention"
+Retry/Dismiss prompt and keep Validate/Install blocked (plan G7/G8, step-2 review P1),
+instead of only an Activity line. The step-2 probe now passes 48/48 and step 1 46/46;
+see the resolved item in [runtime-revalidation-2026-10-03b.md](runtime-revalidation-2026-10-03b.md).
+
 Latest source wave (after `f528e4b`): Extract, Copy, Move and Patcher recover a
 missing source only after a direct miss, through registry auto-extraction,
 extracted descendants, Move variants and redundant game Moves, all staged before

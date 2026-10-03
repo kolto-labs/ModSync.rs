@@ -3128,6 +3128,10 @@ pub struct FomodInspectionError {
     pub component_guid: String,
     pub archive: PathBuf,
     pub error: String,
+    /// The archive was inspected, but this consumer's saved `FomodChoices` need repair;
+    /// frontends that prompt treat it as an unresolved follow-up, not a log line.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub repair: bool,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize)]
@@ -3248,6 +3252,7 @@ pub fn bound_fomod_followups(
                     component_guid: consumer.component_guid,
                     archive: archive.archive.clone(),
                     error: format!("Saved FOMOD choices need repair: {error:#}"),
+                    repair: true,
                 }),
             }
         }
@@ -3347,6 +3352,7 @@ pub fn collect_fomod_consumers(
                 component_guid: consumers[0].component_guid.clone(),
                 archive: path,
                 error: format!("{error:#}"),
+                repair: false,
             }),
         }
     }
