@@ -1119,6 +1119,18 @@ archive. Evidence: [gate-scope proof](docs/parity/fomod-gate-scope-proof/README.
 74/74 checks (12 fail on `15b11cb`); contract in
 [fomod-gate-scope.md](docs/parity/fomod-gate-scope.md). F15 stays partial.
 
+A registered FOMOD archive with prompt status `configured` and valid saved choices whose
+installer maps no files for any choice now produces C#'s soft warning, once per registering
+component. The installer maps nothing when it has no required files, no plugin files, and
+no conditional pattern that the reference mapper can place. The warning reads
+`<component>: FOMOD archive '<file>' is marked configured but has no matching
+archive-scoped instructions. Its installer maps no files for any choice, so this
+configuration installs nothing from the archive.` It is a counted report warning and a
+`WARNING:` event; it never blocks. As in C#, there is no warning when only an unchosen
+plugin installs files. Evidence: [archive-scoped proof](docs/parity/fomod-archive-scoped-proof/README.md),
+37/37 checks (7 fail on `223ed92`), with a live reference oracle; contract in
+[fomod-archive-scoped.md](docs/parity/fomod-archive-scoped.md).
+
 ## Fetch shared URL and destination — 2026-09-28 UTC
 
 `fetch-downloads` no longer lets two selected components race for one archive file.

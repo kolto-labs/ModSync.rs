@@ -883,7 +883,8 @@ impl Engine {
 
     /// Gates the selected components and, as C# does, their hard dependencies.
     /// Returns warnings for configured registered archives that no selected Extract
-    /// instruction installs: choices are valid, but configuration installs no files.
+    /// instruction installs, or whose installer maps no files for any choice (C#'s
+    /// "configured without archive-scoped instructions"): configuration installs nothing.
     /// Mapper fallbacks of each checked installer are logged once per archive, as C#
     /// logs them, outside the report. Reads archives into scratch only; never writes
     /// the game or mod trees.
@@ -1007,6 +1008,18 @@ impl Engine {
                     };
                     if let Some(module) = module {
                         configured_choices(component, filename, module)?;
+                        // C# FomodConfigurationGate R1, per component: a configured
+                        // archive whose installer maps no archive-scoped instruction.
+                        if crate::fomod::prompt_status(component, filename).as_deref()
+                            == Some("configured")
+                            && !module.config.maps_any_file()
+                        {
+                            warnings.push(format!(
+                                "{}: FOMOD archive '{}' is marked configured but has no matching archive-scoped instructions. Its installer maps no files for any choice, so this configuration installs nothing from the archive.",
+                                crate::fomod::warning_text(&component.name),
+                                crate::fomod::warning_text(filename)
+                            ));
+                        }
                         if logged.insert(self.path_policy.key(&path)) {
                             for warning in module.config.fallback_warnings() {
                                 warnings.push(format!(
@@ -1067,8 +1080,8 @@ impl Engine {
                 }
             }
         }
-        // C# FomodConfigurationGate soft-warns "configured" without archive-scoped
-        // instructions. Rust keeps choices, so the analogue is a missing Extract route.
+        // Rust keeps choices rather than generated instructions, so it also warns when
+        // no Extract route installs a configured archive (no C# counterpart).
         // One warning per archive, naming every registering component.
         for warning in configured
             .into_iter()
