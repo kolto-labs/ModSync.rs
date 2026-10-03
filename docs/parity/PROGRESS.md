@@ -30,6 +30,13 @@ C#'s per-component soft warning, and run-choice ownership, archive-suffixed fold
 sources and per-archive preservation are proved at runtime; see
 [fomod-gate-scope.md](fomod-gate-scope.md) (74/74; 12 fail on `15b11cb`).
 
+FOMOD archive-scoped warning (2026-10-03d): C#'s soft gate warning "marked configured but
+has no matching archive-scoped instructions" now has a Rust form. It fires once per
+registering component when a `configured` FOMOD archive's installer maps no files for any
+choice, the same partition as a live reference oracle. The proof is 37/37 (7 fail on
+`223ed92`), and the regression probes still pass. See
+[fomod-archive-scoped.md](fomod-archive-scoped.md).
+
 Runtime revalidation of `25296da` (2026-10-03b): all retained CLI suites and the C#/Rust differentials pass, native GUI probes recalibrated, one Windows Clippy fix; see [runtime-revalidation-2026-10-03b.md](runtime-revalidation-2026-10-03b.md).
 
 Step-2 broken-choices follow-up (2026-10-03b): unparseable saved `FomodChoices` on a

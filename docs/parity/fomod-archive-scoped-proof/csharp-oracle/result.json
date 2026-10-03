@@ -1,0 +1,50 @@
+{
+  "<fixture-root>/empty/mods": {
+    "Status": "configured",
+    "ArchiveScoped": false,
+    "Passed": true,
+    "Warnings": [
+      "WARNING: Example Consumer: FOMOD archive \u0027empty.zip\u0027 is marked configured but has no matching archive-scoped instructions. Status is configured but no archive-scoped install instructions were found. Re-run Configure FOMOD (or Fetch Downloads) so wizard output is merged into the mod."
+    ],
+    "Issues": []
+  },
+  "<fixture-root>/nosteps/mods": {
+    "Status": "configured",
+    "ArchiveScoped": false,
+    "Passed": true,
+    "Warnings": [
+      "WARNING: Example Consumer: FOMOD archive \u0027empty.zip\u0027 is marked configured but has no matching archive-scoped instructions. Status is configured but no archive-scoped install instructions were found. Re-run Configure FOMOD (or Fetch Downloads) so wizard output is merged into the mod."
+    ],
+    "Issues": []
+  },
+  "<fixture-root>/unattached/mods": {
+    "Status": "configured",
+    "ArchiveScoped": false,
+    "Passed": true,
+    "Warnings": [
+      "WARNING: Example Consumer: FOMOD archive \u0027empty.zip\u0027 is marked configured but has no matching archive-scoped instructions. Status is configured but no archive-scoped install instructions were found. Re-run Configure FOMOD (or Fetch Downloads) so wizard output is merged into the mod."
+    ],
+    "Issues": []
+  },
+  "<fixture-root>/mapped/mods": {
+    "Status": "configured",
+    "ArchiveScoped": true,
+    "Passed": true,
+    "Warnings": [],
+    "Issues": []
+  },
+  "<fixture-root>/partial/mods": {
+    "Status": "configured",
+    "ArchiveScoped": true,
+    "Passed": true,
+    "Warnings": [],
+    "Issues": []
+  },
+  "<fixture-root>/attached/mods": {
+    "Status": "configured",
+    "ArchiveScoped": true,
+    "Passed": true,
+    "Warnings": [],
+    "Issues": []
+  }
+}

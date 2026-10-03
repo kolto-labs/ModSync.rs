@@ -524,6 +524,35 @@ impl ModuleConfig {
         Ok(files)
     }
 
+    /// Whether the reference mapper would give this installer any archive-scoped Copy
+    /// instruction for some choice: a required file, any plugin's file (every step,
+    /// visible or not) or a conditional pattern it can place. C#
+    /// `HasArchiveScopedInstructions` checks the merged component and all its options,
+    /// so only an installer that maps no file at all fails it. A non-folder file whose
+    /// source normalizes to empty maps to the bare archive folder, which C# does not count.
+    pub fn maps_any_file(&self) -> bool {
+        fn scoped(file: &FileInstall) -> bool {
+            file.is_folder
+                || file
+                    .source
+                    .trim()
+                    .replace('\\', "/")
+                    .split('/')
+                    .any(|segment| !segment.is_empty() && segment != ".")
+        }
+        let plugins = self.plugins();
+        self.required_files.iter().any(scoped)
+            || plugins
+                .iter()
+                .any(|(_, plugin)| plugin.files.iter().any(scoped))
+            || self.conditional_files.iter().any(|pattern| {
+                matches!(
+                    Self::place_pattern(pattern, &plugins).0,
+                    PatternPlacement::Trailing | PatternPlacement::Plugin(_)
+                ) && pattern.files.iter().any(scoped)
+            })
+    }
+
     /// Visible diagnostics for the fallbacks where the reference mapper
     /// (`FomodToComponentMapper`) logs a warning: file/game dependencies treated as
     /// satisfied, skipped conditional patterns and dropped destination renames. They

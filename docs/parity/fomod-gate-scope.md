@@ -45,6 +45,7 @@ pinned C# `d31ccbd3`; paths below are under `src/ModSync.Core/` there. Evidence:
 
 The CLI selects every component unless `--use-file-selection`, `--select` or a profile
 narrows it, so the dependency case needs a narrowed selection. Desktop reconfiguration,
-the S3 restart/collision corpora, the C# "configured without archive-scoped
-instructions" warning (no direct analogue; Rust has the no-route warning) and .NET
-casing-table exceptions remain open.
+the S3 restart/collision corpora and .NET casing-table exceptions remain open. The C#
+"configured without archive-scoped instructions" warning is now settled by
+[fomod-archive-scoped.md](fomod-archive-scoped.md). Its Rust form fires when the
+installer maps no files for any choice. The Rust-only no-route warning is kept.

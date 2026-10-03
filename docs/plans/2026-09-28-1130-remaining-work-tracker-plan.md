@@ -225,6 +225,14 @@ Run-choice ownership, archive-suffixed folder sources and per-archive preservati
 already in source (S2b and `a185ced`) and are now proved at runtime. The stale "replaces
 all embedded choices" notes and the `--fomod-choices` help are corrected.
 
+- [x] Reconcile C#'s "configured without archive-scoped instructions" gate warning.
+
+This is settled by the [archive-scoped contract](../parity/fomod-archive-scoped.md) and its
+[proof](../parity/fomod-archive-scoped-proof/README.md) (37/37; 7 fail on `223ed92`). A
+`configured` FOMOD archive whose installer maps no files for any choice now gets C#'s soft
+warning, once per registering component. A live reference oracle on the same fixtures
+gives the same partition. F15 stays open.
+
 ## Full parity checklist
 
 - [ ] **F01 — Formats:** complete format/error corpus, GUIDs, stdin/autodetection and bilateral round trips.

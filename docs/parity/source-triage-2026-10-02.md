@@ -52,6 +52,11 @@ Remaining source work found by the post-wave audit:
   Explicit `!!timestamp` values stay refused, because the reference renders them
   with the host culture and time zone. See
   [the YAML intake contract](yaml-scalar-intake.md).
+- F15: C#'s FOMOD gate warning "configured without archive-scoped
+  instructions". Closed 2026-10-03. Rust at `223ed92` passed silently when a
+  `configured` archive's installer mapped no files for any choice. It now warns per
+  component, as the reference does (live oracle on the same fixtures). See
+  [the archive-scoped contract](fomod-archive-scoped.md).
 - F11: checkpoint duplicate-definition check folds GUID text with Unicode
   lowercase. Equivalent for valid GUIDs; admission is intentionally unchanged.
 
