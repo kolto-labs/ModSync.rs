@@ -94,8 +94,11 @@ TOML and YAML bytes. Rust follows the reference here on purpose.
   (`.5`), where Tomlyn writes `.500`. The parsed TOML value is the same.
 - YAML string quoting follows the shared YAML writer. The string value is the
   same.
-- Rust passes through metadata keys the reference drops. `LastModified` is
-  the exception, because YAML intake would read it.
+- Rust passes through metadata keys the reference drops. For TOML and YAML
+  sources, `LastModified` is the exception, because YAML intake would read it.
+  JSON and XML sources skip the key choice, so a `LastModified` key there is
+  saved verbatim to TOML and YAML. The reference never reads metadata from
+  those formats.
 - In YAML output, a retained value keeps its authored text, written by the
   shared YAML writer. For example, a native TOML local time `10:20:30` is
   written as `lastModified: 10:20:30`, where the reference writes today's
