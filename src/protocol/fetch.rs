@@ -94,6 +94,7 @@ pub fn fetch_instruction_with_cancel(
                 // A proxy would perform its own resolution and bypass the pinned
                 // public-address check. Instruction imports therefore connect direct.
                 let client = reqwest::Client::builder()
+                    .use_rustls_tls()
                     .no_proxy()
                     .timeout(Duration::from_secs(60))
                     .redirect(reqwest::redirect::Policy::none())

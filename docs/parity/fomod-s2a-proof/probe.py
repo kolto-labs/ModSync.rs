@@ -29,7 +29,9 @@ def check(name,actual,expected=True):
  if not row['passed']:print('FAIL',name,repr(actual)[:400],flush=True)
 def plugin(name,source,dest='Override/example.txt'):
  return f'<plugin name="{name}"><description>Generic option</description><files><file source="{source}" destination="{dest}"/></files><typeDescriptor><type name="Optional"/></typeDescriptor></plugin>'
-def package(names=('Alpha','Beta'),contents=('alpha\n','beta\n'),dests=('Override/example.txt','Override/example.txt')):
+# Destinations keep the source file names: Copy cannot rename, and engine validation now
+# reports each authored rename as a FOMOD fallback warning (docs/parity/fomod-visible-fallbacks.md).
+def package(names=('Alpha','Beta'),contents=('alpha\n','beta\n'),dests=('Override/a.txt','Override/b.txt')):
  xml='<config><moduleName>Example Installer</moduleName><installSteps><installStep name="Choose"><optionalFileGroups><group name="Variant" type="SelectExactlyOne"><plugins>'+plugin(names[0],'payload/a.txt',dests[0])+plugin(names[1],'payload/b.txt',dests[1])+'</plugins></group></optionalFileGroups></installStep></installSteps></config>'
  b=io.BytesIO()
  with zipfile.ZipFile(b,'w') as z:
@@ -40,7 +42,7 @@ V1=package()
 V2_RENAMED=package(names=('Gamma','Delta'),contents=('gamma v2\n','delta v2\n'))
 V2_COMPATIBLE=package(contents=('alpha v2\n','beta v2\n'))
 # Same names, but Beta now maps outside the game tree: applying succeeds, mapping fails.
-V2_UNSAFE_MAP=package(contents=('alpha v2\n','beta v2\n'),dests=('Override/example.txt','../escape.txt'))
+V2_UNSAFE_MAP=package(contents=('alpha v2\n','beta v2\n'),dests=('Override/a.txt','../escape.txt'))
 SERVE={'/example.zip':V1,'/second.zip':V1,'/renamed/example.zip':V2_RENAMED,'/compatible/example.zip':V2_COMPATIBLE}
 key=ROOT/'loopback.key';cert=ROOT/'loopback.pem'
 certargs=['openssl','req','-x509','-newkey','rsa:2048','-nodes','-keyout',str(key),'-out',str(cert),'-days','1','-subj','/CN=Loopback Fixture','-addext','subjectAltName=IP:127.0.0.1','-addext','basicConstraints=critical,CA:TRUE','-addext','keyUsage=critical,keyCertSign,cRLSign']
@@ -63,7 +65,7 @@ def choices(plugin='Beta',filename='example.zip'):
  return {'version':1,'archives':[{'archiveFileName':filename,'selections':[{'stepName':'Choose','groupName':'Variant','plugins':[plugin]}]}]}
 def resource(path,filename,status=None):
  meta={'Files':{filename:True},'custom':'keep'}
- if status:meta['handlerMetadata']={'fomodPromptStatus':{filename:status},'unrelated':'keep'}
+ if status:meta['HandlerMetadata']={'fomodPromptStatus':{filename:status},'unrelated':'keep'}
  return {BASE+path:meta}
 def comp(i=0,path='/example.zip',status=None,saved=None,instructions=(EXTRACT,)):
  c={'Guid':GUIDS[i],'Name':f'Example Consumer {i+1}','IsSelected':True,'Instructions':list(instructions),'ResourceRegistry':resource(path,'example.zip',status),'CustomField':'keep'}

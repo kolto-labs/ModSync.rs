@@ -42,8 +42,12 @@ Remaining source work found by the post-wave audit:
   (decided 2026-10-03: follow the reference).
 - F01: guide `LastModified` metadata uses `DateTime.TryParse` in the reference;
   Rust keeps the authored text. Decide whether save output must normalize it.
-- F01: YAML timestamp tags and typed mapping keys are refused; YamlDotNet
-  accepts them. Current refusal is the documented contract.
+- F01: YAML typed mapping keys. Closed 2026-10-03. A live C# check showed the
+  reference loads valid Boolean, Int32 and Double keys and rejects null, invalid
+  and complex keys. Rust now admits the same set (`src/model/yaml.rs`).
+  Explicit `!!timestamp` values stay refused, because the reference renders them
+  with the host culture and time zone. See
+  [the YAML intake contract](yaml-scalar-intake.md).
 - F11: checkpoint duplicate-definition check folds GUID text with Unicode
   lowercase. Equivalent for valid GUIDs; admission is intentionally unchanged.
 

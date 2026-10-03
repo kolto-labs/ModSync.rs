@@ -262,14 +262,16 @@ def main():
         row, start = execute('plain_success', base('plain')); completed(row); archive_clean(row, start, 1)
         reqs = api_requests(start)
         check('plain_success_api_paths', [r['path'] for r in reqs],
-              ['/plain/v1/users/validate.json', '/plain/v1/games/kotor/mods/1/files/1.json', '/plain/v1/games/kotor/mods/1/files/1/download_link.json'])
+              ['/plain/v1/users/validate.json', '/plain/v1/games/kotor/mods/1/files/1.json', '/plain/v1/games/kotor/mods/1/files/1/download_link.json',
+               # H4 provider metadata after the completed download (COMPATIBILITY.md "Provider metadata observations").
+               '/plain/v1/games/kotor/mods/1/files/1.json'])
         check('plain_success_api_key_on_every_api_request', key_values(reqs), [API_KEY])
         check('plain_success_every_api_request_keyed', all(has_key(r) for r in reqs))
 
         # Production would contact, and send the key to, each destination when it is the base.
         for label, origin in [('cross-host', CROSS_HOST), ('cross-port', CROSS_PORT)]:
             row, start = execute(f'control_{label}_as_base', base('plain', origin)); completed(row); archive_clean(row, start, 1)
-            check(f'control_{label}_as_base_contacted', len(api_requests(start, label)), 3)
+            check(f'control_{label}_as_base_contacted', len(api_requests(start, label)), 4)  # 3 acquisition + 1 H4 metadata
             check(f'control_{label}_as_base_key_sent', key_values(api_requests(start, label)), [API_KEY])
 
         # Permitted same-origin redirects (two hops) succeed.
@@ -291,7 +293,8 @@ def main():
         row, start = execute('base_without_trailing_slash', ['--nexus-api-base', f'{API}/noslash/v1', '--nexus-mods-api-key', API_KEY])
         completed(row); archive_clean(row, start, 1)
         check('base_without_trailing_slash_api_paths', [r['path'] for r in api_requests(start)],
-              ['/noslash/v1/users/validate.json', '/noslash/v1/games/kotor/mods/1/files/1.json', '/noslash/v1/games/kotor/mods/1/files/1/download_link.json'])
+              ['/noslash/v1/users/validate.json', '/noslash/v1/games/kotor/mods/1/files/1.json', '/noslash/v1/games/kotor/mods/1/files/1/download_link.json',
+               '/noslash/v1/games/kotor/mods/1/files/1.json'])
 
         # Cross-host, cross-port, host alias and scheme change are refused before contact.
         row, start = execute('cross_host_redirect', base('cross-host')); refused(row, start, 'cross-host')

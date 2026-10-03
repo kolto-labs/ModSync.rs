@@ -540,3 +540,16 @@ its own `CARGO_TARGET_DIR`. Then run the probe with `MODSYNC_BINARY=<that binary
 `MODSYNC_PROOF_OUT=target/cloud-proof/fetch-shared-url-pre45b3c64` (or
 `-pre339b3d6`, `-pre4bf5c54`, `-pre728fa2f`) and `FETCH_SHARED_ALLOW_UNBOUND=1`. That
 run is expected to fail.
+
+## 2026-10-03 rerun on `main`
+
+The probe now passes 382/382 against current source (see
+`../runtime-revalidation-2026-10-03.md`). Two deliberate later changes needed
+expectation updates, and no shared-destination contract changed:
+
+- **H4 provider metadata.** After a completed Origin fetch, ModSync sends a `HEAD`
+  and, when the fixture answers 501, a headers-only `Range: bytes=0-0` GET. These are
+  recorded but excluded from the transfer counts and serialization timings. New check
+  `different_no_follower_metadata`: a different-URL follower gets no lookup.
+- **DeadlyStream is automated.** `same_manual` now uses a GameFront URL, which is
+  still manual-only, to exercise a shared manual outcome.

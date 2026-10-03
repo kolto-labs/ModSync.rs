@@ -40,9 +40,7 @@ impl Options {
         let Some(path) = explicit.or(environment.as_ref()) else {
             return Ok(None);
         };
-        Ok(Some(fomod::ChoicesFile::load(path).with_context(|| {
-            format!("Loading FOMOD choices {}", path.display())
-        })?))
+        Ok(Some(fomod::ChoicesFile::load(path)?))
     }
 
     /// Whether `--fomod-choices` names a file and skip does not win. Only this flag

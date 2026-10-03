@@ -426,6 +426,7 @@ impl NexusClient {
         let redirect = api_redirect_policy(&base_url);
         Ok(Self {
             client: reqwest::blocking::Client::builder()
+                .use_rustls_tls()
                 .timeout(Duration::from_secs(60))
                 .redirect(redirect)
                 .build()?,
