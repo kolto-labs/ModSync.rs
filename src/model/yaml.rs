@@ -288,7 +288,7 @@ impl Document {
                 let mut object = Map::new();
                 for (key, value) in entries {
                     let key = self.project(*key, depth + 1, active, budget)?;
-                    let key = key.as_str().context("YAML mapping keys must resolve to strings; typed or complex keys are unsupported")?;
+                    let key = key.as_str().context("YAML mapping keys must resolve to strings; null or complex keys are unsupported")?;
                     let value = self.project(*value, depth + 1, active, budget)?;
                     object.insert(key.to_owned(), value);
                 }

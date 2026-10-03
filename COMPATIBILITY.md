@@ -1923,8 +1923,9 @@ Structured and embedded Markdown YAML now retain decoded style/tag/key context
 before projection. Untagged default object scalars remain strings under the
 pinned YamlDotNet reader; plain nonkey null spellings and explicit null tags keep
 their separate rules. Explicit Boolean, Int32 and finite Double tags use qualified
-reference conversion; nonfinite values, timestamps and typed/complex map keys
-have explicit representation refusals. Ordered exact-key replacement and
+reference conversion; nonfinite values, timestamps, null keys and complex map keys
+have explicit representation refusals. Valid typed Boolean/integer/float keys load
+as text keys, matching the reference's acceptance (2026-10-03). Ordered exact-key replacement and
 anchor rebinding preserve their recorded reader policy. Forward/cyclic aliases
 fail; acyclic expansion is bounded with budgets shared across guide documents
 and Markdown blocks. No merge-key expansion is introduced. This replaces plain
