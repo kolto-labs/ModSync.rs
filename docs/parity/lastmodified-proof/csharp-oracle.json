@@ -1,16 +1,57 @@
 {
- "reference": "ModOrchestration ModSync.Core (Tomlyn 0.17.0, YamlDotNet 16.2.0) on .NET runtime 10.0.12 via DOTNET_ROLL_FORWARD=Major; captured 2026-10-03",
+ "reference": "ModOrchestration d31ccbd3 ModSync.Core (Tomlyn 0.17.0, YamlDotNet 16.2.0) on .NET runtime 10.0.12 via DOTNET_ROLL_FORWARD=Major; captured 2026-10-03",
  "entries": [
   {
    "tz": "UTC",
    "format": "toml",
    "case": "iso_z",
-   "literal": "\"2024-03-05T10:20:30Z\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30Z\""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T10:20:30.0000000+00:00",
     "kind": "Local",
     "toml": "lastModified = 2024-03-05T10:20:30",
     "yaml": "lastModified: \"2024-03-05T10:20:30.0000000+00:00\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "toml",
+   "case": "iso_z",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30Z\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T05:20:30.0000000-05:00",
+    "kind": "Local",
+    "toml": "lastModified = 2024-03-05T05:20:30",
+    "yaml": "lastModified: \"2024-03-05T05:20:30.0000000-05:00\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "toml",
+   "case": "iso_z",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30Z\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T15:50:30.0000000+05:30",
+    "kind": "Local",
+    "toml": "lastModified = 2024-03-05T15:50:30",
+    "yaml": "lastModified: \"2024-03-05T15:50:30.0000000+05:30\"",
     "others_have_lastModified": []
    }
   },
@@ -18,7 +59,12 @@
    "tz": "UTC",
    "format": "yaml",
    "case": "iso_z",
-   "literal": "\"2024-03-05T10:20:30Z\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30Z\""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T10:20:30.0000000+00:00",
     "kind": "Local",
@@ -28,15 +74,92 @@
    }
   },
   {
+   "tz": "America/New_York",
+   "format": "yaml",
+   "case": "iso_z",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30Z\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T05:20:30.0000000-05:00",
+    "kind": "Local",
+    "toml": "lastModified = 2024-03-05T05:20:30",
+    "yaml": "lastModified: \"2024-03-05T05:20:30.0000000-05:00\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "yaml",
+   "case": "iso_z",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30Z\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T15:50:30.0000000+05:30",
+    "kind": "Local",
+    "toml": "lastModified = 2024-03-05T15:50:30",
+    "yaml": "lastModified: \"2024-03-05T15:50:30.0000000+05:30\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
    "tz": "UTC",
    "format": "toml",
    "case": "iso_offset",
-   "literal": "\"2024-03-05T10:20:30+02:00\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30+02:00\""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T08:20:30.0000000+00:00",
     "kind": "Local",
     "toml": "lastModified = 2024-03-05T08:20:30",
     "yaml": "lastModified: \"2024-03-05T08:20:30.0000000+00:00\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "toml",
+   "case": "iso_offset",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30+02:00\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T03:20:30.0000000-05:00",
+    "kind": "Local",
+    "toml": "lastModified = 2024-03-05T03:20:30",
+    "yaml": "lastModified: \"2024-03-05T03:20:30.0000000-05:00\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "toml",
+   "case": "iso_offset",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30+02:00\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T13:50:30.0000000+05:30",
+    "kind": "Local",
+    "toml": "lastModified = 2024-03-05T13:50:30",
+    "yaml": "lastModified: \"2024-03-05T13:50:30.0000000+05:30\"",
     "others_have_lastModified": []
    }
   },
@@ -44,7 +167,12 @@
    "tz": "UTC",
    "format": "yaml",
    "case": "iso_offset",
-   "literal": "\"2024-03-05T10:20:30+02:00\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30+02:00\""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T08:20:30.0000000+00:00",
     "kind": "Local",
@@ -54,10 +182,87 @@
    }
   },
   {
+   "tz": "America/New_York",
+   "format": "yaml",
+   "case": "iso_offset",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30+02:00\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T03:20:30.0000000-05:00",
+    "kind": "Local",
+    "toml": "lastModified = 2024-03-05T03:20:30",
+    "yaml": "lastModified: \"2024-03-05T03:20:30.0000000-05:00\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "yaml",
+   "case": "iso_offset",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30+02:00\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T13:50:30.0000000+05:30",
+    "kind": "Local",
+    "toml": "lastModified = 2024-03-05T13:50:30",
+    "yaml": "lastModified: \"2024-03-05T13:50:30.0000000+05:30\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
    "tz": "UTC",
    "format": "toml",
    "case": "iso_local",
-   "literal": "\"2024-03-05T10:20:30\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T10:20:30.0000000",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2024-03-05T10:20:30",
+    "yaml": "lastModified: \"2024-03-05T10:20:30.0000000\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "toml",
+   "case": "iso_local",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T10:20:30.0000000",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2024-03-05T10:20:30",
+    "yaml": "lastModified: \"2024-03-05T10:20:30.0000000\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "toml",
+   "case": "iso_local",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30\""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T10:20:30.0000000",
     "kind": "Unspecified",
@@ -70,7 +275,48 @@
    "tz": "UTC",
    "format": "yaml",
    "case": "iso_local",
-   "literal": "\"2024-03-05T10:20:30\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T10:20:30.0000000",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2024-03-05T10:20:30",
+    "yaml": "lastModified: \"2024-03-05T10:20:30.0000000\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "yaml",
+   "case": "iso_local",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T10:20:30.0000000",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2024-03-05T10:20:30",
+    "yaml": "lastModified: \"2024-03-05T10:20:30.0000000\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "yaml",
+   "case": "iso_local",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30\""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T10:20:30.0000000",
     "kind": "Unspecified",
@@ -83,7 +329,48 @@
    "tz": "UTC",
    "format": "toml",
    "case": "iso_frac7",
-   "literal": "\"2024-03-05T10:20:30.1234567\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30.1234567\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T10:20:30.1234567",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2024-03-05T10:20:30.123",
+    "yaml": "lastModified: \"2024-03-05T10:20:30.1234567\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "toml",
+   "case": "iso_frac7",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30.1234567\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T10:20:30.1234567",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2024-03-05T10:20:30.123",
+    "yaml": "lastModified: \"2024-03-05T10:20:30.1234567\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "toml",
+   "case": "iso_frac7",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30.1234567\""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T10:20:30.1234567",
     "kind": "Unspecified",
@@ -96,7 +383,48 @@
    "tz": "UTC",
    "format": "yaml",
    "case": "iso_frac7",
-   "literal": "\"2024-03-05T10:20:30.1234567\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30.1234567\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T10:20:30.1234567",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2024-03-05T10:20:30.123",
+    "yaml": "lastModified: \"2024-03-05T10:20:30.1234567\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "yaml",
+   "case": "iso_frac7",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30.1234567\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T10:20:30.1234567",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2024-03-05T10:20:30.123",
+    "yaml": "lastModified: \"2024-03-05T10:20:30.1234567\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "yaml",
+   "case": "iso_frac7",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30.1234567\""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T10:20:30.1234567",
     "kind": "Unspecified",
@@ -109,12 +437,53 @@
    "tz": "UTC",
    "format": "toml",
    "case": "iso_frac_z",
-   "literal": "\"2024-03-05T10:20:30.5Z\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30.5Z\""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T10:20:30.5000000+00:00",
     "kind": "Local",
     "toml": "lastModified = 2024-03-05T10:20:30.500",
     "yaml": "lastModified: \"2024-03-05T10:20:30.5000000+00:00\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "toml",
+   "case": "iso_frac_z",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30.5Z\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T05:20:30.5000000-05:00",
+    "kind": "Local",
+    "toml": "lastModified = 2024-03-05T05:20:30.500",
+    "yaml": "lastModified: \"2024-03-05T05:20:30.5000000-05:00\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "toml",
+   "case": "iso_frac_z",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30.5Z\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T15:50:30.5000000+05:30",
+    "kind": "Local",
+    "toml": "lastModified = 2024-03-05T15:50:30.500",
+    "yaml": "lastModified: \"2024-03-05T15:50:30.5000000+05:30\"",
     "others_have_lastModified": []
    }
   },
@@ -122,7 +491,12 @@
    "tz": "UTC",
    "format": "yaml",
    "case": "iso_frac_z",
-   "literal": "\"2024-03-05T10:20:30.5Z\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30.5Z\""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T10:20:30.5000000+00:00",
     "kind": "Local",
@@ -132,10 +506,87 @@
    }
   },
   {
+   "tz": "America/New_York",
+   "format": "yaml",
+   "case": "iso_frac_z",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30.5Z\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T05:20:30.5000000-05:00",
+    "kind": "Local",
+    "toml": "lastModified = 2024-03-05T05:20:30.500",
+    "yaml": "lastModified: \"2024-03-05T05:20:30.5000000-05:00\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "yaml",
+   "case": "iso_frac_z",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30.5Z\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T15:50:30.5000000+05:30",
+    "kind": "Local",
+    "toml": "lastModified = 2024-03-05T15:50:30.500",
+    "yaml": "lastModified: \"2024-03-05T15:50:30.5000000+05:30\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
    "tz": "UTC",
    "format": "toml",
    "case": "date_only",
-   "literal": "\"2024-03-05\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T00:00:00.0000000",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2024-03-05T00:00:00",
+    "yaml": "lastModified: \"2024-03-05T00:00:00.0000000\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "toml",
+   "case": "date_only",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T00:00:00.0000000",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2024-03-05T00:00:00",
+    "yaml": "lastModified: \"2024-03-05T00:00:00.0000000\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "toml",
+   "case": "date_only",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05\""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T00:00:00.0000000",
     "kind": "Unspecified",
@@ -148,7 +599,48 @@
    "tz": "UTC",
    "format": "yaml",
    "case": "date_only",
-   "literal": "\"2024-03-05\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T00:00:00.0000000",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2024-03-05T00:00:00",
+    "yaml": "lastModified: \"2024-03-05T00:00:00.0000000\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "yaml",
+   "case": "date_only",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T00:00:00.0000000",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2024-03-05T00:00:00",
+    "yaml": "lastModified: \"2024-03-05T00:00:00.0000000\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "yaml",
+   "case": "date_only",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05\""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T00:00:00.0000000",
     "kind": "Unspecified",
@@ -161,7 +653,48 @@
    "tz": "UTC",
    "format": "toml",
    "case": "space_clock",
-   "literal": "\"2024-03-05 10:20:30\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05 10:20:30\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T10:20:30.0000000",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2024-03-05T10:20:30",
+    "yaml": "lastModified: \"2024-03-05T10:20:30.0000000\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "toml",
+   "case": "space_clock",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05 10:20:30\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T10:20:30.0000000",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2024-03-05T10:20:30",
+    "yaml": "lastModified: \"2024-03-05T10:20:30.0000000\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "toml",
+   "case": "space_clock",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05 10:20:30\""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T10:20:30.0000000",
     "kind": "Unspecified",
@@ -174,7 +707,48 @@
    "tz": "UTC",
    "format": "yaml",
    "case": "space_clock",
-   "literal": "\"2024-03-05 10:20:30\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05 10:20:30\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T10:20:30.0000000",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2024-03-05T10:20:30",
+    "yaml": "lastModified: \"2024-03-05T10:20:30.0000000\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "yaml",
+   "case": "space_clock",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05 10:20:30\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T10:20:30.0000000",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2024-03-05T10:20:30",
+    "yaml": "lastModified: \"2024-03-05T10:20:30.0000000\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "yaml",
+   "case": "space_clock",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05 10:20:30\""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T10:20:30.0000000",
     "kind": "Unspecified",
@@ -187,7 +761,48 @@
    "tz": "UTC",
    "format": "toml",
    "case": "month_name",
-   "literal": "\"March 5, 2024\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"March 5, 2024\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T00:00:00.0000000",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2024-03-05T00:00:00",
+    "yaml": "lastModified: \"2024-03-05T00:00:00.0000000\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "toml",
+   "case": "month_name",
+   "fields": [
+    [
+     "lastModified",
+     "\"March 5, 2024\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T00:00:00.0000000",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2024-03-05T00:00:00",
+    "yaml": "lastModified: \"2024-03-05T00:00:00.0000000\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "toml",
+   "case": "month_name",
+   "fields": [
+    [
+     "lastModified",
+     "\"March 5, 2024\""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T00:00:00.0000000",
     "kind": "Unspecified",
@@ -200,7 +815,48 @@
    "tz": "UTC",
    "format": "yaml",
    "case": "month_name",
-   "literal": "\"March 5, 2024\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"March 5, 2024\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T00:00:00.0000000",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2024-03-05T00:00:00",
+    "yaml": "lastModified: \"2024-03-05T00:00:00.0000000\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "yaml",
+   "case": "month_name",
+   "fields": [
+    [
+     "lastModified",
+     "\"March 5, 2024\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T00:00:00.0000000",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2024-03-05T00:00:00",
+    "yaml": "lastModified: \"2024-03-05T00:00:00.0000000\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "yaml",
+   "case": "month_name",
+   "fields": [
+    [
+     "lastModified",
+     "\"March 5, 2024\""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T00:00:00.0000000",
     "kind": "Unspecified",
@@ -213,12 +869,53 @@
    "tz": "UTC",
    "format": "toml",
    "case": "rfc1123",
-   "literal": "\"Tue, 05 Mar 2024 10:20:30 GMT\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"Tue, 05 Mar 2024 10:20:30 GMT\""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T10:20:30.0000000+00:00",
     "kind": "Local",
     "toml": "lastModified = 2024-03-05T10:20:30",
     "yaml": "lastModified: \"2024-03-05T10:20:30.0000000+00:00\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "toml",
+   "case": "rfc1123",
+   "fields": [
+    [
+     "lastModified",
+     "\"Tue, 05 Mar 2024 10:20:30 GMT\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T05:20:30.0000000-05:00",
+    "kind": "Local",
+    "toml": "lastModified = 2024-03-05T05:20:30",
+    "yaml": "lastModified: \"2024-03-05T05:20:30.0000000-05:00\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "toml",
+   "case": "rfc1123",
+   "fields": [
+    [
+     "lastModified",
+     "\"Tue, 05 Mar 2024 10:20:30 GMT\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T15:50:30.0000000+05:30",
+    "kind": "Local",
+    "toml": "lastModified = 2024-03-05T15:50:30",
+    "yaml": "lastModified: \"2024-03-05T15:50:30.0000000+05:30\"",
     "others_have_lastModified": []
    }
   },
@@ -226,7 +923,12 @@
    "tz": "UTC",
    "format": "yaml",
    "case": "rfc1123",
-   "literal": "\"Tue, 05 Mar 2024 10:20:30 GMT\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"Tue, 05 Mar 2024 10:20:30 GMT\""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T10:20:30.0000000+00:00",
     "kind": "Local",
@@ -236,10 +938,87 @@
    }
   },
   {
+   "tz": "America/New_York",
+   "format": "yaml",
+   "case": "rfc1123",
+   "fields": [
+    [
+     "lastModified",
+     "\"Tue, 05 Mar 2024 10:20:30 GMT\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T05:20:30.0000000-05:00",
+    "kind": "Local",
+    "toml": "lastModified = 2024-03-05T05:20:30",
+    "yaml": "lastModified: \"2024-03-05T05:20:30.0000000-05:00\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "yaml",
+   "case": "rfc1123",
+   "fields": [
+    [
+     "lastModified",
+     "\"Tue, 05 Mar 2024 10:20:30 GMT\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T15:50:30.0000000+05:30",
+    "kind": "Local",
+    "toml": "lastModified = 2024-03-05T15:50:30",
+    "yaml": "lastModified: \"2024-03-05T15:50:30.0000000+05:30\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
    "tz": "UTC",
    "format": "toml",
    "case": "invalid",
-   "literal": "\"not a date\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"not a date\""
+    ]
+   ],
+   "csharp": {
+    "value": null,
+    "kind": null,
+    "toml": null,
+    "yaml": null,
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "toml",
+   "case": "invalid",
+   "fields": [
+    [
+     "lastModified",
+     "\"not a date\""
+    ]
+   ],
+   "csharp": {
+    "value": null,
+    "kind": null,
+    "toml": null,
+    "yaml": null,
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "toml",
+   "case": "invalid",
+   "fields": [
+    [
+     "lastModified",
+     "\"not a date\""
+    ]
+   ],
    "csharp": {
     "value": null,
     "kind": null,
@@ -252,7 +1031,48 @@
    "tz": "UTC",
    "format": "yaml",
    "case": "invalid",
-   "literal": "\"not a date\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"not a date\""
+    ]
+   ],
+   "csharp": {
+    "value": null,
+    "kind": null,
+    "toml": null,
+    "yaml": null,
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "yaml",
+   "case": "invalid",
+   "fields": [
+    [
+     "lastModified",
+     "\"not a date\""
+    ]
+   ],
+   "csharp": {
+    "value": null,
+    "kind": null,
+    "toml": null,
+    "yaml": null,
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "yaml",
+   "case": "invalid",
+   "fields": [
+    [
+     "lastModified",
+     "\"not a date\""
+    ]
+   ],
    "csharp": {
     "value": null,
     "kind": null,
@@ -265,7 +1085,48 @@
    "tz": "UTC",
    "format": "toml",
    "case": "empty",
-   "literal": "\"\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"\""
+    ]
+   ],
+   "csharp": {
+    "value": null,
+    "kind": null,
+    "toml": null,
+    "yaml": null,
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "toml",
+   "case": "empty",
+   "fields": [
+    [
+     "lastModified",
+     "\"\""
+    ]
+   ],
+   "csharp": {
+    "value": null,
+    "kind": null,
+    "toml": null,
+    "yaml": null,
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "toml",
+   "case": "empty",
+   "fields": [
+    [
+     "lastModified",
+     "\"\""
+    ]
+   ],
    "csharp": {
     "value": null,
     "kind": null,
@@ -278,7 +1139,48 @@
    "tz": "UTC",
    "format": "yaml",
    "case": "empty",
-   "literal": "\"\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"\""
+    ]
+   ],
+   "csharp": {
+    "value": null,
+    "kind": null,
+    "toml": null,
+    "yaml": null,
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "yaml",
+   "case": "empty",
+   "fields": [
+    [
+     "lastModified",
+     "\"\""
+    ]
+   ],
+   "csharp": {
+    "value": null,
+    "kind": null,
+    "toml": null,
+    "yaml": null,
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "yaml",
+   "case": "empty",
+   "fields": [
+    [
+     "lastModified",
+     "\"\""
+    ]
+   ],
    "csharp": {
     "value": null,
     "kind": null,
@@ -291,7 +1193,48 @@
    "tz": "UTC",
    "format": "toml",
    "case": "time_only",
-   "literal": "\"10:20\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"10:20\""
+    ]
+   ],
+   "csharp": {
+    "value": "2026-10-03T10:20:00.0000000",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2026-10-03T10:20:00",
+    "yaml": "lastModified: \"2026-10-03T10:20:00.0000000\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "toml",
+   "case": "time_only",
+   "fields": [
+    [
+     "lastModified",
+     "\"10:20\""
+    ]
+   ],
+   "csharp": {
+    "value": "2026-10-03T10:20:00.0000000",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2026-10-03T10:20:00",
+    "yaml": "lastModified: \"2026-10-03T10:20:00.0000000\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "toml",
+   "case": "time_only",
+   "fields": [
+    [
+     "lastModified",
+     "\"10:20\""
+    ]
+   ],
    "csharp": {
     "value": "2026-10-03T10:20:00.0000000",
     "kind": "Unspecified",
@@ -304,7 +1247,48 @@
    "tz": "UTC",
    "format": "yaml",
    "case": "time_only",
-   "literal": "\"10:20\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"10:20\""
+    ]
+   ],
+   "csharp": {
+    "value": "2026-10-03T10:20:00.0000000",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2026-10-03T10:20:00",
+    "yaml": "lastModified: \"2026-10-03T10:20:00.0000000\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "yaml",
+   "case": "time_only",
+   "fields": [
+    [
+     "lastModified",
+     "\"10:20\""
+    ]
+   ],
+   "csharp": {
+    "value": "2026-10-03T10:20:00.0000000",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2026-10-03T10:20:00",
+    "yaml": "lastModified: \"2026-10-03T10:20:00.0000000\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "yaml",
+   "case": "time_only",
+   "fields": [
+    [
+     "lastModified",
+     "\"10:20\""
+    ]
+   ],
    "csharp": {
     "value": "2026-10-03T10:20:00.0000000",
     "kind": "Unspecified",
@@ -317,7 +1301,12 @@
    "tz": "UTC",
    "format": "toml",
    "case": "toml_native_odt",
-   "literal": "2024-03-05T10:20:30Z",
+   "fields": [
+    [
+     "lastModified",
+     "2024-03-05T10:20:30Z"
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T10:20:30.0000000+00:00",
     "kind": "Local",
@@ -327,10 +1316,87 @@
    }
   },
   {
+   "tz": "America/New_York",
+   "format": "toml",
+   "case": "toml_native_odt",
+   "fields": [
+    [
+     "lastModified",
+     "2024-03-05T10:20:30Z"
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T05:20:30.0000000-05:00",
+    "kind": "Local",
+    "toml": "lastModified = 2024-03-05T05:20:30",
+    "yaml": "lastModified: \"2024-03-05T05:20:30.0000000-05:00\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "toml",
+   "case": "toml_native_odt",
+   "fields": [
+    [
+     "lastModified",
+     "2024-03-05T10:20:30Z"
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T15:50:30.0000000+05:30",
+    "kind": "Local",
+    "toml": "lastModified = 2024-03-05T15:50:30",
+    "yaml": "lastModified: \"2024-03-05T15:50:30.0000000+05:30\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
    "tz": "UTC",
    "format": "toml",
    "case": "toml_native_ldt",
-   "literal": "2024-03-05T10:20:30",
+   "fields": [
+    [
+     "lastModified",
+     "2024-03-05T10:20:30"
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T10:20:30.0000000",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2024-03-05T10:20:30",
+    "yaml": "lastModified: \"2024-03-05T10:20:30.0000000\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "toml",
+   "case": "toml_native_ldt",
+   "fields": [
+    [
+     "lastModified",
+     "2024-03-05T10:20:30"
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T10:20:30.0000000",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2024-03-05T10:20:30",
+    "yaml": "lastModified: \"2024-03-05T10:20:30.0000000\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "toml",
+   "case": "toml_native_ldt",
+   "fields": [
+    [
+     "lastModified",
+     "2024-03-05T10:20:30"
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T10:20:30.0000000",
     "kind": "Unspecified",
@@ -343,7 +1409,48 @@
    "tz": "UTC",
    "format": "toml",
    "case": "toml_native_ld",
-   "literal": "2024-03-05",
+   "fields": [
+    [
+     "lastModified",
+     "2024-03-05"
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T00:00:00.0000000",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2024-03-05T00:00:00",
+    "yaml": "lastModified: \"2024-03-05T00:00:00.0000000\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "toml",
+   "case": "toml_native_ld",
+   "fields": [
+    [
+     "lastModified",
+     "2024-03-05"
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T00:00:00.0000000",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2024-03-05T00:00:00",
+    "yaml": "lastModified: \"2024-03-05T00:00:00.0000000\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "toml",
+   "case": "toml_native_ld",
+   "fields": [
+    [
+     "lastModified",
+     "2024-03-05"
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T00:00:00.0000000",
     "kind": "Unspecified",
@@ -356,7 +1463,12 @@
    "tz": "UTC",
    "format": "toml",
    "case": "toml_native_frac",
-   "literal": "2024-03-05T10:20:30.1234567+05:30",
+   "fields": [
+    [
+     "lastModified",
+     "2024-03-05T10:20:30.1234567+05:30"
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T04:50:30.1234567+00:00",
     "kind": "Local",
@@ -368,359 +1480,13 @@
   {
    "tz": "America/New_York",
    "format": "toml",
-   "case": "iso_z",
-   "literal": "\"2024-03-05T10:20:30Z\"",
-   "csharp": {
-    "value": "2024-03-05T05:20:30.0000000-05:00",
-    "kind": "Local",
-    "toml": "lastModified = 2024-03-05T05:20:30",
-    "yaml": "lastModified: \"2024-03-05T05:20:30.0000000-05:00\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "yaml",
-   "case": "iso_z",
-   "literal": "\"2024-03-05T10:20:30Z\"",
-   "csharp": {
-    "value": "2024-03-05T05:20:30.0000000-05:00",
-    "kind": "Local",
-    "toml": "lastModified = 2024-03-05T05:20:30",
-    "yaml": "lastModified: \"2024-03-05T05:20:30.0000000-05:00\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "toml",
-   "case": "iso_offset",
-   "literal": "\"2024-03-05T10:20:30+02:00\"",
-   "csharp": {
-    "value": "2024-03-05T03:20:30.0000000-05:00",
-    "kind": "Local",
-    "toml": "lastModified = 2024-03-05T03:20:30",
-    "yaml": "lastModified: \"2024-03-05T03:20:30.0000000-05:00\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "yaml",
-   "case": "iso_offset",
-   "literal": "\"2024-03-05T10:20:30+02:00\"",
-   "csharp": {
-    "value": "2024-03-05T03:20:30.0000000-05:00",
-    "kind": "Local",
-    "toml": "lastModified = 2024-03-05T03:20:30",
-    "yaml": "lastModified: \"2024-03-05T03:20:30.0000000-05:00\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "toml",
-   "case": "iso_local",
-   "literal": "\"2024-03-05T10:20:30\"",
-   "csharp": {
-    "value": "2024-03-05T10:20:30.0000000",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2024-03-05T10:20:30",
-    "yaml": "lastModified: \"2024-03-05T10:20:30.0000000\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "yaml",
-   "case": "iso_local",
-   "literal": "\"2024-03-05T10:20:30\"",
-   "csharp": {
-    "value": "2024-03-05T10:20:30.0000000",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2024-03-05T10:20:30",
-    "yaml": "lastModified: \"2024-03-05T10:20:30.0000000\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "toml",
-   "case": "iso_frac7",
-   "literal": "\"2024-03-05T10:20:30.1234567\"",
-   "csharp": {
-    "value": "2024-03-05T10:20:30.1234567",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2024-03-05T10:20:30.123",
-    "yaml": "lastModified: \"2024-03-05T10:20:30.1234567\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "yaml",
-   "case": "iso_frac7",
-   "literal": "\"2024-03-05T10:20:30.1234567\"",
-   "csharp": {
-    "value": "2024-03-05T10:20:30.1234567",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2024-03-05T10:20:30.123",
-    "yaml": "lastModified: \"2024-03-05T10:20:30.1234567\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "toml",
-   "case": "iso_frac_z",
-   "literal": "\"2024-03-05T10:20:30.5Z\"",
-   "csharp": {
-    "value": "2024-03-05T05:20:30.5000000-05:00",
-    "kind": "Local",
-    "toml": "lastModified = 2024-03-05T05:20:30.500",
-    "yaml": "lastModified: \"2024-03-05T05:20:30.5000000-05:00\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "yaml",
-   "case": "iso_frac_z",
-   "literal": "\"2024-03-05T10:20:30.5Z\"",
-   "csharp": {
-    "value": "2024-03-05T05:20:30.5000000-05:00",
-    "kind": "Local",
-    "toml": "lastModified = 2024-03-05T05:20:30.500",
-    "yaml": "lastModified: \"2024-03-05T05:20:30.5000000-05:00\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "toml",
-   "case": "date_only",
-   "literal": "\"2024-03-05\"",
-   "csharp": {
-    "value": "2024-03-05T00:00:00.0000000",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2024-03-05T00:00:00",
-    "yaml": "lastModified: \"2024-03-05T00:00:00.0000000\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "yaml",
-   "case": "date_only",
-   "literal": "\"2024-03-05\"",
-   "csharp": {
-    "value": "2024-03-05T00:00:00.0000000",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2024-03-05T00:00:00",
-    "yaml": "lastModified: \"2024-03-05T00:00:00.0000000\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "toml",
-   "case": "space_clock",
-   "literal": "\"2024-03-05 10:20:30\"",
-   "csharp": {
-    "value": "2024-03-05T10:20:30.0000000",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2024-03-05T10:20:30",
-    "yaml": "lastModified: \"2024-03-05T10:20:30.0000000\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "yaml",
-   "case": "space_clock",
-   "literal": "\"2024-03-05 10:20:30\"",
-   "csharp": {
-    "value": "2024-03-05T10:20:30.0000000",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2024-03-05T10:20:30",
-    "yaml": "lastModified: \"2024-03-05T10:20:30.0000000\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "toml",
-   "case": "month_name",
-   "literal": "\"March 5, 2024\"",
-   "csharp": {
-    "value": "2024-03-05T00:00:00.0000000",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2024-03-05T00:00:00",
-    "yaml": "lastModified: \"2024-03-05T00:00:00.0000000\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "yaml",
-   "case": "month_name",
-   "literal": "\"March 5, 2024\"",
-   "csharp": {
-    "value": "2024-03-05T00:00:00.0000000",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2024-03-05T00:00:00",
-    "yaml": "lastModified: \"2024-03-05T00:00:00.0000000\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "toml",
-   "case": "rfc1123",
-   "literal": "\"Tue, 05 Mar 2024 10:20:30 GMT\"",
-   "csharp": {
-    "value": "2024-03-05T05:20:30.0000000-05:00",
-    "kind": "Local",
-    "toml": "lastModified = 2024-03-05T05:20:30",
-    "yaml": "lastModified: \"2024-03-05T05:20:30.0000000-05:00\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "yaml",
-   "case": "rfc1123",
-   "literal": "\"Tue, 05 Mar 2024 10:20:30 GMT\"",
-   "csharp": {
-    "value": "2024-03-05T05:20:30.0000000-05:00",
-    "kind": "Local",
-    "toml": "lastModified = 2024-03-05T05:20:30",
-    "yaml": "lastModified: \"2024-03-05T05:20:30.0000000-05:00\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "toml",
-   "case": "invalid",
-   "literal": "\"not a date\"",
-   "csharp": {
-    "value": null,
-    "kind": null,
-    "toml": null,
-    "yaml": null,
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "yaml",
-   "case": "invalid",
-   "literal": "\"not a date\"",
-   "csharp": {
-    "value": null,
-    "kind": null,
-    "toml": null,
-    "yaml": null,
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "toml",
-   "case": "empty",
-   "literal": "\"\"",
-   "csharp": {
-    "value": null,
-    "kind": null,
-    "toml": null,
-    "yaml": null,
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "yaml",
-   "case": "empty",
-   "literal": "\"\"",
-   "csharp": {
-    "value": null,
-    "kind": null,
-    "toml": null,
-    "yaml": null,
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "toml",
-   "case": "time_only",
-   "literal": "\"10:20\"",
-   "csharp": {
-    "value": "2026-10-03T10:20:00.0000000",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2026-10-03T10:20:00",
-    "yaml": "lastModified: \"2026-10-03T10:20:00.0000000\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "yaml",
-   "case": "time_only",
-   "literal": "\"10:20\"",
-   "csharp": {
-    "value": "2026-10-03T10:20:00.0000000",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2026-10-03T10:20:00",
-    "yaml": "lastModified: \"2026-10-03T10:20:00.0000000\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "toml",
-   "case": "toml_native_odt",
-   "literal": "2024-03-05T10:20:30Z",
-   "csharp": {
-    "value": "2024-03-05T05:20:30.0000000-05:00",
-    "kind": "Local",
-    "toml": "lastModified = 2024-03-05T05:20:30",
-    "yaml": "lastModified: \"2024-03-05T05:20:30.0000000-05:00\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "toml",
-   "case": "toml_native_ldt",
-   "literal": "2024-03-05T10:20:30",
-   "csharp": {
-    "value": "2024-03-05T10:20:30.0000000",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2024-03-05T10:20:30",
-    "yaml": "lastModified: \"2024-03-05T10:20:30.0000000\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "toml",
-   "case": "toml_native_ld",
-   "literal": "2024-03-05",
-   "csharp": {
-    "value": "2024-03-05T00:00:00.0000000",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2024-03-05T00:00:00",
-    "yaml": "lastModified: \"2024-03-05T00:00:00.0000000\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "America/New_York",
-   "format": "toml",
    "case": "toml_native_frac",
-   "literal": "2024-03-05T10:20:30.1234567+05:30",
+   "fields": [
+    [
+     "lastModified",
+     "2024-03-05T10:20:30.1234567+05:30"
+    ]
+   ],
    "csharp": {
     "value": "2024-03-04T23:50:30.1234567-05:00",
     "kind": "Local",
@@ -732,359 +1498,13 @@
   {
    "tz": "Asia/Kolkata",
    "format": "toml",
-   "case": "iso_z",
-   "literal": "\"2024-03-05T10:20:30Z\"",
-   "csharp": {
-    "value": "2024-03-05T15:50:30.0000000+05:30",
-    "kind": "Local",
-    "toml": "lastModified = 2024-03-05T15:50:30",
-    "yaml": "lastModified: \"2024-03-05T15:50:30.0000000+05:30\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "yaml",
-   "case": "iso_z",
-   "literal": "\"2024-03-05T10:20:30Z\"",
-   "csharp": {
-    "value": "2024-03-05T15:50:30.0000000+05:30",
-    "kind": "Local",
-    "toml": "lastModified = 2024-03-05T15:50:30",
-    "yaml": "lastModified: \"2024-03-05T15:50:30.0000000+05:30\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "toml",
-   "case": "iso_offset",
-   "literal": "\"2024-03-05T10:20:30+02:00\"",
-   "csharp": {
-    "value": "2024-03-05T13:50:30.0000000+05:30",
-    "kind": "Local",
-    "toml": "lastModified = 2024-03-05T13:50:30",
-    "yaml": "lastModified: \"2024-03-05T13:50:30.0000000+05:30\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "yaml",
-   "case": "iso_offset",
-   "literal": "\"2024-03-05T10:20:30+02:00\"",
-   "csharp": {
-    "value": "2024-03-05T13:50:30.0000000+05:30",
-    "kind": "Local",
-    "toml": "lastModified = 2024-03-05T13:50:30",
-    "yaml": "lastModified: \"2024-03-05T13:50:30.0000000+05:30\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "toml",
-   "case": "iso_local",
-   "literal": "\"2024-03-05T10:20:30\"",
-   "csharp": {
-    "value": "2024-03-05T10:20:30.0000000",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2024-03-05T10:20:30",
-    "yaml": "lastModified: \"2024-03-05T10:20:30.0000000\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "yaml",
-   "case": "iso_local",
-   "literal": "\"2024-03-05T10:20:30\"",
-   "csharp": {
-    "value": "2024-03-05T10:20:30.0000000",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2024-03-05T10:20:30",
-    "yaml": "lastModified: \"2024-03-05T10:20:30.0000000\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "toml",
-   "case": "iso_frac7",
-   "literal": "\"2024-03-05T10:20:30.1234567\"",
-   "csharp": {
-    "value": "2024-03-05T10:20:30.1234567",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2024-03-05T10:20:30.123",
-    "yaml": "lastModified: \"2024-03-05T10:20:30.1234567\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "yaml",
-   "case": "iso_frac7",
-   "literal": "\"2024-03-05T10:20:30.1234567\"",
-   "csharp": {
-    "value": "2024-03-05T10:20:30.1234567",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2024-03-05T10:20:30.123",
-    "yaml": "lastModified: \"2024-03-05T10:20:30.1234567\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "toml",
-   "case": "iso_frac_z",
-   "literal": "\"2024-03-05T10:20:30.5Z\"",
-   "csharp": {
-    "value": "2024-03-05T15:50:30.5000000+05:30",
-    "kind": "Local",
-    "toml": "lastModified = 2024-03-05T15:50:30.500",
-    "yaml": "lastModified: \"2024-03-05T15:50:30.5000000+05:30\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "yaml",
-   "case": "iso_frac_z",
-   "literal": "\"2024-03-05T10:20:30.5Z\"",
-   "csharp": {
-    "value": "2024-03-05T15:50:30.5000000+05:30",
-    "kind": "Local",
-    "toml": "lastModified = 2024-03-05T15:50:30.500",
-    "yaml": "lastModified: \"2024-03-05T15:50:30.5000000+05:30\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "toml",
-   "case": "date_only",
-   "literal": "\"2024-03-05\"",
-   "csharp": {
-    "value": "2024-03-05T00:00:00.0000000",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2024-03-05T00:00:00",
-    "yaml": "lastModified: \"2024-03-05T00:00:00.0000000\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "yaml",
-   "case": "date_only",
-   "literal": "\"2024-03-05\"",
-   "csharp": {
-    "value": "2024-03-05T00:00:00.0000000",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2024-03-05T00:00:00",
-    "yaml": "lastModified: \"2024-03-05T00:00:00.0000000\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "toml",
-   "case": "space_clock",
-   "literal": "\"2024-03-05 10:20:30\"",
-   "csharp": {
-    "value": "2024-03-05T10:20:30.0000000",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2024-03-05T10:20:30",
-    "yaml": "lastModified: \"2024-03-05T10:20:30.0000000\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "yaml",
-   "case": "space_clock",
-   "literal": "\"2024-03-05 10:20:30\"",
-   "csharp": {
-    "value": "2024-03-05T10:20:30.0000000",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2024-03-05T10:20:30",
-    "yaml": "lastModified: \"2024-03-05T10:20:30.0000000\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "toml",
-   "case": "month_name",
-   "literal": "\"March 5, 2024\"",
-   "csharp": {
-    "value": "2024-03-05T00:00:00.0000000",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2024-03-05T00:00:00",
-    "yaml": "lastModified: \"2024-03-05T00:00:00.0000000\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "yaml",
-   "case": "month_name",
-   "literal": "\"March 5, 2024\"",
-   "csharp": {
-    "value": "2024-03-05T00:00:00.0000000",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2024-03-05T00:00:00",
-    "yaml": "lastModified: \"2024-03-05T00:00:00.0000000\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "toml",
-   "case": "rfc1123",
-   "literal": "\"Tue, 05 Mar 2024 10:20:30 GMT\"",
-   "csharp": {
-    "value": "2024-03-05T15:50:30.0000000+05:30",
-    "kind": "Local",
-    "toml": "lastModified = 2024-03-05T15:50:30",
-    "yaml": "lastModified: \"2024-03-05T15:50:30.0000000+05:30\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "yaml",
-   "case": "rfc1123",
-   "literal": "\"Tue, 05 Mar 2024 10:20:30 GMT\"",
-   "csharp": {
-    "value": "2024-03-05T15:50:30.0000000+05:30",
-    "kind": "Local",
-    "toml": "lastModified = 2024-03-05T15:50:30",
-    "yaml": "lastModified: \"2024-03-05T15:50:30.0000000+05:30\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "toml",
-   "case": "invalid",
-   "literal": "\"not a date\"",
-   "csharp": {
-    "value": null,
-    "kind": null,
-    "toml": null,
-    "yaml": null,
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "yaml",
-   "case": "invalid",
-   "literal": "\"not a date\"",
-   "csharp": {
-    "value": null,
-    "kind": null,
-    "toml": null,
-    "yaml": null,
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "toml",
-   "case": "empty",
-   "literal": "\"\"",
-   "csharp": {
-    "value": null,
-    "kind": null,
-    "toml": null,
-    "yaml": null,
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "yaml",
-   "case": "empty",
-   "literal": "\"\"",
-   "csharp": {
-    "value": null,
-    "kind": null,
-    "toml": null,
-    "yaml": null,
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "toml",
-   "case": "time_only",
-   "literal": "\"10:20\"",
-   "csharp": {
-    "value": "2026-10-03T10:20:00.0000000",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2026-10-03T10:20:00",
-    "yaml": "lastModified: \"2026-10-03T10:20:00.0000000\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "yaml",
-   "case": "time_only",
-   "literal": "\"10:20\"",
-   "csharp": {
-    "value": "2026-10-03T10:20:00.0000000",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2026-10-03T10:20:00",
-    "yaml": "lastModified: \"2026-10-03T10:20:00.0000000\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "toml",
-   "case": "toml_native_odt",
-   "literal": "2024-03-05T10:20:30Z",
-   "csharp": {
-    "value": "2024-03-05T15:50:30.0000000+05:30",
-    "kind": "Local",
-    "toml": "lastModified = 2024-03-05T15:50:30",
-    "yaml": "lastModified: \"2024-03-05T15:50:30.0000000+05:30\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "toml",
-   "case": "toml_native_ldt",
-   "literal": "2024-03-05T10:20:30",
-   "csharp": {
-    "value": "2024-03-05T10:20:30.0000000",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2024-03-05T10:20:30",
-    "yaml": "lastModified: \"2024-03-05T10:20:30.0000000\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "toml",
-   "case": "toml_native_ld",
-   "literal": "2024-03-05",
-   "csharp": {
-    "value": "2024-03-05T00:00:00.0000000",
-    "kind": "Unspecified",
-    "toml": "lastModified = 2024-03-05T00:00:00",
-    "yaml": "lastModified: \"2024-03-05T00:00:00.0000000\"",
-    "others_have_lastModified": []
-   }
-  },
-  {
-   "tz": "Asia/Kolkata",
-   "format": "toml",
    "case": "toml_native_frac",
-   "literal": "2024-03-05T10:20:30.1234567+05:30",
+   "fields": [
+    [
+     "lastModified",
+     "2024-03-05T10:20:30.1234567+05:30"
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T10:20:30.1234567+05:30",
     "kind": "Local",
@@ -1097,7 +1517,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "March",
-   "literal": "\"March\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"March\""
+    ]
+   ],
    "csharp": {
     "value": null,
     "kind": null,
@@ -1110,7 +1535,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "Tuesday",
-   "literal": "\"Tuesday\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"Tuesday\""
+    ]
+   ],
    "csharp": {
     "value": null,
     "kind": null,
@@ -1123,7 +1553,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "GMT",
-   "literal": "\"GMT\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"GMT\""
+    ]
+   ],
    "csharp": {
     "value": null,
     "kind": null,
@@ -1136,7 +1571,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "Z",
-   "literal": "\"Z\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"Z\""
+    ]
+   ],
    "csharp": {
     "value": null,
     "kind": null,
@@ -1149,7 +1589,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "AM",
-   "literal": "\"AM\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"AM\""
+    ]
+   ],
    "csharp": {
     "value": null,
     "kind": null,
@@ -1162,7 +1607,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "PM",
-   "literal": "\"PM\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"PM\""
+    ]
+   ],
    "csharp": {
     "value": null,
     "kind": null,
@@ -1175,7 +1625,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "now",
-   "literal": "\"now\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"now\""
+    ]
+   ],
    "csharp": {
     "value": null,
     "kind": null,
@@ -1188,7 +1643,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "today",
-   "literal": "\"today\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"today\""
+    ]
+   ],
    "csharp": {
     "value": null,
     "kind": null,
@@ -1201,7 +1661,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "-",
-   "literal": "\"-\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"-\""
+    ]
+   ],
    "csharp": {
     "value": null,
     "kind": null,
@@ -1214,7 +1679,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": ".",
-   "literal": "\".\"",
+   "fields": [
+    [
+     "lastModified",
+     "\".\""
+    ]
+   ],
    "csharp": {
     "value": null,
     "kind": null,
@@ -1227,7 +1697,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "   ",
-   "literal": "\"   \"",
+   "fields": [
+    [
+     "lastModified",
+     "\"   \""
+    ]
+   ],
    "csharp": {
     "value": null,
     "kind": null,
@@ -1240,7 +1715,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "T",
-   "literal": "\"T\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"T\""
+    ]
+   ],
    "csharp": {
     "value": null,
     "kind": null,
@@ -1253,7 +1733,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "Mar Tue",
-   "literal": "\"Mar Tue\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"Mar Tue\""
+    ]
+   ],
    "csharp": {
     "value": null,
     "kind": null,
@@ -1266,7 +1751,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "2024",
-   "literal": "\"2024\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024\""
+    ]
+   ],
    "csharp": {
     "value": null,
     "kind": null,
@@ -1279,7 +1769,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "2024-02-30",
-   "literal": "\"2024-02-30\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-02-30\""
+    ]
+   ],
    "csharp": {
     "value": null,
     "kind": null,
@@ -1292,7 +1787,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "2024-03-05T10:20:30+15:00",
-   "literal": "\"2024-03-05T10:20:30+15:00\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30+15:00\""
+    ]
+   ],
    "csharp": {
     "value": null,
     "kind": null,
@@ -1305,7 +1805,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "2024-03-05T10:20:30.0001",
-   "literal": "\"2024-03-05T10:20:30.0001\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30.0001\""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T10:20:30.0001000",
     "kind": "Unspecified",
@@ -1318,7 +1823,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "2024-03-05T10:20:30.9999999",
-   "literal": "\"2024-03-05T10:20:30.9999999\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30.9999999\""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T10:20:30.9999999",
     "kind": "Unspecified",
@@ -1331,7 +1841,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "2024-03-05T10:20:30.0009999Z",
-   "literal": "\"2024-03-05T10:20:30.0009999Z\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30.0009999Z\""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T05:20:30.0009999-05:00",
     "kind": "Local",
@@ -1344,7 +1859,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "  2024-03-05T10:20:30  ",
-   "literal": "\"  2024-03-05T10:20:30  \"",
+   "fields": [
+    [
+     "lastModified",
+     "\"  2024-03-05T10:20:30  \""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T10:20:30.0000000",
     "kind": "Unspecified",
@@ -1357,7 +1877,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "2024-03-05T24:00:00",
-   "literal": "\"2024-03-05T24:00:00\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T24:00:00\""
+    ]
+   ],
    "csharp": {
     "value": null,
     "kind": null,
@@ -1370,7 +1895,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "Wed, 05 Mar 2024 10:20:30 GMT",
-   "literal": "\"Wed, 05 Mar 2024 10:20:30 GMT\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"Wed, 05 Mar 2024 10:20:30 GMT\""
+    ]
+   ],
    "csharp": {
     "value": null,
     "kind": null,
@@ -1383,7 +1913,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "0001-01-01T00:00:00Z",
-   "literal": "\"0001-01-01T00:00:00Z\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"0001-01-01T00:00:00Z\""
+    ]
+   ],
    "csharp": {
     "value": "0001-01-01T19:03:00.0000000-04:57",
     "kind": "Local",
@@ -1396,7 +1931,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "9999-12-31T23:59:59Z",
-   "literal": "\"9999-12-31T23:59:59Z\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"9999-12-31T23:59:59Z\""
+    ]
+   ],
    "csharp": {
     "value": "9999-12-31T18:59:59.0000000-05:00",
     "kind": "Local",
@@ -1409,7 +1949,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "2024-03-05T10:20:30-14:00",
-   "literal": "\"2024-03-05T10:20:30-14:00\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30-14:00\""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T19:20:30.0000000-05:00",
     "kind": "Local",
@@ -1422,7 +1967,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "2024-03-05 10:20:30 +0530",
-   "literal": "\"2024-03-05 10:20:30 +0530\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05 10:20:30 +0530\""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-04T23:50:30.0000000-05:00",
     "kind": "Local",
@@ -1435,7 +1985,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "3/5/2024 10:20 PM",
-   "literal": "\"3/5/2024 10:20 PM\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"3/5/2024 10:20 PM\""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T22:20:00.0000000",
     "kind": "Unspecified",
@@ -1448,7 +2003,12 @@
    "tz": "America/New_York",
    "format": "yaml",
    "case": "2024/03/05",
-   "literal": "\"2024/03/05\"",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024/03/05\""
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T00:00:00.0000000",
     "kind": "Unspecified",
@@ -1461,7 +2021,12 @@
    "tz": "America/New_York",
    "format": "toml",
    "case": "toml_native_true",
-   "literal": "true",
+   "fields": [
+    [
+     "lastModified",
+     "true"
+    ]
+   ],
    "csharp": {
     "value": null,
     "kind": null,
@@ -1474,7 +2039,12 @@
    "tz": "America/New_York",
    "format": "toml",
    "case": "toml_native_20240305",
-   "literal": "20240305",
+   "fields": [
+    [
+     "lastModified",
+     "20240305"
+    ]
+   ],
    "csharp": {
     "value": null,
     "kind": null,
@@ -1487,7 +2057,12 @@
    "tz": "America/New_York",
    "format": "toml",
    "case": "toml_native_10:20:30",
-   "literal": "10:20:30",
+   "fields": [
+    [
+     "lastModified",
+     "10:20:30"
+    ]
+   ],
    "csharp": {
     "value": "2026-10-03T10:20:30.0000000",
     "kind": "Unspecified",
@@ -1500,12 +2075,351 @@
    "tz": "America/New_York",
    "format": "toml",
    "case": "toml_native_2024-03-05T10:20:30.000100",
-   "literal": "2024-03-05T10:20:30.000100",
+   "fields": [
+    [
+     "lastModified",
+     "2024-03-05T10:20:30.000100"
+    ]
+   ],
    "csharp": {
     "value": "2024-03-05T10:20:30.0000000",
     "kind": "Unspecified",
     "toml": "lastModified = 2024-03-05T10:20:30",
     "yaml": "lastModified: \"2024-03-05T10:20:30.0000000\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "UTC",
+   "format": "toml",
+   "case": "pascal_only",
+   "fields": [
+    [
+     "LastModified",
+     "\"2024-03-05T10:20:30Z\""
+    ]
+   ],
+   "csharp": {
+    "value": null,
+    "kind": null,
+    "toml": null,
+    "yaml": null,
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "toml",
+   "case": "pascal_only",
+   "fields": [
+    [
+     "LastModified",
+     "\"2024-03-05T10:20:30Z\""
+    ]
+   ],
+   "csharp": {
+    "value": null,
+    "kind": null,
+    "toml": null,
+    "yaml": null,
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "toml",
+   "case": "pascal_only",
+   "fields": [
+    [
+     "LastModified",
+     "\"2024-03-05T10:20:30Z\""
+    ]
+   ],
+   "csharp": {
+    "value": null,
+    "kind": null,
+    "toml": null,
+    "yaml": null,
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "toml",
+   "case": "pascal_only_native",
+   "fields": [
+    [
+     "LastModified",
+     "2024-03-05T10:20:30"
+    ]
+   ],
+   "csharp": {
+    "value": null,
+    "kind": null,
+    "toml": null,
+    "yaml": null,
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "UTC",
+   "format": "toml",
+   "case": "pascal_and_camel",
+   "fields": [
+    [
+     "LastModified",
+     "\"2024-03-05\""
+    ],
+    [
+     "lastModified",
+     "\"2025-01-02T03:04:05Z\""
+    ]
+   ],
+   "csharp": {
+    "value": "2025-01-02T03:04:05.0000000+00:00",
+    "kind": "Local",
+    "toml": "lastModified = 2025-01-02T03:04:05",
+    "yaml": "lastModified: \"2025-01-02T03:04:05.0000000+00:00\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "toml",
+   "case": "pascal_and_camel",
+   "fields": [
+    [
+     "LastModified",
+     "\"2024-03-05\""
+    ],
+    [
+     "lastModified",
+     "\"2025-01-02T03:04:05Z\""
+    ]
+   ],
+   "csharp": {
+    "value": "2025-01-01T22:04:05.0000000-05:00",
+    "kind": "Local",
+    "toml": "lastModified = 2025-01-01T22:04:05",
+    "yaml": "lastModified: \"2025-01-01T22:04:05.0000000-05:00\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "toml",
+   "case": "pascal_and_camel",
+   "fields": [
+    [
+     "LastModified",
+     "\"2024-03-05\""
+    ],
+    [
+     "lastModified",
+     "\"2025-01-02T03:04:05Z\""
+    ]
+   ],
+   "csharp": {
+    "value": "2025-01-02T08:34:05.0000000+05:30",
+    "kind": "Local",
+    "toml": "lastModified = 2025-01-02T08:34:05",
+    "yaml": "lastModified: \"2025-01-02T08:34:05.0000000+05:30\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "UTC",
+   "format": "yaml",
+   "case": "pascal_only",
+   "fields": [
+    [
+     "LastModified",
+     "\"2024-03-05T10:20:30Z\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T10:20:30.0000000+00:00",
+    "kind": "Local",
+    "toml": "lastModified = 2024-03-05T10:20:30",
+    "yaml": "lastModified: \"2024-03-05T10:20:30.0000000+00:00\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "yaml",
+   "case": "pascal_only",
+   "fields": [
+    [
+     "LastModified",
+     "\"2024-03-05T10:20:30Z\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T05:20:30.0000000-05:00",
+    "kind": "Local",
+    "toml": "lastModified = 2024-03-05T05:20:30",
+    "yaml": "lastModified: \"2024-03-05T05:20:30.0000000-05:00\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "yaml",
+   "case": "pascal_only",
+   "fields": [
+    [
+     "LastModified",
+     "\"2024-03-05T10:20:30Z\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T15:50:30.0000000+05:30",
+    "kind": "Local",
+    "toml": "lastModified = 2024-03-05T15:50:30",
+    "yaml": "lastModified: \"2024-03-05T15:50:30.0000000+05:30\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "UTC",
+   "format": "yaml",
+   "case": "pascal_and_camel",
+   "fields": [
+    [
+     "lastModified",
+     "\"2025-01-02\""
+    ],
+    [
+     "LastModified",
+     "\"2024-03-05T10:20:30Z\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T10:20:30.0000000+00:00",
+    "kind": "Local",
+    "toml": "lastModified = 2024-03-05T10:20:30",
+    "yaml": "lastModified: \"2024-03-05T10:20:30.0000000+00:00\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "yaml",
+   "case": "pascal_and_camel",
+   "fields": [
+    [
+     "lastModified",
+     "\"2025-01-02\""
+    ],
+    [
+     "LastModified",
+     "\"2024-03-05T10:20:30Z\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T05:20:30.0000000-05:00",
+    "kind": "Local",
+    "toml": "lastModified = 2024-03-05T05:20:30",
+    "yaml": "lastModified: \"2024-03-05T05:20:30.0000000-05:00\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "Asia/Kolkata",
+   "format": "yaml",
+   "case": "pascal_and_camel",
+   "fields": [
+    [
+     "lastModified",
+     "\"2025-01-02\""
+    ],
+    [
+     "LastModified",
+     "\"2024-03-05T10:20:30Z\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T15:50:30.0000000+05:30",
+    "kind": "Local",
+    "toml": "lastModified = 2024-03-05T15:50:30",
+    "yaml": "lastModified: \"2024-03-05T15:50:30.0000000+05:30\"",
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "yaml",
+   "case": "pascal_invalid_no_fallback",
+   "fields": [
+    [
+     "LastModified",
+     "\"not a date\""
+    ],
+    [
+     "lastModified",
+     "\"2025-01-02\""
+    ]
+   ],
+   "csharp": {
+    "value": null,
+    "kind": null,
+    "toml": null,
+    "yaml": null,
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "yaml",
+   "case": "pascal_null_no_fallback",
+   "fields": [
+    [
+     "LastModified",
+     "null"
+    ],
+    [
+     "lastModified",
+     "\"2025-01-02\""
+    ]
+   ],
+   "csharp": {
+    "value": null,
+    "kind": null,
+    "toml": null,
+    "yaml": null,
+    "others_have_lastModified": []
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "toml",
+   "case": "toml_native_frac8",
+   "fields": [
+    [
+     "lastModified",
+     "2024-03-05T10:20:30.12345678"
+    ]
+   ],
+   "csharp": {
+    "error": "InvalidOperationException: The document has errors: (3,16) : error : Invalid format of date time/offset `2024-03-05T10:20:30.12345678` not following RFC3339"
+   }
+  },
+  {
+   "tz": "America/New_York",
+   "format": "yaml",
+   "case": "frac8",
+   "fields": [
+    [
+     "lastModified",
+     "\"2024-03-05T10:20:30.12345678\""
+    ]
+   ],
+   "csharp": {
+    "value": "2024-03-05T10:20:30.1234568",
+    "kind": "Unspecified",
+    "toml": "lastModified = 2024-03-05T10:20:30.123",
+    "yaml": "lastModified: \"2024-03-05T10:20:30.1234568\"",
     "others_have_lastModified": []
    }
   }

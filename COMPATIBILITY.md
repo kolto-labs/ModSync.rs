@@ -1944,8 +1944,14 @@ input. TOML gets a native local date-time truncated to milliseconds.
 - Forms outside the shared bounded date model keep their authored value with a
   warning. Examples are time-only values, impossible dates, `24:00` and
   unsupported zone rules.
-- Native TOML date-times now round-trip as date-times.
+- Key choice follows the reference. TOML reads only `lastModified`, so a
+  TOML `LastModified` key is omitted with a warning. YAML reads
+  `LastModified` first, with no fallback when it fails to parse.
+- Native TOML date-times now round-trip as date-times in TOML and are
+  written as date-time text in YAML.
 - JSON, XML and Markdown do not carry the field in either implementation.
+- The saved bytes depend on the host. Zoned values are converted to the host
+  time zone, including its DST rule on that date, as the reference does.
 
 Proof: a convert differential against the live reference across three time
 zones. See [the lastModified contract](docs/parity/lastmodified-contract.md).

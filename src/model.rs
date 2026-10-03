@@ -222,10 +222,14 @@ impl Guide {
             });
         }
         let mut guide: Self = match canonical_format(&format).unwrap_or(&format) {
-            "toml" => Self::from_value_with_format(
-                toml::from_str(text).context("Parse ModSync TOML")?,
-                keys::Format::Toml,
-            )?,
+            "toml" => {
+                let mut guide = Self::from_value_with_format(
+                    toml::from_str(text).context("Parse ModSync TOML")?,
+                    keys::Format::Toml,
+                )?;
+                select_last_modified_key(&mut guide, true);
+                guide
+            }
             "json" => {
                 let value = serde_json::from_str(text)?;
                 Self::from_value_with_format(value, keys::Format::Json)?
@@ -284,6 +288,7 @@ impl Guide {
                     }
                 }
                 ensure!(directives.is_empty(), "YAML directives require a document");
+                select_last_modified_key(&mut guide, false);
                 guide
             }
             "md" => crate::markdown::parse_with_selection_default(text, default_selection)?,
@@ -905,12 +910,47 @@ pub(crate) fn encode_nullable_files(value: &mut serde_json::Value) {
     }
 }
 
+/// Reference guide `lastModified` intake key choice
+/// (`docs/parity/lastmodified-contract.md`): TOML reads only `lastModified`,
+/// so a `LastModified` key is never stored and never saved. YAML reads
+/// `LastModified` when present (with no fallback when it fails to parse),
+/// else `lastModified`. The chosen value keeps its position as `lastModified`.
+fn select_last_modified_key(guide: &mut Guide, toml: bool) {
+    let Some(fields) = guide
+        .metadata
+        .get_mut("metadata")
+        .and_then(serde_json::Value::as_object_mut)
+    else {
+        return;
+    };
+    let Some(pascal) = fields.get("LastModified").cloned() else {
+        return;
+    };
+    if toml {
+        fields.shift_remove("LastModified");
+        last_modified_warning(
+            "Guide LastModified metadata is not read from TOML by the reference and is omitted on save".into(),
+            &pascal,
+        );
+    } else {
+        fields.shift_remove("lastModified");
+        *fields = std::mem::take(fields)
+            .into_iter()
+            .map(|(key, value)| match key.as_str() {
+                "LastModified" => ("lastModified".to_owned(), value),
+                _ => (key, value),
+            })
+            .collect();
+    }
+}
+
 /// Reference guide `lastModified` save contract
 /// (`docs/parity/lastmodified-contract.md`): the reference stores the value
 /// from invariant `DateTime.TryParse(..., DateTimeStyles.None)`, omits it when
 /// that fails, writes YAML with the `O` pattern and TOML as a native local
 /// date-time truncated to milliseconds. Forms outside the bounded shared date
-/// model keep the authored value with a warning.
+/// model keep the authored value with a warning. The intake already chose the
+/// key (`select_last_modified_key`).
 fn normalize_last_modified(metadata: &mut serde_json::Value, toml: bool) {
     use crate::profiles::InvariantDate;
     use serde_json::Value;
@@ -918,16 +958,10 @@ fn normalize_last_modified(metadata: &mut serde_json::Value, toml: bool) {
     let Some(fields) = metadata.as_object_mut() else {
         return;
     };
-    // TOML reads only `lastModified`; YAML also accepts `LastModified`. The
-    // reference always writes the camel-case key.
-    let key = if fields.contains_key("lastModified") {
-        "lastModified"
-    } else if fields.contains_key("LastModified") {
-        "LastModified"
-    } else {
+    let Some(authored) = fields.get("lastModified") else {
         return;
     };
-    let text = match &fields[key] {
+    let text = match authored {
         Value::Null => None,
         Value::Bool(value) => Some(if *value { "True" } else { "False" }.to_owned()),
         Value::String(text) => Some(text.clone()),
@@ -937,9 +971,9 @@ fn normalize_last_modified(metadata: &mut serde_json::Value, toml: bool) {
         }
         Value::Object(object) if object.len() == 1 => match object.get(TOML_DATETIME) {
             Some(Value::String(text)) => Some(tomlyn_text(text)),
-            _ => return retain_last_modified("value is not a date-time scalar"),
+            _ => return retain_last_modified("value is not a date-time scalar", authored),
         },
-        _ => return retain_last_modified("value is not a date-time scalar"),
+        _ => return retain_last_modified("value is not a date-time scalar", authored),
     };
     let outcome = text.map_or(InvariantDate::Rejected, |text| {
         crate::profiles::invariant_try_parse(&text)
@@ -959,27 +993,41 @@ fn normalize_last_modified(metadata: &mut serde_json::Value, toml: bool) {
             } else {
                 Value::String(round_trip)
             };
-            if key == "lastModified" {
-                fields[key] = value;
-            } else {
-                fields.remove(key);
-                fields.insert("lastModified".into(), value);
-            }
+            fields["lastModified"] = value;
         }
         InvariantDate::Rejected => {
-            fields.remove(key);
-            crate::logging::warning(
-                "Guide lastModified metadata is not a reference DateTime and is omitted on save",
+            last_modified_warning(
+                "Guide lastModified metadata is not a reference DateTime and is omitted on save"
+                    .into(),
+                authored,
             );
+            fields.shift_remove("lastModified");
         }
-        InvariantDate::Unsupported(reason) => retain_last_modified(&reason),
+        InvariantDate::Unsupported(reason) => retain_last_modified(&reason, authored),
     }
 }
-fn retain_last_modified(reason: &str) {
-    crate::logging::warning(format!(
-        "Guide lastModified metadata retains its authored value: {}",
-        reason.chars().take(512).collect::<String>()
-    ));
+fn retain_last_modified(reason: &str, authored: &serde_json::Value) {
+    last_modified_warning(
+        format!(
+            "Guide lastModified metadata retains its authored value: {}",
+            reason.chars().take(512).collect::<String>()
+        ),
+        authored,
+    );
+}
+/// Log a lastModified warning once per message and authored value in a row,
+/// so repeated renders of one guide (the desktop raw preview) do not repeat it.
+fn last_modified_warning(message: String, authored: &serde_json::Value) {
+    static LAST: std::sync::Mutex<Option<(String, serde_json::Value)>> =
+        std::sync::Mutex::new(None);
+    let key = (message, authored.clone());
+    let mut last = LAST
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    if last.as_ref() != Some(&key) {
+        crate::logging::warning(&key.0);
+        *last = Some(key);
+    }
 }
 /// Tomlyn's `TomlDateTime.ToString()` omits the fraction when its
 /// millisecond component is zero.
