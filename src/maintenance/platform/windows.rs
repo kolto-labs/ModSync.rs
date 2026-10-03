@@ -394,7 +394,7 @@ fn no_alternate_streams(file: &File, metadata: &fs::Metadata) -> Result<()> {
     ensure!(
         info.NextEntryOffset == 0
             && length <= 65536 - offset_of!(FILE_STREAM_INFO, StreamName)
-            && length % 2 == 0,
+            && length.is_multiple_of(2),
         "NTFS named/multiple/malformed data streams are unsupported"
     );
     if metadata.is_dir() && length == 0 && info.StreamSize == 0 {

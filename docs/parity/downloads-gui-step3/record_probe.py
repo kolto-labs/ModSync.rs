@@ -335,17 +335,24 @@ try:
     check('authored_guide_not_saved', digest(case / 'guide.json'), original_guide)
     check('game_unchanged_after_fetch', manifest(case / 'game'), original_game)
     click('Guide editor')
-    await_text('Save guide as')
-    screen('guide-editor-save-control')
-    click('Save guide as')
-    time.sleep(2)
-    screen('native-save-dialog')
-    event('save_dialog_windows', windows=x('search', '--onlyvisible', '--name', '.*'))
-    # GTK/rfd Save dialog supports Ctrl+L for an absolute destination.
+    # Editor controls wait for completed-sharing cleanup (persistent-sharing-desktop.md):
+    # the actual page offers an explicit pause first.
+    await_text('Pause sharing to edit')
+    click('Pause sharing to edit', 'Pause sharing before editor', last=True)
+    # The shared editor now saves the validated draft to a typed "Save to" path
+    # (production-gates-2026-10-02.md: editor identity/draft validation); the
+    # native picker is optional, so the path is typed into the actual field.
+    await_text('Save validated guide')
+    words, _ = screen('guide-editor-save-control')
+    field = locate(words, 'Save to')
+    assert field, 'Save to field not located'
     save_path = case / 'saved-guide.json'
-    x('key', 'ctrl+l'); x('type', '--clearmodifiers', str(save_path)); x('key', 'Return')
+    x('mousemove', field[0][0] + 150, field[0][1]); x('click', 1)
+    event('click', action='Focus Save to field', position=[field[0][0] + 150, field[0][1]])
+    x('type', '--clearmodifiers', str(save_path))
+    click('Save validated guide')
     time.sleep(2)
-    screen('after-save-dialog')
+    screen('after-save')
     if save_path.exists():
         saved = json.loads(save_path.read_text())
         first, second = saved if isinstance(saved, list) else saved['Components']
@@ -353,7 +360,7 @@ try:
         check('saved_second_false_preserved', second['ResourceRegistry'][BASE + '/two.zip']['Files']['two.zip'], False)
         check('saved_selection_preserved', [c['IsSelected'] for c in (saved if isinstance(saved, list) else saved['Components'])], [True, False])
     else:
-        PENDING.append('Native rfd Save guide dialog did not surface on private Xvfb; no saved-guide or GUI record-diff claim.')
+        PENDING.append('The editor save produced no file on private Xvfb (typed Save to path not accepted); no saved-guide or GUI record-diff claim.')
         event('save_dialog_unreachable', windows=x('search', '--onlyvisible', '--name', '.*'))
     check('game_unchanged_after_save', manifest(case / 'game'), original_game)
     close()
