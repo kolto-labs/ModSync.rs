@@ -14,6 +14,12 @@ deployment and conflict path keys share the pinned .NET `OrdinalIgnoreCase`
 key, and conflict rows sort in reference UTF-16 ordinal order. Checkpoint tree
 alias checks use the same key. Production gates only; see COMPATIBILITY.
 
+Guide `lastModified` (2026-10-03): TOML and YAML saves now normalize the
+value as the reference does. Values the reference cannot parse are omitted,
+and unmodeled forms keep the authored text with a warning. The C#/Rust convert
+differential gives 217 matches and 18 documented retentions; see
+[lastmodified-contract.md](lastmodified-contract.md).
+
 Runtime revalidation of `25296da` (2026-10-03b): all retained CLI suites and the C#/Rust differentials pass, native GUI probes recalibrated, one Windows Clippy fix; see [runtime-revalidation-2026-10-03b.md](runtime-revalidation-2026-10-03b.md).
 
 Step-2 broken-choices follow-up (2026-10-03b): unparseable saved `FomodChoices` on a

@@ -114,6 +114,15 @@ impl Serialize for NativeValue<'_> {
                 }
                 seq.end()
             }
+            // A TOML date-time read through `toml`'s private datetime
+            // protocol renders back as the native date-time.
+            Value::Object(map)
+                if map.len() == 1
+                    && let Some(Value::String(text)) = map.get("$__toml_private_datetime")
+                    && let Ok(datetime) = text.parse::<toml::value::Datetime>() =>
+            {
+                datetime.serialize(serializer)
+            }
             Value::Object(map) => {
                 let mut ser_map = serializer.serialize_map(Some(map.len()))?;
                 for (key, item) in map {

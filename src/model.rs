@@ -426,42 +426,45 @@ impl Guide {
                 .entry("fileFormatVersion")
                 .or_insert_with(|| "2.0".into());
         }
-        Ok(
-            match canonical_format(format).context("Save as TOML, JSON, YAML, XML or Markdown")? {
-                "toml" => {
-                    let mut value = serde_json::to_value(self)?;
-                    for key in CONTENT_FIELDS {
-                        value.as_object_mut().unwrap().remove(*key);
-                    }
-                    if metadata.as_object().is_none_or(|m| !m.is_empty()) {
-                        value["metadata"] = metadata.clone();
-                    }
+        let format =
+            canonical_format(format).context("Save as TOML, JSON, YAML, XML or Markdown")?;
+        if matches!(format, "toml" | "yaml") {
+            normalize_last_modified(&mut metadata, format == "toml");
+        }
+        Ok(match format {
+            "toml" => {
+                let mut value = serde_json::to_value(self)?;
+                for key in CONTENT_FIELDS {
+                    value.as_object_mut().unwrap().remove(*key);
+                }
+                if metadata.as_object().is_none_or(|m| !m.is_empty()) {
+                    value["metadata"] = metadata.clone();
+                }
+                encode_nullable_files(&mut value);
+                let mut budget = crate::json_native::ValueBudget::default();
+                crate::json_native::to_toml_pretty(&value, &mut budget)?
+            }
+            "json" => serde_json::to_string_pretty(&self.components)?,
+            "xml" => crate::xml::render(&serde_json::to_value(&self.components)?)?,
+            "yaml" => {
+                let mut text = String::new();
+                let mut budget = crate::json_native::ValueBudget::default();
+                if metadata.as_object().is_none_or(|m| !m.is_empty()) {
+                    text.push_str("---\n# Metadata\n");
+                    text.push_str(&crate::json_native::to_yaml_string(&metadata, &mut budget)?);
+                }
+                for component in &self.components {
+                    text.push_str("---\n");
+                    let mut value = serde_json::to_value(component)?;
                     encode_nullable_files(&mut value);
-                    let mut budget = crate::json_native::ValueBudget::default();
-                    crate::json_native::to_toml_pretty(&value, &mut budget)?
+                    yaml_legacy_resources(&mut value);
+                    text.push_str(&crate::json_native::to_yaml_string(&value, &mut budget)?);
                 }
-                "json" => serde_json::to_string_pretty(&self.components)?,
-                "xml" => crate::xml::render(&serde_json::to_value(&self.components)?)?,
-                "yaml" => {
-                    let mut text = String::new();
-                    let mut budget = crate::json_native::ValueBudget::default();
-                    if metadata.as_object().is_none_or(|m| !m.is_empty()) {
-                        text.push_str("---\n# Metadata\n");
-                        text.push_str(&crate::json_native::to_yaml_string(&metadata, &mut budget)?);
-                    }
-                    for component in &self.components {
-                        text.push_str("---\n");
-                        let mut value = serde_json::to_value(component)?;
-                        encode_nullable_files(&mut value);
-                        yaml_legacy_resources(&mut value);
-                        text.push_str(&crate::json_native::to_yaml_string(&value, &mut budget)?);
-                    }
-                    text
-                }
-                "md" => crate::markdown::render(self, &metadata)?,
-                _ => unreachable!("canonical_format returned an unsupported format"),
-            },
-        )
+                text
+            }
+            "md" => crate::markdown::render(self, &metadata)?,
+            _ => unreachable!("canonical_format returned an unsupported format"),
+        })
     }
 
     pub fn save(&self, path: &Path) -> Result<()> {
@@ -899,5 +902,101 @@ pub(crate) fn encode_nullable_files(value: &mut serde_json::Value) {
             }
         }
         _ => {}
+    }
+}
+
+/// Reference guide `lastModified` save contract
+/// (`docs/parity/lastmodified-contract.md`): the reference stores the value
+/// from invariant `DateTime.TryParse(..., DateTimeStyles.None)`, omits it when
+/// that fails, writes YAML with the `O` pattern and TOML as a native local
+/// date-time truncated to milliseconds. Forms outside the bounded shared date
+/// model keep the authored value with a warning.
+fn normalize_last_modified(metadata: &mut serde_json::Value, toml: bool) {
+    use crate::profiles::InvariantDate;
+    use serde_json::Value;
+    const TOML_DATETIME: &str = "$__toml_private_datetime";
+    let Some(fields) = metadata.as_object_mut() else {
+        return;
+    };
+    // TOML reads only `lastModified`; YAML also accepts `LastModified`. The
+    // reference always writes the camel-case key.
+    let key = if fields.contains_key("lastModified") {
+        "lastModified"
+    } else if fields.contains_key("LastModified") {
+        "LastModified"
+    } else {
+        return;
+    };
+    let text = match &fields[key] {
+        Value::Null => None,
+        Value::Bool(value) => Some(if *value { "True" } else { "False" }.to_owned()),
+        Value::String(text) => Some(text.clone()),
+        // Integer ToString is culture-neutral; other number text is not.
+        Value::Number(number) if !number.as_str().contains(['.', 'e', 'E']) => {
+            Some(number.as_str().to_owned())
+        }
+        Value::Object(object) if object.len() == 1 => match object.get(TOML_DATETIME) {
+            Some(Value::String(text)) => Some(tomlyn_text(text)),
+            _ => return retain_last_modified("value is not a date-time scalar"),
+        },
+        _ => return retain_last_modified("value is not a date-time scalar"),
+    };
+    let outcome = text.map_or(InvariantDate::Rejected, |text| {
+        crate::profiles::invariant_try_parse(&text)
+    });
+    match outcome {
+        InvariantDate::Parsed { round_trip } => {
+            let value = if toml {
+                // Tomlyn writes a DateTime as a local date-time with
+                // millisecond precision and no offset.
+                let millis = &round_trip[20..23];
+                let mut local = round_trip[..19].to_owned();
+                if millis != "000" {
+                    local.push('.');
+                    local.push_str(millis);
+                }
+                serde_json::json!({ TOML_DATETIME: local })
+            } else {
+                Value::String(round_trip)
+            };
+            if key == "lastModified" {
+                fields[key] = value;
+            } else {
+                fields.remove(key);
+                fields.insert("lastModified".into(), value);
+            }
+        }
+        InvariantDate::Rejected => {
+            fields.remove(key);
+            crate::logging::warning(
+                "Guide lastModified metadata is not a reference DateTime and is omitted on save",
+            );
+        }
+        InvariantDate::Unsupported(reason) => retain_last_modified(&reason),
+    }
+}
+fn retain_last_modified(reason: &str) {
+    crate::logging::warning(format!(
+        "Guide lastModified metadata retains its authored value: {}",
+        reason.chars().take(512).collect::<String>()
+    ));
+}
+/// Tomlyn's `TomlDateTime.ToString()` omits the fraction when its
+/// millisecond component is zero.
+fn tomlyn_text(text: &str) -> String {
+    let Some(dot) = text.find('.') else {
+        return text.to_owned();
+    };
+    let digits = text[dot + 1..]
+        .bytes()
+        .take_while(u8::is_ascii_digit)
+        .count();
+    if text[dot + 1..dot + 1 + digits.min(3)]
+        .bytes()
+        .all(|b| b == b'0')
+    {
+        format!("{}{}", &text[..dot], &text[dot + 1 + digits..])
+    } else {
+        text.to_owned()
     }
 }

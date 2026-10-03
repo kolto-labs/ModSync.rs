@@ -9,6 +9,7 @@ mod settings;
 pub(crate) mod storage;
 use anyhow::{Context, Result, ensure};
 pub use schema::{DecodedProfile, IdentityFormat, ProfileListing};
+pub(crate) use schema::{InvariantDate, invariant_try_parse};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 pub use settings::{DesktopSettings, DesktopSettingsReport};

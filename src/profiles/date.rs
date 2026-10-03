@@ -44,6 +44,18 @@ impl DateValue {
             }
         }
     }
+    /// `DateTimeStyles.None` (unlike Newtonsoft's `RoundtripKind`) converts an
+    /// explicit UTC designator to host Local through the same adjustment as a
+    /// zero offset; it never yields a UTC-kind value.
+    pub(super) fn without_roundtrip_kind(self) -> Self {
+        match self.kind {
+            Kind::Utc => Self {
+                clock: self.clock,
+                kind: Kind::FallbackLocal { offset_minutes: 0 },
+            },
+            _ => self,
+        }
+    }
     pub(super) fn canonical(&self) -> Option<String> {
         if matches!(
             self.kind,

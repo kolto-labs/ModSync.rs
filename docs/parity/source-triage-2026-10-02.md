@@ -40,8 +40,12 @@ Remaining source work found by the post-wave audit:
   keys now share the pinned .NET `OrdinalIgnoreCase` key (in-memory only; stored
   spellings are unchanged). F11 checkpoint tree alias checks use the same key
   (decided 2026-10-03: follow the reference).
-- F01: guide `LastModified` metadata uses `DateTime.TryParse` in the reference;
-  Rust keeps the authored text. Decide whether save output must normalize it.
+- F01: guide `LastModified` metadata. Closed 2026-10-03 (follow the
+  reference). A live C# differential showed that TOML and YAML saves normalize
+  the value through invariant `DateTime.TryParse` with `DateTimeStyles.None`,
+  and omit it when the parse fails. Rust now does the same on save through the
+  shared date model. Forms outside that model keep the authored text with a
+  warning. See [the lastModified contract](lastmodified-contract.md).
 - F01: YAML typed mapping keys. Closed 2026-10-03. A live C# check showed the
   reference loads valid Boolean, Int32 and Double keys and rejects null, invalid
   and complex keys. Rust now admits the same set (`src/model/yaml.rs`).
