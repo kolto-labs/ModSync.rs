@@ -911,7 +911,7 @@ Successful verified direct downloads now pass their actual output path and archi
 
 ### Persisted FOMOD prompt state
 
-The Rust guide resource registry now preserves the C# `handlerMetadata.fomodPromptStatus` shape per matching archive filename. It recognizes `dismissed`, `configured`, and `warned`: dismissed archives prompt again, while configured and warned archives do not. Applying or merging valid Rust choices records `configured` when the component already has a resource entry for that archive, preserving existing metadata and its serialized key casing. The shared validation gate now also enumerates archive-like `ResourceRegistry.Files` entries independently of `Extract` instructions, safely resolves their mod-directory paths, and inspects existing archives before requiring explicit choices for detected FOMODs. A focused regression proves a registered nested FOMOD cannot evade the gate simply by omitting an Extract instruction. Registered archives that become missing after a persisted prompt state and registered unreadable archives now fail closed. Missing-archive warning classification without prompt state, configured-without-merged-instructions warnings, dependency-scope expansion, and C# post-download prompt/recovery orchestration remain open. The state by itself does not authorize execution: the Rust validation gate still requires explicit `FomodChoices`.
+The Rust guide resource registry now preserves the C# `handlerMetadata.fomodPromptStatus` shape per matching archive filename. It recognizes `dismissed`, `configured`, and `warned`: dismissed archives prompt again, while configured and warned archives do not. Applying or merging valid Rust choices records `configured` when the component already has a resource entry for that archive, preserving existing metadata and its serialized key casing. The shared validation gate now also enumerates archive-like `ResourceRegistry.Files` entries independently of `Extract` instructions, safely resolves their mod-directory paths, and inspects existing archives before requiring explicit choices for detected FOMODs. A focused regression proves a registered nested FOMOD cannot evade the gate simply by omitting an Extract instruction. Registered archives that become missing after a persisted prompt state and registered unreadable archives now fail closed. (Later sections add the missing-archive soft warning without prompt state, dependency-scope expansion and post-download orchestration; the configured-without-merged-instructions warning has only the no-route analogue.) The state by itself does not authorize execution: the Rust validation gate still requires explicit `FomodChoices`.
 
 ### Desktop FOMOD inspection lifecycle
 
@@ -1023,10 +1023,11 @@ A registered FOMOD archive with valid choices but no selected `Extract` passes w
 one warning per archive, naming its registrants: configuration alone installs no
 files. Choices carry no byte identity (as in C#). A replacement archive that still
 accepts the saved names is mapped fresh from its current bytes. Evidence:
-[S2a proof](docs/parity/fomod-s2a-proof/README.md), 217/217 checks. The run-scoped
-`validate`/`install --fomod-choices` still replaces all embedded archive choices for
-that run; it is not a recovery route. Unicode matching, desktop reconfiguration and
-the S3 corpora remain open, and F15 stays partial.
+[S2a proof](docs/parity/fomod-s2a-proof/README.md), 217/217 checks. (Superseded by
+S2b: the run-scoped `validate`/`install --fomod-choices` once replaced all embedded
+archive choices for that run; it now merges per archive. It is still not a recovery
+route.) Unicode matching, desktop reconfiguration and the S3 corpora remain open, and
+F15 stays partial.
 
 ## FOMOD S2b run choices, Unicode names, gate and fallbacks — 2026-09-28 UTC
 
@@ -1082,8 +1083,41 @@ Plain `validate`/`install --json` stdout gains one `WARNING:` event line per no-
 archive from the gate. C# has no warning for group defaults or auto-selection, so Rust
 adds none. Evidence: [S2b proof](docs/parity/fomod-s2b-proof/README.md), 254/254 checks
 at `c28dee0` plus its scope follow-up (70 of the original 200 fail on `b6d1d88`; 19
-of 232 fail on `37cd4cc`; 10 of 254 fail on `c28dee0`). Ownership propagation, gate dependency scope, the missing-archive soft
-warning, desktop reconfiguration and the S3 corpora remain open, and F15 stays partial.
+of 232 fail on `37cd4cc`; 10 of 254 fail on `c28dee0`). Ownership propagation, gate
+dependency scope and the missing-archive soft warning are settled in the next section;
+desktop reconfiguration and the S3 corpora remain open, and F15 stays partial.
+
+## FOMOD gate scope and residuals — 2026-10-03 UTC
+
+The FOMOD gate (plain `validate`/`install`, the report's FomodConfiguration stage and
+the desktop install through the shared engine) now covers the selected components and
+their hard dependencies, transitively, selected or not, like C#
+`FomodConfigurationGate.ExpandWithHardDependencies`. Unknown dependency GUIDs and
+completed components are skipped. A dependency outside the selection has only its
+registered archives gated, as in C#. The gate reports FOMOD findings first, so an
+unconfigured or stale FOMOD archive of an unselected dependency is named instead of
+being masked. Rust's stricter readiness checks then still apply: an unselected
+dependency, a restriction conflict, an invalid order or unreviewed drafts fail the gate
+(C# only warns for a missing dependency). No run that failed before now passes. The
+CLI selects every component unless `--use-file-selection`, `--select` or a profile
+narrows the selection.
+
+A registered archive that is missing without prompt state now gets C#'s soft warning,
+once per registering component: `<component>: Registered archive '<file>' is not on
+disk under the mod directory. Re-download the archive (Fetch Downloads), then configure
+the FOMOD installer before validate/install.` It is a counted report warning and a
+`WARNING:` event; it never blocks. With recorded prompt state a missing archive is still
+a hard error.
+
+Already in source and now proved at runtime: run choices reach only the components and
+options that register an archive or may extract it; a directory whose name ends in an
+archive extension (for example `Pack.zip/`) is a folder that owns only the archives it
+contains, so a run entry for `inner.zip` configures it and an unrelated suffixed folder's
+unparseable choices do not fail the run; and a run entry replaces only its own archive's
+embedded choices. The `--fomod-choices` help on `install`/`validate` now says it merges per
+archive. Evidence: [gate-scope proof](docs/parity/fomod-gate-scope-proof/README.md),
+74/74 checks (12 fail on `15b11cb`); contract in
+[fomod-gate-scope.md](docs/parity/fomod-gate-scope.md). F15 stays partial.
 
 ## Fetch shared URL and destination — 2026-09-28 UTC
 
@@ -1643,8 +1677,9 @@ earlier VFS instructions. Registry ownership, completed-prefix exclusion,
 cancellation and atomic overlay publication are shared. A registered missing
 archive without recorded prompt state now has a bounded soft warning; recorded
 prompt state retains its hard error. Pure rootless APIs retain their prior
-contract. Dependency expansion and corpus/native acceptance remain open; see
-[the rooted-choice contract](docs/parity/fomod-root-aware-choices.md).
+contract. Corpus/native acceptance remains open; see
+[the rooted-choice contract](docs/parity/fomod-root-aware-choices.md). Dependency
+expansion and runtime proof are in "FOMOD gate scope and residuals".
 
 ### Durable maintenance and acquisition coordination
 

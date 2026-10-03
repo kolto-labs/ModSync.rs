@@ -24,6 +24,12 @@ no longer leak a table into YAML, key order is kept and warnings are deduped.
 Live oracle regenerated: 249 match, 18 retained, 2 reference load errors,
 0 failures. In-repo tests deferred under the AGENTS.md freeze.
 
+FOMOD residuals (2026-10-03c): the gate scope now includes hard dependencies like C#
+`ExpandWithHardDependencies`, a missing registered archive without prompt state gets
+C#'s per-component soft warning, and run-choice ownership, archive-suffixed folder
+sources and per-archive preservation are proved at runtime; see
+[fomod-gate-scope.md](fomod-gate-scope.md) (74/74; 12 fail on `15b11cb`).
+
 Runtime revalidation of `25296da` (2026-10-03b): all retained CLI suites and the C#/Rust differentials pass, native GUI probes recalibrated, one Windows Clippy fix; see [runtime-revalidation-2026-10-03b.md](runtime-revalidation-2026-10-03b.md).
 
 Step-2 broken-choices follow-up (2026-10-03b): unparseable saved `FomodChoices` on a
@@ -330,10 +336,17 @@ are recorded in the production receipt; runtime and domain acceptance remain ope
    (source only, no Peer on this kernel); and Ctrl+C during execution-time discovery
    exits 130. The extended proof is 183/183 (9 fail on `59e4e57`). Only the race's
    refusal-to-Peer path is still without runtime evidence (no Peer seeding on this
-   kernel). Also open:
-   one-run `validate/install --fomod-choices` still replaces all embedded archive
-   choices.
-   Remaining S2 semantic items and native acceptance follow.
+   kernel). (An older note here said one-run `validate/install --fomod-choices`
+   replaces all embedded archive choices; S2b superseded that with a per-archive merge.)
+   The FOMOD residuals are settled by the [gate-scope contract](fomod-gate-scope.md):
+   the gate expands the selection with hard dependencies like C#
+   `ExpandWithHardDependencies` and reports their FOMOD findings before Rust's stricter
+   selection error; a missing registered archive without prompt state gets C#'s
+   per-component soft warning; run-choice ownership, archive-suffixed folder sources and
+   per-archive preservation are proved at runtime; and the `--fomod-choices` help says
+   it merges per archive. [Evidence](fomod-gate-scope-proof/README.md) is 74/74 (12
+   fail on `15b11cb`); S1 339/339, inherited 41/41, S2a 224/224 and S2b 254/254 hold.
+   Desktop reconfiguration, the S3 corpora and native acceptance follow.
    The [actual full.md conversion baseline](full-markdown-baseline/README.md)
    retains eight production conversions and an independent anonymous comparison.
    Both engines draft 72 instructions for 186 K1 components and 56 for 145 K2

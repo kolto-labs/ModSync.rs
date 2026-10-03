@@ -881,6 +881,7 @@ impl Engine {
         Ok(())
     }
 
+    /// Gates the selected components and, as C# does, their hard dependencies.
     /// Returns warnings for configured registered archives that no selected Extract
     /// instruction installs: choices are valid, but configuration installs no files.
     /// Mapper fallbacks of each checked installer are logged once per archive, as C#
@@ -902,15 +903,46 @@ impl Engine {
         // A previously recorded prompt state makes a missing artifact fail closed.
         self.selected = selected_guid_keys(guide);
         self.selected.extend(self.completed.iter().cloned());
+        // FOMOD findings come first, as C# FomodConfigurationGate reports them
+        // whatever the selection. Rust's stricter selection, restriction and order
+        // checks still fail the gate afterwards (C# only warns for a dependency).
+        let ordered = guide.ordered();
+        let seeds: Vec<&Component> = match &ordered {
+            Ok(ordered) => ordered.clone(),
+            Err(_) => guide.components.iter().filter(|c| c.is_selected).collect(),
+        };
         let mut scope = Vec::new();
-        for component in guide.ordered()? {
-            if self
-                .completed
-                .contains(&crate::guid::key_ascii(&component.guid))
-            {
+        let mut visited = BTreeSet::new();
+        let mut queue = std::collections::VecDeque::new();
+        for component in seeds {
+            let key = crate::guid::key_ascii(&component.guid);
+            if self.completed.contains(&key) {
                 continue;
             }
-            self.collect_execution_components(component, &mut scope)?;
+            visited.insert(key);
+            queue.push_back(component);
+            self.collect_components(component, &mut scope, false)?;
+        }
+        // C# ExpandWithHardDependencies: hard dependencies, selected or not, are in
+        // scope transitively. An unselected one only has its registered archives
+        // gated (the C# gate checks nothing else); unknown GUIDs are ignored.
+        let mut dependencies = Vec::new();
+        while let Some(component) = queue.pop_front() {
+            for required in &component.dependencies {
+                let key = crate::guid::key_ascii(required);
+                if self.completed.contains(&key) || visited.contains(&key) {
+                    continue;
+                }
+                if let Some(dependency) = guide
+                    .components
+                    .iter()
+                    .find(|c| crate::guid::key_ascii(&c.guid) == key)
+                {
+                    visited.insert(key);
+                    dependencies.push(dependency);
+                    queue.push_back(dependency);
+                }
+            }
         }
         // Registered archives with valid choices, by path: filename and registrants.
         let mut configured = BTreeMap::<String, (String, Vec<String>)>::new();
@@ -922,7 +954,7 @@ impl Engine {
         // Checked FOMOD archive paths whose mapper fallbacks were already logged.
         let mut logged = BTreeSet::new();
         let mut warnings = crate::fomod::WarningCollector::default();
-        for component in &scope {
+        for component in scope.iter().chain(&dependencies) {
             let mut registered = BTreeSet::new();
             for resource in component.resource_registry.values() {
                 let Some(files) = resource
@@ -950,8 +982,10 @@ impl Engine {
                                 "Registered FOMOD archive '{filename}' is missing from the mod directory after configuration state was recorded"
                             );
                         }
+                        // C#'s soft warning, attributed per component like its report.
                         warnings.push(format!(
-                            "Registered archive '{}' is missing from the mod directory. Re-download it, then configure its FOMOD installer if present before installation.",
+                            "{}: Registered archive '{}' is not on disk under the mod directory. Re-download the archive (Fetch Downloads), then configure the FOMOD installer before validate/install.",
+                            crate::fomod::warning_text(&component.name),
                             crate::fomod::warning_text(filename)
                         ));
                         continue;
@@ -990,7 +1024,7 @@ impl Engine {
                 }
             }
         }
-        for component in scope {
+        for component in &scope {
             for instruction in &component.instructions {
                 if instruction.action != "Extract" || !self.instruction_applies(instruction) {
                     continue;
@@ -1054,6 +1088,10 @@ impl Engine {
                 )
             })
         { warnings.push(warning); }
+        ordered?;
+        for component in scope {
+            self.check_component(component)?;
+        }
         Ok(warnings.finish())
     }
 
@@ -1657,12 +1695,27 @@ impl Engine {
         component: &'a Component,
         scope: &mut Vec<&'a Component>,
     ) -> Result<()> {
-        self.check_component(component)?;
+        self.collect_components(component, scope, true)
+    }
+
+    /// A component and its chosen options; `check` applies the readiness checks
+    /// before each one, which the FOMOD gate defers until after its findings.
+    fn collect_components<'a>(
+        &self,
+        component: &'a Component,
+        scope: &mut Vec<&'a Component>,
+        check: bool,
+    ) -> Result<()> {
+        if check {
+            self.check_component(component)?;
+        } else {
+            self.check_cancelled()?;
+        }
         scope.push(component);
         for instruction in &component.instructions {
             if instruction.action == "Choose" && self.instruction_applies(instruction) {
                 for option in Self::chosen_options(component, instruction)? {
-                    self.collect_execution_components(option, scope)?;
+                    self.collect_components(option, scope, check)?;
                 }
             }
         }

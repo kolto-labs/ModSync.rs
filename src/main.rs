@@ -716,7 +716,8 @@ struct InstallArgs {
     /// Install a Markdown guide in source order after direct-Markdown preflight.
     #[arg(long, conflicts_with_all = ["fomod_choices", "profile", "active_profile", "use_file_selection", "select", "option", "deselect", "deselect_option", "select_through_tier", "add_category", "select_visible_search", "spoiler_free"])]
     direct_markdown: bool,
-    /// Version-1 FOMOD choices JSON; overrides embedded choices for this run.
+    /// Version-1 FOMOD choices JSON for this run, merged per archive: an entry replaces
+    /// that archive's embedded choices and other archives keep theirs. Never saved.
     #[arg(long)]
     fomod_choices: Option<PathBuf>,
     #[arg(long, short, required_unless_present_any = ["profile", "active_profile"])]

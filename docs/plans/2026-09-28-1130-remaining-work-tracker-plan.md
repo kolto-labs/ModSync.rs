@@ -211,9 +211,19 @@ reimplement that path.
 - [x] Handle an unnamed Nexus target whose API-revealed filename already exists.
 - [x] Handle concurrent known-name publication outside a serialized group.
 - [x] Report actual Origin download totals where available.
-- [ ] Reconcile residual FOMOD ownership, hard-dependency scope, missing-archive warnings and folder sources named like archives.
-- [ ] Verify per-archive embedded/run-choice preservation; reconcile the older replacement warning against merged S2b.
+- [x] Reconcile residual FOMOD ownership, hard-dependency scope, missing-archive warnings and folder sources named like archives.
+- [x] Verify per-archive embedded/run-choice preservation; reconcile the older replacement warning against merged S2b.
 - [ ] Finish desktop FOMOD reconfiguration and S3 semantic/corpus acceptance.
+
+The two FOMOD residual items are settled by the
+[gate-scope contract](../parity/fomod-gate-scope.md) and its
+[proof](../parity/fomod-gate-scope-proof/README.md) (74/74; 12 fail on `15b11cb`).
+The FOMOD gate now expands the selected components with their hard dependencies, as
+C# does, and reports their FOMOD findings before Rust's stricter selection error. A
+missing registered archive without prompt state gets C#'s per-component soft warning.
+Run-choice ownership, archive-suffixed folder sources and per-archive preservation were
+already in source (S2b and `a185ced`) and are now proved at runtime. The stale "replaces
+all embedded choices" notes and the `--fomod-choices` help are corrected.
 
 ## Full parity checklist
 
