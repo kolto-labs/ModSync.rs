@@ -324,8 +324,13 @@ are recorded in the production receipt; runtime and domain acceptance remain ope
    the untyped `Download destination already exists` (Origin now publishes a known name
    through the same `Directory` path, and MEGA drops its pre-transfer check), and Origin
    `transferring.total` was read after the sniff prefix (`0` for a small archive). Ctrl+C
-   during planning now exits 130. Only the race's refusal-to-Peer path is still without
-   runtime evidence (no Peer seeding on this kernel). Also open:
+   during planning now exits 130. Its review's three Low follow-ups are fixed: a hashed
+   target whose name is already present is adopted or refused with no transfer; a Peer
+   copy for a known name that collides is typed and adopted or refused as Origin is
+   (source only, no Peer on this kernel); and Ctrl+C during execution-time discovery
+   exits 130. The extended proof is 183/183 (9 fail on `59e4e57`). Only the race's
+   refusal-to-Peer path is still without runtime evidence (no Peer seeding on this
+   kernel). Also open:
    one-run `validate/install --fomod-choices` still replaces all embedded archive
    choices.
    Remaining S2 semantic items and native acceptance follow.

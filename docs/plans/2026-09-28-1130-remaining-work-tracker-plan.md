@@ -197,7 +197,9 @@ retains eligible Peer fallback, planning/hash work accepts cancellation, both
 unnamed and known-name publication collisions use typed adoption, and Origin
 progress carries HTTP content length (or provider size for MEGA). Items 2-5 now
 have production-CLI acceptance in
-[`download-residuals-proof`](../parity/download-residuals-proof/README.md) (102/102),
+[`download-residuals-proof`](../parity/download-residuals-proof/README.md) (183/183
+with its review follow-ups: no wasted transfer for a present hashed name, typed Peer
+known-name collisions, exit 130 during discovery),
 which also fixed two runtime gaps: a known name taken *before* its transfer still
 failed untyped, and Origin `total` was the length left after the sniff prefix.
 The race item stays open only for runtime acceptance: it needs a Peer source,

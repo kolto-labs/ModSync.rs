@@ -2590,14 +2590,18 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                 mega_api_base,
                 peer,
             };
-            // Execution only: dry-run returned above without network discovery.
-            let plan = orchestrator::discover_with_loopback_ca(
-                &execution,
-                &plan,
-                &plan_options,
-                &run_settings,
+            // Execution only: dry-run returned above without network discovery. A
+            // discovery error after a signal exits 130, as planning and the run do.
+            let plan = finish_acquisition_result(
+                orchestrator::discover_with_loopback_ca(
+                    &execution,
+                    &plan,
+                    &plan_options,
+                    &run_settings,
+                    &cancelled,
+                    loopback_ca.as_ref(),
+                ),
                 &cancelled,
-                loopback_ca.as_ref(),
             )?;
             let stdout = std::sync::Mutex::new(std::io::stdout());
             let report = orchestrator::run_with_source_context(

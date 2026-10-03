@@ -1148,11 +1148,13 @@ Consequences:
 C# deduplicates nothing: each component downloads on its own, and a later publish
 overwrites the file or finds it present and uses it. A component with a `Files`
 name follows the same adoption rule when its name is taken after planning by a target
-it is not grouped with: before its transfer starts (it still transfers, to compare
-bytes) or by a concurrent publish that wins the no-clobber move. An unnamed Nexus
-target whose name the API reveals transfers and adopts or refuses a present file the
-same way ([download residuals proof](docs/parity/download-residuals-proof/README.md);
-the MEGA equivalent is source only). The plan and report JSON changes are
+it is not grouped with: before its transfer starts (with no authored hash it still
+transfers, to compare bytes; with one, the present file is adopted or refused at once,
+with no request) or by a concurrent publish that wins the no-clobber move. An unnamed
+Nexus target whose name the API reveals adopts or refuses a present file the same way
+([download residuals proof](docs/parity/download-residuals-proof/README.md);
+the MEGA equivalent is source only). A Peer copy for a known name that is present or
+loses its move to an ungrouped publisher follows the same typed rule (source only). The plan and report JSON changes are
 additive; rows with no link are unchanged. Evidence: commit `4bf5c54`, its review
 follow-up `339b3d6`, a second follow-up `3f0caf4` (transitive groups, name-matched
 failure inheritance), a third follow-up `d4ccbc1` (present-file adoption for unnamed
@@ -1250,7 +1252,11 @@ during the run) and Origin `transferring.total` is in the
 [download residuals proof](docs/parity/download-residuals-proof/README.md). That proof
 also fixed Origin totals: `total` was read after the 64 KiB sniff prefix, so it was the
 remaining length (`0` for a small file), and now it is the response's Content-Length
-(`null` when the server sends none). The Peer race refusal path remains source only.
+(`null` when the server sends none). Review follow-ups: a hashed target whose name is
+already present is settled with no transfer; a Peer known-name collision is typed
+(`DestinationExists`, then adopt-or-refuse) instead of "Could not publish the peer
+copy ... File exists" (source only); and Ctrl+C during execution-time discovery exits
+130 instead of 1. The Peer race refusal path remains source only.
 
 ### Checkpoint history, desktop sharing and patcher discovery (2026-10-02)
 

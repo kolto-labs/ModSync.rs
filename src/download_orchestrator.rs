@@ -2124,22 +2124,23 @@ impl PeerStaging {
             .and_then(|name| name.to_str())
             .context("Peer copy has no file name")?;
         let path = source_dir.join(download::one_component(name)?);
-        // For an unnamed target the name came from the torrent. When it is already
-        // present, the copy is not published (as an Origin transfer is not); the caller
-        // adopts the present file or refuses it, and the staged copy goes with staging.
-        let unnamed = self.destination == self.directory;
+        // The name came from the guide or, for an unnamed target, from the torrent. When
+        // it is already present (an ungrouped target published it first, or wins the
+        // no-clobber move now), the copy is not published, as an Origin transfer is not:
+        // the caller adopts the present file or refuses it, and the staged copy goes with
+        // staging.
         let exists = || {
             anyhow::Error::new(download::DestinationExists {
                 path: path.clone(),
                 sha256: staged.sha256.clone(),
             })
         };
-        if unnamed && path.exists() {
+        if std::fs::symlink_metadata(&path).is_ok() {
             return Err(exists());
         }
         match tempfile::TempPath::try_from_path(&staged.path)?.persist_noclobber(&path) {
             Ok(()) => {}
-            Err(error) if unnamed && error.error.kind() == std::io::ErrorKind::AlreadyExists => {
+            Err(error) if error.error.kind() == std::io::ErrorKind::AlreadyExists => {
                 return Err(exists());
             }
             Err(error) => {
@@ -2180,9 +2181,10 @@ impl PeerStaging {
 ///   error. Until then a finished Peer copy is held in staging. If Origin then reveals a
 ///   gate, the copy is removed and the target ends `ManualRequired`: a peer copy never
 ///   satisfies a gate (R2). An accepted copy is moved to the final path before Origin is
-///   stopped; if that move fails, Origin keeps running. When the copy's torrent name is
-///   already present, that file is adopted ([`adopt_present`]) before Origin is stopped;
-///   if adoption refuses it, that is a Peer failure and Origin keeps running.
+///   stopped; if that move fails, Origin keeps running. When the copy's name (authored,
+///   or from the torrent) is already present, or is taken by an ungrouped publisher during
+///   the move, that file is adopted ([`adopt_present`]) before Origin is stopped; if
+///   adoption refuses it, that is a Peer failure and Origin keeps running.
 /// - The first accepted `Ok` wins. The loser is stopped, joined, has any published file
 ///   removed, and is reported `Superseded`. The staging folder is removed after the join.
 ///   Removal failures go into the returned notes.
@@ -2702,12 +2704,29 @@ fn origin_once(
     };
     // Validates the authored name before any transfer.
     target.destination(&context.plan.source_dir)?;
+    let name = target.filename.as_deref().or(name_hint.as_deref());
+    // With an authored hash, a file already present under the name settles the target on
+    // its own: `adopt_present` takes it only under that hash, which any transfer must
+    // also match, and refuses it otherwise. So the decision is made now, with no
+    // transfer, as a Peer source does for a name it learns first. The digest handed on
+    // is the authored one, the only digest a transfer could have published.
+    if let (Some(expected), Some(name)) = (target.expected_sha256.as_deref(), name) {
+        let path = context.plan.source_dir.join(download::one_component(name)?);
+        if std::fs::symlink_metadata(&path).is_ok() {
+            return Err(anyhow::Error::new(download::DestinationExists {
+                path,
+                sha256: expected.to_ascii_lowercase(),
+            }));
+        }
+    }
     // A known name publishes like a revealed one: when that name is taken before the
-    // transfer or by a concurrent publish, the transfer still completes and returns
-    // `DestinationExists` with its digest, so `adopt_present` decides (never a clobber).
+    // transfer (no authored hash: only the transferred bytes can tell whether the present
+    // file is this one) or by a concurrent publish, the transfer still completes and
+    // returns `DestinationExists` with its digest, so `adopt_present` decides (never a
+    // clobber).
     let destination = Destination::Directory {
         directory: &context.plan.source_dir,
-        name: target.filename.as_deref().or(name_hint.as_deref()),
+        name,
     };
     let mut last = None::<Instant>;
     let mut progress = |progress: FetchProgress| {
