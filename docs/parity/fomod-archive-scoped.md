@@ -40,7 +40,11 @@ install extracted the archive while copying nothing from it.
 
 ## Behaviour after this slice
 
-- **Trigger.** It is the same as C#'s. The archive is registered by the component, is on
+- **Trigger.** It matches C#'s for a freshly configured component. One known
+  difference: C# tests the component's actual instructions, and its configure step
+  strips earlier authored instructions. Rust keeps authored instructions, so an
+  authored Copy or Move that reads `<<modDirectory>>/<stem>/...` can still install
+  files while Rust warns. The warning never blocks. The archive is registered by the component, is on
   disk and is a FOMOD. Its prompt status is exactly `configured`. Its installer maps no
   archive-scoped file under any choice.
 - **The mapping rule.** `ModuleConfig::maps_any_file` (`src/fomod.rs`) counts a file
