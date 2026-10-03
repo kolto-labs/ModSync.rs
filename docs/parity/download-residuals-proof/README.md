@@ -59,12 +59,12 @@ shared-URL proof does.
   `dc86cfede319d2b8dd8d3b95214a7188726701d660f13e0a0a65eb85cadfbd80`,
   `RESIDUALS_ALLOW_UNBOUND=1`). **86/102; 16 fail**:
   - `known_after_unnamed`: exit, requests (1, 0), serialized, outcomes, errors, same
-    file, terminal and recorded: 8 checks. B failed before any request with
+    file, terminal and recorded: 8 checks. B failed before any transfer with
     `Download destination already exists`.
   - `known_after_unnamed_mismatch`: requests and the typed error: 2 checks.
   - `total_known`, `total_unknown`, `total_nexus_cdn`: `total` was `0` (3 checks).
   - `hash_cancel`: the control made no request (the present invalid file failed
-    untyped before any request), so its hash-duration check fails too (2 checks). The
+    untyped before any transfer), so its hash-duration check fails too (2 checks). The
     cancelled run exited 1 (1 check). The cancellation itself was already prompt
     (about 4 ms), as the source change claimed.
 

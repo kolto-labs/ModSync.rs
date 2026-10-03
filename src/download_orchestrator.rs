@@ -2700,7 +2700,7 @@ fn origin_once(
             download::TransferContext::with_loopback_ca(context.loopback_ca),
         )
     };
-    // Validates the authored name before any request.
+    // Validates the authored name before any transfer.
     target.destination(&context.plan.source_dir)?;
     // A known name publishes like a revealed one: when that name is taken before the
     // transfer or by a concurrent publish, the transfer still completes and returns
