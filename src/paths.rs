@@ -7,7 +7,7 @@ use std::{
 /// Matching policy for the engine's virtual filesystem. Exact mode is currently
 /// confined to Unix unmanaged execution. Case-insensitive keys use the reference
 /// `StringComparer.OrdinalIgnoreCase` identity shared with managed deployment
-/// and conflict analysis; checkpoint trees keep their NFC lowercase alias rule.
+/// and conflict analysis and checkpoint tree alias checks.
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct PathPolicy {
     pub(crate) case_insensitive: bool,

@@ -38,8 +38,8 @@ Remaining source work found by the post-wave audit:
 
 - F05/F18/F19: the engine VFS, managed process capture, deployment and conflict
   keys now share the pinned .NET `OrdinalIgnoreCase` key (in-memory only; stored
-  spellings are unchanged). F11 checkpoint trees keep their NFC lowercase alias
-  rule; whether that should become ordinal is still open.
+  spellings are unchanged). F11 checkpoint tree alias checks use the same key
+  (decided 2026-10-03: follow the reference).
 - F01: guide `LastModified` metadata uses `DateTime.TryParse` in the reference;
   Rust keeps the authored text. Decide whether save output must normalize it.
 - F01: YAML timestamp tags and typed mapping keys are refused; YamlDotNet

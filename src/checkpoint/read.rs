@@ -170,11 +170,7 @@ pub(super) fn validate_tree(tree: &Tree) -> Result<(u64, u64)> {
             "Checkpoint path is not portable canonical relative text"
         );
         ensure!(
-            aliases.insert(
-                icu_normalizer::ComposingNormalizerBorrowed::new_nfc()
-                    .normalize(name)
-                    .to_lowercase()
-            ),
+            aliases.insert(crate::unicode_case::ordinal_key(name)),
             "Checkpoint tree contains case aliases"
         );
         let mut parent = path.parent();

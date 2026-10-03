@@ -1940,7 +1940,11 @@ Persisted manifests and indexes keep their stored spelling; only the in-memory
 key changes, so no migration is written. A manifest whose paths were distinct
 under lowercase but equal under ordinal casing is now refused on load as a
 duplicate deployment path, rather than tracking two names one Windows volume
-would treat as a single file. Checkpoint trees and auxiliary bindings keep
-their NFC lowercase alias rule, and glob matching keeps the glob crate's case
-folding. Source only: production fmt/build/Clippy passed; no tests, runtime or
+would treat as a single file. Checkpoint trees use the same ordinal key for
+their case-alias check, matching `CheckpointService`'s OrdinalIgnoreCase file
+map: names that differ only by Unicode normalization (composed vs decomposed)
+are no longer aliases, and ordinal-only pairs such as `ς`/`σ` now are.
+Auxiliary participant bindings, a Rust-only overlap guard with no reference
+counterpart, keep the stricter NFC lowercase rule. Glob matching keeps the glob
+crate's case folding. Source only: production fmt/build/Clippy passed; no tests, runtime or
 CI ran, and behavioral acceptance stays open.
