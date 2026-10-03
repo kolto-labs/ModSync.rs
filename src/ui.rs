@@ -33,6 +33,10 @@ use std::{
     time::Duration,
 };
 
+/// Prefix `download_orchestrator::bound_fomod_followups` gives a consumer whose saved
+/// `FomodChoices` are unparseable or do not fit the detected archive.
+const SAVED_CHOICES_REPAIR: &str = "Saved FOMOD choices need repair";
+
 enum Message {
     ShellTerminal(Box<main_window::Finished>),
     DeploymentTerminal(Box<deployment_panel::Finished>),
@@ -1406,28 +1410,81 @@ impl App {
                         if !finished.report.cancelled
                             && let Some(followups) = &finished.fomod
                         {
-                            if let Ok(options) = self.archive_options() {
-                                for followup in &followups.followups {
-                                    let consumers = followups
-                                        .followups
-                                        .iter()
-                                        .filter(|item| item.archive == followup.archive)
-                                        .map(|item| item.component_guid.clone())
-                                        .filter(|guid| {
-                                            !self.completed_base.as_ref().is_some_and(|ids| {
-                                                ids.iter().any(|id| id.eq_ignore_ascii_case(guid))
+                            // A prompt-eligible consumer whose saved choices need repair
+                            // stays queued with the positively detected follow-ups, so
+                            // the queue raises the blocking Retry/Dismiss error and keeps
+                            // Validate/Install blocked (downloads-gui-plan.md G7/G8;
+                            // downloads-gui-step2-review.md P1). Archives that could not
+                            // be inspected are not follow-ups and stay log-only.
+                            let repair =
+                                |error: &&modsync::download_orchestrator::FomodInspectionError| {
+                                    error.error.starts_with(SAVED_CHOICES_REPAIR)
+                                        && self.guide.as_ref().is_some_and(|guide| {
+                                            guide.components.iter().any(|c| {
+                                                c.guid == error.component_guid
+                                                    && error
+                                                        .archive
+                                                        .file_name()
+                                                        .and_then(|n| n.to_str())
+                                                        .is_some_and(|name| {
+                                                            modsync::fomod::should_prompt(c, name)
+                                                        })
                                             })
                                         })
-                                        .collect();
-                                    {
-                                        self.enqueue_bound_fomod(
-                                            run,
-                                            followup.archive.clone(),
-                                            options.clone(),
-                                            true,
-                                            consumers,
-                                        );
+                                };
+                            let pending: Vec<(&Path, &str)> =
+                                followups
+                                    .followups
+                                    .iter()
+                                    .map(|f| (f.archive.as_path(), f.component_guid.as_str()))
+                                    .chain(
+                                        followups.inspection_errors.iter().filter(repair).map(
+                                            |e| (e.archive.as_path(), e.component_guid.as_str()),
+                                        ),
+                                    )
+                                    .collect();
+                            // Shared acquisition order, so one archive's error does not
+                            // jump ahead of an earlier archive's editor.
+                            let mut archives: Vec<&Path> = finished
+                                .report
+                                .outcomes
+                                .iter()
+                                .filter_map(|o| o.path.as_deref())
+                                .chain(
+                                    finished
+                                        .report
+                                        .skipped
+                                        .iter()
+                                        .filter_map(|s| s.path.as_deref()),
+                                )
+                                .chain(pending.iter().map(|(archive, _)| *archive))
+                                .filter(|archive| pending.iter().any(|(a, _)| a == archive))
+                                .collect();
+                            let mut seen = Vec::new();
+                            archives.retain(|archive| {
+                                let first = !seen.contains(archive);
+                                seen.push(*archive);
+                                first
+                            });
+                            if let Ok(options) = self.archive_options() {
+                                for archive in archives {
+                                    let mut consumers: Vec<String> = Vec::new();
+                                    for (_, guid) in pending.iter().filter(|(a, _)| *a == archive) {
+                                        if !consumers.iter().any(|c| c == guid)
+                                            && !self.completed_base.as_ref().is_some_and(|ids| {
+                                                ids.iter().any(|id| id.eq_ignore_ascii_case(guid))
+                                            })
+                                        {
+                                            consumers.push((*guid).to_owned());
+                                        }
                                     }
+                                    self.enqueue_bound_fomod(
+                                        run,
+                                        archive.to_path_buf(),
+                                        options.clone(),
+                                        true,
+                                        consumers,
+                                    );
                                 }
                             }
                             for error in &followups.inspection_errors {
