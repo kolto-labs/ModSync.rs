@@ -1932,6 +1932,30 @@ and Markdown blocks. No merge-key expansion is introduced. This replaces plain
 scalar inference but does not close all native YAML type contracts. See
 [the YAML intake contract](docs/parity/yaml-scalar-intake.md).
 
+### Guide lastModified metadata
+
+TOML and YAML saves now write guide `lastModified` metadata the way the
+reference does. The reference reads it with invariant `DateTime.TryParse` and
+`DateTimeStyles.None`. YAML gets the `O` pattern with the host offset for zoned
+input. TOML gets a native local date-time truncated to milliseconds.
+
+- Values the reference cannot parse are omitted. These include empty,
+  digit-free and lone-integer text, invalid weekdays and offsets over 14 hours.
+- Forms outside the shared bounded date model keep their authored value with a
+  warning. Examples are time-only values, impossible dates, `24:00` and
+  unsupported zone rules.
+- Key choice follows the reference. TOML reads only `lastModified`, so a
+  TOML `LastModified` key is omitted with a warning. YAML reads
+  `LastModified` first, with no fallback when it fails to parse.
+- Native TOML date-times now round-trip as date-times in TOML and are
+  written as date-time text in YAML.
+- JSON, XML and Markdown do not carry the field in either implementation.
+- The saved bytes depend on the host. Zoned values are converted to the host
+  time zone, including its DST rule on that date, as the reference does.
+
+Proof: a convert differential against the live reference across three time
+zones. See [the lastModified contract](docs/parity/lastmodified-contract.md).
+
 ### Ordinal path identity across engine, deployment and conflicts
 
 Case-insensitive path keys in the engine virtual filesystem, managed process
