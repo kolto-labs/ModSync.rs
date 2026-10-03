@@ -76,11 +76,15 @@ leafargs=[['openssl','req','-new','-newkey','rsa:2048','-nodes','-keyout',str(le
 for args in leafargs:subprocess.run(args,capture_output=True,check=True)
 class Origin(http.server.BaseHTTPRequestHandler):
  def do_GET(self):
-  row=dict(path=self.path,start=time.monotonic(),thread=threading.get_ident());REQUESTS.append(row)
+  row=dict(path=self.path,method='GET',metadata=self.headers.get('Range')=='bytes=0-0',start=time.monotonic(),thread=threading.get_ident());REQUESTS.append(row)
   data=SERVE.get(self.path);code=200 if data is not None else 404;data=data if data is not None else b'missing'
   time.sleep(DELAY)
   self.send_response(code);self.send_header('Content-Type','application/zip');self.send_header('Content-Length',str(len(data)));self.end_headers();self.wfile.write(data)
   row['end']=time.monotonic()
+ # H4 provider metadata (src/host_metadata.rs direct_metadata): HEAD, then a headers-only
+ # Range GET on 501. Recorded, but kept out of the transfer counts below.
+ def do_HEAD(self):
+  t=time.monotonic();REQUESTS.append(dict(path=self.path,method='HEAD',metadata=True,start=t,end=t,thread=threading.get_ident()));self.send_error(501)
  def log_message(self,*args):pass
 srv=http.server.ThreadingHTTPServer(('127.0.0.1',0),Origin);ctx=ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER);ctx.load_cert_chain(leaf,leafkey);srv.socket=ctx.wrap_socket(srv.socket,server_side=True)
 threading.Thread(target=srv.serve_forever,daemon=True).start();BASE=f'https://127.0.0.1:{srv.server_port}'
@@ -135,7 +139,7 @@ def fetch(c,label,flags=(),sidecar=None,interrupt=None):
  (OUT/(name+'.json')).write_text(json.dumps(row,indent=2)+'\n');RUNS.append(row)
  check(name+'_scratch_clean',not any(p.startswith('scratch/') for p in row['after']))
  return row
-def asked(r,path):return sum(1 for x in r['requests'] if x['path']==path)
+def asked(r,path):return sum(1 for x in r['requests'] if x['path']==path and not x['metadata'])
 def outcomes(r):return (r['data'] or {}).get('report',{}).get('outcomes',[])
 def statuses(r):return [(o['targetIndex'],o['componentGuid'],o['status'],o.get('sharedWith')) for o in outcomes(r)]
 def recorded(r):return ((r['data'] or {}).get('recordSummary') or {}).get('recorded')
@@ -143,7 +147,7 @@ def consumers(r):return [(v['componentGuid'],v['archive'].rsplit('/',1)[-1],v['o
 def errors(r):return [o.get('error') for o in outcomes(r)]
 def events_of(r,i):return [e['phase']['phase'] for e in r['events'] if e['targetIndex']==i]
 def mods(r):return {k:v for k,v in r['after'].items() if k.startswith('mods/')}
-def starts(r,path):return [x['start'] for x in r['requests'] if x['path']==path]
+def starts(r,path):return [x['start'] for x in r['requests'] if x['path']==path and not x['metadata']]
 def terminal(r):
  # The last event of each target index: (component, phase), in index order.
  last={}
@@ -196,6 +200,8 @@ urla=BASE+'/a/example.zip';urlb=BASE+'/b/example.zip';c=setup('different_urls',[
 targets=dry(c,'plan');check('different_plan_linked',[t.get('sharedDestination') for t in targets],[None,{'kind':'differentUrl','targetIndex':0}])
 r=fetch(c,'fetch',['--workers','4','--record','--progress-json'])
 check('different_exit',r['exit'],0);check('different_requests',(asked(r,'/a/example.zip'),asked(r,'/b/example.zip')),(1,0))
+# The follower took /a's file, so no metadata lookup describes /b's bytes.
+check('different_no_follower_metadata',sum(1 for x in r['requests'] if x['path']=='/b/example.zip'),0)
 check('different_outcomes',statuses(r),[(0,GUIDS[0],'completed',None),(1,GUIDS[1],'completed',0)])
 check('different_same_file',[((o['path'] or '').rsplit('/',1)[-1],o['sha256']) for o in outcomes(r)],[('example.zip',hashlib.sha256(PLAIN_A).hexdigest())]*2)
 check('different_follower_event',events_of(r,1),['completed'])
@@ -271,7 +277,7 @@ check('same_404_follower_event',events_of(r,1),['sourceFailed']);check('same_404
 # 11. One manual-host URL (not automated) and file name: host classification needs no
 # network, and the namespace has no route, so any request would fail instead. Both
 # targets are manualRequired; the later one takes the owner's outcome.
-url='https://deadlystream.com/files/file/0000-example-mod/';c=setup('same_manual',[comp(0,None,url=url),comp(1,None,url=url)])
+url='https://www.gamefront.com/games/example/file/example-mod';c=setup('same_manual',[comp(0,None,url=url),comp(1,None,url=url)])
 targets=dry(c,'plan');check('same_manual_plan',[t.get('sharedDestination') for t in targets],[None,{'kind':'sameUrl','targetIndex':0}])
 r=fetch(c,'fetch',['--workers','4','--progress-json'])
 # No `no_request` check here: the loopback origin cannot see a request to this host, so
@@ -488,7 +494,7 @@ kept=identity(c['mods']/'example.zip')
 def after_body(start,path='/cancel/example.zip',wait=0.3):
  deadline=time.monotonic()+30
  while time.monotonic()<deadline:
-  done=[x for x in REQUESTS[start:] if x['path']==path and 'end' in x]
+  done=[x for x in REQUESTS[start:] if x['path']==path and not x['metadata'] and 'end' in x]
   if done:time.sleep(wait);return dict(bodySent=done[0]['end'])
   time.sleep(0.01)
  return dict(bodySent=None)

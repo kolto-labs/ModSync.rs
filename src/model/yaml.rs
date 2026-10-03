@@ -288,7 +288,7 @@ impl Document {
                 let mut object = Map::new();
                 for (key, value) in entries {
                     let key = self.project(*key, depth + 1, active, budget)?;
-                    let key = key.as_str().context("YAML mapping keys must resolve to strings; typed or complex keys are unsupported")?;
+                    let key = key.as_str().context("YAML mapping keys must resolve to strings; null or complex keys are unsupported")?;
                     let value = self.project(*value, depth + 1, active, budget)?;
                     object.insert(key.to_owned(), value);
                 }
@@ -375,12 +375,22 @@ fn scalar(text: &str, tag: Option<&str>, plain: bool, key: bool) -> Result<Value
     {
         return Ok(Value::Null);
     }
-    if key {
-        ensure!(
-            tag.is_none_or(|tag| matches!(tag, "!" | "tag:yaml.org,2002:str")),
-            "Typed YAML keys are unsupported"
-        );
+    let value = typed(text, tag)?;
+    if !key {
+        return Ok(value);
     }
+    // The reference converts valid Boolean/Int32/Double keys and keys its
+    // dictionary by the converted value, which no schema property can match.
+    // Keep the converted key as text so the field stays preserved metadata.
+    Ok(match value {
+        Value::Bool(true) => "True".into(),
+        Value::Bool(false) => "False".into(),
+        Value::Number(number) => number.to_string().into(),
+        value => value,
+    })
+}
+
+fn typed(text: &str, tag: Option<&str>) -> Result<Value> {
     match tag {
         None | Some("!" | "tag:yaml.org,2002:str") => Ok(text.into()),
         Some("tag:yaml.org,2002:bool") => {

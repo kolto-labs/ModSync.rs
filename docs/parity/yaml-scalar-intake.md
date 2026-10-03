@@ -16,7 +16,11 @@ Pinned C# `DeserializeYamlComponent` builds YamlDotNet16.2.0 with PascalCase nam
 | Explicit float tag | Finite Double, preserving negative zero and floating type |
 | Timestamp or unknown tag | Explicit unsupported wire-contract error |
 
-Unknown/timestamp tags are refused before implicit-null handling. Plain implicit-null spellings in mapping keys remain strings. Explicit null keys and explicitly typed nonstring keys are refused; this prevents collapsing a native numeric key into an authored string key. Complex keys also fail. This key profile is intentionally narrower than nested CLR dictionaries with arbitrary object keys; no universal key ToString conversion is claimed.
+Unknown/timestamp tags are refused before implicit-null handling. Plain implicit-null spellings in mapping keys remain strings. Explicit null keys and complex keys are refused.
+
+Explicitly typed Boolean, integer and float keys are admitted under the same value grammar as nonkey scalars (2026-10-03 correction). The pinned C# reference loads `!!bool true`, `!!int 7` and `!!float 1.5` component keys and drops them as unknown properties. It rejects `!!int abc` and `!!null` keys, and it rejects complex keys. Rust now matches that acceptance boundary. An admitted key becomes text (`True`/`False`, or the converted number) so the field survives as preserved metadata. No schema property can match that text. A typed key that renders the same as another key in the mapping follows the exact-duplicate replacement rule below. The reference keeps both keys, but it discards them anyway.
+
+Explicit `!!timestamp` values stay refused. The reference parses them to a `DateTime`, then renders that with the host culture and time zone: `2001-12-14t21:59:43.10-05:00` became `12/15/2001 02:59:43` on a UTC host with invariant culture. That output depends on the host, so it is not a portable wire contract to reproduce. Untagged timestamp-shaped text stays a string in both tools.
 
 Integer parsing preserves source quirks: only lowercase `b`/`x` identify binary/hex after an initial zero; other multi-character initial-zero forms are octal; underscores are removed; decimal sexagesimal chunks are not constrained below60. Its UInt64 multiply/add accumulator wraps as in the pinned unchecked helper, followed by checked signed conversion and the final Int32 cast. Radix conversion and decimal chunks retain their distinct sign/whitespace rules. No `0o` or uppercase-prefix extension is introduced. Explicit integer/float token text is limited to4096 bytes.
 
@@ -34,7 +38,7 @@ Mappings preserve first insertion position when an exact duplicate replaces its 
 
 One budget is shared across documents in a YAML guide, across YAML fenced blocks in a Markdown guide, and across that guide's prose YAML metadata blocks. Input, decoded data and expanded scalar data each have an8MiB ceiling. Events and projection visits each have a100,000 ceiling; nesting is limited to128 and tags/anchors to4096 bytes. These are explicit bounded implementation limits. Numeric and Boolean tag conversions never invoke a host process or change locale.
 
-Candidates reach `Guide::from_value_with_format` only after successful projection, where existing raw review guards run before known-key projection/null removal. A failure never publishes a partially parsed guide. Rendering continues to use the existing YAML serializer. General timestamp wire reconstruction and typed/complex mapping-key support remain named follow-ups; the JSON arbitrary-precision origin problem is not modified by this change.
+Candidates reach `Guide::from_value_with_format` only after successful projection, where existing raw review guards run before known-key projection/null removal. A failure never publishes a partially parsed guide. Rendering continues to use the existing YAML serializer. General timestamp wire reconstruction and complex mapping-key support remain named refusals; the JSON arbitrary-precision origin problem is not modified by this change.
 
 ## Primary source anchors
 

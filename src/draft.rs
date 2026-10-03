@@ -186,6 +186,79 @@ pub(crate) fn validate_raw_review_aliases(value: &serde_json::Value) -> anyhow::
     visit(value, 0, &mut 0)
 }
 
+/// YAML and XML carry scalars as text (the pinned YamlDotNet reader profile has
+/// no implicit typing), and XML omits empty lists. Restore the typed review
+/// record Rust wrote so its own YAML/XML exports reload. Anything that is not
+/// an exact typed spelling stays as authored and fails validation.
+pub(crate) fn canonicalize_text_review_records(value: &mut serde_json::Value) {
+    use serde_json::Value;
+    fn component(value: &mut Value, depth: usize) {
+        if depth > 64 {
+            return;
+        }
+        let Some(object) = value.as_object_mut() else {
+            return;
+        };
+        if let Some(review) = object.get_mut("DraftReview").and_then(Value::as_object_mut) {
+            if let Some(flag) = review.get_mut("RequiresReview")
+                && let Some(text) = flag.as_str()
+            {
+                if text.eq_ignore_ascii_case("true") {
+                    *flag = Value::Bool(true);
+                } else if text.eq_ignore_ascii_case("false") {
+                    *flag = Value::Bool(false);
+                }
+            }
+            if let Some(result) = review.get_mut("Result").and_then(Value::as_object_mut) {
+                for key in ["DraftInstructionCount", "RejectedDrafts"] {
+                    if let Some(count) = result.get_mut(key)
+                        && let Some(parsed) = count
+                            .as_str()
+                            .filter(|text| {
+                                !text.is_empty() && text.bytes().all(|b| b.is_ascii_digit())
+                            })
+                            .and_then(|text| text.parse::<u64>().ok())
+                    {
+                        *count = Value::from(parsed);
+                    }
+                }
+                for key in ["UnparsedGaps", "ConditionalDrafts"] {
+                    match result.get_mut(key) {
+                        None | Some(Value::Null) => {
+                            result.insert(key.into(), Value::Array(Vec::new()));
+                        }
+                        Some(single @ Value::String(_)) => {
+                            *single = Value::Array(vec![single.take()]);
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+        if let Some(options) = object.get_mut("Options").and_then(Value::as_array_mut) {
+            for option in options {
+                component(option, depth + 1);
+            }
+        }
+    }
+    let components = match value {
+        Value::Array(components) => Some(components),
+        Value::Object(object) if !object.contains_key("Guid") => ["thisMod", "Components"]
+            .into_iter()
+            .find(|key| object.get(*key).is_some_and(Value::is_array))
+            .and_then(|key| object.get_mut(key))
+            .and_then(Value::as_array_mut),
+        Value::Object(_) => {
+            component(value, 0);
+            None
+        }
+        _ => None,
+    };
+    for item in components.into_iter().flatten() {
+        component(item, 0);
+    }
+}
+
 pub(crate) fn validate_review_records(value: &serde_json::Value) -> anyhow::Result<()> {
     use serde_json::Value;
     // Match Guide::from_value's supported envelopes and precedence. Resource

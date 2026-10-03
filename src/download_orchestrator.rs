@@ -3434,6 +3434,16 @@ pub fn collect_metadata(
         {
             continue;
         }
+        // A follower that adopted another URL's file never contacted its own URL;
+        // that URL's headers would describe bytes that are not on disk.
+        if let Some(owner) = outcome.shared_with
+            && plan
+                .targets
+                .get(owner)
+                .is_none_or(|owner| owner.registry_url != outcome.registry_url)
+        {
+            continue;
+        }
         seen.insert(identity.clone());
         let mut metadata_url = outcome.registry_url.clone();
         // A direct NXM handoff carries its identity in the path; never retain its key.

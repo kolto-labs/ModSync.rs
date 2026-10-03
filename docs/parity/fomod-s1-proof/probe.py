@@ -51,7 +51,7 @@ def choices(filename='example.zip',plugin='Beta'):
  return {'version':1,'archives':[{'archiveFileName':filename,'selections':[{'stepName':'Choose','groupName':'Variant','plugins':[plugin]}]}]}
 def comp(i=0,filename='example.zip',status=None,saved=None,selected=True,payload=PAYLOAD):
  meta={'Files':{filename:True},'ContentHashSHA256':hashlib.sha256(payload).hexdigest(),'custom':'keep'}
- if status:meta['handlerMetadata']={'fomodPromptStatus':{filename:status},'unrelated':'keep'}
+ if status:meta['HandlerMetadata']={'fomodPromptStatus':{filename:status},'unrelated':'keep'}
  c={'Guid':GUIDS[i],'Name':f'Example Consumer {i+1}','IsSelected':selected,'Instructions':[],'ResourceRegistry':{BASE+'/'+filename:meta},'CustomField':'keep'}
  if saved is not None:c['FomodChoices']=saved
  return c
@@ -127,7 +127,7 @@ for label,flags in [('nofiles_warn',['--non-interactive']),('nofiles_warn_record
  r=expect(run(label,case=c,flags=flags),3,['warned']);check(label+'_stderr_warning','example.zip requires choices' in r['stderr'])
  if '--record' in flags:
   after=json.loads(c['guide'].read_text());comps=after if isinstance(after,list) else after.get('Components',after.get('ModSync'));meta=next(iter(comps[0]['ResourceRegistry'].values()))
-  check(label+'_files_recorded',meta.get('Files'),{'example.zip':True});check(label+'_status_persisted',meta.get('handlerMetadata',{}).get('fomodPromptStatus'),{'example.zip':'warned'});check(label+'_recorded_flag',r['data']['fomodConfigurationRecorded'])
+  check(label+'_files_recorded',meta.get('Files'),{'example.zip':True});check(label+'_status_persisted',meta.get('HandlerMetadata',{}).get('fomodPromptStatus'),{'example.zip':'warned'});check(label+'_recorded_flag',r['data']['fomodConfigurationRecorded'])
   r=expect(run(label+'_restart',case=c,flags=['--non-interactive']),3,['warned']);check(label+'_restart_no_warning','requires choices' not in r['stderr'])
 for label,text,expected in [('refusal','n\n',['refused']),('confirm_eof','',['eof']),('confirm_q','q\n',['userQuit']),('selection_eof','y\n',['eof']),('selection_q','y\nq\n',['userQuit']),('pipe_partial_eof','y\n2',['configured'])]:
  expect(run(label,flags=['--interactive'],text=text),0 if expected==['configured'] else 3,expected)
@@ -138,7 +138,7 @@ expect(run('eof_stops_prompts',components=two,existing=second,flags=['--interact
 c=setup('mixed_choices',components=two,existing=second);expect(run('mixed_choices',case=c,flags=['--fomod-choices','CHOICES','--record']),1,['configured','error']);expect(run('mixed_restart',case=c,flags=['--interactive'],text='n\n'),3,['resolved','refused'])
 
 # One malformed consumer prevents publication to every pending consumer of that session.
-a=comp();b=comp(1);next(iter(b['ResourceRegistry'].values()))['handlerMetadata']='invalid metadata'
+a=comp();b=comp(1);next(iter(b['ResourceRegistry'].values()))['HandlerMetadata']='invalid metadata'
 c=setup('atomic_consumers',components=[a,b]);r=expect(run('atomic_consumers',case=c,flags=['--fomod-choices','CHOICES','--record']),1,['error','error']);check('atomic_consumers_no_session',r['data']['fomodConfiguration']['acceptedSessions'],[])
 # Other archive choices remain exact when one pending archive is configured.
 a=comp(saved=choices(filename='second.zip',plugin='Alpha'));a['ResourceRegistry'].update(comp(1,filename='second.zip')['ResourceRegistry']);c=setup('other_archive',components=[a],existing=second)

@@ -379,6 +379,7 @@ pub fn export(config: &Config, path: &str, event: &Event) -> Result<Export> {
     );
     let body = serde_json::to_vec(event).context("Serialize telemetry event")?;
     let client = reqwest::blocking::Client::builder()
+        .use_rustls_tls()
         .redirect(reqwest::redirect::Policy::none())
         .timeout(std::time::Duration::from_secs(10))
         .build()
@@ -1606,6 +1607,7 @@ impl Exporter {
         if self.client.is_none() {
             self.client = Some(
                 reqwest::blocking::Client::builder()
+                    .use_rustls_tls()
                     .redirect(reqwest::redirect::Policy::none())
                     .timeout(REQUEST_TIMEOUT)
                     .connect_timeout(CONNECT_TIMEOUT)

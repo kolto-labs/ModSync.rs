@@ -376,6 +376,9 @@ impl Guide {
         for component in components {
             access.push(keys::component(component, format, false, 0, &mut work)?);
         }
+        if matches!(format, keys::Format::Yaml | keys::Format::Xml) {
+            crate::draft::canonicalize_text_review_records(&mut value);
+        }
         crate::draft::validate_review_records(&value)?;
         if format == keys::Format::Json {
             crate::resources::prepare_json(&mut value);
@@ -746,6 +749,44 @@ fn normalize_component(
                         };
                     }
                 }
+            }
+            // YAML (no implicit typing) and XML carry these typed resource
+            // fields as text; consumers read them as numbers/Booleans.
+            if matches!(format, keys::Format::Yaml | keys::Format::Xml)
+                && let Some(resource) = resource.as_object_mut()
+            {
+                for field in ["FileSize", "ContentLength", "SchemaVersion"] {
+                    if let Some(value) = resource.get_mut(field)
+                        && let Some(number) =
+                            value.as_str().and_then(|text| text.parse::<u64>().ok())
+                    {
+                        *value = number.into();
+                    }
+                }
+                if let Some(value) = resource.get_mut("UpdateAvailable")
+                    && let Some(text) = value.as_str()
+                {
+                    *value = Value::Bool(match text.to_ascii_lowercase().as_str() {
+                        "true" => true,
+                        "false" => false,
+                        _ => bail!("Invalid boolean for UpdateAvailable"),
+                    });
+                }
+            }
+        }
+    }
+    if format == keys::Format::Yaml {
+        // Matches the XML intake in xml.rs: desktop and install flows read these
+        // as Booleans, so text spellings must not silently read as false.
+        for field in ["WidescreenOnly", "AspyrExclusive"] {
+            if let Some(value) = object.get_mut(field)
+                && let Some(text) = value.as_str()
+            {
+                *value = Value::Bool(
+                    text.to_ascii_lowercase()
+                        .parse::<bool>()
+                        .with_context(|| format!("Invalid boolean for {field}"))?,
+                );
             }
         }
     }

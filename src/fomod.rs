@@ -189,14 +189,18 @@ impl ChoicesFile {
     pub fn load(path: &std::path::Path) -> Result<Self> {
         use std::io::Read;
         let mut bytes = Vec::new();
-        crate::paths::open_regular_read(path)?
-            .take(8 * 1024 * 1024 + 1)
-            .read_to_end(&mut bytes)?;
+        crate::paths::open_regular_read(path)
+            .and_then(|file| Ok(file.take(8 * 1024 * 1024 + 1).read_to_end(&mut bytes)?))
+            .with_context(|| format!("Reading FOMOD choices {}", path.display()))?;
         ensure!(
             bytes.len() <= 8 * 1024 * 1024,
-            "FOMOD choices file exceeds 8 MiB"
+            "Reading FOMOD choices {}: file exceeds 8 MiB",
+            path.display()
         );
-        Self::parse(std::str::from_utf8(&bytes)?)
+        std::str::from_utf8(&bytes)
+            .map_err(anyhow::Error::from)
+            .and_then(Self::parse)
+            .with_context(|| format!("Parsing FOMOD choices {}", path.display()))
     }
     pub fn parse(json: &str) -> Result<Self> {
         let choices: Self = serde_json::from_str(json)?;
@@ -967,12 +971,12 @@ fn write_prompt_status(
     let object = resource
         .as_object_mut()
         .context("FOMOD resource entry must be an object")?;
-    let key = if object.contains_key("handlerMetadata") {
+    // Loaded guides carry C#'s canonical `HandlerMetadata` (model/keys.rs
+    // RESOURCE); a fresh entry uses it too, so a later load/save is a no-op.
+    let key = if object.contains_key("handlerMetadata") && !object.contains_key("HandlerMetadata") {
         "handlerMetadata"
-    } else if object.contains_key("HandlerMetadata") {
-        "HandlerMetadata"
     } else {
-        "handlerMetadata"
+        "HandlerMetadata"
     };
     // Like C# FomodDownloadPromptState: null metadata becomes a fresh map, and a
     // missing or non-map status value is replaced rather than rejected.
