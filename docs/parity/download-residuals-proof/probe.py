@@ -57,7 +57,11 @@ SERVE={'/seq-unnamed/example.zip':(A,DELAY,True),'/seq-known/example.zip':(A,DEL
  '/mis-unnamed/example.zip':(A,DELAY,True),'/mis-known/example.zip':(B,DELAY,True),
  '/conc-unnamed/example.zip':(SLOW,DELAY,True),'/conc-known/example.zip':(SLOW,DELAY+1.0,True),
  '/length/example.zip':(A,DELAY,True),'/nolength/example.zip':(A,DELAY,False),
- '/nexus-cdn/example-archive.zip':(NEXUS_ARCHIVE,0,True)}
+ '/nexus-cdn/example-archive.zip':(NEXUS_ARCHIVE,0,True),
+ '/hseq-unnamed/example.zip':(A,DELAY,True),'/hseq-known/example.zip':(A,DELAY,True),
+ '/hmis-unnamed/example.zip':(A,DELAY,True),'/hmis-known/example.zip':(B,DELAY,True),
+ '/hpresent/example.zip':(A,DELAY,True),
+ '/hconc-unnamed/example.zip':(SLOW,DELAY,True),'/hconc-known/example.zip':(SLOW,DELAY+1.0,True)}
 # Not served (404): /missing/big.zip.
 CA=ROOT/'ca.pem';cakey=ROOT/'ca.key';leaf=ROOT/'leaf.pem';leafkey=ROOT/'leaf.key';csr=ROOT/'leaf.csr';ext=ROOT/'leaf.ext'
 ext.write_text('basicConstraints=critical,CA:FALSE\nkeyUsage=critical,digitalSignature,keyEncipherment\nextendedKeyUsage=serverAuth\nsubjectAltName=IP:127.0.0.1\n')
@@ -85,7 +89,7 @@ class Origin(http.server.BaseHTTPRequestHandler):
 ctx=ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER);ctx.load_cert_chain(leaf,leafkey)
 srv=http.server.ThreadingHTTPServer(('127.0.0.1',0),Origin);srv.socket=ctx.wrap_socket(srv.socket,server_side=True)
 threading.Thread(target=srv.serve_forever,daemon=True).start();BASE=f'https://127.0.0.1:{srv.server_port}'
-API_KEY='fixture-api-key-7f3c'
+API_KEY='fixture-api-key-7f3c';FILES_DELAY=3.0
 class Api(http.server.BaseHTTPRequestHandler):
  """Synthetic Nexus API (as the H1a proof): validate, file metadata and download_link."""
  def do_GET(self):
@@ -93,12 +97,19 @@ class Api(http.server.BaseHTTPRequestHandler):
   rest=self.path.split('?')[0].strip('/').split('/',1)[1]
   if rest=='users/validate.json':body={'name':'fixture','is_premium':True}
   elif rest.endswith('download_link.json'):body=[{'URI':BASE+'/nexus-cdn/example-archive.zip'}]
+  elif rest.endswith('/files.json'):
+   # The file list a bare mod page (no file_id) is expanded from during execution-time
+   # discovery; slow, so a signal can land while discovery waits for it.
+   time.sleep(FILES_DELAY);body={'files':[{'file_id':7,'file_name':'example-archive.zip','category_name':'MAIN'}]}
   elif rest.startswith('games/'):body={'file_name':'example-archive.zip'}
   else:body=None
   data=json.dumps(body).encode();self.send_response(200 if body is not None else 404)
   self.send_header('Content-Type','application/json');self.send_header('Content-Length',str(len(data)));self.end_headers();self.wfile.write(data)
  def log_message(self,*args):pass
-api=http.server.ThreadingHTTPServer(('127.0.0.1',0),Api);threading.Thread(target=api.serve_forever,daemon=True).start()
+api=http.server.ThreadingHTTPServer(('127.0.0.1',0),Api)
+# A cancelled discovery closes its file-list request early; that broken pipe is expected.
+api.handle_error=lambda request,address:None
+threading.Thread(target=api.serve_forever,daemon=True).start()
 API=f'http://127.0.0.1:{api.server_port}/v1/'
 GUIDS=['aaaaaaaa-1111-4111-8111-111111111111','bbbbbbbb-2222-4222-8222-222222222222']
 PAGE='https://www.nexusmods.com/kotor/mods/1?tab=files&file_id=1'
@@ -260,9 +271,11 @@ check('total_nexus_cdn',sorted({x[1] for x in nexus_t},key=str),[len(NEXUS_ARCHI
 
 # 6. Existing-file hash cancellation (item 2). A 512 MiB present file under the authored
 # name, with a ContentHashSHA256 it does not match, is hashed during planning. A run
-# without a signal shows how long that hash takes before the 404 origin request; a run
-# that gets SIGINT 1 s in stops within 1 s of the signal with exit 130 (as a cancel during
-# the run does), before any request, and leaves the file untouched.
+# without a signal shows how long that hash takes: since review follow-up 1 the hashed
+# target refuses the present file with no request (the 404 origin is never asked), so the
+# whole run is timed. A run that gets SIGINT 1 s in stops within 1 s of the signal with
+# exit 130 (as a cancel during the run does), before any request, and leaves the file
+# untouched.
 url=BASE+'/missing/big.zip'
 c=setup('hash_cancel',[comp(0,url,'big.zip','0'*64)])
 big=c['mods']/'big.zip'
@@ -270,11 +283,12 @@ with open(big,'wb') as f:f.truncate(512<<20)
 kept=identity(big)
 r=fetch(c,'control',['--workers','1'])
 control=r['timing']['exited']-r['timing']['started']
-first=[x['start'] for x in r['requests'] if x['path']=='/missing/big.zip' and not x['metadata']]
-hash_seconds=(first[0]-r['timing']['started']) if first else None
+hash_seconds=control
 check('hash_cancel_control_exit',r['exit'],1)
-check('hash_cancel_control_one_request',asked(r,'/missing/big.zip'),1)
-check('hash_cancel_control_hash_takes_seconds',hash_seconds is not None and hash_seconds>=3.0)
+check('hash_cancel_control_no_request',asked(r,'/missing/big.zip'),0)
+check('hash_cancel_control_hash_takes_seconds',hash_seconds>=3.0)
+e=(errors(r) or [''])[0] or ''
+check('hash_cancel_control_refused',['SHA-256 mismatch: the present file' in e,'was not replaced' in e],[True,True])
 r=fetch(c,'cancelled',['--workers','1'],interrupt_after=1.0)
 latency=r['timing']['exited']-r['timing'].get('signal',r['timing']['exited'])
 check('hash_cancel_signalled','signal' in r['timing'])
@@ -285,12 +299,118 @@ check('hash_cancel_no_events',r['events'],[])
 check('hash_cancel_not_replaced',identity(big),kept)
 check('hash_cancel_saved_guide',components(c),[comp(0,url,'big.zip','0'*64)])
 
+# 7. Hashed known names already present before their transfer (review follow-up 1). With
+# an authored ContentHashSHA256, a file present under the name decides the outcome on its
+# own (adopt on the hash, refuse otherwise), so Origin now settles it with no request. At
+# 59e4e57 each of these transferred first, then reached the same outcome.
+# 7a: A (no Files, U1) publishes example.zip first; B (Files example.zip, hash of A's bytes,
+# U2) then adopts it without requesting U2.
+u1=BASE+'/hseq-unnamed/example.zip';u2=BASE+'/hseq-known/example.zip'
+c=setup('hashed_after_unnamed',[comp(0,u1,None),comp(1,u2,'example.zip',A_SHA)])
+plan=plan_of(c,'plan');check('hashed_after_unnamed_plan',[(t.get('filename'),t.get('sharedDestination')) for t in plan.get('targets',[])],[(None,None),('example.zip',None)])
+r=fetch(c,'fetch',['--workers','1','--record'])
+check('hashed_after_unnamed_exit',r['exit'],0)
+check('hashed_after_unnamed_requests',(asked(r,'/hseq-unnamed/example.zip'),asked(r,'/hseq-known/example.zip')),(1,0))
+check('hashed_after_unnamed_no_transfer',transfers(r,1),[])
+check('hashed_after_unnamed_outcomes',statuses(r),[(0,GUIDS[0],'completed',None),(1,GUIDS[1],'completed',None)])
+check('hashed_after_unnamed_errors',errors(r),[None,None])
+check('hashed_after_unnamed_same_file',files(r),[('example.zip',A_SHA)]*2)
+check('hashed_after_unnamed_terminal',terminal(r),['completed','completed'])
+check('hashed_after_unnamed_recorded',recorded(r),[[GUIDS[0],u1,'example.zip'],[GUIDS[1],u2,'example.zip']])
+check('hashed_after_unnamed_file',mods(r),{'mods/example.zip':A_SHA})
+# 7b: the same order, but B's hash is of other bytes: refused, typed, with no request, and
+# the present file is kept.
+u1=BASE+'/hmis-unnamed/example.zip';u2=BASE+'/hmis-known/example.zip'
+c=setup('hashed_after_unnamed_mismatch',[comp(0,u1,None),comp(1,u2,'example.zip',B_SHA)])
+r=fetch(c,'fetch',['--workers','1','--record'])
+check('hashed_mismatch_exit',r['exit'],1)
+check('hashed_mismatch_requests',(asked(r,'/hmis-unnamed/example.zip'),asked(r,'/hmis-known/example.zip')),(1,0))
+check('hashed_mismatch_no_transfer',transfers(r,1),[])
+check('hashed_mismatch_outcomes',statuses(r),[(0,GUIDS[0],'completed',None),(1,GUIDS[1],'failed',None)])
+e=(errors(r)[1:2] or [''])[0] or ''
+check('hashed_mismatch_error',['SHA-256 mismatch: the present file' in e,'was not replaced' in e,'Download destination already exists' in e],[True,True,False])
+check('hashed_mismatch_terminal',terminal(r),['completed','sourceFailed'])
+check('hashed_mismatch_recorded',recorded(r),[[GUIDS[0],u1,'example.zip']])
+check('hashed_mismatch_file',mods(r),{'mods/example.zip':A_SHA})
+# 7c: a present file under the authored name that fails the plan's existing-file check
+# (contract item 2): with a hash authored, it is refused at once again, typed.
+url=BASE+'/hpresent/example.zip'
+c=setup('hashed_present_mismatch',[comp(0,url,'example.zip',A_SHA)]);(c['mods']/'example.zip').write_bytes(OTHER);kept=identity(c['mods']/'example.zip')
+plan=plan_of(c,'plan');check('hashed_present_plan',[t.get('filename') for t in plan.get('targets',[])],['example.zip'])
+r=fetch(c,'fetch',['--workers','1','--record'])
+check('hashed_present_exit',r['exit'],1)
+check('hashed_present_no_request',asked(r,'/hpresent/example.zip'),0)
+check('hashed_present_no_transfer',transfers(r,0),[])
+check('hashed_present_outcomes',statuses(r),[(0,GUIDS[0],'failed',None)])
+e=(errors(r) or [''])[0] or ''
+check('hashed_present_error',['SHA-256 mismatch: the present file' in e,'was not replaced' in e,'Download destination already exists' in e],[True,True,False])
+check('hashed_present_terminal',terminal(r),['sourceFailed'])
+check('hashed_present_not_recorded',recorded(r) or [],[])
+check('hashed_present_not_replaced',identity(c['mods']/'example.zip'),kept)
+check('hashed_present_file',mods(r),{'mods/example.zip':hashlib.sha256(OTHER).hexdigest()})
+# 7d: a hashed name that is absent when its transfer starts and taken while it verifies
+# still goes through the race-safe publish: B transfers, loses the no-clobber move to A,
+# and adopts A's file under its hash (as case 3, with a hash).
+u1=BASE+'/hconc-unnamed/example.zip';u2=BASE+'/hconc-known/example.zip'
+c=setup('hashed_loses_publish',[comp(0,u1,None),comp(1,u2,'example.zip',SLOW_SHA)])
+r=fetch(c,'fetch',['--workers','4','--record'])
+check('hashed_loses_exit',r['exit'],0)
+check('hashed_loses_requests',(asked(r,'/hconc-unnamed/example.zip'),asked(r,'/hconc-known/example.zip')),(1,1))
+starts=[[x['start'] for x in r['requests'] if x['path']==p and not x['metadata']] for p in ('/hconc-unnamed/example.zip','/hconc-known/example.zip')]
+check('hashed_loses_overlap',bool(starts[0] and starts[1]) and abs(starts[1][0]-starts[0][0])<DELAY)
+s=stream(r);order=[at((1,'verifying')),at((0,'completed')),at((1,'completed'))]
+check('hashed_loses_order',None not in order and order==sorted(order),True)
+check('hashed_loses_outcomes',statuses(r),[(0,GUIDS[0],'completed',None),(1,GUIDS[1],'completed',None)])
+check('hashed_loses_errors',errors(r),[None,None])
+check('hashed_loses_same_file',files(r),[('example.zip',SLOW_SHA)]*2)
+check('hashed_loses_recorded',recorded(r),[[GUIDS[0],u1,'example.zip'],[GUIDS[1],u2,'example.zip']])
+check('hashed_loses_file',mods(r),{'mods/example.zip':SLOW_SHA})
+
+# 8. Ctrl+C during execution-time discovery (review follow-up 3). A bare Nexus mod page
+# (no file_id, no Files) is expanded from the API file list after planning; that list
+# answers FILES_DELAY s late. The component extracts example-archive.zip, the one MAIN file.
+PAGE2='https://www.nexusmods.com/kotor/mods/2?tab=files'
+FILES2='/v1/games/kotor/mods/2/files.json'
+def page_comp():
+ return {'Guid':GUIDS[0],'Name':'Example Consumer 1','IsSelected':True,'Instructions':[{'Action':'Extract','Source':['<<modDirectory>>/example-archive.zip']}],'ResourceRegistry':{PAGE2:{}}}
+# Control without a signal: discovery expands the page and the run completes.
+c=setup('discover_control',[page_comp()])
+plan=plan_of(c,'plan');check('discover_plan_unnamed',[t.get('filename') for t in plan.get('targets',[])],[None])
+r=fetch(c,'fetch',['--workers','1',*nexus])
+check('discover_control_exit',r['exit'],0)
+check('discover_control_files_listed',asked(r,FILES2,'api'),1)
+check('discover_control_link',asked(r,'/v1/games/kotor/mods/2/files/7/download_link.json','api'),1)
+check('discover_control_outcomes',[(o['status'],o.get('filename')) for o in outcomes(r)],[('completed','example-archive.zip')])
+check('discover_control_file',mods(r),{'mods/example-archive.zip':NEXUS_SHA})
+# SIGINT 1 s in, while discovery waits for the file list: exit 130 (it exited 1 before),
+# nothing requested after the list, no acquisition event, nothing written.
+c=setup('discover_cancel',[page_comp()])
+r=fetch(c,'cancelled',['--workers','1',*nexus],interrupt_after=1.0)
+listed=[x['start'] for x in r['requests'] if x['server']=='api' and x['path']==FILES2]
+check('discover_cancel_signalled','signal' in r['timing'])
+check('discover_cancel_in_discovery',bool(listed) and listed[0]<r['timing'].get('signal',0))
+check('discover_cancel_exit',r['exit'],130)
+check('discover_cancel_no_link',[x['path'] for x in r['requests'] if 'download_link' in x['path'] or x['server']=='origin'],[])
+check('discover_cancel_no_events',r['events'],[])
+check('discover_cancel_no_writes',mods(r),{})
+check('discover_cancel_saved_guide',components(c),[page_comp()])
+discover_latency=r['timing']['exited']-r['timing'].get('signal',r['timing']['exited'])
+# A real discovery error with no signal still exits 1 with its own message: a non-UTF-8
+# name in the mods folder makes the page's filename selection refuse its inventory.
+c=setup('discover_error',[page_comp()])
+fd=os.open(bytes(c['mods'])+b'/bad-\xff.bin',os.O_WRONLY|os.O_CREAT,0o644);os.write(fd,b'x');os.close(fd)
+r=fetch(c,'fetch',['--workers','1',*nexus])
+check('discover_error_exit',r['exit'],1)
+check('discover_error_files_listed',asked(r,FILES2,'api'),1)
+check('discover_error_message','non-UTF-8' in r['stderr'],True)
+check('discover_error_no_events',r['events'],[])
+
 srv.shutdown();srv.server_close();api.shutdown();api.server_close()
 check('binary_unchanged',digest(BIN),BINARY_BEFORE)
 check('source_unchanged',sources(),SOURCE_BEFORE)
 binding=dict(binary=str(BIN),binarySha256=BINARY_BEFORE,binaryMtime=BIN.stat().st_mtime,newestSourceMtime=NEWEST,binaryNewerThanSources=BIN.stat().st_mtime>=NEWEST,gitHead=git('rev-parse','HEAD'),gitPorcelain=git('status','--porcelain'),sourceSha256=SOURCE_BEFORE)
-receipt=dict(binding=binding,root=str(ROOT),networkNamespace=os.readlink('/proc/self/ns/net'),routes=subprocess.check_output(['ip','route'],text=True),certificateCommands=certargs,responseDelaySeconds=DELAY,hashControlSeconds=hash_seconds,controlSeconds=control,cancelLatencySeconds=latency,requests=REQUESTS,checks=CHECKS,passed=sum(x['passed'] for x in CHECKS),total=len(CHECKS),invocations=len(RUNS))
+receipt=dict(binding=binding,root=str(ROOT),networkNamespace=os.readlink('/proc/self/ns/net'),routes=subprocess.check_output(['ip','route'],text=True),certificateCommands=certargs,responseDelaySeconds=DELAY,hashControlSeconds=hash_seconds,controlSeconds=control,cancelLatencySeconds=latency,discoverCancelLatencySeconds=discover_latency,requests=REQUESTS,checks=CHECKS,passed=sum(x['passed'] for x in CHECKS),total=len(CHECKS),invocations=len(RUNS))
 (OUT/'receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
-print(json.dumps({k:receipt[k] for k in ['root','passed','total','invocations','hashControlSeconds','cancelLatencySeconds']}|{'binaryNewerThanSources':binding['binaryNewerThanSources'],'gitHead':binding['gitHead']},indent=2))
+print(json.dumps({k:receipt[k] for k in ['root','passed','total','invocations','hashControlSeconds','cancelLatencySeconds','discoverCancelLatencySeconds']}|{'binaryNewerThanSources':binding['binaryNewerThanSources'],'gitHead':binding['gitHead']},indent=2))
 if os.environ.get('RESIDUALS_ALLOW_UNBOUND')!='1':assert binding['binaryNewerThanSources'],'binary is older than its sources; rebuild before collecting receipts'
 assert all(x['passed'] for x in CHECKS)
