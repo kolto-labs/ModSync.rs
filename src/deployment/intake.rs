@@ -52,7 +52,7 @@ pub(super) fn validate(manifest: &Manifest) -> Result<()> {
     let mut paths = BTreeSet::new();
     for entry in &manifest.entries {
         let path = relative_parts(&entry.relative_path)?;
-        let key = path.to_string_lossy().replace('\\', "/").to_lowercase();
+        let key = crate::unicode_case::ordinal_key(&path.to_string_lossy().replace('\\', "/"));
         ensure!(
             paths.insert(key),
             "Duplicate deployment path: {}",

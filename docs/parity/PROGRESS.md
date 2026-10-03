@@ -9,6 +9,11 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Ordinal path identity (2026-10-03): engine VFS, managed process capture,
+deployment and conflict path keys share the pinned .NET `OrdinalIgnoreCase`
+key, and conflict rows sort in reference UTF-16 ordinal order. Checkpoint trees
+keep their NFC lowercase alias rule. Production gates only; see COMPATIBILITY.
+
 Latest source wave (after `f528e4b`): Extract, Copy, Move and Patcher recover a
 missing source only after a direct miss, through registry auto-extraction,
 extracted descendants, Move variants and redundant game Moves, all staged before

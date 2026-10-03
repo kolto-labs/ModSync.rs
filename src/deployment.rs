@@ -556,7 +556,12 @@ impl Service {
                 let mut owned: BTreeMap<String, &Entry> = BTreeMap::new();
                 for manifest in &manifests {
                     for entry in &manifest.entries {
-                        owned.insert(entry.relative_path.replace('\\', "/").to_lowercase(), entry);
+                        owned.insert(
+                            crate::unicode_case::ordinal_key(
+                                &entry.relative_path.replace('\\', "/"),
+                            ),
+                            entry,
+                        );
                     }
                 }
                 let mut mismatch: Option<String> = None;
@@ -805,7 +810,7 @@ impl Service {
                 .unwrap_or_else(|| manifest.component_guid.clone());
             for entry in &manifest.entries {
                 index.insert(
-                    entry.relative_path.to_lowercase(),
+                    crate::unicode_case::ordinal_key(&entry.relative_path),
                     (owner.clone(), manifest.deployed_utc),
                 );
             }
@@ -872,7 +877,7 @@ impl Service {
                 .replace('\\', "/");
             let (destination, relative) = resolve_case(&self.game, &relative_parts(&raw)?)?;
             ensure!(
-                seen.insert(relative.to_lowercase()),
+                seen.insert(crate::unicode_case::ordinal_key(&relative)),
                 "Staged files differ only by case and would both deploy to {relative}"
             );
             check_ancestors(&self.game, &relative)?;
@@ -893,7 +898,7 @@ impl Service {
                 Err(error) if error.kind() == ErrorKind::NotFound => None,
                 Err(error) => return Err(error.into()),
             };
-            if let Some((owner, _)) = foreign.get(&relative.to_lowercase()) {
+            if let Some((owner, _)) = foreign.get(&crate::unicode_case::ordinal_key(&relative)) {
                 warnings.push(format!(
                     "Conflict: '{relative}' from component '{label}' is already deployed by component '{owner}'. The new file will overwrite it."
                 ));
@@ -1158,7 +1163,12 @@ impl Service {
             .entries
             .iter()
             .enumerate()
-            .map(|(index, entry)| (entry.relative_path.to_lowercase(), index))
+            .map(|(index, entry)| {
+                (
+                    crate::unicode_case::ordinal_key(&entry.relative_path),
+                    index,
+                )
+            })
             .collect();
         let mut warnings = Vec::new();
 
@@ -1191,11 +1201,11 @@ impl Service {
                 .replace('\\', "/");
             let (destination, relative) = resolve_case(&self.game, &relative_parts(&raw)?)?;
             ensure!(
-                seen.insert(relative.to_lowercase()),
+                seen.insert(crate::unicode_case::ordinal_key(&relative)),
                 "Staged files differ only by case and would both deploy to {relative}"
             );
             check_ancestors(&self.game, &relative)?;
-            if let Some(&index) = owned.get(&relative.to_lowercase()) {
+            if let Some(&index) = owned.get(&crate::unicode_case::ordinal_key(&relative)) {
                 let entry = &manifest.entries[index];
                 let staged_hash = hash(item.path())?;
                 if staged_hash.eq_ignore_ascii_case(&entry.source_hash) {
@@ -1237,7 +1247,9 @@ impl Service {
                 Err(error) if error.kind() == ErrorKind::NotFound => None,
                 Err(error) => return Err(error.into()),
             };
-            if let Some((owner, owner_utc)) = foreign.get(&relative.to_lowercase()) {
+            if let Some((owner, owner_utc)) =
+                foreign.get(&crate::unicode_case::ordinal_key(&relative))
+            {
                 // This manifest keeps its older DeployedUtc, so taking a path a
                 // newer deployment owns would invert the backup chain: that
                 // owner's uninstall could no longer hand its original back.
@@ -1633,7 +1645,8 @@ impl Service {
             .filter(|(_, manifest)| manifest.deployed_utc > deployed)
             .find_map(|(owner, manifest)| {
                 let index = manifest.entries.iter().position(|entry| {
-                    entry.overwrote_existing && entry.relative_path.eq_ignore_ascii_case(relative)
+                    entry.overwrote_existing
+                        && crate::unicode_case::ordinal_eq(&entry.relative_path, relative)
                 })?;
                 let id = component_id(&manifest.component_guid).ok()?;
                 let path = self.backup(&id).join(
@@ -1699,14 +1712,14 @@ impl Service {
     pub fn diff_index(&self, before: &HashIndex) -> Result<Vec<String>> {
         let before: BTreeMap<String, &String> = before
             .iter()
-            .map(|(path, hash)| (path.to_lowercase(), hash))
+            .map(|(path, hash)| (crate::unicode_case::ordinal_key(path), hash))
             .collect();
         Ok(self
             .capture_index()?
             .into_iter()
             .filter(|(path, hash)| {
                 before
-                    .get(&path.to_lowercase())
+                    .get(&crate::unicode_case::ordinal_key(path))
                     .is_none_or(|old| !old.eq_ignore_ascii_case(hash))
             })
             .map(|(path, _)| path)
@@ -1744,11 +1757,16 @@ impl Service {
             .entries
             .iter()
             .enumerate()
-            .map(|(index, entry)| (entry.relative_path.to_lowercase(), index))
+            .map(|(index, entry)| {
+                (
+                    crate::unicode_case::ordinal_key(&entry.relative_path),
+                    index,
+                )
+            })
             .collect();
         let old: BTreeMap<String, &String> = before
             .iter()
-            .map(|(path, hash)| (path.to_lowercase(), hash))
+            .map(|(path, hash)| (crate::unicode_case::ordinal_key(path), hash))
             .collect();
         let foreign = self.foreign_index(&id)?;
         let changed = self.diff_index(before)?;
@@ -1759,7 +1777,7 @@ impl Service {
         // fail the whole call rather than silently skip one entry.
         let mut refusals: Vec<String> = Vec::new();
         for relative in &changed {
-            let lower = relative.to_lowercase();
+            let key = crate::unicode_case::ordinal_key(relative);
             let parts = relative_parts(relative)?;
             let path = self.game.join(&parts);
             if check_ancestors(&self.game, relative).is_err()
@@ -1767,9 +1785,9 @@ impl Service {
             {
                 continue;
             }
-            if let Some(&index) = owned.get(&lower) {
+            if let Some(&index) = owned.get(&key) {
                 let ours = old
-                    .get(&lower)
+                    .get(&key)
                     .is_some_and(|h| h.eq_ignore_ascii_case(&manifest.entries[index].source_hash));
                 if !ours {
                     refusals.push(format!(
@@ -1778,7 +1796,7 @@ impl Service {
                 }
                 continue;
             }
-            if let Some((owner, owner_utc)) = foreign.get(&lower)
+            if let Some((owner, owner_utc)) = foreign.get(&key)
                 && *owner_utc > manifest.deployed_utc
             {
                 refusals.push(format!(
@@ -1795,9 +1813,9 @@ impl Service {
         let outcome = (|| -> Result<()> {
             let mut seen = BTreeSet::new();
             for relative in changed {
-                let lower = relative.to_lowercase();
+                let key = crate::unicode_case::ordinal_key(&relative);
                 ensure!(
-                    seen.insert(lower.clone()),
+                    seen.insert(key.clone()),
                     "Case-colliding game paths for {relative}"
                 );
                 let parts = relative_parts(&relative)?;
@@ -1808,10 +1826,10 @@ impl Service {
                     continue;
                 }
                 let current = hash(&path)?;
-                if let Some(&index) = owned.get(&lower) {
+                if let Some(&index) = owned.get(&key) {
                     // The patcher changed a file this component deployed. Adopt the
                     // new bytes only if the pre-patcher bytes were this component's.
-                    let ours = old.get(&lower).is_some_and(|h| {
+                    let ours = old.get(&key).is_some_and(|h| {
                         h.eq_ignore_ascii_case(&manifest.entries[index].source_hash)
                     });
                     if !ours {
@@ -1829,7 +1847,7 @@ impl Service {
                     report.updated.push(relative);
                     continue;
                 }
-                if let Some((owner, owner_utc)) = foreign.get(&lower)
+                if let Some((owner, owner_utc)) = foreign.get(&key)
                     && *owner_utc > manifest.deployed_utc
                 {
                     // Recording it would chain this older manifest after a newer
@@ -1848,7 +1866,7 @@ impl Service {
                     overwrote_existing: false,
                     backup_relative_path: None,
                 };
-                if let Some(old_hash) = old.get(&lower) {
+                if let Some(old_hash) = old.get(&key) {
                     let prior = backup_source.map(|root| root.join(&parts)).filter(|prior| {
                         fs::symlink_metadata(prior).is_ok_and(|meta| meta.is_file())
                     });
@@ -2004,12 +2022,14 @@ fn resolve_case(root: &Path, relative: &Path) -> Result<(PathBuf, String)> {
         let mut chosen: OsString = part.to_owned();
         // Always scan, so an exact spelling cannot hide a case-colliding sibling.
         if searching {
-            let wanted = part.to_string_lossy().to_lowercase();
+            let wanted = crate::unicode_case::ordinal_key(&part.to_string_lossy());
             let mut found: Vec<OsString> = match fs::read_dir(&current) {
                 Ok(entries) => entries
                     .filter_map(Result::ok)
                     .map(|entry| entry.file_name())
-                    .filter(|name| name.to_string_lossy().to_lowercase() == wanted)
+                    .filter(|name| {
+                        crate::unicode_case::ordinal_key(&name.to_string_lossy()) == wanted
+                    })
                     .collect(),
                 Err(_) => Vec::new(),
             };
@@ -2091,7 +2111,7 @@ fn existing_ignoring_case(directory: &Path, name: &str) -> PathBuf {
             entries
                 .filter_map(Result::ok)
                 .map(|entry| entry.file_name())
-                .filter(|found| found.to_string_lossy().eq_ignore_ascii_case(name))
+                .filter(|found| crate::unicode_case::ordinal_eq(&found.to_string_lossy(), name))
                 .min()
         })
         .map_or(exact, |found| directory.join(found))

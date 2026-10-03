@@ -1921,3 +1921,26 @@ fail; acyclic expansion is bounded with budgets shared across guide documents
 and Markdown blocks. No merge-key expansion is introduced. This replaces plain
 scalar inference but does not close all native YAML type contracts. See
 [the YAML intake contract](docs/parity/yaml-scalar-intake.md).
+
+### Ordinal path identity across engine, deployment and conflicts
+
+Case-insensitive path keys in the engine virtual filesystem, managed process
+capture, the deployment service (manifest admission, ownership and foreign
+indexes, patcher provenance diffs, existing case variants on disk) and conflict
+write histories now use the shared pinned .NET `OrdinalIgnoreCase` mapping
+instead of Rust Unicode lowercase. This is the comparer the reference uses for
+its VFS, `DeploymentService` and `FileConflictAnalyzer`. For example final
+sigma `ς` and `σ` are now one path, and a dotted capital `İ` no longer equals
+`i` followed by a combining dot. Conflict reports sort destination paths by OrdinalIgnoreCase UTF-16
+order, so `A_B` follows `AAB` as in the reference. Out-of-order uninstall
+backup lookup now matches paths by the same identity rather than ASCII-only
+case folding.
+
+Persisted manifests and indexes keep their stored spelling; only the in-memory
+key changes, so no migration is written. A manifest whose paths were distinct
+under lowercase but equal under ordinal casing is now refused on load as a
+duplicate deployment path, rather than tracking two names one Windows volume
+would treat as a single file. Checkpoint trees and auxiliary bindings keep
+their NFC lowercase alias rule, and glob matching keeps the glob crate's case
+folding. Source only: production fmt/build/Clippy passed; no tests, runtime or
+CI ran, and behavioral acceptance stays open.
