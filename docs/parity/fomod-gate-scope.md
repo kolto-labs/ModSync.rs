@@ -28,6 +28,11 @@ pinned C# `d31ccbd3`; paths below are under `src/ModSync.Core/` there. Evidence:
   order, unreviewed drafts) still fail the gate afterwards, so no run that failed
   before now passes: C# only warns for a missing dependency, Rust keeps rejecting it.
   Readiness checks for an option still run only after the gate's findings.
+- **Completed components (Rust-only divergence).** C# gates completed components
+  too, because its gate runs on every selected component before resume. Rust skips
+  completed seeds (as before this slice) and completed dependencies without walking
+  through them. Under Rust's completed-prefix invariant, a dependency of a completed
+  component is itself completed, so the difference is not reachable in practice.
 - **Missing archive without state.** One warning per registering component, in C#'s
   wording, prefixed by the component name as C#'s report prints it. It is a counted
   FomodConfiguration warning in the report and a `WARNING:` event on plain
