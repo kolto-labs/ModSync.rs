@@ -227,8 +227,10 @@ c=setup('registered_only_missing',[comp(instructions=())],{'example.zip':V1})
 rv=validate(c,'validate_requires_choices');check('registered_missing_exit',rv['exit'],1);check('registered_missing_actionable',any('no explicit FomodChoices' in m and '--fomod-choices' in m for m in fomod_stage(rv)['messages']))
 c=setup('registered_only_stale',[comp(saved=choices('Unknown'),instructions=())],{'example.zip':V1})
 rv=validate(c,'validate_refuses_invalid');check('registered_invalid_exit',rv['exit'],1);check('registered_invalid_actionable',any('do not apply to the current archive' in m for m in fomod_stage(rv)['messages']))
-# Two registrants of one archive without Extract: one warning naming both.
-a=comp(status='configured',saved=choices('Beta'),instructions=(NOTE,));b=comp(1,status='configured',saved=choices('Beta'),instructions=())
+# Two registrants of one archive without Extract: one warning naming both. Both copy
+# the note: a component without instructions fails validate (also the report since
+# the plain report simulation slice).
+a=comp(status='configured',saved=choices('Beta'),instructions=(NOTE,));b=comp(1,status='configured',saved=choices('Beta'),instructions=(NOTE,))
 c=setup('registered_only_shared',[a,b],{'example.zip':V1,'notes.txt':b'generic note\n'})
 rv=validate(c,'validate_warns_once');check('registered_shared_exit',rv['exit'],0);check('registered_shared_warning_count',rv['data']['warningCount'],1)
 check('registered_shared_warning_names',[("'Example Consumer 1', 'Example Consumer 2'" in m) for m in fomod_stage(rv)['messages']],[True])

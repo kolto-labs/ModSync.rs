@@ -41,7 +41,7 @@ Unless specified otherwise: one selected component, existing valid destination, 
 | Case | C# component/archive stage | C# dry-run behavior | Actual install / required protection |
 |---|---|---|---|
 | Loose Copy source exists under mods | Pass; no Extract source check | Executes virtually, clean | Copy real bytes normally |
-| Loose Copy literal absent under mods | Pass | One Warning/DryRunSkipped; skip rest of component | Source resolution fails; component not successfully installed |
+| Loose Copy literal absent under mods | Pass (2026-10-04: Rust's report without a dry run now also simulates the steps once its stages pass, so the stage fails there as plain `validate` does; the C# CLI's basic report fails on its FOMOD stage anyway; the dry-run report is unchanged, see [plain-report-simulation-contract.md](plain-report-simulation-contract.md)) | One Warning/DryRunSkipped; skip rest of component | Source resolution fails; component not successfully installed |
 | Loose Move literal absent; destination file also absent | Pass | Same missing-source warning | Stop; no late backfill |
 | Copy/Move wildcard has zero matches | Pass when no Extract | Missing-source warning after resolver fallbacks fail | Stop; retain precise missing-pattern diagnostic |
 | Loose Copy source absent under game/kotor placeholder | Pass; game sources are also excluded from archive membership checks | Same warning: resolver has no “downloads only” root restriction | Stop; do not invent game bytes |

@@ -1201,7 +1201,10 @@ live reference oracle (26 fail on `fba4eb1`); contract in
 
 Exceptions: a scalar empty Source in XML or Markdown metadata is not an empty list (see
 the next section). The report without `--dry-run` (also run by the desktop) now passes
-an empty Extract, as C# component validation does. See the contract.
+an empty Extract, as C# component validation does. See the contract. (Superseded
+2026-10-04: that report now also simulates the steps, so it refuses an empty Extract
+as plain `validate` does; see "Step simulation in the validation report without a dry
+run" below.)
 
 ## Scalar empty Source in XML and Markdown — 2026-10-04 UTC
 
@@ -1796,7 +1799,8 @@ skip, as for the other skips.
 
 Unchanged: `install`, the desktop install and plain text-mode `validate` still refuse
 with `Missing external program/mod: <Source>` (the JSON report without `--dry-run`
-never simulates Patcher steps and reports success, as before); a Patcher miss in a chosen option still fails
+never simulates Patcher steps and reports success, as before; superseded 2026-10-04,
+it now refuses too, see the next section); a Patcher miss in a chosen option still fails
 its component; a present patcher is simulated as before. A Patcher Source that is a
 wildcard or an empty list is still refused (C# skips the component), and a Source
 naming a present patcher folder is still bound and simulated (C# finds no file there
@@ -1809,6 +1813,41 @@ known differences against the live C# CLI (32 fail on `0f71baa`); contract in
 Users: Validate now warns instead of failing when a patcher mod has not been
 downloaded yet. The install still needs it: fetch or place the patcher, then validate
 again before installing.
+
+## Step simulation in the validation report without a dry run — 2026-10-04 UTC
+
+`validate` with both roots and a report flag but no `--dry-run` (`--output json`,
+`--output text`, `--validation-report`, `--errors-only`, `--full`) now decides as plain
+`validate` does. Once its stages pass, it simulates every step in install order on a
+virtual copy, as plain `validate` does, and the first failure fails the
+`ComponentValidation` stage: that component's `OK:` line becomes `ERROR: <component> /
+step <n> (<Action>): <message>`, the wording plain `validate` prints, with one more
+error, `success: false` and exit 1. Before, the report ran only its archive and FOMOD
+stages, so it passed (exit 0) a guide whose Copy, Move, Patcher, strict Delete,
+Rename or CleanList source was missing, whose Execute or Run step lacked
+`--allow-processes`, whose chosen option missed a source, or that had a component
+without instructions, while plain `validate` and `install` refused it. The pinned C#
+CLI never passes these guides either: without a dry run or `--full` it never sets the
+mod folder, so its FOMOD stage fails every guide, and a Patcher guide stops earlier
+with `'path' cannot be null or whitespace`.
+
+Unchanged: a report that already has an error is not simulated, so archive,
+destination, FOMOD and `--full` stage errors are reported and counted as before. The
+dry-run report (`--dry-run`, `--dry-run-only`, the desktop Validate step,
+`--phase remaining`) still reports a missing source as `DryRunSkipped`. Validation
+without both roots, plain `validate`, `install` and `conflicts` are unchanged. Rust
+passes a guide whose steps all simulate, where the C# basic report fails it for want of
+a mod folder (a C# accident); with `--full` and a packaged HoloPatcher C# would pass a
+missing loose source, which Rust refuses (fail-closed). Evidence: [plain report
+simulation proof](docs/parity/plain-report-simulation-proof/README.md), 63 checks match
+and 6 are known differences against the live C# CLI (48 fail on `fd9ec46`); contract in
+[plain-report-simulation-contract.md](docs/parity/plain-report-simulation-contract.md).
+
+Users: if `validate --output json` (or `--output text`, `--validation-report`,
+`--full`) now fails with `ERROR: <component> / step <n> ...`, plain `validate` refuses
+the guide for the same reason and `install` would stop there: fetch or place the
+missing file (or pass `--allow-processes` for a trusted Execute step), then validate
+again. Use `--dry-run` to see every component with a missing download at once.
 
 ## CleanList list-file choice — 2026-10-04 UTC
 

@@ -731,6 +731,23 @@ impl Engine {
             "Checking FOMOD configuration",
             true,
         );
+        // Without a dry run the stages above run no step, while plain `validate`
+        // simulates every step and stops at the first failure. Once every stage has
+        // passed, run that simulation too, so this report never passes a guide plain
+        // `validate` refuses.
+        if !dry_run && report.error_count == 0 {
+            let outcome = fresh_engine()
+                .map_err(|error| (None, error))
+                .and_then(|engine| engine.simulate_steps(guide));
+            if let Err((failed, error)) = outcome {
+                let index = failed.and_then(|failed| {
+                    validated_components
+                        .iter()
+                        .position(|component| std::ptr::eq(*component, failed))
+                });
+                report.simulation_failure(index, format!("{error:#}"));
+            }
+        }
         if dry_run {
             boundary(
                 Stage::DryRun,
@@ -752,6 +769,23 @@ impl Engine {
             );
         }
         finish(report)
+    }
+
+    /// Plain `validate`'s step simulation for the report without a dry run: the
+    /// remaining components in install order, stopping at the first failure, which
+    /// names the component it stopped in (none for an ordering error).
+    fn simulate_steps(
+        mut self,
+        guide: &Guide,
+    ) -> std::result::Result<(), (Option<&Component>, anyhow::Error)> {
+        let ordered = self
+            .remaining_ordered(guide)
+            .map_err(|error| (None, error))?;
+        for component in ordered {
+            self.run_ordered(guide, &[component], &mut |_| {}, None)
+                .map_err(|error| (Some(component), error))?;
+        }
+        Ok(())
     }
 
     fn validate_dry_run(mut self, guide: &Guide) -> Vec<crate::validation::DryRunIssue> {

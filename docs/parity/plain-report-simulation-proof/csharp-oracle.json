@@ -1,0 +1,187 @@
+{
+ "cleanlist_missing": {
+  "decision": [
+   false,
+   false
+  ],
+  "reason": [
+   "ERROR: FOMOD: Mod directory is not set or does not exist. Run Fetch Downloads and complete the FOMOD installer wizard for this archive, or re-run CLI download with --fomod-choices / MODSYNC_FOMOD_CHOICES (interactive TTY configure also works)."
+  ],
+  "text_exit_zero": false
+ },
+ "control_condition_unmet": {
+  "decision": [
+   false,
+   false
+  ],
+  "reason": [
+   "ERROR: FOMOD: Mod directory is not set or does not exist. Run Fetch Downloads and complete the FOMOD installer wizard for this archive, or re-run CLI download with --fomod-choices / MODSYNC_FOMOD_CHOICES (interactive TTY configure also works)."
+  ],
+  "text_exit_zero": false
+ },
+ "control_copy_present": {
+  "decision": [
+   false,
+   false
+  ],
+  "reason": [
+   "ERROR: FOMOD: Mod directory is not set or does not exist. Run Fetch Downloads and complete the FOMOD installer wizard for this archive, or re-run CLI download with --fomod-choices / MODSYNC_FOMOD_CHOICES (interactive TTY configure also works)."
+  ],
+  "text_exit_zero": false
+ },
+ "control_delete_missing_lenient": {
+  "decision": [
+   false,
+   false
+  ],
+  "reason": [
+   "ERROR: FOMOD: Mod directory is not set or does not exist. Run Fetch Downloads and complete the FOMOD installer wizard for this archive, or re-run CLI download with --fomod-choices / MODSYNC_FOMOD_CHOICES (interactive TTY configure also works)."
+  ],
+  "text_exit_zero": false
+ },
+ "control_extract_missing": {
+  "decision": [
+   false,
+   false
+  ],
+  "reason": [
+   "ERROR: B: Missing Required Archives: [<<modDirectory>>/nope.zip]",
+   "ERROR: FOMOD: Mod directory is not set or does not exist. Run Fetch Downloads and complete the FOMOD installer wizard for this archive, or re-run CLI download with --fomod-choices / MODSYNC_FOMOD_CHOICES (interactive TTY configure also works)."
+  ],
+  "text_exit_zero": false
+ },
+ "control_full_present": {
+  "decision": [
+   false,
+   false
+  ],
+  "reason": [
+   "ERROR: HoloPatcher could not be found in the Resources directory. Please ensure your AV isn't quarantining it and the files exist."
+  ],
+  "text_exit_zero": false
+ },
+ "control_patcher_present": {
+  "decision": [
+   false,
+   false
+  ],
+  "reason": "Error during validation: 'path' cannot be null or whitespace. (Parameter 'path')",
+  "text_exit_zero": false
+ },
+ "control_unselected_missing": {
+  "decision": [
+   false,
+   false
+  ],
+  "reason": [
+   "ERROR: FOMOD: Mod directory is not set or does not exist. Run Fetch Downloads and complete the FOMOD installer wizard for this archive, or re-run CLI download with --fomod-choices / MODSYNC_FOMOD_CHOICES (interactive TTY configure also works)."
+  ],
+  "text_exit_zero": false
+ },
+ "copy_missing": {
+  "decision": [
+   false,
+   false
+  ],
+  "reason": [
+   "ERROR: FOMOD: Mod directory is not set or does not exist. Run Fetch Downloads and complete the FOMOD installer wizard for this archive, or re-run CLI download with --fomod-choices / MODSYNC_FOMOD_CHOICES (interactive TTY configure also works)."
+  ],
+  "text_exit_zero": false
+ },
+ "delete_strict_missing": {
+  "decision": [
+   false,
+   false
+  ],
+  "reason": [
+   "ERROR: FOMOD: Mod directory is not set or does not exist. Run Fetch Downloads and complete the FOMOD installer wizard for this archive, or re-run CLI download with --fomod-choices / MODSYNC_FOMOD_CHOICES (interactive TTY configure also works)."
+  ],
+  "text_exit_zero": false
+ },
+ "execute_missing": {
+  "decision": [
+   false,
+   false
+  ],
+  "reason": [
+   "ERROR: FOMOD: Mod directory is not set or does not exist. Run Fetch Downloads and complete the FOMOD installer wizard for this archive, or re-run CLI download with --fomod-choices / MODSYNC_FOMOD_CHOICES (interactive TTY configure also works)."
+  ],
+  "text_exit_zero": false
+ },
+ "full_copy_missing": {
+  "decision": [
+   false,
+   false
+  ],
+  "reason": [
+   "ERROR: HoloPatcher could not be found in the Resources directory. Please ensure your AV isn't quarantining it and the files exist."
+  ],
+  "text_exit_zero": false
+ },
+ "later_component_missing": {
+  "decision": [
+   false,
+   false
+  ],
+  "reason": [
+   "ERROR: FOMOD: Mod directory is not set or does not exist. Run Fetch Downloads and complete the FOMOD installer wizard for this archive, or re-run CLI download with --fomod-choices / MODSYNC_FOMOD_CHOICES (interactive TTY configure also works)."
+  ],
+  "text_exit_zero": false
+ },
+ "missing_after_present": {
+  "decision": [
+   false,
+   false
+  ],
+  "reason": [
+   "ERROR: FOMOD: Mod directory is not set or does not exist. Run Fetch Downloads and complete the FOMOD installer wizard for this archive, or re-run CLI download with --fomod-choices / MODSYNC_FOMOD_CHOICES (interactive TTY configure also works)."
+  ],
+  "text_exit_zero": false
+ },
+ "move_missing": {
+  "decision": [
+   false,
+   false
+  ],
+  "reason": [
+   "ERROR: FOMOD: Mod directory is not set or does not exist. Run Fetch Downloads and complete the FOMOD installer wizard for this archive, or re-run CLI download with --fomod-choices / MODSYNC_FOMOD_CHOICES (interactive TTY configure also works)."
+  ],
+  "text_exit_zero": false
+ },
+ "no_instructions": {
+  "decision": [
+   false,
+   false
+  ],
+  "reason": [
+   "ERROR: FOMOD: Mod directory is not set or does not exist. Run Fetch Downloads and complete the FOMOD installer wizard for this archive, or re-run CLI download with --fomod-choices / MODSYNC_FOMOD_CHOICES (interactive TTY configure also works)."
+  ],
+  "text_exit_zero": false
+ },
+ "option_missing": {
+  "decision": [
+   false,
+   false
+  ],
+  "reason": "Error during validation: 'path' cannot be null or whitespace. (Parameter 'path')",
+  "text_exit_zero": false
+ },
+ "patcher_missing": {
+  "decision": [
+   false,
+   false
+  ],
+  "reason": "Error during validation: 'path' cannot be null or whitespace. (Parameter 'path')",
+  "text_exit_zero": false
+ },
+ "rename_missing": {
+  "decision": [
+   false,
+   false
+  ],
+  "reason": [
+   "ERROR: FOMOD: Mod directory is not set or does not exist. Run Fetch Downloads and complete the FOMOD installer wizard for this archive, or re-run CLI download with --fomod-choices / MODSYNC_FOMOD_CHOICES (interactive TTY configure also works)."
+  ],
+  "text_exit_zero": false
+ }
+}

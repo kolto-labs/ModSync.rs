@@ -321,6 +321,36 @@ impl Report {
                 .collect(),
         });
     }
+    /// The report without a dry run: plain `validate`'s step simulation failed after
+    /// every stage passed. The component stage fails with that error, which replaces
+    /// the failing component's `OK:` line (or is added when no component is named).
+    pub(crate) fn simulation_failure(&mut self, component: Option<usize>, error: String) {
+        let message = format!("ERROR: {error}");
+        self.error_count += 1;
+        let Some(stage) = self
+            .stages
+            .iter_mut()
+            .find(|stage| stage.stage == Stage::ComponentValidation)
+        else {
+            self.stages.push(StageResult {
+                stage: Stage::ComponentValidation,
+                passed: false,
+                has_warnings: false,
+                summary: "1 component error(s)".into(),
+                messages: vec![message],
+            });
+            return;
+        };
+        if stage.passed {
+            self.passed_count = self.passed_count.saturating_sub(1);
+        }
+        stage.passed = false;
+        stage.summary = "1 component error(s)".into();
+        match component.and_then(|index| stage.messages.get_mut(index)) {
+            Some(line) => *line = message,
+            None => stage.messages.push(message),
+        }
+    }
     pub(crate) fn install_order(&mut self, outcome: Result<(), String>) {
         let passed = self.push(Stage::InstallOrder, outcome);
         if passed {
