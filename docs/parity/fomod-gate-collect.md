@@ -81,3 +81,14 @@ after any issues collected before it.
 - After a component's archive has an issue, Rust's R1 warning, mapper fallbacks and
   no-route warning are not produced for that archive and component. C# does not check
   choices, so its R1 check depends only on status.
+
+## Known limits (review of df051f7)
+
+- Issues are de-duplicated by text, and the text names only the archive's file name.
+  Two registered paths with the same file name (`a/x.zip` and `b/x.zip`) that fail the
+  same way therefore show as one issue. The gate still fails; the second issue appears
+  once the first is fixed. C# names the component, so it lists both.
+- A failed inspection is not cached, so each further component that registers or
+  extracts the same unreadable archive reads it again. C# also re-probes per entry.
+- An Extract-pass inspection error keeps its pre-existing text, which does not name the
+  archive. This keeps single-issue output byte-identical.
