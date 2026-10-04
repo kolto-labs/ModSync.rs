@@ -574,7 +574,15 @@ fn from_match(m: &Captures<'_>, action: &str, unit: &str) -> Option<Instruction>
         instruction.source = file_range(start, end);
     }
     instruction.destination = capture(m, "destination")
-        .map(|s| destination(s, unit))
+        .map(|s| {
+            let name = s.trim_matches(['\"', '\'']);
+            // C# RenameFile takes the Destination as the new name in the source's folder.
+            if action == "Rename" && is_file_name(name) {
+                name.to_owned()
+            } else {
+                destination(s, unit)
+            }
+        })
         .unwrap_or_else(|| infer_destination(unit, action));
     if action == "Patcher" {
         instruction.arguments = capture(m, "option").unwrap_or("").into();
@@ -621,12 +629,14 @@ fn from_match(m: &Captures<'_>, action: &str, unit: &str) -> Option<Instruction>
 }
 
 fn sources(source: &str, unit: &str, action: &str) -> Vec<String> {
-    if let Some(m) = ENTITIES["file_range"].captures(unit) {
+    // "Rename a.tga to b.tga" names one source and its new name, not a file range.
+    let range = action != "Rename";
+    if range && let Some(m) = ENTITIES["file_range"].captures(unit) {
         return file_range(capture(&m, "start").unwrap(), capture(&m, "end").unwrap());
     }
     // The reference's numeric-range regex has no "start"/"end" captures. Its existing
     // fallback consequently produces two root placeholders, which remain review-only.
-    if numeric_range(unit) {
+    if range && numeric_range(unit) {
         return file_range("", "");
     }
     for kind in ["folder_from", "folder_name"] {
@@ -710,6 +720,11 @@ fn numeric_range(text: &str) -> bool {
         }
     }
     false
+}
+
+/// One file name with an extension: no folder part, placeholder or drive.
+fn is_file_name(name: &str) -> bool {
+    has_extension(name) && !name.contains(['/', '\\', ':', '<', '>'])
 }
 
 fn has_extension(path: &str) -> bool {
@@ -824,7 +839,8 @@ fn infer_destination(unit: &str, action: &str) -> String {
     String::new()
 }
 
-/// Root placeholders are mandatory; final filesystem resolution remains the engine's responsibility.
+/// Root placeholders are mandatory, except for a Rename's new file name; final filesystem
+/// resolution remains the engine's responsibility.
 pub fn sanitize(instruction: &mut Instruction) -> bool {
     fn safe(path: &str) -> bool {
         [MODS, GAME].iter().any(|root| {
@@ -838,7 +854,8 @@ pub fn sanitize(instruction: &mut Instruction) -> bool {
         })
     }
     instruction.destination = instruction.destination.replace("<<gameDirectory>>", GAME);
-    if !instruction.destination.is_empty() && !safe(&instruction.destination) {
+    let new_name = instruction.action == "Rename" && is_file_name(&instruction.destination);
+    if !instruction.destination.is_empty() && !new_name && !safe(&instruction.destination) {
         return false;
     }
     instruction.source = instruction

@@ -1,0 +1,187 @@
+[
+  {
+    "Guid": "77777777-8888-9999-aaaa-000000000001",
+    "Name": "rename_file",
+    "Instructions": [
+      {
+        "Action": "Rename",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\old.tga",
+          "\u003C\u003CmodDirectory\u003E\u003E\\new.tga"
+        ],
+        "Destination": "\u003C\u003CkotorDirectory\u003E\u003E\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Result": {
+      "DraftInstructionCount": 1,
+      "UnparsedGaps": [],
+      "ConditionalDrafts": []
+    }
+  },
+  {
+    "Guid": "77777777-8888-9999-aaaa-000000000002",
+    "Name": "rename_quoted",
+    "Instructions": [
+      {
+        "Action": "Rename",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\old.tga",
+          "\u003C\u003CmodDirectory\u003E\u003E\\new.tga"
+        ],
+        "Destination": "\u003C\u003CkotorDirectory\u003E\u003E\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Result": {
+      "DraftInstructionCount": 1,
+      "UnparsedGaps": [],
+      "ConditionalDrafts": []
+    }
+  },
+  {
+    "Guid": "77777777-8888-9999-aaaa-000000000003",
+    "Name": "rename_short",
+    "Instructions": [
+      {
+        "Action": "Rename",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\old.tga",
+          "\u003C\u003CmodDirectory\u003E\u003E\\new.tga"
+        ],
+        "Destination": "\u003C\u003CkotorDirectory\u003E\u003E\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Result": {
+      "DraftInstructionCount": 1,
+      "UnparsedGaps": [],
+      "ConditionalDrafts": []
+    }
+  },
+  {
+    "Guid": "77777777-8888-9999-aaaa-000000000004",
+    "Name": "rename_as",
+    "Instructions": [
+      {
+        "Action": "Rename",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\old.tga"
+        ],
+        "Destination": "\u003C\u003CkotorDirectory\u003E\u003E\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Result": {
+      "DraftInstructionCount": 1,
+      "UnparsedGaps": [],
+      "ConditionalDrafts": []
+    }
+  },
+  {
+    "Guid": "77777777-8888-9999-aaaa-000000000005",
+    "Name": "no_extension",
+    "Instructions": [
+      {
+        "Action": "Rename",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\old.tga"
+        ],
+        "Destination": "\u003C\u003CkotorDirectory\u003E\u003E\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Result": {
+      "DraftInstructionCount": 1,
+      "UnparsedGaps": [],
+      "ConditionalDrafts": []
+    }
+  },
+  {
+    "Guid": "77777777-8888-9999-aaaa-000000000006",
+    "Name": "folder_part",
+    "Instructions": [
+      {
+        "Action": "Rename",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\old.tga"
+        ],
+        "Destination": "\u003C\u003CkotorDirectory\u003E\u003E\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Result": {
+      "DraftInstructionCount": 1,
+      "UnparsedGaps": [],
+      "ConditionalDrafts": []
+    }
+  },
+  {
+    "Guid": "77777777-8888-9999-aaaa-000000000007",
+    "Name": "pronoun",
+    "Instructions": [
+      {
+        "Action": "Rename",
+        "Source": [
+          "\u003C\u003CmodDirectory\u003E\u003E\\them"
+        ],
+        "Destination": "\u003C\u003CkotorDirectory\u003E\u003E\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Result": {
+      "DraftInstructionCount": 1,
+      "UnparsedGaps": [],
+      "ConditionalDrafts": []
+    }
+  },
+  {
+    "Guid": "77777777-8888-9999-aaaa-000000000008",
+    "Name": "placeholder",
+    "Instructions": [],
+    "Options": [],
+    "InstallationWarning": "",
+    "Result": {
+      "DraftInstructionCount": 0,
+      "UnparsedGaps": [
+        "Rename the file old.tga to \u003C\u003CkotorDirectory\u003E\u003E/Override/new.tga"
+      ],
+      "ConditionalDrafts": []
+    }
+  }
+]
