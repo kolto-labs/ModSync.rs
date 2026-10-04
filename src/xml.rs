@@ -96,13 +96,14 @@ pub fn parse(text: &str) -> Result<Value> {
 }
 
 // The reference distinguishes selfclosing null from an explicit empty string.
-// Preserve that distinction only for this slice's two optional Boolean fields.
+// Preserve it for the two optional Boolean fields and for Source: a selfclosing
+// Source is an empty list, an explicit empty one a refused scalar path.
 fn finish_element(stack: &mut Vec<Element>, self_closing: bool) -> Result<()> {
     ensure!(stack.len() > 1, "Unexpected XML end tag");
     let element = stack.pop().unwrap();
     let value = if self_closing
         && !element.attributes
-        && ["IsSelected", "Overwrite"]
+        && ["IsSelected", "Overwrite", "Source"]
             .iter()
             .any(|field| crate::unicode_case::ordinal_eq(&element.name, field))
     {
@@ -193,7 +194,7 @@ fn normalize(
         .as_object_mut()
         .context("XML component/instruction must be an object")?;
     crate::model::keys::xml_dictionary(object, instruction, option)?;
-    // Only this reader's selfclosing Boolean candidates are represented as raw
+    // Only this reader's selfclosing Boolean and Source candidates are represented as raw
     // Null. Qualify them after actual array-wrapper selection, not guessed paths.
     // Restore every opaque occurrence to the pre-existing empty-string shape.
     let containers: Vec<_> = if instruction {
@@ -214,7 +215,8 @@ fn normalize(
             },
         );
         let container = containers.contains(key);
-        if !(container || boolean && value.is_null()) {
+        let source = crate::unicode_case::ordinal_eq(key, "Source");
+        if !(container || (boolean || source) && value.is_null()) {
             restore_untyped_nulls(value, 0, restoration_work)?;
         }
     }
@@ -244,7 +246,16 @@ fn normalize(
         if let Some(key) = crate::model::keys::getter(object, field)
             && let Some(value) = object.remove(&key)
         {
-            object.insert(key, Value::Array(array(value, field)));
+            // `<Source></Source>` is a scalar empty path, which the reference refuses
+            // (`Serializer.PrefixPath`). Keep it scalar, as TOML/JSON/YAML do, so the
+            // loader keeps `[""]` and path resolution rejects it. `<Source/>` is null.
+            let value = match value {
+                Value::String(text) if field == "Source" && text.trim().is_empty() => {
+                    Value::String(text)
+                }
+                value => Value::Array(array(value, field)),
+            };
+            object.insert(key, value);
         }
     }
     if instruction {

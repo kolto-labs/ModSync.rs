@@ -360,7 +360,8 @@ fn component(
             source.components.len() == 1,
             "A Markdown section must contain exactly one metadata component"
         );
-        let source = serde_json::to_value(&source.components[0])?;
+        let mut source = serde_json::to_value(&source.components[0])?;
+        keep_scalar_blank_sources(&mut source);
         for key in [
             "Guid",
             "IsSelected",
@@ -405,6 +406,29 @@ fn component(
         component,
         extract::line_field(text, "Masters").unwrap_or_default(),
     )))
+}
+
+/// The metadata pass already dropped blank Source list entries, so a blank entry
+/// left here came from a scalar `Source = ""`. Return it to scalar form so the
+/// second pass keeps it as `[""]`, which path resolution rejects, as for a TOML,
+/// JSON or YAML guide. A list (`[]`, `[""]`) or a missing key stays empty.
+fn keep_scalar_blank_sources(component: &mut Value) {
+    if let Some(options) = component.get_mut("Options").and_then(Value::as_array_mut) {
+        options.iter_mut().for_each(keep_scalar_blank_sources);
+    }
+    for instruction in component
+        .get_mut("Instructions")
+        .and_then(Value::as_array_mut)
+        .into_iter()
+        .flatten()
+    {
+        if let Some(source) = instruction.get_mut("Source")
+            && let Some([Value::String(text)]) = source.as_array().map(Vec::as_slice)
+            && text.trim().is_empty()
+        {
+            *source = Value::String(text.clone());
+        }
+    }
 }
 
 fn fields(prose: &str) -> BTreeMap<&'static str, String> {

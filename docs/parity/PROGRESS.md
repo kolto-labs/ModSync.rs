@@ -63,6 +63,15 @@ validate and install. The proof is 51/51 against a live reference oracle (26 fai
 `fba4eb1`), and the regression probes still pass. See
 [empty-source-contract.md](empty-source-contract.md).
 
+Scalar empty Source (2026-10-04): XML `<Source></Source>` (or whitespace) and Markdown
+metadata `Source = ""` / `Source: ''` were read as an empty list, so a non-strict Delete
+installed as a no-op and a Copy passed the dry-run report. They are now kept as `[""]`
+and refused by every verb, as TOML, JSON and YAML already were; C# refuses the XML guide
+at load and drops the Markdown metadata block (documented difference). `<Source />`
+stays an empty list, as in C#. The proof is 57/57 against a live reference oracle (15
+fail on `3911e74`), and the regression probes still pass. See
+[scalar-empty-source-contract.md](scalar-empty-source-contract.md).
+
 Delete of a missing file with Overwrite=true (2026-10-04): Rust ignored `Overwrite`
 on Delete. As C# `DeleteFile` does (`FileNotFoundPost`, then `MissingSourceFiles`), a
 strict Delete now deletes the present matches and fails on a missing literal or an
