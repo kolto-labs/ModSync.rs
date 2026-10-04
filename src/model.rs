@@ -550,6 +550,10 @@ impl Guide {
     /// follow the base build unless a selected base component must follow one. Rust
     /// refuses Dependencies that are not selected, Restrictions conflicts, missing
     /// references and cycles among the selection; C# installs those components anyway.
+    /// A Dependency may name an immediate option of a component, as C#
+    /// `FindComponentFromGuid` looks those up too (not options nested below them): it is
+    /// met when the option's and its component's selection flags are set, whether or not
+    /// a Choose step runs the option, and it adds no ordering edge, as in C#.
     pub fn ordered(&self) -> Result<Vec<&Component>> {
         use crate::guid::key_ascii;
         let Ordering {
@@ -571,10 +575,15 @@ impl Guide {
         );
         let find = |guid: &String| index.get(&key_ascii(guid)).copied();
         let chosen = |i: usize| self.components[i].is_selected;
+        let met: BTreeSet<_> = selected
+            .iter()
+            .flat_map(|c| std::iter::once(*c).chain(c.options.iter().filter(|o| o.is_selected)))
+            .map(|c| key_ascii(&c.guid))
+            .collect();
         for c in &selected {
             for required in &c.dependencies {
                 ensure!(
-                    find(required).is_some_and(chosen),
+                    met.contains(&key_ascii(required)),
                     "{} requires selected component {required}",
                     c.name
                 );

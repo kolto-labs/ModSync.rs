@@ -192,7 +192,9 @@ with nothing blocked) match on every build that runs them.
   unselected `U` installs both `U` and `B` (exit 0), and `A`, `B` depending on each
   other plus `C` installs all three. Rust refuses a selected component whose
   Dependencies target is not selected, and a selected component a Dependencies cycle
-  leaves unplaced. Not in the probe.
+  leaves unplaced. Not in the probe. A Dependency that names an immediate selected option
+  of a selected component is met; see
+  [option-dependencies-contract.md](option-dependencies-contract.md).
 - **Ordering checks in direct Markdown.** `--direct-markdown` keeps C#'s list
   order, but Rust still runs its other ordering checks first (selected Dependencies
   and Restrictions); C# runs none.
