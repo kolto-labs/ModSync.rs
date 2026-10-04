@@ -1903,10 +1903,10 @@ folder paths. Longer names stay ordinary (`COM10`, `com1x.txt`, `COM¹¹`, `CLOC
 file whose name has the staging shape (`.peer-notes.part`) is refused too (fail closed).
 
 Checkpoints: a new checkpoint session (`checkpoint capture`, `install
---component-checkpoints`, `--managed`) and a maintenance run refuse a game or mod
-folder that holds a file or folder with a device name anywhere, with `Checkpoint cannot
-record <path>: Windows device name`, before any game or mod write (as they already did
-for `COM1`). Stores, history and maintenance journals written before keep the rule they
+--component-checkpoints`, `--managed`) refuses a game or mod folder that holds a
+file or folder with a device name anywhere, with `Checkpoint cannot record <path>:
+Windows device name`, before any game or mod write (as it already did for `COM1`); a
+maintenance run refuses such a name inside its subtree with `Reserved filename`. Stores, history and maintenance journals written before keep the rule they
 were written with, so they stay listable, restorable and recoverable even when they
 recorded such a file. Evidence: [reserved staging paths
 proof](docs/parity/reserved-staging-paths-proof/README.md), 246 checks match and 42 are

@@ -334,8 +334,8 @@ impl Store {
     }
 
     /// `new_session` refuses every Windows device name before anything is stored, so a
-    /// new session records none; commits and resumes of an existing session keep the
-    /// rule its store was written with (`validate_tree`).
+    /// new session's first capture records none; commits and resumes record what is on
+    /// disk under the older rule (`validate_tree`).
     pub(super) fn capture_trees(
         &self,
         new_session: bool,

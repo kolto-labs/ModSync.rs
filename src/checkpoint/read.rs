@@ -154,8 +154,9 @@ fn valid_mode(mode: &Mode) -> Result<()> {
     Ok(())
 }
 
-/// A new capture refuses every Windows device name (`paths::is_reserved_name`), so no
-/// new store records one; `validate_tree` keeps the older rule so earlier stores load.
+/// A new session's first capture refuses every Windows device name
+/// (`paths::is_reserved_name`); commits and resumes record what is on disk under the
+/// older rule, which `validate_tree` keeps so earlier stores load.
 pub(super) fn refuse_device_names(tree: &Tree) -> Result<()> {
     for name in tree.entries.keys() {
         ensure!(

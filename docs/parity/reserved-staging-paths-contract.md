@@ -89,7 +89,7 @@ Destination                         C# install   Rust before   Rust after
   `stored_relative` (`src/paths.rs:115-127`), which applies the rule as it was before
   this slice (`legacy_reserved_name`, `:177-190`: `CON`, `PRN`, `AUX`, `NUL`,
   `COM1`-`COM9`, `LPT1`-`LPT9`): checkpoint trees (`validate_tree`,
-  `src/checkpoint/read.rs:169-179`, used by every store read, `lifecycle.rs` and the
+  `src/checkpoint/read.rs:170-180`, used by every store read, `lifecycle.rs` and the
   auxiliary snapshots), checkpoint provenance paths (`src/checkpoint/history.rs:320`),
   and maintenance journals and fences (`src/maintenance/journal.rs:214`, `:255`,
   `src/maintenance/fence.rs:139`). A store recording `Override/COM0` or
@@ -98,7 +98,7 @@ Destination                         C# install   Rust before   Rust after
   (`checkpoint capture`, `install --component-checkpoints`, `--managed`) checks both
   scanned folders, and directory participants, with the wider rule before any content
   is stored, and stops with `Checkpoint cannot record <path>: Windows device name`
-  (`refuse_device_names`, `src/checkpoint/read.rs:157-167`; called from
+  (`refuse_device_names`, `src/checkpoint/read.rs:157-168`; called from
   `capture_trees` at `src/checkpoint/store.rs:352-355` and `capture_all` at
   `src/checkpoint/auxiliary.rs:206-212`). The safety session a restore or a recovery
   takes first (`scope` `safety`, `src/checkpoint/store.rs:205-213`), component commits
@@ -189,9 +189,10 @@ The controls matched on every build.
   `<<modDirectory>>/.peer-notes.part` is refused too; C# copies it. One case, two
   checks.
 - **Checkpoints and a device name already on disk (deliberate).** A new checkpoint
-  session (`checkpoint capture`, `install --component-checkpoints`, `--managed`) and a
-  maintenance run refuse a game or mod folder that holds a file or folder with a
-  device name, anywhere, even one the guide never touches. For an install the refusal
+  session (`checkpoint capture`, `install --component-checkpoints`, `--managed`) refuses a
+  game or mod folder that holds a file or folder with a device name, anywhere, even
+  one the guide never touches; a maintenance run refuses such a name inside its
+  subtree with `Reserved filename`. For an install the refusal
   comes after the whole-run recovery snapshot and before any game or mod write, so
   `modsync restore` must clear that snapshot before the next install, as it already
   had to for `COM1`. Rename or remove the file, or install without checkpoints. Stores
