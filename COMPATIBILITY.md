@@ -409,7 +409,7 @@ Reference: the local ModSync C# source at `d31ccbd3bfcddb4705917eafa6483715c166d
 | Selection | File selections, select-all when all components are unselected; explicit CLI components/options; desktop dependency/restriction and deselection cascades across components and options | Native interaction and full Unicode GUID-comparison parity remain open |
 | Ordering | C# install order (breadth-first over Dependencies and InstallBefore/After from the resolver's order; Markdown by Dependencies only; `--direct-markdown` in source order), restrictions, instruction conditions; validate and install refuse a bad InstallBefore/After reference anywhere in a non-Markdown guide | Missing references and cycles fail; phased installs keep widescreen-only components after the base build |
 | Options | Choose resolves selected option GUIDs in declared option order; an entry names an option only as its hyphenated GUID (any case), as in C# | No automatic choice inference; an entry that names no option is refused, where C# ignores it |
-| File operations | Copy, Move, Rename, Delete, Extract, DelDuplicate, CleanList | Copy/Move flatten matched files into the target, as the C# instruction engine does; a Copy/Move whose target is the source itself is skipped with a warning when `Overwrite = false` and refused otherwise; Delete with `Overwrite = true` fails on a missing file, as C# does; a Delete with no Source is a no-op unless `Overwrite = true`; Extract replaces existing files whatever `Overwrite` says, as C# does (configured FOMOD extraction with `Overwrite = false` is refused instead; C# keeps an existing directory or read-only file at an entry path and succeeds, where Rust fails on the directory and replaces the read-only file) |
+| File operations | Copy, Move, Rename, Delete, Extract, DelDuplicate, CleanList | Copy/Move flatten matched files into the target, as the C# instruction engine does; a Copy/Move whose target is the source itself is skipped with a warning when `Overwrite = false` and refused otherwise; Delete with `Overwrite = true` fails on a missing file, as C# does; a Rename Destination is one file name in the source's folder, as in C# (a placeholder path or a folder part is refused); a Delete with no Source is a no-op unless `Overwrite = true`; Extract replaces existing files whatever `Overwrite` says, as C# does (configured FOMOD extraction with `Overwrite = false` is refused instead; C# keeps an existing directory or read-only file at an entry path and succeeds, where Rust fails on the directory and replaces the read-only file) |
 | Archives | Streaming ZIP, 7z, RAR, TAR, GZip and 7z SFX; integrity checks; isolated extraction root; `[`/`]` in member names are ordinary characters, as in C# | No encrypted/multipart archives; SFX support is limited to embedded 7z payloads; empty directories are not materialized; a member named with `*` or `?` fails the archive (fail-closed) |
 | CleanList | C# comma-separated rows, mandatory prefix, substring and token matching; a listed name no file can have is skipped, `[`/`]` literal | `..`, absolute, drive-qualified, trailing-dot and device names refused (fail-closed); final file sets still need full-build differential acceptance |
 | Texture cleanup | Removes requested extension when another compatible extension shares its basename | This is not content-hash deduplication |
@@ -2032,6 +2032,36 @@ Users: a guide whose Restrictions name a nested option no longer stops with `con
 with`, and steps whose conditions name a nested option now run or are skipped as in
 the C# installer, so a file can be added or left out compared with the previous
 version. To make a step depend on a choice, name an option directly under the mod.
+
+## Rename to a placeholder path — 2026-10-04 UTC
+
+A `Rename` step whose Destination is a placeholder path, such as
+`<<kotorDirectory>>/Override/z.txt`, now fails before any write, with `Rename
+Destination must be a file name, not a placeholder path: <Destination>`. C#
+`RenameFile` takes the Destination as the new file name in the source's folder and
+joins it unresolved, so its install fails such a step (there is no folder named
+`<<kotorDirectory>>` there); with `\` separators on Linux C# instead renames the
+source to a file literally named after the whole Destination and succeeds, which Rust
+also refuses. Before, Rust resolved the placeholder and moved the file
+to that path, even from the mod folder into the game folder, so it installed guides C#
+refuses. The dry run fails the step, so the full and basic reports (`DryRun` stage),
+plain `validate` and the install preflight refuse it. A plain file name renames as
+before, and a step that does not run (its conditions exclude it, or its option is not
+selected) passes.
+
+Unchanged and documented: C#'s dry run passes such a step, so its reports pass and its
+install fails only when it reaches the step, keeping the earlier steps' writes; Rust's
+reports already fail it (fail-closed). A Destination with a folder part (`sub/z.txt`,
+`../z.txt`) is still refused everywhere; C# renames into or out of the source's folder.
+Evidence: [rename destination
+proof](docs/parity/rename-destination-proof/README.md), 25 checks match and 29 are
+known differences against the live C# CLI with a HoloPatcher stub (24 fail on
+`044fca5`); contract in
+[rename-destination-contract.md](docs/parity/rename-destination-contract.md).
+
+Users: a guide whose Rename Destination is a path stops with `Rename Destination must
+be a file name` where it used to install; the C# installer fails it too. Write only the
+new file name (`z.txt`); to move the file elsewhere, add a `Move` step.
 
 ## A patcher without changes.ini in the validation dry run — 2026-10-04 UTC
 

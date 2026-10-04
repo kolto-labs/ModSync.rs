@@ -313,7 +313,9 @@ slices:
 - `Rename` with a case-only target (`a.txt -> A.txt`) fails in Rust
   (`Source equals destination`); C# renames it.
 - `Rename` with a placeholder-path Destination (`<<kotorDirectory>>/Override/b.txt`)
-  succeeds in Rust; C# fails with `UnknownError`.
+  succeeds in Rust; C# fails with `UnknownError`. Closed 2026-10-04: Rust now fails
+  it before any write (its reports too, where C#'s pass); see
+  [rename-destination-contract.md](rename-destination-contract.md).
 - `Rename Override/*.txt -> c.txt` (two matches onto one name, Overwrite default):
   both keep one survivor, but which one depends on enumeration order. Rust walks
   its sorted keys; C# walks the file-system listing, which is not a defined order.

@@ -215,6 +215,25 @@ fn invalid_destination(raw: &str) -> bool {
     })
 }
 
+/// A Rename Destination as the new file name in the source's own folder. C#
+/// `RenameFile` joins it to that folder unresolved (`Instruction.cs:976-979`, `:1005`),
+/// so its install fails a placeholder path such as `<<kotorDirectory>>/Override/b.txt`
+/// (there is no such folder) while its dry run passes it. Rust refuses a placeholder
+/// where the step runs (its dry run, so plain validate, and before any install
+/// write); a path of several parts is also refused by the archive/destination stage.
+fn rename_file_name(destination: &str) -> Result<PathBuf> {
+    ensure!(
+        !destination.starts_with("<<"),
+        "Rename Destination must be a file name, not a placeholder path: {destination}"
+    );
+    let name = relative(destination, false)?;
+    ensure!(
+        name.components().count() == 1,
+        "Rename Destination must be one file name: {destination}"
+    );
+    Ok(name)
+}
+
 /// Whether an instruction is one of the component's own (not an option's).
 fn is_top_level(component: &Component, instruction: &Instruction) -> bool {
     component
@@ -1125,14 +1144,11 @@ impl Engine {
                     }
                 }
                 "Rename" if !instruction.destination.starts_with("<<") => {
-                    ensure!(
-                        relative(&instruction.destination, false)?
-                            .components()
-                            .count()
-                            == 1,
-                        "Rename needs one filename or a placeholder path"
-                    );
+                    rename_file_name(&instruction.destination)?;
                 }
+                // This stage also checks unselected options' steps, which C# never
+                // runs; a placeholder Rename Destination fails where its step runs
+                // (`rename_file_name`), as the C# install does.
                 "Rename" | "Patcher" => {
                     let dest = self.path(&instruction.destination, false)?;
                     if instruction.action == "Patcher" {
@@ -2541,13 +2557,8 @@ impl Engine {
                 }
             }
             "Copy" | "Move" | "Rename" => {
-                let dest = if i.action == "Rename" && !i.destination.starts_with("<<") {
-                    let path = relative(&i.destination, false)?;
-                    ensure!(
-                        path.components().count() == 1,
-                        "Rename needs one filename or a placeholder path"
-                    );
-                    path
+                let dest = if i.action == "Rename" {
+                    rename_file_name(&i.destination)?
                 } else {
                     self.path(&i.destination, false)?
                 };
@@ -2574,11 +2585,7 @@ impl Engine {
                 for source in sources {
                     self.check_cancelled()?;
                     let target = if i.action == "Rename" {
-                        if dest.is_absolute() {
-                            dest.clone()
-                        } else {
-                            source.parent().unwrap().join(&dest)
-                        }
+                        source.parent().unwrap().join(&dest)
                     } else {
                         dest.join(source.file_name().unwrap())
                     };

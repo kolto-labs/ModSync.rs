@@ -9,6 +9,18 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Rename to a placeholder path (2026-10-04, F05): a `Rename` Destination is now only the
+new file name in the source's folder, as C# `RenameFile` joins it unresolved
+(`Instruction.cs:976-979`); a placeholder path such as `<<kotorDirectory>>/Override/z.txt`
+fails the dry run, so every report, plain `validate` and `install` refuse it before any
+write. C#'s install fails such a step (`UnknownError`); Rust resolved the placeholder
+and moved the file there, mod folder to game folder included. C#'s reports pass it and
+its install keeps earlier steps' writes, and a Destination with a folder part stays
+refused where C# renames into or out of the source's folder (documented). Proof: 25
+match / 29 known against the live C# CLI with a HoloPatcher stub; 24 fail on `044fca5`.
+The regression probes stay at baseline. See
+[rename-destination-contract.md](rename-destination-contract.md).
+
 Restrictions and step conditions that name a nested option (2026-10-04, F04): a GUID
 naming an option below another option now counts as not selected in component
 Restrictions, step Dependencies and Restrictions and the report's Conflicts stage, as
