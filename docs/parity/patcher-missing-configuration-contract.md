@@ -117,3 +117,18 @@ are the same on both builds.
   out of range. Not in the probe.
 - **The progress event.** C# logs its line only at verbose level; Rust emits it as an
   ordinary step event. It is not part of any report.
+  C# also always logs the non-verbose `[Simulation] Applied TSLPatcher VFS simulation
+  from changes.ini` (`Instruction.cs:1322-1323`), even when nothing was found. Rust's
+  plain `validate` follows the skip event with its generic `Patcher: InstallList
+  presence simulated; binary patch effects remain unmodeled` line (`src/engine.rs:1867-1869`).
+- **Case of `changes.ini` and `tslpatchdata` (predates this slice).** Rust finds them
+  ignoring case, as C# does on Windows, so `tslpatchdata/Changes.INI`, a root
+  `CHANGES.INI` and a `TSLPatchData/` folder are simulated. C# on Linux checks files
+  on disk case-sensitively and misses them, so a later step that needs an installed
+  file can be `DryRunSkipped` in C# only. Both pass. Checked live, not in the probe.
+- **Folder Source without a configuration.** With `Source` naming the patcher folder
+  or its `tslpatchdata` (exe present, no INI), C# skips the component (`DryRunSkipped`,
+  one warning); Rust keeps the folder Source bound, as
+  [patcher-missing-source-contract.md](patcher-missing-source-contract.md) records, and
+  now reports no warning (before this slice its one warning was the PatcherSimulation
+  one). The decision is the same. Checked live, not in the probe.
