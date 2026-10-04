@@ -950,6 +950,18 @@ fn apply_selection(
     Ok(outcomes)
 }
 
+/// Load the guide for validate, install and conflicts. Without a profile this is the
+/// reference file loader, which selects every component when a non-Markdown file
+/// selects none, so `--use-file-selection` then sees them all, as in C#. A profile
+/// replaces the selection after loading, so its runs keep the authored flags.
+fn load_validation_guide(input: &std::path::Path, profile: bool) -> Result<Guide> {
+    if profile {
+        Guide::load_for_install_preserving_selection(input)
+    } else {
+        Guide::load_like_file_loader(input)
+    }
+}
+
 fn require_validation_selection(guide: &Guide, args: &InstallArgs) -> Result<()> {
     ensure!(
         guide
@@ -1059,7 +1071,7 @@ fn validate_without_roots(
         })
         .context("Supply --input or configure the profile's input path")?;
     conversion_cancelled(cancelled)?;
-    let mut guide = Guide::load_for_install_preserving_selection(&input)?;
+    let mut guide = load_validation_guide(&input, profile.is_some())?;
     if let Some(profile) = profile {
         profile.apply(&mut guide);
     } else if args.select.is_empty() && !args.use_file_selection {
@@ -3121,7 +3133,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                         "Direct Markdown mode requires a .md input file"
                     );
                 }
-                let mut guide = Guide::load_for_install_preserving_selection(&paths.input)?;
+                let mut guide = load_validation_guide(&paths.input, profile.is_some())?;
                 if let Some(profile) = &profile {
                     profile.apply(&mut guide);
                 }

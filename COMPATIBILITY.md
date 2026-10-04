@@ -1584,6 +1584,29 @@ Users: a guide that failed with `Wildcards are not allowed here` naming a file o
 folder from a patcher's changes.ini or namespaces.ini now validates and installs; no
 guide change is needed.
 
+## File selection when the file selects nothing — 2026-10-04 UTC
+
+`validate` and `install` with `--use-file-selection` now treat a guide that marks no
+component `IsSelected` (or has no `IsSelected` keys) as C# does: every component is
+selected, because the C# file loader selects them all when the file selects none.
+Before, Rust refused: validate printed `No components are marked IsSelected in the
+instruction file.` (exit 1) and install stopped with `FOMOD configuration check failed:
+Select at least one component`. This covers every non-Markdown guide (TOML, JSON and
+YAML were compared; XML takes the same loader path) and the report without roots;
+`conflicts` follows validate. A Markdown guide keeps its flags,
+as in C#, so an all-unselected Markdown guide is still refused. Runs with `--profile` or
+`--active-profile` are unchanged, and so are runs without the flag, which already
+selected every component. Evidence: [file selection fallback
+proof](docs/parity/file-selection-fallback-proof/README.md), 58 checks match the live
+C# CLI (30 fail on `a0df4b7`); contract in
+[file-selection-fallback-contract.md](docs/parity/file-selection-fallback-contract.md).
+
+Users: `--use-file-selection` on a guide saved with nothing selected now validates or
+installs the whole guide, as the C# CLI does, instead of stopping. Select at least one
+component in the file to limit the run to it. Additive flags such as `--option` or
+`--add-category` on such a guide now add to the whole guide, as they do without
+`--use-file-selection`.
+
 ## Missing destination folders in the validation report — 2026-10-04 UTC
 
 The validation report's archive stage (`ComponentValidation` in `validate --output
@@ -2258,6 +2281,9 @@ explicit directory entries from inferred file parents. Cancellation aborts the
 report. CLI setup errors retain the JSON report boundary, and both rooted and
 rootless validation preserve authored all-false selection until explicit
 selection/default policy is applied. Empty effective selection remains an error.
+(Superseded 2026-10-04: without a profile both now load as the C# file loader does,
+which selects every component of a non-Markdown guide that selects none; see "File
+selection when the file selects nothing".)
 
 The reference's guide/directory autofixes are deliberately not reproduced during
 validation. The model also cannot recover its null-versus-empty Source distinction.

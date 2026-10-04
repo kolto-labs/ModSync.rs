@@ -9,6 +9,15 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+File selection when the file selects nothing (2026-10-04, F04/F08): `validate` and
+`install` with `--use-file-selection` now select every component of a guide that
+selects none, as the C# file loader does (`ModComponentSerializationService.cs:895-903`);
+Rust refused (`No components are marked IsSelected in the instruction file.`, or the
+install FOMOD gate). Markdown keeps its flags in both; profile runs are unchanged.
+Proof: 58 match against the live C# CLI; 30 fail on `a0df4b7`. The regression probes
+stay at baseline. See
+[file-selection-fallback-contract.md](file-selection-fallback-contract.md).
+
 Missing destination folders in the validation report (2026-10-04, F08): the report's
 archive stage (`validate --output json`, the desktop Validate step) now reports each
 Copy, Move, CleanList or DelDuplicate step whose Destination folder does not exist as
