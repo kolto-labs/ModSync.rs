@@ -343,6 +343,9 @@ enum Action {
         /// Mark a component's displayed drafts reviewed (GUID; repeat for multiple components).
         #[arg(long)]
         review_draft: Vec<String>,
+        /// Order around missing InstallBefore/InstallAfter references instead of failing.
+        #[arg(long)]
+        ignore_errors: bool,
         #[command(flatten)]
         processing: ConversionProcessing,
     },
@@ -2273,6 +2276,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             format,
             parse_directions,
             review_draft,
+            ignore_errors,
             processing,
         }) => {
             let input_file = input_path.or(input);
@@ -2297,6 +2301,8 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                         .context("Use --input <file> or --stdin")?,
                 )?
             };
+            // C# convert writes components in its dependency resolver's order.
+            guide.sort_like_dependency_resolver(ignore_errors)?;
             if parse_directions {
                 modsync::draft::generate(&mut guide);
             }

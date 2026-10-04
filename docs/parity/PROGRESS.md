@@ -9,6 +9,15 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Component order in `convert` (2026-10-04, F01/F04): `convert` now writes components in
+the C# dependency resolver's order (`DependencyResolverService.cs:48-403`, called at
+`ModBuildConverter.cs:2046`) and refuses missing, self and circular
+InstallBefore/InstallAfter references unless `--ignore-errors`, which it now accepts;
+Rust wrote the file order and refused nothing. With `--ignore-errors` a cycle stays
+refused (C# writes an empty guide). Install order is unchanged. Proof: 108 match / 8
+known against the live C# CLI; 51 fail on `24897e6`. The regression probes stay at
+baseline. See [convert-dependency-order-contract.md](convert-dependency-order-contract.md).
+
 File selection when the file selects nothing (2026-10-04, F04/F08): `validate` and
 `install` with `--use-file-selection` now select every component of a guide that
 selects none, as the C# file loader does (`ModComponentSerializationService.cs:895-903`);

@@ -588,6 +588,156 @@ impl Guide {
         }
         Ok(result)
     }
+
+    /// C# `convert` (`ModBuildConverter.HandleDependencyResolutionErrors` over
+    /// `DependencyResolverService.ResolveDependencies`): order every top-level component,
+    /// selected or not, by InstallBefore/InstallAfter alone with a depth-first post-order,
+    /// visiting components in guide order and each one's edges in authored order. Missing,
+    /// self and circular references fail unless `ignore_errors`, which then orders around
+    /// missing references but still refuses a cycle: C# writes an empty guide there.
+    pub fn sort_like_dependency_resolver(&mut self, ignore_errors: bool) -> Result<()> {
+        use crate::guid::{key_ascii, option_text};
+        let n = self.components.len();
+        let mut index = BTreeMap::new();
+        for (i, c) in self.components.iter().enumerate() {
+            ensure!(
+                index.insert(key_ascii(&c.guid), i).is_none(),
+                "Duplicate Guid: {}",
+                c.guid
+            );
+        }
+        let find = |guid: &String| index.get(&key_ascii(guid)).copied();
+        let mut errors = Vec::new();
+        let mut graph: Vec<Vec<usize>> = vec![Vec::new(); n];
+        for (i, c) in self.components.iter().enumerate() {
+            for (field, list) in [
+                ("InstallBefore", &c.install_before),
+                ("InstallAfter", &c.install_after),
+            ] {
+                for guid in list.iter().filter(|g| find(g).is_none()) {
+                    errors.push(format!(
+                        "{}: {field} references non-existent component with GUID: {}",
+                        c.name,
+                        option_text(guid)
+                    ));
+                }
+            }
+            for (field, list) in [
+                ("InstallBefore", &c.install_before),
+                ("InstallAfter", &c.install_after),
+            ] {
+                if list.iter().any(|g| find(g) == Some(i)) {
+                    errors.push(format!(
+                        "{}: Component references itself in {field}",
+                        c.name
+                    ));
+                }
+            }
+        }
+        let mut edge = |from: usize, to: usize| {
+            if !graph[from].contains(&to) {
+                graph[from].push(to);
+            }
+        };
+        for (i, c) in self.components.iter().enumerate() {
+            for j in c.install_before.iter().filter_map(find) {
+                edge(j, i);
+            }
+            for j in c.install_after.iter().filter_map(find) {
+                edge(i, j);
+            }
+        }
+        let (mut visited, mut stack) = (vec![false; n], vec![false; n]);
+        for root in 0..n {
+            if !visited[root]
+                && let Some(cycle) = detect_cycle(root, &graph, &mut visited, &mut stack)
+            {
+                let names = cycle
+                    .iter()
+                    .map(|&i| self.components[i].name.as_str())
+                    .collect::<Vec<_>>()
+                    .join(" → ");
+                errors.push(format!("{names}: Circular dependency detected: {names}"));
+            }
+        }
+        ensure!(
+            errors.is_empty() || ignore_errors,
+            "Dependency resolution failed with {} errors. Use --ignore-errors flag to attempt loading in best possible order.\n  {}",
+            errors.len(),
+            errors.join("\n  ")
+        );
+        let mut order = Vec::with_capacity(n);
+        let (mut done, mut open) = (vec![false; n], vec![false; n]);
+        for root in 0..n {
+            post_order(root, &graph, &mut done, &mut open, &mut order)?;
+        }
+        let mut slots: Vec<_> = std::mem::take(&mut self.components)
+            .into_iter()
+            .map(Some)
+            .collect();
+        self.components = order.into_iter().filter_map(|i| slots[i].take()).collect();
+        Ok(())
+    }
+}
+
+/// C# `DependencyResolverService.DetectCycleDFS`, including its early return that leaves
+/// the walked components on the recursion stack and its first-predecessor reconstruction.
+fn detect_cycle(
+    current: usize,
+    graph: &[Vec<usize>],
+    visited: &mut [bool],
+    stack: &mut [bool],
+) -> Option<Vec<usize>> {
+    visited[current] = true;
+    stack[current] = true;
+    for &next in &graph[current] {
+        if !visited[next] {
+            if let Some(cycle) = detect_cycle(next, graph, visited, stack) {
+                return Some(cycle);
+            }
+        } else if stack[next] {
+            let mut cycle = Vec::new();
+            let mut temp = current;
+            while temp != next && cycle.len() <= graph.len() {
+                cycle.push(temp);
+                match graph.iter().position(|edges| edges.contains(&temp)) {
+                    Some(previous) => temp = previous,
+                    None => break,
+                }
+            }
+            cycle.push(next);
+            cycle.reverse();
+            return Some(cycle);
+        }
+    }
+    stack[current] = false;
+    None
+}
+
+/// C# `DependencyResolverService.TopologicalSortDFS`: a component follows everything it
+/// must be installed after.
+fn post_order(
+    current: usize,
+    graph: &[Vec<usize>],
+    done: &mut [bool],
+    open: &mut [bool],
+    order: &mut Vec<usize>,
+) -> Result<()> {
+    ensure!(
+        !open[current],
+        "Dependency resolution failed: a circular InstallBefore/InstallAfter order cannot be resolved, even with --ignore-errors. Remove the cycle from the guide."
+    );
+    if done[current] {
+        return Ok(());
+    }
+    done[current] = true;
+    open[current] = true;
+    for &next in &graph[current] {
+        post_order(next, graph, done, open, order)?;
+    }
+    open[current] = false;
+    order.push(current);
+    Ok(())
 }
 
 /// C# compares instruction Dependencies and Restrictions as `List<Guid>` and matches Choose

@@ -1,0 +1,616 @@
+{
+ "after": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "A",
+   "B"
+  ],
+  "refs": {
+   "A": [
+    [],
+    []
+   ],
+   "B": [
+    [],
+    [
+     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+    ]
+   ]
+  }
+ },
+ "before": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "B",
+   "A"
+  ],
+  "refs": {
+   "A": [
+    [],
+    []
+   ],
+   "B": [
+    [
+     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+    ],
+    []
+   ]
+  }
+ },
+ "before_and_after": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "C",
+   "A",
+   "D",
+   "B"
+  ],
+  "refs": {
+   "A": [
+    [
+     "dddddddd-dddd-dddd-dddd-dddddddddddd",
+     "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+    ],
+    []
+   ],
+   "B": [
+    [],
+    []
+   ],
+   "C": [
+    [],
+    []
+   ],
+   "D": [
+    [],
+    [
+     "cccccccc-cccc-cccc-cccc-cccccccccccc"
+    ]
+   ]
+  }
+ },
+ "braced_reference": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "A",
+   "B"
+  ],
+  "refs": {
+   "A": [
+    [],
+    []
+   ],
+   "B": [
+    [],
+    [
+     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+    ]
+   ]
+  }
+ },
+ "chain": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "A",
+   "B",
+   "C",
+   "D"
+  ],
+  "refs": {
+   "A": [
+    [],
+    []
+   ],
+   "B": [
+    [],
+    [
+     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+    ]
+   ],
+   "C": [
+    [],
+    [
+     "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+    ]
+   ],
+   "D": [
+    [],
+    []
+   ]
+  }
+ },
+ "control_no_order": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "C",
+   "A",
+   "B"
+  ],
+  "refs": {
+   "A": [
+    [],
+    []
+   ],
+   "B": [
+    [],
+    []
+   ],
+   "C": [
+    [],
+    []
+   ]
+  }
+ },
+ "control_ordered": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "A",
+   "B",
+   "C"
+  ],
+  "refs": {
+   "A": [
+    [],
+    []
+   ],
+   "B": [
+    [],
+    [
+     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+    ]
+   ],
+   "C": [
+    [],
+    []
+   ]
+  }
+ },
+ "cycle": {
+  "decision": {
+   "exit0": false,
+   "written": false
+  },
+  "errors": 1,
+  "order": null,
+  "refs": null
+ },
+ "cycle_ignored": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [],
+  "refs": {}
+ },
+ "cycle_json": {
+  "decision": {
+   "exit0": false,
+   "written": false
+  },
+  "errors": 1,
+  "order": null,
+  "refs": null
+ },
+ "cycle_three": {
+  "decision": {
+   "exit0": false,
+   "written": false
+  },
+  "errors": 1,
+  "order": null,
+  "refs": null
+ },
+ "ignore_errors_valid": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "A",
+   "B",
+   "C"
+  ],
+  "refs": {
+   "A": [
+    [],
+    []
+   ],
+   "B": [
+    [],
+    [
+     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+    ]
+   ],
+   "C": [
+    [],
+    []
+   ]
+  }
+ },
+ "json_input": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "A",
+   "B",
+   "C"
+  ],
+  "refs": {
+   "A": [
+    [],
+    []
+   ],
+   "B": [
+    [],
+    [
+     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+    ]
+   ],
+   "C": [
+    [],
+    []
+   ]
+  }
+ },
+ "json_output": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "A",
+   "B",
+   "C"
+  ],
+  "refs": {
+   "A": [
+    [],
+    []
+   ],
+   "B": [
+    [],
+    [
+     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+    ]
+   ],
+   "C": [
+    [],
+    []
+   ]
+  }
+ },
+ "markdown_output": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "A",
+   "B",
+   "C"
+  ],
+  "refs": null
+ },
+ "missing_after": {
+  "decision": {
+   "exit0": false,
+   "written": false
+  },
+  "errors": 1,
+  "order": null,
+  "refs": null
+ },
+ "missing_before": {
+  "decision": {
+   "exit0": false,
+   "written": false
+  },
+  "errors": 1,
+  "order": null,
+  "refs": null
+ },
+ "missing_ignored": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "C",
+   "B",
+   "A"
+  ],
+  "refs": {
+   "A": [
+    [],
+    []
+   ],
+   "B": [
+    [],
+    [
+     "ffffffff-ffff-ffff-ffff-ffffffffffff",
+     "cccccccc-cccc-cccc-cccc-cccccccccccc"
+    ]
+   ],
+   "C": [
+    [],
+    []
+   ]
+  }
+ },
+ "missing_unselected": {
+  "decision": {
+   "exit0": false,
+   "written": false
+  },
+  "errors": 1,
+  "order": null,
+  "refs": null
+ },
+ "multi_after": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "B",
+   "A",
+   "C"
+  ],
+  "refs": {
+   "A": [
+    [],
+    []
+   ],
+   "B": [
+    [],
+    []
+   ],
+   "C": [
+    [],
+    [
+     "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+    ]
+   ]
+  }
+ },
+ "option_reference": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "C",
+   "A"
+  ],
+  "refs": {
+   "A": [
+    [],
+    []
+   ],
+   "C": [
+    [],
+    []
+   ]
+  }
+ },
+ "self_reference": {
+  "decision": {
+   "exit0": false,
+   "written": false
+  },
+  "errors": 2,
+  "order": null,
+  "refs": null
+ },
+ "self_reference_ignored": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [],
+  "refs": {}
+ },
+ "stdin": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "A",
+   "B",
+   "C"
+  ],
+  "refs": {
+   "A": [
+    [],
+    []
+   ],
+   "B": [
+    [],
+    [
+     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+    ]
+   ],
+   "C": [
+    [],
+    []
+   ]
+  }
+ },
+ "tie": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "A",
+   "B",
+   "C"
+  ],
+  "refs": {
+   "A": [
+    [],
+    []
+   ],
+   "B": [
+    [],
+    [
+     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+    ]
+   ],
+   "C": [
+    [],
+    []
+   ]
+  }
+ },
+ "unselected_both": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "A",
+   "B",
+   "C"
+  ],
+  "refs": {
+   "A": [
+    [],
+    []
+   ],
+   "B": [
+    [],
+    [
+     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+    ]
+   ],
+   "C": [
+    [],
+    []
+   ]
+  }
+ },
+ "unselected_target": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "A",
+   "B"
+  ],
+  "refs": {
+   "A": [
+    [],
+    []
+   ],
+   "B": [
+    [],
+    [
+     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+    ]
+   ]
+  }
+ },
+ "yaml_input": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "A",
+   "B",
+   "C"
+  ],
+  "refs": {
+   "A": [
+    [],
+    []
+   ],
+   "B": [
+    [],
+    [
+     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+    ]
+   ],
+   "C": [
+    [],
+    []
+   ]
+  }
+ },
+ "yaml_output": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "A",
+   "B",
+   "C"
+  ],
+  "refs": {
+   "A": [
+    [],
+    []
+   ],
+   "B": [
+    [],
+    [
+     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+    ]
+   ],
+   "C": [
+    [],
+    []
+   ]
+  }
+ }
+}
