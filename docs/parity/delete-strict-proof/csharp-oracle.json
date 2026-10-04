@@ -1,0 +1,291 @@
+{
+ "deleted_earlier_true": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Delete Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": null
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Delete Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
+ "missing_false": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Delete Probe: Success"
+    ]
+   },
+   "tree": {
+    "Override/a.txt": "A\n",
+    "Override/b.txt": "B\n"
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "missing_omitted": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Delete Probe: Success"
+    ]
+   },
+   "tree": {
+    "Override/a.txt": "A\n",
+    "Override/b.txt": "B\n"
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "missing_true": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Delete Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": null
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Delete Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
+ "missing_true_then_later": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Delete Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": null
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Delete Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
+ "present_and_missing_false": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Delete Probe: Success"
+    ]
+   },
+   "tree": {
+    "Override/b.txt": "B\n"
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "present_and_missing_true": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Delete Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": null
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Delete Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
+ "present_and_wildcard_nomatch_true": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Delete Probe: Success"
+    ]
+   },
+   "tree": {
+    "Override/b.txt": "B\n"
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "present_omitted": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Delete Probe: Success"
+    ]
+   },
+   "tree": {
+    "Override/b.txt": "B\n"
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "present_true": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Delete Probe: Success"
+    ]
+   },
+   "tree": {
+    "Override/b.txt": "B\n"
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "wildcard_match_true": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Delete Probe: Success"
+    ]
+   },
+   "tree": {
+    "Override/b.txt": "B\n"
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "wildcard_nomatch_false": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Delete Probe: Success"
+    ]
+   },
+   "tree": {
+    "Override/a.txt": "A\n",
+    "Override/b.txt": "B\n"
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "wildcard_nomatch_true": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Delete Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": null
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Delete Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ }
+}

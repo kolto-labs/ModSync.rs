@@ -55,6 +55,14 @@ number several issues in one line: `<n> issues: [1] ...; [2] ...`. The proof is 
 (22 fail on `d78aea2`), and the regression probes still pass. See
 [fomod-gate-collect.md](fomod-gate-collect.md).
 
+Delete of a missing file with Overwrite=true (2026-10-04): Rust ignored `Overwrite`
+on Delete. As C# `DeleteFile` does (`FileNotFoundPost`, then `MissingSourceFiles`), a
+strict Delete now deletes the present matches and fails on a missing literal or an
+empty match, with the typed missing-source cause. The dry-run report gives the
+reference `DryRunSkipped` warning; plain validate and install reject. The proof is
+39/39 against a live reference oracle (15 fail on `8fad43c`), and the regression
+probes still pass. See [delete-strict-contract.md](delete-strict-contract.md).
+
 Rename onto an existing file (2026-10-04): a `Rename` with `Overwrite=false` whose
 target exists no longer passes silently. As C# `RenameFile` does
 (`RenameTargetAlreadyExists`), the engine renames the other sources and then fails

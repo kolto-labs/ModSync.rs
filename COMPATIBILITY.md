@@ -409,7 +409,7 @@ Reference: the local ModSync C# source at `d31ccbd3bfcddb4705917eafa6483715c166d
 | Selection | File selections, select-all when all components are unselected; explicit CLI components/options; desktop dependency/restriction and deselection cascades across components and options | Native interaction and full Unicode GUID-comparison parity remain open |
 | Ordering | Stable dependency sort, restrictions, InstallBefore/After, instruction conditions | Missing references and cycles fail |
 | Options | Choose resolves selected option GUIDs in declared option order | No automatic choice inference |
-| File operations | Copy, Move, Rename, Delete, Extract, DelDuplicate, CleanList | Copy/Move flatten matched files into the target, as the C# instruction engine does |
+| File operations | Copy, Move, Rename, Delete, Extract, DelDuplicate, CleanList | Copy/Move flatten matched files into the target, as the C# instruction engine does; Delete with `Overwrite = true` fails on a missing file, as C# does |
 | Archives | Streaming ZIP, 7z, RAR, TAR, GZip and 7z SFX; integrity checks; isolated extraction root | No encrypted/multipart archives; SFX support is limited to embedded 7z payloads; empty directories are not materialized |
 | CleanList | C# comma-separated rows, mandatory prefix, substring and token matching | Source matching and final file sets still need full-build differential acceptance |
 | Texture cleanup | Removes requested extension when another compatible extension shares its basename | This is not content-hash deduplication |
@@ -1161,6 +1161,26 @@ as before.
 The issue texts keep Rust's wording, without C#'s `ERROR: <component>:` prefix. Evidence:
 [gate-collect proof](docs/parity/fomod-gate-collect-proof/README.md), 67/67 checks (22
 fail on `d78aea2`); contract in [fomod-gate-collect.md](docs/parity/fomod-gate-collect.md).
+
+## Delete of a missing file with Overwrite=true — 2026-10-04 UTC
+
+A `Delete` instruction with `Overwrite = true` now fails when a literal source is
+missing, or when its sources match nothing, as C# `Instruction.DeleteFile` does. That
+method returns `FileNotFoundPost`, which fails the component with `MissingSourceFiles`
+on install and becomes a `DryRunSkipped` warning in C# dry-run validation. The engine
+deletes the present matches, then raises the same typed missing-source cause a missing
+Copy/Move/Extract source raises (`Source matches no files: <source>`). Per CLI verb:
+`validate --output json --dry-run` reports `Skipped '<component>' during dry-run: source
+archives or files are not available.` and passes, as C# does; plain `validate` exits
+non-zero, as for any missing source; `install` is refused by its validation before any
+write (C# fails mid-install after deleting the present paths); `conflicts` exits 1
+because simulation errors abort its analysis. The desktop runs the same engine. Before
+this change, Rust ignored `Overwrite` on Delete and passed all of them, and install ran
+the later steps. `Overwrite = false` and an omitted `Overwrite` (false for Delete in
+both loaders) still skip missing files, and a wildcard miss beside a resolved path is
+still not an error. Evidence: [delete-strict proof](docs/parity/delete-strict-proof/README.md),
+39/39 checks against a live reference oracle (15 fail on `8fad43c`); contract in
+[delete-strict-contract.md](docs/parity/delete-strict-contract.md).
 
 ## Rename onto an existing file — 2026-10-04 UTC
 

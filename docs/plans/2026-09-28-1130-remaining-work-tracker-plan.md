@@ -241,6 +241,7 @@ gives the same partition. F15 stays open.
 - [ ] **F04 — Selection:** remaining desktop actions, nested/Unicode models, dependencies, ordering and shared CLI/GUI selections.
 - [ ] **F05 — Actions:** complete real/VFS action, path, wildcard, condition, overwrite and missing-source behavior.
   - 2026-10-04: Rename with `Overwrite=false` onto an existing target now fails the instruction (validate and install) after renaming the other sources, as C# `RenameTargetAlreadyExists` does; Copy/Move still warn and skip. Proof 18/18 (8 fail on `5643276`); see [rename-overwrite-contract.md](../parity/rename-overwrite-contract.md).
+  - 2026-10-04: Delete with `Overwrite=true` onto a missing literal, or matching nothing, now fails as C# `FileNotFoundPost`/`MissingSourceFiles` does: `DryRunSkipped` in the dry-run report, rejected by plain validate and install. Omitted/false Overwrite still skips. Proof 39/39 (15 fail on `8fad43c`); see [delete-strict-contract.md](../parity/delete-strict-contract.md).
 - [ ] **F06 — Archives:** supported formats/SFX, empty directories, large/nested/corrupt inputs, containment and resource measurements.
 - [ ] **F07 — Cleanup:** full CleanList matching and texture-priority final-file comparisons.
 - [ ] **F08 — Validation:** remaining backend classes, exact reports and native navigation/copy across clean/warning/failure cases.
