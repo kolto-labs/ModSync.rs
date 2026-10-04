@@ -1584,6 +1584,41 @@ Users: a guide that failed with `Wildcards are not allowed here` naming a file o
 folder from a patcher's changes.ini or namespaces.ini now validates and installs; no
 guide change is needed.
 
+## Component order in convert — 2026-10-04 UTC
+
+`convert` now writes a guide's components in the order the C# converter does: each
+component after every component it names in `InstallAfter` and before every component
+that names it in `InstallBefore`, otherwise in guide order, using C#'s depth-first
+ordering (`DependencyResolverService`). Every top-level component takes part, selected
+or not; options keep their place. A guide whose `InstallBefore` or `InstallAfter`
+names a missing component, the component itself, or forms a cycle is refused with
+`Dependency resolution failed with N errors. Use --ignore-errors flag to attempt
+loading in best possible order.` and one line per error (exit 1, nothing written), as
+in C#. Before, Rust wrote the components in file order and converted such guides
+without a message. `convert --ignore-errors` is now accepted: it orders around missing
+references, keeps them in the output and prints C#'s warning with the errors to
+stderr. A Markdown input (by extension, or by content when the extension names no
+format or with `--stdin`) keeps its file order and is never refused, as in C#, whose
+Markdown reader ignores `InstallBefore` and `InstallAfter`; Rust still writes the
+references it read.
+
+Unchanged and documented: with `--ignore-errors`, a cycle is still refused; C# writes
+a guide with no components there. Validate, install, `conflicts` and `merge` keep
+their own order and checks (install order is not changed), and `merge` does not take
+`--ignore-errors`. References keep their authored spelling. A reference that is not a
+GUID (or is empty) is refused as missing; C# drops that component's whole list and
+converts. Evidence: [convert
+dependency order proof](docs/parity/convert-dependency-order-proof/README.md), 126
+checks match and 14 are known differences against the live C# CLI (57 fail on
+`24897e6`); contract in
+[convert-dependency-order-contract.md](docs/parity/convert-dependency-order-contract.md).
+
+Users: a converted TOML, JSON, YAML or XML guide that uses `InstallBefore` or
+`InstallAfter` now lists its components in install order, as the C# converter writes
+it; a Markdown guide converts in its own order, as before. If `convert` now stops with
+`Dependency resolution failed`, fix the named reference, or pass `--ignore-errors` to
+convert anyway when the only problem is a missing component.
+
 ## File selection when the file selects nothing — 2026-10-04 UTC
 
 `validate` and `install` with `--use-file-selection` now treat a guide that marks no

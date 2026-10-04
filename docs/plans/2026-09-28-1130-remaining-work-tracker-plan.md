@@ -236,6 +236,7 @@ gives the same partition. F15 stays open.
 ## Full parity checklist
 
 - [ ] **F01 — Formats:** complete format/error corpus, GUIDs, stdin/autodetection and bilateral round trips.
+  - 2026-10-04: `convert` now writes components in the C# dependency resolver's order (InstallBefore/InstallAfter, depth-first, every top-level component) and refuses missing, self and circular references unless `--ignore-errors` (now accepted), as C# `HandleDependencyResolutionErrors` does; Rust wrote the file order and refused nothing. Markdown input keeps file order and is never refused, as in C# (its Markdown ingest drops the fields). A cycle stays refused under `--ignore-errors` (C# writes an empty guide, deliberate); a non-GUID reference is refused (C# drops the list). A cross-load of both programs' TOML/JSON/YAML/XML/Markdown output gave the same components. Install order (F04-D/F04-F), merge and load-time ordering in other verbs are unchanged (documented). Proof 126 match / 14 known of 140 (57 fail on `24897e6`); see [convert-dependency-order-contract.md](../parity/convert-dependency-order-contract.md).
 - [ ] **F02 — Markdown:** full/spoiler-free K1/K2 fidelity, metadata/IDs and native paste/import.
 - [ ] **F03 — Drafts:** complete direction coverage, archive-generated instructions, ambiguous-draft review and direct-Markdown execution.
 - [ ] **F04 — Selection:** remaining desktop actions, nested/Unicode models, dependencies, ordering and shared CLI/GUI selections.
