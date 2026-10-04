@@ -203,14 +203,16 @@ enum MissKind {
     WildcardTyped,
 }
 
-/// Glob text for one authored Source path with the reference wildcard rules
-/// (`PathHelper.WildcardPathMatch`): each path level is matched on its own, `*`
-/// (and so `**`) matches any run of characters within one level, `?` matches one
-/// character, and every other character, including `[` and `]`, is literal.
-/// Whether an authored path has a `.` part. `paths::relative` drops it, but C#
-/// `PathValidator.IsValidPath` and the DelDuplicate/CleanList execution refuse it.
-fn has_dot_part(raw: &str) -> bool {
-    raw.split(['/', '\\']).any(|part| part == ".")
+/// Whether an authored Destination has a part that C# `PathValidator.IsValidPath`
+/// refuses and `paths::relative` lets through: a `.` part (which `relative` drops
+/// while resolving), `..` inside a longer name (`a..b`; a bare `..` is refused by
+/// `relative` as unsafe) or a control character (below U+0020). C# validation (and
+/// so its install) refuses such a Copy, Move, CleanList or DelDuplicate Destination,
+/// and its DelDuplicate and CleanList execution fail on one.
+fn invalid_destination(raw: &str) -> bool {
+    raw.split(['/', '\\']).any(|part| {
+        part == "." || (part != ".." && part.contains("..")) || part.chars().any(|c| c < ' ')
+    })
 }
 
 /// Whether an instruction is one of the component's own (not an option's).
@@ -221,6 +223,23 @@ fn is_top_level(component: &Component, instruction: &Instruction) -> bool {
         .any(|own| std::ptr::eq(own, instruction))
 }
 
+/// Whether an instruction's Dependencies are all in `selected` and none of its
+/// Restrictions is.
+fn applies_with(selected: &BTreeSet<crate::guid::Identity>, instruction: &Instruction) -> bool {
+    instruction
+        .dependencies
+        .iter()
+        .all(|id| selected.contains(&crate::guid::key_ascii(id)))
+        && !instruction
+            .restrictions
+            .iter()
+            .any(|id| selected.contains(&crate::guid::key_ascii(id)))
+}
+
+/// Glob text for one authored Source path with the reference wildcard rules
+/// (`PathHelper.WildcardPathMatch`): each path level is matched on its own, `*`
+/// (and so `**`) matches any run of characters within one level, `?` matches one
+/// character, and every other character, including `[` and `]`, is literal.
 pub(crate) fn source_wildcard_glob(text: &str) -> String {
     let mut glob = String::with_capacity(text.len());
     let mut star = false;
@@ -520,7 +539,57 @@ impl Engine {
         recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
         // C# runs FomodConfigurationGate on every validate path, not only the report.
         self.fomod_gate(guide, &mut emit)?;
+        self.destination_gate(guide)?;
         self.run(guide, &mut emit)
+    }
+
+    /// C# validates every Copy, Move, CleanList and DelDuplicate Destination of the
+    /// selected components and their immediate options before installing
+    /// (`ComponentValidation.ParseDestinationWithAction`) and refuses one with a part
+    /// `PathValidator.IsValidPath` refuses (`invalid_destination`), which the archive
+    /// stage reports. Plain validate and install refuse it here, before any
+    /// simulation or write, for the same steps that stage checks (instruction
+    /// conditions met). A Destination that does not resolve is left to the
+    /// simulation, which reports it as before.
+    fn destination_gate(&self, guide: &Guide) -> Result<()> {
+        let mut selected = selected_guid_keys(guide);
+        selected.extend(self.completed.iter().cloned());
+        for component in guide.components.iter().filter(|component| {
+            component.is_selected
+                && !self
+                    .completed
+                    .contains(&crate::guid::key_ascii(&component.guid))
+        }) {
+            let owners = std::iter::once((None, component)).chain(
+                component
+                    .options
+                    .iter()
+                    .map(|option| (Some(&option.name), option)),
+            );
+            for (option, owner) in owners {
+                for (n, instruction) in owner.instructions.iter().enumerate() {
+                    if matches!(
+                        instruction.action.as_str(),
+                        "Copy" | "Move" | "CleanList" | "DelDuplicate"
+                    ) && invalid_destination(&instruction.destination)
+                        && applies_with(&selected, instruction)
+                        && self.path(&instruction.destination, false).is_ok()
+                    {
+                        let owner = match option {
+                            Some(option) => format!("{} / {option}", component.name),
+                            None => component.name.clone(),
+                        };
+                        bail!(
+                            "{owner} / step {} ({}): Destination is not a valid path (a `.` part, `..` inside a name or a control character): {}",
+                            n + 1,
+                            instruction.action,
+                            instruction.destination
+                        );
+                    }
+                }
+            }
+        }
+        Ok(())
     }
 
     /// The read-only FOMOD configuration gate for plain validate and install. Issues
@@ -1047,9 +1116,8 @@ impl Engine {
                     let created = full_validation
                         && instruction.action != "DelDuplicate"
                         && self.folder_creatable(&dest);
-                    // C# PathValidator.IsValidPath refuses a `.` part, which
-                    // `relative` drops while resolving.
-                    if has_dot_part(&instruction.destination) || missing && !created {
+                    // C# PathValidator.IsValidPath refuses these parts.
+                    if invalid_destination(&instruction.destination) || missing && !created {
                         missing_destinations.push(format!(
                             "Destination cannot be found! Got '{}'",
                             self.shown_destination(&dest)
@@ -1542,6 +1610,8 @@ impl Engine {
         // C# InstallationService blocks installation on FomodConfigurationGate issues.
         self.fomod_gate(guide, &mut emit)
             .context("Installation blocked before any write")?;
+        self.destination_gate(guide)
+            .context("Installation blocked before any write")?;
         // Managed reinstall restores originals before each component. Simulating
         // against the old deployed tree would validate the wrong inputs. Its
         // source preflight runs inside the journaled boundary after reinstall.
@@ -1981,14 +2051,7 @@ impl Engine {
     }
 
     fn instruction_applies(&self, instruction: &Instruction) -> bool {
-        instruction
-            .dependencies
-            .iter()
-            .all(|id| self.selected.contains(&crate::guid::key_ascii(id)))
-            && !instruction
-                .restrictions
-                .iter()
-                .any(|id| self.selected.contains(&crate::guid::key_ascii(id)))
+        applies_with(&self.selected, instruction)
     }
 
     /// The same immediate-option selection used by execution and read-only gates.
@@ -2634,10 +2697,10 @@ impl Engine {
                 }
             }
             "DelDuplicate" => {
-                // C# DeleteDuplicateFile throws "Invalid directory path" for a `.`
-                // part (UnknownError), which `relative` would drop.
+                // C# DeleteDuplicateFile throws "Invalid directory path" for a
+                // Destination `PathValidator.IsValidPath` refuses (UnknownError).
                 ensure!(
-                    !has_dot_part(&i.destination),
+                    !invalid_destination(&i.destination),
                     "DelDuplicate destination cannot be found: {}",
                     i.destination
                 );
@@ -2709,9 +2772,10 @@ impl Engine {
                 }
             }
             "CleanList" => {
-                // C# fails a CleanList into a path with a `.` part (UnknownError).
+                // C# fails a CleanList into a Destination `PathValidator.IsValidPath`
+                // refuses (UnknownError).
                 ensure!(
-                    !has_dot_part(&i.destination),
+                    !invalid_destination(&i.destination),
                     "CleanList destination cannot be found: {}",
                     i.destination
                 );

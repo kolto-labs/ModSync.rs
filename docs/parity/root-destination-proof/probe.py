@@ -284,6 +284,15 @@ KNOWN = {
         " Rust resolves the placeholder to the game directory and refuses",
     ),
 }
+# The reference install here is `ModComponent.InstallAsync` alone, which copies and
+# moves into a Destination with a `.` part. The C# CLI `install` validates first and
+# refuses it, and so do Rust's plain validate and install since the
+# destination-path-parts slice (../destination-path-parts-contract.md).
+for _name in ("copy_kotor_dot", "copy_override_dot", "move_kotor_dot"):
+    KNOWN[_name] = (
+        ("validate", "install"),
+        "`.` Destination part: the reference InstallAsync installs; the C# CLI install and Rust refuse",
+    )
 
 
 # Deliberately unchanged acceptances: name -> (Rust modes, reason). Rust must

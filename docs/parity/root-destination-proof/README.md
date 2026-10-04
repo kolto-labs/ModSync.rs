@@ -38,6 +38,11 @@ check fails unless Rust refuses. `KNOWN_ACCEPTS` holds
 `extract_destination_mod_root` (pipeline only): the reference's archive/destination
 stage fails every Extract that has a Destination and Rust's passes (predates this
 slice); the check fails unless Rust accepts where the reference refuses.
+`KNOWN` also holds the `validate` and `install` checks of `copy_kotor_dot`,
+`copy_override_dot` and `move_kotor_dot` (six checks): the reference install here is
+`ModComponent.InstallAsync` alone, which copies into a `.` Destination part, while the
+C# CLI `install` validates first and refuses it, as Rust does since the
+[destination-path-parts](../destination-path-parts-contract.md) slice.
 
 ## Results (cloud Linux, 2026-10-04)
 
@@ -47,6 +52,7 @@ slice); the check fails unless Rust accepts where the reference refuses.
 | follow-up, recorded reference | 119 match / 4 known difference / 0 fail |
 | `6e67b3c` (first fix) | 102 match / 4 known difference / 17 fail |
 | `8c79761` (pre-fix) | 74 match / 4 known difference / 45 fail |
+| after [destination-path-parts](../destination-path-parts-contract.md), recorded reference | 113 match / 10 known difference / 0 fail |
 
 On `6e67b3c` the 17 failures are: DelDuplicate and CleanList into `KD/.` and `OV/.`
 (dry run, validate and install accepted and deleted; 12), the bare-root Extract cases
