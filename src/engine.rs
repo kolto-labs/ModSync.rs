@@ -220,8 +220,9 @@ impl std::fmt::Display for MissingSource {
 }
 impl std::error::Error for MissingSource {}
 
-/// Only the Copy/Move/Extract source-resolution boundary and a strict
-/// (Overwrite=true) Delete miss produce this cause.
+/// Only the Copy/Move/Extract source-resolution boundary (including an empty
+/// Source list) and a strict (Overwrite=true) Delete miss or empty Source
+/// produce this cause.
 /// In particular, Rename and configured FOMOD member failures stay hard errors.
 #[derive(Debug)]
 struct MissingSourceFiles(anyhow::Error);
@@ -821,7 +822,9 @@ impl Engine {
         let mut has_archives = false;
         for instruction in &instructions {
             self.check_cancelled()?;
-            if instruction.action != "Extract" {
+            // An Extract with no Source names no archive to check; execution
+            // reports it as a missing source, as C# does.
+            if instruction.action != "Extract" || instruction.source.is_empty() {
                 continue;
             }
             for source in self.matches(&instruction.source, false)? {
@@ -1095,6 +1098,9 @@ impl Engine {
                 }
                 // Missing generic Extract inputs belong to archive validation and
                 // dry-run availability, not the independent FOMOD state gate.
+                if instruction.source.is_empty() {
+                    continue;
+                }
                 for source in self.matches(&instruction.source, true)? {
                     // Any applying Extract of this path is an install route, FOMOD or not.
                     routes.insert(self.path_policy.key(&source));
@@ -2227,6 +2233,22 @@ impl Engine {
                 }
             }
             "Delete" => {
+                if i.source.is_empty() {
+                    // C# DeleteFile with no source paths logs and returns Success,
+                    // or FileNotFoundPost (MissingSourceFiles) when Overwrite=true.
+                    if i.overwrite {
+                        return Err(MissingSourceFiles(anyhow::anyhow!(
+                            "Delete has no Source and Overwrite is true"
+                        ))
+                        .into());
+                    }
+                    emit(Event {
+                        component: component.name.clone(),
+                        step: 0,
+                        message: "Delete has no Source; nothing to delete".into(),
+                    });
+                    return Ok(());
+                }
                 let sources = self.matches(&i.source, true)?;
                 if sources.is_empty() {
                     for source in &i.source {

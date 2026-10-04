@@ -70,6 +70,12 @@ Remaining source work found by the post-wave audit:
   Rust now deletes the present matches, then raises the typed missing-source
   cause (live oracle on the same fixtures). See
   [the delete strict contract](delete-strict-contract.md).
+- F05: Delete/Copy/Move/Extract with an empty Source list. Closed 2026-10-04.
+  C# `DeleteFile` returns `Success` for no paths, or `FileNotFoundPost` with
+  `Overwrite=true`; Copy/Move/Extract resolution fails with `FileNotFoundPre`.
+  Rust at `fba4eb1` rejected all of them with an untyped `Instruction has no
+  Source`. A non-strict empty Delete is now a no-op; the others raise the typed
+  missing-source cause (live oracle on the same fixtures). See [the empty source contract](empty-source-contract.md).
 - F11: checkpoint duplicate-definition check folds GUID text with Unicode
   lowercase. Equivalent for valid GUIDs; admission is intentionally unchanged.
 
