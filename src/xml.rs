@@ -234,6 +234,11 @@ fn normalize(
             object.insert(key, Value::Bool(parsed));
         }
     }
+    // C# skips path deserialization for Choose, whose Source is option GUIDs.
+    let choose = crate::model::keys::getter(object, "Action")
+        .and_then(|key| object.get(&key))
+        .and_then(Value::as_str)
+        .is_some_and(|action| crate::unicode_case::ordinal_eq(action, "Choose"));
     for field in [
         "Category",
         "Language",
@@ -246,11 +251,14 @@ fn normalize(
         if let Some(key) = crate::model::keys::getter(object, field)
             && let Some(value) = object.remove(&key)
         {
-            // `<Source></Source>` is a scalar empty path, which the reference refuses
-            // (`Serializer.PrefixPath`). Keep it scalar, as TOML/JSON/YAML do, so the
-            // loader keeps `[""]` and path resolution rejects it. `<Source/>` is null.
+            // An instruction's `<Source></Source>` is a scalar empty path, which the
+            // reference refuses (`Serializer.PrefixPath`), except for Choose. Keep it
+            // scalar, as TOML/JSON/YAML do, so the loader keeps `[""]` and path
+            // resolution rejects it. `<Source/>` is null.
             let value = match value {
-                Value::String(text) if field == "Source" && text.trim().is_empty() => {
+                Value::String(text)
+                    if instruction && !choose && field == "Source" && text.trim().is_empty() =>
+                {
                     Value::String(text)
                 }
                 value => Value::Array(array(value, field)),

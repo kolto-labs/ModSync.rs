@@ -5,7 +5,7 @@ pub(crate) mod keys;
 mod text;
 pub(crate) mod yaml;
 use anyhow::{Context, Result, bail, ensure};
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::{
     collections::{BTreeMap, BTreeSet},
     path::Path,
@@ -26,6 +26,16 @@ fn strings<'de, D: Deserializer<'de>>(d: D) -> Result<Vec<String>, D::Error> {
 }
 fn yes() -> bool {
     true
+}
+/// The loaders drop blank Source list entries, so a single blank path can only come
+/// from a scalar `Source = ""`, which path resolution refuses. Write it back as a
+/// scalar so a saved or converted guide keeps that refusal instead of reading back
+/// as an empty list.
+fn source_out<S: Serializer>(source: &[String], s: S) -> Result<S::Ok, S::Error> {
+    match source {
+        [path] if path.trim().is_empty() => s.serialize_str(path),
+        _ => source.serialize(s),
+    }
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -73,7 +83,7 @@ pub struct Instruction {
     pub parent: String,
     #[serde(default = "action::unset", deserialize_with = "action::deserialize")]
     pub action: String,
-    #[serde(default, deserialize_with = "strings")]
+    #[serde(default, deserialize_with = "strings", serialize_with = "source_out")]
     pub source: Vec<String>,
     #[serde(default)]
     pub destination: String,

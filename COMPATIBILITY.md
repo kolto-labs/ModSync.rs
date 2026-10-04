@@ -1212,9 +1212,19 @@ which drops the whole metadata block.
   with <<modDirectory>> or <<kotorDirectory>>:`), plain `validate` exits non-zero and
   `install` is refused before any write. The desktop runs the same engine. `convert`
   and `list` still load the guide, as for TOML.
+- Saving keeps the scalar: a single blank Source is written as `Source = ""`
+  (TOML), `"Source": ""` (JSON), `Source: ''` (YAML, Markdown) or `<Source></Source>`
+  (XML), so a guide converted to any format is still refused. Before, the converted
+  guide read back as an empty list and a non-strict Delete then installed as a no-op.
 - A self-closing `<Source />` is null in C# and loads as an empty list; Rust now reads
-  it the same way, so it keeps the empty-list behaviour. `[]`, `[""]` and a missing
-  key are unchanged.
+  it the same way, so it keeps the empty-list behaviour. `[]`, `[""]`, a missing key
+  and a stray component-level `<Source></Source>` are unchanged.
+- Choose is exempt, as in C#, which does not path-normalize a Choose Source: an XML or
+  Markdown Choose with a scalar empty Source is still an empty no-op Choose. (A
+  standalone TOML, JSON or YAML Choose with `Source = ""` keeps `[""]`, a pre-existing
+  divergence.)
+- A scalar-blank Source inside an option that is not selected loads and validates in
+  Rust, since only selected instructions are validated; C# refuses the whole XML guide.
 - Difference: for Markdown, C# loads the guide with the component's instructions (and
   Guid) silently dropped; Rust refuses the guide, as it refuses other metadata the
   reference's typed parser rejects.
@@ -1224,9 +1234,11 @@ metadata has `Source = ""` or `Source: ''`, used to pass in Rust. A non-strict D
 written that way installed as a no-op, and a Copy, Move or Extract passed the dry-run
 report with a `DryRunSkipped` warning. These guides are now refused. Replace the value
 with a list (`Source = []`, or a self-closing `<Source />` in XML) for a deliberate
-empty Source, or give the real path. Evidence:
-[scalar-empty-source proof](docs/parity/scalar-empty-source-proof/README.md), 57/57
-checks against a live reference oracle (15 fail on `3911e74`); contract in
+empty Source, or give the real path. Converting such a guide with `convert` does not
+clear the problem: the output keeps the empty scalar and is refused too (C# `convert`
+fails on the input). Evidence:
+[scalar-empty-source proof](docs/parity/scalar-empty-source-proof/README.md), 99/99
+checks against a live reference oracle (30 fail on `3911e74`); contract in
 [scalar-empty-source-contract.md](docs/parity/scalar-empty-source-contract.md).
 
 ## Delete of a missing file with Overwrite=true — 2026-10-04 UTC

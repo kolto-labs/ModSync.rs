@@ -54,24 +54,44 @@ The other XML fields that `array` collapses (`Category`, `Language`, `Dependenci
 
 ## Behaviour after this slice
 
-- **XML.** `<Source></Source>` and whitespace-only `<Source>` stay a scalar string
-  (`src/xml.rs:246-258`), so the loader keeps `[""]` and the guide is refused as a
-  TOML guide is: Error in `validate --output json --dry-run`, non-zero plain
-  `validate`, `install` refused before any write. `<Source />` is now read as null
-  (`src/xml.rs:103-110`, `:217-220`) and stays an empty list, as in C#.
-- **Markdown.** `keep_scalar_blank_sources` (`src/markdown.rs:411-432`) returns a
-  single blank entry left by the metadata pass to scalar form before the second pass.
-  The metadata pass has already removed blank list entries, so only a scalar can
-  produce one. The guide is then refused as above.
+- **XML.** In an instruction, `<Source></Source>` and whitespace-only `<Source>` stay a
+  scalar string (`src/xml.rs:238-267`), so the loader keeps `[""]` and the guide is
+  refused as a TOML guide is: Error in `validate --output json --dry-run`, non-zero
+  plain `validate`, `install` refused before any write. `<Source />` is now read as
+  null (`src/xml.rs:103-110`, `:217-220`) and stays an empty list, as in C#. A stray
+  component-level `<Source></Source>` stays an empty list, as before.
+- **Markdown.** The metadata pass keeps the scalar as `[""]`, and the instruction
+  serializer now writes a single blank Source back as a scalar (`source_out`,
+  `src/model.rs:30-40`, `:86`), so the second pass keeps it too. The loaders have
+  already removed blank list entries, so only a scalar can leave one. The guide is
+  then refused as above.
+- **Choose.** C# skips path deserialization for Choose
+  (`ModComponentSerializationService.cs:2141-2145`, `:2350-2354`), so a scalar empty
+  Choose Source is not prefixed; `GetValueOrDefault<List<string>>` gives null for `""`
+  and the loader substitutes an empty list (`:2185-2186`). Both readers keep that: the
+  XML scalar-keep skips an instruction whose Action is Choose (OrdinalIgnoreCase), and
+  `drop_blank_choose_sources` (`src/markdown.rs:411-434`) empties a Markdown Choose
+  scalar. Such a Choose is an empty no-op in both implementations.
+- **Saving and `convert`.** Because the serializer writes a single blank Source as a
+  scalar, every save path keeps it: TOML `Source = ""`, JSON `"Source": ""`, YAML and
+  Markdown `Source: ''`, XML `<Source></Source>` (the Markdown export no longer drops a
+  blank Source, `src/markdown/export.rs:198`). A refused guide stays refused after
+  conversion to any format. Before, it read back as an empty list.
 - **Unchanged.** `[]`, `[""]`, a missing key and `<Source/>` keep the empty-list
-  behaviour. Non-blank sources, Choose and the other formats are unchanged.
+  behaviour. Non-blank sources and the TOML, JSON and YAML loaders are unchanged.
 
 ## Known differences
 
 - **Refusal stage.** C# refuses the XML guide at load. Rust, as for TOML, JSON and
   YAML, loads it and refuses it in every verb that resolves paths, before any write.
-  `convert` and `list` still accept it and write `Source = [""]`; written as XML, that
-  list reads back as an empty list.
+  `convert` and `list` still accept it; C# `convert` fails on the input.
+- **Unselected options.** Because Rust refuses only through validation, a scalar-blank
+  Source inside an option that is not selected (for example a Delete) loads and
+  validates, as validation covers only the selected instructions. C# refuses the whole
+  XML guide at load whatever is selected.
+- **Standalone TOML, JSON and YAML Choose.** `Source = ""` on a Choose keeps `[""]` in
+  those loaders, as before this slice, where C# loads an empty Choose. That divergence
+  predates this slice and is not changed here.
 - **Markdown.** C# loads the guide and drops the metadata block, so the component
   installs with no instructions. Rust refuses the guide instead, as it refuses other
   metadata that the reference's typed parser cannot read (malformed documents fail

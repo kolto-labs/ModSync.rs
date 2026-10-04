@@ -58,6 +58,10 @@ def delete(source):
     return ("Delete", source, "", False)
 
 
+def choose(source):
+    return ("Choose", source, "", None)
+
+
 # name -> (format, case step)
 CASES = {
     "xml_empty_copy": ("xml", copy(("scalar", ""))),
@@ -67,20 +71,29 @@ CASES = {
     "xml_selfclose_delete_false": ("xml", delete(("selfclose",))),
     "xml_nokey_copy": ("xml", copy(("nokey",))),
     "xml_path_copy": ("xml", copy(("scalar", "a.txt"))),
+    "xml_empty_choose": ("xml", choose(("scalar", ""))),
+    "xml_component_empty_source": ("xml_component_source", copy(("scalar", "a.txt"))),
     "md_toml_empty_copy": ("md_toml", copy(("scalar", ""))),
     "md_toml_whitespace_copy": ("md_toml", copy(("scalar", "  "))),
     "md_toml_empty_delete_false": ("md_toml", delete(("scalar", ""))),
     "md_toml_blank_list_copy": ("md_toml", copy(("list", [""]))),
     "md_toml_empty_list_delete_false": ("md_toml", delete(("list", []))),
     "md_toml_nokey_copy": ("md_toml", copy(("nokey",))),
+    "md_toml_empty_choose": ("md_toml", choose(("scalar", ""))),
     "md_yaml_empty_copy": ("md_yaml", copy(("scalar", ""))),
     "md_yaml_whitespace_copy": ("md_yaml", copy(("scalar", "  "))),
     "md_yaml_empty_delete_false": ("md_yaml", delete(("scalar", ""))),
     "md_yaml_empty_list_copy": ("md_yaml", copy(("list", []))),
     "md_yaml_path_copy": ("md_yaml", copy(("scalar", "a.txt"))),
+    "md_yaml_empty_choose": ("md_yaml", choose(("scalar", ""))),
     "toml_empty_copy_control": ("toml", copy(("scalar", ""))),
 }
-EXT = {"xml": "xml", "md_toml": "md", "md_yaml": "md", "toml": "toml"}
+EXT = {"xml": "xml", "xml_component_source": "xml", "md_toml": "md", "md_yaml": "md", "toml": "toml"}
+# Cases also converted by Rust `convert` to every format, then run through plain
+# `validate`: a refused guide must stay refused, an accepted one accepted.
+CONVERTED = ["xml_empty_delete_false", "md_yaml_empty_delete_false", "md_toml_empty_delete_false",
+             "xml_selfclose_delete_false", "md_toml_empty_list_delete_false", "xml_empty_choose"]
+FORMATS = ["toml", "json", "xml", "yaml", "md"]
 
 
 def toml_steps(steps, table):
@@ -136,11 +149,12 @@ def guide(fmt, step):
     if fmt == "toml":
         lines = ["[[thisMod]]", f'Guid = "{GUID}"', 'Name = "Scalar Source Probe"', "IsSelected = true"]
         return "\n".join(lines + toml_steps(steps, "thisMod.Instructions")) + "\n"
-    if fmt == "xml":
+    if fmt in ("xml", "xml_component_source"):
+        stray = "<Source></Source>" if fmt == "xml_component_source" else ""
         return (
             '<ModSync xmlns:json="http://james.newtonking.com/projects/json"><ModComponents>'
             f"<Guid>{GUID}</Guid><Name>Scalar Source Probe</Name><IsSelected>true</IsSelected>"
-            f"{xml_steps(steps)}</ModComponents></ModSync>\n"
+            f"{stray}{xml_steps(steps)}</ModComponents></ModSync>\n"
         )
     if fmt == "md_toml":
         meta = [f'Guid = "{GUID}"', 'Name = "Scalar Source Probe"'] + toml_steps(steps, "Instructions")
@@ -203,6 +217,21 @@ def run_rust(binary, mode, name, work):
     return result
 
 
+def run_convert(binary, name, fmt, work):
+    """Rust `convert` to `fmt`, then plain `validate` of the converted guide."""
+    root = tempfile.mkdtemp(prefix=f"rust-convert-{fmt}-", dir=work)
+    path, mods, game = fixture(root, name)
+    out = os.path.join(root, "converted." + fmt)
+    env = dict(os.environ, HOME=os.path.join(root, "home"), XDG_CONFIG_HOME=os.path.join(root, "xdg"))
+    done = subprocess.run([binary, "convert", path, out, "-f", fmt], capture_output=True, text=True, env=env, timeout=300)
+    if done.returncode != 0:
+        return {"accepted": None, "stderr_tail": done.stderr.strip().splitlines()[-1:]}
+    done = subprocess.run([binary, "validate", "-i", out, "-s", mods, "-g", game],
+                          capture_output=True, text=True, env=env, timeout=300)
+    return {"accepted": done.returncode == 0,
+            "stderr_tail": done.stderr.strip().splitlines()[-1:] if done.returncode else []}
+
+
 def run_csharp(dll, name, work):
     """Reference load: C# `convert` to JSON, the scalar-oracle method."""
     root = tempfile.mkdtemp(prefix="csharp-", dir=work)
@@ -249,6 +278,8 @@ def expected(name, reference):
         return "reference loads a path", passed
     if action == "Delete":
         return "reference loads an empty list (non-strict Delete)", passed
+    if action == "Choose":
+        return "reference loads an empty Choose (no-op)", passed
     skipped = {
         "dryrun": {"accepted": True, "tree": None, "skipped": True},
         "validate": {"accepted": False, "tree": None},
@@ -296,6 +327,17 @@ def main():
                     + f" | expected accepted={want['accepted']}"
                     + (f" skipped={want['skipped']}" if mode == "dryrun" else "")
                     + f" ({basis})"
+                    + (f" | rust: {actual['stderr_tail'][0]}" if actual["stderr_tail"] else "")
+                )
+        for name in CONVERTED:
+            _, wanted = expected(name, recorded[name])
+            for fmt in FORMATS:
+                actual = run_convert(args.bin, name, fmt, work)
+                same = actual["accepted"] == wanted["validate"]["accepted"]
+                matched, failed = matched + same, failed + (not same)
+                print(
+                    f"{'match' if same else 'FAIL':5} {name}/convert-{fmt}-validate: rust accepted={actual['accepted']}"
+                    f" | expected accepted={wanted['validate']['accepted']}"
                     + (f" | rust: {actual['stderr_tail'][0]}" if actual["stderr_tail"] else "")
                 )
         print(f"{matched} match / {failed} fail")

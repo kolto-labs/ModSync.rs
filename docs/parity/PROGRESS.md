@@ -68,8 +68,10 @@ metadata `Source = ""` / `Source: ''` were read as an empty list, so a non-stric
 installed as a no-op and a Copy passed the dry-run report. They are now kept as `[""]`
 and refused by every verb, as TOML, JSON and YAML already were; C# refuses the XML guide
 at load and drops the Markdown metadata block (documented difference). `<Source />`
-stays an empty list, as in C#. The proof is 57/57 against a live reference oracle (15
-fail on `3911e74`), and the regression probes still pass. See
+stays an empty list and a Choose stays an empty no-op, as in C#. Saving writes the
+blank scalar back, so `convert` to any format keeps the refusal. The proof is 99/99
+against a live reference oracle (30 fail on `3911e74`), and the regression probes
+still pass. See
 [scalar-empty-source-contract.md](scalar-empty-source-contract.md).
 
 Delete of a missing file with Overwrite=true (2026-10-04): Rust ignored `Overwrite`

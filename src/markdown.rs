@@ -361,7 +361,7 @@ fn component(
             "A Markdown section must contain exactly one metadata component"
         );
         let mut source = serde_json::to_value(&source.components[0])?;
-        keep_scalar_blank_sources(&mut source);
+        drop_blank_choose_sources(&mut source);
         for key in [
             "Guid",
             "IsSelected",
@@ -408,13 +408,11 @@ fn component(
     )))
 }
 
-/// The metadata pass already dropped blank Source list entries, so a blank entry
-/// left here came from a scalar `Source = ""`. Return it to scalar form so the
-/// second pass keeps it as `[""]`, which path resolution rejects, as for a TOML,
-/// JSON or YAML guide. A list (`[]`, `[""]`) or a missing key stays empty.
-fn keep_scalar_blank_sources(component: &mut Value) {
+/// C# reads Source as a plain list for Choose, without `PrefixPath`, so a scalar
+/// `Source = ""` there is an empty no-op Choose rather than a refused path.
+fn drop_blank_choose_sources(component: &mut Value) {
     if let Some(options) = component.get_mut("Options").and_then(Value::as_array_mut) {
-        options.iter_mut().for_each(keep_scalar_blank_sources);
+        options.iter_mut().for_each(drop_blank_choose_sources);
     }
     for instruction in component
         .get_mut("Instructions")
@@ -422,11 +420,15 @@ fn keep_scalar_blank_sources(component: &mut Value) {
         .into_iter()
         .flatten()
     {
+        let choose = instruction
+            .get("Action")
+            .and_then(Value::as_str)
+            .is_some_and(|action| crate::unicode_case::ordinal_eq(action, "Choose"));
         if let Some(source) = instruction.get_mut("Source")
-            && let Some([Value::String(text)]) = source.as_array().map(Vec::as_slice)
-            && text.trim().is_empty()
+            && choose
+            && source.as_str().is_some_and(|text| text.trim().is_empty())
         {
-            *source = Value::String(text.clone());
+            *source = Value::Array(Vec::new());
         }
     }
 }

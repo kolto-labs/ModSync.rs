@@ -16,6 +16,23 @@
   ],
   "loaded": true
  },
+ "md_toml_empty_choose": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Choose",
+    "Source": []
+   }
+  ],
+  "loaded": true
+ },
  "md_toml_empty_copy": {
   "exit": 0,
   "instructions": [],
@@ -63,6 +80,23 @@
  "md_toml_whitespace_copy": {
   "exit": 0,
   "instructions": [],
+  "loaded": true
+ },
+ "md_yaml_empty_choose": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Choose",
+    "Source": []
+   }
+  ],
   "loaded": true
  },
  "md_yaml_empty_copy": {
@@ -120,6 +154,42 @@
   "exit": 1,
   "instructions": null,
   "loaded": false
+ },
+ "xml_component_empty_source": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt"
+    ]
+   }
+  ],
+  "loaded": true
+ },
+ "xml_empty_choose": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Choose",
+    "Source": []
+   }
+  ],
+  "loaded": true
  },
  "xml_empty_copy": {
   "exit": 1,
