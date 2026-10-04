@@ -1,0 +1,1124 @@
+{
+ "backslash_path": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Execute Arguments Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "args.sh": "#!/bin/sh\nout=\"$(dirname \"$0\")/args.txt\"\n: > \"$out\"\nfor a in \"$@\"; do printf '<%s>\\n' \"$a\" >> \"$out\"; done\n",
+     "args.txt": "<sub\\file.txt>\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Execute Arguments Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "backslash_space": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Execute Arguments Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "args.sh": "#!/bin/sh\nout=\"$(dirname \"$0\")/args.txt\"\n: > \"$out\"\nfor a in \"$@\"; do printf '<%s>\\n' \"$a\" >> \"$out\"; done\n",
+     "args.txt": "<a\\>\n<b>\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Execute Arguments Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "dollar_literal": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Execute Arguments Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "args.sh": "#!/bin/sh\nout=\"$(dirname \"$0\")/args.txt\"\n: > \"$out\"\nfor a in \"$@\"; do printf '<%s>\\n' \"$a\" >> \"$out\"; done\n",
+     "args.txt": "<$HOME>\n<`x`>\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Execute Arguments Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "double_quoted": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Execute Arguments Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "args.sh": "#!/bin/sh\nout=\"$(dirname \"$0\")/args.txt\"\n: > \"$out\"\nfor a in \"$@\"; do printf '<%s>\\n' \"$a\" >> \"$out\"; done\n",
+     "args.txt": "<a b>\n<c>\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Execute Arguments Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "doubled_quote_in_quotes": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Execute Arguments Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "args.sh": "#!/bin/sh\nout=\"$(dirname \"$0\")/args.txt\"\n: > \"$out\"\nfor a in \"$@\"; do printf '<%s>\\n' \"$a\" >> \"$out\"; done\n",
+     "args.txt": "<a\"b>\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Execute Arguments Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "empty_quoted": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Execute Arguments Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "args.sh": "#!/bin/sh\nout=\"$(dirname \"$0\")/args.txt\"\n: > \"$out\"\nfor a in \"$@\"; do printf '<%s>\\n' \"$a\" >> \"$out\"; done\n",
+     "args.txt": "<>\n<x>\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Execute Arguments Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "escaped_double_quote": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Execute Arguments Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "args.sh": "#!/bin/sh\nout=\"$(dirname \"$0\")/args.txt\"\n: > \"$out\"\nfor a in \"$@\"; do printf '<%s>\\n' \"$a\" >> \"$out\"; done\n",
+     "args.txt": "<a\"b>\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Execute Arguments Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "hash_word": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Execute Arguments Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "args.sh": "#!/bin/sh\nout=\"$(dirname \"$0\")/args.txt\"\n: > \"$out\"\nfor a in \"$@\"; do printf '<%s>\\n' \"$a\" >> \"$out\"; done\n",
+     "args.txt": "<x>\n<#y>\n<z>\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Execute Arguments Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "lowercase_placeholder": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Execute Arguments Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "args.sh": "#!/bin/sh\nout=\"$(dirname \"$0\")/args.txt\"\n: > \"$out\"\nfor a in \"$@\"; do printf '<%s>\\n' \"$a\" >> \"$out\"; done\n",
+     "args.txt": "<<<kotordirectory>>>\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Execute Arguments Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "newline": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Execute Arguments Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "args.sh": "#!/bin/sh\nout=\"$(dirname \"$0\")/args.txt\"\n: > \"$out\"\nfor a in \"$@\"; do printf '<%s>\\n' \"$a\" >> \"$out\"; done\n",
+     "args.txt": "<a\nb>\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Execute Arguments Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "no_arguments": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Execute Arguments Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "args.sh": "#!/bin/sh\nout=\"$(dirname \"$0\")/args.txt\"\n: > \"$out\"\nfor a in \"$@\"; do printf '<%s>\\n' \"$a\" >> \"$out\"; done\n",
+     "args.txt": ""
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Execute Arguments Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "placeholder_backslash": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Execute Arguments Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "args.sh": "#!/bin/sh\nout=\"$(dirname \"$0\")/args.txt\"\n: > \"$out\"\nfor a in \"$@\"; do printf '<%s>\\n' \"$a\" >> \"$out\"; done\n",
+     "args.txt": "<<ROOT>/game\\Override>\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Execute Arguments Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "placeholder_forward": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Execute Arguments Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "args.sh": "#!/bin/sh\nout=\"$(dirname \"$0\")/args.txt\"\n: > \"$out\"\nfor a in \"$@\"; do printf '<%s>\\n' \"$a\" >> \"$out\"; done\n",
+     "args.txt": "<<ROOT>/game/Override>\n<<ROOT>/mods>\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Execute Arguments Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "plain": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Execute Arguments Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "args.sh": "#!/bin/sh\nout=\"$(dirname \"$0\")/args.txt\"\n: > \"$out\"\nfor a in \"$@\"; do printf '<%s>\\n' \"$a\" >> \"$out\"; done\n",
+     "args.txt": "<a>\n<b>\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Execute Arguments Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "quoted_placeholder_backslash": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Execute Arguments Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "args.sh": "#!/bin/sh\nout=\"$(dirname \"$0\")/args.txt\"\n: > \"$out\"\nfor a in \"$@\"; do printf '<%s>\\n' \"$a\" >> \"$out\"; done\n",
+     "args.txt": "<<ROOT>/game\\Override\">\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Execute Arguments Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "root_with_space": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Execute Arguments Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "args.sh": "#!/bin/sh\nout=\"$(dirname \"$0\")/args.txt\"\n: > \"$out\"\nfor a in \"$@\"; do printf '<%s>\\n' \"$a\" >> \"$out\"; done\n",
+     "args.txt": "<<ROOT>/game>\n<dir>\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Execute Arguments Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "single_quoted": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Execute Arguments Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "args.sh": "#!/bin/sh\nout=\"$(dirname \"$0\")/args.txt\"\n: > \"$out\"\nfor a in \"$@\"; do printf '<%s>\\n' \"$a\" >> \"$out\"; done\n",
+     "args.txt": "<'a>\n<b'>\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Execute Arguments Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "tab_separated": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Execute Arguments Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "args.sh": "#!/bin/sh\nout=\"$(dirname \"$0\")/args.txt\"\n: > \"$out\"\nfor a in \"$@\"; do printf '<%s>\\n' \"$a\" >> \"$out\"; done\n",
+     "args.txt": "<a>\n<b>\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Execute Arguments Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "trailing_backslash_in_quotes": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Execute Arguments Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "args.sh": "#!/bin/sh\nout=\"$(dirname \"$0\")/args.txt\"\n: > \"$out\"\nfor a in \"$@\"; do printf '<%s>\\n' \"$a\" >> \"$out\"; done\n",
+     "args.txt": "<C:\\dir\\>\n<x>\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Execute Arguments Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "unclosed_quote": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Execute Arguments Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "args.sh": "#!/bin/sh\nout=\"$(dirname \"$0\")/args.txt\"\n: > \"$out\"\nfor a in \"$@\"; do printf '<%s>\\n' \"$a\" >> \"$out\"; done\n",
+     "args.txt": "<a b>\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Execute Arguments Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "unknown_placeholder": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Execute Arguments Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "args.sh": "#!/bin/sh\nout=\"$(dirname \"$0\")/args.txt\"\n: > \"$out\"\nfor a in \"$@\"; do printf '<%s>\\n' \"$a\" >> \"$out\"; done\n",
+     "args.txt": "<<<foo>>>\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Execute Arguments Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "windows_flag_value": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Execute Arguments Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "args.sh": "#!/bin/sh\nout=\"$(dirname \"$0\")/args.txt\"\n: > \"$out\"\nfor a in \"$@\"; do printf '<%s>\\n' \"$a\" >> \"$out\"; done\n",
+     "args.txt": "<--dir=C:\\Program Files\\x>\n<-q>\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Execute Arguments Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ }
+}

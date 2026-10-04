@@ -1528,6 +1528,37 @@ archive name, wrapper folder and ModuleConfig `source` may contain them; a
 ModuleConfig `destination` may not. Archives with `*` or `?` in a member name are
 refused.
 
+## Execute and Run Arguments — 2026-10-04 UTC
+
+An `Execute` or `Run` step's `Arguments` text is now split into the program's
+arguments with the Windows command-line rules on every host, as in C#: .NET splits
+`ProcessStartInfo.Arguments` with those rules on Linux and macOS too, and a Windows
+program's C runtime uses the same rules. Only spaces and tabs separate arguments,
+double quotes group, `""` inside quotes is a literal quote, and a backslash is literal
+unless it comes before a `"`. Before, Rust used POSIX shell rules on Linux and macOS,
+so the same guide ran its program with other arguments there:
+`<<kotorDirectory>>\Override` arrived as `<game>Override`, `sub\file.txt` as
+`subfile.txt`, `'a b'` as one argument, `x #y z` as `x` alone, and a newline separated
+arguments. Validation did not show this; only the program's behaviour differed. No
+shell runs, before or after.
+
+Unchanged and documented: an unclosed double quote (including `"...\Override\"`,
+where `\"` escapes the quote) and an unknown `<<name>>` are refused before any
+program runs, where C# runs the program; placeholders match case-insensitively (C# is
+case-sensitive); and a root folder with spaces stays one argument (C# substitutes
+before splitting and passes two). The Unix standalone HoloPatcher `--args` text keeps
+shell-style splitting.
+Evidence: [execute arguments proof](docs/parity/execute-arguments-proof/README.md),
+89 checks match and 21 are known differences against a live reference oracle (21 fail
+on `0cc50a7`); contract in
+[execute-arguments-contract.md](docs/parity/execute-arguments-contract.md).
+
+Guide authors: write Arguments as on a Windows command line; they mean the same on
+every host. Keep backslashes as they are, group with double quotes, and treat single
+quotes and `#` as ordinary characters. Do not end a quoted argument with one backslash
+(`"<<kotorDirectory>>\Override\"`); drop the trailing backslash or double it. Spell
+placeholders exactly as `<<modDirectory>>`, `<<kotorDirectory>>` or `<<gameDirectory>>`.
+
 ## CleanList list-file choice — 2026-10-04 UTC
 
 A `CleanList` reads one list file. When its Source list names more than one existing
