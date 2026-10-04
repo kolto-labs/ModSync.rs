@@ -9,6 +9,17 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Execute and Run Arguments (2026-10-04, F05/F09): an `Execute` or `Run` step's
+`Arguments` text is now split with the Windows command-line rules on every host, as
+.NET splits C# `ProcessStartInfo.Arguments` on Linux too. Rust used POSIX shell rules
+on Linux and macOS, so the program received other arguments: backslashes vanished
+(`<<kotorDirectory>>\Override` became `<game>Override`), `'a b'` grouped, `#` began a
+comment and a newline separated. Validation could not show it. Unclosed quotes and
+unknown placeholders stay refused, and a root with spaces stays one argument
+(documented). Proof: 89 match and 21 known differences against a live reference
+oracle; 21 fail on `0cc50a7`. The regression probes stay at baseline. See
+[execute-arguments-contract.md](execute-arguments-contract.md).
+
 Archive members with brackets (2026-10-04, F06/F05): an archive whose member names
 contain `[` or `]` (`Override/x[1].tga`, `[HD] textures/`) now extracts and installs as
 in C#, whose `TryGetZipSafeArchiveEntryExtractPath` keeps those characters. Rust
