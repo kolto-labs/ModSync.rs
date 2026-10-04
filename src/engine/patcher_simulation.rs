@@ -152,7 +152,8 @@ impl Engine {
                 .context("Selected patcher namespace has no IniName")?;
             let folder = ini.field(section, "DataPath").unwrap_or("");
             // INI values name the mod's own files and folders, never a pattern, so `[`
-            // and `]` are literal, as Path.Combine takes them in the reference.
+            // and `]` are literal, consistent with the InstallList names (the reference
+            // simulation does not read namespaces.ini).
             let filename = literal_relative(filename)?;
             ensure!(
                 filename.file_name().is_some(),

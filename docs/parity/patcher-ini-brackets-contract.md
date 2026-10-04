@@ -81,6 +81,14 @@ add a Rename of the simulated file, which passes only if the file is present.
 
 ## Known differences
 
+- **Simulation destination (pre-existing).** C# always places simulated writes under
+  `MainConfig.DestinationPath`; Rust uses the step's resolved Destination
+  (`src/engine/patcher_simulation.rs`, around line 232). Every probe case uses
+  `<<kotorDirectory>>`, so this slice's results are unaffected.
+- **Backslash in an INI name on Linux (pre-existing).** C# `Path.Combine` keeps `\` as a
+  literal character on Linux; Rust treats it as a separator, as on Windows. The probe
+  uses `/` only.
+
 - **`*` and `?` in an INI name (deliberate, probed).** No Windows file can hold these
   characters, so a mod that names one cannot install on Windows. C# on Linux simulates
   `Override/s*.tga` and passes; Rust refuses the INI entry on every host, as it
