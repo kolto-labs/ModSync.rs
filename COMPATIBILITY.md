@@ -1850,6 +1850,37 @@ the guide for the same reason and `install` would stop there: fetch or place the
 missing file (or pass `--allow-processes` for a trusted Execute step), then validate
 again. Use `--dry-run` to see every component with a missing download at once.
 
+## Missing destination folders in the full validation pipeline — 2026-10-04 UTC
+
+The full validation pipeline (`validate --full`, `validate --full --dry-run`, the
+desktop Validate step, the `--phase remaining` report) no longer fails a `Copy`, `Move`
+or `CleanList` step whose Destination folder does not exist yet but can be created (no
+`.` part, no file in the way). C# runs the same checks in that pipeline's Environment
+stage first, with AttemptFixes on by default, and creates each such folder there, so
+its archive stage prints `OK: <component>` and its `install`, which runs this pipeline
+unless `--skip-validation` is given, installs the files. Rust creates nothing while
+validating: its dry run and step simulation create the folder virtually, and install
+creates it. Before, Rust's full report failed with `Destination cannot be found!
+Got '<path>'` while Rust's plain `validate` and `install` passed the same guide, and
+the desktop app would not install it.
+
+Unchanged: the basic report (`validate --output json`, with or without `--dry-run`, no
+`--full`) still reports every missing folder, as C#'s basic report does. A
+`DelDuplicate` into a missing folder is still refused everywhere (deliberate; C#
+creates the folder and passes). An empty Destination, a `.` part, a file in the way
+and a missing archive still fail (in C# they fail its Environment stage instead). Plain
+`validate` and `install` are unchanged; they already passed these guides, as C#
+`install` does. Evidence: [full pipeline destination
+proof](docs/parity/full-pipeline-destination-proof/README.md), 120 checks match and
+18 are known differences against the live C# CLI with a HoloPatcher stub (78 fail on
+`38c6ca9`); contract in
+[full-pipeline-destination-contract.md](docs/parity/full-pipeline-destination-contract.md).
+
+Users: the desktop Validate step and `validate --full` now pass a guide that copies
+into a folder your game does not have yet (for example a missing `Override`), and
+install creates the folder, as the C# wizard does. Unlike C#, validating does not
+create the folder, so it appears only once you install.
+
 ## A patcher without changes.ini in the validation dry run — 2026-10-04 UTC
 
 When a component's `Patcher` step finds its patcher executable but no `changes.ini`

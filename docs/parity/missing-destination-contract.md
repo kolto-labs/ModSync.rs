@@ -91,6 +91,8 @@ desktop Validate step share. The desktop builds one card per `ERROR:` message
 (`src/validation/presentation.rs:125-145`), and `Report::first_issue`
 (`src/validation.rs:218`) picks the first error, so both now show each missing folder.
 Plain `validate`, `install` and the dry run do not use this stage and are unchanged.
+(Later: in the full pipeline this stage no longer reports a folder that can be created;
+see [full-pipeline-destination-contract.md](full-pipeline-destination-contract.md).)
 The basic validator without roots (`src/validation/basic.rs:574-643`) already used the
 C# wording and is unchanged.
 
@@ -152,6 +154,11 @@ C# wording and is unchanged.
   the dry run that follows passes a DelDuplicate into it (`deldup`, where Rust's dry
   run still fails), and running validation again passes. Rust validation never changes
   the game or mod trees, so it reports every step into a missing folder, every time.
+  This holds for the basic report compared here. In the full pipeline (`--full`, the
+  desktop Validate step) C#'s Environment stage creates the folders before this stage
+  runs, so C# passes; Rust's full report now leaves out a missing Copy, Move or
+  CleanList folder that can be created
+  ([full-pipeline-destination-contract.md](full-pipeline-destination-contract.md)).
 - **Other failures end the component's checks (unchanged, fail-closed).** A Patcher or
   Rename Destination that Rust refuses, an unsafe path, or an unsupported action ends
   the component's checks with one `archive/destination validation` error, and the
@@ -179,5 +186,7 @@ C# wording and is unchanged.
   in [file-selection-fallback-contract.md](file-selection-fallback-contract.md)); a
   component with no instructions passes in C# and fails Rust's dry run; `--full` needs
   a packaged HoloPatcher in C# and fails its Environment stage without one.
+  With a HoloPatcher stub the full pipeline was compared later
+  ([full-pipeline-destination-contract.md](full-pipeline-destination-contract.md)).
 - **Platform.** The reference ran on Linux with `DOTNET_ROLL_FORWARD=Major` (the pinned
   build targets .NET 9; the host has .NET 10). The probe's paths have no symlinks.
