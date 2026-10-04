@@ -246,7 +246,14 @@ follow-up matches the way the engine resolves sources (`scope_folder_*`,
 `scope_char_class_*`):
 
 - The last source component is matched with the engine's own glob matcher
-  (`*`, `?`, `[...]`, case-insensitive after Unicode folding).
+  (`*`, `?`, case-insensitive after Unicode folding). Since 2026-10-04 that matcher
+  follows C# `PathHelper.WildcardPathMatch`: `[` and `]` are literal and `**` stays
+  within one level (see [delete-directory-contract.md](../delete-directory-contract.md)).
+  `scope_char_class_*` therefore now expects `[e]xample.zip` to name no file: the
+  FOMOD stage still passes, but install, the report and plain validate refuse the
+  missing source (exit 1, no game writes). The reference refuses the same Extract
+  with `MissingSourceFiles` (delete-directory proof, `extract_bracket_literal`).
+  The check count is unchanged at 254.
 - The archive's folder is not known when choices are applied, so any source whose last
   component is not an archive file name (`.zip`, `.7z`, `.rar`, `.exe`, `.tar`, `.gz`)
   is treated as a possible folder containing it. An unparseable glob is kept as well.

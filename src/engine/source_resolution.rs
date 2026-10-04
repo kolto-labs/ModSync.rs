@@ -151,7 +151,11 @@ impl Engine {
             for source in &instruction.source {
                 self.source_pattern(source)?;
             }
-            self.matches(&instruction.source, false)
+            self.matches_scoped(
+                &instruction.source,
+                false,
+                authored_descendants(&instruction.action),
+            )
         };
         let sources = match direct {
             Ok(sources) => sources,
@@ -275,10 +279,13 @@ impl Engine {
         }
     }
 
+    /// `descendants` false (authored Copy/Move, see [`authored_descendants`]): a
+    /// Source names only the files its literal or wildcard path matches.
     fn recovery_matches(
         &self,
         sources: &[String],
         directory: bool,
+        descendants: bool,
         budget: &mut Budget,
     ) -> Result<Vec<PathBuf>> {
         let mut result = BTreeMap::new();
@@ -295,7 +302,11 @@ impl Engine {
             let mut found = false;
             for (key, (path, content)) in &self.files {
                 budget.visit()?;
-                if self.source_matches(&prefix, &pattern, key) {
+                if if descendants {
+                    self.source_matches(&prefix, &pattern, key)
+                } else {
+                    self.path_policy.glob_matches(&pattern, key)
+                } {
                     self.settings.roots.check(path)?;
                     if !matches!(content, Content::Unknown) || self.install {
                         content.open()?;
@@ -323,7 +334,8 @@ impl Engine {
         let mut writes = Vec::new();
         let mut produced = BTreeSet::new();
         let directory = instruction.action == "Patcher";
-        let direct = self.recovery_matches(&instruction.source, directory, budget);
+        let descendants = authored_descendants(&instruction.action);
+        let direct = self.recovery_matches(&instruction.source, directory, descendants, budget);
         let sources = match direct {
             Ok(sources) => sources,
             Err(error) if error.is::<MissingSource>() => {
@@ -334,7 +346,8 @@ impl Engine {
                     &mut writes,
                     &mut produced,
                 )? {
-                    match self.recovery_matches(&instruction.source, directory, budget) {
+                    match self.recovery_matches(&instruction.source, directory, descendants, budget)
+                    {
                         Ok(sources) => sources,
                         Err(error) if error.is::<MissingSource>() => {
                             self.descendants(instruction, budget)?
@@ -343,7 +356,7 @@ impl Engine {
                     }
                 } else {
                     let variant = self.move_variant(instruction, budget)?;
-                    match self.recovery_matches(&variant, directory, budget) {
+                    match self.recovery_matches(&variant, directory, descendants, budget) {
                         Ok(sources) => sources,
                         Err(error) if error.is::<MissingSource>() => {
                             if self.redundant_move(instruction, budget)? {
@@ -517,7 +530,10 @@ impl Engine {
             for raw in &copy.source {
                 self.source_pattern(raw)?;
             }
-            let sources = self.recovery_matches(&copy.source, false, budget)?;
+            // As in the explicit Extract path, which runs these through the Copy
+            // arm: the mapper writes folders as `folder/*`, so files only.
+            let sources =
+                self.recovery_matches(&copy.source, false, authored_descendants("Copy"), budget)?;
             let target = self.path(&copy.destination, false)?;
             for source in sources {
                 budget.visit()?;
@@ -556,6 +572,7 @@ impl Engine {
             match self.recovery_matches(
                 std::slice::from_ref(raw),
                 instruction.action == "Patcher",
+                authored_descendants(&instruction.action),
                 budget,
             ) {
                 Ok(_) => continue,
@@ -635,6 +652,7 @@ impl Engine {
             match self.recovery_matches(
                 std::slice::from_ref(raw),
                 instruction.action == "Patcher",
+                authored_descendants(&instruction.action),
                 budget,
             ) {
                 Ok(paths) => {

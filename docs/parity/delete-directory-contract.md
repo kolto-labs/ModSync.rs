@@ -1,9 +1,12 @@
-# Delete with a directory Source
+# Directory Sources and wildcard rules for file actions
 
 This contract covers the F05-DELETE "literal directory" case from the
 [actions audit](engine-actions-archives-audit.md): a `Delete` instruction whose
 Source names a directory, for example
 `Delete <<kotorDirectory>>/Override/textures` or `Delete <<kotorDirectory>>/Override`.
+The follow-up (after review of `4fb71a6`) extends it to `Copy`, `Move` and
+`Rename` with a directory Source, and to the wildcard rules every Source uses
+(`**`, `[...]`) (F05-X2).
 The reference is pinned C# `d31ccbd3`, and C# paths below are under
 `src/ModSync.Core/` there. Evidence:
 [delete-directory-proof](delete-directory-proof/README.md). F05 stays partial.
@@ -16,7 +19,7 @@ with `SetRealPaths(skipExistenceCheck: true)`, then `Instruction.DeleteFile`
 appends every literal source as written, present or not (`Instruction.cs:305-345`).
 `DeleteFile` (`Instruction.cs:828-933`) then checks each path with
 `_fileSystemProvider.FileExists` (`:865`). The real provider's `FileExists` is
-`File.Exists` (`Services/FileSystem/RealFileSystemProvider.cs:25`), which is
+`File.Exists` (`Services/FileSystem/RealFileSystemProvider.cs:27`), which is
 false for a directory. So a directory Source is treated exactly like a missing
 file:
 
@@ -44,11 +47,53 @@ emptied the directory where C# deletes nothing. `Delete <<kotorDirectory>>/Overr
 removed every file in `Override`. Plain `validate` and the dry-run report passed in
 both, so nothing warned the author.
 
+## Triage of the follow-up at `4fb71a6`
+
+**C# wildcard rules.** `PathHelper.EnumerateFilesWithWildcards`
+(`FileSystemUtils/PathHelper.cs:617-756`) returns files only: a literal path is
+kept when `FileExists` holds (`:658-679`), and a pattern lists every file under
+its first wildcard-free ancestor and keeps those for which
+`WildcardPathMatch(file, pattern)` holds (`:684-714`). `WildcardPathMatch`
+(`:760-800`) requires the same number of path levels and matches level by level.
+`WildcardMatch` (`:802-820`) `Regex.Escape`s the level and turns `\*` into `.*`
+and `\?` into `.`. So `*` and `**` both match any run of characters within one
+level, `?` matches one character, and `[`/`]` are literal. Matching is ordinal
+(case-sensitive); Rust keeps its deliberate case-insensitive keys.
+
+**C# directory Sources in Copy, Move and Rename.** Copy and Move bind through
+`TryResolveInstructionSourcesAsync` and fail with `FileNotFoundPre` when it finds
+nothing (`ModComponent.cs:1597-1624`); Rename uses `SetRealPaths(skipExistenceCheck:
+true)` and `RenameFile` (`:1625-1629`, `Instruction.cs:936-1016`), which returns
+`FileNotFoundPost` for a path that is not a file. Both map to `MissingSourceFiles`
+on install and to the `DryRunSkipped` warning in the dry run. Nothing is copied,
+moved or renamed, whatever `Overwrite` is.
+
+**Rust at `4fb71a6`.**
+
+- `source_pattern` (`src/engine.rs:1892-1904`) passed the authored path to the
+  `glob` crate unchanged, so `**` as a whole level matched any depth and `[ab]` was
+  a character class. The FOMOD scoping copies built the same pattern
+  (`src/fomod/resolved_choices.rs:147`, `src/fomod.rs:919`).
+- Copy and Move bound with `matches` (`src/engine/source_resolution.rs:154`) and,
+  on a miss, recovery's `recovery_matches` (`:278-310`, descendant test at `:298`);
+  Rename bound with `matches` (`src/engine.rs:2205`). All three kept the descendant
+  rule, so a directory Source expanded to every file under it, flattened into the
+  destination. `Move Override/sub -> <<modDirectory>>/d` moved the whole subtree out
+  of `Override`; `Rename Override/sub -> c.txt` renamed every file under it onto one
+  name, overwriting as it went.
+- A missing Rename Source raised the untyped `MissingSource` cause, so the dry-run
+  report showed an error where C# reports `DryRunSkipped` (any missing Rename
+  file, not only a directory).
+
+**Status.** Data loss in both: `Delete Override/**` emptied every subfolder, and
+`Move`/`Rename` of a directory Source moved or overwrote whole subtrees, where C#
+changes nothing.
+
 ## Behaviour after this slice
 
 - **Directory Source.** `Delete` now matches only the files its literal or
   wildcard Source names (`Engine::matches_scoped(.., descendants = false)`,
-  `src/engine.rs:1859`, used by the Delete branch at `src/engine.rs:2300`). A
+  `src/engine.rs:1889`, used by the Delete branch at `src/engine.rs:2340`). A
   directory Source matches nothing beneath it, so it is a miss:
   - `Overwrite` false or omitted: nothing is deleted and the step succeeds. If
     no Source of the step matched anything, Rust's existing validation warning
@@ -57,13 +102,36 @@ both, so nothing warned the author.
   - `Overwrite = true`: unchanged, the typed missing-source cause
     (`DryRunSkipped` in the dry-run report, rejected by plain validate and
     install before any write).
-- **Unchanged.** Wildcards still match files only in the directory they name
-  (`Override/*` does not reach `Override/sub/x.tga`, before or after). Other
-  actions keep the descendant rule; see below.
+- **Copy, Move, Rename (follow-up).** `authored_descendants` (`src/engine.rs:192`)
+  is false for authored `Copy`, `Move`, `Rename` and `Delete`. Copy and Move bind
+  with `matches_scoped(.., false)` (`src/engine/source_resolution.rs:154-158`), and
+  recovery uses the same rule (`recovery_matches`, `:282-326`; callers at `:338`, `:349`, `:359`,
+  `:572`, `:652`), so validate and install agree. Configured FOMOD copies use it
+  too (`:536`): the mapper writes a folder as `folder/*`, and the explicit Extract
+  path already runs those copies through the Copy arm. Rename binds with it at
+  `src/engine.rs:2237`. A directory Source is now a missing source: plain validate
+  and install refuse it with `MissingSourceFiles`, and the dry-run report gives
+  `DryRunSkipped`, with any `Overwrite`. A missing Rename Source is now typed
+  `MissingSourceFiles` as well.
+- **Wildcards (follow-up).** `source_wildcard_glob` (`src/engine.rs:200`) turns an
+  authored Source into glob text with the C# rules: runs of `*` collapse to one
+  `*` (so `**` matches within one level only), `?` stays, `[` and `]` are escaped
+  as literals. `source_pattern` (`src/engine.rs:1922`) and both FOMOD scoping
+  copies (`src/fomod/resolved_choices.rs:150`, `src/fomod.rs:919`) use it, so it
+  applies to every action's Source. A wildcard reaches only files at its own
+  depth: `Override/*` and `Override/**` match files directly in `Override`;
+  `Override/*/x.tga` and `Override/**/x.tga` match `x.tga` exactly one level down.
+- **Warning wording.** A Delete Source that is a directory now records `Delete
+  Source is a directory; Delete removes files only: <path>` instead of `Attempting
+  to delete non-existent file`. Exit codes are unchanged.
+- **Unchanged.** Extract, Patcher, Execute/Run, CleanList, the archive preflight,
+  the FOMOD gate and `resolved_choices` keep the descendant rule (FOMOD
+  root-folder flows rely on it for Extract).
 
 ## Edge cases compared with the live reference
 
-Every case is in the proof; all match after this slice.
+Every case is in the proof; all match after this slice except the known
+differences marked.
 
 | Case | Result (both) |
 | --- | --- |
@@ -79,20 +147,65 @@ Every case is in the proof; all match after this slice.
 | read-only file inside the directory | kept |
 | directory, then a later Delete of a file | later step runs |
 | `<<kotorDirectory>>` itself | success, nothing deleted (matched before this slice too) |
+| `Delete Override/**` | top-level files deleted, subfolders kept |
+| `Delete Override/**/y.tga` (`y.tga` two levels down) | nothing deleted |
+| `Delete Override/**/x.tga`, `Override/*/x.tga` (`x.tga` one level down) | `sub/x.tga` deleted |
+| `Delete Override/su*` (matches only a directory) | nothing deleted |
+| `Delete Override/?.tga` | `a.tga`, `s.tga` deleted |
+| `Delete Override/[ab].tga`, a file literally named `[ab].tga` present / absent | that file deleted / nothing deleted (`a.tga` kept) |
+| `Copy <<modDirectory>>/d/**` with `d/e/n.txt` | only `d/m.txt` copied |
+| `Copy Override/[ab].tga` | the literal file copied |
+| `Copy` / `Move` of `Override/sub`, omitted / false; `Move Override` | refused (`MissingSourceFiles`), `DryRunSkipped`, nothing changed |
+| `Copy <<modDirectory>>/d -> Override` | refused, `DryRunSkipped` |
+| `Copy <<modDirectory>>/d/*` (control) | `m.txt` copied |
+| `Rename Override/sub -> c.txt`, omitted / false | refused, `DryRunSkipped` |
+| `Rename` of a missing file | refused, `DryRunSkipped` |
+| `Copy [<<modDirectory>>/d, <<modDirectory>>/d/m.txt]` | known difference, see below |
+| `Extract <<modDirectory>>/d` | install refused in both; dry-run report: known difference |
+| `Extract <<modDirectory>>/[e]xample.zip` with `example.zip` present | refused (`MissingSourceFiles`); dry-run report: known difference |
 
 ## Known differences
 
-- **Warning.** With `Overwrite` false or omitted and nothing else matched, Rust
-  records the validation warning `Attempting to delete non-existent file` in
-  plain validate and the dry-run report. C# logs only a verbose line and its dry
-  run reports no issue. The decision and tree match; the probe does not compare
-  ordinary warnings. This is Rust's existing missing-file behaviour.
+- **Warning.** With `Overwrite` false or omitted, when no Source of the step
+  matched anything, Rust records a `DeleteFile` warning in the `validate --dry-run`
+  report only (plain validate, install and the JSON summary without `--dry-run`
+  show none): `Delete Source is a directory; Delete removes files only: <path>`
+  for a directory, `Attempting to delete non-existent file: <path>` otherwise. It
+  is not recorded when another Source of the step matched. C# logs only a verbose
+  line and its dry run reports no issue. The decision and tree match; the probe
+  does not compare ordinary warnings.
+- **Directory plus a matching Source.** `Copy [<<modDirectory>>/d,
+  <<modDirectory>>/d/m.txt]`: C# drops the missing literal because another Source
+  matched and copies `m.txt`; Rust requires every Source to match (the existing
+  F05-X2 rule) and refuses, with `DryRunSkipped` in the dry run. `4fb71a6`
+  accepted it by accident (the folder expanded to `m.txt`). This is fail-closed,
+  not data loss; the probe counts it as a known difference and fails if Rust ever
+  accepts it.
+- **Extract with a directory Source.** Extract keeps the folder rule, so Rust
+  tries to unpack the folder's files and the dry-run report has an error where C#
+  reports `DryRunSkipped`. Install is refused in both. Kept because FOMOD
+  root-folder flows depend on the rule; counted as a known difference.
+- **Missing Extract archive in the full report.** For `Extract
+  <<modDirectory>>/[e]xample.zip` (and any missing Extract archive, also on
+  `2241235`) Rust's `validate --dry-run` report has a ComponentValidation error
+  beside the `DryRunSkipped` warning; C# reports only the skip. Validate and
+  install match. Counted as a known difference.
+- **FOMOD S2b proof.** `scope_char_class_*` relied on `[e]` being a character
+  class. It now expects the missing-source refusal; see the
+  [S2b README](fomod-s2b-proof/README.md). Its count stays 254.
+- **Case.** C# wildcard matching is ordinal; Rust keeps its case-insensitive keys
+  (a deliberate choice). The probe's case variant is a literal directory.
 - **Symlinks.** Not probed: Rust refuses any symlink in an install tree (a
   deliberate fail-closed rule, see [copy-move-self-contract.md](copy-move-self-contract.md)).
-- **Directory Source in other actions.** Found by the same sweep, not changed
-  here: `Copy <<modDirectory>>/d -> Override` copies the files under `d`
-  (flattened) in Rust, while C# fails with `MissingSourceFiles`. The descendant
-  rule is shared by source recovery and FOMOD scoping, so it needs its own slice.
+
+## Results
+
+| Binary | Delete-directory proof |
+| --- | --- |
+| follow-up, live and recorded reference | 121 match / 5 known difference / 0 fail (126 checks) |
+| `4fb71a6` | 88 / 1 / 37 fail |
+| `2241235` | 78 / 1 / 47 fail |
+| first slice (`4fb71a6`, 57 checks) | 57 / 0; `2241235`: 47 / 10 fail |
 
 ## Other differences seen in the sweep (not changed)
 
@@ -107,8 +220,10 @@ slices:
   (`Source equals destination`); C# renames it.
 - `Rename` with a placeholder-path Destination (`<<kotorDirectory>>/Override/b.txt`)
   succeeds in Rust; C# fails with `UnknownError`.
-- `Rename Override/*.txt -> c.txt` (two matches, Overwrite default): Rust keeps the
-  last source's content, C# the first's.
+- `Rename Override/*.txt -> c.txt` (two matches onto one name, Overwrite default):
+  both keep one survivor, but which one depends on enumeration order. Rust walks
+  its sorted keys; C# walks the file-system listing, which is not a defined order.
+  In the sweep run Rust kept `b.txt`'s content and C# `a.txt`'s.
 - `CleanList` with a row path containing `"` or `..`: Rust refuses the step as an
   unsafe path (deliberate); C# skips or deletes it. `CleanList` with a row whose
   case differs from the file on disk deletes in Rust; C# on Linux does not find it
@@ -119,9 +234,12 @@ slices:
 
 ## Notes for guide authors
 
-- `Delete` removes files, never directories. A Source that names a folder deletes
-  nothing, in C# and now in Rust. To clear a folder, use a wildcard such as
-  `<<kotorDirectory>>/Override/textures/*`; it reaches only files directly in that
-  folder.
-- With `Overwrite = true`, a folder Source fails the mod, because no file exists
-  at that path.
+- `Delete`, `Copy`, `Move` and `Rename` act on files, never folders. A Source that
+  names a folder is a missing file: Delete deletes nothing (and with `Overwrite =
+  true` fails the mod); Copy, Move and Rename fail the mod. Use a wildcard such as
+  `<<kotorDirectory>>/Override/textures/*` instead.
+- A wildcard reaches only files at its own depth. `*` and `**` both stay within one
+  folder level: `Override/**` means the files directly in `Override`, not its
+  subfolders. Write one Source per folder level you need, for example
+  `Override/textures/*` and `Override/textures/hd/*`.
+- `[` and `]` in a Source are ordinary characters, not a character class.

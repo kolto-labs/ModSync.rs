@@ -1422,30 +1422,57 @@ Guide authors: copying or moving a file onto itself does nothing useful. With
 `Destination` at another folder, or narrow the Source so it does not match files
 already there.
 
-## Delete with a directory Source — 2026-10-04 UTC
+## Directory Sources and wildcard rules for file actions — 2026-10-04 UTC
 
-A `Delete` instruction whose Source names a directory (`<<kotorDirectory>>/Override`,
-`<<kotorDirectory>>/Override/textures`, a mod folder) now deletes nothing beneath it,
-as C# does. C# `Instruction.DeleteFile` deletes a path only when `File.Exists` holds,
-which is false for a directory, so it treats the Source as a missing file: skipped
-with `Overwrite` false or omitted, `MissingSourceFiles` with `Overwrite = true`.
-Before this change Rust took Delete's targets from the engine's shared source
-matching, which also matches every file under a directory Source, so the step deleted
-the whole subtree; `Delete <<kotorDirectory>>/Override` emptied `Override`, with no
-error or warning in validate, the dry-run report or install. Delete now matches only
-the files a literal or wildcard Source names. `Overwrite = true` with a directory
-Source was already refused, as in C#, and is unchanged. When no Source of the step
-matched anything, Rust records its existing `Attempting to delete non-existent file`
-warning; C# reports none. Wildcards still reach only files directly in the folder
-they name. Every other action keeps the descendant rule
-(a directory Source for `Copy` still differs from C#; see the contract). Evidence:
-[delete-directory proof](docs/parity/delete-directory-proof/README.md), 57/57 checks
-against a live reference oracle (10 fail on `2241235`); contract in
+A `Delete`, `Copy`, `Move` or `Rename` Source that names a directory
+(`<<kotorDirectory>>/Override`, `<<kotorDirectory>>/Override/textures`, a mod folder)
+no longer reaches the files beneath it, as in C#. The reference binds these Sources
+with `PathHelper.EnumerateFilesWithWildcards`, which returns files only, and
+`Instruction.DeleteFile` deletes a path only when `File.Exists` holds. So a folder
+Source is a missing file:
+
+- `Delete`: nothing is deleted with `Overwrite` false or omitted; with `Overwrite =
+  true` the step fails with `MissingSourceFiles`, as before.
+- `Copy`, `Move`, `Rename`: the step fails with `MissingSourceFiles` whatever
+  `Overwrite` is. Plain `validate` and `install` refuse before any write; the
+  `validate --dry-run` report gives the `DryRunSkipped` warning. A missing Rename
+  Source of any kind is now typed the same way (it was an error in the dry-run report).
+
+Before this change Rust took these Sources from the engine's shared source matching,
+which also matches every file under a folder Source. `Delete <<kotorDirectory>>/Override`
+emptied `Override`; `Move <<kotorDirectory>>/Override/sub -> <<modDirectory>>/d` moved the
+whole subtree, flattened, out of the game; `Rename <<kotorDirectory>>/Override/sub -> c.txt`
+renamed every file under it onto one name, overwriting as it went. None of them warned.
+
+Wildcards in every action's Source now follow C# `PathHelper.WildcardPathMatch`: each
+path level is matched on its own, `*` and `**` match any run of characters within one
+level (`**` is not recursive), `?` matches one character, and `[` and `]` are literal
+characters, not a class. Before, `Delete <<kotorDirectory>>/Override/**` deleted every
+file in every subfolder of `Override` (C# deletes only the files directly in it), and
+`Delete <<kotorDirectory>>/Override/[ab].tga` deleted `a.tga` (C# deletes only a file
+literally named `[ab].tga`). The FOMOD choice scoping uses the same rule.
+
+Unchanged: Extract, Patcher, Execute/Run, CleanList, the archive preflight and the
+FOMOD gate keep the folder rule. Known differences: `Copy [<<modDirectory>>/d,
+<<modDirectory>>/d/m.txt]` is refused by Rust, which requires every Source to match,
+where C# drops the missing folder and copies `m.txt`; Extract of a folder Source is
+refused by both, but Rust's dry-run report has an error where C# only skips; when no
+Delete Source matched, `validate --dry-run` adds a `DeleteFile` warning (`Delete Source
+is a directory; Delete removes files only: <path>` for a folder) that C# does not;
+Rust matching stays case-insensitive where C# wildcard matching is ordinal. The FOMOD
+S2b proof's `scope_char_class_*` checks now expect `[e]xample.zip` to be a missing
+source (254 checks, unchanged count). Evidence:
+[delete-directory proof](docs/parity/delete-directory-proof/README.md), 121 checks
+match and 5 are known differences against a live reference oracle (37 fail on
+`4fb71a6`, 47 on `2241235`); contract in
 [delete-directory-contract.md](docs/parity/delete-directory-contract.md).
 
-Guide authors: `Delete` removes files, never folders. A Source that names a folder
-deletes nothing, in C# and now in Rust; with `Overwrite = true` it fails the mod. To
-clear a folder's files, use a wildcard such as `<<kotorDirectory>>/Override/textures/*`.
+Guide authors: `Delete`, `Copy`, `Move` and `Rename` act on files, not folders. A Source
+that names a folder is a missing file: Delete deletes nothing (and fails with `Overwrite
+= true`); Copy, Move and Rename fail the mod, in C# and now in Rust. Use `folder/*`.
+A wildcard reaches only its own folder level: `Override/**` is the same as
+`Override/*`, so name each subfolder level you need (`textures/*`, `textures/hd/*`).
+`[` and `]` in a Source are ordinary characters.
 
 ## Fetch shared URL and destination — 2026-09-28 UTC
 

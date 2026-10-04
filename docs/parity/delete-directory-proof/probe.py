@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Delete with a directory Source proof: drives the production `modsync`.
+"""Directory Sources and wildcard rules proof: drives the production `modsync`.
 
-Each case is a disposable mod/game fixture plus a TOML guide whose Delete step
-names a directory (or a wildcard that also matches directories). The Rust binary
+Each case is a disposable mod/game fixture plus a TOML guide whose Delete, Copy,
+Move, Rename or Extract step names a directory, or uses `**`, `?`, a mid-path
+`*` or `[...]` in its Source (C# PathHelper.WildcardPathMatch rules). The Rust binary
 runs `validate --output json --dry-run`, plain `validate` and `install` on fresh
 copies. The dry-run report's decision and its DryRunSkipped classification are
 compared with the reference dry run. Plain validate is Rust's strict install
@@ -30,6 +31,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+import zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
@@ -52,17 +54,27 @@ EMPTY_DIRS = ["game/Override/empty"]
 
 
 def delete(sources, overwrite=None):
-    return ("Delete", sources, overwrite)
+    return ("Delete", sources, None, overwrite)
 
 
-# name -> (instructions, read-only fixture files)
+def step(action, sources, destination, overwrite=None):
+    return (action, sources, destination, overwrite)
+
+
+MD = "<<modDirectory>>"
+BRACKET = {"game/Override/[ab].tga": "AB\n"}
+DEEP_MOD = {"mods/d/e/n.txt": "N\n"}
+# A ZIP (written by the fixture) whose name a `[e]` class would match.
+EXAMPLE_ZIP = {"mods/example.zip": {"z.txt": "Z\n"}}
+
+# name -> (instructions, read-only fixture files[, extra fixture files])
 CASES = {
     "dir_omitted": ([delete([SUB])], []),
     "dir_false": ([delete([SUB], False)], []),
     "dir_true": ([delete([SUB], True)], []),
     "override_omitted": ([delete([OV])], []),
     "override_true": ([delete([OV], True)], []),
-    "mod_dir_omitted": ([delete(["<<modDirectory>>/d"])], []),
+    "mod_dir_omitted": ([delete([MD + "/d"])], []),
     "dir_trailing_slash_omitted": ([delete([SUB + "/"])], []),
     "dir_backslash_omitted": ([delete(["<<kotorDirectory>>\\Override\\sub"])], []),
     "dir_case_omitted": ([delete([OV + "/SUB"])], []),
@@ -76,6 +88,32 @@ CASES = {
     "dir_readonly_omitted": ([delete([SUB])], ["game/Override/sub/x.tga"]),
     "dir_then_later_omitted": ([delete([SUB]), delete([OV + "/a.tga"])], []),
     "game_root_omitted": ([delete(["<<kotorDirectory>>"])], []),
+    # Wildcard rules (C# PathHelper.WildcardPathMatch): one level per path level,
+    # `**` is `*`, `[` and `]` are literal.
+    "doublestar_omitted": ([delete([OV + "/**"])], []),
+    "doublestar_deep_omitted": ([delete([OV + "/**/y.tga"])], []),
+    "doublestar_one_level_omitted": ([delete([OV + "/**/x.tga"])], []),
+    "star_level_omitted": ([delete([OV + "/*/x.tga"])], []),
+    "dir_glob_only_omitted": ([delete([OV + "/su*"])], []),
+    "question_mark_omitted": ([delete([OV + "/?.tga"])], []),
+    "bracket_literal_omitted": ([delete([OV + "/[ab].tga"])], [], BRACKET),
+    "bracket_absent_omitted": ([delete([OV + "/[ab].tga"])], []),
+    "copy_doublestar": ([step("Copy", [MD + "/d/**"], OV)], [], DEEP_MOD),
+    "copy_bracket_literal": ([step("Copy", [OV + "/[ab].tga"], MD + "/d")], [], BRACKET),
+    # Copy, Move, Rename and Extract with a directory Source.
+    "copy_dir_omitted": ([step("Copy", [SUB], MD + "/d")], []),
+    "copy_dir_false": ([step("Copy", [SUB], MD + "/d", False)], []),
+    "copy_mod_dir_omitted": ([step("Copy", [MD + "/d"], OV)], []),
+    "copy_dir_glob_control": ([step("Copy", [MD + "/d/*"], OV)], []),
+    "copy_dir_and_file_omitted": ([step("Copy", [MD + "/d", MD + "/d/m.txt"], OV)], []),
+    "move_dir_omitted": ([step("Move", [SUB], MD + "/d")], []),
+    "move_dir_false": ([step("Move", [SUB], MD + "/d", False)], []),
+    "move_override_omitted": ([step("Move", [OV], MD + "/d")], []),
+    "rename_dir_omitted": ([step("Rename", [SUB], "c.txt")], []),
+    "rename_dir_false": ([step("Rename", [SUB], "c.txt", False)], []),
+    "rename_missing_file_omitted": ([step("Rename", [OV + "/nope.txt"], "c.txt")], []),
+    "extract_dir_omitted": ([step("Extract", [MD + "/d"], MD + "/out")], []),
+    "extract_bracket_literal": ([step("Extract", [MD + "/[e]xample.zip"], MD + "/out")], [], EXAMPLE_ZIP),
 }
 
 
@@ -85,21 +123,30 @@ def toml_string(value):
 
 def guide(instructions):
     lines = ["[[thisMod]]", f'Guid = "{GUID}"', 'Name = "Delete Directory Probe"', "IsSelected = true"]
-    for action, sources, overwrite in instructions:
+    for action, sources, destination, overwrite in instructions:
         lines += ["", "[[thisMod.Instructions]]", f"Action = {toml_string(action)}"]
         lines.append("Source = [" + ", ".join(toml_string(s) for s in sources) + "]")
+        if destination is not None:
+            lines.append(f"Destination = {toml_string(destination)}")
         if overwrite is not None:
             lines.append(f"Overwrite = {'true' if overwrite else 'false'}")
     return "\n".join(lines) + "\n"
 
 
 def fixture(root, case):
-    instructions, readonly = case
+    instructions, readonly = case[0], case[1]
+    files = dict(FILES)
+    files.update(case[2] if len(case) > 2 else {})
     for relative in ("scratch", "home", "xdg", *EMPTY_DIRS):
         os.makedirs(os.path.join(root, relative), exist_ok=True)
-    for relative, text in FILES.items():
+    for relative, text in files.items():
         path = os.path.join(root, relative)
         os.makedirs(os.path.dirname(path), exist_ok=True)
+        if isinstance(text, dict):
+            with zipfile.ZipFile(path, "w") as archive:
+                for member, data in text.items():
+                    archive.writestr(member, data)
+            continue
         with open(path, "w") as handle:
             handle.write(text)
     for relative in readonly:
@@ -115,8 +162,13 @@ def files(base):
     for directory, _, names in os.walk(base):
         for name in names:
             full = os.path.join(directory, name)
+            key = os.path.relpath(full, base).replace(os.sep, "/")
+            if zipfile.is_zipfile(full):
+                with zipfile.ZipFile(full) as archive:
+                    result[key] = "zip: " + ", ".join(sorted(archive.namelist()))
+                continue
             with open(full) as handle:
-                result[os.path.relpath(full, base).replace(os.sep, "/")] = handle.read()
+                result[key] = handle.read()
     return dict(sorted(result.items()))
 
 
@@ -182,6 +234,24 @@ def run_csharp(dll, reference, mode, case, work):
     return result
 
 
+# Known differences: name -> (Rust modes, reason). The Rust result must be a
+# refusal where the reference accepts (fail-closed), or the check fails.
+KNOWN = {
+    "copy_dir_and_file_omitted": (
+        ("dryrun", "validate", "install"),
+        "Rust requires every Source to match (F05-X2); C# drops a missing literal when another Source matched",
+    ),
+    "extract_bracket_literal": (
+        ("dryrun",),
+        "a missing Extract archive is a ComponentValidation error in Rust's full report (pre-existing); C# only skips",
+    ),
+    "extract_dir_omitted": (
+        ("dryrun",),
+        "Extract keeps the folder rule; Rust tries to unpack the folder's files and reports an error, C# skips",
+    ),
+}
+
+
 # Rust mode -> (reference mode, compare the dry-run skip classification).
 MODES = {"dryrun": ("validate", True), "validate": ("install", False), "install": ("install", False)}
 
@@ -207,7 +277,7 @@ def main():
         else:
             with open(ORACLE) as handle:
                 oracle = json.load(handle)
-        matched = failed = 0
+        matched = known = failed = 0
         for name, case in CASES.items():
             for mode, (reference_mode, compare_skip) in MODES.items():
                 expected = oracle[name][reference_mode]
@@ -216,18 +286,24 @@ def main():
                 same = actual["accepted"] == expected["accepted"] and actual["tree"] == expected_tree
                 if compare_skip:
                     same = same and actual["skipped"] == expected["skipped"]
-                if same:
+                refused = not actual["accepted"] or (compare_skip and actual["skipped"])
+                is_known = name in KNOWN and mode in KNOWN[name][0]
+                if same and not is_known:
                     matched += 1
+                    verdict = "match"
+                elif is_known and not same and refused:
+                    known += 1
+                    verdict = "known"
                 else:
                     failed += 1
-                verdict = "match" if same else "FAIL"
+                    verdict = "FAIL"
                 skip = f" skipped={actual['skipped']}/{expected['skipped']}" if compare_skip else ""
                 print(
                     f"{verdict:5} {name}/{mode}: rust accepted={actual['accepted']} tree={actual['tree']}"
                     f" | reference accepted={expected['accepted']} tree={expected_tree}{skip}"
                     + (f" | rust: {actual['stderr_tail'][0]}" if actual["stderr_tail"] else "")
                 )
-        print(f"{matched} match / {failed} fail")
+        print(f"{matched} match / {known} known difference / {failed} fail")
         return 1 if failed else 0
     finally:
         make_writable(work)

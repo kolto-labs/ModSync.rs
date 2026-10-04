@@ -9,15 +9,19 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
-Delete with a directory Source (2026-10-04): a `Delete` whose Source names a
-directory deleted every file beneath it in Rust (`Delete <<kotorDirectory>>/Override`
-emptied `Override`), because Delete reused the engine's descendant source matching.
-C# `DeleteFile` checks `File.Exists`, which is false for a directory, so it deletes
-nothing (and with `Overwrite = true` fails with `MissingSourceFiles`). Delete now
-matches only the files its literal or wildcard Source names; other actions keep the
-descendant rule. Proof: 57/57 against a live reference oracle; 10 fail on `2241235`.
-The regression probes stay at baseline. See
-[delete-directory-contract.md](delete-directory-contract.md).
+Directory Sources and wildcard rules (2026-10-04, follow-up to the Delete slice): a
+`Delete`, `Copy`, `Move` or `Rename` Source that names a directory now reaches no file
+beneath it, as in C# (`EnumerateFilesWithWildcards` returns files only). Delete deletes
+nothing (strict Delete fails); Copy, Move and Rename fail with `MissingSourceFiles`.
+Before, Rust deleted, moved, copied or renamed the whole subtree. Every Source's
+wildcards now follow C# `WildcardPathMatch`: `**` stays within one level and `[`/`]`
+are literal (`Delete Override/**` emptied every subfolder; `[ab].tga` was a class).
+A missing Rename Source is typed `MissingSourceFiles` (dry-run `DryRunSkipped`).
+Extract, Patcher, Execute/Run, CleanList and the FOMOD gate keep the folder rule.
+Proof: 121 match and 5 known differences against a live reference oracle; 37 fail on
+`4fb71a6`, 47 on `2241235`. The S2b proof's `[e]xample.zip` checks now expect a
+missing source (254, unchanged count); the other regression probes stay at baseline.
+See [delete-directory-contract.md](delete-directory-contract.md).
 
 Copy/Move onto itself, follow-up (2026-10-04): a self-target next to a source that
 miss-only recovery binds from a `ResourceRegistry` archive was still refused by

@@ -916,9 +916,10 @@ fn source_may_extract(source: &str, filename: &str) -> bool {
         .next()
         .unwrap_or("");
     !crate::engine::is_archive(last)
-        || glob::Pattern::new(&fold_case(last)).map_or(true, |pattern| {
-            crate::engine::source_glob_matches(&pattern, &fold_case(filename))
-        })
+        || glob::Pattern::new(&crate::engine::source_wildcard_glob(&fold_case(last)))
+            .map_or(true, |pattern| {
+                crate::engine::source_glob_matches(&pattern, &fold_case(filename))
+            })
 }
 
 /// Whether this component registers the archive or may extract it through one of its

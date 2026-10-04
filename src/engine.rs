@@ -184,6 +184,36 @@ impl Content {
     }
 }
 
+/// Whether an authored Source of this action also matches every file under it as
+/// a folder. The reference binds Copy, Move, Rename and Delete Sources with
+/// `PathHelper.EnumerateFilesWithWildcards`, which returns files only, so a folder
+/// Source is a missing source for them. Extract, Patcher, Execute/Run and FOMOD
+/// scoping keep the folder rule.
+pub(crate) fn authored_descendants(action: &str) -> bool {
+    !matches!(action, "Copy" | "Move" | "Rename" | "Delete")
+}
+
+/// Glob text for one authored Source path with the reference wildcard rules
+/// (`PathHelper.WildcardPathMatch`): each path level is matched on its own, `*`
+/// (and so `**`) matches any run of characters within one level, `?` matches one
+/// character, and every other character, including `[` and `]`, is literal.
+pub(crate) fn source_wildcard_glob(text: &str) -> String {
+    let mut glob = String::with_capacity(text.len());
+    let mut star = false;
+    for character in text.chars() {
+        match character {
+            '*' if star => {}
+            '*' => glob.push('*'),
+            '?' => glob.push('?'),
+            '[' => glob.push_str("[[]"),
+            ']' => glob.push_str("[]]"),
+            other => glob.push(other),
+        }
+        star = character == '*';
+    }
+    glob
+}
+
 /// The glob half of Extract/Copy source matching; a source also matches every file
 /// below it as a folder (see `Engine::source_matches`).
 pub(crate) fn source_glob_matches(pattern: &glob::Pattern, candidate: &str) -> bool {
@@ -1898,7 +1928,7 @@ impl Engine {
         let pattern = glob::Pattern::new(&format!(
             "{}/{}",
             glob::Pattern::escape(&self.path_policy.key(root)),
-            self.path_policy.key(path.strip_prefix(root)?)
+            source_wildcard_glob(&self.path_policy.key(path.strip_prefix(root)?))
         ))?;
         Ok((path, pattern))
     }
@@ -2202,7 +2232,16 @@ impl Engine {
                     self.path(&i.destination, false)?
                 };
                 let sources = if i.action == "Rename" {
-                    self.matches(&i.source, false)?
+                    // C# RenameFile returns FileNotFoundPost for a missing source:
+                    // MissingSourceFiles, a DryRunSkipped warning in the dry run.
+                    self.matches_scoped(&i.source, false, authored_descendants(&i.action))
+                        .map_err(|error| {
+                            if error.is::<MissingSource>() {
+                                anyhow::Error::new(MissingSourceFiles(error))
+                            } else {
+                                error
+                            }
+                        })?
                 } else {
                     let mut resolution = self.resolve_instruction(component, i)?;
                     if resolution.satisfied {
@@ -2297,15 +2336,21 @@ impl Engine {
                 }
                 // C# DeleteFile deletes only paths for which File.Exists holds, so
                 // a directory Source deletes nothing beneath it (a miss).
-                let sources = self.matches_scoped(&i.source, true, false)?;
+                let sources =
+                    self.matches_scoped(&i.source, true, authored_descendants(&i.action))?;
                 if sources.is_empty() {
                     for source in &i.source {
                         let path = self.path(source, true)?;
-                        self.validation_warning(
-                            "DeleteFile",
-                            format!("Attempting to delete non-existent file: {}", path.display()),
-                            &path,
-                        );
+                        let message = if self.directories.contains_key(&self.path_policy.key(&path))
+                        {
+                            format!(
+                                "Delete Source is a directory; Delete removes files only: {}",
+                                path.display()
+                            )
+                        } else {
+                            format!("Attempting to delete non-existent file: {}", path.display())
+                        };
+                        self.validation_warning("DeleteFile", message, &path);
                     }
                 }
                 // C# DeleteFile with Overwrite=true returns FileNotFoundPost for a
