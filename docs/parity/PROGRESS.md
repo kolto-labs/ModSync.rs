@@ -9,6 +9,16 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Rename to a name that is not a valid file name (2026-10-04, F05/F03): a `Rename`
+Destination with `..` inside the name, a control character, a `./` part or a trailing
+separator is now refused in every report, plain `validate` and `install` before any
+write, where Rust renamed to it; names it already refused (a trailing dot or space, a
+device name) fail at the same points. C# never checks a Rename Destination and its
+Linux install renames to the name, so Rust is stricter (documented). The drafter keeps
+a bare new name only when the engine accepts it. Proof: 37 match / 63 known against
+the live C# CLI; 50 fail on `c2c9002`. The regression probes stay at baseline. See
+[rename-file-name-contract.md](rename-file-name-contract.md).
+
 Drafted Renames (2026-10-04, F03/F05): a Rename drafted from prose ("Rename the file
 old.tga to new.tga.") now has the bare new name as its Destination and the named file
 as its only Source, as C# `RenameFile` reads a Destination and as the newer C# parser

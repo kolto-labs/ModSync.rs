@@ -72,7 +72,9 @@ Rename the file old.tga to newname.     [old.tga] -> Override           refused 
 - **The new name.** `from_match` (`src/draft.rs:576-586`) keeps a Rename's captured
   Destination, without quotes, as the Destination when it is one file name with an
   extension and no `/`, `\`, `:`, `<` or `>` (`is_file_name`, `:725-728`). Any other
-  captured Destination goes through `destination()` as before.
+  captured Destination goes through `destination()` as before. (Since
+  [rename-file-name-contract.md](rename-file-name-contract.md) `is_file_name` also
+  requires a name the engine accepts.)
 - **One Source.** `sources` (`:631-643`) no longer reads a file range or numeric range
   from the sentence for a Rename: "old.tga to new.tga" is the source and its new name.
   The Rename patterns capture a single source token, so a Rename keeps exactly the
@@ -165,7 +167,10 @@ them to PLC_CompPnl_b"), so the corpus drafts are unchanged.
   drift for the post-freeze fixture repair (tracker; `ACCEPTANCE.md:73`) instead of
   adding a compatibility shim.
 - **Rename names with `..`.** A drafted (and authored) Rename Destination such as
-  `new..tga` is accepted; `invalid_destination` refuses `a..b` for Copy and Move but is
-  not applied in `rename_file_name`. Drafts reach it only after review; tracked as an
-  F05-RENAME follow-up.
+  `new..tga` was accepted; `invalid_destination` refused `a..b` for Copy and Move but
+  was not applied in `rename_file_name`. Closed on 2026-10-04: the engine refuses such
+  a name (and a control character, `./` or a trailing separator), and the drafter
+  keeps a bare new name only when the engine accepts it, so `new..tga` or `con.tga`
+  keeps the Override Destination; see
+  [rename-file-name-contract.md](rename-file-name-contract.md).
 - **Messages and platform.** Unchanged; the proof ran on Linux.

@@ -64,17 +64,24 @@ def intentional_rename(x, y):
 
     The pinned drafter gives every Rename a placeholder Destination (Rust refuses it;
     C# never renames as meant) and, for "rename a.ext to b.ext", the new name as a
-    second Source. See docs/parity/drafted-rename-contract.md.
+    second Source. See docs/parity/drafted-rename-contract.md. When the engine refuses
+    the new name (docs/parity/rename-file-name-contract.md), Rust keeps the placeholder
+    too but still drafts one Source.
     """
     if len(x) != len(y):
         return False
+    override = '<<kotorDirectory>>\\Override'
     for a, b in zip(x, y):
         if a == b:
             continue
         name = b.get('Destination') or ''
+        if name == a.get('Destination') == override and len(a['Source']) == 2:
+            name = a['Source'][1].replace('/', '\\').rsplit('\\', 1)[-1]
+        elif not file_name(name):
+            return False
         source = [s for s in a['Source'] if s.replace('/', '\\').rsplit('\\', 1)[-1].lower() != name.lower()]
-        if not (a['Action'] == b['Action'] == 'Rename' and file_name(name)
-                and a.get('Destination') == '<<kotorDirectory>>\\Override' and b['Source'] == source
+        if not (a['Action'] == b['Action'] == 'Rename'
+                and a.get('Destination') == override and b['Source'] == source
                 and {k: v for k, v in a.items() if k not in ('Source', 'Destination')}
                 == {k: v for k, v in b.items() if k not in ('Source', 'Destination')}):
             return False
@@ -129,6 +136,6 @@ for index, source in enumerate(inputs):
     print(f'{source.name}: {len(expected)} components; {len(differences)} differences; '
           f'{len(known)} intentional Rename differences', flush=True)
 receipt = {'reference_dll_sha256': hashlib.sha256(reference.read_bytes()).hexdigest(), 'checks': checks,
-           'scope': 'Prose fields assigned directly to isolate DraftInstructionService from legacy JSON-loader omissions. Raw instructions, option fields excluding generated IDs, review warnings, unparsed gaps and conditional notes. A drafted Rename whose Rust Destination is the bare new file name (and whose Sources leave out that name) is listed under intentional_rename_differences, not differences. Not final install correctness or full guide ingestion.'}
+           'scope': 'Prose fields assigned directly to isolate DraftInstructionService from legacy JSON-loader omissions. Raw instructions, option fields excluding generated IDs, review warnings, unparsed gaps and conditional notes. A drafted Rename whose Rust Destination is the bare new file name (and whose Sources leave out that name), or the same placeholder with the second Source (the refused new name) left out, is listed under intentional_rename_differences, not differences. Not final install correctness or full guide ingestion.'}
 (output / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
 assert not any(c['differences'] for c in checks), f'Draft differences recorded in {output / "receipt.json"}'

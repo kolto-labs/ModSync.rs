@@ -66,7 +66,10 @@ z.txt                                pass        renames            renames     
   Destination starting with `<<` fails with `Rename Destination must be a file name,
   not a placeholder path: <Destination>`; a name with a folder part fails with `Rename
   Destination must be one file name: <Destination>`, as it did before under the old
-  message; `..` and other unsafe names still fail `relative` (`Unsafe path`).
+  message; `..` and other unsafe names still fail `relative` (`Unsafe path`). Since
+  [rename-file-name-contract.md](rename-file-name-contract.md) a name that is not
+  one valid Windows file name (`..` inside it, a control character, `./z.txt`,
+  `z.txt/`) is refused too.
 - **Where.** The engine's Rename arm uses it (`src/engine.rs:2560-2564`, target
   `:2587-2589`), so a placeholder Destination fails where the step runs: the dry run
   (the `DryRun` stage of the full and basic reports and the desktop Validate step),
