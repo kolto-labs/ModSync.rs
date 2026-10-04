@@ -114,6 +114,14 @@ reference `DryRunSkipped` warning; plain validate and install reject. The proof 
 39/39 against a live reference oracle (15 fail on `8fad43c`), and the regression
 probes still pass. See [delete-strict-contract.md](delete-strict-contract.md).
 
+Extract onto existing files with Overwrite=false (2026-10-04): Rust kept an existing
+file when an `Extract` step with `Overwrite = false` reached it, so stale output, a
+game file or the first of two archives survived. C# extraction never reads
+`Overwrite` and writes every entry with `FileMode.Create`. Rust now always replaces,
+and the last archive wins; configured FOMOD extraction keeps its fail-closed refusal.
+The proof is 20/20 against a live reference oracle (5 fail on `5905259`), and the
+regression probes still pass. See [extract-overwrite-contract.md](extract-overwrite-contract.md).
+
 Rename onto an existing file (2026-10-04): a `Rename` with `Overwrite=false` whose
 target exists no longer passes silently. As C# `RenameFile` does
 (`RenameTargetAlreadyExists`), the engine renames the other sources and then fails

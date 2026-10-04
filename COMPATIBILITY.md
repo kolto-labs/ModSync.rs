@@ -409,7 +409,7 @@ Reference: the local ModSync C# source at `d31ccbd3bfcddb4705917eafa6483715c166d
 | Selection | File selections, select-all when all components are unselected; explicit CLI components/options; desktop dependency/restriction and deselection cascades across components and options | Native interaction and full Unicode GUID-comparison parity remain open |
 | Ordering | Stable dependency sort, restrictions, InstallBefore/After, instruction conditions | Missing references and cycles fail |
 | Options | Choose resolves selected option GUIDs in declared option order; an entry names an option only as its hyphenated GUID (any case), as in C# | No automatic choice inference; an entry that names no option is refused, where C# ignores it |
-| File operations | Copy, Move, Rename, Delete, Extract, DelDuplicate, CleanList | Copy/Move flatten matched files into the target, as the C# instruction engine does; Delete with `Overwrite = true` fails on a missing file, as C# does; a Delete with no Source is a no-op unless `Overwrite = true` |
+| File operations | Copy, Move, Rename, Delete, Extract, DelDuplicate, CleanList | Copy/Move flatten matched files into the target, as the C# instruction engine does; Delete with `Overwrite = true` fails on a missing file, as C# does; a Delete with no Source is a no-op unless `Overwrite = true`; Extract replaces existing files whatever `Overwrite` says, as C# does (configured FOMOD extraction with `Overwrite = false` is refused instead) |
 | Archives | Streaming ZIP, 7z, RAR, TAR, GZip and 7z SFX; integrity checks; isolated extraction root | No encrypted/multipart archives; SFX support is limited to embedded 7z payloads; empty directories are not materialized |
 | CleanList | C# comma-separated rows, mandatory prefix, substring and token matching | Source matching and final file sets still need full-build differential acceptance |
 | Texture cleanup | Removes requested extension when another compatible extension shares its basename | This is not content-hash deduplication |
@@ -1354,6 +1354,29 @@ with `Overwrite = false` still warn and skip, as in C#. Evidence:
 [rename-overwrite proof](docs/parity/rename-overwrite-proof/README.md), 18/18 checks
 against a live reference oracle (8 fail on `5643276`); contract in
 [rename-overwrite-contract.md](docs/parity/rename-overwrite-contract.md).
+
+## Extract onto existing files with Overwrite=false — 2026-10-04 UTC
+
+An `Extract` instruction now replaces files that already exist at its entry paths,
+whatever its `Overwrite` value, as C# does. C# `Instruction.ExtractFileAsync` never
+reads `Overwrite`, and its real file-system provider writes every entry with
+`FileMode.Create`, so an existing file is replaced and, when two archives supply one
+path, the last one wins. Before this change Rust honoured `Overwrite = false` on
+Extract and silently kept the existing file: stale output from an earlier install, a
+game file in `Override`, or the first archive's copy. Install, validate, the dry-run
+report and `conflicts` run the same engine, so later simulated steps see the replaced
+content. Unchanged: a configured FOMOD archive with `Overwrite = false` is still
+refused when any of its paths exists (the provenance guard above, a deliberate
+fail-closed choice); Copy and Move still warn and skip, and Rename still fails, with
+`Overwrite = false`. Evidence: [extract-overwrite proof](docs/parity/extract-overwrite-proof/README.md),
+20/20 checks against a live reference oracle (5 fail on `5905259`); contract in
+[extract-overwrite-contract.md](docs/parity/extract-overwrite-contract.md). The
+reference dry run nests every extraction under an archive-named folder, unlike its own
+install; that inconsistency is recorded there and not copied.
+
+Guide authors: `Overwrite = false` on an `Extract` step does not protect existing
+files, in C# or in Rust. To keep a file, extract into a separate folder and `Copy` it
+with `Overwrite = false`, or order the steps so the wanted file is written last.
 
 ## Fetch shared URL and destination — 2026-09-28 UTC
 
