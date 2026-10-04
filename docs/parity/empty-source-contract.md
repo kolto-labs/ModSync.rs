@@ -100,7 +100,11 @@ non-strict empty Delete, and the dry-run report was wrong for every case.
 - **Report without `--dry-run`.** `validate --output json` and `validate --full` (which
   the desktop runs before its dry run) now pass an empty Extract with no errors, as
   C# `ComponentValidationService.IsArchiveValidAsync` does with no sources. Empty Copy
-  and Move already passed there.
+  and Move already passed there. Correction (2026-10-04): the C# CLI report's archive
+  stage is `ComponentValidation`, not that service, and a live run gives
+  `Missing Required Archives: []` when an empty Extract is the component's only
+  Extract; Rust keeps passing it. Recorded as a known difference in
+  [missing-archives-contract.md](missing-archives-contract.md).
 - **Proof coverage.** The probe covers TOML only; the other loaders were checked by
   hand in review of 29f9d59.
 

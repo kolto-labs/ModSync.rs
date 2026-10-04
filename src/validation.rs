@@ -273,10 +273,14 @@ impl Report {
     pub(crate) fn component_validation(
         &mut self,
         components: &[&crate::Component],
-        outcome: Result<Vec<Result<(), String>>, String>,
+        outcome: Result<Vec<Result<(), Vec<String>>>, String>,
     ) {
-        let outcomes = outcome.unwrap_or_else(|error| vec![Err(error)]);
-        let errors = outcomes.iter().filter(|result| result.is_err()).count();
+        let outcomes = outcome.unwrap_or_else(|error| vec![Err(vec![error])]);
+        // One component can report several errors (one per missing archive).
+        let errors = outcomes
+            .iter()
+            .map(|result| result.as_ref().map_or_else(Vec::len, |()| 0))
+            .sum::<usize>();
         let passed = errors == 0;
         if passed {
             self.passed_count += 1;
@@ -295,18 +299,23 @@ impl Report {
             messages: outcomes
                 .into_iter()
                 .enumerate()
-                .map(|(index, outcome)| {
+                .flat_map(|(index, outcome)| {
                     outcome.map_or_else(
                         // The engine retains component identity in this diagnostic. Give
                         // shared cards and first-issue navigation its explicit severity.
-                        |error| {
-                            if error.starts_with("ERROR:") {
-                                error
-                            } else {
-                                format!("ERROR: {error}")
-                            }
+                        |errors| {
+                            errors
+                                .into_iter()
+                                .map(|error| {
+                                    if error.starts_with("ERROR:") {
+                                        error
+                                    } else {
+                                        format!("ERROR: {error}")
+                                    }
+                                })
+                                .collect()
                         },
-                        |()| format!("OK: {}", components[index].name),
+                        |()| vec![format!("OK: {}", components[index].name)],
                     )
                 })
                 .collect(),

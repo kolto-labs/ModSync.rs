@@ -9,6 +9,17 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Missing archives in the validation report (2026-10-04, F08): the report's archive
+stage (`validate --output json`, the desktop Validate step) now reports a missing
+download as C# does: one `Missing Required Archives: [<Sources>]` error per Extract
+step, counted in `errorCount`, with the component's other checks skipped. Rust named
+only the first missing archive per component, as `archive/destination validation:
+Source matches no files: ...`, and counted one error. Rust still refuses a partly
+missing component or an option-only missing archive, where C# passes the stage
+(fail-closed, documented). Proof: 47 match and 22 known differences against the live
+C# CLI; 27 fail on `3024e4d`. The regression probes stay at baseline. See
+[missing-archives-contract.md](missing-archives-contract.md).
+
 Patcher INI names with brackets (2026-10-04, F09/F19): the virtual Patcher simulation
 now takes `[` and `]` in a patcher's own INI names literally (InstallList folders and
 `File*`/`Replace*` names, namespaces.ini `IniName`/`DataPath`), as C#
