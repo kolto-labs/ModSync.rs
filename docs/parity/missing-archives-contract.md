@@ -94,6 +94,13 @@ this stage and are unchanged.
 
 ## Known differences
 
+- **Missing archives hidden by a later archive failure.** When a present archive in the
+  same component is corrupt or its extraction folder is blocked, Rust reports only that
+  failure, so the missing downloads appear after it is fixed (`src/engine.rs`, the
+  `?` in the first loop of `validate_component_archives`). C# passes the stage in that
+  case. Still fail-closed. A missing archive also hides the component's destination and
+  action checks, as in C#.
+
 - **Some of a component's archives are missing (deliberate, fail-closed).** When at
   least one of a component's archives exists, C# does not report a missing one in this
   stage; with an existing archive in an option it does not report a missing one of
@@ -109,7 +116,8 @@ this stage and are unchanged.
   not selected, and so fails the report even when that archive exists
   (`conditional_present`). Rust checks only steps that run, as its other checks do.
 - **An Extract with no Source (unchanged).** C# reports `Missing Required Archives: []`
-  when it is the component's only Extract; Rust passes the stage and the dry run
+  whenever the component has no archive (so `[Extract [], Extract nope.zip]` gives two
+  errors and a higher `errorCount` in C#, one in Rust); Rust passes the empty Extract and the dry run
   reports the `DryRunSkipped` warning, as the
   [empty-source contract](empty-source-contract.md) records. The empty-source probe
   compares the dry run, not this stage, so it is unaffected.
