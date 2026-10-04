@@ -1505,18 +1505,28 @@ Component checkpoints (`install --component-checkpoints` and the desktop option)
 also accept a game or mod file whose name holds `[` or `]`; before, checkpoint capture
 refused such a tree even with no archive involved.
 
+A managed install (`--managed`) whose later component runs a program now captures a
+game tree holding a bracketed file; on the first fix (`4a09589`) that step failed after
+the earlier component had deployed it. A FOMOD archive whose own name, wrapper folder
+or ModuleConfig `source` holds `[` or `]` now maps and installs, as the reference
+mapper does; before, the gate reported the saved choices as stale.
+
 Unchanged: a member name with `*` or `?` fails the archive in Rust on every host
 (no Windows file can have it; C# on Linux writes it), and the other unsafe member
-rules stay fail-closed. FOMOD `ModuleConfig.xml` paths, destinations, Rename
-Destinations, Patcher Sources and managed process capture still refuse `[`/`]`.
+rules stay fail-closed. Destinations (including a FOMOD ModuleConfig `destination`,
+whose error now names it), Rename Destinations, Patcher Sources and maintenance
+transactions still refuse `[`/`]`.
 Evidence: [archive member brackets
-proof](docs/parity/archive-member-brackets-proof/README.md), 60 checks match and 8 are
-known differences against a live reference oracle (45 fail on `31e98ec`); contract in
+proof](docs/parity/archive-member-brackets-proof/README.md), 83 checks match and 8 are
+known differences against a live reference oracle and mapper (9 fail on `4a09589`; 45
+of the first 68 on `31e98ec`); contract in
 [archive-member-brackets-contract.md](docs/parity/archive-member-brackets-contract.md).
 
 Guide authors: archive member names may contain `[` and `]`. Name such a file in a
-Source exactly as it is spelled; brackets never form a character class. Archives with
-`*` or `?` in a member name are refused.
+Source exactly as it is spelled; brackets never form a character class. A FOMOD's
+archive name, wrapper folder and ModuleConfig `source` may contain them; a
+ModuleConfig `destination` may not. Archives with `*` or `?` in a member name are
+refused.
 
 ## CleanList list-file choice — 2026-10-04 UTC
 

@@ -168,7 +168,7 @@ impl Engine {
                 .settings
                 .roots
                 .game
-                .join(crate::paths::relative(relative, false)?);
+                .join(crate::paths::literal_relative(relative)?);
             self.settings.roots.check(&source)?;
             let destination = directory.path().join(relative);
             let input = crate::paths::open_regular_read(&source)?;
@@ -206,7 +206,7 @@ impl Engine {
         {
             let retained = managed
                 .service
-                .checkpoint_stage_target(&id, &crate::paths::relative(relative, false)?)?;
+                .checkpoint_stage_target(&id, &crate::paths::literal_relative(relative)?)?;
             match fs::remove_file(retained) {
                 Ok(()) => {}
                 Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}

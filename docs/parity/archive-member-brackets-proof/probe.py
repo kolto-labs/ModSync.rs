@@ -39,6 +39,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 ORACLE = os.path.join(HERE, "csharp-oracle.json")
 GUID = "88888888-8888-8888-8888-888888888888"
+SECOND = "99999999-8888-8888-8888-888888888888"
 KD = "<<kotorDirectory>>"
 MD = "<<modDirectory>>"
 OV = KD + "/Override"
@@ -96,15 +97,62 @@ CASES = {
     # `*` and `?` cannot be Windows file names: C# on Linux writes them, Rust refuses.
     "star_member": ([extract(), move(MD + "/a/Override/*")], {"mods/a.zip": {"Override/s*.tga": "S\n"}}),
     "question_member": ([extract(), move(MD + "/a/Override/*")], {"mods/a.zip": {"Override/q?.tga": "Q\n"}}),
+    # A second component runs a program after the first deployed a bracketed file.
+    # With --managed, Rust captures a preimage of every game file before the process.
+    "execute_after_bracket_deploy": (
+        [extract(), move(MD + "/a/Override/*")],
+        {"mods/a.zip": BRACKETS, "mods/run.sh": "#!/bin/sh\nexit 0\n"},
+        [("Execute", [MD + "/run.sh"], None, None)],
+    ),
+    "execute_after_plain_deploy": (
+        [extract(), move(MD + "/a/Override/*")],
+        {"mods/a.zip": {"Override/y.tga": "Y\n"}, "mods/run.sh": "#!/bin/sh\nexit 0\n"},
+        [("Execute", [MD + "/run.sh"], None, None)],
+    ),
 }
+
+
+def has_process(case):
+    steps = list(case[0]) + list(case[2] if len(case) > 2 and case[2] else [])
+    return any(step[0] in ("Execute", "Run", "Patcher") for step in steps)
+
+
+# FOMOD archives with saved choices. The reference install does not map a FOMOD at
+# Extract time (C# maps it into a component when the download is configured), so
+# these are checked against expected results: the FOMOD mapper evidence in
+# csharp-fomod-map.json (FomodToComponentMapper keeps `[`/`]` in a mapped Source,
+# and a literal Copy Source is matched as `copy_literal` shows), and for wrapper
+# folders the same result as the unbracketed `HD Mod` control.
+# name -> (archive name, wrapper folder, ModuleConfig file source)
+FOMOD_CASES = {
+    "fomod_control": ("a.zip", "HD Mod", "a.tga"),
+    "fomod_bracket_wrapper": ("a.zip", "[HD] Mod", "a.tga"),
+    "fomod_bracket_archive_name": ("[e]xample.zip", "", "a.tga"),
+    "fomod_bracket_source": ("a.zip", "", "[x]/a.tga"),
+    "fomod_bracket_wrapper_and_source": ("a.zip", "[HD] Mod", "[x]/a.tga"),
+}
+
+
+def fomod_case(archive, wrapper, source):
+    prefix = wrapper + "/" if wrapper else ""
+    config = (
+        "<config><moduleName>T</moduleName><requiredInstallFiles>"
+        f'<file source="{source}" destination="Override"/></requiredInstallFiles></config>'
+    )
+    members = {prefix + "fomod/ModuleConfig.xml": config, prefix + source: "FOMOD\n"}
+    choices = (
+        "{ version = 1, archives = [ { archiveFileName = "
+        + toml_string(archive)
+        + ", selections = [] } ] }"
+    )
+    return ([extract(archive)], {"mods/" + archive: members}, None, choices)
 
 
 def toml_string(value):
     return json.dumps(value)
 
 
-def guide(instructions):
-    lines = ["[[thisMod]]", f'Guid = "{GUID}"', 'Name = "Archive Member Brackets Probe"', "IsSelected = true"]
+def steps(lines, instructions):
     for action, sources, destination, arguments in instructions:
         lines += ["", "[[thisMod.Instructions]]", f"Action = {toml_string(action)}"]
         lines.append("Source = [" + ", ".join(toml_string(s) for s in sources) + "]")
@@ -112,11 +160,24 @@ def guide(instructions):
             lines.append(f"Destination = {toml_string(destination)}")
         if arguments is not None:
             lines.append(f"Arguments = {toml_string(arguments)}")
+
+
+def guide(instructions, second=None, choices=None):
+    lines = ["[[thisMod]]", f'Guid = "{GUID}"', 'Name = "Archive Member Brackets Probe"', "IsSelected = true"]
+    if choices:
+        lines.append(f"FomodChoices = {choices}")
+    steps(lines, instructions)
+    if second:
+        lines += ["", "[[thisMod]]", f'Guid = "{SECOND}"', 'Name = "Second Component"', "IsSelected = true"]
+        lines.append(f'InstallAfter = ["{GUID}"]')
+        steps(lines, second)
     return "\n".join(lines) + "\n"
 
 
 def fixture(root, case):
-    instructions, extra = case
+    instructions, extra = case[0], case[1]
+    second = case[2] if len(case) > 2 else None
+    choices = case[3] if len(case) > 3 else None
     for relative in ("scratch", "home", "xdg", "mods", "game"):
         os.makedirs(os.path.join(root, relative), exist_ok=True)
     tree = dict(FILES)
@@ -131,9 +192,11 @@ def fixture(root, case):
             continue
         with open(path, "w") as handle:
             handle.write(text)
+        if path.endswith(".sh"):
+            os.chmod(path, 0o755)
     path = os.path.join(root, "guide.toml")
     with open(path, "w") as handle:
-        handle.write(guide(instructions))
+        handle.write(guide(instructions, second, choices))
     return path, os.path.join(root, "mods"), os.path.join(root, "game")
 
 
@@ -176,6 +239,11 @@ def run_rust(binary, mode, case, work):
         argv += ["--scratch-dir", os.path.join(root, "scratch")]
     if mode == "checkpoint":
         argv.append("--component-checkpoints")
+    if mode == "managed":
+        argv += ["--component-checkpoints", "--managed", "--staging-dir", os.path.join(root, "staging"),
+                 "--manifest-dir", os.path.join(root, "manifests")]
+    if has_process(case):
+        argv.append("--allow-processes")
     if mode == "pipeline":
         argv += ["--output", "json", "--dry-run"]
     env = dict(os.environ, HOME=os.path.join(root, "home"), XDG_CONFIG_HOME=os.path.join(root, "xdg"))
@@ -230,8 +298,46 @@ KNOWN = {
     "question_member": (STAR, "a member named with `?` cannot be a Windows file; C# on Linux writes it, Rust refuses the archive"),
 }
 
-# Rust mode -> reference mode.
+# Rust mode -> reference mode. Cases that run a program add a managed install.
 MODES = {"pipeline": "pipeline", "validate": "install", "install": "install", "checkpoint": "install"}
+MANAGED = {"managed": "install"}
+FOMOD_MAP = os.path.join(HERE, "csharp-fomod-map.json")
+# (ModuleConfig file source, archive name) pairs given to the reference mapper.
+MAPPINGS = [("a.tga", "a.zip"), ("[x]/a.tga", "a.zip"), ("a.tga", "[e]xample.zip")]
+
+
+def run_fomod_map(dll, reference):
+    result = {}
+    for source, archive in MAPPINGS:
+        argv = ["unshare", "-rn", "dotnet", dll, reference, source, archive]
+        done = subprocess.run(argv, capture_output=True, text=True, timeout=300)
+        result[f"{archive}|{source}"] = [l for l in done.stdout.splitlines() if l.startswith("Copy [")]
+    return result
+
+
+def check_fomod(binary, work, mapping):
+    """Mapper evidence first, then Rust validate and install of each FOMOD case."""
+    matched = failed = 0
+    for source, archive in MAPPINGS:
+        folder = archive.rsplit(".", 1)[0]
+        want = [f"Copy [<<modDirectory>>/{folder}/{source}] -> <<kotorDirectory>>/Override"]
+        ok = mapping[f"{archive}|{source}"] == want
+        matched, failed = matched + ok, failed + (not ok)
+        print(f"{'match' if ok else 'FAIL':5} mapper {archive}|{source}: {mapping[f'{archive}|{source}']}")
+    game = {"Override/a.tga": "FOMOD\n", "Override/o.txt": "O\n", "chitin.key": "KEY\n"}
+    for name, spec in FOMOD_CASES.items():
+        case = fomod_case(*spec)
+        for mode in ("validate", "install"):
+            actual = run_rust(binary, mode, case, work)
+            tree = actual["tree"]["game"] if actual["tree"] else None
+            ok = actual["accepted"] and (mode == "validate" or tree == game)
+            matched, failed = matched + ok, failed + (not ok)
+            print(
+                f"{'match' if ok else 'FAIL':5} {name}/{mode}: rust accepted={actual['accepted']} game={tree}"
+                f" | expected accepted=True game={game if mode == 'install' else None}"
+                + (f" | rust: {actual['stderr_tail'][0]}" if actual["stderr_tail"] else "")
+            )
+    return matched, failed
 
 
 def main():
@@ -240,6 +346,7 @@ def main():
     parser.add_argument("--csharp")
     parser.add_argument("--reference")
     parser.add_argument("--record", action="store_true")
+    parser.add_argument("--fomod-map", help="reference FOMOD mapper (csharp-fomod-map/) to run live")
     args = parser.parse_args()
     work = tempfile.mkdtemp(prefix="archive-member-brackets-proof-")
     try:
@@ -255,12 +362,21 @@ def main():
         else:
             with open(ORACLE) as handle:
                 oracle = json.load(handle)
+        if args.fomod_map:
+            mapping = run_fomod_map(args.fomod_map, args.reference)
+            if args.record:
+                with open(FOMOD_MAP, "w") as handle:
+                    json.dump(mapping, handle, indent=1, sort_keys=True)
+                    handle.write("\n")
+        else:
+            with open(FOMOD_MAP) as handle:
+                mapping = json.load(handle)
         matched = known = failed = 0
         for name, case in CASES.items():
-            for mode, reference_mode in MODES.items():
+            for mode, reference_mode in {**MODES, **(MANAGED if has_process(case) else {})}.items():
                 expected = oracle[name][reference_mode]
                 actual = run_rust(args.bin, mode, case, work)
-                expected_tree = expected["tree"] if mode in ("install", "checkpoint") and expected["accepted"] else None
+                expected_tree = expected["tree"] if mode in ("install", "checkpoint", "managed") and expected["accepted"] else None
                 same = actual["accepted"] == expected["accepted"] and actual["tree"] == expected_tree
                 extra = ""
                 if mode == "pipeline":
@@ -283,6 +399,9 @@ def main():
                     f" | reference accepted={expected['accepted']} tree={expected_tree}{extra}"
                     + (f" | rust: {actual['stderr_tail'][0]}" if actual["stderr_tail"] else "")
                 )
+        fomod_matched, fomod_failed = check_fomod(args.bin, work, mapping)
+        matched += fomod_matched
+        failed += fomod_failed
         print(f"{matched} match / {known} known difference / {failed} fail")
         return 1 if failed else 0
     finally:

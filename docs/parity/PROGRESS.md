@@ -15,9 +15,11 @@ in C#, whose `TryGetZipSafeArchiveEntryExtractPath` keeps those characters. Rust
 admitted member names with the literal guide-path rule, so one bracketed member failed
 the archive: the FOMOD gate refused plain `validate` and `install`, the Validate
 step's archive stage failed, and download verification would also refuse it (not probed).
-Checkpoint capture now also accepts bracketed file names. `*` and `?` in a member name
-stay refused (no Windows file can have them; documented). Proof: 60 match and 8 known
-differences against a live reference oracle; 45 fail on `31e98ec`. The regression
+Checkpoint capture, managed process capture and FOMOD mapping (archive name, wrapper
+folder, ModuleConfig `source`) now also take bracketed names literally (review
+follow-up). `*` and `?` in a member name stay refused (no Windows file can have them;
+documented). Proof: 83 match and 8 known differences against a live reference oracle
+and mapper; 9 fail on `4a09589`, 45 of the first 68 on `31e98ec`. The regression
 probes stay at baseline. See
 [archive-member-brackets-contract.md](archive-member-brackets-contract.md).
 

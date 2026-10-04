@@ -375,6 +375,117 @@
    "tree": null
   }
  },
+ "execute_after_bracket_deploy": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Archive Member Brackets Probe: Success",
+     "Second Component: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/x[1].tga": "X1\n",
+     "Override/y.tga": "Y\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "a.zip": "zip: Override/x[1].tga, Override/y.tga",
+     "m.txt": "M\n",
+     "run.sh": "#!/bin/sh\nexit 0\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Archive Member Brackets Probe",
+       "OK: Second Component"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "execute_after_plain_deploy": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Archive Member Brackets Probe: Success",
+     "Second Component: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/y.tga": "Y\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "a.zip": "zip: Override/y.tga",
+     "m.txt": "M\n",
+     "run.sh": "#!/bin/sh\nexit 0\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Archive Member Brackets Probe",
+       "OK: Second Component"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
  "existing_game_bracket_file": {
   "install": {
    "accepted": true,

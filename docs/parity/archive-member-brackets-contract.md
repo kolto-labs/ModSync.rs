@@ -68,15 +68,49 @@ C# installs it; checkpointed installs refused any tree holding such a file.
   literal (`source_wildcard_glob`), so `Copy <<modDirectory>>/a/Override/x[1].tga`
   reaches that file and not `x1.tga`.
 
-Callers checked: `relative` has unchanged semantics for all its other callers
-(destinations, downloads, resource file names, Patcher and FOMOD paths, maintenance
-plans, managed deployment), which still refuse `[` and `]`.
+### Review follow-up (on `4a09589`)
+
+- **Managed process capture (F1).** Before a Patcher, Execute or Run step, a managed
+  install (`--component-checkpoints --managed`) copies a preimage of every game file
+  (`managed_preimage`, `src/engine/managed.rs:171`) and stages removed files
+  (`:209`), reached from the process arm (`src/engine.rs:2673-2676`).
+  Both parsed each game file name with `relative(.., false)`. `4a09589` let an earlier
+  component deploy `Override/x[1].tga`; a managed install skips the simulation
+  preflight, so the next process step failed with `Wildcards are not allowed here`
+  after that component's files were already in the game. Both now use
+  `literal_relative`; these are literal game file names, and deployment's own path
+  check (`relative_parts`) already accepts brackets. Probed
+  (`execute_after_bracket_deploy`, managed mode).
+- **FOMOD extraction folder and mapped Sources (F2).** `ModuleConfig::copy_instructions`
+  and `ArchiveModule::copy_instructions` (`src/fomod.rs:686`, `:852`) re-parsed the
+  extraction folder (named after the archive, so `[e]xample` for `[e]xample.zip`) and
+  the archive's wrapper folder (`content_root`, such as `[HD] Mod/`) with
+  `relative(.., false)`, and so did each `file`/`folder` `source` (`:693`). The gate
+  wrapped the refusal as `Saved FOMOD choices ... do not apply to the current archive`,
+  which is misleading. The extraction folder, wrapper and `source` are literal names
+  and now use `literal_relative`. The reference mapper agrees: `FomodToComponentMapper`
+  (`Services/Fomod/FomodToComponentMapper.cs:386-410`, `NormalizeRelativePath`
+  `:451-479`) copies a ModuleConfig `source` such as `[x]/a.tga` verbatim into the
+  generated Copy Source (`<<modDirectory>>/a/[x]/a.tga`), refusing only `..` and `:`,
+  and a Copy Source takes brackets literally (`copy_literal`). The live mapper output
+  is in [csharp-fomod-map.json](archive-member-brackets-proof/csharp-fomod-map.json).
+  A ModuleConfig `destination` keeps the guide Destination rule (`[`/`]` refused), and
+  its error now says `FOMOD file destination '...' is not a usable game path; this is
+  not a stale choice` under the gate's wrapper.
+
+Callers checked: `relative` has unchanged semantics for all its other callers, which
+still refuse `[` and `]`: Destinations, a Rename Destination, a Patcher Source,
+download and resource file names, FOMOD ModuleConfig destinations and maintenance
+plans (below). Managed deployment's own staging and manifests never used `relative`
+(`relative_parts` accepts brackets); its process capture now uses `literal_relative`.
 
 ## Edge cases compared with the live reference
 
 Fixture: `game/{chitin.key, Override/o.txt}`, `mods/m.txt` and the case's archive
 `mods/a.zip`. `MD` is `<<modDirectory>>`, `OV` `<<kotorDirectory>>/Override`. Each
-case is checked four ways: the validation pipeline (overall decision, dry-run
+case is checked four ways (five for a case that runs a program, which adds
+`install --component-checkpoints --managed --allow-processes`; every verb of such a
+case gets `--allow-processes`): the validation pipeline (overall decision, dry-run
 decision, `DryRunSkipped`), plain `validate`, `install` and `install
 --component-checkpoints` (the last three against the reference install, with the
 final tree). "Before" is `31e98ec`.
@@ -98,6 +132,23 @@ final tree). "Before" is `31e98ec`.
 | `recovery_copy_literal`, `recovery_plain_control` | as `extract_only`, no Extract | Copy a member path | missing source in both (`DryRunSkipped`; validate and install refuse) | same |
 | `existing_game_bracket_file` | game holds `Override/pre[1].txt` | Copy `MD/m.txt` -> `OV` | installs, also with checkpoints | checkpointed install refused |
 | `star_member`, `question_member` | `Override/s*.tga`, `Override/q?.tga` | Extract, Move | known difference (below) | same |
+| `execute_after_bracket_deploy` | as `extract_only`, plus `mods/run.sh` (`exit 0`) | component 1 Extract, Move `*`; component 2 Execute `MD/run.sh` | installs, also managed | managed install failed after component 1 (`4a09589`); refused (`31e98ec`) |
+| `execute_after_plain_deploy` | `Override/y.tga`, `run.sh` | the same | installs, also managed | same |
+
+FOMOD cases (Extract of an archive with a `fomod/ModuleConfig.xml` and saved choices,
+`requiredInstallFiles` copying `source` to `Override`) are checked with plain
+`validate` and `install` against expected results, because the reference install does
+not map a FOMOD at Extract time (C# maps it into a component when the download is
+configured). The expectation is the reference mapper's Copy (three mapper checks) and,
+for a wrapper folder, the same result as the `HD Mod` control:
+
+| Case | Archive | Wrapper | `source` | Result | `4a09589` |
+| --- | --- | --- | --- | --- | --- |
+| `fomod_control` | `a.zip` | `HD Mod` | `a.tga` | `Override/a.tga` installed | same |
+| `fomod_bracket_wrapper` | `a.zip` | `[HD] Mod` | `a.tga` | as above | refused as stale choices |
+| `fomod_bracket_archive_name` | `[e]xample.zip` | none | `a.tga` | as above | refused as stale choices |
+| `fomod_bracket_source` | `a.zip` | none | `[x]/a.tga` | as above | refused as stale choices |
+| `fomod_bracket_wrapper_and_source` | `a.zip` | `[HD] Mod` | `[x]/a.tga` | as above | refused as stale choices |
 
 ## Known differences
 
@@ -111,13 +162,19 @@ final tree). "Before" is `31e98ec`.
   [actions audit](engine-actions-archives-audit.md)). Names with `:`, `<`, `>`, `|`,
   `"`, a trailing dot or space, or a device name are refused in Rust; C# on Linux
   writes them. Not probed here.
-- **FOMOD paths (not changed, not probed).** A FOMOD `ModuleConfig.xml` whose `file`
-  or `folder` source or destination holds `[` or `]` is still refused when its copy
-  steps are built (`src/fomod.rs:686-694`).
-- **Managed deployment process capture (not changed, not probed).** With
-  `--managed`, the preimage taken around a process step parses each game file name
-  with `relative` (`src/engine/managed.rs:171`, `:209`), so a bracketed game file still
-  fails that step. It needs `--allow-processes` and a managed deployment.
+- **FOMOD destinations (unchanged, deliberate).** A ModuleConfig `file` or `folder`
+  `destination` with `[` or `]` is refused (`src/fomod.rs:696`), as every guide
+  Destination is; C# would generate a Copy into `<<kotorDirectory>>/Override/[x]`. The
+  message names the destination. Not probed against the reference. A `source` with
+  `*` or `?` is still refused; C# keeps it and its Copy treats it as a wildcard. Not
+  probed.
+- **Maintenance transactions (unchanged, not probed).** The maintenance inventory
+  (`modsync maintenance`, never an install step) refuses a subtree or a file name with
+  `[` or `]`: `plan.rs:176` (the requested subtree), `plan.rs:402` (each walked name,
+  `Maintenance name is unsafe or aliases another portable path`), and the journal
+  checks `journal.rs:214`, `:255`. The refusal happens when the plan is built, before
+  anything is changed, so a game tree holding a bracketed file cannot be maintained in
+  Rust. C# has no matching maintenance transaction.
 - **Literal non-Source paths (unchanged).** Destinations, a Rename Destination and a
   Patcher Source still may not contain `[` or `]`; see
   [delete-directory-contract.md](delete-directory-contract.md).
@@ -129,13 +186,16 @@ final tree). "Before" is `31e98ec`.
 
 | Binary | Archive member brackets proof |
 | --- | --- |
-| this slice, live reference (`--csharp ... --record`) | 60 match / 8 known difference / 0 fail (68 checks) |
-| this slice, recorded reference | 60 match / 8 known difference / 0 fail |
-| `31e98ec` (pre-fix) | 15 match / 8 known difference / 45 fail |
+| review follow-up, live reference and mapper (`--csharp ... --fomod-map ... --record`) | 83 match / 8 known difference / 0 fail (91 checks) |
+| review follow-up, recorded reference | 83 match / 8 known difference / 0 fail |
+| `4a09589` (first fix) | 74 match / 8 known difference / 9 fail |
+| first fix, 68 checks | 60 match / 8 known / 0 fail; `31e98ec`: 15 / 8 / 45 |
 
-On `31e98ec` the 45 failures are the eleven bracketed-archive cases marked "refused"
-above, all four checks each (44), and the checkpointed install of
-`existing_game_bracket_file` (1).
+On `4a09589` the 9 failures are the managed install of `execute_after_bracket_deploy`
+(1) and the four bracketed FOMOD cases, `validate` and `install` each (8). On
+`31e98ec` the 45 failures of the first 68 checks were the eleven bracketed-archive
+cases marked "refused" above, all four checks each (44), and the checkpointed install
+of `existing_game_bracket_file` (1).
 
 Every regression probe listed in the earlier contracts stays at its baseline
 (cleanlist-rows 121/20/0, root-destination 119/4/0, delete-directory 169/11/0, S2b
@@ -145,6 +205,8 @@ Every regression probe listed in the earlier contracts stays at its baseline
 
 Archive member names may contain `[` and `]`; they are extracted as ordinary
 characters, as in C#. To name such a file in a Source, write the brackets as they
-are (`<<modDirectory>>/mod/Override/x[1].tga`); they never form a character class. An
+are (`<<modDirectory>>/mod/Override/x[1].tga`); they never form a character class. A
+FOMOD archive, its wrapper folder and its ModuleConfig `source` paths may contain
+brackets too; a ModuleConfig `destination` may not. An
 archive with a member whose name holds `*` or `?` is refused, because no Windows file
 can have that name.
