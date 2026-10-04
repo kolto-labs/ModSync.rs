@@ -301,3 +301,8 @@ Update 2026-10-03: rooted resolution (`a185ced`) closed this residual for the CL
 suffixed directory now owns only the archives it contains. Ownership propagation, gate
 dependency scope and the missing-archive soft warning are settled in
 [the gate-scope contract](../fomod-gate-scope.md).
+
+**Warning: `MODSYNC_PROOF_OUT`.** This probe treats `MODSYNC_PROOF_OUT` as its own
+output directory and deletes it (`shutil.rmtree`) before running. Other probes treat
+the variable as a parent directory. Always point it at a dedicated, disposable folder
+for this probe, never at a shared scratch or working directory.

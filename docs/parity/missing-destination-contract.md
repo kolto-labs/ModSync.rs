@@ -128,6 +128,23 @@ C# wording and is unchanged.
 
 ## Known differences
 
+- **Windows path prefix.** On Windows the roots are canonicalized, so the message reads
+  `Got '\\?\C:\Games\...\Nope'` where C# prints `C:\Games\...\Nope`. A symlinked
+  root on Linux likewise prints its canonical path. Not probed.
+- **Steps with unmet instruction dependencies or restrictions.** Rust only checks steps
+  whose instruction-level `Dependencies`/`Restrictions` apply (`instruction_applies`
+  in `src/engine.rs`); C# checks every step, so a Copy into a missing folder behind an
+  unmet dependency fails the C# stage while the Rust report passes. Both installers
+  skip that step, so the outcome is safe. Predates this slice.
+- **Other count differences (both fail).** A Destination with no placeholder or a
+  placeholder in the wrong case: C# reports `Destination cannot be found! Got
+  '<cwd-relative path>'` (1 error); Rust reports `Path must start with...` (2 errors).
+  A Destination that is an existing file: C# adds `The file '...' already exists.` from
+  its `CreateDirectory` attempt (2 errors); Rust reports 1.
+- **Probe and symlinked temp roots.** The probe replaces the fixture root with
+  `<root>` without resolving symlinks, so it would mismatch on a host whose temp
+  directory is a symlink (for example macOS `/var`). Fine on Linux.
+
 - **C# creates the missing folder while validating (deliberate).** With `AttemptFixes`
   on, C# creates each missing Destination folder in the game or mod directory as soon
   as it reports it. A second step into that folder is then not reported
