@@ -191,6 +191,7 @@ and `DryRunSkipped`), plain `validate` and `install` (decision and final tree).
 | --- | --- |
 | follow-up, live reference (`--csharp ... --record`) | 119 match / 4 known difference / 0 fail (123 checks) |
 | follow-up, recorded reference | 119 match / 4 known difference / 0 fail |
+| after destination-path-parts, recorded reference | 113 match / 10 known difference / 0 fail |
 | `6e67b3c` (first fix) | 102 match / 4 known difference / 17 fail |
 | `8c79761` (pre-fix) | 74 match / 4 known difference / 45 fail |
 | first slice (`6e67b3c`, 78 checks) | 75 match / 3 known / 0 fail; `8c79761`: 41 / 3 / 34 |

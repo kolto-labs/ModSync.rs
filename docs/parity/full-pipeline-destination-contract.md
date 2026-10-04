@@ -134,6 +134,7 @@ release binary: `validate --full --dry-run` (decision, counts, stages), `validat
 | --- | --- |
 | this slice, live reference (`--reference ... --record`) | 120 match / 18 known difference / 0 fail |
 | this slice, recorded reference | 120 match / 18 known difference / 0 fail |
+| after destination-path-parts, recorded reference | 122 match / 16 known difference / 0 fail |
 | `38c6ca9` (pre-fix), recorded reference | 42 match / 18 known difference / 78 fail |
 
 On `38c6ca9` each of the 13 cases with a creatable missing Copy, Move or CleanList folder

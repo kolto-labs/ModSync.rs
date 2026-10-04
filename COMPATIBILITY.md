@@ -1448,7 +1448,8 @@ as in C#: Extract, Copy and Move fail with missing source files, Delete deletes 
 
 A Destination with a `.` part, such as `<<kotorDirectory>>/Override/.`, now fails the
 archive/destination stage, as C# `PathValidator.IsValidPath` does; before, Rust passed
-it. Copy and Move into it still install in both. DelDuplicate and CleanList into it
+it. Copy and Move into it installed in both (until the destination-path-parts change
+below). DelDuplicate and CleanList into it
 now fail the dry run, plain `validate` and `install`, as in C#; before, Rust ran them
 (a CleanList into `<<kotorDirectory>>/.` deleted the listed game-root files). Since
 the destination-path-parts change below, plain `validate` and `install` also refuse a
@@ -1459,7 +1460,8 @@ is a bare placeholder (`Rename <<kotorDirectory>>/r.txt -> <<kotorDirectory>>`) 
 refused in Rust; C# renames the file to one literally named `<<kotorDirectory>>`
 (fail-closed, deliberate). Evidence: [root-destination
 proof](docs/parity/root-destination-proof/README.md), 119 checks match and 4 are
-known differences against a live reference oracle (45 fail on `8c79761`); contract in
+known differences against a live reference oracle (45 fail on `8c79761`; 113 / 10
+since destination-path-parts); contract in
 [root-destination-contract.md](docs/parity/root-destination-contract.md).
 
 Guide authors: `<<kotorDirectory>>` on its own is a valid Destination for Copy, Move,
@@ -1876,7 +1878,8 @@ and a missing archive still fail (in C# they fail its Environment stage instead)
 `install` does. Evidence: [full pipeline destination
 proof](docs/parity/full-pipeline-destination-proof/README.md), 120 checks match and
 18 are known differences against the live C# CLI with a HoloPatcher stub (78 fail on
-`38c6ca9`); contract in
+`38c6ca9`; 122 / 16 since destination-path-parts, whose `dot_part` install and plain
+`validate` checks now match); contract in
 [full-pipeline-destination-contract.md](docs/parity/full-pipeline-destination-contract.md).
 
 Users: the desktop Validate step and `validate --full` now pass a guide that copies
