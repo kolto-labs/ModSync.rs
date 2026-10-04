@@ -170,12 +170,7 @@ impl Guide {
         let text = text::read(path).with_context(|| format!("Read {}", path.display()))?;
         let extension = path.extension().and_then(|s| s.to_str()).unwrap_or("");
         let hint = canonical_format(extension);
-        let mut guide = Self::parse_observed(&text, hint.unwrap_or("auto"), default_selection)?;
-        guide.ordering.markdown = match hint {
-            Some(format) => format == "md",
-            None => Self::markdown_text(&text),
-        };
-        Ok(guide)
+        Self::parse_observed(&text, hint.unwrap_or("auto"), default_selection)
     }
 
     pub fn parse(text: &str, format: &str) -> Result<Self> {
@@ -199,7 +194,7 @@ impl Guide {
 
     fn parse_observed(text: &str, format: &str, default_selection: bool) -> Result<Self> {
         let started = std::time::Instant::now();
-        let result = Self::parse_with(text, format, true, default_selection);
+        let mut result = Self::parse_with(text, format, true, default_selection);
         let normalized = format.trim().to_ascii_lowercase();
         let kind = canonical_format(&normalized).unwrap_or(
             if normalized.is_empty() || normalized == "auto" {
@@ -208,6 +203,13 @@ impl Guide {
                 "unsupported"
             },
         );
+        if let Ok(guide) = &mut result {
+            // C#'s Markdown ingest drops InstallBefore/InstallAfter; `ordered` follows it.
+            guide.ordering.markdown = match kind {
+                "auto" => Self::markdown_text(text),
+                kind => kind == "md",
+            };
+        }
         let error = result.as_ref().err().map(|error| format!("{error:#}"));
         crate::telemetry::global().record_parsing_operation(
             kind,

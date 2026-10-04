@@ -43,9 +43,9 @@ Cases:
   components; missing and circular references on selected ones; JSON input; the report
   without roots (two); install (two).
 - Markdown (7): a missing reference on an unselected component, a Dependencies link,
-  and InstallAfter, backward InstallAfter and InstallBefore references, which C# drops,
+  and InstallAfter, InstallAfter references to later components and InstallBefore references, which C# drops,
   in `.md`, `.txt` and extensionless files.
-- Direct Markdown (2): a Dependencies link and a backward InstallAfter; both keep the
+- Direct Markdown (2): a Dependencies link and an InstallAfter reference to a later component; both keep the
   source order.
 - Dry run (1): a component that moves the file a later-installed component creates
   (known difference).

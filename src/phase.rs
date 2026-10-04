@@ -93,12 +93,11 @@ fn prepare_impl(
         // selected widescreen-only one: Remaining could never continue that order.
         if let Ok(full) = guide.ordered()
             && let Some(first) = full.iter().position(|c| widescreen(c))
-            && let Some(base) = full[first..].iter().find(|c| !widescreen(c))
+            && full[first..].iter().any(|c| !widescreen(c))
         {
             bail!(
-                "The base build cannot be installed first: the install order puts widescreen-only {} before {}. Install with --phase all.",
-                full[first].name,
-                base.name
+                "The base build cannot be installed first: a base component must install after widescreen-only {} or a later widescreen-only component. Install with --phase all.",
+                full[first].name
             );
         }
         for component in &mut guide.components {

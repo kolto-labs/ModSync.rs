@@ -1613,9 +1613,10 @@ New for phased installs: `--phase base` and `--phase remaining` keep selected
 widescreen-only components after the base build, because Remaining continues the base
 prefix. When a selected base component must follow a selected widescreen-only one
 (directly or through unselected components), `--phase base` now refuses before any
-write with `The base build cannot be installed first: the install order puts
-widescreen-only <W> before <B>. Install with --phase all.`; before, Base installed
-and Remaining then refused.
+write with `The base build cannot be installed first: a base component must install
+after widescreen-only <W> or a later widescreen-only component. Install with --phase
+all.` (`<W>` is the first selected widescreen-only component in the install order);
+before, Base installed and Remaining then refused.
 
 Unchanged and documented: `--ignore-errors` stays refused on validate and install. A
 selected component whose Dependencies are not selected, a Restrictions conflict and a

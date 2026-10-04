@@ -85,7 +85,7 @@ missing references and cycles only among selected components.
 
 ## Behaviour after this slice
 
-- `Guide::sort_for_install` (`src/model.rs:728-742`) is the C# check without
+- `Guide::sort_for_install` (`src/model.rs:730-744`) is the C# check without
   `--ignore-errors`: any missing, self or circular InstallBefore/InstallAfter
   reference on any top-level component stops the run with `Dependency resolution
   failed with N errors. Fix these InstallBefore/InstallAfter references in the guide
@@ -97,12 +97,13 @@ missing references and cycles only among selected components.
   lists the components in C#'s order. `--output json` puts the message in `error`, as
   C# does.
 - `Guide` carries `Ordering` (`src/model.rs:48-65`), rules that are never written to
-  a file: `markdown` (set by the file loader, `:174-178`, with the rule `convert` uses:
-  the extension, or the content when the extension names no format),
+  a file: `markdown` (set on every parse, `:206-212`, with the rule `convert` uses:
+  the extension or named format, or the content when the format is auto; so the
+  desktop raw editor's text gets it too),
   `preserve_input_order` (set for `--direct-markdown`, `src/main.rs:3184-3185`) and
   `widescreen_last` (set for `--phase base` and `--phase remaining`,
   `src/phase.rs:78-79`).
-- `Guide::ordered` (`src/model.rs:540-676`) is `GetOrderedInstallList`: it starts from
+- `Guide::ordered` (`src/model.rs:543-728`) is `GetOrderedInstallList`: it starts from
   the resolver's order (file order when the resolver reports an error, as the C#
   loader does), sorts every component breadth-first by Dependencies, InstallAfter and
   InstallBefore, and returns the selected ones. For a Markdown guide InstallBefore and
@@ -117,8 +118,10 @@ missing references and cycles only among selected components.
   phase continues a base prefix; then a selected base component that must follow a
   selected widescreen-only one (directly or through unselected components) keeps the
   breadth-first order, and `--phase base` refuses before any write
-  (`src/phase.rs:91-103`): `The base build cannot be installed first: the install
-  order puts widescreen-only <W> before <B>. Install with --phase all.` Before, Base
+  (`src/phase.rs:91-102`): `The base build cannot be installed first: a base
+  component must install after widescreen-only <W> or a later widescreen-only
+  component. Install with --phase all.` (`<W>` is the first selected widescreen-only
+  component in the install order.) Before, Base
   installed and Remaining then refused (`Completed components must form the selected
   installation prefix in order`).
 - Kept from before, fail-closed: a selected component whose Dependencies target is
@@ -151,8 +154,8 @@ On `e4c0b4d` every ordering case installed the stable order (InstallAfter, a
 Dependencies link, InstallBefore, a link through an unselected component, a chain,
 a guide the resolver reorders, mixed edges, two targets, JSON and YAML input, a
 widescreen component a base component follows, Markdown with a Dependencies link or a
-backward or InstallBefore reference in `.md`, `.txt` and extensionless files, a
-backward reference under `--direct-markdown`), the report listed components in file
+reference to a later component or an InstallBefore reference in `.md`, `.txt` and
+extensionless files, a reference to a later component under `--direct-markdown`), the report listed components in file
 order, every refusal case validated or installed where C# stopped, and `--phase base`
 installed a base component that must follow a widescreen-only one. Selected missing
 references and cycles were refused on both builds, but inside the report rather than
