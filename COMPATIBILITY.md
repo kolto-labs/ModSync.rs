@@ -1752,7 +1752,8 @@ by its guide Source, so one Fetch Downloads pass can cover them all.
 ## A failing chosen option in the validation dry run — 2026-10-04 UTC
 
 When an option that a `Choose` step runs is missing a source (a Copy, Move, Extract,
-Rename or CleanList file, or the file of a Delete with `Overwrite = true`), the
+Rename or CleanList file, the file of a Delete with `Overwrite = true`, or the program
+of an Execute/Run whose Sources are all wildcards), the
 validation dry run (`validate --dry-run`, the desktop Validate step) now fails that
 component, as C# does: the `DryRun` stage reports `ERROR: [EngineSimulation]
 <component> / step <n> (Choose): <option> / step <m> (<action>): <cause>`, it is

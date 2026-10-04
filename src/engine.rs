@@ -834,6 +834,13 @@ impl Engine {
                         issues.push(crate::validation::DryRunIssue::skipped(component));
                         break;
                     }
+                    // A chosen option's steps retarget validation at the option; C# reports
+                    // the failure against the component and its step.
+                    self.validation_target = Some((
+                        component.name.clone(),
+                        component.guid.clone(),
+                        Some(index + 1),
+                    ));
                     let message = format!("{error:#}");
                     let mut issue = crate::validation::DryRunIssue::engine(
                         message.clone(),

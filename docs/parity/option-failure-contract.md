@@ -41,7 +41,8 @@ dry-run: source archives or files are not available.` (`:515-527`). Any other co
 the error `Dry-run failed for '<name>' with exit code UserCancelledInstall.`
 (`:535-546`), counted in `errorCount`, and `validate` exits 1. This holds for every
 step that reports a missing source: Copy, Move, Extract, a strict (`Overwrite = true`)
-Delete, Rename and CleanList. The same miss in the component's own steps stays a
+Delete, Rename, CleanList, and Execute/Run whose Sources are all wildcards (Rust needs
+`--allow-processes` to reach it). The same miss in the component's own steps stays a
 `DryRunSkipped` warning. Install fails the component in both cases.
 
 **Rust at `b89484d`.** The `Choose` branch of `Engine::execute`
@@ -67,16 +68,16 @@ option was reported as a skipped component, and the report passed. Plain `valida
   `validate` refuse as before; other option failures were already errors.
 
 `Engine::execute`'s `Choose` branch now passes the option's error through
-`OptionalInstallFailed::wrap` (`src/engine.rs:2326`, type at `:290-313`), which hides
+`OptionalInstallFailed::wrap` (`src/engine.rs:2333`, type at `:290-313`), which hides
 the `MissingSourceFiles` type behind `OptionalInstallFailed` (the C# exit code's
 name). The message text is unchanged. A strict (`Overwrite = true`) Delete that
 matches nothing no longer adds the `[DeleteFile] Attempting to delete non-existent
-file` warning before it fails (`src/engine.rs:2514-2516`): C# `Instruction.DeleteFile`
+file` warning before it fails (`src/engine.rs:2521-2523`): C# `Instruction.DeleteFile`
 skips a missing path without touching its virtual file system (`Instruction.cs:865-879`),
 and in the component's own steps the warning was already dropped with the skip, so it
 showed only once the option failure kept the component's warnings. Callers checked: the type is only inspected by `validate_dry_run` and by
-the Patcher source resolution (`src/engine/source_resolution.rs:164`), which is not
-reached through a `Choose`. Install, plain `validate`, `conflicts`, checkpoints and
+the Patcher source resolution (`src/engine/source_resolution.rs:164`), which checks
+the error inside the Patcher step, before the `Choose` wraps it. Install, plain `validate`, `conflicts`, checkpoints and
 the desktop install use the same error text and only check success, so they are
 unchanged; the desktop Validate step runs the same report and now fails these guides.
 
@@ -135,3 +136,7 @@ without the miss.
 - **Install timing.** C# install runs the component's earlier steps before the
   option fails; Rust refuses before any write. Both refuse; the probe compares the
   decision.
+- **Issue target.** The `DryRun` issue for a failing chosen option names the component,
+  its GUID and the `Choose` step, as C# does. Before, an option's steps had retargeted
+  validation at the option, so the issue named the option and its step; the follow-up
+  to this slice resets the target in `validate_dry_run` (`src/engine.rs`).
