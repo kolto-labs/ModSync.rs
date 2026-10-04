@@ -2003,6 +2003,36 @@ now installs when you select that option and its mod (in the desktop, tick the m
 yourself). Without them, the mod that depends
 on the option is still refused, as before.
 
+## Restrictions and step conditions that name a nested option — 2026-10-04 UTC
+
+A GUID that names an option nested below another option (`[[thisMod.Options.Options]]`)
+now counts as not selected wherever Rust checks selection, as in C#, whose loader keeps
+no option below an option, so `FindComponentFromGuid` finds nothing: a component's
+Restriction naming such an option is no conflict, and a step whose Dependencies name it
+is skipped while a step whose Restrictions name it runs (a component's own steps and a
+chosen option's steps alike). Before, Rust counted a selected nested option as
+selected, so a Restriction naming it failed every report's `Conflicts`,
+`FomodConfiguration` and `DryRun` stages, plain `validate` and `install` (`B conflicts
+with <GUID>`), and step conditions naming it ran the steps C# skips and skipped the
+ones C# runs. The report's `Conflicts` stage now also warns about a component
+Dependency on a nested option, as C# does; `Guide::ordered` already refused that
+Dependency and still does.
+
+Unchanged and documented: a Restriction naming a selected immediate option is still
+refused before any write (C#'s CLI loader deselects that option with AttemptFixes and
+installs); an option selected under an unselected component still counts as not
+selected; a Choose step of an option still runs the nested options it names (a Rust
+extension: C# loads none, so it installs none of their files). Evidence: [nested option
+references proof](docs/parity/nested-option-references-proof/README.md), 62 checks
+match and 8 are known differences against the live C# CLI with a HoloPatcher stub (11
+fail on `c386d33`); contract in
+[nested-option-references-contract.md](docs/parity/nested-option-references-contract.md).
+
+Users: a guide whose Restrictions name a nested option no longer stops with `conflicts
+with`, and steps whose conditions name a nested option now run or are skipped as in
+the C# installer, so a file can be added or left out compared with the previous
+version. To make a step depend on a choice, name an option directly under the mod.
+
 ## A patcher without changes.ini in the validation dry run — 2026-10-04 UTC
 
 When a component's `Patcher` step finds its patcher executable but no `changes.ini`

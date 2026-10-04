@@ -524,20 +524,17 @@ impl Guide {
         crate::recovery::atomic_write(&path, output.as_bytes())
     }
 
+    /// The GUIDs a Dependency or Restriction (of a component or an instruction) finds
+    /// selected: each selected top-level component and its selected immediate options.
+    /// C# `FindComponentFromGuid` looks no deeper, and its loader keeps no option below
+    /// an option, so a GUID naming a nested option counts as not selected.
     pub fn selected_ids(&self) -> BTreeSet<String> {
-        fn collect(c: &Component, ids: &mut BTreeSet<String>) {
-            if c.is_selected {
-                ids.insert(c.guid.to_ascii_lowercase());
-                for option in &c.options {
-                    collect(option, ids);
-                }
-            }
-        }
-        let mut ids = BTreeSet::new();
-        for c in &self.components {
-            collect(c, &mut ids);
-        }
-        ids
+        self.components
+            .iter()
+            .filter(|c| c.is_selected)
+            .flat_map(|c| std::iter::once(c).chain(c.options.iter().filter(|o| o.is_selected)))
+            .map(|c| c.guid.to_ascii_lowercase())
+            .collect()
     }
 
     /// The order C# installs the selected components in

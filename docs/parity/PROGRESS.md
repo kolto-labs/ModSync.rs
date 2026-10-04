@@ -9,6 +9,20 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Restrictions and step conditions that name a nested option (2026-10-04, F04): a GUID
+naming an option below another option now counts as not selected in component
+Restrictions, step Dependencies and Restrictions and the report's Conflicts stage, as
+in C#, whose loader keeps no option below an option (`DeserializeOptions`,
+`Services/ModComponentSerializationService.cs:2406-2467`), so `FindComponentFromGuid`
+finds nothing. `Guide::selected_ids` collected selected options at every depth, so a
+Restriction naming a selected nested option refused every report, plain `validate` and
+`install`, and step conditions naming one ran the steps C# skips and skipped the ones
+it runs. A Restriction naming a selected immediate option stays refused (C# deselects
+it while loading) and a Choose step of an option still runs nested options (Rust
+extension), documented. Proof: 62 match / 8 known against the live C# CLI with a
+HoloPatcher stub; 11 fail on `c386d33`. The regression probes stay at baseline. See
+[nested-option-references-contract.md](nested-option-references-contract.md).
+
 Dependencies that name an option (2026-10-04, F04): a component whose Dependencies
 name an immediate selected option of a selected component now validates and installs,
 as in C#, whose `GetConflictingComponents` looks immediate options up too (`FindComponentFromGuid`,
