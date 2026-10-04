@@ -8,7 +8,9 @@ import atexit, hashlib, io, json, os, pathlib, shutil, subprocess, tempfile, zip
 REPO=pathlib.Path(__file__).resolve().parents[3]
 TARGET=pathlib.Path(os.environ.get('CARGO_TARGET_DIR', str(REPO/'target'))).resolve()
 OUT=pathlib.Path(os.environ.get('MODSYNC_PROOF_OUT', str(TARGET/'cloud-proof/fomod-gate-scope'))).resolve()
-shutil.rmtree(OUT,ignore_errors=True);OUT.mkdir(parents=True)
+_MARK=OUT/'.modsync-proof-out'
+if OUT.exists() and any(OUT.iterdir()) and not _MARK.exists() and (TARGET/'cloud-proof').resolve() not in OUT.parents:raise SystemExit(f'Refusing to delete {OUT}: not an empty or earlier probe output directory (set MODSYNC_PROOF_OUT to a dedicated folder)')
+shutil.rmtree(OUT,ignore_errors=True);OUT.mkdir(parents=True);_MARK.write_text('')
 BIN=pathlib.Path(os.environ.get('MODSYNC_BINARY', str(TARGET/'debug/modsync'))).resolve()
 def digest(p):return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
 def sources():return {str(p.relative_to(REPO)):digest(p) for p in sorted(list((REPO/'src').rglob('*.rs'))+[REPO/'Cargo.toml',REPO/'Cargo.lock'])}
