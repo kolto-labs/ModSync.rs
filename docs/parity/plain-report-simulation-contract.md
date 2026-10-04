@@ -72,7 +72,7 @@ step, so the report passed every guide the stages above did not catch.
 - The report without a dry run, once every stage has passed (`errorCount` 0), runs
   plain `validate`'s simulation on a fresh virtual engine: the remaining components in
   install order, each with `run_ordered`, stopping at the first failure
-  (`Engine::simulate_steps`, `src/engine.rs:774-789`, called at `:734-750`). A failure
+  (`Engine::simulate_steps`, `src/engine.rs:774-790`, called at `:734-750`). A failure
   fails the `ComponentValidation` stage: its `OK: <component>` line becomes `ERROR:
   <error>`, with the wording plain `validate` prints after `Error:` (for example
   `ERROR: B / step 1 (Patcher): Missing external program/mod:
@@ -100,8 +100,9 @@ Callers checked: `validate_report_with_options_observed` is reached from the CLI
 pipeline (`src/main.rs:3363`, the only caller with `dry_run` false), the desktop
 Validate step (`src/ui.rs:4152`, always with a dry run) and
 `validate_report_remaining_observed` (`src/engine.rs:1693`, always full with a dry
-run). The `validate_report` and `validate_report_with_dry_run` wrappers have no caller
-outside `src/engine.rs`. The simulation runs on its own engine (`fresh_engine`), so it
+run). The `validate_report` and `validate_report_with_dry_run` wrappers have no production
+caller outside `src/engine.rs` (the frozen tests in `tests/installer.rs` and
+`tests/validation_progress.rs` call them). The simulation runs on its own engine (`fresh_engine`), so it
 writes nothing and runs no program, as plain `validate`.
 
 ## Proof

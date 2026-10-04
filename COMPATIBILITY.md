@@ -1202,8 +1202,9 @@ live reference oracle (26 fail on `fba4eb1`); contract in
 Exceptions: a scalar empty Source in XML or Markdown metadata is not an empty list (see
 the next section). The report without `--dry-run` (also run by the desktop) now passes
 an empty Extract, as C# component validation does. See the contract. (Superseded
-2026-10-04: that report now also simulates the steps, so it refuses an empty Extract
-as plain `validate` does; see "Step simulation in the validation report without a dry
+2026-10-04: the CLI report without `--dry-run` now also simulates the steps, so it
+refuses an empty Extract as plain `validate` does; the desktop report, which always
+includes a dry run, is unchanged and still passes it; see "Step simulation in the validation report without a dry
 run" below.)
 
 ## Scalar empty Source in XML and Markdown — 2026-10-04 UTC

@@ -781,8 +781,9 @@ impl Engine {
         let ordered = self
             .remaining_ordered(guide)
             .map_err(|error| (None, error))?;
+        self.load_selection(guide);
         for component in ordered {
-            self.run_ordered(guide, &[component], &mut |_| {}, None)
+            self.run_selected(&[component], &mut |_| {}, None)
                 .map_err(|error| (Some(component), error))?;
         }
         Ok(())
@@ -1776,8 +1777,13 @@ impl Engine {
         guide: &Guide,
         ordered: &[&Component],
         emit: &mut impl FnMut(Event),
-        mut progress: Option<&mut InstallObserver<'_>>,
+        progress: Option<&mut InstallObserver<'_>>,
     ) -> Result<()> {
+        self.load_selection(guide);
+        self.run_selected(ordered, emit, progress)
+    }
+
+    fn load_selection(&mut self, guide: &Guide) {
         self.selected = selected_guid_keys(guide);
         self.selected_names = guide
             .components
@@ -1785,6 +1791,15 @@ impl Engine {
             .filter(|c| c.is_selected)
             .map(|c| c.name.clone())
             .collect();
+    }
+
+    /// `run_ordered` after `load_selection`.
+    fn run_selected(
+        &mut self,
+        ordered: &[&Component],
+        emit: &mut impl FnMut(Event),
+        mut progress: Option<&mut InstallObserver<'_>>,
+    ) -> Result<()> {
         for (index, c) in ordered.iter().enumerate() {
             ensure!(
                 !c.instructions.is_empty(),
