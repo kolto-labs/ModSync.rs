@@ -2211,8 +2211,12 @@ impl Engine {
                     } else {
                         dest.join(source.file_name().unwrap())
                     };
+                    // C# Copy/Move find the target present and, with Overwrite=false,
+                    // warn and skip it; with Overwrite=true they delete the only copy
+                    // and fail. Rust skips the first and refuses the second unchanged.
                     ensure!(
-                        self.path_policy.key(&source) != self.path_policy.key(&target),
+                        self.path_policy.key(&source) != self.path_policy.key(&target)
+                            || (i.action != "Rename" && !i.overwrite),
                         "Source equals destination: {}",
                         source.display()
                     );
