@@ -164,7 +164,7 @@ pub(super) fn validate_tree(tree: &Tree) -> Result<(u64, u64)> {
     let mut count = 0u64;
     let mut bytes = 0u64;
     for (name, entry) in &tree.entries {
-        let path = crate::paths::relative(name, false)?;
+        let path = crate::paths::literal_relative(name)?;
         ensure!(
             !name.is_empty() && !name.contains('\\') && path.to_str() == Some(name.as_str()),
             "Checkpoint path is not portable canonical relative text"

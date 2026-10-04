@@ -96,6 +96,24 @@ pub struct Roots {
 
 /// Windows names are rejected on every host so a guide cannot change meaning across platforms.
 pub fn relative(raw: &str, wildcards: bool) -> Result<PathBuf> {
+    let refused: &[char] = if wildcards {
+        &[]
+    } else {
+        &['*', '?', '[', ']']
+    };
+    checked_relative(raw, refused)
+}
+
+/// A relative path whose names are taken literally, never as a pattern: an archive
+/// member or a checkpoint tree entry. C# extraction
+/// (`TryGetZipSafeArchiveEntryExtractPath`) writes `[` and `]` as ordinary
+/// characters, so they are allowed here; `*` and `?` stay refused because no
+/// Windows file can carry them.
+pub fn literal_relative(raw: &str) -> Result<PathBuf> {
+    checked_relative(raw, &['*', '?'])
+}
+
+fn checked_relative(raw: &str, refused: &[char]) -> Result<PathBuf> {
     let text = raw.replace('\\', "/");
     ensure!(!text.starts_with('/'), "Absolute path is forbidden: {raw}");
     let mut path = PathBuf::new();
@@ -107,7 +125,7 @@ pub fn relative(raw: &str, wildcards: bool) -> Result<PathBuf> {
             "Unsafe path: {raw}"
         );
         ensure!(
-            wildcards || !part.contains(['*', '?', '[', ']']),
+            !part.contains(refused),
             "Wildcards are not allowed here: {raw}"
         );
         let stem = part.split('.').next().unwrap().to_ascii_uppercase();

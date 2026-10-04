@@ -317,7 +317,7 @@ impl Store {
         path: &str,
     ) -> Result<ProvenanceReport> {
         self.pending_operations()?;
-        let relative = crate::paths::relative(path, false)?;
+        let relative = crate::paths::literal_relative(path)?;
         ensure!(
             !path.is_empty() && !path.contains('\\') && relative.to_str() == Some(path),
             "Provenance needs a portable relative path"
