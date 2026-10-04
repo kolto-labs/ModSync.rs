@@ -1,0 +1,345 @@
+{
+ "control_component_unselected": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [],
+  "issues": []
+ },
+ "control_condition_unmet": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [],
+  "issues": []
+ },
+ "control_copy_missing": {
+  "counts": [
+   0,
+   1
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [
+   "skipped"
+  ],
+  "issues": [
+   [
+    "Warning",
+    "B",
+    "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    "DryRunSkipped",
+    null
+   ]
+  ]
+ },
+ "control_option_missing": {
+  "counts": [
+   1,
+   0
+  ],
+  "decision": [
+   false,
+   false
+  ],
+  "dryrun": [
+   "error"
+  ],
+  "issues": [
+   [
+    "Error",
+    "B",
+    "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+   ]
+  ]
+ },
+ "control_present": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [],
+  "issues": []
+ },
+ "control_present_then_rename": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [],
+  "issues": []
+ },
+ "install_missing": {
+  "decision": false
+ },
+ "known_empty_source": {
+  "counts": [
+   0,
+   1
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [
+   "skipped"
+  ],
+  "issues": [
+   [
+    "Warning",
+    "B",
+    "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    "DryRunSkipped",
+    null
+   ]
+  ]
+ },
+ "known_folder_source": {
+  "counts": [
+   0,
+   1
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [
+   "skipped"
+  ],
+  "issues": [
+   [
+    "Warning",
+    "B",
+    "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    "DryRunSkipped",
+    null
+   ]
+  ]
+ },
+ "known_wildcard_missing": {
+  "counts": [
+   0,
+   1
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [
+   "skipped"
+  ],
+  "issues": [
+   [
+    "Warning",
+    "B",
+    "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    "DryRunSkipped",
+    null
+   ]
+  ]
+ },
+ "missing_after_copy": {
+  "counts": [
+   0,
+   1
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [
+   "skipped"
+  ],
+  "issues": [
+   [
+    "Warning",
+    "B",
+    "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    "DryRunSkipped",
+    null
+   ]
+  ]
+ },
+ "missing_after_kept_file": {
+  "counts": [
+   0,
+   1
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [
+   "skipped"
+  ],
+  "issues": [
+   [
+    "Warning",
+    "B",
+    "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    "DryRunSkipped",
+    null
+   ]
+  ]
+ },
+ "missing_exe_in_folder": {
+  "counts": [
+   0,
+   1
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [
+   "skipped"
+  ],
+  "issues": [
+   [
+    "Warning",
+    "B",
+    "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    "DryRunSkipped",
+    null
+   ]
+  ]
+ },
+ "missing_folder": {
+  "counts": [
+   0,
+   1
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [
+   "skipped"
+  ],
+  "issues": [
+   [
+    "Warning",
+    "B",
+    "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    "DryRunSkipped",
+    null
+   ]
+  ]
+ },
+ "missing_other_component_ok": {
+  "counts": [
+   0,
+   1
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [
+   "skipped"
+  ],
+  "issues": [
+   [
+    "Warning",
+    "B",
+    "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    "DryRunSkipped",
+    null
+   ]
+  ]
+ },
+ "missing_then_later_steps": {
+  "counts": [
+   0,
+   1
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [
+   "skipped"
+  ],
+  "issues": [
+   [
+    "Warning",
+    "B",
+    "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    "DryRunSkipped",
+    null
+   ]
+  ]
+ },
+ "missing_tslpatchdata": {
+  "counts": [
+   0,
+   1
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [
+   "skipped"
+  ],
+  "issues": [
+   [
+    "Warning",
+    "B",
+    "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    "DryRunSkipped",
+    null
+   ]
+  ]
+ },
+ "two_components_missing": {
+  "counts": [
+   0,
+   2
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [
+   "skipped",
+   "skipped"
+  ],
+  "issues": [
+   [
+    "Warning",
+    "B",
+    "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    "DryRunSkipped",
+    null
+   ],
+   [
+    "Warning",
+    "C",
+    "cccccccc-cccc-cccc-cccc-cccccccccccc",
+    "DryRunSkipped",
+    null
+   ]
+  ]
+ }
+}

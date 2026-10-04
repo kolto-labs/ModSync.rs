@@ -1781,6 +1781,35 @@ Users: if Validate now fails with `<component> / step <n> (Choose)`, a file of a
 option you selected is missing, often a separate download. Fetch or place it, or
 deselect that option, then validate again.
 
+## A missing patcher in the validation dry run — 2026-10-04 UTC
+
+When a component's own `Patcher` step names a patcher that is not in the mod folder
+(the patcher folder, its `tslpatchdata` folder or its executable), the validation dry
+run (`validate --dry-run`, the desktop Validate step) now reports `WARNING:
+[DryRunSkipped] Skipped '<component>' during dry-run: source archives or files are not
+available.` and passes, as C# does and as Rust already did for a missing Copy, Move or
+Extract source. C# returns `FileNotFoundPre` for the miss, which its dry run reports
+as a skipped component. Before, Rust failed the report with `ERROR: [EngineSimulation]
+<component> / step <n> (Patcher): Missing external program/mod: <Source>` and
+`validate --dry-run` exited 1. The component's earlier warnings are dropped with the
+skip, as for the other skips.
+
+Unchanged: `install`, the desktop install and plain text-mode `validate` still refuse
+with `Missing external program/mod: <Source>` (the JSON report without `--dry-run`
+never simulates Patcher steps and reports success, as before); a Patcher miss in a chosen option still fails
+its component; a present patcher is simulated as before. A Patcher Source that is a
+wildcard or an empty list is still refused (C# skips the component), and a Source
+naming a present patcher folder is still bound and simulated (C# finds no file there
+and skips); Rust binds a patcher to one literal file or folder before anything runs.
+Evidence: [patcher missing source
+proof](docs/parity/patcher-missing-source-proof/README.md), 58 checks match and 11 are
+known differences against the live C# CLI (32 fail on `0f71baa`); contract in
+[patcher-missing-source-contract.md](docs/parity/patcher-missing-source-contract.md).
+
+Users: Validate now warns instead of failing when a patcher mod has not been
+downloaded yet. The install still needs it: fetch or place the patcher, then validate
+again before installing.
+
 ## CleanList list-file choice — 2026-10-04 UTC
 
 A `CleanList` reads one list file. When its Source list names more than one existing

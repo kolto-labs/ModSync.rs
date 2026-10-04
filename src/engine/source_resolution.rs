@@ -160,9 +160,15 @@ impl Engine {
         let sources = match direct {
             Ok(sources) => sources,
             Err(error) if error.is::<MissingSource>() => {
+                // A Patcher miss stays typed: C# returns FileNotFoundPre, which the
+                // dry run reports as DryRunSkipped, as for Copy/Move/Extract.
                 return self.recover(component, instruction).map_err(|error| {
                     if patcher && error.is::<MissingSourceFiles>() {
-                        anyhow::anyhow!("Missing external program/mod: {}", instruction.source[0])
+                        MissingSourceFiles(anyhow::anyhow!(
+                            "Missing external program/mod: {}",
+                            instruction.source[0]
+                        ))
+                        .into()
                     } else {
                         error
                     }

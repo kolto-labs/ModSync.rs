@@ -9,6 +9,18 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+A missing patcher in the validation dry run (2026-10-04, F05/F08/F09): when a
+component's own `Patcher` step names a patcher folder or executable that is not in the
+mod folder, `validate --dry-run` and the desktop Validate step now report the
+component as `DryRunSkipped` (a warning) and pass, as C# does: its Patcher branch
+returns `FileNotFoundPre` (`ModComponent.cs:1630-1641`), mapped to
+`MissingSourceFiles` (`:1862-1866`) and reported as a skip
+(`DryRunValidator.cs:515-527`). Rust failed the report with `Missing external
+program/mod`. Install still refuses; a wildcard or empty Patcher Source stays refused
+and a folder Source stays bound (documented). Proof: 58 match / 11 known against the
+live C# CLI; 32 fail on `0f71baa`. The regression probes stay at baseline. See
+[patcher-missing-source-contract.md](patcher-missing-source-contract.md).
+
 A failing chosen option in the validation dry run (2026-10-04, F04/F05/F08): when an
 option that a `Choose` step runs is missing a source, `validate --dry-run` and the
 desktop Validate step now fail that component (`ERROR: [EngineSimulation] <component>
