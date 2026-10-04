@@ -1457,7 +1457,7 @@ known differences against a live reference oracle (45 fail on `8c79761`); contra
 
 Guide authors: `<<kotorDirectory>>` on its own is a valid Destination for Copy, Move,
 CleanList and DelDuplicate, for example to copy `dialog.tlk` into the game folder. A
-bare root is never a valid Source; name the files (`<<modDirectory>>/*.zip`). Do not
+bare root is never a valid Source (Patcher's direct binding still accepts one; see the contract); name the files (`<<modDirectory>>/*.zip`). Do not
 use a `.` part in a Destination; validation refuses it, and DelDuplicate and CleanList
 fail. A Rename Destination is a file name, never a placeholder.
 

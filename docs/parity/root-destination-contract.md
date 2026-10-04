@@ -77,7 +77,7 @@ DelDuplicate in a root failed install outright, where C# deletes the duplicate.
   `Engine::source_prefix` (`src/engine.rs:1957-1961`) gives it no descendant prefix,
   so `source_matches` (`:1963-1971`), `matches_scoped`, the archive check in
   `validate_component_archives`, `recovery_matches` (`src/engine/source_resolution.rs:297-306`,
-  which also no longer treats it as a Patcher folder) and the FOMOD choice matcher
+  which also no longer treats a recovered root as a Patcher folder) and the FOMOD choice matcher
   (`src/fomod/resolved_choices.rs:137-150`, `:183-186`) match no file for it.
 - **`.` Destination parts.** The archive/destination stage refuses a Destination with
   a `.` part (`has_dot_part`, `src/engine.rs:210-214`, used at `:902-912`), as C#
@@ -146,6 +146,12 @@ Every case is checked three ways: the validation pipeline (stage, dry-run decisi
 and `DryRunSkipped`), plain `validate` and `install` (decision and final tree).
 
 ## Known differences
+
+- **Patcher with Source `<<modDirectory>>`.** Patcher's direct binding
+  (`src/engine/source_resolution.rs:134-140`) still binds a bare root to the mod
+  folder, so plain `validate` passes and the dry run reports no issue, where C#
+  refuses. This predates this slice (8c79761 behaves the same); install also needs
+  `--allow-processes` and a patcher. Not probed.
 
 - **Rename to a bare placeholder (unchanged).** `Rename KD/r.txt -> KD`: C# treats a
   Rename Destination as a file name and renames `r.txt` to a file literally named
