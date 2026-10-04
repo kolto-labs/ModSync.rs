@@ -175,7 +175,8 @@ C# wording and is unchanged.
   without `--dry-run` or `--full`; a restriction or missing dependency failing Rust's
   FOMOD and dry-run stages. Also seen in this comparison and left open: with
   `--use-file-selection` and nothing selected, C# selects every component
-  (`ModComponentSerializationService.cs:895-903`), while Rust refuses the guide; a
+  (`ModComponentSerializationService.cs:895-903`), while Rust refused the guide (closed
+  in [file-selection-fallback-contract.md](file-selection-fallback-contract.md)); a
   component with no instructions passes in C# and fails Rust's dry run; `--full` needs
   a packaged HoloPatcher in C# and fails its Environment stage without one.
 - **Platform.** The reference ran on Linux with `DOTNET_ROLL_FORWARD=Major` (the pinned

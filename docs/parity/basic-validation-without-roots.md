@@ -11,7 +11,9 @@ configuration stage. It does not initialize Roots, Engine, patchers or scratch
 directories. Profile and explicit selection policy are resolved first. Both
 validation paths use the preserving loader, so an authored all-false guide is
 not implicitly changed to all-selected. An empty effective selection is a CLI
-setup error. Early JSON setup errors produce the validation report schema;
+setup error. (Superseded 2026-10-04: without a profile both paths now load as the
+C# file loader does, which selects every component of a non-Markdown guide that
+selects none; see [file-selection-fallback-contract.md](file-selection-fallback-contract.md).) Early JSON setup errors produce the validation report schema;
 cancellation retains exit 130. A failed report returns exit 1.
 
 The component stage checks base and immediate-option Extract sources, conditional

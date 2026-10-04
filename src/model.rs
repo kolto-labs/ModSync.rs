@@ -113,6 +113,17 @@ impl Guide {
         Self::load_for_install_with_selection_default(path, false)
     }
 
+    /// Load as the reference CLI's `FileLoadingService.LoadFromFileAsync` does for
+    /// validate and install. A Markdown extension goes through guide ingestion, which
+    /// keeps the authored selection; any other file goes through
+    /// `DeserializeModComponentFromString`, which selects every component when the file
+    /// selects none.
+    pub fn load_like_file_loader(path: &Path) -> Result<Self> {
+        let markdown =
+            canonical_format(path.extension().and_then(|s| s.to_str()).unwrap_or("")) == Some("md");
+        Self::load_for_install_with_selection_default(path, !markdown)
+    }
+
     fn load_for_install_with_selection_default(
         path: &Path,
         default_selection: bool,
