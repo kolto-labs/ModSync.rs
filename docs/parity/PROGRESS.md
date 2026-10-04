@@ -9,6 +9,16 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+CleanList list-file choice (2026-10-04, F07-D): a CleanList whose Sources name
+more than one existing list now reads the first authored Source's list, as C#
+`ExecuteCleanListAsync` reads `RealSourcePaths[0]`. Rust read the match with the
+smallest sorted path, so `CleanList [l/b.csv, l/a.csv]` applied `a.csv` and deleted
+the wrong files. Every Source must still match (fail-closed, unchanged); within one
+wildcard Source with several matches Rust keeps sorted order, where C# order is
+unspecified (documented). Proof: 39 match and 3 known differences against a live
+reference oracle; 9 fail on `0997b0f`. The regression probes stay at baseline. See
+[cleanlist-list-choice-contract.md](cleanlist-list-choice-contract.md).
+
 Directory Sources and wildcard rules (2026-10-04, follow-ups to the Delete slice): a
 `Delete`, `Copy`, `Move`, `Rename`, `CleanList`, `Execute` or `Run` Source that names a
 directory now reaches no file beneath it, as in C# (`EnumerateFilesWithWildcards`
