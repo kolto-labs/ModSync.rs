@@ -131,3 +131,14 @@ the two unchanged differences gave the same results on both builds.
 - **Platform.** The reference ran on Linux under `unshare -Urnm` with a tmpfs over
   `/Override`. `<` and `>` are invalid in a Windows file name, so C#'s install should
   fail there too; not run.
+- **Backslash Destinations on Linux.** With `\` separators (the usual guide spelling
+  and what both drafters emit), C# on Linux treats the whole Destination as one file
+  name: `<<kotorDirectory>>\Override\z.txt` or `sub\z.txt` renames the source to a
+  file literally named that in its own folder, and the install succeeds. Rust refuses
+  both (fail-closed); the intended target is never reached in C# either. Checked live
+  in review, not in the probe.
+- **Drafted Renames.** `src/draft.rs` `destination()` always gives a drafted Rename a
+  placeholder Destination, so drafted Renames stay refused (as they were before this
+  slice, and the review gate refuses unreviewed drafts). Newer C#
+  (`NaturalLanguageInstructionParser.cs:1398-1424` in ModOrchestration) keeps a bare
+  file name; a follow-up can do the same.

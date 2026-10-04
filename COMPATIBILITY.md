@@ -2040,7 +2040,9 @@ A `Rename` step whose Destination is a placeholder path, such as
 Destination must be a file name, not a placeholder path: <Destination>`. C#
 `RenameFile` takes the Destination as the new file name in the source's folder and
 joins it unresolved, so its install fails such a step (there is no folder named
-`<<kotorDirectory>>` there). Before, Rust resolved the placeholder and moved the file
+`<<kotorDirectory>>` there); with `\` separators on Linux C# instead renames the
+source to a file literally named after the whole Destination and succeeds, which Rust
+also refuses. Before, Rust resolved the placeholder and moved the file
 to that path, even from the mod folder into the game folder, so it installed guides C#
 refuses. The dry run fails the step, so the full and basic reports (`DryRun` stage),
 plain `validate` and the install preflight refuse it. A plain file name renames as
