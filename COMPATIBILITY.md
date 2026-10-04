@@ -1559,6 +1559,31 @@ quotes and `#` as ordinary characters. Do not end a quoted argument with one bac
 (`"<<kotorDirectory>>\Override\"`); drop the trailing backslash or double it. Spell
 placeholders exactly as `<<modDirectory>>`, `<<kotorDirectory>>` or `<<gameDirectory>>`.
 
+## Patcher INI names with brackets — 2026-10-04 UTC
+
+The virtual Patcher simulation (used by validation, the dry-run report, `conflicts` and
+install preflight) now treats `[` and `]` in a patcher's own INI names as ordinary
+characters: the `[InstallList]` folders, the `File*`/`Replace*` file names, and the
+namespaces.ini `IniName` and `DataPath` of the selected namespace. This matches C#,
+whose simulation joins these names with `Path.Combine`. Before, Rust read them as
+wildcards and refused the guide with `Wildcards are not allowed here: [HD]tex.tga`, so
+a guide whose mod ships a file such as `[HD]tex.tga` or a namespace folder such as
+`[A] Option` could not be validated, analysed for conflicts or installed. Conflict
+reports now list such paths (`<<kotorDirectory>>/Override/[HD]tex.tga`) with the same
+writers and winner as C#.
+
+Unchanged and documented: INI names with `*` or `?` are still refused (no Windows file
+can hold them; C# on Linux simulates them), as are `..`, rooted names and the other
+unsafe names. A named-INI `Arguments` value may still not contain brackets. Evidence:
+[patcher INI brackets proof](docs/parity/patcher-ini-brackets-proof/README.md), 39
+checks match and 6 are known differences against a live reference oracle (33 fail on
+`c2225e3`); contract in
+[patcher-ini-brackets-contract.md](docs/parity/patcher-ini-brackets-contract.md).
+
+Users: a guide that failed with `Wildcards are not allowed here` naming a file or
+folder from a patcher's changes.ini or namespaces.ini now validates and installs; no
+guide change is needed.
+
 ## CleanList list-file choice — 2026-10-04 UTC
 
 A `CleanList` reads one list file. When its Source list names more than one existing

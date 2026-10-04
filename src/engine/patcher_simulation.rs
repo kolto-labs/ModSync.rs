@@ -1,7 +1,7 @@
 //! Bounded InstallList presence simulation. This never runs a patcher and does not
 //! model binary patch operations. Unknown payloads retain an explicit VFS marker.
 use super::{Content, Engine, Event};
-use crate::paths::relative;
+use crate::paths::{literal_relative, relative};
 use anyhow::{Context, Result, ensure};
 use std::{
     collections::BTreeMap,
@@ -151,7 +151,10 @@ impl Engine {
                 .filter(|value| !value.is_empty())
                 .context("Selected patcher namespace has no IniName")?;
             let folder = ini.field(section, "DataPath").unwrap_or("");
-            let filename = relative(filename, false)?;
+            // INI values name the mod's own files and folders, never a pattern, so `[`
+            // and `]` are literal, consistent with the InstallList names (the reference
+            // simulation does not read namespaces.ini).
+            let filename = literal_relative(filename)?;
             ensure!(
                 filename.file_name().is_some(),
                 "Selected namespace INI has no filename"
@@ -160,7 +163,7 @@ impl Engine {
                 &namespaces
                     .parent()
                     .expect("INI has parent")
-                    .join(relative(folder, false)?)
+                    .join(literal_relative(folder)?)
                     .join(filename),
             );
             self.settings.roots.check(&selected)?;
@@ -212,7 +215,9 @@ impl Engine {
                 let Some(files) = ini.section(section) else {
                     continue;
                 };
-                let folder = relative(folder, false)?;
+                // InstallList names are literal (TslPatcherVfsSimulator passes them to
+                // Path.Combine), so `[` and `]` are ordinary characters here.
+                let folder = literal_relative(folder)?;
                 for (operation, filename) in files {
                     self.check_cancelled()?;
                     if !(operation.starts_with("file") || operation.starts_with("replace"))
@@ -220,7 +225,7 @@ impl Engine {
                     {
                         continue;
                     }
-                    let filename = relative(filename, false)?;
+                    let filename = literal_relative(filename)?;
                     ensure!(
                         filename.file_name().is_some(),
                         "Patcher InstallList entry has no filename"
