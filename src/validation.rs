@@ -217,11 +217,11 @@ impl Report {
     /// well as errors.
     pub fn first_issue(&self) -> Option<&str> {
         if let Some(stage) = self.stages.iter().find(|stage| !stage.passed) {
-            // A failed stage can list soft warnings before its error.
+            // A failed stage can list soft warnings or passed entries before its error.
             return stage
                 .messages
                 .iter()
-                .find(|message| !message.starts_with("WARNING:"))
+                .find(|message| !message.starts_with("WARNING:") && !message.starts_with("OK:"))
                 .or(stage.messages.first())
                 .map(String::as_str);
         }
@@ -318,8 +318,8 @@ impl Report {
             self.stages.last_mut().unwrap().summary = "Install order is correct.".into();
         }
     }
-    /// Warnings (configured archives without an install route) keep the stage
-    /// passing but are counted and shown, like dry-run warnings.
+    /// Gate warnings are counted and shown. Alone they keep the stage passing,
+    /// like dry-run warnings; with a gate error they are listed before it.
     pub(crate) fn fomod_configuration(
         &mut self,
         warnings: Vec<String>,

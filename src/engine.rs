@@ -881,13 +881,6 @@ impl Engine {
         Ok(())
     }
 
-    /// Gates the selected components and, as C# does, their hard dependencies.
-    /// Returns warnings for configured registered archives that no selected Extract
-    /// instruction installs, or whose installer maps no files for any choice (C#'s
-    /// "configured without archive-scoped instructions"): configuration installs nothing.
-    /// Mapper fallbacks of each checked installer are logged once per archive, as C#
-    /// logs them, outside the report. Reads archives into scratch only; never writes
-    /// the game or mod trees.
     /// The gate's soft warnings and its outcome. Warnings collected before a hard
     /// failure are kept, as C# reports its gate warnings alongside other findings.
     fn validate_fomod_configuration(&mut self, guide: &Guide) -> (Vec<String>, Result<()>) {
@@ -896,6 +889,13 @@ impl Engine {
         (warnings.finish(), outcome)
     }
 
+    /// Gates the selected components and, as C# does, their hard dependencies.
+    /// Collects warnings for configured registered archives that no selected Extract
+    /// instruction installs, or whose installer maps no files for any choice (C#'s
+    /// "configured without archive-scoped instructions"): configuration installs nothing.
+    /// Mapper fallbacks of each checked installer are logged once per archive, as C#
+    /// logs them, outside the report. Reads archives into scratch only; never writes
+    /// the game or mod trees.
     fn check_fomod_configuration(
         &mut self,
         guide: &Guide,

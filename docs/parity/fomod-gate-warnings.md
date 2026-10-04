@@ -63,4 +63,9 @@ choices) followed a warning collected for an earlier component.
 - Rust still stops at its first hard FOMOD issue, so warnings for components after that
   issue are not collected, and later issues are not listed. C# collects all of them.
 - The C# error-count rule for a failed FOMOD stage (every message counts) is not copied.
+- C# leaves `hasWarnings` false and `warningCount` at 0 for this stage. Rust sets
+  `hasWarnings` and counts the warnings, unlike its own Conflicts and DryRun stages,
+  which follow C#'s "errors take precedence" rule. No consumer behaves differently.
+- "Go to first issue" now skips `WARNING:` and `OK:` lines in any failed stage, so a
+  failed component-validation stage whose first component passed points at the error.
 - The C# install paths' silence about warnings is not copied; Rust keeps its events.

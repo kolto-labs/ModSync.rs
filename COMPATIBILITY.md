@@ -1134,8 +1134,10 @@ plugin installs files. Evidence: [archive-scoped proof](docs/parity/fomod-archiv
 These soft gate warnings, and the Rust-only no-route warning, now survive a later hard
 failure of the same gate, such as an unselected dependency, a restriction conflict or a
 FOMOD issue on a later component. As in C#, the failed FOMOD report stage lists the
-warnings first and then the error; the warnings count in `warningCount` and the error once
-in `errorCount`. Plain `validate` and `install` emit the `WARNING:` events before failing.
+warnings first and then the error. Unlike C#, which leaves `hasWarnings` false, adds
+nothing to `warningCount` and counts every message of a failed stage as an error, Rust
+sets `hasWarnings`, counts the warnings in `warningCount` and the error once in
+`errorCount`. Plain `validate` and `install` emit the `WARNING:` events before failing.
 The error text and exit code are unchanged. "Go to first issue" still points at the error.
 Rust still stops at its first FOMOD issue, so warnings for later components are not
 collected. Evidence: [gate-warnings proof](docs/parity/fomod-gate-warnings-proof/README.md),
