@@ -2228,14 +2228,24 @@ impl Engine {
                         continue;
                     }
                     if exists && !i.overwrite {
-                        self.validation_warning(
-                            &format!("{}File", i.action),
-                            format!(
-                                "Destination file already exists and overwrite is false: {}",
-                                target.display()
-                            ),
-                            &target,
+                        let message = format!(
+                            "Destination file already exists and overwrite is false: {}",
+                            target.display()
                         );
+                        // C# CopyFile/MoveFile log a warning for each skipped file
+                        // during install too; validation records it as an issue.
+                        if self.install {
+                            emit(Event {
+                                component: component.name.clone(),
+                                step: self
+                                    .validation_target
+                                    .as_ref()
+                                    .and_then(|target| target.2)
+                                    .unwrap_or(0),
+                                message: format!("WARNING: {message}"),
+                            });
+                        }
+                        self.validation_warning(&format!("{}File", i.action), message, &target);
                         continue;
                     }
                     let data = self.files[&self.path_policy.key(&source)].1.clone();

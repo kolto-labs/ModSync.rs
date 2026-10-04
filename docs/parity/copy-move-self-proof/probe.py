@@ -7,8 +7,11 @@ directory that already holds it, so the target is the source itself, and then
 copies `after.txt` into `Override` as a marker that the component went on. The
 Rust binary runs plain `validate` (the strict install gate) and `install` on
 fresh copies. Both decisions, and the final game and mod trees after a
-successful install, are compared with the reference install. Reference results
-are in csharp-oracle.json.
+successful install, are compared with the reference install. For every case the
+reference installs, the number of Rust install warnings for skipped files is
+compared with the number of reference skip warnings. Some fixtures put one source
+in a ResourceRegistry ZIP so that Rust's miss-only recovery binds it. Reference
+results are in csharp-oracle.json.
 
 The reference result is ModComponent.InstallAsync with the real file system
 (accepted on InstallExitCode.Success), from the oracle in csharp-oracle/ built
@@ -28,6 +31,7 @@ import json
 import os
 import shutil
 import stat
+import zipfile
 import subprocess
 import sys
 import tempfile
@@ -47,6 +51,9 @@ def with_files(extra):
     files.update(extra)
     return files
 
+
+RECOVERED = {"zips": {"mods/Mod.zip": {"z.txt": "Z\n"}}, "registry": {"Mod.zip": ["z.txt"]}}
+RECOVERED_SOURCE = "<<modDirectory>>/Mod/z.txt"
 
 # name -> (files {root-relative path: text}, extras {"readonly": [...], "links": {path: target}}, instructions)
 CASES = {
@@ -90,6 +97,36 @@ CASES = {
         [("Copy", [OV + "/l.txt"], OV, False), MARKER],
     ),
     "rename_self_false": (BASE, {}, [("Rename", [X], "x.txt", False), MARKER]),
+    # An ordinary Overwrite=false collision (not a self-target): for the install
+    # warning check.
+    "copy_collision_false": (
+        with_files({"mods/x.txt": "M\n"}),
+        {},
+        [("Copy", ["<<modDirectory>>/x.txt"], OV, False), MARKER],
+    ),
+    # One source is still inside mods/Mod.zip, so Rust's miss-only recovery binds
+    # it; the other is the self-target. C# does not recover here (its direct
+    # binding drops the missing literal), see TREE_DIFF.
+    "copy_recovered_mixed_false": (
+        BASE,
+        RECOVERED,
+        [("Copy", [RECOVERED_SOURCE, X], OV, False), MARKER],
+    ),
+    "move_recovered_mixed_false": (
+        BASE,
+        RECOVERED,
+        [("Move", [RECOVERED_SOURCE, X], OV, False), MARKER],
+    ),
+    "copy_recovered_mixed_true": (
+        BASE,
+        RECOVERED,
+        [("Copy", [RECOVERED_SOURCE, X], OV, True), MARKER],
+    ),
+    "move_recovered_mixed_omitted": (
+        BASE,
+        RECOVERED,
+        [("Move", [RECOVERED_SOURCE, X], OV, None), MARKER],
+    ),
 }
 
 
@@ -100,17 +137,35 @@ KNOWN = {
 }
 
 
+# Accepted by both, but the final trees differ for a reason outside this
+# contract: Rust's miss-only recovery extracts Mod.zip and copies or moves z.txt,
+# while C# drops the missing literal and handles only the self-target. The
+# decision is compared and the self-target file must be kept unchanged; the
+# whole-tree difference is reported as known.
+TREE_DIFF = {
+    "copy_recovered_mixed_false": "Rust recovers Mod/z.txt from its archive; C# skips it",
+    "move_recovered_mixed_false": "Rust recovers Mod/z.txt from its archive; C# skips it",
+}
+
+# Rust's install event for each skipped file, and C#'s log line for it.
+RUST_SKIP = "WARNING: Destination file already exists and overwrite is false: "
+CSHARP_SKIP = "skipping file. Reason: Overwrite set to False"
+
+
 def toml_string(value):
     return json.dumps(value)
 
 
-def guide(instructions):
+def guide(instructions, registry):
     lines = [
         "[[thisMod]]",
         f'Guid = "{GUID}"',
         'Name = "Self Target Probe"',
         "IsSelected = true",
     ]
+    for archive, members in registry.items():
+        lines += ["", f"[thisMod.ResourceRegistry.{toml_string(archive)}.Files]"]
+        lines += [f"{toml_string(member)} = true" for member in members]
     for action, sources, destination, overwrite in instructions:
         lines += ["", "[[thisMod.Instructions]]", f"Action = {toml_string(action)}"]
         lines.append("Source = [" + ", ".join(toml_string(s) for s in sources) + "]")
@@ -133,13 +188,17 @@ def fixture(root, case):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w") as handle:
             handle.write(text)
+    for relative, members in extras.get("zips", {}).items():
+        with zipfile.ZipFile(os.path.join(root, relative), "w") as archive:
+            for member, text in members.items():
+                archive.writestr(member, text)
     for relative, target in extras.get("links", {}).items():
         os.symlink(target, os.path.join(root, relative))
     for relative in extras.get("readonly", []):
         os.chmod(os.path.join(root, relative), stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
     path = os.path.join(root, "guide.toml")
     with open(path, "w") as handle:
-        handle.write(guide(instructions))
+        handle.write(guide(instructions, extras.get("registry", {})))
     return path, mods, game
 
 
@@ -151,6 +210,10 @@ def tree(base):
             key = os.path.relpath(full, base).replace(os.sep, "/")
             if os.path.islink(full):
                 result[key] = "-> " + os.readlink(full)
+                continue
+            if zipfile.is_zipfile(full):
+                with zipfile.ZipFile(full) as archive:
+                    result[key] = "zip: " + ", ".join(sorted(archive.namelist()))
                 continue
             with open(full) as handle:
                 result[key] = handle.read()
@@ -182,6 +245,7 @@ def run_rust(binary, mode, case, work):
         "accepted": accepted,
         "tree": trees(mods, game) if accepted and mode == "install" else None,
         "stderr_tail": done.stderr.strip().splitlines()[-1:] if not accepted else [],
+        "skip_warnings": sum(RUST_SKIP in line for line in done.stdout.splitlines()),
     }
     make_writable(root)
     return result
@@ -201,7 +265,13 @@ def run_csharp(dll, reference, mode, case, work):
         accepted = all(exit.endswith(": Success") for exit in raw["Exits"])
         # The final tree is recorded for failures too (the contract notes C#'s
         # deleted file); only accepted trees are compared.
-        result = {"accepted": accepted, "tree": trees(mods, game), "raw": raw}
+        output = (done.stdout + done.stderr).splitlines()
+        result = {
+            "accepted": accepted,
+            "tree": trees(mods, game),
+            "raw": raw,
+            "skip_warnings": sum("[Warning]" in line and CSHARP_SKIP in line for line in output),
+        }
     make_writable(root)
     return result
 
@@ -236,7 +306,18 @@ def main():
                 actual = run_rust(args.bin, mode, case, work)
                 expected_tree = expected["tree"] if mode == "install" and expected["accepted"] else None
                 same = actual["accepted"] == expected["accepted"] and actual["tree"] == expected_tree
+                tree_known = (
+                    name in TREE_DIFF
+                    and mode == "install"
+                    and actual["accepted"]
+                    and expected["accepted"]
+                    and actual["tree"] != expected_tree
+                    and actual["tree"]["game"].get("Override/x.txt") == expected_tree["game"].get("Override/x.txt")
+                )
                 if name in KNOWN and expected["accepted"] and not actual["accepted"]:
+                    known += 1
+                    verdict = "known"
+                elif tree_known:
                     known += 1
                     verdict = "known"
                 elif same and name not in KNOWN:
@@ -250,6 +331,19 @@ def main():
                     f" | reference accepted={expected['accepted']} tree={expected_tree}"
                     + (f" | rust: {actual['stderr_tail'][0]}" if actual["stderr_tail"] else "")
                 )
+                # Install warning: one event per file skipped by Overwrite=false,
+                # as C# logs one warning per skipped file. Checked wherever the
+                # reference install succeeds and Rust is expected to accept.
+                if mode == "install" and expected["accepted"] and name not in KNOWN:
+                    want = expected["skip_warnings"]
+                    got = actual["skip_warnings"] if actual["accepted"] else None
+                    if got == want:
+                        matched += 1
+                        verdict = "match"
+                    else:
+                        failed += 1
+                        verdict = "FAIL"
+                    print(f"{verdict:5} {name}/install-warnings: rust={got} | reference={want}")
         print(f"{matched} match / {known} known difference / {failed} fail")
         return 1 if failed else 0
     finally:

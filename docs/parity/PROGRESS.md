@@ -9,6 +9,16 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Copy/Move onto itself, follow-up (2026-10-04): a self-target next to a source that
+miss-only recovery binds from a `ResourceRegistry` archive was still refused by
+recovery qualification; with `Overwrite = false` it is now skipped with a warning,
+as on the direct path and in C#. Install now also emits one ordinary event,
+`WARNING: Destination file already exists and overwrite is false: <path>`, for each
+file a Copy/Move skips with `Overwrite = false`, as C# logs one warning per skipped
+file; exit codes and results are unchanged. Proof: 51 match and 4 known
+differences against a live reference oracle; 17 fail on `6b8baff`. See
+[copy-move-self-contract.md](copy-move-self-contract.md).
+
 Copy/Move onto itself (2026-10-04): a Copy or Move with `Overwrite = false` whose
 target is the source file itself (a wildcard back into its own folder, or a Source
 list that names a file already in the destination) now warns, skips that file and

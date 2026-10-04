@@ -839,10 +839,15 @@ impl Engine {
                     ),
                 );
                 self.settings.roots.check(&target)?;
-                ensure!(
-                    self.path_policy.key(source) != self.path_policy.key(&target),
-                    "Source equals destination"
-                );
+                if self.path_policy.key(source) == self.path_policy.key(&target) {
+                    // As in the Copy/Move arm: with Overwrite=false the action skips
+                    // this source with a warning and writes nothing for it.
+                    ensure!(
+                        instruction.action != "Rename" && !instruction.overwrite,
+                        "Source equals destination"
+                    );
+                    continue;
+                }
                 ensure!(
                     !self
                         .directories
