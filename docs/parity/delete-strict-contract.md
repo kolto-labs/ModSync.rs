@@ -70,8 +70,9 @@ fails the component) and a wrong final tree, because later steps ran.
 - **Message.** C# logs `Invalid wildcards or file does not exist: '<path>'` and
   reports `MissingSourceFiles`. Rust names the first missing source as authored.
 - **Literal directory.** A literal source that names a directory is missing for
-  the strict check in both (C# `FileExists` is false). Rust's lenient delete
-  still removes the files under such a directory, as before; C# does not.
+  the strict check in both (C# `FileExists` is false). Since 2026-10-04 Rust's
+  lenient delete no longer removes the files under such a directory, as C# does
+  not; see [delete-directory-contract.md](delete-directory-contract.md).
 - **Case.** The check uses Rust's case-insensitive path keys. C# on Linux
   resolves case through `CaseInsensitivePathing`. The probe uses exact case only.
 

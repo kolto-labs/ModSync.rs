@@ -1422,6 +1422,31 @@ Guide authors: copying or moving a file onto itself does nothing useful. With
 `Destination` at another folder, or narrow the Source so it does not match files
 already there.
 
+## Delete with a directory Source — 2026-10-04 UTC
+
+A `Delete` instruction whose Source names a directory (`<<kotorDirectory>>/Override`,
+`<<kotorDirectory>>/Override/textures`, a mod folder) now deletes nothing beneath it,
+as C# does. C# `Instruction.DeleteFile` deletes a path only when `File.Exists` holds,
+which is false for a directory, so it treats the Source as a missing file: skipped
+with `Overwrite` false or omitted, `MissingSourceFiles` with `Overwrite = true`.
+Before this change Rust took Delete's targets from the engine's shared source
+matching, which also matches every file under a directory Source, so the step deleted
+the whole subtree; `Delete <<kotorDirectory>>/Override` emptied `Override`, with no
+error or warning in validate, the dry-run report or install. Delete now matches only
+the files a literal or wildcard Source names. `Overwrite = true` with a directory
+Source was already refused, as in C#, and is unchanged. When no Source of the step
+matched anything, Rust records its existing `Attempting to delete non-existent file`
+warning; C# reports none. Wildcards still reach only files directly in the folder
+they name. Every other action keeps the descendant rule
+(a directory Source for `Copy` still differs from C#; see the contract). Evidence:
+[delete-directory proof](docs/parity/delete-directory-proof/README.md), 57/57 checks
+against a live reference oracle (10 fail on `2241235`); contract in
+[delete-directory-contract.md](docs/parity/delete-directory-contract.md).
+
+Guide authors: `Delete` removes files, never folders. A Source that names a folder
+deletes nothing, in C# and now in Rust; with `Overwrite = true` it fails the mod. To
+clear a folder's files, use a wildcard such as `<<kotorDirectory>>/Override/textures/*`.
+
 ## Fetch shared URL and destination — 2026-09-28 UTC
 
 `fetch-downloads` no longer lets two selected components race for one archive file.

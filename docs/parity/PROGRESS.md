@@ -9,6 +9,16 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Delete with a directory Source (2026-10-04): a `Delete` whose Source names a
+directory deleted every file beneath it in Rust (`Delete <<kotorDirectory>>/Override`
+emptied `Override`), because Delete reused the engine's descendant source matching.
+C# `DeleteFile` checks `File.Exists`, which is false for a directory, so it deletes
+nothing (and with `Overwrite = true` fails with `MissingSourceFiles`). Delete now
+matches only the files its literal or wildcard Source names; other actions keep the
+descendant rule. Proof: 57/57 against a live reference oracle; 10 fail on `2241235`.
+The regression probes stay at baseline. See
+[delete-directory-contract.md](delete-directory-contract.md).
+
 Copy/Move onto itself, follow-up (2026-10-04): a self-target next to a source that
 miss-only recovery binds from a `ResourceRegistry` archive was still refused by
 recovery qualification; with `Overwrite = false` it is now skipped with a warning,

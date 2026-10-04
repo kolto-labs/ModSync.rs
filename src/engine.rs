@@ -1851,6 +1851,17 @@ impl Engine {
     }
 
     fn matches(&self, sources: &[String], missing_ok: bool) -> Result<Vec<PathBuf>> {
+        self.matches_scoped(sources, missing_ok, true)
+    }
+
+    /// With `descendants` false, a Source names only the files its literal or
+    /// wildcard path matches; a directory Source matches nothing beneath it.
+    fn matches_scoped(
+        &self,
+        sources: &[String],
+        missing_ok: bool,
+        descendants: bool,
+    ) -> Result<Vec<PathBuf>> {
         ensure!(!sources.is_empty(), "Instruction has no Source");
         let mut found = BTreeMap::new();
         for source in sources {
@@ -1859,7 +1870,13 @@ impl Engine {
             let matches: Vec<_> = self
                 .files
                 .iter()
-                .filter(|(k, _)| self.source_matches(&prefix, &pattern, k))
+                .filter(|(k, _)| {
+                    if descendants {
+                        self.source_matches(&prefix, &pattern, k)
+                    } else {
+                        self.path_policy.glob_matches(&pattern, k)
+                    }
+                })
                 .collect();
             if !missing_ok && matches.is_empty() {
                 return Err(MissingSource(source.clone()).into());
@@ -2278,7 +2295,9 @@ impl Engine {
                     });
                     return Ok(());
                 }
-                let sources = self.matches(&i.source, true)?;
+                // C# DeleteFile deletes only paths for which File.Exists holds, so
+                // a directory Source deletes nothing beneath it (a miss).
+                let sources = self.matches_scoped(&i.source, true, false)?;
                 if sources.is_empty() {
                     for source in &i.source {
                         let path = self.path(source, true)?;
