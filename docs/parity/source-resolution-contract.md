@@ -61,7 +61,9 @@ after the whole binding succeeds. Checks:
   would overwrite each other during implicit extraction;
 - recovered Copy/Move sources may not collide at one flattened target, or equal
   their target unless `Overwrite = false` (then that source is skipped with the
-  usual warning, as in the Copy/Move arm; see
+  usual warning, as in the Copy/Move arm, and another source landing on that
+  existing file is not refused as a collision but skipped the same way, since
+  `Overwrite = false` keeps the file; see
   [copy-move-self-contract.md](copy-move-self-contract.md));
 - a recovered Patcher file binds its parent directory, which must exist and hold
   a patcher configuration.

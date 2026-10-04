@@ -1410,7 +1410,7 @@ Copy/Move skips with `Overwrite = false` (self-target or any other existing targ
 `WARNING: Destination file already exists and overwrite is false: <path>`, as C#
 logs one warning per skipped file. It is a stdout line in plain and `--json`
 output, a stderr line with `--install-progress-json` (typed stdout unchanged), and a
-line in the desktop install log. Exit codes, results and files are unchanged;
+line in the desktop Activity log. Exit codes, results and files are unchanged;
 validate, dry run and `conflicts` keep their report warning and emit no event.
 Evidence: the extended proof, 51 checks match and 4 are known differences (the
 symlink case and the recovered trees, where Rust also extracts the other source)

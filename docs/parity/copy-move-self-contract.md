@@ -88,7 +88,8 @@ while installing. The Copy/Move arm (`src/engine.rs:2230-2250`) now also emits o
 ordinary install event per skipped file, with the validation text:
 `WARNING: Destination file already exists and overwrite is false: <path>`. It
 applies to every `Overwrite = false` collision on Copy/Move, not only to
-self-targets, and to FOMOD-configured copies that run through the same arm. The
+self-targets. FOMOD-configured copies run through the same arm but always with
+`Overwrite = true`, so they never emit it. The
 event carries the component name and the step number. Where it shows:
 
 - plain `install`: one stdout line `<component> / <step>: WARNING: ...`, before
@@ -96,7 +97,7 @@ event carries the component name and the step number. Where it shows:
 - `install --json`: one more `Event` JSON line on stdout, same shape as the others;
 - `install --install-progress-json`: on stderr, like every ordinary event, so the
   typed stdout stream is unchanged;
-- desktop: one line in the install log.
+- desktop: one line in the Activity log and its saved report (not the Installing page step log or the completion receipt).
 
 It is not emitted during validate, dry run or `conflicts`, which keep their
 existing warning in the report. It does not change exit codes, the install result
@@ -120,7 +121,7 @@ or the files written.
 | Ordinary collision (`mods/x.txt` onto an existing `Override/x.txt`) | matched (accept, file kept) |
 | Mixed list, one recovered from `Mod.zip`, one self-target: Copy, Move | decision matched; final tree is a known difference (below) |
 | The same, Copy with `Overwrite = true`, Move with it omitted | matched (refuse) |
-| Install warnings: one per skipped file | matched in every accepted case |
+| Install warnings: one per skipped file | matched in every accepted case except the symlink case, which is excluded from the count |
 
 ## Known differences
 
