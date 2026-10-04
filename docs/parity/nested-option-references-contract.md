@@ -34,8 +34,9 @@ components and their immediate options); a GUID it does not find is no conflict
 (`:1981-1990`) and an unmet Dependency (`:1959-1975`). A step runs only when
 `ShouldRunInstruction` (`:2008-2028`) finds no conflict for its Dependencies and
 Restrictions; the install loop and the dry run skip it otherwise (`:1835-1838`,
-`:1566`). The validation pipeline's Conflicts stage (`Services/Validation/InstallationValidationPipeline.cs:292-337`)
-uses the same function. A Choose step of an option picks from that option's own
+`:1566`). The validation pipeline's Conflicts stage
+(`Services/Validation/InstallationValidationPipeline.cs:292-337`) uses the same
+function. A Choose step of an option picks from that option's own
 `Options` (`Instruction.GetChosenOptions`, `Instruction.cs:1609-1611`), which is always
 empty. Run live: a Restriction of `B` naming a selected nested option passes every
 report and installs; a step whose Dependencies name it is skipped and a step whose
@@ -131,8 +132,18 @@ controls and the two unchanged differences gave the same results on both builds.
   Undefined with GUID.`. Not probed here (the option-dependencies proof's
   `option_nested` case covers the decision).
 - **Other formats.** Only TOML is probed. The rule is in the shared engine, so JSON,
-  YAML and XML guides with nested options behave the same; Markdown has no nested
+  YAML, XML and Markdown guides with nested options behave the same (Markdown
+  carries them in its metadata blocks, and Rust's export writes them); all four were
+  checked ad hoc against the live CLI in review. Every C# loader drops nested
   options.
+- **A nested option GUID equal to a top-level GUID.** The Rust loader refuses it
+  (`Duplicate Guid`, `src/model.rs:345-361`); C# drops the nested option and installs
+  (fail-closed; see the option/component GUID collision note in
+  [option-dependencies-contract.md](option-dependencies-contract.md)).
+- **Side effects in the Rust extension.** A chosen nested option whose own component
+  Dependencies name a sibling nested option is now refused by `check_component`, and
+  the selection layer still warns `Restriction conflict` for nested options (warnings
+  only).
 - **Desktop.** The desktop uses the same engine and report; not exercised natively.
   Its selection layer still selects and shows nested options.
 - **Platform.** The reference ran on Linux under `unshare -Urnm` with a tmpfs over
