@@ -1,0 +1,644 @@
+{
+ "bracket_class_lookalike": {
+  "conflicts": {
+   "accepted": true,
+   "report": {
+    "analyzed": 1,
+    "conflicts": [],
+    "counts": {}
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Patcher Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false
+  }
+ },
+ "bracket_file": {
+  "conflicts": {
+   "accepted": true,
+   "report": {
+    "analyzed": 1,
+    "conflicts": [],
+    "counts": {}
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Patcher Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false
+  }
+ },
+ "bracket_file_only": {
+  "conflicts": {
+   "accepted": true,
+   "report": {
+    "analyzed": 1,
+    "conflicts": [],
+    "counts": {}
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Patcher Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false
+  }
+ },
+ "bracket_folder": {
+  "conflicts": {
+   "accepted": true,
+   "report": {
+    "analyzed": 1,
+    "conflicts": [],
+    "counts": {}
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Patcher Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false
+  }
+ },
+ "bracket_payload_missing": {
+  "conflicts": {
+   "accepted": true,
+   "report": {
+    "analyzed": 1,
+    "conflicts": [],
+    "counts": {}
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Patcher Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false
+  }
+ },
+ "bracket_replace": {
+  "conflicts": {
+   "accepted": true,
+   "report": {
+    "analyzed": 1,
+    "conflicts": [],
+    "counts": {}
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Patcher Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false
+  }
+ },
+ "bracket_two_entries": {
+  "conflicts": {
+   "accepted": true,
+   "report": {
+    "analyzed": 1,
+    "conflicts": [],
+    "counts": {}
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Patcher Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false
+  }
+ },
+ "closing_bracket_only": {
+  "conflicts": {
+   "accepted": true,
+   "report": {
+    "analyzed": 1,
+    "conflicts": [],
+    "counts": {}
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Patcher Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false
+  }
+ },
+ "conflict_bracket": {
+  "conflicts": {
+   "accepted": true,
+   "report": {
+    "analyzed": 2,
+    "conflicts": [
+     {
+      "path": "<<kotorDirectory>>/Override/[HD]tex.tga",
+      "winner": "77777777-8888-8888-8888-888888888882",
+      "writers": [
+       [
+        "77777777-8888-8888-8888-888888888881",
+        "First Patcher",
+        0
+       ],
+       [
+        "77777777-8888-8888-8888-888888888882",
+        "Second Patcher",
+        0
+       ]
+      ]
+     }
+    ],
+    "counts": {
+     "77777777-8888-8888-8888-888888888881": 1,
+     "77777777-8888-8888-8888-888888888882": 1
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: First Patcher",
+       "OK: Second Patcher"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false
+  }
+ },
+ "conflict_plain": {
+  "conflicts": {
+   "accepted": true,
+   "report": {
+    "analyzed": 2,
+    "conflicts": [
+     {
+      "path": "<<kotorDirectory>>/Override/tex.tga",
+      "winner": "77777777-8888-8888-8888-888888888882",
+      "writers": [
+       [
+        "77777777-8888-8888-8888-888888888881",
+        "First Patcher",
+        0
+       ],
+       [
+        "77777777-8888-8888-8888-888888888882",
+        "Second Patcher",
+        0
+       ]
+      ]
+     }
+    ],
+    "counts": {
+     "77777777-8888-8888-8888-888888888881": 1,
+     "77777777-8888-8888-8888-888888888882": 1
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: First Patcher",
+       "OK: Second Patcher"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false
+  }
+ },
+ "namespace_bracket_datapath": {
+  "conflicts": {
+   "accepted": true,
+   "report": {
+    "analyzed": 1,
+    "conflicts": [],
+    "counts": {}
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Patcher Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false
+  }
+ },
+ "namespace_bracket_ininame": {
+  "conflicts": {
+   "accepted": true,
+   "report": {
+    "analyzed": 1,
+    "conflicts": [],
+    "counts": {}
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Patcher Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false
+  }
+ },
+ "plain_file": {
+  "conflicts": {
+   "accepted": true,
+   "report": {
+    "analyzed": 1,
+    "conflicts": [],
+    "counts": {}
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Patcher Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false
+  }
+ },
+ "question_file": {
+  "conflicts": {
+   "accepted": true,
+   "report": {
+    "analyzed": 1,
+    "conflicts": [],
+    "counts": {}
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Patcher Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false
+  }
+ },
+ "star_file": {
+  "conflicts": {
+   "accepted": true,
+   "report": {
+    "analyzed": 1,
+    "conflicts": [],
+    "counts": {}
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Patcher Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false
+  }
+ }
+}

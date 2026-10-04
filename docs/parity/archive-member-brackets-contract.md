@@ -152,14 +152,12 @@ for a wrapper folder, the same result as the `HD Mod` control:
 
 ## Known differences
 
-- **Patcher ini content with brackets.** A HoloPatcher `InstallList` entry, or a
-  namespaces.ini `IniName`/`DataPath`, that holds `[` or `]` is refused by
-  `relative(.., false)` in `src/engine/patcher_simulation.rs` (around lines 119, 154,
-  163, 215 and 223). The simulation runs only virtually, so a non-managed validate or
-  install refuses such a guide before any write, while a managed install (no
-  simulation) proceeds. The namespaces.ini fields are also reached from
-  `qualify_action` (`src/engine/source_resolution.rs`, around line 848), which can run
-  at install time. Rare; not probed.
+- **Patcher ini content with brackets (fixed after this slice).** A HoloPatcher
+  `InstallList` entry, or a namespaces.ini `IniName`/`DataPath`, that held `[` or `]`
+  was refused by the patcher simulation. It is now taken literally, as C#
+  `TslPatcherVfsSimulator` does; see
+  [patcher-ini-brackets-contract.md](patcher-ini-brackets-contract.md). A named-INI
+  `Arguments` value with brackets is still refused (guide text).
 - **FOMOD destination error wording.** The bracketed-destination error is still
   wrapped by the gate's stale-choices recovery hint, so the message reads as both a
   stale choice and "not a stale choice". The refusal itself is correct and happens

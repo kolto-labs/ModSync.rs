@@ -9,6 +9,17 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Patcher INI names with brackets (2026-10-04, F09/F19): the virtual Patcher simulation
+now takes `[` and `]` in a patcher's own INI names literally (InstallList folders and
+`File*`/`Replace*` names, namespaces.ini `IniName`/`DataPath`), as C#
+`TslPatcherVfsSimulator` does with `Path.Combine`. Rust refused them as wildcards
+(`Wildcards are not allowed here: [HD]tex.tga`), so validate, the dry-run report,
+`conflicts` and install preflight failed a guide whose mod ships such names; C#
+validates it and reports its conflicts. `*` and `?` stay refused (fail-closed, as for
+archive members). Proof: 39 match and 6 known differences against the live reference
+pipeline and `FileConflictAnalyzer`; 33 fail on `c2225e3`. The regression probes stay
+at baseline. See [patcher-ini-brackets-contract.md](patcher-ini-brackets-contract.md).
+
 Execute and Run Arguments (2026-10-04, F05/F09): an `Execute` or `Run` step's
 `Arguments` text is now split with the Windows command-line rules on every host, as
 .NET splits C# `ProcessStartInfo.Arguments` on Linux too. Rust used POSIX shell rules

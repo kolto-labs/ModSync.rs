@@ -34,7 +34,9 @@ on C# `TslPatcherVfsSimulator`'s unconditional changes.ini selection. Actual sup
 backend namespace behavior still needs differential evidence.
 
 INI source values and destination folders must be safe relative paths and remain
-within the configured roots, including symlink checks. The target starts at the
+within the configured roots, including symlink checks. Since 2026-10-04 `[` and `]` in
+INI names are literal characters, as in C# (`*` and `?` stay refused); see
+[patcher-ini-brackets-contract.md](patcher-ini-brackets-contract.md). The target starts at the
 instruction's resolved destination (default game root). Existing virtual source
 content propagates to the inferred target. Missing source payloads become an
 explicit `Content::Unknown` marker, with a validation warning and event count.
