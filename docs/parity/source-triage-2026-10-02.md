@@ -63,6 +63,13 @@ Remaining source work found by the post-wave audit:
   passed both. Rust now fails the instruction after renaming the other sources
   (live oracle on the same fixtures). Copy/Move keep the reference warn-and-skip.
   See [the rename overwrite contract](rename-overwrite-contract.md).
+- F05: Delete with `Overwrite=true` onto a missing file. Closed 2026-10-04.
+  C# `DeleteFile` returns `FileNotFoundPost` for a missing literal or an empty
+  expansion; install fails with `MissingSourceFiles` and dry run warns
+  `DryRunSkipped`. Rust at `8fad43c` ignored `Overwrite` on Delete and passed.
+  Rust now deletes the present matches, then raises the typed missing-source
+  cause (live oracle on the same fixtures). See
+  [the delete strict contract](delete-strict-contract.md).
 - F11: checkpoint duplicate-definition check folds GUID text with Unicode
   lowercase. Equivalent for valid GUIDs; admission is intentionally unchanged.
 

@@ -220,7 +220,8 @@ impl std::fmt::Display for MissingSource {
 }
 impl std::error::Error for MissingSource {}
 
-/// Only the Copy/Move/Extract source-resolution boundary produces this cause.
+/// Only the Copy/Move/Extract source-resolution boundary and a strict
+/// (Overwrite=true) Delete miss produce this cause.
 /// In particular, Rename and configured FOMOD member failures stay hard errors.
 #[derive(Debug)]
 struct MissingSourceFiles(anyhow::Error);
@@ -2237,8 +2238,30 @@ impl Engine {
                         );
                     }
                 }
+                // C# DeleteFile with Overwrite=true returns FileNotFoundPost for a
+                // missing literal, or when nothing resolves at all; that maps to
+                // MissingSourceFiles after the present matches are deleted.
+                let strict_miss = if !i.overwrite {
+                    None
+                } else if sources.is_empty() {
+                    i.source.first()
+                } else {
+                    let mut missing = None;
+                    for source in &i.source {
+                        if !source.contains(['*', '?']) {
+                            let path = self.path(source, true)?;
+                            if !self.files.contains_key(&self.path_policy.key(&path)) {
+                                missing = missing.or(Some(source));
+                            }
+                        }
+                    }
+                    missing
+                };
                 for source in sources {
                     self.delete(&source)?;
+                }
+                if let Some(source) = strict_miss {
+                    return Err(MissingSourceFiles(MissingSource(source.clone()).into()).into());
                 }
             }
             "DelDuplicate" => {
