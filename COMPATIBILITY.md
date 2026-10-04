@@ -409,7 +409,7 @@ Reference: the local ModSync C# source at `d31ccbd3bfcddb4705917eafa6483715c166d
 | Selection | File selections, select-all when all components are unselected; explicit CLI components/options; desktop dependency/restriction and deselection cascades across components and options | Native interaction and full Unicode GUID-comparison parity remain open |
 | Ordering | Stable dependency sort, restrictions, InstallBefore/After, instruction conditions | Missing references and cycles fail |
 | Options | Choose resolves selected option GUIDs in declared option order; an entry names an option only as its hyphenated GUID (any case), as in C# | No automatic choice inference; an entry that names no option is refused, where C# ignores it |
-| File operations | Copy, Move, Rename, Delete, Extract, DelDuplicate, CleanList | Copy/Move flatten matched files into the target, as the C# instruction engine does; Delete with `Overwrite = true` fails on a missing file, as C# does; a Delete with no Source is a no-op unless `Overwrite = true`; Extract replaces existing files whatever `Overwrite` says, as C# does (configured FOMOD extraction with `Overwrite = false` is refused instead; C# keeps an existing directory or read-only file at an entry path and succeeds, where Rust fails on the directory and replaces the read-only file) |
+| File operations | Copy, Move, Rename, Delete, Extract, DelDuplicate, CleanList | Copy/Move flatten matched files into the target, as the C# instruction engine does; a Copy/Move whose target is the source itself is skipped with a warning when `Overwrite = false` and refused otherwise; Delete with `Overwrite = true` fails on a missing file, as C# does; a Delete with no Source is a no-op unless `Overwrite = true`; Extract replaces existing files whatever `Overwrite` says, as C# does (configured FOMOD extraction with `Overwrite = false` is refused instead; C# keeps an existing directory or read-only file at an entry path and succeeds, where Rust fails on the directory and replaces the read-only file) |
 | Archives | Streaming ZIP, 7z, RAR, TAR, GZip and 7z SFX; integrity checks; isolated extraction root | No encrypted/multipart archives; SFX support is limited to embedded 7z payloads; empty directories are not materialized |
 | CleanList | C# comma-separated rows, mandatory prefix, substring and token matching | Source matching and final file sets still need full-build differential acceptance |
 | Texture cleanup | Removes requested extension when another compatible extension shares its basename | This is not content-hash deduplication |
@@ -1382,6 +1382,32 @@ Known differences: when an entry path holds an existing directory, C# skips that
 entry with a warning and succeeds, while Rust fails the step. When it holds an
 existing read-only file, C# keeps it, while Rust replaces it. Both were already
 Rust's behaviour with `Overwrite = true`. See the contract.
+
+## Copy/Move onto itself — 2026-10-04 UTC
+
+A `Copy` or `Move` whose target `<Destination>/<source filename>` is the source file
+itself (same path under the path key: case-folded by default, exact when
+`case_insensitive_pathing` is off) is now handled as C# handles
+it when `Overwrite = false`: the step records the usual `Destination file already
+exists and overwrite is false` warning, skips that file, handles the other sources and
+goes on. C# `Instruction.CopyFileAsync`/`MoveFileAsync` find the target present, log
+the skip and return `Success`. Before this change Rust refused the step with `Source
+equals destination`, so plain `validate` exited non-zero and `install` was refused, for
+guides C# installs. Typical triggers are a wildcard copied back into its own folder
+(`Override/*.tga -> Override`) or a Source list that names a file already in the
+destination. Unchanged: with `Overwrite = true` or omitted (the default is `true`),
+Rust still refuses before any write; C# also fails, but only after deleting the file.
+Rename onto its own name still fails, as in C#. A symlink in an install tree is still
+refused, where C# skips it. Evidence: [copy-move-self proof](docs/parity/copy-move-self-proof/README.md),
+30 checks match and 2 are known symlink differences, against a live reference oracle
+(20 fail on `354055b`); contract in
+[copy-move-self-contract.md](docs/parity/copy-move-self-contract.md).
+
+Guide authors: copying or moving a file onto itself does nothing useful. With
+`Overwrite = false` it is skipped, in C# and in Rust. With `Overwrite = true` or no
+`Overwrite`, C# deletes the file and fails the mod; Rust refuses the guide. Point
+`Destination` at another folder, or narrow the Source so it does not match files
+already there.
 
 ## Fetch shared URL and destination — 2026-09-28 UTC
 

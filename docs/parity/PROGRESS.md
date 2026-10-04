@@ -9,6 +9,15 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Copy/Move onto itself (2026-10-04): a Copy or Move with `Overwrite = false` whose
+target is the source file itself (a wildcard back into its own folder, or a Source
+list that names a file already in the destination) now warns, skips that file and
+goes on, as C# does. Rust refused it with `Source equals destination`. With
+`Overwrite = true` or omitted Rust still refuses before any write; C# fails after
+deleting the file. Proof: 30 match and 2 known symlink differences against a live
+reference oracle; 20 fail on `354055b`. See
+[copy-move-self-contract.md](copy-move-self-contract.md).
+
 Archive-generation check (2026-10-04): `tools/check_archive_generation.py` runs
 without wrappers again (`-f json`, `DOTNET_ROLL_FORWARD`, reference mounted into its
 sandbox). It requires a 7-Zip CLI that lists ZIP, which the reference falls back to,

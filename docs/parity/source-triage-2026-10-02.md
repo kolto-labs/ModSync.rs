@@ -82,6 +82,12 @@ Remaining source work found by the post-wave audit:
   archive wins. Rust at `5905259` kept the existing file. Rust now always replaces;
   configured FOMOD extraction keeps its fail-closed refusal (live oracle on the
   same fixtures). See [the extract overwrite contract](extract-overwrite-contract.md).
+- F05: Copy/Move onto itself with `Overwrite=false`. Closed 2026-10-04.
+  C# `CopyFileAsync`/`MoveFileAsync` find the target (the source) present, warn,
+  skip it and return `Success`. Rust at `354055b` refused the step with `Source
+  equals destination`. Rust now warns and skips; with `Overwrite=true` it still
+  refuses before any write, where C# deletes the file and fails (live oracle on
+  the same fixtures). See [the copy/move self contract](copy-move-self-contract.md).
 - F11: checkpoint duplicate-definition check folds GUID text with Unicode
   lowercase. Equivalent for valid GUIDs; admission is intentionally unchanged.
 
