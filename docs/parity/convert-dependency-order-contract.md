@@ -75,10 +75,11 @@ arguments (`src/main.rs:328-348`) had no `--ignore-errors`.
   graph, the same cycle walk (`detect_cycle`) and the same post-order (`post_order`).
   GUIDs compare as parsed values (`guid::key_ascii`), as C# `Guid` does. It reorders
   `components` and touches nothing else. With `--ignore-errors` and errors it returns
-  C#'s warning lines, which `convert` prints to stderr: `Dependency resolution failed
-  with N errors:`, one `  - <name>: <message>` line per error, then `Dependency
-  resolution failed with N errors, but --ignore-errors flag was specified. Attempting
-  to load in best possible order.`
+  C#'s load-time warning lines (`Services/ModComponentSerializationService.cs:881-885`),
+  which `convert` prints to stderr: `Dependency resolution failed with N errors:` and
+  one `  - <name>: <message>` line per error. C#'s CLI line `... but --ignore-errors
+  flag was specified` (`CLI/ModBuildConverter.cs:838-841`) is printed only when its
+  sort throws on a cycle, which Rust refuses, so Rust never prints it.
 - Markdown input keeps file order and is never refused, as in C#: `convert` skips the
   method when `Guide::markdown_input` (the extension rule above, or the content when
   the extension names no format) or, for `--stdin`, `Guide::markdown_text` says the
@@ -142,8 +143,9 @@ already ordered guide, an option-level reference C# does not check) match on bot
   C# writes the guide in file order without the list. Checked live, not in the probe.
 - **GUIDs that differ only by braces under `--ignore-errors`.** C# loads
   `{aaaa…}` and `aaaa…` as two components, its `ToDictionary` throws, and the CLI catch
-  writes the file order (`CLI/ModBuildConverter.cs:866-871`). Rust's loader already
-  refuses them (`Duplicate Guid`, `src/model.rs:328`), with or without the flag; C#
+  writes the file order (`CLI/ModBuildConverter.cs:866-871`). Rust's loader accepts
+  both (it compares GUID text), but the convert ordering step refuses them
+  (`Duplicate Guid`, `src/model.rs:624-628`), with or without the flag; C#
   also refuses without it. Checked live, not in the probe.
 - **A cycle with a later component pointing into it.** For `B after A`, `A after B`,
   `C after A`, the C# cycle walk keeps adding `Guid.Empty` and does not finish (stopped

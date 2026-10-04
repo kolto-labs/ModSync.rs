@@ -724,10 +724,6 @@ impl Guide {
             errors.len()
         )];
         warnings.extend(listed);
-        warnings.push(format!(
-            "Dependency resolution failed with {} errors, but --ignore-errors flag was specified. Attempting to load in best possible order.",
-            errors.len()
-        ));
         Ok(warnings)
     }
 }
