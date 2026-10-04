@@ -1194,6 +1194,10 @@ Deletes change from failing to passing. Evidence:
 live reference oracle (26 fail on `fba4eb1`); contract in
 [empty-source-contract.md](docs/parity/empty-source-contract.md).
 
+Exceptions: a scalar empty Source in XML or Markdown metadata loads as an empty list in
+Rust, where C# refuses the XML guide. The report without `--dry-run` (also run by the
+desktop) now passes an empty Extract, as C# component validation does. See the contract.
+
 ## Delete of a missing file with Overwrite=true — 2026-10-04 UTC
 
 A `Delete` instruction with `Overwrite = true` now fails when a literal source is

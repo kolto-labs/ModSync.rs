@@ -91,6 +91,19 @@ non-strict empty Delete, and the dry-run report was wrong for every case.
   empty-Source errors. DelDuplicate reads Source as an extension list, and an
   empty list selects the default `.dds`/`.tpc`/`.tga` set.
 
+- **Scalar empty Source in XML and Markdown.** `<Source></Source>` (or whitespace) in
+  XML, and `Source = ""` / `Source: ''` in Markdown metadata, load as an empty list in
+  Rust, so they take the empty-Source behaviour above. C# refuses to load a scalar empty
+  Source in XML (`PrefixPath` throws; see `source-normalization-scalar-oracle`); its
+  Markdown result is unverified because C# falls back to its legacy parser. TOML, JSON
+  and YAML keep the scalar as `[""]` and reject it with "Path must start with <<...>>".
+- **Report without `--dry-run`.** `validate --output json` and `validate --full` (which
+  the desktop runs before its dry run) now pass an empty Extract with no errors, as
+  C# `ComponentValidationService.IsArchiveValidAsync` does with no sources. Empty Copy
+  and Move already passed there.
+- **Proof coverage.** The probe covers TOML only; the other loaders were checked by
+  hand in review of 29f9d59.
+
 ## Notes for guide authors
 
 - A Delete with no Source and no `Overwrite`, often a placeholder left during
