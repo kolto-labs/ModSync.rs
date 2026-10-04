@@ -589,14 +589,35 @@ impl Guide {
         Ok(result)
     }
 
+    /// Whether `load(path)` reads the file as Markdown: by its extension, or by content
+    /// when the extension names no format (the C# file loader's hint rule).
+    pub fn markdown_input(path: &Path) -> Result<bool> {
+        let extension = path.extension().and_then(|s| s.to_str()).unwrap_or("");
+        Ok(match canonical_format(extension) {
+            Some(format) => format == "md",
+            None => {
+                let text = text::read(path).with_context(|| format!("Read {}", path.display()))?;
+                Self::markdown_text(&text)
+            }
+        })
+    }
+
+    /// Whether `parse(text, "auto")` reads `text` as Markdown.
+    pub fn markdown_text(text: &str) -> bool {
+        Self::parse_with(text, "toml", true, true).is_err()
+            && Self::parse_with(text, "md", true, true).is_ok()
+    }
+
     /// C# `convert` (`ModBuildConverter.HandleDependencyResolutionErrors` over
     /// `DependencyResolverService.ResolveDependencies`): order every top-level component,
     /// selected or not, by InstallBefore/InstallAfter alone with a depth-first post-order,
     /// visiting components in guide order and each one's edges in authored order. Missing,
     /// self and circular references fail unless `ignore_errors`, which then orders around
     /// missing references but still refuses a cycle: C# writes an empty guide there.
-    pub fn sort_like_dependency_resolver(&mut self, ignore_errors: bool) -> Result<()> {
+    /// Returns the warning lines C# logs when `ignore_errors` lets errors through.
+    pub fn sort_like_dependency_resolver(&mut self, ignore_errors: bool) -> Result<Vec<String>> {
         use crate::guid::{key_ascii, option_text};
+        const SHOWN: usize = 50;
         let n = self.components.len();
         let mut index = BTreeMap::new();
         for (i, c) in self.components.iter().enumerate() {
@@ -610,10 +631,11 @@ impl Guide {
         let mut errors = Vec::new();
         let mut graph: Vec<Vec<usize>> = vec![Vec::new(); n];
         for (i, c) in self.components.iter().enumerate() {
-            for (field, list) in [
+            let lists = [
                 ("InstallBefore", &c.install_before),
                 ("InstallAfter", &c.install_after),
-            ] {
+            ];
+            for (field, list) in lists {
                 for guid in list.iter().filter(|g| find(g).is_none()) {
                     errors.push(format!(
                         "{}: {field} references non-existent component with GUID: {}",
@@ -622,10 +644,7 @@ impl Guide {
                     ));
                 }
             }
-            for (field, list) in [
-                ("InstallBefore", &c.install_before),
-                ("InstallAfter", &c.install_after),
-            ] {
+            for (field, list) in lists {
                 if list.iter().any(|g| find(g) == Some(i)) {
                     errors.push(format!(
                         "{}: Component references itself in {field}",
@@ -647,24 +666,45 @@ impl Guide {
                 edge(i, j);
             }
         }
+        // C# reconstructs a cycle through the first component (in guide order) whose
+        // edges hold the current one.
+        let mut first_predecessor = vec![None; n];
+        for (k, edges) in graph.iter().enumerate() {
+            for &to in edges {
+                first_predecessor[to].get_or_insert(k);
+            }
+        }
         let (mut visited, mut stack) = (vec![false; n], vec![false; n]);
         for root in 0..n {
             if !visited[root]
-                && let Some(cycle) = detect_cycle(root, &graph, &mut visited, &mut stack)
+                && let Some(cycle) =
+                    detect_cycle(root, &graph, &first_predecessor, &mut visited, &mut stack)
             {
-                let names = cycle
+                let mut names = cycle
                     .iter()
+                    .take(SHOWN)
                     .map(|&i| self.components[i].name.as_str())
                     .collect::<Vec<_>>()
                     .join(" → ");
+                if cycle.len() > SHOWN {
+                    names.push_str(&format!(" → … ({} components)", cycle.len()));
+                }
                 errors.push(format!("{names}: Circular dependency detected: {names}"));
             }
         }
+        let mut listed = errors
+            .iter()
+            .take(SHOWN)
+            .map(|e| format!("  - {e}"))
+            .collect::<Vec<_>>();
+        if errors.len() > SHOWN {
+            listed.push(format!("  … and {} more", errors.len() - SHOWN));
+        }
         ensure!(
             errors.is_empty() || ignore_errors,
-            "Dependency resolution failed with {} errors. Use --ignore-errors flag to attempt loading in best possible order.\n  {}",
+            "Dependency resolution failed with {} errors. Use --ignore-errors flag to attempt loading in best possible order.\n{}",
             errors.len(),
-            errors.join("\n  ")
+            listed.join("\n")
         );
         let mut order = Vec::with_capacity(n);
         let (mut done, mut open) = (vec![false; n], vec![false; n]);
@@ -676,15 +716,30 @@ impl Guide {
             .map(Some)
             .collect();
         self.components = order.into_iter().filter_map(|i| slots[i].take()).collect();
-        Ok(())
+        if errors.is_empty() {
+            return Ok(Vec::new());
+        }
+        let mut warnings = vec![format!(
+            "Dependency resolution failed with {} errors:",
+            errors.len()
+        )];
+        warnings.extend(listed);
+        warnings.push(format!(
+            "Dependency resolution failed with {} errors, but --ignore-errors flag was specified. Attempting to load in best possible order.",
+            errors.len()
+        ));
+        Ok(warnings)
     }
 }
 
 /// C# `DependencyResolverService.DetectCycleDFS`, including its early return that leaves
 /// the walked components on the recursion stack and its first-predecessor reconstruction.
+/// The reconstruction stops at the first repeated component: a C# walk that repeats one
+/// never finishes, so this cannot cut short a walk C# completes.
 fn detect_cycle(
     current: usize,
     graph: &[Vec<usize>],
+    first_predecessor: &[Option<usize>],
     visited: &mut [bool],
     stack: &mut [bool],
 ) -> Option<Vec<usize>> {
@@ -692,15 +747,17 @@ fn detect_cycle(
     stack[current] = true;
     for &next in &graph[current] {
         if !visited[next] {
-            if let Some(cycle) = detect_cycle(next, graph, visited, stack) {
+            if let Some(cycle) = detect_cycle(next, graph, first_predecessor, visited, stack) {
                 return Some(cycle);
             }
         } else if stack[next] {
             let mut cycle = Vec::new();
+            let mut seen = vec![false; graph.len()];
             let mut temp = current;
-            while temp != next && cycle.len() <= graph.len() {
+            while temp != next && !seen[temp] {
+                seen[temp] = true;
                 cycle.push(temp);
-                match graph.iter().position(|edges| edges.contains(&temp)) {
+                match first_predecessor[temp] {
                     Some(previous) => temp = previous,
                     None => break,
                 }

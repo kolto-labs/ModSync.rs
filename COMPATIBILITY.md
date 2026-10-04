@@ -1596,21 +1596,28 @@ names a missing component, the component itself, or forms a cycle is refused wit
 loading in best possible order.` and one line per error (exit 1, nothing written), as
 in C#. Before, Rust wrote the components in file order and converted such guides
 without a message. `convert --ignore-errors` is now accepted: it orders around missing
-references and keeps them in the output.
+references, keeps them in the output and prints C#'s warning with the errors to
+stderr. A Markdown input (by extension, or by content when the extension names no
+format or with `--stdin`) keeps its file order and is never refused, as in C#, whose
+Markdown reader ignores `InstallBefore` and `InstallAfter`; Rust still writes the
+references it read.
 
 Unchanged and documented: with `--ignore-errors`, a cycle is still refused; C# writes
 a guide with no components there. Validate, install, `conflicts` and `merge` keep
 their own order and checks (install order is not changed), and `merge` does not take
-`--ignore-errors`. References keep their authored spelling. Evidence: [convert
-dependency order proof](docs/parity/convert-dependency-order-proof/README.md), 108
-checks match and 8 are known differences against the live C# CLI (51 fail on
+`--ignore-errors`. References keep their authored spelling. A reference that is not a
+GUID (or is empty) is refused as missing; C# drops that component's whole list and
+converts. Evidence: [convert
+dependency order proof](docs/parity/convert-dependency-order-proof/README.md), 126
+checks match and 14 are known differences against the live C# CLI (57 fail on
 `24897e6`); contract in
 [convert-dependency-order-contract.md](docs/parity/convert-dependency-order-contract.md).
 
-Users: a converted guide that uses `InstallBefore` or `InstallAfter` now lists its
-components in install order, as the C# converter writes it. If `convert` now stops
-with `Dependency resolution failed`, fix the named reference, or pass
-`--ignore-errors` to convert anyway when the only problem is a missing component.
+Users: a converted TOML, JSON, YAML or XML guide that uses `InstallBefore` or
+`InstallAfter` now lists its components in install order, as the C# converter writes
+it; a Markdown guide converts in its own order, as before. If `convert` now stops with
+`Dependency resolution failed`, fix the named reference, or pass `--ignore-errors` to
+convert anyway when the only problem is a missing component.
 
 ## File selection when the file selects nothing — 2026-10-04 UTC
 

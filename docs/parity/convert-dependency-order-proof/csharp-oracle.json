@@ -313,6 +313,126 @@
    ]
   }
  },
+ "markdown_cycle": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "B",
+   "A",
+   "C"
+  ],
+  "refs": {
+   "A": [
+    [],
+    []
+   ],
+   "B": [
+    [],
+    []
+   ],
+   "C": [
+    [],
+    []
+   ]
+  }
+ },
+ "markdown_input": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "C",
+   "B",
+   "A"
+  ],
+  "refs": {
+   "A": [
+    [],
+    []
+   ],
+   "B": [
+    [],
+    []
+   ],
+   "C": [
+    [],
+    []
+   ]
+  }
+ },
+ "markdown_input_ignored": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "C",
+   "B",
+   "A"
+  ],
+  "refs": {
+   "A": [
+    [],
+    []
+   ],
+   "B": [
+    [],
+    []
+   ],
+   "C": [
+    [],
+    []
+   ]
+  }
+ },
+ "markdown_missing": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "B",
+   "A"
+  ],
+  "refs": {
+   "A": [
+    [],
+    []
+   ],
+   "B": [
+    [],
+    []
+   ]
+  }
+ },
+ "markdown_missing_ignored": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "B",
+   "A"
+  ],
+  "refs": {
+   "A": [
+    [],
+    []
+   ],
+   "B": [
+    [],
+    []
+   ]
+  }
+ },
  "markdown_output": {
   "decision": {
    "exit0": true,
@@ -325,6 +445,27 @@
    "C"
   ],
   "refs": null
+ },
+ "markdown_stdin": {
+  "decision": {
+   "exit0": true,
+   "written": true
+  },
+  "errors": null,
+  "order": [
+   "B",
+   "A"
+  ],
+  "refs": {
+   "A": [
+    [],
+    []
+   ],
+   "B": [
+    [],
+    []
+   ]
+  }
  },
  "missing_after": {
   "decision": {

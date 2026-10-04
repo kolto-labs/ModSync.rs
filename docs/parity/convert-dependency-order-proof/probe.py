@@ -4,9 +4,10 @@
 C# `convert` loads the guide, then runs `HandleDependencyResolutionErrors`
 (ModBuildConverter.cs:2046, :823-877) over `DependencyResolverService.ResolveDependencies`
 (DependencyResolverService.cs:48-109). That orders every top-level component by
-InstallBefore/InstallAfter with a depth-first post-order (:349-401) and writes the guide
+InstallBefore/InstallAfter with a depth-first post-order (:350-403) and writes the guide
 in that order. Missing, self and circular references fail the conversion (exit 1, no
-output) unless `--ignore-errors` is given.
+output) unless `--ignore-errors` is given. Markdown input keeps its file order and is
+never refused: the C# Markdown ingest drops InstallBefore/InstallAfter.
 
 Each case is a guide file (or stdin). The Rust binary and the pinned C# CLI
 (`ModSync.Core.dll`, d31ccbd3) run `convert -i G -f FMT -o OUT [flags]` in a fresh
@@ -23,7 +24,8 @@ Checks per case:
 
 Known differences (counted separately): with --ignore-errors and a cycle, C# writes a
 guide with no components (its sort throws and the CLI keeps the empty result); Rust
-refuses (exit 1, nothing written).
+refuses (exit 1, nothing written). From Markdown input C# drops InstallBefore and
+InstallAfter; Rust keeps them in the output (`refs`).
 
 Usage:
   probe.py [--bin target/release/modsync] [--reference DIR [--record]]
@@ -96,6 +98,22 @@ def yaml_guide(spec):
     return "".join(docs)
 
 
+def markdown_guide(spec):
+    out = ["# Example build", "", "## Mod List", ""]
+    for key, before, after, selected in spec:
+        out += [f"### {key.upper()}", f"**Name:** [{key.upper()}](https://example.com/{key}.zip)",
+                "**Author:** Author", "**Description:** Text.",
+                "**Category & Tier:** Textures / Essential", "<!--<<ModSync>>", f"Guid: {G[key]}",
+                f"IsSelected: {'true' if selected else 'false'}"]
+        for field, keys in (("InstallBefore", before), ("InstallAfter", after)):
+            if keys:
+                out.append(f"{field}:")
+                out += [f"- {ref(x)}" for x in keys]
+        out += ["Instructions:", "- Action: Copy", f"  Source: '<<modDirectory>>/{key}.txt'",
+                "  Destination: '<<kotorDirectory>>/Override'", "-->", "___", ""]
+    return "\n".join(out)
+
+
 AFTER = [("b", [], ["a"], 1), ("a", [], [], 1)]
 TIE = [("b", [], ["a"], 1), ("c", [], [], 1), ("a", [], [], 1)]
 CYCLE = [("b", [], ["a"], 1), ("a", [], ["b"], 1), ("c", [], [], 1)]
@@ -136,11 +154,20 @@ CASES = {
     "cycle_three": (toml_guide([("a", [], ["c"], 1), ("b", [], ["a"], 1), ("c", [], ["b"], 1), ("d", [], [], 1)]),
                     "toml", "toml", [], False),
     "cycle_json": (json_guide(CYCLE), "json", "toml", [], False),
+    "markdown_input": (markdown_guide([("c", [], [], 1), ("b", [], ["a"], 1), ("a", [], [], 1)]), "md", "toml", [], False),
+    "markdown_input_ignored": (markdown_guide([("c", [], [], 1), ("b", [], ["a"], 1), ("a", [], [], 1)]), "md", "toml", ["--ignore-errors"], False),
+    "markdown_missing": (markdown_guide(MISS), "md", "toml", [], False),
+    "markdown_missing_ignored": (markdown_guide(MISS), "md", "toml", ["--ignore-errors"], False),
+    "markdown_cycle": (markdown_guide(CYCLE), "md", "toml", [], False),
+    "markdown_stdin": (markdown_guide(MISS), "md", "toml", [], True),
     "self_reference_ignored": (toml_guide(SELF), "toml", "toml", ["--ignore-errors"], False),
     "cycle_ignored": (toml_guide(CYCLE), "toml", "toml", ["--ignore-errors"], False),
 }
 CHECKS = ("decision", "order", "refs", "errors")
 KNOWN = {
+    # C# Markdown ingest drops InstallBefore/InstallAfter; Rust keeps them in the output.
+    **{name: {"refs"} for name in ("markdown_input", "markdown_input_ignored", "markdown_missing",
+                                   "markdown_missing_ignored", "markdown_cycle", "markdown_stdin")},
     "self_reference_ignored": {"decision", "order", "refs", "errors"},
     "cycle_ignored": {"decision", "order", "refs", "errors"},
 }
