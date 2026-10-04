@@ -2177,6 +2177,7 @@ impl Engine {
                     self.publish_resolution(&mut resolution)?;
                     resolution.sources
                 };
+                let mut blocked_rename = None;
                 for source in sources {
                     self.check_cancelled()?;
                     let target = if i.action == "Rename" {
@@ -2194,6 +2195,12 @@ impl Engine {
                         source.display()
                     );
                     let exists = self.files.contains_key(&self.path_policy.key(&target));
+                    if exists && !i.overwrite && i.action == "Rename" {
+                        // C# RenameFile skips this source, renames the rest, then
+                        // returns RenameTargetAlreadyExists, which fails the component.
+                        blocked_rename.get_or_insert(target);
+                        continue;
+                    }
                     if exists && !i.overwrite {
                         self.validation_warning(
                             &format!("{}File", i.action),
@@ -2210,6 +2217,12 @@ impl Engine {
                     if i.action != "Copy" {
                         self.delete(&source)?;
                     }
+                }
+                if let Some(target) = blocked_rename {
+                    bail!(
+                        "Rename target already exists and overwrite is false: {}",
+                        target.display()
+                    );
                 }
             }
             "Delete" => {

@@ -1162,6 +1162,23 @@ The issue texts keep Rust's wording, without C#'s `ERROR: <component>:` prefix. 
 [gate-collect proof](docs/parity/fomod-gate-collect-proof/README.md), 67/67 checks (22
 fail on `d78aea2`); contract in [fomod-gate-collect.md](docs/parity/fomod-gate-collect.md).
 
+## Rename onto an existing file — 2026-10-04 UTC
+
+A `Rename` instruction with `Overwrite = false` whose target file already exists now
+fails, as C# `Instruction.RenameFile` does. That method returns `RenameTargetAlreadyExists`,
+and the component fails with `UnknownError` on install and in dry-run validation. The
+engine skips each blocked source, renames the remaining sources, and then fails with
+`Rename target already exists and overwrite is false: <target>`. Plain `validate` exits
+non-zero, the report's `DryRun` stage carries the error, and `conflicts` exits 1 because
+simulation errors abort its analysis. `install` is refused by its
+validation before any write; C# instead fails mid-install after the earlier steps. Before
+this change, Rust warned, skipped and passed, leaving the source un-renamed for later
+steps. `Overwrite = true` (the default) and free targets are unchanged. `Copy` and `Move`
+with `Overwrite = false` still warn and skip, as in C#. Evidence:
+[rename-overwrite proof](docs/parity/rename-overwrite-proof/README.md), 18/18 checks
+against a live reference oracle (8 fail on `5643276`); contract in
+[rename-overwrite-contract.md](docs/parity/rename-overwrite-contract.md).
+
 ## Fetch shared URL and destination — 2026-09-28 UTC
 
 `fetch-downloads` no longer lets two selected components race for one archive file.

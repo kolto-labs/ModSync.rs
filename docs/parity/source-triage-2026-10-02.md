@@ -57,6 +57,12 @@ Remaining source work found by the post-wave audit:
   `configured` archive's installer mapped no files for any choice. It now warns per
   component, as the reference does (live oracle on the same fixtures). See
   [the archive-scoped contract](fomod-archive-scoped.md).
+- F05: Rename with `Overwrite=false` onto an existing target. Closed 2026-10-04.
+  C# `RenameFile` returns `RenameTargetAlreadyExists`, which fails the component
+  in install and in dry-run validation. Rust at `5643276` warned, skipped and
+  passed both. Rust now fails the instruction after renaming the other sources
+  (live oracle on the same fixtures). Copy/Move keep the reference warn-and-skip.
+  See [the rename overwrite contract](rename-overwrite-contract.md).
 - F11: checkpoint duplicate-definition check folds GUID text with Unicode
   lowercase. Equivalent for valid GUIDs; admission is intentionally unchanged.
 

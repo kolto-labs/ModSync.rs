@@ -55,6 +55,14 @@ number several issues in one line: `<n> issues: [1] ...; [2] ...`. The proof is 
 (22 fail on `d78aea2`), and the regression probes still pass. See
 [fomod-gate-collect.md](fomod-gate-collect.md).
 
+Rename onto an existing file (2026-10-04): a `Rename` with `Overwrite=false` whose
+target exists no longer passes silently. As C# `RenameFile` does
+(`RenameTargetAlreadyExists`), the engine renames the other sources and then fails
+the instruction, so validate fails its dry run and install is blocked before any
+write. Copy and Move keep the reference warn-and-skip. The proof is 18/18 against a
+live reference oracle (8 fail on `5643276`), and the regression probes still pass.
+See [rename-overwrite-contract.md](rename-overwrite-contract.md).
+
 Runtime revalidation of `25296da` (2026-10-03b): all retained CLI suites and the C#/Rust differentials pass, native GUI probes recalibrated, one Windows Clippy fix; see [runtime-revalidation-2026-10-03b.md](runtime-revalidation-2026-10-03b.md).
 
 Step-2 broken-choices follow-up (2026-10-03b): unparseable saved `FomodChoices` on a

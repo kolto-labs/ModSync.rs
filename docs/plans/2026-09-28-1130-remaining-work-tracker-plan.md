@@ -240,6 +240,7 @@ gives the same partition. F15 stays open.
 - [ ] **F03 — Drafts:** complete direction coverage, archive-generated instructions, ambiguous-draft review and direct-Markdown execution.
 - [ ] **F04 — Selection:** remaining desktop actions, nested/Unicode models, dependencies, ordering and shared CLI/GUI selections.
 - [ ] **F05 — Actions:** complete real/VFS action, path, wildcard, condition, overwrite and missing-source behavior.
+  - 2026-10-04: Rename with `Overwrite=false` onto an existing target now fails the instruction (validate and install) after renaming the other sources, as C# `RenameTargetAlreadyExists` does; Copy/Move still warn and skip. Proof 18/18 (8 fail on `5643276`); see [rename-overwrite-contract.md](../parity/rename-overwrite-contract.md).
 - [ ] **F06 — Archives:** supported formats/SFX, empty directories, large/nested/corrupt inputs, containment and resource measurements.
 - [ ] **F07 — Cleanup:** full CleanList matching and texture-priority final-file comparisons.
 - [ ] **F08 — Validation:** remaining backend classes, exact reports and native navigation/copy across clean/warning/failure cases.
