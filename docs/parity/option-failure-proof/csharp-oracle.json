@@ -1,0 +1,283 @@
+{
+ "control_choose_condition_unmet": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": []
+ },
+ "control_component_unselected": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": []
+ },
+ "control_option_not_chosen": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": []
+ },
+ "control_option_present": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": []
+ },
+ "control_option_unselected": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": []
+ },
+ "control_own_missing": {
+  "counts": [
+   0,
+   1
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [
+   "skipped"
+  ]
+ },
+ "control_own_missing_before_option": {
+  "counts": [
+   0,
+   1
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [
+   "skipped"
+  ]
+ },
+ "control_own_wildcard_missing": {
+  "counts": [
+   0,
+   1
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [
+   "skipped"
+  ]
+ },
+ "install_control_option_present": {
+  "decision": true
+ },
+ "install_option_copy_missing": {
+  "decision": false
+ },
+ "option_cleanlist_missing": {
+  "counts": [
+   1,
+   0
+  ],
+  "decision": [
+   false,
+   false
+  ],
+  "dryrun": [
+   "error"
+  ]
+ },
+ "option_conditional_missing": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": []
+ },
+ "option_copy_missing": {
+  "counts": [
+   1,
+   0
+  ],
+  "decision": [
+   false,
+   false
+  ],
+  "dryrun": [
+   "error"
+  ]
+ },
+ "option_copy_wildcard_missing": {
+  "counts": [
+   1,
+   0
+  ],
+  "decision": [
+   false,
+   false
+  ],
+  "dryrun": [
+   "error"
+  ]
+ },
+ "option_delete_strict_missing": {
+  "counts": [
+   1,
+   0
+  ],
+  "decision": [
+   false,
+   false
+  ],
+  "dryrun": [
+   "error"
+  ]
+ },
+ "option_extract_missing": {
+  "counts": [
+   1,
+   0
+  ],
+  "decision": [
+   false,
+   false
+  ],
+  "dryrun": [
+   "error"
+  ]
+ },
+ "option_missing_after_present": {
+  "counts": [
+   1,
+   0
+  ],
+  "decision": [
+   false,
+   false
+  ],
+  "dryrun": [
+   "error"
+  ]
+ },
+ "option_missing_other_component_ok": {
+  "counts": [
+   1,
+   0
+  ],
+  "decision": [
+   false,
+   false
+  ],
+  "dryrun": [
+   "error"
+  ]
+ },
+ "option_missing_then_later_steps": {
+  "counts": [
+   1,
+   0
+  ],
+  "decision": [
+   false,
+   false
+  ],
+  "dryrun": [
+   "error"
+  ]
+ },
+ "option_move_missing": {
+  "counts": [
+   1,
+   0
+  ],
+  "decision": [
+   false,
+   false
+  ],
+  "dryrun": [
+   "error"
+  ]
+ },
+ "option_rename_missing": {
+  "counts": [
+   1,
+   0
+  ],
+  "decision": [
+   false,
+   false
+  ],
+  "dryrun": [
+   "error"
+  ]
+ },
+ "second_choose_missing": {
+  "counts": [
+   1,
+   0
+  ],
+  "decision": [
+   false,
+   false
+  ],
+  "dryrun": [
+   "error"
+  ]
+ },
+ "second_option_missing": {
+  "counts": [
+   1,
+   0
+  ],
+  "decision": [
+   false,
+   false
+  ],
+  "dryrun": [
+   "error"
+  ]
+ },
+ "two_components_option_missing": {
+  "counts": [
+   2,
+   0
+  ],
+  "decision": [
+   false,
+   false
+  ],
+  "dryrun": [
+   "error",
+   "error"
+  ]
+ }
+}

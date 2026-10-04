@@ -1749,6 +1749,38 @@ checks match and 22 are known differences against the live C# CLI (27 fail on
 Users: the Validate step now lists every missing download of a component, each named
 by its guide Source, so one Fetch Downloads pass can cover them all.
 
+## A failing chosen option in the validation dry run — 2026-10-04 UTC
+
+When an option that a `Choose` step runs is missing a source (a Copy, Move, Extract,
+Rename or CleanList file, the file of a Delete with `Overwrite = true`, or the program
+of an Execute/Run whose Sources are all wildcards), the
+validation dry run (`validate --dry-run`, the desktop Validate step) now fails that
+component, as C# does: the `DryRun` stage reports `ERROR: [EngineSimulation]
+<component> / step <n> (Choose): <option> / step <m> (<action>): <cause>`, it is
+counted in `errorCount`, and `validate` exits 1. C# maps any failure of a chosen
+option to `OptionalInstallFailed` and then `UserCancelledInstall`, which its dry run
+reports as `Dry-run failed for '<component>' with exit code UserCancelledInstall.`
+Before, Rust reported the component as `DryRunSkipped` (a warning) and the report
+passed, although its install refused the same selection. The component's earlier
+warnings now stay in the report, as C# keeps its issues for a failed component; a
+Delete with `Overwrite = true` that matches nothing no longer adds an `Attempting to
+delete non-existent file` warning before it fails, which C# does not report either.
+
+Unchanged: a missing source in a component's own steps is still the `DryRunSkipped`
+warning in both; plain `validate` and `install` refused these guides already and are
+unaffected; options that are not selected or not named by a `Choose` are not run. The
+message keeps the Rust wording. An option's own `Dependencies` and `Restrictions` are
+still checked (C# ignores them when a `Choose` runs the option), and an option flagged
+selected under an unselected component still counts as unselected for instruction
+conditions (C# counts it). Evidence: [option failure
+proof](docs/parity/option-failure-proof/README.md), 67 checks match and 1 is a known difference against the live C# CLI (37 fail on
+`b89484d`); contract in
+[option-failure-contract.md](docs/parity/option-failure-contract.md).
+
+Users: if Validate now fails with `<component> / step <n> (Choose)`, a file of an
+option you selected is missing, often a separate download. Fetch or place it, or
+deselect that option, then validate again.
+
 ## CleanList list-file choice — 2026-10-04 UTC
 
 A `CleanList` reads one list file. When its Source list names more than one existing
