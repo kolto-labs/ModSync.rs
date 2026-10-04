@@ -2494,10 +2494,14 @@ impl Engine {
                 let dir = self.path(&i.destination, false)?;
                 // CleanList: MissingSourceFiles for a missing literal list, an
                 // ArgumentException (UnknownError) on an all-wildcard empty expansion.
-                let sources =
-                    self.matches_scoped(&i.source, false, authored_descendants(&i.action));
-                let sources = self.classify_miss(sources, &i.source, MissKind::LiteralTyped)?;
-                let source = sources.first().context("CleanList needs a source file")?;
+                let descendants = authored_descendants(&i.action);
+                let sources = self.matches_scoped(&i.source, false, descendants);
+                self.classify_miss(sources, &i.source, MissKind::LiteralTyped)?;
+                // C# reads RealSourcePaths[0]: the first authored Source's file, not
+                // the first in sorted-key order. Every Source matched above, so the
+                // first one does; within one wildcard the sorted first match is used.
+                let first = self.matches_scoped(&i.source[..1], false, descendants)?;
+                let source = first.first().context("CleanList needs a source file")?;
                 let cancelled = self.settings.cancelled.clone();
                 let mut budget = cleanlist::Budget::new(&cancelled);
                 let matcher = cleanlist::Matcher::new(&self.selected_names, &mut budget)?;

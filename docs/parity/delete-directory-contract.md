@@ -268,11 +268,11 @@ differences marked.
   (`Execute [*.sh, *.nope]` and `CleanList [nope.csv, *.csv]`) show as
   `DryRunSkipped` in Rust's dry-run report where C# passes. These mixed cases were
   checked live in review of `e389200` but are not in the probe.
-- **CleanList list-file choice with several resolving Sources.** Rust reads the
-  first match in sorted-key order (`src/engine.rs`, `sources.first()` in the
-  CleanList arm); C# reads `RealSourcePaths[0]`, which follows authored order with
-  wildcard expansions first. A CleanList with more than one resolving Source can
-  therefore read a different list file. Pre-existing and rare; not changed here.
+- **CleanList list-file choice with several resolving Sources.** Resolved after
+  `0997b0f`: Rust now reads the first authored Source's list, as C#
+  `RealSourcePaths[0]` does; see
+  [cleanlist-list-choice-contract.md](cleanlist-list-choice-contract.md). Only the
+  order within one multi-match wildcard Source stays unspecified in C#.
 - **Missing Extract archive in the full report.** For `Extract
   <<modDirectory>>/[e]xample.zip` (and any missing Extract archive, also on
   `2241235`) Rust's `validate --dry-run` report has a ComponentValidation error

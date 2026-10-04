@@ -1422,6 +1422,28 @@ Guide authors: copying or moving a file onto itself does nothing useful. With
 `Destination` at another folder, or narrow the Source so it does not match files
 already there.
 
+## CleanList list-file choice — 2026-10-04 UTC
+
+A `CleanList` reads one list file. When its Source list names more than one existing
+file, Rust now reads the first authored Source's file, as C# does
+(`ExecuteCleanListAsync` reads `RealSourcePaths[0]`). Before, Rust read the match with
+the smallest sorted path: `CleanList [<<modDirectory>>/l/b.csv, <<modDirectory>>/l/a.csv]`
+applied `a.csv` where C# applies `b.csv`, so a different set of game files was deleted.
+Validate and the dry-run report passed in both.
+
+Unchanged: every Source must still match, so a folder or missing Source beside a
+resolving one is refused where C# reads the resolving list (fail-closed). When the
+first Source is a wildcard with several matches, Rust reads the first in sorted order;
+C# uses directory listing order, which .NET does not define on Unix. Evidence:
+[cleanlist-list-choice proof](docs/parity/cleanlist-list-choice-proof/README.md), 39
+checks match and 3 are known differences against a live reference oracle (9 fail on
+`0997b0f`); contract in
+[cleanlist-list-choice-contract.md](docs/parity/cleanlist-list-choice-contract.md).
+
+Guide authors: give a CleanList exactly one list file. Only the first Source's list is
+read; the other Sources are ignored, in C# and now in Rust. Do not rely on a wildcard
+that matches several lists.
+
 ## Directory Sources and wildcard rules for file actions — 2026-10-04 UTC
 
 A `Delete`, `Copy`, `Move`, `Rename`, `CleanList`, `Execute` or `Run` Source that names
