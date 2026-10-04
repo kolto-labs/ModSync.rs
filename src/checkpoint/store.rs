@@ -202,8 +202,15 @@ impl Store {
             Some(shells) => shells.to_vec(),
             None => self.participant_shells(&context.participants)?,
         };
-        let (mods, game, auxiliary_snapshots, ancestor_shells, count, bytes) =
-            self.capture_all(&context.participants, &shells, flag, &mut observe)?;
+        // A safety session records the folders as they are, so recovery and restore
+        // still work when an older store put a device name on disk.
+        let (mods, game, auxiliary_snapshots, ancestor_shells, count, bytes) = self.capture_all(
+            &context.participants,
+            &shells,
+            scope != "safety",
+            flag,
+            &mut observe,
+        )?;
         if !context.initial_completed_components.is_empty() {
             recovery::verify_completion_manifest(
                 &self.roots,
@@ -326,8 +333,12 @@ impl Store {
         self.prepare_write()
     }
 
+    /// `new_session` refuses every Windows device name before anything is stored, so a
+    /// new session's first capture records none; commits and resumes record what is on
+    /// disk under the older rule (`validate_tree`).
     pub(super) fn capture_trees(
         &self,
+        new_session: bool,
         flag: &AtomicBool,
         observe: &mut impl FnMut(Progress),
     ) -> Result<(Tree, Tree, u64, u64)> {
@@ -338,6 +349,10 @@ impl Store {
         });
         let mods = self.scan(&self.roots.mods, flag)?;
         let game = self.scan(&self.roots.game, flag)?;
+        if new_session {
+            refuse_device_names(&mods)?;
+            refuse_device_names(&game)?;
+        }
         let mut count = 0u64;
         let mut bytes = 0u64;
         let mut copied = std::collections::BTreeSet::new();

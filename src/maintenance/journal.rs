@@ -211,7 +211,7 @@ fn valid_plan(plan: &Plan) -> Result<()> {
     for identity in &plan.root_identities {
         platform::validate_identity(identity, &plan.capability)?;
     }
-    let subtree = crate::paths::relative(&plan.subtree, false)?
+    let subtree = crate::paths::stored_relative(&plan.subtree, false)?
         .to_string_lossy()
         .replace('\\', "/");
     ensure!(
@@ -252,7 +252,7 @@ fn valid_plan(plan: &Plan) -> Result<()> {
     let mut expected = Vec::new();
     for (path, entry) in entries {
         platform::validate_identity(&entry.identity, &plan.capability)?;
-        let relative = crate::paths::relative(path, false)?
+        let relative = crate::paths::stored_relative(path, false)?
             .to_string_lossy()
             .replace('\\', "/");
         ensure!(

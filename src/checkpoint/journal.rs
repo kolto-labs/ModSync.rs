@@ -395,6 +395,7 @@ impl Store {
             .capture_all(
                 &session.participants,
                 &session.ancestor_shells,
+                false,
                 flag,
                 &mut observe,
             )?;

@@ -171,5 +171,10 @@ matched on both builds. The basic `--dry-run` cases fail in both, on both builds
   Environment stage for every guide, so C# `install` without `--skip-validation`
   refuses everything there. The probe adds a stub that exits 2 to `--install`, as the
   stage expects; Rust's Environment stage does not run a patcher.
+- **Destinations into a Peer staging folder or with a device name.** A creatable
+  folder no longer passes the full report when it lies inside a Peer download staging
+  folder (`<<modDirectory>>/.peer-<nonce>.part/`) or has a Windows device name such as
+  `COM¹`; every mode refuses those paths before any write, where C# creates and installs
+  them. See [reserved-staging-paths-contract.md](reserved-staging-paths-contract.md).
 - **Platform.** The reference ran on Linux with `DOTNET_ROLL_FORWARD=Major` under
   `unshare -Urnm`, with a tmpfs over `/Override`. Windows paths are not probed.

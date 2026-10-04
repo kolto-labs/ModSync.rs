@@ -147,6 +147,7 @@ impl Store {
         let (mods, game, auxiliary, shells, files, bytes) = self.capture_all(
             &session.participants,
             &session.ancestor_shells,
+            false,
             flag,
             &mut observe,
         )?;
