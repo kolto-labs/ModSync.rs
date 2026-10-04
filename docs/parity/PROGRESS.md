@@ -9,6 +9,21 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Destination path parts C# validation refuses (2026-10-04, F05/F08): a Copy, Move,
+CleanList or DelDuplicate Destination with a `.` part, `..` inside a longer name or a
+control character is now refused by plain `validate` and by `install` before any
+write, as C# `install` refuses it (its validation fails `PathValidator.IsValidPath`,
+`ComponentValidation.cs:331-365`, `FileSystemUtils/PathValidator.cs:30-96`). Before,
+Rust installed `Override/.` into `Override` although its own report refused it, and
+installed into `a..b` or a folder with a tab with every report passing; the reports
+and the desktop Validate step now fail those too. Copy and Move still pass the dry run
+itself, as in C#; a step whose instruction conditions exclude it stays unchecked
+(documented). Proof: 138 match / 62 known against the live C# CLI with a HoloPatcher
+stub; 79 fail on `a5b2053`. The full-pipeline and root-destination probes now count
+the `.` Copy/Move cases as matches (122 / 16) and known differences (113 / 10); the
+other regression probes stay at baseline. See
+[destination-path-parts-contract.md](destination-path-parts-contract.md).
+
 Windows device names and Peer staging folders in instruction paths (2026-10-04,
 F05/F08): the reserved-name rule now also refuses `COM¹`-`COM³`, `LPT¹`-`LPT³`,
 `CONIN$`, `CONOUT$`, `COM0`, `LPT0` and a stem with spaces before the extension, on

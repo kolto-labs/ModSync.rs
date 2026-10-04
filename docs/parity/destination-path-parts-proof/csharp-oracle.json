@@ -1,0 +1,1437 @@
+{
+ "control_dot_name": {
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true,
+    null
+   ],
+   [
+    "Conflicts",
+    true,
+    null
+   ],
+   [
+    "InstallOrder",
+    true,
+    null
+   ],
+   [
+    "ComponentValidation",
+    true,
+    [
+     "OK: A"
+    ]
+   ],
+   [
+    "FomodConfiguration",
+    true,
+    null
+   ],
+   [
+    "DryRun",
+    true,
+    []
+   ]
+  ],
+  "install": [
+   true,
+   [
+    "game/Override/.x/m.txt",
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ],
+  "install_skip": [
+   true,
+   [
+    "game/Override/.x/m.txt",
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ]
+ },
+ "control_dotted_name": {
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true,
+    null
+   ],
+   [
+    "Conflicts",
+    true,
+    null
+   ],
+   [
+    "InstallOrder",
+    true,
+    null
+   ],
+   [
+    "ComponentValidation",
+    true,
+    [
+     "OK: A"
+    ]
+   ],
+   [
+    "FomodConfiguration",
+    true,
+    null
+   ],
+   [
+    "DryRun",
+    true,
+    []
+   ]
+  ],
+  "install": [
+   true,
+   [
+    "game/Override/a.b/m.txt",
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ],
+  "install_skip": [
+   true,
+   [
+    "game/Override/a.b/m.txt",
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ]
+ },
+ "control_override": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true,
+    null
+   ],
+   [
+    "Conflicts",
+    true,
+    null
+   ],
+   [
+    "InstallOrder",
+    true,
+    null
+   ],
+   [
+    "ComponentValidation",
+    true,
+    [
+     "OK: A"
+    ]
+   ],
+   [
+    "FomodConfiguration",
+    true,
+    null
+   ],
+   [
+    "DryRun",
+    true,
+    []
+   ]
+  ],
+  "install": [
+   true,
+   [
+    "game/Override/m.txt",
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ],
+  "install_skip": [
+   true,
+   [
+    "game/Override/m.txt",
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ]
+ },
+ "control_unselected_component": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true,
+    null
+   ],
+   [
+    "Conflicts",
+    true,
+    null
+   ],
+   [
+    "InstallOrder",
+    true,
+    null
+   ],
+   [
+    "ComponentValidation",
+    true,
+    [
+     "OK: A"
+    ]
+   ],
+   [
+    "FomodConfiguration",
+    true,
+    null
+   ],
+   [
+    "DryRun",
+    true,
+    []
+   ]
+  ],
+  "install": [
+   true,
+   [
+    "game/Override/m.txt",
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ],
+  "install_skip": [
+   true,
+   [
+    "game/Override/m.txt",
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ]
+ },
+ "dot_after_good_step": {
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_dry/decision": [
+   false,
+   false
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    false,
+    null
+   ]
+  ],
+  "install": [
+   false,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ],
+  "install_skip": [
+   true,
+   [
+    "game/Override/m.txt",
+    "game/Override/n.txt",
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ]
+ },
+ "dot_backslash": {
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_dry/decision": [
+   false,
+   false
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    false,
+    null
+   ]
+  ],
+  "install": [
+   false,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ],
+  "install_skip": [
+   true,
+   [
+    "game/Override/m.txt",
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ]
+ },
+ "dot_cleanlist": {
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_dry/decision": [
+   false,
+   false
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    false,
+    null
+   ]
+  ],
+  "install": [
+   false,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ],
+  "install_skip": [
+   false,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ]
+ },
+ "dot_condition_unmet": {
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_dry/decision": [
+   false,
+   false
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    false,
+    null
+   ]
+  ],
+  "install": [
+   false,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ],
+  "install_skip": [
+   true,
+   [
+    "game/Override/m.txt",
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ]
+ },
+ "dot_deldup": {
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_dry/decision": [
+   false,
+   false
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    false,
+    null
+   ]
+  ],
+  "install": [
+   false,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ],
+  "install_skip": [
+   false,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ]
+ },
+ "dot_game_root": {
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_dry/decision": [
+   false,
+   false
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    false,
+    null
+   ]
+  ],
+  "install": [
+   false,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ],
+  "install_skip": [
+   true,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/m.txt",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ]
+ },
+ "dot_middle": {
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_dry/decision": [
+   false,
+   false
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    false,
+    null
+   ]
+  ],
+  "install": [
+   false,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ],
+  "install_skip": [
+   true,
+   [
+    "game/Override/m.txt",
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ]
+ },
+ "dot_missing": {
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   1,
+   0,
+   5
+  ],
+  "full_dry/decision": [
+   false,
+   false
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true,
+    null
+   ],
+   [
+    "Conflicts",
+    true,
+    null
+   ],
+   [
+    "InstallOrder",
+    true,
+    null
+   ],
+   [
+    "ComponentValidation",
+    false,
+    [
+     "ERROR: A: Destination cannot be found! Got '<root>/game/Nope/.'"
+    ]
+   ],
+   [
+    "FomodConfiguration",
+    true,
+    null
+   ],
+   [
+    "DryRun",
+    true,
+    []
+   ]
+  ],
+  "install": [
+   false,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ],
+  "install_skip": [
+   true,
+   [
+    "game/Nope/m.txt",
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ]
+ },
+ "dot_mod_root": {
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_dry/decision": [
+   false,
+   false
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    false,
+    null
+   ]
+  ],
+  "install": [
+   false,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ],
+  "install_skip": [
+   true,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt",
+    "mods/r.txt"
+   ]
+  ]
+ },
+ "dot_move": {
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_dry/decision": [
+   false,
+   false
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    false,
+    null
+   ]
+  ],
+  "install": [
+   false,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ],
+  "install_skip": [
+   true,
+   [
+    "game/Override/m.txt",
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/n.txt"
+   ]
+  ]
+ },
+ "dot_override": {
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_dry/decision": [
+   false,
+   false
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    false,
+    null
+   ]
+  ],
+  "install": [
+   false,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ],
+  "install_skip": [
+   true,
+   [
+    "game/Override/m.txt",
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ]
+ },
+ "dot_second_component": {
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_dry/decision": [
+   false,
+   false
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    false,
+    null
+   ]
+  ],
+  "install": [
+   false,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ],
+  "install_skip": [
+   true,
+   [
+    "game/Override/m.txt",
+    "game/Override/n.txt",
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ]
+ },
+ "dot_selected_option": {
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_dry/decision": [
+   false,
+   false
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    false,
+    null
+   ]
+  ],
+  "install": [
+   false,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ],
+  "install_skip": [
+   true,
+   [
+    "game/Override/m.txt",
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ]
+ },
+ "dot_unselected_option": {
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_dry/decision": [
+   false,
+   false
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    false,
+    null
+   ]
+  ],
+  "install": [
+   false,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ],
+  "install_skip": [
+   true,
+   [
+    "game/Override/m.txt",
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ]
+ },
+ "dotdot_cleanlist": {
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_dry/decision": [
+   false,
+   false
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    false,
+    null
+   ]
+  ],
+  "install": [
+   false,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/a..b/r.txt",
+    "game/a..b/x.tga",
+    "game/a..b/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ],
+  "install_skip": [
+   false,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/a..b/r.txt",
+    "game/a..b/x.tga",
+    "game/a..b/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ]
+ },
+ "dotdot_deldup": {
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_dry/decision": [
+   false,
+   false
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    false,
+    null
+   ]
+  ],
+  "install": [
+   false,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/a..b/r.txt",
+    "game/a..b/x.tga",
+    "game/a..b/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ],
+  "install_skip": [
+   false,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/a..b/r.txt",
+    "game/a..b/x.tga",
+    "game/a..b/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ]
+ },
+ "dotdot_existing": {
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_dry/decision": [
+   false,
+   false
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    false,
+    null
+   ]
+  ],
+  "install": [
+   false,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/a..b/r.txt",
+    "game/a..b/x.tga",
+    "game/a..b/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ],
+  "install_skip": [
+   true,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/a..b/m.txt",
+    "game/a..b/r.txt",
+    "game/a..b/x.tga",
+    "game/a..b/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ]
+ },
+ "dotdot_leading": {
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_dry/decision": [
+   false,
+   false
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    false,
+    null
+   ]
+  ],
+  "install": [
+   false,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ],
+  "install_skip": [
+   true,
+   [
+    "game/Override/..x/m.txt",
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ]
+ },
+ "dotdot_missing": {
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_dry/decision": [
+   false,
+   false
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    false,
+    null
+   ]
+  ],
+  "install": [
+   false,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ],
+  "install_skip": [
+   true,
+   [
+    "game/Over..ride/m.txt",
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ]
+ },
+ "tab_existing": {
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_dry/decision": [
+   false,
+   false
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    false,
+    null
+   ]
+  ],
+  "install": [
+   false,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "game/t\tb/r.txt",
+    "game/t\tb/x.tga",
+    "game/t\tb/x.tpc",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ],
+  "install_skip": [
+   true,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "game/t\tb/m.txt",
+    "game/t\tb/r.txt",
+    "game/t\tb/x.tga",
+    "game/t\tb/x.tpc",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ]
+ },
+ "tab_missing": {
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_dry/decision": [
+   false,
+   false
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    false,
+    null
+   ]
+  ],
+  "install": [
+   false,
+   [
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ],
+  "install_skip": [
+   true,
+   [
+    "game/Override/a\tb/m.txt",
+    "game/Override/x.tga",
+    "game/Override/x.tpc",
+    "game/chitin.key",
+    "game/r.txt",
+    "mods/l.csv",
+    "mods/m.txt",
+    "mods/n.txt"
+   ]
+  ]
+ }
+}

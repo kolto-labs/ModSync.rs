@@ -134,6 +134,7 @@ release binary: `validate --full --dry-run` (decision, counts, stages), `validat
 | --- | --- |
 | this slice, live reference (`--reference ... --record`) | 120 match / 18 known difference / 0 fail |
 | this slice, recorded reference | 120 match / 18 known difference / 0 fail |
+| after destination-path-parts, recorded reference | 122 match / 16 known difference / 0 fail |
 | `38c6ca9` (pre-fix), recorded reference | 42 match / 18 known difference / 78 fail |
 
 On `38c6ca9` each of the 13 cases with a creatable missing Copy, Move or CleanList folder
@@ -159,9 +160,11 @@ matched on both builds. The basic `--dry-run` cases fail in both, on both builds
   cases, nine checks.
 - **A `.` part.** Both full reports fail it; Rust prints the folder without the `.`
   (as recorded in [missing-destination-contract.md](missing-destination-contract.md)).
-  C#'s install validates first and refuses it; Rust's plain `validate` and `install`
-  resolve `Nope/.` to `Nope` and install there, so they decide differently from the
-  Rust report. Left as is: the path is safe and the same folder. Three checks.
+  C#'s install validates first and refuses it. When this slice landed, Rust's plain
+  `validate` and `install` resolved `Nope/.` to `Nope` and installed there (three
+  known checks); since
+  [destination-path-parts-contract.md](destination-path-parts-contract.md) they refuse
+  it before any write, so `install` and `modes` match and one check stays known.
 - **C# creates folders while validating (deliberate).** Rust validation never
   changes the game or mod folders. After a C# full validation the folders exist on
   disk even if the user never installs, including the folder of an unselected

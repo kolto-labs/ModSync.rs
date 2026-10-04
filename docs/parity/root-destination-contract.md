@@ -177,6 +177,13 @@ and `DryRunSkipped`), plain `validate` and `install` (decision and final tree).
   probed (it needs an unusual install folder name).
 - **Case.** Not probed here: the roots are the canonical folders the user picked, and
   placeholder names are matched exactly in both.
+- **Copy and Move into a `.` part (since
+  [destination-path-parts-contract.md](destination-path-parts-contract.md)).** The
+  table above records the reference `ModComponent.InstallAsync`, which installs
+  `copy_kotor_dot`, `copy_override_dot` and `move_kotor_dot`. The C# CLI `install`
+  validates first and refuses them, and Rust's plain `validate` and `install` now
+  refuse them too, so this proof counts their `validate` and `install` checks as known
+  differences (six checks; 113 match / 10 known / 0 fail).
 
 ## Results
 
@@ -184,6 +191,7 @@ and `DryRunSkipped`), plain `validate` and `install` (decision and final tree).
 | --- | --- |
 | follow-up, live reference (`--csharp ... --record`) | 119 match / 4 known difference / 0 fail (123 checks) |
 | follow-up, recorded reference | 119 match / 4 known difference / 0 fail |
+| after destination-path-parts, recorded reference | 113 match / 10 known difference / 0 fail |
 | `6e67b3c` (first fix) | 102 match / 4 known difference / 17 fail |
 | `8c79761` (pre-fix) | 74 match / 4 known difference / 45 fail |
 | first slice (`6e67b3c`, 78 checks) | 75 match / 3 known / 0 fail; `8c79761`: 41 / 3 / 34 |

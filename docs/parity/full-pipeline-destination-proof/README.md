@@ -28,7 +28,8 @@ Checks, 138 in all:
 - `modes`: Rust's plain `validate` decides as its `full_dry` report;
 - `basic/decision`: as `full_dry/decision`, for the basic report.
 
-`KNOWN` lists the documented differences (five cases, 18 checks). A known check passes
+`KNOWN` lists the documented differences (five cases, 16 checks; 18 before the
+destination-path-parts slice made `dot_part`'s `install` and `modes` match). A known check passes
 only if Rust differs from the reference and, where `KNOWN_RUST_MESSAGES` names them,
 its `ComponentValidation` messages are exactly the expected Rust messages.
 
@@ -55,6 +56,7 @@ refuse to install. The basic report fails every missing folder.
 | this slice, live reference (`--reference ... --record`) | 120 match / 18 known difference / 0 fail |
 | this slice, recorded reference | 120 match / 18 known difference / 0 fail |
 | `38c6ca9` (pre-fix), recorded reference | 42 match / 18 known difference / 78 fail |
+| after [destination-path-parts](../destination-path-parts-contract.md), recorded reference | 122 match / 16 known difference / 0 fail |
 
 On `38c6ca9`, each of the 13 cases with a creatable missing folder failed six checks:
 the full report failed (`Destination cannot be found! Got '<root>/game/...'`, one

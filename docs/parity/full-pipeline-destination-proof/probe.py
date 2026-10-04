@@ -122,9 +122,7 @@ C_ENV = ("C# fails these in its Environment stage (`Some components failed to va
 # name -> {check: (expected Rust value or None for "anything but the reference", reason)}
 KNOWN = {
     "empty_destination": {"full_dry/counts": C_ENV, "full_dry/stages": C_ENV, "full/counts": C_ENV},
-    "dot_part": {"full_dry/stages": "Rust shows the resolved folder without the `.` part",
-                 "install": "C# validates first and refuses the `.` part; Rust resolves it and installs",
-                 "modes": "Rust's plain `validate` resolves the `.` part; its report keeps the C# refusal"},
+    "dot_part": {"full_dry/stages": "Rust shows the resolved folder without the `.` part"},
     "file_in_the_way": {"full_dry/counts": C_ENV, "full_dry/stages": C_ENV, "full/counts": C_ENV},
     "missing_archive": {"full_dry/counts": C_ENV, "full_dry/stages": C_ENV, "full/counts": C_ENV},
     "deldup": {

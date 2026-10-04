@@ -1448,15 +1448,20 @@ as in C#: Extract, Copy and Move fail with missing source files, Delete deletes 
 
 A Destination with a `.` part, such as `<<kotorDirectory>>/Override/.`, now fails the
 archive/destination stage, as C# `PathValidator.IsValidPath` does; before, Rust passed
-it. Copy and Move into it still install in both. DelDuplicate and CleanList into it
+it. Copy and Move into it installed in both (until the destination-path-parts change
+below). DelDuplicate and CleanList into it
 now fail the dry run, plain `validate` and `install`, as in C#; before, Rust ran them
-(a CleanList into `<<kotorDirectory>>/.` deleted the listed game-root files).
+(a CleanList into `<<kotorDirectory>>/.` deleted the listed game-root files). Since
+the destination-path-parts change below, plain `validate` and `install` also refuse a
+Copy or Move into it, as the C# CLI `install` (which validates first) does; this
+proof's install reference, `ModComponent.InstallAsync` alone, still installs it.
 Unchanged: a `Rename` whose Destination
 is a bare placeholder (`Rename <<kotorDirectory>>/r.txt -> <<kotorDirectory>>`) is
 refused in Rust; C# renames the file to one literally named `<<kotorDirectory>>`
 (fail-closed, deliberate). Evidence: [root-destination
 proof](docs/parity/root-destination-proof/README.md), 119 checks match and 4 are
-known differences against a live reference oracle (45 fail on `8c79761`); contract in
+known differences against a live reference oracle (45 fail on `8c79761`; 113 / 10
+since destination-path-parts); contract in
 [root-destination-contract.md](docs/parity/root-destination-contract.md).
 
 Guide authors: `<<kotorDirectory>>` on its own is a valid Destination for Copy, Move,
@@ -1873,7 +1878,8 @@ and a missing archive still fail (in C# they fail its Environment stage instead)
 `install` does. Evidence: [full pipeline destination
 proof](docs/parity/full-pipeline-destination-proof/README.md), 120 checks match and
 18 are known differences against the live C# CLI with a HoloPatcher stub (78 fail on
-`38c6ca9`); contract in
+`38c6ca9`; 122 / 16 since destination-path-parts, whose `dot_part` install and plain
+`validate` checks now match); contract in
 [full-pipeline-destination-contract.md](docs/parity/full-pipeline-destination-contract.md).
 
 Users: the desktop Validate step and `validate --full` now pass a guide that copies
@@ -1926,6 +1932,44 @@ Windows device name`, rename or remove that file in your game or mod folder (no
 Windows install can hold it), or install without checkpoints; after a refused install,
 run `modsync restore` first to clear its recovery snapshot. Checkpoints you made
 earlier stay usable.
+
+## Destination path parts C# validation refuses — 2026-10-04 UTC
+
+A `Copy`, `Move`, `CleanList` or `DelDuplicate` Destination with a part C#
+`PathValidator.IsValidPath` refuses is now refused by plain `validate` and by
+`install` before any write, as C# `install` refuses it (it validates first): a `.`
+part (`<<kotorDirectory>>/Override/.`, `<<kotorDirectory>>/./Override`), `..` inside a
+longer name (`a..b`, `..x`) or a control character such as a tab. The message is
+`<component> / step <n> (<action>): Destination is not a valid path (a `.` part, `..`
+inside a name or a control character): <Destination>`, after `Installation blocked
+before any write:` for `install`. The check covers each selected component's own steps
+and its immediate options' steps, selected or not, as the archive stage does. Before,
+Rust resolved `Nope/.` to `Nope` and installed there although its own report (and the
+desktop Validate step) refused it, and it installed into `a..b`, `..x` or a folder
+with a tab with every report passing. The basic and full reports, `--phase remaining`
+and the desktop Validate step now also fail `..` inside a name and control characters
+(`Destination cannot be found! Got '<folder>'`, as for a `.` part), and DelDuplicate and
+CleanList refuse them when they run, as C# does.
+
+Unchanged: Copy and Move into such a folder still pass the dry run itself, as in C#;
+a bare `..` stays `Unsafe path`; names such as `.x` or `a.b` are ordinary. C# fails
+most of these in its full pipeline's Environment stage, which ends its report there,
+while Rust fails the `ComponentValidation` stage (the decision matches). C# `install
+--skip-validation` installs the Copy and Move cases; Rust has no such flag. A step
+whose instruction conditions exclude it is not checked in Rust (it never runs); C#
+refuses the guide. Evidence: [destination path parts
+proof](docs/parity/destination-path-parts-proof/README.md), 138 checks match and 62
+are known differences against the live C# CLI with a HoloPatcher stub (79 fail on
+`a5b2053`); contract in
+[destination-path-parts-contract.md](docs/parity/destination-path-parts-contract.md).
+The root-destination proof's `.` Copy and Move cases, compared there with C#
+`ModComponent.InstallAsync` alone, now count Rust's refusal as a known difference.
+
+Users: if `validate` or `install` now stops with `Destination is not a valid path`,
+remove the `.` part from the step's Destination (`<<kotorDirectory>>/Override`, not
+`<<kotorDirectory>>/Override/.`), or rename a folder whose name has `..` or a control
+character; no Windows install can use such a folder name, and the C# installer refuses
+the guide too.
 
 ## A patcher without changes.ini in the validation dry run — 2026-10-04 UTC
 
