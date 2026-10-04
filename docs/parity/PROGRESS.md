@@ -9,6 +9,17 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+A failing chosen option in the validation dry run (2026-10-04, F04/F05/F08): when an
+option that a `Choose` step runs is missing a source, `validate --dry-run` and the
+desktop Validate step now fail that component (`ERROR: [EngineSimulation] <component>
+/ step <n> (Choose): ...`, exit 1), as C# does: it maps any option failure to
+`OptionalInstallFailed` and `UserCancelledInstall` (`ModComponent.cs:1648-1667`,
+`:1857-1860`), which its dry run reports as an error (`DryRunValidator.cs:535-546`).
+Rust reported the component as `DryRunSkipped` and passed, although its install refused
+the selection. A miss in the component's own steps stays `DryRunSkipped`. Proof: 67
+match / 1 known against the live C# CLI; 37 fail on `b89484d`. The regression probes
+stay at baseline. See [option-failure-contract.md](option-failure-contract.md).
+
 Install order and reference checks (2026-10-04, F04): `install` now runs the selected
 components in the C# CLI's order, a breadth-first sort of every component by
 Dependencies, InstallAfter and InstallBefore from the resolver's order

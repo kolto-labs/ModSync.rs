@@ -287,6 +287,32 @@ impl std::fmt::Display for MissingSourceFiles {
 }
 impl std::error::Error for MissingSourceFiles {}
 
+/// C# `ActionExitCode.OptionalInstallFailed`: any failure of a chosen option, a
+/// missing source included, fails its component (`UserCancelledInstall`), so the
+/// dry run reports it as an error rather than `DryRunSkipped`.
+#[derive(Debug)]
+struct OptionalInstallFailed(anyhow::Error);
+impl OptionalInstallFailed {
+    /// Hides the `MissingSourceFiles` cause; other errors already fail the dry run.
+    fn wrap(error: anyhow::Error) -> anyhow::Error {
+        if error.is::<MissingSourceFiles>() {
+            anyhow::Error::new(Self(error))
+        } else {
+            error
+        }
+    }
+}
+impl std::fmt::Display for OptionalInstallFailed {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+impl std::error::Error for OptionalInstallFailed {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        self.0.source()
+    }
+}
+
 pub struct Engine {
     pub settings: Settings,
     path_policy: crate::paths::PathPolicy,
@@ -2297,7 +2323,7 @@ impl Engine {
                     if let Some(observer) = progress.as_deref_mut() {
                         observer.current.owner_path.pop();
                     }
-                    result?;
+                    result.map_err(OptionalInstallFailed::wrap)?;
                 }
             }
             "Extract" => {
@@ -2485,7 +2511,9 @@ impl Engine {
                 // a directory Source deletes nothing beneath it (a miss).
                 let sources =
                     self.matches_scoped(&i.source, true, authored_descendants(&i.action))?;
-                if sources.is_empty() {
+                // A strict miss fails the step below with no warning, as C# DeleteFile
+                // reports it without touching the virtual file system.
+                if sources.is_empty() && !i.overwrite {
                     for source in &i.source {
                         let path = self.path(source, true)?;
                         let message = if self.directories.contains_key(&self.path_policy.key(&path))
