@@ -60,8 +60,9 @@ choices) followed a warning collected for an earlier component.
 
 ## Out of scope
 
-- Rust still stops at its first hard FOMOD issue, so warnings for components after that
-  issue are not collected, and later issues are not listed. C# collects all of them.
+- Rust stopped at its first hard FOMOD issue, so warnings for components after that
+  issue were not collected, and later issues were not listed. C# collects all of them.
+  Closed by [fomod-gate-collect.md](fomod-gate-collect.md).
 - The C# error-count rule for a failed FOMOD stage (every message counts) is not copied.
 - C# leaves `hasWarnings` false and `warningCount` at 0 for this stage. Rust sets
   `hasWarnings` and counts the warnings, unlike its own Conflicts and DryRun stages,

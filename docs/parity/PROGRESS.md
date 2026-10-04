@@ -45,6 +45,16 @@ as in C#, and are emitted as `WARNING:` events on plain validate and install. Er
 exits are unchanged. The proof is 55/55 (17 fail on `438bb73`), and the regression probes
 still pass. See [fomod-gate-warnings.md](fomod-gate-warnings.md).
 
+FOMOD gate collects every issue (2026-10-04): the gate no longer stops at its first
+in-gate FOMOD issue. Like C# `FomodConfigurationGate`, it collects every issue and every
+warning. Issues are a missing archive with prompt state, an unreadable archive, and
+missing, unparseable or stale saved choices. Cancellation, unsafe paths and guide errors
+still abort. The report stage lists all warnings, then every issue, with `errorCount`
+counting each issue. Plain validate and install keep a single issue's text unchanged and
+number several issues in one line: `<n> issues: [1] ...; [2] ...`. The proof is 67/67
+(22 fail on `d78aea2`), and the regression probes still pass. See
+[fomod-gate-collect.md](fomod-gate-collect.md).
+
 Runtime revalidation of `25296da` (2026-10-03b): all retained CLI suites and the C#/Rust differentials pass, native GUI probes recalibrated, one Windows Clippy fix; see [runtime-revalidation-2026-10-03b.md](runtime-revalidation-2026-10-03b.md).
 
 Step-2 broken-choices follow-up (2026-10-03b): unparseable saved `FomodChoices` on a
@@ -362,7 +372,9 @@ are recorded in the production receipt; runtime and domain acceptance remain ope
    it merges per archive. [Evidence](fomod-gate-scope-proof/README.md) is 74/74 (12
    fail on `15b11cb`); S1 339/339, inherited 41/41, S2a 224/224 and S2b 254/254 hold.
    Soft gate warnings now survive a later hard gate failure
-   ([gate-warnings contract](fomod-gate-warnings.md), 55/55; 17 fail on `438bb73`).
+   ([gate-warnings contract](fomod-gate-warnings.md), 55/55; 17 fail on `438bb73`),
+   and the gate collects every issue and warning instead of stopping at the first issue
+   ([gate-collect contract](fomod-gate-collect.md), 67/67; 22 fail on `d78aea2`).
    Desktop reconfiguration, the S3 corpora and native acceptance follow.
    The [actual full.md conversion baseline](full-markdown-baseline/README.md)
    retains eight production conversions and an independent anonymous comparison.

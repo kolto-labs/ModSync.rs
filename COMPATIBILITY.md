@@ -1139,10 +1139,28 @@ nothing to `warningCount` and counts every message of a failed stage as an error
 sets `hasWarnings`, counts the warnings in `warningCount` and the error once in
 `errorCount`. Plain `validate` and `install` emit the `WARNING:` events before failing.
 The error text and exit code are unchanged. "Go to first issue" still points at the error.
-Rust still stops at its first FOMOD issue, so warnings for later components are not
-collected. Evidence: [gate-warnings proof](docs/parity/fomod-gate-warnings-proof/README.md),
+Evidence: [gate-warnings proof](docs/parity/fomod-gate-warnings-proof/README.md),
 55/55 checks (17 fail on `438bb73`); contract in
 [fomod-gate-warnings.md](docs/parity/fomod-gate-warnings.md).
+
+The gate no longer stops at its first FOMOD issue. As C# `FomodConfigurationGate` does,
+it walks the whole scope and collects every warning and every issue. The issues are a
+registered archive that is missing after prompt state was recorded, an archive that
+cannot be inspected, and missing, unparseable or stale saved choices. Cancellation,
+unsafe or invalid paths, guide errors and Extract source resolution still abort the gate.
+An abort is listed after the issues collected before it. Issues with identical text are
+listed once. Any issue fails the gate before Rust's stricter order and selection checks,
+as before.
+- **Report.** The failed FOMOD stage lists all warnings, then each issue as its own
+  message in gate order. `errorCount` counts each issue.
+- **Plain `validate` and `install`.** They emit every `WARNING:` event. A single issue
+  keeps its unchanged error text. Several issues are numbered in one message:
+  `FOMOD configuration check failed: <n> issues: [1] <first>; [2] <second>; ...`.
+  Install prefixes it with `Installation blocked before any write: `.
+
+The issue texts keep Rust's wording, without C#'s `ERROR: <component>:` prefix. Evidence:
+[gate-collect proof](docs/parity/fomod-gate-collect-proof/README.md), 67/67 checks (22
+fail on `d78aea2`); contract in [fomod-gate-collect.md](docs/parity/fomod-gate-collect.md).
 
 ## Fetch shared URL and destination — 2026-09-28 UTC
 
