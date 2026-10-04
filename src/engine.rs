@@ -2150,12 +2150,15 @@ impl Engine {
                             "Configured FOMOD extraction cannot retain existing files with Overwrite=false"
                         );
                     }
+                    // C# extraction writes every entry with FileMode.Create, so
+                    // Overwrite=false never keeps an existing file. Configured FOMOD
+                    // extraction with Overwrite=false was refused above instead.
                     for entry in entries {
                         self.check_cancelled()?;
                         self.put(
                             &dest.join(entry.path),
                             Content::Scratch(entry.file, entry.mode, entry.modified),
-                            i.overwrite,
+                            true,
                         )?;
                     }
                     for copy in configured {

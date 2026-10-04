@@ -76,6 +76,12 @@ Remaining source work found by the post-wave audit:
   Rust at `fba4eb1` rejected all of them with an untyped `Instruction has no
   Source`. A non-strict empty Delete is now a no-op; the others raise the typed
   missing-source cause (live oracle on the same fixtures). See [the empty source contract](empty-source-contract.md).
+- F05: Extract with `Overwrite=false` onto existing files. Closed 2026-10-04.
+  C# `ExtractFileAsync` never reads `Overwrite`, and the real provider writes
+  every entry with `FileMode.Create`, so existing files are replaced and the last
+  archive wins. Rust at `5905259` kept the existing file. Rust now always replaces;
+  configured FOMOD extraction keeps its fail-closed refusal (live oracle on the
+  same fixtures). See [the extract overwrite contract](extract-overwrite-contract.md).
 - F11: checkpoint duplicate-definition check folds GUID text with Unicode
   lowercase. Equivalent for valid GUIDs; admission is intentionally unchanged.
 
