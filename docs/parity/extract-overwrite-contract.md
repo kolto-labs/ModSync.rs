@@ -46,7 +46,8 @@ file contents in the mod directory and in the game.
 
 - **Extract always replaces.** Every archive entry is published with overwrite on,
   whatever `Overwrite` says, so an existing file is replaced and the last archive
-  wins, as in C#. Install, validate, the dry-run report and `conflicts` all run
+  wins, as in C# (except the two cases under Known differences, where C# keeps
+  the existing path). Install, validate, the dry-run report and `conflicts` all run
   the same engine, so a simulated later step sees the replaced content, and a
   `conflicts` report now lists the Extract as a writer of a game file it replaces.
 - **Unchanged: configured FOMOD extraction.** A FOMOD archive with saved choices
@@ -57,11 +58,30 @@ file contents in the mod directory and in the game.
   behaviour, and this slice keeps it.
 - **Unchanged: Copy, Move and Rename.** They still honour `Overwrite = false`
   (Copy/Move warn and skip, Rename fails), as C# does.
-- **Unchanged: directory collisions.** An entry whose target is an existing
-  directory, or whose parent is an existing file, still fails, as it does in C#
-  (`File.Create`/`Directory.CreateDirectory` throw, giving `InvalidArchive`).
+- **Unchanged: directory collisions.** An entry whose parent is an existing file
+  still fails, as in C# (`Directory.CreateDirectory` throws `IOException`, giving
+  `InvalidArchive`). An entry whose target is an existing directory also still
+  fails in Rust; C# differs here (see Known differences).
 
 ## Known differences
+
+- **Existing directory at an entry path.** C#'s extraction loop
+  (`RealFileSystemProvider.cs:200-265`) catches `UnauthorizedAccessException` per
+  entry, logs "Skipping file ... due to lack of permissions", leaves the directory,
+  writes the other entries and returns Success, whatever `Overwrite` says. Rust
+  fails the step with "Cannot overwrite directory with file". Rust already did this
+  with `Overwrite = true`; it is kept as a fail-closed choice. Verified live against
+  the d31ccbd3 DLL in review.
+- **Existing read-only file.** The same C# catch keeps an existing read-only file
+  (as a non-root user) and still returns Success, whatever `Overwrite` says. Rust
+  replaces it through an atomic rename. Rust already did this with
+  `Overwrite = true`. Verified live in review as uid 65534.
+- **Case-variant existing file on Linux.** With `out/X.TXT` present and an archive
+  entry `x.txt`, C# on Linux creates `x.txt` beside it. Rust replaces the content
+  of `X.TXT` and keeps its spelling, following its case-insensitive path rule
+  (F05-X4).
+- **Probe coverage.** The proof covers ZIP only. 7z and tar were checked by hand in
+  review and match; the directory and read-only cases above have no probe case.
 
 - **C# dry run.** C#'s virtual provider always extracts under an archive-named
   folder, even for an explicit destination

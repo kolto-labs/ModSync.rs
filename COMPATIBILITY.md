@@ -409,7 +409,7 @@ Reference: the local ModSync C# source at `d31ccbd3bfcddb4705917eafa6483715c166d
 | Selection | File selections, select-all when all components are unselected; explicit CLI components/options; desktop dependency/restriction and deselection cascades across components and options | Native interaction and full Unicode GUID-comparison parity remain open |
 | Ordering | Stable dependency sort, restrictions, InstallBefore/After, instruction conditions | Missing references and cycles fail |
 | Options | Choose resolves selected option GUIDs in declared option order; an entry names an option only as its hyphenated GUID (any case), as in C# | No automatic choice inference; an entry that names no option is refused, where C# ignores it |
-| File operations | Copy, Move, Rename, Delete, Extract, DelDuplicate, CleanList | Copy/Move flatten matched files into the target, as the C# instruction engine does; Delete with `Overwrite = true` fails on a missing file, as C# does; a Delete with no Source is a no-op unless `Overwrite = true`; Extract replaces existing files whatever `Overwrite` says, as C# does (configured FOMOD extraction with `Overwrite = false` is refused instead) |
+| File operations | Copy, Move, Rename, Delete, Extract, DelDuplicate, CleanList | Copy/Move flatten matched files into the target, as the C# instruction engine does; Delete with `Overwrite = true` fails on a missing file, as C# does; a Delete with no Source is a no-op unless `Overwrite = true`; Extract replaces existing files whatever `Overwrite` says, as C# does (configured FOMOD extraction with `Overwrite = false` is refused instead; C# keeps an existing directory or read-only file at an entry path and succeeds, where Rust fails on the directory and replaces the read-only file) |
 | Archives | Streaming ZIP, 7z, RAR, TAR, GZip and 7z SFX; integrity checks; isolated extraction root | No encrypted/multipart archives; SFX support is limited to embedded 7z payloads; empty directories are not materialized |
 | CleanList | C# comma-separated rows, mandatory prefix, substring and token matching | Source matching and final file sets still need full-build differential acceptance |
 | Texture cleanup | Removes requested extension when another compatible extension shares its basename | This is not content-hash deduplication |
@@ -1377,6 +1377,11 @@ install; that inconsistency is recorded there and not copied.
 Guide authors: `Overwrite = false` on an `Extract` step does not protect existing
 files, in C# or in Rust. To keep a file, extract into a separate folder and `Copy` it
 with `Overwrite = false`, or order the steps so the wanted file is written last.
+
+Known differences: when an entry path holds an existing directory, C# skips that
+entry with a warning and succeeds, while Rust fails the step. When it holds an
+existing read-only file, C# keeps it, while Rust replaces it. Both were already
+Rust's behaviour with `Overwrite = true`. See the contract.
 
 ## Fetch shared URL and destination — 2026-09-28 UTC
 
