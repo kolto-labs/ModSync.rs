@@ -304,5 +304,7 @@ dependency scope and the missing-archive soft warning are settled in
 
 **Warning: `MODSYNC_PROOF_OUT`.** This probe treats `MODSYNC_PROOF_OUT` as its own
 output directory and deletes it (`shutil.rmtree`) before running. Other probes treat
-the variable as a parent directory. Always point it at a dedicated, disposable folder
-for this probe, never at a shared scratch or working directory.
+the variable as a parent directory. Point it at a dedicated, disposable folder. Since
+2026-10-04 this probe and the other seven that clear their output directory refuse to
+delete a non-empty folder unless it holds the `.modsync-proof-out` marker a previous
+run wrote, or it lies under `target/cloud-proof`.
