@@ -274,10 +274,11 @@ impl std::fmt::Display for MissingSource {
 }
 impl std::error::Error for MissingSource {}
 
-/// Only the Copy/Move/Extract source-resolution boundary (including an empty
-/// Source list) and a strict (Overwrite=true) Delete miss or empty Source
-/// produce this cause.
-/// In particular, Rename and configured FOMOD member failures stay hard errors.
+/// Only the Copy/Move/Extract/Patcher source-resolution boundary (including an
+/// empty Copy/Move/Extract Source list), a strict (Overwrite=true) Delete miss
+/// or empty Source, and the misses `Engine::classify_miss` types (Rename,
+/// CleanList, Execute/Run) produce this cause. Configured FOMOD member failures
+/// stay hard errors.
 #[derive(Debug)]
 struct MissingSourceFiles(anyhow::Error);
 impl std::fmt::Display for MissingSourceFiles {

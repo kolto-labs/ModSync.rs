@@ -45,8 +45,10 @@ Delete, Run, Execute and CleanList never recover.
    source is a nonempty literal basename already present at the target.
 
 A final miss is `MissingSourceFiles` for Copy, Move and Extract, which is the
-existing dry-run skip cause. Patcher keeps its existing
-`Missing external program/mod` error.
+existing dry-run skip cause. A Patcher miss is the same cause with the message
+`Missing external program/mod: <Source>`, so the dry run skips the component as C#
+does (since 2026-10-04,
+[patcher-missing-source-contract.md](patcher-missing-source-contract.md)).
 
 ## Staging
 
