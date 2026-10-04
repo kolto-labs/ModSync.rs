@@ -234,11 +234,6 @@ fn normalize(
             object.insert(key, Value::Bool(parsed));
         }
     }
-    // C# skips path deserialization for Choose, whose Source is option GUIDs.
-    let choose = crate::model::keys::getter(object, "Action")
-        .and_then(|key| object.get(&key))
-        .and_then(Value::as_str)
-        .is_some_and(|action| crate::unicode_case::ordinal_eq(action, "Choose"));
     for field in [
         "Category",
         "Language",
@@ -251,16 +246,12 @@ fn normalize(
         if let Some(key) = crate::model::keys::getter(object, field)
             && let Some(value) = object.remove(&key)
         {
-            // An instruction's `<Source></Source>` is a scalar empty path, which the
-            // reference refuses (`Serializer.PrefixPath`), except for Choose. Keep it
-            // scalar, as TOML/JSON/YAML do, so the loader keeps `[""]` and path
-            // resolution rejects it. `<Source/>` is null.
+            // An instruction's single `<Source>` stays a scalar string, as in
+            // TOML/JSON/YAML, so the shared loader decides it: an empty path is
+            // kept as `[""]` and refused (`Serializer.PrefixPath`), and a Choose
+            // scalar goes through the C# string-to-list split. `<Source/>` is null.
             let value = match value {
-                Value::String(text)
-                    if instruction && !choose && field == "Source" && text.trim().is_empty() =>
-                {
-                    Value::String(text)
-                }
+                Value::String(text) if instruction && field == "Source" => Value::String(text),
                 value => Value::Array(array(value, field)),
             };
             object.insert(key, value);

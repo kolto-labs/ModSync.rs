@@ -827,6 +827,17 @@ fn normalize_component(
                     !path.is_null() && !path.as_str().is_some_and(|text| text.trim().is_empty())
                 });
             }
+            // C# skips `PrefixPath` for a raw Action of Choose and reads a scalar
+            // Source through the getter's string-to-list split, so `""`, `"  "` or
+            // `" , "` is an empty Choose. Already-normalized values (the Markdown
+            // second pass) keep their list, so a canonical-only Choose stays refused.
+            if action.raw_choose
+                && format != keys::Format::Internal
+                && let Some(source) = instruction.get_mut("Source")
+                && let Value::String(text) = source
+            {
+                *source = Value::Array(choose_sources(text));
+            }
             if evidence.source
                 && !action.raw_choose
                 && let Some(source) = instruction.get_mut("Source")
@@ -855,6 +866,15 @@ fn normalize_component(
         }
     }
     Ok(())
+}
+
+/// `GetValue<List<string>>` on a string: split on `;` and `,`, trim, drop blanks.
+fn choose_sources(text: &str) -> Vec<serde_json::Value> {
+    text.split([';', ','])
+        .map(str::trim)
+        .filter(|part| !part.is_empty())
+        .map(|part| serde_json::Value::String(part.into()))
+        .collect()
 }
 
 pub(crate) fn yaml_legacy_resources(value: &mut serde_json::Value) {
