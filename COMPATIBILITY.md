@@ -1603,7 +1603,9 @@ C# CLI (30 fail on `a0df4b7`); contract in
 
 Users: `--use-file-selection` on a guide saved with nothing selected now validates or
 installs the whole guide, as the C# CLI does, instead of stopping. Select at least one
-component in the file to limit the run to it.
+component in the file to limit the run to it. Additive flags such as `--option` or
+`--add-category` on such a guide now add to the whole guide, as they do without
+`--use-file-selection`.
 
 ## Missing destination folders in the validation report — 2026-10-04 UTC
 

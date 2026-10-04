@@ -55,7 +55,8 @@ authored all-false flags. `require_validation_selection` (`:953-967`) then refus
 validate, and install stopped at the FOMOD gate. The preserving loader was chosen in
 the basic-validation slice ([basic-validation-without-roots.md](basic-validation-without-roots.md))
 on the reading that C# keeps authored all-false flags; the live C# CLI does not.
-The ordinary loader (`Guide::load`, `src/model.rs:335-339`) already applies the
+The ordinary loader (the `default_selection` block in `parse_with_yaml_budget`,
+`src/model.rs:335-339`) already applies the
 fallback, for every format including Markdown.
 
 ## Change
@@ -99,9 +100,15 @@ on both builds.
 
 ## Known differences
 
-- **Desktop.** The desktop loads guides with the preserving parser
-  (`src/ui/main_window.rs:279`); C#'s GUI loads through the same file loader. Not
-  changed or compared here.
+- **Desktop.** The desktop file loaders (`src/ui/main_window.rs:179`, `src/ui.rs:3046`)
+  use `Guide::load_for_install`, which already applies the fallback, so an all-false
+  non-Markdown guide is selected as in C#. They also apply it to Markdown, where C#
+  keeps the authored flags. Not changed or compared here.
+- **Rust-only selection flags.** On an all-unselected non-Markdown guide,
+  `--use-file-selection` with `--option`, `--add-category`, `--select-through-tier`,
+  `--select-visible-search` or `--deselect` now starts from every component selected,
+  the same state as a run without `--use-file-selection`, instead of from none. C# has
+  no such flags. `--select` still resets the selection first.
 - **Rust-only verbs.** `selection` applies the fallback to Markdown too (it uses the
   ordinary loader); C# has no such verb. `fetch-downloads` keeps the authored flags
   for its execution clone, so `--use-file-selection` on an all-unselected guide fetches
