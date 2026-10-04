@@ -130,7 +130,10 @@ refuses.
   installs A, then fails at B with `DependencyViolation`. Rust refuses the unmet
   Dependency in every report and before any write, and its Conflicts stage does not
   warn (it counts nested selected options, as `check_component` does). The decision of
-  `install` matches; five checks differ.
+  `install` matches; five checks differ. For the same reason a Restriction naming a
+  selected nested option makes Rust refuse (`B conflicts with N`) in validate, install
+  and `conflicts`; C# finds no such option and sees no conflict (read from the code, not
+  run live). Fail-closed.
 - **Desktop auto-selection.** Ticking B in the desktop selects its option `O` but not
   `O`'s component A (`component_checked` and `option_index`,
   `src/selection.rs:43-54`), as C#'s `HandleComponentToOptionDependencies` does
