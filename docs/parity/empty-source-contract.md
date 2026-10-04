@@ -105,7 +105,12 @@ non-strict empty Delete, and the dry-run report was wrong for every case.
   `Missing Required Archives: []` for an empty Extract whenever the component has no
   archive (so `[Extract [], Extract nope.zip]` gives two errors in C# and one in Rust);
   Rust keeps passing the empty Extract. Recorded as a known difference in
-  [missing-archives-contract.md](missing-archives-contract.md).
+  [missing-archives-contract.md](missing-archives-contract.md). Superseded
+  (2026-10-04): once its stages pass, the report without `--dry-run` now simulates the
+  steps as plain `validate` does, so an empty Extract fails it (`Extract has no
+  Source`), as it fails plain `validate` and the C# report; the archive stage itself
+  still passes it. This is the CLI report only; the desktop report always includes a
+  dry run and is unchanged. See [plain-report-simulation-contract.md](plain-report-simulation-contract.md).
 - **Proof coverage.** The probe covers TOML only; the other loaders were checked by
   hand in review of 29f9d59.
 

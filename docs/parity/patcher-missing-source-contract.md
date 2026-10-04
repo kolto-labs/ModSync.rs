@@ -73,6 +73,9 @@ that error with an untyped `Missing external program/mod: <Source>`
   steps, so it reports success for such a guide, as before this slice (tracked with
   the F08 open item on the non-dry-run report); C# plain `validate` fails every
   Patcher guide in these fixtures with `'path' cannot be null or whitespace`.
+  (Superseded 2026-10-04 by
+  [plain-report-simulation-contract.md](plain-report-simulation-contract.md): that
+  report now simulates the steps and refuses such a guide too.)
 
 `Engine::resolve_instruction` now wraps the same message in `MissingSourceFiles`
 (`src/engine/source_resolution.rs:163-175`); the type's comment lists its producers

@@ -9,6 +9,22 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Step simulation in the validation report without a dry run (2026-10-04, F08): with
+both roots and a report flag but no `--dry-run` (`--output json`, `--output text`,
+`--validation-report`, `--errors-only`, `--full`), `validate` now simulates every step
+once its stages pass, as plain `validate` does, and a failure fails the
+`ComponentValidation` stage with plain `validate`'s wording. Before, that report passed
+(exit 0) a guide with a missing Copy, Move, Patcher, strict Delete, Rename or CleanList
+source, an untrusted Execute step or a component without instructions, which plain
+`validate` and `install` refused. The pinned C# CLI fails every such report (its basic
+mode never sets the mod folder, so its FOMOD stage fails,
+`InstallationValidationPipeline.cs:440-449`; a Patcher guide throws `'path' cannot be
+null or whitespace` first); a guide that simulates cleanly still passes in Rust
+(documented). The dry-run report is unchanged. Proof: 63 match / 6 known against the
+live C# CLI; 48 fail on `fd9ec46`. The regression probes stay at baseline (the FOMOD
+S2a fixture's instruction-less consumer now copies a file). See
+[plain-report-simulation-contract.md](plain-report-simulation-contract.md).
+
 A missing patcher in the validation dry run (2026-10-04, F05/F08/F09): when a
 component's own `Patcher` step names a patcher folder or executable that is not in the
 mod folder, `validate --dry-run` and the desktop Validate step now report the

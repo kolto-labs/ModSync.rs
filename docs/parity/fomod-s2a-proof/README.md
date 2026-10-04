@@ -295,6 +295,16 @@ fails on re-parsing the unparseable metadata, so neither consumer changes.
 
 F15 remains partial.
 
+## Fixture change (2026-10-04)
+
+The `registered_only_shared` case's second consumer had no instructions, and the case
+expected `--validation-report` to pass. Plain `validate` and the dry run refuse a
+component without instructions; since the
+[plain report simulation slice](../plain-report-simulation-contract.md) the report
+without a dry run does too. The second consumer now copies `notes.txt` as the first
+does. The case still checks one FOMOD warning naming both registrants; the probe gives
+224/224 on that slice and on `fd9ec46`.
+
 ## Reproduction
 
 ```bash
