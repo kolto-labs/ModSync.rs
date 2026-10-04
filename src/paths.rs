@@ -153,7 +153,15 @@ impl Roots {
                     tail.is_empty() || tail.starts_with(['/', '\\']),
                     "Missing separator after {prefix}"
                 );
-                let p = root.join(relative(tail.trim_start_matches(['/', '\\']), wildcards)?);
+                // A bare root (`<<kotorDirectory>>`, `<<kotorDirectory>>/`) is the root
+                // itself, as C# FixPathFormatting trims the trailing separator.
+                // `root.join("")` would add one and miss the root's directory key.
+                let tail = relative(tail.trim_start_matches(['/', '\\']), wildcards)?;
+                let p = if tail.as_os_str().is_empty() {
+                    root.clone()
+                } else {
+                    root.join(tail)
+                };
                 let mut literal = root.clone();
                 for part in p.strip_prefix(root)?.components() {
                     if wildcards && part.as_os_str().to_string_lossy().contains(['*', '?']) {
@@ -166,6 +174,12 @@ impl Roots {
             }
         }
         bail!("Path must start with <<modDirectory>> or <<kotorDirectory>>: {raw}")
+    }
+
+    /// Whether `path` is one of the install roots itself. A bare root Source
+    /// (`<<modDirectory>>`) names no file and has no descendants, as in C#.
+    pub fn is_root(&self, path: &Path) -> bool {
+        path == self.mods || path == self.game
     }
 
     pub fn check(&self, path: &Path) -> Result<()> {

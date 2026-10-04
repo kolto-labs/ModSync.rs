@@ -207,6 +207,12 @@ enum MissKind {
 /// (`PathHelper.WildcardPathMatch`): each path level is matched on its own, `*`
 /// (and so `**`) matches any run of characters within one level, `?` matches one
 /// character, and every other character, including `[` and `]`, is literal.
+/// Whether an authored path has a `.` part. `paths::relative` drops it, but C#
+/// `PathValidator.IsValidPath` and the DelDuplicate/CleanList execution refuse it.
+fn has_dot_part(raw: &str) -> bool {
+    raw.split(['/', '\\']).any(|part| part == ".")
+}
+
 pub(crate) fn source_wildcard_glob(text: &str) -> String {
     let mut glob = String::with_capacity(text.len());
     let mut star = false;
@@ -895,8 +901,11 @@ impl Engine {
             match instruction.action.as_str() {
                 "Copy" | "Move" | "CleanList" | "DelDuplicate" => {
                     let dest = self.path(&instruction.destination, false)?;
+                    // C# PathValidator.IsValidPath refuses a `.` part, which
+                    // `relative` drops while resolving.
                     ensure!(
-                        self.directories.contains_key(&self.path_policy.key(&dest)),
+                        !has_dot_part(&instruction.destination)
+                            && self.directories.contains_key(&self.path_policy.key(&dest)),
                         "Destination cannot be found: {}",
                         instruction.destination
                     );
@@ -935,11 +944,13 @@ impl Engine {
                 if !has_archives || path.starts_with(&self.settings.roots.game) {
                     continue;
                 }
-                let prefix = format!("{}/", self.path_policy.key(&path));
+                let prefix = self.source_prefix(&path);
                 ensure!(
-                    members
-                        .iter()
-                        .any(|member| self.source_matches(&prefix, &pattern, member)),
+                    members.iter().any(|member| self.source_matches(
+                        prefix.as_deref(),
+                        &pattern,
+                        member
+                    )),
                     "Failed to find '{source}' in any archives"
                 );
             }
@@ -1906,13 +1917,13 @@ impl Engine {
         let mut found = BTreeMap::new();
         for source in sources {
             let (path, pattern) = self.source_pattern(source)?;
-            let prefix = format!("{}/", self.path_policy.key(&path));
+            let prefix = self.source_prefix(&path);
             let matches: Vec<_> = self
                 .files
                 .iter()
                 .filter(|(k, _)| {
                     if descendants {
-                        self.source_matches(&prefix, &pattern, k)
+                        self.source_matches(prefix.as_deref(), &pattern, k)
                     } else {
                         self.path_policy.glob_matches(&pattern, k)
                     }
@@ -1943,8 +1954,20 @@ impl Engine {
         Ok((path, pattern))
     }
 
-    fn source_matches(&self, prefix: &str, pattern: &glob::Pattern, candidate: &str) -> bool {
-        self.path_policy.glob_matches(pattern, candidate) || candidate.starts_with(prefix)
+    /// The folder prefix whose files a literal Source reaches. A bare root Source
+    /// has none: C# keeps it as one literal path, which is not a file.
+    fn source_prefix(&self, path: &Path) -> Option<String> {
+        (!self.settings.roots.is_root(path)).then(|| format!("{}/", self.path_policy.key(path)))
+    }
+
+    fn source_matches(
+        &self,
+        prefix: Option<&str>,
+        pattern: &glob::Pattern,
+        candidate: &str,
+    ) -> bool {
+        self.path_policy.glob_matches(pattern, candidate)
+            || prefix.is_some_and(|prefix| candidate.starts_with(prefix))
     }
 
     /// Whether any literal Source (no `*` or `?`; `[` and `]` are literal) of an
@@ -2423,6 +2446,13 @@ impl Engine {
                 }
             }
             "DelDuplicate" => {
+                // C# DeleteDuplicateFile throws "Invalid directory path" for a `.`
+                // part (UnknownError), which `relative` would drop.
+                ensure!(
+                    !has_dot_part(&i.destination),
+                    "DelDuplicate destination cannot be found: {}",
+                    i.destination
+                );
                 let dir = self.path(&i.destination, false)?;
                 ensure!(
                     self.directories.contains_key(&self.path_policy.key(&dir)),
@@ -2491,6 +2521,12 @@ impl Engine {
                 }
             }
             "CleanList" => {
+                // C# fails a CleanList into a path with a `.` part (UnknownError).
+                ensure!(
+                    !has_dot_part(&i.destination),
+                    "CleanList destination cannot be found: {}",
+                    i.destination
+                );
                 let dir = self.path(&i.destination, false)?;
                 // CleanList: MissingSourceFiles for a missing literal list, an
                 // ArgumentException (UnknownError) on an all-wildcard empty expansion.

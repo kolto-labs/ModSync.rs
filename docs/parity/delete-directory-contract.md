@@ -306,7 +306,9 @@ slices:
 
 - `DelDuplicate` with `Destination = <<kotorDirectory>>` fails in Rust
   (`DelDuplicate destination cannot be found`); C# deletes the duplicate in the
-  game root.
+  game root. Closed 2026-10-04: Rust now runs it in the root, and Copy,
+  Move, CleanList and DelDuplicate into a root pass the archive/destination stage;
+  see [root-destination-contract.md](root-destination-contract.md).
 - `Rename` with a case-only target (`a.txt -> A.txt`) fails in Rust
   (`Source equals destination`); C# renames it.
 - `Rename` with a placeholder-path Destination (`<<kotorDirectory>>/Override/b.txt`)
