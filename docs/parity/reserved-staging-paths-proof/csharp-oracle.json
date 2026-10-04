@@ -389,6 +389,20 @@
    ]
   ]
  },
+ "staging_named_file": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/Override/.peer-notes.part",
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/.peer-notes.part",
+    "mods/m.txt"
+   ]
+  ]
+ },
  "staging_nested": {
   "full_dry": true,
   "install": [

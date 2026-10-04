@@ -198,11 +198,19 @@ impl Store {
         &self,
         participants: &BTreeMap<String, ParticipantBinding>,
         shells: &[String],
+        new_session: bool,
         flag: &AtomicBool,
         observe: &mut impl FnMut(Progress),
     ) -> Result<CaptureInventory> {
         let (auxiliary, ancestor_shells) = self.scan_auxiliary(participants, shells, flag)?;
-        let (mods, game, mut count, mut bytes) = self.capture_trees(flag, observe)?;
+        if new_session {
+            for snapshot in auxiliary.values() {
+                if let AuxiliarySnapshot::Directory { tree } = snapshot {
+                    refuse_device_names(tree)?;
+                }
+            }
+        }
+        let (mods, game, mut count, mut bytes) = self.capture_trees(new_session, flag, observe)?;
         for (name, snapshot) in &auxiliary {
             let root = Path::new(&participants[name].path);
             let files: Vec<_> = match snapshot {

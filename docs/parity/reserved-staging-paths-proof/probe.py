@@ -27,8 +27,13 @@ Checks per case:
                                  C# CLI; `KNOWN` lists where Rust deliberately refuses
                                  what C# accepts.
 
+Then Rust-only checkpoint checks: a store written by --writer-bin (a build from before
+this slice) while the game held device names stays listable, restorable and
+recoverable; a new checkpoint session refuses a device name already on disk with
+`Checkpoint cannot record <path>: Windows device name` before any game or mod write.
+
 Usage:
-  probe.py [--bin target/release/modsync] [--reference DIR [--record]]
+  probe.py [--bin target/release/modsync] [--writer-bin OLD] [--reference DIR [--record]]
 
 With --reference (the d31ccbd3 build output holding ModSync.Core.dll) the C# CLI runs
 live under `unshare -Urnm` (no network, a tmpfs over `/Override` when it exists) with
@@ -109,6 +114,8 @@ CASES = {
     "staging_source": (copy(KD + "/Override", MD + "/" + STAGING + "/s.txt"), {}, {}, STAGED),
     "staging_wildcard": (copy(KD + "/Override", MD + "/.peer-*.part/*.txt"), {}, {}, STAGED),
     "staging_extract": (guide(step("Extract", [MD + "/" + STAGING + "/s.zip"])), {}, {}, STAGED),
+    # A file (not a folder) named like one; the scan hides only folders (fail closed).
+    "staging_named_file": (copy(KD + "/Override", MD + "/.peer-notes.part"), {".peer-notes.part": "n\n"}, {}, STAGED),
     # Controls: not a staging folder, or not under <<modDirectory>>.
     "control_staging_in_game": (copy(KD + "/" + STAGING), {}, {}, None),
     "control_no_dot": (copy(MD + "/" + STAGING[1:]), {}, {}, None),
@@ -126,7 +133,7 @@ KNOWN = {name: {"reference/full_dry": FAIL_CLOSED, "reference/install": FAIL_CLO
 KNOWN.update({name: {"reference/full_dry": STAGING_ONLY, "reference/install": STAGING_ONLY}
               for name in ("staging_destination", "staging_subfolder", "staging_upper_case",
                            "staging_nested", "staging_move", "staging_source", "staging_wildcard",
-                           "staging_extract")})
+                           "staging_extract", "staging_named_file")})
 
 
 def fixture(root, case):
@@ -204,11 +211,109 @@ def stub_reference(reference, work):
     return copy_dir
 
 
+CHECKPOINT_GUIDE = copy(KD + "/Override")
+DEVICE_FILES = ("COM0", "CONIN$", "COM\u00b9")
+
+
+def checkpoint_root(work, label, device_files):
+    root = tempfile.mkdtemp(prefix=f"checkpoint-{label}-", dir=work)
+    for folder in ("game/Override", "mods", "home"):
+        os.makedirs(os.path.join(root, folder))
+    files = {"game/chitin.key": "KEY\n", "mods/m.txt": "m\n"}
+    files.update({f"game/Override/{name}": "d\n" for name in device_files})
+    for name, body in files.items():
+        with open(os.path.join(root, name), "w") as handle:
+            handle.write(body)
+    with open(os.path.join(root, "guide.toml"), "w") as handle:
+        handle.write(CHECKPOINT_GUIDE)
+    return root
+
+
+def run_cli(binary, root, *argv):
+    env = dict(os.environ, HOME=os.path.join(root, "home"), XDG_CONFIG_HOME=os.path.join(root, "xdg"))
+    done = subprocess.run([binary, *argv], capture_output=True, text=True, env=env, cwd=root, timeout=600,
+                          stdin=subprocess.DEVNULL)
+    return done.returncode, done.stdout + done.stderr
+
+
+def report(text):
+    return json.loads(text[text.index("{"):text.rindex("}") + 1])
+
+
+def checkpoint_checks(binary, writer, work):
+    """(check, passed, detail) for checkpoint stores and new captures; Rust only."""
+    out = []
+    roots_of = lambda root: ["--source-dir", os.path.join(root, "mods"), "--game-dir", os.path.join(root, "game")]
+    # (a) A store an earlier build wrote while the game held device names stays usable.
+    if writer:
+        root = checkpoint_root(work, "legacy", DEVICE_FILES)
+        roots = roots_of(root)
+        code, text = run_cli(writer, root, "checkpoint", "capture", *roots)
+        out.append(("legacy_store/written_by_writer", code == 0, text[-300:]))
+        if code == 0:
+            captured = report(text)
+            session, checkpoint = captured["sessionId"], captured["checkpointId"]
+            for name, argv in (
+                ("list", ["list"]),
+                ("verify", ["verify", "--session", session]),
+                ("history", ["history", "--session", session]),
+                ("inspect", ["inspect", "--session", session, "--checkpoint", checkpoint]),
+                ("provenance", ["provenance", "--session", session, "--tree", "game", "--path", "Override/COM0"]),
+            ):
+                code, text = run_cli(binary, root, "checkpoint", *argv, *roots)
+                out.append((f"legacy_store/{name}", code == 0, text[-300:]))
+            # Restore puts the recorded device names back; its safety capture records
+            # the folders as they are.
+            with open(os.path.join(root, "game", "new.txt"), "w") as handle:
+                handle.write("x\n")
+            code, text = run_cli(binary, root, "checkpoint", "restore", "--session", session,
+                                 "--checkpoint", checkpoint, *roots)
+            files = sorted(os.listdir(os.path.join(root, "game", "Override")))
+            restored = code == 0 and files == sorted(DEVICE_FILES) and not os.path.exists(
+                os.path.join(root, "game", "new.txt"))
+            out.append(("legacy_store/restore", restored, f"rc={code} Override={files} {text[-200:]}"))
+            # Recovery restores the unfinished session's boundary with the device names on disk.
+            code, text = run_cli(binary, root, "checkpoint", "recover", *roots)
+            ok = code == 0 and report(text).get("recoveryError") is None
+            out.append(("legacy_store/recover", ok, text[-300:]))
+            code, text = run_cli(binary, root, "checkpoint", "list", *roots)
+            out.append(("legacy_store/list_after_recover", code == 0, text[-300:]))
+    else:
+        print("skip  legacy_store/* (no --writer-bin)")
+    # (b) A new checkpoint session refuses a device name already in the game folder,
+    # before any game or mod write.
+    for name, argv in (
+        ("component_checkpoints", ["install", "-i", "{guide}", "-s", "{mods}", "-g", "{game}",
+                                   "--use-file-selection", "--component-checkpoints"]),
+        ("capture", ["checkpoint", "capture", "--source-dir", "{mods}", "--game-dir", "{game}"]),
+    ):
+        root = checkpoint_root(work, name, ("CONIN$",))
+        before = tree(root)
+        values = {"guide": os.path.join(root, "guide.toml"), "mods": os.path.join(root, "mods"),
+                  "game": os.path.join(root, "game")}
+        code, text = run_cli(binary, root, *[a.format(**values) for a in argv])
+        wanted = "Checkpoint cannot record Override/CONIN$: Windows device name"
+        out.append((f"new_capture/{name}", code != 0 and wanted in text and tree(root) == before,
+                    f"rc={code} unchanged={tree(root) == before} {text[-300:]}"))
+        if name == "component_checkpoints":
+            # The whole-run recovery snapshot was taken first: `restore` clears it, and an
+            # install without checkpoints still works with the file present.
+            code, text = run_cli(binary, root, "restore", "--source-dir", values["mods"],
+                                 "--game-dir", values["game"])
+            out.append(("new_capture/restore_snapshot", code == 0, text[-300:]))
+            code, text = run_cli(binary, root, "install", "-i", values["guide"], "-s", values["mods"],
+                                 "-g", values["game"], "--use-file-selection")
+            installed = os.path.exists(os.path.join(root, "game", "Override", "m.txt"))
+            out.append(("new_capture/install_without_checkpoints", code == 0 and installed, text[-300:]))
+    return out
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--bin", default=os.path.join(ROOT, "target", "release", "modsync"))
     parser.add_argument("--reference")
     parser.add_argument("--record", action="store_true")
+    parser.add_argument("--writer-bin", help="a build from before the wider device-name rule (e756730)")
     args = parser.parse_args()
     work = tempfile.mkdtemp(prefix="reserved-staging-paths-proof-", dir=os.environ.get("MODSYNC_PROOF_OUT"))
     try:
@@ -262,6 +367,11 @@ def main():
                 known += verdict == "known"
                 failed += verdict == "FAIL"
                 print(f"{verdict:5} {name}/{check}{'' if verdict == 'match' else ' | ' + detail}")
+        for check, same, detail in checkpoint_checks(args.bin, args.writer_bin, work):
+            verdict = "match" if same else "FAIL"
+            matched += same
+            failed += not same
+            print(f"{verdict:5} checkpoint/{check}{'' if same else ' | ' + detail}")
         print(f"{matched} match / {known} known difference / {failed} fail")
         return 1 if failed else 0
     finally:

@@ -154,6 +154,18 @@ fn valid_mode(mode: &Mode) -> Result<()> {
     Ok(())
 }
 
+/// A new capture refuses every Windows device name (`paths::is_reserved_name`), so no
+/// new store records one; `validate_tree` keeps the older rule so earlier stores load.
+pub(super) fn refuse_device_names(tree: &Tree) -> Result<()> {
+    for name in tree.entries.keys() {
+        ensure!(
+            !name.split('/').any(crate::paths::is_reserved_name),
+            "Checkpoint cannot record {name}: Windows device name"
+        );
+    }
+    Ok(())
+}
+
 pub(super) fn validate_tree(tree: &Tree) -> Result<(u64, u64)> {
     valid_mode(&tree.root_mode)?;
     ensure!(
@@ -164,7 +176,7 @@ pub(super) fn validate_tree(tree: &Tree) -> Result<(u64, u64)> {
     let mut count = 0u64;
     let mut bytes = 0u64;
     for (name, entry) in &tree.entries {
-        let path = crate::paths::literal_relative(name)?;
+        let path = crate::paths::stored_relative(name, true)?;
         ensure!(
             !name.is_empty() && !name.contains('\\') && path.to_str() == Some(name.as_str()),
             "Checkpoint path is not portable canonical relative text"

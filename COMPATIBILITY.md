@@ -1884,7 +1884,7 @@ create the folder, so it appears only once you install.
 ## Windows device names and Peer staging folders in instruction paths — 2026-10-04 UTC
 
 Two path rules now fail closed. First, the reserved-name rule, which every guide path,
-archive member, checkpoint entry, FOMOD path and download filename passes, also refuses
+archive member, new checkpoint entry, FOMOD path and download filename passes, also refuses
 the Windows device names it missed: `COM¹`, `COM²`, `COM³`, `LPT¹`, `LPT²`, `LPT³`
 (Windows reads the superscripts as device numbers), `CONIN$`, `CONOUT$`, `COM0` and
 `LPT0`, with or without an extension and in any case, and a stem with spaces before
@@ -1899,10 +1899,20 @@ the install preflight (before any write), the dry run, every report and the desk
 Validate step. The engine scan hides these folders, so before, a Destination inside one
 passed plain `validate` and the full report and `install` wrote into it unseen. Peer
 and download code does not resolve instruction paths and is unchanged, as are game
-folder paths. Longer names stay ordinary (`COM10`, `com1x.txt`, `COM¹¹`, `CLOCK$`).
-Evidence: [reserved staging paths proof](docs/parity/reserved-staging-paths-proof/README.md),
-227 checks match and 40 are known differences (Rust refuses what C# installs) against
-the live C# CLI with a HoloPatcher stub (161 fail on `e756730`); contract in
+folder paths. Longer names stay ordinary (`COM10`, `com1x.txt`, `COM¹¹`, `CLOCK$`). A
+file whose name has the staging shape (`.peer-notes.part`) is refused too (fail closed).
+
+Checkpoints: a new checkpoint session (`checkpoint capture`, `install
+--component-checkpoints`, `--managed`) and a maintenance run refuse a game or mod
+folder that holds a file or folder with a device name anywhere, with `Checkpoint cannot
+record <path>: Windows device name`, before any game or mod write (as they already did
+for `COM1`). Stores, history and maintenance journals written before keep the rule they
+were written with, so they stay listable, restorable and recoverable even when they
+recorded such a file. Evidence: [reserved staging paths
+proof](docs/parity/reserved-staging-paths-proof/README.md), 246 checks match and 42 are
+known differences (Rust refuses what C# installs) against the live C# CLI with a
+HoloPatcher stub (172 fail on `e756730`; 10, the stored-checkpoint and capture checks,
+on the first version of this change, `81003bd`); contract in
 [reserved-staging-paths-contract.md](docs/parity/reserved-staging-paths-contract.md).
 
 Users: if `validate` or `install` now stops with `Reserved filename: ...`, a guide path
@@ -1910,7 +1920,12 @@ or an archive member uses a Windows device name such as `COM¹` or `CONOUT$`, wh
 Windows install can hold; ask the guide author to rename it. `Path is inside a Peer
 download staging folder` means a step points into a `.peer-...part` folder of your mod
 directory, which holds an unfinished Peer download; point the step at the accepted
-archive or its extracted folder instead.
+archive or its extracted folder instead. If `checkpoint capture`, `install
+--component-checkpoints` or `--managed` stops with `Checkpoint cannot record <path>:
+Windows device name`, rename or remove that file in your game or mod folder (no
+Windows install can hold it), or install without checkpoints; after a refused install,
+run `modsync restore` first to clear its recovery snapshot. Checkpoints you made
+earlier stay usable.
 
 ## A patcher without changes.ini in the validation dry run — 2026-10-04 UTC
 

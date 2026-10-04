@@ -101,7 +101,7 @@ pub fn relative(raw: &str, wildcards: bool) -> Result<PathBuf> {
     } else {
         &['*', '?', '[', ']']
     };
-    checked_relative(raw, refused)
+    checked_relative(raw, refused, is_reserved_name)
 }
 
 /// A relative path whose names are taken literally, never as a pattern: an archive
@@ -110,10 +110,23 @@ pub fn relative(raw: &str, wildcards: bool) -> Result<PathBuf> {
 /// characters, so they are allowed here; `*` and `?` stay refused because no
 /// Windows file can carry them.
 pub fn literal_relative(raw: &str) -> Result<PathBuf> {
-    checked_relative(raw, &['*', '?'])
+    checked_relative(raw, &['*', '?'], is_reserved_name)
 }
 
-fn checked_relative(raw: &str, refused: &[char]) -> Result<PathBuf> {
+/// Reads a path from state Rust wrote earlier (checkpoint stores and history,
+/// maintenance journals and fences) with the device-name rule those writers used
+/// (`legacy_reserved_name`), so state recorded before the wider rule stays readable.
+/// `literal` is `literal_relative`'s character rule, else `relative`'s without wildcards.
+pub(crate) fn stored_relative(raw: &str, literal: bool) -> Result<PathBuf> {
+    let refused: &[char] = if literal {
+        &['*', '?']
+    } else {
+        &['*', '?', '[', ']']
+    };
+    checked_relative(raw, refused, legacy_reserved_name)
+}
+
+fn checked_relative(raw: &str, refused: &[char], reserved: fn(&str) -> bool) -> Result<PathBuf> {
     let text = raw.replace('\\', "/");
     ensure!(!text.starts_with('/'), "Absolute path is forbidden: {raw}");
     let mut path = PathBuf::new();
@@ -128,7 +141,7 @@ fn checked_relative(raw: &str, refused: &[char]) -> Result<PathBuf> {
             !part.contains(refused),
             "Wildcards are not allowed here: {raw}"
         );
-        ensure!(!is_reserved_name(part), "Reserved filename: {raw}");
+        ensure!(!reserved(part), "Reserved filename: {raw}");
         path.push(part);
     }
     Ok(path)
@@ -140,7 +153,7 @@ fn checked_relative(raw: &str, refused: &[char]) -> Result<PathBuf> {
 /// at the first `.`, and trailing spaces before it are ignored, as Windows does.
 /// C# `PathValidator` refuses the same `COM0`/`LPT0`; a longer stem such as `COM10` or
 /// `com1x` is an ordinary name.
-fn is_reserved_name(part: &str) -> bool {
+pub(crate) fn is_reserved_name(part: &str) -> bool {
     let stem = part
         .split('.')
         .next()
@@ -159,6 +172,21 @@ fn is_reserved_name(part: &str) -> bool {
         "CON" | "PRN" | "AUX" | "NUL" | "CONIN$" | "CONOUT$"
     ) || numbered("COM")
         || numbered("LPT")
+}
+
+/// The device-name rule before 2026-10-04: `CON`, `PRN`, `AUX`, `NUL` and
+/// `COM1`-`COM9`/`LPT1`-`LPT9`, the stem ending at the first `.`. Only for reading
+/// stored state (`stored_relative`).
+fn legacy_reserved_name(part: &str) -> bool {
+    let stem = part
+        .split('.')
+        .next()
+        .unwrap_or_default()
+        .to_ascii_uppercase();
+    matches!(stem.as_str(), "CON" | "PRN" | "AUX" | "NUL")
+        || (stem.len() == 4
+            && (stem.starts_with("COM") || stem.starts_with("LPT"))
+            && matches!(stem.as_bytes()[3], b'1'..=b'9'))
 }
 
 /// True for a `<<modDirectory>>` part that names a Peer download staging folder
