@@ -260,7 +260,19 @@ differences marked.
   `Rename [Override/a.tga, Override/nope*.txt]` are refused by Rust and accepted by
   C#. `4fb71a6` accepted the Copy by accident (the folder expanded to `m.txt`).
   This is fail-closed, not data loss; the probe counts these as known differences
-  and fails if Rust ever accepts them.
+  and fails if Rust ever accepts them. CleanList and Execute/Run behave the same
+  way when one Source matches and another misses: `Execute [run.sh, *.nope]`,
+  `Execute [*.sh, *.nope]`, `CleanList [clean.csv, *.nope]` and
+  `CleanList [nope.csv, *.csv]` are accepted by C# (which runs or reads the matched
+  file) and refused by Rust before anything runs or is deleted. Two of them
+  (`Execute [*.sh, *.nope]` and `CleanList [nope.csv, *.csv]`) show as
+  `DryRunSkipped` in Rust's dry-run report where C# passes. These mixed cases were
+  checked live in review of `e389200` but are not in the probe.
+- **CleanList list-file choice with several resolving Sources.** Rust reads the
+  first match in sorted-key order (`src/engine.rs`, `sources.first()` in the
+  CleanList arm); C# reads `RealSourcePaths[0]`, which follows authored order with
+  wildcard expansions first. A CleanList with more than one resolving Source can
+  therefore read a different list file. Pre-existing and rare; not changed here.
 - **Missing Extract archive in the full report.** For `Extract
   <<modDirectory>>/[e]xample.zip` (and any missing Extract archive, also on
   `2241235`) Rust's `validate --dry-run` report has a ComponentValidation error
