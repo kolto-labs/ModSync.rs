@@ -130,8 +130,10 @@ this stage and are unchanged.
   Rust FOMOD and dry-run stages, while C# reports it only in its `Conflicts` stage,
   which needs `--full`.
 - **Other archive-stage messages (not compared).** A corrupt archive, a blocked
-  extraction folder, a missing destination and an archive-member miss keep their Rust
-  wording (`archive/destination validation: ...`); C# has its own messages for these.
+  extraction folder and an archive-member miss keep their Rust wording
+  (`archive/destination validation: ...`); C# has its own messages for these. A
+  missing Destination folder now uses the C# message, one per step; see
+  [missing-destination-contract.md](missing-destination-contract.md).
 - **Platform.** The reference ran on Linux with `DOTNET_ROLL_FORWARD=Major` (the
   pinned build targets .NET 9; the host has .NET 10). Nothing here depends on the
   platform.

@@ -844,8 +844,9 @@ impl Engine {
                     .completed
                     .contains(&crate::guid::key_ascii(&component.guid))
         }) {
-            // Missing archives are one error per Extract, as the reference lists them;
-            // any other failure stops this component's checks with one error.
+            // Missing archives and missing Destination folders are one error per
+            // step, as the reference lists them; any other failure stops this
+            // component's checks with one error.
             let outcome = match self.validate_component_archives(component) {
                 Ok(missing) if missing.is_empty() => Ok(()),
                 Ok(missing) => Err(missing
@@ -870,8 +871,8 @@ impl Engine {
         Ok(outcomes)
     }
 
-    /// Returns the reference's `Missing Required Archives` errors, if any; other
-    /// failures are errors.
+    /// Returns the reference's per-step errors, if any: `Missing Required Archives`,
+    /// or else `Destination cannot be found!`. Other failures are errors.
     fn validate_component_archives(&self, component: &Component) -> Result<Vec<String>> {
         self.check_cancelled()?;
         // The reference archive stage includes immediate option instructions.
@@ -947,19 +948,29 @@ impl Engine {
                 })
                 .collect());
         }
+        // C# `ParseDestinationWithAction` reports each step whose Destination folder is
+        // missing and goes on; any other failure still ends this component's checks.
+        let mut missing_destinations = Vec::new();
         for instruction in instructions {
             self.check_cancelled()?;
             match instruction.action.as_str() {
+                "Copy" | "Move" | "CleanList" | "DelDuplicate"
+                    if instruction.destination.is_empty() =>
+                {
+                    missing_destinations.push("Destination cannot be found! Got ''".to_owned());
+                }
                 "Copy" | "Move" | "CleanList" | "DelDuplicate" => {
                     let dest = self.path(&instruction.destination, false)?;
                     // C# PathValidator.IsValidPath refuses a `.` part, which
                     // `relative` drops while resolving.
-                    ensure!(
-                        !has_dot_part(&instruction.destination)
-                            && self.directories.contains_key(&self.path_policy.key(&dest)),
-                        "Destination cannot be found: {}",
-                        instruction.destination
-                    );
+                    if has_dot_part(&instruction.destination)
+                        || !self.directories.contains_key(&self.path_policy.key(&dest))
+                    {
+                        missing_destinations.push(format!(
+                            "Destination cannot be found! Got '{}'",
+                            self.shown_destination(&dest)
+                        ));
+                    }
                 }
                 "Rename" if !instruction.destination.starts_with("<<") => {
                     ensure!(
@@ -1006,7 +1017,26 @@ impl Engine {
                 );
             }
         }
-        Ok(Vec::new())
+        Ok(missing_destinations)
+    }
+
+    /// The Destination folder as C# prints it: the full path, with the folders that
+    /// exist in their on-disk spelling (C# `GetCaseSensitivePath`).
+    fn shown_destination(&self, dest: &Path) -> String {
+        dest.ancestors()
+            .find_map(|folder| {
+                let on_disk = self.directories.get(&self.path_policy.key(folder))?;
+                let rest = dest.strip_prefix(folder).ok()?;
+                // `join("")` would add a trailing separator, which C# trims.
+                Some(if rest.as_os_str().is_empty() {
+                    on_disk.clone()
+                } else {
+                    on_disk.join(rest)
+                })
+            })
+            .unwrap_or_else(|| dest.to_path_buf())
+            .display()
+            .to_string()
     }
 
     /// The gate's soft warnings and its issues; no issue means the gate passed. Like
