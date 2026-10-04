@@ -1,0 +1,1020 @@
+{
+ "bracket_archive_name": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Archive Member Brackets Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/x[1].tga": "X1\n",
+     "Override/y.tga": "Y\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "[e]xample.zip": "zip: Override/x[1].tga, Override/y.tga",
+     "m.txt": "M\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Archive Member Brackets Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "bracket_folder_copy": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Archive Member Brackets Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/t.tga": "T\n",
+     "Override/u.tpc": "U\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "a.zip": "zip: [HD] textures/t.tga, [HD] textures/u.tpc",
+     "a/[HD] textures/t.tga": "T\n",
+     "a/[HD] textures/u.tpc": "U\n",
+     "m.txt": "M\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Archive Member Brackets Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "copy_bracket_wildcard": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Archive Member Brackets Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/x[1].tga": "X1\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "a.zip": "zip: Override/x[1].tga, Override/y.tga",
+     "a/Override/x[1].tga": "X1\n",
+     "a/Override/y.tga": "Y\n",
+     "m.txt": "M\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Archive Member Brackets Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "copy_literal": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Archive Member Brackets Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/x[1].tga": "X1\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "a.zip": "zip: Override/x[1].tga, Override/y.tga",
+     "a/Override/x[1].tga": "X1\n",
+     "a/Override/y.tga": "Y\n",
+     "m.txt": "M\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Archive Member Brackets Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "copy_literal_backslash": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Archive Member Brackets Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/x[1].tga": "X1\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "a.zip": "zip: Override/x[1].tga, Override/y.tga",
+     "a/Override/x[1].tga": "X1\n",
+     "a/Override/y.tga": "Y\n",
+     "m.txt": "M\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Archive Member Brackets Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "copy_literal_not_class": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Archive Member Brackets Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/x[1].tga": "X1\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "a.zip": "zip: Override/x1.tga, Override/x[1].tga",
+     "a/Override/x1.tga": "PLAIN\n",
+     "a/Override/x[1].tga": "X1\n",
+     "m.txt": "M\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Archive Member Brackets Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "delete_bracket_source": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Archive Member Brackets Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "a.zip": "zip: Override/x[1].tga, Override/y.tga",
+     "a/Override/y.tga": "Y\n",
+     "m.txt": "M\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Archive Member Brackets Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "execute_after_bracket_deploy": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Archive Member Brackets Probe: Success",
+     "Second Component: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/x[1].tga": "X1\n",
+     "Override/y.tga": "Y\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "a.zip": "zip: Override/x[1].tga, Override/y.tga",
+     "m.txt": "M\n",
+     "run.sh": "#!/bin/sh\nexit 0\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Archive Member Brackets Probe",
+       "OK: Second Component"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "execute_after_plain_deploy": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Archive Member Brackets Probe: Success",
+     "Second Component: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/y.tga": "Y\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "a.zip": "zip: Override/y.tga",
+     "m.txt": "M\n",
+     "run.sh": "#!/bin/sh\nexit 0\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Archive Member Brackets Probe",
+       "OK: Second Component"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "existing_game_bracket_file": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Archive Member Brackets Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/m.txt": "M\n",
+     "Override/o.txt": "O\n",
+     "Override/pre[1].txt": "P\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "m.txt": "M\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Archive Member Brackets Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "extract_only": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Archive Member Brackets Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "a.zip": "zip: Override/x[1].tga, Override/y.tga",
+     "a/Override/x[1].tga": "X1\n",
+     "a/Override/y.tga": "Y\n",
+     "m.txt": "M\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Archive Member Brackets Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "move_wildcard": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Archive Member Brackets Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/x[1].tga": "X1\n",
+     "Override/y.tga": "Y\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "a.zip": "zip: Override/x[1].tga, Override/y.tga",
+     "m.txt": "M\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Archive Member Brackets Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "plain_control": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Archive Member Brackets Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/y.tga": "Y\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "a.zip": "zip: Override/y.tga",
+     "m.txt": "M\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Archive Member Brackets Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "question_member": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Archive Member Brackets Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q?.tga": "Q\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "a.zip": "zip: Override/q?.tga",
+     "m.txt": "M\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Archive Member Brackets Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "recovery_copy_literal": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Archive Member Brackets Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "a.zip": "zip: Override/x[1].tga, Override/y.tga",
+     "m.txt": "M\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [
+     "Skipped 'Archive Member Brackets Probe' during dry-run: source archives or files are not available."
+    ],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Archive Member Brackets Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [
+       "WARNING: [DryRunSkipped] Skipped 'Archive Member Brackets Probe' during dry-run: source archives or files are not available."
+      ],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
+ "recovery_plain_control": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Archive Member Brackets Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "a.zip": "zip: Override/x[1].tga, Override/y.tga",
+     "m.txt": "M\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [
+     "Skipped 'Archive Member Brackets Probe' during dry-run: source archives or files are not available."
+    ],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Archive Member Brackets Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [
+       "WARNING: [DryRunSkipped] Skipped 'Archive Member Brackets Probe' during dry-run: source archives or files are not available."
+      ],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
+ "rename_bracket_source": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Archive Member Brackets Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "a.zip": "zip: Override/x[1].tga, Override/y.tga",
+     "a/Override/x.tga": "X1\n",
+     "a/Override/y.tga": "Y\n",
+     "m.txt": "M\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Archive Member Brackets Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "star_member": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Archive Member Brackets Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/s*.tga": "S\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "a.zip": "zip: Override/s*.tga",
+     "m.txt": "M\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Archive Member Brackets Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "unmatched_brackets": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Archive Member Brackets Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/[c].tga": "C\n",
+     "Override/a[.tga": "A\n",
+     "Override/b].tga": "B\n",
+     "Override/o.txt": "O\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "a.zip": "zip: Override/[c].tga, Override/a[.tga, Override/b].tga",
+     "m.txt": "M\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Archive Member Brackets Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ }
+}

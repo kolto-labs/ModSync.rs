@@ -175,9 +175,10 @@ nothing. The literal-versus-wildcard test now lives in one helper.
   Extract). Rust therefore still accepts work that C# refuses; see Known
   differences.
 - **Unchanged: brackets in literal paths.** `paths::relative(.., false)` still
-  refuses `[` and `]` in literal (non-Source) paths, a check shared by archive
-  entries, downloads, checkpoints and destinations. So a Patcher Source with
-  brackets is refused (`source_resolution.rs:221`), and a bracketed Move Source is
+  refuses `[` and `]` in literal (non-Source) paths, a check shared by downloads and
+  destinations (archive entries and checkpoint names take brackets literally since
+  [archive-member-brackets-contract.md](archive-member-brackets-contract.md)). So a
+  Patcher Source with brackets is refused (`source_resolution.rs:221`), and a bracketed Move Source is
   never treated as already present at the game target (`redundant_move`,
   `:809`). An Extract Source or default destination with brackets works.
 - **Not reused.** `validation/basic.rs:153` `wildcard_path` implements the same C#

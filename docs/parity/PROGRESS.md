@@ -9,6 +9,20 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Archive members with brackets (2026-10-04, F06/F05): an archive whose member names
+contain `[` or `]` (`Override/x[1].tga`, `[HD] textures/`) now extracts and installs as
+in C#, whose `TryGetZipSafeArchiveEntryExtractPath` keeps those characters. Rust
+admitted member names with the literal guide-path rule, so one bracketed member failed
+the archive: the FOMOD gate refused plain `validate` and `install`, the Validate
+step's archive stage failed, and download verification would also refuse it (not probed).
+Checkpoint capture, managed process capture and FOMOD mapping (archive name, wrapper
+folder, ModuleConfig `source`) now also take bracketed names literally (review
+follow-up). `*` and `?` in a member name stay refused (no Windows file can have them;
+documented). Proof: 83 match and 8 known differences against a live reference oracle
+and mapper; 9 fail on `4a09589`, 45 of the first 68 on `31e98ec`. The regression
+probes stay at baseline. See
+[archive-member-brackets-contract.md](archive-member-brackets-contract.md).
+
 Install root as Destination (2026-10-04, F05/F07): a Copy, Move, CleanList or
 DelDuplicate whose Destination is `<<kotorDirectory>>`, `<<gameDirectory>>` or
 `<<modDirectory>>` (with or without a trailing separator) now passes the

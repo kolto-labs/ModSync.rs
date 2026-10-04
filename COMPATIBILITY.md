@@ -410,7 +410,7 @@ Reference: the local ModSync C# source at `d31ccbd3bfcddb4705917eafa6483715c166d
 | Ordering | Stable dependency sort, restrictions, InstallBefore/After, instruction conditions | Missing references and cycles fail |
 | Options | Choose resolves selected option GUIDs in declared option order; an entry names an option only as its hyphenated GUID (any case), as in C# | No automatic choice inference; an entry that names no option is refused, where C# ignores it |
 | File operations | Copy, Move, Rename, Delete, Extract, DelDuplicate, CleanList | Copy/Move flatten matched files into the target, as the C# instruction engine does; a Copy/Move whose target is the source itself is skipped with a warning when `Overwrite = false` and refused otherwise; Delete with `Overwrite = true` fails on a missing file, as C# does; a Delete with no Source is a no-op unless `Overwrite = true`; Extract replaces existing files whatever `Overwrite` says, as C# does (configured FOMOD extraction with `Overwrite = false` is refused instead; C# keeps an existing directory or read-only file at an entry path and succeeds, where Rust fails on the directory and replaces the read-only file) |
-| Archives | Streaming ZIP, 7z, RAR, TAR, GZip and 7z SFX; integrity checks; isolated extraction root | No encrypted/multipart archives; SFX support is limited to embedded 7z payloads; empty directories are not materialized |
+| Archives | Streaming ZIP, 7z, RAR, TAR, GZip and 7z SFX; integrity checks; isolated extraction root; `[`/`]` in member names are ordinary characters, as in C# | No encrypted/multipart archives; SFX support is limited to embedded 7z payloads; empty directories are not materialized; a member named with `*` or `?` fails the archive (fail-closed) |
 | CleanList | C# comma-separated rows, mandatory prefix, substring and token matching; a listed name no file can have is skipped, `[`/`]` literal | `..`, absolute, drive-qualified, trailing-dot and device names refused (fail-closed); final file sets still need full-build differential acceptance |
 | Texture cleanup | Removes requested extension when another compatible extension shares its basename | This is not content-hash deduplication |
 | Paths | Mod/game placeholders, legacy aliases, case-insensitive matching, wildcard sources | Rejects symlinks, device names, traversal, case collisions, overlapping roots, and special files |
@@ -1487,6 +1487,47 @@ field, so a mod name or file name cannot contain a comma; a quoted file name is 
 deleted. List files relative to the Destination, with `/`, and without `..`, drive
 letters, absolute paths or trailing dots.
 
+## Archive members with brackets in their names — 2026-10-04 UTC
+
+An archive whose member names contain `[` or `]` (`Override/x[1].tga`, `readme
+[v1.2].txt`, a folder `[HD] textures/`) now installs, as in C#. Rust admitted member
+names with the same rule as literal guide paths and refused `[`/`]` there, so one such
+member failed the whole archive: plain `validate` and `install` stopped at the FOMOD
+configuration check, the Validate step's archive/destination stage reported `Cannot
+inspect archive`, and archive verification after a download or peer transfer refused it
+(by code reading; not probed).
+C# extraction (`PathHelper.TryGetZipSafeArchiveEntryExtractPath`) keeps every
+character except rooted names and `..` parts. Rust now takes member names literally:
+`[` and `]` are ordinary characters, and later Sources already treat them as literal,
+so `Copy <<modDirectory>>/a/Override/x[1].tga` reaches that file and not `x1.tga`.
+
+Component checkpoints (`install --component-checkpoints` and the desktop option) now
+also accept a game or mod file whose name holds `[` or `]`; before, checkpoint capture
+refused such a tree even with no archive involved.
+
+A managed install (`--managed`) whose later component runs a program now captures a
+game tree holding a bracketed file; on the first fix (`4a09589`) that step failed after
+the earlier component had deployed it. A FOMOD archive whose own name, wrapper folder
+or ModuleConfig `source` holds `[` or `]` now maps and installs, as the reference
+mapper does; before, the gate reported the saved choices as stale.
+
+Unchanged: a member name with `*` or `?` fails the archive in Rust on every host
+(no Windows file can have it; C# on Linux writes it), and the other unsafe member
+rules stay fail-closed. Destinations (including a FOMOD ModuleConfig `destination`,
+whose error now names it), Rename Destinations, Patcher Sources and maintenance
+transactions still refuse `[`/`]`.
+Evidence: [archive member brackets
+proof](docs/parity/archive-member-brackets-proof/README.md), 83 checks match and 8 are
+known differences against a live reference oracle and mapper (9 fail on `4a09589`; 45
+of the first 68 on `31e98ec`); contract in
+[archive-member-brackets-contract.md](docs/parity/archive-member-brackets-contract.md).
+
+Guide authors: archive member names may contain `[` and `]`. Name such a file in a
+Source exactly as it is spelled; brackets never form a character class. A FOMOD's
+archive name, wrapper folder and ModuleConfig `source` may contain them; a
+ModuleConfig `destination` may not. Archives with `*` or `?` in a member name are
+refused.
+
 ## CleanList list-file choice — 2026-10-04 UTC
 
 A `CleanList` reads one list file. When its Source list names more than one existing
@@ -1558,8 +1599,8 @@ file in every subfolder of `Override` (C# deletes only the files directly in it)
 `Delete <<kotorDirectory>>/Override/[ab].tga` deleted `a.tga` (C# deletes only a file
 literally named `[ab].tga`). The FOMOD choice scoping uses the same rule, and an
 archive literally named `[e]xample.zip` is extracted and scoped when the Source names
-it. Literal non-Source paths (destinations, archive entries, a Patcher Source) still
-may not contain `[` or `]`.
+it. Literal non-Source paths (destinations, a Patcher Source) still may not contain `[`
+or `]`; archive member names may since the archive member brackets slice (below).
 
 Unchanged: Extract, Patcher, the archive preflight and the FOMOD gate keep the folder
 rule, which FOMOD root-folder Extract flows rely on. Known differences:

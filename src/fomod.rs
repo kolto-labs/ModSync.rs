@@ -683,15 +683,23 @@ impl ModuleConfig {
     /// Map configured file copies from an already-extracted, mod-relative directory.
     /// This does not bypass archive configuration gates or perform extraction.
     pub fn copy_instructions(&self, extracted_directory: &str) -> Result<Vec<crate::Instruction>> {
-        let root = crate::paths::relative(extracted_directory, false)?;
+        let root = crate::paths::literal_relative(extracted_directory)?;
         ensure!(
             !root.as_os_str().is_empty(),
             "FOMOD extraction directory is empty"
         );
         let mut instructions = Vec::new();
         for file in self.selected_files()? {
-            let source = crate::paths::relative(file.source.trim(), false)?;
-            let mut destination = crate::paths::relative(file.destination.trim(), false)?;
+            let source = crate::paths::literal_relative(file.source.trim())?;
+            // Destinations follow the guide Destination rule, which refuses `[`/`]`;
+            // say so instead of leaving only the stale-choices wrapper.
+            let mut destination = crate::paths::relative(file.destination.trim(), false)
+                .with_context(|| {
+                    format!(
+                        "FOMOD file destination '{}' is not a usable game path; this is not a stale choice",
+                        file.destination.trim()
+                    )
+                })?;
             if !file.is_folder {
                 let filename = source
                     .file_name()
@@ -841,7 +849,7 @@ pub(crate) fn inspect_entries_with_cancel(
 impl ArchiveModule {
     /// Resolve mapped sources against both the extraction directory and archive wrapper.
     pub fn copy_instructions(&self, extracted_directory: &str) -> Result<Vec<crate::Instruction>> {
-        let root = crate::paths::relative(extracted_directory, false)?;
+        let root = crate::paths::literal_relative(extracted_directory)?;
         ensure!(
             !root.as_os_str().is_empty(),
             "FOMOD extraction directory is empty"
