@@ -9,6 +9,17 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Drafted Renames (2026-10-04, F03/F05): a Rename drafted from prose ("Rename the file
+old.tga to new.tga.") now has the bare new name as its Destination and the named file
+as its only Source, as C# `RenameFile` reads a Destination and as the newer C# parser
+drafts it; the drafter gave it a `<<kotorDirectory>>\Override` Destination (and the new
+name as a second Source after "to"), as the pinned C# drafter does, so no reviewed
+drafted Rename could install. Drafts still need review; a name without an extension or
+with a folder part keeps the refused Destination. `tools/check_drafts.py` lists the
+shape as an intentional difference from the pinned drafter. Proof: 57 match / 4 known;
+24 fail on `b5df010`. The regression probes stay at baseline. See
+[drafted-rename-contract.md](drafted-rename-contract.md).
+
 Rename to a placeholder path (2026-10-04, F05): a `Rename` Destination is now only the
 new file name in the source's folder, as C# `RenameFile` joins it unresolved
 (`Instruction.cs:976-979`); a placeholder path such as `<<kotorDirectory>>/Override/z.txt`

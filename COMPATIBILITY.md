@@ -475,7 +475,7 @@ The Rust parser loads the desktop K1 full/spoiler-free prose guides (186/180 com
 
 `src/draft.rs` ports the reference's 56 ordered instruction patterns, sentence/conditional splitting, source/destination inference, exclusions, cleanlist handling, download recommendations and sandbox normalization. Existing authored instructions remain untouched. Desktop file-open and CLI install/validate automatically draft Markdown, while `convert --parse-directions` opts in for conversion. Draft diagnostics and the reference review warning persist in the component; the desktop displays steps and notes, and `convert --review-draft <GUID>` or the desktop review button records explicit acceptance. Gaps, conditional clauses or rejected drafts prevent acceptance. The engine still checks real paths and external-program permissions after review.
 
-`tools/check_drafts.py` compares the pinned C# service's raw objects rather than relying on lossy C# JSON export. It assigns the input's prose fields directly because the legacy JSON loader drops some installation warnings. Across 19 focused cases and four desktop guide component sets (669 component records), instructions, option names/descriptions/selections, warnings, gaps and conditional notes matched with zero differences. The corpus inputs are parsed component JSON, so this proves the draft stage, not complete C# Markdown ingestion or installation. Source/input hashes and scope are in `docs/parity/draft-check.json`.
+`tools/check_drafts.py` compares the pinned C# service's raw objects rather than relying on lossy C# JSON export. It assigns the input's prose fields directly because the legacy JSON loader drops some installation warnings. Across 19 focused cases and four desktop guide component sets (669 component records), instructions, option names/descriptions/selections, warnings, gaps and conditional notes matched with zero differences. The corpus inputs are parsed component JSON, so this proves the draft stage, not complete C# Markdown ingestion or installation. Source/input hashes and scope are in `docs/parity/draft-check.json`. Since 2026-10-04 a drafted Rename deliberately differs (see "Drafted Renames" below).
 
 Some reference drafts are demonstrably incomplete interpretations: generic patterns can yield one-letter folder names, and numeric ranges can yield root placeholders. Matching them does not certify a correct install. Complete local archive-based generation, full direct-Markdown preflight rules (including 4GB/widescreen exclusions), editing unresolved drafts and full-build acceptance remain open. The Rust review gate enforces the draft service's never-auto-trust contract; C# direct-Markdown preflight currently counts flagged drafts as executable without that gate. This workflow difference must be reconciled before claiming full parity.
 
@@ -2062,6 +2062,40 @@ known differences against the live C# CLI with a HoloPatcher stub (24 fail on
 Users: a guide whose Rename Destination is a path stops with `Rename Destination must
 be a file name` where it used to install; the C# installer fails it too. Write only the
 new file name (`z.txt`); to move the file elsewhere, add a `Move` step.
+
+## Drafted Renames — 2026-10-04 UTC
+
+A `Rename` drafted from guide prose such as "Rename the file old.tga to new.tga." now
+has the new name as its Destination (`new.tga`) and the named file as its only Source
+(`<<modDirectory>>\old.tga`). Before, the drafter gave every drafted Rename a
+`<<kotorDirectory>>\Override` Destination and, after "to", the new name as a second
+Source, as the pinned C# drafter does; Rust refuses such a Destination (see the
+section above), so a reviewed drafted Rename never installed. C# `RenameFile` reads the
+Destination as the new file name in the source's folder, and the newer C# parser keeps
+the bare name too. This applies wherever drafts are made: Markdown loaded for
+`validate` or `install`, `convert --parse-directions` and the desktop's "Draft
+instructions from prose" button.
+
+Drafts stay drafts: the component still carries the review warning and must be
+reviewed (`convert --review-draft <GUID>`, the desktop review button) before anything
+installs, and after review the engine checks the step like any authored Rename. A new
+name without an extension or with a folder part keeps the Override Destination and is
+still refused after review; prose with a placeholder or without a new name drafts no
+Rename and its unparsed text blocks the review. "Make a copy of X and rename it to Y"
+is unchanged. `tools/check_drafts.py` now lists this Rename shape as an intentional
+difference from the pinned C# drafter instead of failing (and binds the reference and
+inputs into its sandbox and asks `convert` for JSON); the K1/K2 corpus drafts are
+unchanged. Evidence: [drafted Rename proof](docs/parity/drafted-rename-proof/README.md),
+57 checks match and 4 are known differences (24 fail on `b5df010`); contract in
+[drafted-rename-contract.md](docs/parity/drafted-rename-contract.md). The frozen Rust
+test `tests/drafts.rs` still expects the pinned drafter's Rename (its instruction
+check at `tests/drafts.rs:13-18` fails on fixture component 12) and was not run; the
+drift is recorded in the tracker for the post-freeze fixture repair.
+
+Users: a reviewed drafted Rename now renames the file in its own folder instead of
+stopping with `Rename Destination must be a file name`. Check its Source when reviewing:
+the drafter names the file at the top of the mod folder, not inside an extracted
+archive folder.
 
 ## A patcher without changes.ini in the validation dry run — 2026-10-04 UTC
 

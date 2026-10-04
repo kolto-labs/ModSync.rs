@@ -83,10 +83,11 @@ Callers checked. `rename_file_name` has the two callers above. The Rename arm is
 only code that turned a Rename Destination into a target; Rename does not go through
 `resolve_instruction` or `qualify_action` (`src/engine/source_resolution.rs`), and the
 conflict report, FOMOD gate and checkpoint runs use the same engine execution. The
-draft generator (`src/draft.rs:576-578`, `:769-799`) can still write a Rename with a
+draft generator (`src/draft.rs:576-578`, `:769-799`) could still write a Rename with a
 `<<kotorDirectory>>\Override` Destination; that Destination was refused before too
-(it resolved to a folder) and is now refused as a placeholder path. The
-desktop uses the same engine and report.
+(it resolved to a folder) and is now refused as a placeholder path. Since
+[drafted-rename-contract.md](drafted-rename-contract.md) the drafter writes the bare
+new name instead. The desktop uses the same engine and report.
 
 ## Proof
 
@@ -137,8 +138,9 @@ the two unchanged differences gave the same results on both builds.
   file literally named that in its own folder, and the install succeeds. Rust refuses
   both (fail-closed); the intended target is never reached in C# either. Checked live
   in review, not in the probe.
-- **Drafted Renames.** `src/draft.rs` `destination()` always gives a drafted Rename a
-  placeholder Destination, so drafted Renames stay refused (as they were before this
-  slice, and the review gate refuses unreviewed drafts). Newer C#
-  (`NaturalLanguageInstructionParser.cs:1398-1424` in ModOrchestration) keeps a bare
-  file name; a follow-up can do the same.
+- **Drafted Renames.** At `b5df010` `src/draft.rs` `destination()` gave every drafted
+  Rename a placeholder Destination, so drafted Renames stayed refused (as they were
+  before this slice, and the review gate refuses unreviewed drafts). Closed on
+  2026-10-04: the drafter now keeps the bare new name, as newer C#
+  (`NaturalLanguageInstructionParser.cs:1398-1424` in ModOrchestration) does; see
+  [drafted-rename-contract.md](drafted-rename-contract.md).
