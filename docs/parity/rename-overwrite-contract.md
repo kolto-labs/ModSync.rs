@@ -64,3 +64,12 @@ This slice fixes it.
 - **Message.** C# logs `File '<source name>' already exists in <dir>, skipping
   file. Reason: Overwrite set to False )` and reports `UnknownError`. Rust names
   the blocked target path in its error.
+- **Case-only target.** `Rename a.txt -> B.txt` with `b.txt` present and
+  `Overwrite = false`: C# dry-run rejects it (its virtual file system ignores
+  case), but C# real install on Linux accepts it and leaves both `B.txt` and
+  `b.txt`. Rust rejects both, following its case-insensitive path rule. With
+  `Overwrite = true`, Rust leaves only `b.txt` (with the source's bytes); C# on
+  Linux leaves both files.
+- **Wildcard that also matches the target.** With `Override/*.txt -> b.txt`, the
+  source `b.txt` trips the existing "Source equals destination" check, so the
+  error names that check instead of the blocked target. Both reject the guide.

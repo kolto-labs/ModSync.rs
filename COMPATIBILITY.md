@@ -1169,7 +1169,8 @@ fails, as C# `Instruction.RenameFile` does. That method returns `RenameTargetAlr
 and the component fails with `UnknownError` on install and in dry-run validation. The
 engine skips each blocked source, renames the remaining sources, and then fails with
 `Rename target already exists and overwrite is false: <target>`. Plain `validate` exits
-non-zero, and the report's `DryRun` stage carries the error. `install` is refused by its
+non-zero, the report's `DryRun` stage carries the error, and `conflicts` exits 1 because
+simulation errors abort its analysis. `install` is refused by its
 validation before any write; C# instead fails mid-install after the earlier steps. Before
 this change, Rust warned, skipped and passed, leaving the source un-renamed for later
 steps. `Overwrite = true` (the default) and free targets are unchanged. `Copy` and `Move`
