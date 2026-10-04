@@ -88,6 +88,8 @@ Remaining source work found by the post-wave audit:
   equals destination`. Rust now warns and skips; with `Overwrite=true` it still
   refuses before any write, where C# deletes the file and fails (live oracle on
   the same fixtures). See [the copy/move self contract](copy-move-self-contract.md).
+  Follow-up closed 2026-10-04: recovery qualification applies the same rule, and
+  install emits one warning event per file skipped with `Overwrite=false`.
 - F11: checkpoint duplicate-definition check folds GUID text with Unicode
   lowercase. Equivalent for valid GUIDs; admission is intentionally unchanged.
 

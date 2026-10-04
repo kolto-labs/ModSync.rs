@@ -2,15 +2,21 @@
 
 Contract: [copy-move-self-contract.md](../copy-move-self-contract.md).
 
-[probe.py](probe.py) builds 16 disposable fixtures (plain files, one read-only,
-one symlink) and runs the production `modsync` two ways on a fresh copy of each,
-giving 32 checks:
+[probe.py](probe.py) builds 21 disposable fixtures (plain files, one read-only,
+one symlink, four with a ZIP archive declared in `ResourceRegistry`) and runs the
+production `modsync` two ways on a fresh copy of each. That gives 42 checks, plus
+13 install-warning checks, 55 in all:
 
 - plain `validate`, Rust's strict install gate: the decision, against the
   reference install;
 - `install`: the decision, against the reference install, and for an accepted
   install the final game and mod trees (names and contents; a symlink is
-  recorded as `-> target`).
+  recorded as `-> target`, a ZIP as its member list);
+- install warnings, wherever the reference install succeeds (except the symlink
+  case): the number of Rust install stdout lines `WARNING: Destination file
+  already exists and overwrite is false: <path>` must equal the number of
+  reference `[Warning] ... skipping file. Reason: Overwrite set to False` log
+  lines.
 
 The reference results are in [csharp-oracle.json](csharp-oracle.json). They were
 produced by [csharp-oracle/Program.cs](csharp-oracle/Program.cs), the
@@ -46,8 +52,36 @@ marker that the component went on after the step under test. `OV` is
 | `copy_destination_case_false` | `Copy OV/x.txt -> <<kotorDirectory>>/OVERRIDE`, false | success, `x.txt` kept |
 | `copy_symlink_false` | `Copy OV/l.txt -> OV`, false; `l.txt` → `x.txt` | success (known difference) |
 | `rename_self_false` | `Rename OV/x.txt -> x.txt`, false | `UnknownError` (control) |
+| `copy_collision_false` | `Copy mods/x.txt -> OV`, false (an ordinary collision) | success, `x.txt` kept |
+| `copy_recovered_mixed_false` | `Copy [mods/Mod/z.txt, OV/x.txt] -> OV`, false; `z.txt` only in `mods/Mod.zip` | success, `x.txt` kept (tree: known difference) |
+| `move_recovered_mixed_false` | the same, Move | success, `x.txt` kept (tree: known difference) |
+| `copy_recovered_mixed_true` | the same Copy, true | `UnknownError`, `x.txt` deleted |
+| `move_recovered_mixed_omitted` | the same Move, omitted (true) | `UnknownError`, `x.txt` deleted |
 
-## Results (cloud Linux, 2026-10-04)
+The four `recovered` fixtures declare `ResourceRegistry."Mod.zip".Files."z.txt" =
+true`. Rust's miss-only recovery binds `Mod/z.txt` from the archive; the
+reference's direct binding drops the missing literal because the other source
+exists. Both accept the `false` cases and keep `x.txt`, but Rust also extracts
+`Mod/` and copies or moves `z.txt`. That whole-tree difference is reported as
+known (not the self-target rule; see the contract). The check still fails if the
+decisions differ or `Override/x.txt` changes.
+
+## Results after the follow-up (cloud Linux, 2026-10-04)
+
+| Binary | Result |
+| --- | --- |
+| follow-up, live reference (`--csharp ... --record`) | 51 match / 4 known difference / 0 fail |
+| follow-up, recorded reference | 51 match / 4 known difference / 0 fail |
+| `6b8baff` (pre-fix) | 36 match / 2 known difference / 17 fail |
+| follow-up, the probe as it was at `6b8baff` | 30 match / 2 known difference / 0 fail |
+
+On `6b8baff` the two recovered `false` cases fail validate and install with
+`Source equals destination` and give no install warning, and every other accepted
+case gives 0 install warnings where the reference logs 1 (2 for the wildcard).
+The recovered `true`/omitted cases refuse in both builds. The four known
+differences are the two symlink checks and the two recovered `false` trees.
+
+## Results of the first slice (cloud Linux, 2026-10-04)
 
 | Binary | Result |
 | --- | --- |

@@ -60,7 +60,9 @@ after the whole binding succeeds. Checks:
 - two derived writes to one target are refused, including FOMOD members that
   would overwrite each other during implicit extraction;
 - recovered Copy/Move sources may not collide at one flattened target, or equal
-  their target;
+  their target unless `Overwrite = false` (then that source is skipped with the
+  usual warning, as in the Copy/Move arm; see
+  [copy-move-self-contract.md](copy-move-self-contract.md));
 - a recovered Patcher file binds its parent directory, which must exist and hold
   a patcher configuration.
 

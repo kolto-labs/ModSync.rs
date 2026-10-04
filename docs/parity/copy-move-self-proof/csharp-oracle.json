@@ -1,4 +1,33 @@
 {
+ "copy_collision_false": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: Success"
+    ]
+   },
+   "skip_warnings": 1,
+   "tree": {
+    "game": {
+     "Override/after.txt": "AFTER\n",
+     "Override/x.txt": "X\n"
+    },
+    "mods": {
+     "after.txt": "AFTER\n",
+     "x.txt": "M\n"
+    }
+   }
+  }
+ },
  "copy_destination_case_false": {
   "dryrun": {
    "accepted": true,
@@ -15,6 +44,7 @@
      "Self Target Probe: Success"
     ]
    },
+   "skip_warnings": 1,
    "tree": {
     "game": {
      "Override/after.txt": "AFTER\n",
@@ -42,6 +72,7 @@
      "Self Target Probe: Success"
     ]
    },
+   "skip_warnings": 1,
    "tree": {
     "game": {
      "Override/after.txt": "AFTER\n",
@@ -69,6 +100,7 @@
      "Self Target Probe: Success"
     ]
    },
+   "skip_warnings": 1,
    "tree": {
     "game": {
      "Override/after.txt": "AFTER\n",
@@ -98,6 +130,7 @@
      "Self Target Probe: Success"
     ]
    },
+   "skip_warnings": 1,
    "tree": {
     "game": {
      "Override/after.txt": "AFTER\n",
@@ -115,7 +148,7 @@
    "accepted": false,
    "raw": {
     "Errors": [
-     "Source file does not exist: /tmp/copy-move-self-proof-fixt1911/csharp-dryrun-8_0oj6rm/game/Override/x.txt"
+     "Source file does not exist: /tmp/copy-move-self-proof-otjyk23j/csharp-dryrun-almgbpl0/game/Override/x.txt"
     ],
     "Warnings": []
    },
@@ -128,6 +161,7 @@
      "Self Target Probe: UnknownError"
     ]
    },
+   "skip_warnings": 0,
    "tree": {
     "game": {},
     "mods": {
@@ -152,12 +186,70 @@
      "Self Target Probe: Success"
     ]
    },
+   "skip_warnings": 1,
    "tree": {
     "game": {
      "Override/after.txt": "AFTER\n",
      "Override/x.txt": "X\n"
     },
     "mods": {
+     "after.txt": "AFTER\n"
+    }
+   }
+  }
+ },
+ "copy_recovered_mixed_false": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: Success"
+    ]
+   },
+   "skip_warnings": 1,
+   "tree": {
+    "game": {
+     "Override/after.txt": "AFTER\n",
+     "Override/x.txt": "X\n"
+    },
+    "mods": {
+     "Mod.zip": "zip: z.txt",
+     "after.txt": "AFTER\n"
+    }
+   }
+  }
+ },
+ "copy_recovered_mixed_true": {
+  "dryrun": {
+   "accepted": false,
+   "raw": {
+    "Errors": [
+     "Source file does not exist: /tmp/copy-move-self-proof-otjyk23j/csharp-dryrun-xse4gw25/game/Override/x.txt"
+    ],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: UnknownError"
+    ]
+   },
+   "skip_warnings": 0,
+   "tree": {
+    "game": {},
+    "mods": {
+     "Mod.zip": "zip: z.txt",
      "after.txt": "AFTER\n"
     }
    }
@@ -179,6 +271,7 @@
      "Self Target Probe: Success"
     ]
    },
+   "skip_warnings": 1,
    "tree": {
     "game": {
      "Override/after.txt": "AFTER\n",
@@ -206,6 +299,7 @@
      "Self Target Probe: Success"
     ]
    },
+   "skip_warnings": 1,
    "tree": {
     "game": {
      "Override/after.txt": "AFTER\n",
@@ -234,6 +328,7 @@
      "Self Target Probe: Success"
     ]
    },
+   "skip_warnings": 1,
    "tree": {
     "game": {
      "Override/after.txt": "AFTER\n",
@@ -251,7 +346,7 @@
    "accepted": false,
    "raw": {
     "Errors": [
-     "Source file does not exist: /tmp/copy-move-self-proof-fixt1911/csharp-dryrun-4werumr2/game/Override/x.txt"
+     "Source file does not exist: /tmp/copy-move-self-proof-otjyk23j/csharp-dryrun-x339f33t/game/Override/x.txt"
     ],
     "Warnings": []
    },
@@ -264,6 +359,7 @@
      "Self Target Probe: UnknownError"
     ]
    },
+   "skip_warnings": 0,
    "tree": {
     "game": {},
     "mods": {
@@ -288,6 +384,7 @@
      "Self Target Probe: Success"
     ]
    },
+   "skip_warnings": 2,
    "tree": {
     "game": {
      "Override/after.txt": "AFTER\n",
@@ -316,6 +413,7 @@
      "Self Target Probe: Success"
     ]
    },
+   "skip_warnings": 1,
    "tree": {
     "game": {
      "Override/after.txt": "AFTER\n",
@@ -343,6 +441,7 @@
      "Self Target Probe: Success"
     ]
    },
+   "skip_warnings": 1,
    "tree": {
     "game": {
      "Override/after.txt": "AFTER\n",
@@ -360,7 +459,7 @@
    "accepted": false,
    "raw": {
     "Errors": [
-     "Source file does not exist: /tmp/copy-move-self-proof-fixt1911/csharp-dryrun-024d5iao/game/Override/x.txt"
+     "Source file does not exist: /tmp/copy-move-self-proof-otjyk23j/csharp-dryrun-hxoxv88o/game/Override/x.txt"
     ],
     "Warnings": []
    },
@@ -373,9 +472,67 @@
      "Self Target Probe: UnknownError"
     ]
    },
+   "skip_warnings": 0,
    "tree": {
     "game": {},
     "mods": {
+     "after.txt": "AFTER\n"
+    }
+   }
+  }
+ },
+ "move_recovered_mixed_false": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: Success"
+    ]
+   },
+   "skip_warnings": 1,
+   "tree": {
+    "game": {
+     "Override/after.txt": "AFTER\n",
+     "Override/x.txt": "X\n"
+    },
+    "mods": {
+     "Mod.zip": "zip: z.txt",
+     "after.txt": "AFTER\n"
+    }
+   }
+  }
+ },
+ "move_recovered_mixed_omitted": {
+  "dryrun": {
+   "accepted": false,
+   "raw": {
+    "Errors": [
+     "Source file does not exist: /tmp/copy-move-self-proof-otjyk23j/csharp-dryrun-6bgk3waf/game/Override/x.txt"
+    ],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: UnknownError"
+    ]
+   },
+   "skip_warnings": 0,
+   "tree": {
+    "game": {},
+    "mods": {
+     "Mod.zip": "zip: z.txt",
      "after.txt": "AFTER\n"
     }
    }
@@ -386,7 +543,7 @@
    "accepted": false,
    "raw": {
     "Errors": [
-     "Source file does not exist: /tmp/copy-move-self-proof-fixt1911/csharp-dryrun-oxrgptdn/game/Override/x.txt"
+     "Source file does not exist: /tmp/copy-move-self-proof-otjyk23j/csharp-dryrun-8e18xgbp/game/Override/x.txt"
     ],
     "Warnings": []
    },
@@ -399,6 +556,7 @@
      "Self Target Probe: UnknownError"
     ]
    },
+   "skip_warnings": 0,
    "tree": {
     "game": {},
     "mods": {
@@ -425,6 +583,7 @@
      "Self Target Probe: UnknownError"
     ]
    },
+   "skip_warnings": 0,
    "tree": {
     "game": {
      "Override/x.txt": "X\n"

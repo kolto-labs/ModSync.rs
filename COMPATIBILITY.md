@@ -1403,6 +1403,19 @@ refused, where C# skips it. Evidence: [copy-move-self proof](docs/parity/copy-mo
 (20 fail on `354055b`); contract in
 [copy-move-self-contract.md](docs/parity/copy-move-self-contract.md).
 
+Follow-up (2026-10-04): the same rule now applies when another Source of the step is
+recovered from a `ResourceRegistry` archive; recovery qualification refused the
+self-target before. And `install` now emits one ordinary event per file that a
+Copy/Move skips with `Overwrite = false` (self-target or any other existing target),
+`WARNING: Destination file already exists and overwrite is false: <path>`, as C#
+logs one warning per skipped file. It is a stdout line in plain and `--json`
+output, a stderr line with `--install-progress-json` (typed stdout unchanged), and a
+line in the desktop install log. Exit codes, results and files are unchanged;
+validate, dry run and `conflicts` keep their report warning and emit no event.
+Evidence: the extended proof, 51 checks match and 4 are known differences (the
+symlink case and the recovered trees, where Rust also extracts the other source)
+against a live reference oracle; 17 fail on `6b8baff`.
+
 Guide authors: copying or moving a file onto itself does nothing useful. With
 `Overwrite = false` it is skipped, in C# and in Rust. With `Overwrite = true` or no
 `Overwrite`, C# deletes the file and fails the mod; Rust refuses the guide. Point

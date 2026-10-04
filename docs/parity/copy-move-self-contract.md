@@ -62,6 +62,46 @@ fixes it. The `Overwrite = true` refusal already matched C#'s decision.
   desktop run the same engine. A skipped self-target does not count as a write
   in `conflicts`, as for any skipped `Overwrite = false` collision.
 
+## Follow-up at `6b8baff`
+
+Two differences were left open by the first slice and are closed here.
+
+**Recovered-source self-target.** When a Copy/Move source is missing and the
+miss-only recovery binds it, `qualify_action`
+(`src/engine/source_resolution.rs:802-871`) re-checks every Source of the
+instruction, including direct sources that were never recovered. It still refused
+a self-target with `Source equals destination`. So `Copy
+["<<modDirectory>>/Mod/z.txt", "<<kotorDirectory>>/Override/x.txt"] ->
+<<kotorDirectory>>/Override`, `Overwrite = false`, with `ResourceRegistry."Mod.zip".Files."z.txt" = true`
+and `Mod/z.txt` still in `Mod.zip`, failed validate and install, but passed once
+`Mod/z.txt` was extracted. The live oracle returns `Success` and keeps `x.txt`.
+Qualification now applies the Copy/Move arm's rule: with `Overwrite = false` a
+self-target is left out of the target checks and the arm then skips it with the
+usual warning. With `Overwrite = true` or omitted it still refuses before any write
+(the oracle deletes `x.txt` and returns `UnknownError`). Rename does not recover.
+
+**Install-time skip notice.** C# `CopyFileAsync`/`MoveFileAsync` log `[Warning]
+File '<name>' already exists in <dir>, skipping file. Reason: Overwrite set to
+False` for every file skipped this way, during install as well (the oracle logs one
+line per skipped file). Rust recorded only a validation warning, which is silent
+while installing. The Copy/Move arm (`src/engine.rs:2230-2250`) now also emits one
+ordinary install event per skipped file, with the validation text:
+`WARNING: Destination file already exists and overwrite is false: <path>`. It
+applies to every `Overwrite = false` collision on Copy/Move, not only to
+self-targets, and to FOMOD-configured copies that run through the same arm. The
+event carries the component name and the step number. Where it shows:
+
+- plain `install`: one stdout line `<component> / <step>: WARNING: ...`, before
+  the step's own line;
+- `install --json`: one more `Event` JSON line on stdout, same shape as the others;
+- `install --install-progress-json`: on stderr, like every ordinary event, so the
+  typed stdout stream is unchanged;
+- desktop: one line in the install log.
+
+It is not emitted during validate, dry run or `conflicts`, which keep their
+existing warning in the report. It does not change exit codes, the install result
+or the files written.
+
 ## Edge cases (live oracle, all `Overwrite = false` unless noted)
 
 | Case | Result |
@@ -77,6 +117,10 @@ fixes it. The `Overwrite = true` refusal already matched C#'s decision.
 | Destination spelled `OVERRIDE`, folder `Override` | matched |
 | Source is a symlink in `Override` | known difference (below) |
 | Rename onto its own name (control) | matched (refuse) |
+| Ordinary collision (`mods/x.txt` onto an existing `Override/x.txt`) | matched (accept, file kept) |
+| Mixed list, one recovered from `Mod.zip`, one self-target: Copy, Move | decision matched; final tree is a known difference (below) |
+| The same, Copy with `Overwrite = true`, Move with it omitted | matched (refuse) |
+| Install warnings: one per skipped file | matched in every accepted case |
 
 ## Known differences
 
@@ -90,17 +134,10 @@ fixes it. The `Overwrite = true` refusal already matched C#'s decision.
 - **Dry-run messages.** C#'s dry run reports no warning for a skipped
   self-target (the skip is only logged); Rust's validation keeps the warning it
   already gives for any `Overwrite = false` collision. Decisions match.
-- **Recovered sources.** When a Copy/Move source is missing and Rust's miss-only
-  source recovery binds it (`src/engine/source_resolution.rs:802-866`), its
-  qualification still refuses a self-target. Qualification re-matches every
-  Source of the instruction, including direct sources that were never recovered,
-  so a guide with one recovered source and one direct self-target source (for
-  example `Copy ["<<modDirectory>>/Mod/z.txt", "<<kotorDirectory>>/Override/x.txt"]
-  -> <<kotorDirectory>>/Override`, `Overwrite = false`, with `Mod/z.txt` still in
-  its archive) fails validate with "Source equals destination", while the same
-  guide passes once `Mod/z.txt` is extracted. C# does no such recovery and returns
-  Success. This fails closed and loses no data; aligning it is a follow-up. Not
-  exercised by the probe.
-- **No install-time skip notice.** During install the skip emits no event (Rust's
-  validation warnings are silent while installing), where C# logs a warning. This
-  applies to every `Overwrite = false` collision, not only self-targets.
+- **Recovered sources, final tree.** In a mixed Source list where one source is
+  still inside a `ResourceRegistry` archive, Rust's miss-only recovery extracts the
+  archive and copies or moves that file; C#'s direct binding drops the missing
+  literal because another source exists, and handles only the self-target. Both
+  accept and keep the self-target file. This is the recovery design
+  ([source-resolution-contract.md](source-resolution-contract.md)), not the
+  self-target rule; the probe reports it as a known tree difference.
