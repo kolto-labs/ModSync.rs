@@ -52,6 +52,7 @@ GC = "77777777-8888-9999-aaaa-bbbbbbbbbbb3"
 OA = "77777777-8888-9999-aaaa-bbbbbbbbbbc1"
 OA2 = "77777777-8888-9999-aaaa-bbbbbbbbbbc2"
 OB = "77777777-8888-9999-aaaa-bbbbbbbbbbd1"
+ON = "77777777-8888-9999-aaaa-bbbbbbbbbbe1"
 
 
 def step(action, sources, destination=None, extra=""):
@@ -63,11 +64,14 @@ def step(action, sources, destination=None, extra=""):
     return lines
 
 
-def option(guid, name, selected, steps=()):
+def option(guid, name, selected, steps=(), nested=None):
     lines = ["[[thisMod.Options]]", f'Guid = "{guid}"', f"Name = {json.dumps(name)}",
              f"IsSelected = {'true' if selected else 'false'}", ""]
     for s in steps:
         lines += ["[[thisMod.Options.Instructions]]"] + s + [""]
+    if nested:
+        lines += ["[[thisMod.Options.Options]]", f'Guid = "{nested}"', 'Name = "Nested"',
+                  "IsSelected = true", ""]
     return lines
 
 
@@ -122,6 +126,8 @@ CASES = {
                           + "\n" + b(deps(OA)),
     "option_chain": a() + "\n" + b(deps(OA), options=[option(OB, "B option", True)])
                     + "\n" + b(deps(OB), steps=[copy("c.txt", KD)], guid=GC, name="C"),
+    # An option nested below a selected option: C# looks up immediate options only.
+    "option_nested": a(options=[option(OA, "A option", True, nested=ON)]) + "\n" + b(deps(ON)),
     # Unchanged refusals (deliberate): the option is not selected, or its component is not.
     "option_unselected": a(option_selected=False) + "\n" + b(deps(OA)),
     "option_component_unselected": a(selected=False) + "\n" + b(deps(OA)),
@@ -132,11 +138,15 @@ UNSELECTED = ("Rust refuses a selected component whose Dependencies target is no
 PARENT = ("Rust counts an option as selected only when its component is selected too; C# "
           "`FindComponentFromGuid` reads the option's own IsSelected, so C# installs B")
 REFUSED = ("full_dry/decision", "full_dry/counts", "full_dry/stages", "basic/decision", "install", "plain")
+NESTED = ("C# looks up immediate options only, so the nested option is a missing Dependency: its "
+          "reports pass (the Conflicts stage warns) and its install fails at B after installing A; "
+          "Rust refuses the unmet Dependency before any write")
 # name -> {check: reason}. A known check passes only if Rust differs from the reference
 # and shows the documented Rust refusal (see known_ok).
 KNOWN = {
     "option_unselected": {check: UNSELECTED for check in REFUSED},
     "option_component_unselected": {check: PARENT for check in REFUSED},
+    "option_nested": {check: NESTED for check in REFUSED if check != "plain"},
 }
 
 

@@ -10,14 +10,14 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 ## Current working source — 2026-10-02
 
 Dependencies that name an option (2026-10-04, F04): a component whose Dependencies
-name a selected option of a selected component now validates and installs, as in C#,
-whose `GetConflictingComponents` looks options up too (`FindComponentFromGuid`,
+name an immediate selected option of a selected component now validates and installs,
+as in C#, whose `GetConflictingComponents` looks immediate options up too (`FindComponentFromGuid`,
 `ModComponent.cs:2030-2063`). `Guide::ordered` looked at top-level components only, so
 every report, plain `validate` and `install` refused the guide with `requires selected
 component <option GUID>`, although Rust's selection layer follows such a Dependency.
 Such a Dependency adds no ordering edge, as in C#. An unselected option, or one whose
-component is unselected, stays refused (deliberate, documented). Proof: 48 match / 12
-known against the live C# CLI with a HoloPatcher stub; 42 fail on `0bc0efa`. The
+component is unselected, or a nested option, stays refused (documented). Proof: 49
+match / 17 known against the live C# CLI with a HoloPatcher stub; 42 fail on `0bc0efa`. The
 regression probes stay at baseline. See
 [option-dependencies-contract.md](option-dependencies-contract.md).
 
