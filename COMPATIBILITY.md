@@ -1194,9 +1194,52 @@ Deletes change from failing to passing. Evidence:
 live reference oracle (26 fail on `fba4eb1`); contract in
 [empty-source-contract.md](docs/parity/empty-source-contract.md).
 
-Exceptions: a scalar empty Source in XML or Markdown metadata loads as an empty list in
-Rust, where C# refuses the XML guide. The report without `--dry-run` (also run by the
-desktop) now passes an empty Extract, as C# component validation does. See the contract.
+Exceptions: a scalar empty Source in XML or Markdown metadata is not an empty list (see
+the next section). The report without `--dry-run` (also run by the desktop) now passes
+an empty Extract, as C# component validation does. See the contract.
+
+## Scalar empty Source in XML and Markdown — 2026-10-04 UTC
+
+A scalar empty or whitespace Source, `<Source></Source>` in XML or `Source = ""` /
+`Source: ''` in a Markdown `<!--<<ModSync>>` metadata block, is now kept as `[""]`
+and refused, as TOML, JSON and YAML guides already were. Before, the XML reader and the
+second Markdown metadata pass turned it into an empty list, so it took the empty-list
+behaviour of the previous section. C# `Serializer.PrefixPath` throws on the empty path:
+the XML guide fails to load, and the Markdown parser falls back to its legacy reader,
+which drops the whole metadata block.
+
+- Per CLI verb: `validate --output json --dry-run` reports an Error (`Path must start
+  with <<modDirectory>> or <<kotorDirectory>>:`), plain `validate` exits non-zero and
+  `install` is refused before any write. The desktop runs the same engine. `convert`
+  and `list` still load the guide, as for TOML.
+- Saving keeps the scalar: a single blank Source is written as `Source = ""`
+  (TOML), `"Source": ""` (JSON), `Source: ''` (YAML, Markdown) or `<Source></Source>`
+  (XML), so a non-Choose guide converted to any format is still refused. Before, the converted
+  guide read back as an empty list and a non-strict Delete then installed as a no-op.
+- A self-closing `<Source />` is null in C# and loads as an empty list; Rust now reads
+  it the same way, so it keeps the empty-list behaviour. `[]`, `[""]`, a missing key
+  and a stray component-level `<Source></Source>` are unchanged.
+- Choose is exempt, as in C#, which does not path-normalize a Choose Source: an XML or
+  Markdown Choose with a scalar empty Source is still an empty no-op Choose. (A
+  standalone TOML, JSON or YAML Choose with `Source = ""` keeps `[""]`, a pre-existing
+  divergence.)
+- A scalar-blank Source inside an option that is not selected loads and validates in
+  Rust, since only selected instructions are validated; C# refuses the whole XML guide.
+- Difference: for Markdown, C# loads the guide with the component's instructions (and
+  Guid) silently dropped; Rust refuses the guide, as it refuses other metadata the
+  reference's typed parser rejects.
+
+Guide authors: an XML guide with an empty `<Source></Source>`, or a Markdown guide whose
+metadata has `Source = ""` or `Source: ''`, used to pass in Rust. A non-strict Delete
+written that way installed as a no-op, and a Copy, Move or Extract passed the dry-run
+report with a `DryRunSkipped` warning. These guides are now refused. Replace the value
+with a list (`Source = []`, or a self-closing `<Source />` in XML) for a deliberate
+empty Source, or give the real path. Converting such a guide with `convert` does not
+clear the problem: the output keeps the empty scalar and is refused too (C# `convert`
+fails on the input). Evidence:
+[scalar-empty-source proof](docs/parity/scalar-empty-source-proof/README.md), 99/99
+checks against a live reference oracle (30 fail on `3911e74`); contract in
+[scalar-empty-source-contract.md](docs/parity/scalar-empty-source-contract.md).
 
 ## Delete of a missing file with Overwrite=true — 2026-10-04 UTC
 
