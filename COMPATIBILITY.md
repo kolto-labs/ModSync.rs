@@ -1260,8 +1260,10 @@ XML and Markdown metadata:
   (the documented Markdown difference above).
 - Saving writes an empty Choose as an empty list (`Source = []`, `"Source": []`,
   `Source: []`, or no Source in XML and Markdown), which reads back as an empty Choose.
-  `convert` of a numeric `Action = 9` guide writes the canonical `Choose`, so the
-  converted guide is an empty Choose; C# reads that saved form the same way.
+  Saving (via `convert`, merge, editor or desktop save) a guide whose action reads as
+  Choose without being the raw text "Choose" (`9`, `"Choose "`, `"Choose, Unset"`)
+  writes the canonical `Choose`, so the saved guide is an empty Choose; C# reads that
+  saved form the same way.
 
 Evidence: the [scalar-empty-source proof](docs/parity/scalar-empty-source-proof/README.md)
 now has 45 cases and 190 checks (235 with the live reference loads), all matching; 73

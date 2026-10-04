@@ -30,8 +30,8 @@ fn yes() -> bool {
 /// The loaders drop blank Source list entries, so a single blank path comes from a
 /// scalar `Source = ""` (or a `guide-edit` transaction, which bypasses the loader
 /// filter); path resolution refuses it either way. Write it back as a
-/// scalar so a saved or converted guide keeps that refusal instead of reading back
-/// as an empty list.
+/// scalar so a saved or converted non-Choose guide keeps that refusal instead of
+/// reading back as an empty list. A canonical Choose scalar reloads as an empty Choose.
 fn source_out<S: Serializer>(source: &[String], s: S) -> Result<S::Ok, S::Error> {
     match source {
         [path] if path.trim().is_empty() => s.serialize_str(path),
@@ -830,7 +830,8 @@ fn normalize_component(
             // C# skips `PrefixPath` for a raw Action of Choose and reads a scalar
             // Source through the getter's string-to-list split, so `""`, `"  "` or
             // `" , "` is an empty Choose. Already-normalized values (the Markdown
-            // second pass) keep their list, so a canonical-only Choose stays refused.
+            // second pass, which receives the scalar `""` written by `source_out`)
+            // are not split, so a canonical-only Choose such as `Action = 9` stays refused.
             if action.raw_choose
                 && format != keys::Format::Internal
                 && let Some(source) = instruction.get_mut("Source")

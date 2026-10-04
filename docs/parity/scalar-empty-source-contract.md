@@ -119,7 +119,11 @@ Markdown (C# drops the block; the documented Markdown difference below).
 empty Choose; a split Choose saves its list. A numeric `Action = "9"` guide is refused
 at load, but `convert` (which accepts refused guides, see below) writes the canonical
 action `Choose` and the blank scalar, which C# and Rust both read back as an empty
-Choose, so the converted guide is accepted in every format.
+Choose, so the converted guide is accepted in every format. The same holds for every
+action that reads as Choose without being the raw text "Choose" (`9`, `"9"`,
+`"Choose "`, `"Choose, Unset"` and similar), and for every load-then-save flow
+(`convert`, merge, editor and desktop save), not only `convert`. The result is a
+harmless no-op Choose; C# cannot load the input at all.
 
 ## Known differences
 
