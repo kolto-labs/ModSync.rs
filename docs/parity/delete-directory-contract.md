@@ -110,6 +110,16 @@ changes nothing.
   Execute/Run program was typed `MissingSourceFiles` (C#: `UnknownError`, an Error
   in its dry run). Both affected only the dry-run report.
 
+## Triage of the third follow-up at `ab6b389`
+
+`ab6b389` typed every CleanList miss as `MissingSourceFiles`, so `CleanList
+[<<modDirectory>>/d/*.nope]` passed the dry-run report with `DryRunSkipped`, while C#
+`CleanList` throws `ArgumentException` on the empty expansion (`UnknownError`, an
+Error in its dry run). Execute/Run left every miss untyped, but C# `ExecuteProgram`
+checks `FileExists` on an unexpanded wildcard and returns `FileNotFoundPost`
+(`MissingSourceFiles`, `DryRunSkipped`) when every Source is a wildcard that matched
+nothing. The literal-versus-wildcard test now lives in one helper.
+
 ## Behaviour after this slice
 
 - **Delete.** `Delete` matches only the files its literal or wildcard Source names
@@ -131,13 +141,22 @@ changes nothing.
   arm (`src/engine.rs:2234-2257`), CleanList in its arm (`:2465-2475`), and
   Execute/Run through `instruction_sources` (`:1943`). A directory Source is a
   missing source for all of them, whatever `Overwrite` is.
-- **Miss classification.**
-  - Copy, Move, CleanList: `MissingSourceFiles` (plain validate and install
-    refuse; the dry-run report gives `DryRunSkipped`).
-  - Rename: `MissingSourceFiles` when a literal Source (no `*` or `?`, a folder
-    included) is missing; when only wildcard Sources matched nothing, the untyped
-    error, which fails the dry-run report as C# does.
-  - Execute/Run: the untyped error (C# `UnknownError`).
+- **Miss classification.** C# `SetRealPaths(skipExistenceCheck)` keeps every
+  literal Source, so its expansion is empty only when every Source is a wildcard,
+  and each action classifies the two cases differently. Plain validate and install
+  refuse every miss; only the dry-run report differs: `MissingSourceFiles` gives
+  `DryRunSkipped`, an untyped error fails the report. One helper,
+  `Engine::any_literal_source_missing` (`src/engine.rs:1954`), decides literal
+  versus wildcard for all three, through `Engine::classify_miss` (`:1972`;
+  `MissKind`, `:201`). A literal Source has no `*` or `?` (a folder included; `[`
+  and `]` are literal).
+
+  | Action | A literal Source missing | Only wildcard Sources, none matched |
+  | --- | --- | --- |
+  | Copy, Move | `MissingSourceFiles` | `MissingSourceFiles` |
+  | Rename (`:2287`) | `MissingSourceFiles` | untyped (C# `ArgumentException`, `UnknownError`) |
+  | CleanList (`:2499`) | `MissingSourceFiles` | untyped (C# `ArgumentException`, `UnknownError`) |
+  | Execute, Run (`:2592`) | untyped (C# `UnknownError`, "Program file does not exist") | `MissingSourceFiles` (C# `FileExists(pattern)` is false: `FileNotFoundPost`) |
 - **Wildcards.** `source_wildcard_glob` (`src/engine.rs:203`) turns an authored
   Source into glob text with the C# rules: runs of `*` collapse to one `*` (so
   `**` matches within one level only), `?` stays, and `[` and `]` are escaped as
@@ -202,8 +221,10 @@ differences marked.
 | `Rename` of a missing file; of a missing literal plus an unmatched wildcard | refused, `DryRunSkipped` |
 | `Rename Override/nope*.txt` (only an unmatched wildcard) | refused; dry-run report fails (C#: Error, `UnknownError`) |
 | `CleanList [<<modDirectory>>/d]`; a missing list file | refused, `DryRunSkipped` |
+| `CleanList [<<modDirectory>>/d/*.nope]` | refused; dry-run report fails (C#: `UnknownError`) |
 | `CleanList [<<modDirectory>>/d/clean.csv]` (control) | `a.tga` deleted |
-| `Execute` / `Run` of folder `<<modDirectory>>/x` (with `--allow-processes`); a missing program | refused; dry-run report fails; nothing runs |
+| `Execute` / `Run` of folder `<<modDirectory>>/x` (with `--allow-processes`); a missing program; a missing program plus an unmatched wildcard | refused; dry-run report fails; nothing runs |
+| `Execute` / `Run [<<modDirectory>>/x/*.nope]`; `Execute [<<modDirectory>>/*]` (`*` matches only folders) | refused, `DryRunSkipped`; nothing runs |
 | `Execute <<modDirectory>>/x/run.sh` (control) | runs, marker written |
 | `Copy [<<modDirectory>>/d, <<modDirectory>>/d/m.txt]` | known difference, see below |
 | `Rename [Override/a.tga, Override/nope*.txt]` | known difference, see below |
@@ -258,10 +279,10 @@ differences marked.
 
 | Binary | Delete-directory proof |
 | --- | --- |
-| second follow-up, live and recorded reference | 154 match / 11 known difference / 0 fail (165 checks) |
-| `df67229` | 142 / 11 / 12 fail |
-| `4fb71a6` | 103 / 7 / 55 fail |
-| `2241235` | 93 / 7 / 65 fail |
+| third follow-up, live and recorded reference | 169 match / 11 known difference / 0 fail (180 checks) |
+| `ab6b389` | 165 / 11 / 4 fail (the four all-wildcard dry runs) |
+| `df67229` | 156 / 11 / 13 fail |
+| second follow-up (`ab6b389`, 165 checks) | 154 / 11 / 0; `df67229`: 142 / 11 / 12 fail; `4fb71a6`: 103 / 7 / 55; `2241235`: 93 / 7 / 65 |
 | first follow-up (`df67229`, 126 checks) | 121 / 5 / 0; `4fb71a6`: 88 / 1 / 37 fail |
 | first slice (`4fb71a6`, 57 checks) | 57 / 0; `2241235`: 47 / 10 fail |
 

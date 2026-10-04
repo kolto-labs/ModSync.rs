@@ -2,10 +2,10 @@
 
 Contract: [delete-directory-contract.md](../delete-directory-contract.md).
 
-[probe.py](probe.py) builds 55 disposable fixtures and runs the production
-`modsync` three ways on a fresh copy of each, giving 165 checks (the first 19
+[probe.py](probe.py) builds 60 disposable fixtures and runs the production
+`modsync` three ways on a fresh copy of each, giving 180 checks (the first 19
 fixtures, 57 checks, are the original Delete slice; 42 fixtures, 126 checks, the
-first follow-up):
+first follow-up; 55 fixtures, 165 checks, the second):
 
 - `validate --output json --dry-run`: the decision (no Error issue) and whether
   the report has the `DryRunSkipped` warning, against the reference dry run;
@@ -86,6 +86,10 @@ executable `MD/x/run.sh` that writes `MD/x/ran.txt`. The Execute/Run cases pass
 | `execute_dir`, `run_dir` | Execute / Run `MD/x` | Error / `UnknownError`, nothing runs |
 | `execute_file_control` | Execute `MD/x/run.sh` | pass / pass, `ran.txt` written |
 | `execute_missing_file` | Execute `MD/x/nope.sh` | Error / `UnknownError` |
+| `cleanlist_wildcard_nomatch` | CleanList [`MD/d/*.nope`] | Error / `UnknownError` |
+| `execute_wildcard_nomatch`, `run_wildcard_nomatch` | Execute / Run [`MD/x/*.nope`] | DryRunSkipped / `MissingSourceFiles` |
+| `execute_wildcard_folder_only` | Execute [`MD/*`] (only folders at that level) | DryRunSkipped / `MissingSourceFiles` |
+| `execute_literal_and_wildcard_nomatch` | Execute [`MD/x/nope.sh`, `MD/x/*.nope`] | Error / `UnknownError` |
 
 Known differences (`KNOWN` in the probe) must be refusals in Rust where the
 reference accepts, or the check fails. `KNOWN_ACCEPTS` (only `extract_nested_dir`,
@@ -100,6 +104,19 @@ Extract keeps the folder rule for FOMOD root-folder flows.
 - `extract_bracket_literal` dry run: any missing Extract archive is a
   ComponentValidation error in Rust's full report (also on `2241235`); the
   reference only skips. Validate and install match.
+
+## Results of the third follow-up (cloud Linux, 2026-10-04)
+
+| Binary | Result |
+| --- | --- |
+| third follow-up, live reference (`--csharp ... --record`) | 169 match / 11 known difference / 0 fail |
+| third follow-up, recorded reference | 169 match / 11 known difference / 0 fail |
+| `ab6b389` (the second follow-up) | 165 match / 11 known difference / 4 fail |
+| `df67229` | 156 match / 11 known difference / 13 fail |
+
+On `ab6b389` the dry runs of `cleanlist_wildcard_nomatch` (it passed with
+`DryRunSkipped`), `execute_wildcard_nomatch`, `run_wildcard_nomatch` and
+`execute_wildcard_folder_only` (they failed with an error) differ from the reference.
 
 ## Results of the second follow-up (cloud Linux, 2026-10-04)
 

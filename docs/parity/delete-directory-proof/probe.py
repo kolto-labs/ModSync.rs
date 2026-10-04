@@ -143,6 +143,18 @@ CASES = {
     "execute_file_control": ([step("Execute", [MD + "/x/run.sh"], None)], [], SCRIPT, PROCESSES),
     "execute_missing_file": ([step("Execute", [MD + "/x/nope.sh"], None)], [], SCRIPT, PROCESSES),
     "cleanlist_missing_file": ([step("CleanList", [MD + "/d/nope.csv"], OV)], [], CLEAN),
+    # All-wildcard empty expansions: CleanList throws (UnknownError); Execute/Run
+    # check FileExists(pattern) (FileNotFoundPost, MissingSourceFiles).
+    "cleanlist_wildcard_nomatch": ([step("CleanList", [MD + "/d/*.nope"], OV)], [], CLEAN),
+    "execute_wildcard_nomatch": ([step("Execute", [MD + "/x/*.nope"], None)], [], SCRIPT, PROCESSES),
+    "run_wildcard_nomatch": ([step("Run", [MD + "/x/*.nope"], None)], [], SCRIPT, PROCESSES),
+    "execute_wildcard_folder_only": ([step("Execute", [MD + "/*"], None)], [], SCRIPT, PROCESSES),
+    "execute_literal_and_wildcard_nomatch": (
+        [step("Execute", [MD + "/x/nope.sh", MD + "/x/*.nope"], None)],
+        [],
+        SCRIPT,
+        PROCESSES,
+    ),
 }
 
 

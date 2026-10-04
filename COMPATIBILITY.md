@@ -1434,18 +1434,27 @@ Source is a missing file:
 - `Delete`: nothing is deleted with `Overwrite` false or omitted; with `Overwrite =
   true` the step fails with `MissingSourceFiles`, as before.
 - `Copy`, `Move`, `Rename`, `CleanList`: the step fails with `MissingSourceFiles`
-  whatever `Overwrite` is. Plain `validate` and `install` refuse before any write;
-  the `validate --dry-run` report gives the `DryRunSkipped` warning.
+  (a folder is a missing literal Source) whatever `Overwrite` is. Plain `validate`
+  and `install` refuse before any write; the `validate --dry-run` report gives the
+  `DryRunSkipped` warning.
 - `Execute`, `Run`: the step fails before any program starts (with
   `--allow-processes`, Rust ran every file under the folder before), and the dry-run
   report fails, as C# reports `UnknownError` ("Program file does not exist").
 
-Missing Sources are now classified as in C# in the dry-run report. Rename: a missing
-literal Source (a folder included) is `MissingSourceFiles` (`DryRunSkipped`); when
-only wildcard Sources matched nothing, C# throws on the empty expansion, so the report
-fails. A missing CleanList list is `MissingSourceFiles` (it was an error); a missing
-Execute/Run program is an error (it was typed as a skip). Plain validate and install
-refuse all of them, as before.
+Missing Sources are now classified as in C# in the dry-run report. C# keeps every
+literal Source, so its expansion is empty only when every Source is a wildcard that
+matched nothing, and the actions differ:
+
+- Rename and CleanList: a missing literal Source (a folder included) is
+  `MissingSourceFiles` (`DryRunSkipped`); when only wildcard Sources matched nothing,
+  C# throws on the empty expansion, so the report fails. A missing CleanList list was
+  an error before.
+- Execute and Run: a missing literal program fails the report (it was typed as a
+  skip); when only wildcard Sources matched nothing (`<<modDirectory>>/x/*.nope`, or
+  `<<modDirectory>>/*` where `*` matches only folders), C# reports `MissingSourceFiles`,
+  so the report gives `DryRunSkipped`.
+
+Plain validate and install refuse all of them, as before.
 
 Before this change Rust took these Sources from the engine's shared source matching,
 which also matches every file under a folder Source. `Delete <<kotorDirectory>>/Override`
@@ -1483,9 +1492,9 @@ rule, which FOMOD root-folder Extract flows rely on. Known differences:
 The FOMOD S2b proof's `scope_char_class_*` checks now expect `[e]xample.zip` to be a
 missing source, and its new `scope_bracket_literal_*` checks install an archive
 literally so named (265 checks). Evidence:
-[delete-directory proof](docs/parity/delete-directory-proof/README.md), 154 checks
-match and 11 are known differences against a live reference oracle (12 fail on
-`df67229`, 55 on `4fb71a6`, 65 on `2241235`); contract in
+[delete-directory proof](docs/parity/delete-directory-proof/README.md), 169 checks
+match and 11 are known differences against a live reference oracle (4 fail on
+`ab6b389`, 13 on `df67229`); contract in
 [delete-directory-contract.md](docs/parity/delete-directory-contract.md).
 
 Guide authors: `Delete`, `Copy`, `Move`, `Rename`, `CleanList`, `Execute` and `Run` act on

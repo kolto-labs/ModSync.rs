@@ -196,6 +196,13 @@ pub(crate) fn authored_descendants(action: &str) -> bool {
     )
 }
 
+/// How an action's missing Source is classified; see `Engine::classify_miss`.
+#[derive(Clone, Copy)]
+enum MissKind {
+    LiteralTyped,
+    WildcardTyped,
+}
+
 /// Glob text for one authored Source path with the reference wildcard rules
 /// (`PathHelper.WildcardPathMatch`): each path level is matched on its own, `*`
 /// (and so `**`) matches any run of characters within one level, `?` matches one
@@ -1940,14 +1947,55 @@ impl Engine {
         self.path_policy.glob_matches(pattern, candidate) || candidate.starts_with(prefix)
     }
 
+    /// Whether any literal Source (no `*` or `?`; `[` and `]` are literal) of an
+    /// instruction names no file. C# `SetRealPaths(skipExistenceCheck: true)` keeps
+    /// every literal Source, so its expansion is empty only when every Source is a
+    /// wildcard and none matched.
+    fn any_literal_source_missing(&self, sources: &[String]) -> Result<bool> {
+        for source in sources {
+            if !source.contains(['*', '?']) {
+                let path = self.path(source, true)?;
+                if !self.files.contains_key(&self.path_policy.key(&path)) {
+                    return Ok(true);
+                }
+            }
+        }
+        Ok(false)
+    }
+
+    /// Types a `MissingSource` miss as `MissingSourceFiles` (the dry run's
+    /// `DryRunSkipped`) where the reference does, else keeps it an untyped error:
+    /// - `LiteralTyped` (Rename, CleanList): typed when a literal Source is missing;
+    ///   an all-wildcard empty expansion throws `ArgumentException` (UnknownError).
+    /// - `WildcardTyped` (Execute, Run): typed when every Source is a wildcard; a
+    ///   missing literal program is `UnknownError`.
+    fn classify_miss<T>(&self, result: Result<T>, sources: &[String], kind: MissKind) -> Result<T> {
+        match result {
+            Err(error) if error.is::<MissingSource>() => {
+                let literal_missing = self.any_literal_source_missing(sources)?;
+                let typed = match kind {
+                    MissKind::LiteralTyped => literal_missing,
+                    MissKind::WildcardTyped => {
+                        !literal_missing && sources.iter().all(|s| s.contains(['*', '?']))
+                    }
+                };
+                Err(if typed {
+                    anyhow::Error::new(MissingSourceFiles(error))
+                } else {
+                    error
+                })
+            }
+            result => result,
+        }
+    }
+
     fn instruction_sources(&self, sources: &[String]) -> Result<Vec<PathBuf>> {
         // A miss in one pattern must not hide an unsafe/malformed later pattern.
         for source in sources {
             self.source_pattern(source)?;
         }
         // Execute/Run only: a folder Source is a miss, never every program in it.
-        // C# ExecuteProgram fails a missing program with UnknownError ("Program file
-        // does not exist"), an error in its dry run too, so the miss stays untyped.
+        // The caller classifies the miss (see `classify_miss`).
         let paths = self.matches_scoped(sources, false, false)?;
         for path in &paths {
             // Reading must be possible even when virtual copying needs no bytes.
@@ -2232,29 +2280,11 @@ impl Engine {
                     self.path(&i.destination, false)?
                 };
                 let sources = if i.action == "Rename" {
-                    // C# SetRealPaths(skipExistenceCheck) keeps every literal Source,
-                    // so RenameFile returns FileNotFoundPost for a missing literal
-                    // (MissingSourceFiles, DryRunSkipped in the dry run). When only
-                    // wildcards are missing it throws on the empty expansion instead
-                    // (UnknownError), which stays an untyped error here.
-                    match self.matches_scoped(&i.source, false, authored_descendants(&i.action)) {
-                        Err(error) if error.is::<MissingSource>() => {
-                            let mut literal_missing = false;
-                            for source in &i.source {
-                                if !source.contains(['*', '?']) {
-                                    let path = self.path(source, true)?;
-                                    literal_missing |=
-                                        !self.files.contains_key(&self.path_policy.key(&path));
-                                }
-                            }
-                            return Err(if literal_missing {
-                                anyhow::Error::new(MissingSourceFiles(error))
-                            } else {
-                                error
-                            });
-                        }
-                        result => result?,
-                    }
+                    // RenameFile: FileNotFoundPost for a missing literal, an
+                    // ArgumentException on an all-wildcard empty expansion.
+                    let sources =
+                        self.matches_scoped(&i.source, false, authored_descendants(&i.action));
+                    self.classify_miss(sources, &i.source, MissKind::LiteralTyped)?
                 } else {
                     let mut resolution = self.resolve_instruction(component, i)?;
                     if resolution.satisfied {
@@ -2462,17 +2492,11 @@ impl Engine {
             }
             "CleanList" => {
                 let dir = self.path(&i.destination, false)?;
-                // C# CleanList fails a missing list with MissingSourceFiles, which is the
-                // DryRunSkipped warning in its dry run.
-                let sources = self
-                    .matches_scoped(&i.source, false, authored_descendants(&i.action))
-                    .map_err(|error| {
-                        if error.is::<MissingSource>() {
-                            anyhow::Error::new(MissingSourceFiles(error))
-                        } else {
-                            error
-                        }
-                    })?;
+                // CleanList: MissingSourceFiles for a missing literal list, an
+                // ArgumentException (UnknownError) on an all-wildcard empty expansion.
+                let sources =
+                    self.matches_scoped(&i.source, false, authored_descendants(&i.action));
+                let sources = self.classify_miss(sources, &i.source, MissKind::LiteralTyped)?;
                 let source = sources.first().context("CleanList needs a source file")?;
                 let cancelled = self.settings.cancelled.clone();
                 let mut budget = cleanlist::Budget::new(&cancelled);
@@ -2561,7 +2585,11 @@ impl Engine {
         let mut paths = Vec::new();
         let mut seen = BTreeSet::new();
         for source in &i.source {
-            for path in self.instruction_sources(std::slice::from_ref(source))? {
+            let resolved = self.instruction_sources(std::slice::from_ref(source));
+            // ExecuteProgram: UnknownError for a missing literal program; an
+            // all-wildcard empty expansion checks FileExists(pattern) instead,
+            // FileNotFoundPost (MissingSourceFiles).
+            for path in self.classify_miss(resolved, &i.source, MissKind::WildcardTyped)? {
                 if seen.insert(self.path_policy.key(&path)) {
                     paths.push(path);
                 }

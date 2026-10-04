@@ -17,10 +17,11 @@ Before, Rust deleted, moved, copied or renamed the whole subtree, read a CleanLi
 the folder, or (with `--allow-processes`) ran every program in it. Every Source's
 wildcards now follow C# `WildcardPathMatch`: `**` stays within one level and `[`/`]`
 are literal. Missing Rename, CleanList and Execute/Run Sources are classified as in C#
-in the dry-run report. Extract, Patcher and the FOMOD gate keep the folder rule, so
-Rust still extracts a folder of archives that C# refuses (documented). Proof: 154 match
-and 11 known differences against a live reference oracle; 12 fail on `df67229`, 55 on
-`4fb71a6`, 65 on `2241235`. The S2b proof now has 265 checks (`[e]xample.zip` is a
+in the dry-run report (one shared literal-versus-wildcard test; the actions differ on
+an all-wildcard empty expansion). Extract, Patcher and the FOMOD gate keep the folder rule, so
+Rust still extracts a folder of archives that C# refuses (documented). Proof: 169 match
+and 11 known differences against a live reference oracle; 4 fail on `ab6b389`, 13 on
+`df67229`. The S2b proof now has 265 checks (`[e]xample.zip` is a
 missing source; a literally so named archive installs); the other regression probes
 stay at baseline. See [delete-directory-contract.md](delete-directory-contract.md).
 

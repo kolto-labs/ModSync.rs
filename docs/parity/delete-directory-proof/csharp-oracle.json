@@ -165,6 +165,41 @@
    "tree": null
   }
  },
+ "cleanlist_wildcard_nomatch": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Delete Directory Probe: UnknownError"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/s.tga": "S\n",
+     "Override/sub/deeper/y.tga": "Y\n",
+     "Override/sub/x.tga": "X\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "d/clean.csv": "Mandatory Deletions,a.tga\n",
+     "d/m.txt": "M\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": false,
+   "raw": {
+    "Errors": [
+     "Dry-run failed for 'Delete Directory Probe' with exit code UnknownError."
+    ],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
  "copy_bracket_literal": {
   "install": {
    "accepted": true,
@@ -939,7 +974,7 @@
    "accepted": false,
    "raw": {
     "Errors": [
-     "Program file does not exist: /tmp/delete-directory-proof-h553wqfy/csharp-validate-hka1886o/mods/x",
+     "Program file does not exist: /tmp/delete-directory-proof-amph7dot/csharp-validate-x0zhb3ot/mods/x",
      "Dry-run failed for 'Delete Directory Probe' with exit code UnknownError."
     ],
     "Warnings": []
@@ -982,6 +1017,42 @@
    "tree": null
   }
  },
+ "execute_literal_and_wildcard_nomatch": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Delete Directory Probe: UnknownError"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/s.tga": "S\n",
+     "Override/sub/deeper/y.tga": "Y\n",
+     "Override/sub/x.tga": "X\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "d/m.txt": "M\n",
+     "x/run.sh": "#!/bin/sh\necho ran > \"$(dirname \"$0\")/ran.txt\"\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": false,
+   "raw": {
+    "Errors": [
+     "Program file does not exist: /tmp/delete-directory-proof-amph7dot/csharp-validate-sl6bw7gv/mods/x/nope.sh",
+     "Dry-run failed for 'Delete Directory Probe' with exit code UnknownError."
+    ],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
  "execute_missing_file": {
   "install": {
    "accepted": false,
@@ -1009,12 +1080,82 @@
    "accepted": false,
    "raw": {
     "Errors": [
-     "Program file does not exist: /tmp/delete-directory-proof-h553wqfy/csharp-validate-qxvaolyr/mods/x/nope.sh",
+     "Program file does not exist: /tmp/delete-directory-proof-amph7dot/csharp-validate-vcq43wt1/mods/x/nope.sh",
      "Dry-run failed for 'Delete Directory Probe' with exit code UnknownError."
     ],
     "Warnings": []
    },
    "skipped": false,
+   "tree": null
+  }
+ },
+ "execute_wildcard_folder_only": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Delete Directory Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/s.tga": "S\n",
+     "Override/sub/deeper/y.tga": "Y\n",
+     "Override/sub/x.tga": "X\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "d/m.txt": "M\n",
+     "x/run.sh": "#!/bin/sh\necho ran > \"$(dirname \"$0\")/ran.txt\"\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Delete Directory Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
+ "execute_wildcard_nomatch": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Delete Directory Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/s.tga": "S\n",
+     "Override/sub/deeper/y.tga": "Y\n",
+     "Override/sub/x.tga": "X\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "d/m.txt": "M\n",
+     "x/run.sh": "#!/bin/sh\necho ran > \"$(dirname \"$0\")/ran.txt\"\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Delete Directory Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "skipped": true,
    "tree": null
   }
  },
@@ -1770,12 +1911,47 @@
    "accepted": false,
    "raw": {
     "Errors": [
-     "Program file does not exist: /tmp/delete-directory-proof-h553wqfy/csharp-validate-0_bb4q8h/mods/x",
+     "Program file does not exist: /tmp/delete-directory-proof-amph7dot/csharp-validate-9acooitk/mods/x",
      "Dry-run failed for 'Delete Directory Probe' with exit code UnknownError."
     ],
     "Warnings": []
    },
    "skipped": false,
+   "tree": null
+  }
+ },
+ "run_wildcard_nomatch": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Delete Directory Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/s.tga": "S\n",
+     "Override/sub/deeper/y.tga": "Y\n",
+     "Override/sub/x.tga": "X\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "d/m.txt": "M\n",
+     "x/run.sh": "#!/bin/sh\necho ran > \"$(dirname \"$0\")/ran.txt\"\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Delete Directory Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "skipped": true,
    "tree": null
   }
  },
