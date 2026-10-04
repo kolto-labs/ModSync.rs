@@ -1,6 +1,16 @@
 {
   "reference_commit": "d31ccbd3bfcddb4705917eafa6483715c166de3b",
   "reference_dll_sha256": "6e7de00d37bf9e0dabc63a303f31ec024bd1af36e50a3865988fe3d48f136824",
+  "reference_informational_version": [
+    "2.0.0-alpha1+d31ccbd3bfcddb4705917eafa6483715c166de3b"
+  ],
+  "reference_dll_note": "Any local build of d31ccbd3; bytes, and so this hash, vary with build path and SDK. Sibling receipts record another build (8f3b1e3f...).",
+  "reference_runtime": ".NET 10.0.12",
+  "dotnet_roll_forward": "Major",
+  "seven_zip": {
+    "path": "/usr/bin/7z",
+    "version": "7-Zip 23.01 (x64) : Copyright (c) 1999-2023 Igor Pavlov : 2023-06-20"
+  },
   "fixture_sha256": "3cb877a7f65364428df571744a0841290135615b9ec46fb54de455cbcc420cdf",
   "cases": 34,
   "direct_api_fixture_cases": [
@@ -67,5 +77,10 @@
       "known_unresolved": true
     }
   ],
-  "scope": "CLI comparison for instruction-free generation; direct-API objects captured for Rust integration-test comparison. Authored Sources keep the path normalization each JSON loader applies (Rust matches C# since 62b6f70); Choose GUIDs normalized to option names. Not full JSON ingestion, all matching cases, real installer execution or full-build proof."
+  "integration_capture": {
+    "fixture": "tests/fixtures/csharp/archive-generation.json",
+    "sha256": "8aeea25ae25013391b814abaa3e5e1ca124359e8096201ce07dd10fa68c905ac",
+    "matches_committed_fixture": true
+  },
+  "scope": "Two C# captures, one per mode. CLI comparison (csharp.json): instruction-free generation on Sources as each JSON loader stores them; Rust convert normalizes authored Sources like C# since 62b6f70, so the probe keeps C# loaded Sources. Integration-test capture (csharp-raw.json, all cases including direct-API ones): original authored Source strings assigned after C# loading, because tests/archive_generation.rs builds components without the Rust loader; it must equal the committed tests/fixtures/csharp/archive-generation.json. Choose GUIDs normalized to option names. Not full JSON ingestion, all matching cases, real installer execution or full-build proof."
 }

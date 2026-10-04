@@ -11,11 +11,13 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 Archive-generation check (2026-10-04): `tools/check_archive_generation.py` runs
 without wrappers again (`-f json`, `DOTNET_ROLL_FORWARD`, reference mounted into its
-sandbox) and requires the 7-Zip CLI the reference falls back to. It gives 27 matching
-CLI cases and the one annotated `.exe` difference. Four separator differences came
-from `62b6f70`'s intended loader Source normalization and the probe now keeps C#'s
-loaded Sources; two installer differences came from a missing 7-Zip CLI. No Rust
-source change; see COMPATIBILITY.
+sandbox). It requires a 7-Zip CLI that lists ZIP, which the reference falls back to,
+and records its environment in the receipt. It gives 27 of 28 CLI cases matching
+plus the annotated `.exe` difference. Its second, raw-Source capture reproduces
+`tests/fixtures/csharp/archive-generation.json` byte for byte. The CLI capture now
+keeps C#'s loaded Sources, which `62b6f70` (intended) made Rust match; that explains
+four of the six earlier differences. The other two came from a missing 7-Zip CLI.
+No Rust source change; see COMPATIBILITY.
 
 Ordinal path identity (2026-10-03): engine VFS, managed process capture,
 deployment and conflict path keys share the pinned .NET `OrdinalIgnoreCase`
