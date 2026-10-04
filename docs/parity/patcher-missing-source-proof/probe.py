@@ -6,8 +6,8 @@ C# runs a Patcher step through `ModComponent.ExecuteSingleInstructionAsync`
 logs `Missing patcher folder/archive for '<name>'` and returns
 `ActionExitCode.FileNotFoundPre`, the same code as a missing Copy, Move or Extract
 source. The component's loop maps it to `InstallExitCode.MissingSourceFiles`
-(:1863-1866), and the dry run (`DryRunValidator`,
-Services/Validation/DryRunValidator.cs:513-527) reports that as the `DryRunSkipped`
+(:1862-1866), and the dry run (`DryRunValidator`,
+Services/Validation/DryRunValidator.cs:515-527) reports that as the `DryRunSkipped`
 warning `Skipped '<component>' during dry-run: source archives or files are not
 available.` A chosen option's Patcher miss is still `OptionalInstallFailed` (an
 error), and install fails the component.

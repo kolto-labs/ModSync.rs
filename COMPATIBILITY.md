@@ -1794,8 +1794,9 @@ as a skipped component. Before, Rust failed the report with `ERROR: [EngineSimul
 `validate --dry-run` exited 1. The component's earlier warnings are dropped with the
 skip, as for the other skips.
 
-Unchanged: `install`, the desktop install and plain `validate` still refuse with
-`Missing external program/mod: <Source>`; a Patcher miss in a chosen option still fails
+Unchanged: `install`, the desktop install and plain text-mode `validate` still refuse
+with `Missing external program/mod: <Source>` (the JSON report without `--dry-run`
+never simulates Patcher steps and reports success, as before); a Patcher miss in a chosen option still fails
 its component; a present patcher is simulated as before. A Patcher Source that is a
 wildcard or an empty list is still refused (C# skips the component), and a Source
 naming a present patcher folder is still bound and simulated (C# finds no file there

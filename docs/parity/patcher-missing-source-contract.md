@@ -68,8 +68,11 @@ that error with an untyped `Missing external program/mod: <Source>`
   miss in a chosen option still fails its component (now through
   `OptionalInstallFailed::wrap`, which turns the typed miss into an error, the same
   message); `install` and the desktop install still refuse the guide with `Missing
-  external program/mod: <Source>`; plain `validate` (no dry run) still stops with
-  that error.
+  external program/mod: <Source>`; plain text-mode `validate` (no dry run) still
+  stops with that error. The JSON report without `--dry-run` never simulates Patcher
+  steps, so it reports success for such a guide, as before this slice (tracked with
+  the F08 open item on the non-dry-run report); C# plain `validate` fails every
+  Patcher guide in these fixtures with `'path' cannot be null or whitespace`.
 
 `Engine::resolve_instruction` now wraps the same message in `MissingSourceFiles`
 (`src/engine/source_resolution.rs:163-175`); the type's comment lists its producers
@@ -108,6 +111,12 @@ component, and install with the miss.
 
 ## Known differences
 
+- **Other refusals come first.** A missing Patcher Source whose step Rust also refuses
+  for another reason stays an error: an unsafe path (`<<modDirectory>>/../x`, a
+  patcher folder symlinked outside the roots), a non-game Destination, or Arguments
+  that are neither an INI name nor an index. Those checks run in recovery before the
+  miss is typed (`src/engine/source_resolution.rs:206-258`); C# skips the component.
+  Fail-closed.
 - **Source shapes Rust refuses.** A Patcher Source that is a wildcard
   (`<<modDirectory>>/pat*/TSLPatcher.exe`) or an empty list fails the Rust dry run
   (`Wildcards are not allowed here`, `Patcher needs exactly one source to bind its
