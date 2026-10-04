@@ -1386,7 +1386,8 @@ Rust's behaviour with `Overwrite = true`. See the contract.
 ## Copy/Move onto itself — 2026-10-04 UTC
 
 A `Copy` or `Move` whose target `<Destination>/<source filename>` is the source file
-itself (same path under the case-insensitive path key) is now handled as C# handles
+itself (same path under the path key: case-folded by default, exact when
+`case_insensitive_pathing` is off) is now handled as C# handles
 it when `Overwrite = false`: the step records the usual `Destination file already
 exists and overwrite is false` warning, skips that file, handles the other sources and
 goes on. C# `Instruction.CopyFileAsync`/`MoveFileAsync` find the target present, log

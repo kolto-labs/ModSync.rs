@@ -92,6 +92,15 @@ fixes it. The `Overwrite = true` refusal already matched C#'s decision.
   already gives for any `Overwrite = false` collision. Decisions match.
 - **Recovered sources.** When a Copy/Move source is missing and Rust's miss-only
   source recovery binds it (`src/engine/source_resolution.rs:802-866`), its
-  qualification still refuses a self-target. Recovery binds mod-workspace files
-  extracted for the step, so this needs a Destination inside that workspace;
-  it is not exercised by the probe.
+  qualification still refuses a self-target. Qualification re-matches every
+  Source of the instruction, including direct sources that were never recovered,
+  so a guide with one recovered source and one direct self-target source (for
+  example `Copy ["<<modDirectory>>/Mod/z.txt", "<<kotorDirectory>>/Override/x.txt"]
+  -> <<kotorDirectory>>/Override`, `Overwrite = false`, with `Mod/z.txt` still in
+  its archive) fails validate with "Source equals destination", while the same
+  guide passes once `Mod/z.txt` is extracted. C# does no such recovery and returns
+  Success. This fails closed and loses no data; aligning it is a follow-up. Not
+  exercised by the probe.
+- **No install-time skip notice.** During install the skip emits no event (Rust's
+  validation warnings are silent while installing), where C# logs a warning. This
+  applies to every `Overwrite = false` collision, not only self-targets.
