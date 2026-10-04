@@ -3,6 +3,7 @@ import argparse
 import copy
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -25,22 +26,6 @@ static void Run(string[] args) {
     foreach (var (component, value) in components.Zip(input.RootElement.EnumerateArray())) {
         // Isolate inference from resource URL canonicalization in the JSON loader.
         var path = Path.Combine(args[1], value.GetProperty("ResourceRegistry").EnumerateObject().First().Name);
-        if (value.TryGetProperty("Instructions", out var topInstructions)) {
-            foreach (var (step, item) in component.Instructions.Zip(topInstructions.EnumerateArray())) {
-                if (item.TryGetProperty("Source", out var sources)) step.Source = sources.EnumerateArray().Select(s => s.GetString()).ToList();
-            }
-        }
-        // The JSON loader also rewrites authored Source separators. Assign the
-        // original strings directly so both generation services receive identical data.
-        if (value.TryGetProperty("Options", out var options)) {
-            foreach (var (option, raw) in component.Options.Zip(options.EnumerateArray())) {
-                if (raw.TryGetProperty("Instructions", out var instructions)) {
-                    foreach (var (step, item) in option.Instructions.Zip(instructions.EnumerateArray())) {
-                        if (item.TryGetProperty("Source", out var sources)) step.Source = sources.EnumerateArray().Select(s => s.GetString()).ToList();
-                    }
-                }
-            }
-        }
         var success = value.TryGetProperty("_LocalMatching", out var local) && local.GetBoolean()
             ? ModSync.Core.Services.AutoInstructionGenerator.TryGenerateInstructionsFromArchive(component)
             : ModSync.Core.Services.AutoInstructionGenerator.GenerateInstructions(component, path);
@@ -59,6 +44,9 @@ parser.add_argument('--rust', type=Path, required=True)
 parser.add_argument('--output', type=Path, required=True)
 args = parser.parse_args()
 assert shutil.which('bwrap'), 'bubblewrap is required to isolate the reference'
+# The reference falls back to the 7-Zip CLI when SharpCompress cannot list an
+# archive. Without it, a ZIP renamed to .exe becomes Execute instead of Extract.
+assert any(shutil.which(n) for n in ('7z', '7za', '7zr')), 'the 7-Zip CLI is required by the reference fallback'
 root = Path(__file__).resolve().parents[1]
 fixture = root / 'tests/fixtures/archive-generation.json'
 cases = json.loads(fixture.read_text())
@@ -86,19 +74,23 @@ probe.mkdir(exist_ok=True)
 (probe / 'probe.csproj').write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net9.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><NuGetAudit>false</NuGetAudit></PropertyGroup><ItemGroup><Reference Include="ModSync.Core"><HintPath>' + escape(str(reference)) + '</HintPath><Private>false</Private></Reference></ItemGroup></Project>')
 (probe / 'Program.cs').write_text(PROBE)
 
+# The probe targets net9.0; allow a newer installed runtime to load it.
+environment = {**os.environ, 'DOTNET_ROLL_FORWARD': os.environ.get('DOTNET_ROLL_FORWARD', 'Major')}
+
 def run(command, label):
-    result = subprocess.run(command, cwd=output, capture_output=True, timeout=300)
+    result = subprocess.run(command, cwd=output, capture_output=True, timeout=300, env=environment)
     (output / (label + '.log')).write_bytes(result.stdout + result.stderr)
     assert result.returncode == 0, f'{label} failed; see {output}/{label}.log'
 
 run(['dotnet', 'build', str(probe / 'probe.csproj'), '-v', 'quiet'], 'build-probe')
 sandbox = ['bwrap', '--ro-bind', '/', '/', '--dev', '/dev', '--tmpfs', '/tmp',
            '--tmpfs', str(Path.home() / '.local/share'), '--tmpfs', str(Path.home() / '.config'),
+           '--ro-bind', str(reference.parent), str(reference.parent),
            '--bind', str(output), str(output), '--unshare-net', '--die-with-parent']
 expected_path = output / 'csharp.json'
 actual_path = output / 'rust.json'
 run(sandbox + ['dotnet', str(probe / 'bin/Debug/net9.0/probe.dll'), str(reference.parent), str(source), str(archives), str(expected_path)], 'csharp')
-run([str(rust), 'convert', str(source), str(actual_path), '--auto-generate-local', '--source-path', str(archives)], 'rust')
+run([str(rust), 'convert', str(source), str(actual_path), '--auto-generate-local', '--source-path', str(archives), '-f', 'json'], 'rust')
 expected = json.loads(expected_path.read_text())
 actual = json.loads(actual_path.read_text())
 
@@ -142,7 +134,7 @@ receipt = {'reference_commit': 'd31ccbd3bfcddb4705917eafa6483715c166de3b',
            'cases': len(cases),
            'direct_api_fixture_cases': [c['Name'] for c in cases if c.get('DirectApi')],
            'matching_cli_cases': sum(not c.get('DirectApi') for c in cases) - len(differences), 'differences': differences,
-           'scope': 'CLI comparison for instruction-free generation; direct-API objects captured for Rust integration-test comparison. Original authored Source strings assigned directly after C# loading; Choose GUIDs normalized to option names. Not full JSON ingestion, all matching cases, real installer execution or full-build proof.'}
+           'scope': 'CLI comparison for instruction-free generation; direct-API objects captured for Rust integration-test comparison. Authored Sources keep the path normalization each JSON loader applies (Rust matches C# since 62b6f70); Choose GUIDs normalized to option names. Not full JSON ingestion, all matching cases, real installer execution or full-build proof.'}
 (output / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
 print(json.dumps(receipt, indent=2))
 assert not unexpected

@@ -9,6 +9,14 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Archive-generation check (2026-10-04): `tools/check_archive_generation.py` runs
+without wrappers again (`-f json`, `DOTNET_ROLL_FORWARD`, reference mounted into its
+sandbox) and requires the 7-Zip CLI the reference falls back to. It gives 27 matching
+CLI cases and the one annotated `.exe` difference. Four separator differences came
+from `62b6f70`'s intended loader Source normalization and the probe now keeps C#'s
+loaded Sources; two installer differences came from a missing 7-Zip CLI. No Rust
+source change; see COMPATIBILITY.
+
 Ordinal path identity (2026-10-03): engine VFS, managed process capture,
 deployment and conflict path keys share the pinned .NET `OrdinalIgnoreCase`
 key, and conflict rows sort in reference UTF-16 ordinal order. Checkpoint tree
