@@ -45,6 +45,23 @@ pub struct Guide {
     pub components: Vec<Component>,
     #[serde(flatten)]
     pub metadata: BTreeMap<String, serde_json::Value>,
+    /// How `ordered` treats this guide; set by the loader and the CLI, never written.
+    #[serde(skip)]
+    pub ordering: Ordering,
+}
+
+/// Install-order rules that depend on how a guide was read and run.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Ordering {
+    /// The file was read as Markdown. The C# Markdown ingest drops InstallBefore and
+    /// InstallAfter, so they neither order nor stop the install (Dependencies still do).
+    pub markdown: bool,
+    /// Install the selection in list order, as C# does for `--direct-markdown`
+    /// (`preserveInputOrder`).
+    pub preserve_input_order: bool,
+    /// Keep selected widescreen-only components after the base build, for the
+    /// Base/Remaining phase split.
+    pub widescreen_last: bool,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -153,7 +170,12 @@ impl Guide {
         let text = text::read(path).with_context(|| format!("Read {}", path.display()))?;
         let extension = path.extension().and_then(|s| s.to_str()).unwrap_or("");
         let hint = canonical_format(extension);
-        Self::parse_observed(&text, hint.unwrap_or("auto"), default_selection)
+        let mut guide = Self::parse_observed(&text, hint.unwrap_or("auto"), default_selection)?;
+        guide.ordering.markdown = match hint {
+            Some(format) => format == "md",
+            None => Self::markdown_text(&text),
+        };
+        Ok(guide)
     }
 
     pub fn parse(text: &str, format: &str) -> Result<Self> {
@@ -520,13 +542,19 @@ impl Guide {
     /// (`InstallCoordinator.GetOrderedInstallList`): a breadth-first sort of every
     /// top-level component, selected or not, by Dependencies, InstallAfter and
     /// InstallBefore, starting from the dependency resolver's order as C# loads a guide
-    /// (file order when that reports an error). Selected widescreen-only components
-    /// follow the base build, as the C# wizard's separate widescreen phase installs
-    /// them, unless a selected base component must follow one. Rust refuses Dependencies
-    /// that are not selected, Restrictions conflicts, missing references and cycles among
-    /// the selection; C# appends what a cycle leaves unplaced.
+    /// (file order when that reports an error). A Markdown guide orders by Dependencies
+    /// alone from file order, and `preserve_input_order` keeps the list order, as in C#.
+    /// With `widescreen_last` (phased installs) selected widescreen-only components
+    /// follow the base build unless a selected base component must follow one. Rust
+    /// refuses Dependencies that are not selected, Restrictions conflicts, missing
+    /// references and cycles among the selection; C# installs those components anyway.
     pub fn ordered(&self) -> Result<Vec<&Component>> {
         use crate::guid::key_ascii;
+        let Ordering {
+            markdown,
+            preserve_input_order,
+            widescreen_last,
+        } = self.ordering;
         let selected: Vec<_> = self.components.iter().filter(|c| c.is_selected).collect();
         ensure!(!selected.is_empty(), "Select at least one component");
         let index: BTreeMap<_, _> = self
@@ -556,14 +584,14 @@ impl Guide {
                     c.name
                 );
             }
-            for after in &c.install_after {
+            for after in order_references(&c.install_after, markdown) {
                 ensure!(
                     find(after).is_some(),
                     "{} references missing InstallAfter {after}",
                     c.name
                 );
             }
-            for before in &c.install_before {
+            for before in order_references(&c.install_before, markdown) {
                 ensure!(
                     find(before).is_some(),
                     "{} references missing InstallBefore {before}",
@@ -571,13 +599,19 @@ impl Guide {
                 );
             }
         }
+        if preserve_input_order {
+            return Ok(selected);
+        }
         let n = self.components.len();
-        let base = match self.resolve_dependencies()? {
-            Resolution {
-                errors,
-                order: Some(order),
-            } if errors.is_empty() => order,
-            _ => (0..n).collect(),
+        let base = match markdown {
+            true => (0..n).collect(),
+            false => match self.resolve_dependencies()? {
+                Resolution {
+                    errors,
+                    order: Some(order),
+                } if errors.is_empty() => order,
+                _ => (0..n).collect(),
+            },
         };
         let mut next = vec![Vec::new(); n];
         let mut indegree = vec![0_usize; n];
@@ -586,13 +620,16 @@ impl Guide {
             for j in c
                 .dependencies
                 .iter()
-                .chain(&c.install_after)
+                .chain(order_references(&c.install_after, markdown))
                 .filter_map(find)
             {
                 next[j].push(i);
                 indegree[i] += 1;
             }
-            for j in c.install_before.iter().filter_map(find) {
+            for j in order_references(&c.install_before, markdown)
+                .iter()
+                .filter_map(find)
+            {
                 next[i].push(j);
                 indegree[j] += 1;
             }
@@ -619,19 +656,21 @@ impl Guide {
                 self.components[i].name
             );
         }
-        let widescreen = |i: usize| crate::phase::widescreen(&self.components[i]);
-        let mut later = vec![false; n];
-        let mut stack: Vec<_> = order.iter().copied().filter(|&i| widescreen(i)).collect();
-        while let Some(i) = stack.pop() {
-            for &j in &next[i] {
-                if !later[j] {
-                    later[j] = true;
-                    stack.push(j);
+        if widescreen_last {
+            let widescreen = |i: usize| crate::phase::widescreen(&self.components[i]);
+            let mut later = vec![false; n];
+            let mut stack: Vec<_> = order.iter().copied().filter(|&i| widescreen(i)).collect();
+            while let Some(i) = stack.pop() {
+                for &j in &next[i] {
+                    if !later[j] {
+                        later[j] = true;
+                        stack.push(j);
+                    }
                 }
             }
-        }
-        if !order.iter().any(|&i| later[i] && !widescreen(i)) {
-            order.sort_by_key(|&i| widescreen(i));
+            if !order.iter().any(|&i| later[i] && !widescreen(i)) {
+                order.sort_by_key(|&i| widescreen(i));
+            }
         }
         Ok(order.into_iter().map(|i| &self.components[i]).collect())
     }
@@ -797,6 +836,12 @@ impl Guide {
             order: complete.then_some(order),
         })
     }
+}
+
+/// The InstallBefore/InstallAfter entries that order a guide: none for Markdown, whose
+/// C# ingest drops them.
+fn order_references(list: &[String], markdown: bool) -> &[String] {
+    if markdown { &[] } else { list }
 }
 
 const SHOWN_ERRORS: usize = 50;

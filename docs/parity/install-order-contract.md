@@ -63,6 +63,13 @@ sort over every component, selected or not:
 So a component waits for its layer: `A`, `B` (InstallAfter `A`), `C` installs as
 `A, C, B`. An unselected component still takes part, so it can delay what follows it.
 
+`install --direct-markdown` passes `preserveInputOrder: opts.DirectMarkdown`
+(`CLI/ModBuildConverter.cs:3638`), so the coordinator keeps the list order
+(`InstallCoordinator.cs:65-67`, `:85-87`). For a Markdown guide (by extension, or by
+content when the extension names no format, `.txt` and no extension included) the
+references are gone, so the breadth-first sort sees Dependencies alone from file order.
+Widescreen-only components get no special place in the CLI.
+
 `validate --dry-run` simulates the selected components in list order
 (`Services/Validation/DryRunValidator.cs:455`, `:499`), not in the install order.
 
@@ -78,95 +85,118 @@ missing references and cycles only among selected components.
 
 ## Behaviour after this slice
 
-- `Guide::sort_for_install` (`src/model.rs:689-703`) is the C# check without
+- `Guide::sort_for_install` (`src/model.rs:728-742`) is the C# check without
   `--ignore-errors`: any missing, self or circular InstallBefore/InstallAfter
   reference on any top-level component stops the run with `Dependency resolution
   failed with N errors. Fix these InstallBefore/InstallAfter references in the guide
   (validate and install do not take --ignore-errors):` and one `  - <name>: <message>`
   line per error (the same lines `convert --ignore-errors` prints); otherwise the
   components take the resolver's order. `load_validation_guide`
-  (`src/main.rs:956-973`) calls it for every non-Markdown guide (the extension rule,
-  or the content when the extension names no format), so validate (with or without
-  roots), install and `conflicts` refuse before any report, and the report lists the
-  components in C#'s order. `--output json` puts the message in `error`, as C# does.
-- `Guide::ordered` (`src/model.rs:519-637`) is `GetOrderedInstallList`: it starts
-  from the resolver's order (file order when the resolver reports an error, as the C#
+  (`src/main.rs:956-973`) calls it for every non-Markdown guide, so validate (with or
+  without roots), install and `conflicts` refuse before any report, and the report
+  lists the components in C#'s order. `--output json` puts the message in `error`, as
+  C# does.
+- `Guide` carries `Ordering` (`src/model.rs:48-65`), rules that are never written to
+  a file: `markdown` (set by the file loader, `:174-178`, with the rule `convert` uses:
+  the extension, or the content when the extension names no format),
+  `preserve_input_order` (set for `--direct-markdown`, `src/main.rs:3184-3185`) and
+  `widescreen_last` (set for `--phase base` and `--phase remaining`,
+  `src/phase.rs:78-79`).
+- `Guide::ordered` (`src/model.rs:540-676`) is `GetOrderedInstallList`: it starts from
+  the resolver's order (file order when the resolver reports an error, as the C#
   loader does), sorts every component breadth-first by Dependencies, InstallAfter and
-  InstallBefore, and returns the selected ones. Every caller above gets the new order,
-  so install, the validate dry run, phases, checkpoints and the desktop agree.
+  InstallBefore, and returns the selected ones. For a Markdown guide InstallBefore and
+  InstallAfter take no part (no order, no missing-reference refusal; Dependencies
+  still apply) and the start is file order, as in C#. With `preserve_input_order` it
+  returns the selection in list order after the existing checks. Every caller above
+  gets the new order, so install, the validate dry run, phases, checkpoints and the
+  desktop agree.
+- Selected widescreen-only components (`WidescreenOnly = true`) take their
+  breadth-first place, as in the C# CLI, in plain installs and `--phase all`. Only with
+  `widescreen_last` do they come after the base components, because Rust's Remaining
+  phase continues a base prefix; then a selected base component that must follow a
+  selected widescreen-only one (directly or through unselected components) keeps the
+  breadth-first order, and `--phase base` refuses before any write
+  (`src/phase.rs:91-103`): `The base build cannot be installed first: the install
+  order puts widescreen-only <W> before <B>. Install with --phase all.` Before, Base
+  installed and Remaining then refused (`Completed components must form the selected
+  installation prefix in order`).
 - Kept from before, fail-closed: a selected component whose Dependencies target is
-  not selected, a Restrictions conflict, a missing reference on a selected component,
-  and a selected component a cycle leaves unplaced are refused (the last now reads
-  `Dependency/order cycle: <name> cannot be ordered`); C# appends that component at
-  the end.
-- Selected widescreen-only components (`WidescreenOnly = true`) come after the base
-  components, unless a selected base component must follow one of them (then the
-  breadth-first order stands). The C# wizard offers them on its own widescreen pages
-  after the base install and installs the ones chosen there in list order
-  (`src/ModSync.GUI/Dialogs/WizardPages/WidescreenInstallingPage.axaml.cs:87-115`); its
-  base install takes everything selected, so a widescreen component already selected
-  in the file goes in its breadth-first place there. Rust's Base and Remaining phases
-  need the base build to be the first part of the order.
+  not selected, a Restrictions conflict, a missing InstallBefore/InstallAfter target
+  of a selected non-Markdown component, and a selected component a cycle leaves
+  unplaced are refused (the last now reads `Dependency/order cycle: <name> cannot be
+  ordered`).
 
-The resolver code is shared with `convert`: `resolve_dependencies` (`:713-799`) holds
+The resolver code is shared with `convert`: `resolve_dependencies` (`:752-838`) holds
 what `sort_like_dependency_resolver` did (errors, graph, cycle walk, post-order), and
 `convert`'s messages and results are unchanged (its probe is at baseline).
 
 ## Proof
 
-[probe.py](install-order-proof/probe.py) runs 34 cases against the live C# CLI and
-the production binary, with `--use-file-selection` throughout: 19 installs (`decision`,
-`order` of the installed components, `files` with contents) and 15 validate runs
-(`decision`, `shape` of the result, `errors` N, `listing` of the archive stage,
-`dryrun` messages), 132 checks.
+[probe.py](install-order-proof/probe.py) runs 44 cases, 162 checks: 27 installs
+(`decision`, `order` of the installed components, `files` with contents; two of them
+`--direct-markdown`) and 15 validate runs (`decision`, `shape` of the result,
+`errors` N, `listing` of the archive stage, `dryrun` messages) against the live C# CLI,
+plus 2 Rust-only `--phase base` installs checked against the documented Rust result
+(the C# CLI has no phases).
 
 | Binary | Result |
 | --- | --- |
-| this slice, live reference (`--reference ... --record`) | 127 match / 5 known difference / 0 fail |
-| this slice, recorded reference | 127 match / 5 known difference / 0 fail |
-| `e4c0b4d` (pre-fix), recorded reference | 56 match / 2 known difference / 74 fail |
+| this slice, live reference (`--reference ... --record`) | 161 match / 1 known difference / 0 fail |
+| this slice, recorded reference | 161 match / 1 known difference / 0 fail |
+| `174482a` (first version of this slice), recorded reference | 138 match / 1 known difference / 23 fail |
+| `e4c0b4d` (pre-fix), recorded reference | 77 match / 0 known difference / 85 fail |
 
 On `e4c0b4d` every ordering case installed the stable order (InstallAfter, a
 Dependencies link, InstallBefore, a link through an unselected component, a chain,
 a guide the resolver reorders, mixed edges, two targets, JSON and YAML input, a
-Markdown Dependencies link), the report listed components in file order, and every
-refusal case validated or installed where C# stopped (missing InstallAfter and
-InstallBefore on an unselected component, a self reference, cycles among unselected
-components or with one unselected member, JSON, the report without roots, install).
-Selected missing references and cycles were refused on both builds, but inside the
-report rather than before it. Controls (no references, an already ordered guide, a
-Dependencies target listed after its dependant, a widescreen component a base component follows, Markdown
-references on an unselected component) match on both.
+widescreen component a base component follows, Markdown with a Dependencies link or a
+backward or InstallBefore reference in `.md`, `.txt` and extensionless files, a
+backward reference under `--direct-markdown`), the report listed components in file
+order, every refusal case validated or installed where C# stopped, and `--phase base`
+installed a base component that must follow a widescreen-only one. Selected missing
+references and cycles were refused on both builds, but inside the report rather than
+before it. On `174482a` the review findings fail: widescreen-only components moved
+behind the base build (`widescreen_root`, `ws_first`, `ws_two`), Markdown references
+ordered the install (five Markdown cases), `--direct-markdown` reordered
+(`direct_dependency`, `direct_after`), and `--phase base` installed where it must
+refuse. Controls (no references, an already ordered guide, a Dependencies target
+listed after its dependant, Markdown references on an unselected component, a Base run
+with nothing blocked) match on every build that runs them.
 
 ## Known differences
 
-- **Widescreen-only components (deliberate).** The C# CLI installs a selected
-  widescreen-only component in its breadth-first place (`A`, `B` after `A`, widescreen
-  `E`: `A, E, B`); Rust installs it after the base build (`A, B, E`). Within the
-  widescreen components Rust keeps the breadth-first order; the C# wizard's widescreen
-  page uses list order. Two known-difference checks.
-- **Markdown references.** C# drops InstallBefore and InstallAfter from a Markdown
-  guide; Rust keeps them and orders by them, so `A`, `B` (InstallAfter `A`), `C`
-  installs as `A, C, B` in Rust and `A, B, C` in C#. Rust does not refuse a Markdown
-  guide for them at load, as C# does not, but still refuses a missing reference on a
-  selected component. The pre-fix build matched this case by chance (its stable order
-  equalled the file order); other Markdown guides with references differed before too.
-  Two known-difference checks.
 - **Validate's dry run (deliberate).** Rust simulates the order it installs in; C#
   simulates the list order and then installs in the breadth-first order. A component
   that moves a file a later-installed component creates is skipped with a
   `DryRunSkipped` warning in C# and simulated cleanly in Rust. The pre-fix build
   matched C# here because it simulated and installed in list order. One
   known-difference check.
+- **`--phase base` with a base component behind a widescreen-only one (deliberate,
+  Rust-only).** Refused before any write, as above; the C# CLI has no phases, and the
+  C# wizard's base install takes everything selected. Two Rust-only cases.
+- **Phased widescreen order.** With `--phase base`/`remaining`, Rust installs the
+  widescreen-only components after the base build in their breadth-first order; the C#
+  wizard's widescreen page installs the ones chosen there in list order
+  (`src/ModSync.GUI/Dialogs/WizardPages/WidescreenInstallingPage.axaml.cs:87-115`). Not
+  in the probe.
 - **`--ignore-errors` (deliberate, unchanged).** C# validate and install accept it and
   go on in the best order they can; Rust refuses the flag by name
   (COMPATIBILITY.md), so a bad reference anywhere in the guide must be fixed.
-- **Cycles through Dependencies.** C#'s load check does not look at Dependencies, and
-  its install appends what a cycle leaves; Rust refuses a selected component in such a
-  cycle, as before. Not in the probe.
+- **Dependencies on unselected components and Dependencies cycles (deliberate,
+  unchanged).** C#'s load check does not look at Dependencies. Its install installs
+  the components anyway: checked live, a selected `B` with Dependencies on an
+  unselected `U` installs both `U` and `B` (exit 0), and `A`, `B` depending on each
+  other plus `C` installs all three. Rust refuses a selected component whose
+  Dependencies target is not selected, and a selected component a Dependencies cycle
+  leaves unplaced. Not in the probe.
+- **Ordering checks in direct Markdown.** `--direct-markdown` keeps C#'s list
+  order, but Rust still runs its other ordering checks first (selected Dependencies
+  and Restrictions); C# runs none.
 - **Messages.** Rust names the errors after a one-line summary; C# logs `❌` lines,
   the affected GUIDs and a three-point hint. The probe compares the count.
 - **Desktop.** The desktop does not run the load check (the C# GUI does not either); its
-  install order follows `Guide::ordered` like the CLI. Not exercised natively.
+  install order follows `Guide::ordered`, with the Markdown rule from the file loader.
+  Not exercised natively.
 - **Platform.** The reference ran on Linux under `unshare -rn` with
   `DOTNET_ROLL_FORWARD=Major`. Nothing here depends on the platform.

@@ -14,13 +14,17 @@ components in the C# CLI's order, a breadth-first sort of every component by
 Dependencies, InstallAfter and InstallBefore from the resolver's order
 (`InstallCoordinator.cs:97-186`); Rust took the first ready selected component in file
 order (`A`, `B` after `A`, `C`: C# and now Rust `A, C, B`, Rust before `A, B, C`).
-Validate, install and `conflicts` now refuse a missing, self or circular
-InstallBefore/InstallAfter reference on any component of a non-Markdown guide before
-the report, and list components in the resolver's order, as C# does
-(`ModBuildConverter.cs:3092`, `:3418`). Widescreen-only components stay after the base
-build, Markdown keeps its references, the dry run follows the install order and
-`--ignore-errors` stays refused (documented). Proof: 127 match / 5 known against the
-live C# CLI; 74 fail on `e4c0b4d`. The regression probes stay at baseline. See
+Widescreen-only components take their breadth-first place, Markdown guides order by
+Dependencies only (C# drops InstallBefore/InstallAfter there) and `--direct-markdown`
+keeps source order, as in C#. Validate, install and `conflicts` now refuse a missing,
+self or circular InstallBefore/InstallAfter reference on any component of a
+non-Markdown guide before the report, and list components in the resolver's order, as
+C# does (`ModBuildConverter.cs:3092`, `:3418`). New: `--phase base`/`remaining` keep
+widescreen-only components after the base build, and `--phase base` refuses before
+any write when a base component must follow one. The dry run follows the install
+order and `--ignore-errors` stays refused (documented). Proof: 161 match / 1 known
+against the live C# CLI; 85 fail on `e4c0b4d`, 23 on the first version `174482a`. The
+regression probes stay at baseline. See
 [install-order-contract.md](install-order-contract.md).
 
 Component order in `convert` (2026-10-04, F01/F04): `convert` now writes components in

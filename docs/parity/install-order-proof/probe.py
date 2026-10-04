@@ -10,17 +10,21 @@ missing, self or circular reference anywhere in the guide stops the run (exit 1)
 `InstallCoordinator.GetOrderedInstallList` (Installation/InstallCoordinator.cs:97-186),
 a breadth-first (Kahn) sort over every component by Dependencies, InstallAfter and
 InstallBefore, and installs the selected ones in that order
-(Services/InstallationService.cs:1210-1217). A Markdown input goes through guide
-ingestion, which drops InstallBefore and InstallAfter.
+(Services/InstallationService.cs:1219). A Markdown input goes through guide
+ingestion, which drops InstallBefore and InstallAfter. `--direct-markdown` keeps the
+list order (`preserveInputOrder`, ModBuildConverter.cs:3638).
 
 Each case is a disposable mod/game fixture plus a guide. Component X copies `X.txt` and
 `X/z.txt` (holding "X") into Override, so `Override/z.txt` names the last installer.
 The Rust binary and the pinned C# CLI (`ModSync.Core.dll`, d31ccbd3) run the same
-command line on a fresh copy each, always with `--use-file-selection`:
+command line on a fresh copy each, with `--use-file-selection` except in `direct`:
 
   install    `install -i G -s mods -g game --use-file-selection`; C# also gets
              `-y --skip-validation --no-checkpoint` (it asks for confirmation, and its
              environment check needs a HoloPatcher), Rust `--no-checkpoint`.
+  direct     the install with `--direct-markdown --patcher-engine OdyPatcher` (Rust
+             `ody-patcher`) and without `--use-file-selection`.
+  phase_base Rust only: the install with `--phase base`, checked against EXPECTED.
   validate   `validate -i G -s mods -g game --output json --dry-run --use-file-selection`.
   rootless   `validate -i G --output json --use-file-selection`.
 
@@ -36,11 +40,8 @@ Checks per validate/rootless case:
   listing   the ComponentValidation messages in report order (null without a report);
   dryrun    the DryRun stage messages (null without one).
 
-Known differences (counted separately): Markdown keeps InstallBefore/InstallAfter in
-Rust and orders by them; C# drops them. Validate's dry run simulates the install order
-in Rust; C# simulates the list order and installs in another one. Rust installs a
-selected widescreen-only component after the base build (the C# wizard's widescreen
-phase); the C# CLI installs it in its breadth-first place.
+Known difference (counted separately): validate's dry run simulates the install order
+in Rust; C# simulates the list order and installs in another one.
 
 Usage:
   probe.py [--bin target/release/modsync] [--reference DIR [--record]]
@@ -147,7 +148,9 @@ def markdown_guide(spec):
     return "\n".join(out)
 
 
-BUILD = {"toml": toml_guide, "json": json_guide, "yaml": yaml_guide, "md": markdown_guide}
+# "txt" and "" hold Markdown text under a name that does not say Markdown.
+BUILD = {"toml": toml_guide, "json": json_guide, "yaml": yaml_guide, "md": markdown_guide,
+         "txt": markdown_guide, "": markdown_guide}
 
 AFTER_ONE = [c("a"), c("b", after="a"), c("c")]
 MISSING_AFTER_UNSELECTED = [c("a"), c("b"), c("c", 0, after="f")]
@@ -170,10 +173,11 @@ CASES = {
     "two_after": ("install", "toml", [c("a"), c("b"), c("c", after="ab"), c("d", after="a"), c("e")]),
     "json_after": ("install", "json", AFTER_ONE),
     "yaml_after": ("install", "yaml", AFTER_ONE),
-    # Widescreen-only components: Rust keeps them after the base build (the C# wizard's
-    # separate widescreen phase) unless a base component must follow one.
+    # Widescreen-only components take their breadth-first place, as in the C# CLI.
     "widescreen_root": ("install", "toml", [c("a"), c("b", after="a"), c("e", widescreen=True)]),
     "widescreen_before_base": ("install", "toml", [c("a"), c("e", widescreen=True), c("b", after="e"), c("c")]),
+    "ws_first": ("install", "toml", [c("e", widescreen=True), c("a")]),
+    "ws_two": ("install", "toml", [c("d", widescreen=True), c("a"), c("e", widescreen=True), c("b", after="a")]),
     # Controls: the same order before and after.
     "control_no_refs": ("install", "toml", [c("c"), c("a"), c("b")]),
     "control_ordered": ("install", "toml", [c("a"), c("b", after="a")]),
@@ -199,16 +203,33 @@ CASES = {
     "markdown_missing_unselected": ("validate", "md", MISSING_AFTER_UNSELECTED),
     "markdown_no_refs": ("install", "md", [c("a"), c("b", deps="a"), c("c")]),
     "markdown_after": ("install", "md", AFTER_ONE),
+    "markdown_backward": ("install", "md", [c("b", after="a"), c("a"), c("c")]),
+    "markdown_before": ("install", "md", [c("a"), c("b"), c("c", before="a")]),
+    "markdown_txt": ("install", "txt", [c("b", after="a"), c("a"), c("c")]),
+    "markdown_no_extension": ("install", "", [c("b", after="a"), c("a"), c("c")]),
+    # --direct-markdown keeps the source order (C# `preserveInputOrder`).
+    "direct_dependency": ("direct", "md", [c("a"), c("b", deps="a"), c("c")]),
+    "direct_after": ("direct", "md", [c("b", after="a"), c("a"), c("c")]),
+    # Rust-only: --phase base refuses before any write when a base component must
+    # follow a widescreen-only one (the C# CLI has no phases; see EXPECTED).
+    "phase_base_blocked": ("phase_base", "toml", [c("e", widescreen=True), c("u", 0, after="e"), c("b", after="u")]),
+    "phase_base_control": ("phase_base", "toml", [c("a"), c("b", after="a"), c("e", widescreen=True)]),
     # Validate's dry run: Rust simulates the install order, C# the list order.
     "dry_run_order": ("validate", "toml", MOVE_FROM_C),
 }
-CHECKS = {"install": ("decision", "order", "files"),
+CHECKS = {"install": ("decision", "order", "files"), "direct": ("decision", "order", "files"),
+          "phase_base": ("decision", "order", "files"),
           "validate": ("decision", "shape", "errors", "listing", "dryrun"),
           "rootless": ("decision", "shape", "errors", "listing", "dryrun")}
 KNOWN = {
-    "markdown_after": {"order", "files"},
     "dry_run_order": {"dryrun"},
-    "widescreen_root": {"order", "files"},
+}
+# Rust-only cases: the documented Rust result, not a C# one.
+EXPECTED = {
+    "phase_base_blocked": {"decision": False, "order": None, "files": [["chitin.key", "KEY"]]},
+    "phase_base_control": {"decision": True, "order": ["A", "B"],
+                           "files": [["Override/a.txt", "a"], ["Override/b.txt", "b"], ["Override/z.txt", "b"],
+                                     ["chitin.key", "KEY"]]},
 }
 
 
@@ -223,7 +244,7 @@ def fixture(root, extension, spec):
             handle.write(key + "\n")
         with open(os.path.join(root, "mods", key, "z.txt"), "w") as handle:
             handle.write(key + "\n")
-    path = os.path.join(root, "guide." + extension)
+    path = os.path.join(root, "guide." + extension if extension else "guide")
     with open(path, "w") as handle:
         handle.write(BUILD[extension](spec))
     return path, os.path.join(root, "mods"), os.path.join(root, "game")
@@ -281,12 +302,18 @@ def run(argv_head, case, work, label, csharp, extra_env=None):
                             "--use-file-selection"]
     else:
         side = ["-y", "--skip-validation", "--no-checkpoint"] if csharp else ["--no-checkpoint"]
-        argv = argv_head + ["install", "-i", path, "-s", mods, "-g", game, "--use-file-selection"] + side
+        if mode == "direct":
+            side += ["--direct-markdown", "--patcher-engine", "OdyPatcher" if csharp else "ody-patcher"]
+        elif mode == "phase_base":
+            side += ["--phase", "base"]
+        # Direct Markdown installs the whole guide and refuses --use-file-selection.
+        selection = [] if mode == "direct" else ["--use-file-selection"]
+        argv = argv_head + ["install", "-i", path, "-s", mods, "-g", game] + selection + side
     env = dict(os.environ, HOME=os.path.join(root, "home"), XDG_CONFIG_HOME=os.path.join(root, "xdg"),
                **(extra_env or {}))
     done = subprocess.run(argv, capture_output=True, text=True, env=env, cwd=root, timeout=600,
                           stdin=subprocess.DEVNULL)
-    if mode == "install":
+    if mode in ("install", "direct", "phase_base"):
         return install_view(done.returncode, done.stdout + done.stderr, game, csharp)
     return report_view(done.returncode, done.stdout, root)
 
@@ -302,7 +329,8 @@ def main():
         if args.reference:
             head = ["unshare", "-rn", "dotnet", os.path.join(args.reference, "ModSync.Core.dll")]
             env = {"DOTNET_ROLL_FORWARD": "Major", "DOTNET_CLI_TELEMETRY_OPTOUT": "1"}
-            oracle = {name: run(head, case, work, "csharp", True, env) for name, case in CASES.items()}
+            oracle = {name: run(head, case, work, "csharp", True, env) for name, case in CASES.items()
+                      if name not in EXPECTED}
             if args.record:
                 with open(ORACLE, "w") as handle:
                     json.dump(oracle, handle, indent=1, sort_keys=True)
@@ -313,7 +341,7 @@ def main():
         matched = known = failed = 0
         for name, case in CASES.items():
             actual = run([args.bin], case, work, "rust", False)
-            expected = oracle[name]
+            expected = EXPECTED.get(name) or oracle[name]
             for check in CHECKS[case[0]]:
                 same = actual[check] == expected[check]
                 if same:

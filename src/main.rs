@@ -966,7 +966,7 @@ fn load_validation_guide(input: &std::path::Path, profile: bool) -> Result<Guide
     } else {
         Guide::load_like_file_loader(input)?
     };
-    if !Guide::markdown_input(input)? {
+    if !guide.ordering.markdown {
         guide.sort_for_install()?;
     }
     Ok(guide)
@@ -3181,6 +3181,8 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                         patcher_engine == PatcherEngine::OdyPatcher,
                         "Direct Markdown mode requires --patcher-engine ody-patcher"
                     );
+                    // C# installs a direct-Markdown guide in source order (`preserveInputOrder`).
+                    guide.ordering.preserve_input_order = true;
                     let result = modsync::direct_markdown::apply(&mut guide.components);
                     eprintln!(
                         "Direct Markdown NLP: draftedFromProse={}, 4GB Patcher skipped={}, widescreen skipped={}",
