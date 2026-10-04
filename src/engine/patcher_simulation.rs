@@ -195,11 +195,16 @@ impl Engine {
         self.settings.roots.check(base)?;
         self.settings.roots.check(destination)?;
         let Some(configuration) = self.simulation_configuration(base, arguments)? else {
-            self.validation_warning(
-                "PatcherSimulation",
-                "No changes.ini found; no InstallList effects inferred".into(),
-                base,
-            );
+            // As C# `TslPatcherVfsSimulator`: no changes.ini means nothing to simulate,
+            // only a log line, not a validation warning.
+            emit(Event {
+                component: "Patcher".into(),
+                step: 0,
+                message: format!(
+                    "No changes.ini found under {}; skipped InstallList simulation",
+                    base.display()
+                ),
+            });
             return Ok(());
         };
         let ini = self.simulation_ini(&configuration)?;

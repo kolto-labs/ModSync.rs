@@ -1850,6 +1850,35 @@ the guide for the same reason and `install` would stop there: fetch or place the
 missing file (or pass `--allow-processes` for a trusted Execute step), then validate
 again. Use `--dry-run` to see every component with a missing download at once.
 
+## A patcher without changes.ini in the validation dry run — 2026-10-04 UTC
+
+When a component's `Patcher` step finds its patcher executable but no `changes.ini`
+in the patcher folder or its `tslpatchdata` folder (and no named INI or
+`namespaces.ini`), the validation dry run (`validate --dry-run`, the desktop Validate
+step) now reports nothing for it, as C# does: its virtual simulation
+(`TslPatcherVfsSimulator.SimulateInstallAsync`) only logs `No changes.ini found` and
+the step succeeds. Before, Rust added `WARNING: [PatcherSimulation] No changes.ini
+found; no InstallList effects inferred` per such step, so `warningCount` and the
+Validate step's warning cards differed from C#. The decision was already the same. The
+step's progress event now says `No changes.ini found under <patcher folder>; skipped
+InstallList simulation`.
+
+Unchanged: a present `changes.ini` is simulated as before (an empty one, or one without
+`[InstallList]`, has no effect and no warning, as in C#). An InstallList file missing
+from `tslpatchdata` still warns that its content is unknown (deliberate: C# writes an
+empty file in its place). A missing named INI or `namespaces.ini` entry, or a
+namespace index above `0` without `namespaces.ini`, still fails the step; a missing
+executable or patcher folder is still `DryRunSkipped`; install still hands the folder
+to the patcher backend, which needs that configuration. Evidence: [patcher missing
+configuration proof](docs/parity/patcher-missing-configuration-proof/README.md), 69
+checks match and 3 are known differences against the live C# CLI (30 fail on `c22836a`); contract in
+[patcher-missing-configuration-contract.md](docs/parity/patcher-missing-configuration-contract.md).
+
+Users: Validate no longer warns about a patcher without `changes.ini`, as C# does not.
+Validate does not check that a patcher has its configuration: if a patcher mod's
+folder has no `tslpatchdata/changes.ini`, re-extract or re-download it before
+installing, or the patcher will fail during install.
+
 ## CleanList list-file choice — 2026-10-04 UTC
 
 A `CleanList` reads one list file. When its Source list names more than one existing

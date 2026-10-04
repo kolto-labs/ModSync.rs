@@ -9,6 +9,17 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+A patcher without changes.ini in the validation dry run (2026-10-04, F05/F08/F09):
+when a Patcher step's executable is present but the patcher folder and its
+`tslpatchdata` folder hold no `changes.ini`, `validate --dry-run` and the desktop
+Validate step no longer add a `PatcherSimulation` warning, as C# does not: its
+`TslPatcherVfsSimulator.SimulateInstallAsync` only logs the miss
+(`TSLPatcher/TslPatcherVfsSimulator.cs:44-50`) and the step succeeds. The decision was
+already the same. The unknown-payload warning stays (deliberate). Proof: 69 match / 3
+known against the live C# CLI; 30 fail on `c22836a`. The regression probes stay at
+baseline. See
+[patcher-missing-configuration-contract.md](patcher-missing-configuration-contract.md).
+
 Step simulation in the validation report without a dry run (2026-10-04, F08): with
 both roots and a report flag but no `--dry-run` (`--output json`, `--output text`,
 `--validation-report`, `--errors-only`, `--full`), `validate` now simulates every step
