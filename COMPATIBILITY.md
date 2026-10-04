@@ -407,7 +407,7 @@ Reference: the local ModSync C# source at `d31ccbd3bfcddb4705917eafa6483715c166d
 | Formats | Existing `thisMod` TOML; JSON arrays; YAML document streams; XML; format aliases/autodetection; fenced structured Markdown; default prose fields and YAML/TOML component comments | Prose export, legacy bullet metadata, custom regex profiles and complete parser error-recovery parity remain open |
 | Metadata | Preserves additional component fields; TOML/YAML retain build metadata | Preserving a field does not implement its feature; XML typing of arbitrary metadata remains unverified |
 | Selection | File selections, select-all when all components are unselected; explicit CLI components/options; desktop dependency/restriction and deselection cascades across components and options | Native interaction and full Unicode GUID-comparison parity remain open |
-| Ordering | Stable dependency sort, restrictions, InstallBefore/After, instruction conditions | Missing references and cycles fail |
+| Ordering | C# install order (breadth-first over Dependencies and InstallBefore/After from the resolver's order; Markdown by Dependencies only; `--direct-markdown` in source order), restrictions, instruction conditions; validate and install refuse a bad InstallBefore/After reference anywhere in a non-Markdown guide | Missing references and cycles fail; phased installs keep widescreen-only components after the base build |
 | Options | Choose resolves selected option GUIDs in declared option order; an entry names an option only as its hyphenated GUID (any case), as in C# | No automatic choice inference; an entry that names no option is refused, where C# ignores it |
 | File operations | Copy, Move, Rename, Delete, Extract, DelDuplicate, CleanList | Copy/Move flatten matched files into the target, as the C# instruction engine does; a Copy/Move whose target is the source itself is skipped with a warning when `Overwrite = false` and refused otherwise; Delete with `Overwrite = true` fails on a missing file, as C# does; a Delete with no Source is a no-op unless `Overwrite = true`; Extract replaces existing files whatever `Overwrite` says, as C# does (configured FOMOD extraction with `Overwrite = false` is refused instead; C# keeps an existing directory or read-only file at an entry path and succeeds, where Rust fails on the directory and replaces the read-only file) |
 | Archives | Streaming ZIP, 7z, RAR, TAR, GZip and 7z SFX; integrity checks; isolated extraction root; `[`/`]` in member names are ordinary characters, as in C# | No encrypted/multipart archives; SFX support is limited to embedded 7z payloads; empty directories are not materialized; a member named with `*` or `?` fails the archive (fail-closed) |
@@ -1584,6 +1584,60 @@ Users: a guide that failed with `Wildcards are not allowed here` naming a file o
 folder from a patcher's changes.ini or namespaces.ini now validates and installs; no
 guide change is needed.
 
+## Install order and reference checks — 2026-10-04 UTC
+
+`install` now runs the selected components in the order the C# CLI does
+(`InstallCoordinator.GetOrderedInstallList`): starting from the order the C# loader
+gives a guide, every component, selected or not, is sorted breadth-first by
+`Dependencies`, `InstallAfter` and `InstallBefore`, so a component waits for its whole
+layer. For `A`, `B` (InstallAfter `A`), `C`, both now install `A, C, B`; Rust used to
+install `A, B, C`, taking the first ready component in file order and ignoring
+unselected components. Widescreen-only components take their breadth-first place too,
+as in the C# CLI. A Markdown guide (by extension, or by content for `.txt`, other
+extensions and no extension) orders by `Dependencies` alone from file order, because
+the C# Markdown reader drops `InstallBefore` and `InstallAfter`; those fields neither
+order nor stop a Markdown install. `--direct-markdown` keeps the guide's source order,
+as C# does. The validate dry run, checkpoints and the desktop use the same order.
+
+`validate` (with or without roots), `install` and `conflicts` now also run C#'s
+reference check when they load a non-Markdown guide: a missing, self or circular
+`InstallBefore`/`InstallAfter` reference on any component, selected or not, stops the
+run before the report or any game write with `Dependency resolution failed with N
+errors. Fix these InstallBefore/InstallAfter references in the guide (validate and
+install do not take --ignore-errors):` and one line per error (`error` in `--output
+json`), exit 1. Otherwise the report lists the components in the resolver's order, as
+C#'s does. Before, Rust checked references only on selected components, inside the
+report.
+
+New for phased installs: `--phase base` and `--phase remaining` keep selected
+widescreen-only components after the base build, because Remaining continues the base
+prefix. When a selected base component must follow a selected widescreen-only one
+(directly or through unselected components), `--phase base` now refuses before any
+write with `The base build cannot be installed first: a base component must install
+after widescreen-only <W> or a later widescreen-only component. Install with --phase
+all.` (`<W>` is the first selected widescreen-only component in the install order);
+before, Base installed and Remaining then refused.
+
+Unchanged and documented: `--ignore-errors` stays refused on validate and install. A
+selected component whose Dependencies are not selected, a Restrictions conflict and a
+cycle through Dependencies are still refused; C# installs those components (checked
+live). Rust's dry run simulates the install order; C# simulates the list order. With
+phases, the widescreen-only components install in breadth-first order; the C# wizard's
+widescreen page uses list order. Evidence: [install order
+proof](docs/parity/install-order-proof/README.md), 161 checks match and 1 is a known
+difference against the live C# CLI (85 fail on `e4c0b4d`, 23 on the first version of
+this change, `174482a`); contract in
+[install-order-contract.md](docs/parity/install-order-contract.md).
+
+Users: when one mod's `InstallAfter`, `InstallBefore` or `Dependencies` holds it back,
+mods with no such link that come later in the guide may now install before it, as in
+C#, so a file both write can end up from a different mod than with the previous
+version. In a Markdown guide only `Dependencies` order the install. If validate or
+install now stops with `Dependency resolution failed`, fix or remove the named
+reference, even on a component you have not selected. If `--phase base` now refuses,
+install with `--phase all`. A phased or checkpointed install started with an older
+version may refuse to resume because the order changed; restore and start it again.
+
 ## Component order in convert — 2026-10-04 UTC
 
 `convert` now writes a guide's components in the order the C# converter does: each
@@ -1603,10 +1657,10 @@ Markdown reader ignores `InstallBefore` and `InstallAfter`; Rust still writes th
 references it read.
 
 Unchanged and documented: with `--ignore-errors`, a cycle is still refused; C# writes
-a guide with no components there. Validate, install, `conflicts` and `merge` keep
-their own order and checks (install order is not changed), and `merge` does not take
-`--ignore-errors`. References keep their authored spelling. A reference that is not a
-GUID (or is empty) is refused as missing; C# drops that component's whole list and
+a guide with no components there. `merge` keeps its own order and does not take
+`--ignore-errors`. (Validate, install and `conflicts` now run the same check; see
+"Install order and reference checks" above.) References keep their authored
+spelling. A reference that is not a GUID (or is empty) is refused as missing; C# drops that component's whole list and
 converts. Evidence: [convert
 dependency order proof](docs/parity/convert-dependency-order-proof/README.md), 126
 checks match and 14 are known differences against the live C# CLI (57 fail on

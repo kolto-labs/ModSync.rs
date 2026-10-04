@@ -45,6 +45,23 @@ pub struct Guide {
     pub components: Vec<Component>,
     #[serde(flatten)]
     pub metadata: BTreeMap<String, serde_json::Value>,
+    /// How `ordered` treats this guide; set by the loader and the CLI, never written.
+    #[serde(skip)]
+    pub ordering: Ordering,
+}
+
+/// Install-order rules that depend on how a guide was read and run.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Ordering {
+    /// The file was read as Markdown. The C# Markdown ingest drops InstallBefore and
+    /// InstallAfter, so they neither order nor stop the install (Dependencies still do).
+    pub markdown: bool,
+    /// Install the selection in list order, as C# does for `--direct-markdown`
+    /// (`preserveInputOrder`).
+    pub preserve_input_order: bool,
+    /// Keep selected widescreen-only components after the base build, for the
+    /// Base/Remaining phase split.
+    pub widescreen_last: bool,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -177,7 +194,7 @@ impl Guide {
 
     fn parse_observed(text: &str, format: &str, default_selection: bool) -> Result<Self> {
         let started = std::time::Instant::now();
-        let result = Self::parse_with(text, format, true, default_selection);
+        let mut result = Self::parse_with(text, format, true, default_selection);
         let normalized = format.trim().to_ascii_lowercase();
         let kind = canonical_format(&normalized).unwrap_or(
             if normalized.is_empty() || normalized == "auto" {
@@ -186,6 +203,13 @@ impl Guide {
                 "unsupported"
             },
         );
+        if let Ok(guide) = &mut result {
+            // C#'s Markdown ingest drops InstallBefore/InstallAfter; `ordered` follows it.
+            guide.ordering.markdown = match kind {
+                "auto" => Self::markdown_text(text),
+                kind => kind == "md",
+            };
+        }
         let error = result.as_ref().err().map(|error| format!("{error:#}"));
         crate::telemetry::global().record_parsing_operation(
             kind,
@@ -516,77 +540,141 @@ impl Guide {
         ids
     }
 
-    /// Stable topological sort: keep guide order whenever graph constraints allow it.
+    /// The order C# installs the selected components in
+    /// (`InstallCoordinator.GetOrderedInstallList`): a breadth-first sort of every
+    /// top-level component, selected or not, by Dependencies, InstallAfter and
+    /// InstallBefore, starting from the dependency resolver's order as C# loads a guide
+    /// (file order when that reports an error). A Markdown guide orders by Dependencies
+    /// alone from file order, and `preserve_input_order` keeps the list order, as in C#.
+    /// With `widescreen_last` (phased installs) selected widescreen-only components
+    /// follow the base build unless a selected base component must follow one. Rust
+    /// refuses Dependencies that are not selected, Restrictions conflicts, missing
+    /// references and cycles among the selection; C# installs those components anyway.
     pub fn ordered(&self) -> Result<Vec<&Component>> {
-        use crate::guid::{Identity, key_ascii};
+        use crate::guid::key_ascii;
+        let Ordering {
+            markdown,
+            preserve_input_order,
+            widescreen_last,
+        } = self.ordering;
         let selected: Vec<_> = self.components.iter().filter(|c| c.is_selected).collect();
         ensure!(!selected.is_empty(), "Select at least one component");
-        let all: BTreeSet<_> = self.components.iter().map(|c| key_ascii(&c.guid)).collect();
+        let index: BTreeMap<_, _> = self
+            .components
+            .iter()
+            .enumerate()
+            .map(|(i, c)| (key_ascii(&c.guid), i))
+            .collect();
         ensure!(
-            all.len() == self.components.len(),
+            index.len() == self.components.len(),
             "Duplicate component GUID values in ordering graph"
         );
-        let ids: BTreeSet<_> = selected.iter().map(|c| key_ascii(&c.guid)).collect();
-        let mut predecessors: BTreeMap<Identity, BTreeSet<Identity>> =
-            ids.iter().map(|id| (id.clone(), BTreeSet::new())).collect();
+        let find = |guid: &String| index.get(&key_ascii(guid)).copied();
+        let chosen = |i: usize| self.components[i].is_selected;
         for c in &selected {
-            let id = key_ascii(&c.guid);
             for required in &c.dependencies {
-                let required_key = key_ascii(required);
                 ensure!(
-                    ids.contains(&required_key),
+                    find(required).is_some_and(chosen),
                     "{} requires selected component {required}",
                     c.name
                 );
-                predecessors.get_mut(&id).unwrap().insert(required_key);
             }
             for conflict in &c.restrictions {
                 ensure!(
-                    !ids.contains(&key_ascii(conflict)),
+                    !find(conflict).is_some_and(chosen),
                     "{} conflicts with {conflict}",
                     c.name
                 );
             }
-            for after in &c.install_after {
-                let after_key = key_ascii(after);
+            for after in order_references(&c.install_after, markdown) {
                 ensure!(
-                    all.contains(&after_key),
+                    find(after).is_some(),
                     "{} references missing InstallAfter {after}",
                     c.name
                 );
-                if ids.contains(&after_key) {
-                    predecessors.get_mut(&id).unwrap().insert(after_key);
-                }
             }
-            for before in &c.install_before {
-                let before_key = key_ascii(before);
+            for before in order_references(&c.install_before, markdown) {
                 ensure!(
-                    all.contains(&before_key),
+                    find(before).is_some(),
                     "{} references missing InstallBefore {before}",
                     c.name
                 );
-                if ids.contains(&before_key) {
-                    predecessors
-                        .get_mut(&before_key)
-                        .unwrap()
-                        .insert(id.clone());
+            }
+        }
+        if preserve_input_order {
+            return Ok(selected);
+        }
+        let n = self.components.len();
+        let base = match markdown {
+            true => (0..n).collect(),
+            false => match self.resolve_dependencies()? {
+                Resolution {
+                    errors,
+                    order: Some(order),
+                } if errors.is_empty() => order,
+                _ => (0..n).collect(),
+            },
+        };
+        let mut next = vec![Vec::new(); n];
+        let mut indegree = vec![0_usize; n];
+        for &i in &base {
+            let c = &self.components[i];
+            for j in c
+                .dependencies
+                .iter()
+                .chain(order_references(&c.install_after, markdown))
+                .filter_map(find)
+            {
+                next[j].push(i);
+                indegree[i] += 1;
+            }
+            for j in order_references(&c.install_before, markdown)
+                .iter()
+                .filter_map(find)
+            {
+                next[i].push(j);
+                indegree[j] += 1;
+            }
+        }
+        let mut queue: std::collections::VecDeque<_> =
+            base.iter().copied().filter(|&i| indegree[i] == 0).collect();
+        let mut placed = vec![false; n];
+        let mut order = Vec::with_capacity(n);
+        while let Some(i) = queue.pop_front() {
+            placed[i] = true;
+            if chosen(i) {
+                order.push(i);
+            }
+            for &j in &next[i] {
+                indegree[j] -= 1;
+                if indegree[j] == 0 {
+                    queue.push_back(j);
                 }
             }
         }
-        let mut result = Vec::new();
-        let mut done = BTreeSet::new();
-        while result.len() < selected.len() {
-            let next = selected.iter().find(|c| {
-                let id = key_ascii(&c.guid);
-                !done.contains(&id) && predecessors[&id].is_subset(&done)
-            });
-            let Some(c) = next else {
-                bail!("Dependency/order cycle among selected components");
-            };
-            done.insert(key_ascii(&c.guid));
-            result.push(*c);
+        if let Some(&i) = base.iter().find(|&&i| !placed[i] && chosen(i)) {
+            bail!(
+                "Dependency/order cycle: {} cannot be ordered",
+                self.components[i].name
+            );
         }
-        Ok(result)
+        if widescreen_last {
+            let widescreen = |i: usize| crate::phase::widescreen(&self.components[i]);
+            let mut later = vec![false; n];
+            let mut stack: Vec<_> = order.iter().copied().filter(|&i| widescreen(i)).collect();
+            while let Some(i) = stack.pop() {
+                for &j in &next[i] {
+                    if !later[j] {
+                        later[j] = true;
+                        stack.push(j);
+                    }
+                }
+            }
+            if !order.iter().any(|&i| later[i] && !widescreen(i)) {
+                order.sort_by_key(|&i| widescreen(i));
+            }
+        }
+        Ok(order.into_iter().map(|i| &self.components[i]).collect())
     }
 
     /// Whether `load(path)` reads the file as Markdown: by its extension, or by content
@@ -610,14 +698,63 @@ impl Guide {
 
     /// C# `convert` (`ModBuildConverter.HandleDependencyResolutionErrors` over
     /// `DependencyResolverService.ResolveDependencies`): order every top-level component,
-    /// selected or not, by InstallBefore/InstallAfter alone with a depth-first post-order,
+    /// selected or not, by InstallBefore/InstallAfter with a depth-first post-order,
     /// visiting components in guide order and each one's edges in authored order. Missing,
     /// self and circular references fail unless `ignore_errors`, which then orders around
     /// missing references but still refuses a cycle: C# writes an empty guide there.
     /// Returns the warning lines C# logs when `ignore_errors` lets errors through.
     pub fn sort_like_dependency_resolver(&mut self, ignore_errors: bool) -> Result<Vec<String>> {
+        let Resolution { errors, order } = self.resolve_dependencies()?;
+        let listed = listed_errors(&errors);
+        ensure!(
+            errors.is_empty() || ignore_errors,
+            "Dependency resolution failed with {} errors. Use --ignore-errors flag to attempt loading in best possible order.\n{}",
+            errors.len(),
+            listed.join("\n")
+        );
+        let order = order.context(
+            "Dependency resolution failed: a circular InstallBefore/InstallAfter order cannot be resolved, even with --ignore-errors. Remove the cycle from the guide.",
+        )?;
+        self.reorder(order);
+        if errors.is_empty() {
+            return Ok(Vec::new());
+        }
+        let mut warnings = vec![format!(
+            "Dependency resolution failed with {} errors:",
+            errors.len()
+        )];
+        warnings.extend(listed);
+        Ok(warnings)
+    }
+
+    /// C# validate and install (`HandleDependencyResolutionErrors` without
+    /// `--ignore-errors`, which Rust refuses there): a missing, self or circular
+    /// InstallBefore/InstallAfter reference on any top-level component, selected or not,
+    /// stops the run; otherwise the components take the resolver's order, as in convert.
+    pub fn sort_for_install(&mut self) -> Result<()> {
+        let Resolution { errors, order } = self.resolve_dependencies()?;
+        ensure!(
+            errors.is_empty(),
+            "Dependency resolution failed with {} errors. Fix these InstallBefore/InstallAfter references in the guide (validate and install do not take --ignore-errors):\n{}",
+            errors.len(),
+            listed_errors(&errors).join("\n")
+        );
+        self.reorder(order.context("Circular InstallBefore/InstallAfter order")?);
+        Ok(())
+    }
+
+    fn reorder(&mut self, order: Vec<usize>) {
+        let mut slots: Vec<_> = std::mem::take(&mut self.components)
+            .into_iter()
+            .map(Some)
+            .collect();
+        self.components = order.into_iter().filter_map(|i| slots[i].take()).collect();
+    }
+
+    /// C# `DependencyResolverService.ResolveDependencies` over the top-level components:
+    /// its errors in its order, and its depth-first post-order (`None` on a cycle).
+    fn resolve_dependencies(&self) -> Result<Resolution> {
         use crate::guid::{key_ascii, option_text};
-        const SHOWN: usize = 50;
         let n = self.components.len();
         let mut index = BTreeMap::new();
         for (i, c) in self.components.iter().enumerate() {
@@ -682,50 +819,51 @@ impl Guide {
             {
                 let mut names = cycle
                     .iter()
-                    .take(SHOWN)
+                    .take(SHOWN_ERRORS)
                     .map(|&i| self.components[i].name.as_str())
                     .collect::<Vec<_>>()
                     .join(" → ");
-                if cycle.len() > SHOWN {
+                if cycle.len() > SHOWN_ERRORS {
                     names.push_str(&format!(" → … ({} components)", cycle.len()));
                 }
                 errors.push(format!("{names}: Circular dependency detected: {names}"));
             }
         }
-        let mut listed = errors
-            .iter()
-            .take(SHOWN)
-            .map(|e| format!("  - {e}"))
-            .collect::<Vec<_>>();
-        if errors.len() > SHOWN {
-            listed.push(format!("  … and {} more", errors.len() - SHOWN));
-        }
-        ensure!(
-            errors.is_empty() || ignore_errors,
-            "Dependency resolution failed with {} errors. Use --ignore-errors flag to attempt loading in best possible order.\n{}",
-            errors.len(),
-            listed.join("\n")
-        );
         let mut order = Vec::with_capacity(n);
         let (mut done, mut open) = (vec![false; n], vec![false; n]);
-        for root in 0..n {
-            post_order(root, &graph, &mut done, &mut open, &mut order)?;
-        }
-        let mut slots: Vec<_> = std::mem::take(&mut self.components)
-            .into_iter()
-            .map(Some)
-            .collect();
-        self.components = order.into_iter().filter_map(|i| slots[i].take()).collect();
-        if errors.is_empty() {
-            return Ok(Vec::new());
-        }
-        let mut warnings = vec![format!(
-            "Dependency resolution failed with {} errors:",
-            errors.len()
-        )];
-        warnings.extend(listed);
-        Ok(warnings)
+        let complete =
+            (0..n).all(|root| post_order(root, &graph, &mut done, &mut open, &mut order));
+        Ok(Resolution {
+            errors,
+            order: complete.then_some(order),
+        })
     }
+}
+
+/// The InstallBefore/InstallAfter entries that order a guide: none for Markdown, whose
+/// C# ingest drops them.
+fn order_references(list: &[String], markdown: bool) -> &[String] {
+    if markdown { &[] } else { list }
+}
+
+const SHOWN_ERRORS: usize = 50;
+
+struct Resolution {
+    errors: Vec<String>,
+    order: Option<Vec<usize>>,
+}
+
+/// The error lines C# logs, at most `SHOWN_ERRORS` of them.
+fn listed_errors(errors: &[String]) -> Vec<String> {
+    let mut listed = errors
+        .iter()
+        .take(SHOWN_ERRORS)
+        .map(|e| format!("  - {e}"))
+        .collect::<Vec<_>>();
+    if errors.len() > SHOWN_ERRORS {
+        listed.push(format!("  … and {} more", errors.len() - SHOWN_ERRORS));
+    }
+    listed
 }
 
 /// C# `DependencyResolverService.DetectCycleDFS`, including its early return that leaves
@@ -768,29 +906,30 @@ fn detect_cycle(
 }
 
 /// C# `DependencyResolverService.TopologicalSortDFS`: a component follows everything it
-/// must be installed after.
+/// must be installed after. False on a cycle.
 fn post_order(
     current: usize,
     graph: &[Vec<usize>],
     done: &mut [bool],
     open: &mut [bool],
     order: &mut Vec<usize>,
-) -> Result<()> {
-    ensure!(
-        !open[current],
-        "Dependency resolution failed: a circular InstallBefore/InstallAfter order cannot be resolved, even with --ignore-errors. Remove the cycle from the guide."
-    );
+) -> bool {
+    if open[current] {
+        return false;
+    }
     if done[current] {
-        return Ok(());
+        return true;
     }
     done[current] = true;
     open[current] = true;
     for &next in &graph[current] {
-        post_order(next, graph, done, open, order)?;
+        if !post_order(next, graph, done, open, order) {
+            return false;
+        }
     }
     open[current] = false;
     order.push(current);
-    Ok(())
+    true
 }
 
 /// C# compares instruction Dependencies and Restrictions as `List<Guid>` and matches Choose

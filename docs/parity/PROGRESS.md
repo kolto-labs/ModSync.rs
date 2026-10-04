@@ -9,14 +9,32 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Install order and reference checks (2026-10-04, F04): `install` now runs the selected
+components in the C# CLI's order, a breadth-first sort of every component by
+Dependencies, InstallAfter and InstallBefore from the resolver's order
+(`InstallCoordinator.cs:97-186`); Rust took the first ready selected component in file
+order (`A`, `B` after `A`, `C`: C# and now Rust `A, C, B`, Rust before `A, B, C`).
+Widescreen-only components take their breadth-first place, Markdown guides order by
+Dependencies only (C# drops InstallBefore/InstallAfter there) and `--direct-markdown`
+keeps source order, as in C#. Validate, install and `conflicts` now refuse a missing,
+self or circular InstallBefore/InstallAfter reference on any component of a
+non-Markdown guide before the report, and list components in the resolver's order, as
+C# does (`ModBuildConverter.cs:3092`, `:3418`). New: `--phase base`/`remaining` keep
+widescreen-only components after the base build, and `--phase base` refuses before
+any write when a base component must follow one. The dry run follows the install
+order and `--ignore-errors` stays refused (documented). Proof: 161 match / 1 known
+against the live C# CLI; 85 fail on `e4c0b4d`, 23 on the first version `174482a`. The
+regression probes stay at baseline. See
+[install-order-contract.md](install-order-contract.md).
+
 Component order in `convert` (2026-10-04, F01/F04): `convert` now writes components in
 the C# dependency resolver's order (`DependencyResolverService.cs:48-403`, called at
 `ModBuildConverter.cs:2046`) and refuses missing, self and circular
 InstallBefore/InstallAfter references unless `--ignore-errors`, which it now accepts;
 Rust wrote the file order and refused nothing. Markdown input keeps file order and is
 never refused, as in C# (its Markdown reader drops those fields). With
-`--ignore-errors` a cycle stays refused (C# writes an empty guide). Install order is
-unchanged. Proof: 126 match / 14 known against the live C# CLI; 57 fail on `24897e6`. The regression probes stay at
+`--ignore-errors` a cycle stays refused (C# writes an empty guide). Install order was
+unchanged (since compared, above). Proof: 126 match / 14 known against the live C# CLI; 57 fail on `24897e6`. The regression probes stay at
 baseline. See [convert-dependency-order-contract.md](convert-dependency-order-contract.md).
 
 File selection when the file selects nothing (2026-10-04, F04/F08): `validate` and

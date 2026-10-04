@@ -165,7 +165,8 @@ already ordered guide, an option-level reference C# does not check) match on bot
   Dependencies (`Installation/InstallCoordinator.cs:97-186`). Rust validate and install
   keep `Guide::ordered`, which checks references only on selected components and
   refuses `--ignore-errors` by name (COMPATIBILITY.md). Install order is F04-D/F04-F
-  and is not changed here. `merge` and `convert --merge` do not take `--ignore-errors`
+  and is not changed here (since compared and fixed:
+  [install-order-contract.md](install-order-contract.md)). `merge` and `convert --merge` do not take `--ignore-errors`
   in Rust; C# accepts it there and does not use it.
 - **Platform.** The reference ran on Linux under `unshare -rn` with
   `DOTNET_ROLL_FORWARD=Major`. Nothing here depends on the platform.

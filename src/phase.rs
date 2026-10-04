@@ -28,7 +28,7 @@ pub struct PreparedPhase {
     pub completed: Vec<String>,
 }
 
-fn widescreen(component: &crate::Component) -> bool {
+pub(crate) fn widescreen(component: &crate::Component) -> bool {
     component
         .metadata
         .get("WidescreenOnly")
@@ -75,6 +75,8 @@ fn prepare_impl(
     resolved: Option<(&crate::paths::Roots, bool, &std::sync::atomic::AtomicBool)>,
 ) -> Result<PreparedPhase> {
     let mut guide = selected.clone();
+    // The phase split needs the base build first in the install order.
+    guide.ordering.widescreen_last = phase != Phase::All;
     let completed = match (phase, context) {
         (Phase::All | Phase::Base, CompletionContext::None) => Vec::new(),
         (Phase::Remaining, CompletionContext::Retained { ids }) => ids.to_vec(),
@@ -87,6 +89,17 @@ fn prepare_impl(
         _ => bail!("Invalid phase/completion context"),
     };
     if phase == Phase::Base {
+        // Refuse before any write when a selected base component must install after a
+        // selected widescreen-only one: Remaining could never continue that order.
+        if let Ok(full) = guide.ordered()
+            && let Some(first) = full.iter().position(|c| widescreen(c))
+            && full[first..].iter().any(|c| !widescreen(c))
+        {
+            bail!(
+                "The base build cannot be installed first: a base component must install after widescreen-only {} or a later widescreen-only component. Install with --phase all.",
+                full[first].name
+            );
+        }
         for component in &mut guide.components {
             if widescreen(component) {
                 component.is_selected = false;
