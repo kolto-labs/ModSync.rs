@@ -27,8 +27,9 @@ fn strings<'de, D: Deserializer<'de>>(d: D) -> Result<Vec<String>, D::Error> {
 fn yes() -> bool {
     true
 }
-/// The loaders drop blank Source list entries, so a single blank path can only come
-/// from a scalar `Source = ""`, which path resolution refuses. Write it back as a
+/// The loaders drop blank Source list entries, so a single blank path comes from a
+/// scalar `Source = ""` (or a `guide-edit` transaction, which bypasses the loader
+/// filter); path resolution refuses it either way. Write it back as a
 /// scalar so a saved or converted guide keeps that refusal instead of reading back
 /// as an empty list.
 fn source_out<S: Serializer>(source: &[String], s: S) -> Result<S::Ok, S::Error> {

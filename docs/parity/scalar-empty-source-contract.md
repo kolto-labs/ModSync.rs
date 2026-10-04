@@ -63,7 +63,10 @@ The other XML fields that `array` collapses (`Category`, `Language`, `Dependenci
 - **Markdown.** The metadata pass keeps the scalar as `[""]`, and the instruction
   serializer now writes a single blank Source back as a scalar (`source_out`,
   `src/model.rs:30-40`, `:86`), so the second pass keeps it too. The loaders have
-  already removed blank list entries, so only a scalar can leave one. The guide is
+  already removed blank list entries, so only a scalar can leave one, except a
+  `guide-edit` transaction that inserts `"Source": [""]` directly (serde bypasses the
+  loader filter). That case now saves as `Source = ""` and is refused, where before it
+  saved `[""]` and read back as empty; it was already refused in memory. The guide is
   then refused as above.
 - **Choose.** C# skips path deserialization for Choose
   (`ModComponentSerializationService.cs:2141-2145`, `:2350-2354`), so a scalar empty
@@ -75,8 +78,13 @@ The other XML fields that `array` collapses (`Category`, `Language`, `Dependenci
 - **Saving and `convert`.** Because the serializer writes a single blank Source as a
   scalar, every save path keeps it: TOML `Source = ""`, JSON `"Source": ""`, YAML and
   Markdown `Source: ''`, XML `<Source></Source>` (the Markdown export no longer drops a
-  blank Source, `src/markdown/export.rs:198`). A refused guide stays refused after
-  conversion to any format. Before, it read back as an empty list.
+  blank Source, `src/markdown/export.rs:198`). A refused non-Choose guide stays refused
+  after conversion to any format. A Choose refused by the standalone TOML, JSON or YAML
+  reader (an older divergence) is accepted after conversion to XML or Markdown, whose
+  readers apply the Choose exemption; that result is the C# behaviour.
+- **Markdown Choose detection** uses the canonical action, while XML and the model use
+  the raw text. A Markdown `Action = 9`, `Source = ""` therefore loads as an empty
+  Choose, where C# compares the raw text, throws, and drops the metadata block. Before, it read back as an empty list.
 - **Unchanged.** `[]`, `[""]`, a missing key and `<Source/>` keep the empty-list
   behaviour. Non-blank sources and the TOML, JSON and YAML loaders are unchanged.
 

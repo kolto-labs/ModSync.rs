@@ -1214,7 +1214,7 @@ which drops the whole metadata block.
   and `list` still load the guide, as for TOML.
 - Saving keeps the scalar: a single blank Source is written as `Source = ""`
   (TOML), `"Source": ""` (JSON), `Source: ''` (YAML, Markdown) or `<Source></Source>`
-  (XML), so a guide converted to any format is still refused. Before, the converted
+  (XML), so a non-Choose guide converted to any format is still refused. Before, the converted
   guide read back as an empty list and a non-strict Delete then installed as a no-op.
 - A self-closing `<Source />` is null in C# and loads as an empty list; Rust now reads
   it the same way, so it keeps the empty-list behaviour. `[]`, `[""]`, a missing key
