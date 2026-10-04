@@ -74,3 +74,18 @@ fails the component) and a wrong final tree, because later steps ran.
   still removes the files under such a directory, as before; C# does not.
 - **Case.** The check uses Rust's case-insensitive path keys. C# on Linux
   resolves case through `CaseInsensitivePathing`. The probe uses exact case only.
+
+## Notes for guide authors (review of ba3da94)
+
+- A cleanup `Delete` with `Overwrite = true` on an optional file that may be absent
+  now fails plain `validate` and `install`, as it already did in C#. Omit `Overwrite`
+  or set it to `false` for optional cleanup.
+- The guide loaders default a Delete's missing `Overwrite` to `false`. The
+  `guide-edit` transaction path deserializes instructions directly and uses the model
+  default of `true`, which is also C#'s `new Instruction()` default. A Delete inserted
+  through `guide-edit` without `Overwrite` is therefore strict.
+- When nothing resolves, the error names the first source, which may be a wildcard
+  rather than the missing literal. Only the message differs; the decision matches C#.
+- With managed deployment, the per-component preflight refuses before that
+  component's writes, but earlier components may already be committed, as with
+  missing Copy/Move sources.

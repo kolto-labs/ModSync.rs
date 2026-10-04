@@ -1182,6 +1182,11 @@ still not an error. Evidence: [delete-strict proof](docs/parity/delete-strict-pr
 39/39 checks against a live reference oracle (15 fail on `8fad43c`); contract in
 [delete-strict-contract.md](docs/parity/delete-strict-contract.md).
 
+
+Guide authors: a cleanup `Delete` with `Overwrite = true` on an optional file that may be
+absent now fails, as in C#. Omit `Overwrite` (the loaders default it to `false` for Delete)
+or set it to `false`. `guide-edit` inserts default `Overwrite` to `true`.
+
 ## Rename onto an existing file — 2026-10-04 UTC
 
 A `Rename` instruction with `Overwrite = false` whose target file already exists now
