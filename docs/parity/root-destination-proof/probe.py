@@ -33,6 +33,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+import zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
@@ -77,7 +78,21 @@ def deldup(destination):
     return ("DelDuplicate", [], destination, ".tga")
 
 
-# name -> (instructions, option instructions)
+# Two archives for the bare-root Source cases: one at the mod root, one below it.
+ARCHIVES = {"mods/a.zip": {"a.txt": "AZIP\n"}, "mods/sub/b.zip": {"b.txt": "BZIP\n"}}
+# The same archives in a mod root with no other files (the default mod files dropped).
+ARCHIVES_ONLY = (ARCHIVES, ("mods/",))
+
+
+def extract(sources, destination=None):
+    return ("Extract", sources, destination, None)
+
+
+def delete(sources, overwrite=None):
+    return ("Delete", sources, None, None, overwrite)
+
+
+# name -> (instructions, option instructions[, (extra files, dropped prefixes)])
 CASES = {
     "copy_override_control": ([copy(OV)], []),
     "copy_kotor": ([copy(KD)], []),
@@ -105,6 +120,25 @@ CASES = {
     "delete_source_kotor": ([("Delete", [KD], None, None)], []),
     "rename_destination_kotor": ([("Rename", [KD + "/r.txt"], KD, None)], []),
     "missing_folder_control": ([copy(KD + "/Missing")], []),
+    # A `.` Destination part: Copy and Move install in both; DelDuplicate and
+    # CleanList are refused by both at execution.
+    "move_kotor_dot": ([move(KD + "/.")], []),
+    "deldup_kotor_dot": ([deldup(KD + "/.")], []),
+    "deldup_override_dot": ([deldup(OV + "/.")], []),
+    "cleanlist_kotor_dot": ([cleanlist(KD + "/.")], []),
+    "cleanlist_override_dot": ([cleanlist(OV + "/.")], []),
+    # A bare root as Source names no file and nothing beneath it.
+    "extract_source_mod_root_archives_only": ([extract([MD])], [], ARCHIVES_ONLY),
+    "extract_source_mod_root_mixed": ([extract([MD])], [], (ARCHIVES, ())),
+    "extract_source_kotor": ([extract([KD])], []),
+    "copy_source_mod_root": ([copy(OV, MD)], [], (ARCHIVES, ())),
+    "copy_source_kotor": ([copy(MD, KD)], []),
+    "move_source_mod_root_archives_only": ([("Move", [MD], OV, None)], [], ARCHIVES_ONLY),
+    "delete_source_mod_root": ([delete([MD])], [], (ARCHIVES, ())),
+    "delete_source_mod_root_strict": ([delete([MD], True)], [], (ARCHIVES, ())),
+    "delete_source_kotor_strict": ([delete([KD], True)], []),
+    # Extract into the mod root: both extract to mods/<archive stem>/.
+    "extract_destination_mod_root": ([extract([MD + "/a.zip"], MD)], [], (ARCHIVES, ())),
 }
 
 
@@ -112,13 +146,15 @@ def toml_string(value):
     return json.dumps(value)
 
 
-def step(lines, table, action, sources, destination, arguments):
+def step(lines, table, action, sources, destination, arguments, overwrite=None):
     lines += ["", f"[[{table}]]", f"Action = {toml_string(action)}"]
     lines.append("Source = [" + ", ".join(toml_string(s) for s in sources) + "]")
     if destination is not None:
         lines.append(f"Destination = {toml_string(destination)}")
     if arguments is not None:
         lines.append(f"Arguments = {toml_string(arguments)}")
+    if overwrite is not None:
+        lines.append(f"Overwrite = {'true' if overwrite else 'false'}")
 
 
 def guide(instructions, options):
@@ -133,12 +169,20 @@ def guide(instructions, options):
 
 
 def fixture(root, case):
-    instructions, options = case
-    for relative in ("scratch", "home", "xdg"):
+    instructions, options = case[0], case[1]
+    extra, dropped = case[2] if len(case) > 2 else ({}, ())
+    for relative in ("scratch", "home", "xdg", "mods", "game"):
         os.makedirs(os.path.join(root, relative), exist_ok=True)
-    for relative, text in FILES.items():
+    tree = {k: v for k, v in FILES.items() if not k.startswith(dropped)} if dropped else dict(FILES)
+    tree.update(extra)
+    for relative, text in tree.items():
         path = os.path.join(root, relative)
         os.makedirs(os.path.dirname(path), exist_ok=True)
+        if isinstance(text, dict):
+            with zipfile.ZipFile(path, "w") as archive:
+                for member, data in text.items():
+                    archive.writestr(member, data)
+            continue
         with open(path, "w") as handle:
             handle.write(text)
     path = os.path.join(root, "guide.toml")
@@ -152,6 +196,12 @@ def files(base):
     for directory, _, names in os.walk(base):
         for name in names:
             full = os.path.join(directory, name)
+            if zipfile.is_zipfile(full):
+                with zipfile.ZipFile(full) as archive:
+                    result[os.path.relpath(full, base).replace(os.sep, "/")] = "zip: " + ", ".join(
+                        sorted(archive.namelist())
+                    )
+                continue
             with open(full) as handle:
                 result[os.path.relpath(full, base).replace(os.sep, "/")] = handle.read()
     return dict(sorted(result.items()))
@@ -236,6 +286,17 @@ KNOWN = {
 }
 
 
+# Deliberately unchanged acceptances: name -> (Rust modes, reason). Rust must
+# accept where the reference refuses, or the check fails.
+KNOWN_ACCEPTS = {
+    "extract_destination_mod_root": (
+        ("pipeline",),
+        "C# ComponentValidation fails every Extract with a Destination ('Destination' key"
+        " cannot be used); Rust's archive/destination stage does not check Extract (predates this slice)",
+    ),
+}
+
+
 # Rust mode -> reference mode.
 MODES = {"pipeline": "pipeline", "validate": "install", "install": "install"}
 
@@ -274,10 +335,14 @@ def main():
                     extra = (f" dry_run={actual['dry_run']}/{expected['dry_run']}"
                              f" skipped={actual['skipped']}/{expected['skipped']}")
                 is_known = name in KNOWN and mode in KNOWN[name][0]
+                accepts = name in KNOWN_ACCEPTS and mode in KNOWN_ACCEPTS[name][0]
                 refused = not actual["accepted"] or (mode == "pipeline" and not actual["dry_run"])
-                if same and not is_known:
+                if same and not is_known and not accepts:
                     matched += 1
                     verdict = "match"
+                elif accepts and not same and actual["accepted"] and not expected["accepted"]:
+                    known += 1
+                    verdict = "known"
                 elif is_known and not same and refused:
                     known += 1
                     verdict = "known"

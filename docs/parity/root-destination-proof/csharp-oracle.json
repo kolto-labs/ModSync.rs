@@ -56,6 +56,68 @@
    "tree": null
   }
  },
+ "cleanlist_kotor_dot": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: UnknownError"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": false,
+   "dry_run": false,
+   "raw": {
+    "DryRunErrors": [
+     "Dry-run failed for 'Root Destination Probe' with exit code UnknownError."
+    ],
+    "DryRunWarnings": [],
+    "ErrorCount": 2,
+    "IsSuccess": false,
+    "Stages": [
+     {
+      "Messages": [
+       "ERROR: Root Destination Probe: Destination cannot be found! Got '/tmp/root-destination-proof-ga1mwq8x/csharp-pipeline-ruhxv0q3/game/.'"
+      ],
+      "Passed": false,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [
+       "ERROR: [DryRun] Dry-run failed for 'Root Destination Probe' with exit code UnknownError."
+      ],
+      "Passed": false,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
  "cleanlist_kotor_slash": {
   "install": {
    "accepted": true,
@@ -163,6 +225,68 @@
      {
       "Messages": [],
       "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "cleanlist_override_dot": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: UnknownError"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": false,
+   "dry_run": false,
+   "raw": {
+    "DryRunErrors": [
+     "Dry-run failed for 'Root Destination Probe' with exit code UnknownError."
+    ],
+    "DryRunWarnings": [],
+    "ErrorCount": 2,
+    "IsSuccess": false,
+    "Stages": [
+     {
+      "Messages": [
+       "ERROR: Root Destination Probe: Destination cannot be found! Got '/tmp/root-destination-proof-ga1mwq8x/csharp-pipeline-0tqag4ev/game/Override/.'"
+      ],
+      "Passed": false,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [
+       "ERROR: [DryRun] Dry-run failed for 'Root Destination Probe' with exit code UnknownError."
+      ],
+      "Passed": false,
       "Stage": "DryRun"
      }
     ]
@@ -445,7 +569,7 @@
     "Stages": [
      {
       "Messages": [
-       "ERROR: Root Destination Probe: Destination cannot be found! Got '/tmp/root-destination-proof-pa9opoul/csharp-pipeline-z2hdm55g/game/.'"
+       "ERROR: Root Destination Probe: Destination cannot be found! Got '/tmp/root-destination-proof-ga1mwq8x/csharp-pipeline-shyrln9u/game/.'"
       ],
       "Passed": false,
       "Stage": "ComponentValidation"
@@ -681,7 +805,7 @@
     "Stages": [
      {
       "Messages": [
-       "ERROR: Root Destination Probe: Destination cannot be found! Got '/tmp/root-destination-proof-pa9opoul/csharp-pipeline-94nww22f/game/Override/.'"
+       "ERROR: Root Destination Probe: Destination cannot be found! Got '/tmp/root-destination-proof-ga1mwq8x/csharp-pipeline-ibbay1w3/game/Override/.'"
       ],
       "Passed": false,
       "Stage": "ComponentValidation"
@@ -699,6 +823,132 @@
     ]
    },
    "skipped": false,
+   "tree": null
+  }
+ },
+ "copy_source_kotor": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [
+     "Skipped 'Root Destination Probe' during dry-run: source archives or files are not available."
+    ],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [
+       "WARNING: [DryRunSkipped] Skipped 'Root Destination Probe' during dry-run: source archives or files are not available."
+      ],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
+ "copy_source_mod_root": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "a.zip": "zip: a.txt",
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "sub/b.zip": "zip: b.txt",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [
+     "Skipped 'Root Destination Probe' during dry-run: source archives or files are not available."
+    ],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [
+       "WARNING: [DryRunSkipped] Skipped 'Root Destination Probe' during dry-run: source archives or files are not available."
+      ],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": true,
    "tree": null
   }
  },
@@ -925,6 +1175,68 @@
      {
       "Messages": [],
       "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "deldup_kotor_dot": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: UnknownError"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": false,
+   "dry_run": false,
+   "raw": {
+    "DryRunErrors": [
+     "Failed to validate component: Invalid directory path. (Parameter 'directoryPath')"
+    ],
+    "DryRunWarnings": [],
+    "ErrorCount": 2,
+    "IsSuccess": false,
+    "Stages": [
+     {
+      "Messages": [
+       "ERROR: Root Destination Probe: Destination cannot be found! Got '/tmp/root-destination-proof-ga1mwq8x/csharp-pipeline-lywewqeb/game/.'"
+      ],
+      "Passed": false,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [
+       "ERROR: [Validation] Failed to validate component: Invalid directory path. (Parameter 'directoryPath')"
+      ],
+      "Passed": false,
       "Stage": "DryRun"
      }
     ]
@@ -1219,6 +1531,68 @@
    "tree": null
   }
  },
+ "deldup_override_dot": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: UnknownError"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": false,
+   "dry_run": false,
+   "raw": {
+    "DryRunErrors": [
+     "Failed to validate component: Invalid directory path. (Parameter 'directoryPath')"
+    ],
+    "DryRunWarnings": [],
+    "ErrorCount": 2,
+    "IsSuccess": false,
+    "Stages": [
+     {
+      "Messages": [
+       "ERROR: Root Destination Probe: Destination cannot be found! Got '/tmp/root-destination-proof-ga1mwq8x/csharp-pipeline-fbsn6flk/game/Override/.'"
+      ],
+      "Passed": false,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [
+       "ERROR: [Validation] Failed to validate component: Invalid directory path. (Parameter 'directoryPath')"
+      ],
+      "Passed": false,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
  "delete_source_kotor": {
   "install": {
    "accepted": true,
@@ -1277,6 +1651,439 @@
    "tree": null
   }
  },
+ "delete_source_kotor_strict": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [
+     "Skipped 'Root Destination Probe' during dry-run: source archives or files are not available."
+    ],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [
+       "WARNING: [DryRunSkipped] Skipped 'Root Destination Probe' during dry-run: source archives or files are not available."
+      ],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
+ "delete_source_mod_root": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "a.zip": "zip: a.txt",
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "sub/b.zip": "zip: b.txt",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "delete_source_mod_root_strict": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "a.zip": "zip: a.txt",
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "sub/b.zip": "zip: b.txt",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [
+     "Skipped 'Root Destination Probe' during dry-run: source archives or files are not available."
+    ],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [
+       "WARNING: [DryRunSkipped] Skipped 'Root Destination Probe' during dry-run: source archives or files are not available."
+      ],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
+ "extract_destination_mod_root": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "a.zip": "zip: a.txt",
+     "a/a.txt": "AZIP\n",
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "sub/b.zip": "zip: b.txt",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": false,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 1,
+    "IsSuccess": false,
+    "Stages": [
+     {
+      "Messages": [
+       "ERROR: Root Destination Probe: 'Destination' key cannot be used with this action. Got '<<modDirectory>>'"
+      ],
+      "Passed": false,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "extract_source_kotor": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": false,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [
+     "Skipped 'Root Destination Probe' during dry-run: source archives or files are not available."
+    ],
+    "ErrorCount": 1,
+    "IsSuccess": false,
+    "Stages": [
+     {
+      "Messages": [
+       "ERROR: Root Destination Probe: Missing Required Archives: [<<kotorDirectory>>]"
+      ],
+      "Passed": false,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [
+       "WARNING: [DryRunSkipped] Skipped 'Root Destination Probe' during dry-run: source archives or files are not available."
+      ],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
+ "extract_source_mod_root_archives_only": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "a.zip": "zip: a.txt",
+     "sub/b.zip": "zip: b.txt"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": false,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [
+     "Skipped 'Root Destination Probe' during dry-run: source archives or files are not available."
+    ],
+    "ErrorCount": 1,
+    "IsSuccess": false,
+    "Stages": [
+     {
+      "Messages": [
+       "ERROR: Root Destination Probe: Missing Required Archives: [<<modDirectory>>]"
+      ],
+      "Passed": false,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [
+       "WARNING: [DryRunSkipped] Skipped 'Root Destination Probe' during dry-run: source archives or files are not available."
+      ],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
+ "extract_source_mod_root_mixed": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "a.zip": "zip: a.txt",
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "sub/b.zip": "zip: b.txt",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": false,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [
+     "Skipped 'Root Destination Probe' during dry-run: source archives or files are not available."
+    ],
+    "ErrorCount": 1,
+    "IsSuccess": false,
+    "Stages": [
+     {
+      "Messages": [
+       "ERROR: Root Destination Probe: Missing Required Archives: [<<modDirectory>>]"
+      ],
+      "Passed": false,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [
+       "WARNING: [DryRunSkipped] Skipped 'Root Destination Probe' during dry-run: source archives or files are not available."
+      ],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
  "missing_folder_control": {
   "install": {
    "accepted": true,
@@ -1315,7 +2122,7 @@
     "Stages": [
      {
       "Messages": [
-       "ERROR: Root Destination Probe: Destination cannot be found! Got '/tmp/root-destination-proof-pa9opoul/csharp-pipeline-tn9msdzz/game/Missing'"
+       "ERROR: Root Destination Probe: Destination cannot be found! Got '/tmp/root-destination-proof-ga1mwq8x/csharp-pipeline-rxxf1duq/game/Missing'"
       ],
       "Passed": false,
       "Stage": "ComponentValidation"
@@ -1391,6 +2198,124 @@
     ]
    },
    "skipped": false,
+   "tree": null
+  }
+ },
+ "move_kotor_dot": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "m.txt": "M\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": false,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 1,
+    "IsSuccess": false,
+    "Stages": [
+     {
+      "Messages": [
+       "ERROR: Root Destination Probe: Destination cannot be found! Got '/tmp/root-destination-proof-ga1mwq8x/csharp-pipeline-05wvjeo7/game/.'"
+      ],
+      "Passed": false,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "move_source_mod_root_archives_only": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "a.zip": "zip: a.txt",
+     "sub/b.zip": "zip: b.txt"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [
+     "Skipped 'Root Destination Probe' during dry-run: source archives or files are not available."
+    ],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [
+       "WARNING: [DryRunSkipped] Skipped 'Root Destination Probe' during dry-run: source archives or files are not available."
+      ],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": true,
    "tree": null
   }
  },

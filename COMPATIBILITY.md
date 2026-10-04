@@ -1433,22 +1433,33 @@ step and `validate --output json`) failed with `Destination cannot be found:
 <<kotorDirectory>>` for every such step, and a `DelDuplicate` into a root failed the
 dry run, plain `validate` and `install`. Copy, Move and CleanList installs were
 already correct. Rust now resolves a bare root to the root folder, so these pass and
-DelDuplicate deletes the duplicate in the root, as in C#.
+DelDuplicate deletes the duplicate in the root, as in C#. An `Extract` of an archive
+at the mod root with Destination `<<modDirectory>>` now extracts into
+`mods/<archive name>/`, as C# does; before, Rust extracted straight into the mod root.
+A Patcher with Destination `<<gameDirectory>>` now passes Rust's game-directory check.
 
-The same stage now also refuses a Destination with a `.` part, such as
-`<<kotorDirectory>>/Override/.`, as C# `PathValidator.IsValidPath` does; before, Rust
-passed it. Install still accepts it in both. Unchanged: a `Rename` whose Destination
+A bare root as a Source (`Extract [<<modDirectory>>]`, `Copy [<<kotorDirectory>>]`,
+`Delete [<<modDirectory>>]`) still names no file and reaches nothing beneath the root,
+as in C#: Extract, Copy and Move fail with missing source files, Delete deletes nothing.
+
+A Destination with a `.` part, such as `<<kotorDirectory>>/Override/.`, now fails the
+archive/destination stage, as C# `PathValidator.IsValidPath` does; before, Rust passed
+it. Copy and Move into it still install in both. DelDuplicate and CleanList into it
+now fail the dry run, plain `validate` and `install`, as in C#; before, Rust ran them
+(a CleanList into `<<kotorDirectory>>/.` deleted the listed game-root files).
+Unchanged: a `Rename` whose Destination
 is a bare placeholder (`Rename <<kotorDirectory>>/r.txt -> <<kotorDirectory>>`) is
 refused in Rust; C# renames the file to one literally named `<<kotorDirectory>>`
 (fail-closed, deliberate). Evidence: [root-destination
-proof](docs/parity/root-destination-proof/README.md), 75 checks match and 3 are known
-differences against a live reference oracle (34 fail on `8c79761`); contract in
+proof](docs/parity/root-destination-proof/README.md), 119 checks match and 4 are
+known differences against a live reference oracle (45 fail on `8c79761`); contract in
 [root-destination-contract.md](docs/parity/root-destination-contract.md).
 
 Guide authors: `<<kotorDirectory>>` on its own is a valid Destination for Copy, Move,
-CleanList and DelDuplicate, for example to copy `dialog.tlk` into the game folder. Do
-not end a Destination with `/.`; validation refuses it. A Rename Destination is a
-file name, never a placeholder.
+CleanList and DelDuplicate, for example to copy `dialog.tlk` into the game folder. A
+bare root is never a valid Source; name the files (`<<modDirectory>>/*.zip`). Do not
+use a `.` part in a Destination; validation refuses it, and DelDuplicate and CleanList
+fail. A Rename Destination is a file name, never a placeholder.
 
 ## CleanList list-file choice — 2026-10-04 UTC
 

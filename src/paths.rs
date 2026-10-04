@@ -176,6 +176,12 @@ impl Roots {
         bail!("Path must start with <<modDirectory>> or <<kotorDirectory>>: {raw}")
     }
 
+    /// Whether `path` is one of the install roots itself. A bare root Source
+    /// (`<<modDirectory>>`) names no file and has no descendants, as in C#.
+    pub fn is_root(&self, path: &Path) -> bool {
+        path == self.mods || path == self.game
+    }
+
     pub fn check(&self, path: &Path) -> Result<()> {
         let root = [&self.mods, &self.game]
             .into_iter()

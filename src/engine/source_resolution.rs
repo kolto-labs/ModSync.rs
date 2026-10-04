@@ -296,16 +296,20 @@ impl Engine {
             budget.visit()?;
             let (path, pattern) = self.source_pattern(raw)?;
             let key = self.path_policy.key(&path);
-            if directory && (self.files.contains_key(&key) || self.directories.contains_key(&key)) {
+            // A bare root Source names no file or folder (see `source_prefix`).
+            if directory
+                && !self.settings.roots.is_root(&path)
+                && (self.files.contains_key(&key) || self.directories.contains_key(&key))
+            {
                 result.insert(key, self.actual(&path));
                 continue;
             }
-            let prefix = format!("{key}/");
+            let prefix = self.source_prefix(&path);
             let mut found = false;
             for (key, (path, content)) in &self.files {
                 budget.visit()?;
                 let matched = if descendants {
-                    self.source_matches(&prefix, &pattern, key)
+                    self.source_matches(prefix.as_deref(), &pattern, key)
                 } else {
                     self.path_policy.glob_matches(&pattern, key)
                 };
