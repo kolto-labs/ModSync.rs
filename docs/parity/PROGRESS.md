@@ -9,6 +9,19 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Missing destination folders in the full validation pipeline (2026-10-04, F08): the
+full report (`validate --full`, `--full --dry-run`, the desktop Validate step,
+`--phase remaining`) no longer fails a Copy, Move or CleanList into a missing folder
+that can be created, as C# does: its Environment stage creates the folder first with
+AttemptFixes (`Services/InstallationService.cs:967-1010`,
+`ComponentValidation.cs:331-365`), so its archive stage passes and its `install`
+(which validates unless `--skip-validation`) installs. Rust's plain `validate` and
+`install` already passed; Rust still creates nothing while validating. The basic
+report still fails it, as C#'s does; DelDuplicate stays refused (deliberate). Proof:
+120 match / 18 known against the live C# CLI with a HoloPatcher stub; 78 fail on
+`38c6ca9`. The regression probes stay at baseline. See
+[full-pipeline-destination-contract.md](full-pipeline-destination-contract.md).
+
 A patcher without changes.ini in the validation dry run (2026-10-04, F05/F08/F09):
 when a Patcher step's executable is present but the patcher folder and its
 `tslpatchdata` folder hold no `changes.ini`, `validate --dry-run` and the desktop

@@ -708,7 +708,7 @@ impl Engine {
         if !dry_run_only {
             boundary(Stage::ComponentValidation, "Validating mod archives", false);
             let component = fresh_engine()
-                .and_then(|engine| engine.validate_archives(guide, &mut emit))
+                .and_then(|engine| engine.validate_archives(guide, &mut emit, full_validation))
                 .map_err(|error| format!("{error:#}"));
             report.component_validation(&validated_components, component);
             boundary(Stage::ComponentValidation, "Validating mod archives", true);
@@ -897,10 +897,12 @@ impl Engine {
     }
 
     /// Read-only archive/destination checks; never execute installation instructions.
+    /// `full_validation` is the full pipeline, whose Environment stage runs first.
     fn validate_archives(
         mut self,
         guide: &Guide,
         emit: &mut impl FnMut(Event),
+        full_validation: bool,
     ) -> Result<Vec<Result<(), Vec<String>>>> {
         recovery::ensure_clean(&self.settings.roots)?;
         recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
@@ -916,7 +918,7 @@ impl Engine {
             // Missing archives and missing Destination folders are one error per
             // step, as the reference lists them; any other failure stops this
             // component's checks with one error.
-            let outcome = match self.validate_component_archives(component) {
+            let outcome = match self.validate_component_archives(component, full_validation) {
                 Ok(missing) if missing.is_empty() => Ok(()),
                 Ok(missing) => Err(missing
                     .into_iter()
@@ -942,7 +944,17 @@ impl Engine {
 
     /// Returns the reference's per-step errors, if any: `Missing Required Archives`,
     /// or else `Destination cannot be found!`. Other failures are errors.
-    fn validate_component_archives(&self, component: &Component) -> Result<Vec<String>> {
+    ///
+    /// In the full pipeline C#'s Environment stage has already run these checks with
+    /// AttemptFixes and created each missing Destination folder it could, so this
+    /// stage finds them. Rust creates nothing while validating; it leaves out a
+    /// missing Copy, Move or CleanList folder that could be created, since executing
+    /// the step creates it (or, for CleanList, finds nothing to delete).
+    fn validate_component_archives(
+        &self,
+        component: &Component,
+        full_validation: bool,
+    ) -> Result<Vec<String>> {
         self.check_cancelled()?;
         // The reference archive stage includes immediate option instructions.
         let instructions: Vec<_> = component
@@ -1030,11 +1042,14 @@ impl Engine {
                 }
                 "Copy" | "Move" | "CleanList" | "DelDuplicate" => {
                     let dest = self.path(&instruction.destination, false)?;
+                    let missing = !self.directories.contains_key(&self.path_policy.key(&dest));
+                    // The full pipeline's C# Environment stage has created this folder.
+                    let created = full_validation
+                        && instruction.action != "DelDuplicate"
+                        && self.folder_creatable(&dest);
                     // C# PathValidator.IsValidPath refuses a `.` part, which
                     // `relative` drops while resolving.
-                    if has_dot_part(&instruction.destination)
-                        || !self.directories.contains_key(&self.path_policy.key(&dest))
-                    {
+                    if has_dot_part(&instruction.destination) || missing && !created {
                         missing_destinations.push(format!(
                             "Destination cannot be found! Got '{}'",
                             self.shown_destination(&dest)
@@ -1087,6 +1102,13 @@ impl Engine {
             }
         }
         Ok(missing_destinations)
+    }
+
+    /// Whether `Directory.CreateDirectory` could create this missing folder: no file
+    /// stands at it or at any folder above it.
+    fn folder_creatable(&self, dest: &Path) -> bool {
+        dest.ancestors()
+            .all(|folder| !self.files.contains_key(&self.path_policy.key(folder)))
     }
 
     /// The Destination folder as C# prints it: the full path, with the folders that
