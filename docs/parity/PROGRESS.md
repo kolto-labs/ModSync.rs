@@ -23,6 +23,16 @@ Rename to a bare placeholder stays a fail-closed known difference. Proof: 119 ma
 `8c79761`. The regression
 probes stay at baseline. See [root-destination-contract.md](root-destination-contract.md).
 
+CleanList rows and listed names (2026-10-04, F07-D): a CleanList row that lists a
+name no file can have (a quoted field, `*`, `?`, `<`, `>`, `|`, `:`) now skips that
+name as C# `File.Exists` does; Rust failed the whole step, so validate and install
+refused a list such as `"Mod, by Author",a.tga`. `[` and `]` are literal. `..`,
+absolute, drive-qualified, trailing-dot and device names stay refused (fail-closed,
+documented). Row grammar, matching, comments and blank rows already matched. Proof:
+121 match and 20 known differences against a live reference oracle; 30 fail on
+`f9eab15`. The regression probes stay at baseline. See
+[cleanlist-rows-contract.md](cleanlist-rows-contract.md).
+
 CleanList list-file choice (2026-10-04, F07-D): a CleanList whose Sources name
 more than one existing list now reads the first authored Source's list, as C#
 `ExecuteCleanListAsync` reads `RealSourcePaths[0]`. Rust read the match with the

@@ -411,7 +411,7 @@ Reference: the local ModSync C# source at `d31ccbd3bfcddb4705917eafa6483715c166d
 | Options | Choose resolves selected option GUIDs in declared option order; an entry names an option only as its hyphenated GUID (any case), as in C# | No automatic choice inference; an entry that names no option is refused, where C# ignores it |
 | File operations | Copy, Move, Rename, Delete, Extract, DelDuplicate, CleanList | Copy/Move flatten matched files into the target, as the C# instruction engine does; a Copy/Move whose target is the source itself is skipped with a warning when `Overwrite = false` and refused otherwise; Delete with `Overwrite = true` fails on a missing file, as C# does; a Delete with no Source is a no-op unless `Overwrite = true`; Extract replaces existing files whatever `Overwrite` says, as C# does (configured FOMOD extraction with `Overwrite = false` is refused instead; C# keeps an existing directory or read-only file at an entry path and succeeds, where Rust fails on the directory and replaces the read-only file) |
 | Archives | Streaming ZIP, 7z, RAR, TAR, GZip and 7z SFX; integrity checks; isolated extraction root | No encrypted/multipart archives; SFX support is limited to embedded 7z payloads; empty directories are not materialized |
-| CleanList | C# comma-separated rows, mandatory prefix, substring and token matching | Source matching and final file sets still need full-build differential acceptance |
+| CleanList | C# comma-separated rows, mandatory prefix, substring and token matching; a listed name no file can have is skipped, `[`/`]` literal | `..`, absolute, drive-qualified, trailing-dot and device names refused (fail-closed); final file sets still need full-build differential acceptance |
 | Texture cleanup | Removes requested extension when another compatible extension shares its basename | This is not content-hash deduplication |
 | Paths | Mod/game placeholders, legacy aliases, case-insensitive matching, wildcard sources | Rejects symlinks, device names, traversal, case collisions, overlapping roots, and special files |
 | Validation | In-memory file index tracks changes across instruction boundaries; generated drafts require explicit review | Extracted content uses private temporary files outside game/mod trees; external program effects cannot be simulated |
@@ -1460,6 +1460,32 @@ CleanList and DelDuplicate, for example to copy `dialog.tlk` into the game folde
 bare root is never a valid Source (Patcher's direct binding still accepts one; see the contract); name the files (`<<modDirectory>>/*.zip`). Do not
 use a `.` part in a Destination; validation refuses it, and DelDuplicate and CleanList
 fail. A Rename Destination is a file name, never a placeholder.
+
+## CleanList rows and listed names — 2026-10-04 UTC
+
+A CleanList row that lists a name no file can have now skips that name, as C# does:
+C# deletes `Path.Combine(target, name)` only when `File.Exists` is true, and that is
+false for a quoted field (`"a.tga"`), a wildcard (`*.tga`, `?.tga`) or a name with
+`<`, `>`, `|` or `:`. Rust parsed every listed name as a guide path and failed the
+step, so the Validate step reported an error and install refused. CSV quoting is the
+common trigger: `"Mod, by Author",a.tga` splits into `"Mod` and ` by Author"`, and
+the second field ended the install. `[` and `]` in a listed name are now literal
+(`c[1].tga` deletes that file, as in C#). Row grammar, row matching, comments and
+blank rows already matched.
+
+Unchanged and refused before anything is deleted: `..` parts and absolute names (C#
+deletes outside the target), drive-qualified names (`a:b.tga`, `C:\x`), trailing dots
+and Windows device names (their meaning depends on the platform). A backslash is a
+separator and lookups ignore case on every host, as C# on Windows; C# on Linux skips
+`sub\x.tga` and `A.TGA` (platform accidents, not copied). Evidence:
+[cleanlist-rows proof](docs/parity/cleanlist-rows-proof/README.md), 121 checks match
+and 20 are known differences against a live reference oracle (30 fail on `f9eab15`);
+contract in [cleanlist-rows-contract.md](docs/parity/cleanlist-rows-contract.md).
+
+Guide authors: a CleanList list is plain comma-separated text. Quotes are part of a
+field, so a mod name or file name cannot contain a comma; a quoted file name is never
+deleted. List files relative to the Destination, with `/`, and without `..`, drive
+letters, absolute paths or trailing dots.
 
 ## CleanList list-file choice — 2026-10-04 UTC
 
