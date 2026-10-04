@@ -1,0 +1,2542 @@
+{
+ "absolute": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,{GAME}/x.txt,a.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "angle_pipe": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,a<b.tga,a>b.tga,a|b.tga,b.2da\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "backslash_subdir": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,sub\\x.tga,a.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "blank_rows": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "\n\n   \n\t\nMandatory Deletions,a.tga\r\n\r\n\r\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "bom": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "\ufeffMandatory Deletions,a.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "bracket_literal": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,c[1].tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "bracket_missing": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,c[2].tga,a.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "case_variant": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,A.TGA,b.2da\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "colon": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,ab:c.tga,sub/x:y.tga,b.2da\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "comment_mandatory": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "# Mandatory Deletions,a.tga\nMandatory Deletions,b.2da\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "comment_selected": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "#CleanList Row Probe,a.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "control": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,a.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "cr_only": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,a.tga\rMandatory Deletions,b.2da\r"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "directory_name": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,sub,a.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "dot_part": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,./a.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "dotdot": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,../x.txt,a.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "drive_absolute": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,C:\\Windows\\x.txt,b.2da\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "drive_relative": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,a:b.tga,b.2da\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "duplicate_field": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,a.tga,a.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "empty_fields": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,,  ,a.tga,\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "empty_name": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": ",a.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "mandatory_lower": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "mandatory deletions,a.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "mandatory_suffix": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions (K1 only),a.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "missing_file": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,none.tga,a.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "name_substring": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Row Probe,a.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "no_comma_row": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions\nMandatory Deletions,a.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "no_final_newline": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,a.tga"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "padded_fields": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "  Mandatory Deletions  ,  a.tga  ,\t b.2da\t\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "question": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,?.tga,b.2da\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "quoted_file": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,\"a.tga\",b.2da\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "quoted_files_with_comma": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,\"a.tga,b.2da\",d.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "quoted_name": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "\"Mandatory Deletions\",a.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "quoted_name_with_comma": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "\"CleanList Row Probe, by Someone\",a.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "quoted_row": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "\"Mandatory Deletions,a.tga\",b.2da\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "quoted_selected_name": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "\"CleanList Row Probe\",a.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "reserved_name": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,nul.tga,b.2da\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "selected_name": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "CleanList Row Probe,a.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "selected_name_case": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "cleanlist row PROBE,a.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "semicolon_row": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions;a.tga\nMandatory Deletions,b.2da\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "single_token": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Probe Extra Words,a.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "star": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,*.tga,b.2da\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "star_in_subdir": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,sub/*.tga,b.2da\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "stop_words_name": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "The Mod,a.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "subdir_slash": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,sub/x.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "token_overlap": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Probes for Rows Pack,a.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "trailing_dot": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,a.tga.,b.2da\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "unselected_name": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList Row Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/c[1].tga": "C1\n",
+     "Override/d.tga": "D\n",
+     "Override/sub/x.tga": "SX\n",
+     "chitin.key": "KEY\n",
+     "x.txt": "X\n"
+    },
+    "mods": {
+     "l.csv": "Some Other Thing,a.tga\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: CleanList Row Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ }
+}

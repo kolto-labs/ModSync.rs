@@ -61,8 +61,11 @@ files remain harmless. Quoting, escaping and alternate CSV grammars are not adde
 
 Decode and qualify the complete deletion plan before mutation. Retain the existing
 relative-path parser, virtual-file lookup and root checks. Deduplicate selected
-physical targets; at most 100,000 deletions are planned. Cancellation, I/O, unsafe
-paths or admission failures abort before deletion; a later execution failure uses
+physical targets; at most 100,000 deletions are planned. A listed name no file can
+have (`"`, `<`, `>`, `|`, `*`, `?`, NUL, a non-drive `:`) is skipped as missing and
+`[`/`]` are literal ([cleanlist-rows-contract.md](cleanlist-rows-contract.md)).
+Cancellation, I/O, unsafe paths (`..`, absolute, drive, trailing dot, device names)
+or admission failures abort before deletion; a later execution failure uses
 the engine's existing stop/recovery behavior. C# may continue after deletion
 failure; this slice retains Rust's guide-order failure policy.
 

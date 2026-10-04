@@ -2573,7 +2573,14 @@ impl Engine {
                             .filter(|s| !s.is_empty())
                         {
                             budget.text(raw)?;
-                            let path = self.actual(&dir.join(relative(raw, false)?));
+                            // C# deletes Path.Combine(target, name) when FileExists:
+                            // a name no file can have is skipped as missing, and
+                            // `[`/`]` are literal. Otherwise-parsed `..`, absolute,
+                            // trailing-dot and device names stay refused.
+                            if cleanlist::unnameable(raw) {
+                                continue;
+                            }
+                            let path = self.actual(&dir.join(relative(raw, true)?));
                             self.settings.roots.check(&path)?;
                             let key = self.path_policy.key(&path);
                             if self.files.contains_key(&key) && seen.insert(key) {
