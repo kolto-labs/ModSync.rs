@@ -1533,7 +1533,7 @@ refused.
 An `Execute` or `Run` step's `Arguments` text is now split into the program's
 arguments with the Windows command-line rules on every host, as in C#: .NET splits
 `ProcessStartInfo.Arguments` with those rules on Linux and macOS too, and a Windows
-program's C runtime uses the same rules. Only spaces and tabs separate arguments,
+program's C runtime (UCRT and post-2008 CRTs) uses the same rules. Only spaces and tabs separate arguments,
 double quotes group, `""` inside quotes is a literal quote, and a backslash is literal
 unless it comes before a `"`. Before, Rust used POSIX shell rules on Linux and macOS,
 so the same guide ran its program with other arguments there:

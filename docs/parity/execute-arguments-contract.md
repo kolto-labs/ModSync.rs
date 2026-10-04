@@ -21,8 +21,9 @@ every platform (on Linux and macOS in `Process.Unix`, `ParseArgumentsIntoList`):
 space and tab separate arguments; double quotes group; inside quotes `""` is a
 literal quote; `\` is literal unless a run of backslashes precedes a `"`; single
 quotes, `#`, `$`, backquotes and newlines are ordinary characters; an unclosed quote
-runs to the end. On Windows the child's C runtime splits the same string with the same
-rules. So a guide's Arguments mean the same thing on every host.
+runs to the end. On Windows the child's C runtime (UCRT and post-2008 CRTs; old
+msvcrt.dll treats `""` inside quotes differently) splits the same string with the same
+rules; Rust on Windows re-quotes the argv rather than passing the raw text. So a guide's Arguments mean the same thing on every host.
 
 **Rust at `0cc50a7`.** `process_arguments::expand` (`src/engine/process_arguments.rs:6-11`
 at `0cc50a7`) split the text with `shlex::split` (POSIX shell rules) on every
@@ -101,6 +102,14 @@ marked "differed".
 | `unknown_placeholder`, `lowercase_placeholder`, `root_with_space` | see below | known difference | same |
 
 ## Known differences
+
+- **Bare `>>` or unclosed `<<` (deliberate, fail-closed).** Rust refuses an argument
+  holding a bare `>>` or an unclosed `<<` (for example `a>>b`); C# passes it through as
+  text. This predates this slice.
+- **Placeholder assembled across quotes.** Rust splits before substituting, so
+  `"<<kotor"Directory>>` becomes one token `<<kotorDirectory>>` and is expanded; C#
+  substitutes on the raw text first and passes it literally. Fails safe: only the
+  allowed roots can be substituted.
 
 - **Unclosed quote (deliberate, fail-closed).** C# closes an unclosed double quote at
   the end of the text and runs the program (`"a b` gives `a b`); Rust refuses the step
