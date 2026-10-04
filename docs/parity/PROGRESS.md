@@ -9,6 +9,18 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Windows device names and Peer staging folders in instruction paths (2026-10-04,
+F05/F08): the reserved-name rule now also refuses `COM¹`-`COM³`, `LPT¹`-`LPT³`,
+`CONIN$`, `CONOUT$`, `COM0`, `LPT0` and a stem with spaces before the extension, on
+every host, and an instruction path under `<<modDirectory>>` inside a Peer download
+staging folder (`.peer-<nonce>.part`, any case) is refused before any write in plain
+`validate`, reports, the dry run and `install`. Both were fail-open: Rust installed
+them. Fail-closed hardening, not parity: C# `PathValidator` refuses only `COM0`/`LPT0`
+of these (`FileSystemUtils/PathValidator.cs:24-28`) and has no staging folders. Proof:
+227 match / 40 known against the live C# CLI; 161 fail on `e756730`. The regression
+probes stay at baseline. See
+[reserved-staging-paths-contract.md](reserved-staging-paths-contract.md).
+
 Missing destination folders in the full validation pipeline (2026-10-04, F08): the
 full report (`validate --full`, `--full --dry-run`, the desktop Validate step,
 `--phase remaining`) no longer fails a Copy, Move or CleanList into a missing folder

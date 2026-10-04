@@ -128,17 +128,49 @@ fn checked_relative(raw: &str, refused: &[char]) -> Result<PathBuf> {
             !part.contains(refused),
             "Wildcards are not allowed here: {raw}"
         );
-        let stem = part.split('.').next().unwrap().to_ascii_uppercase();
-        ensure!(
-            !matches!(stem.as_str(), "CON" | "PRN" | "AUX" | "NUL")
-                && !(stem.len() == 4
-                    && (stem.starts_with("COM") || stem.starts_with("LPT"))
-                    && matches!(stem.as_bytes()[3], b'1'..=b'9')),
-            "Reserved filename: {raw}"
-        );
+        ensure!(!is_reserved_name(part), "Reserved filename: {raw}");
         path.push(part);
     }
     Ok(path)
+}
+
+/// A Windows device name, with or without an extension: `CON`, `PRN`, `AUX`, `NUL`,
+/// `CONIN$`, `CONOUT$`, and `COM`/`LPT` followed by one digit `0`-`9` or one of the
+/// superscripts `¹`, `²`, `³`, which Windows also treats as device numbers. The stem ends
+/// at the first `.`, and trailing spaces before it are ignored, as Windows does.
+/// C# `PathValidator` refuses the same `COM0`/`LPT0`; a longer stem such as `COM10` or
+/// `com1x` is an ordinary name.
+fn is_reserved_name(part: &str) -> bool {
+    let stem = part
+        .split('.')
+        .next()
+        .unwrap_or_default()
+        .trim_end_matches(' ')
+        .to_ascii_uppercase();
+    let numbered = |prefix| {
+        let mut number = stem.strip_prefix(prefix).unwrap_or_default().chars();
+        matches!(
+            (number.next(), number.next()),
+            (Some('0'..='9' | '\u{b9}' | '\u{b2}' | '\u{b3}'), None)
+        )
+    };
+    matches!(
+        stem.as_str(),
+        "CON" | "PRN" | "AUX" | "NUL" | "CONIN$" | "CONOUT$"
+    ) || numbered("COM")
+        || numbered("LPT")
+}
+
+/// True for a `<<modDirectory>>` part that names a Peer download staging folder
+/// (`.peer-<nonce>.part`, `download_orchestrator::is_peer_staging`), matched without ASCII
+/// case so a case-insensitive volume cannot reach one either. Scans skip these folders,
+/// so an instruction path into one would write where validation cannot see.
+fn is_peer_staging_part(part: &std::ffi::OsStr) -> bool {
+    part.to_str().is_some_and(|part| {
+        crate::download_orchestrator::is_peer_staging(std::ffi::OsStr::new(
+            &part.to_ascii_lowercase(),
+        ))
+    })
 }
 
 impl Roots {
@@ -175,6 +207,10 @@ impl Roots {
                 // itself, as C# FixPathFormatting trims the trailing separator.
                 // `root.join("")` would add one and miss the root's directory key.
                 let tail = relative(tail.trim_start_matches(['/', '\\']), wildcards)?;
+                ensure!(
+                    prefix != "<<modDirectory>>" || !tail.iter().any(is_peer_staging_part),
+                    "Path is inside a Peer download staging folder: {raw}"
+                );
                 let p = if tail.as_os_str().is_empty() {
                     root.clone()
                 } else {

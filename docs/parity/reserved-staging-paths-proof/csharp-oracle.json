@@ -1,0 +1,457 @@
+{
+ "archive_member": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/dev.zip",
+    "mods/dev/CONOUT$.txt",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "com0": {
+  "full_dry": false,
+  "install": [
+   false,
+   [
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "com_sup1": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/COM¹/m.txt",
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "com_sup2_nested": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/Override/COM²/m.txt",
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "com_sup3_lower_ext": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/chitin.key",
+    "game/com³.d/m.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "conin": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/CONIN$/m.txt",
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "conout_lower_ext": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/chitin.key",
+    "game/conout$.txt/m.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "control_clock": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/CLOCK$/m.txt",
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "control_com10": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/COM10/m.txt",
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "control_com1x": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/chitin.key",
+    "game/com1x/m.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "control_com_sup_twice": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/COM¹¹/m.txt",
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "control_coninx": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/CONINx/m.txt",
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "control_empty_nonce": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/chitin.key",
+    "mods/.peer-.part/m.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "control_lpt_sup_word": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/LPT²x/m.txt",
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "control_member_com1x": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt",
+    "mods/ok.zip",
+    "mods/ok/com1x.txt"
+   ]
+  ]
+ },
+ "control_no_dot": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt",
+    "mods/peer-0123456789abcdef0123456789abcdef.part/m.txt"
+   ]
+  ]
+ },
+ "control_override": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/Override/m.txt",
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "control_partial": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/.peer-0123456789abcdef0123456789abcdef.partial/m.txt",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "control_source_com1x": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/Override/com1x.txt",
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/com1x.txt",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "control_staging_in_game": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/.peer-0123456789abcdef0123456789abcdef.part/m.txt",
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "lpt0_ext": {
+  "full_dry": false,
+  "install": [
+   false,
+   [
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "lpt_sup1": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/LPT¹/m.txt",
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "lpt_sup2_mods": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/LPT²/m.txt",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "lpt_sup3_ext": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/LPT³.txt/m.txt",
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "rename_bare": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/LPT².txt"
+   ]
+  ]
+ },
+ "source_name": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/Override/COM¹.txt",
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/COM¹.txt",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "space_before_ext": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/CON .d/m.txt",
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "staging_destination": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/m.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "staging_extract": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s/y.txt",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "staging_move": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/m.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip"
+   ]
+  ]
+ },
+ "staging_nested": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt",
+    "mods/sub/.peer-0123456789abcdef0123456789abcdef.part/m.txt"
+   ]
+  ]
+ },
+ "staging_source": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/Override/s.txt",
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "staging_subfolder": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/sub/m.txt",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "staging_upper_case": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/chitin.key",
+    "mods/.PEER-0123456789ABCDEF0123456789ABCDEF.PART/m.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt"
+   ]
+  ]
+ },
+ "staging_wildcard": {
+  "full_dry": true,
+  "install": [
+   true,
+   [
+    "game/Override/s.txt",
+    "game/chitin.key",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.txt",
+    "mods/.peer-0123456789abcdef0123456789abcdef.part/s.zip",
+    "mods/m.txt"
+   ]
+  ]
+ }
+}
