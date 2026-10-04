@@ -1971,6 +1971,31 @@ remove the `.` part from the step's Destination (`<<kotorDirectory>>/Override`, 
 character; no Windows install can use such a folder name, and the C# installer refuses
 the guide too.
 
+## Dependencies that name an option — 2026-10-04 UTC
+
+A component whose `Dependencies` name an option of another component
+(`[[thisMod.Options]]`) instead of a component now validates and installs when that
+option and its component are selected, as in C#: `GetConflictingComponents` looks a
+GUID up among each component's options too (`FindComponentFromGuid`). Before, Rust
+looked only at top-level components, so every report (its `InstallOrder`,
+`FomodConfiguration` and `DryRun` stages), plain `validate` and `install` refused the
+guide with `<component> requires selected component <option GUID>`, although its own
+selection layer already follows such a Dependency. A Dependency on an option adds no
+ordering edge, as in C#.
+
+Unchanged and documented: when the option is not selected, or its component is not,
+Rust still refuses before any write, as for any unmet Dependency; C# installs the
+component anyway (and reads an option's own `IsSelected` even under an unselected
+component). Restrictions and `InstallBefore`/`InstallAfter` are unchanged. Evidence:
+[option dependencies proof](docs/parity/option-dependencies-proof/README.md), 48 checks
+match and 12 are known differences against the live C# CLI with a HoloPatcher stub (42
+fail on `0bc0efa`); contract in
+[option-dependencies-contract.md](docs/parity/option-dependencies-contract.md).
+
+Users: a guide that stopped with `requires selected component` naming an option's GUID
+now installs when you select that option and its mod. Without them, the mod that depends
+on the option is still refused, as before.
+
 ## A patcher without changes.ini in the validation dry run — 2026-10-04 UTC
 
 When a component's `Patcher` step finds its patcher executable but no `changes.ini`
