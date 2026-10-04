@@ -957,12 +957,19 @@ fn apply_selection(
 /// reference file loader, which selects every component when a non-Markdown file
 /// selects none, so `--use-file-selection` then sees them all, as in C#. A profile
 /// replaces the selection after loading, so its runs keep the authored flags.
+/// Like C#, a non-Markdown guide then takes its dependency resolver's order and is
+/// refused for a bad InstallBefore/InstallAfter reference on any component; the C#
+/// Markdown ingest drops those references, so Markdown is neither reordered nor refused.
 fn load_validation_guide(input: &std::path::Path, profile: bool) -> Result<Guide> {
-    if profile {
-        Guide::load_for_install_preserving_selection(input)
+    let mut guide = if profile {
+        Guide::load_for_install_preserving_selection(input)?
     } else {
-        Guide::load_like_file_loader(input)
+        Guide::load_like_file_loader(input)?
+    };
+    if !Guide::markdown_input(input)? {
+        guide.sort_for_install()?;
     }
+    Ok(guide)
 }
 
 fn require_validation_selection(guide: &Guide, args: &InstallArgs) -> Result<()> {

@@ -28,7 +28,7 @@ pub struct PreparedPhase {
     pub completed: Vec<String>,
 }
 
-fn widescreen(component: &crate::Component) -> bool {
+pub(crate) fn widescreen(component: &crate::Component) -> bool {
     component
         .metadata
         .get("WidescreenOnly")
