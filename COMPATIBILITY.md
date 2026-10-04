@@ -1584,6 +1584,32 @@ Users: a guide that failed with `Wildcards are not allowed here` naming a file o
 folder from a patcher's changes.ini or namespaces.ini now validates and installs; no
 guide change is needed.
 
+## Missing destination folders in the validation report — 2026-10-04 UTC
+
+The validation report's archive stage (`ComponentValidation` in `validate --output
+json`, the mod-archives card of the desktop Validate step) now reports a `Copy`,
+`Move`, `CleanList` or `DelDuplicate` step whose Destination folder does not exist as
+C# does: `ERROR: <component>: Destination cannot be found! Got '<full path>'`, one
+error per such step, each counted in `errorCount` and in the stage summary. The path
+is the folder's full path, with the folders that exist in their on-disk spelling; an
+empty Destination gives `Got ''`. Before, Rust stopped at the first such step of a
+component and printed `archive/destination validation: Destination cannot be found:
+<Destination as written>`, so `errorCount` was lower than in C#. The report's decision
+is unchanged, and plain `validate`, `install` and the dry run are unaffected.
+
+Unchanged and documented: C# creates each missing folder while validating, so it names
+a folder once and a second run passes; Rust validation never changes the game or mod
+folders, so it names every step into a missing folder, every time. A Destination that
+Rust refuses for another reason (a Patcher or Rename Destination, a `..` part) still
+ends the component's checks with one error. Evidence: [missing destination
+proof](docs/parity/missing-destination-proof/README.md), 75 checks match and 12 are
+known differences against the live C# CLI (32 fail on `1e2d133`); contract in
+[missing-destination-contract.md](docs/parity/missing-destination-contract.md).
+
+Users: the Validate step now lists each step whose folder is missing, with the full
+path it looked for, so you can create the folders or correct the game or mod
+directory in one pass.
+
 ## Missing archives in the validation report — 2026-10-04 UTC
 
 The validation report's archive stage (`ComponentValidation` in `validate --output

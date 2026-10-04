@@ -9,6 +9,17 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Missing destination folders in the validation report (2026-10-04, F08): the report's
+archive stage (`validate --output json`, the desktop Validate step) now reports each
+Copy, Move, CleanList or DelDuplicate step whose Destination folder does not exist as
+C# does: `Destination cannot be found! Got '<full path>'`, one error per step, counted
+in `errorCount`. Rust stopped at the first such step with `archive/destination
+validation: Destination cannot be found: <Destination>`. C# creates the missing folder
+while validating, so it reports a folder once; Rust never creates folders and reports
+every step (documented). Proof: 75 match and 12 known differences against the live C#
+CLI; 32 fail on `1e2d133`. The regression probes stay at baseline. See
+[missing-destination-contract.md](missing-destination-contract.md).
+
 Missing archives in the validation report (2026-10-04, F08): the report's archive
 stage (`validate --output json`, the desktop Validate step) now reports a missing
 download as C# does: one `Missing Required Archives: [<Sources>]` error per Extract
