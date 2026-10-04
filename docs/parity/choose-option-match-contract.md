@@ -102,7 +102,9 @@ cases and 6 differences, none of them about Choose text. Two adjustments were ne
 to run it: `DOTNET_ROLL_FORWARD=Major`, and a wrapper adding `-f json`, because
 `convert` now writes TOML unless a format is given. The committed
 `archive-generation-check.json` (27 matching, 1 known difference) is older than those
-differences. They are recorded here and not investigated in this slice.
+differences. They were later traced to a missing 7-Zip CLI on the C# side and to the
+probe's raw-Source assignment after `62b6f70`; the tool now gives 27 matching and the
+1 known difference (see the archive-generation section of `COMPATIBILITY.md`).
 
 Unchanged: the canonical spelling in any case, unselected options (named but not
 run), unknown GUIDs and non-GUID text (still refused), the loader, and the legacy
