@@ -166,7 +166,7 @@ fn merge_inferred(
             object.remove("Guid");
             object.remove("DraftReview");
             if value == expected {
-                reusable = Some(existing.guid.clone());
+                reusable = Some(crate::guid::option_text(&existing.guid));
                 break;
             }
         }

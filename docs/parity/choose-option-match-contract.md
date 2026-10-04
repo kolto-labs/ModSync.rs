@@ -53,9 +53,9 @@ legacy `**Source:** <g1>;<g2>` loads in C# as the single entry `"<g1>;<g2>"`, an
 
 ## Behaviour after this slice
 
-`chosen_options` (`src/engine.rs:1757-1794`) now uses `names_option` (`:1796-1805`),
-the C# text rule. An entry names an option when it equals the option's GUID in
-lowercase D form (`Uuid` display of the parsed option ID), ignoring ASCII case. The
+`chosen_options` (`src/engine.rs:1757-1794`) now uses `guid::names_option`
+(`src/guid.rs:222-227`), the C# text rule. An entry names an option when it
+equals the option's GUID in lowercase D form (`Uuid` display of the parsed option ID), ignoring ASCII case. The
 option's own ID is still parsed with the .NET grammar, so an option written `{g}`,
 `G` or in N form is matched by the entry `g`, as in C#. An option ID that does not
 parse (C# refuses such a guide at load) keeps the earlier ASCII-folded text
@@ -67,6 +67,42 @@ gives the spelling to use:
 `Unknown option {g}: a Choose entry names an option only as g`. All verbs share this:
 the dry-run report gives an Error, and plain `validate` and `install` fail
 `FOMOD configuration check failed: ...`, with `install` blocked before any write.
+
+**Writers and other readers (follow-up after `5eb80d5`).** Review found that Rust's
+archive generators wrote the option's authored ID into a Choose Source, so a guide
+whose option is `{G}` produced a Choose entry `{G}` that the engine then refused.
+C# writes `Option.Guid.ToString()` wherever it builds a Choose: the archive generator
+(`Services/AutoInstructionGenerator.cs:1911`, `:1916`, `:2058`, `:2063`), its option
+consolidation remap (`:810-811`) and the FOMOD mapper
+(`Services/Fomod/FomodToComponentMapper.cs:106`). Rust now does the same through
+`guid::option_text` (`src/guid.rs:216-220`), the lowercase hyphenated text of a
+parsed ID, or the authored text when it does not parse:
+
+- `add_option` returns that text when it reuses an authored option
+  (`src/archive_generation.rs:533-534`);
+- resolved inference remaps an inferred option to that text of the reused authored
+  option (`src/archive_generation/resolved.rs:169`);
+- option consolidation finds the duplicate's and the primary's Choose entries with
+  `names_option`, and writes the primary as that text
+  (`src/archive_generation/merge.rs:158-173`). Before, it compared the raw authored
+  ID, so it missed a canonical entry for a braced duplicate and wrote a braced
+  primary;
+- the editor's reference check (`src/editor/transaction.rs:432-441`) uses
+  `names_option`, so it accepts and refuses the same entries as the engine. Before,
+  its raw text comparison refused an entry `g` for an option `{g}` (which installs)
+  and accepted `{g}` for that option (which is refused).
+
+Rust's FOMOD mapping keeps archive-scoped choices and builds no Choose instruction,
+so it has no writer to change.
+
+`tools/check_archive_generation.py` (live `d31ccbd3` generator, 34 cases) normalizes
+Choose identifiers to option names, so it cannot see this change. Run on 2026-10-04,
+it gave the same result on this build, on `5eb80d5` and on `a09ca4a`: 22 matching CLI
+cases and 6 differences, none of them about Choose text. Two adjustments were needed
+to run it: `DOTNET_ROLL_FORWARD=Major`, and a wrapper adding `-f json`, because
+`convert` now writes TOML unless a format is given. The committed
+`archive-generation-check.json` (27 matching, 1 known difference) is older than those
+differences. They are recorded here and not investigated in this slice.
 
 Unchanged: the canonical spelling in any case, unselected options (named but not
 run), unknown GUIDs and non-GUID text (still refused), the loader, and the legacy
@@ -84,3 +120,9 @@ split.
   C# refuse the TOML guide at load (`No valid components found`). Rust loads it and
   matches the entry `foo`, as before. This is the opaque legacy-identity policy of
   [guid-selection-ordering.md](guid-selection-ordering.md), not part of this slice.
+- **Error prefix.** Plain `validate` and `install` report an unknown entry under
+  `FOMOD configuration check failed:`, also in a guide with no FOMOD. That prefix
+  belongs to the shared read-only gate (`src/engine.rs:464`, `:476`), which runs every
+  component's option collection before any write. The FOMOD gate proofs
+  (gate-scope, gate-warnings, gate-collect) match on that text, so it is left
+  unchanged. The rest of the message names the entry.

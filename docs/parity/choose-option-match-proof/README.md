@@ -2,10 +2,15 @@
 
 Contract: [choose-option-match-contract.md](../choose-option-match-contract.md).
 
-[probe.py](probe.py) builds 20 disposable fixtures. Each has one component whose only
-instruction is a Choose, an option `One` (Copy `a.txt` to `Override`, selected) and
-an option `Two` (Copy `b.txt`). The probe runs the production `modsync` three ways
-on a fresh copy of each, giving 60 checks: `validate --output json --dry-run` (the
+[probe.py](probe.py) builds 23 disposable fixtures. In 20 of them, one component's
+only instruction is a Choose, with an option `One` (Copy `a.txt` to `Override`,
+selected) and an option `Two` (Copy `b.txt`). The three `gen_*` cases are generated:
+an authored guide with options that Move folders of `mods/Foo.zip` (`FolderA`,
+`FolderB`, `FolderC`, each with one `.tga`), passed through `modsync convert
+--auto-generate-local` by the binary under test. Its output, with Extract, Choose and
+the inferred options, is the guide every run uses, the reference runs included. The
+probe runs the production `modsync` three ways on a fresh copy of each, giving 69
+checks: `validate --output json --dry-run` (the
 decision), plain `validate` (the decision) and `install` (the decision and the final
 game tree).
 
@@ -24,6 +29,7 @@ The expected Rust result is derived from the reference:
 
 | Reference | Expected Rust result |
 | --- | --- |
+| a `gen_*` case | the reference's dry-run decision, install decision and final tree: C# generators write `Option.Guid.ToString()` (`AutoInstructionGenerator.cs:1911`, `:1916`, `:2058`, `:2063`), so a generated guide that fails to name its options is a Rust generator bug |
 | every Choose entry equals a loaded option GUID, ignoring case | the reference's dry-run decision, install decision (plain `validate` and `install`) and final tree |
 | some entry names no option (C# ignores it and installs the rest) | every verb refuses, and `install` writes nothing (deliberate fail-closed difference) |
 
@@ -52,6 +58,9 @@ The expected Rust result is derived from the reference:
 | `legacy_comma` | legacy Markdown | `**Source:** G1, G2`, `Two` selected | `G1` | `a.txt`, `b.txt` |
 | `legacy_semicolon` | legacy Markdown | `**Source:** G1;G2`, `Two` selected | `G1` | empty (one entry `"G1;G2"`, ignored) |
 | `legacy_braced` | legacy Markdown | `**Source:** {G1}` | `G1` | empty (entry ignored) |
+| `gen_plain_option` | generated | `G1` (authored `Authored1` reused) plus the inferred `FolderB` and `FolderC` options | `G1`, moves `FolderA` | `a.tga` |
+| `gen_braced_option` | generated | as above | `{G1}` upper case, moves `FolderA` | `a.tga` |
+| `gen_consolidate_braced` | generated | `G1` plus the inferred `FolderB` option; the authored `G2` option (moves `FolderA`) is merged into `Authored1` | `{G1}` upper case, moves `FolderA` and `FolderC` | `a.tga`, `c.tga` |
 
 The C# dry run reports no Error for any case, and every C# install returns `Success`.
 
@@ -59,16 +68,28 @@ The C# dry run reports no Error for any case, and every C# install returns `Succ
 
 | Binary | Result |
 | --- | --- |
-| this slice, live reference (`--csharp ... --reference ...`): 20 reference runs + 60 checks | 80 match / 0 fail |
-| this slice, recorded reference | 60 match / 0 fail |
-| `a09ca4a` (pre-fix) | 39 match / 21 fail |
+| this slice, live reference (`--csharp ... --reference ...`): 23 reference runs + 69 checks | 92 match / 0 fail |
+| this slice, recorded reference | 69 match / 0 fail |
+| `5eb80d5` (engine fix, generators not yet fixed) | 63 match / 6 fail |
+| `a09ca4a` (pre-fix) | 48 match / 21 fail |
 
 On `a09ca4a` the seven cases with a braced, parenthesized, N-form or padded entry
 (`source_braced`, `source_paren`, `source_nform`, `source_padded`, `scalar_braced`,
 `braced_and_plain`, `legacy_braced`) pass every verb and install option `One`, which
 the reference skips. After the fix they are refused, as an unknown GUID was before.
-The other 13 cases match on both binaries. That includes `legacy_semicolon`: both
-legacy readers split only on `,`, so the legacy split needs no change.
+The other 16 cases match on `a09ca4a`, whose generator output it still accepted.
+That includes `legacy_semicolon`: both legacy readers split only on `,`, so the
+legacy split needs no change.
+
+On `5eb80d5` the generator wrote the authored `{G1}` into the Choose Source, by
+reusing an authored option (`gen_braced_option`) or by consolidating the authored `G2`
+option into the braced one (`gen_consolidate_braced`). The engine then refused the
+generated guide in every verb (`Unknown option {A4444444-…}`). C# writes the
+hyphenated GUID, and the reference installs it. The other 21 cases match on
+`5eb80d5`.
+
+Recording the three `gen_*` cases left the recorded reference results of the other
+20 cases unchanged.
 
 ## Reproduce
 

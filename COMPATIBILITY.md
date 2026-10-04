@@ -1289,13 +1289,23 @@ entry ran the option, which C# skips. Rust now uses the C# text rule in install,
 - Legacy Markdown bullets split a Choose Source only on `,`, in both implementations,
   so `<g1>;<g2>` is a single entry that names no option and is refused. No change.
 
-Guide authors: a Choose entry written `{guid}`, `(guid)`, without dashes or with
-surrounding spaces used to install that option in Rust. C# never installs it. Such
-guides are now refused with `Unknown option {guid}: a Choose entry names an option
-only as guid`. Write the entry as the plain hyphenated GUID to install the option. In
-a legacy Markdown bullet, separate several options with `,`, not `;`. Evidence:
-[choose-option-match proof](docs/parity/choose-option-match-proof/README.md), 60/60
-checks (80/80 with the live reference runs); 21 fail on `a09ca4a`. Contract:
+- `convert --auto-generate-local` and the other archive generators write each option
+  into a Choose as its hyphenated lowercase GUID, as C# does, even when the authored
+  option `Guid` is braced, upper case or without dashes. The desktop editor checks
+  Choose references by the same rule as install.
+
+Guide authors: a hand-written Choose entry written `{guid}`, `(guid)`, without dashes
+or with surrounding spaces used to install that option in Rust. C# never installs it.
+Such guides are now refused with `Unknown option {guid}: a Choose entry names an
+option only as guid`. Write the entry as the plain hyphenated GUID (any case) to
+install the option. The option's own `Guid` may keep any GUID spelling. Guides
+produced by `convert --auto-generate-local` already use the plain form. In a legacy
+Markdown bullet, separate several options with `,`, not `;`. In a guide without
+FOMOD, the refusal is still reported under the `FOMOD configuration check failed:`
+prefix of the shared pre-install check. Evidence:
+[choose-option-match proof](docs/parity/choose-option-match-proof/README.md), 69/69
+checks (92/92 with the live reference runs); 21 fail on `a09ca4a`, and 6 on `5eb80d5`,
+whose generator wrote the authored spelling. Contract:
 [choose-option-match-contract.md](docs/parity/choose-option-match-contract.md).
 
 ## Delete of a missing file with Overwrite=true — 2026-10-04 UTC

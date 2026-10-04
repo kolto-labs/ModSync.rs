@@ -1764,7 +1764,7 @@ impl Engine {
             if component
                 .options
                 .iter()
-                .any(|option| Self::names_option(&option.guid, id))
+                .any(|option| crate::guid::names_option(&option.guid, id))
             {
                 continue;
             }
@@ -1788,20 +1788,9 @@ impl Engine {
                     && instruction
                         .source
                         .iter()
-                        .any(|id| Self::names_option(&option.guid, id))
+                        .any(|id| crate::guid::names_option(&option.guid, id))
             })
             .collect())
-    }
-
-    /// C# `Instruction.GetChosenOptions`: an entry names an option when it equals the
-    /// option's `Guid.ToString()` (lowercase D form) OrdinalIgnoreCase, so a braced,
-    /// parenthesized, N-form or padded entry names none. An option ID the GUID parser
-    /// does not accept keeps its ASCII-folded comparison.
-    fn names_option(option: &str, id: &str) -> bool {
-        crate::guid::try_parse(option).map_or_else(
-            || option.eq_ignore_ascii_case(id),
-            |value| value.to_string().eq_ignore_ascii_case(id),
-        )
     }
 
     fn collect_execution_components<'a>(

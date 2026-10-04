@@ -88,10 +88,13 @@ Choose option matching (2026-10-04): Rust matched Choose entries as parsed GUID
 values, so a braced, parenthesized, dash-free or padded entry installed the option.
 C# `GetChosenOptions` matches only the hyphenated `Guid.ToString()` text, ignoring
 case, and skips such an entry. Rust now uses the C# text rule, and an entry that names
-no option is still refused (deliberate fail-closed; C# ignores it). Legacy Markdown
+no option is still refused (deliberate fail-closed; C# ignores it). The archive
+generators now write `Option.Guid.ToString()` text into a Choose, as C# does, and the
+editor's reference check uses the same rule. Before, a braced authored option ID made
+`--auto-generate-local` write a Choose entry the engine refused. Legacy Markdown
 already split a Choose Source on `,` only, as C# does, so it needs no change. The proof
-is 60/60 (80/80 with live reference runs; 39/21 on `a09ca4a`), and the regression
-probes still pass. See [choose-option-match-contract.md](choose-option-match-contract.md).
+is 69/69 (92/92 with live reference runs; 48/21 on `a09ca4a`, 63/6 on `5eb80d5`), and
+the regression probes still pass. See [choose-option-match-contract.md](choose-option-match-contract.md).
 
 Delete of a missing file with Overwrite=true (2026-10-04): Rust ignored `Overwrite`
 on Delete. As C# `DeleteFile` does (`FileNotFoundPost`, then `MissingSourceFiles`), a

@@ -64,6 +64,131 @@
    }
   ]
  },
+ "gen_braced_option": {
+  "dryrun_errors": [],
+  "install_exits": [
+   "Choose Probe: Success"
+  ],
+  "install_tree": {
+   "Override/a.tga": "FolderA\n"
+  },
+  "load": [
+   {
+    "Instructions": [
+     {
+      "Action": "Extract",
+      "Source": [
+       "<<modDirectory>>/Foo.zip"
+      ]
+     },
+     {
+      "Action": "Choose",
+      "Source": [
+       "a4444444-4444-4444-4444-44444444444a",
+       "8bbb7f9d-c4be-87f0-89d7-995b46ce52bb",
+       "d8c36b4b-a20d-8e19-af12-af712b7745d5"
+      ]
+     }
+    ],
+    "Options": [
+     {
+      "Guid": "a4444444-4444-4444-4444-44444444444a",
+      "IsSelected": true
+     },
+     {
+      "Guid": "8bbb7f9d-c4be-87f0-89d7-995b46ce52bb",
+      "IsSelected": false
+     },
+     {
+      "Guid": "d8c36b4b-a20d-8e19-af12-af712b7745d5",
+      "IsSelected": false
+     }
+    ]
+   }
+  ]
+ },
+ "gen_consolidate_braced": {
+  "dryrun_errors": [],
+  "install_exits": [
+   "Choose Probe: Success"
+  ],
+  "install_tree": {
+   "Override/a.tga": "FolderA\n",
+   "Override/c.tga": "FolderC\n"
+  },
+  "load": [
+   {
+    "Instructions": [
+     {
+      "Action": "Extract",
+      "Source": [
+       "<<modDirectory>>/Foo.zip"
+      ]
+     },
+     {
+      "Action": "Choose",
+      "Source": [
+       "a4444444-4444-4444-4444-44444444444a",
+       "0a7f33f2-5c7f-88c2-96f3-f78574cd27ad"
+      ]
+     }
+    ],
+    "Options": [
+     {
+      "Guid": "a4444444-4444-4444-4444-44444444444a",
+      "IsSelected": true
+     },
+     {
+      "Guid": "0a7f33f2-5c7f-88c2-96f3-f78574cd27ad",
+      "IsSelected": false
+     }
+    ]
+   }
+  ]
+ },
+ "gen_plain_option": {
+  "dryrun_errors": [],
+  "install_exits": [
+   "Choose Probe: Success"
+  ],
+  "install_tree": {
+   "Override/a.tga": "FolderA\n"
+  },
+  "load": [
+   {
+    "Instructions": [
+     {
+      "Action": "Extract",
+      "Source": [
+       "<<modDirectory>>/Foo.zip"
+      ]
+     },
+     {
+      "Action": "Choose",
+      "Source": [
+       "a4444444-4444-4444-4444-44444444444a",
+       "8bbb7f9d-c4be-87f0-89d7-995b46ce52bb",
+       "d8c36b4b-a20d-8e19-af12-af712b7745d5"
+      ]
+     }
+    ],
+    "Options": [
+     {
+      "Guid": "a4444444-4444-4444-4444-44444444444a",
+      "IsSelected": true
+     },
+     {
+      "Guid": "8bbb7f9d-c4be-87f0-89d7-995b46ce52bb",
+      "IsSelected": false
+     },
+     {
+      "Guid": "d8c36b4b-a20d-8e19-af12-af712b7745d5",
+      "IsSelected": false
+     }
+    ]
+   }
+  ]
+ },
  "legacy_braced": {
   "dryrun_errors": [],
   "install_exits": [

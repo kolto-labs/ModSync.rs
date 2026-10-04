@@ -24,6 +24,11 @@ result is derived from it:
 - some entry names no option: C# ignores it, Rust refuses with every verb before any
   write (the deliberate fail-closed difference).
 
+The `gen_*` cases first run `modsync convert --auto-generate-local` (the binary under
+test) on an authored guide with options and mods/Foo.zip; the generated guide is the
+fixture for every run. C# generators write `Option.Guid.ToString()`, so the generated
+guide must give the reference's result.
+
 Usage:
   probe.py [--bin target/debug/modsync] [--csharp ORACLE/probe.dll --reference REF [--record]]
 """
@@ -67,8 +72,17 @@ CASES = {
     "legacy_comma": ("md_legacy", f"{G1}, {G2}", G1, True),
     "legacy_semicolon": ("md_legacy", f"{G1};{G2}", G1, True),
     "legacy_braced": ("md_legacy", "{" + G1 + "}", G1, False),
+    # Archive generation (`convert --auto-generate-local`) from authored options; the
+    # third field lists (option GUID, selected, folders it moves). The binary under test
+    # writes the guide every run uses, reference included.
+    "gen_plain_option": ("generate", None, [(G1, True, ["FolderA"])], None),
+    "gen_braced_option": ("generate", None, [("{" + G1.upper() + "}", True, ["FolderA"])], None),
+    "gen_consolidate_braced": ("generate", None, [("{" + G1.upper() + "}", True, ["FolderA", "FolderC"]),
+                                                  (G2, True, ["FolderA"])], None),
 }
-EXT = {"toml": "toml", "md_legacy": "md"}
+GENERATOR = None
+EXT = {"toml": "toml", "md_legacy": "md", "generate": "toml"}
+GENERATED = {name for name, case in CASES.items() if case[0] == "generate"}
 
 
 def toml_guide(source, one, two_selected):
@@ -118,7 +132,37 @@ def legacy_guide(source, one, two_selected):
             "Some description.\n\n<!--<<ModSync>>\n" + "\n".join(meta) + "\n-->\n")
 
 
-def fixture(root, name):
+def authored_guide(options):
+    lines = ["[[thisMod]]", f'Guid = "{COMPONENT}"', 'Name = "Choose Probe"', "IsSelected = true", "",
+             '[thisMod.ResourceRegistry."https://example.invalid/Foo.zip".Files]', '"Foo.zip" = true']
+    for number, (guid, selected, folders) in enumerate(options, 1):
+        lines += ["", "[[thisMod.Options]]", f'Guid = "{guid}"', f'Name = "Authored{number}"',
+                  f"IsSelected = {'true' if selected else 'false'}"]
+        for folder in folders:
+            lines += ["", "[[thisMod.Options.Instructions]]", 'Action = "Move"',
+                      f"Source = ['<<modDirectory>>\\Foo\\{folder}\\*']",
+                      "Destination = '<<gameDirectory>>\\Override'", "Overwrite = true"]
+    return "\n".join(lines) + "\n"
+
+
+def generate(binary, root, options):
+    """Authored guide plus mods/Foo.zip, then `modsync convert --auto-generate-local`."""
+    import zipfile
+    mods = os.path.join(root, "mods")
+    with zipfile.ZipFile(os.path.join(mods, "Foo.zip"), "w") as archive:
+        for folder in ("FolderA", "FolderB", "FolderC"):
+            archive.writestr(f"{folder}/{folder[-1].lower()}.tga", folder + "\n")
+    authored = os.path.join(root, "authored.toml")
+    with open(authored, "w") as handle:
+        handle.write(authored_guide(options))
+    path = os.path.join(root, "guide.toml")
+    env = dict(os.environ, HOME=os.path.join(root, "home"), XDG_CONFIG_HOME=os.path.join(root, "xdg"))
+    subprocess.run([binary, "convert", authored, path, "-f", "toml", "--auto-generate-local",
+                    "--source-path", mods], capture_output=True, text=True, env=env, timeout=300, check=True)
+    return path
+
+
+def fixture(root, name, binary=None):
     fmt, source, one, two_selected = CASES[name]
     mods = os.path.join(root, "mods")
     game = os.path.join(root, "game")
@@ -128,6 +172,8 @@ def fixture(root, name):
     for file, text in (("a.txt", "A\n"), ("b.txt", "B\n")):
         with open(os.path.join(mods, file), "w") as handle:
             handle.write(text)
+    if fmt == "generate":
+        return generate(binary or GENERATOR, root, one), mods, game
     path = os.path.join(root, "guide." + EXT[fmt])
     with open(path, "w") as handle:
         handle.write((toml_guide if fmt == "toml" else legacy_guide)(source, one, two_selected))
@@ -146,7 +192,7 @@ def tree(game):
 
 def run_rust(binary, mode, name, work):
     root = tempfile.mkdtemp(prefix=f"rust-{mode}-", dir=work)
-    path, mods, game = fixture(root, name)
+    path, mods, game = fixture(root, name, binary)
     verb = "install" if mode == "install" else "validate"
     argv = [binary, verb, "-i", path, "-s", mods, "-g", game]
     if mode == "install":
@@ -193,7 +239,7 @@ def run_csharp(dll, reference, name, work):
     return out
 
 
-def expected(reference):
+def expected(reference, name=None):
     """Expected Rust decision per mode, derived from the reference."""
     refused = {m: {"accepted": False, "tree": {}} for m in ("dryrun", "validate", "install")}
     load = reference["load"]
@@ -202,7 +248,10 @@ def expected(reference):
     component = load[0]
     options = [o["Guid"].lower() for o in component["Options"]]
     entries = [s for i in component["Instructions"] if i["Action"] == "Choose" for s in i["Source"]]
-    if not all(entry.lower() in options for entry in entries):
+    # C# generators write `Option.Guid.ToString()` (AutoInstructionGenerator.cs:1911,
+    # :1916, :2058, :2063), so a generated guide must name its options: anything else
+    # is a Rust generator bug, not the fail-closed difference.
+    if name not in GENERATED and not all(entry.lower() in options for entry in entries):
         return "an entry names no option: C# ignores it, Rust refuses (fail-closed)", refused
     installed = reference["install_exits"] == ["Choose Probe: Success"]
     return "every entry names an option: reference result", {
@@ -219,6 +268,8 @@ def main():
     parser.add_argument("--reference")
     parser.add_argument("--record", action="store_true")
     args = parser.parse_args()
+    global GENERATOR
+    GENERATOR = args.bin
     work = tempfile.mkdtemp(prefix="choose-option-match-proof-")
     try:
         recorded = {}
@@ -239,7 +290,7 @@ def main():
                     handle.write("\n")
                 recorded = live
         for name in CASES:
-            basis, wanted = expected(recorded[name])
+            basis, wanted = expected(recorded[name], name)
             for mode in ("dryrun", "validate", "install"):
                 actual = run_rust(args.bin, mode, name, work)
                 want = wanted[mode]

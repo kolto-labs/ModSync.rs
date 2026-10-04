@@ -435,7 +435,7 @@ pub fn validate_guide(guide: &Guide) -> Result<()> {
                         component
                             .options
                             .iter()
-                            .any(|option| option.guid.eq_ignore_ascii_case(reference)),
+                            .any(|option| crate::guid::names_option(&option.guid, reference)),
                         "Choose in {} references missing direct option {reference}",
                         component.guid
                     );
