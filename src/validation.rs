@@ -216,10 +216,18 @@ impl Report {
     /// the reference wizard which makes the control available for warnings as
     /// well as errors.
     pub fn first_issue(&self) -> Option<&str> {
+        if let Some(stage) = self.stages.iter().find(|stage| !stage.passed) {
+            // A failed stage can list soft warnings or passed entries before its error.
+            return stage
+                .messages
+                .iter()
+                .find(|message| !message.starts_with("WARNING:") && !message.starts_with("OK:"))
+                .or(stage.messages.first())
+                .map(String::as_str);
+        }
         self.stages
             .iter()
-            .find(|stage| !stage.passed)
-            .or_else(|| self.stages.iter().find(|stage| stage.has_warnings))
+            .find(|stage| stage.has_warnings)
             .and_then(|stage| stage.messages.first().map(String::as_str))
     }
 
@@ -310,16 +318,29 @@ impl Report {
             self.stages.last_mut().unwrap().summary = "Install order is correct.".into();
         }
     }
-    /// Warnings (configured archives without an install route) keep the stage
-    /// passing but are counted and shown, like dry-run warnings.
-    pub(crate) fn fomod_configuration(&mut self, outcome: Result<Vec<String>, String>) {
-        let warnings = match outcome {
-            Ok(warnings) => warnings,
-            Err(error) => {
-                self.push(Stage::FomodConfiguration, Err(error));
-                return;
+    /// Gate warnings are counted and shown. Alone they keep the stage passing,
+    /// like dry-run warnings; with a gate error they are listed before it.
+    pub(crate) fn fomod_configuration(
+        &mut self,
+        warnings: Vec<String>,
+        outcome: Result<(), String>,
+    ) {
+        if let Err(error) = outcome {
+            // As in C#, soft warnings stay in a failed stage, before the error.
+            self.push(Stage::FomodConfiguration, Err(error));
+            if !warnings.is_empty() {
+                self.warning_count += warnings.len();
+                let stage = self.stages.last_mut().unwrap();
+                stage.has_warnings = true;
+                stage.messages.splice(
+                    0..0,
+                    warnings
+                        .into_iter()
+                        .map(|warning| format!("WARNING: {warning}")),
+                );
             }
-        };
+            return;
+        }
         if warnings.is_empty() {
             self.push(Stage::FomodConfiguration, Ok(()));
             self.stages.last_mut().unwrap().summary =

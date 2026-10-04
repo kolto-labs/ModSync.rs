@@ -443,9 +443,8 @@ impl Engine {
     /// The read-only FOMOD configuration gate for plain validate and install. Issues
     /// fail before any simulation or write; warnings are emitted as events.
     fn fomod_gate(&mut self, guide: &Guide, emit: &mut impl FnMut(Event)) -> Result<()> {
-        let warnings = self
-            .validate_fomod_configuration(guide)
-            .context("FOMOD configuration check failed")?;
+        // Warnings are emitted even when the gate then fails.
+        let (warnings, outcome) = self.validate_fomod_configuration(guide);
         for warning in warnings {
             emit(Event {
                 component: String::new(),
@@ -453,7 +452,7 @@ impl Engine {
                 message: format!("WARNING: {warning}"),
             });
         }
-        Ok(())
+        outcome.context("FOMOD configuration check failed")
     }
 
     pub fn validate_report(
@@ -617,10 +616,11 @@ impl Engine {
             "Checking FOMOD configuration",
             false,
         );
-        let fomod = fresh_engine()
-            .and_then(|mut engine| engine.validate_fomod_configuration(guide))
-            .map_err(|error| format!("{error:#}"));
-        report.fomod_configuration(fomod);
+        let (warnings, fomod) = match fresh_engine() {
+            Ok(mut engine) => engine.validate_fomod_configuration(guide),
+            Err(error) => (Vec::new(), Err(error)),
+        };
+        report.fomod_configuration(warnings, fomod.map_err(|error| format!("{error:#}")));
         boundary(
             Stage::FomodConfiguration,
             "Checking FOMOD configuration",
@@ -881,14 +881,26 @@ impl Engine {
         Ok(())
     }
 
+    /// The gate's soft warnings and its outcome. Warnings collected before a hard
+    /// failure are kept, as C# reports its gate warnings alongside other findings.
+    fn validate_fomod_configuration(&mut self, guide: &Guide) -> (Vec<String>, Result<()>) {
+        let mut warnings = crate::fomod::WarningCollector::default();
+        let outcome = self.check_fomod_configuration(guide, &mut warnings);
+        (warnings.finish(), outcome)
+    }
+
     /// Gates the selected components and, as C# does, their hard dependencies.
-    /// Returns warnings for configured registered archives that no selected Extract
+    /// Collects warnings for configured registered archives that no selected Extract
     /// instruction installs, or whose installer maps no files for any choice (C#'s
     /// "configured without archive-scoped instructions"): configuration installs nothing.
     /// Mapper fallbacks of each checked installer are logged once per archive, as C#
     /// logs them, outside the report. Reads archives into scratch only; never writes
     /// the game or mod trees.
-    fn validate_fomod_configuration(&mut self, guide: &Guide) -> Result<Vec<String>> {
+    fn check_fomod_configuration(
+        &mut self,
+        guide: &Guide,
+        warnings: &mut crate::fomod::WarningCollector,
+    ) -> Result<()> {
         fn configured_choices(
             component: &Component,
             filename: &str,
@@ -954,7 +966,6 @@ impl Engine {
         let mut routes = BTreeSet::new();
         // Checked FOMOD archive paths whose mapper fallbacks were already logged.
         let mut logged = BTreeSet::new();
-        let mut warnings = crate::fomod::WarningCollector::default();
         for component in scope.iter().chain(&dependencies) {
             let mut registered = BTreeSet::new();
             for resource in component.resource_registry.values() {
@@ -1105,7 +1116,7 @@ impl Engine {
         for component in scope {
             self.check_component(component)?;
         }
-        Ok(warnings.finish())
+        Ok(())
     }
 
     /// Analyze actual simulated writes without changing either installation tree.
