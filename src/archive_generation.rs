@@ -530,7 +530,8 @@ fn add_option(
         .iter()
         .find(|o| o.instructions.len() == 1 && merge::equivalent(&o.instructions[0], &step));
     if let Some(existing) = existing {
-        existing.guid.clone()
+        // C# writes `Guid.ToString()`, which the engine's Choose match requires.
+        crate::guid::option_text(&existing.guid)
     } else {
         let id = crate::markdown::generated_id(
             &format!("{}:archive:{name}", component.guid),

@@ -408,7 +408,7 @@ Reference: the local ModSync C# source at `d31ccbd3bfcddb4705917eafa6483715c166d
 | Metadata | Preserves additional component fields; TOML/YAML retain build metadata | Preserving a field does not implement its feature; XML typing of arbitrary metadata remains unverified |
 | Selection | File selections, select-all when all components are unselected; explicit CLI components/options; desktop dependency/restriction and deselection cascades across components and options | Native interaction and full Unicode GUID-comparison parity remain open |
 | Ordering | Stable dependency sort, restrictions, InstallBefore/After, instruction conditions | Missing references and cycles fail |
-| Options | Choose resolves selected option GUIDs in declared option order | No automatic choice inference |
+| Options | Choose resolves selected option GUIDs in declared option order; an entry names an option only as its hyphenated GUID (any case), as in C# | No automatic choice inference; an entry that names no option is refused, where C# ignores it |
 | File operations | Copy, Move, Rename, Delete, Extract, DelDuplicate, CleanList | Copy/Move flatten matched files into the target, as the C# instruction engine does; Delete with `Overwrite = true` fails on a missing file, as C# does; a Delete with no Source is a no-op unless `Overwrite = true` |
 | Archives | Streaming ZIP, 7z, RAR, TAR, GZip and 7z SFX; integrity checks; isolated extraction root | No encrypted/multipart archives; SFX support is limited to embedded 7z payloads; empty directories are not materialized |
 | CleanList | C# comma-separated rows, mandatory prefix, substring and token matching | Source matching and final file sets still need full-build differential acceptance |
@@ -1269,6 +1269,44 @@ Evidence: the [scalar-empty-source proof](docs/parity/scalar-empty-source-proof/
 now has 45 cases and 190 checks (235 with the live reference loads), all matching; 73
 fail on `1b3faeb`. Contract:
 [scalar-empty-source-contract.md](docs/parity/scalar-empty-source-contract.md).
+
+## Choose option matching — 2026-10-04 UTC
+
+C# runs a selected option when its `Guid.ToString()`, the lowercase hyphenated form,
+is an entry of the Choose Source, ignoring case (`Instruction.GetChosenOptions`). Install
+and the dry run both use this rule. Rust compared entries as parsed GUID values, so a
+braced `{guid}`, `(guid)`, a 32-digit form without dashes, or a padded `" guid "`
+entry ran the option, which C# skips. Rust now uses the C# text rule in install,
+`validate` and the dry-run report:
+
+- An entry names an option only when it is the option's GUID with dashes and no braces,
+  in any case. The option's own `Guid` may still be written in any GUID form.
+- An entry that names no option is refused before any write (`FOMOD configuration
+  check failed: Unknown option ...`), as an unknown GUID already was. C# ignores such
+  an entry and installs the rest. This fail-closed difference is deliberate and
+  unchanged. When the entry is another spelling of a real option, the message gives
+  the spelling to use.
+- Legacy Markdown bullets split a Choose Source only on `,`, in both implementations,
+  so `<g1>;<g2>` is a single entry that names no option and is refused. No change.
+
+- `convert --auto-generate-local` and the other archive generators write each option
+  into a Choose as its hyphenated lowercase GUID, as C# does, even when the authored
+  option `Guid` is braced, upper case or without dashes. The desktop editor checks
+  Choose references by the same rule as install.
+
+Guide authors: a hand-written Choose entry written `{guid}`, `(guid)`, without dashes
+or with surrounding spaces used to install that option in Rust. C# never installs it.
+Such guides are now refused with `Unknown option {guid}: a Choose entry names an
+option only as guid`. Write the entry as the plain hyphenated GUID (any case) to
+install the option. The option's own `Guid` may keep any GUID spelling. Guides
+produced by `convert --auto-generate-local` already use the plain form. In a legacy
+Markdown bullet, separate several options with `,`, not `;`. In a guide without
+FOMOD, the refusal is still reported under the `FOMOD configuration check failed:`
+prefix of the shared pre-install check. Evidence:
+[choose-option-match proof](docs/parity/choose-option-match-proof/README.md), 69/69
+checks (92/92 with the live reference runs); 21 fail on `a09ca4a`, and 6 on `5eb80d5`,
+whose generator wrote the authored spelling. Contract:
+[choose-option-match-contract.md](docs/parity/choose-option-match-contract.md).
 
 ## Delete of a missing file with Overwrite=true — 2026-10-04 UTC
 

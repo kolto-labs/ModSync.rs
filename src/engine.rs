@@ -1755,18 +1755,30 @@ impl Engine {
     }
 
     /// The same immediate-option selection used by execution and read-only gates.
+    /// An entry that names no option is refused (fail closed), where C# ignores it.
     fn chosen_options<'a>(
         component: &'a Component,
         instruction: &Instruction,
     ) -> Result<Vec<&'a Component>> {
         for id in &instruction.source {
-            ensure!(
-                component
-                    .options
-                    .iter()
-                    .any(|option| crate::guid::eq_ascii(&option.guid, id)),
-                "Unknown option {id}"
-            );
+            if component
+                .options
+                .iter()
+                .any(|option| crate::guid::names_option(&option.guid, id))
+            {
+                continue;
+            }
+            match crate::guid::try_parse(id) {
+                Some(value)
+                    if component
+                        .options
+                        .iter()
+                        .any(|option| crate::guid::try_parse(&option.guid) == Some(value)) =>
+                {
+                    bail!("Unknown option {id}: a Choose entry names an option only as {value}")
+                }
+                _ => bail!("Unknown option {id}"),
+            }
         }
         Ok(component
             .options
@@ -1776,7 +1788,7 @@ impl Engine {
                     && instruction
                         .source
                         .iter()
-                        .any(|id| crate::guid::eq_ascii(&option.guid, id))
+                        .any(|id| crate::guid::names_option(&option.guid, id))
             })
             .collect())
     }
