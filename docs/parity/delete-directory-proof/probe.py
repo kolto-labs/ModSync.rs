@@ -66,6 +66,11 @@ BRACKET = {"game/Override/[ab].tga": "AB\n"}
 DEEP_MOD = {"mods/d/e/n.txt": "N\n"}
 # A ZIP (written by the fixture) whose name a `[e]` class would match.
 EXAMPLE_ZIP = {"mods/example.zip": {"z.txt": "Z\n"}}
+CLEAN = {"mods/d/clean.csv": "Mandatory Deletions,a.tga\n"}
+NESTED_ZIP = {"mods/n/deep.zip": {"z.txt": "Z\n"}}
+# An executable script that leaves a marker next to itself when run.
+SCRIPT = {"mods/x/run.sh": '#!/bin/sh\necho ran > "$(dirname "$0")/ran.txt"\n'}
+PROCESSES = {"rust_args": ["--allow-processes"]}
 
 # name -> (instructions, read-only fixture files[, extra fixture files])
 CASES = {
@@ -114,6 +119,30 @@ CASES = {
     "rename_missing_file_omitted": ([step("Rename", [OV + "/nope.txt"], "c.txt")], []),
     "extract_dir_omitted": ([step("Extract", [MD + "/d"], MD + "/out")], []),
     "extract_bracket_literal": ([step("Extract", [MD + "/[e]xample.zip"], MD + "/out")], [], EXAMPLE_ZIP),
+    "extract_bracket_file_literal": (
+        [step("Extract", [MD + "/[e]xample.zip"], MD + "/bracket")],
+        [],
+        {"mods/[e]xample.zip": {"z.txt": "Z\n"}},
+    ),
+    "extract_bracket_file_default_dest": (
+        [step("Extract", [MD + "/[e]xample.zip"], None)],
+        [],
+        {"mods/[e]xample.zip": {"z.txt": "Z\n"}},
+    ),
+    "extract_nested_dir": ([step("Extract", [MD + "/n"], MD + "/out")], [], NESTED_ZIP),
+    # Rename misses: C# keeps every literal Source (FileNotFoundPost, MissingSourceFiles)
+    # but throws on an empty wildcard-only expansion (UnknownError).
+    "rename_wildcard_nomatch": ([step("Rename", [OV + "/nope*.txt"], "c.txt")], []),
+    "rename_literal_and_wildcard_nomatch": ([step("Rename", [OV + "/nope.txt", OV + "/nope*.txt"], "c.txt")], []),
+    "rename_present_and_wildcard_nomatch": ([step("Rename", [OV + "/a.tga", OV + "/nope*.txt"], "c.txt")], []),
+    # CleanList and Execute/Run with a folder Source.
+    "cleanlist_dir": ([step("CleanList", [MD + "/d"], OV)], [], CLEAN),
+    "cleanlist_file_control": ([step("CleanList", [MD + "/d/clean.csv"], OV)], [], CLEAN),
+    "execute_dir": ([step("Execute", [MD + "/x"], None)], [], SCRIPT, PROCESSES),
+    "run_dir": ([step("Run", [MD + "/x"], None)], [], SCRIPT, PROCESSES),
+    "execute_file_control": ([step("Execute", [MD + "/x/run.sh"], None)], [], SCRIPT, PROCESSES),
+    "execute_missing_file": ([step("Execute", [MD + "/x/nope.sh"], None)], [], SCRIPT, PROCESSES),
+    "cleanlist_missing_file": ([step("CleanList", [MD + "/d/nope.csv"], OV)], [], CLEAN),
 }
 
 
@@ -142,6 +171,11 @@ def fixture(root, case):
     for relative, text in files.items():
         path = os.path.join(root, relative)
         os.makedirs(os.path.dirname(path), exist_ok=True)
+        if relative.endswith(".sh"):
+            with open(path, "w") as handle:
+                handle.write(text)
+            os.chmod(path, 0o755)
+            continue
         if isinstance(text, dict):
             with zipfile.ZipFile(path, "w") as archive:
                 for member, data in text.items():
@@ -189,6 +223,7 @@ def run_rust(binary, mode, case, work):
     path, mods, game = fixture(root, case)
     verb = "install" if mode == "install" else "validate"
     argv = [binary, verb, "-i", path, "-s", mods, "-g", game]
+    argv += case[3].get("rust_args", []) if len(case) > 3 else []
     if mode == "install":
         argv += ["--scratch-dir", os.path.join(root, "scratch")]
     if mode == "dryrun":
@@ -245,9 +280,23 @@ KNOWN = {
         ("dryrun",),
         "a missing Extract archive is a ComponentValidation error in Rust's full report (pre-existing); C# only skips",
     ),
+    "rename_present_and_wildcard_nomatch": (
+        ("dryrun", "validate", "install"),
+        "Rust requires every Source to match (F05-X2); C# renames the present file",
+    ),
     "extract_dir_omitted": (
         ("dryrun",),
         "Extract keeps the folder rule; Rust tries to unpack the folder's files and reports an error, C# skips",
+    ),
+}
+
+
+# Deliberately unchanged acceptances: name -> (Rust modes, reason). The Rust result
+# must be an acceptance where the reference refuses, or the check fails.
+KNOWN_ACCEPTS = {
+    "extract_nested_dir": (
+        ("dryrun", "validate", "install"),
+        "Extract keeps the folder rule (FOMOD root-folder flows); Rust extracts n/deep.zip, C# MissingSourceFiles",
     ),
 }
 
@@ -288,9 +337,18 @@ def main():
                     same = same and actual["skipped"] == expected["skipped"]
                 refused = not actual["accepted"] or (compare_skip and actual["skipped"])
                 is_known = name in KNOWN and mode in KNOWN[name][0]
-                if same and not is_known:
+                accepts = name in KNOWN_ACCEPTS and mode in KNOWN_ACCEPTS[name][0]
+                if same and not is_known and not accepts:
                     matched += 1
                     verdict = "match"
+                elif (
+                    accepts
+                    and not same
+                    and not refused
+                    and (not expected["accepted"] or (compare_skip and expected["skipped"]))
+                ):
+                    known += 1
+                    verdict = "known"
                 elif is_known and not same and refused:
                     known += 1
                     verdict = "known"

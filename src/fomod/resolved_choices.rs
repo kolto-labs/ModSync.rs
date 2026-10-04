@@ -151,7 +151,8 @@ impl<'a> Inventory<'a> {
             ))?;
             // Preserve explicit literal archive ownership when the input is missing.
             // A verified directory, even with an archive suffix, takes only its real members.
-            if !source.contains(['*', '?', '[', ']'])
+            // `[` and `]` are literal Source characters (C# WildcardPathMatch).
+            if !source.contains(['*', '?'])
                 && !self
                     .entries
                     .get(&key)

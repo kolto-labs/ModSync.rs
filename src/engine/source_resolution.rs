@@ -214,6 +214,8 @@ impl Engine {
                 instruction.source.len() == 1,
                 "Patcher needs exactly one source binding"
             );
+            // `[`/`]` are literal Source characters, but a literal path still may
+            // not contain them (`paths::relative`), so they stay refused here.
             ensure!(
                 !instruction.source[0].contains(['*', '?', '[', ']']),
                 "Patcher source must bind one literal file or directory"
@@ -302,11 +304,12 @@ impl Engine {
             let mut found = false;
             for (key, (path, content)) in &self.files {
                 budget.visit()?;
-                if if descendants {
+                let matched = if descendants {
                     self.source_matches(&prefix, &pattern, key)
                 } else {
                     self.path_policy.glob_matches(&pattern, key)
-                } {
+                };
+                if matched {
                     self.settings.roots.check(path)?;
                     if !matches!(content, Content::Unknown) || self.install {
                         content.open()?;
@@ -801,6 +804,8 @@ impl Engine {
         }
         for raw in &instruction.source {
             budget.name(raw)?;
+            // A literal path may not contain `[`/`]` (`paths::relative`), so such
+            // a Source is never treated as already satisfied.
             if raw.contains(['*', '?', '[', ']']) {
                 return Ok(false);
             }

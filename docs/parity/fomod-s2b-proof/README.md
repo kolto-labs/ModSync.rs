@@ -253,7 +253,9 @@ follow-up matches the way the engine resolves sources (`scope_folder_*`,
   FOMOD stage still passes, but install, the report and plain validate refuse the
   missing source (exit 1, no game writes). The reference refuses the same Extract
   with `MissingSourceFiles` (delete-directory proof, `extract_bracket_literal`).
-  The check count is unchanged at 254.
+  A third label, `scope_bracket_literal_*` (11 checks), extracts an archive literally
+  named `[e]xample.zip` that the Source names literally (Destination
+  `<<modDirectory>>/bracket`): it is in scope and installs. The total is now 265.
 - The archive's folder is not known when choices are applied, so any source whose last
   component is not an archive file name (`.zip`, `.7z`, `.rar`, `.exe`, `.tar`, `.gz`)
   is treated as a possible folder containing it. An unparseable glob is kept as well.

@@ -2,9 +2,10 @@
 
 Contract: [delete-directory-contract.md](../delete-directory-contract.md).
 
-[probe.py](probe.py) builds 42 disposable fixtures and runs the production
-`modsync` three ways on a fresh copy of each, giving 126 checks (the first 19
-fixtures, 57 checks, are the original Delete slice):
+[probe.py](probe.py) builds 55 disposable fixtures and runs the production
+`modsync` three ways on a fresh copy of each, giving 165 checks (the first 19
+fixtures, 57 checks, are the original Delete slice; 42 fixtures, 126 checks, the
+first follow-up):
 
 - `validate --output json --dry-run`: the decision (no Error issue) and whether
   the report has the `DryRunSkipped` warning, against the reference dry run;
@@ -27,7 +28,10 @@ Every fixture has `game/chitin.key`, `game/Override/{a.tga, b.2da, s.tga}`,
 `game/Override/sub/x.tga`, `game/Override/sub/deeper/y.tga`, the empty directory
 `game/Override/empty` and `mods/d/m.txt`. `OV` is `<<kotorDirectory>>/Override`,
 `MD` is `<<modDirectory>>`. Some fixtures add a file literally named
-`OV/[ab].tga`, `MD/d/e/n.txt`, or a ZIP `MD/example.zip`.
+`OV/[ab].tga`, `MD/d/e/n.txt`, a ZIP `MD/example.zip`, `MD/[e]xample.zip` or
+`MD/n/deep.zip`, a list `MD/d/clean.csv` (`Mandatory Deletions,a.tga`), or an
+executable `MD/x/run.sh` that writes `MD/x/ran.txt`. The Execute/Run cases pass
+`--allow-processes` to Rust, so that a folder Source would really run.
 
 | Case | Delete step(s) | Reference dry run / install |
 | --- | --- | --- |
@@ -70,20 +74,50 @@ Every fixture has `game/chitin.key`, `game/Override/{a.tga, b.2da, s.tga}`,
 | `rename_missing_file_omitted` | Rename `OV/nope.txt` -> `c.txt` | DryRunSkipped / fails |
 | `extract_dir_omitted` | Extract `MD/d` -> `MD/out` | DryRunSkipped / fails (Rust dry run: known difference) |
 | `extract_bracket_literal` | Extract `MD/[e]xample.zip` with `example.zip` present | DryRunSkipped / fails (Rust dry run: known difference) |
+| `extract_bracket_file_literal` | Extract `MD/[e]xample.zip` (so named) -> `MD/bracket` | pass / pass, extracted |
+| `extract_bracket_file_default_dest` | the same, no Destination | pass / pass, extracted to `[e]xample/` |
+| `extract_nested_dir` | Extract `MD/n` (holds `deep.zip`) -> `MD/out` | DryRunSkipped / fails (Rust accepts: known difference) |
+| `rename_wildcard_nomatch` | Rename `OV/nope*.txt` -> `c.txt` | Error / `UnknownError` |
+| `rename_literal_and_wildcard_nomatch` | Rename [`OV/nope.txt`, `OV/nope*.txt`] | DryRunSkipped / `MissingSourceFiles` |
+| `rename_present_and_wildcard_nomatch` | Rename [`OV/a.tga`, `OV/nope*.txt`] | pass / pass (Rust refuses: known difference) |
+| `cleanlist_dir` | CleanList [`MD/d`] -> `OV` | DryRunSkipped / `MissingSourceFiles` |
+| `cleanlist_file_control` | CleanList [`MD/d/clean.csv`] -> `OV` | pass / pass, `a.tga` deleted |
+| `cleanlist_missing_file` | CleanList [`MD/d/nope.csv`] | DryRunSkipped / fails |
+| `execute_dir`, `run_dir` | Execute / Run `MD/x` | Error / `UnknownError`, nothing runs |
+| `execute_file_control` | Execute `MD/x/run.sh` | pass / pass, `ran.txt` written |
+| `execute_missing_file` | Execute `MD/x/nope.sh` | Error / `UnknownError` |
 
 Known differences (`KNOWN` in the probe) must be refusals in Rust where the
-reference accepts, or the check fails:
+reference accepts, or the check fails. `KNOWN_ACCEPTS` (only `extract_nested_dir`,
+all three checks) must be acceptances in Rust where the reference refuses or skips:
+Extract keeps the folder rule for FOMOD root-folder flows.
 
-- `copy_dir_and_file_omitted`, all three checks: Rust requires every Source to
-  match (F05-X2); the reference drops the missing literal because another Source
-  matched.
+- `copy_dir_and_file_omitted` and `rename_present_and_wildcard_nomatch`, all three
+  checks each: Rust requires every Source to match (F05-X2); the reference drops
+  the missing Source because another Source matched.
 - `extract_dir_omitted` dry run: Extract keeps the folder rule, so Rust tries to
   unpack the folder's files and reports an error; the reference skips.
 - `extract_bracket_literal` dry run: any missing Extract archive is a
   ComponentValidation error in Rust's full report (also on `2241235`); the
   reference only skips. Validate and install match.
 
-## Results of the follow-up (cloud Linux, 2026-10-04)
+## Results of the second follow-up (cloud Linux, 2026-10-04)
+
+| Binary | Result |
+| --- | --- |
+| second follow-up, live reference (`--csharp ... --record`) | 154 match / 11 known difference / 0 fail |
+| second follow-up, recorded reference | 154 match / 11 known difference / 0 fail |
+| `df67229` (the first follow-up) | 142 match / 11 known difference / 12 fail |
+| `4fb71a6` | 103 match / 7 known difference / 55 fail |
+| `2241235` | 93 match / 7 known difference / 65 fail |
+
+On `df67229` the 12 failures are: `rename_wildcard_nomatch` dry run (it passed with
+`DryRunSkipped`); `cleanlist_dir`, all three (it read `clean.csv` from the folder
+and deleted `a.tga`); `execute_dir` and `run_dir`, all three each (with
+`--allow-processes` Rust ran `x/run.sh`); and the dry runs of
+`execute_missing_file` (typed as a skip) and `cleanlist_missing_file` (an error).
+
+## Results of the first follow-up (cloud Linux, 2026-10-04)
 
 | Binary | Result |
 | --- | --- |

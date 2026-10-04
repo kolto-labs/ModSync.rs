@@ -156,12 +156,7 @@ impl Roots {
                 let p = root.join(relative(tail.trim_start_matches(['/', '\\']), wildcards)?);
                 let mut literal = root.clone();
                 for part in p.strip_prefix(root)?.components() {
-                    if wildcards
-                        && part
-                            .as_os_str()
-                            .to_string_lossy()
-                            .contains(['*', '?', '[', ']'])
-                    {
+                    if wildcards && part.as_os_str().to_string_lossy().contains(['*', '?']) {
                         break;
                     }
                     literal.push(part);

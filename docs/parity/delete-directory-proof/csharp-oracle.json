@@ -63,6 +63,108 @@
    "tree": null
   }
  },
+ "cleanlist_dir": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Delete Directory Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/s.tga": "S\n",
+     "Override/sub/deeper/y.tga": "Y\n",
+     "Override/sub/x.tga": "X\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "d/clean.csv": "Mandatory Deletions,a.tga\n",
+     "d/m.txt": "M\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Delete Directory Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
+ "cleanlist_file_control": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Delete Directory Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/s.tga": "S\n",
+     "Override/sub/deeper/y.tga": "Y\n",
+     "Override/sub/x.tga": "X\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "d/clean.csv": "Mandatory Deletions,a.tga\n",
+     "d/m.txt": "M\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "cleanlist_missing_file": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Delete Directory Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/s.tga": "S\n",
+     "Override/sub/deeper/y.tga": "Y\n",
+     "Override/sub/x.tga": "X\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "d/clean.csv": "Mandatory Deletions,a.tga\n",
+     "d/m.txt": "M\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Delete Directory Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
  "copy_bracket_literal": {
   "install": {
    "accepted": true,
@@ -810,6 +912,180 @@
    "tree": null
   }
  },
+ "execute_dir": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Delete Directory Probe: UnknownError"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/s.tga": "S\n",
+     "Override/sub/deeper/y.tga": "Y\n",
+     "Override/sub/x.tga": "X\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "d/m.txt": "M\n",
+     "x/run.sh": "#!/bin/sh\necho ran > \"$(dirname \"$0\")/ran.txt\"\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": false,
+   "raw": {
+    "Errors": [
+     "Program file does not exist: /tmp/delete-directory-proof-h553wqfy/csharp-validate-hka1886o/mods/x",
+     "Dry-run failed for 'Delete Directory Probe' with exit code UnknownError."
+    ],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "execute_file_control": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Delete Directory Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/s.tga": "S\n",
+     "Override/sub/deeper/y.tga": "Y\n",
+     "Override/sub/x.tga": "X\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "d/m.txt": "M\n",
+     "x/ran.txt": "ran\n",
+     "x/run.sh": "#!/bin/sh\necho ran > \"$(dirname \"$0\")/ran.txt\"\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "execute_missing_file": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Delete Directory Probe: UnknownError"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/s.tga": "S\n",
+     "Override/sub/deeper/y.tga": "Y\n",
+     "Override/sub/x.tga": "X\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "d/m.txt": "M\n",
+     "x/run.sh": "#!/bin/sh\necho ran > \"$(dirname \"$0\")/ran.txt\"\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": false,
+   "raw": {
+    "Errors": [
+     "Program file does not exist: /tmp/delete-directory-proof-h553wqfy/csharp-validate-qxvaolyr/mods/x/nope.sh",
+     "Dry-run failed for 'Delete Directory Probe' with exit code UnknownError."
+    ],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "extract_bracket_file_default_dest": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Delete Directory Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/s.tga": "S\n",
+     "Override/sub/deeper/y.tga": "Y\n",
+     "Override/sub/x.tga": "X\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "[e]xample.zip": "zip: z.txt",
+     "[e]xample/z.txt": "Z\n",
+     "d/m.txt": "M\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "extract_bracket_file_literal": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Delete Directory Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/s.tga": "S\n",
+     "Override/sub/deeper/y.tga": "Y\n",
+     "Override/sub/x.tga": "X\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "[e]xample.zip": "zip: z.txt",
+     "bracket/z.txt": "Z\n",
+     "d/m.txt": "M\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
  "extract_bracket_literal": {
   "install": {
    "accepted": false,
@@ -864,6 +1140,41 @@
     },
     "mods": {
      "d/m.txt": "M\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Delete Directory Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
+ "extract_nested_dir": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Delete Directory Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/s.tga": "S\n",
+     "Override/sub/deeper/y.tga": "Y\n",
+     "Override/sub/x.tga": "X\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "d/m.txt": "M\n",
+     "n/deep.zip": "zip: z.txt"
     }
    }
   },
@@ -1298,6 +1609,40 @@
    "tree": null
   }
  },
+ "rename_literal_and_wildcard_nomatch": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Delete Directory Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/s.tga": "S\n",
+     "Override/sub/deeper/y.tga": "Y\n",
+     "Override/sub/x.tga": "X\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "d/m.txt": "M\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Delete Directory Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
  "rename_missing_file_omitted": {
   "install": {
    "accepted": false,
@@ -1329,6 +1674,108 @@
     ]
    },
    "skipped": true,
+   "tree": null
+  }
+ },
+ "rename_present_and_wildcard_nomatch": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Delete Directory Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/c.txt": "A\n",
+     "Override/s.tga": "S\n",
+     "Override/sub/deeper/y.tga": "Y\n",
+     "Override/sub/x.tga": "X\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "d/m.txt": "M\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "rename_wildcard_nomatch": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Delete Directory Probe: UnknownError"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/s.tga": "S\n",
+     "Override/sub/deeper/y.tga": "Y\n",
+     "Override/sub/x.tga": "X\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "d/m.txt": "M\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": false,
+   "raw": {
+    "Errors": [
+     "Failed to validate component: No source paths available for Rename instruction. Source paths may be empty, or wildcard patterns may not have matched any files. (Parameter 'sourcePaths')"
+    ],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "run_dir": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Delete Directory Probe: UnknownError"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/s.tga": "S\n",
+     "Override/sub/deeper/y.tga": "Y\n",
+     "Override/sub/x.tga": "X\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "d/m.txt": "M\n",
+     "x/run.sh": "#!/bin/sh\necho ran > \"$(dirname \"$0\")/ran.txt\"\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": false,
+   "raw": {
+    "Errors": [
+     "Program file does not exist: /tmp/delete-directory-proof-h553wqfy/csharp-validate-0_bb4q8h/mods/x",
+     "Dry-run failed for 'Delete Directory Probe' with exit code UnknownError."
+    ],
+    "Warnings": []
+   },
+   "skipped": false,
    "tree": null
   }
  },

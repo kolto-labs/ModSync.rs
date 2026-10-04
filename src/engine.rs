@@ -185,12 +185,15 @@ impl Content {
 }
 
 /// Whether an authored Source of this action also matches every file under it as
-/// a folder. The reference binds Copy, Move, Rename and Delete Sources with
+/// a folder. The reference binds file-action Sources with
 /// `PathHelper.EnumerateFilesWithWildcards`, which returns files only, so a folder
-/// Source is a missing source for them. Extract, Patcher, Execute/Run and FOMOD
-/// scoping keep the folder rule.
+/// Source is a missing source for them. Extract, Patcher and FOMOD scoping keep the
+/// folder rule (FOMOD root-folder flows rely on it for Extract).
 pub(crate) fn authored_descendants(action: &str) -> bool {
-    !matches!(action, "Copy" | "Move" | "Rename" | "Delete")
+    !matches!(
+        action,
+        "Copy" | "Move" | "Rename" | "Delete" | "CleanList" | "Execute" | "Run"
+    )
 }
 
 /// Glob text for one authored Source path with the reference wildcard rules
@@ -1942,13 +1945,10 @@ impl Engine {
         for source in sources {
             self.source_pattern(source)?;
         }
-        let paths = self.matches(sources, false).map_err(|error| {
-            if error.is::<MissingSource>() {
-                anyhow::Error::new(MissingSourceFiles(error))
-            } else {
-                error
-            }
-        })?;
+        // Execute/Run only: a folder Source is a miss, never every program in it.
+        // C# ExecuteProgram fails a missing program with UnknownError ("Program file
+        // does not exist"), an error in its dry run too, so the miss stays untyped.
+        let paths = self.matches_scoped(sources, false, false)?;
         for path in &paths {
             // Reading must be possible even when virtual copying needs no bytes.
             let content = &self.files[&self.path_policy.key(path)].1;
@@ -2232,16 +2232,29 @@ impl Engine {
                     self.path(&i.destination, false)?
                 };
                 let sources = if i.action == "Rename" {
-                    // C# RenameFile returns FileNotFoundPost for a missing source:
-                    // MissingSourceFiles, a DryRunSkipped warning in the dry run.
-                    self.matches_scoped(&i.source, false, authored_descendants(&i.action))
-                        .map_err(|error| {
-                            if error.is::<MissingSource>() {
+                    // C# SetRealPaths(skipExistenceCheck) keeps every literal Source,
+                    // so RenameFile returns FileNotFoundPost for a missing literal
+                    // (MissingSourceFiles, DryRunSkipped in the dry run). When only
+                    // wildcards are missing it throws on the empty expansion instead
+                    // (UnknownError), which stays an untyped error here.
+                    match self.matches_scoped(&i.source, false, authored_descendants(&i.action)) {
+                        Err(error) if error.is::<MissingSource>() => {
+                            let mut literal_missing = false;
+                            for source in &i.source {
+                                if !source.contains(['*', '?']) {
+                                    let path = self.path(source, true)?;
+                                    literal_missing |=
+                                        !self.files.contains_key(&self.path_policy.key(&path));
+                                }
+                            }
+                            return Err(if literal_missing {
                                 anyhow::Error::new(MissingSourceFiles(error))
                             } else {
                                 error
-                            }
-                        })?
+                            });
+                        }
+                        result => result?,
+                    }
                 } else {
                     let mut resolution = self.resolve_instruction(component, i)?;
                     if resolution.satisfied {
@@ -2449,7 +2462,17 @@ impl Engine {
             }
             "CleanList" => {
                 let dir = self.path(&i.destination, false)?;
-                let sources = self.matches(&i.source, false)?;
+                // C# CleanList fails a missing list with MissingSourceFiles, which is the
+                // DryRunSkipped warning in its dry run.
+                let sources = self
+                    .matches_scoped(&i.source, false, authored_descendants(&i.action))
+                    .map_err(|error| {
+                        if error.is::<MissingSource>() {
+                            anyhow::Error::new(MissingSourceFiles(error))
+                        } else {
+                            error
+                        }
+                    })?;
                 let source = sources.first().context("CleanList needs a source file")?;
                 let cancelled = self.settings.cancelled.clone();
                 let mut budget = cleanlist::Budget::new(&cancelled);

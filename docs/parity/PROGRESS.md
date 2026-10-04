@@ -9,19 +9,20 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
-Directory Sources and wildcard rules (2026-10-04, follow-up to the Delete slice): a
-`Delete`, `Copy`, `Move` or `Rename` Source that names a directory now reaches no file
-beneath it, as in C# (`EnumerateFilesWithWildcards` returns files only). Delete deletes
-nothing (strict Delete fails); Copy, Move and Rename fail with `MissingSourceFiles`.
-Before, Rust deleted, moved, copied or renamed the whole subtree. Every Source's
+Directory Sources and wildcard rules (2026-10-04, follow-ups to the Delete slice): a
+`Delete`, `Copy`, `Move`, `Rename`, `CleanList`, `Execute` or `Run` Source that names a
+directory now reaches no file beneath it, as in C# (`EnumerateFilesWithWildcards`
+returns files only). Delete deletes nothing (strict Delete fails); the others fail.
+Before, Rust deleted, moved, copied or renamed the whole subtree, read a CleanList from
+the folder, or (with `--allow-processes`) ran every program in it. Every Source's
 wildcards now follow C# `WildcardPathMatch`: `**` stays within one level and `[`/`]`
-are literal (`Delete Override/**` emptied every subfolder; `[ab].tga` was a class).
-A missing Rename Source is typed `MissingSourceFiles` (dry-run `DryRunSkipped`).
-Extract, Patcher, Execute/Run, CleanList and the FOMOD gate keep the folder rule.
-Proof: 121 match and 5 known differences against a live reference oracle; 37 fail on
-`4fb71a6`, 47 on `2241235`. The S2b proof's `[e]xample.zip` checks now expect a
-missing source (254, unchanged count); the other regression probes stay at baseline.
-See [delete-directory-contract.md](delete-directory-contract.md).
+are literal. Missing Rename, CleanList and Execute/Run Sources are classified as in C#
+in the dry-run report. Extract, Patcher and the FOMOD gate keep the folder rule, so
+Rust still extracts a folder of archives that C# refuses (documented). Proof: 154 match
+and 11 known differences against a live reference oracle; 12 fail on `df67229`, 55 on
+`4fb71a6`, 65 on `2241235`. The S2b proof now has 265 checks (`[e]xample.zip` is a
+missing source; a literally so named archive installs); the other regression probes
+stay at baseline. See [delete-directory-contract.md](delete-directory-contract.md).
 
 Copy/Move onto itself, follow-up (2026-10-04): a self-target next to a source that
 miss-only recovery binds from a `ResourceRegistry` archive was still refused by
