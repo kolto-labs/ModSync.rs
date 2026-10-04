@@ -1584,6 +1584,33 @@ Users: a guide that failed with `Wildcards are not allowed here` naming a file o
 folder from a patcher's changes.ini or namespaces.ini now validates and installs; no
 guide change is needed.
 
+## Missing archives in the validation report — 2026-10-04 UTC
+
+The validation report's archive stage (`ComponentValidation` in `validate --output
+json`, the mod-archives card of the desktop Validate step) now reports a missing
+download as C# does: one error per Extract step, `ERROR: <component>: Missing
+Required Archives: [<that step's Sources, joined by ",">]`, each counted in
+`errorCount` and in the stage summary, and the component's other archive checks are
+skipped. When a component has no archive at all, only its own Extract steps are named,
+not its options'. Before, Rust stopped at the first missing archive of a component
+and printed `archive/destination validation: Source matches no files: <Source>`, so a
+component with two missing downloads showed one, and `errorCount` was lower than in
+C#. The report's decision is unchanged, and plain `validate`, `install` and the dry
+run are unaffected.
+
+Unchanged and documented: Rust still reports a missing archive when the component's
+other archives exist, or when the Extract is in an option; C# passes the stage then,
+and its install fails at that Extract. Rust does not report an Extract that does not
+run (an unmet instruction dependency) or one with no Source; C# does when the
+component has no archive. Other archive-stage failures keep their Rust wording.
+Evidence: [missing archives proof](docs/parity/missing-archives-proof/README.md), 47
+checks match and 22 are known differences against the live C# CLI (27 fail on
+`3024e4d`); contract in
+[missing-archives-contract.md](docs/parity/missing-archives-contract.md).
+
+Users: the Validate step now lists every missing download of a component, each named
+by its guide Source, so one Fetch Downloads pass can cover them all.
+
 ## CleanList list-file choice — 2026-10-04 UTC
 
 A `CleanList` reads one list file. When its Source list names more than one existing

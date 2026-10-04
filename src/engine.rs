@@ -213,6 +213,14 @@ fn has_dot_part(raw: &str) -> bool {
     raw.split(['/', '\\']).any(|part| part == ".")
 }
 
+/// Whether an instruction is one of the component's own (not an option's).
+fn is_top_level(component: &Component, instruction: &Instruction) -> bool {
+    component
+        .instructions
+        .iter()
+        .any(|own| std::ptr::eq(own, instruction))
+}
+
 pub(crate) fn source_wildcard_glob(text: &str) -> String {
     let mut glob = String::with_capacity(text.len());
     let mut star = false;
@@ -824,7 +832,7 @@ impl Engine {
         mut self,
         guide: &Guide,
         emit: &mut impl FnMut(Event),
-    ) -> Result<Vec<Result<(), String>>> {
+    ) -> Result<Vec<Result<(), Vec<String>>>> {
         recovery::ensure_clean(&self.settings.roots)?;
         recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
         self.selected = selected_guid_keys(guide);
@@ -836,10 +844,22 @@ impl Engine {
                     .completed
                     .contains(&crate::guid::key_ascii(&component.guid))
         }) {
-            let outcome = self
-                .validate_component_archives(component)
-                .with_context(|| format!("{}: archive/destination validation", component.name))
-                .map_err(|error| format!("{error:#}"));
+            // Missing archives are one error per Extract, as the reference lists them;
+            // any other failure stops this component's checks with one error.
+            let outcome = match self.validate_component_archives(component) {
+                Ok(missing) if missing.is_empty() => Ok(()),
+                Ok(missing) => Err(missing
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", component.name))
+                    .collect()),
+                Err(error) => Err(vec![format!(
+                    "{:#}",
+                    error.context(format!(
+                        "{}: archive/destination validation",
+                        component.name
+                    ))
+                )]),
+            };
             emit(Event {
                 component: component.name.clone(),
                 step: 0,
@@ -850,7 +870,9 @@ impl Engine {
         Ok(outcomes)
     }
 
-    fn validate_component_archives(&self, component: &Component) -> Result<()> {
+    /// Returns the reference's `Missing Required Archives` errors, if any; other
+    /// failures are errors.
+    fn validate_component_archives(&self, component: &Component) -> Result<Vec<String>> {
         self.check_cancelled()?;
         // The reference archive stage includes immediate option instructions.
         let instructions: Vec<_> = component
@@ -866,6 +888,7 @@ impl Engine {
             .collect();
         let mut members = BTreeSet::new();
         let mut has_archives = false;
+        let mut missing = Vec::new();
         for instruction in &instructions {
             self.check_cancelled()?;
             // An Extract with no Source names no archive to check; execution
@@ -873,7 +896,13 @@ impl Engine {
             if instruction.action != "Extract" || instruction.source.is_empty() {
                 continue;
             }
-            for source in self.matches(&instruction.source, false)? {
+            for source in &instruction.source {
+                if self.matches(std::slice::from_ref(source), true)?.is_empty() {
+                    missing.push(*instruction);
+                    break;
+                }
+            }
+            for source in self.matches(&instruction.source, true)? {
                 has_archives = true;
                 let dest = self.extraction_destination(instruction, &source)?;
                 self.settings.roots.check(&dest)?;
@@ -895,6 +924,28 @@ impl Engine {
                     members.insert(self.path_policy.key(&path));
                 }
             }
+        }
+        if !missing.is_empty() {
+            // C# `ComponentValidation.VerifyExtractPaths`: when none of the component's
+            // archives exists, each top-level Extract is one error naming its Sources,
+            // and the other checks are skipped. Rust also refuses an option-only or a
+            // partly missing Extract there (fail closed), where C# reports nothing.
+            if !has_archives
+                && missing
+                    .iter()
+                    .any(|instruction| is_top_level(component, instruction))
+            {
+                missing.retain(|instruction| is_top_level(component, instruction));
+            }
+            return Ok(missing
+                .into_iter()
+                .map(|instruction| {
+                    format!(
+                        "Missing Required Archives: [{}]",
+                        instruction.source.join(",")
+                    )
+                })
+                .collect());
         }
         for instruction in instructions {
             self.check_cancelled()?;
@@ -955,7 +1006,7 @@ impl Engine {
                 );
             }
         }
-        Ok(())
+        Ok(Vec::new())
     }
 
     /// The gate's soft warnings and its issues; no issue means the gate passed. Like
