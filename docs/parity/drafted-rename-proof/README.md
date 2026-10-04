@@ -45,7 +45,10 @@ from the pinned drafter and drafts exactly the expected Rename.
 [csharp-drafts.json](csharp-drafts.json) is the `0-csharp.json` output of
 `tools/check_drafts.py` (the managed probe over `DraftInstructionService`, under
 `bwrap` with no network) for the cases `probe.py --cases-json` writes, against
-`ModSync.Core.dll` from a `d31ccbd3` build, run with `DOTNET_ROLL_FORWARD=Major`.
+`ModSync.Core.dll` from a `d31ccbd3` build (sha256
+`fb8e3e973c21f3712081419c584177794b7374515a3aac188a9a5ca3c228b157`; a different build
+from the one recorded in `docs/parity/draft-check.json`), run with
+`DOTNET_ROLL_FORWARD=Major`.
 
 ## Results (cloud Linux, 2026-10-04)
 

@@ -364,6 +364,8 @@ timestamp/typed-key intake remain source decisions; see the
 - [ ] Reconcile historical status prose and newly merged/uncommitted audits against current source; derive bounded tasks where a domain still lacks a current plan.
 - [ ] Resolve GitHub Actions billing/spending-limit failure and obtain actual CI results, including the unrun Windows cross-check.
 - [ ] Resolve the frozen-test/CI contract at the authorized post-parity point; then repair obsolete fixtures and run the deferred test/all-target checks.
+  - Known drift: `tests/drafts.rs:13-18` now fails on fixture component 12 (Rename) after the drafted-Rename slice; re-record or annotate `tests/fixtures/csharp/drafts.json` ([drafted-rename-contract.md](../parity/drafted-rename-contract.md)).
+  - Follow-up (F05-RENAME): apply the `..`-inside-a-name check (`invalid_destination`) to Rename Destinations in `rename_file_name`.
 - [ ] Refresh/preserve source-bound evidence and reference inputs before final acceptance; do not reuse old counts as current-source proof.
 - [ ] Complete independent specification/quality review and integration for each remaining slice.
 - [ ] Resolve the ModOrchestration CI-change permission blocker and obtain reference CI evidence.

@@ -2088,7 +2088,9 @@ inputs into its sandbox and asks `convert` for JSON); the K1/K2 corpus drafts ar
 unchanged. Evidence: [drafted Rename proof](docs/parity/drafted-rename-proof/README.md),
 57 checks match and 4 are known differences (24 fail on `b5df010`); contract in
 [drafted-rename-contract.md](docs/parity/drafted-rename-contract.md). The frozen Rust
-test `tests/drafts.rs` still expects the pinned drafter's Rename and was not run.
+test `tests/drafts.rs` still expects the pinned drafter's Rename (its instruction
+check at `tests/drafts.rs:13-18` fails on fixture component 12) and was not run; the
+drift is recorded in the tracker for the post-freeze fixture repair.
 
 Users: a reviewed drafted Rename now renames the file in its own folder instead of
 stopping with `Rename Destination must be a file name`. Check its Source when reviewing:

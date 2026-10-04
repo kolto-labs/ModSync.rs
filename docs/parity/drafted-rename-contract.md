@@ -156,6 +156,16 @@ them to PLC_CompPnl_b"), so the corpus drafts are unchanged.
 - **Frozen Rust test.** `tests/drafts.rs`
   (`drafts_match_reference_service_and_preserve_authored_instructions`) compares the
   drafter with `tests/fixtures/csharp/drafts.json`, the pinned C# capture, and now
-  differs on its `Rename` case. Rust tests are frozen and were neither changed nor run;
-  the C# capture stays as recorded.
+  differs on its `Rename` case: the instruction `assert_eq!` at `tests/drafts.rs:13-18`
+  fails on fixture component index 12 ("Rename the file old.tga to new.tga."), which
+  expects `Source [<<modDirectory>>\old.tga, <<modDirectory>>\new.tga]` and
+  `Destination <<kotorDirectory>>\Override` and now gets `Source
+  [<<modDirectory>>\old.tga]` and `Destination new.tga`. Rust tests are frozen and were
+  neither changed nor run; the C# capture stays as recorded. Repo policy records such
+  drift for the post-freeze fixture repair (tracker; `ACCEPTANCE.md:73`) instead of
+  adding a compatibility shim.
+- **Rename names with `..`.** A drafted (and authored) Rename Destination such as
+  `new..tga` is accepted; `invalid_destination` refuses `a..b` for Copy and Move but is
+  not applied in `rename_file_name`. Drafts reach it only after review; tracked as an
+  F05-RENAME follow-up.
 - **Messages and platform.** Unchanged; the proof ran on Linux.

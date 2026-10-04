@@ -55,7 +55,8 @@ probe.mkdir(exist_ok=True)
 (probe / 'Program.cs').write_text(PROBE)
 
 def file_name(destination):
-    return '.' in destination and not any(c in destination for c in '/\\:<>')
+    return ('.' in destination and destination.rsplit('.', 1)[1] != ''
+            and not any(c in destination for c in '/\\:<>'))
 
 
 def intentional_rename(x, y):
@@ -73,7 +74,7 @@ def intentional_rename(x, y):
         name = b.get('Destination') or ''
         source = [s for s in a['Source'] if s.replace('/', '\\').rsplit('\\', 1)[-1].lower() != name.lower()]
         if not (a['Action'] == b['Action'] == 'Rename' and file_name(name)
-                and (a.get('Destination') or '').startswith('<<') and b['Source'] == source
+                and a.get('Destination') == '<<kotorDirectory>>\\Override' and b['Source'] == source
                 and {k: v for k, v in a.items() if k not in ('Source', 'Destination')}
                 == {k: v for k, v in b.items() if k not in ('Source', 'Destination')}):
             return False
