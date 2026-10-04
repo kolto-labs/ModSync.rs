@@ -319,15 +319,16 @@ impl Report {
         }
     }
     /// Gate warnings are counted and shown. Alone they keep the stage passing,
-    /// like dry-run warnings; with a gate error they are listed before it.
-    pub(crate) fn fomod_configuration(
-        &mut self,
-        warnings: Vec<String>,
-        outcome: Result<(), String>,
-    ) {
-        if let Err(error) = outcome {
-            // As in C#, soft warnings stay in a failed stage, before the error.
+    /// like dry-run warnings; with gate errors they are listed before them. Each
+    /// error is one message, in gate order, and counts once in `errorCount`.
+    pub(crate) fn fomod_configuration(&mut self, warnings: Vec<String>, errors: Vec<String>) {
+        let mut errors = errors.into_iter();
+        if let Some(error) = errors.next() {
+            // As in C#, soft warnings stay in a failed stage, before the errors.
             self.push(Stage::FomodConfiguration, Err(error));
+            let rest: Vec<String> = errors.collect();
+            self.error_count += rest.len();
+            self.stages.last_mut().unwrap().messages.extend(rest);
             if !warnings.is_empty() {
                 self.warning_count += warnings.len();
                 let stage = self.stages.last_mut().unwrap();

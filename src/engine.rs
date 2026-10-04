@@ -444,7 +444,7 @@ impl Engine {
     /// fail before any simulation or write; warnings are emitted as events.
     fn fomod_gate(&mut self, guide: &Guide, emit: &mut impl FnMut(Event)) -> Result<()> {
         // Warnings are emitted even when the gate then fails.
-        let (warnings, outcome) = self.validate_fomod_configuration(guide);
+        let (warnings, issues) = self.validate_fomod_configuration(guide);
         for warning in warnings {
             emit(Event {
                 component: String::new(),
@@ -452,7 +452,26 @@ impl Engine {
                 message: format!("WARNING: {warning}"),
             });
         }
-        outcome.context("FOMOD configuration check failed")
+        // One issue keeps its own error chain. Several are numbered in gate order in
+        // one message: "<n> issues: [1] <first>; [2] <second>; ...".
+        let mut issues = issues.into_iter();
+        let Some(first) = issues.next() else {
+            return Ok(());
+        };
+        if issues.len() == 0 {
+            return Err(first).context("FOMOD configuration check failed");
+        }
+        let list = std::iter::once(first)
+            .chain(issues)
+            .enumerate()
+            .map(|(index, issue)| format!("[{}] {issue:#}", index + 1))
+            .collect::<Vec<_>>();
+        Err(anyhow::anyhow!(
+            "{} issues: {}",
+            list.len(),
+            list.join("; ")
+        ))
+        .context("FOMOD configuration check failed")
     }
 
     pub fn validate_report(
@@ -616,11 +635,14 @@ impl Engine {
             "Checking FOMOD configuration",
             false,
         );
-        let (warnings, fomod) = match fresh_engine() {
+        let (warnings, issues) = match fresh_engine() {
             Ok(mut engine) => engine.validate_fomod_configuration(guide),
-            Err(error) => (Vec::new(), Err(error)),
+            Err(error) => (Vec::new(), vec![error]),
         };
-        report.fomod_configuration(warnings, fomod.map_err(|error| format!("{error:#}")));
+        report.fomod_configuration(
+            warnings,
+            issues.iter().map(|issue| format!("{issue:#}")).collect(),
+        );
         boundary(
             Stage::FomodConfiguration,
             "Checking FOMOD configuration",
@@ -881,12 +903,19 @@ impl Engine {
         Ok(())
     }
 
-    /// The gate's soft warnings and its outcome. Warnings collected before a hard
-    /// failure are kept, as C# reports its gate warnings alongside other findings.
-    fn validate_fomod_configuration(&mut self, guide: &Guide) -> (Vec<String>, Result<()>) {
+    /// The gate's soft warnings and its issues; no issue means the gate passed. Like
+    /// C# FomodConfigurationGate, every in-gate FOMOD issue is collected in gate order
+    /// with the warnings; an abort (cancellation, an unsafe path, a guide error) ends
+    /// the list. Issues with identical text (one archive shared by components) are kept once.
+    fn validate_fomod_configuration(&mut self, guide: &Guide) -> (Vec<String>, Vec<anyhow::Error>) {
         let mut warnings = crate::fomod::WarningCollector::default();
-        let outcome = self.check_fomod_configuration(guide, &mut warnings);
-        (warnings.finish(), outcome)
+        let mut issues = Vec::new();
+        if let Err(error) = self.check_fomod_configuration(guide, &mut warnings, &mut issues) {
+            issues.push(error);
+        }
+        let mut seen = BTreeSet::new();
+        issues.retain(|issue| seen.insert(format!("{issue:#}")));
+        (warnings.finish(), issues)
     }
 
     /// Gates the selected components and, as C# does, their hard dependencies.
@@ -900,6 +929,7 @@ impl Engine {
         &mut self,
         guide: &Guide,
         warnings: &mut crate::fomod::WarningCollector,
+        issues: &mut Vec<anyhow::Error>,
     ) -> Result<()> {
         fn configured_choices(
             component: &Component,
@@ -990,9 +1020,10 @@ impl Engine {
                         .context("Registered FOMOD archive filename is invalid")?;
                     if !path.is_file() {
                         if crate::fomod::prompt_status(component, filename).is_some() {
-                            bail!(
+                            issues.push(anyhow::anyhow!(
                                 "Registered FOMOD archive '{filename}' is missing from the mod directory after configuration state was recorded"
-                            );
+                            ));
+                            continue;
                         }
                         // C#'s soft warning, attributed per component like its report.
                         warnings.push(format!(
@@ -1005,20 +1036,28 @@ impl Engine {
                     checked.insert((self.path_policy.key(&path), component.guid.clone()));
                     let module = match inspected.entry(self.path_policy.key(&path)) {
                         btree_map::Entry::Occupied(entry) => entry.into_mut(),
-                        btree_map::Entry::Vacant(entry) => entry.insert(
-                            crate::fomod::inspect_listed(
-                                &path,
-                                &relative_name,
-                                &self.settings.archive,
-                                &self.settings.cancelled,
-                            )
-                            .with_context(|| {
-                                format!("Registered archive '{filename}' cannot be inspected")
-                            })?,
-                        ),
+                        btree_map::Entry::Vacant(entry) => match crate::fomod::inspect_listed(
+                            &path,
+                            &relative_name,
+                            &self.settings.archive,
+                            &self.settings.cancelled,
+                        )
+                        .with_context(|| {
+                            format!("Registered archive '{filename}' cannot be inspected")
+                        }) {
+                            Ok(module) => entry.insert(module),
+                            // C# GateIssue ArchiveUnreadable; cancellation still aborts.
+                            Err(error) => {
+                                self.gate_issue(issues, error)?;
+                                continue;
+                            }
+                        },
                     };
                     if let Some(module) = module {
-                        configured_choices(component, filename, module)?;
+                        if let Err(error) = configured_choices(component, filename, module) {
+                            issues.push(error);
+                            continue;
+                        }
                         // C# FomodConfigurationGate R1, per component: a configured
                         // archive whose installer maps no archive-scoped instruction.
                         if crate::fomod::prompt_status(component, filename).as_deref()
@@ -1063,14 +1102,18 @@ impl Engine {
                     }
                     let module = match inspected.entry(self.path_policy.key(&source)) {
                         btree_map::Entry::Occupied(entry) => entry.into_mut(),
-                        btree_map::Entry::Vacant(entry) => {
-                            entry.insert(crate::fomod::inspect_listed(
-                                self.files[&self.path_policy.key(&source)].1.path()?,
-                                &source,
-                                &self.settings.archive,
-                                &self.settings.cancelled,
-                            )?)
-                        }
+                        btree_map::Entry::Vacant(entry) => match crate::fomod::inspect_listed(
+                            self.files[&self.path_policy.key(&source)].1.path()?,
+                            &source,
+                            &self.settings.archive,
+                            &self.settings.cancelled,
+                        ) {
+                            Ok(module) => entry.insert(module),
+                            Err(error) => {
+                                self.gate_issue(issues, error)?;
+                                continue;
+                            }
+                        },
                     };
                     let Some(module) = module else {
                         continue;
@@ -1079,7 +1122,10 @@ impl Engine {
                         .file_name()
                         .and_then(|name| name.to_str())
                         .context("FOMOD archive filename is invalid")?;
-                    configured_choices(component, filename, module)?;
+                    if let Err(error) = configured_choices(component, filename, module) {
+                        issues.push(error);
+                        continue;
+                    }
                     if logged.insert(self.path_policy.key(&source)) {
                         for warning in module.config.fallback_warnings() {
                             warnings.push(format!(
@@ -1112,6 +1158,10 @@ impl Engine {
                 )
             })
         { warnings.push(warning); }
+        // FOMOD issues fail the gate before Rust's stricter checks, as before.
+        if !issues.is_empty() {
+            return Ok(());
+        }
         ordered?;
         for component in scope {
             self.check_component(component)?;
@@ -1480,6 +1530,16 @@ impl Engine {
             "Completed components must form the selected installation prefix"
         );
         self.completed = ids;
+        Ok(())
+    }
+
+    /// Collect a per-archive inspection failure as a gate issue, unless the run was
+    /// cancelled: cancellation aborts the gate with that error.
+    fn gate_issue(&self, issues: &mut Vec<anyhow::Error>, error: anyhow::Error) -> Result<()> {
+        if self.settings.cancelled.load(Ordering::Relaxed) {
+            return Err(error);
+        }
+        issues.push(error);
         Ok(())
     }
 
