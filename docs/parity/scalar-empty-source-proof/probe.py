@@ -24,6 +24,11 @@ reference load result recorded in csharp-oracle.json (C# `convert`, see
   and the legacy fallback recovers no instructions): a documented difference,
   Rust refuses with every verb, as for a standalone TOML/YAML guide.
 
+Choose is decided by the raw Action text, as in C#: a scalar Choose Source is
+split on `;` and `,` (blank parts dropped), so a blank one is an empty no-op
+Choose in every format, and the loaded Source list (Rust `convert -f json`) must
+equal the reference's.
+
 Usage:
   probe.py [--bin target/debug/modsync] [--csharp REF/ModSync.Core.dll [--record]]
 
@@ -58,8 +63,12 @@ def delete(source):
     return ("Delete", source, "", False)
 
 
-def choose(source):
-    return ("Choose", source, "", None)
+def choose(source, action="Choose"):
+    return (action, source, "", None)
+
+
+OPT1 = "44444444-4444-4444-4444-444444444444"
+OPT2 = "55555555-5555-5555-5555-555555555555"
 
 
 # name -> (format, case step)
@@ -87,19 +96,53 @@ CASES = {
     "md_yaml_path_copy": ("md_yaml", copy(("scalar", "a.txt"))),
     "md_yaml_empty_choose": ("md_yaml", choose(("scalar", ""))),
     "toml_empty_copy_control": ("toml", copy(("scalar", ""))),
+    # Standalone TOML, JSON and YAML Choose, the comma/semicolon split of a Choose
+    # scalar, and Choose decided by the raw Action text (a numeric 9 is not Choose).
+    "toml_empty_choose": ("toml", choose(("scalar", ""))),
+    "toml_whitespace_choose": ("toml", choose(("scalar", "  "))),
+    "toml_comma_choose": ("toml", choose(("scalar", " , "))),
+    "toml_semicolon_choose": ("toml", choose(("scalar", " ;, ; "))),
+    "toml_lowercase_choose": ("toml", choose(("scalar", ""), "choose")),
+    "toml_numeric_choose": ("toml", choose(("scalar", ""), "9")),
+    "json_empty_choose": ("json", choose(("scalar", ""))),
+    "json_comma_choose": ("json", choose(("scalar", " , "))),
+    "json_numeric_choose": ("json", choose(("scalar", ""), 9)),
+    "yaml_empty_choose": ("yaml", choose(("scalar", ""))),
+    "yaml_whitespace_choose": ("yaml", choose(("scalar", "  "))),
+    "yaml_comma_choose": ("yaml", choose(("scalar", " , "))),
+    "xml_comma_choose": ("xml", choose(("scalar", " , "))),
+    "xml_numeric_choose": ("xml", choose(("scalar", ""), "9")),
+    "md_toml_comma_choose": ("md_toml", choose(("scalar", " , "))),
+    "md_toml_numeric_choose": ("md_toml", choose(("scalar", ""), "9")),
+    "md_yaml_numeric_choose": ("md_yaml", choose(("scalar", ""), 9)),
+    # Non-blank Choose scalars: shape only (the split must give the reference's list).
+    "toml_split_choose": ("toml", choose(("scalar", f" {OPT1} ,{OPT2};"))),
+    "json_split_choose": ("json", choose(("scalar", f"{OPT1}, {OPT2}"))),
+    "yaml_split_choose": ("yaml", choose(("scalar", f"{OPT1};{OPT2}"))),
+    "xml_split_choose": ("xml", choose(("scalar", f"{OPT1}, {OPT2}"))),
+    "md_toml_split_choose": ("md_toml", choose(("scalar", f"{OPT1}, {OPT2}"))),
 }
-EXT = {"xml": "xml", "xml_component_source": "xml", "md_toml": "md", "md_yaml": "md", "toml": "toml"}
+# Cases checked only for the loaded Choose Source list (their option GUIDs name no
+# option, so the verbs are not meaningful).
+SHAPE_ONLY = {name for name in CASES if name.endswith("_split_choose")}
+EXT = {"xml": "xml", "xml_component_source": "xml", "md_toml": "md", "md_yaml": "md", "toml": "toml",
+       "json": "json", "yaml": "yaml"}
 # Cases also converted by Rust `convert` to every format, then run through plain
 # `validate`: a refused guide must stay refused, an accepted one accepted.
 CONVERTED = ["xml_empty_delete_false", "md_yaml_empty_delete_false", "md_toml_empty_delete_false",
-             "xml_selfclose_delete_false", "md_toml_empty_list_delete_false", "xml_empty_choose"]
+             "xml_selfclose_delete_false", "md_toml_empty_list_delete_false", "xml_empty_choose",
+             "toml_empty_choose", "json_comma_choose", "yaml_whitespace_choose", "toml_numeric_choose"]
+# A numeric `Action = "9"` is refused at load (not a raw Choose), but every save
+# spells the canonical action `Choose`, which the reference reads back as an empty
+# Choose (as in toml_empty_choose), so the converted guide is accepted.
+RESPELLED = {"toml_numeric_choose"}
 FORMATS = ["toml", "json", "xml", "yaml", "md"]
 
 
 def toml_steps(steps, table):
     lines = []
     for action, source, destination, overwrite in steps:
-        lines += ["", f"[[{table}]]", f"Action = {json.dumps(action)}"]
+        lines += ["", f"[[{table}]]", f"Action = {json.dumps(str(action))}"]
         if source[0] == "scalar":
             lines.append(f"Source = {json.dumps(source[1])}")
         elif source[0] == "list":
@@ -129,7 +172,7 @@ def yaml_steps(steps):
 def xml_steps(steps):
     out = ""
     for action, source, destination, overwrite in steps:
-        body = f"<Action>{action}</Action>"
+        body = f"<Action>{html.escape(str(action))}</Action>"
         if source[0] == "scalar":
             body += f"<Source>{html.escape(source[1])}</Source>"
         elif source[0] == "selfclose":
@@ -144,8 +187,28 @@ def xml_steps(steps):
     return out
 
 
+def json_steps(steps):
+    out = []
+    for action, source, destination, overwrite in steps:
+        step = {"Action": action}
+        if source[0] in ("scalar", "list"):
+            step["Source"] = source[1]
+        if destination:
+            step["Destination"] = destination
+        if overwrite is not None:
+            step["Overwrite"] = overwrite
+        out.append(step)
+    return out
+
+
 def guide(fmt, step):
     steps = [COPY_AB, step]
+    if fmt == "json":
+        return json.dumps([{"Guid": GUID, "Name": "Scalar Source Probe", "IsSelected": True,
+                            "Instructions": json_steps(steps)}]) + "\n"
+    if fmt == "yaml":
+        lines = ["---", f"Guid: {GUID}", "Name: Scalar Source Probe", "IsSelected: true"]
+        return "\n".join(lines + yaml_steps(steps)) + "\n"
     if fmt == "toml":
         lines = ["[[thisMod]]", f'Guid = "{GUID}"', 'Name = "Scalar Source Probe"', "IsSelected = true"]
         return "\n".join(lines + toml_steps(steps, "thisMod.Instructions")) + "\n"
@@ -217,8 +280,31 @@ def run_rust(binary, mode, name, work):
     return result
 
 
+def rust_sources(binary, path, root, env):
+    """Rust `convert -f json` of `path`: each instruction's (Action, Source list)."""
+    out = os.path.join(root, f"shape-{len(os.listdir(root))}.json")
+    done = subprocess.run([binary, "convert", path, out, "-f", "json"], capture_output=True, text=True, env=env, timeout=300)
+    if done.returncode != 0:
+        return None
+    with open(out) as handle:
+        loaded = json.load(handle)
+    components = loaded if isinstance(loaded, list) else loaded.get("thisMod", loaded.get("Components", []))
+    return [{"Action": i.get("Action"), "Source": i.get("Source", [])}
+            for c in components for i in c.get("Instructions", [])]
+
+
+def run_shape(binary, name, work):
+    """The Source list Rust loads for the case step (Rust `convert -f json`)."""
+    root = tempfile.mkdtemp(prefix="rust-shape-", dir=work)
+    path, _, _ = fixture(root, name)
+    env = dict(os.environ, HOME=os.path.join(root, "home"), XDG_CONFIG_HOME=os.path.join(root, "xdg"))
+    steps = rust_sources(binary, path, root, env)
+    return steps[1]["Source"] if steps and len(steps) == 2 else None
+
+
 def run_convert(binary, name, fmt, work):
-    """Rust `convert` to `fmt`, then plain `validate` of the converted guide."""
+    """Rust `convert` to `fmt`, then plain `validate` of the converted guide, and
+    the case step's Source list read back from the converted guide."""
     root = tempfile.mkdtemp(prefix=f"rust-convert-{fmt}-", dir=work)
     path, mods, game = fixture(root, name)
     out = os.path.join(root, "converted." + fmt)
@@ -226,9 +312,11 @@ def run_convert(binary, name, fmt, work):
     done = subprocess.run([binary, "convert", path, out, "-f", fmt], capture_output=True, text=True, env=env, timeout=300)
     if done.returncode != 0:
         return {"accepted": None, "stderr_tail": done.stderr.strip().splitlines()[-1:]}
+    steps = rust_sources(binary, out, root, env)
     done = subprocess.run([binary, "validate", "-i", out, "-s", mods, "-g", game],
                           capture_output=True, text=True, env=env, timeout=300)
     return {"accepted": done.returncode == 0,
+            "source": steps[1]["Source"] if steps and len(steps) == 2 else None,
             "stderr_tail": done.stderr.strip().splitlines()[-1:] if done.returncode else []}
 
 
@@ -260,7 +348,6 @@ def run_csharp(dll, name, work):
 
 def expected(name, reference):
     """Rust decision per mode, derived from the reference load."""
-    action = CASES[name][1][0]
     refused = {m: {"accepted": False, "tree": None} for m in ("dryrun", "validate", "install")}
     refused["dryrun"]["skipped"] = None  # not compared for a refusal
     if not reference["loaded"]:
@@ -268,7 +355,7 @@ def expected(name, reference):
     steps = reference["instructions"]
     if len(steps) != 2:
         return "reference drops the metadata block (documented difference)", refused
-    source = steps[1]["Source"]
+    source, action = steps[1]["Source"], steps[1]["Action"]
     passed = {
         "dryrun": {"accepted": True, "tree": None, "skipped": False},
         "validate": {"accepted": True, "tree": None},
@@ -313,7 +400,18 @@ def main():
                     handle.write("\n")
                 recorded = live
         for name in CASES:
-            basis, wanted = expected(name, recorded[name])
+            reference = recorded[name]
+            choose = reference["loaded"] and len(reference["instructions"] or []) == 2 \
+                and reference["instructions"][1]["Action"] == "Choose"
+            if choose:
+                # The loaded Choose Source list must be the reference's (comma split).
+                actual, want = run_shape(args.bin, name, work), reference["instructions"][1]["Source"]
+                same = actual == want
+                matched, failed = matched + same, failed + (not same)
+                print(f"{'match' if same else 'FAIL':5} {name}/shape: rust Source={actual} | reference Source={want}")
+            if name in SHAPE_ONLY:
+                continue
+            basis, wanted = expected(name, reference)
             for mode in ("dryrun", "validate", "install"):
                 actual = run_rust(args.bin, mode, name, work)
                 want = wanted[mode]
@@ -331,13 +429,21 @@ def main():
                 )
         for name in CONVERTED:
             _, wanted = expected(name, recorded[name])
+            steps = recorded[name]["instructions"] or []
+            # An empty Choose must read back as an empty Choose after conversion.
+            want_source = steps[1]["Source"] if len(steps) == 2 and steps[1]["Action"] == "Choose" else None
+            want_accepted = wanted["validate"]["accepted"]
+            if name in RESPELLED:
+                want_source, want_accepted = [], True
             for fmt in FORMATS:
                 actual = run_convert(args.bin, name, fmt, work)
-                same = actual["accepted"] == wanted["validate"]["accepted"]
+                same = actual["accepted"] == want_accepted
+                if want_source is not None:
+                    same = same and actual["source"] == want_source
                 matched, failed = matched + same, failed + (not same)
                 print(
                     f"{'match' if same else 'FAIL':5} {name}/convert-{fmt}-validate: rust accepted={actual['accepted']}"
-                    f" | expected accepted={wanted['validate']['accepted']}"
+                    f" source={actual['source']} | expected accepted={want_accepted} source={want_source}"
                     + (f" | rust: {actual['stderr_tail'][0]}" if actual["stderr_tail"] else "")
                 )
         print(f"{matched} match / {failed} fail")

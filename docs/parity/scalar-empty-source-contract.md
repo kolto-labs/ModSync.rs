@@ -55,7 +55,7 @@ The other XML fields that `array` collapses (`Category`, `Language`, `Dependenci
 ## Behaviour after this slice
 
 - **XML.** In an instruction, `<Source></Source>` and whitespace-only `<Source>` stay a
-  scalar string (`src/xml.rs:238-267`), so the loader keeps `[""]` and the guide is
+  scalar string (`src/xml.rs:237-257`), so the loader keeps `[""]` and the guide is
   refused as a TOML guide is: Error in `validate --output json --dry-run`, non-zero
   plain `validate`, `install` refused before any write. `<Source />` is now read as
   null (`src/xml.rs:103-110`, `:217-220`) and stays an empty list, as in C#. A stray
@@ -71,22 +71,59 @@ The other XML fields that `array` collapses (`Category`, `Language`, `Dependenci
 - **Choose.** C# skips path deserialization for Choose
   (`ModComponentSerializationService.cs:2141-2145`, `:2350-2354`), so a scalar empty
   Choose Source is not prefixed; `GetValueOrDefault<List<string>>` gives null for `""`
-  and the loader substitutes an empty list (`:2185-2186`). Both readers keep that: the
-  XML scalar-keep skips an instruction whose Action is Choose (OrdinalIgnoreCase), and
-  `drop_blank_choose_sources` (`src/markdown.rs:411-434`) empties a Markdown Choose
-  scalar. Such a Choose is an empty no-op in both implementations.
+  and the loader substitutes an empty list (`:2185-2186`). Both readers keep that; see
+  the next section for the shared rule that replaced their per-reader exemptions.
 - **Saving and `convert`.** Because the serializer writes a single blank Source as a
   scalar, every save path keeps it: TOML `Source = ""`, JSON `"Source": ""`, YAML and
   Markdown `Source: ''`, XML `<Source></Source>` (the Markdown export no longer drops a
   blank Source, `src/markdown/export.rs:198`). A refused non-Choose guide stays refused
-  after conversion to any format. A Choose refused by the standalone TOML, JSON or YAML
-  reader (an older divergence) is accepted after conversion to XML or Markdown, whose
-  readers apply the Choose exemption; that result is the C# behaviour.
-- **Markdown Choose detection** uses the canonical action, while XML and the model use
-  the raw text. A Markdown `Action = 9`, `Source = ""` therefore loads as an empty
-  Choose, where C# compares the raw text, throws, and drops the metadata block. Before, it read back as an empty list.
+  after conversion to any format. A Choose is covered in the next section.
 - **Unchanged.** `[]`, `[""]`, a missing key and `<Source/>` keep the empty-list
   behaviour. Non-blank sources and the TOML, JSON and YAML loaders are unchanged.
+
+## Choose scalar Source in every format (after `1b3faeb`)
+
+**Triage.** C# decides Choose on the raw `Action` text: `GetValueOrDefault<string>`
+compared OrdinalIgnoreCase with `"Choose"` (`ModComponentSerializationService.cs:2141-2145`,
+`:2350-2354`). A raw Choose skips `DeserializePathInDictionary`, so a scalar Source
+stays a string and reaches `GetValue<List<string>>`: `""` gives default (`:2758-2763`),
+any other string is split on `;` and `,`, each part trimmed and blank parts dropped
+(`:3078-3105`), and a null result becomes an empty list (`:2185-2186`). Any other raw
+text, including a numeric `9` that `Enum.TryParse` maps to Choose, goes through
+`PrefixPath` and throws on a blank path. The live oracle confirms each case: standalone
+TOML, JSON and YAML `""`, `"  "`, `" , "` and `" ;, ; "` (and lower-case `choose`) load
+an empty Choose; `"<g1>, <g2>"`, `" <g1> ,<g2>;"` and `"<g1>;<g2>"` load two GUIDs in
+TOML, JSON, YAML, XML and Markdown; `Action = "9"` with `Source = ""` is refused in TOML, JSON and XML, and in
+Markdown the metadata block is dropped.
+
+Rust at `1b3faeb` differed in two ways. The standalone TOML, JSON and YAML loader kept
+the scalar as `[""]` (or `[" , "]`), so the Choose failed `FOMOD configuration check
+failed: Unknown option`. The Markdown exemption (`drop_blank_choose_sources`) ran after
+the first normalization pass and read the canonical action, so `Action = 9`,
+`Source = ""` loaded as an empty Choose. No reader split a non-blank Choose scalar.
+
+**Fix.** One rule in the shared loader (`normalize_component`, `src/model.rs`): when the
+raw Action is Choose (`raw_choose`, OrdinalIgnoreCase) and Source is a string, Source
+becomes the C# split (`choose_sources`). It runs for TOML, JSON, YAML and XML input,
+and for the Markdown TOML/YAML metadata pass, but not for already-normalized
+(`Format::Internal`) values, so the Markdown second pass, which only sees the canonical
+action, does not re-decide. The XML reader now keeps every single instruction
+`<Source>` as a scalar string for the loader to decide (it wrapped a non-blank one in a
+list before, which is equivalent for a path), and the XML and Markdown Choose
+special cases are removed. A non-Choose blank scalar is still kept as `[""]` and
+refused; `Action = 9` with a blank Source is refused in every format, including
+Markdown (C# drops the block; the documented Markdown difference below).
+
+**Saving.** An empty Choose saves as `Source = []` (TOML), `"Source": []` (JSON),
+`Source: []` (YAML) and no Source in XML or Markdown, each of which reads back as an
+empty Choose; a split Choose saves its list. A numeric `Action = "9"` guide is refused
+at load, but `convert` (which accepts refused guides, see below) writes the canonical
+action `Choose` and the blank scalar, which C# and Rust both read back as an empty
+Choose, so the converted guide is accepted in every format. The same holds for every
+action that reads as Choose without being the raw text "Choose" (`9`, `"9"`,
+`"Choose "`, `"Choose, Unset"` and similar), and for every load-then-save flow
+(`convert`, merge, editor and desktop save), not only `convert`. The result is a
+harmless no-op Choose; C# cannot load the input at all.
 
 ## Known differences
 
@@ -97,9 +134,6 @@ The other XML fields that `array` collapses (`Category`, `Language`, `Dependenci
   Source inside an option that is not selected (for example a Delete) loads and
   validates, as validation covers only the selected instructions. C# refuses the whole
   XML guide at load whatever is selected.
-- **Standalone TOML, JSON and YAML Choose.** `Source = ""` on a Choose keeps `[""]` in
-  those loaders, as before this slice, where C# loads an empty Choose. That divergence
-  predates this slice and is not changed here.
 - **Markdown.** C# loads the guide and drops the metadata block, so the component
   installs with no instructions. Rust refuses the guide instead, as it refuses other
   metadata that the reference's typed parser cannot read (malformed documents fail

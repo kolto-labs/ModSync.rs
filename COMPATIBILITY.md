@@ -1219,10 +1219,9 @@ which drops the whole metadata block.
 - A self-closing `<Source />` is null in C# and loads as an empty list; Rust now reads
   it the same way, so it keeps the empty-list behaviour. `[]`, `[""]`, a missing key
   and a stray component-level `<Source></Source>` are unchanged.
-- Choose is exempt, as in C#, which does not path-normalize a Choose Source: an XML or
-  Markdown Choose with a scalar empty Source is still an empty no-op Choose. (A
-  standalone TOML, JSON or YAML Choose with `Source = ""` keeps `[""]`, a pre-existing
-  divergence.)
+- Choose is exempt, as in C#, which does not path-normalize a Choose Source (see the
+  next section): a Choose with a scalar empty Source is an empty no-op Choose in every
+  format.
 - A scalar-blank Source inside an option that is not selected loads and validates in
   Rust, since only selected instructions are validated; C# refuses the whole XML guide.
 - Difference: for Markdown, C# loads the guide with the component's instructions (and
@@ -1239,6 +1238,36 @@ clear the problem: the output keeps the empty scalar and is refused too (C# `con
 fails on the input). Evidence:
 [scalar-empty-source proof](docs/parity/scalar-empty-source-proof/README.md), 99/99
 checks against a live reference oracle (30 fail on `3911e74`); contract in
+[scalar-empty-source-contract.md](docs/parity/scalar-empty-source-contract.md).
+
+## Choose with a scalar Source — 2026-10-04 UTC
+
+C# decides Choose on the raw `Action` text (OrdinalIgnoreCase), skips `PrefixPath` for
+it, and reads a scalar Source by splitting it on `;` and `,`, trimming each part and
+dropping blank ones. Rust now does the same in the shared loader for TOML, JSON, YAML,
+XML and Markdown metadata:
+
+- A Choose with `Source = ""`, `"  "`, `" , "` or `" ;, ; "` loads as an empty no-op
+  Choose in every format. Before, a standalone TOML, JSON or YAML guide (and any
+  format for `" , "`) kept a one-entry Source and was refused (`FOMOD configuration
+  check failed: Unknown option`).
+- A Choose scalar naming several options, such as `"<guid1>, <guid2>"` or
+  `"<guid1>;<guid2>"`, loads as those options. Before, Rust kept one entry with the
+  delimiter in it.
+- Only the raw text counts: `Action = 9` (or `"9"`) with a blank Source is refused in
+  every format, as a non-Choose blank scalar is. Before, Markdown read it as an empty
+  Choose. C# refuses the TOML, JSON and XML guide and drops the Markdown metadata block
+  (the documented Markdown difference above).
+- Saving writes an empty Choose as an empty list (`Source = []`, `"Source": []`,
+  `Source: []`, or no Source in XML and Markdown), which reads back as an empty Choose.
+  Saving (via `convert`, merge, editor or desktop save) a guide whose action reads as
+  Choose without being the raw text "Choose" (`9`, `"Choose "`, `"Choose, Unset"`)
+  writes the canonical `Choose`, so the saved guide is an empty Choose; C# reads that
+  saved form the same way.
+
+Evidence: the [scalar-empty-source proof](docs/parity/scalar-empty-source-proof/README.md)
+now has 45 cases and 190 checks (235 with the live reference loads), all matching; 73
+fail on `1b3faeb`. Contract:
 [scalar-empty-source-contract.md](docs/parity/scalar-empty-source-contract.md).
 
 ## Delete of a missing file with Overwrite=true — 2026-10-04 UTC

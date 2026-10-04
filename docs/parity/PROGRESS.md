@@ -74,6 +74,16 @@ against a live reference oracle (30 fail on `3911e74`), and the regression probe
 still pass. See
 [scalar-empty-source-contract.md](scalar-empty-source-contract.md).
 
+Choose with a scalar Source (2026-10-04): the shared loader now decides Choose on the
+raw Action text and splits a scalar Choose Source on `;` and `,`, as C# does. A blank
+(`""`, `"  "`, `" , "`) Choose Source is an empty no-op Choose in every format; before,
+standalone TOML, JSON and YAML (and `" , "` anywhere) refused it. A Markdown
+`Action = 9` with a blank Source is now refused, as in TOML, JSON and XML. The XML and
+Markdown Choose special cases are removed. The scalar-empty-source proof is now
+190/190 (235/235 with live reference loads; 117/73 on `1b3faeb`), and the regression
+probes still pass. See
+[scalar-empty-source-contract.md](scalar-empty-source-contract.md).
+
 Delete of a missing file with Overwrite=true (2026-10-04): Rust ignored `Overwrite`
 on Delete. As C# `DeleteFile` does (`FileNotFoundPost`, then `MissingSourceFiles`), a
 strict Delete now deletes the present matches and fails on a missing literal or an
