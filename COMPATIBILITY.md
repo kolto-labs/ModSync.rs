@@ -409,7 +409,7 @@ Reference: the local ModSync C# source at `d31ccbd3bfcddb4705917eafa6483715c166d
 | Selection | File selections, select-all when all components are unselected; explicit CLI components/options; desktop dependency/restriction and deselection cascades across components and options | Native interaction and full Unicode GUID-comparison parity remain open |
 | Ordering | Stable dependency sort, restrictions, InstallBefore/After, instruction conditions | Missing references and cycles fail |
 | Options | Choose resolves selected option GUIDs in declared option order | No automatic choice inference |
-| File operations | Copy, Move, Rename, Delete, Extract, DelDuplicate, CleanList | Copy/Move flatten matched files into the target, as the C# instruction engine does; Delete with `Overwrite = true` fails on a missing file, as C# does |
+| File operations | Copy, Move, Rename, Delete, Extract, DelDuplicate, CleanList | Copy/Move flatten matched files into the target, as the C# instruction engine does; Delete with `Overwrite = true` fails on a missing file, as C# does; a Delete with no Source is a no-op unless `Overwrite = true` |
 | Archives | Streaming ZIP, 7z, RAR, TAR, GZip and 7z SFX; integrity checks; isolated extraction root | No encrypted/multipart archives; SFX support is limited to embedded 7z payloads; empty directories are not materialized |
 | CleanList | C# comma-separated rows, mandatory prefix, substring and token matching | Source matching and final file sets still need full-build differential acceptance |
 | Texture cleanup | Removes requested extension when another compatible extension shares its basename | This is not content-hash deduplication |
@@ -1161,6 +1161,38 @@ as before.
 The issue texts keep Rust's wording, without C#'s `ERROR: <component>:` prefix. Evidence:
 [gate-collect proof](docs/parity/fomod-gate-collect-proof/README.md), 67/67 checks (22
 fail on `d78aea2`); contract in [fomod-gate-collect.md](docs/parity/fomod-gate-collect.md).
+
+## Delete, Copy, Move and Extract with an empty Source list — 2026-10-04 UTC
+
+An instruction whose `Source` list is empty after loading (`Source = []`, only blank
+entries such as `Source = [""]`, or no `Source` key) now behaves as in C#. Before
+this change every such step failed with the untyped `Instruction has no Source`.
+
+- **Delete, `Overwrite` false or omitted** (false for Delete in both loaders): a
+  no-op, as C# `DeleteFile` returns `Success` with nothing to delete. Install logs
+  `Delete has no Source; nothing to delete` and runs the later steps. Per CLI verb:
+  `validate --output json --dry-run`, plain `validate`, `install` and `conflicts` all
+  accept it, where they all rejected it before.
+- **Delete, `Overwrite = true`**: the typed missing-source cause `Delete has no Source
+  and Overwrite is true`, as C# returns `FileNotFoundPost` (`MissingSourceFiles`).
+- **Copy, Move and Extract, any `Overwrite`**: the typed missing-source cause
+  `<Action> has no Source`, as C# source resolution fails with `FileNotFoundPre`.
+  Recovery (auto-extraction, subfolder variant, redundant Move) is not tried, and
+  archive validation and the FOMOD gate skip an Extract that names no archive.
+
+For the two failing forms: `validate --output json --dry-run` now reports `Skipped
+'<component>' during dry-run: source archives or files are not available.`
+(`DryRunSkipped`) and passes, as C# does; before, the report had an Error. Plain
+`validate` still exits non-zero and `install` is still refused before any write (C#
+fails mid-install); `conflicts` still exits 1. The desktop runs the same engine.
+Rename with no Source is still rejected everywhere, as in C#.
+Guide authors: a Delete with no Source and `Overwrite = true`, including one inserted
+by `guide-edit` without `Overwrite` (the model default is `true`), fails `validate`
+and `install`. No guide that passed before can now fail; only empty non-strict
+Deletes change from failing to passing. Evidence:
+[empty-source proof](docs/parity/empty-source-proof/README.md), 51/51 checks against a
+live reference oracle (26 fail on `fba4eb1`); contract in
+[empty-source-contract.md](docs/parity/empty-source-contract.md).
 
 ## Delete of a missing file with Overwrite=true — 2026-10-04 UTC
 

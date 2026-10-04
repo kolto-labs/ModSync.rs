@@ -55,6 +55,14 @@ number several issues in one line: `<n> issues: [1] ...; [2] ...`. The proof is 
 (22 fail on `d78aea2`), and the regression probes still pass. See
 [fomod-gate-collect.md](fomod-gate-collect.md).
 
+Empty Source list (2026-10-04): Delete, Copy, Move and Extract with no usable Source
+failed every verb with the untyped `Instruction has no Source`. As C# does, a
+non-strict Delete is now a no-op. A strict Delete, Copy, Move or Extract raises the
+typed missing-source cause: `DryRunSkipped` in the dry-run report, rejected by plain
+validate and install. The proof is 51/51 against a live reference oracle (26 fail on
+`fba4eb1`), and the regression probes still pass. See
+[empty-source-contract.md](empty-source-contract.md).
+
 Delete of a missing file with Overwrite=true (2026-10-04): Rust ignored `Overwrite`
 on Delete. As C# `DeleteFile` does (`FileNotFoundPost`, then `MissingSourceFiles`), a
 strict Delete now deletes the present matches and fails on a missing literal or an

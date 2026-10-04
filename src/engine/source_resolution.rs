@@ -138,6 +138,14 @@ impl Engine {
             } else {
                 Err(MissingSource(instruction.source[0].clone()).into())
             }
+        } else if instruction.source.is_empty() {
+            // C# SetRealPaths finds no files and throws; nothing can be recovered,
+            // so the action fails as a missing source (FileNotFoundPre).
+            return Err(MissingSourceFiles(anyhow::anyhow!(
+                "{} has no Source",
+                instruction.action
+            ))
+            .into());
         } else {
             // A miss in one pattern must not hide an unsafe/malformed later pattern.
             for source in &instruction.source {
