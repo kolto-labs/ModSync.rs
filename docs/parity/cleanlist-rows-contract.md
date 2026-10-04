@@ -47,7 +47,7 @@ matched C#.
 - Every other name is parsed with `relative(raw, true)` (`src/engine.rs:2583`), so `[`
   and `]` are literal characters. The CleanList arm never expands wildcards: the
   path is looked up as one file, as `File.Exists` does.
-- Unchanged and still refused, failing the step before anything is deleted: `..`
+- Unchanged and still refused, failing the step before anything is deleted, for a name not already skipped as unnameable (a name such as `../a*.tga` or `/x?.tga` is skipped instead; nothing is resolved or deleted): `..`
   parts, absolute and drive-qualified names (`/x`, `C:\x`, `a:b.tga`), trailing dots or
   spaces in a part, and Windows device names (see Known differences).
 - Only the CleanList arm changes. `relative` and its other callers are untouched, and
@@ -120,7 +120,7 @@ checks. The archive/destination stage passed in both for every case.
   target folder.
 - **Drive-qualified names (fail-closed).** `a:b.tga` and `C:\Windows\x.txt` are
   missing files to C# on Linux, which skips them; on Windows they leave the target
-  (`C:\Windows\x.txt` would be deleted). Rust refuses them as absolute
+  (`C:\Windows\x.txt` would be deleted). Rust refuses them (the `:` part is an unsafe path)
   (`drive_relative`, `drive_absolute`).
 - **Trailing dots and device names (fail-closed).** C# on Linux skips `a.tga.` and
   `nul.tga` as missing; on Windows Win32 trims the dot, so `a.tga.` deletes `a.tga`,

@@ -2575,8 +2575,8 @@ impl Engine {
                             budget.text(raw)?;
                             // C# deletes Path.Combine(target, name) when FileExists:
                             // a name no file can have is skipped as missing, and
-                            // `[`/`]` are literal. `..`, absolute, trailing-dot and
-                            // device names stay refused.
+                            // `[`/`]` are literal. Otherwise-parsed `..`, absolute,
+                            // trailing-dot and device names stay refused.
                             if cleanlist::unnameable(raw) {
                                 continue;
                             }

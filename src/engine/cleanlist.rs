@@ -60,7 +60,7 @@ pub(super) fn blank(text: &str) -> bool {
 
 /// A listed CleanList name that no Windows file name can spell: C# `FileExists`
 /// on `Path.Combine(target, name)` is false and the field is skipped as missing.
-/// A drive prefix (`C:`) is left to the path parser, which refuses it as absolute.
+/// A drive prefix (`C:`) is left to the path parser, which refuses its `:` as an unsafe path.
 pub(super) fn unnameable(name: &str) -> bool {
     let drive = matches!(name.as_bytes(), [letter, b':', ..] if letter.is_ascii_alphabetic());
     name.contains(['"', '<', '>', '|', '*', '?', '\0'])

@@ -1473,7 +1473,7 @@ the second field ended the install. `[` and `]` in a listed name are now literal
 (`c[1].tga` deletes that file, as in C#). Row grammar, row matching, comments and
 blank rows already matched.
 
-Unchanged and refused before anything is deleted: `..` parts and absolute names (C#
+Unchanged and refused before anything is deleted, for a name that is not already skipped as unnameable: `..` parts and absolute names (C#
 deletes outside the target), drive-qualified names (`a:b.tga`, `C:\x`), trailing dots
 and Windows device names (their meaning depends on the platform). A backslash is a
 separator and lookups ignore case on every host, as C# on Windows; C# on Linux skips
