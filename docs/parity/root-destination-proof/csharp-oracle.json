@@ -1,0 +1,1514 @@
+{
+ "cleanlist_kotor": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "cleanlist_kotor_slash": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "cleanlist_mod_root": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "copy_game": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "m.txt": "M\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "copy_game_slash": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "m.txt": "M\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "copy_kotor": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "m.txt": "M\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "copy_kotor_backslash": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "m.txt": "M\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "copy_kotor_dot": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "m.txt": "M\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": false,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 1,
+    "IsSuccess": false,
+    "Stages": [
+     {
+      "Messages": [
+       "ERROR: Root Destination Probe: Destination cannot be found! Got '/tmp/root-destination-proof-pa9opoul/csharp-pipeline-z2hdm55g/game/.'"
+      ],
+      "Passed": false,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "copy_kotor_double_slash": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "m.txt": "M\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "copy_kotor_slash": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "m.txt": "M\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "copy_override_control": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/m.txt": "M\n",
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "copy_override_dot": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/m.txt": "M\n",
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": false,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 1,
+    "IsSuccess": false,
+    "Stages": [
+     {
+      "Messages": [
+       "ERROR: Root Destination Probe: Destination cannot be found! Got '/tmp/root-destination-proof-pa9opoul/csharp-pipeline-94nww22f/game/Override/.'"
+      ],
+      "Passed": false,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "copy_then_deldup_kotor": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "m.txt": "M\n",
+     "r.txt": "R\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "copy_to_mod_root": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "o.txt": "O\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "deldup_game": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "deldup_kotor": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "deldup_kotor_extension_sources": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "deldup_kotor_slash": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "deldup_kotor_upper_extension": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "deldup_mod_root": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "deldup_override_control": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "delete_source_kotor": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "missing_folder_control": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Missing/m.txt": "M\n",
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": false,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 1,
+    "IsSuccess": false,
+    "Stages": [
+     {
+      "Messages": [
+       "ERROR: Root Destination Probe: Destination cannot be found! Got '/tmp/root-destination-proof-pa9opoul/csharp-pipeline-tn9msdzz/game/Missing'"
+      ],
+      "Passed": false,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "move_kotor": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "m.txt": "M\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "option_copy_kotor": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "m.txt": "M\n",
+     "r.txt": "R\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "rename_destination_kotor": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Root Destination Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "<<kotorDirectory>>": "R\n",
+     "Override/o.txt": "O\n",
+     "Override/q.tga": "QTGA\n",
+     "Override/q.tpc": "QTPC\n",
+     "chitin.key": "KEY\n",
+     "x.tga": "XTGA\n",
+     "x.tpc": "XTPC\n"
+    },
+    "mods": {
+     "l.csv": "Mandatory Deletions,r.txt\n",
+     "m.txt": "M\n",
+     "y.tga": "YTGA\n",
+     "y.tpc": "YTPC\n"
+    }
+   }
+  },
+  "pipeline": {
+   "accepted": true,
+   "dry_run": true,
+   "raw": {
+    "DryRunErrors": [],
+    "DryRunWarnings": [],
+    "ErrorCount": 0,
+    "IsSuccess": true,
+    "Stages": [
+     {
+      "Messages": [
+       "OK: Root Destination Probe"
+      ],
+      "Passed": true,
+      "Stage": "ComponentValidation"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "FomodConfiguration"
+     },
+     {
+      "Messages": [],
+      "Passed": true,
+      "Stage": "DryRun"
+     }
+    ]
+   },
+   "skipped": false,
+   "tree": null
+  }
+ }
+}

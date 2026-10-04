@@ -895,8 +895,11 @@ impl Engine {
             match instruction.action.as_str() {
                 "Copy" | "Move" | "CleanList" | "DelDuplicate" => {
                     let dest = self.path(&instruction.destination, false)?;
+                    // C# PathValidator.IsValidPath refuses a `.` part, which
+                    // `relative` drops while resolving.
                     ensure!(
-                        self.directories.contains_key(&self.path_policy.key(&dest)),
+                        !instruction.destination.split(['/', '\\']).any(|p| p == ".")
+                            && self.directories.contains_key(&self.path_policy.key(&dest)),
                         "Destination cannot be found: {}",
                         instruction.destination
                     );

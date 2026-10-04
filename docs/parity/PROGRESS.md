@@ -9,6 +9,17 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Install root as Destination (2026-10-04, F05/F07): a Copy, Move, CleanList or
+DelDuplicate whose Destination is `<<kotorDirectory>>`, `<<gameDirectory>>` or
+`<<modDirectory>>` (with or without a trailing separator) now passes the
+archive/destination validation stage, and DelDuplicate runs in that root, as in C#.
+Rust resolved a bare root with a trailing separator and missed the root directory, so
+the Validate step failed every such guide and a root DelDuplicate failed install. A
+`.` Destination part now fails that stage, as C# `IsValidPath` does. Rename to a bare
+placeholder stays a fail-closed known difference. Proof: 75 match and 3 known
+differences against a live reference oracle; 34 fail on `8c79761`. The regression
+probes stay at baseline. See [root-destination-contract.md](root-destination-contract.md).
+
 CleanList list-file choice (2026-10-04, F07-D): a CleanList whose Sources name
 more than one existing list now reads the first authored Source's list, as C#
 `ExecuteCleanListAsync` reads `RealSourcePaths[0]`. Rust read the match with the
