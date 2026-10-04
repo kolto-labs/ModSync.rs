@@ -1042,13 +1042,13 @@ impl Engine {
                 }
                 "Copy" | "Move" | "CleanList" | "DelDuplicate" => {
                     let dest = self.path(&instruction.destination, false)?;
-                    // C# PathValidator.IsValidPath refuses a `.` part, which
-                    // `relative` drops while resolving.
                     let missing = !self.directories.contains_key(&self.path_policy.key(&dest));
                     // The full pipeline's C# Environment stage has created this folder.
                     let created = full_validation
                         && instruction.action != "DelDuplicate"
                         && self.folder_creatable(&dest);
+                    // C# PathValidator.IsValidPath refuses a `.` part, which
+                    // `relative` drops while resolving.
                     if has_dot_part(&instruction.destination) || missing && !created {
                         missing_destinations.push(format!(
                             "Destination cannot be found! Got '{}'",

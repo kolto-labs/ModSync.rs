@@ -92,7 +92,7 @@ Rust  ComponentValidation: ERROR: A: Destination cannot be found! Got '<root>/ga
   desktop Validate step, `--phase remaining`), the archive stage no longer reports a
   missing Copy, Move or CleanList Destination folder that could be created: no `.`
   part, and no file at the folder or above it (`src/engine.rs:1043-1057`,
-  `folder_creatable` at `:1105-1111`). The stage prints `OK: <component>`, as C# does
+  `folder_creatable` at `:1107-1112`). The stage prints `OK: <component>`, as C# does
   after its Environment stage has created the folder. Rust still creates nothing
   while validating: the dry run and the step simulation of the report without a dry
   run create the folder virtually when they execute the step, so a later step into
@@ -136,7 +136,8 @@ release binary: `validate --full --dry-run` (decision, counts, stages), `validat
 | this slice, recorded reference | 120 match / 18 known difference / 0 fail |
 | `38c6ca9` (pre-fix), recorded reference | 42 match / 18 known difference / 78 fail |
 
-On `38c6ca9` each of the 13 cases C# passes (a Copy into `Nope`, into a missing
+On `38c6ca9` each of the 13 cases with a creatable missing Copy, Move or CleanList folder
+(a Copy into `Nope`, into a missing
 `Override`, nested, under a differently cased parent, into the game or mod root's
 `Nope`, a Move, a CleanList, two steps or two components into one folder, an Extract
 then a Copy into a new folder, a chosen option's and an unselected option's Copy)
