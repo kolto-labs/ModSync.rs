@@ -206,16 +206,25 @@ other=[comp(instructions=(extract('example.zip'),),saved=choices(entry('example.
 c=setup('scope_other_archive',other,BOTH)
 ri=install(c,'install',sidecar(c,choices(entry('example.zip'))));check('scope_other_archive_exit',ri['exit'],0);check('scope_other_archive_bytes',ri['game'],files('b','c'))
 # Scope follows the engine's source matching: a folder source extracts every archive
-# below it and a glob character class names archives, so both components take the file
-# entry. At c28dee0 only the last source component was compared (no folders, `[` escaped)
-# and neither received it.
-for label,source,where in [('folder','Pack','Pack/example.zip'),('char_class','[e]xample.zip','example.zip')]:
- c=setup(f'scope_{label}',[comp(instructions=({'Action':'Extract','Source':[f'<<modDirectory>>/{source}']},))],{})
+# below it, so the component takes the file entry. At c28dee0 only the last source
+# component was compared and it did not. `[` and `]` are literal in a Source, as in
+# C# PathHelper.WildcardPathMatch (see ../delete-directory-contract.md), so
+# `[e]xample.zip` names no file: the scope still admits the entry (the FOMOD stage
+# passes), and the run is refused as a missing source before any write. The
+# reference refuses the same Extract with MissingSourceFiles
+# (../delete-directory-proof, extract_bracket_literal).
+# An archive literally named `[e]xample.zip` and named literally by the Source is in
+# scope and installs (`bracket_literal`). Its Extract names a destination folder
+# without brackets, so the check covers only the archive name.
+for label,source,where,ok,dest in [('folder','Pack','Pack/example.zip',True,None),('char_class','[e]xample.zip','example.zip',False,None),('bracket_literal','[e]xample.zip','[e]xample.zip',True,'<<modDirectory>>/bracket')]:
+ extract_step={'Action':'Extract','Source':[f'<<modDirectory>>/{source}']}|({'Destination':dest} if dest else {})
+ c=setup(f'scope_{label}',[comp(instructions=(extract_step,))],{})
  (c['mods']/where).parent.mkdir(parents=True,exist_ok=True);(c['mods']/where).write_bytes(FIRST);n=f'scope_{label}'
+ archive=where.rsplit('/',1)[-1]
  ri=install(c,'no_file');check(n+'_needs_choices_exit',ri['exit'],1);check(n+'_needs_choices_game_untouched',ri['game'],{})
- ri=install(c,'install',sidecar(c,choices(entry('example.zip'))));check(n+'_install_exit',ri['exit'],0);check(n+'_install_bytes',ri['game'],files('b'))
- rv=validate(c,'report',flags=sidecar(c,choices(entry('example.zip'))));check(n+'_report_exit',rv['exit'],0);check(n+'_report_stage_passed',stage(rv)['passed'],True)
- rv=validate(c,'plain',report=False,flags=sidecar(c,choices(entry('example.zip'))));check(n+'_plain_exit',rv['exit'],0)
+ ri=install(c,'install',sidecar(c,choices(entry(archive))));check(n+'_install_exit',ri['exit'],0 if ok else 1);check(n+'_install_bytes',ri['game'],files('b') if ok else {})
+ rv=validate(c,'report',flags=sidecar(c,choices(entry(archive))));check(n+'_report_exit',rv['exit'],0 if ok else 1);check(n+'_report_stage_passed',stage(rv)['passed'],True)
+ rv=validate(c,'plain',report=False,flags=sidecar(c,choices(entry(archive))));check(n+'_plain_exit',rv['exit'],0 if ok else 1)
 # Phased: base and remaining reconstruct the completed definitions from the same file;
 # a different file changes them and is refused before any write.
 wide=comp(1,instructions=(NOTE,),WidescreenOnly=True)

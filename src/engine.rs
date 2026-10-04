@@ -184,6 +184,46 @@ impl Content {
     }
 }
 
+/// Whether an authored Source of this action also matches every file under it as
+/// a folder. The reference binds file-action Sources with
+/// `PathHelper.EnumerateFilesWithWildcards`, which returns files only, so a folder
+/// Source is a missing source for them. Extract, Patcher and FOMOD scoping keep the
+/// folder rule (FOMOD root-folder flows rely on it for Extract).
+pub(crate) fn authored_descendants(action: &str) -> bool {
+    !matches!(
+        action,
+        "Copy" | "Move" | "Rename" | "Delete" | "CleanList" | "Execute" | "Run"
+    )
+}
+
+/// How an action's missing Source is classified; see `Engine::classify_miss`.
+#[derive(Clone, Copy)]
+enum MissKind {
+    LiteralTyped,
+    WildcardTyped,
+}
+
+/// Glob text for one authored Source path with the reference wildcard rules
+/// (`PathHelper.WildcardPathMatch`): each path level is matched on its own, `*`
+/// (and so `**`) matches any run of characters within one level, `?` matches one
+/// character, and every other character, including `[` and `]`, is literal.
+pub(crate) fn source_wildcard_glob(text: &str) -> String {
+    let mut glob = String::with_capacity(text.len());
+    let mut star = false;
+    for character in text.chars() {
+        match character {
+            '*' if star => {}
+            '*' => glob.push('*'),
+            '?' => glob.push('?'),
+            '[' => glob.push_str("[[]"),
+            ']' => glob.push_str("[]]"),
+            other => glob.push(other),
+        }
+        star = character == '*';
+    }
+    glob
+}
+
 /// The glob half of Extract/Copy source matching; a source also matches every file
 /// below it as a folder (see `Engine::source_matches`).
 pub(crate) fn source_glob_matches(pattern: &glob::Pattern, candidate: &str) -> bool {
@@ -1851,6 +1891,17 @@ impl Engine {
     }
 
     fn matches(&self, sources: &[String], missing_ok: bool) -> Result<Vec<PathBuf>> {
+        self.matches_scoped(sources, missing_ok, true)
+    }
+
+    /// With `descendants` false, a Source names only the files its literal or
+    /// wildcard path matches; a directory Source matches nothing beneath it.
+    fn matches_scoped(
+        &self,
+        sources: &[String],
+        missing_ok: bool,
+        descendants: bool,
+    ) -> Result<Vec<PathBuf>> {
         ensure!(!sources.is_empty(), "Instruction has no Source");
         let mut found = BTreeMap::new();
         for source in sources {
@@ -1859,7 +1910,13 @@ impl Engine {
             let matches: Vec<_> = self
                 .files
                 .iter()
-                .filter(|(k, _)| self.source_matches(&prefix, &pattern, k))
+                .filter(|(k, _)| {
+                    if descendants {
+                        self.source_matches(&prefix, &pattern, k)
+                    } else {
+                        self.path_policy.glob_matches(&pattern, k)
+                    }
+                })
                 .collect();
             if !missing_ok && matches.is_empty() {
                 return Err(MissingSource(source.clone()).into());
@@ -1881,7 +1938,7 @@ impl Engine {
         let pattern = glob::Pattern::new(&format!(
             "{}/{}",
             glob::Pattern::escape(&self.path_policy.key(root)),
-            self.path_policy.key(path.strip_prefix(root)?)
+            source_wildcard_glob(&self.path_policy.key(path.strip_prefix(root)?))
         ))?;
         Ok((path, pattern))
     }
@@ -1890,18 +1947,56 @@ impl Engine {
         self.path_policy.glob_matches(pattern, candidate) || candidate.starts_with(prefix)
     }
 
+    /// Whether any literal Source (no `*` or `?`; `[` and `]` are literal) of an
+    /// instruction names no file. C# `SetRealPaths(skipExistenceCheck: true)` keeps
+    /// every literal Source, so its expansion is empty only when every Source is a
+    /// wildcard and none matched.
+    fn any_literal_source_missing(&self, sources: &[String]) -> Result<bool> {
+        for source in sources {
+            if !source.contains(['*', '?']) {
+                let path = self.path(source, true)?;
+                if !self.files.contains_key(&self.path_policy.key(&path)) {
+                    return Ok(true);
+                }
+            }
+        }
+        Ok(false)
+    }
+
+    /// Types a `MissingSource` miss as `MissingSourceFiles` (the dry run's
+    /// `DryRunSkipped`) where the reference does, else keeps it an untyped error:
+    /// - `LiteralTyped` (Rename, CleanList): typed when a literal Source is missing;
+    ///   an all-wildcard empty expansion throws `ArgumentException` (UnknownError).
+    /// - `WildcardTyped` (Execute, Run): typed when every Source is a wildcard; a
+    ///   missing literal program is `UnknownError`.
+    fn classify_miss<T>(&self, result: Result<T>, sources: &[String], kind: MissKind) -> Result<T> {
+        match result {
+            Err(error) if error.is::<MissingSource>() => {
+                let literal_missing = self.any_literal_source_missing(sources)?;
+                let typed = match kind {
+                    MissKind::LiteralTyped => literal_missing,
+                    MissKind::WildcardTyped => {
+                        !literal_missing && sources.iter().all(|s| s.contains(['*', '?']))
+                    }
+                };
+                Err(if typed {
+                    anyhow::Error::new(MissingSourceFiles(error))
+                } else {
+                    error
+                })
+            }
+            result => result,
+        }
+    }
+
     fn instruction_sources(&self, sources: &[String]) -> Result<Vec<PathBuf>> {
         // A miss in one pattern must not hide an unsafe/malformed later pattern.
         for source in sources {
             self.source_pattern(source)?;
         }
-        let paths = self.matches(sources, false).map_err(|error| {
-            if error.is::<MissingSource>() {
-                anyhow::Error::new(MissingSourceFiles(error))
-            } else {
-                error
-            }
-        })?;
+        // Execute/Run only: a folder Source is a miss, never every program in it.
+        // The caller classifies the miss (see `classify_miss`).
+        let paths = self.matches_scoped(sources, false, false)?;
         for path in &paths {
             // Reading must be possible even when virtual copying needs no bytes.
             let content = &self.files[&self.path_policy.key(path)].1;
@@ -2185,7 +2280,11 @@ impl Engine {
                     self.path(&i.destination, false)?
                 };
                 let sources = if i.action == "Rename" {
-                    self.matches(&i.source, false)?
+                    // RenameFile: FileNotFoundPost for a missing literal, an
+                    // ArgumentException on an all-wildcard empty expansion.
+                    let sources =
+                        self.matches_scoped(&i.source, false, authored_descendants(&i.action));
+                    self.classify_miss(sources, &i.source, MissKind::LiteralTyped)?
                 } else {
                     let mut resolution = self.resolve_instruction(component, i)?;
                     if resolution.satisfied {
@@ -2278,15 +2377,23 @@ impl Engine {
                     });
                     return Ok(());
                 }
-                let sources = self.matches(&i.source, true)?;
+                // C# DeleteFile deletes only paths for which File.Exists holds, so
+                // a directory Source deletes nothing beneath it (a miss).
+                let sources =
+                    self.matches_scoped(&i.source, true, authored_descendants(&i.action))?;
                 if sources.is_empty() {
                     for source in &i.source {
                         let path = self.path(source, true)?;
-                        self.validation_warning(
-                            "DeleteFile",
-                            format!("Attempting to delete non-existent file: {}", path.display()),
-                            &path,
-                        );
+                        let message = if self.directories.contains_key(&self.path_policy.key(&path))
+                        {
+                            format!(
+                                "Delete Source is a directory; Delete removes files only: {}",
+                                path.display()
+                            )
+                        } else {
+                            format!("Attempting to delete non-existent file: {}", path.display())
+                        };
+                        self.validation_warning("DeleteFile", message, &path);
                     }
                 }
                 // C# DeleteFile with Overwrite=true returns FileNotFoundPost for a
@@ -2385,7 +2492,11 @@ impl Engine {
             }
             "CleanList" => {
                 let dir = self.path(&i.destination, false)?;
-                let sources = self.matches(&i.source, false)?;
+                // CleanList: MissingSourceFiles for a missing literal list, an
+                // ArgumentException (UnknownError) on an all-wildcard empty expansion.
+                let sources =
+                    self.matches_scoped(&i.source, false, authored_descendants(&i.action));
+                let sources = self.classify_miss(sources, &i.source, MissKind::LiteralTyped)?;
                 let source = sources.first().context("CleanList needs a source file")?;
                 let cancelled = self.settings.cancelled.clone();
                 let mut budget = cleanlist::Budget::new(&cancelled);
@@ -2474,7 +2585,11 @@ impl Engine {
         let mut paths = Vec::new();
         let mut seen = BTreeSet::new();
         for source in &i.source {
-            for path in self.instruction_sources(std::slice::from_ref(source))? {
+            let resolved = self.instruction_sources(std::slice::from_ref(source));
+            // ExecuteProgram: UnknownError for a missing literal program; an
+            // all-wildcard empty expansion checks FileExists(pattern) instead,
+            // FileNotFoundPost (MissingSourceFiles).
+            for path in self.classify_miss(resolved, &i.source, MissKind::WildcardTyped)? {
                 if seen.insert(self.path_policy.key(&path)) {
                     paths.push(path);
                 }

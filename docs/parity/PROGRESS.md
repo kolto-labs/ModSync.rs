@@ -9,6 +9,22 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Directory Sources and wildcard rules (2026-10-04, follow-ups to the Delete slice): a
+`Delete`, `Copy`, `Move`, `Rename`, `CleanList`, `Execute` or `Run` Source that names a
+directory now reaches no file beneath it, as in C# (`EnumerateFilesWithWildcards`
+returns files only). Delete deletes nothing (strict Delete fails); the others fail.
+Before, Rust deleted, moved, copied or renamed the whole subtree, read a CleanList from
+the folder, or (with `--allow-processes`) ran every program in it. Every Source's
+wildcards now follow C# `WildcardPathMatch`: `**` stays within one level and `[`/`]`
+are literal. Missing Rename, CleanList and Execute/Run Sources are classified as in C#
+in the dry-run report (one shared literal-versus-wildcard test; the actions differ on
+an all-wildcard empty expansion). Extract, Patcher and the FOMOD gate keep the folder rule, so
+Rust still extracts a folder of archives that C# refuses (documented). Proof: 169 match
+and 11 known differences against a live reference oracle; 4 fail on `ab6b389`, 13 on
+`df67229`. The S2b proof now has 265 checks (`[e]xample.zip` is a
+missing source; a literally so named archive installs); the other regression probes
+stay at baseline. See [delete-directory-contract.md](delete-directory-contract.md).
+
 Copy/Move onto itself, follow-up (2026-10-04): a self-target next to a source that
 miss-only recovery binds from a `ResourceRegistry` archive was still refused by
 recovery qualification; with `Overwrite = false` it is now skipped with a warning,

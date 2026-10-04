@@ -904,10 +904,11 @@ pub fn resource_matches_archive(component: &crate::Component, archive: &str) -> 
 }
 
 /// Whether an Extract source could resolve to the archive under the engine's source
-/// matching: a glob (`*`, `?`, `[...]`) over the file name, or a folder source that
-/// contains the archive at any depth. The archive's folder is unknown here, so any
-/// source whose last component is not an archive file name may be that folder, and
-/// an unparseable glob is kept too: over-inclusion only applies a named entry.
+/// matching: a wildcard (`*`, `?`; `[` and `]` are literal) over the file name, or a
+/// folder source that contains the archive at any depth. The archive's folder is
+/// unknown here, so any source whose last component is not an archive file name may
+/// be that folder, and an unparseable glob is kept too: over-inclusion only applies a
+/// named entry.
 fn source_may_extract(source: &str, filename: &str) -> bool {
     let source = source.trim().replace('\\', "/");
     let last = source
@@ -916,9 +917,10 @@ fn source_may_extract(source: &str, filename: &str) -> bool {
         .next()
         .unwrap_or("");
     !crate::engine::is_archive(last)
-        || glob::Pattern::new(&fold_case(last)).map_or(true, |pattern| {
-            crate::engine::source_glob_matches(&pattern, &fold_case(filename))
-        })
+        || glob::Pattern::new(&crate::engine::source_wildcard_glob(&fold_case(last)))
+            .map_or(true, |pattern| {
+                crate::engine::source_glob_matches(&pattern, &fold_case(filename))
+            })
 }
 
 /// Whether this component registers the archive or may extract it through one of its
