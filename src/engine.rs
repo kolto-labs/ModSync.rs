@@ -1755,18 +1755,30 @@ impl Engine {
     }
 
     /// The same immediate-option selection used by execution and read-only gates.
+    /// An entry that names no option is refused (fail closed), where C# ignores it.
     fn chosen_options<'a>(
         component: &'a Component,
         instruction: &Instruction,
     ) -> Result<Vec<&'a Component>> {
         for id in &instruction.source {
-            ensure!(
-                component
-                    .options
-                    .iter()
-                    .any(|option| crate::guid::eq_ascii(&option.guid, id)),
-                "Unknown option {id}"
-            );
+            if component
+                .options
+                .iter()
+                .any(|option| Self::names_option(&option.guid, id))
+            {
+                continue;
+            }
+            match crate::guid::try_parse(id) {
+                Some(value)
+                    if component
+                        .options
+                        .iter()
+                        .any(|option| crate::guid::try_parse(&option.guid) == Some(value)) =>
+                {
+                    bail!("Unknown option {id}: a Choose entry names an option only as {value}")
+                }
+                _ => bail!("Unknown option {id}"),
+            }
         }
         Ok(component
             .options
@@ -1776,9 +1788,20 @@ impl Engine {
                     && instruction
                         .source
                         .iter()
-                        .any(|id| crate::guid::eq_ascii(&option.guid, id))
+                        .any(|id| Self::names_option(&option.guid, id))
             })
             .collect())
+    }
+
+    /// C# `Instruction.GetChosenOptions`: an entry names an option when it equals the
+    /// option's `Guid.ToString()` (lowercase D form) OrdinalIgnoreCase, so a braced,
+    /// parenthesized, N-form or padded entry names none. An option ID the GUID parser
+    /// does not accept keeps its ASCII-folded comparison.
+    fn names_option(option: &str, id: &str) -> bool {
+        crate::guid::try_parse(option).map_or_else(
+            || option.eq_ignore_ascii_case(id),
+            |value| value.to_string().eq_ignore_ascii_case(id),
+        )
     }
 
     fn collect_execution_components<'a>(

@@ -1,0 +1,608 @@
+{
+ "both_selected": {
+  "dryrun_errors": [],
+  "install_exits": [
+   "Choose Probe: Success"
+  ],
+  "install_tree": {
+   "Override/a.txt": "A\n",
+   "Override/b.txt": "B\n"
+  },
+  "load": [
+   {
+    "Instructions": [
+     {
+      "Action": "Choose",
+      "Source": [
+       "a4444444-4444-4444-4444-44444444444a",
+       "b5555555-5555-5555-5555-55555555555b"
+      ]
+     }
+    ],
+    "Options": [
+     {
+      "Guid": "a4444444-4444-4444-4444-44444444444a",
+      "IsSelected": true
+     },
+     {
+      "Guid": "b5555555-5555-5555-5555-55555555555b",
+      "IsSelected": true
+     }
+    ]
+   }
+  ]
+ },
+ "braced_and_plain": {
+  "dryrun_errors": [],
+  "install_exits": [
+   "Choose Probe: Success"
+  ],
+  "install_tree": {
+   "Override/b.txt": "B\n"
+  },
+  "load": [
+   {
+    "Instructions": [
+     {
+      "Action": "Choose",
+      "Source": [
+       "{a4444444-4444-4444-4444-44444444444a}",
+       "b5555555-5555-5555-5555-55555555555b"
+      ]
+     }
+    ],
+    "Options": [
+     {
+      "Guid": "a4444444-4444-4444-4444-44444444444a",
+      "IsSelected": true
+     },
+     {
+      "Guid": "b5555555-5555-5555-5555-55555555555b",
+      "IsSelected": true
+     }
+    ]
+   }
+  ]
+ },
+ "legacy_braced": {
+  "dryrun_errors": [],
+  "install_exits": [
+   "Choose Probe: Success"
+  ],
+  "install_tree": {},
+  "load": [
+   {
+    "Instructions": [
+     {
+      "Action": "Choose",
+      "Source": [
+       "{a4444444-4444-4444-4444-44444444444a}"
+      ]
+     }
+    ],
+    "Options": [
+     {
+      "Guid": "a4444444-4444-4444-4444-44444444444a",
+      "IsSelected": true
+     },
+     {
+      "Guid": "b5555555-5555-5555-5555-55555555555b",
+      "IsSelected": false
+     }
+    ]
+   }
+  ]
+ },
+ "legacy_comma": {
+  "dryrun_errors": [],
+  "install_exits": [
+   "Choose Probe: Success"
+  ],
+  "install_tree": {
+   "Override/a.txt": "A\n",
+   "Override/b.txt": "B\n"
+  },
+  "load": [
+   {
+    "Instructions": [
+     {
+      "Action": "Choose",
+      "Source": [
+       "a4444444-4444-4444-4444-44444444444a",
+       "b5555555-5555-5555-5555-55555555555b"
+      ]
+     }
+    ],
+    "Options": [
+     {
+      "Guid": "a4444444-4444-4444-4444-44444444444a",
+      "IsSelected": true
+     },
+     {
+      "Guid": "b5555555-5555-5555-5555-55555555555b",
+      "IsSelected": true
+     }
+    ]
+   }
+  ]
+ },
+ "legacy_semicolon": {
+  "dryrun_errors": [],
+  "install_exits": [
+   "Choose Probe: Success"
+  ],
+  "install_tree": {},
+  "load": [
+   {
+    "Instructions": [
+     {
+      "Action": "Choose",
+      "Source": [
+       "a4444444-4444-4444-4444-44444444444a;b5555555-5555-5555-5555-55555555555b"
+      ]
+     }
+    ],
+    "Options": [
+     {
+      "Guid": "a4444444-4444-4444-4444-44444444444a",
+      "IsSelected": true
+     },
+     {
+      "Guid": "b5555555-5555-5555-5555-55555555555b",
+      "IsSelected": true
+     }
+    ]
+   }
+  ]
+ },
+ "legacy_single": {
+  "dryrun_errors": [],
+  "install_exits": [
+   "Choose Probe: Success"
+  ],
+  "install_tree": {
+   "Override/a.txt": "A\n"
+  },
+  "load": [
+   {
+    "Instructions": [
+     {
+      "Action": "Choose",
+      "Source": [
+       "a4444444-4444-4444-4444-44444444444a"
+      ]
+     }
+    ],
+    "Options": [
+     {
+      "Guid": "a4444444-4444-4444-4444-44444444444a",
+      "IsSelected": true
+     },
+     {
+      "Guid": "b5555555-5555-5555-5555-55555555555b",
+      "IsSelected": false
+     }
+    ]
+   }
+  ]
+ },
+ "not_a_guid": {
+  "dryrun_errors": [],
+  "install_exits": [
+   "Choose Probe: Success"
+  ],
+  "install_tree": {},
+  "load": [
+   {
+    "Instructions": [
+     {
+      "Action": "Choose",
+      "Source": [
+       "foo"
+      ]
+     }
+    ],
+    "Options": [
+     {
+      "Guid": "a4444444-4444-4444-4444-44444444444a",
+      "IsSelected": true
+     },
+     {
+      "Guid": "b5555555-5555-5555-5555-55555555555b",
+      "IsSelected": false
+     }
+    ]
+   }
+  ]
+ },
+ "option_braced": {
+  "dryrun_errors": [],
+  "install_exits": [
+   "Choose Probe: Success"
+  ],
+  "install_tree": {
+   "Override/a.txt": "A\n"
+  },
+  "load": [
+   {
+    "Instructions": [
+     {
+      "Action": "Choose",
+      "Source": [
+       "a4444444-4444-4444-4444-44444444444a"
+      ]
+     }
+    ],
+    "Options": [
+     {
+      "Guid": "a4444444-4444-4444-4444-44444444444a",
+      "IsSelected": true
+     },
+     {
+      "Guid": "b5555555-5555-5555-5555-55555555555b",
+      "IsSelected": false
+     }
+    ]
+   }
+  ]
+ },
+ "option_nform": {
+  "dryrun_errors": [],
+  "install_exits": [
+   "Choose Probe: Success"
+  ],
+  "install_tree": {
+   "Override/a.txt": "A\n"
+  },
+  "load": [
+   {
+    "Instructions": [
+     {
+      "Action": "Choose",
+      "Source": [
+       "a4444444-4444-4444-4444-44444444444a"
+      ]
+     }
+    ],
+    "Options": [
+     {
+      "Guid": "a4444444-4444-4444-4444-44444444444a",
+      "IsSelected": true
+     },
+     {
+      "Guid": "b5555555-5555-5555-5555-55555555555b",
+      "IsSelected": false
+     }
+    ]
+   }
+  ]
+ },
+ "option_upper": {
+  "dryrun_errors": [],
+  "install_exits": [
+   "Choose Probe: Success"
+  ],
+  "install_tree": {
+   "Override/a.txt": "A\n"
+  },
+  "load": [
+   {
+    "Instructions": [
+     {
+      "Action": "Choose",
+      "Source": [
+       "a4444444-4444-4444-4444-44444444444a"
+      ]
+     }
+    ],
+    "Options": [
+     {
+      "Guid": "a4444444-4444-4444-4444-44444444444a",
+      "IsSelected": true
+     },
+     {
+      "Guid": "b5555555-5555-5555-5555-55555555555b",
+      "IsSelected": false
+     }
+    ]
+   }
+  ]
+ },
+ "plain": {
+  "dryrun_errors": [],
+  "install_exits": [
+   "Choose Probe: Success"
+  ],
+  "install_tree": {
+   "Override/a.txt": "A\n"
+  },
+  "load": [
+   {
+    "Instructions": [
+     {
+      "Action": "Choose",
+      "Source": [
+       "a4444444-4444-4444-4444-44444444444a"
+      ]
+     }
+    ],
+    "Options": [
+     {
+      "Guid": "a4444444-4444-4444-4444-44444444444a",
+      "IsSelected": true
+     },
+     {
+      "Guid": "b5555555-5555-5555-5555-55555555555b",
+      "IsSelected": false
+     }
+    ]
+   }
+  ]
+ },
+ "scalar_braced": {
+  "dryrun_errors": [],
+  "install_exits": [
+   "Choose Probe: Success"
+  ],
+  "install_tree": {},
+  "load": [
+   {
+    "Instructions": [
+     {
+      "Action": "Choose",
+      "Source": [
+       "{a4444444-4444-4444-4444-44444444444a}"
+      ]
+     }
+    ],
+    "Options": [
+     {
+      "Guid": "a4444444-4444-4444-4444-44444444444a",
+      "IsSelected": true
+     },
+     {
+      "Guid": "b5555555-5555-5555-5555-55555555555b",
+      "IsSelected": false
+     }
+    ]
+   }
+  ]
+ },
+ "source_braced": {
+  "dryrun_errors": [],
+  "install_exits": [
+   "Choose Probe: Success"
+  ],
+  "install_tree": {},
+  "load": [
+   {
+    "Instructions": [
+     {
+      "Action": "Choose",
+      "Source": [
+       "{a4444444-4444-4444-4444-44444444444a}"
+      ]
+     }
+    ],
+    "Options": [
+     {
+      "Guid": "a4444444-4444-4444-4444-44444444444a",
+      "IsSelected": true
+     },
+     {
+      "Guid": "b5555555-5555-5555-5555-55555555555b",
+      "IsSelected": false
+     }
+    ]
+   }
+  ]
+ },
+ "source_nform": {
+  "dryrun_errors": [],
+  "install_exits": [
+   "Choose Probe: Success"
+  ],
+  "install_tree": {},
+  "load": [
+   {
+    "Instructions": [
+     {
+      "Action": "Choose",
+      "Source": [
+       "a444444444444444444444444444444a"
+      ]
+     }
+    ],
+    "Options": [
+     {
+      "Guid": "a4444444-4444-4444-4444-44444444444a",
+      "IsSelected": true
+     },
+     {
+      "Guid": "b5555555-5555-5555-5555-55555555555b",
+      "IsSelected": false
+     }
+    ]
+   }
+  ]
+ },
+ "source_padded": {
+  "dryrun_errors": [],
+  "install_exits": [
+   "Choose Probe: Success"
+  ],
+  "install_tree": {},
+  "load": [
+   {
+    "Instructions": [
+     {
+      "Action": "Choose",
+      "Source": [
+       " a4444444-4444-4444-4444-44444444444a "
+      ]
+     }
+    ],
+    "Options": [
+     {
+      "Guid": "a4444444-4444-4444-4444-44444444444a",
+      "IsSelected": true
+     },
+     {
+      "Guid": "b5555555-5555-5555-5555-55555555555b",
+      "IsSelected": false
+     }
+    ]
+   }
+  ]
+ },
+ "source_paren": {
+  "dryrun_errors": [],
+  "install_exits": [
+   "Choose Probe: Success"
+  ],
+  "install_tree": {},
+  "load": [
+   {
+    "Instructions": [
+     {
+      "Action": "Choose",
+      "Source": [
+       "(a4444444-4444-4444-4444-44444444444a)"
+      ]
+     }
+    ],
+    "Options": [
+     {
+      "Guid": "a4444444-4444-4444-4444-44444444444a",
+      "IsSelected": true
+     },
+     {
+      "Guid": "b5555555-5555-5555-5555-55555555555b",
+      "IsSelected": false
+     }
+    ]
+   }
+  ]
+ },
+ "source_upper": {
+  "dryrun_errors": [],
+  "install_exits": [
+   "Choose Probe: Success"
+  ],
+  "install_tree": {
+   "Override/a.txt": "A\n"
+  },
+  "load": [
+   {
+    "Instructions": [
+     {
+      "Action": "Choose",
+      "Source": [
+       "A4444444-4444-4444-4444-44444444444A"
+      ]
+     }
+    ],
+    "Options": [
+     {
+      "Guid": "a4444444-4444-4444-4444-44444444444a",
+      "IsSelected": true
+     },
+     {
+      "Guid": "b5555555-5555-5555-5555-55555555555b",
+      "IsSelected": false
+     }
+    ]
+   }
+  ]
+ },
+ "unknown": {
+  "dryrun_errors": [],
+  "install_exits": [
+   "Choose Probe: Success"
+  ],
+  "install_tree": {},
+  "load": [
+   {
+    "Instructions": [
+     {
+      "Action": "Choose",
+      "Source": [
+       "99999999-9999-9999-9999-999999999999"
+      ]
+     }
+    ],
+    "Options": [
+     {
+      "Guid": "a4444444-4444-4444-4444-44444444444a",
+      "IsSelected": true
+     },
+     {
+      "Guid": "b5555555-5555-5555-5555-55555555555b",
+      "IsSelected": false
+     }
+    ]
+   }
+  ]
+ },
+ "unknown_and_known": {
+  "dryrun_errors": [],
+  "install_exits": [
+   "Choose Probe: Success"
+  ],
+  "install_tree": {
+   "Override/a.txt": "A\n"
+  },
+  "load": [
+   {
+    "Instructions": [
+     {
+      "Action": "Choose",
+      "Source": [
+       "99999999-9999-9999-9999-999999999999",
+       "a4444444-4444-4444-4444-44444444444a"
+      ]
+     }
+    ],
+    "Options": [
+     {
+      "Guid": "a4444444-4444-4444-4444-44444444444a",
+      "IsSelected": true
+     },
+     {
+      "Guid": "b5555555-5555-5555-5555-55555555555b",
+      "IsSelected": false
+     }
+    ]
+   }
+  ]
+ },
+ "unselected": {
+  "dryrun_errors": [],
+  "install_exits": [
+   "Choose Probe: Success"
+  ],
+  "install_tree": {},
+  "load": [
+   {
+    "Instructions": [
+     {
+      "Action": "Choose",
+      "Source": [
+       "b5555555-5555-5555-5555-55555555555b"
+      ]
+     }
+    ],
+    "Options": [
+     {
+      "Guid": "a4444444-4444-4444-4444-44444444444a",
+      "IsSelected": true
+     },
+     {
+      "Guid": "b5555555-5555-5555-5555-55555555555b",
+      "IsSelected": false
+     }
+    ]
+   }
+  ]
+ }
+}
