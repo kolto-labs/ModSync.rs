@@ -72,7 +72,7 @@ C# successful handlers normally return `0`, errors `1`; validation can propagate
 | `-f/--format` | `toml` | `-f/--format` optional; positional output extension may choose default | **differing** | C# MBC:394-395; `src/main.rs:164-166,780-786` |
 | `-a/--auto` | false | none | **missing** | C# MBC:397-398; `src/main.rs:154-178` |
 | `-d/--download` | false; requires source | none | **missing** | C# MBC:400-401,1972-1978; `src/main.rs:154-178` |
-| `-s/--select` | repeatable category/tier | none | **missing** | C# MBC:403-404; `src/main.rs:154-178` |
+| `-s/--select` | repeatable category/tier | none | **missing** (since added: `-s, --select`, one value per flag; see [select-values-contract.md](select-values-contract.md)) | C# MBC:403-404; `src/main.rs:154-178` |
 | `--source-path` | optional path | `--source-path` | **matched** for name/shape | C# MBC:406-407; `src/main.rs:171-174` |
 | `--nexus-mods-api-key` | optional secret | none | **missing** | C# MBC:409-410; `src/main.rs:154-178` |
 | `-m/--merge` | false; legacy redirect | none | **missing** | C# MBC:412-419,1905-1943; `src/main.rs:154-178` |
@@ -112,7 +112,7 @@ The C# legacy `convert --merge` adapter also drops `concurrent`, `ignore-errors`
 | `-o/--output` | optional; stdout if absent | positional `OUTPUT`, required | **differing** | C# MBC:494-498; `src/main.rs:110-113,736-737` |
 | `-f/--format` | `toml` | inferred from output | **differing** | C# MBC:497-498; `src/main.rs:714-737` |
 | `-d/--download` | false | none | **missing** | C# MBC:500-501; `src/main.rs:109-140` |
-| `-s/--select` | repeatable | none | **missing** | C# MBC:503-504; `src/main.rs:109-140` |
+| `-s/--select` | repeatable | none | **missing** (since added: `-s, --select`, one value per flag; see [select-values-contract.md](select-values-contract.md)) | C# MBC:503-504; `src/main.rs:109-140` |
 | `--source-path` | optional | none | **missing** | C# MBC:506-507; `src/main.rs:109-140` |
 | `--nexus-mods-api-key` | optional | none | **missing** | C# MBC:509-510; `src/main.rs:109-140` |
 | `--exclude-existing-only` | false | same | **matched** | C# MBC:512-513; `src/main.rs:137-139` |
@@ -142,7 +142,7 @@ The C# legacy `convert --merge` adapter also drops `concurrent`, `ignore-errors`
 | `-i/--input` | required | same unless profile supplies it | **differing** — Rust allows profile-derived input | C# MBC:573-574; `src/main.rs:298-306` |
 | `-g/--game-dir` | optional except full/dry modes | `--game-dir`, profile-capable; no `-g` | **differing** | C# MBC:576-577,3042-3078; `src/main.rs:300-303` |
 | `-s/--source-dir` | optional except full/dry modes | `--source-dir`, profile-capable; no `-s` | **differing** | C# MBC:579-580,3042-3078; `src/main.rs:302-303` |
-| `--select` | repeatable category/tier | repeatable name/GUID/category/tier | **differing** — Rust grammar is broader | C# MBC:582-583; `src/main.rs:315-317,989-997` |
+| `--select` | list (several values after one flag; a repeated flag is refused) | repeatable name/GUID/category/tier | **differing** — Rust grammar is broader. 2026-10-05: C#'s list form `--select a b` (CommandLineParser sequence; a repeated flag is refused there) is now read as in C#, and a repeated flag still works ([select-values-contract.md](select-values-contract.md)) | C# MBC:582-583; `src/main.rs:315-317,989-997` |
 | `--full` | false | same, requires `--validation-report` | **differing** — C# mode directly selects pipeline; Rust gates it behind report mode | C# MBC:585-586; `src/main.rs:352-360` |
 | `--dry-run` | false | same, requires report | **differing** | C# MBC:588-589; `src/main.rs:355-357` |
 | `--dry-run-only` | false | same, requires report; remaining forbidden | **differing** | C# MBC:591-592; `src/main.rs:361-363,920-923` |
@@ -163,7 +163,7 @@ The C# legacy `convert --merge` adapter also drops `concurrent`, `ignore-errors`
 | `-i/--input` | required | same unless profile supplies it | **differing** | C# MBC:610-611; `src/main.rs:298-306` |
 | `-g/--game-dir` | required | `--game-dir`, profile-capable; no `-g` | **differing** | C# MBC:613-614; `src/main.rs:300-306` |
 | `-s/--source-dir` | input directory if absent | required unless profile supplies it; no `-s` | **differing** — default differs | C# MBC:616-617,3342-3347; `src/main.rs:302-306,962-973` |
-| `--select` | repeatable category/tier | repeatable broader selector | **differing** | C# MBC:619-620; `src/main.rs:315-317,989-997` |
+| `--select` | list (several values after one flag; a repeated flag is refused) | repeatable broader selector | **differing**. 2026-10-05: `--select a b` is now read as in C#, as for `validate` ([select-values-contract.md](select-values-contract.md)) | C# MBC:619-620; `src/main.rs:315-317,989-997` |
 | `--use-file-selection` | false; absent select means all | same | **matched** | C# MBC:622-623; `src/main.rs:312-317,989-1004` |
 | `--no-checkpoint` | false | none | **missing** — Rust recovery snapshot is mandatory | C# MBC:625-626; `src/main.rs:287-364` |
 | `--skip-validation` | false | none | **missing** — Rust preflight is mandatory | C# MBC:628-629; `src/main.rs:1095-1121`; `src/engine.rs:786-861` |

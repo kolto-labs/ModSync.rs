@@ -9,6 +9,18 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Several values after one `--select` (2026-10-05, F26): `validate`, `install` and
+`conflicts` (and `selection` and `fetch-downloads`) now read every value after
+`--select` up to the next option, as the C# CLI reads its list option, so `--select
+category:Bugfix category:Immersion` selects both categories; Rust stopped with a usage
+error and ran nothing. A repeated `--select` still works (C# refuses it);
+`--select=a b` stays a usage error and `convert`/`merge` keep one value per flag
+(documented). Proof: 34 match / 8 known against the live C# CLI with a HoloPatcher
+stub; 23 fail on `b97c090`. The missing-archives probe's live mode now runs a copy of
+the reference build with the stub under `unshare -Urnm` (50 / 19 live, oracle
+unchanged). The regression probes stay at baseline. See
+[select-values-contract.md](select-values-contract.md).
+
 An Extract with no Source in the reports (2026-10-05, F05/F08): an `Extract` with an
 empty Source list in a component with no archive that exists now fails the reports'
 archive stage with `Missing Required Archives: []`, as C# `VerifyExtractPaths` does,
