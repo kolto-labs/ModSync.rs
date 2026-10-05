@@ -203,6 +203,15 @@ enum MissKind {
     WildcardTyped,
 }
 
+/// Whether a Patcher Destination is `<<gameDirectory>>` or `<<kotorDirectory>>`,
+/// ignoring case (`OrdinalIgnoreCase`), as C# `ParseDestinationWithAction` accepts
+/// it. C# then checks it as a path, so only the exact spelling resolves.
+fn game_placeholder(raw: &str) -> bool {
+    ["<<gameDirectory>>", "<<kotorDirectory>>"]
+        .iter()
+        .any(|root| crate::unicode_case::ordinal_eq(raw, root))
+}
+
 /// Whether an authored Destination has a part that C# `PathValidator.IsValidPath`
 /// refuses and `paths::relative` lets through: a `.` part (which `relative` drops
 /// while resolving), `..` inside a longer name (`a..b`; a bare `..` is refused by
@@ -1115,7 +1124,7 @@ impl Engine {
         guide: &Guide,
         emit: &mut impl FnMut(Event),
         full_validation: bool,
-    ) -> Result<Vec<Result<(), Vec<String>>>> {
+    ) -> Result<Vec<crate::validation::ArchiveOutcome>> {
         recovery::ensure_clean(&self.settings.roots)?;
         recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
         self.selected = selected_guid_keys(guide);
@@ -1129,10 +1138,10 @@ impl Engine {
         }) {
             // Missing archives and Destination errors are one error per step, as
             // the reference lists them; any other failure stops this component's
-            // checks with one error.
+            // checks with one error. Warnings show only when there is no error.
             let outcome = match self.validate_component_archives(component, full_validation) {
-                Ok(missing) if missing.is_empty() => Ok(()),
-                Ok(missing) => Err(missing
+                Ok((errors, warnings)) if errors.is_empty() => Ok(warnings),
+                Ok((errors, _)) => Err(errors
                     .into_iter()
                     .map(|error| format!("{}: {error}", component.name))
                     .collect()),
@@ -1155,8 +1164,9 @@ impl Engine {
     }
 
     /// Returns the reference's per-step errors, if any: `Missing Required Archives`,
-    /// or else `Destination cannot be found!` and `'Destination' key cannot be used
-    /// with this action`. Other failures are errors.
+    /// or else `Destination cannot be found!`, `'Destination' key cannot be used
+    /// with this action` and the Patcher Destination error; and its warnings (an
+    /// empty Patcher Destination). Other failures are errors.
     ///
     /// In the full pipeline C#'s Environment stage has already run these checks with
     /// AttemptFixes and created each missing Destination folder it could, so this
@@ -1167,7 +1177,7 @@ impl Engine {
         &self,
         component: &Component,
         full_validation: bool,
-    ) -> Result<Vec<String>> {
+    ) -> Result<(Vec<String>, Vec<String>)> {
         self.check_cancelled()?;
         let instructions = Self::archive_check_instructions(component, &self.selected);
         let ArchiveMembers {
@@ -1195,7 +1205,7 @@ impl Engine {
             {
                 missing.retain(|instruction| is_top_level(component, instruction));
             }
-            return Ok(missing
+            let errors = missing
                 .into_iter()
                 .map(|instruction| {
                     format!(
@@ -1203,12 +1213,14 @@ impl Engine {
                         instruction.source.join(",")
                     )
                 })
-                .collect());
+                .collect();
+            return Ok((errors, Vec::new()));
         }
         // C# `ParseDestinationWithAction` reports each step whose Destination folder is
         // missing, or that has a Destination its action cannot use, and goes on; any
         // other failure still ends this component's checks.
         let mut step_errors = Vec::new();
+        let mut warnings = Vec::new();
         for (instruction, _) in instructions {
             self.check_cancelled()?;
             match instruction.action.as_str() {
@@ -1238,15 +1250,34 @@ impl Engine {
                 // This stage also checks unselected options' steps, which C# never
                 // runs; a placeholder Rename Destination fails where its step runs
                 // (`rename_file_name`), as the C# install does.
-                "Rename" | "Patcher" => {
-                    let dest = self.path(&instruction.destination, false)?;
-                    if instruction.action == "Patcher" {
-                        ensure!(
-                            dest == self.settings.roots.game,
-                            "Patcher destination must be the game directory"
+                "Rename" => {
+                    self.path(&instruction.destination, false)?;
+                }
+                // C# warns about an empty Patcher Destination and reports any other
+                // than the game folder's placeholder, then sets it (AttemptFixes). In
+                // the full pipeline its Environment stage has already set it, so
+                // only the basic report shows them. Rust never uses it (the patcher
+                // runs on the game directory); the step refuses an unsafe one. The
+                // placeholder in another case is not found, in both (fail closed).
+                "Patcher" if instruction.destination.is_empty() => {
+                    if !full_validation {
+                        warnings.push(
+                            "Destination must be <<gameDirectory>> with 'Patcher' action, \
+                             setting it now automatically."
+                                .to_owned(),
                         );
                     }
                 }
+                "Patcher" if game_placeholder(&instruction.destination) => {
+                    self.path(&instruction.destination, false)?;
+                }
+                "Patcher" if full_validation => {}
+                "Patcher" => step_errors.push(format!(
+                    "'Destination' key must be either null or string literal \
+                     '<<gameDirectory>>' (legacy: '<<kotorDirectory>>') for this action. \
+                     Got '{}'",
+                    instruction.destination
+                )),
                 // C# reports the Destination, then clears it (AttemptFixes). In the
                 // full pipeline its Environment stage has already cleared it, so only
                 // the basic report fails. Rust never uses it (`extraction_destination`).
@@ -1270,7 +1301,7 @@ impl Engine {
                 })?;
             }
         }
-        Ok(step_errors)
+        Ok((step_errors, warnings))
     }
 
     /// The steps C# `ComponentValidation` checks against the component's archives:
@@ -3145,6 +3176,23 @@ impl Engine {
                 }
             }
             "Patcher" => {
+                if !i.destination.is_empty() {
+                    // Still refused when unsafe (fail closed), though never used.
+                    let dest = self.path(&i.destination, false)?;
+                    if self.path_policy.key(&dest)
+                        != self.path_policy.key(&self.settings.roots.game)
+                    {
+                        emit(Event {
+                            component: component.name.clone(),
+                            step: 0,
+                            message: format!(
+                                "Patcher Destination '{}' is not used; the patcher runs on \
+                                 the game directory",
+                                i.destination
+                            ),
+                        });
+                    }
+                }
                 let mut resolution = self.resolve_instruction(component, i)?;
                 self.publish_resolution(&mut resolution)?;
                 let path = resolution
@@ -3223,11 +3271,11 @@ impl Engine {
         let mut staged_patcher = None;
         let mut patcher_data = None;
         let mut command = if i.action == "Patcher" {
-            let dest = if i.destination.is_empty() {
-                self.settings.roots.game.clone()
-            } else {
-                self.actual(&self.path(&i.destination, false)?)
-            };
+            // C# runs every patcher on the game folder (`ExecuteTSLPatcherAsync`
+            // passes `MainConfig.DestinationPath`, and the VFS simulation uses it
+            // too); its validation rewrites any other Destination to
+            // `<<gameDirectory>>`. The Patcher arm has refused an unsafe one.
+            let dest = self.settings.roots.game.clone();
             let base = if self.files.contains_key(&self.path_policy.key(path)) {
                 path.parent().unwrap()
             } else {

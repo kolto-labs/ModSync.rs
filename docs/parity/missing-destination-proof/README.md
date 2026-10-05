@@ -24,7 +24,7 @@ The reference is the pinned C# CLI itself, `dotnet ModSync.Core.dll validate` fr
 custom oracle is needed. Its results are in [csharp-oracle.json](csharp-oracle.json).
 The Rust runs need no network either.
 
-`KNOWN` holds the documented differences (eight cases, 12 checks). A known check
+`KNOWN` holds the documented differences (seven cases, 10 checks). A known check
 passes only if Rust differs from the reference and its archive-stage messages are
 exactly the expected Rust messages.
 
@@ -35,6 +35,7 @@ exactly the expected Rust messages.
 | this slice, live reference (`--reference ... --record`) | 75 match / 12 known difference / 0 fail |
 | this slice, recorded reference | 75 match / 12 known difference / 0 fail |
 | `1e2d133` (pre-fix), recorded reference | 53 match / 2 known difference / 32 fail |
+| after [patcher-destination-contract.md](../patcher-destination-contract.md), recorded reference | 77 match / 10 known difference / 0 fail |
 
 On `1e2d133`, 21 checks of 18 matching cases fail. In 16 cases the archive stage
 reports the missing folder as `archive/destination validation: Destination cannot be

@@ -126,7 +126,7 @@ C# wording and is unchanged.
 | `dot_part` | `KD/Override/.` | `Got '<root>/game/Override/.'` | known difference (stage) | other wording |
 | `dot_dot_part` | `KD/Override/../Nope` | `Got '<root>/game/Nope'` | known difference (counts, stage) | known difference |
 | `member_miss_and_missing` | Extract, Copy of an absent member into `KD/Nope` | two member errors | known difference (counts, stage) | missing folder only |
-| `missing_then_bad_patcher` | Copy into `KD/Nope`, Patcher into `KD/Override` | two errors | known difference (counts, stage) | missing folder only |
+| `missing_then_bad_patcher` | Copy into `KD/Nope`, Patcher into `KD/Override` | two errors | match (known difference before [patcher-destination-contract.md](patcher-destination-contract.md)) | missing folder only |
 
 ## Known differences
 
@@ -159,14 +159,16 @@ C# wording and is unchanged.
   runs, so C# passes; Rust's full report now leaves out a missing Copy, Move or
   CleanList folder that can be created
   ([full-pipeline-destination-contract.md](full-pipeline-destination-contract.md)).
-- **Other failures end the component's checks (unchanged, fail-closed).** A Patcher or
-  Rename Destination that Rust refuses, an unsafe path, or an unsupported action ends
-  the component's checks with one `archive/destination validation` error, and the
-  missing folders found so far are not listed (`missing_then_bad_patcher`; C# lists
-  both). Rust also does not report a Delete, Extract or Choose step with a Destination,
-  which C# does. An archive-member miss hides the missing folders in both, but keeps its
-  Rust wording, and C# adds a second message for its `AttemptFixes` retry
-  (`member_miss_and_missing`).
+- **Other failures end the component's checks (unchanged, fail-closed).** A Rename
+  Destination that Rust refuses, an unsafe path, or an unsupported action ends the
+  component's checks with one `archive/destination validation` error, and the missing
+  folders found so far are not listed. A Patcher Destination did too
+  (`missing_then_bad_patcher`) until
+  [patcher-destination-contract.md](patcher-destination-contract.md); it is now one
+  error per step with C#'s wording, as C# lists both. Rust also does not report a
+  Delete, Extract or Choose step with a Destination, which C# does. An archive-member
+  miss hides the missing folders in both, but keeps its Rust wording, and C# adds a
+  second message for its `AttemptFixes` retry (`member_miss_and_missing`).
 - **`.` and `..` parts.** A `.` part fails in both; Rust prints the resolved folder
   without it (`<root>/game/Override`, C# `<root>/game/Override/.`). Rust refuses a `..`
   part as `Unsafe path` (fail-closed), so its dry run fails too and `errorCount` is

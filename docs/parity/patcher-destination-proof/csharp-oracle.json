@@ -1,0 +1,465 @@
+{
+ "game_destination": {
+  "basic/counts": [
+   0,
+   0,
+   3
+  ],
+  "basic/decision": [
+   true,
+   true
+  ],
+  "basic/stage": [
+   true,
+   [
+    "OK: A"
+   ]
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stage": [
+   true,
+   [
+    "OK: A"
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/g.tga",
+     "game tga\n"
+    ],
+    [
+     "game/Override/n.tga",
+     "patched\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/backup/n.tga",
+     "patched\n"
+    ]
+   ]
+  ]
+ },
+ "gamedirectory_destination": {
+  "basic/counts": [
+   0,
+   0,
+   3
+  ],
+  "basic/decision": [
+   true,
+   true
+  ],
+  "basic/stage": [
+   true,
+   [
+    "OK: A"
+   ]
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stage": [
+   true,
+   [
+    "OK: A"
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/g.tga",
+     "game tga\n"
+    ],
+    [
+     "game/Override/n.tga",
+     "patched\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/backup/n.tga",
+     "patched\n"
+    ]
+   ]
+  ]
+ },
+ "mod_destination": {
+  "basic/counts": [
+   1,
+   0,
+   2
+  ],
+  "basic/decision": [
+   false,
+   false
+  ],
+  "basic/stage": [
+   false,
+   [
+    "ERROR: A: 'Destination' key must be either null or string literal '<<gameDirectory>>' (legacy: '<<kotorDirectory>>') for this action. Got '<<modDirectory>>'"
+   ]
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stage": [
+   true,
+   [
+    "OK: A"
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/g.tga",
+     "game tga\n"
+    ],
+    [
+     "game/Override/n.tga",
+     "patched\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ]
+   ]
+  ]
+ },
+ "no_destination": {
+  "basic/counts": [
+   0,
+   1,
+   2
+  ],
+  "basic/decision": [
+   true,
+   true
+  ],
+  "basic/stage": [
+   true,
+   [
+    "WARNING: A: Destination must be <<gameDirectory>> with 'Patcher' action, setting it now automatically."
+   ]
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stage": [
+   true,
+   [
+    "OK: A"
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/g.tga",
+     "game tga\n"
+    ],
+    [
+     "game/Override/n.tga",
+     "patched\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/backup/n.tga",
+     "patched\n"
+    ]
+   ]
+  ]
+ },
+ "option_no_destination": {
+  "basic/counts": [
+   0,
+   1,
+   2
+  ],
+  "basic/decision": [
+   true,
+   true
+  ],
+  "basic/stage": [
+   true,
+   [
+    "WARNING: A: Destination must be <<gameDirectory>> with 'Patcher' action, setting it now automatically."
+   ]
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stage": [
+   true,
+   [
+    "OK: A"
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/g.tga",
+     "game tga\n"
+    ],
+    [
+     "game/Override/n.tga",
+     "patched\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/backup/n.tga",
+     "patched\n"
+    ]
+   ]
+  ]
+ },
+ "override_destination": {
+  "basic/counts": [
+   1,
+   0,
+   2
+  ],
+  "basic/decision": [
+   false,
+   false
+  ],
+  "basic/stage": [
+   false,
+   [
+    "ERROR: A: 'Destination' key must be either null or string literal '<<gameDirectory>>' (legacy: '<<kotorDirectory>>') for this action. Got '<<kotorDirectory>>/Override'"
+   ]
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stage": [
+   true,
+   [
+    "OK: A"
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/g.tga",
+     "game tga\n"
+    ],
+    [
+     "game/Override/n.tga",
+     "patched\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/backup/n.tga",
+     "patched\n"
+    ]
+   ]
+  ]
+ },
+ "placeholder_case": {
+  "basic/counts": [
+   1,
+   0,
+   2
+  ],
+  "basic/decision": [
+   false,
+   false
+  ],
+  "basic/stage": [
+   false,
+   [
+    "ERROR: A: Destination cannot be found! Got '<root>/<<KotorDirectory>>'"
+   ]
+  ],
+  "full_dry/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_dry/decision": [
+   false,
+   false
+  ],
+  "full_dry/stage": [
+   null,
+   null
+  ],
+  "install": [
+   false,
+   [
+    [
+     "game/Override/g.tga",
+     "game tga\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ]
+   ]
+  ]
+ },
+ "trailing_separator": {
+  "basic/counts": [
+   1,
+   0,
+   2
+  ],
+  "basic/decision": [
+   false,
+   false
+  ],
+  "basic/stage": [
+   false,
+   [
+    "ERROR: A: 'Destination' key must be either null or string literal '<<gameDirectory>>' (legacy: '<<kotorDirectory>>') for this action. Got '<<kotorDirectory>>/'"
+   ]
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stage": [
+   true,
+   [
+    "OK: A"
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/g.tga",
+     "game tga\n"
+    ],
+    [
+     "game/Override/n.tga",
+     "patched\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/backup/n.tga",
+     "patched\n"
+    ]
+   ]
+  ]
+ },
+ "unsafe_destination": {
+  "basic/counts": [
+   1,
+   0,
+   2
+  ],
+  "basic/decision": [
+   false,
+   false
+  ],
+  "basic/stage": [
+   false,
+   [
+    "ERROR: A: 'Destination' key must be either null or string literal '<<gameDirectory>>' (legacy: '<<kotorDirectory>>') for this action. Got '/tmp/elsewhere'"
+   ]
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stage": [
+   true,
+   [
+    "OK: A"
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/g.tga",
+     "game tga\n"
+    ],
+    [
+     "game/Override/n.tga",
+     "patched\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/backup/n.tga",
+     "patched\n"
+    ]
+   ]
+  ]
+ }
+}

@@ -133,10 +133,6 @@ KNOWN = {
                                  "'<<modDirectory>>/a/zz.txt' in any archives"],
                                 "a member miss hides the Destination check in both; the member "
                                 "message keeps its Rust wording, and C# adds a second for its retry"),
-    "missing_then_bad_patcher": (("counts", "stage"),
-                                 ["ERROR: A: archive/destination validation: Patcher destination must be the "
-                                  "game directory"],
-                                 "another destination failure ends the component's checks with one error"),
 }
 CHECKS = ("decision", "counts", "stage")
 
