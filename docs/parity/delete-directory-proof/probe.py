@@ -292,10 +292,6 @@ KNOWN = {
         ("dryrun",),
         "a missing Extract archive is a ComponentValidation error in Rust's full report (pre-existing); C# only skips",
     ),
-    "rename_present_and_wildcard_nomatch": (
-        ("dryrun", "validate", "install"),
-        "Rust requires every Source to match (F05-X2); C# renames the present file",
-    ),
     "extract_dir_omitted": (
         ("dryrun",),
         "Extract keeps the folder rule; Rust tries to unpack the folder's files and reports an error, C# skips",

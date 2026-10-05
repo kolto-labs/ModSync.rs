@@ -158,10 +158,12 @@ The C# legacy `convert --merge` adapter also drops `concurrent`, `ignore-errors`
 
 ## `install` flag table
 
-Note (2026-10-05): several rows below predate later slices. Rust's `install` now has
-`-d/--download`, `--concurrent`, `--nexus-api-key`, `--download-timeout-hours` and
-`--no-checkpoint`, and refuses `--skip-validation`, `--ignore-errors` and `-y` by name;
-those rows still say none/missing and await a full audit refresh.
+Note (2026-10-05): the rows for `--no-checkpoint`, `--skip-validation`, `-y/--yes`,
+`-d/--download`, `--concurrent`, the continuation flags, `--best-effort`,
+`--nexus-api-key`, `--download-timeout-hours` and `--ignore-errors` were refreshed
+from source at `f6d2ec5` and checked with the release binary (the refused flags exit
+1 before anything runs). Line references in the other rows still predate later
+slices.
 
 | C# flag | C# default/shape | Rust flag | Status and reason | Referent |
 |---|---|---|---|---|
@@ -170,21 +172,21 @@ those rows still say none/missing and await a full audit refresh.
 | `-s/--source-dir` | input directory if absent | required unless profile supplies it; `-s` accepted | **differing** — default differs | C# MBC:616-617,3342-3347; `src/main.rs:302-306,962-973` |
 | `--select` | list (several values after one flag; a repeated flag is refused) | repeatable broader selector | **differing**. 2026-10-05: `--select a b` is now read as in C#, as for `validate` ([select-values-contract.md](select-values-contract.md)) | C# MBC:619-620; `src/main.rs:315-317,989-997` |
 | `--use-file-selection` | false; absent select means all | same | **matched** | C# MBC:622-623; `src/main.rs:312-317,989-1004` |
-| `--no-checkpoint` | false | none | **missing** — Rust recovery snapshot is mandatory | C# MBC:625-626; `src/main.rs:287-364` |
-| `--skip-validation` | false | none | **missing** — Rust preflight is mandatory | C# MBC:628-629; `src/main.rs:1095-1121`; `src/engine.rs:786-861` |
-| `-y/--yes` | false | none | **missing** — Rust has no install confirmation prompt | C# MBC:631-632; `src/main.rs:287-364` |
-| `-d/--download` | false | none | **missing** | C# MBC:634-635; `src/main.rs:287-364` |
-| `--concurrent` | false | none | **missing** | C# MBC:637-638; `src/main.rs:287-364` |
+| `--no-checkpoint` | false | same | **differing** — keeps the whole-run recovery snapshot and drops only per-component history; conflicts with `--component-checkpoints` and `--managed` | C# MBC:625-626; `src/main.rs:690-692` |
+| `--skip-validation` | false | hidden, refused by name before anything runs (exit 1) | **differing** — Rust preflight is mandatory | C# MBC:628-629; `src/main.rs:698-699,2998-3016` |
+| `-y/--yes` | false | hidden, refused by name before anything runs (exit 1) | **differing** — Rust has no install confirmation prompt | C# MBC:631-632; `src/main.rs:706-707,2998-3016` |
+| `-d/--download` | false | same | **differing** — same spelling; acquires the selected resources before validation and the snapshot through Rust's shared fetch pipeline, not compared invocation by invocation | C# MBC:634-635; `src/main.rs:675-677` |
+| `--concurrent` | false | same, requires `-d` | **differing** — four download workers instead of one; refused without `-d` | C# MBC:637-638; `src/main.rs:680-682` |
 | `--patcher-engine` | optional enum | same canonical Rust enum plus value aliases | **differing** — accepted values/spelling differ | C# MBC:640-641; `src/main.rs:331-333,382-398` |
 | `--kpatcher-path` | optional | visible alias of `--patcher` | **differing** — shared destination and no backend-specific validation at parse time | C# MBC:643-644; `src/main.rs:324-330` |
 | `--odypatcher-path` | optional | visible alias of `--patcher` | **differing** | C# MBC:646-647; `src/main.rs:324-330` |
 | `--direct-markdown` | false | same | **differing** — Rust additionally conflicts with profiles/options/FOMOD and forbids phased use | C# MBC:649-650,3286-3305; `src/main.rs:292-297,910-923,975-1047` |
-| `--continue-on-missing-sources` | false | none | **missing** — conflicts with binding fail-stop rule | C# MBC:652-653,3656-3663; `src/main.rs:287-364` |
-| `--continue-on-mod-failure` | false | none | **missing** — conflicts with binding fail-stop rule | C# MBC:655-656,3665-3671; `src/main.rs:287-364` |
-| `--best-effort` | false; enables both continuation flags and `-y`; partial failure can exit 0 | none | **missing** — unsafe reference behavior cannot be silently copied | C# MBC:658-659,3359-3365,3656-3671; `docs/parity/ACCEPTANCE.md:75` |
-| `--nexus-api-key` | optional | none on install | **missing** | C# MBC:661-662; `src/main.rs:287-364` |
-| `--download-timeout-hours` | 48 | none | **missing** | C# MBC:664-665; `src/main.rs:287-364` |
-| `--ignore-errors` | false | none | **missing** — dependency failures remain fail-closed | C# MBC:667-668; `src/main.rs:287-364` |
+| `--continue-on-missing-sources` | false | hidden, refused by name before anything runs (exit 1) | **differing** — conflicts with binding fail-stop rule | C# MBC:652-653,3656-3663; `src/main.rs:700-701,2998-3016` |
+| `--continue-on-mod-failure` | false | hidden, refused by name before anything runs (exit 1) | **differing** — conflicts with binding fail-stop rule | C# MBC:655-656,3665-3671; `src/main.rs:702-703,2998-3016` |
+| `--best-effort` | false; enables both continuation flags and `-y`; partial failure can exit 0 | same, alias `--continue-on-error`; parsed, then refused before anything runs (exit 1) | **differing** — unsafe reference behavior cannot be silently copied | C# MBC:658-659,3359-3365,3656-3671; `src/main.rs:693-695,3106-3109`; `docs/parity/ACCEPTANCE.md:75` |
+| `--nexus-api-key` | optional | same, alias of `--nexus-mods-api-key` | **matched** for name/shape | C# MBC:661-662; `src/main.rs:678-679` |
+| `--download-timeout-hours` | 48 | same, default 48; `0` also means 48 | **matched** for name/default | C# MBC:664-665; `src/main.rs:683-685` |
+| `--ignore-errors` | false | hidden, refused by name before anything runs (exit 1) | **differing** — dependency failures remain fail-closed | C# MBC:667-668; `src/main.rs:704-705,2998-3016` |
 | `--managed` | false | `install --managed` (needs `--component-checkpoints` or a checkpoint resume) | **differing** | C# MBC:670-671; `src/main.rs:25-26,237-286` |
 | `--no-managed` | false | same; classic install, the Rust CLI default | **differing** — 2026-10-05: accepted and refused beside `--managed` with C#'s message; the CLI never reads settings.json's managed toggle, so the flag changes nothing else ([no-managed-contract.md](no-managed-contract.md)) | C# MBC:673-674; `src/main.rs:711-713,3016-3023` |
 | `--profile` | optional | same name, different meaning: stored paths/selections | **differing** | C# MBC:676-677; `src/main.rs:304-311,948-973` |

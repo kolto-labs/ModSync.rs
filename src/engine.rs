@@ -2462,6 +2462,39 @@ impl Engine {
         Ok(found)
     }
 
+    /// Copy, Move and Rename: C# `SetRealPaths` gathers the files of every Source, so
+    /// a wildcard Source that matches nothing is dropped when another Source of the
+    /// step names a file (`[m/*.tga, m/*.tpc]` with only TGAs). A literal Source that
+    /// names no file still fails the step (Copy and Move: C# drops it, Rust stays
+    /// strict, documented; Rename: C# fails it too), as does a step whose Sources
+    /// all matched nothing. Order and duplicates are as in [`Self::matches_scoped`];
+    /// a miss names the first Source that matched nothing.
+    fn gathered_matches(&self, sources: &[String], descendants: bool) -> Result<Vec<PathBuf>> {
+        ensure!(!sources.is_empty(), "Instruction has no Source");
+        let mut seen = BTreeSet::new();
+        let mut found = Vec::new();
+        let mut first_miss = None;
+        let mut literal_miss = false;
+        for source in sources {
+            let matches = self.matches_scoped(std::slice::from_ref(source), true, descendants)?;
+            if matches.is_empty() {
+                first_miss.get_or_insert(source);
+                literal_miss |= !source.contains(['*', '?']);
+            }
+            for path in matches {
+                if seen.insert(self.path_policy.key(&path)) {
+                    found.push(path);
+                }
+            }
+        }
+        match first_miss {
+            Some(source) if literal_miss || found.is_empty() => {
+                Err(MissingSource(source.clone()).into())
+            }
+            _ => Ok(found),
+        }
+    }
+
     fn source_pattern(&self, source: &str) -> Result<(PathBuf, glob::Pattern)> {
         let path = self.path(source, true)?;
         let root = [&self.settings.roots.mods, &self.settings.roots.game]
@@ -2816,8 +2849,7 @@ impl Engine {
                 let sources = if i.action == "Rename" {
                     // RenameFile: FileNotFoundPost for a missing literal, an
                     // ArgumentException on an all-wildcard empty expansion.
-                    let sources =
-                        self.matches_scoped(&i.source, false, authored_descendants(&i.action));
+                    let sources = self.gathered_matches(&i.source, authored_descendants(&i.action));
                     self.classify_miss(sources, &i.source, MissKind::LiteralTyped)?
                 } else {
                     let mut resolution = self.resolve_instruction(component, i)?;

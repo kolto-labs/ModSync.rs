@@ -2250,6 +2250,35 @@ proof](docs/parity/extract-overwrite-proof/README.md) (2 fail on `b8b4d57`); con
 Users: when two Sources of one step write the same file, the later one now wins, as in
 C#. Put the file you want to keep last in the Source list, or use two steps.
 
+## A wildcard Source that matches nothing beside one that does — 2026-10-05 UTC
+
+A `Copy`, `Move` or `Rename` step whose Sources include a wildcard that matches no
+file now handles the files its other Sources name, as C# does
+(`Instruction.SetRealPaths` gathers every Source's files and fails only when none
+matched): `Move [<<modDirectory>>/m/*.tga, <<modDirectory>>/m/*.tpc] -> Override` with
+only TGAs in `m/` moves the TGAs. Before, Rust required every Source to match, so
+plain `validate` and `install` refused such a step before any write (`Source matches
+no files: <<modDirectory>>/m/*.tpc`), the dry-run reports and the desktop Validate
+step skipped a Copy or Move component with a `DryRunSkipped` warning (failed a Rename
+or a step in a chosen option), and `conflicts` stopped, where the C# CLI validates
+and installs. Unchanged: a step whose Sources all match nothing still fails, as in
+C#; a wildcard in the mod folder next to the component's own Extract must still be
+in one of its archives (`Failed to find ... in any archives`, both refuse). Kept
+stricter, documented: a literal Copy or Move Source that names no file still fails
+the step, where C# drops it and installs the rest (a named file that is missing
+usually means a wrong or incomplete download); Extract still needs every Source to
+match (missing-archives contract); CleanList, Execute and Run are unchanged. Evidence:
+[wildcard miss proof](docs/parity/wildcard-miss-proof/README.md), 71 checks match and
+13 are known differences against the live C# CLI with a HoloPatcher stub (40 fail on
+`f6d2ec5`); the [delete-directory proof](docs/parity/delete-directory-proof/README.md)
+now matches its `rename_present_and_wildcard_nomatch` case (170 / 10); contract in
+[wildcard-miss-contract.md](docs/parity/wildcard-miss-contract.md).
+
+Users: a guide step that lists several wildcards (`*.tga`, `*.tpc`, `*.txi`) now
+installs when some of them match nothing, as in C#. A step whose wildcards all match
+nothing, or that names a missing file without a wildcard, still stops the install
+before any write: fetch the download again, or fix the Source.
+
 ## install --no-managed — 2026-10-05 UTC
 
 `install` now accepts the C# CLI's `--no-managed`: `install -i guide.toml -g game -s
@@ -2410,9 +2439,11 @@ rule, which FOMOD root-folder Extract flows rely on. Known differences:
   <<modDirectory>>/n` with `n/deep.zip` extracts `deep.zip`); C# refuses it with
   `MissingSourceFiles`. When the folder holds no archives both refuse install, but
   Rust's dry-run report has an error where C# only skips.
-- Rust requires every Source to match: `Copy [<<modDirectory>>/d,
-  <<modDirectory>>/d/m.txt]` and `Rename [Override/a.tga, Override/nope*.txt]` are
-  refused, where C# drops the missing Source and goes on.
+- Rust requires every literal Source to match: `Copy [<<modDirectory>>/d,
+  <<modDirectory>>/d/m.txt]` is refused, where C# drops the missing Source and goes
+  on. A wildcard that matches nothing beside a matching Source is dropped in a Copy,
+  Move or Rename since 2026-10-05 (see "A wildcard Source that matches nothing beside
+  one that does").
 - When no Delete Source matched, `validate --dry-run` adds one `DeleteFile` warning
   per Source (`Delete Source is a directory; Delete removes files only: <path>` for a
   folder, `Attempting to delete non-existent file: <path>` otherwise); C# adds none.
@@ -2423,7 +2454,8 @@ missing source, and its new `scope_bracket_literal_*` checks install an archive
 literally so named (265 checks). Evidence:
 [delete-directory proof](docs/parity/delete-directory-proof/README.md), 169 checks
 match and 11 are known differences against a live reference oracle (4 fail on
-`ab6b389`, 13 on `df67229`; 167 / 13 since extract-destination); contract in
+`ab6b389`, 13 on `df67229`; 167 / 13 since extract-destination, 170 / 10 since
+wildcard-miss); contract in
 [delete-directory-contract.md](docs/parity/delete-directory-contract.md).
 
 Guide authors: `Delete`, `Copy`, `Move`, `Rename`, `CleanList`, `Execute` and `Run` act on
