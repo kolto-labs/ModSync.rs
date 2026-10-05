@@ -2171,13 +2171,17 @@ game Sources, Extract and Choose steps and a DelDuplicate's extensions are not
 checked, and a component with no Extract never is, so guides for mods the user
 unpacks by hand are unaffected (205 of the 210 components the mod-builds corpus drafts
 with `--parse-directions`; the other five name a missing archive). A component named
-`Improved AI` is not checked, as in C#; Rust's reports refused it before. The reports
-now list the archives for the check without extracting them. Known differences: C#
+`Improved AI` is not checked, as in C#; Rust's reports refused it before. Archives are
+searched in step order, each listed (without extracting it) only when a Source needs
+it, stopping at the first that holds the Source, as C# opens them; an archive Rust
+cannot list (a link or a case-duplicate entry) in an option that is not chosen no
+longer refuses the component, in the reports either, and a missing archive there is
+left out, as in C#. Known differences: C#
 matches the Source case-sensitively and reads DelDuplicate extensions as paths, so it
 refuses both where Rust installs; C# rewrites a Source to a doubled archive folder
 (`d/d/...`) where Rust refuses it (fail closed, unchanged). Evidence: [Loose Source
-proof](docs/parity/loose-source-proof/README.md), 80 checks match and 46 are known
-differences against the live C# CLI (21 fail on `6ca4d35`); contract in
+proof](docs/parity/loose-source-proof/README.md), 98 checks match and 49 are known
+differences against the live C# CLI (33 fail on `6ca4d35`); contract in
 [loose-source-contract.md](docs/parity/loose-source-contract.md). The
 extract-overwrite proof's `stale_*` cases are now refused as by the C# CLI, and the
 FOMOD S2b and gate-scope proofs no longer copy a loose note in a component that

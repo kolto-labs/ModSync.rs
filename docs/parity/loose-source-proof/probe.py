@@ -129,6 +129,15 @@ CASES = {
                              copy("loose/x.tga", extra=f'Dependencies = ["{GZ}"]'),
                              extra=component(GZ, "Z", [copy("b.txt")], selected=False)),
     "missing_archive": guide(extract("gone.zip"), copy("loose/x.tga")),
+    # An option that is not chosen: its archives that exist are searched, one Rust
+    # cannot list is not needed when an earlier archive holds the Source, and a missing
+    # one is left out, as in C#.
+    "unchosen_dup_archive": guide(extract(), copy("m/Override/a.tga"),
+                                  option_steps=[extract("dup.zip")], option_selected=False),
+    "unchosen_link_archive": guide(extract(), copy("m/Override/a.tga"),
+                                   option_steps=[extract("link.zip")], option_selected=False),
+    "unchosen_missing_loose": guide(extract(), copy("loose/x.tga"),
+                                    option_steps=[extract("gone.zip")], option_selected=False),
     "improved_ai": guide(extract(), copy("loose/x.tga"), name="Improved AI"),
     # Known, Rust accepts: C# matches members case-sensitively, and reads a
     # DelDuplicate's Sources (extensions) as paths.
@@ -152,7 +161,7 @@ COUNTS = ("C# gives two `Failed to find` errors per Source and stops its full pi
           "in the Environment stage; Rust gives one error in ComponentValidation. Both refuse")
 REFUSED = ("loose_copy", "loose_wildcard", "loose_delete", "selected_option_loose",
            "unselected_option_loose", "unselected_option_extract", "renamed_source",
-           "other_component_archive")
+           "other_component_archive", "unchosen_missing_loose")
 KNOWN = {name: {check: COUNTS for check in ("full_dry/counts", "full_dry/stages", "basic/counts")}
          for name in REFUSED}
 KNOWN["missing_archive"] = {
@@ -184,10 +193,17 @@ def known_ok(name, check, actual, oracle):
 
 
 def archive(entries):
+    """A ZIP of `entries`; a name starting with `link:` is a symbolic link entry."""
     data = io.BytesIO()
     with zipfile.ZipFile(data, "w") as handle:
         for name, text in entries.items():
-            handle.writestr(name, text)
+            if name.startswith("link:"):
+                info = zipfile.ZipInfo(name[len("link:"):])
+                info.create_system = 3
+                info.external_attr = (0o120777 << 16)
+                handle.writestr(info, text)
+            else:
+                handle.writestr(name, text)
     return data.getvalue()
 
 
@@ -197,6 +213,9 @@ ARCHIVES = {
     "mods/m.zip": {"Override/a.tga": "a from m.zip\n", "readme.txt": "readme\n"},
     "mods/n.zip": {"n.txt": "n\n"},
     "mods/d.zip": {"d/Override/a.tga": "a from d.zip\n"},
+    # Rust's admission rules refuse these two (a case-duplicate entry, a link).
+    "mods/dup.zip": {"x.txt": "x\n", "X.txt": "X\n"},
+    "mods/link.zip": {"y.txt": "y\n", "link:z.txt": "y.txt"},
 }
 BASELINE = sorted([name, text] for name, text in
                   list(FILES.items()) + [[name, "<archive>"] for name in ARCHIVES])
