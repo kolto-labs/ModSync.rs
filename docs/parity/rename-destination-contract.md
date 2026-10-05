@@ -82,7 +82,8 @@ z.txt                                pass        renames            renames     
   exclude it, or that belongs to an option nothing runs, is not run and passes, as in
   C#.
 
-Callers checked. `rename_file_name` has the two callers above. The Rename arm is the
+Callers checked. `rename_file_name` has the two callers above (since
+[rename-file-name-contract.md](rename-file-name-contract.md), also `draft::is_file_name`). The Rename arm is the
 only code that turned a Rename Destination into a target; Rename does not go through
 `resolve_instruction` or `qualify_action` (`src/engine/source_resolution.rs`), and the
 conflict report, FOMOD gate and checkpoint runs use the same engine execution. The

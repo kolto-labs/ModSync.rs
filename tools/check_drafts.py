@@ -59,6 +59,15 @@ def file_name(destination):
             and not any(c in destination for c in '/\\:<>'))
 
 
+def engine_refuses(name):
+    """A Python mirror of what Rust's rename_file_name refuses for a single name."""
+    stem = name.split('.', 1)[0].rstrip(' ').upper()
+    device = stem in ('CON', 'PRN', 'AUX', 'NUL', 'CONIN$', 'CONOUT$') or (
+        len(stem) == 4 and stem[:3] in ('COM', 'LPT') and stem[3] in '0123456789\u00b9\u00b2\u00b3')
+    return ('..' in name or any(ord(c) < 0x20 for c in name) or name.endswith(('.', ' '))
+            or device or any(c in name for c in '[]*?:<>|"'))
+
+
 def intentional_rename(x, y):
     """Rust drafts a Rename's new name as a bare file name, as C# RenameFile reads it.
 
@@ -77,6 +86,8 @@ def intentional_rename(x, y):
         name = b.get('Destination') or ''
         if name == a.get('Destination') == override and len(a['Source']) == 2:
             name = a['Source'][1].replace('/', '\\').rsplit('\\', 1)[-1]
+            if a['Source'][1] != '<<modDirectory>>\\' + name or not engine_refuses(name):
+                return False
         elif not file_name(name):
             return False
         source = [s for s in a['Source'] if s.replace('/', '\\').rsplit('\\', 1)[-1].lower() != name.lower()]

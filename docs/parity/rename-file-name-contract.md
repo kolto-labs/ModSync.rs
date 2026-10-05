@@ -144,6 +144,9 @@ recorded live with the pre-fix binary and again with the fixed binary was identi
 - **Rust refuses names C# renames to (fail closed, new).** `z..txt`, `..z.txt` and the
   control-character names: C#'s reports pass and its Linux install renames to the name;
   Rust refuses everywhere before any write. `./z.txt` likewise (C# renames to `z.txt`).
+  Windows itself accepts `z..txt`; the `..` rule is C#'s own
+  `PathValidator.HasInvalidWindowsFileNameParts` (`PathValidator.cs:166-193`), which
+  C# applies to Copy and Move Destinations, not a Win32 rule.
   `z..txt` and `..z.txt` are valid on Windows too, so here Rust is stricter than C# on
   every host; it applies the rule C# itself applies to a Copy or Move Destination.
   Six checks each (36).

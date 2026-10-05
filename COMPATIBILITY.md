@@ -2106,8 +2106,8 @@ Destination is not a valid file name` or `Rename Destination must be one file na
 Rust renamed to it (or to `z.txt` for `./z.txt` and `z.txt/`) and every report passed.
 It is refused where names Rust already refused (a trailing dot or space, a device name
 such as `con.txt`, `[` or `]`) are: the ComponentValidation and DryRun stages of every
-report, plain `validate` and `install`, before any write. This is the rule C# applies
-to a Copy or Move Destination; C# never checks a Rename Destination, so its reports
+report, plain `validate` and `install`, before any write. The `..` and
+control-character rule is the one C# applies to a Copy or Move Destination; C# never checks a Rename Destination, so its reports
 pass these and its Linux install renames to the name as written (`z.txt/` fails), and
 on Windows the result depends on the name. Rust is stricter here on purpose: a guide
 should not rename a mod file to a name Windows cannot hold or reads differently.
