@@ -370,6 +370,7 @@ timestamp/typed-key intake remain source decisions; see the
 
 - [ ] Reconcile historical status prose and newly merged/uncommitted audits against current source; derive bounded tasks where a domain still lacks a current plan.
 - [ ] Resolve GitHub Actions billing/spending-limit failure and obtain actual CI results, including the unrun Windows cross-check.
+- [ ] Contain the missing-archives probe's live mode (`docs/parity/missing-archives-proof/probe.py:179` runs `unshare -rn dotnet` on the reference directly): switch it to the copied-reference `stub_reference` plus `unshare -Urnm` and `/Override` tmpfs pattern the newer probes use.
 - [ ] Resolve the frozen-test/CI contract at the authorized post-parity point; then repair obsolete fixtures and run the deferred test/all-target checks.
   - Known drift: `tests/drafts.rs:13-18` now fails on fixture component 12 (Rename) after the drafted-Rename slice; re-record or annotate `tests/fixtures/csharp/drafts.json` ([drafted-rename-contract.md](../parity/drafted-rename-contract.md)).
   - ~~Follow-up (F05-RENAME): apply the `..`-inside-a-name check (`invalid_destination`) to Rename Destinations in `rename_file_name`.~~ Closed 2026-10-04: `rename_file_name` refuses `..` inside the name, control characters, `./` and a trailing separator, and the drafter keeps only names the engine accepts ([rename-file-name-contract.md](../parity/rename-file-name-contract.md)).

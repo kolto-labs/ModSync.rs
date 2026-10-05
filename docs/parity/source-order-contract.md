@@ -95,7 +95,10 @@ matched before and after.
 ## Known differences
 
 - **Within one wildcard.** C# uses the directory listing order, which .NET does not
-  define on Unix; Rust uses path order (case-insensitive by default). Not probed.
+  define on Unix; Rust uses path order (case-insensitive by default). Not probed,
+  but seen live in review: with a wildcard-first overlapping list
+  (`Copy [*/x.txt, a/x.txt]`, `a/x.txt` and `b/x.txt` differing) C# on ext4 listed `b`
+  before `a` and installed A, Rust installed B.
 - **Recovered Sources.** A Source found by recovery (auto-extraction, the subfolder
   variant) is ordered as recovery returns it, as before.
 - **Not probed.** Execute, Run and Rename with several Sources, and Windows. Nothing

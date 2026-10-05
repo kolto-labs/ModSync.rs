@@ -1183,7 +1183,8 @@ this change every such step failed with the untyped `Instruction has no Source`.
 - **Copy, Move and Extract, any `Overwrite`**: the typed missing-source cause
   `<Action> has no Source`, as C# source resolution fails with `FileNotFoundPre`.
   Recovery (auto-extraction, subfolder variant, redundant Move) is not tried, and
-  archive validation and the FOMOD gate skip an Extract that names no archive.
+  archive validation and the FOMOD gate skip an Extract that names no archive (until
+  2026-10-05; see "An Extract with no Source in the validation reports" below).
 
 For the two failing forms: `validate --output json --dry-run` now reports `Skipped
 '<component>' during dry-run: source archives or files are not available.`
