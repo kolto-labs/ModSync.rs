@@ -114,9 +114,13 @@ non-strict empty Delete, and the dry-run report was wrong for every case.
 - **An Extract Destination (since
   [extract-destination-contract.md](extract-destination-contract.md)).** The
   `extract_empty` and `extract_nokey` cases name Destination `Override`, which Rust's
-  basic report now fails, as the C# CLI's ComponentValidation stage does; the
-  reference here is `DryRunValidator` alone, which passes. The proof counts those two
-  dry-run checks as known differences (49 match / 2 known / 0 fail).
+  basic report now fails with the Destination error. The C# CLI basic report fails
+  them too, but with `Missing Required Archives: []` (`VerifyExtractPaths` stops
+  ComponentValidation before the Destination check), and its full report fails in the
+  Environment stage, where Rust's full report passes (an older empty-Source gap, open
+  in the tracker). The reference here is `DryRunValidator` alone, which passes. The
+  proof counts those two dry-run checks as known differences (49 match / 2 known / 0
+  fail).
 - **Proof coverage.** The probe covers TOML only; the other loaders were checked by
   hand in review of 29f9d59.
 

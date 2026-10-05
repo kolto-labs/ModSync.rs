@@ -62,8 +62,9 @@ Rename control matches on both binaries.
 Since extract-destination (2026-10-05) the probe has `KNOWN`, which must be a
 refusal in Rust where the reference accepts: the dry runs of `extract_empty` and
 `extract_nokey`, whose Extract names Destination `Override`. Rust's basic report fails
-an Extract with a Destination, as the C# CLI's does (ComponentValidation); this
-reference runs `DryRunValidator` alone. Plain `validate` and `install` still match.
+an Extract with a Destination; the C# CLI basic report fails these cases on its
+empty-Source archive check first (`Missing Required Archives: []`), and this reference
+runs `DryRunValidator` alone. Plain `validate` and `install` still match.
 
 ## Reproduce
 

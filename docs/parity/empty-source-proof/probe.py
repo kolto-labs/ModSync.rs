@@ -170,10 +170,11 @@ MODES = {"dryrun": ("validate", True), "validate": ("install", False), "install"
 # Known differences: name -> (Rust modes, reason). The Rust result must be a refusal
 # where the reference accepts, or the check fails. Since the extract-destination slice
 # (../extract-destination-contract.md) Rust's basic report fails an Extract with a
-# Destination, as the C# CLI's does (ComponentValidation); this reference's dry run is
-# DryRunValidator alone.
-_DESTINATION = ("an Extract Destination fails Rust's basic report, as in the C# CLI's "
-                "(extract-destination); this reference runs DryRunValidator alone")
+# Destination (the C# CLI basic report fails these cases on its empty-Source archive
+# check first); this reference's dry run is DryRunValidator alone.
+_DESTINATION = ("an Extract Destination fails Rust's basic report (extract-destination); "
+                "the C# CLI basic report fails on its empty-Source archive check first, "
+                "and this reference runs DryRunValidator alone")
 KNOWN = {"extract_empty": (("dryrun",), _DESTINATION), "extract_nokey": (("dryrun",), _DESTINATION)}
 
 

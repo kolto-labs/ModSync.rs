@@ -42,8 +42,8 @@ ComponentValidation stage then finds nothing. Without the Environment stage (the
 basic report, `validate --dry-run` without `--full`) the ComponentValidation stage
 runs it first and counts the error
 (`Services/Validation/InstallationValidationPipeline.cs:374-400`), so the report
-fails, although the Destination is cleared for the dry run after it. The CLI `install` runs the full
-pipeline before installing unless given `--skip-validation`, and the GUI installs
+fails, although the Destination is cleared for the dry run after it. The CLI
+`install` runs the full pipeline before installing unless given `--skip-validation`, and the GUI installs
 after its Validate step. The Extract arm (`ModComponent.cs:1575-1584`) then calls
 `ExtractFileAsync`, which uses `RealDestinationPath ?? Path.GetDirectoryName(source)`
 (`Instruction.cs:496`); with no Destination that is the archive's folder, which the
