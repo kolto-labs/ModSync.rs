@@ -2192,14 +2192,13 @@ impl Engine {
         guide: &Guide,
         completed: &[String],
     ) -> Option<crate::validation::Report> {
-        let collision = error.downcast_ref::<CaseCollision>()?;
+        error.downcast_ref::<CaseCollision>()?;
         let policy = crate::paths::PathPolicy::new(case_insensitive).ok()?;
         let roots = &settings.roots;
-        let path = if collision.path.starts_with(&roots.game) {
-            collision.path.clone()
-        } else {
-            game_case_collision(&roots.game, policy)?
-        };
+        // Walk the game folder alone even when the scan stopped inside it: the
+        // scan's first copy of a name may sit in the mod folder when the two
+        // roots differ only in case.
+        let path = game_case_collision(&roots.game, policy)?;
         let completed_keys: BTreeSet<_> = completed
             .iter()
             .map(|id| crate::guid::key_ascii(id))

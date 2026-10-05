@@ -93,10 +93,13 @@ duplicate only in mods            passes                     error, no stages   
   basic report and every other caller print the same error as before
   (`src/engine.rs:617-677`).
 - **The full report.** When `Engine::new` refuses for a case collision,
-  `Engine::case_collision_report` (`src/engine.rs:2180-2222`) builds the full report:
-  if the collision is in the game folder it uses that path, otherwise (the scan stopped
-  in the mod folder first) it walks the game folder with the same keys
-  (`game_case_collision`, `:413-432`); if the game folder has none, the refusal stands.
+  `Engine::case_collision_report` (`src/engine.rs:2179-2221`) builds the full report:
+  it walks the game folder alone with the scan's keys (`game_case_collision`,
+  `:413-432`), so a mod folder whose path differs from the game folder's only in case
+  cannot make a game name look duplicated; if the game folder has none, the refusal
+  stands. The report records no telemetry and, for `--phase remaining`, does not
+  repeat the completed-prefix checks (the phase preparation has already run them);
+  both still fail.
   Rust's recovery-state checks come first, as in the full report; otherwise the
   Environment stage fails with C#'s message and the found path
   (`Report::environment_case_duplicates`, `src/validation.rs:317-339`), counting one
