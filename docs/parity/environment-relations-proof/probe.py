@@ -2,7 +2,7 @@
 """Environment relations proof: drives the production `modsync`.
 
 C#'s Environment stage (InstallationService.ValidateInstallationEnvironmentAsync,
-InstallationService.cs:967-1003, :1051-1057) checks each selected component's
+InstallationService.cs:969-1010, :1051-1057) checks each selected component's
 Restrictions (a selected component or immediate option they name) and Dependencies
 (one they name that is not selected), logs `Cannot install '<A>' due to '<C>' being
 selected for install.` (or `... not being selected for install.`) and fails the full

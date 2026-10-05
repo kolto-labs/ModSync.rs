@@ -159,12 +159,13 @@ the same on both binaries.
   every stage passes (documented selection policy). Rust's `install` installs both.
 - **`--use-file-selection` with an unselected Dependency** (`depends_file_selection`,
   10 checks): C#'s loader selects the Dependency and passes; Rust keeps the file's
-  selection, so its Environment stage now fails `A` with C#'s message (before: three
-  later stages failed it). Rust's `install` still refuses it before any write (C#'s
+  selection, so its Environment stage now fails `A` with C#'s message (before: two
+  later stages failed it, InstallOrder and FomodConfiguration). Rust's `install` still refuses it before any write (C#'s
   install was not run).
 - **A Restriction naming a selected option** (`restrict_option`, 10 checks): C#'s
   loader deselects the option and passes; Rust keeps it, so its Environment stage now
-  fails `A` (fail closed, documented in the nested-option-references slice).
+  fails `A` (fail closed, documented in the nested-option-references slice; before:
+  Conflicts and FomodConfiguration failed it).
 - **The component lines.** Rust adds `ERROR: Cannot install ...` lines after C#'s
   message (checked as `details`); C# writes them to its log only.
 - **An option under an unselected component** counts as not selected in Rust (as in
