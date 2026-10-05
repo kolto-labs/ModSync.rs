@@ -1,0 +1,478 @@
+{
+ "destination_empty": {
+  "full_only/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_only/decision": [
+   false,
+   false
+  ],
+  "full_only/environment": "ERROR: Some components failed to validate. Check the output/console window for details.\nIf you are seeing this as an end user you most likely need to whitelist ModSync and HoloPatcher in your antivirus, or download the missing mods.",
+  "full_only/stages": [
+   [
+    "Environment",
+    false
+   ]
+  ],
+  "only/counts": [
+   1,
+   0,
+   1
+  ],
+  "only/decision": [
+   false,
+   false
+  ],
+  "text/decision": false
+ },
+ "destination_file": {
+  "full_only/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_only/decision": [
+   false,
+   false
+  ],
+  "full_only/environment": "ERROR: Some components failed to validate. Check the output/console window for details.\nIf you are seeing this as an end user you most likely need to whitelist ModSync and HoloPatcher in your antivirus, or download the missing mods.",
+  "full_only/stages": [
+   [
+    "Environment",
+    false
+   ]
+  ],
+  "only/counts": [
+   0,
+   0,
+   2
+  ],
+  "only/decision": [
+   true,
+   true
+  ],
+  "text/decision": false
+ },
+ "destination_missing_folder": {
+  "full_only/counts": [
+   0,
+   0,
+   5
+  ],
+  "full_only/decision": [
+   true,
+   true
+  ],
+  "full_only/environment": null,
+  "full_only/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "only/counts": [
+   0,
+   0,
+   2
+  ],
+  "only/decision": [
+   true,
+   true
+  ],
+  "text/decision": true
+ },
+ "extract_destination": {
+  "full_only/counts": [
+   0,
+   0,
+   5
+  ],
+  "full_only/decision": [
+   true,
+   true
+  ],
+  "full_only/environment": null,
+  "full_only/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "only/counts": [
+   0,
+   0,
+   2
+  ],
+  "only/decision": [
+   true,
+   true
+  ],
+  "text/decision": true
+ },
+ "file_selection_unselected": {
+  "full_only/counts": [
+   0,
+   0,
+   5
+  ],
+  "full_only/decision": [
+   true,
+   true
+  ],
+  "full_only/environment": null,
+  "full_only/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "only/counts": [
+   0,
+   0,
+   2
+  ],
+  "only/decision": [
+   true,
+   true
+  ],
+  "text/decision": true
+ },
+ "loose_not_in_archive": {
+  "full_only/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_only/decision": [
+   false,
+   false
+  ],
+  "full_only/environment": "ERROR: Some components failed to validate. Check the output/console window for details.\nIf you are seeing this as an end user you most likely need to whitelist ModSync and HoloPatcher in your antivirus, or download the missing mods.",
+  "full_only/stages": [
+   [
+    "Environment",
+    false
+   ]
+  ],
+  "only/counts": [
+   0,
+   1,
+   1
+  ],
+  "only/decision": [
+   true,
+   true
+  ],
+  "text/decision": false
+ },
+ "missing_archive": {
+  "full_only/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_only/decision": [
+   false,
+   false
+  ],
+  "full_only/environment": "ERROR: Some components failed to validate. Check the output/console window for details.\nIf you are seeing this as an end user you most likely need to whitelist ModSync and HoloPatcher in your antivirus, or download the missing mods.",
+  "full_only/stages": [
+   [
+    "Environment",
+    false
+   ]
+  ],
+  "only/counts": [
+   0,
+   1,
+   1
+  ],
+  "only/decision": [
+   true,
+   true
+  ],
+  "text/decision": false
+ },
+ "missing_archive_option": {
+  "full_only/counts": [
+   1,
+   0,
+   4
+  ],
+  "full_only/decision": [
+   false,
+   false
+  ],
+  "full_only/environment": null,
+  "full_only/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    false
+   ]
+  ],
+  "only/counts": [
+   1,
+   0,
+   1
+  ],
+  "only/decision": [
+   false,
+   false
+  ],
+  "text/decision": false
+ },
+ "missing_archive_second": {
+  "full_only/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_only/decision": [
+   false,
+   false
+  ],
+  "full_only/environment": "ERROR: Some components failed to validate. Check the output/console window for details.\nIf you are seeing this as an end user you most likely need to whitelist ModSync and HoloPatcher in your antivirus, or download the missing mods.",
+  "full_only/stages": [
+   [
+    "Environment",
+    false
+   ]
+  ],
+  "only/counts": [
+   0,
+   1,
+   1
+  ],
+  "only/decision": [
+   true,
+   true
+  ],
+  "text/decision": false
+ },
+ "missing_archive_unselected": {
+  "full_only/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_only/decision": [
+   false,
+   false
+  ],
+  "full_only/environment": "ERROR: Some components failed to validate. Check the output/console window for details.\nIf you are seeing this as an end user you most likely need to whitelist ModSync and HoloPatcher in your antivirus, or download the missing mods.",
+  "full_only/stages": [
+   [
+    "Environment",
+    false
+   ]
+  ],
+  "only/counts": [
+   0,
+   1,
+   1
+  ],
+  "only/decision": [
+   true,
+   true
+  ],
+  "text/decision": false
+ },
+ "missing_copy_source": {
+  "full_only/counts": [
+   0,
+   1,
+   4
+  ],
+  "full_only/decision": [
+   true,
+   true
+  ],
+  "full_only/environment": null,
+  "full_only/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "only/counts": [
+   0,
+   1,
+   1
+  ],
+  "only/decision": [
+   true,
+   true
+  ],
+  "text/decision": true
+ },
+ "ok": {
+  "full_only/counts": [
+   0,
+   0,
+   5
+  ],
+  "full_only/decision": [
+   true,
+   true
+  ],
+  "full_only/environment": null,
+  "full_only/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "only/counts": [
+   0,
+   0,
+   2
+  ],
+  "only/decision": [
+   true,
+   true
+  ],
+  "text/decision": true
+ },
+ "patcher_no_destination": {
+  "full_only/counts": [
+   0,
+   0,
+   5
+  ],
+  "full_only/decision": [
+   true,
+   true
+  ],
+  "full_only/environment": null,
+  "full_only/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "only/counts": [
+   0,
+   0,
+   2
+  ],
+  "only/decision": [
+   true,
+   true
+  ],
+  "text/decision": true
+ }
+}

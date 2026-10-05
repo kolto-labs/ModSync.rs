@@ -887,7 +887,19 @@ impl Engine {
                 recovery::verify_completion(&self.settings.roots, guide, self.completed.len())
             })()
             .map_err(|error| format!("{error:#}"));
-            let passed = report.push(crate::validation::Stage::Environment, environment);
+            let passed = match environment {
+                // C#'s Environment stage also runs every selected component's
+                // checks (with AttemptFixes) and fails on any error. The full report
+                // runs them in its ComponentValidation stage, which --dry-run-only
+                // skips, so run them here instead.
+                Ok(()) if dry_run_only => match fresh_engine()
+                    .and_then(|engine| engine.validate_archives(guide, &mut emit, true))
+                {
+                    Ok(outcomes) => report.environment_components(outcomes),
+                    Err(error) => report.push(Stage::Environment, Err(format!("{error:#}"))),
+                },
+                environment => report.push(Stage::Environment, environment),
+            };
             boundary(
                 Stage::Environment,
                 "Validating installation environment",

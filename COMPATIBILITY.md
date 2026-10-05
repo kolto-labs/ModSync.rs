@@ -2315,6 +2315,31 @@ folder you chose. If a guide gave one such as `<<kotorDirectory>>/Override`, an
 earlier Rust install may have left patched files in `Override/Override` (or an
 `Override` folder in the mod folder); remove them and install again.
 
+## Component checks in validate --full --dry-run-only — 2026-10-05 UTC
+
+`validate --full --dry-run-only` now fails a guide whose selected component has an
+archive/destination error, as the C# CLI does: its full pipeline skips the
+per-component archive stage under `--dry-run-only`, but its Environment stage still
+runs those checks on every selected component and fails with `Some components failed
+to validate. Check the output/console window for details.` (and a second line about
+antivirus or missing mods), counting one error and ending the report. Before, Rust's
+Environment stage checked only the recovery state, so the report passed (exit 0,
+one `DryRunSkipped` warning) a guide whose archive was missing or whose loose Source
+no archive holds; an empty Destination or one below a file failed only later, in the
+dry run. Rust now gives C#'s message and then each component's errors (`ERROR: A:
+Missing Required Archives: [<<modDirectory>>/m1.zip]`), which C# writes only to its
+log. Unchanged and documented: an option's missing archive fails this stage in Rust
+(fail closed) where C# fails it in its dry run; `--dry-run-only` without `--full`,
+the other reports and the desktop Validate step are unchanged. Evidence: [dry-run-only
+environment proof](docs/parity/dry-run-only-environment-proof/README.md), 99 checks
+match and 5 are known differences against the live C# CLI with a HoloPatcher stub (36
+fail on `72ed369`); contract in
+[dry-run-only-environment-contract.md](docs/parity/dry-run-only-environment-contract.md).
+
+Users: `validate --full --dry-run-only` no longer reports `Validation passed` while a
+selected mod's archive is missing; download it (or deselect the mod) and validate
+again. To check the steps without the downloads, drop `--full`.
+
 ## install --no-managed — 2026-10-05 UTC
 
 `install` now accepts the C# CLI's `--no-managed`: `install -i guide.toml -g game -s

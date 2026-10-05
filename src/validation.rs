@@ -274,6 +274,30 @@ impl Report {
             }
         }
     }
+    /// C#'s Environment stage when a selected component fails its checks: one error
+    /// with C#'s message. C# writes each component's errors only to its log; Rust
+    /// lists them after that message.
+    pub(crate) fn environment_components(&mut self, outcomes: Vec<ArchiveOutcome>) -> bool {
+        let errors: Vec<_> = outcomes.into_iter().filter_map(Result::err).collect();
+        if errors.is_empty() {
+            return self.push(Stage::Environment, Ok(()));
+        }
+        const FAILED: &str = "Some components failed to validate. Check the output/console \
+             window for details.\nIf you are seeing this as an end user you most likely need \
+             to whitelist ModSync and HoloPatcher in your antivirus, or download the missing \
+             mods.";
+        self.error_count += 1;
+        let mut messages = vec![format!("ERROR: {FAILED}")];
+        messages.extend(errors.into_iter().flatten().map(|e| format!("ERROR: {e}")));
+        self.stages.push(StageResult {
+            stage: Stage::Environment,
+            passed: false,
+            has_warnings: false,
+            summary: FAILED.into(),
+            messages,
+        });
+        false
+    }
     /// One outcome per component (see [`ArchiveOutcome`]). As C#
     /// `RunComponentValidationStage`, a component with errors shows only those, the
     /// stage counts every error, else every warning, else one pass.
