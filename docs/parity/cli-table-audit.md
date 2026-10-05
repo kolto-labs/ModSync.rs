@@ -181,7 +181,7 @@ The C# legacy `convert --merge` adapter also drops `concurrent`, `ignore-errors`
 | `--download-timeout-hours` | 48 | none | **missing** | C# MBC:664-665; `src/main.rs:287-364` |
 | `--ignore-errors` | false | none | **missing** — dependency failures remain fail-closed | C# MBC:667-668; `src/main.rs:287-364` |
 | `--managed` | false | no install flag; deployment is separate | **missing** | C# MBC:670-671; `src/main.rs:25-26,237-286` |
-| `--no-managed` | false | none | **missing** | C# MBC:673-674; `src/main.rs:287-364` |
+| `--no-managed` | false | same; classic install, the Rust CLI default | **differing** — 2026-10-05: accepted and refused beside `--managed` with C#'s message; the CLI never reads settings.json's managed toggle, so the flag changes nothing else ([no-managed-contract.md](no-managed-contract.md)) | C# MBC:673-674; `src/main.rs:711-713,3016-3023` |
 | `--profile` | optional | same name, different meaning: stored paths/selections | **differing** | C# MBC:676-677; `src/main.rs:304-311,948-973` |
 | none | — | `--phase`, `--active-profile`, `--settings-dir`, `--option` | **differing** — Rust-only orchestration | `src/main.rs:289-320` |
 | none | — | `--allow-processes` | **differing** — Rust-only explicit authorization | `src/main.rs:321-323,1061-1063` |

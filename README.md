@@ -58,6 +58,8 @@ modsync convert instructions.toml instructions.json
 
 CLI validation and installation select all top-level components by default, matching ModSync. Use `--use-file-selection` to honor `IsSelected`, or repeat `--select NAME_OR_GUID` (or list several values after one `--select`) to select specific components. Repeat `--option GUID` to enable options. Option defaults from the guide remain intact. Dependencies must be selected explicitly; missing dependencies and incompatible selections stop validation.
 
+`install` does not use managed deployment unless you pass `--managed` (with `--component-checkpoints`); the settings.json toggle applies to the desktop only. `--no-managed`, the C# CLI spelling for a classic install, is accepted and cannot be combined with `--managed`.
+
 The desktop can save selections as a TOML file. The CLI reads the same file with `--use-file-selection`.
 
 For a prose Markdown guide that is the sole install authority, use `--direct-markdown`. It loads generated draft actions, skips 4GB Patcher and widescreen-only entries, and stops before game writes until every selected draft has been explicitly reviewed. It cannot be combined with component/profile/option/FOMOD selection overrides.
