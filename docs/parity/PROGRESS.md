@@ -9,6 +9,19 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+A Patcher step's Destination (2026-10-05, F05/F09): the patcher now always runs on
+the game folder, as C# `ExecuteTSLPatcherAsync` does; Rust ran it on the step's
+Destination, so `<<kotorDirectory>>/Override` patched `Override/Override` and
+`<<modDirectory>>` the mod folder. The basic report gives C#'s warning for no
+Destination and C#'s error for another one; the full report and the desktop Validate
+step pass both, as C#'s Environment stage has fixed them (both reports failed them,
+so the desktop would not install a Patcher step with no Destination). A Destination
+Rust cannot resolve stays refused (documented). Proof: 63 match / 9 known against the
+live C# CLI with a HoloPatcher stub; 30 fail on `d4f30d1`. The missing-destination
+proof now matches its `missing_then_bad_patcher` case (77 / 10); the other regression
+probes stay at baseline, with this proof added to the set. See
+[patcher-destination-contract.md](patcher-destination-contract.md).
+
 A wildcard Source that matches nothing beside one that does (2026-10-05, F05): a
 Copy, Move or Rename step now handles the files its other Sources name, as C#
 `SetRealPaths` gathers them, so `Move [m/*.tga, m/*.tpc]` with only TGAs moves the

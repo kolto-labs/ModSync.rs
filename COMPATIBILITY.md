@@ -1729,11 +1729,13 @@ is unchanged, and plain `validate`, `install` and the dry run are unaffected.
 Unchanged and documented: C# creates each missing folder while validating, so it names
 a folder once and a second run passes; Rust validation never changes the game or mod
 folders, so it names every step into a missing folder, every time. A Destination that
-Rust refuses for another reason (a Patcher or Rename Destination, a `..` part) still
-ends the component's checks with one error. Evidence: [missing destination
+Rust refuses for another reason (a Rename Destination, a `..` part) still ends the
+component's checks with one error; a Patcher Destination is reported per step since
+2026-10-05 (see "A Patcher step's Destination"). Evidence: [missing destination
 proof](docs/parity/missing-destination-proof/README.md), 75 checks match and 12 are
-known differences against the live C# CLI (32 fail on `1e2d133`); contract in
-[missing-destination-contract.md](docs/parity/missing-destination-contract.md).
+known differences against the live C# CLI (32 fail on `1e2d133`; 77 / 10 since the
+Patcher Destination section, whose `missing_then_bad_patcher` case now matches);
+contract in [missing-destination-contract.md](docs/parity/missing-destination-contract.md).
 
 Users: the Validate step now lists each step whose folder is missing, with the full
 path it looked for, so you can create the folders or correct the game or mod
@@ -2281,6 +2283,37 @@ Users: a guide step that lists several wildcards (`*.tga`, `*.tpc`, `*.txi`) now
 installs when some of them match nothing, as in C#. A step whose wildcards all match
 nothing, or that names a missing file without a wildcard, still stops the install
 before any write: fetch the download again, or fix the Source.
+
+## A Patcher step's Destination — 2026-10-05 UTC
+
+A `Patcher` step now always runs the patcher on the game folder, whatever its
+Destination, as C# does (`ExecuteTSLPatcherAsync` passes the game folder as
+`--game-dir`, and its validation sets any other Destination to `<<gameDirectory>>`).
+Before, Rust ran it on the Destination: `<<kotorDirectory>>/Override` gave `--game-dir
+<game>/Override`, so the patch landed in `Override/Override` (and a later step that
+needed the patched file was refused), and `<<modDirectory>>` patched the mod folder.
+The dry run's InstallList simulation, `conflicts` and the reports follow the same
+folder. The validation reports no longer fail a Patcher step without a Destination
+or with another one: the basic report (`validate --output json` without `--full`)
+gives C#'s warning (`Destination must be <<gameDirectory>> with 'Patcher' action,
+setting it now automatically.`) or error (`'Destination' key must be either null or
+string literal '<<gameDirectory>>' (legacy: '<<kotorDirectory>>') for this action.
+Got '<Destination>'`), counted as C# counts them; the full report and the desktop
+Validate step pass it, as C#'s Environment stage has fixed it. Before, both reports
+failed it, so the desktop app would not install a Patcher step with no Destination.
+Unchanged and documented: a Destination Rust cannot resolve (outside the roots, `..`,
+an unknown or miscased placeholder) is still refused before any write, where C#
+ignores it; the rooted reports still leave out C#'s other ComponentValidation
+warnings. Evidence: [patcher destination
+proof](docs/parity/patcher-destination-proof/README.md), 63 checks match and 9 are
+known differences against the live C# CLI with a HoloPatcher stub (30 fail on
+`d4f30d1`); contract in
+[patcher-destination-contract.md](docs/parity/patcher-destination-contract.md).
+
+Users: a Patcher step needs no Destination; the patcher always patches the game
+folder you chose. If a guide gave one such as `<<kotorDirectory>>/Override`, an
+earlier Rust install may have left patched files in `Override/Override` (or an
+`Override` folder in the mod folder); remove them and install again.
 
 ## install --no-managed — 2026-10-05 UTC
 

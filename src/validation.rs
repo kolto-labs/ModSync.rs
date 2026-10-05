@@ -158,6 +158,10 @@ impl ErrorReport {
         }
     }
 }
+
+/// A component's archive/destination checks: its warnings, or its errors.
+pub(crate) type ArchiveOutcome = Result<Vec<String>, Vec<String>>;
+
 impl Report {
     /// Aggregate the basic validator's diagnostics as the reference pipeline does:
     /// component errors suppress that component's warnings, and stage errors
@@ -270,61 +274,79 @@ impl Report {
             }
         }
     }
+    /// One outcome per component (see [`ArchiveOutcome`]). As C#
+    /// `RunComponentValidationStage`, a component with errors shows only those, the
+    /// stage counts every error, else every warning, else one pass.
     pub(crate) fn component_validation(
         &mut self,
         components: &[&crate::Component],
-        outcome: Result<Vec<Result<(), Vec<String>>>, String>,
+        outcome: Result<Vec<ArchiveOutcome>, String>,
     ) {
         let outcomes = outcome.unwrap_or_else(|error| vec![Err(vec![error])]);
         // One component can report several errors (one per missing archive).
-        let errors = outcomes
-            .iter()
-            .map(|result| result.as_ref().map_or_else(Vec::len, |()| 0))
-            .sum::<usize>();
+        let count = |errors: bool| {
+            outcomes
+                .iter()
+                .filter(|result| result.is_err() == errors)
+                .map(|result| result.as_ref().map_or_else(Vec::len, Vec::len))
+                .sum::<usize>()
+        };
+        let (errors, warnings) = (count(true), count(false));
         let passed = errors == 0;
-        if passed {
-            self.passed_count += 1;
-        } else {
+        if !passed {
             self.error_count += errors;
+        } else if warnings > 0 {
+            self.warning_count += warnings;
+        } else {
+            self.passed_count += 1;
         }
         self.stages.push(StageResult {
             stage: Stage::ComponentValidation,
             passed,
-            has_warnings: false,
-            summary: if passed {
-                "All components passed archive validation.".into()
-            } else {
+            has_warnings: warnings > 0,
+            summary: if !passed {
                 format!("{errors} component error(s)")
+            } else if warnings > 0 {
+                format!("{warnings} warning(s)")
+            } else {
+                "All components passed archive validation.".into()
             },
             messages: outcomes
                 .into_iter()
                 .enumerate()
                 .flat_map(|(index, outcome)| {
-                    outcome.map_or_else(
+                    match outcome {
                         // The engine retains component identity in this diagnostic. Give
                         // shared cards and first-issue navigation its explicit severity.
-                        |errors| {
-                            errors
-                                .into_iter()
-                                .map(|error| {
-                                    if error.starts_with("ERROR:") {
-                                        error
-                                    } else {
-                                        format!("ERROR: {error}")
-                                    }
-                                })
-                                .collect()
-                        },
-                        |()| vec![format!("OK: {}", components[index].name)],
-                    )
+                        Err(errors) => errors
+                            .into_iter()
+                            .map(|error| {
+                                if error.starts_with("ERROR:") {
+                                    error
+                                } else {
+                                    format!("ERROR: {error}")
+                                }
+                            })
+                            .collect(),
+                        Ok(warnings) if warnings.is_empty() => {
+                            vec![format!("OK: {}", components[index].name)]
+                        }
+                        Ok(warnings) => warnings
+                            .into_iter()
+                            .map(|warning| {
+                                format!("WARNING: {}: {warning}", components[index].name)
+                            })
+                            .collect(),
+                    }
                 })
                 .collect(),
         });
     }
     /// The report without a dry run: plain `validate`'s step simulation failed after
     /// every stage passed. The component stage fails with that error, which replaces
-    /// the failing component's `OK:` line (or is added when no component is named).
-    pub(crate) fn simulation_failure(&mut self, component: Option<usize>, error: String) {
+    /// the failing component's `OK:` or `WARNING:` lines, as C# lists only errors for
+    /// a component with errors (or is added when no component is named).
+    pub(crate) fn simulation_failure(&mut self, component: Option<&str>, error: String) {
         let message = format!("ERROR: {error}");
         self.error_count += 1;
         let Some(stage) = self
@@ -341,13 +363,31 @@ impl Report {
             });
             return;
         };
-        if stage.passed {
+        // A passing stage counted one pass, or its warnings; a failing one counts
+        // only its errors. Warning lines are not one per component, so the error
+        // is then added after them.
+        let warnings = stage
+            .messages
+            .iter()
+            .filter(|line| line.starts_with("WARNING:"))
+            .count();
+        if stage.passed && warnings == 0 {
             self.passed_count = self.passed_count.saturating_sub(1);
+        } else if stage.passed {
+            self.warning_count = self.warning_count.saturating_sub(warnings);
         }
         stage.passed = false;
         stage.summary = "1 component error(s)".into();
-        match component.and_then(|index| stage.messages.get_mut(index)) {
-            Some(line) => *line = message,
+        let at = component.and_then(|name| {
+            let ok = format!("OK: {name}");
+            let warning = format!("WARNING: {name}: ");
+            let own = |line: &String| *line == ok || line.starts_with(&warning);
+            let at = stage.messages.iter().position(own)?;
+            stage.messages.retain(|line| !own(line));
+            Some(at)
+        });
+        match at {
+            Some(at) => stage.messages.insert(at, message),
             None => stage.messages.push(message),
         }
     }

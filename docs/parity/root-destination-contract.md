@@ -98,7 +98,9 @@ DelDuplicate in a root failed install outright, where C# deletes the duplicate.
   - The Patcher check `Patcher destination must be the game directory`
     (`src/engine/source_resolution.rs:233-241`) compares keys, so a bare
     `<<gameDirectory>>` or `<<kotorDirectory>>` Destination now passes it, as C#
-    accepts both. Not probed (it needs a patcher executable).
+    accepts both. Not probed (it needs a patcher executable). Since
+    [patcher-destination-contract.md](patcher-destination-contract.md) the check is
+    gone: the patcher always runs on the game directory.
 - Every other resolved path had a non-empty relative part and is unchanged; path
   comparisons by component (`Path::starts_with`, `==`) ignore a trailing separator.
 

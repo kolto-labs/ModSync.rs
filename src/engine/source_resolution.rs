@@ -237,15 +237,8 @@ impl Engine {
                     "Configure an executable with --patcher or install complete packaged patcher resources"
                 );
             }
-            let dest = if instruction.destination.is_empty() {
-                self.settings.roots.game.clone()
-            } else {
-                self.path(&instruction.destination, false)?
-            };
-            ensure!(
-                self.path_policy.key(&dest) == self.path_policy.key(&self.settings.roots.game),
-                "Patcher destination must be the game directory"
-            );
+            // The Destination was qualified above; the patcher always runs on the game
+            // directory, as in C# (`process_path`).
             let args = instruction.arguments.trim();
             if !args.is_empty() && args.parse::<usize>().is_err() {
                 let name = relative(args, false)?;
