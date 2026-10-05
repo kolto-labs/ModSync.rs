@@ -416,6 +416,42 @@ pub struct Engine {
     validation_warnings: Vec<crate::validation::DryRunIssue>,
 }
 
+/// C#'s Environment stage (`InstallationService.ValidateInstallationEnvironmentAsync`)
+/// fails when it cannot create a file in the game or mod folder
+/// (`UtilityHelper.IsDirectoryWritable`), with the mod folder's message when both
+/// fail. Rust asks the operating system instead of writing a probe file, so
+/// validation changes nothing; Windows is not checked.
+fn unwritable_root(roots: &Roots) -> Option<&'static str> {
+    if !directory_writable(&roots.mods) {
+        Some(
+            "The Mod directory is not writable! Please ensure administrative privileges \
+             or choose a new mod directory.",
+        )
+    } else if !directory_writable(&roots.game) {
+        Some(
+            "The Install directory is not writable! Please ensure administrative \
+             privileges or reinstall KOTOR to a directory with write access.",
+        )
+    } else {
+        None
+    }
+}
+
+#[cfg(unix)]
+fn directory_writable(path: &Path) -> bool {
+    use std::os::unix::ffi::OsStrExt;
+    let Ok(path) = std::ffi::CString::new(path.as_os_str().as_bytes()) else {
+        return false;
+    };
+    // SAFETY: `path` is a NUL-terminated string that outlives the call.
+    unsafe { libc::access(path.as_ptr(), libc::W_OK | libc::X_OK) == 0 }
+}
+
+#[cfg(not(unix))]
+fn directory_writable(_: &Path) -> bool {
+    true
+}
+
 fn selected_guid_keys(guide: &Guide) -> BTreeSet<crate::guid::Identity> {
     guide
         .selected_ids()
@@ -895,9 +931,13 @@ impl Engine {
                 Ok(()) if dry_run_only => match fresh_engine()
                     .and_then(|engine| engine.validate_archives(guide, &mut emit, true))
                 {
-                    Ok(outcomes) => report.environment_components(outcomes),
+                    Ok(outcomes) => report
+                        .environment_components(outcomes, unwritable_root(&self.settings.roots)),
                     Err(error) => report.push(Stage::Environment, Err(format!("{error:#}"))),
                 },
+                Ok(()) => {
+                    report.environment_components(Vec::new(), unwritable_root(&self.settings.roots))
+                }
                 environment => report.push(Stage::Environment, environment),
             };
             boundary(
@@ -1899,6 +1939,11 @@ impl Engine {
             recovery::ensure_clean(&self.settings.roots)?;
             None
         };
+        // C#'s install runs the full validation pipeline first, whose Environment
+        // stage refuses a game or mod folder it cannot write to.
+        if let Some(message) = unwritable_root(&self.settings.roots) {
+            bail!("Installation blocked before any write: {message}");
+        }
         if let Some(managed) = &self.managed {
             managed.service.validate_readonly()?;
         }

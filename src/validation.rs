@@ -276,11 +276,27 @@ impl Report {
     }
     /// C#'s Environment stage when a selected component fails its checks: one error
     /// with C#'s message. C# writes each component's errors only to its log; Rust
-    /// lists them after that message.
-    pub(crate) fn environment_components(&mut self, outcomes: Vec<ArchiveOutcome>) -> bool {
+    /// lists them after that message. `unwritable` is C#'s message for a game or mod
+    /// folder it cannot write to; C#'s component message replaces it.
+    pub(crate) fn environment_components(
+        &mut self,
+        outcomes: Vec<ArchiveOutcome>,
+        unwritable: Option<&str>,
+    ) -> bool {
         let errors: Vec<_> = outcomes.into_iter().filter_map(Result::err).collect();
         if errors.is_empty() {
-            return self.push(Stage::Environment, Ok(()));
+            let Some(unwritable) = unwritable else {
+                return self.push(Stage::Environment, Ok(()));
+            };
+            self.error_count += 1;
+            self.stages.push(StageResult {
+                stage: Stage::Environment,
+                passed: false,
+                has_warnings: false,
+                summary: unwritable.into(),
+                messages: vec![format!("ERROR: {unwritable}")],
+            });
+            return false;
         }
         const FAILED: &str = "Some components failed to validate. Check the output/console \
              window for details.\nIf you are seeing this as an end user you most likely need \

@@ -9,6 +9,19 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+A read-only game or mod folder (2026-10-05, F08): the full report's Environment stage
+now fails with C#'s `The Install directory is not writable! ...` or `The Mod directory
+is not writable! ...` when Rust cannot write to the game or mod folder, and `install`
+refuses the same folders before any write, as C#'s install refuses after its
+pipeline; Rust's full report passed (exit 0) and `install` took its snapshot and
+stopped at the first write, leaving an install to restore. Rust asks the operating
+system (`access(2)`) instead of writing a probe file; Windows is not checked, Rust
+does not offer to fix permissions, and under `--full` a component error still comes
+later in ComponentValidation (documented). Proof: 58 match / 1 known against the live
+C# CLI with a HoloPatcher stub; 31 fail on `2de5a47`. The regression probes stay at
+baseline, with this proof added to the set. See
+[writable-roots-contract.md](writable-roots-contract.md).
+
 Component checks in `validate --full --dry-run-only` (2026-10-05, F08): the full
 report's Environment stage now runs the archive/destination checks on every selected
 component under `--dry-run-only` and fails with C#'s `Some components failed to

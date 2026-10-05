@@ -1,0 +1,208 @@
+{
+ "both_readonly": {
+  "dro/counts": [
+   1,
+   0,
+   0
+  ],
+  "dro/decision": [
+   false,
+   false
+  ],
+  "dro/environment": "ERROR: The Mod directory is not writable! Please ensure administrative privileges or choose a new mod directory.",
+  "full/counts": [
+   1,
+   0,
+   0
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full/environment": "ERROR: The Mod directory is not writable! Please ensure administrative privileges or choose a new mod directory.",
+  "full/stages": [
+   [
+    "Environment",
+    false
+   ]
+  ],
+  "text/decision": false
+ },
+ "game_readonly": {
+  "dro/counts": [
+   1,
+   0,
+   0
+  ],
+  "dro/decision": [
+   false,
+   false
+  ],
+  "dro/environment": "ERROR: The Install directory is not writable! Please ensure administrative privileges or reinstall KOTOR to a directory with write access.",
+  "full/counts": [
+   1,
+   0,
+   0
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full/environment": "ERROR: The Install directory is not writable! Please ensure administrative privileges or reinstall KOTOR to a directory with write access.",
+  "full/stages": [
+   [
+    "Environment",
+    false
+   ]
+  ],
+  "text/decision": false
+ },
+ "game_readonly_missing_archive": {
+  "dro/counts": [
+   1,
+   0,
+   0
+  ],
+  "dro/decision": [
+   false,
+   false
+  ],
+  "dro/environment": "ERROR: Some components failed to validate. Check the output/console window for details.\nIf you are seeing this as an end user you most likely need to whitelist ModSync and HoloPatcher in your antivirus, or download the missing mods.",
+  "full/counts": [
+   1,
+   0,
+   0
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full/environment": "ERROR: Some components failed to validate. Check the output/console window for details.\nIf you are seeing this as an end user you most likely need to whitelist ModSync and HoloPatcher in your antivirus, or download the missing mods.",
+  "full/stages": [
+   [
+    "Environment",
+    false
+   ]
+  ],
+  "text/decision": false
+ },
+ "mods_readonly": {
+  "dro/counts": [
+   1,
+   0,
+   0
+  ],
+  "dro/decision": [
+   false,
+   false
+  ],
+  "dro/environment": "ERROR: The Mod directory is not writable! Please ensure administrative privileges or choose a new mod directory.",
+  "full/counts": [
+   1,
+   0,
+   0
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full/environment": "ERROR: The Mod directory is not writable! Please ensure administrative privileges or choose a new mod directory.",
+  "full/stages": [
+   [
+    "Environment",
+    false
+   ]
+  ],
+  "text/decision": false
+ },
+ "ok": {
+  "dro/counts": [
+   0,
+   0,
+   5
+  ],
+  "dro/decision": [
+   true,
+   true
+  ],
+  "dro/environment": null,
+  "full/counts": [
+   0,
+   0,
+   5
+  ],
+  "full/decision": [
+   true,
+   true
+  ],
+  "full/environment": null,
+  "full/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ]
+  ],
+  "text/decision": true
+ },
+ "override_readonly": {
+  "dro/counts": [
+   0,
+   0,
+   5
+  ],
+  "dro/decision": [
+   true,
+   true
+  ],
+  "dro/environment": null,
+  "full/counts": [
+   0,
+   0,
+   5
+  ],
+  "full/decision": [
+   true,
+   true
+  ],
+  "full/environment": null,
+  "full/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ]
+  ],
+  "text/decision": true
+ }
+}
