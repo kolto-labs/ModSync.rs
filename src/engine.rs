@@ -246,6 +246,15 @@ pub(crate) fn rename_file_name(destination: &str) -> Result<PathBuf> {
     Ok(name)
 }
 
+/// What a component's Extract steps would extract; see `Engine::archive_members`.
+struct ArchiveMembers<'a> {
+    members: BTreeSet<String>,
+    has_archives: bool,
+    /// An archive only an option that is not chosen extracts could not be listed.
+    unknown: bool,
+    missing: Vec<&'a Instruction>,
+}
+
 /// Whether an instruction is one of the component's own (not an option's).
 fn is_top_level(component: &Component, instruction: &Instruction) -> bool {
     component
@@ -579,6 +588,7 @@ impl Engine {
         // C# runs FomodConfigurationGate on every validate path, not only the report.
         self.fomod_gate(guide, &mut emit)?;
         self.destination_gate(guide)?;
+        self.archive_source_gate(guide)?;
         self.run(guide, &mut emit)
     }
 
@@ -625,6 +635,100 @@ impl Engine {
                             instruction.destination
                         );
                     }
+                }
+            }
+        }
+        Ok(())
+    }
+
+    /// C# validation, run by the CLI `install` and the desktop Validate step before
+    /// installing, refuses a step whose Source in the mod folder none of its
+    /// component's archives holds (`ComponentValidation.VerifyExtractPaths`), once
+    /// one of them exists; the archive stage reports it. Plain validate and install
+    /// refuse it here, before any simulation or write, for the same steps
+    /// (`check_archive_sources`). The archives are those of every Extract of the
+    /// component and its options, chosen or not, that exist, in step order, as C#
+    /// lists them; each is listed only when a Source needs it, at most once, and the
+    /// search stops at the first that holds the Source (C# `IsSourcePathInArchives`).
+    /// A Source no listed archive holds passes when some archive could not be listed
+    /// (`listed_members`); if a step that runs extracts that archive, its Extract
+    /// fails as before. A component whose missing archive is extracted by a step
+    /// that runs (its own, or a chosen option's) is left to the simulation, which
+    /// reports it as before; a missing archive in an option that is not chosen is
+    /// left out, as C# leaves it out. A component with no Extract is not checked.
+    fn archive_source_gate(&self, guide: &Guide) -> Result<()> {
+        let mut selected = selected_guid_keys(guide);
+        selected.extend(self.completed.iter().cloned());
+        let mut listed: BTreeMap<String, Option<BTreeSet<String>>> = BTreeMap::new();
+        for component in guide.components.iter().filter(|component| {
+            component.is_selected
+                && !self
+                    .completed
+                    .contains(&crate::guid::key_ascii(&component.guid))
+        }) {
+            let owners: Vec<_> = std::iter::once((None, component))
+                .chain(
+                    component
+                        .options
+                        .iter()
+                        .map(|option| (Some(&option.name), option)),
+                )
+                .collect();
+            let mut archives: Vec<PathBuf> = Vec::new();
+            let mut runs_missing = false;
+            for (instruction, runs) in Self::archive_check_instructions(component, &selected) {
+                self.check_cancelled()?;
+                if instruction.action != "Extract" || instruction.source.is_empty() {
+                    continue;
+                }
+                for source in &instruction.source {
+                    if runs && self.matches(std::slice::from_ref(source), true)?.is_empty() {
+                        runs_missing = true;
+                    }
+                }
+                for archive in self.matches(&instruction.source, true)? {
+                    if !archives.contains(&archive) {
+                        archives.push(archive);
+                    }
+                }
+            }
+            if archives.is_empty() || runs_missing {
+                continue;
+            }
+            for (option, owner) in &owners {
+                for (n, instruction) in owner.instructions.iter().enumerate() {
+                    if !applies_with(&selected, instruction) {
+                        continue;
+                    }
+                    self.check_archive_sources(component, instruction, |prefix, pattern| {
+                        let mut unknown = false;
+                        for archive in &archives {
+                            let key = self.path_policy.key(archive);
+                            if !listed.contains_key(&key) {
+                                let members = self.listed_members(archive)?;
+                                listed.insert(key.clone(), members);
+                            }
+                            match &listed[&key] {
+                                Some(members) => {
+                                    if members
+                                        .iter()
+                                        .any(|member| self.source_matches(prefix, pattern, member))
+                                    {
+                                        return Ok(Some(true));
+                                    }
+                                }
+                                None => unknown = true,
+                            }
+                        }
+                        Ok((!unknown).then_some(false))
+                    })
+                    .with_context(|| {
+                        let owner = match option {
+                            Some(option) => format!("{} / {option}", component.name),
+                            None => component.name.clone(),
+                        };
+                        format!("{owner} / step {} ({})", n + 1, instruction.action)
+                    })?;
                 }
             }
         }
@@ -1065,57 +1169,13 @@ impl Engine {
         full_validation: bool,
     ) -> Result<Vec<String>> {
         self.check_cancelled()?;
-        // The reference archive stage includes immediate option instructions.
-        let instructions: Vec<_> = component
-            .instructions
-            .iter()
-            .chain(
-                component
-                    .options
-                    .iter()
-                    .flat_map(|option| &option.instructions),
-            )
-            .filter(|instruction| self.instruction_applies(instruction))
-            .collect();
-        let mut members = BTreeSet::new();
-        let mut has_archives = false;
-        let mut missing = Vec::new();
-        for instruction in &instructions {
-            self.check_cancelled()?;
-            // An Extract with no Source names no archive to check; execution
-            // reports it as a missing source, as C# does.
-            if instruction.action != "Extract" || instruction.source.is_empty() {
-                continue;
-            }
-            for source in &instruction.source {
-                if self.matches(std::slice::from_ref(source), true)?.is_empty() {
-                    missing.push(*instruction);
-                    break;
-                }
-            }
-            for source in self.matches(&instruction.source, true)? {
-                has_archives = true;
-                let dest = extraction_destination(&source);
-                self.settings.roots.check(&dest)?;
-                ensure!(
-                    !self.files.contains_key(&self.path_policy.key(&dest)),
-                    "File blocks extraction destination: {}",
-                    dest.display()
-                );
-                let entries = archive::unpack(
-                    self.files[&self.path_policy.key(&source)].1.path()?,
-                    &source,
-                    &self.settings.archive,
-                    &self.settings.cancelled,
-                )
-                .with_context(|| format!("Cannot inspect archive {}", source.display()))?;
-                for entry in entries {
-                    let path = dest.join(entry.path);
-                    self.settings.roots.check(&path)?;
-                    members.insert(self.path_policy.key(&path));
-                }
-            }
-        }
+        let instructions = Self::archive_check_instructions(component, &self.selected);
+        let ArchiveMembers {
+            members,
+            has_archives,
+            unknown,
+            mut missing,
+        } = self.archive_members(&instructions)?;
         if !missing.is_empty() {
             // C# `ComponentValidation.VerifyExtractPaths`: when none of the component's
             // archives exists, each top-level Extract is one error naming its Sources,
@@ -1142,7 +1202,7 @@ impl Engine {
         // missing, or that has a Destination its action cannot use, and goes on; any
         // other failure still ends this component's checks.
         let mut step_errors = Vec::new();
-        for instruction in instructions {
+        for (instruction, _) in instructions {
             self.check_cancelled()?;
             match instruction.action.as_str() {
                 "Copy" | "Move" | "CleanList" | "DelDuplicate"
@@ -1194,31 +1254,177 @@ impl Engine {
                 "Extract" | "Choose" | "Delete" | "Execute" | "Run" => {}
                 other => bail!("Unsupported action {other}; refusing to skip it"),
             }
-            // Source existence is deliberately not a loose-file check here.
-            // When Extract archives exist, check their actual safe member paths.
-            if matches!(
-                instruction.action.as_str(),
-                "Choose" | "DelDuplicate" | "Extract"
-            ) {
-                continue;
-            }
-            for source in &instruction.source {
-                let (path, pattern) = self.source_pattern(source)?;
-                if !has_archives || path.starts_with(&self.settings.roots.game) {
-                    continue;
-                }
-                let prefix = self.source_prefix(&path);
-                ensure!(
-                    members.iter().any(|member| self.source_matches(
-                        prefix.as_deref(),
-                        &pattern,
-                        member
-                    )),
-                    "Failed to find '{source}' in any archives"
-                );
+            if has_archives {
+                self.check_archive_sources(component, instruction, |prefix, pattern| {
+                    let found = members
+                        .iter()
+                        .any(|member| self.source_matches(prefix, pattern, member));
+                    Ok((found || !unknown).then_some(found))
+                })?;
             }
         }
         Ok(step_errors)
+    }
+
+    /// The steps C# `ComponentValidation` checks against the component's archives:
+    /// the component's and every immediate option's, selected or not, whose
+    /// instruction conditions are met, each with whether it runs (the component's
+    /// own, or a chosen option's; every step when a Choose names an unknown option,
+    /// which execution refuses).
+    fn archive_check_instructions<'a>(
+        component: &'a Component,
+        selected: &BTreeSet<crate::guid::Identity>,
+    ) -> Vec<(&'a Instruction, bool)> {
+        let mut chosen = Some(Vec::new());
+        for instruction in &component.instructions {
+            if instruction.action == "Choose" && applies_with(selected, instruction) {
+                match (Self::chosen_options(component, instruction), &mut chosen) {
+                    (Ok(options), Some(chosen)) => chosen.extend(options),
+                    _ => chosen = None,
+                }
+            }
+        }
+        let runs = |option: &Component| {
+            chosen
+                .as_ref()
+                .is_none_or(|chosen| chosen.iter().any(|c| std::ptr::eq(*c, option)))
+        };
+        component
+            .instructions
+            .iter()
+            .map(|instruction| (instruction, true))
+            .chain(component.options.iter().flat_map(|option| {
+                let runs = runs(option);
+                option
+                    .instructions
+                    .iter()
+                    .map(move |instruction| (instruction, runs))
+            }))
+            .filter(|(instruction, _)| applies_with(selected, instruction))
+            .collect()
+    }
+
+    /// Every file the given Extract steps would extract (keys of their paths in the
+    /// folder named after each archive), whether any of their archives exists, and
+    /// the Extract steps with a Source that names no file. Lists the archives
+    /// without extracting them. An archive of a step that runs must be listable (its
+    /// Extract fails otherwise); one only an option that is not chosen extracts is
+    /// skipped when it cannot be listed (`unknown`), as C# opens it only when a
+    /// Source needs it.
+    fn archive_members<'a>(
+        &self,
+        instructions: &[(&'a Instruction, bool)],
+    ) -> Result<ArchiveMembers<'a>> {
+        let mut found = ArchiveMembers {
+            members: BTreeSet::new(),
+            has_archives: false,
+            unknown: false,
+            missing: Vec::new(),
+        };
+        for &(instruction, runs) in instructions {
+            self.check_cancelled()?;
+            // An Extract with no Source names no archive to check; execution
+            // reports it as a missing source, as C# does.
+            if instruction.action != "Extract" || instruction.source.is_empty() {
+                continue;
+            }
+            for source in &instruction.source {
+                if self.matches(std::slice::from_ref(source), true)?.is_empty() {
+                    found.missing.push(instruction);
+                    break;
+                }
+            }
+            for source in self.matches(&instruction.source, true)? {
+                found.has_archives = true;
+                if !runs {
+                    match self.listed_members(&source)? {
+                        Some(members) => found.members.extend(members),
+                        None => found.unknown = true,
+                    }
+                    continue;
+                }
+                let dest = extraction_destination(&source);
+                self.settings.roots.check(&dest)?;
+                ensure!(
+                    !self.files.contains_key(&self.path_policy.key(&dest)),
+                    "File blocks extraction destination: {}",
+                    dest.display()
+                );
+                let (entries, _) = archive::list_original_with_size(
+                    self.files[&self.path_policy.key(&source)].1.path()?,
+                    &source,
+                    &self.settings.archive,
+                    &self.settings.cancelled,
+                )
+                .with_context(|| format!("Cannot inspect archive {}", source.display()))?;
+                for entry in entries.into_iter().filter(|entry| !entry.is_directory) {
+                    let path = dest.join(entry.path);
+                    self.settings.roots.check(&path)?;
+                    found.members.insert(self.path_policy.key(&path));
+                }
+            }
+        }
+        Ok(found)
+    }
+
+    /// C# `ComponentValidation.VerifyExtractPaths`, once the component has an archive:
+    /// each Source in the mod folder must name a file (or a folder holding one) that
+    /// the component's archives extract, or fail with `Failed to find '<Source>' in
+    /// any archives`. Game Sources are not checked; a Choose or Extract has no such
+    /// Source and a DelDuplicate's Sources are extensions. C# skips the check for a
+    /// component named "Improved AI" (`ComponentValidation.cs:461-464`).
+    /// `found(prefix, pattern)` says whether the archives hold a matching member;
+    /// `None` is not known (an archive could not be listed), which passes.
+    fn check_archive_sources(
+        &self,
+        component: &Component,
+        instruction: &Instruction,
+        mut found: impl FnMut(Option<&str>, &glob::Pattern) -> Result<Option<bool>>,
+    ) -> Result<()> {
+        if matches!(
+            instruction.action.as_str(),
+            "Choose" | "DelDuplicate" | "Extract"
+        ) || crate::unicode_case::ordinal_eq(&component.name, "Improved AI")
+        {
+            return Ok(());
+        }
+        for source in &instruction.source {
+            let (path, pattern) = self.source_pattern(source)?;
+            if path.starts_with(&self.settings.roots.game) {
+                continue;
+            }
+            let prefix = self.source_prefix(&path);
+            ensure!(
+                found(prefix.as_deref(), &pattern)? != Some(false),
+                "Failed to find '{source}' in any archives"
+            );
+        }
+        Ok(())
+    }
+
+    /// The members one archive extracts (keys of their paths in the folder named
+    /// after it), or `None` when Rust cannot list it (a corrupt archive, or one its
+    /// admission rules refuse, such as a link or a case-duplicate entry, which C#
+    /// opens). Only cancellation is an error.
+    fn listed_members(&self, archive: &Path) -> Result<Option<BTreeSet<String>>> {
+        let listed = (|| -> Result<BTreeSet<String>> {
+            let dest = extraction_destination(archive);
+            let (entries, _) = archive::list_original_with_size(
+                self.files[&self.path_policy.key(archive)].1.path()?,
+                archive,
+                &self.settings.archive,
+                &self.settings.cancelled,
+            )?;
+            let mut members = BTreeSet::new();
+            for entry in entries.into_iter().filter(|entry| !entry.is_directory) {
+                let path = dest.join(entry.path);
+                self.settings.roots.check(&path)?;
+                members.insert(self.path_policy.key(&path));
+            }
+            Ok(members)
+        })();
+        self.check_cancelled()?;
+        Ok(listed.ok())
     }
 
     /// Whether `Directory.CreateDirectory` could create this missing folder: no file
@@ -1660,6 +1866,8 @@ impl Engine {
         self.fomod_gate(guide, &mut emit)
             .context("Installation blocked before any write")?;
         self.destination_gate(guide)
+            .context("Installation blocked before any write")?;
+        self.archive_source_gate(guide)
             .context("Installation blocked before any write")?;
         // Managed reinstall restores originals before each component. Simulating
         // against the old deployed tree would validate the wrong inputs. Its

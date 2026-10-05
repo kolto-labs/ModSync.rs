@@ -166,11 +166,12 @@ Destination; 265/265). Their references other than the C# CLI are
   Rust's dry run follows its install. Not probed.
 - **Messages.** The basic report's error text is C#'s; the log line is Rust's own.
 - **Windows.** Not run; nothing here depends on the host.
-- **Found, left open.** The C# CLI's validation also refuses a guide whose later
+- **Found, since closed.** The C# CLI's validation also refuses a guide whose later
   Copy names a loose file in the mod folder that no archive of the component holds
   (`Failed to find '<Source>' in any archives!`), even when the file exists; Rust's
-  plain `validate` and `install` do not run that check (seen in the extract-overwrite
-  proof's `stale_*` cases).
+  plain `validate` and `install` did not run that check (seen in the extract-overwrite
+  proof's `stale_*` cases). They do since
+  [loose-source-contract.md](loose-source-contract.md) (2026-10-05).
 
 ## Notes for guide authors
 

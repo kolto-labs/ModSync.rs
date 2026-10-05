@@ -294,9 +294,11 @@ for label,name in [('folded_entry','ärchive.zip'),('exact_entry','Ärchive.zip'
 
 # 3. The registered-archive FOMOD gate runs on plain validate and install (C#
 # InstallationValidationPipeline and InstallationService), before any write.
+# A component that extracts copies no loose note: a loose Source next to an Extract is
+# refused, as the C# CLI refuses it (../loose-source-contract.md).
 def gate_case(name,saved=None,status=None,registered=('example.zip',),existing=None,extract_names=()):
  existing={'example.zip':FIRST,'notes.txt':b'notes bytes\n'} if existing is None else existing
- return setup(name,[comp(instructions=(NOTE,*map(extract,extract_names)),saved=saved,files=registered,status=status)],existing)
+ return setup(name,[comp(instructions=tuple(map(extract,extract_names)) or (NOTE,),saved=saved,files=registered,status=status)],existing)
 for name,saved,status,needle in [('gate_missing',None,None,'no explicit FomodChoices'),('gate_stale',choices(entry('example.zip','Unknown')),{'example.zip':'configured'},'do not apply to the current archive'),('gate_configured_only',None,{'example.zip':'configured'},'marked configured')]:
  c=gate_case(name,saved,status)
  rv=validate(c,'plain',report=False);check(name+'_plain_exit',rv['exit'],1);check(name+'_plain_actionable',needle in rv['stderr'] and '--fomod-choices' in rv['stderr'])
@@ -367,9 +369,10 @@ def plain_validate(c):
  game=c['case']/'unused-game';(game/'Override').mkdir(parents=True,exist_ok=True)
  return [str(BIN),'validate','--input',str(c['guide']),'--game-dir',str(game),'--source-dir',str(c['mods']),'--scratch-dir',str(c['scratch'])]
 def shared(name,data,saved=None,status=None,extract_names=()):
- # Both components register the archive and copy a note; only the first extracts.
+ # Both components register the archive; the first extracts it (or copies a note)
+ # and the second copies a note.
  second={**NOTE,'Source':['<<modDirectory>>/other.txt']}
- return setup(name,[comp(i,instructions=(NOTE,*map(extract,extract_names)) if i==0 else (second,),saved=saved,files=('example.zip',),status=status) for i in (0,1)],{'example.zip':data,'notes.txt':b'notes bytes\n','other.txt':b'other bytes\n'})
+ return setup(name,[comp(i,instructions=(tuple(map(extract,extract_names)) or (NOTE,)) if i==0 else (second,),saved=saved,files=('example.zip',),status=status) for i in (0,1)],{'example.zip':data,'notes.txt':b'notes bytes\n','other.txt':b'other bytes\n'})
 # Non-FOMOD archive registered by two components: listed, never spooled (spooled once
 # per registrant at 37cd4cc: 2).
 c=shared('unpack_plain_shared',PLAIN);r,n=spooled(c,'validate',plain_validate(c))

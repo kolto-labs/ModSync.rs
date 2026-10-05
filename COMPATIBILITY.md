@@ -1376,7 +1376,7 @@ fail-closed choice); Copy and Move still warn and skip, and Rename still fails, 
 `Overwrite = false`. Evidence: [extract-overwrite proof](docs/parity/extract-overwrite-proof/README.md),
 20/20 checks against a live reference oracle (5 fail on `5905259`; since
 extract-destination 4 match / 16 known, the cases with a Destination compared with the
-live C# CLI instead); contract in
+live C# CLI instead, its `stale_*` cases refused since loose-source); contract in
 [extract-overwrite-contract.md](docs/parity/extract-overwrite-contract.md). The
 reference dry run nests every extraction under an archive-named folder, unlike its own
 install; that inconsistency is recorded there and not copied.
@@ -2155,6 +2155,42 @@ Users: an `Extract` step with a `Destination` no longer extracts there; its file
 in the folder named after the archive, next to it, and later steps must name them
 there, as in C#. Remove the Destination from Extract steps; the basic validation
 report fails it.
+
+## A loose Source next to an Extract — 2026-10-05 UTC
+
+Plain `validate` and `install` now refuse, before any write, a step whose Source in
+the mod folder none of its component's archives holds, once the component extracts
+an archive that exists (`Failed to find '<Source>' in any archives`), as the C# CLI
+`install` and the desktop Validate step do: C# validation
+(`ComponentValidation.VerifyExtractPaths`) runs before installing and refuses it even
+when the file exists. Rust's reports already ran the check, so plain `validate` passed
+and `install` copied the loose file (a stale file left by an earlier install, a file
+another component extracts, a file an earlier Rename made). The check covers every
+step of the component and of its options, chosen or not, whose conditions are met;
+game Sources, Extract and Choose steps and a DelDuplicate's extensions are not
+checked, and a component with no Extract never is, so guides for mods the user
+unpacks by hand are unaffected (205 of the 210 components the mod-builds corpus drafts
+with `--parse-directions`; the other five name a missing archive). A component named
+`Improved AI` is not checked, as in C#; Rust's reports refused it before. Archives are
+searched in step order, each listed (without extracting it) only when a Source needs
+it, stopping at the first that holds the Source, as C# opens them; an archive Rust
+cannot list (a link or a case-duplicate entry) in an option that is not chosen no
+longer refuses the component, in the reports either, and a missing archive there is
+left out, as in C#. Known differences: C#
+matches the Source case-sensitively and reads DelDuplicate extensions as paths, so it
+refuses both where Rust installs; C# rewrites a Source to a doubled archive folder
+(`d/d/...`) where Rust refuses it (fail closed, unchanged). Evidence: [Loose Source
+proof](docs/parity/loose-source-proof/README.md), 98 checks match and 49 are known
+differences against the live C# CLI (33 fail on `6ca4d35`); contract in
+[loose-source-contract.md](docs/parity/loose-source-contract.md). The
+extract-overwrite proof's `stale_*` cases are now refused as by the C# CLI, and the
+FOMOD S2b and gate-scope proofs no longer copy a loose note in a component that
+extracts (counts unchanged).
+
+Users: in a component that extracts an archive, name only files that archive holds,
+under the folder named after it (`<<modDirectory>>/m/...` for `m.zip`). Move a step
+that copies a loose file or another component's file into a component without an
+Extract step, or into the component that extracts that file.
 
 ## A patcher without changes.ini in the validation dry run — 2026-10-04 UTC
 

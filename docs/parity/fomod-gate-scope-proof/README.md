@@ -35,6 +35,11 @@ binary SHA-256, git HEAD/porcelain and source hashes.
   of `dep_configured` also keeps the Rust-only route warning, so
   `dep_configured_order_error` compares only non-`WARNING:` messages. It passes on
   `15b11cb`, `438bb73` and later builds; the counts above are unchanged.
+- Later change: since [loose-source](../loose-source-contract.md) (2026-10-05) a
+  component that extracts an archive may not copy a loose file in the mod folder that
+  none of its archives holds, as the C# CLI refuses it. `folder_ownership` copied
+  `notes.txt` in the component that extracts `Other.zip`; the copy now has its own
+  component, with the same expected result (`b`, `notes`), and the total stays 74.
 - Regressions, each in its own namespace: S1 `probe.py` **339/339**,
   `inherited_controller.py` **41/41**, S2a **224/224**, S2b **254/254**.
 - Gates, all exit 0: `cargo fmt --all -- --check`; `cargo clippy --locked --lib --bin

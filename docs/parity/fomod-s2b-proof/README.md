@@ -268,6 +268,15 @@ follow-up matches the way the engine resolves sources (`scope_folder_*`,
   references was also untouched in the base phase, so its recorded definition
   still matches.
 
+Since [loose-source](../loose-source-contract.md) (2026-10-05) a component that
+extracts an archive may not copy a loose file in the mod folder that none of its
+archives holds, as the C# CLI refuses it. `gate_valid_extract` and the
+`unpack_*_extract` cases copied `notes.txt` in the component that extracts
+`example.zip`; that component now only extracts, so the five checks that failed
+(`gate_extract_plain_exit`, both `unpack_*_extract_exit` and both
+`unpack_*_extract_spooled`) pass again with the same expectations. The total stays
+265.
+
 ## What remains of S2
 
 - Ownership propagation.

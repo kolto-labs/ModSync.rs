@@ -9,6 +9,23 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+A loose Source next to an Extract (2026-10-05, F05): plain `validate` and `install`
+now refuse, before any write, a step whose Source in the mod folder none of its
+component's archives holds, once the component extracts an archive that exists, as
+the C# CLI `install` and the desktop Validate step do
+(`ComponentValidation.VerifyExtractPaths`); only Rust's reports ran that check, so
+Rust installed the loose file. Components with no Extract (mods unpacked by hand) are
+not checked, in either; a component named `Improved AI` is exempt, as in C#. Archives
+are listed only when a Source needs them, in C#'s order, so an unchosen option's
+archive Rust cannot list no longer refuses the component (in the reports either). Case
+(C# is case-sensitive), DelDuplicate extensions (C# reads them as paths) and C#'s
+doubled-folder rewrite stay documented differences. Proof: 98 match / 49 known
+against the live C# CLI with a HoloPatcher stub; 33 fail on `6ca4d35`. The
+extract-overwrite proof (4 / 16) now expects its `stale_*` refusals, and the FOMOD S2b
+(265/265) and gate-scope (74/74) fixtures no longer copy a loose note next to an
+Extract; the other regression probes stay at baseline. See
+[loose-source-contract.md](loose-source-contract.md).
+
 Extract with a Destination (2026-10-05, F05/F06): an `Extract` step now always
 extracts into a folder named after the archive, next to it, as the C# CLI and GUI do,
 whose validation (`ComponentValidation`, AttemptFixes) clears an Extract Destination
