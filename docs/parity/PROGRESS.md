@@ -15,9 +15,11 @@ component under `--dry-run-only` and fails with C#'s `Some components failed to
 validate. ...` when one has an error, as C#'s Environment stage does; Rust's checked
 only the recovery state, so the report passed (exit 0) a guide whose archive was
 missing or whose loose Source no archive holds. Rust lists each component's errors
-after C#'s message; an option's missing archive fails this stage in Rust and C#'s dry
-run in C# (documented). Proof: 99 match / 5 known against the live C# CLI with a
-HoloPatcher stub; 36 fail on `72ed369`. The regression probes stay at baseline, with
+after C#'s message. A partly missing Extract (one of its archives absent) now fails
+this stage in Rust where C# passes (fail closed, a new refusal), and an option's
+missing archive fails it in Rust and C#'s dry run in C# (documented). Proof: 101
+match / 11 known against the live C# CLI with a HoloPatcher stub; 42 fail on
+`72ed369`. The regression probes stay at baseline, with
 this proof added to the set. See
 [dry-run-only-environment-contract.md](dry-run-only-environment-contract.md).
 

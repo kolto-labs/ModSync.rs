@@ -4,9 +4,9 @@
 `validate --full --dry-run-only` skips the ComponentValidation stage in both
 implementations (InstallationValidationPipeline.cs:127, :251), but C#'s Environment
 stage still runs `ComponentValidation` (with AttemptFixes) on every selected
-component and fails on any error with `Some components failed to validate. ...`,
-ending the report (InstallationService.cs:966-1047, InstallationValidationPipeline.cs
-:65-82). Rust's Environment stage checked only the recovery state, so the report
+component (InstallationService.cs:967-1012) and fails on any error with `Some
+components failed to validate. ...` (:1051-1056), ending the report
+(InstallationValidationPipeline.cs:66-82). Rust's Environment stage checked only the recovery state, so the report
 passed (exit 0) a guide whose archive was missing, where C# fails it.
 
 Each case is a disposable mod/game fixture with one TOML guide. The mod folder holds
@@ -115,6 +115,11 @@ CASES = {
                                [], []),
     "extract_destination": (ZIP, component(GA, "A", [step("Extract", [MD + "/m1.zip"], OV)]), [], []),
     "missing_copy_source": ({}, component(GA, "A", [step("Copy", [MD + "/a/nope.txt"], OV)]), [], []),
+    # Known difference: a partly missing Extract fails Rust's Environment stage.
+    "partial_missing_extract": (ZIP, component(GA, "A", [step("Extract", [MD + "/m1.zip", MD + "/m2.zip"]),
+                                                         step("Copy", [MD + "/m1/f1.txt"], OV)]), [],
+                                ["ERROR: A: Missing Required Archives: "
+                                 "[<<modDirectory>>/m1.zip,<<modDirectory>>/m2.zip]"]),
     # Known difference: an option's missing archive fails Rust's Environment stage.
     "missing_archive_option": ({}, component(GA, "A", [step("Choose", [GO])],
                                              options=option([step("Extract", [MD + "/m1.zip"])])), [],
@@ -128,6 +133,16 @@ KNOWN = {
                             "(fail closed); C# fails it later, in its dry run",
         "full_only/environment": "as full_only/stages",
         "full_only/counts": "as full_only/stages: C# also counts its four passed stages",
+    },
+    "partial_missing_extract": {
+        "full_only/decision": "Rust refuses an Extract with one archive missing (fail closed); "
+                              "C# skips the check when any of its archives exists",
+        "full_only/counts": "as full_only/decision",
+        "full_only/stages": "as full_only/decision",
+        "full_only/environment": "as full_only/decision",
+        "text/decision": "as full_only/decision",
+        "only/counts": "unchanged: without --full both pass; Rust's dry run also warns "
+                       "that it skipped the component",
     },
     "destination_file": {
         "only/decision": "unchanged: Rust's dry run refuses a Destination below a file "
@@ -149,10 +164,14 @@ def known_ok(name, check, actual):
         return actual[check] == FAILED
     if check == "full_only/counts":
         return actual[check] == [1, 0, 0]
+    if check == "full_only/decision":
+        return actual[check] == [False, False]
+    if check == "text/decision":
+        return actual[check] is False
     if check == "only/decision":
         return actual[check] == [False, False]
     if check == "only/counts":
-        return actual[check] == [1, 0, 1]
+        return actual[check] == ([0, 1, 1] if name == "partial_missing_extract" else [1, 0, 1])
     return False
 
 

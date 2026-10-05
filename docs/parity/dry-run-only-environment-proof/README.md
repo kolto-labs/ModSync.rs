@@ -2,7 +2,7 @@
 
 Contract: [dry-run-only-environment-contract.md](../dry-run-only-environment-contract.md).
 
-[probe.py](probe.py) builds 13 disposable fixtures. Each has `game/{chitin.key,
+[probe.py](probe.py) builds 14 disposable fixtures. Each has `game/{chitin.key,
 Override/g.txt}` and `mods/a/{x.txt, y.tga}`, some cases add `mods/m1.zip` (holding
 `f1.txt`) or a patcher folder `mods/p/` (`TSLPatcher.exe`, `tslpatchdata/changes.ini`,
 `tslpatchdata/n.tga`), and a TOML guide; `MD` is `<<modDirectory>>`, `KD` is
@@ -24,11 +24,12 @@ second component that copies `MD/a/y.tga` into `OV`. "Missing archive" is Extrac
 | `patcher_no_destination` (control) | Patcher [`MD/p/TSLPatcher.exe`], no Destination | passes |
 | `extract_destination` (control) | Extract [`MD/m1.zip`] -> `OV` | passes |
 | `missing_copy_source` (control) | Copy [`MD/a/nope.txt`] -> `OV` | passes |
+| `partial_missing_extract` (known) | Extract [`MD/m1.zip`, `MD/m2.zip`] (`m2.zip` absent), Copy [`MD/m1/f1.txt`] -> `OV` | passes |
 | `missing_archive_option` (known) | Choose `O`; `O` extracts the missing archive | fails (DryRun) |
 
 C#'s Environment stage runs `holopatcher --install` and expects exit code 2, so the
 reference copy gets a stub `Resources/holopatcher` (`exit 2`); no case installs.
-Each case runs three ways on a fresh copy, giving 8 checks per case and 104 in all:
+Each case runs three ways on a fresh copy, giving 8 checks per case and 112 in all:
 
 - `full_only/decision`, `full_only/counts`, `full_only/stages`,
   `full_only/environment`: `validate -i G -s mods -g game --output json --full
@@ -44,6 +45,11 @@ Each case runs three ways on a fresh copy, giving 8 checks per case and 104 in a
 Known differences (`KNOWN` in the probe) must show the documented Rust result, or
 the check fails:
 
+- `partial_missing_extract` (`full_only` decision, counts, stages, environment; text
+  decision; `only` counts): Rust refuses an Extract with one archive missing (fail
+  closed), so its Environment stage fails it with C#'s message and one error; C#
+  checks archives only when none exists and passes. Without `--full` both pass, and
+  Rust's dry run also warns that it skipped the component (unchanged).
 - `missing_archive_option` (`full_only` counts, stages, environment): Rust's
   Environment stage fails an option's missing archive (fail closed), with C#'s message
   and one error; C# passes that stage and fails the option in its dry run.
@@ -61,17 +67,20 @@ no network or .NET.
 
 | Binary | Result |
 | --- | --- |
-| this slice, live reference (`--reference ... --record`, then without `--record`) | 99 match / 5 known difference / 0 fail |
-| this slice, recorded reference | 99 match / 5 known difference / 0 fail |
-| `72ed369` (pre-fix), recorded reference | 66 match / 2 known difference / 36 fail |
+| this slice, live reference (`--reference ... --record`, then without `--record`) | 101 match / 11 known difference / 0 fail |
+| this slice, recorded reference | 101 match / 11 known difference / 0 fail |
+| `72ed369` (pre-fix), recorded reference | 67 match / 3 known difference / 42 fail |
 
 On `72ed369` the four cases with a missing archive or loose Source passed `--full
 --dry-run-only` (exit 0, one `DryRunSkipped` warning) and fail six checks each;
 `destination_file` and `destination_empty` failed in the dry run instead of the
 Environment stage and fail four each (counts, stages, environment, `details`).
 `missing_archive_option` fails four: it matched C# there, and the probe fails a known
-difference that shows no difference, and it had no `details` line. The controls and
-the `only` checks are the same on both binaries.
+difference that shows no difference, and it had no `details` line.
+`partial_missing_extract` fails six: `72ed369` passed it as C# does (so its five
+`full_only` and text known checks show no difference) and had no `details` line; it
+is a new refusal of this slice. The controls and the `only` checks are the same on
+both binaries.
 
 ## Reproduce
 

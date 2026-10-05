@@ -70,26 +70,41 @@ once per report. `environment_components` has one caller.
 
 ## Proof
 
-[dry-run-only-environment-proof](dry-run-only-environment-proof/README.md) runs 13
+[dry-run-only-environment-proof](dry-run-only-environment-proof/README.md) runs 14
 cases against the live C# CLI with a HoloPatcher stub: `validate --output json --full
 --dry-run-only` (decision, counts, stages, the Environment stage's message), the same
 in text output (decision), `--dry-run-only` without `--full` (decision and counts),
-and the lines Rust lists after C#'s message, 104 checks.
+and the lines Rust lists after C#'s message, 112 checks.
 
 | Binary | dry-run-only-environment |
 | --- | --- |
-| this slice, live C# CLI | 99 match / 5 known difference / 0 fail |
-| this slice, recorded references | 99 match / 5 known difference / 0 fail |
-| `72ed369` (pre-fix), recorded references | 66 match / 2 known difference / 36 fail |
+| this slice, live C# CLI | 101 match / 11 known difference / 0 fail |
+| this slice, recorded references | 101 match / 11 known difference / 0 fail |
+| `72ed369` (pre-fix), recorded references | 67 match / 3 known difference / 42 fail |
 
 On `72ed369` the six fixed cases fail 32 checks: the four that passed fail their
 decision, text decision, counts, stages, Environment message and `details`; the two
 that failed in the dry run fail all but the decisions. `missing_archive_option` fails
 four more: it matched C# there (the probe fails a known difference that shows no
 difference) and had no `details` line; it now fails earlier (see below).
+`partial_missing_extract` fails six: C# and `72ed369` both passed it, so its five
+known checks show no difference and its counts differed already (Rust's dry run
+warns that it skipped the component), and it had no `details` line; it now fails
+(see below).
 
 ## Known differences
 
+- **A partly missing Extract (fail-closed, a new refusal).**
+  `partial_missing_extract`: an Extract of `MD/m1.zip` (present) and `MD/m2.zip`
+  (missing), then Copy [`MD/m1/f1.txt`] -> `OV`. C#'s `VerifyExtractPaths` reports
+  missing archives only when none of the component's archives exists
+  (`ComponentValidation.cs:75-110`), so C# passes every stage and `--full
+  --dry-run-only` passes (exit 0). Rust's archive checks refuse an Extract with any
+  missing archive (`src/engine.rs:1205-1216`, already so in its full report's
+  ComponentValidation stage), so its Environment stage now fails it with C#'s message
+  and `ERROR: A: Missing Required Archives: [<<modDirectory>>/m1.zip,<<modDirectory>>/m2.zip]`;
+  `72ed369` passed it. Without `--full` both still pass (Rust's dry run warns that it
+  skipped the component).
 - **An option's missing archive (fail-closed).** `missing_archive_option`: a chosen
   option extracts a missing archive. C#'s Environment stage checks only the
   component's own steps and passes; its dry run then fails the option. Rust's checks

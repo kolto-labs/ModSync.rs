@@ -2328,12 +2328,15 @@ one `DryRunSkipped` warning) a guide whose archive was missing or whose loose So
 no archive holds; an empty Destination or one below a file failed only later, in the
 dry run. Rust now gives C#'s message and then each component's errors (`ERROR: A:
 Missing Required Archives: [<<modDirectory>>/m1.zip]`), which C# writes only to its
-log. Unchanged and documented: an option's missing archive fails this stage in Rust
-(fail closed) where C# fails it in its dry run; `--dry-run-only` without `--full`,
-the other reports and the desktop Validate step are unchanged. Evidence: [dry-run-only
-environment proof](docs/parity/dry-run-only-environment-proof/README.md), 99 checks
-match and 5 are known differences against the live C# CLI with a HoloPatcher stub (36
-fail on `72ed369`); contract in
+log. Documented: an Extract with one of its archives missing (`[m1.zip, m2.zip]`,
+`m2.zip` absent) now fails this stage in Rust (fail closed, new: it passed before),
+where C# checks archives only when none of the component's archives exists and
+passes; an option's missing archive fails this stage in Rust where C# fails it in
+its dry run. `--dry-run-only` without `--full`, the other reports and the desktop
+Validate step are unchanged. Evidence: [dry-run-only environment
+proof](docs/parity/dry-run-only-environment-proof/README.md), 101 checks
+match and 11 are known differences against the live C# CLI with a HoloPatcher stub
+(42 fail on `72ed369`); contract in
 [dry-run-only-environment-contract.md](docs/parity/dry-run-only-environment-contract.md).
 
 Users: `validate --full --dry-run-only` no longer reports `Validation passed` while a
