@@ -344,8 +344,9 @@ impl Report {
     }
     /// The report without a dry run: plain `validate`'s step simulation failed after
     /// every stage passed. The component stage fails with that error, which replaces
-    /// the failing component's `OK:` line (or is added when no component is named).
-    pub(crate) fn simulation_failure(&mut self, component: Option<usize>, error: String) {
+    /// the failing component's `OK:` or `WARNING:` lines, as C# lists only errors for
+    /// a component with errors (or is added when no component is named).
+    pub(crate) fn simulation_failure(&mut self, component: Option<&str>, error: String) {
         let message = format!("ERROR: {error}");
         self.error_count += 1;
         let Some(stage) = self
@@ -377,11 +378,16 @@ impl Report {
         }
         stage.passed = false;
         stage.summary = "1 component error(s)".into();
-        match component
-            .filter(|_| warnings == 0)
-            .and_then(|index| stage.messages.get_mut(index))
-        {
-            Some(line) => *line = message,
+        let at = component.and_then(|name| {
+            let ok = format!("OK: {name}");
+            let warning = format!("WARNING: {name}: ");
+            let own = |line: &String| *line == ok || line.starts_with(&warning);
+            let at = stage.messages.iter().position(own)?;
+            stage.messages.retain(|line| !own(line));
+            Some(at)
+        });
+        match at {
+            Some(at) => stage.messages.insert(at, message),
             None => stage.messages.push(message),
         }
     }

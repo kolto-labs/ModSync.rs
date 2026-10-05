@@ -24,7 +24,7 @@ The reference is the pinned C# CLI itself, `dotnet ModSync.Core.dll validate` fr
 custom oracle is needed. Its results are in [csharp-oracle.json](csharp-oracle.json).
 The Rust runs need no network either.
 
-`KNOWN` holds the documented differences (seven cases, 10 checks). A known check
+`KNOWN` holds the documented differences (six cases, 10 checks). A known check
 passes only if Rust differs from the reference and its archive-stage messages are
 exactly the expected Rust messages.
 

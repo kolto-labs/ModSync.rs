@@ -90,9 +90,11 @@ Destination                  C# CLI install      Rust before                 Rus
   its errors (`ArchiveOutcome`, `src/validation.rs:162-163`), and
   `Report::component_validation` (`:277-344`) shows them as C# does: `WARNING:
   <component>: <warning>` lines for a component with no error, counted in
-  `warningCount` instead of a pass, with `hasWarnings`. `simulation_failure` (`:345-387`), used by the report
-  without a dry run, now takes those warnings back out of the count when it fails the
-  stage and adds its error after them.
+  `warningCount` instead of a pass, with `hasWarnings`. `simulation_failure`
+  (`:345-393`), used by the report without a dry run, takes those warnings back out
+  of the count when it fails the stage, and its error replaces the failing
+  component's `OK:` or `WARNING:` lines, as C# lists only errors for a component with
+  errors.
 - So plain `validate`, `install`, `conflicts`, both reports, `--phase remaining` and
   the desktop run the patcher, or simulate it, on the game folder, and the desktop
   Validate step passes a Patcher step with no Destination.
@@ -126,7 +128,7 @@ wording); see the proof README.
 ## Known differences
 
 - **A Destination Rust cannot resolve (deliberate, fail-closed).** `/tmp/elsewhere`,
-  `..` or an unknown placeholder: C# sets it to the game folder and installs; Rust
+  `..`, a whitespace-only Destination or an unknown placeholder: C# sets it to the game folder and installs; Rust
   still refuses the step before any write (`Path must start with <<modDirectory>> or
   <<kotorDirectory>>`), so its reports also fail the dry run (`unsafe_destination`).
   Such a Destination is a guide error, and the step never needs it.

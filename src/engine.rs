@@ -961,12 +961,13 @@ impl Engine {
                 .map_err(|error| (None, error))
                 .and_then(|engine| engine.simulate_steps(guide));
             if let Err((failed, error)) = outcome {
-                let index = failed.and_then(|failed| {
+                let name = failed.and_then(|failed| {
                     validated_components
                         .iter()
-                        .position(|component| std::ptr::eq(*component, failed))
+                        .find(|component| std::ptr::eq(**component, failed))
+                        .map(|component| component.name.as_str())
                 });
-                report.simulation_failure(index, format!("{error:#}"));
+                report.simulation_failure(name, format!("{error:#}"));
             }
         }
         if dry_run {
