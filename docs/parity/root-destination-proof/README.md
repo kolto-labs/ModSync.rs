@@ -34,10 +34,11 @@ file. The cases are listed in the contract.
 `KNOWN` holds `rename_destination_kotor` (all three checks): Rust refuses a Rename to
 the bare `<<kotorDirectory>>` placeholder (a dry-run error, plain validate and install
 refused) where the reference renames the file to one named `<<kotorDirectory>>`. The
-check fails unless Rust refuses. `KNOWN_ACCEPTS` holds
+check fails unless Rust refuses. `KNOWN_ACCEPTS` held
 `extract_destination_mod_root` (pipeline only): the reference's archive/destination
-stage fails every Extract that has a Destination and Rust's passes (predates this
-slice); the check fails unless Rust accepts where the reference refuses.
+stage fails every Extract that has a Destination and Rust's passed (predated this
+slice). Since [extract-destination](../extract-destination-contract.md) Rust's basic
+report fails it too, so it matches and `KNOWN_ACCEPTS` is empty.
 `KNOWN` also holds the `validate` and `install` checks of `copy_kotor_dot`,
 `copy_override_dot` and `move_kotor_dot` (six checks): the reference install here is
 `ModComponent.InstallAsync` alone, which copies into a `.` Destination part, while the
@@ -53,6 +54,7 @@ C# CLI `install` validates first and refuses it, as Rust does since the
 | `6e67b3c` (first fix) | 102 match / 4 known difference / 17 fail |
 | `8c79761` (pre-fix) | 74 match / 4 known difference / 45 fail |
 | after [destination-path-parts](../destination-path-parts-contract.md), recorded reference | 113 match / 10 known difference / 0 fail |
+| after [extract-destination](../extract-destination-contract.md), recorded reference | 114 match / 9 known difference / 0 fail |
 
 On `6e67b3c` the 17 failures are: DelDuplicate and CleanList into `KD/.` and `OV/.`
 (dry run, validate and install accepted and deleted; 12), the bare-root Extract cases

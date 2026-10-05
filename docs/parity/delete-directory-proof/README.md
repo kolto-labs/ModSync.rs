@@ -93,8 +93,11 @@ executable `MD/x/run.sh` that writes `MD/x/ran.txt`. The Execute/Run cases pass
 
 Known differences (`KNOWN` in the probe) must be refusals in Rust where the
 reference accepts, or the check fails. `KNOWN_ACCEPTS` (only `extract_nested_dir`,
-all three checks) must be acceptances in Rust where the reference refuses or skips:
-Extract keeps the folder rule for FOMOD root-folder flows.
+plain `validate` and `install`; all three checks before extract-destination) must be
+acceptances in Rust where the reference refuses or skips: Extract keeps the folder
+rule for FOMOD root-folder flows. `KNOWN_LAYOUT` (only
+`extract_bracket_file_literal`, install) must be an install in both whose Rust tree is
+the reference's with the named folders renamed.
 
 - `copy_dir_and_file_omitted` and `rename_present_and_wildcard_nomatch`, all three
   checks each: Rust requires every Source to match (F05-X2); the reference drops
@@ -104,6 +107,19 @@ Extract keeps the folder rule for FOMOD root-folder flows.
 - `extract_bracket_literal` dry run: any missing Extract archive is a
   ComponentValidation error in Rust's full report (also on `2241235`); the
   reference only skips. Validate and install match.
+- Since [extract-destination](../extract-destination-contract.md) (2026-10-05):
+  `extract_bracket_file_literal` and `extract_nested_dir` dry runs: Rust's basic
+  report fails an Extract with a Destination, as the C# CLI's does
+  (ComponentValidation); this reference runs `DryRunValidator` alone and passes.
+  `extract_bracket_file_literal` install (`KNOWN_LAYOUT`): Rust, like the C# CLI,
+  never uses an Extract Destination and extracts to `[e]xample/`; the reference
+  `ModComponent.InstallAsync` alone extracts into `bracket/`.
+
+## Results after extract-destination (cloud Linux, 2026-10-05)
+
+| Binary | Result |
+| --- | --- |
+| extract-destination, recorded reference | 167 match / 13 known difference / 0 fail |
 
 ## Results of the third follow-up (cloud Linux, 2026-10-04)
 

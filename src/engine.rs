@@ -314,6 +314,14 @@ pub(crate) fn is_archive(name: &str) -> bool {
     )
 }
 
+/// Where an Extract unpacks `source`: a folder named after the archive's stem, next
+/// to the archive. A step's Destination is never used, as in C#: validation
+/// (`ComponentValidation.ParseDestinationWithAction`, AttemptFixes on by default)
+/// clears an Extract Destination before the dry run and the install.
+fn extraction_destination(source: &Path) -> PathBuf {
+    source.parent().unwrap().join(source.file_stem().unwrap())
+}
+
 /// A resolver miss remains an error for strict validation and installation.
 #[derive(Debug)]
 struct MissingSource(String);
@@ -1015,9 +1023,9 @@ impl Engine {
                     .completed
                     .contains(&crate::guid::key_ascii(&component.guid))
         }) {
-            // Missing archives and missing Destination folders are one error per
-            // step, as the reference lists them; any other failure stops this
-            // component's checks with one error.
+            // Missing archives and Destination errors are one error per step, as
+            // the reference lists them; any other failure stops this component's
+            // checks with one error.
             let outcome = match self.validate_component_archives(component, full_validation) {
                 Ok(missing) if missing.is_empty() => Ok(()),
                 Ok(missing) => Err(missing
@@ -1043,7 +1051,8 @@ impl Engine {
     }
 
     /// Returns the reference's per-step errors, if any: `Missing Required Archives`,
-    /// or else `Destination cannot be found!`. Other failures are errors.
+    /// or else `Destination cannot be found!` and `'Destination' key cannot be used
+    /// with this action`. Other failures are errors.
     ///
     /// In the full pipeline C#'s Environment stage has already run these checks with
     /// AttemptFixes and created each missing Destination folder it could, so this
@@ -1086,7 +1095,7 @@ impl Engine {
             }
             for source in self.matches(&instruction.source, true)? {
                 has_archives = true;
-                let dest = self.extraction_destination(instruction, &source)?;
+                let dest = extraction_destination(&source);
                 self.settings.roots.check(&dest)?;
                 ensure!(
                     !self.files.contains_key(&self.path_policy.key(&dest)),
@@ -1130,15 +1139,16 @@ impl Engine {
                 .collect());
         }
         // C# `ParseDestinationWithAction` reports each step whose Destination folder is
-        // missing and goes on; any other failure still ends this component's checks.
-        let mut missing_destinations = Vec::new();
+        // missing, or that has a Destination its action cannot use, and goes on; any
+        // other failure still ends this component's checks.
+        let mut step_errors = Vec::new();
         for instruction in instructions {
             self.check_cancelled()?;
             match instruction.action.as_str() {
                 "Copy" | "Move" | "CleanList" | "DelDuplicate"
                     if instruction.destination.is_empty() =>
                 {
-                    missing_destinations.push("Destination cannot be found! Got ''".to_owned());
+                    step_errors.push("Destination cannot be found! Got ''".to_owned());
                 }
                 "Copy" | "Move" | "CleanList" | "DelDuplicate" => {
                     let dest = self.path(&instruction.destination, false)?;
@@ -1149,7 +1159,7 @@ impl Engine {
                         && self.folder_creatable(&dest);
                     // C# PathValidator.IsValidPath refuses these parts.
                     if invalid_destination(&instruction.destination) || missing && !created {
-                        missing_destinations.push(format!(
+                        step_errors.push(format!(
                             "Destination cannot be found! Got '{}'",
                             self.shown_destination(&dest)
                         ));
@@ -1169,6 +1179,17 @@ impl Engine {
                             "Patcher destination must be the game directory"
                         );
                     }
+                }
+                // C# reports the Destination, then clears it (AttemptFixes). In the
+                // full pipeline its Environment stage has already cleared it, so only
+                // the basic report fails. Rust never uses it (`extraction_destination`).
+                "Extract" | "Choose" | "Delete"
+                    if !full_validation && !instruction.destination.is_empty() =>
+                {
+                    step_errors.push(format!(
+                        "'Destination' key cannot be used with this action. Got '{}'",
+                        instruction.destination
+                    ));
                 }
                 "Extract" | "Choose" | "Delete" | "Execute" | "Run" => {}
                 other => bail!("Unsupported action {other}; refusing to skip it"),
@@ -1197,7 +1218,7 @@ impl Engine {
                 );
             }
         }
-        Ok(missing_destinations)
+        Ok(step_errors)
     }
 
     /// Whether `Directory.CreateDirectory` could create this missing folder: no file
@@ -2307,22 +2328,6 @@ impl Engine {
         Ok(paths)
     }
 
-    fn extraction_destination(&self, instruction: &Instruction, source: &Path) -> Result<PathBuf> {
-        let default = source.parent().unwrap().join(source.file_stem().unwrap());
-        if instruction.destination.is_empty() {
-            Ok(default)
-        } else {
-            let path = self.path(&instruction.destination, false)?;
-            Ok(
-                if self.path_policy.key(&path) == self.path_policy.key(source.parent().unwrap()) {
-                    default
-                } else {
-                    path
-                },
-            )
-        }
-    }
-
     fn actual(&self, path: &Path) -> PathBuf {
         if let Some((p, _)) = self.files.get(&self.path_policy.key(path)) {
             return p.clone();
@@ -2498,13 +2503,23 @@ impl Engine {
             }
             "Extract" => {
                 if !i.destination.is_empty() {
+                    // Still refused when unsafe (fail closed), though never used.
                     self.path(&i.destination, false)?;
+                    emit(Event {
+                        component: component.name.clone(),
+                        step: 0,
+                        message: format!(
+                            "Extract Destination '{}' is not used; each archive extracts \
+                             to a folder named after it, next to the archive",
+                            i.destination
+                        ),
+                    });
                 }
                 let mut resolution = self.resolve_instruction(component, i)?;
                 self.publish_resolution(&mut resolution)?;
                 for source in resolution.sources {
                     let content = self.files[&self.path_policy.key(&source)].1.clone();
-                    let dest = self.extraction_destination(i, &source)?;
+                    let dest = extraction_destination(&source);
                     let entries = archive::unpack(
                         content.path()?,
                         &source,

@@ -466,7 +466,7 @@ impl Engine {
             .context("Resolved archive vanished from VFS")?
             .1
             .clone();
-        let dest = self.extraction_destination(instruction, source)?;
+        let dest = extraction_destination(source);
         self.settings.roots.check(&dest)?;
         ensure!(
             !self.files.contains_key(&self.path_policy.key(&dest)),

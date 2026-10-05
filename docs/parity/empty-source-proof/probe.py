@@ -167,6 +167,15 @@ def run_csharp(dll, reference, mode, instructions, work):
 # (see COMPATIBILITY.md: missing sources are strict outside the dry-run report).
 MODES = {"dryrun": ("validate", True), "validate": ("install", False), "install": ("install", False)}
 
+# Known differences: name -> (Rust modes, reason). The Rust result must be a refusal
+# where the reference accepts, or the check fails. Since the extract-destination slice
+# (../extract-destination-contract.md) Rust's basic report fails an Extract with a
+# Destination, as the C# CLI's does (ComponentValidation); this reference's dry run is
+# DryRunValidator alone.
+_DESTINATION = ("an Extract Destination fails Rust's basic report, as in the C# CLI's "
+                "(extract-destination); this reference runs DryRunValidator alone")
+KNOWN = {"extract_empty": (("dryrun",), _DESTINATION), "extract_nokey": (("dryrun",), _DESTINATION)}
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -189,7 +198,7 @@ def main():
         else:
             with open(ORACLE) as handle:
                 oracle = json.load(handle)
-        matched = failed = 0
+        matched = known = failed = 0
         for name, steps in CASES.items():
             for mode, (reference_mode, compare_skip) in MODES.items():
                 expected = oracle[name][reference_mode]
@@ -198,18 +207,23 @@ def main():
                 same = actual["accepted"] == expected["accepted"] and actual["tree"] == expected_tree
                 if compare_skip:
                     same = same and actual["skipped"] == expected["skipped"]
-                if same:
-                    matched += 1
+                is_known = name in KNOWN and mode in KNOWN[name][0]
+                if same and not is_known:
+                    verdict = "match"
+                elif is_known and not same and not actual["accepted"]:
+                    verdict = "known"
                 else:
-                    failed += 1
-                verdict = "match" if same else "FAIL"
+                    verdict = "FAIL"
+                matched += verdict == "match"
+                known += verdict == "known"
+                failed += verdict == "FAIL"
                 skip = f" skipped={actual['skipped']}/{expected['skipped']}" if compare_skip else ""
                 print(
                     f"{verdict:5} {name}/{mode}: rust accepted={actual['accepted']} tree={actual['tree']}"
                     f" | reference accepted={expected['accepted']} tree={expected_tree}{skip}"
                     + (f" | rust: {actual['stderr_tail'][0]}" if actual["stderr_tail"] else "")
                 )
-        print(f"{matched} match / {failed} fail")
+        print(f"{matched} match / {known} known difference / {failed} fail")
         return 1 if failed else 0
     finally:
         shutil.rmtree(work, ignore_errors=True)

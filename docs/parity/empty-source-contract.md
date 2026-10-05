@@ -111,6 +111,12 @@ non-strict empty Delete, and the dry-run report was wrong for every case.
   Source`), as it fails plain `validate` and the C# report; the archive stage itself
   still passes it. This is the CLI report only; the desktop report always includes a
   dry run and is unchanged. See [plain-report-simulation-contract.md](plain-report-simulation-contract.md).
+- **An Extract Destination (since
+  [extract-destination-contract.md](extract-destination-contract.md)).** The
+  `extract_empty` and `extract_nokey` cases name Destination `Override`, which Rust's
+  basic report now fails, as the C# CLI's ComponentValidation stage does; the
+  reference here is `DryRunValidator` alone, which passes. The proof counts those two
+  dry-run checks as known differences (49 match / 2 known / 0 fail).
 - **Proof coverage.** The probe covers TOML only; the other loaders were checked by
   hand in review of 29f9d59.
 

@@ -409,7 +409,7 @@ Reference: the local ModSync C# source at `d31ccbd3bfcddb4705917eafa6483715c166d
 | Selection | File selections, select-all when all components are unselected; explicit CLI components/options; desktop dependency/restriction and deselection cascades across components and options | Native interaction and full Unicode GUID-comparison parity remain open |
 | Ordering | C# install order (breadth-first over Dependencies and InstallBefore/After from the resolver's order; Markdown by Dependencies only; `--direct-markdown` in source order), restrictions, instruction conditions; validate and install refuse a bad InstallBefore/After reference anywhere in a non-Markdown guide | Missing references and cycles fail; phased installs keep widescreen-only components after the base build |
 | Options | Choose resolves selected option GUIDs in declared option order; an entry names an option only as its hyphenated GUID (any case), as in C# | No automatic choice inference; an entry that names no option is refused, where C# ignores it |
-| File operations | Copy, Move, Rename, Delete, Extract, DelDuplicate, CleanList | Copy/Move flatten matched files into the target, as the C# instruction engine does; a Copy/Move whose target is the source itself is skipped with a warning when `Overwrite = false` and refused otherwise; Delete with `Overwrite = true` fails on a missing file, as C# does; a Rename Destination is one file name in the source's folder, as in C# (a placeholder path, a folder part or a name that is not a valid Windows file name is refused); a Delete with no Source is a no-op unless `Overwrite = true`; Extract replaces existing files whatever `Overwrite` says, as C# does (configured FOMOD extraction with `Overwrite = false` is refused instead; C# keeps an existing directory or read-only file at an entry path and succeeds, where Rust fails on the directory and replaces the read-only file) |
+| File operations | Copy, Move, Rename, Delete, Extract, DelDuplicate, CleanList | Copy/Move flatten matched files into the target, as the C# instruction engine does; a Copy/Move whose target is the source itself is skipped with a warning when `Overwrite = false` and refused otherwise; Delete with `Overwrite = true` fails on a missing file, as C# does; a Rename Destination is one file name in the source's folder, as in C# (a placeholder path, a folder part or a name that is not a valid Windows file name is refused); a Delete with no Source is a no-op unless `Overwrite = true`; Extract always extracts into a folder named after the archive, next to it, whatever its Destination, as the C# CLI and GUI do (their validation clears an Extract Destination), and replaces existing files whatever `Overwrite` says, as C# does (configured FOMOD extraction with `Overwrite = false` is refused instead; C# keeps an existing directory or read-only file at an entry path and succeeds, where Rust fails on the directory and replaces the read-only file) |
 | Archives | Streaming ZIP, 7z, RAR, TAR, GZip and 7z SFX; integrity checks; isolated extraction root; `[`/`]` in member names are ordinary characters, as in C# | No encrypted/multipart archives; SFX support is limited to embedded 7z payloads; empty directories are not materialized; a member named with `*` or `?` fails the archive (fail-closed) |
 | CleanList | C# comma-separated rows, mandatory prefix, substring and token matching; a listed name no file can have is skipped, `[`/`]` literal | `..`, absolute, drive-qualified, trailing-dot and device names refused (fail-closed); final file sets still need full-build differential acceptance |
 | Texture cleanup | Removes requested extension when another compatible extension shares its basename | This is not content-hash deduplication |
@@ -1196,7 +1196,8 @@ by `guide-edit` without `Overwrite` (the model default is `true`), fails `valida
 and `install`. No guide that passed before can now fail; only empty non-strict
 Deletes change from failing to passing. Evidence:
 [empty-source proof](docs/parity/empty-source-proof/README.md), 51/51 checks against a
-live reference oracle (26 fail on `fba4eb1`); contract in
+live reference oracle (26 fail on `fba4eb1`; 49 match / 2 known since
+extract-destination); contract in
 [empty-source-contract.md](docs/parity/empty-source-contract.md).
 
 Exceptions: a scalar empty Source in XML or Markdown metadata is not an empty list (see
@@ -1373,7 +1374,9 @@ content. Unchanged: a configured FOMOD archive with `Overwrite = false` is still
 refused when any of its paths exists (the provenance guard above, a deliberate
 fail-closed choice); Copy and Move still warn and skip, and Rename still fails, with
 `Overwrite = false`. Evidence: [extract-overwrite proof](docs/parity/extract-overwrite-proof/README.md),
-20/20 checks against a live reference oracle (5 fail on `5905259`); contract in
+20/20 checks against a live reference oracle (5 fail on `5905259`; since
+extract-destination 4 match / 16 known, the cases with a Destination compared with the
+live C# CLI instead); contract in
 [extract-overwrite-contract.md](docs/parity/extract-overwrite-contract.md). The
 reference dry run nests every extraction under an archive-named folder, unlike its own
 install; that inconsistency is recorded there and not copied.
@@ -1461,7 +1464,7 @@ refused in Rust; C# renames the file to one literally named `<<kotorDirectory>>`
 (fail-closed, deliberate). Evidence: [root-destination
 proof](docs/parity/root-destination-proof/README.md), 119 checks match and 4 are
 known differences against a live reference oracle (45 fail on `8c79761`; 113 / 10
-since destination-path-parts); contract in
+since destination-path-parts, 114 / 9 since extract-destination); contract in
 [root-destination-contract.md](docs/parity/root-destination-contract.md).
 
 Guide authors: `<<kotorDirectory>>` on its own is a valid Destination for Copy, Move,
@@ -2126,6 +2129,33 @@ Users: a guide whose Rename gives a new name such as `name..tga`, a name with a 
 character, `./name.tga` or `name.tga/` now stops before installing anything. Write the
 new name as one plain file name (`name.tga`).
 
+## Extract with a Destination — 2026-10-05 UTC
+
+An `Extract` step now always extracts into a folder named after the archive, next to
+it (`mods/m/` for `<<modDirectory>>/m.zip`), whatever its `Destination`, as the C#
+CLI and GUI do: C# validation (`ComponentValidation`, with AttemptFixes, on by
+default) clears an Extract Destination before the dry run and the install. Rust
+extracted into the Destination, so `Extract m.zip -> <<kotorDirectory>>/Override`
+wrote the archive's files, readme included, into `Override`, and a later step written
+for C#'s layout (`Move <<modDirectory>>/m/Override/*`) failed validation and install.
+The basic report (`validate --output json --dry-run` without `--full`) now fails an
+Extract, Choose or Delete step with a Destination (`'Destination' key cannot be used
+with this action`), one error per step, as C#'s does; the full report and the desktop
+Validate step pass it, as C#'s Environment stage has already cleared it. A
+Destination Rust refuses as a path (outside the roots, `..`) is still refused before
+any write, though it is not used; C# clears it and installs (fail closed, kept). The
+install and dry run log `Extract Destination '...' is not used`. Evidence: [Extract
+Destination proof](docs/parity/extract-destination-proof/README.md), 82 checks match
+and 9 are known differences against the live C# CLI (41 fail on `c0e9cef`); contract
+in [extract-destination-contract.md](docs/parity/extract-destination-contract.md).
+The root-destination, delete-directory, empty-source, extract-overwrite and FOMOD
+S2b proofs were updated for it (see the contract).
+
+Users: an `Extract` step with a `Destination` no longer extracts there; its files are
+in the folder named after the archive, next to it, and later steps must name them
+there, as in C#. Remove the Destination from Extract steps; the basic validation
+report fails it.
+
 ## A patcher without changes.ini in the validation dry run — 2026-10-04 UTC
 
 When a component's `Patcher` step finds its patcher executable but no `changes.ini`
@@ -2249,7 +2279,7 @@ missing source, and its new `scope_bracket_literal_*` checks install an archive
 literally so named (265 checks). Evidence:
 [delete-directory proof](docs/parity/delete-directory-proof/README.md), 169 checks
 match and 11 are known differences against a live reference oracle (4 fail on
-`ab6b389`, 13 on `df67229`); contract in
+`ab6b389`, 13 on `df67229`; 167 / 13 since extract-destination); contract in
 [delete-directory-contract.md](docs/parity/delete-directory-contract.md).
 
 Guide authors: `Delete`, `Copy`, `Move`, `Rename`, `CleanList`, `Execute` and `Run` act on

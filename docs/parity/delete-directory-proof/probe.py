@@ -301,16 +301,52 @@ KNOWN = {
         "Extract keeps the folder rule; Rust tries to unpack the folder's files and reports an error, C# skips",
     ),
 }
+# Since the extract-destination slice (../extract-destination-contract.md) Rust's
+# basic report fails an Extract with a Destination, as the C# CLI's does
+# (ComponentValidation); this reference's dry run is DryRunValidator alone.
+_DESTINATION = ("an Extract Destination fails Rust's basic report, as in the C# CLI's "
+                "(extract-destination); this reference runs DryRunValidator alone")
+KNOWN["extract_bracket_file_literal"] = (("dryrun",), _DESTINATION)
+KNOWN["extract_nested_dir"] = (("dryrun",), _DESTINATION)
 
 
 # Deliberately unchanged acceptances: name -> (Rust modes, reason). The Rust result
 # must be an acceptance where the reference refuses, or the check fails.
 KNOWN_ACCEPTS = {
     "extract_nested_dir": (
-        ("dryrun", "validate", "install"),
+        ("validate", "install"),
         "Extract keeps the folder rule (FOMOD root-folder flows); Rust extracts n/deep.zip, C# MissingSourceFiles",
     ),
 }
+
+
+# Known layout differences: name -> (Rust modes, {reference mod folder: Rust mod
+# folder}, reason). Both install; Rust's tree must be the reference's with those
+# folders renamed, or the check fails. The reference install is InstallAsync alone,
+# which extracts into the Destination; the C# CLI and GUI clear an Extract
+# Destination in validation first and extract next to the archive, as Rust does
+# since the extract-destination slice.
+KNOWN_LAYOUT = {
+    "extract_bracket_file_literal": (
+        ("install",),
+        {"bracket/": "[e]xample/"},
+        "an Extract Destination is not used (extract-destination): Rust and the C# CLI extract to"
+        " [e]xample/, the reference InstallAsync into the Destination bracket/",
+    ),
+}
+
+
+def renamed(tree, folders):
+    """`tree` with each mod path under a key of `folders` moved under its value."""
+    if tree is None:
+        return None
+    mods = {}
+    for path, text in tree["mods"].items():
+        for old, new in folders.items():
+            if path.startswith(old):
+                path = new + path[len(old):]
+        mods[path] = text
+    return dict(tree, mods=dict(sorted(mods.items())))
 
 
 # Rust mode -> (reference mode, compare the dry-run skip classification).
@@ -350,9 +386,19 @@ def main():
                 refused = not actual["accepted"] or (compare_skip and actual["skipped"])
                 is_known = name in KNOWN and mode in KNOWN[name][0]
                 accepts = name in KNOWN_ACCEPTS and mode in KNOWN_ACCEPTS[name][0]
-                if same and not is_known and not accepts:
+                layout = name in KNOWN_LAYOUT and mode in KNOWN_LAYOUT[name][0]
+                if same and not is_known and not accepts and not layout:
                     matched += 1
                     verdict = "match"
+                elif (
+                    layout
+                    and not same
+                    and actual["accepted"]
+                    and expected["accepted"]
+                    and actual["tree"] == renamed(expected_tree, KNOWN_LAYOUT[name][1])
+                ):
+                    known += 1
+                    verdict = "known"
                 elif (
                     accepts
                     and not same
