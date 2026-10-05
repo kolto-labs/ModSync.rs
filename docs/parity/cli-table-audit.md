@@ -67,7 +67,7 @@ C# successful handlers normally return `0`, errors `1`; validation can propagate
 
 | C# flag | C# default/shape | Rust flag | Status and reason | Referent |
 |---|---|---|---|---|
-| `-i/--input` | optional path | `-i/--input`, plus positional input | **differing** — Rust adds positional form and explicit conflicts | C# MBC:388-389; `src/main.rs:155-163` |
+| `-i/--input` | optional path | `-i/--input`, plus positional input | **differing** — Rust adds positional form and explicit conflicts 2026-10-05: a guide that is not a file gives C#'s `Input file not found: <path>` ([missing-guides-contract.md](missing-guides-contract.md)) | C# MBC:388-389; `src/main.rs:155-163` |
 | `-o/--output` | optional; stdout if absent | `-o/--output`, plus positional output | **differing** — Rust named output does not drive format inference | C# MBC:391-395; `src/main.rs:156-166,780-792` |
 | `-f/--format` | `toml` | `-f/--format` optional; positional output extension may choose default | **differing** | C# MBC:394-395; `src/main.rs:164-166,780-786` |
 | `-a/--auto` | false | none | **missing** | C# MBC:397-398; `src/main.rs:154-178` |
@@ -107,9 +107,9 @@ The C# legacy `convert --merge` adapter also drops `concurrent`, `ignore-errors`
 
 | C# flag | C# default/shape | Rust flag | Status and reason | Referent |
 |---|---|---|---|---|
-| `-e/--existing` | required | positional `EXISTING` | **differing** — alias/grammar | C# MBC:488-489; `src/main.rs:110-113` |
-| `-n/--incoming` | required | positional `INCOMING` | **differing** — alias/grammar | C# MBC:491-492; `src/main.rs:110-113` |
-| `-o/--output` | optional; stdout if absent | positional `OUTPUT`, required | **differing** | C# MBC:494-498; `src/main.rs:110-113,736-737` |
+| `-e/--existing` | required | positional `EXISTING` | **differing** — alias/grammar 2026-10-05: a guide that is not a file gives C#'s `Existing file not found: <path>` ([missing-guides-contract.md](missing-guides-contract.md)) | C# MBC:488-489; `src/main.rs:110-113` |
+| `-n/--incoming` | required | positional `INCOMING` | **differing** — alias/grammar 2026-10-05: a guide that is not a file gives C#'s `Incoming file not found: <path>` ([missing-guides-contract.md](missing-guides-contract.md)) | C# MBC:491-492; `src/main.rs:110-113` |
+| `-o/--output` | optional; stdout if absent | positional `OUTPUT`, required | **differing** 2026-10-05 observation: the current binary also accepts `-o/--output` and prints to stdout without an output, as C# does; this row is stale and was not re-audited ([missing-guides-contract.md](missing-guides-contract.md)) | C# MBC:494-498; `src/main.rs:110-113,736-737` |
 | `-f/--format` | `toml` | inferred from output | **differing** | C# MBC:497-498; `src/main.rs:714-737` |
 | `-d/--download` | false | none | **missing** | C# MBC:500-501; `src/main.rs:109-140` |
 | `-s/--select` | repeatable | none | **missing** (since added: `-s, --select`, one value per flag; see [select-values-contract.md](select-values-contract.md)) | C# MBC:503-504; `src/main.rs:109-140` |
