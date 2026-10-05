@@ -1176,6 +1176,13 @@ impl Engine {
             unknown,
             mut missing,
         } = self.archive_members(&instructions)?;
+        // C# reports an own Extract with no Source (`Missing Required Archives: []`)
+        // only when the component has no archive; otherwise execution refuses it as
+        // a missing source, as C#'s install does.
+        missing.retain(|instruction| {
+            !instruction.source.is_empty()
+                || (!has_archives && is_top_level(component, instruction))
+        });
         if !missing.is_empty() {
             // C# `ComponentValidation.VerifyExtractPaths`: when none of the component's
             // archives exists, each top-level Extract is one error naming its Sources,
@@ -1306,11 +1313,11 @@ impl Engine {
 
     /// Every file the given Extract steps would extract (keys of their paths in the
     /// folder named after each archive), whether any of their archives exists, and
-    /// the Extract steps with a Source that names no file. Lists the archives
-    /// without extracting them. An archive of a step that runs must be listable (its
-    /// Extract fails otherwise); one only an option that is not chosen extracts is
-    /// skipped when it cannot be listed (`unknown`), as C# opens it only when a
-    /// Source needs it.
+    /// the Extract steps with no Source or with a Source that names no file. Lists
+    /// the archives without extracting them. An archive of a step that runs must be
+    /// listable (its Extract fails otherwise); one only an option that is not chosen
+    /// extracts is skipped when it cannot be listed (`unknown`), as C# opens it only
+    /// when a Source needs it.
     fn archive_members<'a>(
         &self,
         instructions: &[(&'a Instruction, bool)],
@@ -1323,9 +1330,12 @@ impl Engine {
         };
         for &(instruction, runs) in instructions {
             self.check_cancelled()?;
-            // An Extract with no Source names no archive to check; execution
-            // reports it as a missing source, as C# does.
-            if instruction.action != "Extract" || instruction.source.is_empty() {
+            if instruction.action != "Extract" {
+                continue;
+            }
+            // An Extract with no Source names no archive to inspect.
+            if instruction.source.is_empty() {
+                found.missing.push(instruction);
                 continue;
             }
             for source in &instruction.source {
@@ -2411,8 +2421,11 @@ impl Engine {
         self.matches_scoped(sources, missing_ok, true)
     }
 
-    /// With `descendants` false, a Source names only the files its literal or
-    /// wildcard path matches; a directory Source matches nothing beneath it.
+    /// The files the Sources name, in Source order as C# `SetRealPaths` lists them
+    /// (so a later Source's file wins a collision), each Source's own matches in key
+    /// order, and a file two Sources name only at its first place. With
+    /// `descendants` false, a Source names only the files its literal or wildcard
+    /// path matches; a directory Source matches nothing beneath it.
     fn matches_scoped(
         &self,
         sources: &[String],
@@ -2420,7 +2433,8 @@ impl Engine {
         descendants: bool,
     ) -> Result<Vec<PathBuf>> {
         ensure!(!sources.is_empty(), "Instruction has no Source");
-        let mut found = BTreeMap::new();
+        let mut seen = BTreeSet::new();
+        let mut found = Vec::new();
         for source in sources {
             let (path, pattern) = self.source_pattern(source)?;
             let prefix = self.source_prefix(&path);
@@ -2440,10 +2454,12 @@ impl Engine {
             }
             for (k, (p, _)) in matches {
                 self.settings.roots.check(p)?;
-                found.insert(k.clone(), p.clone());
+                if seen.insert(k) {
+                    found.push(p.clone());
+                }
             }
         }
-        Ok(found.into_values().collect())
+        Ok(found)
     }
 
     fn source_pattern(&self, source: &str) -> Result<(PathBuf, glob::Pattern)> {

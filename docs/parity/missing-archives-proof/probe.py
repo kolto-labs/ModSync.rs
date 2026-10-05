@@ -119,8 +119,6 @@ KNOWN = {
                             ["ERROR: A: Missing Required Archives: [<<modDirectory>>/nope.zip]"], FAIL_CLOSED),
     "option_present_base_missing": (("decision", "counts", "stage"),
                                     ["ERROR: A: Missing Required Archives: [<<modDirectory>>/nope.zip]"], FAIL_CLOSED),
-    "empty_source_only": (("decision", "counts", "stage"), ["OK: A"],
-                          "An Extract with no Source names no archive; Rust keeps the empty-source contract"),
     "conditional_present": (("decision", "counts", "stage"), ["OK: A"],
                             "C# reports a top-level Extract that does not run; Rust checks only steps that run"),
     "conditional_missing": (("decision", "counts", "stage"), ["OK: A"],

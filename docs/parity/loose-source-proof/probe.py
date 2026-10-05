@@ -139,6 +139,10 @@ CASES = {
     "unchosen_missing_loose": guide(extract(), copy("loose/x.tga"),
                                     option_steps=[extract("gone.zip")], option_selected=False),
     "improved_ai": guide(extract(), copy("loose/x.tga"), name="Improved AI"),
+    # Known, Rust accepts (fail-open): no archive Rust can list holds the loose Source,
+    # and the unchosen `dup.zip` cannot be listed, so it passes; C# opens `dup.zip`.
+    "unchosen_dup_loose": guide(extract(), copy("loose/x.tga"),
+                                option_steps=[extract("dup.zip")], option_selected=False),
     # Known, Rust accepts: C# matches members case-sensitively, and reads a
     # DelDuplicate's Sources (extensions) as paths.
     "member_case": guide(extract(), copy("M/OVERRIDE/A.TGA")),
@@ -173,7 +177,8 @@ FIXED = ("C# rewrites the Source to the doubled folder (AttemptFixes) and instal
 # Both basic reports fail it: C# keeps the first error after its fix.
 KNOWN["doubled_folder"] = {check: FIXED for check in ALL if check != "basic/decision"}
 # Rust's side of these is the result of a control case C# accepts with the same files.
-ACCEPTED = {"member_case": "member_copy", "delduplicate": "member_wildcard"}
+ACCEPTED = {"member_case": "member_copy", "delduplicate": "member_wildcard",
+            "unchosen_dup_loose": "improved_ai"}
 for name in ACCEPTED:
     KNOWN[name] = {check: "C# refuses; Rust accepts and installs (see the contract)"
                    for check in ALL}

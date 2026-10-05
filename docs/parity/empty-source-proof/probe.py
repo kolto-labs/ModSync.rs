@@ -17,12 +17,24 @@ accepted when it reports no Error issue) and ModComponent.InstallAsync with the
 real file system (install: accepted on InstallExitCode.Success), from the
 oracle in csharp-oracle/ built against ModSync.Core from d31ccbd3.
 
+Since the empty-extract-report slice every case is also compared with the C# CLI
+(csharp-cli-oracle.json): `validate --output json --full --dry-run` (`full`: exit
+code zero or not, and `success`) and `validate --output json --dry-run`
+(`basic_cli`: no error, and the ComponentValidation stage's error lines). Cases in
+CLI_ONLY have no InstallAsync result; their plain `validate` and `install` are
+compared with the C# CLI `install` (which validates first) instead.
+
 Usage:
-  probe.py [--bin target/debug/modsync] [--csharp path/to/probe.dll --reference DIR [--record]]
+  probe.py [--bin target/debug/modsync] [--csharp path/to/probe.dll --reference DIR]
+           [--cli-reference DIR] [--record]
 
 With --csharp, the reference oracle is run live (network namespace isolated
 with `unshare -rn`) instead of using the recorded results; --record also
-rewrites csharp-oracle.json from that run. See ../empty-source-contract.md.
+rewrites csharp-oracle.json from that run. With --cli-reference (the d31ccbd3
+build output holding ModSync.Core.dll), the C# CLI is run live on a copy with a
+HoloPatcher stub under `unshare -Urnm` (a tmpfs over `/Override` when it exists),
+with DOTNET_ROLL_FORWARD=Major; --record also rewrites csharp-cli-oracle.json.
+See ../empty-source-contract.md and ../empty-extract-report-contract.md.
 """
 import argparse
 import json
@@ -31,10 +43,12 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 ORACLE = os.path.join(HERE, "csharp-oracle.json")
+CLI_ORACLE = os.path.join(HERE, "csharp-cli-oracle.json")
 GUID = "22222222-2222-2222-2222-222222222222"
 COPY_AB = ("Copy", ["<<modDirectory>>/a.txt", "<<modDirectory>>/b.txt"], "<<kotorDirectory>>/Override", None)
 OV = "<<kotorDirectory>>/Override/"
@@ -70,7 +84,16 @@ CASES = {
     "extract_blank_nodest": [COPY_AB, step("Extract", [""], "")],
     "extract_nokey": [COPY_AB, step("Extract", NO_SOURCE, "<<kotorDirectory>>/Override")],
     "rename_empty_control": [COPY_AB, step("Rename", [], "x.txt")],
+    # An empty Extract beside an archive that exists: C# validation skips it, and the
+    # install fails at that step (MissingSourceFiles).
+    "extract_empty_beside_archive": [
+        step("Extract", [], ""),
+        step("Extract", ["<<modDirectory>>/m.zip"], ""),
+        step("Copy", ["<<modDirectory>>/m/c.txt"], "<<kotorDirectory>>/Override"),
+    ],
 }
+# Recorded against the C# CLI only (csharp-oracle.json predates them).
+CLI_ONLY = ("extract_empty_beside_archive",)
 
 
 def toml_string(value):
@@ -104,6 +127,9 @@ def fixture(root, instructions):
     for name, text in (("a.txt", "A\n"), ("b.txt", "B\n")):
         with open(os.path.join(mods, name), "w") as handle:
             handle.write(text)
+    if any("<<modDirectory>>/m.zip" in (sources or []) for _, sources, _, _ in instructions):
+        with zipfile.ZipFile(os.path.join(mods, "m.zip"), "w") as archive:
+            archive.writestr("c.txt", "C\n")
     path = os.path.join(root, "guide.toml")
     with open(path, "w") as handle:
         handle.write(guide(instructions))
@@ -112,12 +138,27 @@ def fixture(root, instructions):
 
 def tree(game):
     result = {}
-    for directory, _, files in os.walk(game):
+    for directory, dirs, files in os.walk(game):
+        dirs[:] = [d for d in dirs if d != ".modsync"]  # C# CLI bookkeeping
         for name in files:
             full = os.path.join(directory, name)
             with open(full) as handle:
                 result[os.path.relpath(full, game).replace(os.sep, "/")] = handle.read()
     return dict(sorted(result.items()))
+
+
+def report_view(mode, code, stdout):
+    """`full`: exit code zero or not, and `success`; `basic_cli`: no error, and the
+    ComponentValidation stage's error lines."""
+    report = json.loads(stdout[stdout.index("{"):])
+    if mode == "full":
+        return [code == 0, report.get("success")]
+    stage = next((s for s in report.get("stages") or [] if s["stage"] == "ComponentValidation"), {})
+    errors = [line for line in stage.get("messages") or [] if line.startswith("ERROR")]
+    return [report.get("errorCount") == 0, errors]
+
+
+REPORT_FLAGS = {"full": ["--full", "--dry-run"], "basic_cli": ["--dry-run"]}
 
 
 def run_rust(binary, mode, instructions, work):
@@ -129,8 +170,12 @@ def run_rust(binary, mode, instructions, work):
         argv += ["--scratch-dir", os.path.join(root, "scratch")]
     if mode == "dryrun":
         argv += ["--output", "json", "--dry-run"]
+    if mode in REPORT_FLAGS:
+        argv += ["--output", "json"] + REPORT_FLAGS[mode]
     env = dict(os.environ, HOME=os.path.join(root, "home"), XDG_CONFIG_HOME=os.path.join(root, "xdg"))
     done = subprocess.run(argv, capture_output=True, text=True, env=env, timeout=300)
+    if mode in REPORT_FLAGS:
+        return report_view(mode, done.returncode, done.stdout)
     accepted = done.returncode == 0
     result = {
         "accepted": accepted,
@@ -161,6 +206,40 @@ def run_csharp(dll, reference, mode, instructions, work):
     return {"accepted": accepted, "tree": tree(game) if accepted and mode == "install" else None, "raw": raw}
 
 
+def stub_reference(reference, work):
+    """A copy of the reference build with a HoloPatcher stub in its Resources folder."""
+    copy_dir = os.path.join(work, "reference")
+    shutil.copytree(reference, copy_dir, ignore=shutil.ignore_patterns("Logs"))
+    os.makedirs(os.path.join(copy_dir, "Resources"), exist_ok=True)
+    stub = os.path.join(copy_dir, "Resources", "holopatcher")
+    with open(stub, "w") as handle:
+        handle.write("#!/bin/sh\nexit 2\n")
+    os.chmod(stub, 0o755)
+    return copy_dir
+
+
+def run_cli(reference, mode, instructions, work):
+    """The C# CLI: the two reports, or `install` (it validates first, without
+    --skip-validation)."""
+    root = tempfile.mkdtemp(prefix=f"csharp-cli-{mode}-", dir=work)
+    path, mods, game = fixture(root, instructions)
+    script = 'if [ -d /Override ]; then mount -t tmpfs none /Override; fi; exec dotnet "$0" "$@"'
+    head = ["unshare", "-Urnm", "sh", "-c", script, os.path.join(reference, "ModSync.Core.dll")]
+    common = ["-i", path, "-s", mods, "-g", game]
+    if mode == "install":
+        argv = head + ["install"] + common + ["--no-checkpoint", "-y"]
+    else:
+        argv = head + ["validate"] + common + ["--output", "json"] + REPORT_FLAGS[mode]
+    env = dict(os.environ, HOME=os.path.join(root, "home"), XDG_CONFIG_HOME=os.path.join(root, "xdg"),
+               DOTNET_ROLL_FORWARD="Major", DOTNET_CLI_TELEMETRY_OPTOUT="1")
+    done = subprocess.run(argv, capture_output=True, text=True, env=env, cwd=root, timeout=600,
+                          stdin=subprocess.DEVNULL)
+    if mode == "install":
+        accepted = done.returncode == 0
+        return {"accepted": accepted, "tree": tree(game) if accepted else None}
+    return report_view(mode, done.returncode, done.stdout)
+
+
 # Rust mode -> (reference mode, compare the dry-run skip classification).
 # `validate --output json --dry-run` is the DryRunValidator counterpart. Plain
 # `validate` is Rust's strict install gate, so it must make the install decision
@@ -172,10 +251,12 @@ MODES = {"dryrun": ("validate", True), "validate": ("install", False), "install"
 # (../extract-destination-contract.md) Rust's basic report fails an Extract with a
 # Destination (the C# CLI basic report fails these cases on its empty-Source archive
 # check first); this reference's dry run is DryRunValidator alone.
-_DESTINATION = ("an Extract Destination fails Rust's basic report (extract-destination); "
-                "the C# CLI basic report fails on its empty-Source archive check first, "
-                "and this reference runs DryRunValidator alone")
-KNOWN = {"extract_empty": (("dryrun",), _DESTINATION), "extract_nokey": (("dryrun",), _DESTINATION)}
+# Since the empty-extract-report slice (../empty-extract-report-contract.md) Rust's
+# basic report fails an Extract with no Source in a component with no archive, as the
+# C# CLI basic report does (`Missing Required Archives: []`, compared in `basic_cli`).
+_CLI = ("Rust's basic report fails it as the C# CLI basic report does (`Missing "
+        "Required Archives: []`); this reference runs DryRunValidator alone")
+KNOWN = {name: (("dryrun",), _CLI) for name in ("extract_empty", "extract_blank_nodest", "extract_nokey")}
 
 
 def main():
@@ -183,14 +264,28 @@ def main():
     parser.add_argument("--bin", default=os.path.join(ROOT, "target", "debug", "modsync"))
     parser.add_argument("--csharp")
     parser.add_argument("--reference")
+    parser.add_argument("--cli-reference")
     parser.add_argument("--record", action="store_true")
     args = parser.parse_args()
-    work = tempfile.mkdtemp(prefix="empty-source-proof-")
+    work = tempfile.mkdtemp(prefix="empty-source-proof-", dir=os.environ.get("MODSYNC_PROOF_OUT"))
     try:
+        if args.cli_reference:
+            reference = stub_reference(os.path.abspath(args.cli_reference), work)
+            cli_oracle = {
+                name: {mode: run_cli(reference, mode, steps, work) for mode in ("full", "basic_cli", "install")}
+                for name, steps in CASES.items()
+            }
+            if args.record:
+                with open(CLI_ORACLE, "w") as handle:
+                    json.dump(cli_oracle, handle, indent=1, sort_keys=True)
+                    handle.write("\n")
+        else:
+            with open(CLI_ORACLE) as handle:
+                cli_oracle = json.load(handle)
         if args.csharp:
             oracle = {
                 name: {mode: run_csharp(args.csharp, args.reference, mode, steps, work) for mode in ("validate", "install")}
-                for name, steps in CASES.items()
+                for name, steps in CASES.items() if name not in CLI_ONLY
             }
             if args.record:
                 with open(ORACLE, "w") as handle:
@@ -201,8 +296,20 @@ def main():
                 oracle = json.load(handle)
         matched = known = failed = 0
         for name, steps in CASES.items():
+            for mode in REPORT_FLAGS:
+                actual = run_rust(args.bin, mode, steps, work)
+                expected = cli_oracle[name][mode]
+                verdict = "match" if actual == expected else "FAIL"
+                matched += verdict == "match"
+                failed += verdict == "FAIL"
+                print(f"{verdict:5} {name}/{mode}: rust={actual} | C# CLI={expected}")
             for mode, (reference_mode, compare_skip) in MODES.items():
-                expected = oracle[name][reference_mode]
+                if name in CLI_ONLY:
+                    if mode == "dryrun":
+                        continue  # compared as basic_cli
+                    expected, compare_skip = cli_oracle[name]["install"], False
+                else:
+                    expected = oracle[name][reference_mode]
                 actual = run_rust(args.bin, mode, steps, work)
                 expected_tree = expected["tree"] if mode == "install" else None
                 same = actual["accepted"] == expected["accepted"] and actual["tree"] == expected_tree
@@ -211,7 +318,8 @@ def main():
                 is_known = name in KNOWN and mode in KNOWN[name][0]
                 if same and not is_known:
                     verdict = "match"
-                elif is_known and not same and not actual["accepted"]:
+                elif (is_known and not same and not actual["accepted"]
+                      and not cli_oracle[name]["basic_cli"][0]):
                     verdict = "known"
                 else:
                     verdict = "FAIL"

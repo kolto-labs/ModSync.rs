@@ -1183,7 +1183,8 @@ this change every such step failed with the untyped `Instruction has no Source`.
 - **Copy, Move and Extract, any `Overwrite`**: the typed missing-source cause
   `<Action> has no Source`, as C# source resolution fails with `FileNotFoundPre`.
   Recovery (auto-extraction, subfolder variant, redundant Move) is not tried, and
-  archive validation and the FOMOD gate skip an Extract that names no archive.
+  archive validation and the FOMOD gate skip an Extract that names no archive (until
+  2026-10-05; see "An Extract with no Source in the validation reports" below).
 
 For the two failing forms: `validate --output json --dry-run` now reports `Skipped
 '<component>' during dry-run: source archives or files are not available.`
@@ -1197,7 +1198,8 @@ and `install`. No guide that passed before can now fail; only empty non-strict
 Deletes change from failing to passing. Evidence:
 [empty-source proof](docs/parity/empty-source-proof/README.md), 51/51 checks against a
 live reference oracle (26 fail on `fba4eb1`; 49 match / 2 known since
-extract-destination); contract in
+extract-destination; 86 match / 3 known of 89, with the live C# CLI, since
+empty-extract-report); contract in
 [empty-source-contract.md](docs/parity/empty-source-contract.md).
 
 Exceptions: a scalar empty Source in XML or Markdown metadata is not an empty list (see
@@ -1206,7 +1208,9 @@ an empty Extract, as C# component validation does. See the contract. (Superseded
 2026-10-04: the CLI report without `--dry-run` now also simulates the steps, so it
 refuses an empty Extract as plain `validate` does; the desktop report, which always
 includes a dry run, is unchanged and still passes it; see "Step simulation in the validation report without a dry
-run" below.)
+run" below. Superseded 2026-10-05 for a component with no archive that exists: every
+report, the desktop's included, fails an empty Extract there with `Missing Required
+Archives: []`; see "An Extract with no Source in the validation reports" below.)
 
 ## Scalar empty Source in XML and Markdown — 2026-10-04 UTC
 
@@ -1376,7 +1380,8 @@ fail-closed choice); Copy and Move still warn and skip, and Rename still fails, 
 `Overwrite = false`. Evidence: [extract-overwrite proof](docs/parity/extract-overwrite-proof/README.md),
 20/20 checks against a live reference oracle (5 fail on `5905259`; since
 extract-destination 4 match / 16 known, the cases with a Destination compared with the
-live C# CLI instead, its `stale_*` cases refused since loose-source); contract in
+live C# CLI instead, its `stale_*` cases refused since loose-source; 14 match / 16 known
+with five Destination-free `same_stem_*` cases since source-order); contract in
 [extract-overwrite-contract.md](docs/parity/extract-overwrite-contract.md). The
 reference dry run nests every extraction under an archive-named folder, unlike its own
 install; that inconsistency is recorded there and not copied.
@@ -1751,11 +1756,13 @@ run are unaffected.
 Unchanged and documented: Rust still reports a missing archive when the component's
 other archives exist, or when the Extract is in an option; C# passes the stage then,
 and its install fails at that Extract. Rust does not report an Extract that does not
-run (an unmet instruction dependency) or one with no Source; C# does when the
-component has no archive. Other archive-stage failures keep their Rust wording.
-Evidence: [missing archives proof](docs/parity/missing-archives-proof/README.md), 47
-checks match and 22 are known differences against the live C# CLI (27 fail on
-`3024e4d`); contract in
+run (an unmet instruction dependency); C# does when the component has no archive.
+(An Extract with no Source is reported as in C# since 2026-10-05; see "An Extract
+with no Source in the validation reports" below.) Other archive-stage failures keep
+their Rust wording. Evidence: [missing archives
+proof](docs/parity/missing-archives-proof/README.md), 47 checks match and 22 are known
+differences against the live C# CLI (27 fail on `3024e4d`; 50 match / 19 known since
+2026-10-05); contract in
 [missing-archives-contract.md](docs/parity/missing-archives-contract.md).
 
 Users: the Validate step now lists every missing download of a component, each named
@@ -2181,7 +2188,8 @@ matches the Source case-sensitively and reads DelDuplicate extensions as paths, 
 refuses both where Rust installs; C# rewrites a Source to a doubled archive folder
 (`d/d/...`) where Rust refuses it (fail closed, unchanged). Evidence: [Loose Source
 proof](docs/parity/loose-source-proof/README.md), 98 checks match and 49 are known
-differences against the live C# CLI (33 fail on `6ca4d35`); contract in
+differences against the live C# CLI (33 fail on `6ca4d35`; 98 match / 56 known since
+the fail-open case below was probed, 2026-10-05); contract in
 [loose-source-contract.md](docs/parity/loose-source-contract.md). The
 extract-overwrite proof's `stale_*` cases are now refused as by the C# CLI, and the
 FOMOD S2b and gate-scope proofs no longer copy a loose note in a component that
@@ -2191,6 +2199,56 @@ Users: in a component that extracts an archive, name only files that archive hol
 under the folder named after it (`<<modDirectory>>/m/...` for `m.zip`). Move a step
 that copies a loose file or another component's file into a component without an
 Extract step, or into the component that extracts that file.
+
+Fail-open, now probed (2026-10-05): when no archive Rust can list holds a loose
+Source and an option that is not chosen extracts an archive Rust cannot list (a
+case-duplicate entry, a link), Rust passes the Source and installs it; C# opens that
+archive, does not find the Source and refuses (`unchosen_dup_loose` in the proof, 7
+known checks).
+
+## An Extract with no Source in the validation reports — 2026-10-05 UTC
+
+An `Extract` step with no Source (`Source = []`, `Source = [""]` or no `Source` key)
+in a component none of whose Extract steps names an archive that exists now fails the
+validation reports' archive stage with `Missing Required Archives: []`, one error per
+such step, as C# `ComponentValidation.VerifyExtractPaths` does. The basic report
+(`validate --output json --dry-run`), the full report (`--full`, with or without
+`--dry-run`), `--phase remaining` and the desktop Validate step now fail it; before,
+the reports with a dry run passed it with a `DryRunSkipped` warning, while the C# CLI
+fails it (its full report in the Environment stage) and Rust's own plain `validate`
+and `install` refused it. Unchanged: plain `validate` and `install` still refuse it
+before any write, as the C# CLI `install` does; an empty Extract beside an archive
+that exists still passes the reports (as in C#) and fails plain `validate` and
+`install`; an empty Extract in an option is not reported, as in C#. Evidence: the
+[empty-source proof](docs/parity/empty-source-proof/README.md), now also compared with
+the live C# CLI, 86 checks match and 3 are known differences (7 fail on `b8b4d57`),
+and the [missing archives proof](docs/parity/missing-archives-proof/README.md), 50
+match and 19 known (3 fail on `b8b4d57`); contract in
+[empty-extract-report-contract.md](docs/parity/empty-extract-report-contract.md).
+
+Users: the Validate step now fails a component whose Extract step has no Source, as
+the install already did. Give the step the archive's path
+(`<<modDirectory>>/name.zip`), or remove it.
+
+## The order of a step's Sources — 2026-10-05 UTC
+
+A Copy, Move or Extract step now handles the files its Sources name in the order the
+Sources are written, as C# does (`Instruction.SetRealPaths`), so when two of them
+write the same file the later Source's file wins (with `Overwrite = false`, the first
+is kept). Before, Rust handled them in path order: `Copy [<<modDirectory>>/b/x.txt,
+<<modDirectory>>/a/x.txt] -> Override` installed `b`'s `x.txt` where C# installs
+`a`'s, and `Extract [pack.zip, pack.7z]` (both extracting to `pack/`) left
+`pack.zip`'s files where C# leaves `pack.7z`'s. Every check passed on both sides; only
+the installed files differed. A file two Sources name keeps its first place. The
+order within one wildcard stays path order (C# uses the directory listing order,
+which .NET does not define on Unix). Evidence: [source order
+proof](docs/parity/source-order-proof/README.md), 18/18 checks against the live C# CLI
+(5 fail on `b8b4d57`), and the five `same_stem_*` cases of the [extract-overwrite
+proof](docs/parity/extract-overwrite-proof/README.md) (2 fail on `b8b4d57`); contract in
+[source-order-contract.md](docs/parity/source-order-contract.md).
+
+Users: when two Sources of one step write the same file, the later one now wins, as in
+C#. Put the file you want to keep last in the Source list, or use two steps.
 
 ## A patcher without changes.ini in the validation dry run — 2026-10-04 UTC
 

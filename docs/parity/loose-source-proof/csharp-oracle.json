@@ -1394,6 +1394,73 @@
    ]
   ]
  },
+ "unchosen_dup_loose": {
+  "basic/counts": [
+   2,
+   0,
+   2
+  ],
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_dry/decision": [
+   false,
+   false
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    false
+   ]
+  ],
+  "install": [
+   false,
+   [
+    [
+     "game/Override/old.tga",
+     "old\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/d.zip",
+     "<archive>"
+    ],
+    [
+     "mods/dup.zip",
+     "<archive>"
+    ],
+    [
+     "mods/link.zip",
+     "<archive>"
+    ],
+    [
+     "mods/loose/x.tga",
+     "loose x\n"
+    ],
+    [
+     "mods/m.zip",
+     "<archive>"
+    ],
+    [
+     "mods/n.zip",
+     "<archive>"
+    ]
+   ]
+  ]
+ },
  "unchosen_link_archive": {
   "basic/counts": [
    0,

@@ -2,9 +2,10 @@
 
 Contract: [extract-overwrite-contract.md](../extract-overwrite-contract.md).
 
-[probe.py](probe.py) builds 10 disposable fixtures (ZIP archives written by
-Python, plus files that already exist where the archive extracts) and runs the
-production `modsync` two ways on a fresh copy of each, giving 20 checks:
+[probe.py](probe.py) builds 15 disposable fixtures (ZIP archives written by
+Python, a 7z archive written with the `7z` tool, plus files that already exist where
+the archive extracts) and runs the production `modsync` two ways on a fresh copy of
+each, giving 30 checks:
 
 - plain `validate`, Rust's strict install gate: the decision, against the
   reference install;
@@ -41,6 +42,20 @@ this probe has no netns guard variable.
 | `game_override_true` | the same, true | `Override/x.txt` = `OLD` | `NEW` |
 
 Every reference install succeeds.
+
+The five `same_stem_*` cases (2026-10-05) have no Destination: `pack.zip` holds
+`x.txt` = `FROM ZIP` and `z.txt`, `pack.7z` holds `x.txt` = `FROM 7Z` and `s.txt`, both
+extract to `pack/` over an existing `pack/x.txt` = `OLD`, and the guide then copies
+`pack/x.txt` into `Override`. They are compared with the C# CLI `install` only (see
+below):
+
+| Case | Extract step(s) | C# CLI `x.txt` |
+| --- | --- | --- |
+| `same_stem_false` | `pack.zip`, `pack.7z` in one step, false | `FROM 7Z` |
+| `same_stem_true` | the same, true | `FROM 7Z` |
+| `same_stem_reversed_false` | `pack.7z`, `pack.zip` in one step, false | `FROM ZIP` |
+| `same_stem_steps_false` | `pack.zip`, then `pack.7z`, both false | `FROM 7Z` |
+| `same_stem_steps_true` | the same, true | `FROM 7Z` |
 
 ## Since extract-destination (2026-10-05)
 
@@ -82,11 +97,21 @@ to `mods/pack/`; Rust gives the same.
 | loose-source, live C# CLI (`--cli-reference ... --record`), 2026-10-05 | 4 match / 16 known difference / 0 fail |
 | loose-source, recorded references | 4 match / 16 known difference / 0 fail |
 | `6ca4d35` (before loose-source), recorded references | 4 match / 10 known difference / 6 fail |
+| source-order, live C# CLI (`--cli-reference ... --record`), 2026-10-05 | 14 match / 16 known difference / 0 fail |
+| source-order, recorded references | 14 match / 16 known difference / 0 fail |
+| `b8b4d57` (before source-order), recorded references | 12 match / 16 known difference / 2 fail |
 
 On `5905259` the five `Overwrite = false` collisions fail the install check:
 `stale_false`, `stale_default_destination_false` and `game_override_false` keep
 `OLD`, and `two_archives_false` and `two_steps_false` keep `FROM A`. Validate
 passes in both builds, as the reference install does.
+
+On `b8b4d57` the installs of `same_stem_false` and `same_stem_true` fail: Rust
+extracted one step's archives in path order (`pack.7z` first), so `pack/x.txt` and
+`Override/x.txt` were `FROM ZIP`; the C# CLI extracts them in the order the step names
+them ([source-order-contract.md](../source-order-contract.md)). The other three
+`same_stem_*` cases match before and after. Both sides replace the existing file
+whatever `Overwrite` says.
 
 ## Reproduce
 
@@ -101,3 +126,5 @@ python3 docs/parity/extract-overwrite-proof/probe.py --cli-reference <ref> [--re
 
 The C# run needs the full reference output directory (`<ref>`) next to
 `ModSync.Core.dll`, so that its dependencies resolve.
+
+The `same_stem_*` fixtures need the `7z` command-line tool (`7z`, `7za` or `7zr`).

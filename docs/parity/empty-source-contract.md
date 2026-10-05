@@ -121,6 +121,16 @@ non-strict empty Delete, and the dry-run report was wrong for every case.
   in the tracker). The reference here is `DryRunValidator` alone, which passes. The
   proof counts those two dry-run checks as known differences (49 match / 2 known / 0
   fail).
+- **The reports' archive stage (since
+  [empty-extract-report-contract.md](empty-extract-report-contract.md), 2026-10-05).**
+  An own Extract with no Source in a component with no archive that exists now fails
+  the archive stage with `Missing Required Archives: []`, as C# `VerifyExtractPaths`
+  does, so the basic and full reports (with or without `--dry-run`) and the desktop
+  Validate step fail it; before, the reports with a dry run passed it with
+  `DryRunSkipped`. This supersedes the two notes above for that case. Beside an
+  archive that exists, the empty Extract still passes the reports (as in C#) and fails
+  plain `validate` and `install`. The proof now also compares both reports with the
+  live C# CLI (86 match / 3 known / 0 fail; 7 fail on `b8b4d57`).
 - **Proof coverage.** The probe covers TOML only; the other loaders were checked by
   hand in review of 29f9d59.
 

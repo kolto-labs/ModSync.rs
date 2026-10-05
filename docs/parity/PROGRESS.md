@@ -9,6 +9,27 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+An Extract with no Source in the reports (2026-10-05, F05/F08): an `Extract` with an
+empty Source list in a component with no archive that exists now fails the reports'
+archive stage with `Missing Required Archives: []`, as C# `VerifyExtractPaths` does,
+so the basic and full reports and the desktop Validate step fail it where the C# CLI
+does; the reports with a dry run passed it (`DryRunSkipped`) though plain `validate`
+and `install` refused it. Beside an archive that exists it still passes the reports,
+as in C#. Proof: the empty-source probe, now also compared with the live C# CLI with a
+HoloPatcher stub, 86 match / 3 known (7 fail on `b8b4d57`); missing-archives 50 / 19
+(its `empty_source_only` case now matches). See
+[empty-extract-report-contract.md](empty-extract-report-contract.md).
+
+The order of a step's Sources (2026-10-05, F05): Copy, Move and Extract now handle
+the files their Sources name in the order the Sources are written, as C#
+`SetRealPaths` lists them, so the later Source's file wins a collision; Rust sorted
+them by path. Found while adding Destination-free collision cases (`pack.zip` and
+`pack.7z` both extracting to `mods/pack/`) to the extract-overwrite proof, now 14
+match / 16 known (2 fail on `b8b4d57`). Proof: 18/18 against the live C# CLI (5 fail
+on `b8b4d57`). The loose-source proof now probes its fail-open case
+(`unchosen_dup_loose`: 98 match / 56 known). The other regression probes stay at
+baseline. See [source-order-contract.md](source-order-contract.md).
+
 A loose Source next to an Extract (2026-10-05, F05): plain `validate` and `install`
 now refuse, before any write, a step whose Source in the mod folder none of its
 component's archives holds, once the component extracts an archive that exists, as

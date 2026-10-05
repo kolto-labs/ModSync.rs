@@ -108,6 +108,14 @@ file contents in the mod directory and in the game.
   it. Rust's dry run follows the install layout.
 - **Timestamps and modes.** Not compared. Both runtimes set the entry time; this
   slice does not change Rust's existing timestamp and permission handling.
+- **Several archives of one name, no Destination (2026-10-05).** `pack.zip` and
+  `pack.7z` both extract to `mods/pack/`, over an existing `mods/pack/x.txt`. Recorded
+  against the live C# CLI: the existing file is replaced and the archive named later
+  in the step wins, for `Overwrite` true or false, in one step or in two. Rust
+  extracted one step's archives in path order, so `Extract [pack.zip, pack.7z]` left
+  `pack.zip`'s file; fixed by [source-order-contract.md](source-order-contract.md).
+  Five `same_stem_*` cases, compared with the C# CLI only (14 match / 16 known / 0
+  fail; 2 fail on `b8b4d57`).
 
 ## Notes for guide authors
 
