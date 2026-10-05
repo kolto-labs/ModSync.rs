@@ -2250,6 +2250,30 @@ proof](docs/parity/extract-overwrite-proof/README.md) (2 fail on `b8b4d57`); con
 Users: when two Sources of one step write the same file, the later one now wins, as in
 C#. Put the file you want to keep last in the Source list, or use two steps.
 
+## Several values after one --select — 2026-10-05 UTC
+
+`validate`, `install` and `conflicts` (and the Rust-only `selection` and
+`fetch-downloads`) now read every value after `--select` up to the next option, as
+the C# CLI does (its `--select` is a list option, `IEnumerable<string> Select`):
+`install -i guide.toml -g game --select category:Bugfix category:Immersion` installs
+both categories. Before, Rust took one value per flag, so that command line stopped with a
+usage error (exit 2) and nothing was validated or installed. The selection rules are
+unchanged: categories are ORed, tiers are ORed, the two groups are ANDed, and an exact
+component name or GUID still wins over selector syntax (a Rust extension; C# ignores
+a value without `:`). Still accepted: a repeated `--select`, which the C# CLI refuses
+(`defined multiple times`, exit 1). Still refused: `--select=a b` (C# reads `b` as a
+second value; Rust stops with a usage error before anything runs) and `--select`
+with no value, as in C#. `convert` and `merge` keep one value per `-s`/`--select`,
+since their positional input and output paths would otherwise be read as selections.
+Evidence: [select values proof](docs/parity/select-values-proof/README.md), 34
+checks match and 8 are known differences against the live C# CLI (23 fail on
+`b97c090`); contract in
+[select-values-contract.md](docs/parity/select-values-contract.md).
+
+Users: `--select category:Bugfix category:Immersion` now works as in the C# CLI, and
+`--select category:Bugfix --select category:Immersion` still works. Quote a value
+with spaces (`--select "tier:1 - Essential"`).
+
 ## A patcher without changes.ini in the validation dry run — 2026-10-04 UTC
 
 When a component's `Patcher` step finds its patcher executable but no `changes.ini`

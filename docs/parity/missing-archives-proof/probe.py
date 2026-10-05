@@ -23,9 +23,11 @@ Usage:
   probe.py [--bin target/debug/modsync] [--reference DIR [--record]]
 
 With --reference (the d31ccbd3 build output holding ModSync.Core.dll), the C# CLI
-is run live under `unshare -rn` (no network) with DOTNET_ROLL_FORWARD=Major;
---record also rewrites csharp-oracle.json. Without it the recorded results are
-used. See ../missing-archives-contract.md.
+is run live on a copy of that build with a `Resources/holopatcher` stub (a shell
+script that exits 2), under `unshare -Urnm` (no network, a tmpfs over `/Override`
+when it exists) with DOTNET_ROLL_FORWARD=Major; the reference build itself is not
+changed. --record also rewrites csharp-oracle.json. Without it the recorded results
+are used. See ../missing-archives-contract.md.
 """
 import argparse
 import json
@@ -167,16 +169,30 @@ def run(argv_head, guide, flags, work, label, extra_env=None):
     return view(done.returncode, report)
 
 
+def stub_reference(reference, work):
+    """A copy of the reference build with a HoloPatcher stub in its Resources folder."""
+    copy_dir = os.path.join(work, "reference")
+    shutil.copytree(reference, copy_dir, ignore=shutil.ignore_patterns("Logs"))
+    os.makedirs(os.path.join(copy_dir, "Resources"), exist_ok=True)
+    stub = os.path.join(copy_dir, "Resources", "holopatcher")
+    with open(stub, "w") as handle:
+        handle.write("#!/bin/sh\nexit 2\n")
+    os.chmod(stub, 0o755)
+    return copy_dir
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--bin", default=os.path.join(ROOT, "target", "debug", "modsync"))
     parser.add_argument("--reference")
     parser.add_argument("--record", action="store_true")
     args = parser.parse_args()
-    work = tempfile.mkdtemp(prefix="missing-archives-proof-")
+    work = tempfile.mkdtemp(prefix="missing-archives-proof-", dir=os.environ.get("MODSYNC_PROOF_OUT"))
     try:
         if args.reference:
-            head = ["unshare", "-rn", "dotnet", os.path.join(args.reference, "ModSync.Core.dll")]
+            reference = stub_reference(os.path.abspath(args.reference), work)
+            script = 'if [ -d /Override ]; then mount -t tmpfs none /Override; fi; exec dotnet "$0" "$@"'
+            head = ["unshare", "-Urnm", "sh", "-c", script, os.path.join(reference, "ModSync.Core.dll")]
             env = {"DOTNET_ROLL_FORWARD": "Major", "DOTNET_CLI_TELEMETRY_OPTOUT": "1"}
             oracle = {name: run(head, guide, flags, work, "csharp", env) for name, (guide, flags) in CASES.items()}
             if args.record:

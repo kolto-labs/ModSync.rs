@@ -300,6 +300,7 @@ gives the same partition. F15 stays open.
 - [ ] **F24 — Wizard:** every remaining onboarding/review/conditional/completion flow, real folder opening and native page acceptance.
 - [ ] **F25 — Main window:** legacy controls/menus, rich text/spoilers, keyboard/focus, accessibility, themes and DPI.
 - [ ] **F26 — CLI:** complete verb/alias/option/preload/pipeline/stdout/stderr/schema/exit contract comparison.
+  - 2026-10-05: `validate`, `install` and `conflicts` (and `selection`, `fetch-downloads`) now read every value after `--select` up to the next option, as the C# CLI reads its list option (`IEnumerable<string> Select`, CommandLineParser); `--select category:Bugfix category:Immersion` stopped Rust with a usage error. A repeated `--select` still works (C# refuses it); `--select=a b` stays refused and `convert`/`merge` keep one value per flag (documented). Proof 34 match / 8 known of 42 against the live C# CLI (23 fail on `b97c090`); see [select-values-contract.md](../parity/select-values-contract.md).
 - [ ] **F27 — Diagnostics:** persisted consent, automatic events, diagnostics UI, authenticated transport and secret redaction.
 - [ ] **F28 — Packaging:** native artifacts/resources/patchers, migration, installation/launch and supported-platform release validation.
 - [ ] **F29 — Full builds:** K1 and K2 Rust/C#/manual lanes with identical guides, archives and selections; per-step and final-content comparisons; CLI/GUI equivalence and live-game proof.
@@ -370,7 +371,8 @@ timestamp/typed-key intake remain source decisions; see the
 
 - [ ] Reconcile historical status prose and newly merged/uncommitted audits against current source; derive bounded tasks where a domain still lacks a current plan.
 - [ ] Resolve GitHub Actions billing/spending-limit failure and obtain actual CI results, including the unrun Windows cross-check.
-- [ ] Contain the missing-archives probe's live mode (`docs/parity/missing-archives-proof/probe.py:179` runs `unshare -rn dotnet` on the reference directly): switch it to the copied-reference `stub_reference` plus `unshare -Urnm` and `/Override` tmpfs pattern the newer probes use.
+- [x] Contain the missing-archives probe's live mode (`docs/parity/missing-archives-proof/probe.py:179` runs `unshare -rn dotnet` on the reference directly): switch it to the copied-reference `stub_reference` plus `unshare -Urnm` and `/Override` tmpfs pattern the newer probes use.
+  - Closed 2026-10-05: the live mode now runs a copy of the reference build with the `Resources/holopatcher` stub under `unshare -Urnm`, with a tmpfs over `/Override` when it exists; the original build is not changed. Live with `--record`: 50 match / 19 known / 0 fail, the recorded oracle unchanged ([README](../parity/missing-archives-proof/README.md)).
 - [ ] Resolve the frozen-test/CI contract at the authorized post-parity point; then repair obsolete fixtures and run the deferred test/all-target checks.
   - Known drift: `tests/drafts.rs:13-18` now fails on fixture component 12 (Rename) after the drafted-Rename slice; re-record or annotate `tests/fixtures/csharp/drafts.json` ([drafted-rename-contract.md](../parity/drafted-rename-contract.md)).
   - ~~Follow-up (F05-RENAME): apply the `..`-inside-a-name check (`invalid_destination`) to Rename Destinations in `rename_file_name`.~~ Closed 2026-10-04: `rename_file_name` refuses `..` inside the name, control characters, `./` and a trailing separator, and the drafter keeps only names the engine accepts ([rename-file-name-contract.md](../parity/rename-file-name-contract.md)).

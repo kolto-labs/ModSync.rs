@@ -441,8 +441,9 @@ enum Action {
         /// Honor IsSelected flags; by default select all top-level components.
         #[arg(long)]
         use_file_selection: bool,
-        /// Select component names/GUIDs or category:Name/tier:Name filters (repeat the flag).
-        #[arg(long)]
+        /// Select component names/GUIDs or category:Name/tier:Name filters (repeat the flag
+        /// or list several values after it).
+        #[arg(long, num_args = 1..)]
         select: Vec<String>,
         /// Select option GUIDs and their parent mods (repeat the flag).
         #[arg(long)]
@@ -741,8 +742,9 @@ struct InstallArgs {
     /// Honor IsSelected flags; by default select all top-level components.
     #[arg(long)]
     use_file_selection: bool,
-    /// Select component names/GUIDs or category:Name/tier:Name filters (repeat the flag).
-    #[arg(long)]
+    /// Select component names/GUIDs or category:Name/tier:Name filters (repeat the flag
+    /// or list several values after it).
+    #[arg(long, num_args = 1..)]
     select: Vec<String>,
     /// Select option GUIDs and their parent mods (repeat the flag). Existing option selections are retained.
     #[arg(long)]
@@ -844,8 +846,9 @@ struct SelectionArgs {
     /// Honor IsSelected flags; by default select all top-level components.
     #[arg(long)]
     use_file_selection: bool,
-    /// Select component names/GUIDs or category:Name/tier:Name filters (repeat the flag).
-    #[arg(long)]
+    /// Select component names/GUIDs or category:Name/tier:Name filters (repeat the flag
+    /// or list several values after it).
+    #[arg(long, num_args = 1..)]
     select: Vec<String>,
     /// Select option GUIDs and their parent mods (repeat the flag).
     #[arg(long)]
