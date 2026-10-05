@@ -2344,6 +2344,36 @@ Users: `validate --full --dry-run-only` no longer reports `Validation passed` wh
 selected mod's archive is missing; download it (or deselect the mod) and validate
 again. To check the steps without the downloads, drop `--full`.
 
+## A read-only game or mod folder, 2026-10-05 UTC
+
+`validate --full` (also with `--dry-run` or `--dry-run-only`) now fails when Rust
+cannot write to the game folder or the mod folder, as the C# CLI does: its
+Environment stage tries to create a file in each and fails with `The Install
+directory is not writable! Please ensure administrative privileges or reinstall
+KOTOR to a directory with write access.` or, when the mod folder fails, `The Mod
+directory is not writable! Please ensure administrative privileges or choose a new
+mod directory.`, counting one error and ending the report. `install` refuses the same
+folders before any write (`Installation blocked before any write: <message>`), as
+C#'s install refuses after its validation pipeline fails. Before, Rust's full report
+passed (exit 0), and `install` took its recovery snapshot and stopped at its first
+write (`Read-only file system`), leaving an install to restore; with only the mod
+folder read-only, a guide that reads from it installed. The desktop Validate step and
+`--phase remaining` use the same check. Rust asks the operating system (Unix
+`access(2)`, which also sees a read-only mount) and writes no probe file. Unchanged
+and documented: the basic report (no `--full`) and plain `validate` do not check, as
+C# does not; under `--full` without `--dry-run-only` a component error is reported
+later, in ComponentValidation, so the Environment stage gives the folder message where
+C# gives its component message; Rust does not offer to fix the permissions (C#'s
+`install` asks and then tries chmod, chown and sudo); Windows is not checked.
+Evidence: [writable roots proof](docs/parity/writable-roots-proof/README.md), 58 checks
+match and 1 is a known difference against the live C# CLI with a HoloPatcher stub
+(31 fail on `2de5a47`); contract in
+[writable-roots-contract.md](docs/parity/writable-roots-contract.md).
+
+Users: if `validate --full` or `install` now stops with `... directory is not
+writable!`, make the game folder (or the mod folder) writable for your user, or move
+the game out of a protected folder, then validate again. Nothing was installed.
+
 ## install --no-managed — 2026-10-05 UTC
 
 `install` now accepts the C# CLI's `--no-managed`: `install -i guide.toml -g game -s
