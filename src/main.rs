@@ -3276,9 +3276,41 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                         },
                     )?;
                 }
-                let mut engine =
-                    Engine::new_with_case_insensitive_pathing(settings, case_insensitive_pathing)?
-                        .with_component_checkpoints(component_checkpoints);
+                let full_report = pipeline_mode
+                    && !install
+                    && !conflicts
+                    && (args.full || args.phase == PhaseArg::Remaining);
+                let report_settings = full_report.then(|| settings.clone());
+                let mut engine = match Engine::new_with_case_insensitive_pathing(
+                    settings,
+                    case_insensitive_pathing,
+                ) {
+                    Ok(engine) => engine,
+                    Err(error) => {
+                        // C#'s Environment stage fails the full report for case
+                        // duplicates in the game folder; show it as that stage.
+                        let completed: &[String] = if args.phase == PhaseArg::Remaining {
+                            &prepared.completed
+                        } else {
+                            &[]
+                        };
+                        let Some(mut report) = report_settings.and_then(|settings| {
+                            Engine::case_collision_report(
+                                &settings,
+                                case_insensitive_pathing,
+                                &error,
+                                &guide,
+                                completed,
+                            )
+                        }) else {
+                            return Err(error);
+                        };
+                        report.input_path = Some(paths.input.to_string_lossy().into_owned());
+                        validation_emitted = true;
+                        return present_validation_report(&report, args.errors_only, report_mode);
+                    }
+                }
+                .with_component_checkpoints(component_checkpoints);
                 if args.managed {
                     let deployment = modsync::deployment::Service::resolve_readonly(
                         &paths.game,

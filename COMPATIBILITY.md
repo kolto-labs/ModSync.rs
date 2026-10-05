@@ -2344,6 +2344,34 @@ Users: `validate --full --dry-run-only` no longer reports `Validation passed` wh
 selected mod's archive is missing; download it (or deselect the mod) and validate
 again. To check the steps without the downloads, drop `--full`.
 
+## Case duplicates in the game folder in the full report, 2026-10-05 UTC
+
+`validate --full` (also with `--dry-run` or `--dry-run-only`, and `--phase
+remaining`) now reports a game folder that holds two names differing only in case
+(`Override/a.txt` and `Override/A.txt`, or `Override` and `override`, at any depth) as
+the C# CLI does: its Environment stage fails with `You have duplicate files/folders in
+your installation directory in a case-insensitive environment.Please resolve these
+before continuing. Check the output window for the specific files to resolve.`,
+counting one error and ending the report; that message replaces the stage's other
+messages (a missing archive, a read-only folder). Rust lists the name it found after
+it (`ERROR: <path> has a duplicate, please resolve before attempting an install.`).
+Before, Rust refused the folder before any report: the text output was the bare
+`Error: Case-colliding files: <path>` and the JSON report had `errorCount` 0,
+`componentCount` 0 and no stages. Both failed; only the report differed. The desktop
+Validate step shows the same failed Environment stage. Unchanged and documented:
+`install`, plain `validate`, `conflicts` and the basic report (`--dry-run` without
+`--full`) still refuse with `Case-colliding files: <path>` before any write (C#'s basic
+report passes, as only its Environment stage checks; fail closed); a case duplicate
+only in the mod folder is still refused before any report, where C# passes (it checks
+only the game folder). Evidence: [case duplicates
+proof](docs/parity/case-duplicates-proof/README.md), 95 checks match and 12 are known
+differences against the live C# CLI with a HoloPatcher stub (42 fail on `0f41c1f`);
+contract in [case-duplicates-contract.md](docs/parity/case-duplicates-contract.md).
+
+Users: if `validate --full` fails with `You have duplicate files/folders in your
+installation directory`, keep one of the two names it lists (merge the folders, or
+delete the file you do not want) and validate again. Nothing was installed.
+
 ## A read-only game or mod folder, 2026-10-05 UTC
 
 `validate --full` (also with `--dry-run` or `--dry-run-only`) now fails when Rust

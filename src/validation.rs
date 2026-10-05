@@ -314,6 +314,29 @@ impl Report {
         });
         false
     }
+    /// C#'s Environment stage when the game folder holds two names that differ only
+    /// in case: one error with C#'s message. C# writes each such name only to its
+    /// log; Rust lists the one it found after that message, in C#'s log wording.
+    pub(crate) fn environment_case_duplicates(&mut self, path: &std::path::Path) -> bool {
+        const DUPLICATES: &str = "You have duplicate files/folders in your installation \
+             directory in a case-insensitive environment.Please resolve these before \
+             continuing. Check the output window for the specific files to resolve.";
+        self.error_count += 1;
+        self.stages.push(StageResult {
+            stage: Stage::Environment,
+            passed: false,
+            has_warnings: false,
+            summary: DUPLICATES.into(),
+            messages: vec![
+                format!("ERROR: {DUPLICATES}"),
+                format!(
+                    "ERROR: {} has a duplicate, please resolve before attempting an install.",
+                    path.display()
+                ),
+            ],
+        });
+        false
+    }
     /// One outcome per component (see [`ArchiveOutcome`]). As C#
     /// `RunComponentValidationStage`, a component with errors shows only those, the
     /// stage counts every error, else every warning, else one pass.
