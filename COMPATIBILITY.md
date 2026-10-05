@@ -2353,8 +2353,10 @@ directory is not writable! Please ensure administrative privileges or reinstall
 KOTOR to a directory with write access.` or, when the mod folder fails, `The Mod
 directory is not writable! Please ensure administrative privileges or choose a new
 mod directory.`, counting one error and ending the report. `install` refuses the same
-folders before any write (`Installation blocked before any write: <message>`), as
-C#'s install refuses after its validation pipeline fails. Before, Rust's full report
+folders before any write into them or any snapshot (`Installation blocked before any
+write: <message>`), as C#'s install refuses after its validation pipeline fails; if
+the folder's parent is read-only too, the recovery lock fails first with the
+operating system's error. Before, Rust's full report
 passed (exit 0), and `install` took its recovery snapshot and stopped at its first
 write (`Read-only file system`), leaving an install to restore; with only the mod
 folder read-only, a guide that reads from it installed. The desktop Validate step and

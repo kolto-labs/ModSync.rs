@@ -56,7 +56,7 @@ fails with that one message and the report counts one error and stops.
 (`ModBuildConverter.cs:3576-3598`).
 
 **Rust at `2de5a47`.** The full report's Environment stage checked only the recovery
-state and, under `--dry-run-only`, the component checks (`src/engine.rs:884-901`). Its
+state and, under `--dry-run-only`, the component checks (`src/engine.rs:885-902`). Its
 install preflight (`:1896-1983`) never looked at the folders, so `install` created
 its snapshot (`recovery::begin`, `:1995`) and failed at the first write: `Install
 stopped. Restore before retrying; snapshot: ...: A / step 1 (Copy): Read-only file
@@ -82,14 +82,19 @@ mod folder read-only         installs (reads only)               refused, nothin
   C#'s message when the mod folder, else the game folder, cannot be written to
   (`unwritable_root`, `:424-453`), after the recovery-state check. Under
   `--dry-run-only` it also runs the component checks first, and their message wins,
-  as in C# (`Report::environment_components`, `src/validation.rs:281-313`). The stage
+  as in C# (`Report::environment_components`, `src/validation.rs:281-316`). The stage
   counts one error and the report stops, as in C#. The basic report (no `--full`) and
   plain `validate` are unchanged, as C# does not run its Environment stage there.
 - **Install.** The install preflight (`src/engine.rs:1942-1946`) refuses the same
   folders right after the recovery-state check, before the gates, the simulation and
   the snapshot: `Installation blocked before any write: <C#'s message>`. Rust does not
   offer to change the folder's permissions (C# `install` asks, then tries chmod and
-  chown, and may run sudo); deliberate.
+  chown, and may run sudo); deliberate. "Before any write" means nothing is written
+  into the game or mod folder and no snapshot is taken: the recovery lock, taken
+  earlier, still writes its state folder and lock files beside the roots. If the
+  parent folder is read-only too, that lock fails first with the operating system's
+  error (`Read-only file system`) instead of C#'s message; the install is still
+  refused before any change to the game.
 - **How Rust checks.** On Unix it asks the operating system (`access(2)` with write
   and search permission), which also reports a read-only mount, so validation writes
   no probe file. Windows is not checked (see below).
