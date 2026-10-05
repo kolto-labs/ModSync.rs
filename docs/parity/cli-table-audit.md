@@ -145,7 +145,7 @@ The C# legacy `convert --merge` adapter also drops `concurrent`, `ignore-errors`
 | `--select` | list (several values after one flag; a repeated flag is refused) | repeatable name/GUID/category/tier | **differing** — Rust grammar is broader. 2026-10-05: C#'s list form `--select a b` (CommandLineParser sequence; a repeated flag is refused there) is now read as in C#, and a repeated flag still works ([select-values-contract.md](select-values-contract.md)) | C# MBC:582-583; `src/main.rs:315-317,989-997` |
 | `--full` | false | same, requires `--validation-report` | **differing** — C# mode directly selects pipeline; Rust gates it behind report mode | C# MBC:585-586; `src/main.rs:352-360` |
 | `--dry-run` | false | same, requires report | **differing** | C# MBC:588-589; `src/main.rs:355-357` |
-| `--dry-run-only` | false | same, requires report; remaining forbidden | **differing** | C# MBC:591-592; `src/main.rs:361-363,920-923` |
+| `--dry-run-only` | false | same, requires report; remaining forbidden | **differing**. 2026-10-05: with `--full`, the Environment stage now fails a selected component's archive/destination error with C#'s message, as C# does; a partly missing Extract or an option's missing archive also fails there (fail closed, C# passes the stage) ([dry-run-only-environment-contract.md](dry-run-only-environment-contract.md)) | C# MBC:591-592; `src/main.rs:361-363,920-923` |
 | `--errors-only` | false | none | **missing** | C# MBC:594-595; `src/main.rs:287-364` |
 | `--ignore-errors` | false | none | **missing** | C# MBC:597-598; `src/main.rs:287-364` |
 | `--use-file-selection` | false; absent select means all | same | **matched** | C# MBC:600-601,3145-3203; `src/main.rs:312-317,989-1004` |

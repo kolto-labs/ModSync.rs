@@ -9,6 +9,20 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Component checks in `validate --full --dry-run-only` (2026-10-05, F08): the full
+report's Environment stage now runs the archive/destination checks on every selected
+component under `--dry-run-only` and fails with C#'s `Some components failed to
+validate. ...` when one has an error, as C#'s Environment stage does; Rust's checked
+only the recovery state, so the report passed (exit 0) a guide whose archive was
+missing or whose loose Source no archive holds. Rust lists each component's errors
+after C#'s message. A partly missing Extract (one of its archives absent) now fails
+this stage in Rust where C# passes (fail closed, a new refusal), and an option's
+missing archive fails it in Rust and C#'s dry run in C# (documented). Proof: 101
+match / 11 known against the live C# CLI with a HoloPatcher stub; 42 fail on
+`72ed369`. The regression probes stay at baseline, with
+this proof added to the set. See
+[dry-run-only-environment-contract.md](dry-run-only-environment-contract.md).
+
 A Patcher step's Destination (2026-10-05, F05/F09): the patcher now always runs on
 the game folder, as C# `ExecuteTSLPatcherAsync` does; Rust ran it on the step's
 Destination, so `<<kotorDirectory>>/Override` patched `Override/Override` and
