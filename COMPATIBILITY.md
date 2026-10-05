@@ -2488,6 +2488,30 @@ Users: `--select category:Bugfix category:Immersion` now works as in the C# CLI,
 `--select category:Bugfix --select category:Immersion` still works. Quote a value
 with spaces (`--select "tier:1 - Essential"`).
 
+## A missing guide, game folder or mod folder, 2026-10-05 UTC
+
+`validate`, `install` and `conflicts` now name a guide, game folder or mod folder that
+does not exist, as the C# CLI does (`CLI/ModBuildConverter.cs:3030-3040`,
+`:3056-3078`, `:3318-3328`, `:3349-3353`): `Input file not found: <path>`, `Game
+directory not found: <path>` or `Source directory not found: <path>`, the path as
+typed, checked in that order; with `--output json` it is the report's `error` field.
+Rust said `No such file or directory (os error 2)` for either folder (or `Choose
+existing mod and game directories` for a file in place of one) and `Read <path>: No
+such file or directory (os error 2)` for the guide. Exit codes (1) and the absence of
+any write are unchanged. The folder message comes from the shared root check, so
+`restore`, `completion-summary`, checkpoint and maintenance commands and the desktop
+Validate and Install steps show it too. Unchanged and documented: C#'s plain `validate`
+ignores `-s`/`-g` and fails its FOMOD stage, where Rust names the missing folder;
+`convert`, `merge` and the other guide readers keep `Read <path>: ...`. Evidence:
+[missing paths proof](docs/parity/missing-paths-proof/README.md), 62 checks match and 1
+is a known difference against the live C# CLI with a HoloPatcher stub (19 fail on
+`b0483d5`); contract in [missing-paths-contract.md](docs/parity/missing-paths-contract.md).
+
+Users: when a command stops with `Game directory not found`, `Source directory not
+found` or `Input file not found`, the named path does not exist (or is the wrong kind:
+a file where a folder is needed, or the reverse); fix that `-g`, `-s` or `-i` argument
+and run it again. Nothing was written.
+
 ## A patcher without changes.ini in the validation dry run — 2026-10-04 UTC
 
 When a component's `Patcher` step finds its patcher executable but no `changes.ini`

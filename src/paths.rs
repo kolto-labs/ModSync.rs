@@ -203,6 +203,18 @@ fn is_peer_staging_part(part: &std::ffi::OsStr) -> bool {
 
 impl Roots {
     pub fn new(mods: &Path, game: &Path) -> Result<Self> {
+        // C# `validate` and `install` check the game folder, then the mod folder, and
+        // name the one that is missing (`CLI/ModBuildConverter.cs:3056-3078`, `:3324-3353`).
+        ensure!(
+            game.is_dir(),
+            "Game directory not found: {}",
+            game.display()
+        );
+        ensure!(
+            mods.is_dir(),
+            "Source directory not found: {}",
+            mods.display()
+        );
         let mods = mods.canonicalize()?;
         let game = game.canonicalize()?;
         ensure!(

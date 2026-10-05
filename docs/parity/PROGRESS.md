@@ -9,6 +9,18 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+A missing guide, game folder or mod folder (2026-10-05, F26): `validate`, `install`
+and `conflicts` now stop with C#'s `Input file not found: <path>`, `Game directory not
+found: <path>` or `Source directory not found: <path>` (guide, then game folder, then
+mod folder; the JSON report's `error` field with `--output json`), where Rust said
+`No such file or directory (os error 2)` without naming the folder, or `Read <path>:
+...` for the guide. Exit codes and the absence of writes were already the same; only
+the message changes, also for `restore`, checkpoint and maintenance commands and the
+desktop steps that share the root check. C#'s plain `validate` ignores `-s`/`-g`
+(documented difference). Proof: 62 match / 1 known against the live C# CLI with a
+HoloPatcher stub; 19 fail on `b0483d5`. The regression probes stay at baseline, with
+this proof added to the set. See [missing-paths-contract.md](missing-paths-contract.md).
+
 Restrictions and Dependencies in the full report (2026-10-05, F08): `validate
 --full` (with `--dry-run`, `--dry-run-only` or `--phase remaining`) and the desktop
 Validate step now fail the Environment stage, as C# does, when a selected component
