@@ -221,15 +221,27 @@ fn invalid_destination(raw: &str) -> bool {
 /// (there is no such folder) while its dry run passes it. Rust refuses a placeholder
 /// where the step runs (its dry run, so plain validate, and before any install
 /// write); a path of several parts is also refused by the archive/destination stage.
-fn rename_file_name(destination: &str) -> Result<PathBuf> {
+///
+/// The name must be one file name that is valid on Windows, written as it is used: no
+/// separator or `.` part (`./b.txt`, `b.txt/`), none of the parts `invalid_destination`
+/// refuses (`..` inside the name, a control character) and none `relative` refuses (a
+/// trailing dot or space, a device name such as `con.txt`, `:`, wildcards). C#
+/// validation never checks a Rename Destination, so its Linux install renames to such a
+/// name; Rust refuses it at the same points as a folder part. The drafter keeps a bare
+/// new name only when this accepts it (`draft::is_file_name`).
+pub(crate) fn rename_file_name(destination: &str) -> Result<PathBuf> {
     ensure!(
         !destination.starts_with("<<"),
         "Rename Destination must be a file name, not a placeholder path: {destination}"
     );
     let name = relative(destination, false)?;
     ensure!(
-        name.components().count() == 1,
+        name.components().count() == 1 && name.as_os_str() == std::ffi::OsStr::new(destination),
         "Rename Destination must be one file name: {destination}"
+    );
+    ensure!(
+        !invalid_destination(destination),
+        "Rename Destination is not a valid file name (`..` inside the name or a control character): {destination}"
     );
     Ok(name)
 }

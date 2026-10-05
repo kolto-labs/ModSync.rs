@@ -1,0 +1,974 @@
+{
+ "brackets": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/x.txt",
+     "from B\n"
+    ],
+    [
+     "game/b.txt",
+     "b\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/a/z[1].txt",
+     "from A\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/b/x.txt",
+     "from B\n"
+    ]
+   ]
+  ]
+ },
+ "control_soh": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/x.txt",
+     "from B\n"
+    ],
+    [
+     "game/b.txt",
+     "b\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/a/z\u0001.txt",
+     "from A\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/b/x.txt",
+     "from B\n"
+    ]
+   ]
+  ]
+ },
+ "control_tab": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/x.txt",
+     "from B\n"
+    ],
+    [
+     "game/b.txt",
+     "b\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/a/z\t.txt",
+     "from A\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/b/x.txt",
+     "from B\n"
+    ]
+   ]
+  ]
+ },
+ "device_name": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/x.txt",
+     "from B\n"
+    ],
+    [
+     "game/b.txt",
+     "b\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/a/con.txt",
+     "from A\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/b/x.txt",
+     "from B\n"
+    ]
+   ]
+  ]
+ },
+ "dot_part": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/x.txt",
+     "from B\n"
+    ],
+    [
+     "game/b.txt",
+     "b\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/a/z.txt",
+     "from A\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/b/x.txt",
+     "from B\n"
+    ]
+   ]
+  ]
+ },
+ "dotdot_inside": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/x.txt",
+     "from B\n"
+    ],
+    [
+     "game/b.txt",
+     "b\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/a/z..txt",
+     "from A\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/b/x.txt",
+     "from B\n"
+    ]
+   ]
+  ]
+ },
+ "dotdot_leading": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/x.txt",
+     "from B\n"
+    ],
+    [
+     "game/b.txt",
+     "b\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/a/..z.txt",
+     "from A\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/b/x.txt",
+     "from B\n"
+    ]
+   ]
+  ]
+ },
+ "dots_and_spaces": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/x.txt",
+     "from B\n"
+    ],
+    [
+     "game/b.txt",
+     "b\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/a/z .a.txt",
+     "from A\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/b/x.txt",
+     "from B\n"
+    ]
+   ]
+  ]
+ },
+ "excluded": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/x.txt",
+     "from B\n"
+    ],
+    [
+     "game/b.txt",
+     "b\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/a/x.txt",
+     "from A\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/b/x.txt",
+     "from B\n"
+    ]
+   ]
+  ]
+ },
+ "file_name": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/x.txt",
+     "from B\n"
+    ],
+    [
+     "game/b.txt",
+     "b\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/a/z.txt",
+     "from A\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/b/x.txt",
+     "from B\n"
+    ]
+   ]
+  ]
+ },
+ "trailing_dot": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/x.txt",
+     "from B\n"
+    ],
+    [
+     "game/b.txt",
+     "b\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/a/z.txt.",
+     "from A\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/b/x.txt",
+     "from B\n"
+    ]
+   ]
+  ]
+ },
+ "trailing_separator": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   false,
+   [
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/a/x.txt",
+     "from A\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/b/x.txt",
+     "from B\n"
+    ]
+   ]
+  ]
+ },
+ "trailing_space": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/x.txt",
+     "from B\n"
+    ],
+    [
+     "game/b.txt",
+     "b\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/a/z.txt ",
+     "from A\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/b/x.txt",
+     "from B\n"
+    ]
+   ]
+  ]
+ },
+ "unselected_option": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/x.txt",
+     "from B\n"
+    ],
+    [
+     "game/b.txt",
+     "b\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/a/x.txt",
+     "from A\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/b/x.txt",
+     "from B\n"
+    ]
+   ]
+  ]
+ }
+}

@@ -722,9 +722,11 @@ fn numeric_range(text: &str) -> bool {
     false
 }
 
-/// One file name with an extension: no folder part, placeholder or drive.
+/// One file name with an extension that the engine takes as a Rename Destination
+/// (`engine::rename_file_name`): no folder part, placeholder or drive, and valid on
+/// Windows. Any other drafted new name keeps the placeholder Destination.
 fn is_file_name(name: &str) -> bool {
-    has_extension(name) && !name.contains(['/', '\\', ':', '<', '>'])
+    has_extension(name) && crate::engine::rename_file_name(name).is_ok()
 }
 
 fn has_extension(path: &str) -> bool {

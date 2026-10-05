@@ -66,7 +66,10 @@ z.txt                                pass        renames            renames     
   Destination starting with `<<` fails with `Rename Destination must be a file name,
   not a placeholder path: <Destination>`; a name with a folder part fails with `Rename
   Destination must be one file name: <Destination>`, as it did before under the old
-  message; `..` and other unsafe names still fail `relative` (`Unsafe path`).
+  message; `..` and other unsafe names still fail `relative` (`Unsafe path`). Since
+  [rename-file-name-contract.md](rename-file-name-contract.md) a name that is not
+  one valid Windows file name (`..` inside it, a control character, `./z.txt`,
+  `z.txt/`) is refused too.
 - **Where.** The engine's Rename arm uses it (`src/engine.rs:2560-2564`, target
   `:2587-2589`), so a placeholder Destination fails where the step runs: the dry run
   (the `DryRun` stage of the full and basic reports and the desktop Validate step),
@@ -79,7 +82,8 @@ z.txt                                pass        renames            renames     
   exclude it, or that belongs to an option nothing runs, is not run and passes, as in
   C#.
 
-Callers checked. `rename_file_name` has the two callers above. The Rename arm is the
+Callers checked. `rename_file_name` has the two callers above (since
+[rename-file-name-contract.md](rename-file-name-contract.md), also `draft::is_file_name`). The Rename arm is the
 only code that turned a Rename Destination into a target; Rename does not go through
 `resolve_instruction` or `qualify_action` (`src/engine/source_resolution.rs`), and the
 conflict report, FOMOD gate and checkpoint runs use the same engine execution. The

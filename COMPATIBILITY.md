@@ -409,7 +409,7 @@ Reference: the local ModSync C# source at `d31ccbd3bfcddb4705917eafa6483715c166d
 | Selection | File selections, select-all when all components are unselected; explicit CLI components/options; desktop dependency/restriction and deselection cascades across components and options | Native interaction and full Unicode GUID-comparison parity remain open |
 | Ordering | C# install order (breadth-first over Dependencies and InstallBefore/After from the resolver's order; Markdown by Dependencies only; `--direct-markdown` in source order), restrictions, instruction conditions; validate and install refuse a bad InstallBefore/After reference anywhere in a non-Markdown guide | Missing references and cycles fail; phased installs keep widescreen-only components after the base build |
 | Options | Choose resolves selected option GUIDs in declared option order; an entry names an option only as its hyphenated GUID (any case), as in C# | No automatic choice inference; an entry that names no option is refused, where C# ignores it |
-| File operations | Copy, Move, Rename, Delete, Extract, DelDuplicate, CleanList | Copy/Move flatten matched files into the target, as the C# instruction engine does; a Copy/Move whose target is the source itself is skipped with a warning when `Overwrite = false` and refused otherwise; Delete with `Overwrite = true` fails on a missing file, as C# does; a Rename Destination is one file name in the source's folder, as in C# (a placeholder path or a folder part is refused); a Delete with no Source is a no-op unless `Overwrite = true`; Extract replaces existing files whatever `Overwrite` says, as C# does (configured FOMOD extraction with `Overwrite = false` is refused instead; C# keeps an existing directory or read-only file at an entry path and succeeds, where Rust fails on the directory and replaces the read-only file) |
+| File operations | Copy, Move, Rename, Delete, Extract, DelDuplicate, CleanList | Copy/Move flatten matched files into the target, as the C# instruction engine does; a Copy/Move whose target is the source itself is skipped with a warning when `Overwrite = false` and refused otherwise; Delete with `Overwrite = true` fails on a missing file, as C# does; a Rename Destination is one file name in the source's folder, as in C# (a placeholder path, a folder part or a name that is not a valid Windows file name is refused); a Delete with no Source is a no-op unless `Overwrite = true`; Extract replaces existing files whatever `Overwrite` says, as C# does (configured FOMOD extraction with `Overwrite = false` is refused instead; C# keeps an existing directory or read-only file at an entry path and succeeds, where Rust fails on the directory and replaces the read-only file) |
 | Archives | Streaming ZIP, 7z, RAR, TAR, GZip and 7z SFX; integrity checks; isolated extraction root; `[`/`]` in member names are ordinary characters, as in C# | No encrypted/multipart archives; SFX support is limited to embedded 7z payloads; empty directories are not materialized; a member named with `*` or `?` fails the archive (fail-closed) |
 | CleanList | C# comma-separated rows, mandatory prefix, substring and token matching; a listed name no file can have is skipped, `[`/`]` literal | `..`, absolute, drive-qualified, trailing-dot and device names refused (fail-closed); final file sets still need full-build differential acceptance |
 | Texture cleanup | Removes requested extension when another compatible extension shares its basename | This is not content-hash deduplication |
@@ -2096,6 +2096,35 @@ Users: a reviewed drafted Rename now renames the file in its own folder instead 
 stopping with `Rename Destination must be a file name`. Check its Source when reviewing:
 the drafter names the file at the top of the mod folder, not inside an extracted
 archive folder.
+
+## Rename to a name that is not a valid file name — 2026-10-04 UTC
+
+A `Rename` Destination must now be one file name that is valid on Windows, written as
+it is used. A name with `..` inside it (`z..txt`, `..z.txt`), a control character
+(a tab), a `./` part or a trailing separator (`z.txt/`) is refused with `Rename
+Destination is not a valid file name` or `Rename Destination must be one file name`;
+Rust renamed to it (or to `z.txt` for `./z.txt` and `z.txt/`) and every report passed.
+It is refused where names Rust already refused (a trailing dot or space, a device name
+such as `con.txt`, `[` or `]`) are: the ComponentValidation and DryRun stages of every
+report, plain `validate` and `install`, before any write. The `..` and
+control-character rule is the one C# applies to a Copy or Move Destination; C# never checks a Rename Destination, so its reports
+pass these and its Linux install renames to the name as written (`z.txt/` fails), and
+on Windows the result depends on the name. Rust is stricter here on purpose: a guide
+should not rename a mod file to a name Windows cannot hold or reads differently.
+
+The drafter keeps a drafted new name as a bare Destination only when the engine
+accepts it, so prose such as "Rename the file old.tga as con.tga." keeps the
+`<<kotorDirectory>>\Override` Destination the pinned C# drafter gives, and is refused
+after review like a name without an extension. `tools/check_drafts.py` also lists a
+Rename with that Destination and one Source (C# adds the new name as a second Source
+after "to") as an intentional difference. Evidence:
+[Rename file name proof](docs/parity/rename-file-name-proof/README.md), 37 checks match
+and 63 are known differences against the live C# CLI (50 fail on `c2c9002`); contract
+in [rename-file-name-contract.md](docs/parity/rename-file-name-contract.md).
+
+Users: a guide whose Rename gives a new name such as `name..tga`, a name with a control
+character, `./name.tga` or `name.tga/` now stops before installing anything. Write the
+new name as one plain file name (`name.tga`).
 
 ## A patcher without changes.ini in the validation dry run — 2026-10-04 UTC
 
