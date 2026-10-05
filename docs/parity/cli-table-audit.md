@@ -139,9 +139,9 @@ The C# legacy `convert --merge` adapter also drops `concurrent`, `ignore-errors`
 
 | C# flag | C# default/shape | Rust flag | Status and reason | Referent |
 |---|---|---|---|---|
-| `-i/--input` | required | same unless profile supplies it | **differing** — Rust allows profile-derived input | C# MBC:573-574; `src/main.rs:298-306` |
-| `-g/--game-dir` | optional except full/dry modes | `--game-dir`/`-g`, profile-capable | **differing** | C# MBC:576-577,3042-3078; `src/main.rs:300-303` |
-| `-s/--source-dir` | optional except full/dry modes | `--source-dir`/`-s`, profile-capable | **differing** | C# MBC:579-580,3042-3078; `src/main.rs:302-303` |
+| `-i/--input` | required | same unless profile supplies it | **differing** — Rust allows profile-derived input. 2026-10-05: a guide that is not a file gives C#'s `Input file not found: <path>` ([missing-paths-contract.md](missing-paths-contract.md)) | C# MBC:573-574; `src/main.rs:298-306` |
+| `-g/--game-dir` | optional except full/dry modes | `--game-dir`/`-g`, profile-capable | **differing**; 2026-10-05: a missing game folder gives C#'s `Game directory not found: <path>` ([missing-paths-contract.md](missing-paths-contract.md)) | C# MBC:576-577,3042-3078; `src/main.rs:300-303` |
+| `-s/--source-dir` | optional except full/dry modes | `--source-dir`/`-s`, profile-capable | **differing**; 2026-10-05: a missing mod folder gives C#'s `Source directory not found: <path>` ([missing-paths-contract.md](missing-paths-contract.md)) | C# MBC:579-580,3042-3078; `src/main.rs:302-303` |
 | `--select` | list (several values after one flag; a repeated flag is refused) | repeatable name/GUID/category/tier | **differing** — Rust grammar is broader. 2026-10-05: C#'s list form `--select a b` (CommandLineParser sequence; a repeated flag is refused there) is now read as in C#, and a repeated flag still works ([select-values-contract.md](select-values-contract.md)) | C# MBC:582-583; `src/main.rs:315-317,989-997` |
 | `--full` | false | same, requires `--validation-report` | **differing** — C# mode directly selects pipeline; Rust gates it behind report mode. 2026-10-05: the Environment stage now fails a game or mod folder Rust cannot write to with C#'s message, as C# does; Windows is not checked ([writable-roots-contract.md](writable-roots-contract.md)). 2026-10-05: a game folder with two names that differ only in case now fails the Environment stage with C#'s duplicate message instead of a report with no stages ([case-duplicates-contract.md](case-duplicates-contract.md)). 2026-10-05: a selected component whose Restriction is selected, or whose Dependency is not, now fails the Environment stage with C#'s `Some components failed to validate` message (one error, the report ends) instead of failing three later stages ([environment-relations-contract.md](environment-relations-contract.md)) | C# MBC:585-586; `src/main.rs:800-802,3279-3313`; `src/engine.rs:465-540,1010-1063,2233-2275` |
 | `--dry-run` | false | same, requires report | **differing** | C# MBC:588-589; `src/main.rs:355-357` |
@@ -167,9 +167,9 @@ slices.
 
 | C# flag | C# default/shape | Rust flag | Status and reason | Referent |
 |---|---|---|---|---|
-| `-i/--input` | required | same unless profile supplies it | **differing** | C# MBC:610-611; `src/main.rs:298-306` |
-| `-g/--game-dir` | required | `--game-dir`/`-g`, profile-capable | **differing** | C# MBC:613-614; `src/main.rs:300-306` |
-| `-s/--source-dir` | input directory if absent | required unless profile supplies it; `-s` accepted | **differing** — default differs | C# MBC:616-617,3342-3347; `src/main.rs:302-306,962-973` |
+| `-i/--input` | required | same unless profile supplies it | **differing**; 2026-10-05: a guide that is not a file gives C#'s `Input file not found: <path>` ([missing-paths-contract.md](missing-paths-contract.md)) | C# MBC:610-611; `src/main.rs:298-306` |
+| `-g/--game-dir` | required | `--game-dir`/`-g`, profile-capable | **differing**; 2026-10-05: a missing game folder gives C#'s `Game directory not found: <path>` ([missing-paths-contract.md](missing-paths-contract.md)) | C# MBC:613-614; `src/main.rs:300-306` |
+| `-s/--source-dir` | input directory if absent | required unless profile supplies it; `-s` accepted | **differing** — default differs. 2026-10-05: a missing mod folder gives C#'s `Source directory not found: <path>` ([missing-paths-contract.md](missing-paths-contract.md)) | C# MBC:616-617,3342-3347; `src/main.rs:302-306,962-973` |
 | `--select` | list (several values after one flag; a repeated flag is refused) | repeatable broader selector | **differing**. 2026-10-05: `--select a b` is now read as in C#, as for `validate` ([select-values-contract.md](select-values-contract.md)) | C# MBC:619-620; `src/main.rs:315-317,989-997` |
 | `--use-file-selection` | false; absent select means all | same | **matched** | C# MBC:622-623; `src/main.rs:312-317,989-1004` |
 | `--no-checkpoint` | false | same | **differing** — keeps the whole-run recovery snapshot and drops only per-component history; conflicts with `--component-checkpoints` and `--managed` | C# MBC:625-626; `src/main.rs:690-692` |

@@ -3048,6 +3048,11 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                 } else {
                     None
                 };
+                // C# `validate` and `install` name a missing guide before anything else
+                // (`CLI/ModBuildConverter.cs:3030-3040`, `:3318-3322`).
+                if let Some(input) = &args.input {
+                    ensure!(input.is_file(), "Input file not found: {}", input.display());
+                }
                 let basic_validation = !install
                     && !conflicts
                     && args.phase == PhaseArg::All
@@ -3164,6 +3169,11 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                         "Direct Markdown mode requires a .md input file"
                     );
                 }
+                ensure!(
+                    paths.input.is_file(),
+                    "Input file not found: {}",
+                    paths.input.display()
+                );
                 let mut guide = load_validation_guide(&paths.input, profile.is_some())?;
                 if let Some(profile) = &profile {
                     profile.apply(&mut guide);
