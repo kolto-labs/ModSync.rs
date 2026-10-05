@@ -390,6 +390,47 @@ impl std::error::Error for OptionalInstallFailed {
     }
 }
 
+/// The install-tree scan's refusal of two names that differ only in case. Typed so
+/// the full report can show it as C#'s Environment stage does
+/// ([`Engine::case_collision_report`]); its text is unchanged.
+#[derive(Debug)]
+struct CaseCollision {
+    path: PathBuf,
+    directory: bool,
+}
+impl std::fmt::Display for CaseCollision {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let kind = if self.directory {
+            "directories"
+        } else {
+            "files"
+        };
+        write!(f, "Case-colliding {kind}: {}", self.path.display())
+    }
+}
+impl std::error::Error for CaseCollision {}
+
+/// The first name under the game folder that differs from another only in case,
+/// with the scan's walk and keys. C# checks only this folder
+/// (`PathHelper.FindCaseInsensitiveDuplicates(MainConfig.DestinationPath)`).
+fn game_case_collision(game: &Path, policy: crate::paths::PathPolicy) -> Option<PathBuf> {
+    let (mut files, mut directories) = (BTreeSet::new(), BTreeSet::new());
+    for entry in walkdir::WalkDir::new(game) {
+        let entry = entry.ok()?;
+        let seen = if entry.file_type().is_file() {
+            &mut files
+        } else if entry.file_type().is_dir() {
+            &mut directories
+        } else {
+            continue;
+        };
+        if !seen.insert(policy.key(entry.path())) {
+            return Some(entry.into_path());
+        }
+    }
+    None
+}
+
 pub struct Engine {
     pub settings: Settings,
     path_policy: crate::paths::PathPolicy,
@@ -598,29 +639,37 @@ impl Engine {
                     "Exact path matching requires UTF-8 paths; refusing lossy filename identity"
                 );
                 if entry.file_type().is_file() {
-                    ensure!(
-                        self.files
-                            .insert(
-                                self.path_policy.key(&path),
-                                (path.clone(), Content::Disk(path.clone()))
-                            )
-                            .is_none(),
-                        "Case-colliding files: {}",
-                        path.display()
-                    );
+                    if self
+                        .files
+                        .insert(
+                            self.path_policy.key(&path),
+                            (path.clone(), Content::Disk(path.clone())),
+                        )
+                        .is_some()
+                    {
+                        return Err(CaseCollision {
+                            path,
+                            directory: false,
+                        }
+                        .into());
+                    }
                 } else {
                     ensure!(
                         entry.file_type().is_dir(),
                         "Unsupported special file: {}",
                         path.display()
                     );
-                    ensure!(
-                        self.directories
-                            .insert(self.path_policy.key(&path), path.clone())
-                            .is_none(),
-                        "Case-colliding directories: {}",
-                        path.display()
-                    );
+                    if self
+                        .directories
+                        .insert(self.path_policy.key(&path), path.clone())
+                        .is_some()
+                    {
+                        return Err(CaseCollision {
+                            path,
+                            directory: true,
+                        }
+                        .into());
+                    }
                 }
             }
         }
@@ -2126,6 +2175,49 @@ impl Engine {
     ) -> Result<()> {
         self.set_completed_prefix(guide, completed)?;
         self.validate(guide, emit)
+    }
+
+    /// The full report for a game folder the engine refused for names that differ
+    /// only in case. C#'s Environment stage lists such names
+    /// (`InstallationService.ValidateInstallationEnvironmentAsync`) and fails with
+    /// its duplicate message, which it sets last, so it replaces every other
+    /// Environment message; the report then stops. `error` is the refusal of
+    /// [`Engine::new`]; `None` keeps it (another error, or a collision only in the
+    /// mod folder, which C# does not check). Rust's recovery-state checks still
+    /// come first, as in [`Engine::validate_report_with_options_observed`].
+    pub fn case_collision_report(
+        settings: &Settings,
+        case_insensitive: bool,
+        error: &anyhow::Error,
+        guide: &Guide,
+        completed: &[String],
+    ) -> Option<crate::validation::Report> {
+        error.downcast_ref::<CaseCollision>()?;
+        let policy = crate::paths::PathPolicy::new(case_insensitive).ok()?;
+        let roots = &settings.roots;
+        // Walk the game folder alone even when the scan stopped inside it: the
+        // scan's first copy of a name may sit in the mod folder when the two
+        // roots differ only in case.
+        let path = game_case_collision(&roots.game, policy)?;
+        let completed_keys: BTreeSet<_> = completed
+            .iter()
+            .map(|id| crate::guid::key_ascii(id))
+            .collect();
+        let count = guide
+            .components
+            .iter()
+            .filter(|c| c.is_selected)
+            .filter(|c| !completed_keys.contains(&crate::guid::key_ascii(&c.guid)))
+            .count();
+        let mut report = crate::validation::Report::new(count);
+        let environment = recovery::ensure_clean(roots)
+            .and_then(|()| recovery::verify_completion(roots, guide, completed.len()))
+            .map_err(|error| format!("{error:#}"));
+        match environment {
+            Ok(()) => report.environment_case_duplicates(&path),
+            environment => report.push(crate::validation::Stage::Environment, environment),
+        };
+        Some(report.finish())
     }
 
     /// Run the shared wizard report on the uninstalled suffix while retaining

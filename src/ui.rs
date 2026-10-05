@@ -4112,10 +4112,30 @@ impl App {
                         )));
                         ctx.request_repaint();
                     };
-                    let mut engine = Engine::new_with_case_insensitive_pathing(
+                    let report_settings = (job == Job::Validate).then(|| settings.clone());
+                    let mut engine = match Engine::new_with_case_insensitive_pathing(
                         settings,
                         case_insensitive_pathing,
-                    )?;
+                    ) {
+                        Ok(engine) => engine,
+                        Err(error) => {
+                            // As the CLI's full report: C#'s Environment stage fails
+                            // for case duplicates in the game folder.
+                            let Some(report) = report_settings.and_then(|settings| {
+                                Engine::case_collision_report(
+                                    &settings,
+                                    case_insensitive_pathing,
+                                    &error,
+                                    &guide,
+                                    completed.as_deref().unwrap_or_default(),
+                                )
+                            }) else {
+                                return Err(error);
+                            };
+                            let _ = tx.send(Message::ValidationTerminal(validation_run, report));
+                            anyhow::bail!("Validation pipeline reported errors");
+                        }
+                    };
                     if job == Job::Install {
                         let mut config = checkpoint_config;
                         if resume.is_some() {

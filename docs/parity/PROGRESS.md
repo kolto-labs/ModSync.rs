@@ -9,6 +9,20 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Case duplicates in the game folder (2026-10-05, F08): `validate --full` (with
+`--dry-run`, `--dry-run-only` or `--phase remaining`) and the desktop Validate step now
+report a game folder holding two names that differ only in case as C#'s Environment
+stage does: one error, `You have duplicate files/folders in your installation
+directory ...`, which replaces the stage's other messages, then Rust's found path.
+Rust refused the folder before any report (JSON `error`, no stages, `errorCount` 0,
+`componentCount` 0). Both failed; only the report changes. `install`, plain
+`validate`, `conflicts` and the basic report keep Rust's `Case-colliding ...` refusal
+(C#'s basic report passes; fail closed), and a duplicate only in the mod folder is
+still refused (C# passes; documented). Proof: 95 match / 12 known against the live C#
+CLI with a HoloPatcher stub; 42 fail on `0f41c1f`. The regression probes stay at
+baseline, with this proof added to the set. See
+[case-duplicates-contract.md](case-duplicates-contract.md).
+
 A read-only game or mod folder (2026-10-05, F08): the full report's Environment stage
 now fails with C#'s `The Install directory is not writable! ...` or `The Mod directory
 is not writable! ...` when Rust cannot write to the game or mod folder, and `install`
