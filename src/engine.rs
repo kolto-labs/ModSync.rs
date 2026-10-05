@@ -478,6 +478,52 @@ fn unwritable_root(roots: &Roots) -> Option<&'static str> {
     }
 }
 
+/// The errors C#'s Environment stage logs for each selected component
+/// (`InstallationService.ValidateInstallationEnvironmentAsync`): a Restriction that
+/// names a selected component or immediate option, then a Dependency that names one
+/// not selected. As C# `FindComponentsFromGuidList`, a GUID that names neither is
+/// skipped here (the later stages refuse it). `selected` is the Conflicts stage's set.
+fn environment_relations(
+    guide: &Guide,
+    components: &[&Component],
+    selected: &BTreeSet<String>,
+) -> Vec<String> {
+    use crate::guid::{eq_ascii, key_ascii};
+    let selected: BTreeSet<_> = selected.iter().map(|id| key_ascii(id)).collect();
+    let find = |id: &String| {
+        guide.components.iter().find_map(|component| {
+            if eq_ascii(&component.guid, id) {
+                Some(component)
+            } else {
+                component
+                    .options
+                    .iter()
+                    .find(|option| eq_ascii(&option.guid, id))
+            }
+        })
+    };
+    let mut errors = Vec::new();
+    for component in components {
+        for found in component.restrictions.iter().filter_map(&find) {
+            if selected.contains(&key_ascii(&found.guid)) {
+                errors.push(format!(
+                    "Cannot install '{}' due to '{}' being selected for install.",
+                    component.name, found.name
+                ));
+            }
+        }
+        for found in component.dependencies.iter().filter_map(&find) {
+            if !selected.contains(&key_ascii(&found.guid)) {
+                errors.push(format!(
+                    "Cannot install '{}' due to '{}' not being selected for install.",
+                    component.name, found.name
+                ));
+            }
+        }
+    }
+    errors
+}
+
 #[cfg(unix)]
 fn directory_writable(path: &Path) -> bool {
     use std::os::unix::ffi::OsStrExt;
@@ -967,25 +1013,44 @@ impl Engine {
                 "Validating installation environment",
                 false,
             );
+            let mut selected = guide.selected_ids();
+            selected.extend(
+                guide
+                    .components
+                    .iter()
+                    .filter(|component| {
+                        self.completed
+                            .contains(&crate::guid::key_ascii(&component.guid))
+                    })
+                    .map(|component| component.guid.clone()),
+            );
             let environment = (|| -> Result<()> {
                 recovery::ensure_clean(&self.settings.roots)?;
                 recovery::verify_completion(&self.settings.roots, guide, self.completed.len())
             })()
             .map_err(|error| format!("{error:#}"));
             let passed = match environment {
-                // C#'s Environment stage also runs every selected component's
-                // checks (with AttemptFixes) and fails on any error. The full report
-                // runs them in its ComponentValidation stage, which --dry-run-only
-                // skips, so run them here instead.
-                Ok(()) if dry_run_only => match fresh_engine()
-                    .and_then(|engine| engine.validate_archives(guide, &mut emit, true))
-                {
-                    Ok(outcomes) => report
-                        .environment_components(outcomes, unwritable_root(&self.settings.roots)),
-                    Err(error) => report.push(Stage::Environment, Err(format!("{error:#}"))),
-                },
+                // C#'s Environment stage checks each selected component's
+                // Restrictions and Dependencies, then runs its checks (with
+                // AttemptFixes), and fails on any error. The full report runs those
+                // checks in its ComponentValidation stage, which --dry-run-only
+                // skips, so run them here instead in that mode.
                 Ok(()) => {
-                    report.environment_components(Vec::new(), unwritable_root(&self.settings.roots))
+                    let relations = environment_relations(guide, &validated_components, &selected);
+                    let outcomes = if dry_run_only {
+                        fresh_engine()
+                            .and_then(|engine| engine.validate_archives(guide, &mut emit, true))
+                    } else {
+                        Ok(Vec::new())
+                    };
+                    match outcomes {
+                        Ok(outcomes) => report.environment_components(
+                            relations,
+                            outcomes,
+                            unwritable_root(&self.settings.roots),
+                        ),
+                        Err(error) => report.push(Stage::Environment, Err(format!("{error:#}"))),
+                    }
                 }
                 environment => report.push(Stage::Environment, environment),
             };
@@ -998,17 +1063,6 @@ impl Engine {
                 return finish(report);
             }
             boundary(Stage::Conflicts, "Checking conflicts", false);
-            let mut selected = guide.selected_ids();
-            selected.extend(
-                guide
-                    .components
-                    .iter()
-                    .filter(|component| {
-                        self.completed
-                            .contains(&crate::guid::key_ascii(&component.guid))
-                    })
-                    .map(|component| component.guid.clone()),
-            );
             report.declared_conflicts(guide, &validated_components, &selected);
             boundary(Stage::Conflicts, "Checking conflicts", true);
             boundary(

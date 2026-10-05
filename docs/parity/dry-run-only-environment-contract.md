@@ -118,7 +118,9 @@ warns that it skipped the component), and it had no `details` line; it now fails
 - **Not changed.** C#'s Environment stage also fails a selected component whose
   Restrictions name a selected component or whose Dependencies are not selected;
   Rust's Conflicts and InstallOrder stages and its dry run fail those instead (as in
-  the full report). C#'s other Environment checks (patcher test, writable folders,
+  the full report). (Changed 2026-10-05: Rust's Environment stage now fails
+  those too, with C#'s message; see
+  [environment-relations-contract.md](environment-relations-contract.md).) C#'s other Environment checks (patcher test, writable folders,
   case-insensitive duplicates) are not compared.
 
 ## Notes for guide authors
