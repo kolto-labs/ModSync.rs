@@ -9,6 +9,20 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Restrictions and Dependencies in the full report (2026-10-05, F08): `validate
+--full` (with `--dry-run`, `--dry-run-only` or `--phase remaining`) and the desktop
+Validate step now fail the Environment stage, as C# does, when a selected component
+restricts another selected one or depends on one that is not selected: one error,
+`Some components failed to validate. ...`, then Rust's `Cannot install 'A' due to 'C'
+being selected for install.` lines (C#'s log wording). Rust's Environment stage
+passed and three later stages failed (four with `--dry-run-only`). Both failed; only
+the report changes. `install`, plain `validate`, `conflicts` and the basic report keep
+their refusal before any write; C#'s load-time selection fixes and Rust's `--select`
+dependency closure stay documented differences. Proof: 85 match / 33 known against the
+live C# CLI with a HoloPatcher stub; 44 fail on `1ab3d27`. The regression probes stay
+at baseline, with this proof added to the set. See
+[environment-relations-contract.md](environment-relations-contract.md).
+
 Case duplicates in the game folder (2026-10-05, F08): `validate --full` (with
 `--dry-run`, `--dry-run-only` or `--phase remaining`) and the desktop Validate step now
 report a game folder holding two names that differ only in case as C#'s Environment

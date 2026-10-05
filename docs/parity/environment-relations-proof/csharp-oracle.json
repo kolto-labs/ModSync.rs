@@ -1,0 +1,426 @@
+{
+ "depends_file_selection": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "dro/counts": [
+   0,
+   0,
+   5,
+   2
+  ],
+  "dro/decision": [
+   true,
+   true
+  ],
+  "dro/environment": null,
+  "full/counts": [
+   0,
+   0,
+   5,
+   2
+  ],
+  "full/decision": [
+   true,
+   true
+  ],
+  "full/environment": null,
+  "full/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ]
+  ],
+  "text/decision": true,
+  "text/message": false
+ },
+ "depends_select": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "dro/counts": [
+   1,
+   0,
+   0,
+   1
+  ],
+  "dro/decision": [
+   false,
+   false
+  ],
+  "dro/environment": "ERROR: Some components failed to validate. Check the output/console window for details.\nIf you are seeing this as an end user you most likely need to whitelist ModSync and HoloPatcher in your antivirus, or download the missing mods.",
+  "full/counts": [
+   1,
+   0,
+   0,
+   1
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full/environment": "ERROR: Some components failed to validate. Check the output/console window for details.\nIf you are seeing this as an end user you most likely need to whitelist ModSync and HoloPatcher in your antivirus, or download the missing mods.",
+  "full/stages": [
+   [
+    "Environment",
+    false
+   ]
+  ],
+  "text/decision": false,
+  "text/message": true
+ },
+ "ok": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "dro/counts": [
+   0,
+   0,
+   5,
+   2
+  ],
+  "dro/decision": [
+   true,
+   true
+  ],
+  "dro/environment": null,
+  "full/counts": [
+   0,
+   0,
+   5,
+   2
+  ],
+  "full/decision": [
+   true,
+   true
+  ],
+  "full/environment": null,
+  "full/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ]
+  ],
+  "text/decision": true,
+  "text/message": false
+ },
+ "restrict_all": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "dro/counts": [
+   1,
+   0,
+   0,
+   3
+  ],
+  "dro/decision": [
+   false,
+   false
+  ],
+  "dro/environment": "ERROR: Some components failed to validate. Check the output/console window for details.\nIf you are seeing this as an end user you most likely need to whitelist ModSync and HoloPatcher in your antivirus, or download the missing mods.",
+  "full/counts": [
+   1,
+   0,
+   0,
+   3
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full/environment": "ERROR: Some components failed to validate. Check the output/console window for details.\nIf you are seeing this as an end user you most likely need to whitelist ModSync and HoloPatcher in your antivirus, or download the missing mods.",
+  "full/stages": [
+   [
+    "Environment",
+    false
+   ]
+  ],
+  "text/decision": false,
+  "text/message": true
+ },
+ "restrict_missing_archive": {
+  "basic/decision": [
+   false,
+   false
+  ],
+  "dro/counts": [
+   1,
+   0,
+   0,
+   2
+  ],
+  "dro/decision": [
+   false,
+   false
+  ],
+  "dro/environment": "ERROR: Some components failed to validate. Check the output/console window for details.\nIf you are seeing this as an end user you most likely need to whitelist ModSync and HoloPatcher in your antivirus, or download the missing mods.",
+  "full/counts": [
+   1,
+   0,
+   0,
+   2
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full/environment": "ERROR: Some components failed to validate. Check the output/console window for details.\nIf you are seeing this as an end user you most likely need to whitelist ModSync and HoloPatcher in your antivirus, or download the missing mods.",
+  "full/stages": [
+   [
+    "Environment",
+    false
+   ]
+  ],
+  "text/decision": false,
+  "text/message": true
+ },
+ "restrict_mutual": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "dro/counts": [
+   1,
+   0,
+   0,
+   2
+  ],
+  "dro/decision": [
+   false,
+   false
+  ],
+  "dro/environment": "ERROR: Some components failed to validate. Check the output/console window for details.\nIf you are seeing this as an end user you most likely need to whitelist ModSync and HoloPatcher in your antivirus, or download the missing mods.",
+  "full/counts": [
+   1,
+   0,
+   0,
+   2
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full/environment": "ERROR: Some components failed to validate. Check the output/console window for details.\nIf you are seeing this as an end user you most likely need to whitelist ModSync and HoloPatcher in your antivirus, or download the missing mods.",
+  "full/stages": [
+   [
+    "Environment",
+    false
+   ]
+  ],
+  "text/decision": false,
+  "text/message": true
+ },
+ "restrict_option": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "dro/counts": [
+   0,
+   0,
+   5,
+   2
+  ],
+  "dro/decision": [
+   true,
+   true
+  ],
+  "dro/environment": null,
+  "full/counts": [
+   0,
+   0,
+   5,
+   2
+  ],
+  "full/decision": [
+   true,
+   true
+  ],
+  "full/environment": null,
+  "full/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ]
+  ],
+  "text/decision": true,
+  "text/message": false
+ },
+ "restrict_readonly_mods": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "dro/counts": [
+   1,
+   0,
+   0,
+   2
+  ],
+  "dro/decision": [
+   false,
+   false
+  ],
+  "dro/environment": "ERROR: Some components failed to validate. Check the output/console window for details.\nIf you are seeing this as an end user you most likely need to whitelist ModSync and HoloPatcher in your antivirus, or download the missing mods.",
+  "full/counts": [
+   1,
+   0,
+   0,
+   2
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full/environment": "ERROR: Some components failed to validate. Check the output/console window for details.\nIf you are seeing this as an end user you most likely need to whitelist ModSync and HoloPatcher in your antivirus, or download the missing mods.",
+  "full/stages": [
+   [
+    "Environment",
+    false
+   ]
+  ],
+  "text/decision": false,
+  "text/message": true
+ },
+ "restrict_select": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "dro/counts": [
+   1,
+   0,
+   0,
+   2
+  ],
+  "dro/decision": [
+   false,
+   false
+  ],
+  "dro/environment": "ERROR: Some components failed to validate. Check the output/console window for details.\nIf you are seeing this as an end user you most likely need to whitelist ModSync and HoloPatcher in your antivirus, or download the missing mods.",
+  "full/counts": [
+   1,
+   0,
+   0,
+   2
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full/environment": "ERROR: Some components failed to validate. Check the output/console window for details.\nIf you are seeing this as an end user you most likely need to whitelist ModSync and HoloPatcher in your antivirus, or download the missing mods.",
+  "full/stages": [
+   [
+    "Environment",
+    false
+   ]
+  ],
+  "text/decision": false,
+  "text/message": true
+ },
+ "restrict_unknown": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "dro/counts": [
+   0,
+   0,
+   5,
+   2
+  ],
+  "dro/decision": [
+   true,
+   true
+  ],
+  "dro/environment": null,
+  "full/counts": [
+   0,
+   0,
+   5,
+   2
+  ],
+  "full/decision": [
+   true,
+   true
+  ],
+  "full/environment": null,
+  "full/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ]
+  ],
+  "text/decision": true,
+  "text/message": false
+ }
+}

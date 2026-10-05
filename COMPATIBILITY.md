@@ -2372,6 +2372,40 @@ Users: if `validate --full` fails with `You have duplicate files/folders in your
 installation directory`, keep one of the two names it lists (merge the folders, or
 delete the file you do not want) and validate again. Nothing was installed.
 
+## Restrictions and Dependencies in the full report, 2026-10-05 UTC
+
+`validate --full` (also with `--dry-run` or `--dry-run-only`, and `--phase remaining`)
+now fails its Environment stage when a selected component restricts another selected
+component (or a selected immediate option), or depends on one that is not selected,
+as the C# CLI does: the stage fails with `Some components failed to validate. Check
+the output/console window for details.` (and C#'s second line about antivirus or
+missing mods), counting one error and ending the report; that message replaces a
+read-only folder message, as in C#. Rust then lists each finding in C#'s log wording
+(`ERROR: Cannot install 'A' due to 'C' being selected for install.`, or `... not being
+selected for install.`), which C# writes only to its log. Before, Rust's Environment
+stage passed and its Conflicts, InstallOrder and FomodConfiguration stages each failed
+the guide (three errors, four with `--dry-run-only`). Both failed; only the report
+differed. A Restriction or Dependency naming no component or immediate option is
+skipped here, as in C#. The desktop Validate step shows the same failed Environment
+stage. Unchanged and documented: `install`, plain `validate`, `conflicts` and the basic
+report (no `--full`) still refuse a restriction conflict or an unselected Dependency
+before any write (C#'s basic report passes a restriction conflict; fail closed);
+C#'s loader selects every Dependency and deselects what a selected component
+restricts (AttemptFixes) and Rust does not, so with `--use-file-selection` (or a
+restricted selected option) C# passes where Rust's Environment stage now fails with
+C#'s message; Rust's `--select` adds the dependency closure where C#'s does not, so C#
+fails there and Rust passes. Without `--dry-run-only` a component's archive error
+still fails Rust's ComponentValidation stage, not its Environment stage. Evidence:
+[environment relations proof](docs/parity/environment-relations-proof/README.md), 85
+checks match and 33 are known differences against the live C# CLI with a HoloPatcher
+stub (44 fail on `1ab3d27`); contract in
+[environment-relations-contract.md](docs/parity/environment-relations-contract.md).
+
+Users: if `validate --full` fails with `Some components failed to validate` and a
+`Cannot install 'A' due to 'C' being selected for install.` line, two selected mods
+cannot be installed together: deselect one of them (or select the missing mod named
+in a `not being selected` line) and validate again. Nothing was installed.
+
 ## A read-only game or mod folder, 2026-10-05 UTC
 
 `validate --full` (also with `--dry-run` or `--dry-run-only`) now fails when Rust

@@ -276,14 +276,19 @@ impl Report {
     }
     /// C#'s Environment stage when a selected component fails its checks: one error
     /// with C#'s message. C# writes each component's errors only to its log; Rust
-    /// lists them after that message. `unwritable` is C#'s message for a game or mod
-    /// folder it cannot write to; C#'s component message replaces it.
+    /// lists them after that message, the Restriction and Dependency errors
+    /// (`relations`, in C#'s log wording) first. `unwritable` is C#'s message for a
+    /// game or mod folder it cannot write to; C#'s component message replaces it.
     pub(crate) fn environment_components(
         &mut self,
+        relations: Vec<String>,
         outcomes: Vec<ArchiveOutcome>,
         unwritable: Option<&str>,
     ) -> bool {
-        let errors: Vec<_> = outcomes.into_iter().filter_map(Result::err).collect();
+        let mut errors: Vec<_> = outcomes.into_iter().filter_map(Result::err).collect();
+        if !relations.is_empty() {
+            errors.insert(0, relations);
+        }
         if errors.is_empty() {
             let Some(unwritable) = unwritable else {
                 return self.push(Stage::Environment, Ok(()));
