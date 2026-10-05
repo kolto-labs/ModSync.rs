@@ -3014,12 +3014,12 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                     refused.join(", ")
                 );
                 ensure!(
-                    !(args.managed && args.no_managed),
-                    "Cannot combine --managed and --no-managed."
-                );
-                ensure!(
                     install || !args.no_managed,
                     "--no-managed is only supported by install"
+                );
+                ensure!(
+                    !(args.managed && args.no_managed),
+                    "Cannot combine --managed and --no-managed."
                 );
                 ensure!(
                     (!install && !conflicts) || !validation_only_flags(&args),

@@ -140,8 +140,8 @@ The C# legacy `convert --merge` adapter also drops `concurrent`, `ignore-errors`
 | C# flag | C# default/shape | Rust flag | Status and reason | Referent |
 |---|---|---|---|---|
 | `-i/--input` | required | same unless profile supplies it | **differing** — Rust allows profile-derived input | C# MBC:573-574; `src/main.rs:298-306` |
-| `-g/--game-dir` | optional except full/dry modes | `--game-dir`, profile-capable; no `-g` | **differing** | C# MBC:576-577,3042-3078; `src/main.rs:300-303` |
-| `-s/--source-dir` | optional except full/dry modes | `--source-dir`, profile-capable; no `-s` | **differing** | C# MBC:579-580,3042-3078; `src/main.rs:302-303` |
+| `-g/--game-dir` | optional except full/dry modes | `--game-dir`/`-g`, profile-capable | **differing** | C# MBC:576-577,3042-3078; `src/main.rs:300-303` |
+| `-s/--source-dir` | optional except full/dry modes | `--source-dir`/`-s`, profile-capable | **differing** | C# MBC:579-580,3042-3078; `src/main.rs:302-303` |
 | `--select` | list (several values after one flag; a repeated flag is refused) | repeatable name/GUID/category/tier | **differing** — Rust grammar is broader. 2026-10-05: C#'s list form `--select a b` (CommandLineParser sequence; a repeated flag is refused there) is now read as in C#, and a repeated flag still works ([select-values-contract.md](select-values-contract.md)) | C# MBC:582-583; `src/main.rs:315-317,989-997` |
 | `--full` | false | same, requires `--validation-report` | **differing** — C# mode directly selects pipeline; Rust gates it behind report mode | C# MBC:585-586; `src/main.rs:352-360` |
 | `--dry-run` | false | same, requires report | **differing** | C# MBC:588-589; `src/main.rs:355-357` |
@@ -158,11 +158,16 @@ The C# legacy `convert --merge` adapter also drops `concurrent`, `ignore-errors`
 
 ## `install` flag table
 
+Note (2026-10-05): several rows below predate later slices. Rust's `install` now has
+`-d/--download`, `--concurrent`, `--nexus-api-key`, `--download-timeout-hours` and
+`--no-checkpoint`, and refuses `--skip-validation`, `--ignore-errors` and `-y` by name;
+those rows still say none/missing and await a full audit refresh.
+
 | C# flag | C# default/shape | Rust flag | Status and reason | Referent |
 |---|---|---|---|---|
 | `-i/--input` | required | same unless profile supplies it | **differing** | C# MBC:610-611; `src/main.rs:298-306` |
-| `-g/--game-dir` | required | `--game-dir`, profile-capable; no `-g` | **differing** | C# MBC:613-614; `src/main.rs:300-306` |
-| `-s/--source-dir` | input directory if absent | required unless profile supplies it; no `-s` | **differing** — default differs | C# MBC:616-617,3342-3347; `src/main.rs:302-306,962-973` |
+| `-g/--game-dir` | required | `--game-dir`/`-g`, profile-capable | **differing** | C# MBC:613-614; `src/main.rs:300-306` |
+| `-s/--source-dir` | input directory if absent | required unless profile supplies it; `-s` accepted | **differing** — default differs | C# MBC:616-617,3342-3347; `src/main.rs:302-306,962-973` |
 | `--select` | list (several values after one flag; a repeated flag is refused) | repeatable broader selector | **differing**. 2026-10-05: `--select a b` is now read as in C#, as for `validate` ([select-values-contract.md](select-values-contract.md)) | C# MBC:619-620; `src/main.rs:315-317,989-997` |
 | `--use-file-selection` | false; absent select means all | same | **matched** | C# MBC:622-623; `src/main.rs:312-317,989-1004` |
 | `--no-checkpoint` | false | none | **missing** — Rust recovery snapshot is mandatory | C# MBC:625-626; `src/main.rs:287-364` |
@@ -180,7 +185,7 @@ The C# legacy `convert --merge` adapter also drops `concurrent`, `ignore-errors`
 | `--nexus-api-key` | optional | none on install | **missing** | C# MBC:661-662; `src/main.rs:287-364` |
 | `--download-timeout-hours` | 48 | none | **missing** | C# MBC:664-665; `src/main.rs:287-364` |
 | `--ignore-errors` | false | none | **missing** — dependency failures remain fail-closed | C# MBC:667-668; `src/main.rs:287-364` |
-| `--managed` | false | no install flag; deployment is separate | **missing** | C# MBC:670-671; `src/main.rs:25-26,237-286` |
+| `--managed` | false | `install --managed` (needs `--component-checkpoints` or a checkpoint resume) | **differing** | C# MBC:670-671; `src/main.rs:25-26,237-286` |
 | `--no-managed` | false | same; classic install, the Rust CLI default | **differing** — 2026-10-05: accepted and refused beside `--managed` with C#'s message; the CLI never reads settings.json's managed toggle, so the flag changes nothing else ([no-managed-contract.md](no-managed-contract.md)) | C# MBC:673-674; `src/main.rs:711-713,3016-3023` |
 | `--profile` | optional | same name, different meaning: stored paths/selections | **differing** | C# MBC:676-677; `src/main.rs:304-311,948-973` |
 | none | — | `--phase`, `--active-profile`, `--settings-dir`, `--option` | **differing** — Rust-only orchestration | `src/main.rs:289-320` |

@@ -60,11 +60,15 @@ classic.
   `--no-managed` (`src/main.rs:711-713`) and installs as without `--managed`: classic,
   with the same validation, recovery snapshot and stop on failure.
 - `--managed` with `--no-managed` stops before validation with C#'s message `Cannot
-  combine --managed and --no-managed.` (`src/main.rs:3016-3019`), exit 1, nothing
+  combine --managed and --no-managed.` (`src/main.rs:3020-3023`), exit 1, nothing
   written.
 - `validate` and `conflicts` refuse `--no-managed` with `--no-managed is only
-  supported by install` (`src/main.rs:3020-3023`), exit 1, with or without roots: the
-  check runs before the rootless branch.
+  supported by install` (`src/main.rs:3016-3019`), exit 1, with or without roots: the
+  check runs first (so `validate --managed --no-managed` gets this message too) and
+  before the rootless branch.
+- Resuming a managed checkpoint session with `--no-managed` acts as leaving out
+  `--managed`: preflight refuses it with `Resume auxiliary/profile bindings differ`
+  (`src/checkpoint/resume.rs:51-54`) before any write.
 - Unchanged: `--managed` alone, and the CLI's classic default when neither flag is
   given.
 
