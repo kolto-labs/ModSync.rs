@@ -708,6 +708,9 @@ struct InstallArgs {
     /// Stage and track managed deployment effects within component checkpoints.
     #[arg(long)]
     managed: bool,
+    /// Install without managed deployment, as without --managed (C# CLI spelling).
+    #[arg(long)]
+    no_managed: bool,
     /// Managed staging root; supply together with --manifest-dir.
     #[arg(long, requires_all = ["managed", "manifest_dir"])]
     staging_dir: Option<PathBuf>,
@@ -3009,6 +3012,14 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                     refused.is_empty(),
                     "{} would skip validation, auto-confirm, or continue past a missing source, failed mod or dependency error. ModSync always validates and stops on failure: fix the reported cause, or restore the verified boundary and resume the ordered suffix.",
                     refused.join(", ")
+                );
+                ensure!(
+                    install || !args.no_managed,
+                    "--no-managed is only supported by install"
+                );
+                ensure!(
+                    !(args.managed && args.no_managed),
+                    "Cannot combine --managed and --no-managed."
                 );
                 ensure!(
                     (!install && !conflicts) || !validation_only_flags(&args),

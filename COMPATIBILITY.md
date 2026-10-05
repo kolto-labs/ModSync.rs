@@ -2250,6 +2250,32 @@ proof](docs/parity/extract-overwrite-proof/README.md) (2 fail on `b8b4d57`); con
 Users: when two Sources of one step write the same file, the later one now wins, as in
 C#. Put the file you want to keep last in the Source list, or use two steps.
 
+## install --no-managed — 2026-10-05 UTC
+
+`install` now accepts the C# CLI's `--no-managed`: `install -i guide.toml -g game -s
+mods --no-managed` validates and installs without managed deployment, as C# does for
+that run even when settings.json turns managed deployment on. Before, Rust stopped
+with a usage error (`unexpected argument '--no-managed'`, exit 2) and nothing was
+validated or installed. The Rust CLI already installs this way unless `--managed` is
+given, so the flag changes nothing else: the same validation, recovery snapshot and
+stop on failure. `--managed --no-managed` stops with C#'s `Cannot combine --managed
+and --no-managed.` (exit 1, nothing written; Rust refuses before validating, C# after).
+`validate` and `conflicts` refuse `--no-managed` (`--no-managed is only supported by
+install`, exit 1), as the C# `validate` does not take it.
+
+Unchanged and documented: the Rust CLI does not read settings.json's
+`managedDeploymentEnabled`, so without either flag it installs classic where C# would
+start a managed install for the active profile. A component that fails validation
+still stops the install before any write; C# installs the components before it.
+Evidence: [no-managed proof](docs/parity/no-managed-proof/README.md), 14 checks match
+and 3 are known differences against the live C# CLI (7 fail on `bef5735`); contract
+in [no-managed-contract.md](docs/parity/no-managed-contract.md).
+
+Users: a C# command line with `install --no-managed` now runs in Rust and installs as
+it did without the flag. Leave out `--managed` when you pass it. For a managed install
+in Rust, pass `--managed` with `--component-checkpoints`; the settings.json toggle
+applies to the desktop only.
+
 ## Several values after one --select — 2026-10-05 UTC
 
 `validate`, `install` and `conflicts` (and the Rust-only `selection` and

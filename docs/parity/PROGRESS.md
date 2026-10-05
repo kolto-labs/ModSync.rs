@@ -9,6 +9,15 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+`install --no-managed` (2026-10-05, F26): `install` now accepts the C# CLI's
+`--no-managed` and installs classic, as it already did without `--managed`; Rust
+stopped with a usage error and ran nothing. `--managed --no-managed` stops with C#'s
+`Cannot combine --managed and --no-managed.`; `validate` and `conflicts` refuse the
+flag. The CLI still ignores settings.json's managed toggle (documented). Proof: 14
+match / 3 known against the live C# CLI with a HoloPatcher stub; 7 fail on `bef5735`.
+The regression probes stay at baseline, with select-values added to the set. See
+[no-managed-contract.md](no-managed-contract.md).
+
 Several values after one `--select` (2026-10-05, F26): `validate`, `install` and
 `conflicts` (and `selection` and `fetch-downloads`) now read every value after
 `--select` up to the next option, as the C# CLI reads its list option, so `--select
