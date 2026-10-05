@@ -6,8 +6,9 @@ implementations (InstallationValidationPipeline.cs:127, :251), but C#'s Environm
 stage still runs `ComponentValidation` (with AttemptFixes) on every selected
 component (InstallationService.cs:967-1012) and fails on any error with `Some
 components failed to validate. ...` (:1051-1056), ending the report
-(InstallationValidationPipeline.cs:66-82). Rust's Environment stage checked only the recovery state, so the report
-passed (exit 0) a guide whose archive was missing, where C# fails it.
+(InstallationValidationPipeline.cs:66-82). Rust's Environment stage checked only
+the recovery state, so the report passed (exit 0) a guide whose archive was
+missing, where C# fails it.
 
 Each case is a disposable mod/game fixture with one TOML guide. The mod folder holds
 `a/x.txt`, `a/y.tga`, the game `chitin.key` and `Override/g.txt`; some cases add

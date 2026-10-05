@@ -2328,8 +2328,9 @@ one `DryRunSkipped` warning) a guide whose archive was missing or whose loose So
 no archive holds; an empty Destination or one below a file failed only later, in the
 dry run. Rust now gives C#'s message and then each component's errors (`ERROR: A:
 Missing Required Archives: [<<modDirectory>>/m1.zip]`), which C# writes only to its
-log. Documented: an Extract with one of its archives missing (`[m1.zip, m2.zip]`,
-`m2.zip` absent) now fails this stage in Rust (fail closed, new: it passed before),
+log. Documented: a component with some, but not all, of its archives missing (in
+one Extract such as `[m1.zip, m2.zip]` with `m2.zip` absent, or across several
+Extract steps) now fails this stage in Rust (fail closed, new: it passed before),
 where C# checks archives only when none of the component's archives exists and
 passes; an option's missing archive fails this stage in Rust where C# fails it in
 its dry run. `--dry-run-only` without `--full`, the other reports and the desktop
