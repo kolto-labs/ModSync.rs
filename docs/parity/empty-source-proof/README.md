@@ -51,12 +51,20 @@ Every guide first copies `a.txt` and `b.txt` into `Override`. "Empty" is
 | this slice, live reference (`--csharp ... --record`) | 51 match / 0 fail |
 | this slice, recorded reference | 51 match / 0 fail |
 | `fba4eb1` (pre-fix) | 25 match / 26 fail |
+| after [extract-destination](../extract-destination-contract.md), recorded reference | 49 match / 2 known difference / 0 fail |
 
 On `fba4eb1` every non-strict empty Delete fails all three checks: Rust rejected
 it with `Instruction has no Source`, and the reference installs it as a no-op.
 Every strict Delete and every Copy/Move/Extract case fails the dry-run check: Rust
 reported an Error, and the reference reports `DryRunSkipped` and passes. The
 Rename control matches on both binaries.
+
+Since extract-destination (2026-10-05) the probe has `KNOWN`, which must be a
+refusal in Rust where the reference accepts: the dry runs of `extract_empty` and
+`extract_nokey`, whose Extract names Destination `Override`. Rust's basic report fails
+an Extract with a Destination; the C# CLI basic report fails these cases on its
+empty-Source archive check first (`Missing Required Archives: []`), and this reference
+runs `DryRunValidator` alone. Plain `validate` and `install` still match.
 
 ## Reproduce
 

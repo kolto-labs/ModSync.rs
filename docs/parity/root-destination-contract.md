@@ -92,7 +92,9 @@ DelDuplicate in a root failed install outright, where C# deletes the duplicate.
     `8c79761` it extracted straight into the mod root. Probed
     (`extract_destination_mod_root`). A configured FOMOD extracted there now reaches
     its own folder instead of failing with `FOMOD extraction directory is empty`
-    (not probed).
+    (not probed). Since
+    [extract-destination-contract.md](extract-destination-contract.md) an Extract
+    Destination is never used, so every Extract extracts there.
   - The Patcher check `Patcher destination must be the game directory`
     (`src/engine/source_resolution.rs:233-241`) compares keys, so a bare
     `<<gameDirectory>>` or `<<kotorDirectory>>` Destination now passes it, as C#
@@ -138,7 +140,7 @@ q.tpc}`, `mods/{m.txt, y.tga, y.tpc}` and `mods/l.csv` (`Mandatory Deletions,r.t
 | `copy_source_kotor` | Copy `[KD]` -> `MD` | `MissingSourceFiles` in both | stage also failed |
 | `delete_source_kotor`, `delete_source_mod_root` | Delete `[KD]`, `[MD]` | passes, nothing deleted | same |
 | `delete_source_kotor_strict`, `delete_source_mod_root_strict` | the same with `Overwrite = true` | `MissingSourceFiles` in both | same |
-| `extract_destination_mod_root` | Extract `[MD/a.zip]` with Destination `MD` | install extracts to `mods/a/a.txt` in both; stage: known difference (below) | install extracted to `mods/a.txt` |
+| `extract_destination_mod_root` | Extract `[MD/a.zip]` with Destination `MD` | install extracts to `mods/a/a.txt` in both; stage fails in both since extract-destination (was a known difference, below) | install extracted to `mods/a.txt` |
 | `missing_folder_control` | Copy -> `KD/Missing` | stage fails in both; install creates the folder | same |
 | `rename_destination_kotor` | Rename `KD/r.txt` -> `KD` | known difference (below) | same |
 
@@ -161,11 +163,13 @@ and `DryRunSkipped`), plain `validate` and `install` (decision and final tree).
   kept; it belongs with the placeholder-path Rename finding in
   [delete-directory-contract.md](delete-directory-contract.md). Counted as three known
   differences.
-- **Extract with a Destination in the archive/destination stage (predates this
-  slice).** C# `ParseDestinationWithAction` fails every Extract that has a
-  Destination (`'Destination' key cannot be used with this action`); Rust's stage
-  does not check Extract Destinations and passes. Install matches. Counted as one
-  known difference (`extract_destination_mod_root`, pipeline), where Rust accepts.
+- **Extract with a Destination in the archive/destination stage (closed by
+  [extract-destination-contract.md](extract-destination-contract.md)).** C#
+  `ParseDestinationWithAction` fails every Extract that has a Destination
+  (`'Destination' key cannot be used with this action`); Rust's stage passed it.
+  Install matches. It was one known difference (`extract_destination_mod_root`,
+  pipeline); Rust's basic report now fails it too, so it matches (114 match / 9
+  known / 0 fail).
 - **`..` parts (deliberate).** Rust refuses a `..` part anywhere in a path
   (`paths::relative`, sandboxing); C# resolves it and can install into the parent of
   a root. Not probed here; recorded in
@@ -192,6 +196,7 @@ and `DryRunSkipped`), plain `validate` and `install` (decision and final tree).
 | follow-up, live reference (`--csharp ... --record`) | 119 match / 4 known difference / 0 fail (123 checks) |
 | follow-up, recorded reference | 119 match / 4 known difference / 0 fail |
 | after destination-path-parts, recorded reference | 113 match / 10 known difference / 0 fail |
+| after extract-destination, recorded reference | 114 match / 9 known difference / 0 fail |
 | `6e67b3c` (first fix) | 102 match / 4 known difference / 17 fail |
 | `8c79761` (pre-fix) | 74 match / 4 known difference / 45 fail |
 | first slice (`6e67b3c`, 78 checks) | 75 match / 3 known / 0 fail; `8c79761`: 41 / 3 / 34 |

@@ -9,6 +9,20 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+Extract with a Destination (2026-10-05, F05/F06): an `Extract` step now always
+extracts into a folder named after the archive, next to it, as the C# CLI and GUI do,
+whose validation (`ComponentValidation`, AttemptFixes) clears an Extract Destination
+before the dry run and the install; Rust extracted into the Destination, so a later
+step written for C#'s layout failed and the archive's files landed in `Override` or
+the game root. The basic report now fails an Extract, Choose or Delete Destination
+with C#'s error; the full report passes it, as in C#. A Destination outside the roots
+stays refused (fail closed). Proof: 82 match / 9 known against the live C# CLI with a
+HoloPatcher stub; 41 fail on `c0e9cef`. The root-destination (114 / 9),
+delete-directory (167 / 13), empty-source (49 / 2), extract-overwrite (4 / 16, its
+Destination cases now compared with the live C# CLI) and FOMOD S2b (265/265) proofs
+were updated; the other regression probes stay at baseline. See
+[extract-destination-contract.md](extract-destination-contract.md).
+
 Rename to a name that is not a valid file name (2026-10-04, F05/F03): a `Rename`
 Destination with `..` inside the name, a control character, a `./` part or a trailing
 separator is now refused in every report, plain `validate` and `install` before any

@@ -293,6 +293,7 @@ differences marked.
 | Binary | Delete-directory proof |
 | --- | --- |
 | third follow-up, live and recorded reference | 169 match / 11 known difference / 0 fail (180 checks) |
+| after [extract-destination](extract-destination-contract.md), recorded reference | 167 match / 13 known difference / 0 fail |
 | `ab6b389` | 165 / 11 / 4 fail (the four all-wildcard dry runs) |
 | `df67229` | 156 / 11 / 13 fail |
 | second follow-up (`ab6b389`, 165 checks) | 154 / 11 / 0; `df67229`: 142 / 11 / 12 fail; `4fb71a6`: 103 / 7 / 55; `2241235`: 93 / 7 / 65 |

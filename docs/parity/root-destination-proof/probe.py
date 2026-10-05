@@ -296,14 +296,11 @@ for _name in ("copy_kotor_dot", "copy_override_dot", "move_kotor_dot"):
 
 
 # Deliberately unchanged acceptances: name -> (Rust modes, reason). Rust must
-# accept where the reference refuses, or the check fails.
-KNOWN_ACCEPTS = {
-    "extract_destination_mod_root": (
-        ("pipeline",),
-        "C# ComponentValidation fails every Extract with a Destination ('Destination' key"
-        " cannot be used); Rust's archive/destination stage does not check Extract (predates this slice)",
-    ),
-}
+# accept where the reference refuses, or the check fails. Empty since the
+# extract-destination slice (../extract-destination-contract.md): Rust's basic
+# report now fails an Extract with a Destination (`extract_destination_mod_root`,
+# pipeline), as the reference's archive/destination stage does.
+KNOWN_ACCEPTS = {}
 
 
 # Rust mode -> reference mode.

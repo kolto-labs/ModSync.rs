@@ -1,0 +1,54 @@
+{
+ "fresh_false": {
+  "accepted": false,
+  "tree": null
+ },
+ "game_override_false": {
+  "accepted": true,
+  "tree": {
+   "game": {
+    "Override/x.txt": "OLD\n"
+   },
+   "mods": {
+    "pack/x.txt": "NEW\n",
+    "pack/y.txt": "Y\n"
+   }
+  }
+ },
+ "game_override_true": {
+  "accepted": true,
+  "tree": {
+   "game": {
+    "Override/x.txt": "OLD\n"
+   },
+   "mods": {
+    "pack/x.txt": "NEW\n",
+    "pack/y.txt": "Y\n"
+   }
+  }
+ },
+ "stale_false": {
+  "accepted": false,
+  "tree": null
+ },
+ "stale_omitted": {
+  "accepted": false,
+  "tree": null
+ },
+ "stale_true": {
+  "accepted": false,
+  "tree": null
+ },
+ "two_archives_false": {
+  "accepted": false,
+  "tree": null
+ },
+ "two_archives_true": {
+  "accepted": false,
+  "tree": null
+ },
+ "two_steps_false": {
+  "accepted": false,
+  "tree": null
+ }
+}

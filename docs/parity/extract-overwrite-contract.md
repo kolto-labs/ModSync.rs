@@ -83,6 +83,20 @@ file contents in the mod directory and in the game.
 - **Probe coverage.** The proof covers ZIP only. 7z and tar were checked by hand in
   review and match; the directory and read-only cases above have no probe case.
 
+- **An Extract Destination (since
+  [extract-destination-contract.md](extract-destination-contract.md), 2026-10-05).**
+  This proof's reference is `ModComponent.InstallAsync` alone, which extracts into
+  an Extract's Destination. The C# CLI and GUI validate first, and that validation
+  clears an Extract Destination (AttemptFixes), so they extract to a folder named
+  after the archive, next to it; Rust now does the same. So a Destination no longer
+  makes a stale file or a game file a target, and every case with one (all but
+  `stale_default_destination_false`) is compared with the live C# CLI `install`
+  instead (`csharp-cli-oracle.json`) and counted as a known difference from
+  InstallAsync: 4 match / 16 known / 0 fail. For `stale_*` the C# CLI also refuses
+  for an older reason (its validation finds no archive member for the loose Copy
+  Source `out/x.txt`; Rust's plain `validate` and `install` do not run that check),
+  so those six checks require Rust's install to copy the stale `out/x.txt`. The
+  `Overwrite = false` rule is still proved by `stale_default_destination_false`.
 - **C# dry run.** C#'s virtual provider always extracts under an archive-named
   folder, even for an explicit destination
   (`Services/FileSystem/VirtualFileSystemProvider.cs:932`), unlike its own real
@@ -97,9 +111,10 @@ file contents in the mod directory and in the game.
 ## Notes for guide authors
 
 - `Overwrite = false` on an `Extract` step does not protect existing files, in C#
-  or now in Rust: the archive replaces them. To keep a file, extract into a
-  separate folder and `Copy` with `Overwrite = false`, or order the steps so the
-  file you want is written last.
+  or now in Rust: the archive replaces them. To keep a file, `Copy` it out of the
+  extracted folder with `Overwrite = false`, or order the steps so the file you want
+  is written last. An Extract always extracts next to its archive (its Destination is
+  not used; see [extract-destination-contract.md](extract-destination-contract.md)).
 - A configured FOMOD archive with `Overwrite = false` still fails in Rust when its
   output folder already holds any of its files. Remove that folder, or set
   `Overwrite = true`.

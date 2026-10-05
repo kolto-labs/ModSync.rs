@@ -216,10 +216,11 @@ ri=install(c,'install',sidecar(c,choices(entry('example.zip'))));check('scope_ot
 # reference refuses the same Extract with MissingSourceFiles
 # (../delete-directory-proof, extract_bracket_literal).
 # An archive literally named `[e]xample.zip` and named literally by the Source is in
-# scope and installs (`bracket_literal`). Its Extract names a destination folder
-# without brackets, so the check covers only the archive name.
-for label,source,where,ok,dest in [('folder','Pack','Pack/example.zip',True,None),('char_class','[e]xample.zip','example.zip',False,None),('bracket_literal','[e]xample.zip','[e]xample.zip',True,'<<modDirectory>>/bracket')]:
- extract_step={'Action':'Extract','Source':[f'<<modDirectory>>/{source}']}|({'Destination':dest} if dest else {})
+# scope and installs (`bracket_literal`). It extracts to `[e]xample/`, next to the
+# archive (an Extract Destination is never used; ../extract-destination-contract.md),
+# so the mapped copies read from a folder named with brackets too.
+for label,source,where,ok in [('folder','Pack','Pack/example.zip',True),('char_class','[e]xample.zip','example.zip',False),('bracket_literal','[e]xample.zip','[e]xample.zip',True)]:
+ extract_step={'Action':'Extract','Source':[f'<<modDirectory>>/{source}']}
  c=setup(f'scope_{label}',[comp(instructions=(extract_step,))],{})
  (c['mods']/where).parent.mkdir(parents=True,exist_ok=True);(c['mods']/where).write_bytes(FIRST);n=f'scope_{label}'
  archive=where.rsplit('/',1)[-1]
