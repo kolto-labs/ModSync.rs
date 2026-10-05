@@ -60,6 +60,9 @@ def extract(archives, destination, overwrite):
 PACK = {"pack.zip": {"x.txt": "NEW\n", "y.txt": "Y\n"}}
 TWO = {"a.zip": {"x.txt": "FROM A\n"}, "b.zip": {"x.txt": "FROM B\n"}}
 STALE = {"mods/out/x.txt": "OLD\n"}
+SAME_STEM = {"pack.zip": {"x.txt": "FROM ZIP\n", "z.txt": "Z\n"}, "pack.7z": {"x.txt": "FROM 7Z\n", "s.txt": "S\n"}}
+STALE_PACK = {"mods/pack/x.txt": "OLD\n"}
+COPY_PACK = ("Copy", ["<<modDirectory>>/pack/x.txt"], OV, None)
 CASES = {
     "stale_false": (PACK, STALE, [extract(["pack.zip"], OUT, False), COPY_OUT]),
     "stale_true": (PACK, STALE, [extract(["pack.zip"], OUT, True), COPY_OUT]),
@@ -79,6 +82,21 @@ CASES = {
     ),
     "game_override_false": (PACK, {"game/Override/x.txt": "OLD\n"}, [extract(["pack.zip"], OV, False)]),
     "game_override_true": (PACK, {"game/Override/x.txt": "OLD\n"}, [extract(["pack.zip"], OV, True)]),
+    # No Destination: `pack.zip` and `pack.7z` both extract to `mods/pack/`, over an
+    # existing `mods/pack/x.txt`, in one step or in two.
+    "same_stem_false": (SAME_STEM, STALE_PACK, [extract(["pack.zip", "pack.7z"], "", False), COPY_PACK]),
+    "same_stem_true": (SAME_STEM, STALE_PACK, [extract(["pack.zip", "pack.7z"], "", True), COPY_PACK]),
+    "same_stem_reversed_false": (SAME_STEM, STALE_PACK, [extract(["pack.7z", "pack.zip"], "", False), COPY_PACK]),
+    "same_stem_steps_false": (
+        SAME_STEM,
+        STALE_PACK,
+        [extract(["pack.zip"], "", False), extract(["pack.7z"], "", False), COPY_PACK],
+    ),
+    "same_stem_steps_true": (
+        SAME_STEM,
+        STALE_PACK,
+        [extract(["pack.zip"], "", True), extract(["pack.7z"], "", True), COPY_PACK],
+    ),
 }
 
 
@@ -87,6 +105,9 @@ CASES = {
 # the archive, as Rust does since extract-destination.
 CLI_CASES = [name for name, case in CASES.items()
              if any(action == "Extract" and destination for action, _, destination, _ in case[2])]
+# Cases recorded against the C# CLI install only (csharp-oracle.json predates them).
+CLI_ONLY = [name for name in CASES if name.startswith("same_stem_")]
+CLI_CASES += CLI_ONLY
 # The C# CLI also refuses stale_false, stale_true and stale_omitted, for a reason that
 # predates extract-destination: its validation (`VerifyExtractPaths`) finds no archive
 # member for the Copy Source `out/x.txt`, a loose file here (`Failed to find
@@ -115,6 +136,18 @@ def guide(instructions):
     return "\n".join(lines) + "\n"
 
 
+def seven_zip(path, entries, scratch):
+    """A 7z archive of `entries`, written with the `7z` command-line tool."""
+    staging = tempfile.mkdtemp(dir=scratch)
+    for entry, text in entries.items():
+        with open(os.path.join(staging, entry), "w") as handle:
+            handle.write(text)
+    tool = next(shutil.which(n) for n in ("7z", "7za", "7zr") if shutil.which(n))
+    subprocess.run([tool, "a", "-t7z", path] + sorted(entries), cwd=staging, check=True,
+                   capture_output=True)
+    shutil.rmtree(staging)
+
+
 def fixture(root, case):
     archives, existing, instructions = case
     mods = os.path.join(root, "mods")
@@ -123,6 +156,9 @@ def fixture(root, case):
     os.makedirs(mods)
     os.makedirs(os.path.join(root, "scratch"))
     for name, entries in archives.items():
+        if name.endswith(".7z"):
+            seven_zip(os.path.join(mods, name), entries, os.path.join(root, "scratch"))
+            continue
         with zipfile.ZipFile(os.path.join(mods, name), "w") as archive:
             for entry, text in entries.items():
                 archive.writestr(zipfile.ZipInfo(entry, (2020, 1, 2, 3, 4, 6)), text)
@@ -142,7 +178,7 @@ def tree(base, skip_archives=False):
     for directory, dirs, files in os.walk(base):
         dirs[:] = [d for d in dirs if d != ".modsync"]  # C# CLI bookkeeping
         for name in files:
-            if skip_archives and name.endswith(".zip"):
+            if skip_archives and name.endswith((".zip", ".7z")):
                 continue
             full = os.path.join(directory, name)
             with open(full) as handle:
@@ -234,7 +270,7 @@ def main():
         if args.csharp:
             oracle = {
                 name: {mode: run_csharp(args.csharp, args.reference, mode, case, work) for mode in ("dryrun", "install")}
-                for name, case in CASES.items()
+                for name, case in CASES.items() if name not in CLI_ONLY
             }
             if args.record:
                 with open(ORACLE, "w") as handle:
@@ -245,7 +281,7 @@ def main():
                 oracle = json.load(handle)
         matched = known = failed = 0
         for name, case in CASES.items():
-            expected = oracle[name]["install"]
+            expected = oracle[name]["install"] if name not in CLI_ONLY else cli_oracle[name]
             # Plain validate is Rust's strict install gate: compare its decision
             # with the reference install. Install also compares the final trees.
             for mode in ("validate", "install"):

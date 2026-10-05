@@ -87,7 +87,7 @@ this stage and are unchanged.
 | `partly_missing_sources` | one Extract, `a.zip` and `nope.zip` | stage passes | known difference | as above |
 | `option_only_missing` | only an option Extract, missing | stage passes; dry run fails | known difference (counts, stage) | as above |
 | `option_present_base_missing` | own Extract missing, option archive present | stage passes | known difference | as above |
-| `empty_source_only` | `Extract []` only | `Missing Required Archives: []` | known difference | known difference |
+| `empty_source_only` | `Extract []` only | `Missing Required Archives: []` | match (since empty-extract-report) | known difference |
 | `conditional_present` | an Extract that does not run (unmet instruction dependency), archive present | one error | known difference | known difference |
 | `conditional_missing` | the same, archive missing | one error | known difference | known difference |
 | `missing_and_conditional_missing` | a missing Extract and one that does not run | two errors | known difference (counts, stage) | other wording, one error |
@@ -115,12 +115,11 @@ this stage and are unchanged.
   a component with no archive, including a step whose instruction-level dependency is
   not selected, and so fails the report even when that archive exists
   (`conditional_present`). Rust checks only steps that run, as its other checks do.
-- **An Extract with no Source (unchanged).** C# reports `Missing Required Archives: []`
-  whenever the component has no archive (so `[Extract [], Extract nope.zip]` gives two
-  errors and a higher `errorCount` in C#, one in Rust); Rust passes the empty Extract and the dry run
-  reports the `DryRunSkipped` warning, as the
-  [empty-source contract](empty-source-contract.md) records. The empty-source probe
-  compares the dry run, not this stage, so it is unaffected.
+- **An Extract with no Source (resolved 2026-10-05).** C# reports `Missing Required
+  Archives: []` whenever the component has no archive (so `[Extract [], Extract
+  nope.zip]` gives two errors). Rust passed the empty Extract here; since
+  [empty-extract-report-contract.md](empty-extract-report-contract.md) it reports it
+  as C# does (50 match / 19 known of 69).
 - **Report fields outside this slice (not changed).** Found while triaging, compared
   with the live C# CLI and left open: the `DryRun` stage's `hasWarnings` is always
   `false` in C# but follows its warnings in Rust; the stage lists components in guide

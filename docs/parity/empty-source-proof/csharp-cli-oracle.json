@@ -1,0 +1,274 @@
+{
+ "copy_blank": {
+  "basic_cli": [
+   true,
+   []
+  ],
+  "full": [
+   true,
+   true
+  ],
+  "install": {
+   "accepted": false,
+   "tree": null
+  }
+ },
+ "copy_empty": {
+  "basic_cli": [
+   true,
+   []
+  ],
+  "full": [
+   true,
+   true
+  ],
+  "install": {
+   "accepted": false,
+   "tree": null
+  }
+ },
+ "delete_blank_false": {
+  "basic_cli": [
+   true,
+   []
+  ],
+  "full": [
+   true,
+   true
+  ],
+  "install": {
+   "accepted": true,
+   "tree": {
+    "Override/a.txt": "A\n",
+    "Override/b.txt": "B\n"
+   }
+  }
+ },
+ "delete_blank_true": {
+  "basic_cli": [
+   true,
+   []
+  ],
+  "full": [
+   true,
+   true
+  ],
+  "install": {
+   "accepted": false,
+   "tree": null
+  }
+ },
+ "delete_empty_false": {
+  "basic_cli": [
+   true,
+   []
+  ],
+  "full": [
+   true,
+   true
+  ],
+  "install": {
+   "accepted": true,
+   "tree": {
+    "Override/a.txt": "A\n",
+    "Override/b.txt": "B\n"
+   }
+  }
+ },
+ "delete_empty_false_then_later": {
+  "basic_cli": [
+   true,
+   []
+  ],
+  "full": [
+   true,
+   true
+  ],
+  "install": {
+   "accepted": true,
+   "tree": {
+    "Override/a.txt": "A\n"
+   }
+  }
+ },
+ "delete_empty_omitted": {
+  "basic_cli": [
+   true,
+   []
+  ],
+  "full": [
+   true,
+   true
+  ],
+  "install": {
+   "accepted": true,
+   "tree": {
+    "Override/a.txt": "A\n",
+    "Override/b.txt": "B\n"
+   }
+  }
+ },
+ "delete_empty_true": {
+  "basic_cli": [
+   true,
+   []
+  ],
+  "full": [
+   true,
+   true
+  ],
+  "install": {
+   "accepted": false,
+   "tree": null
+  }
+ },
+ "delete_empty_true_then_later": {
+  "basic_cli": [
+   true,
+   []
+  ],
+  "full": [
+   true,
+   true
+  ],
+  "install": {
+   "accepted": false,
+   "tree": null
+  }
+ },
+ "delete_nokey_false": {
+  "basic_cli": [
+   true,
+   []
+  ],
+  "full": [
+   true,
+   true
+  ],
+  "install": {
+   "accepted": true,
+   "tree": {
+    "Override/a.txt": "A\n",
+    "Override/b.txt": "B\n"
+   }
+  }
+ },
+ "delete_nokey_true": {
+  "basic_cli": [
+   true,
+   []
+  ],
+  "full": [
+   true,
+   true
+  ],
+  "install": {
+   "accepted": false,
+   "tree": null
+  }
+ },
+ "extract_blank_nodest": {
+  "basic_cli": [
+   false,
+   [
+    "ERROR: Empty Source Probe: Missing Required Archives: []"
+   ]
+  ],
+  "full": [
+   false,
+   false
+  ],
+  "install": {
+   "accepted": false,
+   "tree": null
+  }
+ },
+ "extract_empty": {
+  "basic_cli": [
+   false,
+   [
+    "ERROR: Empty Source Probe: Missing Required Archives: []"
+   ]
+  ],
+  "full": [
+   false,
+   false
+  ],
+  "install": {
+   "accepted": false,
+   "tree": null
+  }
+ },
+ "extract_empty_beside_archive": {
+  "basic_cli": [
+   true,
+   []
+  ],
+  "full": [
+   true,
+   true
+  ],
+  "install": {
+   "accepted": false,
+   "tree": null
+  }
+ },
+ "extract_nokey": {
+  "basic_cli": [
+   false,
+   [
+    "ERROR: Empty Source Probe: Missing Required Archives: []"
+   ]
+  ],
+  "full": [
+   false,
+   false
+  ],
+  "install": {
+   "accepted": false,
+   "tree": null
+  }
+ },
+ "move_empty": {
+  "basic_cli": [
+   true,
+   []
+  ],
+  "full": [
+   true,
+   true
+  ],
+  "install": {
+   "accepted": false,
+   "tree": null
+  }
+ },
+ "move_empty_true": {
+  "basic_cli": [
+   true,
+   []
+  ],
+  "full": [
+   true,
+   true
+  ],
+  "install": {
+   "accepted": false,
+   "tree": null
+  }
+ },
+ "rename_empty_control": {
+  "basic_cli": [
+   false,
+   []
+  ],
+  "full": [
+   false,
+   false
+  ],
+  "install": {
+   "accepted": false,
+   "tree": null
+  }
+ }
+}

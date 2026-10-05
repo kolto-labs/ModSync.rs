@@ -212,15 +212,18 @@ counts (265/265, 74/74).
   fail). 6 checks.
 - **Missing archive (not this slice).** Both refuse; C#'s full pipeline stops in its
   Environment stage, Rust's reports the archive in ComponentValidation. 2 checks.
-- **An archive Rust cannot list (fail-open, not probed).** When no archive holds a
-  Source and one could not be listed, Rust lets the Source pass and installs it. C#
-  opens such an archive with SharpCompress (a case-duplicate or link entry included),
-  does not find the Source and refuses: live, `A` extracting `m.zip` and copying
-  `loose/x.tga`, with an unchosen option extracting a case-duplicate `dup.zip`, is
-  refused by C# (basic report 2 errors, install refused) and installed by Rust. It
-  needs an unchosen archive Rust's admission rules refuse plus a loose Source, so it is
-  rare; the alternative was the false refusal of every such guide. A step that runs
-  and extracts the archive is refused in Rust before any write by the FOMOD gate.
+- **An archive Rust cannot list (fail-open).** When no archive holds a Source and one
+  could not be listed, Rust lets the Source pass and installs it. C# opens such an
+  archive with SharpCompress (a case-duplicate or link entry included), does not find
+  the Source and refuses: `A` extracting `m.zip` and copying `loose/x.tga`, with an
+  unchosen option extracting a case-duplicate `dup.zip` (`unchosen_dup_loose`), is
+  refused by C# (full report in Environment, basic report 2 errors, install refused)
+  and installed by Rust. It needs an unchosen archive Rust's admission rules refuse
+  plus a loose Source, so it is rare; the alternative was the false refusal of every
+  such guide. A step that runs and extracts the archive is refused in Rust before any
+  write by the FOMOD gate. Probed since 2026-10-05 (7 checks; Rust's result must equal
+  C#'s for `improved_ai`, the same files installed); the proof is now 98 match / 56
+  known of 154.
 - **Not probed.** An `.exe` archive (C# matches any Source; Rust lists the archive
   and checks its members) and `install --skip-validation` (C# skips the check; Rust
   has no such flag). Messages: the error text keeps Rust's wording (the Source as
