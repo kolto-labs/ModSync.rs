@@ -9,6 +9,16 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+A missing guide for `convert` or `merge` (2026-10-05, F26): `convert` stops with
+C#'s `Input file not found: <path>` and `merge` (and `convert --merge`) with
+`Existing file not found: <path>` or `Incoming file not found: <path>`, checked
+before either guide is read, where Rust said `Read <path>: No such file or directory
+(os error 2)`. A folder gets the same message, as `File.Exists` is false for it. Exit
+codes and the absence of writes were already the same; only the message changes.
+Proof: 45 match / 0 known against the live C# CLI; 13 fail on `5796295`. The
+regression probes stay at baseline, with this proof added to the set. See
+[missing-guides-contract.md](missing-guides-contract.md).
+
 A missing guide, game folder or mod folder (2026-10-05, F26): `validate`, `install`
 and `conflicts` now stop with C#'s `Input file not found: <path>`, `Game directory not
 found: <path>` or `Source directory not found: <path>` (guide, then game folder, then

@@ -2235,6 +2235,17 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             let incoming_path = incoming_path
                 .or(incoming)
                 .context("Supply --incoming or an incoming guide path")?;
+            // C# checks both guides before reading either, as File.Exists (not a folder).
+            ensure!(
+                existing_path.is_file(),
+                "Existing file not found: {}",
+                existing_path.display()
+            );
+            ensure!(
+                incoming_path.is_file(),
+                "Incoming file not found: {}",
+                incoming_path.display()
+            );
             let existing = Guide::load(&existing_path)?;
             let mut incoming = Guide::load(&incoming_path)?;
             incoming.components = modsync::merge::components(
@@ -2311,6 +2322,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                 let path = input_file
                     .as_deref()
                     .context("Use --input <file> or --stdin")?;
+                ensure!(path.is_file(), "Input file not found: {}", path.display());
                 (Guide::load(path)?, Guide::markdown_input(path)?)
             };
             // C# convert writes components in its dependency resolver's order. Its Markdown

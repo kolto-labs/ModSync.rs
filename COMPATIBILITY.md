@@ -2488,6 +2488,27 @@ Users: `--select category:Bugfix category:Immersion` now works as in the C# CLI,
 `--select category:Bugfix --select category:Immersion` still works. Quote a value
 with spaces (`--select "tier:1 - Essential"`).
 
+## A missing guide for convert or merge, 2026-10-05 UTC
+
+`convert` and `merge` (also `convert --merge`) now name a guide that does not exist,
+or is a folder, before reading anything, as the C# CLI does
+(`CLI/ModBuildConverter.cs:1966-1970`, `:2473-2483`): `Input file not found: <path>`
+for `convert`, `Existing file not found: <path>` then `Incoming file not found:
+<path>` for `merge`, the path as typed. Rust said `Read <path>: No such file or
+directory (os error 2)` (or `Read <path>: Archive source must be a regular file, ...`
+for a folder). Exit codes (1) and the absence of any write are unchanged; `--stdin`
+is unchanged; a symlinked guide is still refused by the read, as before. C# logs the
+message on stdout with its log prefix, Rust prints `Error: <message>` on stderr (as
+for every error). The other guide readers (`merge-preview`, `merge-apply`, `list`,
+`download-plan`, `selection`, `fetch-downloads`; no C# verbs) keep `Read <path>:
+...`. Evidence: [missing guides proof](docs/parity/missing-guides-proof/README.md), 45
+checks match against the live C# CLI (13 fail on `5796295`); contract in
+[missing-guides-contract.md](docs/parity/missing-guides-contract.md).
+
+Users: when `convert` or `merge` stops with `Input file not found`, `Existing file not
+found` or `Incoming file not found`, the named guide does not exist (or is a folder);
+fix that path and run the command again. Nothing was written.
+
 ## A missing guide, game folder or mod folder, 2026-10-05 UTC
 
 `validate`, `install` and `conflicts` now name a guide, game folder or mod folder that
@@ -2502,7 +2523,8 @@ any write are unchanged. The folder message comes from the shared root check, so
 `restore`, `completion-summary`, checkpoint and maintenance commands and the desktop
 Validate and Install steps show it too. Unchanged and documented: C#'s plain `validate`
 ignores `-s`/`-g` and fails its FOMOD stage, where Rust names the missing folder;
-`convert`, `merge` and the other guide readers keep `Read <path>: ...`. Evidence:
+`convert`, `merge` and the other guide readers keep `Read <path>: ...` (`convert` and
+`merge` since changed, see the section above). Evidence:
 [missing paths proof](docs/parity/missing-paths-proof/README.md), 62 checks match and 1
 is a known difference against the live C# CLI with a HoloPatcher stub (19 fail on
 `b0483d5`); contract in [missing-paths-contract.md](docs/parity/missing-paths-contract.md).
