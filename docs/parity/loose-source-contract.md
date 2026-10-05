@@ -126,7 +126,8 @@ Copy loose/x.tga with no Extract installs            installs              insta
   case-duplicate entry, an unsafe path) or cannot decode is not needed when an earlier
   archive holds the Source. When no archive holds it and one could not be listed, the
   Source passes the gate, since C# may find it there; if a step that runs extracts
-  that archive, the Extract still fails, as before (fail closed). So a bad archive in
+  that archive, the FOMOD configuration gate refuses it before any write (including
+  for `--managed`), as before (fail closed). So a bad archive in
   an option that is not chosen no longer refuses the component.
 - **Missing archives.** A component whose missing archive is extracted by a step that
   runs (its own, or a chosen option's) is left to the steps, which report it as
@@ -211,10 +212,15 @@ counts (265/265, 74/74).
   fail). 6 checks.
 - **Missing archive (not this slice).** Both refuse; C#'s full pipeline stops in its
   Environment stage, Rust's reports the archive in ComponentValidation. 2 checks.
-- **An archive Rust cannot list (not probed).** When no archive holds a Source and
-  one could not be listed, Rust lets the Source pass; C# refuses it if it cannot open
-  that archive either (a corrupt archive before the match) and decides on the
-  members otherwise. A step that runs and extracts it fails in Rust anyway.
+- **An archive Rust cannot list (fail-open, not probed).** When no archive holds a
+  Source and one could not be listed, Rust lets the Source pass and installs it. C#
+  opens such an archive with SharpCompress (a case-duplicate or link entry included),
+  does not find the Source and refuses: live, `A` extracting `m.zip` and copying
+  `loose/x.tga`, with an unchosen option extracting a case-duplicate `dup.zip`, is
+  refused by C# (basic report 2 errors, install refused) and installed by Rust. It
+  needs an unchosen archive Rust's admission rules refuse plus a loose Source, so it is
+  rare; the alternative was the false refusal of every such guide. A step that runs
+  and extracts the archive is refused in Rust before any write by the FOMOD gate.
 - **Not probed.** An `.exe` archive (C# matches any Source; Rust lists the archive
   and checks its members) and `install --skip-validation` (C# skips the check; Rust
   has no such flag). Messages: the error text keeps Rust's wording (the Source as
