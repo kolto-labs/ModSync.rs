@@ -61,9 +61,10 @@ InstallAsync, `match` when it equals both, and fails otherwise.
 The C# CLI refuses `stale_false`, `stale_true` and `stale_omitted` for an older
 reason: its validation (`ComponentValidation.VerifyExtractPaths`) finds no archive
 member for the loose Copy Source `out/x.txt` (`Failed to find 'out/x.txt' in any
-archives!`), and Rust's plain `validate` and `install` do not run that check (left
-open). For those six checks Rust must accept and, for `install`, extract to `pack/`
-and copy the stale `out/x.txt` (`OLD`) into `Override`. The C# CLI refuses
+archives!`). Since [loose-source](../loose-source-contract.md) (2026-10-05) Rust's
+plain `validate` and `install` refuse it too, so those six checks are ordinary known
+differences from InstallAsync (before, Rust had to accept and copy the stale
+`out/x.txt`, `OLD`, into `Override`). The C# CLI refuses
 `fresh_false` and the `two_*` cases (there is no `out/x.txt`) and installs the two
 `game_override` cases with `x.txt` left `OLD` in `Override` and the archive extracted
 to `mods/pack/`; Rust gives the same.
@@ -78,6 +79,9 @@ to `mods/pack/`; Rust gives the same.
 | extract-destination, live C# CLI (`--cli-reference ... --record`), 2026-10-05 | 4 match / 16 known difference / 0 fail |
 | extract-destination, recorded references | 4 match / 16 known difference / 0 fail |
 | `c0e9cef` (before extract-destination), recorded references | 4 match / 3 known difference / 13 fail |
+| loose-source, live C# CLI (`--cli-reference ... --record`), 2026-10-05 | 4 match / 16 known difference / 0 fail |
+| loose-source, recorded references | 4 match / 16 known difference / 0 fail |
+| `6ca4d35` (before loose-source), recorded references | 4 match / 10 known difference / 6 fail |
 
 On `5905259` the five `Overwrite = false` collisions fail the install check:
 `stale_false`, `stale_default_destination_false` and `game_override_false` keep

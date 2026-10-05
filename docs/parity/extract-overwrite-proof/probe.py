@@ -87,14 +87,11 @@ CASES = {
 # the archive, as Rust does since extract-destination.
 CLI_CASES = [name for name, case in CASES.items()
              if any(action == "Extract" and destination for action, _, destination, _ in case[2])]
-# The C# CLI also refuses these three, for a reason that predates extract-destination:
-# its validation (`VerifyExtractPaths`) finds no archive member for the Copy Source
-# `out/x.txt`, which is a loose file here (`Failed to find 'out/x.txt' in any
-# archives!`). Rust's plain validate and install do not run that check, so Rust
-# extracts to pack/ and copies the stale out/x.txt. Known, left open.
-LOOSE_SOURCE = {"game": {"Override/x.txt": "OLD\n"},
-                "mods": {"out/x.txt": "OLD\n", "pack/x.txt": "NEW\n", "pack/y.txt": "Y\n"}}
-LOOSE_CASES = ("stale_false", "stale_true", "stale_omitted")
+# The C# CLI also refuses stale_false, stale_true and stale_omitted, for a reason that
+# predates extract-destination: its validation (`VerifyExtractPaths`) finds no archive
+# member for the Copy Source `out/x.txt`, a loose file here (`Failed to find
+# 'out/x.txt' in any archives!`). Rust refuses them too since loose-source
+# (../loose-source-contract.md).
 
 
 def toml_string(value):
@@ -259,10 +256,6 @@ def main():
                     cli = cli_oracle[name]
                     cli_tree = cli["tree"] if mode == "install" else None
                     as_cli = actual["accepted"] == cli["accepted"] and actual["tree"] == cli_tree
-                    if name in LOOSE_CASES:
-                        as_cli = not cli["accepted"] and actual["accepted"] and (
-                            mode != "install" or actual["tree"] == LOOSE_SOURCE)
-                        same = False
                     verdict = ("match" if same else "known") if as_cli else "FAIL"
                     expected_tree = f"{expected_tree} | C# CLI accepted={cli['accepted']} tree={cli_tree}"
                 else:

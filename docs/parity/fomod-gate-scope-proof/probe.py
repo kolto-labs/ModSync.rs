@@ -177,9 +177,11 @@ rv=validate(c,'plain',report=False,flags=sidecar(c,choices(entry('inner.zip'))))
 # An entry named like the folder itself configures nothing inside it.
 ri=install(c,'folder_name_entry',sidecar(c,choices(entry('Pack.zip'))));check('folder_suffix_folder_name_entry',(ri['exit'],NO_CHOICES in ri['stderr'],ri['game']),(1,True,{}))
 # Ownership: an unrelated archive-suffixed folder holding a different archive does not
-# take the entry, so its unparseable FomodChoices do not fail the run.
+# take the entry, so its unparseable FomodChoices do not fail the run. The note is
+# copied by its own component: a loose Source next to an Extract is refused, as the
+# C# CLI refuses it (../loose-source-contract.md).
 UNPARSEABLE={'version':2,'archives':[entry('other.zip','Alpha')]}
-own=[comp(0,instructions=(extract('Pack.zip'),)),comp(3,instructions=(NOTE,extract('Other.zip')),saved=UNPARSEABLE)]
+own=[comp(0,instructions=(extract('Pack.zip'),)),comp(1),comp(3,instructions=(extract('Other.zip'),),saved=UNPARSEABLE)]
 c=setup('folder_ownership',own,{'Pack.zip/inner.zip':FIRST,'Other.zip/plain.zip':PLAIN})
 ri=install(c,'install',sidecar(c,choices(entry('inner.zip'))));check('folder_ownership_install',(ri['exit'],ri['game']),(0,files('b','notes')))
 # Control: the same folder does hold inner.zip, so its unparseable choices fail with the repair hint.

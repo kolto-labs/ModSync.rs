@@ -93,10 +93,11 @@ file contents in the mod directory and in the game.
   `stale_default_destination_false`) is compared with the live C# CLI `install`
   instead (`csharp-cli-oracle.json`) and counted as a known difference from
   InstallAsync: 4 match / 16 known / 0 fail. For `stale_*` the C# CLI also refuses
-  for an older reason (its validation finds no archive member for the loose Copy
-  Source `out/x.txt`; Rust's plain `validate` and `install` do not run that check),
-  so those six checks require Rust's install to copy the stale `out/x.txt`. The
-  `Overwrite = false` rule is still proved by `stale_default_destination_false`.
+  for an older reason: its validation finds no archive member for the loose Copy
+  Source `out/x.txt`. Since [loose-source-contract.md](loose-source-contract.md)
+  (2026-10-05) Rust's plain `validate` and `install` refuse it too, so those six
+  checks now require the refusal, as for the other cases. The `Overwrite = false`
+  rule is still proved by `stale_default_destination_false`.
 - **C# dry run.** C#'s virtual provider always extracts under an archive-named
   folder, even for an explicit destination
   (`Services/FileSystem/VirtualFileSystemProvider.cs:932`), unlike its own real
