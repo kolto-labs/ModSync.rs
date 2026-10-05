@@ -329,7 +329,14 @@ impl Engine {
                     found = true;
                 }
             }
-            if !found && missing.is_none() {
+            // Name the first literal miss, as `gathered_matches` does, else the first.
+            if !found
+                && (missing.is_none()
+                    || (!raw.contains(['*', '?'])
+                        && missing
+                            .as_deref()
+                            .is_some_and(|m: &str| m.contains(['*', '?']))))
+            {
                 missing = Some(raw.clone());
             }
         }

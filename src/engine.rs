@@ -2468,18 +2468,21 @@ impl Engine {
     /// names no file still fails the step (Copy and Move: C# drops it, Rust stays
     /// strict, documented; Rename: C# fails it too), as does a step whose Sources
     /// all matched nothing. Order and duplicates are as in [`Self::matches_scoped`];
-    /// a miss names the first Source that matched nothing.
+    /// a miss names the first literal Source that matched nothing, else the first
+    /// Source.
     fn gathered_matches(&self, sources: &[String], descendants: bool) -> Result<Vec<PathBuf>> {
         ensure!(!sources.is_empty(), "Instruction has no Source");
         let mut seen = BTreeSet::new();
         let mut found = Vec::new();
         let mut first_miss = None;
-        let mut literal_miss = false;
+        let mut literal_miss = None;
         for source in sources {
             let matches = self.matches_scoped(std::slice::from_ref(source), true, descendants)?;
             if matches.is_empty() {
                 first_miss.get_or_insert(source);
-                literal_miss |= !source.contains(['*', '?']);
+                if !source.contains(['*', '?']) {
+                    literal_miss.get_or_insert(source);
+                }
             }
             for path in matches {
                 if seen.insert(self.path_policy.key(&path)) {
@@ -2487,10 +2490,9 @@ impl Engine {
                 }
             }
         }
-        match first_miss {
-            Some(source) if literal_miss || found.is_empty() => {
-                Err(MissingSource(source.clone()).into())
-            }
+        match (literal_miss, first_miss) {
+            (Some(source), _) => Err(MissingSource(source.clone()).into()),
+            (None, Some(source)) if found.is_empty() => Err(MissingSource(source.clone()).into()),
             _ => Ok(found),
         }
     }

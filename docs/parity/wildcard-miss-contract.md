@@ -61,14 +61,15 @@ Copy [m/a.tga, m/nope.tga] -> Override   copies a.tga      refused              
 
 ## Behaviour after this slice
 
-- New `gathered_matches` (`src/engine.rs:2465-2496`) binds a Copy, Move or Rename
+- New `gathered_matches` (`src/engine.rs:2465-2498`) binds a Copy, Move or Rename
   step: it collects every Source's files in Source order (as `matches_scoped`, each
   file at its first place) and drops a wildcard Source (one with `*` or `?`) that
-  matches nothing. It still returns `MissingSource`, naming the first Source that
-  matched nothing, when a literal Source matched nothing or no Source matched.
+  matches nothing. It still returns `MissingSource` when a literal Source matched nothing
+  (naming the first such literal) or no Source matched (naming the first Source).
+  Recovery's miss (`recovery_matches`) prefers a literal the same way.
 - `resolve_instruction` uses it for Copy and Move
   (`src/engine/source_resolution.rs:150-160`), the Rename branch for Rename
-  (`src/engine.rs:2849-2853`). A Copy or Move whose list is not empty no longer
+  (`src/engine.rs:2851-2855`). A Copy or Move whose list is not empty no longer
   enters recovery, as C# tries auto-extraction only when `SetRealPaths` fails;
   every other miss is typed and recovered as before, and Rename's miss is still
   classified by `classify_miss`.
@@ -111,7 +112,9 @@ reference (three checks; with the probe before this slice, `f6d2ec5` gave 167 /
 
 - **A literal Source that names no file (deliberate, fail-closed).** C# drops it when
   another Source matched and installs the rest (`literal_miss`); Rust still refuses
-  the step before any write, and its reports skip the component with a
+  the step before any write unless recovery supplies the file (a registered archive
+  that holds it is auto-extracted, so `Copy [m/a.tga, sub/t.tpc]` with `sub.zip`
+  registered installs both, where C# installs `a.tga` only), and its reports skip the component with a
   `DryRunSkipped` warning. A named file that is missing usually means a wrong or
   incomplete download. The delete-directory proof's `copy_dir_and_file_omitted`
   (`Copy [d, d/m.txt]`, a folder Source) stays a known difference for the same
@@ -126,6 +129,12 @@ reference (three checks; with the probe before this slice, `f6d2ec5` gave 167 /
 - **Counts next to an Extract (unchanged).** Both refuse a loose wildcard missing
   from the component's own archive; the report counts differ as in
   [loose-source-contract.md](loose-source-contract.md) (`extracted_same_component`).
+- **No recovery for a partly matching list (now as C#).** Before this slice a step
+  like `Move [m/*.tga, sub/*.tpc]` whose `sub/` exists only inside a registered
+  `sub.zip` entered recovery, auto-extracted `sub.zip` and installed its `.tpc` files
+  too. Now, as in C# (which tries auto-extraction only when `SetRealPaths` fails), the
+  empty wildcard is dropped and only `a.tga` is installed, with no warning. Seen live
+  in review, not probed.
 - **Not changed, not probed.** CleanList, Execute and Run with a wildcard that matches
   nothing beside a matching Source are still refused (C# reads or runs the matched
   file; see [delete-directory-contract.md](delete-directory-contract.md)); recovery

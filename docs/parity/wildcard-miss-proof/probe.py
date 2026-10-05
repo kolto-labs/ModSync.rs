@@ -3,7 +3,7 @@
 
 C# Copy and Move bind their Sources with `Instruction.SetRealPaths`, which gathers the
 files of every Source (`PathHelper.EnumerateFilesWithWildcards`) and fails only when
-the gathered list is empty (Instruction.cs:300-338). A wildcard Source that matches
+the gathered list is empty (Instruction.cs:350-368). A wildcard Source that matches
 nothing is therefore dropped when another Source of the step names a file:
 `Move [m/*.tga, m/*.tpc]` with only TGAs moves the TGAs. Rename gathers the same way
 (`SetRealPaths(skipExistenceCheck: true)`). Rust required every Source to match, so

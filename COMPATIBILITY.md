@@ -2267,8 +2267,11 @@ in one of its archives (`Failed to find ... in any archives`, both refuse). Kept
 stricter, documented: a literal Copy or Move Source that names no file still fails
 the step, where C# drops it and installs the rest (a named file that is missing
 usually means a wrong or incomplete download); Extract still needs every Source to
-match (missing-archives contract); CleanList, Execute and Run are unchanged. Evidence:
-[wildcard miss proof](docs/parity/wildcard-miss-proof/README.md), 71 checks match and
+match (missing-archives contract); CleanList, Execute and Run are unchanged. A partly
+matching list no longer enters recovery, so a wildcard whose files only a registered
+archive holds (auto-extracted before) is now dropped, as in C#; a missing literal
+that a registered archive holds is still recovered and installed, where C# drops it.
+Evidence: [wildcard miss proof](docs/parity/wildcard-miss-proof/README.md), 71 checks match and
 13 are known differences against the live C# CLI with a HoloPatcher stub (40 fail on
 `f6d2ec5`); the [delete-directory proof](docs/parity/delete-directory-proof/README.md)
 now matches its `rename_present_and_wildcard_nomatch` case (170 / 10); contract in
