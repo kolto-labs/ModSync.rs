@@ -27,8 +27,8 @@ component is still validated before any write.
 reads a sequence option's values up to the next token that names an option, so
 `--select a b` gives `["a", "b"]`; it also reads the value after `--select=a`. It
 refuses a second `--select` flag (`Option 'select' is defined multiple times.`),
-and every parse error returns exit 1 after the help screen (`:777`). `ApplySelectionFilters`
-(`:1370-1504`) then ORs the category values, ORs the tier values (a named tier
+and every parse error returns exit 1 after the help screen (`:777`).
+`ApplySelectionFilters` (`:1370-1504`) then ORs the category values, ORs the tier values (a named tier
 selects it and every higher-priority tier) and ANDs the two groups; a value without
 `:` or with another type only logs a warning. `validate` uses it when `--select` is
 given (`:3146-3155`); `install` when `--select` is given or `--use-file-selection`

@@ -56,7 +56,7 @@ modsync validate --input KOTOR1_Full.toml --game-dir /path/to/game --source-dir 
 modsync convert instructions.toml instructions.json
 ```
 
-CLI validation and installation select all top-level components by default, matching ModSync. Use `--use-file-selection` to honor `IsSelected`, or repeat `--select NAME_OR_GUID` to select specific components. Repeat `--option GUID` to enable options. Option defaults from the guide remain intact. Dependencies must be selected explicitly; missing dependencies and incompatible selections stop validation.
+CLI validation and installation select all top-level components by default, matching ModSync. Use `--use-file-selection` to honor `IsSelected`, or repeat `--select NAME_OR_GUID` (or list several values after one `--select`) to select specific components. Repeat `--option GUID` to enable options. Option defaults from the guide remain intact. Dependencies must be selected explicitly; missing dependencies and incompatible selections stop validation.
 
 The desktop can save selections as a TOML file. The CLI reads the same file with `--use-file-selection`.
 

@@ -2256,8 +2256,8 @@ C#. Put the file you want to keep last in the Source list, or use two steps.
 `fetch-downloads`) now read every value after `--select` up to the next option, as
 the C# CLI does (its `--select` is a list option, `IEnumerable<string> Select`):
 `install -i guide.toml -g game --select category:Bugfix category:Immersion` installs
-both categories. Before, Rust took one value per flag, so that command line stopped with a
-usage error (exit 2) and nothing was validated or installed. The selection rules are
+both categories. Before, Rust took one value per flag, so that command line stopped
+with a usage error (exit 2) and nothing was validated or installed. The selection rules are
 unchanged: categories are ORed, tiers are ORed, the two groups are ANDed, and an exact
 component name or GUID still wins over selector syntax (a Rust extension; C# ignores
 a value without `:`). Still accepted: a repeated `--select`, which the C# CLI refuses
