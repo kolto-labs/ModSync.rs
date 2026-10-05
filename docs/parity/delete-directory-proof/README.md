@@ -79,7 +79,7 @@ executable `MD/x/run.sh` that writes `MD/x/ran.txt`. The Execute/Run cases pass
 | `extract_nested_dir` | Extract `MD/n` (holds `deep.zip`) -> `MD/out` | DryRunSkipped / fails (Rust accepts: known difference) |
 | `rename_wildcard_nomatch` | Rename `OV/nope*.txt` -> `c.txt` | Error / `UnknownError` |
 | `rename_literal_and_wildcard_nomatch` | Rename [`OV/nope.txt`, `OV/nope*.txt`] | DryRunSkipped / `MissingSourceFiles` |
-| `rename_present_and_wildcard_nomatch` | Rename [`OV/a.tga`, `OV/nope*.txt`] | pass / pass (Rust refuses: known difference) |
+| `rename_present_and_wildcard_nomatch` | Rename [`OV/a.tga`, `OV/nope*.txt`] | pass / pass |
 | `cleanlist_dir` | CleanList [`MD/d`] -> `OV` | DryRunSkipped / `MissingSourceFiles` |
 | `cleanlist_file_control` | CleanList [`MD/d/clean.csv`] -> `OV` | pass / pass, `a.tga` deleted |
 | `cleanlist_missing_file` | CleanList [`MD/d/nope.csv`] | DryRunSkipped / fails |
@@ -99,9 +99,11 @@ rule for FOMOD root-folder flows. `KNOWN_LAYOUT` (only
 `extract_bracket_file_literal`, install) must be an install in both whose Rust tree is
 the reference's with the named folders renamed.
 
-- `copy_dir_and_file_omitted` and `rename_present_and_wildcard_nomatch`, all three
-  checks each: Rust requires every Source to match (F05-X2); the reference drops
-  the missing Source because another Source matched.
+- `copy_dir_and_file_omitted`, all three checks: Rust requires every literal Source
+  to match (F05-X2); the reference drops the missing Source because another Source
+  matched. `rename_present_and_wildcard_nomatch` matches since
+  [wildcard-miss](../wildcard-miss-contract.md): a wildcard Source that matches
+  nothing is dropped beside a matching one, as in the reference.
 - `extract_dir_omitted` dry run: Extract keeps the folder rule, so Rust tries to
   unpack the folder's files and reports an error; the reference skips.
 - `extract_bracket_literal` dry run: any missing Extract archive is a
@@ -114,6 +116,16 @@ the reference's with the named folders renamed.
   `extract_bracket_file_literal` install (`KNOWN_LAYOUT`): Rust, like the C# CLI,
   never uses an Extract Destination and extracts to `[e]xample/`; the reference
   `ModComponent.InstallAsync` alone extracts into `bracket/`.
+
+## Results after wildcard-miss (cloud Linux, 2026-10-05)
+
+| Binary | Result |
+| --- | --- |
+| wildcard-miss, recorded reference | 170 match / 10 known difference / 0 fail |
+| `f6d2ec5` (pre-fix), recorded reference | 167 match / 10 known difference / 3 fail |
+
+`rename_present_and_wildcard_nomatch` (dry run, validate, install) now matches the
+reference: Rust renames `a.tga` and drops `nope*.txt`.
 
 ## Results after extract-destination (cloud Linux, 2026-10-05)
 

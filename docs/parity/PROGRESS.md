@@ -9,6 +9,20 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+A wildcard Source that matches nothing beside one that does (2026-10-05, F05): a
+Copy, Move or Rename step now handles the files its other Sources name, as C#
+`SetRealPaths` gathers them, so `Move [m/*.tga, m/*.tpc]` with only TGAs moves the
+TGAs; Rust required every Source to match, so plain `validate`, `install` and
+`conflicts` refused the step before any write and the reports skipped (or failed) the
+component. A step whose Sources all match nothing still fails, as in C#. A missing
+literal Copy or Move Source stays refused (C# drops it; fail closed), as do Extract,
+CleanList, Execute and Run (documented). Proof: 71 match / 13 known against the live
+C# CLI with a HoloPatcher stub; 40 fail on `f6d2ec5`. The delete-directory proof now
+matches its `rename_present_and_wildcard_nomatch` case (170 / 10); the other
+regression probes stay at baseline, with no-managed and this proof added to the set.
+The cli-table audit's stale `install` rows were refreshed. See
+[wildcard-miss-contract.md](wildcard-miss-contract.md).
+
 `install --no-managed` (2026-10-05, F26): `install` now accepts the C# CLI's
 `--no-managed` and installs classic, as it already did without `--managed`; Rust
 stopped with a usage error and ran nothing. `--managed --no-managed` stops with C#'s

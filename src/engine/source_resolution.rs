@@ -151,11 +151,12 @@ impl Engine {
             for source in &instruction.source {
                 self.source_pattern(source)?;
             }
-            self.matches_scoped(
-                &instruction.source,
-                false,
-                authored_descendants(&instruction.action),
-            )
+            let descendants = authored_descendants(&instruction.action);
+            if matches!(instruction.action.as_str(), "Copy" | "Move") {
+                self.gathered_matches(&instruction.source, descendants)
+            } else {
+                self.matches_scoped(&instruction.source, false, descendants)
+            }
         };
         let sources = match direct {
             Ok(sources) => sources,
@@ -328,7 +329,14 @@ impl Engine {
                     found = true;
                 }
             }
-            if !found && missing.is_none() {
+            // Name the first literal miss, as `gathered_matches` does, else the first.
+            if !found
+                && (missing.is_none()
+                    || (!raw.contains(['*', '?'])
+                        && missing
+                            .as_deref()
+                            .is_some_and(|m: &str| m.contains(['*', '?']))))
+            {
                 missing = Some(raw.clone());
             }
         }

@@ -257,13 +257,17 @@ differences marked.
   not changed here.
 - **A missing Source beside a matching one (F05-X2).** Rust requires every Source
   to match; C# drops a missing literal or wildcard when another Source matched.
-  `Copy [<<modDirectory>>/d, <<modDirectory>>/d/m.txt]` and
-  `Rename [Override/a.tga, Override/nope*.txt]` are refused by Rust and accepted by
-  C#. `4fb71a6` accepted the Copy by accident (the folder expanded to `m.txt`).
-  This is fail-closed, not data loss; the probe counts these as known differences
-  and fails if Rust ever accepts them. CleanList and Execute/Run behave the same
-  way when one Source matches and another misses: `Execute [run.sh, *.nope]`,
-  `Execute [*.sh, *.nope]`, `CleanList [clean.csv, *.nope]` and
+  `Copy [<<modDirectory>>/d, <<modDirectory>>/d/m.txt]` is refused by Rust and
+  accepted by C#. `4fb71a6` accepted the Copy by accident (the folder expanded to
+  `m.txt`). This is fail-closed, not data loss; the probe counts it as a known
+  difference and fails if Rust ever accepts it. Since
+  [wildcard-miss](wildcard-miss-contract.md) (2026-10-05) a Copy, Move or Rename
+  drops a wildcard Source that matches nothing beside a matching one, as C# does,
+  so `Rename [Override/a.tga, Override/nope*.txt]` now matches (three checks moved
+  from known to match); a missing literal stays refused. CleanList and Execute/Run
+  are unchanged and behave the same way when one Source matches and another
+  misses: `Execute [run.sh, *.nope]`, `Execute [*.sh, *.nope]`,
+  `CleanList [clean.csv, *.nope]` and
   `CleanList [nope.csv, *.csv]` are accepted by C# (which runs or reads the matched
   file) and refused by Rust before anything runs or is deleted. Two of them
   (`Execute [*.sh, *.nope]` and `CleanList [nope.csv, *.csv]`) show as
@@ -294,6 +298,7 @@ differences marked.
 | --- | --- |
 | third follow-up, live and recorded reference | 169 match / 11 known difference / 0 fail (180 checks) |
 | after [extract-destination](extract-destination-contract.md), recorded reference | 167 match / 13 known difference / 0 fail |
+| after [wildcard-miss](wildcard-miss-contract.md), recorded reference | 170 match / 10 known difference / 0 fail |
 | `ab6b389` | 165 / 11 / 4 fail (the four all-wildcard dry runs) |
 | `df67229` | 156 / 11 / 13 fail |
 | second follow-up (`ab6b389`, 165 checks) | 154 / 11 / 0; `df67229`: 142 / 11 / 12 fail; `4fb71a6`: 103 / 7 / 55; `2241235`: 93 / 7 / 65 |
