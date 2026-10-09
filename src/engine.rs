@@ -79,6 +79,22 @@ pub struct Event {
     pub message: String,
 }
 
+/// An entry in the predicted filesystem. Unknown patcher content must never be
+/// presented as an empty file or as a verified binary patch result.
+#[derive(Clone, Debug, Serialize)]
+pub struct PredictedEntry {
+    pub path: PathBuf,
+    pub directory: bool,
+    pub content_known: bool,
+    pub bytes: Option<u64>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct Prediction {
+    pub entries: Vec<PredictedEntry>,
+    pub events: Vec<Event>,
+}
+
 /// Run-local observer state. Nothing is installed on Engine itself, so silent
 /// validation/preflight and ordinary Event consumers cannot observe these facts.
 struct InstallObserver<'a> {
@@ -438,6 +454,30 @@ impl Engine {
         // C# runs FomodConfigurationGate on every validate path, not only the report.
         self.fomod_gate(guide, &mut emit)?;
         self.run(guide, &mut emit)
+    }
+
+    /// Use exactly the install engine's read-only simulation and retain its
+    /// resulting inventory for authoring. No external patcher is launched.
+    pub fn predict(mut self, guide: &Guide) -> Result<Prediction> {
+        recovery::ensure_clean(&self.settings.roots)?;
+        let mut events = Vec::new();
+        self.fomod_gate(guide, &mut |event| events.push(event))?;
+        self.run(guide, &mut |event| events.push(event))?;
+        let mut entries = Vec::with_capacity(self.files.len() + self.directories.len());
+        for path in self.directories.values() {
+            entries.push(PredictedEntry {
+                path: path.clone(), directory: true, content_known: true, bytes: None,
+            });
+        }
+        for (path, content) in self.files.values() {
+            let known = !matches!(content, Content::Unknown);
+            entries.push(PredictedEntry {
+                path: path.clone(), directory: false, content_known: known,
+                bytes: if known { Some(content.open()?.metadata()?.len()) } else { None },
+            });
+        }
+        entries.sort_by(|a, b| a.path.cmp(&b.path));
+        Ok(Prediction { entries, events })
     }
 
     /// The read-only FOMOD configuration gate for plain validate and install. Issues

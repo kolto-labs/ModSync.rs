@@ -2,6 +2,7 @@ use crate::{Component, Instruction};
 use anyhow::{Result, bail};
 
 mod browser;
+pub mod easy;
 mod import;
 pub use browser::{ResourceInventory, ResourceItem, resource_inventory, variable_path};
 mod regex_import;
