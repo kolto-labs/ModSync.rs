@@ -1,7 +1,9 @@
 //! Durable authoring history, independent of the desktop and installation state.
 //! Revisions are immutable; only the small head document is replaced atomically.
+mod action;
+pub use action::Action;
 use super::{EditOperation, apply_operations, read_document};
-use crate::{Engine, Guide, Settings, engine::Prediction};
+use crate::{Component, Engine, Guide, Settings, engine::Prediction};
 use anyhow::{Context, Result, ensure};
 use fs2::FileExt;
 use serde::{Deserialize, Serialize};
@@ -103,6 +105,43 @@ impl Session {
         // effects. Do not reorder the guide or invent selections.
         for future in guide.components.iter_mut().skip(component + 1) { future.is_selected = false; }
         Engine::new(settings)?.predict(&guide)
+    }
+
+    /// Append one action to a mod (component) as a single undoable revision and
+    /// return the predicted tree after it. Nothing outside the session is touched.
+    pub fn act(&mut self, component: &str, action: &Action, settings: Settings) -> Result<Prediction> {
+        let index = self.component_index(component)?;
+        let count = self.guide.components[index].instructions.len();
+        self.edit(&action.label(), &[EditOperation::InsertInstruction {
+            component: component.into(), index: count, instruction: action.instruction(),
+        }])?;
+        self.predict(settings, index, count + 1)
+    }
+
+    /// Real-disk mode: perform the action on the install roots now, as a
+    /// one-instruction guide. Opt-in; the default path is `act` alone.
+    pub fn apply_to_disk(action: &Action, settings: Settings) -> Result<()> {
+        let guide = Guide { components: vec![Component {
+            guid: uuid::Uuid::new_v4().to_string(), name: action.label(), is_selected: true,
+            instructions: vec![action.instruction()], ..Default::default()
+        }], ..Default::default() };
+        Engine::new(settings)?.install(&guide, |_| {})
+    }
+
+    /// Add a new empty mod at the end and return its guid.
+    pub fn add_mod(&mut self, name: &str) -> Result<String> {
+        let guid = uuid::Uuid::new_v4().to_string();
+        let component = Component { guid: guid.clone(), name: name.into(), is_selected: true, ..Default::default() };
+        let index = self.guide.components.len();
+        self.edit(&format!("Add mod {name}"), &[EditOperation::InsertComponent {
+            parent: None, index, component: Box::new(component),
+        }])?;
+        Ok(guid)
+    }
+
+    fn component_index(&self, guid: &str) -> Result<usize> {
+        self.guide.components.iter().position(|c| c.guid.eq_ignore_ascii_case(guid))
+            .context("Unknown component")
     }
 
     pub fn export(&self, output: &Path) -> Result<()> { super::save_validated(&self.guide, output) }
