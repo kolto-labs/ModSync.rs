@@ -6,6 +6,8 @@ after every mod.
   oracle_state.py verify <root> <lane>            rebuild; check against every step_NNN_full anchor
   oracle_state.py diff   <root> <lane> <N> <other.sha256>   compare lane state after step N to a manifest
   oracle_state.py dump   <root> <lane> <N>        print state after step N
+  oracle_state.py tree   <root> <lane> <N> <dir>  scan <dir> (cached) and diff it against the lane's state after step N
+  oracle_state.py trees  <dir_a> <dir_b>          scan both (cached) and diff them, e.g. odypatcher vs providedpatcher
 
 <root> holds manifests/<lane>/step_NNN.{sha256,added,deleted} and the seed manifest.
 Manifest lines are `<sha256>  ./relative/path`. Exclusions below are patcher
@@ -57,7 +59,57 @@ def rebuild(root, lane, upto):
     return state, anchors
 
 
+def scan(directory):
+    """sha256 every file under directory. Results are cached beside the tree
+    (<dir>.scan-cache.json) keyed by size and mtime, so only files touched since
+    the last checkpoint are rehashed."""
+    import hashlib, json, os
+    root = Path(directory)
+    cache_file = root.parent / (root.name + ".scan-cache.json")
+    cache = json.loads(cache_file.read_text()) if cache_file.exists() else {}
+    state, fresh = {}, {}
+    for base, _, files in os.walk(root):
+        for name in files:
+            full = Path(base, name)
+            rel = "./" + str(full.relative_to(root))
+            st = full.lstat()
+            key = [st.st_size, st.st_mtime_ns]
+            hit = cache.get(rel)
+            if hit and hit[0] == key:
+                digest = hit[1]
+            else:
+                h = hashlib.sha256()
+                with open(full, "rb") as fh:
+                    for chunk in iter(lambda: fh.read(1 << 20), b""):
+                        h.update(chunk)
+                digest = h.hexdigest()
+            fresh[rel] = [key, digest]
+            state[rel] = digest
+    cache_file.write_text(json.dumps(fresh))
+    return state
+
+
+def report(label_a, a, label_b, b, tag):
+    a, b = keep(a), keep(b)
+    only_a = sorted(set(a) - set(b))
+    only_b = sorted(set(b) - set(a))
+    changed = sorted(k for k in set(a) & set(b) if a[k] != b[k])
+    for k in only_a:
+        print(f"only in {label_a}: {k}")
+    for k in only_b:
+        print(f"only in {label_b}: {k}")
+    for k in changed:
+        print(f"differs: {k}")
+    print(f"{tag}: {len(only_a)} only-{label_a}, {len(only_b)} only-{label_b}, {len(changed)} differing")
+    return 1 if (only_a or only_b or changed) else 0
+
+
 def main(argv):
+    if len(argv) >= 4 and argv[1] == "trees":
+        return report("a", scan(argv[2]), "b", scan(argv[3]), "trees")
+    if len(argv) >= 6 and argv[1] == "tree":
+        state = rebuild(argv[2], argv[3], int(argv[4]))[0]
+        return report("manual", state, "auto", scan(argv[5]), f"step {argv[4]}")
     if len(argv) < 4:
         print(__doc__)
         return 2
