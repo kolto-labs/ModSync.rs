@@ -2,6 +2,7 @@ mod checkpoint_cli;
 mod cli_acquisition;
 mod cli_compat;
 mod cli_session;
+mod easy_cli;
 mod maintenance_cli;
 mod profile_cli;
 mod protocol_cli;
@@ -54,6 +55,8 @@ enum Action {
     Checkpoint(checkpoint_cli::CheckpointArgs),
     /// Preview, apply, inspect or recover explicit filesystem maintenance.
     Maintenance(maintenance_cli::MaintenanceArgs),
+    /// Build a mod build step by step with undo, redo and prediction.
+    Easy(easy_cli::EasyArgs),
     /// Open the desktop installer (also the default with no command).
     Gui {
         #[arg(long)]
@@ -1425,6 +1428,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
     }
     match command {
         Some(Action::Maintenance(args)) => args.run(),
+        Some(Action::Easy(args)) => args.run(),
         None => gui(None, None, None, None, None, false, GuiProbe::default()),
         Some(Action::Gui {
             settings_dir,
