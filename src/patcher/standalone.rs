@@ -52,8 +52,24 @@ pub(crate) struct CommandReceipt {
     pub stderr: String,
     pub failure: Option<String>,
     pub cancelled: bool,
+    /// Only the owned process group's settlement proves this; execution success
+    /// and cancellation are independent. Does not cover escaped daemon writers.
+    pub process_group_quiescent: bool,
+    /// Authoritative prelaunch/spawn failure only. Never inferred from generic Err.
+    pub no_child_started: bool,
 }
 impl CommandReceipt {
+    fn no_child_started(error: anyhow::Error, cancelled: &AtomicBool) -> Self {
+        Self {
+            exit_code: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            failure: Some(format!("{error:#}")),
+            cancelled: cancelled.load(Ordering::Acquire),
+            process_group_quiescent: false,
+            no_child_started: true,
+        }
+    }
     fn into_output(self) -> Result<Output> {
         if let Some(failure) = self.failure {
             anyhow::bail!(failure);
@@ -75,27 +91,33 @@ pub(crate) fn run_command(
     timeout: Duration,
     cancelled: &AtomicBool,
 ) -> Result<CommandReceipt> {
-    ensure!(
-        !cancelled.load(Ordering::Acquire),
-        "External program cancelled"
-    );
-    ensure!(
-        timeout >= Duration::from_secs(1) && timeout <= Duration::from_secs(86400),
-        "Execution timeout exceeds supported bounds"
-    );
-    let mut total = 0usize;
-    for (index, argument) in command.get_args().enumerate() {
-        total = total
-            .checked_add(argument.as_encoded_bytes().len())
-            .context("Argument size overflow")?;
+    let prelaunch = (|| -> Result<()> {
         ensure!(
-            index < 512 && total <= 128 * 1024,
-            "External command arguments exceed bounds"
+            !cancelled.load(Ordering::Acquire),
+            "External program cancelled"
         );
         ensure!(
-            !argument.as_encoded_bytes().contains(&0),
-            "External command contains NUL"
+            timeout >= Duration::from_secs(1) && timeout <= Duration::from_secs(86400),
+            "Execution timeout exceeds supported bounds"
         );
+        let mut total = 0usize;
+        for (index, argument) in command.get_args().enumerate() {
+            total = total
+                .checked_add(argument.as_encoded_bytes().len())
+                .context("Argument size overflow")?;
+            ensure!(
+                index < 512 && total <= 128 * 1024,
+                "External command arguments exceed bounds"
+            );
+            ensure!(
+                !argument.as_encoded_bytes().contains(&0),
+                "External command contains NUL"
+            );
+        }
+        Ok(())
+    })();
+    if let Err(error) = prelaunch {
+        return Ok(CommandReceipt::no_child_started(error, cancelled));
     }
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     {
@@ -108,7 +130,10 @@ pub(crate) fn run_command(
     #[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
     {
         let _ = command;
-        anyhow::bail!("Owned process-tree execution unavailable on this platform")
+        Ok(CommandReceipt::no_child_started(
+            anyhow::anyhow!("Owned process-tree execution unavailable on this platform"),
+            cancelled,
+        ))
     }
 }
 #[cfg(any(target_os = "linux", target_os = "macos", windows))]
@@ -156,6 +181,8 @@ fn terminal_receipt(
         stderr,
         failure,
         cancelled: cancelled.load(Ordering::Acquire),
+        process_group_quiescent: false,
+        no_child_started: false,
     }
 }
 #[cfg(any(target_os = "linux", target_os = "macos"))]
@@ -343,19 +370,24 @@ fn run_unix_command(
 ) -> Result<CommandReceipt> {
     use std::os::unix::process::{CommandExt, ExitStatusExt};
     command.stdin(Stdio::null()).process_group(0);
-    let stdout = tempfile::tempfile()?;
-    let stderr = tempfile::tempfile()?;
-    command
-        .stdout(stdout.try_clone()?)
-        .stderr(stderr.try_clone()?);
-    ensure!(
-        !cancelled.load(Ordering::Acquire),
-        "External program cancelled"
-    );
-    let mut owner = OwnedChild(
-        Some(command.spawn().context("Start external program")?),
-        false,
-    );
+    let launch = (|| -> Result<_> {
+        let stdout = tempfile::tempfile()?;
+        let stderr = tempfile::tempfile()?;
+        command
+            .stdout(stdout.try_clone()?)
+            .stderr(stderr.try_clone()?);
+        ensure!(
+            !cancelled.load(Ordering::Acquire),
+            "External program cancelled"
+        );
+        let child = command.spawn().context("Start external program")?;
+        Ok((stdout, stderr, child))
+    })();
+    let (stdout, stderr, child) = match launch {
+        Ok(value) => value,
+        Err(error) => return Ok(CommandReceipt::no_child_started(error, cancelled)),
+    };
+    let mut owner = OwnedChild(Some(child), false);
     let outcome = (|| -> Result<()> {
         let started = Instant::now();
         let child = owner.0.as_mut().context("Missing child owner")?;
@@ -410,6 +442,7 @@ fn run_unix_command(
             .code()
             .unwrap_or_else(|| 128 + status.signal().unwrap_or(1))
     });
+    let process_group_quiescent = settlement.is_ok();
     let outcome = match (outcome, settlement) {
         (Ok(()), result) => result,
         (Err(error), Ok(_)) => Err(error),
@@ -418,5 +451,7 @@ fn run_unix_command(
         }
     };
     drop(owner);
-    Ok(terminal_receipt(stdout, stderr, outcome, cancelled))
+    let mut receipt = terminal_receipt(stdout, stderr, outcome, cancelled);
+    receipt.process_group_quiescent = process_group_quiescent;
+    Ok(receipt)
 }

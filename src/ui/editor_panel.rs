@@ -1,4 +1,5 @@
 //! Transactional desktop authoring and background import/resource adapters.
+mod easy_mode;
 mod generation;
 use super::{App, Job, Message};
 use anyhow::{Context, Result};
@@ -22,6 +23,7 @@ use std::{
 
 #[derive(Default)]
 pub(super) struct State {
+    easy: easy_mode::State,
     worker: Option<EditorWorker>,
     terminal_received: bool,
     sections: EditorSections,
@@ -112,6 +114,7 @@ struct PendingRemoval {
 }
 
 pub(super) enum Output {
+    Easy(Box<easy_mode::Outcome>),
     Generated(Box<generation::Preview>),
     Preview(ImportPreview, String),
     Resources(ResourceInventory, Vec<ResourceTree>),
@@ -126,6 +129,7 @@ pub(super) struct Finished {
     pub result: Result<Output>,
 }
 enum Work {
+    Easy(Box<easy_mode::Request>),
     Generate(Box<generation::Request>),
     Import {
         input: String,
@@ -319,9 +323,24 @@ impl App {
         Ok(())
     }
 
-    fn editor_apply(&mut self, operations: &[EditOperation]) -> Result<()> {
+    fn editor_apply(&mut self, operations: &[EditOperation], ctx: &egui::Context) -> Result<()> {
         let guide = self.guide.as_ref().context("Load a guide first")?;
         let edited = editor::apply_operations(guide, operations)?;
+        if self.editor.easy.session.is_some() {
+            self.easy_work(
+                easy_mode::Action::Edit {
+                    label: "Guide edit".into(),
+                    operations: operations.to_vec(),
+                },
+                ctx,
+            )?;
+            return Ok(());
+        }
+        self.editor_accept_guide(edited);
+        Ok(())
+    }
+
+    fn editor_accept_guide(&mut self, edited: modsync::Guide) {
         self.guide = Some(edited);
         self.guide_generation = self.guide_generation.wrapping_add(1);
         self.invalidate_validation();
@@ -337,8 +356,8 @@ impl App {
         self.editor.resource_trees.clear();
         self.editor.resource_selection.clear();
         self.editor.projected.clear();
+        self.editor.easy.prediction = None;
         self.editor.status = "Edits applied; validate before installing.".into();
-        Ok(())
     }
 
     pub(super) fn poll_editor_worker(&mut self) {
@@ -426,6 +445,20 @@ impl App {
                 std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> Result<Output> {
                     anyhow::ensure!(!flag.load(Ordering::Acquire), "Editor operation cancelled");
                     let output = match work {
+                        Work::Easy(request) => {
+                            return Ok(Output::Easy(Box::new(easy_mode::run(
+                                *request,
+                                &flag,
+                                |message| {
+                                    let _ = tx.send(Message::EditorProgress(
+                                        run,
+                                        context.clone(),
+                                        message,
+                                    ));
+                                    ctx.request_repaint();
+                                },
+                            ))));
+                        }
                         Work::Generate(request) => {
                             Output::Generated(Box::new(generation::run(*request, &flag)?))
                         }
@@ -554,6 +587,10 @@ impl App {
         }
         self.editor.terminal_received = true;
         self.receiver = None;
+        if let Ok(Output::Easy(outcome)) = result.result {
+            self.easy_terminal(*outcome, &result.context);
+            return;
+        }
         self.refresh_input_stamp();
         if result.context != self.input_stamp {
             self.editor.status = match result.result {
@@ -567,6 +604,7 @@ impl App {
             return;
         }
         match result.result {
+            Ok(Output::Easy(_)) => unreachable!("Easy result handled above"),
             Ok(Output::Generated(preview)) => {
                 let current = self
                     .guide
@@ -659,6 +697,9 @@ impl App {
         if !self.sharing.edit_gate(ui) {
             return;
         }
+        if self.easy_content(ui) {
+            return;
+        }
         let Some(guide) = &self.guide else {
             self.editor.removal = None;
             ui.label("Load a guide first.");
@@ -716,7 +757,10 @@ impl App {
                             && self.input_stamp == pending.context,
                         "Guide or inputs changed; confirm removal again"
                     );
-                    self.editor_apply(&[EditOperation::RemoveComponent { guid: pending.guid }])
+                    self.editor_apply(
+                        &[EditOperation::RemoveComponent { guid: pending.guid }],
+                        ui.ctx(),
+                    )
                 })();
                 if let Err(error) = result {
                     self.editor.status = format!("Removal rejected: {error:#}");
@@ -1301,7 +1345,7 @@ impl App {
             return;
         }
         if let Some(operations) = operations
-            && let Err(error) = self.editor_apply(&operations)
+            && let Err(error) = self.editor_apply(&operations, ui.ctx())
         {
             self.editor.status = format!("Edit rejected: {error:#}");
         }

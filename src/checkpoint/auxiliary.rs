@@ -238,13 +238,19 @@ impl Store {
                 });
             }
         }
-        ensure!(
-            self.scan(&self.roots.mods, flag)? == mods
-                && self.scan(&self.roots.game, flag)? == game
-                && self.scan_auxiliary(participants, shells, flag)?
-                    == (auxiliary.clone(), ancestor_shells.clone()),
-            "Install roots or auxiliary state changed during capture"
-        );
+        if !participants.is_empty() || !shells.is_empty() {
+            // Auxiliary publication can widen the capture window. Empty auxiliary
+            // context performs no I/O or observer callbacks after capture_trees'
+            // own full cryptographic root consistency check.
+            ensure!(
+                self.scan(&self.roots.mods, flag)? == mods
+                    && self.scan(&self.roots.game, flag)? == game
+                    && self.scan_auxiliary(participants, shells, flag)?
+                        == (auxiliary.clone(), ancestor_shells.clone()),
+                "Install roots or auxiliary state changed during capture"
+            );
+        }
+        cancelled(flag)?;
         Ok((mods, game, auxiliary, ancestor_shells, count, bytes))
     }
 }

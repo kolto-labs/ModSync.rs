@@ -248,3 +248,16 @@ pub(super) fn normalize(root: &Path, cancelled: &AtomicBool) -> Result<usize> {
     }
     Ok(pending.len())
 }
+
+/// Keep built-in installation and future prediction inside the process, even
+/// when a Windows package supplies its own compiler executable.
+pub(super) fn disable_external_compilers(installer: &mut odypatcher::ModInstaller) -> Result<()> {
+    for script in &mut installer
+        .config()
+        .map_err(|error| anyhow::anyhow!("Read native patch configuration: {error}"))?
+        .patches_nss
+    {
+        script.nwnnsscomp_path = None;
+    }
+    Ok(())
+}

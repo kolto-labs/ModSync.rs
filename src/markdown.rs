@@ -138,60 +138,14 @@ pub(crate) fn parse_with_yaml_budget(
         masters.push(dependencies);
         positions.push(*position);
     }
-    let mut names = BTreeMap::new();
-    for c in &guide.components {
-        names.insert(c.name.to_lowercase(), c.guid.clone());
-        if let Some(heading) = c.metadata.get("Heading").and_then(Value::as_str) {
-            names
-                .entry(heading.to_lowercase())
-                .or_insert(c.guid.clone());
-        }
-    }
-    // Reference author-possessive fallback: "JC's Cloaked Jedi Robes" resolves
-    // to the component named "Cloaked Jedi Robes" whose author contains "JC".
-    let authored: Vec<_> = guide
-        .components
-        .iter()
-        .map(|c| {
-            (
-                c.name.to_lowercase(),
-                c.author.to_lowercase(),
-                c.guid.clone(),
-            )
-        })
-        .collect();
-    let possessive = |name: &str| {
-        let (author, component) = name.split_once("'s ")?;
-        let (author, component) = (
-            author.trim().to_lowercase(),
-            component.trim().to_lowercase(),
-        );
-        let alias = match author.as_str() {
-            "jc" => Some("jcarter426"),
-            "jcarter426" => Some("jc"),
-            _ => None,
-        };
-        authored
-            .iter()
-            .find(|(name, owner, _)| {
-                *name == component
-                    && !author.is_empty()
-                    && !owner.trim().is_empty()
-                    && (owner.contains(&author) || alias.is_some_and(|a| owner.contains(a)))
-            })
-            .map(|(_, _, id)| id.clone())
-    };
+    let resolver = MasterResolver::new(&guide);
     for (c, masters) in guide.components.iter_mut().zip(masters) {
         for name in masters
             .split([',', ';', '+', '&'])
             .map(str::trim)
             .filter(|s| !s.is_empty())
         {
-            if let Some(id) = names
-                .get(&name.to_lowercase())
-                .cloned()
-                .or_else(|| possessive(name))
-            {
+            if let Some(id) = resolver.resolve(name) {
                 if !c.dependencies.contains(&id) {
                     c.dependencies.push(id);
                     c.metadata
@@ -263,6 +217,63 @@ pub(crate) fn parse_with_yaml_budget(
             .insert("epilogueContent".into(), text[end..].trim_start().into());
     }
     Ok(guide)
+}
+
+/// The reference name/heading and author-possessive master lookup.
+pub(crate) struct MasterResolver {
+    names: BTreeMap<String, String>,
+    authored: Vec<(String, String, String)>,
+}
+impl MasterResolver {
+    pub(crate) fn new(guide: &Guide) -> Self {
+        let mut names = BTreeMap::new();
+        for c in &guide.components {
+            names.insert(c.name.to_lowercase(), c.guid.clone());
+            if let Some(heading) = c.metadata.get("Heading").and_then(Value::as_str) {
+                names
+                    .entry(heading.to_lowercase())
+                    .or_insert(c.guid.clone());
+            }
+        }
+        Self {
+            names,
+            authored: guide
+                .components
+                .iter()
+                .map(|c| {
+                    (
+                        c.name.to_lowercase(),
+                        c.author.to_lowercase(),
+                        c.guid.clone(),
+                    )
+                })
+                .collect(),
+        }
+    }
+    pub(crate) fn resolve(&self, name: &str) -> Option<String> {
+        if let Some(id) = self.names.get(&name.to_lowercase()) {
+            return Some(id.clone());
+        }
+        let (author, component) = name.split_once("'s ")?;
+        let (author, component) = (
+            author.trim().to_lowercase(),
+            component.trim().to_lowercase(),
+        );
+        let alias = match author.as_str() {
+            "jc" => Some("jcarter426"),
+            "jcarter426" => Some("jc"),
+            _ => None,
+        };
+        self.authored
+            .iter()
+            .find(|(name, owner, _)| {
+                *name == component
+                    && !author.is_empty()
+                    && !owner.trim().is_empty()
+                    && (owner.contains(&author) || alias.is_some_and(|a| owner.contains(a)))
+            })
+            .map(|(_, _, id)| id.clone())
+    }
 }
 
 fn component(

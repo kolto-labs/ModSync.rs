@@ -38,6 +38,7 @@ enum Message {
     DeploymentTerminal(Box<deployment_panel::Finished>),
     MergeTerminal(Box<merge_panel::Finished>),
     EditorTerminal(Box<editor_panel::Finished>),
+    EditorProgress(u64, String, String),
     CheckpointProgress(u64, String),
     CheckpointTerminal(Box<checkpoints::Finished>),
     /// A direct URL download finished; the run binds its FOMOD follow-up.
@@ -227,6 +228,7 @@ impl App {
             Message::DeploymentTerminal(result) => self.deployment_terminal(*result),
             Message::MergeTerminal(result) => self.merge_terminal(*result),
             Message::EditorTerminal(result) => self.editor_terminal(*result),
+            Message::EditorProgress(run, context, text) => self.easy_progress(run, &context, text),
             Message::CheckpointProgress(run, text) => self.checkpoints.progress(run, text),
             Message::CheckpointTerminal(result) => self.checkpoint_terminal(*result),
             Message::Downloaded(run, path, options) => {
@@ -2872,7 +2874,7 @@ impl App {
             game: string(game),
             mods: string(mods),
             patcher: String::new(),
-            patcher_engine: PatcherEngine::HoloPatcher,
+            patcher_engine: PatcherEngine::default(),
             scratch: String::new(),
             fomod_choices: String::new(),
             fomod_archive: String::new(),
@@ -4305,6 +4307,8 @@ impl eframe::App for App {
         }
         self.poll_protocol_worker();
         self.poll_editor_worker();
+        self.poll_easy_resume(ctx);
+        self.poll_easy_prediction(ctx);
         self.poll_shell_worker();
         self.poll_standalone();
         self.poll_maintenance();
@@ -4789,6 +4793,11 @@ impl eframe::App for App {
     }
 }
 
+pub struct LaunchContext {
+    pub probe: Option<Probe>,
+    pub easy_session: Option<PathBuf>,
+}
+
 pub fn launch(
     input: Option<PathBuf>,
     game: Option<PathBuf>,
@@ -4796,8 +4805,12 @@ pub fn launch(
     settings_dir: Option<PathBuf>,
     protocol: Option<String>,
     allow_multiple_instances: bool,
-    probe: Option<Probe>,
+    context: LaunchContext,
 ) -> Result<()> {
+    let LaunchContext {
+        probe,
+        easy_session,
+    } = context;
     // Probe context is settled before any other effect of the launch.
     let probe = match probe {
         Some(probe) => Some(probe_context(probe, settings_dir.as_deref())?),
@@ -4805,7 +4818,7 @@ pub fn launch(
     };
     // A probe is always a separate instance: no socket claim and no forwarding, since
     // forwarding carries only protocol text, never probe configuration.
-    let separate = allow_multiple_instances || probe.is_some();
+    let separate = allow_multiple_instances || probe.is_some() || easy_session.is_some();
     let primary = if separate {
         None
     } else {
@@ -4841,6 +4854,9 @@ pub fn launch(
                 app._instance_guard = Some(instance_guard);
             }
             app.begin_desktop_load(app.explicit_settings.clone());
+            if let Some(directory) = easy_session {
+                app.queue_easy_resume(directory);
+            }
             let mut fonts = egui::FontDefinitions::default();
             fonts.font_data.insert(
                 "validation-symbols".into(),

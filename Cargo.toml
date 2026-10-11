@@ -17,6 +17,7 @@ desktop = ["dep:eframe", "dep:rfd", "dep:pulldown-cmark"]
 
 [dependencies]
 anyhow = "1"
+odypatcher = { git = "https://github.com/kolto-labs/OdyPatcher", rev = "9b9ee8d1d25e2e97c87df4521a13965ced1e0b3f", default-features = false, features = ["nss-compiler"] }
 dirs = "6"
 chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
 clap = { version = "4", features = ["derive"] }
@@ -56,6 +57,11 @@ pulldown-cmark = { version = "=0.13.4", default-features = false, optional = tru
 
 [profile.dev]
 debug = 0
+
+# Authoring checkpoints and exact lane comparisons hash entire game trees.
+# Keep the application debuggable without using an unoptimized SHA-256 core.
+[profile.dev.package."sha2:0.10.9"]
+opt-level = 3
 
 [profile.release]
 lto = "thin"

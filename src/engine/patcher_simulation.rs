@@ -1,5 +1,6 @@
-//! Bounded InstallList presence simulation. This never runs a patcher and does not
-//! model binary patch operations. Unknown payloads retain an explicit VFS marker.
+//! Bounded patch configuration selection and InstallList presence simulation.
+//! Explicit future-state requests dispatch to native private-scratch prediction;
+//! ordinary validation leaves unknown patch bytes explicitly marked in the VFS.
 use super::{Content, Engine, Event};
 use crate::paths::relative;
 use anyhow::{Context, Result, ensure};
@@ -74,6 +75,10 @@ impl Ini {
 }
 
 impl Engine {
+    pub(super) fn check_simulation_ini(&self, path: &Path) -> Result<()> {
+        self.simulation_ini(path).map(|_| ())
+    }
+
     fn simulation_ini(&self, path: &Path) -> Result<Ini> {
         self.settings.roots.check(path)?;
         let content = &self
@@ -189,6 +194,9 @@ impl Engine {
             !self.install,
             "Patcher simulation is only available during virtual execution"
         );
+        if self.exact_patcher_prediction {
+            return self.predict_native_patcher(base, destination, arguments, emit);
+        }
         self.settings.roots.check(base)?;
         self.settings.roots.check(destination)?;
         let Some(configuration) = self.simulation_configuration(base, arguments)? else {

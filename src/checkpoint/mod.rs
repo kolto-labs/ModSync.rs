@@ -1,12 +1,14 @@
 //! Durable checkpoint history, component transactions, restore, and ordered resume.
 //! Immutable snapshots bind completed prefixes to verified trees and receipts.
 //! Read operations never create store paths; mutations require the recovery lock.
+mod authoring;
 mod auxiliary;
 mod capability;
 pub use capability::CapabilityReport;
 pub(crate) use capability::prepare_existing;
 pub(crate) use capability::prepare_existing_for_maintenance;
 pub(crate) use read::safe_path;
+pub(crate) mod external_writer;
 mod finalize;
 mod guard;
 mod history;
@@ -25,6 +27,8 @@ pub use transition::{ExternalProcessStatus, ProcessQuiescenceReport, ProcessReco
 /// Presence, including malformed or foreign records, fences ordinary mutations.
 /// Explicit process recovery uses capability checks without waiving this guard.
 pub(crate) fn ensure_external_process_clear(game: &std::path::Path) -> anyhow::Result<()> {
+    crate::recovery::ensure_authoring_import_clear(game)?;
+    external_writer::ensure_clear(game)?;
     #[cfg(windows)]
     crate::patcher::checkpoint_job::ensure_clear_game(game)?;
     #[cfg(not(windows))]

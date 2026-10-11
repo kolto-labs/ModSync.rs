@@ -1,3 +1,5 @@
+mod authoring;
+pub use authoring::AuthoringActionReport;
 mod checkpoint_coordinator;
 mod cleanlist;
 mod managed;
@@ -17,7 +19,10 @@ pub struct CheckpointRunReport {
     pub checkpoint_id: String,
     pub generation: u64,
 }
+mod patcher_prediction;
 mod patcher_prepare;
+mod provided_installer;
+pub use provided_installer::{ProvidedInstallerRunner, WindowsProcessRunner};
 mod patcher_simulation;
 pub(crate) mod process_arguments;
 
@@ -43,9 +48,9 @@ use std::{
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum PatcherEngine {
+    #[default]
     OdyPatcher,
     KPatcher,
-    #[default]
     HoloPatcher,
 }
 
@@ -55,6 +60,7 @@ pub struct Settings {
     pub allow_processes: bool,
     pub patcher: Option<PathBuf>,
     pub patcher_engine: PatcherEngine,
+    pub provided_installer: Option<ProvidedInstallerRunner>,
     pub archive: archive::Options,
     pub cancelled: Arc<AtomicBool>,
 }
@@ -66,6 +72,7 @@ impl Settings {
             allow_processes: false,
             patcher: None,
             patcher_engine: PatcherEngine::default(),
+            provided_installer: None,
             archive: archive::Options::default(),
             cancelled: Arc::new(AtomicBool::new(false)),
         })
@@ -77,6 +84,22 @@ pub struct Event {
     pub component: String,
     pub step: usize,
     pub message: String,
+}
+
+/// An entry in the predicted filesystem. Unknown patcher content must never be
+/// presented as an empty file or as a verified binary patch result.
+#[derive(Clone, Debug, Serialize)]
+pub struct PredictedEntry {
+    pub path: PathBuf,
+    pub directory: bool,
+    pub content_known: bool,
+    pub bytes: Option<u64>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct Prediction {
+    pub entries: Vec<PredictedEntry>,
+    pub events: Vec<Event>,
 }
 
 /// Run-local observer state. Nothing is installed on Engine itself, so silent
@@ -237,6 +260,8 @@ pub struct Engine {
     patcher_invocation: Option<crate::patcher::Invocation>,
     patcher_resolution_error: Option<String>,
     files: BTreeMap<String, (PathBuf, Content)>,
+    authoring_inputs: Vec<(PathBuf, PathBuf)>,
+    exact_patcher_prediction: bool,
     directories: BTreeMap<String, PathBuf>,
     install: bool,
     component_checkpoints: bool,
@@ -340,7 +365,13 @@ impl Engine {
             "Archive scratch directory must be outside game and mod trees"
         );
         settings.archive.scratch_dir = Some(scratch);
-        let (patcher_invocation, patcher_resolution_error) =
+        let (patcher_invocation, patcher_resolution_error) = if settings
+            .provided_installer
+            .is_some()
+            || (settings.patcher_engine == PatcherEngine::OdyPatcher && settings.patcher.is_none())
+        {
+            (None, None)
+        } else {
             match crate::patcher::resolve_invocation(
                 settings.patcher_engine,
                 settings.patcher.as_deref(),
@@ -348,7 +379,8 @@ impl Engine {
                 Ok(invocation) => (invocation, None),
                 Err(error) if settings.patcher.is_some() => return Err(error),
                 Err(error) => (None, Some(format!("{error:#}"))),
-            };
+            }
+        };
         settings.patcher = patcher_invocation
             .as_ref()
             .and_then(|invocation| invocation.native_path().map(Path::to_owned));
@@ -358,6 +390,8 @@ impl Engine {
             patcher_invocation,
             patcher_resolution_error,
             files: BTreeMap::new(),
+            authoring_inputs: Vec::new(),
+            exact_patcher_prediction: false,
             directories: BTreeMap::new(),
             install: false,
             component_checkpoints: false,
@@ -429,6 +463,7 @@ impl Engine {
                 }
             }
         }
+        self.seed_authoring_inputs()?;
         Ok(())
     }
 
@@ -438,6 +473,40 @@ impl Engine {
         // C# runs FomodConfigurationGate on every validate path, not only the report.
         self.fomod_gate(guide, &mut emit)?;
         self.run(guide, &mut emit)
+    }
+
+    /// Use exactly the install engine's read-only simulation and retain its
+    /// resulting inventory for authoring. No external patcher is launched.
+    pub fn predict(mut self, guide: &Guide) -> Result<Prediction> {
+        self.exact_patcher_prediction = true;
+        recovery::ensure_clean(&self.settings.roots)?;
+        let mut events = Vec::new();
+        self.fomod_gate(guide, &mut |event| events.push(event))?;
+        self.run(guide, &mut |event| events.push(event))?;
+        let mut entries = Vec::with_capacity(self.files.len() + self.directories.len());
+        for path in self.directories.values() {
+            entries.push(PredictedEntry {
+                path: path.clone(),
+                directory: true,
+                content_known: true,
+                bytes: None,
+            });
+        }
+        for (path, content) in self.files.values() {
+            let known = !matches!(content, Content::Unknown);
+            entries.push(PredictedEntry {
+                path: path.clone(),
+                directory: false,
+                content_known: known,
+                bytes: if known {
+                    Some(content.open()?.metadata()?.len())
+                } else {
+                    None
+                },
+            });
+        }
+        entries.sort_by(|a, b| a.path.cmp(&b.path));
+        Ok(Prediction { entries, events })
     }
 
     /// The read-only FOMOD configuration gate for plain validate and install. Issues
@@ -760,27 +829,40 @@ impl Engine {
         self.selected = selected_guid_keys(guide);
         self.selected.extend(self.completed.iter().cloned());
         let mut outcomes = Vec::new();
-        for component in guide.components.iter().filter(|component| {
-            component.is_selected
-                && !self
+        let components: Vec<_> = guide
+            .ordered()?
+            .into_iter()
+            .filter(|component| {
+                !self
                     .completed
                     .contains(&crate::guid::key_ascii(&component.guid))
-        }) {
+            })
+            .collect();
+        let mut uncertain = false;
+        for component in components {
             let outcome = self
-                .validate_component_archives(component)
+                .validate_component_archives(component, &mut uncertain)
                 .with_context(|| format!("{}: archive/destination validation", component.name))
                 .map_err(|error| format!("{error:#}"));
             emit(Event {
                 component: component.name.clone(),
                 step: 0,
-                message: "Archive and destination checks completed".into(),
+                message: if uncertain {
+                    "Archive/path checks completed; filesystem existence after external programs remains unproven".into()
+                } else {
+                    "Archive and destination checks completed".into()
+                },
             });
             outcomes.push(outcome);
         }
         Ok(outcomes)
     }
 
-    fn validate_component_archives(&self, component: &Component) -> Result<()> {
+    fn validate_component_archives(
+        &mut self,
+        component: &Component,
+        uncertain: &mut bool,
+    ) -> Result<()> {
         self.check_cancelled()?;
         // The reference archive stage includes immediate option instructions.
         let instructions: Vec<_> = component
@@ -794,11 +876,140 @@ impl Engine {
             )
             .filter(|instruction| self.instruction_applies(instruction))
             .collect();
+        // Only VFS prediction: no disk installation or external programs.
+        ensure!(
+            !self.install,
+            "Archive projection cannot run in disk-install mode"
+        );
+        fn project(
+            engine: &mut Engine,
+            owner: &Component,
+            initial: &BTreeMap<String, PathBuf>,
+            boundaries: &mut BTreeMap<usize, BTreeSet<String>>,
+            unknown: &mut bool,
+            uncertain_boundaries: &mut BTreeSet<usize>,
+        ) -> Result<()> {
+            let entry_files = engine.files.clone();
+            let entry_dirs = engine.directories.clone();
+            let entry_unknown = *unknown;
+            let mut referenced = BTreeSet::new();
+            for instruction in &owner.instructions {
+                engine.check_cancelled()?;
+                if !engine.instruction_applies(instruction) {
+                    continue;
+                }
+                if *unknown {
+                    uncertain_boundaries.insert(instruction as *const Instruction as usize);
+                }
+                boundaries.insert(
+                    instruction as *const Instruction as usize,
+                    engine
+                        .directories
+                        .keys()
+                        .filter(|key| !initial.contains_key(*key))
+                        .cloned()
+                        .collect(),
+                );
+                if instruction.action == "Choose" {
+                    let chosen = Engine::chosen_options(owner, instruction)?;
+                    let before_files = engine.files.clone();
+                    let before_dirs = engine.directories.clone();
+                    let before_unknown = *unknown;
+                    for option in owner.options.iter().filter(|option| {
+                        instruction
+                            .source
+                            .iter()
+                            .any(|guid| crate::guid::eq_ascii(guid, &option.guid))
+                    }) {
+                        referenced.insert(crate::guid::key_ascii(&option.guid));
+                        engine.files = before_files.clone();
+                        engine.directories = before_dirs.clone();
+                        let mut branch_unknown = before_unknown;
+                        project(
+                            engine,
+                            option,
+                            initial,
+                            boundaries,
+                            &mut branch_unknown,
+                            uncertain_boundaries,
+                        )?;
+                    }
+                    engine.files = before_files;
+                    engine.directories = before_dirs;
+                    for option in chosen {
+                        project(
+                            engine,
+                            option,
+                            initial,
+                            boundaries,
+                            unknown,
+                            uncertain_boundaries,
+                        )?;
+                    }
+                } else if matches!(instruction.action.as_str(), "Patcher" | "Execute" | "Run") {
+                    *unknown = true;
+                } else if !*unknown
+                    && matches!(
+                        instruction.action.as_str(),
+                        "Extract" | "CreateDirectory" | "Copy" | "Move" | "Rename" | "Delete"
+                    )
+                {
+                    engine.execute_observed(owner, instruction, &mut |_| {}, None)?;
+                }
+            }
+            let selected_files = engine.files.clone();
+            let selected_dirs = engine.directories.clone();
+            for option in &owner.options {
+                if !referenced.contains(&crate::guid::key_ascii(&option.guid)) {
+                    engine.directories = entry_dirs.clone();
+                    engine.files = entry_files.clone();
+                    let mut branch_unknown = entry_unknown;
+                    project(
+                        engine,
+                        option,
+                        initial,
+                        boundaries,
+                        &mut branch_unknown,
+                        uncertain_boundaries,
+                    )?;
+                }
+            }
+            engine.files = selected_files;
+            engine.directories = selected_dirs;
+            Ok(())
+        }
+        let mut directory_boundaries = BTreeMap::new();
+        let original_directories = self.directories.clone();
+        let original_files = self.files.clone();
+        let mut future_uncertain = *uncertain;
+        let mut uncertain_boundaries = BTreeSet::new();
+        let directory_result = project(
+            self,
+            component,
+            &original_directories,
+            &mut directory_boundaries,
+            &mut future_uncertain,
+            &mut uncertain_boundaries,
+        );
+        let future_directories = std::mem::replace(&mut self.directories, original_directories);
+        let future_files = std::mem::replace(&mut self.files, original_files);
+        directory_result?;
         let mut members = BTreeSet::new();
         let mut has_archives = false;
         for instruction in &instructions {
             self.check_cancelled()?;
             if instruction.action != "Extract" {
+                continue;
+            }
+            // Unknown external effects defer existence, never path/root policy.
+            ensure!(!instruction.source.is_empty(), "Extract requires Source");
+            for source in &instruction.source {
+                self.source_pattern(source)?;
+            }
+            if !instruction.destination.is_empty() {
+                self.path(&instruction.destination, false)?;
+            }
+            if uncertain_boundaries.contains(&(*instruction as *const Instruction as usize)) {
                 continue;
             }
             for source in self.matches(&instruction.source, false)? {
@@ -827,10 +1038,34 @@ impl Engine {
         for instruction in instructions {
             self.check_cancelled()?;
             match instruction.action.as_str() {
+                "CreateDirectory" => {
+                    // Projection checked the exact reached/branch boundary. Only
+                    // syntax can be proven after an external unknown-effect step.
+                    ensure!(
+                        instruction.source.is_empty() && instruction.arguments.is_empty(),
+                        "CreateDirectory requires empty Source and Arguments"
+                    );
+                    ensure!(
+                        self.managed.is_none(),
+                        "CreateDirectory directory ownership is unsupported in managed deployment"
+                    );
+                    let path = self.path(&instruction.destination, false)?;
+                    ensure!(
+                        path != self.settings.roots.mods && path != self.settings.roots.game,
+                        "CreateDirectory requires a child destination"
+                    );
+                }
                 "Copy" | "Move" | "CleanList" | "DelDuplicate" => {
                     let dest = self.path(&instruction.destination, false)?;
                     ensure!(
-                        self.directories.contains_key(&self.path_policy.key(&dest)),
+                        uncertain_boundaries
+                            .contains(&(instruction as *const Instruction as usize))
+                            || self.directories.contains_key(&self.path_policy.key(&dest))
+                            || directory_boundaries
+                                .get(&(instruction as *const Instruction as usize))
+                                .is_some_and(
+                                    |created| created.contains(&self.path_policy.key(&dest))
+                                ),
                         "Destination cannot be found: {}",
                         instruction.destination
                     );
@@ -860,13 +1095,16 @@ impl Engine {
             // When Extract archives exist, check their actual safe member paths.
             if matches!(
                 instruction.action.as_str(),
-                "Choose" | "DelDuplicate" | "Extract"
+                "Choose" | "DelDuplicate" | "Extract" | "CreateDirectory"
             ) {
                 continue;
             }
             for source in &instruction.source {
                 let (path, pattern) = self.source_pattern(source)?;
-                if !has_archives || path.starts_with(&self.settings.roots.game) {
+                if uncertain_boundaries.contains(&(instruction as *const Instruction as usize))
+                    || !has_archives
+                    || path.starts_with(&self.settings.roots.game)
+                {
                     continue;
                 }
                 let prefix = format!("{}/", self.path_policy.key(&path));
@@ -878,6 +1116,9 @@ impl Engine {
                 );
             }
         }
+        self.directories = future_directories;
+        self.files = future_files;
+        *uncertain = future_uncertain;
         Ok(())
     }
 
@@ -944,7 +1185,8 @@ impl Engine {
                         .file_name()
                         .and_then(|name| name.to_str())
                         .context("Registered FOMOD archive filename is invalid")?;
-                    if !path.is_file() {
+                    let archive_key = self.path_policy.key(&path);
+                    if !self.files.contains_key(&archive_key) {
                         if crate::fomod::prompt_status(component, filename).is_some() {
                             bail!(
                                 "Registered FOMOD archive '{filename}' is missing from the mod directory after configuration state was recorded"
@@ -961,7 +1203,7 @@ impl Engine {
                         btree_map::Entry::Occupied(entry) => entry.into_mut(),
                         btree_map::Entry::Vacant(entry) => entry.insert(
                             crate::fomod::inspect_listed(
-                                &path,
+                                self.files[&archive_key].1.path()?,
                                 &relative_name,
                                 &self.settings.archive,
                                 &self.settings.cancelled,
@@ -1239,19 +1481,16 @@ impl Engine {
                             instruction.source.len() == 1,
                             "Patcher needs exactly one source"
                         );
-                        ensure!(
-                            self.settings.allow_processes,
-                            "Patcher needs explicit trust: enable external programs (--allow-processes)"
-                        );
+                        if self.requires_process_trust("Patcher") {
+                            ensure!(
+                                self.settings.allow_processes,
+                                "Patcher needs explicit trust: enable external programs (--allow-processes)"
+                            );
+                        }
                         if let Some(error) = &self.patcher_resolution_error {
                             bail!("Patcher backend unavailable: {error}");
                         }
-                        let invocation = self.patcher_invocation.as_ref().context(
-                            "Configure an executable with --patcher or install complete packaged patcher resources",
-                        )?;
-                        // Prepare and validate the argv prefix without launching a
-                        // process or requiring a backend during pure simulation.
-                        let _ = invocation.command()?;
+                        self.check_patcher_backend()?;
                     }
                 }
             }
@@ -1457,6 +1696,10 @@ impl Engine {
             .map(|c| c.name.clone())
             .collect();
         for (index, c) in ordered.iter().enumerate() {
+            if self.exact_patcher_prediction && c.instructions.is_empty() {
+                self.check_component(c)?;
+                continue;
+            }
             ensure!(
                 !c.instructions.is_empty(),
                 "{} has no executable instructions; review the guide",
@@ -1521,8 +1764,11 @@ impl Engine {
                     continue;
                 }
                 let message = if instruction.action == "Patcher" && !self.install {
-                    "Patcher: InstallList presence simulated; binary patch effects remain unmodeled"
-                        .into()
+                    if self.exact_patcher_prediction {
+                        "Patcher: projecting native patch bytes into private scratch".into()
+                    } else {
+                        "Patcher: InstallList presence simulated; binary patch effects remain unmodeled".into()
+                    }
                 } else if matches!(instruction.action.as_str(), "Execute" | "Run") && !self.install
                 {
                     format!(
@@ -1867,7 +2113,8 @@ impl Engine {
                 tracker.write(&relative.to_string_lossy());
             }
             self.files
-                .insert(self.path_policy.key(&path), (path, content));
+                .insert(self.path_policy.key(&path), (path.clone(), content));
+            self.consume_authoring_input(&path);
             Ok(())
         })();
         if actual_install && attempted {
@@ -1891,9 +2138,18 @@ impl Engine {
             self.settings.roots.check(path)?;
             if self.install {
                 attempted = self.files.contains_key(&self.path_policy.key(path));
-                self.managed_delete(path)?;
+                let private_only = self.private_authoring_input(path)
+                    && match fs::symlink_metadata(path) {
+                        Err(error) if error.kind() == std::io::ErrorKind::NotFound => true,
+                        Ok(_) => false,
+                        Err(error) => return Err(error.into()),
+                    };
+                if !private_only {
+                    self.managed_delete(path)?;
+                }
             }
             self.files.remove(&self.path_policy.key(path));
+            self.consume_authoring_input(path);
             Ok(())
         })();
         if actual_install && attempted {
@@ -1918,6 +2174,57 @@ impl Engine {
         self.execute_observed(component, i, emit, None)
     }
 
+    // First-class authoring extension; managed file manifests cannot own empty dirs.
+    fn directory_destination(&self, i: &Instruction, require_parent: bool) -> Result<PathBuf> {
+        ensure!(
+            i.source.is_empty() && i.arguments.is_empty(),
+            "CreateDirectory requires empty Source and Arguments"
+        );
+        ensure!(
+            self.managed.is_none(),
+            "CreateDirectory is unsupported in managed deployment: empty directory ownership is not implemented"
+        );
+        let requested = self.path(&i.destination, false)?;
+        let path = self.actual(&requested);
+        self.settings.roots.check(&path)?;
+        ensure!(
+            path != self.settings.roots.mods && path != self.settings.roots.game,
+            "CreateDirectory requires a child destination"
+        );
+        let leaf = path
+            .file_name()
+            .context("CreateDirectory requires one child name")?;
+        ensure!(
+            !leaf.to_string_lossy().contains(['*', '?', '[', ']', '\0']),
+            "CreateDirectory name cannot contain wildcard or NUL characters"
+        );
+        let parent = path
+            .parent()
+            .context("CreateDirectory requires an existing parent")?;
+        ensure!(
+            !self.files.contains_key(&self.path_policy.key(&path)),
+            "CreateDirectory destination is a file"
+        );
+        let mut ancestor = Some(parent);
+        while let Some(dir) = ancestor {
+            ensure!(
+                !self.files.contains_key(&self.path_policy.key(dir)),
+                "File blocks CreateDirectory ancestor"
+            );
+            if dir == self.settings.roots.mods || dir == self.settings.roots.game {
+                break;
+            }
+            ancestor = dir.parent();
+        }
+        if require_parent {
+            ensure!(
+                self.directories.contains_key(&self.path_policy.key(parent)),
+                "CreateDirectory parent does not exist in the current filesystem"
+            );
+        }
+        Ok(path)
+    }
+
     fn execute_observed(
         &mut self,
         component: &Component,
@@ -1926,6 +2233,42 @@ impl Engine {
         mut progress: Option<&mut InstallObserver<'_>>,
     ) -> Result<()> {
         match i.action.as_str() {
+            "CreateDirectory" => {
+                let path = self.directory_destination(i, true)?;
+                let key = self.path_policy.key(&path);
+                if !self.directories.contains_key(&key) {
+                    self.check_cancelled()?;
+                    if self.install {
+                        // Recheck physical ancestry before the single-leaf mutation.
+                        self.settings.roots.check(&path)?;
+                        let parent = path.parent().context("Directory parent disappeared")?;
+                        ensure!(
+                            fs::symlink_metadata(parent)?.is_dir(),
+                            "Directory parent changed type"
+                        );
+                        match fs::create_dir(&path) {
+                            Ok(()) => {}
+                            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
+                                let metadata = fs::symlink_metadata(&path)?;
+                                ensure!(
+                                    metadata.is_dir() && !metadata.file_type().is_symlink(),
+                                    "CreateDirectory destination changed type"
+                                );
+                            }
+                            Err(error) => return Err(error.into()),
+                        }
+                        self.settings.roots.check(&path)?;
+                    }
+                    self.directories.insert(key, path);
+                } else if self.install {
+                    self.settings.roots.check(&path)?;
+                    let metadata = fs::symlink_metadata(&path)?;
+                    ensure!(
+                        metadata.is_dir() && !metadata.file_type().is_symlink(),
+                        "CreateDirectory destination changed type"
+                    );
+                }
+            }
             "Choose" => {
                 let reached_from_instruction = progress
                     .as_ref()
@@ -2113,17 +2456,20 @@ impl Engine {
                 let preferred = crate::unicode_case::ordinal_key(&i.arguments);
                 budget.text(&dir.to_string_lossy())?;
                 let directory_key = self.path_policy.key(&dir);
+                let descendant_prefix = format!("{directory_key}/");
                 let mut candidates = Vec::new();
-                let mut counts: BTreeMap<String, usize> = BTreeMap::new();
+                let mut counts: BTreeMap<(String, String), usize> = BTreeMap::new();
                 for (path, _) in self.files.values() {
                     budget.charge(1)?;
                     budget.text(&path.to_string_lossy())?;
-                    if path
-                        .parent()
-                        .is_none_or(|parent| self.path_policy.key(parent) != directory_key)
-                    {
+                    let parent = path.parent().context("DelDuplicate file has no parent")?;
+                    let parent_key = self.path_policy.key(parent);
+                    // Descendants participate, but duplicate identity never crosses
+                    // directory boundaries. Key prefixes obey the configured path policy.
+                    if parent_key != directory_key && !parent_key.starts_with(&descendant_prefix) {
                         continue;
                     }
+                    self.settings.roots.check(path)?;
                     ensure!(
                         candidates.len() < 100_000,
                         "DelDuplicate exceeds 100,000 candidates"
@@ -2136,18 +2482,19 @@ impl Engine {
                     let (stem, extension) = cleanlist::name_parts(name);
                     let stem = crate::unicode_case::ordinal_key(stem);
                     let extension = crate::unicode_case::ordinal_key(extension);
+                    let group = (parent_key, stem.clone());
                     if extensions.contains(&extension) {
-                        *counts.entry(stem.clone()).or_default() += 1;
+                        *counts.entry(group.clone()).or_default() += 1;
                     }
-                    candidates.push((path.clone(), stem, extension));
+                    candidates.push((path.clone(), group, extension));
                 }
                 let mut planned = Vec::new();
-                for (path, stem, extension) in candidates {
+                for (path, group, extension) in candidates {
                     budget.charge(1)?;
                     // Empty Arguments selects extensionless candidates as in the
                     // reference; preferred extensions need not be compatible.
-                    if !stem.is_empty()
-                        && counts.get(&stem).copied().unwrap_or(0) > 1
+                    if !group.1.is_empty()
+                        && counts.get(&group).copied().unwrap_or(0) > 1
                         && extension == preferred
                     {
                         self.settings.roots.check(&path)?;
@@ -2233,8 +2580,21 @@ impl Engine {
         Ok(())
     }
 
+    /// Linked native patching never starts a child, including NSS compilation.
+    /// A configured executable and Execute/Run still need process authority.
+    fn requires_process_trust(&self, action: &str) -> bool {
+        action != "Patcher"
+            || self.patcher_invocation.is_some()
+            || self.settings.provided_installer.is_some()
+    }
+
     /// Execute/Run only; Patcher binds through `resolve_instruction`.
     fn process(&mut self, i: &Instruction, emit: &mut impl FnMut(Event)) -> Result<()> {
+        ensure!(
+            !self.exact_patcher_prediction,
+            "{} has unobserved external installer effects; apply it in real-disk mode and use its verified checkpoint before predicting beyond it",
+            i.action
+        );
         ensure!(
             self.settings.allow_processes,
             "{} needs explicit trust: enable external programs (--allow-processes)",
@@ -2270,7 +2630,7 @@ impl Engine {
         arguments: &[std::ffi::OsString],
         emit: &mut impl FnMut(Event),
     ) -> Result<()> {
-        if self.install || i.action != "Patcher" {
+        if self.requires_process_trust(&i.action) && (self.install || i.action != "Patcher") {
             ensure!(
                 self.settings.allow_processes,
                 "{} needs explicit trust: enable external programs (--allow-processes)",
@@ -2290,8 +2650,20 @@ impl Engine {
         } else {
             None
         };
+        if i.action == "Patcher" && self.settings.provided_installer.is_some() {
+            self.process_supplied_installer(i, path, emit)?;
+            if self.install {
+                if let Some(preimage) = &preimage {
+                    self.record_managed_process(preimage)?;
+                }
+                self.scan()?;
+            }
+            return Ok(());
+        }
+        let mut runner_session = None;
         let mut staged_patcher = None;
         let mut patcher_data = None;
+        let mut native_patcher = None;
         let mut command = if i.action == "Patcher" {
             let dest = if i.destination.is_empty() {
                 self.settings.roots.game.clone()
@@ -2304,20 +2676,29 @@ impl Engine {
                 path
             };
             if !self.install {
+                ensure!(
+                    !self.exact_patcher_prediction || self.patcher_invocation.is_none(),
+                    "Configured external patcher effects require a matching verified real-disk checkpoint; native OdyPatcher prediction cannot stand in for this backend"
+                );
                 self.simulate_patcher(base, &dest, &i.arguments, emit)?;
                 return Ok(());
             }
-            let patcher = self
-                .patcher_invocation
-                .as_ref()
-                .context("Configure an executable with --patcher or install complete packaged patcher resources")?;
+            self.check_patcher_backend()?;
             let (stage, staged_base) = patcher_prepare::stage(base, &self.settings.cancelled)?;
             patcher_data = Some(staged_base.clone());
             staged_patcher = Some(stage);
-            let mut cmd = self.patcher_command(patcher, &dest, &staged_base)?;
+            let mut cmd = self
+                .patcher_invocation
+                .as_ref()
+                .map(|patcher| self.patcher_command(patcher, &dest, &staged_base))
+                .transpose()?;
+            let mut namespace = None;
             if !i.arguments.trim().is_empty() {
                 if let Ok(index) = i.arguments.trim().parse::<usize>() {
-                    cmd.arg("--namespace-option-index").arg(index.to_string());
+                    namespace = Some(index);
+                    if let Some(cmd) = &mut cmd {
+                        cmd.arg("--namespace-option-index").arg(index.to_string());
+                    }
                 } else {
                     let name = relative(i.arguments.trim(), false)?;
                     ensure!(
@@ -2364,23 +2745,103 @@ impl Engine {
                     }
                 }
             }
+            if cmd.is_none() {
+                native_patcher = Some((dest, namespace));
+                if staged_base
+                    .file_name()
+                    .is_some_and(|name| name.eq_ignore_ascii_case("tslpatchdata"))
+                {
+                    patcher_data = Some(
+                        staged_base
+                            .parent()
+                            .context("Staged patcher data has no parent")?
+                            .to_path_buf(),
+                    );
+                }
+            }
             cmd
         } else {
-            let mut cmd = Command::new(path);
+            // An imported installer is logically present but its immutable object
+            // is outside the source tree. Materialize only its logical name for
+            // real execution; dry-run records the same availability transition.
+            if self.private_authoring_input(path) {
+                if self.install {
+                    match fs::symlink_metadata(path) {
+                        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+                        Err(error) => return Err(error.into()),
+                        Ok(_) => bail!(
+                            "Imported program path appeared after preflight; restore before retrying"
+                        ),
+                    }
+                }
+                let content = self.files[&self.path_policy.key(path)].1.clone();
+                self.put(path, content, true)?;
+            }
+            let mut cmd = if self.install && self.settings.provided_installer.is_some() {
+                let runner = self
+                    .settings
+                    .provided_installer
+                    .as_ref()
+                    .context("Missing headless runner")?;
+                let requests = fs::canonicalize(&runner.request_dir)?;
+                ensure!(
+                    !requests.starts_with(&self.settings.roots.mods)
+                        && !requests.starts_with(&self.settings.roots.game),
+                    "Runner request storage must be outside mod/game trees"
+                );
+                let session =
+                    provided_installer::RunnerSession::start(runner, path, &self.settings.roots)?;
+                let command = runner.command(path, &session.headless.display)?;
+                runner_session = Some(session);
+                command
+            } else {
+                ensure!(
+                    !self.install
+                        || !cfg!(target_os = "linux")
+                        || !path
+                            .extension()
+                            .and_then(|part| part.to_str())
+                            .is_some_and(|part| part.eq_ignore_ascii_case("exe")),
+                    "Windows Execute requires explicitly configured headless Wine runner"
+                );
+                Command::new(path)
+            };
             cmd.args(arguments);
-            cmd
+            Some(cmd)
         };
         if self.install {
             if let Some(data) = &patcher_data {
                 patcher_prepare::normalize(data, &self.settings.cancelled)?;
                 clear_patcher_logs(data)?;
             }
-            command.current_dir(
-                patcher_data
-                    .as_deref()
-                    .unwrap_or_else(|| path.parent().unwrap()),
-            );
-            let receipt = self.run_external_command(command)?;
+            let receipt = if let Some(mut command) = command.take() {
+                command.current_dir(
+                    patcher_data
+                        .as_deref()
+                        .unwrap_or_else(|| path.parent().unwrap()),
+                );
+                if let Some(session) = &mut runner_session {
+                    session.mark_submitted();
+                }
+                let result = self.run_external_command(command);
+                if let Some(session) = &mut runner_session {
+                    session.finish(result.as_ref().is_ok_and(|receipt| {
+                        receipt.no_child_started || receipt.process_group_quiescent
+                    }))?;
+                }
+                Some(result?)
+            } else {
+                let (destination, namespace) = native_patcher
+                    .as_ref()
+                    .context("Missing native patcher destination")?;
+                self.run_builtin_patcher(
+                    patcher_data.as_deref().context("Missing patcher staging")?,
+                    destination,
+                    *namespace,
+                    emit,
+                )?;
+                None
+            };
             // Read and publish diagnostics before checking process success or dropping
             // named-INI staging. The event owns its text after the directory is gone.
             let patcher_result = patcher_data.as_ref().map(|data| {
@@ -2399,27 +2860,29 @@ impl Engine {
                 }
                 result
             });
-            for output in [receipt.stdout, receipt.stderr] {
-                if !output.is_empty() {
-                    emit(Event {
-                        component: i.action.clone(),
-                        step: 0,
-                        message: output,
-                    });
+            if let Some(receipt) = receipt {
+                for output in [receipt.stdout, receipt.stderr] {
+                    if !output.is_empty() {
+                        emit(Event {
+                            component: i.action.clone(),
+                            step: 0,
+                            message: output,
+                        });
+                    }
                 }
+                ensure!(
+                    !receipt.cancelled,
+                    "External program cancelled; restore before retrying"
+                );
+                if let Some(failure) = receipt.failure {
+                    bail!("External program failed: {failure}; restore before retrying");
+                }
+                ensure!(
+                    receipt.exit_code == Some(0),
+                    "External program failed with exit code {:?}",
+                    receipt.exit_code
+                );
             }
-            ensure!(
-                !receipt.cancelled,
-                "External program cancelled; restore before retrying"
-            );
-            if let Some(failure) = receipt.failure {
-                bail!("External program failed: {failure}; restore before retrying");
-            }
-            ensure!(
-                receipt.exit_code == Some(0),
-                "External program failed with exit code {:?}",
-                receipt.exit_code
-            );
             if let Some(result) = patcher_result {
                 let (_, content) = result?;
                 let errors = patcher_log_error_lines(&content);
@@ -2435,6 +2898,7 @@ impl Engine {
             self.scan()?;
         }
         drop(staged_patcher);
+        drop(runner_session);
         Ok(())
     }
 
@@ -2459,6 +2923,121 @@ impl Engine {
         }
         Ok(command)
     }
+
+    fn check_patcher_backend(&self) -> Result<()> {
+        if self.settings.provided_installer.is_some() {
+            return Ok(());
+        }
+        if let Some(error) = &self.patcher_resolution_error {
+            bail!("Patcher backend unavailable: {error}");
+        }
+        if let Some(invocation) = &self.patcher_invocation {
+            invocation.command()?;
+        } else {
+            ensure!(
+                self.settings.patcher_engine == PatcherEngine::OdyPatcher,
+                "Configure an executable with --patcher or install complete packaged patcher resources"
+            );
+        }
+        Ok(())
+    }
+
+    fn run_builtin_patcher(
+        &self,
+        base: &Path,
+        destination: &Path,
+        namespace: Option<usize>,
+        emit: &mut impl FnMut(Event),
+    ) -> Result<()> {
+        // Discovery expects these canonical document names. Adjust only the
+        // private payload; the source mod's spelling and bytes stay intact.
+        canonicalize_patcher_child(base, "tslpatchdata")?;
+        let data = base.join("tslpatchdata");
+        if data.is_dir() {
+            for name in ["changes.ini", "info.rtf", "namespaces.ini"] {
+                canonicalize_patcher_child(&data, name)?;
+            }
+        }
+        let mut session = odypatcher::Session::discover(
+            base.to_str().context("Patcher staging path is not UTF-8")?,
+            "changes.ini",
+            "info.rtf",
+        );
+        if let Some(index) = namespace {
+            ensure!(
+                index < session.namespaces.len().max(1),
+                "Patcher namespace is out of range"
+            );
+            if !session.namespaces.is_empty() {
+                session.select_namespace(index);
+            }
+        }
+        ensure!(
+            session.blocked_reason().is_none(),
+            "Patcher configuration blocked: {}",
+            session.blocked_reason().unwrap_or_default()
+        );
+        self.check_cancelled()?;
+        let mut installer = odypatcher::ModInstaller::new(
+            &session.base_path,
+            destination,
+            &session.ini_path(),
+            Some(odypatcher::PatchLogger::new()),
+        )
+        .map_err(|error| anyhow::anyhow!("Prepare built-in OdyPatcher: {error}"))?;
+        installer
+            .validate_configured_paths()
+            .map_err(|error| anyhow::anyhow!("Unsafe native patch configuration: {error}"))?;
+        patcher_prepare::disable_external_compilers(&mut installer)?;
+        let result = installer.install(
+            Some(&|| self.settings.cancelled.load(Ordering::Acquire)),
+            None,
+        );
+        let report = odypatcher::RunReport::from_logger(&installer.log);
+        let log_path = session.write_install_log(&installer.log.all_logs);
+        emit(Event {
+            component: "Patcher".into(),
+            step: 0,
+            message: format!(
+                "Built-in OdyPatcher: {} configured, {} completed, {} skipped, {} failed; {} warnings, {} errors",
+                report.patches_configured,
+                report.patches_completed,
+                report.patches_skipped,
+                report.patches_failed,
+                report.warnings,
+                report.errors
+            ),
+        });
+        result.map_err(|error| anyhow::anyhow!("Built-in OdyPatcher failed: {error}"))?;
+        self.check_cancelled()?;
+        ensure!(
+            !report.completed_with_errors(),
+            "Built-in OdyPatcher reported errors; restore before retrying"
+        );
+        ensure!(
+            log_path.is_some(),
+            "Built-in OdyPatcher did not write its install log"
+        );
+        Ok(())
+    }
+}
+
+fn canonicalize_patcher_child(directory: &Path, name: &str) -> Result<()> {
+    let mut found = None;
+    for entry in fs::read_dir(directory)? {
+        let entry = entry?;
+        if entry.file_name().eq_ignore_ascii_case(name) {
+            ensure!(found.is_none(), "Case-colliding patcher documents");
+            found = Some(entry.path());
+        }
+    }
+    if let Some(path) = found {
+        let target = directory.join(name);
+        if path != target {
+            fs::rename(path, target)?;
+        }
+    }
+    Ok(())
 }
 
 // Only these paths at the resolved invocation root can prove this run's log

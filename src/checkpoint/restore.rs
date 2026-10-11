@@ -12,6 +12,44 @@ use std::{
     sync::atomic::AtomicBool,
 };
 
+/// Unix rename namespaces may be batched within the durable Materializing
+/// restore intent. Windows retains immediate namespace qualification.
+#[derive(Default)]
+struct DirectorySyncBatch {
+    #[cfg(unix)]
+    changed: std::collections::BTreeSet<PathBuf>,
+}
+impl DirectorySyncBatch {
+    fn record(&mut self, parent: &Path) -> Result<()> {
+        #[cfg(unix)]
+        {
+            ensure!(
+                self.changed.contains(parent) || self.changed.len() < MAX_ENTRIES,
+                "Restore directory sync inventory exceeds bound"
+            );
+            self.changed.insert(parent.to_owned());
+        }
+        #[cfg(not(unix))]
+        namespace_boundary(parent)?;
+        Ok(())
+    }
+    fn flush(&mut self, flag: &AtomicBool) -> Result<()> {
+        #[cfg(unix)]
+        {
+            let mut directories: Vec<_> = self.changed.iter().collect();
+            directories.sort_by_key(|path| std::cmp::Reverse(path.components().count()));
+            for directory in directories {
+                cancelled(flag)?;
+                namespace_boundary(directory)?;
+            }
+            self.changed.clear();
+        }
+        #[cfg(not(unix))]
+        let _ = flag;
+        Ok(())
+    }
+}
+
 fn writable_directory(path: &Path) -> Result<()> {
     let metadata = safe_path(path)?.context("Restore directory missing")?;
     ensure!(metadata.is_dir(), "Restore directory changed type");
@@ -25,6 +63,77 @@ fn writable_directory(path: &Path) -> Result<()> {
     }
     Ok(())
 }
+
+// Unix read descriptors support fsync. Windows retains ordinary copy/replace
+// until equivalent unchanged-file flushing capability is qualified.
+#[cfg(unix)]
+fn unchanged_file(
+    target: &Path,
+    hash: &str,
+    size: u64,
+    expected: &Mode,
+    flag: &AtomicBool,
+) -> Result<bool> {
+    use std::os::unix::fs::MetadataExt;
+    cancelled(flag)?;
+    let Some(path_before) = safe_path(target)? else {
+        return Ok(false);
+    };
+    ensure!(path_before.is_file(), "Restore target changed type");
+    let mut input = open_file(target)?;
+    let before = input.metadata()?;
+    let matches_mode = |metadata: &fs::Metadata| {
+        super::read::mode(metadata) == *expected && expected.unix == Some(metadata.mode() & 0o7777)
+    };
+    if before.dev() != path_before.dev()
+        || before.ino() != path_before.ino()
+        || before.len() != size
+        || !matches_mode(&before)
+    {
+        return Ok(false);
+    }
+    let mut observed = Sha256::new();
+    let mut count = 0u64;
+    let mut buffer = [0u8; 65536];
+    loop {
+        cancelled(flag)?;
+        let n = input.read(&mut buffer)?;
+        if n == 0 {
+            break;
+        }
+        count = count
+            .checked_add(n as u64)
+            .context("Restore comparison size overflow")?;
+        if count > size {
+            return Ok(false);
+        }
+        observed.update(&buffer[..n]);
+    }
+    if count != size || format!("{:x}", observed.finalize()) != hash {
+        return Ok(false);
+    }
+    let after = input.metadata()?;
+    let path_after = safe_path(target)?.context("Restore target disappeared during comparison")?;
+    let stable = |metadata: &fs::Metadata| {
+        metadata.is_file()
+            && metadata.dev() == before.dev()
+            && metadata.ino() == before.ino()
+            && metadata.len() == size
+            && matches_mode(metadata)
+            && metadata.mtime() == before.mtime()
+            && metadata.mtime_nsec() == before.mtime_nsec()
+            && metadata.ctime() == before.ctime()
+            && metadata.ctime_nsec() == before.ctime_nsec()
+    };
+    if !stable(&after) || !stable(&path_after) {
+        return Ok(false);
+    }
+    cancelled(flag)?;
+    // Equal bytes still need the durability previously supplied by replacement.
+    super::persistence::flush_file(&input)?;
+    Ok(true)
+}
+
 fn set_mode(path: &Path, value: &Mode) -> Result<()> {
     safe_path(path)?.context("Restore mode target missing")?;
     #[cfg(unix)]
@@ -259,7 +368,17 @@ impl Store {
                     if safe_path(path)?.is_some_and(|m| m.is_dir()) {
                         remove_owned(path, flag)?;
                     }
-                    self.restore_file(path, sha256, *size, mode, operation_id, flag)?;
+                    let mut directory_sync = DirectorySyncBatch::default();
+                    self.restore_file(
+                        path,
+                        sha256,
+                        *size,
+                        mode,
+                        operation_id,
+                        flag,
+                        &mut directory_sync,
+                    )?;
+                    directory_sync.flush(flag)?;
                     files += 1;
                     bytes += size;
                 }
@@ -378,9 +497,18 @@ impl Store {
         for (path, _) in &directories {
             ensure_directory(&root.join(path), flag)?;
         }
+        let mut directory_sync = DirectorySyncBatch::default();
         for (path, entry) in &tree.entries {
             if let Entry::File { sha256, size, mode } = entry {
-                self.restore_file(&root.join(path), sha256, *size, mode, operation, flag)?;
+                self.restore_file(
+                    &root.join(path),
+                    sha256,
+                    *size,
+                    mode,
+                    operation,
+                    flag,
+                    &mut directory_sync,
+                )?;
                 *files += 1;
                 *bytes += size;
                 observe(Progress {
@@ -390,6 +518,9 @@ impl Store {
                 });
             }
         }
+        // All file data was already flushed. Publish changed namespaces before
+        // final directory modes, full live verification and journal advancement.
+        directory_sync.flush(flag)?;
         directories.reverse();
         for (path, mode) in directories {
             set_mode(&root.join(path), mode)?;
@@ -409,6 +540,7 @@ impl Store {
         mode: &Mode,
         operation: &str,
         flag: &AtomicBool,
+        directory_sync: &mut DirectorySyncBatch,
     ) -> Result<()> {
         cancelled(flag)?;
         let parent = target.parent().context("Restore file has no parent")?;
@@ -431,6 +563,13 @@ impl Store {
             );
             super::persistence::writable_file(&temporary)?;
             fs::remove_file(&temporary)?;
+            #[cfg(unix)]
+            directory_sync.record(parent)?;
+        }
+        #[cfg(unix)]
+        if unchanged_file(target, hash, size, mode, flag)? {
+            // Any stale temporary removal is already in the namespace batch.
+            return Ok(());
         }
         let mut options = fs::OpenOptions::new();
         options.write(true).create_new(true);
@@ -465,7 +604,7 @@ impl Store {
             super::persistence::rename(&temporary, target, true)?;
             #[cfg(not(unix))]
             set_mode(target, mode)?;
-            namespace_boundary(parent)?;
+            directory_sync.record(parent)?;
             Ok(())
         })();
         if result.is_err() {

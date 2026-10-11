@@ -184,7 +184,7 @@ impl PatcherPreferences {
         }
         let engine = match setting_text(settings, "patcherEngine")?
             .as_deref()
-            .unwrap_or("Holopatcher")
+            .unwrap_or("OdyPatcher")
             .to_ascii_lowercase()
             .as_str()
         {

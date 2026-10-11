@@ -276,7 +276,7 @@ pub fn generate_from_archive(
     let mut changes = false;
     let mut namespace_entry = None;
     let mut patcher_path = String::new();
-    let mut executable = None;
+    let mut changes_entry = None;
     let mut flat = false;
     let mut folders = Vec::new();
     let mut loose = false;
@@ -293,15 +293,18 @@ pub fn generate_from_archive(
         {
             patch_data = true;
             if name.eq_ignore_ascii_case("namespaces.ini") {
-                namespace_entry.get_or_insert(index);
-                patcher_path = parts[..patch_index].join("/");
-            } else if name.eq_ignore_ascii_case("changes.ini") {
-                changes = true;
-                if patcher_path.is_empty() {
+                // Keep the namespace document and its owning installer tree bound
+                // together. A later compatibility installer must not steal the root.
+                if namespace_entry.is_none() {
+                    namespace_entry = Some(index);
                     patcher_path = parts[..patch_index].join("/");
                 }
-            } else if name.to_ascii_lowercase().ends_with(".exe") && executable.is_none() {
-                executable = Some(*name);
+            } else if name.eq_ignore_ascii_case("changes.ini") {
+                changes = true;
+                if namespace_entry.is_none() && changes_entry.is_none() {
+                    patcher_path = parts[..patch_index].join("/");
+                }
+                changes_entry.get_or_insert(index);
             }
         } else if game_file(entry) {
             loose = true;
@@ -327,10 +330,36 @@ pub fn generate_from_archive(
         ),
     );
     let patcher_root = if patcher_path.is_empty() {
-        &extracted
+        extracted.clone()
     } else {
-        &patcher_path
+        format!("{extracted}/{patcher_path}")
     };
+    // Installer executables sit beside tslpatchdata, not inside it. Never
+    // manufacture an executable from an option name or a conventional filename.
+    let executable = paths
+        .iter()
+        .find(|entry| {
+            let (directory, name) = entry.rsplit_once('/').unwrap_or(("", entry));
+            directory.eq_ignore_ascii_case(&patcher_path)
+                && name.to_ascii_lowercase().ends_with(".exe")
+                && ![
+                    "nwnnsscomp.exe",
+                    "nwnnsscomp64.exe",
+                    "erf.exe",
+                    "rim.exe",
+                    "2dahelper.exe",
+                    "tlkhelper.exe",
+                    "unins000.exe",
+                    "uninstall.exe",
+                ]
+                .iter()
+                .any(|excluded| name.eq_ignore_ascii_case(excluded))
+        })
+        .map(|entry| entry.rsplit('/').next().unwrap());
+    ensure!(
+        !(namespace_entry.is_some() || changes) || executable.is_some(),
+        "Archive patcher tree has no identifiable sibling installer executable"
+    );
     if let Some(index) = namespace_entry {
         let mut file = crate::paths::open_regular_read(entries[index].file.path())?;
         ensure!(
@@ -377,7 +406,8 @@ pub fn generate_from_archive(
                     let step = instruction(
                         "Patcher",
                         vec![format!(
-                            "<<modDirectory>>\\{patcher_root}\\{namespace}\\{namespace}.exe"
+                            "<<modDirectory>>\\{patcher_root}\\{}",
+                            executable.context("Namespace installer is missing")?
                         )],
                         "<<gameDirectory>>",
                         &index.to_string(),
@@ -395,7 +425,7 @@ pub fn generate_from_archive(
                 "Patcher",
                 vec![format!(
                     "<<modDirectory>>\\{patcher_root}\\{}",
-                    executable.unwrap_or("TSLPatcher.exe")
+                    executable.context("Patcher installer is missing")?
                 )],
                 "<<gameDirectory>>",
                 "",

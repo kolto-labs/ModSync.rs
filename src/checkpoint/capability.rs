@@ -29,6 +29,7 @@ impl Store {
     /// Qualify every recorded location before lock acquisition. Repeat under lock.
     /// Includes incomplete sessions, orphan checkpoints and lifecycle trash.
     pub fn prepare_write(&self) -> Result<()> {
+        super::external_writer::ensure_clear(&self.roots.game)?;
         crate::maintenance::ensure_clear_game(&self.roots.game)?;
         self.prepare_write_profile()
     }

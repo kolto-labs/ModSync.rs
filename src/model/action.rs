@@ -3,7 +3,7 @@ use anyhow::{Result, bail, ensure};
 use serde::{Deserialize, Deserializer};
 use serde_json::Value;
 
-const NAMES: [&str; 12] = [
+const NAMES: [&str; 13] = [
     "Unset",
     "Extract",
     "Execute",
@@ -16,6 +16,7 @@ const NAMES: [&str; 12] = [
     "Choose",
     "Run",
     "CleanList",
+    "CreateDirectory",
 ];
 const MAX_TEXT: usize = 4096;
 const MAX_ITEMS: usize = 1024;

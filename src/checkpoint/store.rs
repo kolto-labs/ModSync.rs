@@ -336,8 +336,13 @@ impl Store {
             files: 0,
             bytes: 0,
         });
-        let mods = self.scan(&self.roots.mods, flag)?;
-        let game = self.scan(&self.roots.game, flag)?;
+        // On a cold CAS, stream the source bytes into a temporary object while
+        // hashing them. This avoids rereading every source file to publish its
+        // newly-created object. Once any object exists, use the normal scan so
+        // later captures do not stage unchanged files unnecessarily.
+        let stage_new_objects = self.object_store_is_empty(flag)?;
+        let mods = self.scan_capture_root(&self.roots.mods, stage_new_objects, flag)?;
+        let game = self.scan_capture_root(&self.roots.game, stage_new_objects, flag)?;
         let mut count = 0u64;
         let mut bytes = 0u64;
         let mut copied = std::collections::BTreeSet::new();
@@ -345,7 +350,7 @@ impl Store {
             for (path, entry) in &tree.entries {
                 cancelled(flag)?;
                 if let Entry::File { sha256, size, .. } = entry {
-                    if copied.insert((sha256.clone(), *size)) {
+                    if copied.insert((sha256.clone(), *size)) && !stage_new_objects {
                         self.publish_object(&root.join(path), sha256, *size, flag)?;
                     }
                     count += 1;
@@ -375,6 +380,15 @@ impl Store {
     }
 
     pub(super) fn scan(&self, root: &Path, flag: &AtomicBool) -> Result<Tree> {
+        self.scan_capture_root(root, false, flag)
+    }
+
+    fn scan_capture_root(
+        &self,
+        root: &Path,
+        stage_new_objects: bool,
+        flag: &AtomicBool,
+    ) -> Result<Tree> {
         cancelled(flag)?;
         let metadata = safe_path(root)?.context("Capture root missing")?;
         ensure!(metadata.is_dir(), "Capture root is not a directory");
@@ -405,7 +419,11 @@ impl Store {
                     mode: mode(&metadata),
                 }
             } else {
-                let (sha256, size) = hash_file(entry.path(), flag)?;
+                let (sha256, size) = if stage_new_objects {
+                    self.stage_hashed_object(entry.path(), metadata.len(), flag)?
+                } else {
+                    hash_file(entry.path(), flag)?
+                };
                 ensure!(
                     size == metadata.len(),
                     "File length changed during checkpoint scan"
@@ -423,6 +441,113 @@ impl Store {
         }
         validate_tree(&tree)?;
         Ok(tree)
+    }
+
+    fn object_store_is_empty(&self, flag: &AtomicBool) -> Result<bool> {
+        let root = self.directory.join("objects/sha256");
+        let Some(metadata) = safe_path(&root)? else {
+            return Ok(true);
+        };
+        ensure!(metadata.is_dir(), "CAS object root is not a directory");
+        let mut inspected = 0usize;
+        for shard in fs::read_dir(&root)? {
+            cancelled(flag)?;
+            inspected += 1;
+            ensure!(inspected <= 200_000, "CAS inventory exceeds bound");
+            let shard = shard?;
+            let path = shard.path();
+            let prefix = shard
+                .file_name()
+                .into_string()
+                .map_err(|_| anyhow::anyhow!("Non-UTF8 CAS shard name"))?;
+            ensure!(
+                prefix.len() == 2
+                    && prefix
+                        .bytes()
+                        .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)),
+                "Unknown CAS shard"
+            );
+            let shard_metadata = safe_path(&path)?.context("CAS shard disappeared")?;
+            ensure!(shard_metadata.is_dir(), "CAS shard is not a directory");
+            for object in fs::read_dir(&path)? {
+                cancelled(flag)?;
+                inspected += 1;
+                ensure!(inspected <= 200_000, "CAS inventory exceeds bound");
+                let object = object?;
+                let object_path = object.path();
+                let leaf = object
+                    .file_name()
+                    .into_string()
+                    .map_err(|_| anyhow::anyhow!("Non-UTF8 CAS object name"))?;
+                let object_metadata = safe_path(&object_path)?.context("CAS object disappeared")?;
+                ensure!(object_metadata.is_file(), "CAS contains a non-file");
+                if leaf.starts_with(".tmp-") {
+                    return Ok(false);
+                }
+                digest(&format!("{prefix}{leaf}"))?;
+                return Ok(false);
+            }
+        }
+        Ok(true)
+    }
+
+    fn stage_hashed_object(
+        &self,
+        source: &Path,
+        expected_size: u64,
+        flag: &AtomicBool,
+    ) -> Result<(String, u64)> {
+        let mut temporary = tempfile::Builder::new()
+            .prefix(".tmp-")
+            .tempfile_in(&self.directory)?;
+        let mut source = open_file(source)?;
+        let mut observed = Sha256::new();
+        let mut count = 0u64;
+        let mut buffer = [0u8; 65536];
+        loop {
+            cancelled(flag)?;
+            let n = source.read(&mut buffer)?;
+            if n == 0 {
+                break;
+            }
+            count = count
+                .checked_add(n as u64)
+                .context("Checkpoint object size overflow")?;
+            ensure!(
+                count <= expected_size,
+                "Source grew while capturing checkpoint object"
+            );
+            temporary.write_all(&buffer[..n])?;
+            observed.update(&buffer[..n]);
+        }
+        let hash = format!("{:x}", observed.finalize());
+        ensure!(
+            count == expected_size,
+            "Source length changed while capturing checkpoint object"
+        );
+        let destination = self.object_path(&hash)?;
+        let parent = destination.parent().expect("object parent");
+        ensure_directory(parent)?;
+        match super::persistence::publish_temp(temporary, &destination, false) {
+            Ok(()) => {
+                namespace_boundary(parent)?;
+                namespace_boundary(&self.directory)?;
+            }
+            Err(error)
+                if error
+                    .downcast_ref::<std::io::Error>()
+                    .is_some_and(|e| e.kind() == std::io::ErrorKind::AlreadyExists) =>
+            {
+                // Duplicate content can occur within this cold capture. The
+                // winner's object remains authoritative and is verified below.
+            }
+            Err(error) => return Err(error),
+        }
+        ensure!(
+            hash_file(&destination, flag)? == (hash.clone(), count),
+            "Staged checkpoint object failed verification"
+        );
+        Ok((hash, count))
     }
 
     pub(super) fn publish_object(
@@ -469,7 +594,7 @@ impl Store {
             count == size && format!("{:x}", observed.finalize()) == hash,
             "Source changed while capturing checkpoint object"
         );
-        super::persistence::flush_file(temporary.as_file())?;
+        // publish_temp flushes this handle before every publication branch.
         match super::persistence::publish_temp(temporary, &destination, false) {
             Ok(()) => namespace_boundary(parent)?,
             Err(error)

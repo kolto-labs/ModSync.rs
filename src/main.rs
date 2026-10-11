@@ -2,6 +2,7 @@ mod checkpoint_cli;
 mod cli_acquisition;
 mod cli_compat;
 mod cli_session;
+mod easy_cli;
 mod maintenance_cli;
 mod profile_cli;
 mod protocol_cli;
@@ -40,6 +41,8 @@ struct Cli {
 }
 #[derive(Subcommand)]
 enum Action {
+    /// Author guides with durable autosave and undo/redo history.
+    Easy(easy_cli::EasyArgs),
     /// Manage non-destructive staged deployments and their manifests.
     Deployment(DeploymentArgs),
     /// Manage stored install profiles.
@@ -64,6 +67,9 @@ enum Action {
         game_dir: Option<PathBuf>,
         #[arg(long)]
         source_dir: Option<PathBuf>,
+        /// Reopen a saved easy-mode session after desktop startup settles.
+        #[arg(long, conflicts_with = "protocol")]
+        easy_session: Option<PathBuf>,
         /// A modsync:// URL received from an OS protocol handler.
         #[arg(long)]
         protocol: Option<String>,
@@ -1425,12 +1431,21 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
     }
     match command {
         Some(Action::Maintenance(args)) => args.run(),
-        None => gui(None, None, None, None, None, false, GuiProbe::default()),
+        None => gui(
+            None,
+            None,
+            None,
+            None,
+            None,
+            false,
+            GuiInvocation::default(),
+        ),
         Some(Action::Gui {
             settings_dir,
             input,
             game_dir,
             source_dir,
+            easy_session,
             protocol,
             allow_multiple_instances,
             nexus_mods_api_key,
@@ -1443,10 +1458,13 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             settings_dir,
             protocol,
             allow_multiple_instances,
-            GuiProbe {
-                nexus_mods_api_key,
-                nexus_api_base,
-                extra_ca_file,
+            GuiInvocation {
+                easy_session,
+                probe: GuiProbe {
+                    nexus_mods_api_key,
+                    nexus_api_base,
+                    extra_ca_file,
+                },
             },
         ),
         Some(Action::Deployment(args)) => {
@@ -1789,6 +1807,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             );
             Ok(())
         }
+        Some(Action::Easy(args)) => easy_cli::run(args),
         Some(Action::GuideEdit {
             input,
             operations,
@@ -3395,6 +3414,12 @@ struct GuiProbe {
     extra_ca_file: Option<PathBuf>,
 }
 
+#[derive(Default)]
+struct GuiInvocation {
+    probe: GuiProbe,
+    easy_session: Option<PathBuf>,
+}
+
 fn gui(
     input: Option<PathBuf>,
     game: Option<PathBuf>,
@@ -3402,8 +3427,12 @@ fn gui(
     settings_dir: Option<PathBuf>,
     protocol: Option<String>,
     allow_multiple_instances: bool,
-    probe: GuiProbe,
+    invocation: GuiInvocation,
 ) -> Result<()> {
+    let GuiInvocation {
+        probe,
+        easy_session,
+    } = invocation;
     #[cfg(feature = "desktop")]
     {
         let probe = (probe.nexus_mods_api_key.is_some()
@@ -3421,7 +3450,10 @@ fn gui(
             settings_dir,
             protocol,
             allow_multiple_instances,
-            probe,
+            ui::LaunchContext {
+                probe,
+                easy_session,
+            },
         )
     }
     #[cfg(not(feature = "desktop"))]
@@ -3436,6 +3468,7 @@ fn gui(
             probe.nexus_mods_api_key,
             probe.nexus_api_base,
             probe.extra_ca_file,
+            easy_session,
         );
         anyhow::bail!(
             "Desktop support is disabled. Build with the default features, or use --help for CLI commands."

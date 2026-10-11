@@ -754,6 +754,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2af50177e190e07a26ab74f8b1efbfe2ef87da2116221318cb1c2e82baf7de06"
 
 [[package]]
+name = "bionsscomp"
+version = "1.0.0"
+source = "git+https://github.com/holowan-biolabs/odynsscomp?rev=00c53a9#00c53a90ba1c2ed9085f896e37d0c053b4fecc52"
+
+[[package]]
 name = "bit-set"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2990,6 +2995,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2db585e1d738fc771bf08a151420d3ed193d9d895a36df7f6f8a9456b911ddc"
 
 [[package]]
+name = "kotor-formats"
+version = "0.1.0"
+source = "git+https://github.com/holowan-biolabs/kotor-formats?tag=v0.1.0#d4ed9a8cbeb9281b33319248d12c4b97b8eebd87"
+
+[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3553,6 +3563,7 @@ dependencies = [
  "mega",
  "objc2 0.6.4",
  "objc2-foundation 0.3.2",
+ "odypatcher",
  "pulldown-cmark",
  "quick-xml",
  "regex",
@@ -4099,6 +4110,15 @@ dependencies = [
  "objc2 0.5.2",
  "objc2-core-location",
  "objc2-foundation 0.2.2",
+]
+
+[[package]]
+name = "odypatcher"
+version = "0.1.0"
+source = "git+https://github.com/kolto-labs/OdyPatcher?rev=9b9ee8d1d25e2e97c87df4521a13965ced1e0b3f#9b9ee8d1d25e2e97c87df4521a13965ced1e0b3f"
+dependencies = [
+ "bionsscomp",
+ "kotor-formats",
 ]
 
 [[package]]

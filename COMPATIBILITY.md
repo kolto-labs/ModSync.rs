@@ -1988,3 +1988,747 @@ fresh C#/Rust K1/K2 differential are in
 One adjacent correction: H4 metadata collection skipped nothing for a different-URL
 follower, so `--record` could store the headers of a URL whose bytes were never
 downloaded. Such followers now get no metadata lookup.
+
+## Easy-mode authoring continuation (2026-10-09)
+
+The `easy` CLI exposes durable authoring sessions: `create`, `status`, `edit`,
+`undo`, `redo`, `export`, and `predict`. Accepted edit transactions automatically save an
+immutable guide revision and advance the saved cursor. Undo and redo affect the
+guide only. Separate installed-action undo/redo restores filesystem snapshots.
+Sessions retain their
+exclusive lock while open. The desktop editor has a separate easy-mode surface
+for these sessions, a predicted folder browser, and an action recorder. Disk
+work runs in the existing editor worker. Patcher prediction still marks patched
+content as unknown; it does not simulate actual 2DA/GFF/TLK edits.
+
+`easy diff` hashes two ordinary trees and compares exact paths, file bytes, and
+directory presence. It refuses links and special files, detects files changing
+while hashed, and reports every explicit relative exclusion; there are no
+implicit exclusions. Compare quiescent lanes after each mod. This is comparison
+infrastructure, not proof of K1/TSL parity.
+
+New engine settings, unconfigured profiles, and new desktop instances default
+to OdyPatcher. Explicitly saved backend preferences are retained. The default
+execution path uses the pinned library; explicit executable settings retain the
+subprocess path. Read-only
+inspection uses the pinned OdyPatcher library at `9b9ee8d1` to show descriptions,
+namespace choices, and configuration summaries. Inspection of a predicted
+authoring point projects known configuration bytes into private scratch storage;
+it refuses unknown bytes and bounds document sizes. The production CLI inspected
+the actual Character Start Up Changes payload and reported its three 2DA changes
+without a configuration blocker. This does not establish patch-byte parity.
+The `easy apply` command and desktop action button execute the next recorded
+action in guide order through a single-action component journal, with a legacy
+recovery snapshot and before/after content-addressed checkpoints. `disk-seek`
+restores saved bytes without replaying actions; original checkpoints retain redo
+ancestry. Every restore saves current files first. The authoring journal records
+pending actions and restores durably; `disk-recover` settles only its owned
+single-action checkpoint. Actions interrupted before their checkpoint identity
+was saved require recovery of the configured roots before journal reconciliation.
+The reconciliation path holds the root lock and refuses legacy recovery fences,
+pending checkpoint operations, and unfinished install sessions; it never
+executes the pending action. The reconciliation change passes the required production build gates. These new
+paths have source/build evidence; actual installation and undo/redo evidence
+remains pending. The browser now implements Explorer details and a folder
+sidebar, Dolphin icon tiles, and Finder ancestor columns. All three rendered
+against the real K1 predicted inventory; Finder traversed the extracted folder
+without writing it. Dolphin's missing icon glyphs were replaced with drawn
+folder/file icons; the replacement has build evidence, with rendering pending.
+Easy mode exposes an autosaved mod
+selection checkbox; importing an unselected guide does not silently select it.
+Production lib/bin builds and strict Clippy pass with and without default
+features. Formatting and whitespace checks pass. The isolated desktop
+renders easy mode, reopens the K1 authoring session, and records/autosaves its
+first archive extraction action through the panel. No disk install is claimed.
+Its first prediction
+rejects case collisions in the existing archive cache's extracted directories;
+new runs need clean source folders. An isolated AT-SPI bus with its own registry
+now exposes the application and its visible controls; invoking the easy-mode
+button through its accessibility action succeeded. Full screen-reader behavior
+remains unverified. All three prototype K1 lanes match the historical reference
+by exact paths and bytes, but that reference is not a verified stock baseline.
+An audit against the cached Steam-client depot 32371 manifest
+4122010938027300909 found 16 mismatched stock WAV files, user saves and extra
+paths, and a saves-directory case difference. Preserve that reference; these
+copies establish transport equality only. Fresh manual and automated installs
+must wait for verified stock files and an NVMe workspace with enough capacity.
+The HDD-backed ext4 prototype workspace does not satisfy the active NVMe
+constraint. The first recorded extraction was cancelled during checkpoint
+capture. The desktop reports cancellation, no extracted folder exists, and
+no action or checkpoint session was committed. Its durable authoring journal
+still requires recovery because no checkpoint identity was published.
+Authoring progress
+updates now also reach the status line displayed while the worker is busy.
+The debug profile now optimizes the SHA-256 dependency used by full-tree
+comparison and checkpoint hashing. The application remains unoptimized for
+debugging. Build verification and measured runtime improvement for this profile
+change initially remained pending; the profile now passes production lib/bin
+builds and strict Clippy with and without default features. Measured runtime
+improvement remains unproven; the cancelled extraction used the prior binary.
+Authoring baseline capture and post-action capture now forward checkpoint file
+and byte counts to the desktop/CLI progress observer. That change passes all
+production gates with and without default features. Easy-mode directions now
+open by default for each mod, and prediction, patcher inspection, and disk
+actions honor the GUI's scratch folder and expanded-archive budget. Those GUI
+changes pass the default build, strict Clippy, formatting and whitespace checks;
+the CLI sources are unchanged. Runtime verification remains pending; the cancelled action's recovery journal
+must be reconciled before further disk actions.
+
+Authoring prediction now has a read-only checkpoint inventory source. After a
+session records its first disk action, browser prediction and patcher inspection
+start from that action's verified before-checkpoint, retaining logical install
+paths while reading stored object bytes. Pending action/restoration journals
+fence prediction. This avoids replaying applied moves/deletions against mutated
+roots. The checkpoint is selected from validated committed ancestry and must
+belong to the saved action with no auxiliary participants. No HEAD is changed
+and no files are restored. The change passes production builds and strict Clippy with and without desktop
+features; actual checkpoint-backed prediction remains runtime unverified.
+Registered FOMOD inspection now checks the virtual inventory and opens its
+content bytes, matching the existing Extract inspection path. The authoring
+point before a mod's first action excludes that mod's effects. Supporting
+archives introduced after the initial captured baseline remains unresolved;
+full future-state behavior and patch-byte prediction are not proven. These
+changes pass the required production builds and strict Clippy; runtime
+verification remains pending.
+
+Private archive import is now implemented in authoring sessions and exposed as
+`easy import-archive` and a desktop import control. Imported bytes are stored
+under the session, verified against their saved SHA-256 before use, and supplied
+as logical mod-root archives to prediction and recorded disk actions. Imports
+are autosaved guide revisions; undo/redo removes/restores input availability
+without deleting bytes needed by prior revisions. Source paths are not written
+into the exported metadata. Case aliases, conflicting live/checkpoint bytes,
+pending recovery, cancellation, byte limits, and insufficient free space refuse
+imports. Archive inputs survive the engine's preflight rescans. Existing inputs
+are never overwritten. This new source still needs production gates and actual
+archive-import runtime evidence; no full-build parity claim is made.
+
+The private-input CLI implementation passes the no-default production lib/bin
+build and strict Clippy. The fresh NVMe K1 manual authoring session imported the
+actual Dialogue Fixes archive (1,068,958 bytes, SHA-256
+37798965bc153548eccf9da2f5250fd5cc6bb5b9f635b6d137d6de4d3ae53f6f).
+The production CLI undid and redid this import; the declaration disappeared and
+returned while the stored object retained the same verified bytes. No game
+files changed. Desktop gates and imported-input extraction remain unverified.
+Direct moves/deletions/renames and process execution of private imported
+archives still need defined consumption/materialization behavior; rescanning
+must not resurrect a consumed input. Binding prior applied actions to their
+input digests also remains unfinished. These gaps prevent a full authoring or
+installation-parity claim.
+The reloaded desktop reopened the prior prototype authoring revision, rendered
+its directions by default, fenced prediction, and refused recovery while the
+legacy pending marker existed. Its authoring journal hash was unchanged. This
+proves the refusal path, not successful recovery or installation undo/redo.
+
+Before another recorded disk action starts, the session now loads every applied
+cursor-prefix action's saved authoring revision and checks that its declared
+archive inputs still have the same name, digest and byte count. New archive
+inputs may be added. Removing/replacing a bound input requires restoring the
+filesystem boundary first. A missing saved revision refuses execution rather
+than inferring its inputs from the current guide. This uses retained immutable
+revision files without changing the disk-history schema. The new binding guard
+still needs production gates and actual applied-action evidence.
+
+The current private-input implementation and applied-input binding guard pass
+all required production lib/bin builds and strict Clippy with and without
+default features, plus formatting and whitespace checks. No Rust tests or
+custom harnesses were run. Imported-input consumption and process execution,
+full checkpoint-backed prediction, fresh baseline readiness, real installation,
+and six-lane per-mod parity remain unproven.
+
+Desktop restart support now includes `gui --easy-session <directory>`. The
+request uses a separate instance, opens the editor, waits for existing desktop,
+worker and sharing gates, and reopens the saved session through the editor
+worker. It refuses combination with a protocol URL. A separate private view
+record retains the mod GUID, instruction point, browser style and folder; it
+never changes recipe or disk-history cursors. View files are bounded, session
+bound, and kept outside install roots. Malformed/stale views are logged and do
+not replace the recipe. The pending journal and recovery fences still apply.
+This is restart support, not an in-process Rust code hot swap. Required production
+builds and strict Clippy pass with and without default features; formatting
+passes. The rebuilt desktop reopened the real NVMe authoring session at revision
+2 after the existing sharing pause gate. A second owned-process restart restored
+the saved mod, instruction point and Dolphin style. The existing unfinished-root
+prediction refusal remained visible throughout. No disk action or game write
+was performed during this restart check. Folder navigation restoration and
+in-process code reload remain unproven.
+
+Reusing a private archive object now verifies its regular-file type, length,
+SHA-256 and stable length/mtime before recording another import revision. The
+same bounded, cancellable verifier checks attached inputs. This guards object
+reuse before autosave; it does not establish immutable bytes against arbitrary
+external writers after verification, or resolve input consumption semantics.
+This follow-up passes all required production builds, strict Clippy in both
+feature configurations, formatting and whitespace checks. No corrupt-input
+fixture or Rust test was created; the corrupt-object refusal remains without
+a runtime corruption exercise.
+
+Easy-mode real disk actions now carry a private-input consumption delta in the
+pending/applied action journal. Dry-run computes it; the callback saves it before
+legacy or checkpoint baseline capture, and later binds the checkpoint identity.
+Execution restores the initial input availability, then must produce the same
+remaining input set before committing. Moves, deletes and overwrites remove the
+original import availability without deleting its immutable private object.
+Only an absent logical file backed by that private object skips physical unlink;
+ordinary missing-file failures still propagate. A matching real/checkpoint file
+keeps its scanned spelling and backing instead of being replaced by the import.
+
+Live input availability derives from deltas before the disk cursor. Undo/redo
+and recovered committed actions therefore select the appropriate availability;
+prediction continues replaying from the initial checkpoint with all declared
+imports. Older journal entries decode with a missing plan. If their saved recipe
+contained imported inputs, further execution refuses until disk undo returns to
+the initial boundary; it does not infer historical consumption. Each action
+stores only its delta rather than duplicating the cumulative archive list.
+Root recovery and unfinished-checkpoint fences run before a new apply journal
+or engine scan. External execution/materialization of private executables and
+patcher-byte future prediction remain incomplete. These source changes pass the required locked lib/bin builds and strict Clippy
+with and without default features, plus formatting and whitespace checks. Actual
+guide-action/disk-undo/recovery evidence remains pending. No Rust tests or
+synthetic filesystem fixtures have been created or run.
+
+Explicit future-state prediction now projects known game and selected package bytes
+into private scratch and invokes native OdyPatcher there. Output is validated
+before publishing the predicted VFS; failures retain the prior state. The workspace
+has an independent 16 GiB byte cap, 100,000-entry cap and 2 GiB free-space reserve.
+Configured roots are not patch targets. Bundled external NSS compilers are disabled;
+the pinned in-process NSS compiler is now enabled explicitly, without enabling
+OdyPatcher's GUI. Compiler or patch errors fail rather than publish partial
+prediction. Required Linux host source checks pass with and without desktop
+features; actual native output, confinement and guide parity are unproven.
+
+Built-in native patch installation no longer requires the external-program trust
+switch. Execute/Run and configured patcher child processes still require it.
+This changes process admission only; baseline/recovery and real-disk action
+checks remain in force. Required Linux host source checks pass; actual native
+install proof remains pending.
+
+Built-in real installation now constructs the selected native installer after
+Session discovery/namespace selection, validates paths, disables bundled external
+NSS compilers and preserves Session's install-log handling. Prediction uses the
+same compiler policy. This is required for process admission to remain accurate
+on Windows as well as Linux; actual platform/runtime behavior remains unverified.
+
+The shared process-admission predicate now covers whole-guide preflight,
+easy-mode recorded-action preflight, and action execution. Default OdyPatcher
+selection already resolves to the linked library when no executable is supplied.
+Current-source Linux host production checks pass in both feature configurations;
+runtime proof remains pending.
+
+Execute/Run of a private imported installer now materializes its logical source
+name through the normal write path during real execution. Dry-run records the
+same import-consumption transition without writing; immutable input bytes remain
+private. A physical file appearing after preflight is refused. External trust,
+recovery and checkpoint handling still apply. Required Linux host builds, strict
+Clippy in both feature configurations and formatting pass.
+Actual supplied-installer execution, undo/recovery and Linux Wine runtime support
+remain unproven or incomplete; this does not establish provided-patcher parity.
+
+Explicit authoring prediction refuses unobserved Execute/Run effects instead of
+presenting an unchanged game tree as the exact future. A matching executed
+prefix can seed prediction from its verified after-checkpoint, with consumed
+imports filtered and only remaining instructions replayed. Reuse requires an
+identical saved guide and selected component context, matching action definitions,
+roots and input identities; recipe changes fall back to replay from the initial boundary. Only the current
+disk cursor's executed prefix is reused. Ordinary validation remains read-only
+and can inspect external program inputs. Locked production lib/bin builds,
+strict Clippy in both feature configurations and formatting pass, using private
+OpenSSL build aliases for the host's stale development symlinks. Actual external
+installer/checkpoint prediction proof remains pending for this change.
+
+Authoring previews preserve the full recipe's selected component context while
+clearing only future instruction effects. Conditions, dependencies, CleanList
+names and checkpoint matching therefore use the same selections as real-disk
+actions, including previews before the first action. An unobserved configured
+external patcher refuses exact prediction rather than using native OdyPatcher
+bytes as proof for a different backend. Matching committed checkpoints remain
+available for observed prefixes. Formatting and required locked production builds
+and strict Clippy pass with and without desktop features. The actual first K1
+archive preview at zero actions and after extraction succeeded using empty NVMe
+preview roots: 3 then 16 entries, no unknown file content, roots still empty, and
+the saved authoring head unchanged. This is read-only authoring proof, not stock
+baseline, external-installer checkpoint, or six-lane per-mod parity proof.
+
+Desktop toolkit replacement is in progress in the standalone `desktop/qt`
+production crate. Qt Quick/Quick Controls with CXX-Qt 0.10.0 uses the parent
+Rust engine without egui, shared custom controls and embedded Noto Sans fonts.
+Initial bridges cover existing saved sessions, read-only predictions, archive
+import, durable revision seek and recorded actions. Full workflow migration,
+rich model-based explorer, platform accessibility/runtime checks and default
+GUI cutover remain incomplete. Locked Qt production builds, strict Rust Clippy and formatting passed using a
+matching private Qt 6.11.2 SDK after the installed 6.11.1 development tools proved
+incompatible with the runtime. The real K1 authoring session opened in the owned
+Linux Xvfb software-rendered Qt window. Actual imported-archive prediction and
+undo/redo restored the saved head; preview roots remained empty. This establishes
+local authoring evidence, not full migration, GPU, accessibility or cross-platform
+proof. Qt/GCC C++ header warnings remain despite strict Rust Clippy passing.
+Explorer details, Dolphin icons and Finder columns use the predicted inventory;
+full explorer interactions and lazy model scaling remain incomplete.
+Qt toolkit mobile/WebAssembly support does not establish ModSync installer
+support on those platforms. Root installation behavior and prior proof boundaries
+are unchanged. See `docs/plans/desktop-toolkit-migration.md` for the comparison
+and packaging/license obligations.
+
+Qt action recording now emits canonical PascalCase instruction fields and rejects
+unknown fields or unsupported action kinds before a revision is saved. Shared
+modifier/range selection and action menus populate the durable recipe form.
+In the real K1 session, the recommended PC Response Moderation dialog.tlk Move
+was authored through the Qt context menu after Extract, with main-root destination
+and overwrite enabled. The saved record uses mod/game root tokens. Prediction
+shows the file removed from its source and present at the virtual game root; both
+real preview directories remain empty. Undo/redo 2 → 1 → 2 restored the identical
+saved head and prior immutable authoring files stayed unchanged. This is authored
+recipe/virtual-state evidence, not a manual install, stock baseline or mod parity.
+
+Qt saved actions now support identity-preserving edits and confirmed removal via
+shared authoring transactions. Forms carry the saved revision and action GUID;
+stale revision or identity mismatches refuse the change. Byte-equivalent edits
+skip a new revision. Real-session UI verification preserved all saved JSON hashes
+for an unchanged Move; a temporary overwrite edit changed that field only and
+undo restored the original guide. Removal changed only Move and undo restored
+the complete guide. Immutable and abandoned revision files remain intact and
+real roots stayed empty. Builds, strict Rust Clippy and formatting passed;
+separate-client stale-request refusal remains source-only evidence.
+
+Qt built-in patcher inspection now reads the chosen recipe boundary through the
+shared engine and pinned OdyPatcher dependency. Actual Character Startup Changes
+data, description and changes.ini were observed after virtual extraction; no
+namespace options were present in this supplied installer. Inspection preserved
+saved-session hashes and both empty real roots. Both supplied archives were
+hash-verified/imported through Qt, and Extract + Patcher were authored for the
+second mod after the first mod’s two actions. Native future patch execution
+refuses the empty preview root as an invalid KOTOR installation. This is real
+inspection/authoring evidence, not stock-baseline, manual-install, patched-byte
+or six-lane parity proof. The mandatory loose-file patch is imported but its
+follow-up actions remain unauthored. Multiple namespaces, provided external
+installer runtime and full literal guide-warning presentation remain unverified.
+The Qt guide panel now includes imported download instructions, installation and
+usage warnings, compatibility warnings, known bugs and Steam notes alongside
+installation directions. Missing metadata is not reconstructed from historical
+recipes; display completeness still depends on the imported guide. The actual
+Character Startup Changes patch warning was visible in the owned Linux Xvfb
+window after reopening its saved session, with revision hashes unchanged. This
+is local software-rendered display proof, not broad-platform or full-guide proof.
+Production build, strict Rust Clippy and Qt/root formatting passed.
+
+Qt browser delegates now implement arrow-key focus/selection, Home/End and
+Page Up/Down in list, grid and column presentations. Shift extends the existing
+range selection; Control/Command moves focus without replacing selection. Grid
+vertical motion follows the visible column count, and focused entries receive a
+visible outline. Actual imported K1 archive previews demonstrated list, grid
+and column range selection, focus-only movement and page navigation on Linux
+Xvfb. Folder navigation now schedules first-entry focus after view reconstruction,
+and Finder Left returns to the parent. Repeated Right-arrow descent into the
+actual Character Startup Changes installer, End selection of its final data file,
+and Left-arrow return demonstrated the focus handoff in the owned Linux GUI.
+Saved revision hashes remained unchanged and the real game root stayed empty.
+Large off-screen inventories and empty-directory keyboard behavior remain unproven.
+These receipts do not prove screen-reader support or cross-platform keyboard parity.
+
+Qt snapshots now include the durable disk journal cursor, retained checkpoint
+count, pending/restoring flags, configured-root identity match and next action
+from the shared guide order. A compact footer exposes applied disk progress and
+recovery state without loading full checkpoint inventories into QML. Guide-order
+errors are preserved. This status is read-only; explicit Qt disk controls are described below.
+Successful disk execution/restoration and immediate-action mode remain unverified. The
+actual saved K1 session displayed zero applied actions and correctly identified
+KOTOR Dialogue Fixes action 1 even while Character Startup Changes was selected.
+No disk journal was created, saved revision hashes remained unchanged and the
+real game root remained empty. Pending/recovery/root-mismatch UI states have
+source implementation only, without live proof.
+
+The Qt browser heading now stacks its action controls in narrow panes, with
+explicit title sizing derived from the enclosing pane rather than its own
+content-dependent layout width. Minimum-width viewport controls are no longer
+forced off-screen by the heading. The owned Linux software-rendered
+window demonstrated 1000x660 compact controls and 1320x860 expanded controls,
+including narrow-to-wide restoration and a long mod heading. This does not
+prove all viewport sizes, split-pane combinations, GPU rendering or platforms.
+
+Qt now exposes explicit disk apply, checkpoint seek and pending-action recovery
+through the existing Session/shared engine. Apply captures revision, action GUID
+and root identities; restore/recovery also capture disk cursor. Changed requests
+are rejected before execution, and the shared journal enforces order and fences.
+Progress is queued to the UI with bounded event capture and cancellation; recipe
+undo/redo remains separate. Source compilation and confirmation/cancel UI proof
+do not establish successful installs, restore/recovery or immediate-action mode.
+
+The owned Linux Qt window opened the disk action dialog, showed disabled disk
+undo/redo for a session without installed history, displayed the next ordered
+action and exact folders in confirmation, and cancelled back to the dialog.
+Saved revision hashes, disk-journal absence and empty real roots were unchanged.
+Production build, strict Rust Clippy and root/Qt formatting passed. Actual apply,
+restore, recovery, in-flight cancellation and stale-request refusals remain
+unproven at runtime; source guard checks are not installation or parity proof.
+
+Qt's Session dialog now creates authoring sessions from guide documents through
+the shared bounded editor reader and Session::create. Authored selections are
+preserved. Session directories require an existing parent, must be outside the
+configured game/mod roots, and cannot replace existing sessions. Failure leaves
+the current session available. The actual K1 full.md created a separate 186-mod
+session in the owned Linux window; repeating creation reported "Authoring session
+already exists" and retained the open session. Production compilation and strict
+Rust Clippy passed. Other formats, platform behavior, failed-write recovery and
+full-guide authoring integration remain unproven. The partial K1 recipe's required
+startup patch now has Extract followed by Copy of feat.2da and featgain.2da into
+Override; prior immutable revisions and empty real roots were preserved. These
+are durable authoring changes, not successful manual installs or patcher parity.
+
+Guide-state correction: the existing K1 authoring session has always contained
+186 parsed components; the four visible sidebar rows were not its total count.
+Its saved head and immutable revisions remain unchanged. No expansion or action
+merge is required. TSL's real full.md created a 145-component authoring session
+through Qt, but the shared Markdown reader keeps pre-Mod-List 3C-FD Patcher and
+Water Restoration in preambleContent rather than component rows. This is an
+unresolved authoring coverage gap, not permission to skip these required steps.
+Both TSL preview roots are empty and no manual TSL install has been performed.
+
+The preamble coverage gap is now addressed for easy-mode authoring through a
+separate shared editor reader; the reference Markdown parser remains unchanged.
+Named setup components retain their source descriptions/warnings, main-list GUIDs
+stay stable, and selections are preserved rather than automatically enabled.
+Qt and CLI session creation use this reader. Qt can repair older sessions as one
+durable revision after checking the source main-list identities/order, introduction
+and captured revision. The actual TSL session gained 3C-FD, Water Restoration and
+Stutter Fix and Force Cage Update before its original 145 components. All three
+remain unselected; the original body, document metadata and immutable revisions
+are unchanged. GUI Undo/Redo returned to the original revision and restored the
+148-entry state. Production builds and strict Clippy passed with/without default
+features, plus Qt build/Clippy and both formatting checks. Other guide formats,
+stale-request refusal, fresh-create setup inclusion and platform behavior do not
+have separate runtime receipts. Supplied executable compatibility, clean baselines,
+manual installation and per-mod parity remain unproven.
+
+Qt now exposes saved guide-wide introductory, widescreen-warning and epilogue
+content through a read-only Markdown notes dialog. The owned Linux window showed
+the actual TSL version requirements and Enhanced Widescreen Support tail, an
+explicit empty-section message, section switching back to the introduction and
+1000x660 layout. Fresh document instances avoid blank views after section changes
+while retaining the Rust session. Custom admonition syntax remains literal and
+links are displayed without automatic external navigation. The Rust bridge passed
+production build/strict Clippy; subsequent QML corrections passed production
+builds and actual rendering checks. Named tail mods still lack authoring rows;
+guide text visibility is not executable coverage, installer compatibility or parity.
+
+Easy-mode authoring now recovers explicit named tail mods from original Markdown,
+including K1's optional-widescreen section which reference import skips without
+storing its mod text in the epilogue. Reference import is unchanged. The reader
+retains main-list GUIDs, marks tail rows as conditional widescreen content and
+carries section requirements. Qt's missing-only repair checks source identities,
+order, notes and revision, preserving previously authored components exactly.
+Actual GUI repair added 11 K1 tail rows (197 total) and six TSL tail rows (154 total).
+Every original Name field matches a saved row in exact source order. All new tail
+selections are off; prior components, metadata and immutable files are unchanged.
+GUI Undo/Redo returned to each prior revision and restored each repaired head.
+K1 tail rows and UniWS requirements were displayed. Production builds and strict
+Clippy passed with/without default features, plus Qt build/Clippy and root/Qt fmt.
+The K1 robe-icons master still has an unresolved cross-group reference; named-row
+coverage is not complete dependency semantics. Clean baselines, supplied installer
+execution, full instruction authoring and per-mod parity remain unproven.
+Authoring master reconciliation now uses the reference importer's shared name,
+heading and author-possessive resolver across the complete authoring guide. Fresh
+reads resolve known setup/body/tail relationships; existing Qt sessions offer an
+explicit revision-guarded, undoable repair. Unknown and conditional master text
+is retained. Operations reject self references and validate dependency cycles
+before saving. Resolved and unresolved requirements are displayed in mod notes.
+All eight production build, strict Rust Clippy and formatting checks passed.
+In the owned Linux Qt window, the actual K1 repair changed only robe-icons
+dependency metadata. The other two unresolved labels, all authored instructions,
+document metadata and prior immutable revisions were preserved. A second call
+left all saved hashes unchanged; GUI Undo restored the original revision and
+Redo restored the repaired state exactly. No disk journal exists and preview
+roots remain empty. This does not establish complete dependency semantics, an
+installed baseline or per-mod parity.
+
+Qt now offers immediate execution when recording new actions, disabled at startup.
+Execution folders are captured and validated with the recipe revision. Before
+saving, the candidate must be the next ordered selected instruction, with matching
+disk roots, no pending/restoring action and no unapplied disk redo. The durable
+recipe edit precedes shared Session disk application; failure retains the recipe
+and returns checkpoint guidance through the worker's current-state fallback.
+Progress/cancellation use existing shared engine plumbing; editing saved actions
+continues to affect only the recipe. The corrected bridge passed production Qt
+build, strict Rust Clippy and formatting. A subsequent QML scroll correction
+passed production build and formatting. In the owned Linux software-rendered
+window, immediate mode displayed exact roots and rejected an out-of-order new
+action before saving. Every saved JSON hash was unchanged and no disk journal
+was created. At 1000x660, the form scrolled to show the execution notice and
+overwrite control while Save/Cancel stayed visible. Actual immediate application,
+failure recovery, cancellation and platform behavior remain unproven. No game
+baseline or manual/automated per-mod parity is established by these checks.
+
+Debug Qt builds now accept a bounded local `MODSYNC_QML_DEV_SOURCE` and watch
+actual QML edits, including atomic editor saves. The Rust backend is an engine-owned
+QML singleton; replacement windows initialize from its current snapshot. Reload
+defers while busy, clears only the component cache and retains the prior window
+when candidate creation fails. Mod/folder/presentation/sorting are carried forward;
+unsaved dialogs, selections, history and action-point position reset. Immediate
+mode resets off. Release-path source ignores the development setting and loads
+embedded QML; release packaging has not been separately verified.
+
+The bridge/main changes passed production Qt build, strict Rust Clippy and fmt.
+Native repaint corrections passed production compilation; final Qt fmt passed.
+In the owned Linux software-rendered window, atomic edits to actual UI headings
+replaced the window in the same process while retaining K1 and the selected mod.
+After the final scene-graph resource reset, the complete UI repainted without
+manual resizing. Saved JSON hashes were unchanged. GUI Undo after reload restored
+the prior revision, and Redo restored the exact original hashes. No disk journal
+was created. Busy deferral, invalid-candidate retention, GPU/other platform behavior
+and packaged release operation remain unproven at runtime. These development
+checks do not establish any installed baseline, manual install or per-mod parity.
+
+Reload references: https://doc.qt.io/qt-6/qqmlengine.html and
+https://doc.qt.io/qt-6.11/qquickwindow.html.
+
+The actual K1 authoring session now records Thematic KOTOR Companions, the third
+full.md entry, as Extract then Patcher. The author's supplied v1.0.1 archive was
+downloaded from its guide-linked page, verified as a ZIP and pinned through Qt
+archive import (357556 bytes; SHA256
+fe4fc60fcaed76e123b2563b934030ed9bb4a1c1b97481ab401ab34aba79e3af).
+It retains INSTALL.exe, changes.ini, nine UTC templates and original documentation.
+The archive's new-game requirement remains part of that pinned documentation.
+The saved extraction uses a distinct thematic-companions working directory, then
+the patcher targets the configured K1 root. No namespaces/installer choices are
+present. Only the third component's selection/instructions and the new archive
+reference changed; all prior components, document metadata, archive pins and
+immutable revisions were preserved. Actual GUI Undo restored extraction-only
+authoring and Redo restored exact saved hashes. Both preview roots remain empty
+and no disk journal exists. No supplied installer, OdyPatcher execution, clean
+baseline, manual install or automated per-mod comparison is proven by this work.
+
+The fourth K1 full.md entry, JC's Minor Fixes, is now authored through the owned
+Qt app using embedded QML. Its supplied v1.1 ZIP was obtained from the guide-linked
+page and pinned through the GUI (3634303 bytes; SHA256
+8bd3edee5af3af210405fa7871bc7580659d24e50fa56a7af0f550966d6cbae5).
+The saved recipe extracts into a distinct minor-fixes directory, then moves 32
+explicit paths into Override with overwrite. Sources follow Straight Fixes,
+Resolution Fixes, Aesthetic Improvements and the allowed Things What Bother Me
+files in guide order. The six Sith-uniform model files and the Bug Fixes script
+are absent from the Move action; documentation files also stay out of Override.
+The exclusion is an installation instruction, not a comparison exclusion.
+Saved source paths were checked against the actual ZIP and literal guide. Only
+the fourth component's selection/instructions and the new archive pin changed;
+other components, document metadata, prior pins and immutable revisions are exact.
+GUI Undo returned to extraction-only and Redo restored exact saved JSON hashes.
+After the previous owned app/display were found absent, only a new owned Xvfb :1
+and Qt process were launched; unrelated displays remained untouched. This also
+demonstrated opening the saved session without a development QML source setting.
+The real preview roots remain empty and no disk journal exists. This is recipe
+authoring and GUI evidence, not a manual install or six-lane per-mod parity proof.
+
+
+The fifth K1 full.md entry, Ajunta Pall Unique Appearance, is now authored in Qt.
+The required guide-linked patch ZIP is pinned (9470582 bytes; SHA256
+09dcdc47fe920ea8a9f1f3de422d77ad935aea6ebcb20e1ff42bd7025083ba5e),
+as is the main v1.1 RAR (1654204 bytes; SHA256
+6f3abbfdbf18719905cac6042685541b2bb4b17dd77ad042266bd99efa2466cd).
+The recipe extracts and runs the required patch first, then extracts the main
+RAR and moves only the two Transparent Skins textures to Override with overwrite.
+Transparent/standard eyes is the recorded default pending an optional user
+preference. Main-root files and the optional Sith Eyes replacement are absent
+from the Move sources, as required by the guide. The actual RAR inventory was
+read with unrar because this installed 7-Zip build did not support it. Required
+patch download passed MEGA file-MAC verification. Actual GUI Undo/Redo restored
+the exact saved revision, with other components, document metadata and old pins
+unchanged. No archive extraction onto the game/source roots or disk install ran.
+
+The sixth entry, KOTOR Community Patch, is now authored with six Qt-recorded
+actions: extract the base v1.10.0 ZIP, Patcher from its root, extract the official
+v1.10.1 starmap hotfix, move its MDL/MDX to Override, extract the guide-required
+follow-up RAR, then move its n_fatcomm MDL/MDX to Override. Both moves overwrite.
+The mod page supplies the starmap hotfix separately and describes it as fixing
+Linux/Steamdeck/Wine crashes; it remains within this mod's step before the guide
+follow-up. The supplied INSTALL.exe and original tslpatchdata/changes.ini remain
+in the pinned base archive; no namespace choices are present.
+Base ZIP: 86802053 bytes; SHA256
+cdee80d28f9f87ffaa0b39fdfb46a2a3139858d87b3695d5161c96c02df14068.
+Official hotfix ZIP: 87265 bytes; SHA256
+70d271d9fe24ca6fad270c32ddf0f0ee2d9cdff3a732ce08118ce622f8eb7c94.
+Guide follow-up RAR: 128612 bytes; SHA256
+8564c745f3cd545cc356fc9932b5ede331adbd0b7bdd365da3bcd6f4b613665c.
+An empty MEGA-helper output was rejected before import; a bounded direct SSL
+transfer subsequently matched explicit API length and passed the file MAC.
+GUI Undo restored the five-action state; Redo restored the exact six-action
+revision hash. Prior components, guide metadata and input pins are exact.
+K1 now has six authored recipes at cursor 36, with 197 components in guide order.
+Preview game/source roots remain empty and no disk journal exists. Supplied
+installer execution, OdyPatcher output, clean baselines, manual installs and
+six-lane per-mod byte/path/directory parity remain unverified.
+Authoritative mod-page source:
+https://deadlystream.com/files/file/1258-kotor-1-community-patch/.
+
+
+The seventh K1 full.md entry, Droid Claw Fix, is authored through the Qt GUI as
+Extract to droid-claw, then Patcher from that root to the configured K1 root.
+Its guide-linked supplied ZIP is pinned (341986 bytes; SHA256
+73fc19bba379797163e41b6e7080e5db5cfba4812e0a18231959dd2970de6976).
+The archive retains TSLPatcher.exe and the original changes.ini/baseitems.2da.
+No namespaces or installer choices are present; the supplied configuration edits
+baseitems row 81 droidorhuman to 0. Other guide components, document metadata and
+prior input pins were checked exact. GUI Undo restored extraction-only; Redo
+restored the exact saved revision hash. K1 cursor is now 40 with seven authored
+recipes and 197 guide components. Real preview roots remain empty and no disk
+journal exists; manual installation and six-lane per-mod parity are unverified.
+
+
+The eighth K1 full.md entry, K1 Ported Alien VO Replacements, is authored in Qt
+as Extract, Patcher namespace 0, then Patcher namespace 1. Its supplied v1.3.2
+7z is pinned (11170530 bytes; SHA256
+588aaed44a7386c9c453c15a373195d0c5e54708b5d169c6490ec106c3474f2b).
+The original namespace document identifies 0 as Main Mod Installation and 1 as
+KOTOR 1 Community Patch Compatibility Patch. Both actions target the configured
+K1 root from the same extracted alien-vo folder. Installer.exe, namespace data,
+per-option changes documents and original readme remain in the pinned archive.
+K1R and NPC Overhaul compatibility options are not selected. This matches the
+guide's main-then-K1CP instructions with Community Patch already selected.
+GUI Undo removed only the second patcher pass; Redo restored the exact saved
+revision hash. Other components, document metadata and previous pins are exact.
+K1 cursor is 45, with eight authored recipes and 197 guide-order components.
+Preview source/game roots remain empty, no disk journal exists, and supplied
+installer execution, OdyPatcher output and six-lane per-mod parity are unverified.
+
+
+The ninth K1 full.md entry, Ultimate Korriban High Resolution, is authored in Qt
+using the preserved supplied TPC v1.2 RAR (716440044 bytes; SHA256
+9c587b682f8469c22093e9b718d1110a209c0666ece65dd007fceb9b002a11ee).
+It matches the guide-required TPC variant and the current Nexus files listing.
+The recipe extracts to ultimate-korriban and moves 110 explicit Override texture
+paths: the supplied archive contains 96 TPC and 14 TGA files. The TGA files are
+part of that TPC download and are retained. It then extracts the guide-linked
+Korriban Patch.7z (155 bytes; SHA256
+de54c6d0c89b8152b4df6125b45d54bce876b9cb566da4297e6472df90223f27)
+and moves its m36_shrub.txi to Override. Both moves overwrite. The public patch
+transfer matched expected length and passed MEGA file-MAC verification.
+The original archive/input collection was read without modifying it. Its full
+source list was checked against the saved action. GUI Undo removed the TXI move;
+Redo restored the exact saved revision hash. Other components, metadata and old
+pins are exact. K1 cursor is 52 with nine authored recipes and 197 components.
+Real preview roots remain empty and no disk journal exists; real installation,
+clean-baseline proof and six-lane per-mod parity remain unverified.
+
+
+The tenth K1 full.md entry, Ultimate Kashyyyk High Resolution, is authored in Qt
+using the preserved supplied TPC v1.2 RAR (316045534 bytes; SHA256
+3d53dc0c905f28043c500c74eaa814ffb8447ed4c7aeed38f8367d9b3115752b).
+The recipe extracts to ultimate-kashyyyk and moves 64 explicit Override paths
+with overwrite: 55 TPC, seven TGA and two TXI files, retaining the complete
+supplied TPC-variant payload. Sources were checked exact against the actual RAR
+inventory. The original preserved input was read without modification.
+GUI Undo restored extraction-only; Redo restored the exact saved revision hash.
+Other components, document metadata and prior pins are exact. K1 cursor is 56,
+with ten authored recipes and 197 components. Preview source/game roots remain
+empty and no disk journal exists. Clean baselines, actual installs and six-lane
+per-mod parity remain unverified; available NVMe capacity is still insufficient.
+
+
+Qt snapshot refresh now preserves the guide sidebar viewport and selected mod
+by stable GUID instead of allowing a replacement component model to jump back
+to earlier guide rows. A generation-guarded deferred layout restores the clamped
+scroll offset after model replacement. Opening a session explicitly requests a
+fresh viewport. This affects presentation only, not authored guide order.
+The normal embedded-QML production app was rebuilt and launched on the owned
+Xvfb :1. With the sidebar scrolled beyond the first ten entries and Ultimate
+Tatooine selected, actual GUI Undo to K1 cursor 55 and Redo to 56 kept the same
+visible guide rows and selected component. Redo restored the original saved
+revision SHA256; no authoring revisions were added. Game/source roots were not
+mutated. Qt locked production build, strict Rust Clippy and fmt check passed;
+existing native Qt/GCC diagnostics remain. New-session reset is implemented but
+was not separately exercised across two sessions in this receipt.
+
+
+The eleventh K1 full.md entry, Ultimate Tatooine High Resolution, is authored
+through the Qt GUI using the preserved supplied TPC v1.2 RAR (466430635 bytes;
+SHA256 3ec658c09cebcd9a8cc2ccf12c53faf2bc4dea0d32765cb1459f0fc45e46bd41).
+The recipe extracts to ultimate-tatooine, then moves 136 explicit Override paths
+with overwrite: 130 TPC and six TGA files supplied in that TPC-variant archive.
+Sources were checked exact against its inventory; the preserved original input
+was not modified. Other guide components, document metadata and prior pins are
+exact. GUI Undo restored extraction-only; Redo restored the exact saved revision
+hash. The corrected guide sidebar retained the later-guide viewport throughout
+selection, archive import, recording and Undo/Redo. K1 cursor is now 60 with
+11 authored recipes and 197 guide components. Real preview source/game roots
+remain empty and no disk journal exists. Actual installations, clean baselines
+and six-lane per-mod parity remain unverified.
+
+
+The twelfth K1 full.md entry, Ultimate Dantooine High Resolution, is authored
+through Qt using the preserved K1 mod1368 TPC v1.2 RAR (494070294 bytes; SHA256
+bf40814a47ce6856ec4c198e9b75e01e6b00ad91a2d9ca4486844c055e1bde8a).
+The similarly named TSL mod1103 archive was not used. The recipe extracts to
+ultimate-dantooine and moves 96 explicit Override paths with overwrite: 76 TPC,
+19 TGA and one TXI supplied in the K1 TPC variant. Saved paths were checked exact
+against the RAR inventory. The original preserved input was not modified.
+GUI Undo restored extraction-only; Redo restored the exact saved revision hash.
+Other components, document metadata and previous pins are exact. K1 cursor is
+64 with 12 authored recipes and 197 guide-order components. Real preview roots
+remain empty and no disk journal exists. Actual installation, clean-baseline
+proof and six-lane per-mod parity remain unverified.
+
+
+Qt action recording/editing now puts source paths in a bounded ScrollView and
+displays the nonblank path count using the same line interpretation as Save.
+The TextArea has mouse selection and an accessibility description with the count
+and review instruction. The normal embedded-QML app opened the actual saved
+96-path K1 Dantooine Move action: count 96 was visible, Ctrl+End reached its final
+waterfall/waves/Window01 paths, and Save/Cancel remained accessible. Cancel kept
+the exact saved revision SHA256 and K1 cursor64. Production Qt locked build,
+strict Rust Clippy and fmt check passed; existing native compiler diagnostics
+remain. Screen-reader behavior was not separately proven. No test fixtures or
+game/source-root mutations were used.
+Pinned input objects remain regular private session files: their shared verifier
+rejects symlinks, so no archive-object symlink migration was performed and that
+integrity boundary was not weakened. Storage capacity remains unresolved.
+Qt reference: https://doc.qt.io/qt-6/qml-qtquick-controls-textarea.html.
+
+- K1 easy-builder authoring now covers the thirteenth guide entry, Ultimate Endar Spire/Star Forge/Yavin Station: preserved supplied TPC archive pinned, Extract followed by Move of all 72 explicit TPC paths into Override. Actual Qt GUI Undo returned to Extract-only and Redo restored the exact saved revision SHA; all other components and guide text remained unchanged. Preview roots stayed empty with no disk journal. This is recipe-authoring evidence, not installation or per-mod lane parity evidence.
+
+- K1 easy-builder authoring covers guide entry fourteen, Ultimate Manaan High Resolution: supplied TPC archive pinned by SHA and size; Extract then Move of 54 explicit TPC files into Override (two directory inventory entries are not file payloads). Actual Qt GUI Undo/Redo restored the exact saved revision; other components and prior archive pins remained unchanged. Preview roots remained empty and no disk journal exists. Installation and six-lane parity remain unproven.
+
+- K1 easy-builder authoring covers guide entry fifteen, Ultimate Taris High Resolution: supplied TPC-variant archive pinned; Extract, Delete LSI_win01.tpc and LSI_box01.tpc from extracted sources as directed, then Move the remaining 284 explicit files into Override (272 TPC, 11 TGA, 1 TXI). These are literal installation directions, not comparison exclusions. Actual Qt GUI Undo/Redo restored the exact saved revision. Other components and prior pins were unchanged; preview roots stayed empty, with no disk journal. The guide requirement to use later Quanon Taris remains preserved. Installation and six-lane parity are unproven.
+
+### Explorer patcher-data file inspection
+
+The easy-mode patcher inspector accepts a file directly inside `tslpatchdata` as well as its folder or the top-level installer. All three resolve to the same mod root; selecting a named INI uses that name for a lone-namespace installer. A real namespace list retains the OdyPatcher library's namespace selection rules. Existing root containment, ordinary-file checks and document size bounds remain enforced. The owned source was formatted; production compilation and headless explorer interaction acceptance remain pending. This is not six-lane installation parity proof.
+
+### Archive namespace installer identity
+
+Archive instruction generation now binds the first discovered namespace document to its owning `tslpatchdata` tree even if later compatibility trees contain another namespace document. The first namespace tree outranks an earlier plain `changes.ini` tree. Namespace options preserve their zero-based indices and share an actual eligible installer executable beside that same data tree; compiler, helper and uninstall executables are excluded using the C# generator's list. Nested installer paths include the archive extraction directory. Missing sibling installers fail generation without publishing the staged component; no guessed namespace executable or `TSLPatcher.exe` is emitted. Source grounding: C# `AutoInstructionGenerator.AnalyzeArchive` and `ResolvePatcherExecutable` / `AddNamespacesChooseInstructions`. Owned sources were formatted, but production compilation, archive corpus differential acceptance and six-lane parity remain pending.
+
+### Explicit supplied-installer runner (source checkpoint)
+
+`Settings.provided_installer` explicitly selects the supplied Source executable instead of substituting a configured patcher. The Linux adapter creates and owns a fresh Xvfb server and passes its allocated display to native/Wine execution; Wine additionally needs a dedicated prefix beneath private request storage. Actual execution requires external-process trust and an active durable checkpoint operation. The request retains executable SHA-256, target, namespace/INI intent, checkpoint operation, owned display/PID, process diagnostics and install-log content/hash. Original installer executables receive no invented patcher CLI switches; a headless controller must operate their real dialogs. Exact provided-backend prediction refuses unknown effects. Windows/macOS supplied-GUI adapters are unsupported by this source slice. Compilation, live supplied-installer interaction, Wine descendant quiescence and per-mod six-lane output parity remain unverified; the request's process/log verification is not checkpoint commit or lane parity acceptance.
+
+
+### Revision-fenced authoring CLI
+
+The production `easy edit DIRECTORY - --label LABEL --expected-revision ID` path accepts a UTF-8 JSON operation list on standard input, bounded to 8 MiB. `easy undo` and `easy redo` also accept `--expected-revision`. The revision check runs while the authoring session holds its exclusive OS lock; a mismatch refuses the transaction. Status output includes `currentRevision`. Existing invocations remain compatible when the optional fence is omitted. Source integration and review are complete; the updated binary and writable TypeScript bridge still require production compilation and acceptance. No application tests or fixtures were added.
+
+Dedicated Wine daemon quiescence is now part of the source contract: `WindowsProcessRunner.wineserver` is required, shared runner leases fence both supplied patchers and configured generic Execute, and prefix-scoped `-k` followed by `-w` must succeed before the writer marker can be removed. Cleanup ignores application cancellation and is bounded. Failed quiescence leaves the marker and pending checkpoint; it does not authorize rollback. A configured runner routes native Execute into its owned Xvfb too. Runtime descendant/process-failure acceptance remains unverified.
+
+The supplied-runner writer fence is additionally persisted under the existing game recovery state, bound to canonical roots, private request/prefix storage and the active checkpoint operation. Both normal checkpoint write/recovery qualification and the external-process fence reject its presence, including when authoring recovery reconstructs default settings. The active runner clears its own exact ownership record only after verified process/prefix quiescence. Restart-time explicit runner quiescence recovery remains unimplemented; interrupted/uncertain ownership fails closed and must not be waived or treated as permission to roll back. Source coverage is not crash/restart runtime acceptance.
+
+Native cancellation no longer conflates a failed action with unresolved owned-group writers: the command receipt now carries a separate settlement flag, false by default and set on Unix only after the existing owned-child group settlement actually succeeds. A cancelled/failed action with proven settlement can release its writer fence while retaining its failed/pending checkpoint for explicit recovery. This flag does not prove escaped daemon quiescence; Wine retains its separate prefix-scoped `-k`/`-w` requirement. Runtime cancellation acceptance remains pending.
+
+Easy Predict accepts optional `--expected-revision`; the saved revision is checked under the session lock before prediction. Runtime acceptance remains pending.
+
+Prelaunch failures now carry a separate `no_child_started` receipt proof. It is set only by validation/cancellation before dispatch or by the Unix launch preparation/spawn failure path; ordinary postlaunch errors do not imply it. Runner sessions additionally track whether external execution was submitted, so failed request publication or command preparation can release a native writer fence when no installer was launched. Submitted ambiguous failures keep the fence; Wine still requires its separate daemon quiescence proof. The action remains failed/pending even when a no-child fence is released. Source inspection and formatting are not runtime cancellation/spawn-error acceptance.
+
+Easy Apply accepts runtime-only `--provided-request-dir` and `--provided-xvfb`, with optional all-or-none `--provided-wine`, `--provided-wineserver` and `--provided-wine-prefix`. Supplied execution requires `--allow-processes` and rejects simultaneous `--patcher`; it uses the shared engine without invented installer arguments. Apply `--expected-revision` is checked under the session lock before execution settings. Owned headless children remove `SESSION_MANAGER`; installer Qt/OpenGL rendering is forced to software. Source integration is not live installer or lane parity acceptance.
+
+### 2026-10-10 headless continuation: directory authoring and recursive cleanup
+
+`CreateDirectory` is a Rust/TypeScript authoring extension at numeric action index 12; the twelve legacy indices retain their values. It requires empty Source and Arguments and a rooted child destination with an existing logical parent. Virtual prediction and the ordinary checkpointed disk engine support directory creation; managed deployment rejects it until directory ownership is implemented. The legacy basic validator cannot establish root-aware directory safety and reports that limitation explicitly. This extension is not claimed as a C# interchange action.
+
+Archive validation follows installation dependency order and projects selected filesystem branches. Effects of external Patcher/Execute/Run remain unknown: source syntax and root checks continue, while downstream existence checks are deferred to actual execution. Recursive DelDuplicate now groups candidates by parent directory and normalized stem. The separate final guide duplicate sweep remains unfinished.
+
+Core formatting, default library/CLI build, and strict default Clippy passed. Qt source review passed; Qt rebuild, no-default checks, and actual new-directory prediction/rollback acceptance remain pending. The first K1 mod was installed through the isolated manual GUI; its complete game tree matches the Ody lane with zero exclusions. The supplied lane has not completed the first-mod comparison.
+
+### Authoring checkpoint import recovery (2026-10-10)
+
+Imported authoring snapshots use install scope, including empty component prefixes, so normal strict metadata reading and finalization agree. A retained same-target authoring restore can quarantine an exact interrupted importer clone under paired root locks. Durable intent and retained original metadata make the quarantine replayable; ambiguous candidates, references, external writers, maintenance and other unfinished operations fail closed. Ordinary checkpoint mutations refuse an active repair intent. Existing source checkpoint heads and authoring redo history are preserved. Source review passed; production compilation and actual GUI Resume/Undo/Redo acceptance for this correction remain pending.
+
+The first K1 loose-file mod now has complete three-lane game-tree equality with no exclusions. This does not establish supplied executable installer parity. Actual GUI CreateDirectory Apply committed disk action three with the game inventory unchanged; Undo exposed the import defect above and remains retained at restore target two until runtime recovery succeeds.
+
+### Unchanged-file restore optimization (source reviewed)
+
+On Unix, restore can keep an existing ordinary file when its full SHA-256, size, supported permission mode and stable open-handle/path identity match the saved entry. It still flushes that file and its parent namespace. Selected CAS verification, root locking, temporary cleanup, directory ordering and final complete live-tree verification remain required. Mismatches use the ordinary replacement path; Windows retains that path. This avoids copying and renaming already-correct files without using timestamps as content proof. Source review passed; production compilation and runtime acceptance of this optimization are pending. The in-flight headless restore continues using the prior binary.

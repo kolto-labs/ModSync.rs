@@ -580,6 +580,15 @@ impl ContextState<'_> {
             check_cancelled(self.cancelled)?;
             let destination = &instruction.destination;
             let error = match instruction.action.as_str() {
+                "CreateDirectory" => {
+                    // This legacy API deliberately has no roots/VFS; never fabricate
+                    // root-bound safety by removing placeholders as Copy does.
+                    if !instruction.source.is_empty() || !instruction.arguments.is_empty() {
+                        Some("CreateDirectory requires empty Source and Arguments".into())
+                    } else {
+                        Some("CreateDirectory requires root-aware engine validation; basic validation has no install roots or future filesystem".into())
+                    }
+                }
                 "Unset" => None,
                 "Patcher" if destination.is_empty() => {
                     outcome.warnings.push("Destination must be <<gameDirectory>> with 'Patcher' action, setting it now automatically.".into());

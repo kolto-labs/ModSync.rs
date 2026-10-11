@@ -424,6 +424,20 @@ pub fn completion_summary(roots: &Roots) -> Result<Option<CompletionSummary>> {
     }))
 }
 
+pub(crate) fn ensure_authoring_import_clear(game: &Path) -> Result<()> {
+    let provisional = Roots {
+        mods: game.to_owned(),
+        game: game.to_owned(),
+    };
+    ensure!(
+        fs::symlink_metadata(state_dir(&provisional).join("authoring-import-repair.json"))
+            .err()
+            .is_some_and(|error| error.kind() == io::ErrorKind::NotFound),
+        "An interrupted authoring import repair requires the same saved disk restore"
+    );
+    Ok(())
+}
+
 pub(crate) fn ensure_checkpoint_clean(roots: &Roots) -> Result<()> {
     crate::checkpoint::ensure_external_process_clear(&roots.game)?;
     match fs::symlink_metadata(state_dir(roots).join("checkpoints-v1")) {
@@ -441,6 +455,12 @@ pub(crate) fn ensure_checkpoint_clean(roots: &Roots) -> Result<()> {
 }
 
 pub fn ensure_clean(roots: &Roots) -> Result<()> {
+    ensure!(
+        !state_dir(roots)
+            .join("authoring-import-repair.json")
+            .exists(),
+        "An interrupted authoring import repair requires the same saved disk restore"
+    );
     crate::maintenance::ensure_clear_game(&roots.game)?;
     crate::maintenance::ensure_clear_mods(&roots.mods)?;
     ensure_checkpoint_clean(roots)?;
