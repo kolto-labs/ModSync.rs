@@ -352,6 +352,16 @@ ApplicationWindow {
         enabled: !backend.busy && !!window.folder && !window.isRoot(window.folder)
         onActivated: window.navigate(window.parentPath(window.folder))
     }
+    Shortcut {
+        sequences: [StandardKey.Undo]
+        enabled: backend.ready && !backend.busy && !!window.document.canUndo
+        onActivated: backend.seekRevision(-1)
+    }
+    Shortcut {
+        sequences: [StandardKey.Redo]
+        enabled: backend.ready && !backend.busy && !!window.document.canRedo
+        onActivated: backend.seekRevision(1)
+    }
 
     component ActionButton: Button {
         id: control
@@ -1420,6 +1430,28 @@ ApplicationWindow {
                 }
             }
             RowLayout {
+                ActionButton {
+                    text: "↑ Move up"
+                    enabled: !backend.busy && actionDetails.position > 0
+                    Accessible.name: "Move selected action up"
+                    Accessible.description: "Move this saved action one position earlier. Undo restores its previous order."
+                    onClicked: {
+                        const destination = actionDetails.position - 1;
+                        backend.moveAction(actionDetails.componentGuid, actionDetails.position, destination, actionDetails.instruction.Guid, actionDetails.revisionId);
+                        actionDetails.close();
+                    }
+                }
+                ActionButton {
+                    text: "↓ Move down"
+                    enabled: !backend.busy && window.currentMod && actionDetails.position >= 0 && actionDetails.position < window.currentMod.recipe.length - 1
+                    Accessible.name: "Move selected action down"
+                    Accessible.description: "Move this saved action one position later. Undo restores its previous order."
+                    onClicked: {
+                        const destination = actionDetails.position + 1;
+                        backend.moveAction(actionDetails.componentGuid, actionDetails.position, destination, actionDetails.instruction.Guid, actionDetails.revisionId);
+                        actionDetails.close();
+                    }
+                }
                 ActionButton {
                     text: "Edit action"
                     enabled: !backend.busy && ["Copy", "Move", "Rename", "Delete", "Extract", "Patcher", "Execute", "CreateDirectory", "DelDuplicate", "CleanList", "Choose"].includes(actionDetails.instruction.Action)

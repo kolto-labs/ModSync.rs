@@ -132,6 +132,16 @@ pub mod ffi {
             revision: &QString,
         );
         #[qinvokable]
+        #[cxx_name = "moveAction"]
+        fn move_action(
+            self: Pin<&mut Self>,
+            component: &QString,
+            position: i32,
+            destination: i32,
+            expected_guid: &QString,
+            revision: &QString,
+        );
+        #[qinvokable]
         #[cxx_name = "setIncluded"]
         fn set_included(self: Pin<&mut Self>, component: &QString, included: bool);
     }
@@ -694,6 +704,39 @@ impl ffi::AuthoringBackend {
             )?;
             let mut snapshot = summary(state)?;
             snapshot["recordedPosition"] = serde_json::json!(position);
+            Ok(snapshot)
+        });
+    }
+
+    pub fn move_action(
+        self: Pin<&mut Self>,
+        component: &QString,
+        position: i32,
+        destination: i32,
+        expected_guid: &QString,
+        revision: &QString,
+    ) {
+        let component = component.to_string();
+        let guid = expected_guid.to_string();
+        let revision = revision.to_string();
+        self.start("Reordering saved action…", move |state| {
+            ensure!(
+                position >= 0 && destination >= 0,
+                "Invalid saved action position"
+            );
+            let session = state
+                .session
+                .as_mut()
+                .context("Open a saved session first")?;
+            session.move_instruction(
+                &component,
+                position as usize,
+                &guid,
+                destination as usize,
+                &revision,
+            )?;
+            let mut snapshot = summary(state)?;
+            snapshot["recordedPosition"] = serde_json::json!(destination);
             Ok(snapshot)
         });
     }
