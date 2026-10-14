@@ -63,9 +63,15 @@ jobs:
         if: always()
         run: python tools/prove_synthetic_full_build.py --binary target/debug/modsync --guides guide-corpus --game k2 --output artifacts/k2
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && inputs.runner != 'session'
         with:
           name: synthetic-full-build-cli-linux-${{ github.run_id }}
           path: artifacts
           if-no-files-found: error
           retention-days: 14
+      - name: Retain session evidence in the provisioned runner workspace
+        if: always() && inputs.runner == 'session'
+        shell: bash
+        run: |
+          test -d artifacts
+          echo "Session proof remains in $GITHUB_WORKSPACE/artifacts (artifact storage is unavailable from this environment)."

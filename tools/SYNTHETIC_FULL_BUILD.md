@@ -62,6 +62,12 @@ labels, logs and failure evidence are retained. Linux uses Xvfb; Windows/macOS
 require native input and screen capture permissions on the hosted runner.
 Missing permissions or invisible controls fail the lane.
 
+The Linux GUI dispatch defaults to GitHub-hosted Ubuntu. Its optional `session`
+runner requires an explicitly registered ephemeral runner labelled
+`modsync-session`, an existing production target cache, and wrapper-provided
+`GUIVENV`/`ENV_GUI_RUNTIME` paths. It reuses installed dependencies while still
+building the checked-out production source and executing native Xvfb clicks.
+
 Local Linux native clickthrough measured both K1 (62 projected components) and
 TSL (48 projected components): seven mouse clicks per guide, successful visible
 validation and installation terminals, unchanged validation snapshots, exact

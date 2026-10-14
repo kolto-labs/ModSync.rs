@@ -81,10 +81,16 @@ jobs:
         shell: bash
         run: xvfb-run -a --server-args="-screen 0 1600x1000x24" python tools/prove_synthetic_gui.py --binary target/debug/modsync --guides guide-input --game k2 --output proof/k2
       - name: Retain screenshots, input actions, coverage and byte receipts
-        if: always()
+        if: always() && inputs.runner != 'session'
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: synthetic-gui-linux-${{ github.run_id }}-${{ github.run_attempt }}
           path: proof/
           retention-days: 14
           if-no-files-found: error
+      - name: Retain session evidence in the provisioned runner workspace
+        if: always() && inputs.runner == 'session'
+        shell: bash
+        run: |
+          test -d proof
+          echo "Session proof remains in $GITHUB_WORKSPACE/proof (artifact storage is unavailable from this environment)."
