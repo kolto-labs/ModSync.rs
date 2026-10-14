@@ -29,7 +29,7 @@ impl Snapshot {
     }
 }
 #[derive(Debug)]
-pub(super) struct InvalidFallbackDate;
+pub(in super::super) struct InvalidFallbackDate;
 impl std::fmt::Display for InvalidFallbackDate {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str("Fallback local date exceeds DateTime range")

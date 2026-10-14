@@ -38,7 +38,8 @@ review, production compilation and native/behavioral acceptance remain separate.
 The engine now uses typed GUID identity for private selected/completed sets,
 checkpoint resume-plan projection, the checkpoint coordinator's selected set, verified-prefix comparison, remaining filters,
 component and instruction conditions, immediate Choose option lookup and current
-conflict attribution. Original checkpoint definitions and recovery receipts are
+conflict attribution. Choose option lookup has since moved to the C# text rule
+(`Instruction.GetChosenOptions`): see [choose-option-match-contract.md](choose-option-match-contract.md). Original checkpoint definitions and recovery receipts are
 not rewritten; their hash/provenance admission remains unchanged. Only admitted
 resume definitions are projected into the engine's private membership keys.
 Declared-conflict and basic-validation lookup use the same comparison, while the

@@ -195,8 +195,9 @@ fn prepare_metadata(value: &mut Value) {
                     "Dependencies",
                     "Restrictions",
                 ] {
+                    // A blank scalar Source is a refused path, not an absent one.
                     if instruction.get(key).is_some_and(|value| {
-                        value.as_str().is_some_and(|text| !nonblank(text))
+                        key != "Source" && value.as_str().is_some_and(|text| !nonblank(text))
                             || value.as_array().is_some_and(Vec::is_empty)
                     }) {
                         instruction.remove(key);

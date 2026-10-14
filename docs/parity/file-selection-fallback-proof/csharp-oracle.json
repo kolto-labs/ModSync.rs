@@ -1,0 +1,533 @@
+{
+ "install_mixed": {
+  "decision": true,
+  "files": [
+   "Override/m.txt",
+   "chitin.key"
+  ]
+ },
+ "install_two_false": {
+  "decision": true,
+  "files": [
+   "Override/m.txt",
+   "Override/n.txt",
+   "chitin.key"
+  ]
+ },
+ "json_false": {
+  "counts": [
+   0,
+   1,
+   2,
+   2
+  ],
+  "decision": [
+   0,
+   true
+  ],
+  "stages": [
+   [
+    "ComponentValidation",
+    true,
+    [
+     "OK: A",
+     "OK: B"
+    ]
+   ],
+   [
+    "FomodConfiguration",
+    true,
+    null
+   ],
+   [
+    "DryRun",
+    true,
+    null
+   ]
+  ]
+ },
+ "markdown_false": {
+  "counts": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stages": "No components are marked IsSelected in the instruction file."
+ },
+ "markdown_false_no_flag": {
+  "counts": [
+   0,
+   0,
+   3,
+   2
+  ],
+  "decision": [
+   0,
+   true
+  ],
+  "stages": [
+   [
+    "ComponentValidation",
+    true,
+    [
+     "OK: A",
+     "OK: B"
+    ]
+   ],
+   [
+    "FomodConfiguration",
+    true,
+    null
+   ],
+   [
+    "DryRun",
+    true,
+    null
+   ]
+  ]
+ },
+ "markdown_false_rootless": {
+  "counts": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stages": "No components are marked IsSelected in the instruction file."
+ },
+ "markdown_mixed": {
+  "counts": [
+   0,
+   0,
+   3,
+   1
+  ],
+  "decision": [
+   0,
+   true
+  ],
+  "stages": [
+   [
+    "ComponentValidation",
+    true,
+    [
+     "OK: A"
+    ]
+   ],
+   [
+    "FomodConfiguration",
+    true,
+    null
+   ],
+   [
+    "DryRun",
+    true,
+    null
+   ]
+  ]
+ },
+ "mixed_file_selection": {
+  "counts": [
+   0,
+   0,
+   3,
+   1
+  ],
+  "decision": [
+   0,
+   true
+  ],
+  "stages": [
+   [
+    "ComponentValidation",
+    true,
+    [
+     "OK: A"
+    ]
+   ],
+   [
+    "FomodConfiguration",
+    true,
+    null
+   ],
+   [
+    "DryRun",
+    true,
+    null
+   ]
+  ]
+ },
+ "mixed_no_flag": {
+  "counts": [
+   0,
+   1,
+   2,
+   2
+  ],
+  "decision": [
+   0,
+   true
+  ],
+  "stages": [
+   [
+    "ComponentValidation",
+    true,
+    [
+     "OK: A",
+     "OK: B"
+    ]
+   ],
+   [
+    "FomodConfiguration",
+    true,
+    null
+   ],
+   [
+    "DryRun",
+    true,
+    null
+   ]
+  ]
+ },
+ "omitted_flags": {
+  "counts": [
+   0,
+   1,
+   2,
+   2
+  ],
+  "decision": [
+   0,
+   true
+  ],
+  "stages": [
+   [
+    "ComponentValidation",
+    true,
+    [
+     "OK: A",
+     "OK: B"
+    ]
+   ],
+   [
+    "FomodConfiguration",
+    true,
+    null
+   ],
+   [
+    "DryRun",
+    true,
+    null
+   ]
+  ]
+ },
+ "one_false": {
+  "counts": [
+   0,
+   0,
+   3,
+   1
+  ],
+  "decision": [
+   0,
+   true
+  ],
+  "stages": [
+   [
+    "ComponentValidation",
+    true,
+    [
+     "OK: A"
+    ]
+   ],
+   [
+    "FomodConfiguration",
+    true,
+    null
+   ],
+   [
+    "DryRun",
+    true,
+    null
+   ]
+  ]
+ },
+ "option_selected_component_false": {
+  "counts": [
+   0,
+   0,
+   3,
+   1
+  ],
+  "decision": [
+   0,
+   true
+  ],
+  "stages": [
+   [
+    "ComponentValidation",
+    true,
+    [
+     "OK: A"
+    ]
+   ],
+   [
+    "FomodConfiguration",
+    true,
+    null
+   ],
+   [
+    "DryRun",
+    true,
+    null
+   ]
+  ]
+ },
+ "option_unselected_component_false": {
+  "counts": [
+   0,
+   0,
+   3,
+   1
+  ],
+  "decision": [
+   0,
+   true
+  ],
+  "stages": [
+   [
+    "ComponentValidation",
+    true,
+    [
+     "OK: A"
+    ]
+   ],
+   [
+    "FomodConfiguration",
+    true,
+    null
+   ],
+   [
+    "DryRun",
+    true,
+    null
+   ]
+  ]
+ },
+ "rootless_false_absent": {
+  "counts": [
+   1,
+   0,
+   1,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stages": [
+   [
+    "ComponentValidation",
+    true,
+    [
+     "OK: A",
+     "OK: B"
+    ]
+   ],
+   [
+    "FomodConfiguration",
+    false,
+    null
+   ]
+  ]
+ },
+ "rootless_mixed": {
+  "counts": [
+   1,
+   0,
+   1,
+   1
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stages": [
+   [
+    "ComponentValidation",
+    true,
+    [
+     "OK: A"
+    ]
+   ],
+   [
+    "FomodConfiguration",
+    false,
+    null
+   ]
+  ]
+ },
+ "rootless_one_false": {
+  "counts": [
+   1,
+   0,
+   1,
+   1
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stages": [
+   [
+    "ComponentValidation",
+    true,
+    [
+     "OK: A"
+    ]
+   ],
+   [
+    "FomodConfiguration",
+    false,
+    null
+   ]
+  ]
+ },
+ "two_false": {
+  "counts": [
+   0,
+   0,
+   3,
+   2
+  ],
+  "decision": [
+   0,
+   true
+  ],
+  "stages": [
+   [
+    "ComponentValidation",
+    true,
+    [
+     "OK: A",
+     "OK: B"
+    ]
+   ],
+   [
+    "FomodConfiguration",
+    true,
+    null
+   ],
+   [
+    "DryRun",
+    true,
+    null
+   ]
+  ]
+ },
+ "two_false_no_flag": {
+  "counts": [
+   0,
+   1,
+   2,
+   2
+  ],
+  "decision": [
+   0,
+   true
+  ],
+  "stages": [
+   [
+    "ComponentValidation",
+    true,
+    [
+     "OK: A",
+     "OK: B"
+    ]
+   ],
+   [
+    "FomodConfiguration",
+    true,
+    null
+   ],
+   [
+    "DryRun",
+    true,
+    null
+   ]
+  ]
+ },
+ "two_false_one_absent": {
+  "counts": [
+   0,
+   1,
+   2,
+   2
+  ],
+  "decision": [
+   0,
+   true
+  ],
+  "stages": [
+   [
+    "ComponentValidation",
+    true,
+    [
+     "OK: A",
+     "OK: B"
+    ]
+   ],
+   [
+    "FomodConfiguration",
+    true,
+    null
+   ],
+   [
+    "DryRun",
+    true,
+    null
+   ]
+  ]
+ },
+ "yaml_false": {
+  "counts": [
+   0,
+   1,
+   2,
+   2
+  ],
+  "decision": [
+   0,
+   true
+  ],
+  "stages": [
+   [
+    "ComponentValidation",
+    true,
+    [
+     "OK: A",
+     "OK: B"
+    ]
+   ],
+   [
+    "FomodConfiguration",
+    true,
+    null
+   ],
+   [
+    "DryRun",
+    true,
+    null
+   ]
+  ]
+ }
+}

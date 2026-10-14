@@ -1,0 +1,597 @@
+{
+ "copy_collision_false": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: Success"
+    ]
+   },
+   "skip_warnings": 1,
+   "tree": {
+    "game": {
+     "Override/after.txt": "AFTER\n",
+     "Override/x.txt": "X\n"
+    },
+    "mods": {
+     "after.txt": "AFTER\n",
+     "x.txt": "M\n"
+    }
+   }
+  }
+ },
+ "copy_destination_case_false": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: Success"
+    ]
+   },
+   "skip_warnings": 1,
+   "tree": {
+    "game": {
+     "Override/after.txt": "AFTER\n",
+     "Override/x.txt": "X\n"
+    },
+    "mods": {
+     "after.txt": "AFTER\n"
+    }
+   }
+  }
+ },
+ "copy_false": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: Success"
+    ]
+   },
+   "skip_warnings": 1,
+   "tree": {
+    "game": {
+     "Override/after.txt": "AFTER\n",
+     "Override/x.txt": "X\n"
+    },
+    "mods": {
+     "after.txt": "AFTER\n"
+    }
+   }
+  }
+ },
+ "copy_mixed_false": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: Success"
+    ]
+   },
+   "skip_warnings": 1,
+   "tree": {
+    "game": {
+     "Override/after.txt": "AFTER\n",
+     "Override/x.txt": "X\n",
+     "Override/z.txt": "Z\n"
+    },
+    "mods": {
+     "after.txt": "AFTER\n",
+     "z.txt": "Z\n"
+    }
+   }
+  }
+ },
+ "copy_mod_directory_false": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: Success"
+    ]
+   },
+   "skip_warnings": 1,
+   "tree": {
+    "game": {
+     "Override/after.txt": "AFTER\n",
+     "Override/x.txt": "X\n"
+    },
+    "mods": {
+     "after.txt": "AFTER\n",
+     "m.txt": "M\n"
+    }
+   }
+  }
+ },
+ "copy_omitted": {
+  "dryrun": {
+   "accepted": false,
+   "raw": {
+    "Errors": [
+     "Source file does not exist: /tmp/copy-move-self-proof-otjyk23j/csharp-dryrun-almgbpl0/game/Override/x.txt"
+    ],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: UnknownError"
+    ]
+   },
+   "skip_warnings": 0,
+   "tree": {
+    "game": {},
+    "mods": {
+     "after.txt": "AFTER\n"
+    }
+   }
+  }
+ },
+ "copy_readonly_false": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: Success"
+    ]
+   },
+   "skip_warnings": 1,
+   "tree": {
+    "game": {
+     "Override/after.txt": "AFTER\n",
+     "Override/x.txt": "X\n"
+    },
+    "mods": {
+     "after.txt": "AFTER\n"
+    }
+   }
+  }
+ },
+ "copy_recovered_mixed_false": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: Success"
+    ]
+   },
+   "skip_warnings": 1,
+   "tree": {
+    "game": {
+     "Override/after.txt": "AFTER\n",
+     "Override/x.txt": "X\n"
+    },
+    "mods": {
+     "Mod.zip": "zip: z.txt",
+     "after.txt": "AFTER\n"
+    }
+   }
+  }
+ },
+ "copy_recovered_mixed_true": {
+  "dryrun": {
+   "accepted": false,
+   "raw": {
+    "Errors": [
+     "Source file does not exist: /tmp/copy-move-self-proof-otjyk23j/csharp-dryrun-xse4gw25/game/Override/x.txt"
+    ],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: UnknownError"
+    ]
+   },
+   "skip_warnings": 0,
+   "tree": {
+    "game": {},
+    "mods": {
+     "Mod.zip": "zip: z.txt",
+     "after.txt": "AFTER\n"
+    }
+   }
+  }
+ },
+ "copy_source_case_false": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: Success"
+    ]
+   },
+   "skip_warnings": 1,
+   "tree": {
+    "game": {
+     "Override/after.txt": "AFTER\n",
+     "Override/x.txt": "X\n"
+    },
+    "mods": {
+     "after.txt": "AFTER\n"
+    }
+   }
+  }
+ },
+ "copy_subdirectory_false": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: Success"
+    ]
+   },
+   "skip_warnings": 1,
+   "tree": {
+    "game": {
+     "Override/after.txt": "AFTER\n",
+     "Override/sub/s.txt": "S\n",
+     "Override/x.txt": "X\n"
+    },
+    "mods": {
+     "after.txt": "AFTER\n"
+    }
+   }
+  }
+ },
+ "copy_symlink_false": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: Success"
+    ]
+   },
+   "skip_warnings": 1,
+   "tree": {
+    "game": {
+     "Override/after.txt": "AFTER\n",
+     "Override/l.txt": "-> x.txt",
+     "Override/x.txt": "X\n"
+    },
+    "mods": {
+     "after.txt": "AFTER\n"
+    }
+   }
+  }
+ },
+ "copy_true": {
+  "dryrun": {
+   "accepted": false,
+   "raw": {
+    "Errors": [
+     "Source file does not exist: /tmp/copy-move-self-proof-otjyk23j/csharp-dryrun-x339f33t/game/Override/x.txt"
+    ],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: UnknownError"
+    ]
+   },
+   "skip_warnings": 0,
+   "tree": {
+    "game": {},
+    "mods": {
+     "after.txt": "AFTER\n"
+    }
+   }
+  }
+ },
+ "copy_wildcard_false": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: Success"
+    ]
+   },
+   "skip_warnings": 2,
+   "tree": {
+    "game": {
+     "Override/after.txt": "AFTER\n",
+     "Override/x.txt": "X\n",
+     "Override/y.txt": "Y\n"
+    },
+    "mods": {
+     "after.txt": "AFTER\n"
+    }
+   }
+  }
+ },
+ "move_false": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: Success"
+    ]
+   },
+   "skip_warnings": 1,
+   "tree": {
+    "game": {
+     "Override/after.txt": "AFTER\n",
+     "Override/x.txt": "X\n"
+    },
+    "mods": {
+     "after.txt": "AFTER\n"
+    }
+   }
+  }
+ },
+ "move_mixed_false": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: Success"
+    ]
+   },
+   "skip_warnings": 1,
+   "tree": {
+    "game": {
+     "Override/after.txt": "AFTER\n",
+     "Override/x.txt": "X\n",
+     "Override/z.txt": "Z\n"
+    },
+    "mods": {
+     "after.txt": "AFTER\n"
+    }
+   }
+  }
+ },
+ "move_omitted": {
+  "dryrun": {
+   "accepted": false,
+   "raw": {
+    "Errors": [
+     "Source file does not exist: /tmp/copy-move-self-proof-otjyk23j/csharp-dryrun-hxoxv88o/game/Override/x.txt"
+    ],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: UnknownError"
+    ]
+   },
+   "skip_warnings": 0,
+   "tree": {
+    "game": {},
+    "mods": {
+     "after.txt": "AFTER\n"
+    }
+   }
+  }
+ },
+ "move_recovered_mixed_false": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: Success"
+    ]
+   },
+   "skip_warnings": 1,
+   "tree": {
+    "game": {
+     "Override/after.txt": "AFTER\n",
+     "Override/x.txt": "X\n"
+    },
+    "mods": {
+     "Mod.zip": "zip: z.txt",
+     "after.txt": "AFTER\n"
+    }
+   }
+  }
+ },
+ "move_recovered_mixed_omitted": {
+  "dryrun": {
+   "accepted": false,
+   "raw": {
+    "Errors": [
+     "Source file does not exist: /tmp/copy-move-self-proof-otjyk23j/csharp-dryrun-6bgk3waf/game/Override/x.txt"
+    ],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: UnknownError"
+    ]
+   },
+   "skip_warnings": 0,
+   "tree": {
+    "game": {},
+    "mods": {
+     "Mod.zip": "zip: z.txt",
+     "after.txt": "AFTER\n"
+    }
+   }
+  }
+ },
+ "move_true": {
+  "dryrun": {
+   "accepted": false,
+   "raw": {
+    "Errors": [
+     "Source file does not exist: /tmp/copy-move-self-proof-otjyk23j/csharp-dryrun-8e18xgbp/game/Override/x.txt"
+    ],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: UnknownError"
+    ]
+   },
+   "skip_warnings": 0,
+   "tree": {
+    "game": {},
+    "mods": {
+     "after.txt": "AFTER\n"
+    }
+   }
+  }
+ },
+ "rename_self_false": {
+  "dryrun": {
+   "accepted": false,
+   "raw": {
+    "Errors": [
+     "Dry-run failed for 'Self Target Probe' with exit code UnknownError."
+    ],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Self Target Probe: UnknownError"
+    ]
+   },
+   "skip_warnings": 0,
+   "tree": {
+    "game": {
+     "Override/x.txt": "X\n"
+    },
+    "mods": {
+     "after.txt": "AFTER\n"
+    }
+   }
+  }
+ }
+}

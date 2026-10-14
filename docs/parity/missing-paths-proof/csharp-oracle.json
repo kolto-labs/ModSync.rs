@@ -1,0 +1,97 @@
+{
+ "both_missing_json_full": {
+  "exit": false,
+  "message": "Game directory not found: nogame",
+  "unchanged": true
+ },
+ "game_file_text_dry": {
+  "exit": false,
+  "message": "Game directory not found: afile",
+  "unchanged": true
+ },
+ "game_missing_json_dry": {
+  "exit": false,
+  "message": "Game directory not found: nogame",
+  "unchanged": true
+ },
+ "game_missing_json_full": {
+  "exit": false,
+  "message": "Game directory not found: nogame",
+  "unchanged": true
+ },
+ "input_dir_text": {
+  "exit": false,
+  "message": "Input file not found: adir",
+  "unchanged": true
+ },
+ "input_missing_json_basic": {
+  "exit": false,
+  "message": "Input file not found: nope.toml",
+  "unchanged": true
+ },
+ "input_missing_json_full": {
+  "exit": false,
+  "message": "Input file not found: nope.toml",
+  "unchanged": true
+ },
+ "install_both_missing": {
+  "exit": false,
+  "message": "Game directory not found: nogame",
+  "unchanged": true
+ },
+ "install_game_missing": {
+  "exit": false,
+  "message": "Game directory not found: nogame",
+  "unchanged": true
+ },
+ "install_input_dir": {
+  "exit": false,
+  "message": "Input file not found: adir",
+  "unchanged": true
+ },
+ "install_input_missing": {
+  "exit": false,
+  "message": "Input file not found: nope.toml",
+  "unchanged": true
+ },
+ "install_mods_file": {
+  "exit": false,
+  "message": "Source directory not found: afile",
+  "unchanged": true
+ },
+ "install_mods_missing": {
+  "exit": false,
+  "message": "Source directory not found: nomods",
+  "unchanged": true
+ },
+ "mods_missing_json_dro": {
+  "exit": false,
+  "message": "Source directory not found: nomods",
+  "unchanged": true
+ },
+ "mods_missing_json_full": {
+  "exit": false,
+  "message": "Source directory not found: nomods",
+  "unchanged": true
+ },
+ "mods_missing_text_full": {
+  "exit": false,
+  "message": "Source directory not found: nomods",
+  "unchanged": true
+ },
+ "ok_json_dry": {
+  "exit": true,
+  "message": null,
+  "unchanged": true
+ },
+ "ok_json_full": {
+  "exit": true,
+  "message": null,
+  "unchanged": true
+ },
+ "plain_mods_missing": {
+  "exit": false,
+  "message": null,
+  "unchanged": true
+ }
+}

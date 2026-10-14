@@ -2,7 +2,7 @@
 //! Explicit future-state requests dispatch to native private-scratch prediction;
 //! ordinary validation leaves unknown patch bytes explicitly marked in the VFS.
 use super::{Content, Engine, Event};
-use crate::paths::relative;
+use crate::paths::{literal_relative, relative};
 use anyhow::{Context, Result, ensure};
 use std::{
     collections::BTreeMap,
@@ -13,7 +13,9 @@ use std::{
 const MAX_INI_BYTES: u64 = 8 * 1024 * 1024;
 const MAX_EFFECTS: usize = 100_000;
 
-/// Case-insensitive names; insertion order matters for namespaces and install writes.
+/// Pinned .NET OrdinalIgnoreCase names; insertion order matters for namespaces
+/// and install writes. Unicode lowercase is not this comparer: final sigma must
+/// alias ordinary sigma, while dotted capital I must retain its own identity.
 #[derive(Default)]
 struct Ini(BTreeMap<String, Vec<(String, String)>>);
 
@@ -35,13 +37,13 @@ impl Ini {
                 continue;
             }
             if line.starts_with('[') && line.ends_with(']') {
-                let name = line[1..line.len() - 1].trim().to_lowercase();
+                let name = crate::unicode_case::ordinal_key(line[1..line.len() - 1].trim());
                 ini.0.entry(name.clone()).or_default();
                 section = Some(name);
             } else if let Some(section) = &section
                 && let Some((key, value)) = line.split_once('=')
             {
-                let key = key.trim().to_lowercase();
+                let key = crate::unicode_case::ordinal_key(key.trim());
                 if key.is_empty() {
                     continue;
                 }
@@ -63,13 +65,15 @@ impl Ini {
     }
 
     fn section(&self, name: &str) -> Option<&[(String, String)]> {
-        self.0.get(&name.to_lowercase()).map(Vec::as_slice)
+        self.0
+            .get(&crate::unicode_case::ordinal_key(name))
+            .map(Vec::as_slice)
     }
 
     fn field(&self, section: &str, name: &str) -> Option<&str> {
         self.section(section)?
             .iter()
-            .find(|(key, _)| key.eq_ignore_ascii_case(name))
+            .find(|(key, _)| crate::unicode_case::ordinal_eq(key, name))
             .map(|(_, value)| value.as_str())
     }
 }
@@ -156,7 +160,10 @@ impl Engine {
                 .filter(|value| !value.is_empty())
                 .context("Selected patcher namespace has no IniName")?;
             let folder = ini.field(section, "DataPath").unwrap_or("");
-            let filename = relative(filename, false)?;
+            // INI values name the mod's own files and folders, never a pattern, so `[`
+            // and `]` are literal, consistent with the InstallList names (the reference
+            // simulation does not read namespaces.ini).
+            let filename = literal_relative(filename)?;
             ensure!(
                 filename.file_name().is_some(),
                 "Selected namespace INI has no filename"
@@ -165,7 +172,7 @@ impl Engine {
                 &namespaces
                     .parent()
                     .expect("INI has parent")
-                    .join(relative(folder, false)?)
+                    .join(literal_relative(folder)?)
                     .join(filename),
             );
             self.settings.roots.check(&selected)?;
@@ -200,11 +207,16 @@ impl Engine {
         self.settings.roots.check(base)?;
         self.settings.roots.check(destination)?;
         let Some(configuration) = self.simulation_configuration(base, arguments)? else {
-            self.validation_warning(
-                "PatcherSimulation",
-                "No changes.ini found; no InstallList effects inferred".into(),
-                base,
-            );
+            // As C# `TslPatcherVfsSimulator`: no changes.ini means nothing to simulate,
+            // only a log line, not a validation warning.
+            emit(Event {
+                component: "Patcher".into(),
+                step: 0,
+                message: format!(
+                    "No changes.ini found under {}; skipped InstallList simulation",
+                    base.display()
+                ),
+            });
             return Ok(());
         };
         let ini = self.simulation_ini(&configuration)?;
@@ -214,21 +226,23 @@ impl Engine {
         let mut effects = Vec::new();
         if let Some(folders) = ini.section("InstallList") {
             for (section, folder) in folders {
-                if !section.starts_with("install_folder") || folder.is_empty() {
+                if !section.starts_with("INSTALL_FOLDER") || folder.is_empty() {
                     continue;
                 }
                 let Some(files) = ini.section(section) else {
                     continue;
                 };
-                let folder = relative(folder, false)?;
+                // InstallList names are literal (TslPatcherVfsSimulator passes them to
+                // Path.Combine), so `[` and `]` are ordinary characters here.
+                let folder = literal_relative(folder)?;
                 for (operation, filename) in files {
                     self.check_cancelled()?;
-                    if !(operation.starts_with("file") || operation.starts_with("replace"))
+                    if !(operation.starts_with("FILE") || operation.starts_with("REPLACE"))
                         || filename.is_empty()
                     {
                         continue;
                     }
-                    let filename = relative(filename, false)?;
+                    let filename = literal_relative(filename)?;
                     ensure!(
                         filename.file_name().is_some(),
                         "Patcher InstallList entry has no filename"

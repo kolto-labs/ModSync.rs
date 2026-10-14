@@ -120,6 +120,72 @@ fn date(
     );
     Ok(value.into())
 }
+
+/// Result of the reference guide metadata intake
+/// `DateTime.TryParse(text, InvariantCulture, DateTimeStyles.None)`.
+pub(crate) enum InvariantDate {
+    /// Parsed; `round_trip` is the reference `{0:O}` rendering (seven
+    /// fraction digits, host offset only for Local kind).
+    Parsed { round_trip: String },
+    /// The reference parse fails, so the reference never stores a value.
+    Rejected,
+    /// Outside the bounded model (or the local-zone provider): keep the
+    /// authored value and report why.
+    Unsupported(String),
+}
+
+/// Shared invariant `DateTime.TryParse` route with `DateTimeStyles.None`,
+/// reusing the bounded profile fallback grammar and local-zone provider.
+pub(crate) fn invariant_try_parse(text: &str) -> InvariantDate {
+    if text.len() > 4096 {
+        return InvariantDate::Unsupported("date text exceeds the 4096-byte bound".into());
+    }
+    // Every reference date/time grammar needs a numeric token; null, empty,
+    // whitespace and word-only input fail TryParse.
+    if !text.bytes().any(|b| b.is_ascii_digit()) {
+        return InvariantDate::Rejected;
+    }
+    // A lone (signed) integer token is neither a date nor a clock.
+    let trimmed = text.trim();
+    let digits = trimmed.strip_prefix(['+', '-']).unwrap_or(trimmed);
+    if digits.bytes().all(|b| b.is_ascii_digit()) {
+        return InvariantDate::Rejected;
+    }
+    let value = match date_compat::fallback::parse(text) {
+        // Typed fallback errors are reference parse failures.
+        Err(_) => return InvariantDate::Rejected,
+        Ok(None) => {
+            return InvariantDate::Unsupported(
+                "date form is outside the bounded invariant DateTime grammar".into(),
+            );
+        }
+        Ok(Some(value)) => value.without_roundtrip_kind(),
+    };
+    let mut context = date_compat::local::ContextSnapshot::new();
+    match value.normalize(text, "lastModified", &mut context) {
+        Err(error) if error.is::<date_compat::local::InvalidFallbackDate>() => {
+            InvariantDate::Rejected
+        }
+        Err(error) => InvariantDate::Unsupported(format!("{error:#}")),
+        Ok(_) if !context.warnings.is_empty() => {
+            InvariantDate::Unsupported(context.warnings.join("; "))
+        }
+        Ok(canonical) => InvariantDate::Parsed {
+            round_trip: round_trip_pattern(&canonical),
+        },
+    }
+}
+
+/// Widen the canonical 100 ns serializer output to the `O` pattern, which
+/// always writes seven fraction digits.
+fn round_trip_pattern(canonical: &str) -> String {
+    let (clock, rest) = canonical.split_at(19.min(canonical.len()));
+    let (digits, zone) = match rest.strip_prefix('.') {
+        Some(rest) => rest.split_at(rest.bytes().take_while(u8::is_ascii_digit).count()),
+        None => ("", rest),
+    };
+    format!("{clock}.{digits:0<7}{zone}")
+}
 fn identity(value: &str, opaque: &mut bool) -> Result<String> {
     if let Some(guid) = guid(value) {
         return Ok(guid);

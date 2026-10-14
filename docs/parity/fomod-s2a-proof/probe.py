@@ -5,7 +5,9 @@ import atexit, hashlib, http.server, io, json, os, pathlib, shutil, ssl, subproc
 REPO=pathlib.Path(__file__).resolve().parents[3]
 TARGET=pathlib.Path(os.environ.get('CARGO_TARGET_DIR', str(REPO/'target'))).resolve()
 OUT=pathlib.Path(os.environ.get('MODSYNC_PROOF_OUT', str(TARGET/'cloud-proof/fomod-s2a'))).resolve()
-shutil.rmtree(OUT,ignore_errors=True);OUT.mkdir(parents=True)
+_MARK=OUT/'.modsync-proof-out'
+if OUT.exists() and any(OUT.iterdir()) and not _MARK.exists() and (TARGET/'cloud-proof').resolve() not in OUT.parents:raise SystemExit(f'Refusing to delete {OUT}: not an empty or earlier probe output directory (set MODSYNC_PROOF_OUT to a dedicated folder)')
+shutil.rmtree(OUT,ignore_errors=True);OUT.mkdir(parents=True);_MARK.write_text('')
 BIN=pathlib.Path(os.environ.get('MODSYNC_BINARY', str(TARGET/'debug/modsync'))).resolve()
 def digest(p):return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
 def sources():return {str(p.relative_to(REPO)):digest(p) for p in sorted(list((REPO/'src').rglob('*.rs'))+[REPO/'Cargo.toml',REPO/'Cargo.lock'])}
@@ -225,8 +227,10 @@ c=setup('registered_only_missing',[comp(instructions=())],{'example.zip':V1})
 rv=validate(c,'validate_requires_choices');check('registered_missing_exit',rv['exit'],1);check('registered_missing_actionable',any('no explicit FomodChoices' in m and '--fomod-choices' in m for m in fomod_stage(rv)['messages']))
 c=setup('registered_only_stale',[comp(saved=choices('Unknown'),instructions=())],{'example.zip':V1})
 rv=validate(c,'validate_refuses_invalid');check('registered_invalid_exit',rv['exit'],1);check('registered_invalid_actionable',any('do not apply to the current archive' in m for m in fomod_stage(rv)['messages']))
-# Two registrants of one archive without Extract: one warning naming both.
-a=comp(status='configured',saved=choices('Beta'),instructions=(NOTE,));b=comp(1,status='configured',saved=choices('Beta'),instructions=())
+# Two registrants of one archive without Extract: one warning naming both. Both copy
+# the note: a component without instructions fails validate (also the report since
+# the plain report simulation slice).
+a=comp(status='configured',saved=choices('Beta'),instructions=(NOTE,));b=comp(1,status='configured',saved=choices('Beta'),instructions=(NOTE,))
 c=setup('registered_only_shared',[a,b],{'example.zip':V1,'notes.txt':b'generic note\n'})
 rv=validate(c,'validate_warns_once');check('registered_shared_exit',rv['exit'],0);check('registered_shared_warning_count',rv['data']['warningCount'],1)
 check('registered_shared_warning_names',[("'Example Consumer 1', 'Example Consumer 2'" in m) for m in fomod_stage(rv)['messages']],[True])

@@ -212,3 +212,16 @@ pub(crate) fn eq_ascii(left: &str, right: &str) -> bool {
         _ => left.eq_ignore_ascii_case(right),
     }
 }
+
+/// C# `Option.Guid.ToString()`: the lowercase hyphenated form of a parsed option ID.
+/// An ID the parser does not accept keeps its authored text.
+pub(crate) fn option_text(option: &str) -> String {
+    try_parse(option).map_or_else(|| option.to_owned(), |value| value.to_string())
+}
+
+/// C# `Instruction.GetChosenOptions`: a Choose entry names an option when it equals
+/// the option's `Guid.ToString()` OrdinalIgnoreCase, so a braced, parenthesized,
+/// N-form or padded entry names none. An unparsed option ID compares as ASCII text.
+pub(crate) fn names_option(option: &str, entry: &str) -> bool {
+    option_text(option).eq_ignore_ascii_case(entry)
+}

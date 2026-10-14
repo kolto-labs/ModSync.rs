@@ -1,0 +1,993 @@
+{
+ "archive_folder": {
+  "basic/counts": [
+   1,
+   0,
+   2
+  ],
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/a.tga",
+     "a from m.zip\n"
+    ],
+    [
+     "game/Override/b.txt",
+     "b\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/m.zip",
+     "<archive>"
+    ],
+    [
+     "mods/m/readme.txt",
+     "readme\n"
+    ],
+    [
+     "mods/out/keep.txt",
+     "keep\n"
+    ]
+   ]
+  ]
+ },
+ "delete_destination": {
+  "basic/counts": [
+   1,
+   0,
+   2
+  ],
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/b.txt",
+     "b\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/m.zip",
+     "<archive>"
+    ],
+    [
+     "mods/m/Override/a.tga",
+     "a from m.zip\n"
+    ],
+    [
+     "mods/out/keep.txt",
+     "keep\n"
+    ]
+   ]
+  ]
+ },
+ "game_root": {
+  "basic/counts": [
+   1,
+   0,
+   2
+  ],
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/b.txt",
+     "b\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/m.zip",
+     "<archive>"
+    ],
+    [
+     "mods/m/Override/a.tga",
+     "a from m.zip\n"
+    ],
+    [
+     "mods/m/readme.txt",
+     "readme\n"
+    ],
+    [
+     "mods/out/keep.txt",
+     "keep\n"
+    ]
+   ]
+  ]
+ },
+ "missing_folder": {
+  "basic/counts": [
+   1,
+   0,
+   2
+  ],
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/b.txt",
+     "b\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/m.zip",
+     "<archive>"
+    ],
+    [
+     "mods/m/Override/a.tga",
+     "a from m.zip\n"
+    ],
+    [
+     "mods/m/readme.txt",
+     "readme\n"
+    ],
+    [
+     "mods/out/keep.txt",
+     "keep\n"
+    ]
+   ]
+  ]
+ },
+ "mod_folder": {
+  "basic/counts": [
+   1,
+   0,
+   2
+  ],
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/b.txt",
+     "b\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/m.zip",
+     "<archive>"
+    ],
+    [
+     "mods/m/Override/a.tga",
+     "a from m.zip\n"
+    ],
+    [
+     "mods/m/readme.txt",
+     "readme\n"
+    ],
+    [
+     "mods/out/keep.txt",
+     "keep\n"
+    ]
+   ]
+  ]
+ },
+ "mod_folder_then_copy": {
+  "basic/counts": [
+   2,
+   1,
+   1
+  ],
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_dry/decision": [
+   false,
+   false
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    false
+   ]
+  ],
+  "install": [
+   false,
+   [
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/m.zip",
+     "<archive>"
+    ],
+    [
+     "mods/out/keep.txt",
+     "keep\n"
+    ]
+   ]
+  ]
+ },
+ "mod_folder_then_move": {
+  "basic/counts": [
+   1,
+   0,
+   2
+  ],
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/a.tga",
+     "a from m.zip\n"
+    ],
+    [
+     "game/Override/b.txt",
+     "b\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/m.zip",
+     "<archive>"
+    ],
+    [
+     "mods/m/readme.txt",
+     "readme\n"
+    ],
+    [
+     "mods/out/keep.txt",
+     "keep\n"
+    ]
+   ]
+  ]
+ },
+ "no_destination": {
+  "basic/counts": [
+   0,
+   0,
+   3
+  ],
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/a.tga",
+     "a from m.zip\n"
+    ],
+    [
+     "game/Override/b.txt",
+     "b\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/m.zip",
+     "<archive>"
+    ],
+    [
+     "mods/m/readme.txt",
+     "readme\n"
+    ],
+    [
+     "mods/out/keep.txt",
+     "keep\n"
+    ]
+   ]
+  ]
+ },
+ "option_override": {
+  "basic/counts": [
+   1,
+   0,
+   2
+  ],
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/b.txt",
+     "b\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/m.zip",
+     "<archive>"
+    ],
+    [
+     "mods/m/Override/a.tga",
+     "a from m.zip\n"
+    ],
+    [
+     "mods/m/readme.txt",
+     "readme\n"
+    ],
+    [
+     "mods/out/keep.txt",
+     "keep\n"
+    ]
+   ]
+  ]
+ },
+ "outside_roots": {
+  "basic/counts": [
+   1,
+   0,
+   2
+  ],
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/b.txt",
+     "b\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/m.zip",
+     "<archive>"
+    ],
+    [
+     "mods/m/Override/a.tga",
+     "a from m.zip\n"
+    ],
+    [
+     "mods/m/readme.txt",
+     "readme\n"
+    ],
+    [
+     "mods/out/keep.txt",
+     "keep\n"
+    ]
+   ]
+  ]
+ },
+ "override": {
+  "basic/counts": [
+   1,
+   0,
+   2
+  ],
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/b.txt",
+     "b\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/m.zip",
+     "<archive>"
+    ],
+    [
+     "mods/m/Override/a.tga",
+     "a from m.zip\n"
+    ],
+    [
+     "mods/m/readme.txt",
+     "readme\n"
+    ],
+    [
+     "mods/out/keep.txt",
+     "keep\n"
+    ]
+   ]
+  ]
+ },
+ "override_backslash": {
+  "basic/counts": [
+   1,
+   0,
+   2
+  ],
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/b.txt",
+     "b\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/m.zip",
+     "<archive>"
+    ],
+    [
+     "mods/m/Override/a.tga",
+     "a from m.zip\n"
+    ],
+    [
+     "mods/m/readme.txt",
+     "readme\n"
+    ],
+    [
+     "mods/out/keep.txt",
+     "keep\n"
+    ]
+   ]
+  ]
+ },
+ "override_then_move": {
+  "basic/counts": [
+   1,
+   0,
+   2
+  ],
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "full_dry/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ],
+   [
+    "DryRun",
+    true
+   ]
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/a.tga",
+     "a from m.zip\n"
+    ],
+    [
+     "game/Override/b.txt",
+     "b\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/b.txt",
+     "b\n"
+    ],
+    [
+     "mods/m.zip",
+     "<archive>"
+    ],
+    [
+     "mods/m/readme.txt",
+     "readme\n"
+    ],
+    [
+     "mods/out/keep.txt",
+     "keep\n"
+    ]
+   ]
+  ]
+ }
+}

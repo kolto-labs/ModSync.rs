@@ -414,6 +414,7 @@ fn fetch_inner(
     progress: &mut dyn FnMut(FetchProgress),
     context: &TransferContext<'_>,
 ) -> Result<Fetched> {
+    check_cancelled(cancelled)?;
     let loopback_ca = context.loopback_ca;
     let url = reqwest::Url::parse(raw_url)?;
     ensure!(url.scheme() == "https", "Downloads require HTTPS");
@@ -485,11 +486,16 @@ fn fetch_inner(
     }
     // Resolved origin links can carry authorization independently of cookies or CA policy.
     // Never retain their URL in transport diagnostics (including redirected CDN URLs).
+    check_cancelled(cancelled)?;
     let mut response = request
         .send()
         .map_err(|error| network_failure(error.without_url().into()))?;
+    check_cancelled(cancelled)?;
     let final_url = response.url().clone();
     let status = response.status();
+    // Read before the prefix: once body bytes are consumed, `content_length` is the
+    // remaining length, not the download's total.
+    let total = response.content_length();
     let header = |name: &str| {
         response
             .headers()
@@ -516,6 +522,7 @@ fn fetch_inner(
     {
         return Err(network_failure(redact_response_read_error(error).into()));
     }
+    check_cancelled(cancelled)?;
     let body = text_prefix(&prefix);
     let markers = body
         .as_deref()
@@ -582,7 +589,6 @@ fn fetch_inner(
         };
         return Err(fail(class, anyhow::anyhow!("HTTP status {status}")));
     }
-    let total = response.content_length();
     let mut temp = tempfile::NamedTempFile::new_in(directory)?;
     let mut hash = Sha256::new();
     let mut buffer = [0u8; 64 * 1024];
@@ -591,12 +597,7 @@ fn fetch_inner(
     let mut bytes = prefix.len() as u64;
     progress(FetchProgress::Transferring { bytes, total });
     loop {
-        if cancelled.load(Ordering::Relaxed) {
-            return Err(fail(
-                FailureClass::Cancelled,
-                anyhow::anyhow!("Download cancelled"),
-            ));
-        }
+        check_cancelled(cancelled)?;
         let n = response
             .read(&mut buffer)
             .map_err(|error| network_failure(redact_response_read_error(error).into()))?;
@@ -656,6 +657,7 @@ pub(crate) fn publish_staged(
         digest,
         fallback_name,
     } = staged;
+    check_cancelled(cancelled)?;
     if let Some(expected) = sha256 {
         ensure!(
             digest.eq_ignore_ascii_case(expected),
@@ -686,6 +688,9 @@ pub(crate) fn publish_staged(
     progress(FetchProgress::Verifying);
     crate::archive::verify(temp.path(), &path, options, cancelled)?;
     temp.as_file().sync_all()?;
+    // Verification and syncing can be lengthy. A stop observed at this boundary
+    // discards staging rather than publishing the now-cancelled transfer.
+    check_cancelled(cancelled)?;
     if let Err(error) = temp.persist_noclobber(&path) {
         // The name was taken while this transfer verified (a concurrent publish): the
         // same outcome as finding it present above, with the finished digest.
@@ -701,6 +706,17 @@ pub(crate) fn publish_staged(
         path,
         sha256: digest,
     })
+}
+
+fn check_cancelled(cancelled: &AtomicBool) -> Result<()> {
+    if cancelled.load(Ordering::Acquire) {
+        Err(fail(
+            FailureClass::Cancelled,
+            anyhow::anyhow!("Download cancelled"),
+        ))
+    } else {
+        Ok(())
+    }
 }
 
 /// The one-component rule for any server- or guide-supplied filename: exactly one normal

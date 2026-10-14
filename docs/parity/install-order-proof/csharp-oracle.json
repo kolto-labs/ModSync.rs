@@ -1,0 +1,958 @@
+{
+ "after_one": {
+  "decision": true,
+  "files": [
+   [
+    "Override/a.txt",
+    "a"
+   ],
+   [
+    "Override/b.txt",
+    "b"
+   ],
+   [
+    "Override/c.txt",
+    "c"
+   ],
+   [
+    "Override/z.txt",
+    "b"
+   ],
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": [
+   "A",
+   "C",
+   "B"
+  ]
+ },
+ "before": {
+  "decision": true,
+  "files": [
+   [
+    "Override/a.txt",
+    "a"
+   ],
+   [
+    "Override/b.txt",
+    "b"
+   ],
+   [
+    "Override/c.txt",
+    "c"
+   ],
+   [
+    "Override/z.txt",
+    "a"
+   ],
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": [
+   "C",
+   "B",
+   "A"
+  ]
+ },
+ "chain": {
+  "decision": true,
+  "files": [
+   [
+    "Override/a.txt",
+    "a"
+   ],
+   [
+    "Override/b.txt",
+    "b"
+   ],
+   [
+    "Override/c.txt",
+    "c"
+   ],
+   [
+    "Override/d.txt",
+    "d"
+   ],
+   [
+    "Override/z.txt",
+    "c"
+   ],
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": [
+   "A",
+   "D",
+   "B",
+   "C"
+  ]
+ },
+ "control_dependency_first": {
+  "decision": true,
+  "files": [
+   [
+    "Override/a.txt",
+    "a"
+   ],
+   [
+    "Override/b.txt",
+    "b"
+   ],
+   [
+    "Override/z.txt",
+    "b"
+   ],
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": [
+   "A",
+   "B"
+  ]
+ },
+ "control_no_refs": {
+  "decision": true,
+  "files": [
+   [
+    "Override/a.txt",
+    "a"
+   ],
+   [
+    "Override/b.txt",
+    "b"
+   ],
+   [
+    "Override/c.txt",
+    "c"
+   ],
+   [
+    "Override/z.txt",
+    "b"
+   ],
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": [
+   "C",
+   "A",
+   "B"
+  ]
+ },
+ "control_ordered": {
+  "decision": true,
+  "files": [
+   [
+    "Override/a.txt",
+    "a"
+   ],
+   [
+    "Override/b.txt",
+    "b"
+   ],
+   [
+    "Override/z.txt",
+    "b"
+   ],
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": [
+   "A",
+   "B"
+  ]
+ },
+ "cycle_one_unselected": {
+  "decision": [
+   1,
+   false
+  ],
+  "dryrun": null,
+  "errors": 1,
+  "listing": null,
+  "shape": "error"
+ },
+ "cycle_selected": {
+  "decision": [
+   1,
+   false
+  ],
+  "dryrun": null,
+  "errors": 1,
+  "listing": null,
+  "shape": "error"
+ },
+ "cycle_unselected": {
+  "decision": [
+   1,
+   false
+  ],
+  "dryrun": null,
+  "errors": 1,
+  "listing": null,
+  "shape": "error"
+ },
+ "dependency": {
+  "decision": true,
+  "files": [
+   [
+    "Override/a.txt",
+    "a"
+   ],
+   [
+    "Override/b.txt",
+    "b"
+   ],
+   [
+    "Override/c.txt",
+    "c"
+   ],
+   [
+    "Override/z.txt",
+    "b"
+   ],
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": [
+   "A",
+   "C",
+   "B"
+  ]
+ },
+ "direct_after": {
+  "decision": true,
+  "files": [
+   [
+    "Override/a.txt",
+    "a"
+   ],
+   [
+    "Override/b.txt",
+    "b"
+   ],
+   [
+    "Override/c.txt",
+    "c"
+   ],
+   [
+    "Override/z.txt",
+    "c"
+   ],
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": [
+   "B",
+   "A",
+   "C"
+  ]
+ },
+ "direct_dependency": {
+  "decision": true,
+  "files": [
+   [
+    "Override/a.txt",
+    "a"
+   ],
+   [
+    "Override/b.txt",
+    "b"
+   ],
+   [
+    "Override/c.txt",
+    "c"
+   ],
+   [
+    "Override/z.txt",
+    "c"
+   ],
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": [
+   "A",
+   "B",
+   "C"
+  ]
+ },
+ "dry_run_order": {
+  "decision": [
+   0,
+   true
+  ],
+  "dryrun": [
+   "WARNING: [DryRunSkipped] Skipped 'B' during dry-run: source archives or files are not available."
+  ],
+  "errors": null,
+  "listing": [
+   "OK: A",
+   "OK: B",
+   "OK: C"
+  ],
+  "shape": "report"
+ },
+ "install_cycle_unselected": {
+  "decision": false,
+  "files": [
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": null
+ },
+ "install_missing_unselected": {
+  "decision": false,
+  "files": [
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": null
+ },
+ "json_after": {
+  "decision": true,
+  "files": [
+   [
+    "Override/a.txt",
+    "a"
+   ],
+   [
+    "Override/b.txt",
+    "b"
+   ],
+   [
+    "Override/c.txt",
+    "c"
+   ],
+   [
+    "Override/z.txt",
+    "b"
+   ],
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": [
+   "A",
+   "C",
+   "B"
+  ]
+ },
+ "listing_before": {
+  "decision": [
+   0,
+   true
+  ],
+  "dryrun": [],
+  "errors": null,
+  "listing": [
+   "OK: C",
+   "OK: A",
+   "OK: B"
+  ],
+  "shape": "report"
+ },
+ "listing_control": {
+  "decision": [
+   0,
+   true
+  ],
+  "dryrun": [],
+  "errors": null,
+  "listing": [
+   "OK: A",
+   "OK: B",
+   "OK: C"
+  ],
+  "shape": "report"
+ },
+ "listing_reorder": {
+  "decision": [
+   0,
+   true
+  ],
+  "dryrun": [],
+  "errors": null,
+  "listing": [
+   "OK: A",
+   "OK: B",
+   "OK: C"
+  ],
+  "shape": "report"
+ },
+ "markdown_after": {
+  "decision": true,
+  "files": [
+   [
+    "Override/a.txt",
+    "a"
+   ],
+   [
+    "Override/b.txt",
+    "b"
+   ],
+   [
+    "Override/c.txt",
+    "c"
+   ],
+   [
+    "Override/z.txt",
+    "c"
+   ],
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": [
+   "A",
+   "B",
+   "C"
+  ]
+ },
+ "markdown_backward": {
+  "decision": true,
+  "files": [
+   [
+    "Override/a.txt",
+    "a"
+   ],
+   [
+    "Override/b.txt",
+    "b"
+   ],
+   [
+    "Override/c.txt",
+    "c"
+   ],
+   [
+    "Override/z.txt",
+    "c"
+   ],
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": [
+   "B",
+   "A",
+   "C"
+  ]
+ },
+ "markdown_before": {
+  "decision": true,
+  "files": [
+   [
+    "Override/a.txt",
+    "a"
+   ],
+   [
+    "Override/b.txt",
+    "b"
+   ],
+   [
+    "Override/c.txt",
+    "c"
+   ],
+   [
+    "Override/z.txt",
+    "c"
+   ],
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": [
+   "A",
+   "B",
+   "C"
+  ]
+ },
+ "markdown_missing_unselected": {
+  "decision": [
+   0,
+   true
+  ],
+  "dryrun": [],
+  "errors": null,
+  "listing": [
+   "OK: A",
+   "OK: B"
+  ],
+  "shape": "report"
+ },
+ "markdown_no_extension": {
+  "decision": true,
+  "files": [
+   [
+    "Override/a.txt",
+    "a"
+   ],
+   [
+    "Override/b.txt",
+    "b"
+   ],
+   [
+    "Override/c.txt",
+    "c"
+   ],
+   [
+    "Override/z.txt",
+    "c"
+   ],
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": [
+   "B",
+   "A",
+   "C"
+  ]
+ },
+ "markdown_no_refs": {
+  "decision": true,
+  "files": [
+   [
+    "Override/a.txt",
+    "a"
+   ],
+   [
+    "Override/b.txt",
+    "b"
+   ],
+   [
+    "Override/c.txt",
+    "c"
+   ],
+   [
+    "Override/z.txt",
+    "b"
+   ],
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": [
+   "A",
+   "C",
+   "B"
+  ]
+ },
+ "markdown_txt": {
+  "decision": true,
+  "files": [
+   [
+    "Override/a.txt",
+    "a"
+   ],
+   [
+    "Override/b.txt",
+    "b"
+   ],
+   [
+    "Override/c.txt",
+    "c"
+   ],
+   [
+    "Override/z.txt",
+    "c"
+   ],
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": [
+   "B",
+   "A",
+   "C"
+  ]
+ },
+ "missing_after_selected": {
+  "decision": [
+   1,
+   false
+  ],
+  "dryrun": null,
+  "errors": 1,
+  "listing": null,
+  "shape": "error"
+ },
+ "missing_after_unselected": {
+  "decision": [
+   1,
+   false
+  ],
+  "dryrun": null,
+  "errors": 1,
+  "listing": null,
+  "shape": "error"
+ },
+ "missing_before_unselected": {
+  "decision": [
+   1,
+   false
+  ],
+  "dryrun": null,
+  "errors": 1,
+  "listing": null,
+  "shape": "error"
+ },
+ "missing_json_unselected": {
+  "decision": [
+   1,
+   false
+  ],
+  "dryrun": null,
+  "errors": 1,
+  "listing": null,
+  "shape": "error"
+ },
+ "mixed_edges": {
+  "decision": true,
+  "files": [
+   [
+    "Override/a.txt",
+    "a"
+   ],
+   [
+    "Override/b.txt",
+    "b"
+   ],
+   [
+    "Override/c.txt",
+    "c"
+   ],
+   [
+    "Override/d.txt",
+    "d"
+   ],
+   [
+    "Override/z.txt",
+    "b"
+   ],
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": [
+   "A",
+   "D",
+   "C",
+   "B"
+  ]
+ },
+ "resolver_reorder": {
+  "decision": true,
+  "files": [
+   [
+    "Override/a.txt",
+    "a"
+   ],
+   [
+    "Override/b.txt",
+    "b"
+   ],
+   [
+    "Override/c.txt",
+    "c"
+   ],
+   [
+    "Override/z.txt",
+    "b"
+   ],
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": [
+   "A",
+   "C",
+   "B"
+  ]
+ },
+ "rootless_cycle_unselected": {
+  "decision": [
+   1,
+   false
+  ],
+  "dryrun": null,
+  "errors": 1,
+  "listing": null,
+  "shape": "error"
+ },
+ "rootless_missing_unselected": {
+  "decision": [
+   1,
+   false
+  ],
+  "dryrun": null,
+  "errors": 1,
+  "listing": null,
+  "shape": "error"
+ },
+ "self_unselected": {
+  "decision": [
+   1,
+   false
+  ],
+  "dryrun": null,
+  "errors": 2,
+  "listing": null,
+  "shape": "error"
+ },
+ "two_after": {
+  "decision": true,
+  "files": [
+   [
+    "Override/a.txt",
+    "a"
+   ],
+   [
+    "Override/b.txt",
+    "b"
+   ],
+   [
+    "Override/c.txt",
+    "c"
+   ],
+   [
+    "Override/d.txt",
+    "d"
+   ],
+   [
+    "Override/e.txt",
+    "e"
+   ],
+   [
+    "Override/z.txt",
+    "c"
+   ],
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": [
+   "A",
+   "B",
+   "E",
+   "D",
+   "C"
+  ]
+ },
+ "unselected_link": {
+  "decision": true,
+  "files": [
+   [
+    "Override/a.txt",
+    "a"
+   ],
+   [
+    "Override/b.txt",
+    "b"
+   ],
+   [
+    "Override/c.txt",
+    "c"
+   ],
+   [
+    "Override/z.txt",
+    "b"
+   ],
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": [
+   "A",
+   "C",
+   "B"
+  ]
+ },
+ "widescreen_before_base": {
+  "decision": true,
+  "files": [
+   [
+    "Override/a.txt",
+    "a"
+   ],
+   [
+    "Override/b.txt",
+    "b"
+   ],
+   [
+    "Override/c.txt",
+    "c"
+   ],
+   [
+    "Override/e.txt",
+    "e"
+   ],
+   [
+    "Override/z.txt",
+    "b"
+   ],
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": [
+   "A",
+   "E",
+   "C",
+   "B"
+  ]
+ },
+ "widescreen_root": {
+  "decision": true,
+  "files": [
+   [
+    "Override/a.txt",
+    "a"
+   ],
+   [
+    "Override/b.txt",
+    "b"
+   ],
+   [
+    "Override/e.txt",
+    "e"
+   ],
+   [
+    "Override/z.txt",
+    "b"
+   ],
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": [
+   "A",
+   "E",
+   "B"
+  ]
+ },
+ "ws_first": {
+  "decision": true,
+  "files": [
+   [
+    "Override/a.txt",
+    "a"
+   ],
+   [
+    "Override/e.txt",
+    "e"
+   ],
+   [
+    "Override/z.txt",
+    "a"
+   ],
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": [
+   "E",
+   "A"
+  ]
+ },
+ "ws_two": {
+  "decision": true,
+  "files": [
+   [
+    "Override/a.txt",
+    "a"
+   ],
+   [
+    "Override/b.txt",
+    "b"
+   ],
+   [
+    "Override/d.txt",
+    "d"
+   ],
+   [
+    "Override/e.txt",
+    "e"
+   ],
+   [
+    "Override/z.txt",
+    "b"
+   ],
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": [
+   "D",
+   "A",
+   "E",
+   "B"
+  ]
+ },
+ "yaml_after": {
+  "decision": true,
+  "files": [
+   [
+    "Override/a.txt",
+    "a"
+   ],
+   [
+    "Override/b.txt",
+    "b"
+   ],
+   [
+    "Override/c.txt",
+    "c"
+   ],
+   [
+    "Override/z.txt",
+    "b"
+   ],
+   [
+    "chitin.key",
+    "KEY"
+   ]
+  ],
+  "order": [
+   "A",
+   "C",
+   "B"
+  ]
+ }
+}

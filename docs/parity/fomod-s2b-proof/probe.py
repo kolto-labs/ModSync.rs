@@ -7,7 +7,9 @@ import atexit, ctypes, hashlib, http.server, io, json, os, pathlib, shutil, ssl,
 REPO=pathlib.Path(__file__).resolve().parents[3]
 TARGET=pathlib.Path(os.environ.get('CARGO_TARGET_DIR', str(REPO/'target'))).resolve()
 OUT=pathlib.Path(os.environ.get('MODSYNC_PROOF_OUT', str(TARGET/'cloud-proof/fomod-s2b'))).resolve()
-shutil.rmtree(OUT,ignore_errors=True);OUT.mkdir(parents=True)
+_MARK=OUT/'.modsync-proof-out'
+if OUT.exists() and any(OUT.iterdir()) and not _MARK.exists() and (TARGET/'cloud-proof').resolve() not in OUT.parents:raise SystemExit(f'Refusing to delete {OUT}: not an empty or earlier probe output directory (set MODSYNC_PROOF_OUT to a dedicated folder)')
+shutil.rmtree(OUT,ignore_errors=True);OUT.mkdir(parents=True);_MARK.write_text('')
 BIN=pathlib.Path(os.environ.get('MODSYNC_BINARY', str(TARGET/'debug/modsync'))).resolve()
 def digest(p):return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
 def sources():return {str(p.relative_to(REPO)):digest(p) for p in sorted(list((REPO/'src').rglob('*.rs'))+[REPO/'Cargo.toml',REPO/'Cargo.lock'])}
@@ -206,16 +208,26 @@ other=[comp(instructions=(extract('example.zip'),),saved=choices(entry('example.
 c=setup('scope_other_archive',other,BOTH)
 ri=install(c,'install',sidecar(c,choices(entry('example.zip'))));check('scope_other_archive_exit',ri['exit'],0);check('scope_other_archive_bytes',ri['game'],files('b','c'))
 # Scope follows the engine's source matching: a folder source extracts every archive
-# below it and a glob character class names archives, so both components take the file
-# entry. At c28dee0 only the last source component was compared (no folders, `[` escaped)
-# and neither received it.
-for label,source,where in [('folder','Pack','Pack/example.zip'),('char_class','[e]xample.zip','example.zip')]:
- c=setup(f'scope_{label}',[comp(instructions=({'Action':'Extract','Source':[f'<<modDirectory>>/{source}']},))],{})
+# below it, so the component takes the file entry. At c28dee0 only the last source
+# component was compared and it did not. `[` and `]` are literal in a Source, as in
+# C# PathHelper.WildcardPathMatch (see ../delete-directory-contract.md), so
+# `[e]xample.zip` names no file: the scope still admits the entry (the FOMOD stage
+# passes), and the run is refused as a missing source before any write. The
+# reference refuses the same Extract with MissingSourceFiles
+# (../delete-directory-proof, extract_bracket_literal).
+# An archive literally named `[e]xample.zip` and named literally by the Source is in
+# scope and installs (`bracket_literal`). It extracts to `[e]xample/`, next to the
+# archive (an Extract Destination is never used; ../extract-destination-contract.md),
+# so the mapped copies read from a folder named with brackets too.
+for label,source,where,ok in [('folder','Pack','Pack/example.zip',True),('char_class','[e]xample.zip','example.zip',False),('bracket_literal','[e]xample.zip','[e]xample.zip',True)]:
+ extract_step={'Action':'Extract','Source':[f'<<modDirectory>>/{source}']}
+ c=setup(f'scope_{label}',[comp(instructions=(extract_step,))],{})
  (c['mods']/where).parent.mkdir(parents=True,exist_ok=True);(c['mods']/where).write_bytes(FIRST);n=f'scope_{label}'
+ archive=where.rsplit('/',1)[-1]
  ri=install(c,'no_file');check(n+'_needs_choices_exit',ri['exit'],1);check(n+'_needs_choices_game_untouched',ri['game'],{})
- ri=install(c,'install',sidecar(c,choices(entry('example.zip'))));check(n+'_install_exit',ri['exit'],0);check(n+'_install_bytes',ri['game'],files('b'))
- rv=validate(c,'report',flags=sidecar(c,choices(entry('example.zip'))));check(n+'_report_exit',rv['exit'],0);check(n+'_report_stage_passed',stage(rv)['passed'],True)
- rv=validate(c,'plain',report=False,flags=sidecar(c,choices(entry('example.zip'))));check(n+'_plain_exit',rv['exit'],0)
+ ri=install(c,'install',sidecar(c,choices(entry(archive))));check(n+'_install_exit',ri['exit'],0 if ok else 1);check(n+'_install_bytes',ri['game'],files('b') if ok else {})
+ rv=validate(c,'report',flags=sidecar(c,choices(entry(archive))));check(n+'_report_exit',rv['exit'],0 if ok else 1);check(n+'_report_stage_passed',stage(rv)['passed'],True)
+ rv=validate(c,'plain',report=False,flags=sidecar(c,choices(entry(archive))));check(n+'_plain_exit',rv['exit'],0 if ok else 1)
 # Phased: base and remaining reconstruct the completed definitions from the same file;
 # a different file changes them and is refused before any write.
 wide=comp(1,instructions=(NOTE,),WidescreenOnly=True)
@@ -282,9 +294,11 @@ for label,name in [('folded_entry','ärchive.zip'),('exact_entry','Ärchive.zip'
 
 # 3. The registered-archive FOMOD gate runs on plain validate and install (C#
 # InstallationValidationPipeline and InstallationService), before any write.
+# A component that extracts copies no loose note: a loose Source next to an Extract is
+# refused, as the C# CLI refuses it (../loose-source-contract.md).
 def gate_case(name,saved=None,status=None,registered=('example.zip',),existing=None,extract_names=()):
  existing={'example.zip':FIRST,'notes.txt':b'notes bytes\n'} if existing is None else existing
- return setup(name,[comp(instructions=(NOTE,*map(extract,extract_names)),saved=saved,files=registered,status=status)],existing)
+ return setup(name,[comp(instructions=tuple(map(extract,extract_names)) or (NOTE,),saved=saved,files=registered,status=status)],existing)
 for name,saved,status,needle in [('gate_missing',None,None,'no explicit FomodChoices'),('gate_stale',choices(entry('example.zip','Unknown')),{'example.zip':'configured'},'do not apply to the current archive'),('gate_configured_only',None,{'example.zip':'configured'},'marked configured')]:
  c=gate_case(name,saved,status)
  rv=validate(c,'plain',report=False);check(name+'_plain_exit',rv['exit'],1);check(name+'_plain_actionable',needle in rv['stderr'] and '--fomod-choices' in rv['stderr'])
@@ -355,9 +369,10 @@ def plain_validate(c):
  game=c['case']/'unused-game';(game/'Override').mkdir(parents=True,exist_ok=True)
  return [str(BIN),'validate','--input',str(c['guide']),'--game-dir',str(game),'--source-dir',str(c['mods']),'--scratch-dir',str(c['scratch'])]
 def shared(name,data,saved=None,status=None,extract_names=()):
- # Both components register the archive and copy a note; only the first extracts.
+ # Both components register the archive; the first extracts it (or copies a note)
+ # and the second copies a note.
  second={**NOTE,'Source':['<<modDirectory>>/other.txt']}
- return setup(name,[comp(i,instructions=(NOTE,*map(extract,extract_names)) if i==0 else (second,),saved=saved,files=('example.zip',),status=status) for i in (0,1)],{'example.zip':data,'notes.txt':b'notes bytes\n','other.txt':b'other bytes\n'})
+ return setup(name,[comp(i,instructions=(tuple(map(extract,extract_names)) or (NOTE,)) if i==0 else (second,),saved=saved,files=('example.zip',),status=status) for i in (0,1)],{'example.zip':data,'notes.txt':b'notes bytes\n','other.txt':b'other bytes\n'})
 # Non-FOMOD archive registered by two components: listed, never spooled (spooled once
 # per registrant at 37cd4cc: 2).
 c=shared('unpack_plain_shared',PLAIN);r,n=spooled(c,'validate',plain_validate(c))

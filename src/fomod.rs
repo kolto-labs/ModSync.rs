@@ -524,6 +524,35 @@ impl ModuleConfig {
         Ok(files)
     }
 
+    /// Whether the reference mapper would give this installer any archive-scoped Copy
+    /// instruction for some choice: a required file, any plugin's file (every step,
+    /// visible or not) or a conditional pattern it can place. C#
+    /// `HasArchiveScopedInstructions` checks the merged component and all its options,
+    /// so only an installer that maps no file at all fails it. A non-folder file whose
+    /// source normalizes to empty maps to the bare archive folder, which C# does not count.
+    pub fn maps_any_file(&self) -> bool {
+        fn scoped(file: &FileInstall) -> bool {
+            file.is_folder
+                || file
+                    .source
+                    .trim()
+                    .replace('\\', "/")
+                    .split('/')
+                    .any(|segment| !segment.is_empty() && segment != ".")
+        }
+        let plugins = self.plugins();
+        self.required_files.iter().any(scoped)
+            || plugins
+                .iter()
+                .any(|(_, plugin)| plugin.files.iter().any(scoped))
+            || self.conditional_files.iter().any(|pattern| {
+                matches!(
+                    Self::place_pattern(pattern, &plugins).0,
+                    PatternPlacement::Trailing | PatternPlacement::Plugin(_)
+                ) && pattern.files.iter().any(scoped)
+            })
+    }
+
     /// Visible diagnostics for the fallbacks where the reference mapper
     /// (`FomodToComponentMapper`) logs a warning: file/game dependencies treated as
     /// satisfied, skipped conditional patterns and dropped destination renames. They
@@ -654,15 +683,23 @@ impl ModuleConfig {
     /// Map configured file copies from an already-extracted, mod-relative directory.
     /// This does not bypass archive configuration gates or perform extraction.
     pub fn copy_instructions(&self, extracted_directory: &str) -> Result<Vec<crate::Instruction>> {
-        let root = crate::paths::relative(extracted_directory, false)?;
+        let root = crate::paths::literal_relative(extracted_directory)?;
         ensure!(
             !root.as_os_str().is_empty(),
             "FOMOD extraction directory is empty"
         );
         let mut instructions = Vec::new();
         for file in self.selected_files()? {
-            let source = crate::paths::relative(file.source.trim(), false)?;
-            let mut destination = crate::paths::relative(file.destination.trim(), false)?;
+            let source = crate::paths::literal_relative(file.source.trim())?;
+            // Destinations follow the guide Destination rule, which refuses `[`/`]`;
+            // say so instead of leaving only the stale-choices wrapper.
+            let mut destination = crate::paths::relative(file.destination.trim(), false)
+                .with_context(|| {
+                    format!(
+                        "FOMOD file destination '{}' is not a usable game path; this is not a stale choice",
+                        file.destination.trim()
+                    )
+                })?;
             if !file.is_folder {
                 let filename = source
                     .file_name()
@@ -812,7 +849,7 @@ pub(crate) fn inspect_entries_with_cancel(
 impl ArchiveModule {
     /// Resolve mapped sources against both the extraction directory and archive wrapper.
     pub fn copy_instructions(&self, extracted_directory: &str) -> Result<Vec<crate::Instruction>> {
-        let root = crate::paths::relative(extracted_directory, false)?;
+        let root = crate::paths::literal_relative(extracted_directory)?;
         ensure!(
             !root.as_os_str().is_empty(),
             "FOMOD extraction directory is empty"
@@ -875,10 +912,11 @@ pub fn resource_matches_archive(component: &crate::Component, archive: &str) -> 
 }
 
 /// Whether an Extract source could resolve to the archive under the engine's source
-/// matching: a glob (`*`, `?`, `[...]`) over the file name, or a folder source that
-/// contains the archive at any depth. The archive's folder is unknown here, so any
-/// source whose last component is not an archive file name may be that folder, and
-/// an unparseable glob is kept too: over-inclusion only applies a named entry.
+/// matching: a wildcard (`*`, `?`; `[` and `]` are literal) over the file name, or a
+/// folder source that contains the archive at any depth. The archive's folder is
+/// unknown here, so any source whose last component is not an archive file name may
+/// be that folder, and an unparseable glob is kept too: over-inclusion only applies a
+/// named entry.
 fn source_may_extract(source: &str, filename: &str) -> bool {
     let source = source.trim().replace('\\', "/");
     let last = source
@@ -887,9 +925,10 @@ fn source_may_extract(source: &str, filename: &str) -> bool {
         .next()
         .unwrap_or("");
     !crate::engine::is_archive(last)
-        || glob::Pattern::new(&fold_case(last)).map_or(true, |pattern| {
-            crate::engine::source_glob_matches(&pattern, &fold_case(filename))
-        })
+        || glob::Pattern::new(&crate::engine::source_wildcard_glob(&fold_case(last)))
+            .map_or(true, |pattern| {
+                crate::engine::source_glob_matches(&pattern, &fold_case(filename))
+            })
 }
 
 /// Whether this component registers the archive or may extract it through one of its

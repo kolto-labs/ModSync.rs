@@ -207,6 +207,128 @@ impl Content {
     }
 }
 
+/// Whether an authored Source of this action also matches every file under it as
+/// a folder. The reference binds file-action Sources with
+/// `PathHelper.EnumerateFilesWithWildcards`, which returns files only, so a folder
+/// Source is a missing source for them. Extract, Patcher and FOMOD scoping keep the
+/// folder rule (FOMOD root-folder flows rely on it for Extract).
+pub(crate) fn authored_descendants(action: &str) -> bool {
+    !matches!(
+        action,
+        "Copy" | "Move" | "Rename" | "Delete" | "CleanList" | "Execute" | "Run"
+    )
+}
+
+/// How an action's missing Source is classified; see `Engine::classify_miss`.
+#[derive(Clone, Copy)]
+enum MissKind {
+    LiteralTyped,
+    WildcardTyped,
+}
+
+/// Whether a Patcher Destination is `<<gameDirectory>>` or `<<kotorDirectory>>`,
+/// ignoring case (`OrdinalIgnoreCase`), as C# `ParseDestinationWithAction` accepts
+/// it. C# then checks it as a path, so only the exact spelling resolves.
+fn game_placeholder(raw: &str) -> bool {
+    ["<<gameDirectory>>", "<<kotorDirectory>>"]
+        .iter()
+        .any(|root| crate::unicode_case::ordinal_eq(raw, root))
+}
+
+/// Whether an authored Destination has a part that C# `PathValidator.IsValidPath`
+/// refuses and `paths::relative` lets through: a `.` part (which `relative` drops
+/// while resolving), `..` inside a longer name (`a..b`; a bare `..` is refused by
+/// `relative` as unsafe) or a control character (below U+0020). C# validation (and
+/// so its install) refuses such a Copy, Move, CleanList or DelDuplicate Destination,
+/// and its DelDuplicate and CleanList execution fail on one.
+fn invalid_destination(raw: &str) -> bool {
+    raw.split(['/', '\\']).any(|part| {
+        part == "." || (part != ".." && part.contains("..")) || part.chars().any(|c| c < ' ')
+    })
+}
+
+/// A Rename Destination as the new file name in the source's own folder. C#
+/// `RenameFile` joins it to that folder unresolved (`Instruction.cs:976-979`, `:1005`),
+/// so its install fails a placeholder path such as `<<kotorDirectory>>/Override/b.txt`
+/// (there is no such folder) while its dry run passes it. Rust refuses a placeholder
+/// where the step runs (its dry run, so plain validate, and before any install
+/// write); a path of several parts is also refused by the archive/destination stage.
+///
+/// The name must be one file name that is valid on Windows, written as it is used: no
+/// separator or `.` part (`./b.txt`, `b.txt/`), none of the parts `invalid_destination`
+/// refuses (`..` inside the name, a control character) and none `relative` refuses (a
+/// trailing dot or space, a device name such as `con.txt`, `:`, wildcards). C#
+/// validation never checks a Rename Destination, so its Linux install renames to such a
+/// name; Rust refuses it at the same points as a folder part. The drafter keeps a bare
+/// new name only when this accepts it (`draft::is_file_name`).
+pub(crate) fn rename_file_name(destination: &str) -> Result<PathBuf> {
+    ensure!(
+        !destination.starts_with("<<"),
+        "Rename Destination must be a file name, not a placeholder path: {destination}"
+    );
+    let name = relative(destination, false)?;
+    ensure!(
+        name.components().count() == 1 && name.as_os_str() == std::ffi::OsStr::new(destination),
+        "Rename Destination must be one file name: {destination}"
+    );
+    ensure!(
+        !invalid_destination(destination),
+        "Rename Destination is not a valid file name (`..` inside the name or a control character): {destination}"
+    );
+    Ok(name)
+}
+
+/// What a component's Extract steps would extract; see `Engine::archive_members`.
+struct ArchiveMembers<'a> {
+    members: BTreeSet<String>,
+    has_archives: bool,
+    /// An archive only an option that is not chosen extracts could not be listed.
+    unknown: bool,
+    missing: Vec<&'a Instruction>,
+}
+
+/// Whether an instruction is one of the component's own (not an option's).
+fn is_top_level(component: &Component, instruction: &Instruction) -> bool {
+    component
+        .instructions
+        .iter()
+        .any(|own| std::ptr::eq(own, instruction))
+}
+
+/// Whether an instruction's Dependencies are all in `selected` and none of its
+/// Restrictions is.
+fn applies_with(selected: &BTreeSet<crate::guid::Identity>, instruction: &Instruction) -> bool {
+    instruction
+        .dependencies
+        .iter()
+        .all(|id| selected.contains(&crate::guid::key_ascii(id)))
+        && !instruction
+            .restrictions
+            .iter()
+            .any(|id| selected.contains(&crate::guid::key_ascii(id)))
+}
+
+/// Glob text for one authored Source path with the reference wildcard rules
+/// (`PathHelper.WildcardPathMatch`): each path level is matched on its own, `*`
+/// (and so `**`) matches any run of characters within one level, `?` matches one
+/// character, and every other character, including `[` and `]`, is literal.
+pub(crate) fn source_wildcard_glob(text: &str) -> String {
+    let mut glob = String::with_capacity(text.len());
+    let mut star = false;
+    for character in text.chars() {
+        match character {
+            '*' if star => {}
+            '*' => glob.push('*'),
+            '?' => glob.push('?'),
+            '[' => glob.push_str("[[]"),
+            ']' => glob.push_str("[]]"),
+            other => glob.push(other),
+        }
+        star = character == '*';
+    }
+    glob
+}
+
 /// The glob half of Extract/Copy source matching; a source also matches every file
 /// below it as a folder (see `Engine::source_matches`).
 pub(crate) fn source_glob_matches(pattern: &glob::Pattern, candidate: &str) -> bool {
@@ -233,6 +355,14 @@ pub(crate) fn is_archive(name: &str) -> bool {
     )
 }
 
+/// Where an Extract unpacks `source`: a folder named after the archive's stem, next
+/// to the archive. A step's Destination is never used, as in C#: validation
+/// (`ComponentValidation.ParseDestinationWithAction`, AttemptFixes on by default)
+/// clears an Extract Destination before the dry run and the install.
+fn extraction_destination(source: &Path) -> PathBuf {
+    source.parent().unwrap().join(source.file_stem().unwrap())
+}
+
 /// A resolver miss remains an error for strict validation and installation.
 #[derive(Debug)]
 struct MissingSource(String);
@@ -243,8 +373,11 @@ impl std::fmt::Display for MissingSource {
 }
 impl std::error::Error for MissingSource {}
 
-/// Only the Copy/Move/Extract source-resolution boundary produces this cause.
-/// In particular, Rename and configured FOMOD member failures stay hard errors.
+/// Only the Copy/Move/Extract/Patcher source-resolution boundary (including an
+/// empty Copy/Move/Extract Source list), a strict (Overwrite=true) Delete miss
+/// or empty Source, and the misses `Engine::classify_miss` types (Rename,
+/// CleanList, Execute/Run) produce this cause. Configured FOMOD member failures
+/// stay hard errors.
 #[derive(Debug)]
 struct MissingSourceFiles(anyhow::Error);
 impl std::fmt::Display for MissingSourceFiles {
@@ -253,6 +386,73 @@ impl std::fmt::Display for MissingSourceFiles {
     }
 }
 impl std::error::Error for MissingSourceFiles {}
+
+/// C# `ActionExitCode.OptionalInstallFailed`: any failure of a chosen option, a
+/// missing source included, fails its component (`UserCancelledInstall`), so the
+/// dry run reports it as an error rather than `DryRunSkipped`.
+#[derive(Debug)]
+struct OptionalInstallFailed(anyhow::Error);
+impl OptionalInstallFailed {
+    /// Hides the `MissingSourceFiles` cause; other errors already fail the dry run.
+    fn wrap(error: anyhow::Error) -> anyhow::Error {
+        if error.is::<MissingSourceFiles>() {
+            anyhow::Error::new(Self(error))
+        } else {
+            error
+        }
+    }
+}
+impl std::fmt::Display for OptionalInstallFailed {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+impl std::error::Error for OptionalInstallFailed {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        self.0.source()
+    }
+}
+
+/// The install-tree scan's refusal of two names that differ only in case. Typed so
+/// the full report can show it as C#'s Environment stage does
+/// ([`Engine::case_collision_report`]); its text is unchanged.
+#[derive(Debug)]
+struct CaseCollision {
+    path: PathBuf,
+    directory: bool,
+}
+impl std::fmt::Display for CaseCollision {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let kind = if self.directory {
+            "directories"
+        } else {
+            "files"
+        };
+        write!(f, "Case-colliding {kind}: {}", self.path.display())
+    }
+}
+impl std::error::Error for CaseCollision {}
+
+/// The first name under the game folder that differs from another only in case,
+/// with the scan's walk and keys. C# checks only this folder
+/// (`PathHelper.FindCaseInsensitiveDuplicates(MainConfig.DestinationPath)`).
+fn game_case_collision(game: &Path, policy: crate::paths::PathPolicy) -> Option<PathBuf> {
+    let (mut files, mut directories) = (BTreeSet::new(), BTreeSet::new());
+    for entry in walkdir::WalkDir::new(game) {
+        let entry = entry.ok()?;
+        let seen = if entry.file_type().is_file() {
+            &mut files
+        } else if entry.file_type().is_dir() {
+            &mut directories
+        } else {
+            continue;
+        };
+        if !seen.insert(policy.key(entry.path())) {
+            return Some(entry.into_path());
+        }
+    }
+    None
+}
 
 pub struct Engine {
     pub settings: Settings,
@@ -280,6 +480,88 @@ pub struct Engine {
     conflicts: Option<crate::conflicts::Tracker>,
     validation_target: Option<(String, String, Option<usize>)>,
     validation_warnings: Vec<crate::validation::DryRunIssue>,
+}
+
+/// C#'s Environment stage (`InstallationService.ValidateInstallationEnvironmentAsync`)
+/// fails when it cannot create a file in the game or mod folder
+/// (`UtilityHelper.IsDirectoryWritable`), with the mod folder's message when both
+/// fail. Rust asks the operating system instead of writing a probe file, so
+/// validation changes nothing; Windows is not checked.
+fn unwritable_root(roots: &Roots) -> Option<&'static str> {
+    if !directory_writable(&roots.mods) {
+        Some(
+            "The Mod directory is not writable! Please ensure administrative privileges \
+             or choose a new mod directory.",
+        )
+    } else if !directory_writable(&roots.game) {
+        Some(
+            "The Install directory is not writable! Please ensure administrative \
+             privileges or reinstall KOTOR to a directory with write access.",
+        )
+    } else {
+        None
+    }
+}
+
+/// The errors C#'s Environment stage logs for each selected component
+/// (`InstallationService.ValidateInstallationEnvironmentAsync`): a Restriction that
+/// names a selected component or immediate option, then a Dependency that names one
+/// not selected. As C# `FindComponentsFromGuidList`, a GUID that names neither is
+/// skipped here (the later stages refuse it). `selected` is the Conflicts stage's set.
+fn environment_relations(
+    guide: &Guide,
+    components: &[&Component],
+    selected: &BTreeSet<String>,
+) -> Vec<String> {
+    use crate::guid::{eq_ascii, key_ascii};
+    let selected: BTreeSet<_> = selected.iter().map(|id| key_ascii(id)).collect();
+    let find = |id: &String| {
+        guide.components.iter().find_map(|component| {
+            if eq_ascii(&component.guid, id) {
+                Some(component)
+            } else {
+                component
+                    .options
+                    .iter()
+                    .find(|option| eq_ascii(&option.guid, id))
+            }
+        })
+    };
+    let mut errors = Vec::new();
+    for component in components {
+        for found in component.restrictions.iter().filter_map(&find) {
+            if selected.contains(&key_ascii(&found.guid)) {
+                errors.push(format!(
+                    "Cannot install '{}' due to '{}' being selected for install.",
+                    component.name, found.name
+                ));
+            }
+        }
+        for found in component.dependencies.iter().filter_map(&find) {
+            if !selected.contains(&key_ascii(&found.guid)) {
+                errors.push(format!(
+                    "Cannot install '{}' due to '{}' not being selected for install.",
+                    component.name, found.name
+                ));
+            }
+        }
+    }
+    errors
+}
+
+#[cfg(unix)]
+fn directory_writable(path: &Path) -> bool {
+    use std::os::unix::ffi::OsStrExt;
+    let Ok(path) = std::ffi::CString::new(path.as_os_str().as_bytes()) else {
+        return false;
+    };
+    // SAFETY: `path` is a NUL-terminated string that outlives the call.
+    unsafe { libc::access(path.as_ptr(), libc::W_OK | libc::X_OK) == 0 }
+}
+
+#[cfg(not(unix))]
+fn directory_writable(_: &Path) -> bool {
+    true
 }
 
 fn selected_guid_keys(guide: &Guide) -> BTreeSet<crate::guid::Identity> {
@@ -437,29 +719,37 @@ impl Engine {
                     "Exact path matching requires UTF-8 paths; refusing lossy filename identity"
                 );
                 if entry.file_type().is_file() {
-                    ensure!(
-                        self.files
-                            .insert(
-                                self.path_policy.key(&path),
-                                (path.clone(), Content::Disk(path.clone()))
-                            )
-                            .is_none(),
-                        "Case-colliding files: {}",
-                        path.display()
-                    );
+                    if self
+                        .files
+                        .insert(
+                            self.path_policy.key(&path),
+                            (path.clone(), Content::Disk(path.clone())),
+                        )
+                        .is_some()
+                    {
+                        return Err(CaseCollision {
+                            path,
+                            directory: false,
+                        }
+                        .into());
+                    }
                 } else {
                     ensure!(
                         entry.file_type().is_dir(),
                         "Unsupported special file: {}",
                         path.display()
                     );
-                    ensure!(
-                        self.directories
-                            .insert(self.path_policy.key(&path), path.clone())
-                            .is_none(),
-                        "Case-colliding directories: {}",
-                        path.display()
-                    );
+                    if self
+                        .directories
+                        .insert(self.path_policy.key(&path), path.clone())
+                        .is_some()
+                    {
+                        return Err(CaseCollision {
+                            path,
+                            directory: true,
+                        }
+                        .into());
+                    }
                 }
             }
         }
@@ -472,6 +762,8 @@ impl Engine {
         recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
         // C# runs FomodConfigurationGate on every validate path, not only the report.
         self.fomod_gate(guide, &mut emit)?;
+        self.destination_gate(guide)?;
+        self.archive_source_gate(guide)?;
         self.run(guide, &mut emit)
     }
 
@@ -509,12 +801,154 @@ impl Engine {
         Ok(Prediction { entries, events })
     }
 
+    /// C# validates every Copy, Move, CleanList and DelDuplicate Destination of the
+    /// selected components and their immediate options before installing
+    /// (`ComponentValidation.ParseDestinationWithAction`) and refuses one with a part
+    /// `PathValidator.IsValidPath` refuses (`invalid_destination`), which the archive
+    /// stage reports. Plain validate and install refuse it here, before any
+    /// simulation or write, for the same steps that stage checks (instruction
+    /// conditions met). A Destination that does not resolve is left to the
+    /// simulation, which reports it as before.
+    fn destination_gate(&self, guide: &Guide) -> Result<()> {
+        let mut selected = selected_guid_keys(guide);
+        selected.extend(self.completed.iter().cloned());
+        for component in guide.components.iter().filter(|component| {
+            component.is_selected
+                && !self
+                    .completed
+                    .contains(&crate::guid::key_ascii(&component.guid))
+        }) {
+            let owners = std::iter::once((None, component)).chain(
+                component
+                    .options
+                    .iter()
+                    .map(|option| (Some(&option.name), option)),
+            );
+            for (option, owner) in owners {
+                for (n, instruction) in owner.instructions.iter().enumerate() {
+                    if matches!(
+                        instruction.action.as_str(),
+                        "Copy" | "Move" | "CleanList" | "DelDuplicate"
+                    ) && invalid_destination(&instruction.destination)
+                        && applies_with(&selected, instruction)
+                        && self.path(&instruction.destination, false).is_ok()
+                    {
+                        let owner = match option {
+                            Some(option) => format!("{} / {option}", component.name),
+                            None => component.name.clone(),
+                        };
+                        bail!(
+                            "{owner} / step {} ({}): Destination is not a valid path (a `.` part, `..` inside a name or a control character): {}",
+                            n + 1,
+                            instruction.action,
+                            instruction.destination
+                        );
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
+    /// C# validation, run by the CLI `install` and the desktop Validate step before
+    /// installing, refuses a step whose Source in the mod folder none of its
+    /// component's archives holds (`ComponentValidation.VerifyExtractPaths`), once
+    /// one of them exists; the archive stage reports it. Plain validate and install
+    /// refuse it here, before any simulation or write, for the same steps
+    /// (`check_archive_sources`). The archives are those of every Extract of the
+    /// component and its options, chosen or not, that exist, in step order, as C#
+    /// lists them; each is listed only when a Source needs it, at most once, and the
+    /// search stops at the first that holds the Source (C# `IsSourcePathInArchives`).
+    /// A Source no listed archive holds passes when some archive could not be listed
+    /// (`listed_members`); if a step that runs extracts that archive, its Extract
+    /// fails as before. A component whose missing archive is extracted by a step
+    /// that runs (its own, or a chosen option's) is left to the simulation, which
+    /// reports it as before; a missing archive in an option that is not chosen is
+    /// left out, as C# leaves it out. A component with no Extract is not checked.
+    fn archive_source_gate(&self, guide: &Guide) -> Result<()> {
+        let mut selected = selected_guid_keys(guide);
+        selected.extend(self.completed.iter().cloned());
+        let mut listed: BTreeMap<String, Option<BTreeSet<String>>> = BTreeMap::new();
+        for component in guide.components.iter().filter(|component| {
+            component.is_selected
+                && !self
+                    .completed
+                    .contains(&crate::guid::key_ascii(&component.guid))
+        }) {
+            let owners: Vec<_> = std::iter::once((None, component))
+                .chain(
+                    component
+                        .options
+                        .iter()
+                        .map(|option| (Some(&option.name), option)),
+                )
+                .collect();
+            let mut archives: Vec<PathBuf> = Vec::new();
+            let mut runs_missing = false;
+            for (instruction, runs) in Self::archive_check_instructions(component, &selected) {
+                self.check_cancelled()?;
+                if instruction.action != "Extract" || instruction.source.is_empty() {
+                    continue;
+                }
+                for source in &instruction.source {
+                    if runs && self.matches(std::slice::from_ref(source), true)?.is_empty() {
+                        runs_missing = true;
+                    }
+                }
+                for archive in self.matches(&instruction.source, true)? {
+                    if !archives.contains(&archive) {
+                        archives.push(archive);
+                    }
+                }
+            }
+            if archives.is_empty() || runs_missing {
+                continue;
+            }
+            for (option, owner) in &owners {
+                for (n, instruction) in owner.instructions.iter().enumerate() {
+                    if !applies_with(&selected, instruction) {
+                        continue;
+                    }
+                    self.check_archive_sources(component, instruction, |prefix, pattern| {
+                        let mut unknown = false;
+                        for archive in &archives {
+                            let key = self.path_policy.key(archive);
+                            if !listed.contains_key(&key) {
+                                let members = self.listed_members(archive)?;
+                                listed.insert(key.clone(), members);
+                            }
+                            match &listed[&key] {
+                                Some(members) => {
+                                    if members
+                                        .iter()
+                                        .any(|member| self.source_matches(prefix, pattern, member))
+                                    {
+                                        return Ok(Some(true));
+                                    }
+                                }
+                                None => unknown = true,
+                            }
+                        }
+                        Ok((!unknown).then_some(false))
+                    })
+                    .with_context(|| {
+                        let owner = match option {
+                            Some(option) => format!("{} / {option}", component.name),
+                            None => component.name.clone(),
+                        };
+                        format!("{owner} / step {} ({})", n + 1, instruction.action)
+                    })?;
+                }
+            }
+        }
+        Ok(())
+    }
+
     /// The read-only FOMOD configuration gate for plain validate and install. Issues
     /// fail before any simulation or write; warnings are emitted as events.
     fn fomod_gate(&mut self, guide: &Guide, emit: &mut impl FnMut(Event)) -> Result<()> {
-        let warnings = self
-            .validate_fomod_configuration(guide)
-            .context("FOMOD configuration check failed")?;
+        // Warnings are emitted even when the gate then fails.
+        let (warnings, issues) = self.validate_fomod_configuration(guide);
         for warning in warnings {
             emit(Event {
                 component: String::new(),
@@ -522,7 +956,26 @@ impl Engine {
                 message: format!("WARNING: {warning}"),
             });
         }
-        Ok(())
+        // One issue keeps its own error chain. Several are numbered in gate order in
+        // one message: "<n> issues: [1] <first>; [2] <second>; ...".
+        let mut issues = issues.into_iter();
+        let Some(first) = issues.next() else {
+            return Ok(());
+        };
+        if issues.len() == 0 {
+            return Err(first).context("FOMOD configuration check failed");
+        }
+        let list = std::iter::once(first)
+            .chain(issues)
+            .enumerate()
+            .map(|(index, issue)| format!("[{}] {issue:#}", index + 1))
+            .collect::<Vec<_>>();
+        Err(anyhow::anyhow!(
+            "{} issues: {}",
+            list.len(),
+            list.join("; ")
+        ))
+        .context("FOMOD configuration check failed")
     }
 
     pub fn validate_report(
@@ -629,21 +1082,6 @@ impl Engine {
                 "Validating installation environment",
                 false,
             );
-            let environment = (|| -> Result<()> {
-                recovery::ensure_clean(&self.settings.roots)?;
-                recovery::verify_completion(&self.settings.roots, guide, self.completed.len())
-            })()
-            .map_err(|error| format!("{error:#}"));
-            let passed = report.push(crate::validation::Stage::Environment, environment);
-            boundary(
-                Stage::Environment,
-                "Validating installation environment",
-                true,
-            );
-            if !passed {
-                return finish(report);
-            }
-            boundary(Stage::Conflicts, "Checking conflicts", false);
             let mut selected = guide.selected_ids();
             selected.extend(
                 guide
@@ -655,6 +1093,45 @@ impl Engine {
                     })
                     .map(|component| component.guid.clone()),
             );
+            let environment = (|| -> Result<()> {
+                recovery::ensure_clean(&self.settings.roots)?;
+                recovery::verify_completion(&self.settings.roots, guide, self.completed.len())
+            })()
+            .map_err(|error| format!("{error:#}"));
+            let passed = match environment {
+                // C#'s Environment stage checks each selected component's
+                // Restrictions and Dependencies, then runs its checks (with
+                // AttemptFixes), and fails on any error. The full report runs those
+                // checks in its ComponentValidation stage, which --dry-run-only
+                // skips, so run them here instead in that mode.
+                Ok(()) => {
+                    let relations = environment_relations(guide, &validated_components, &selected);
+                    let outcomes = if dry_run_only {
+                        fresh_engine()
+                            .and_then(|engine| engine.validate_archives(guide, &mut emit, true))
+                    } else {
+                        Ok(Vec::new())
+                    };
+                    match outcomes {
+                        Ok(outcomes) => report.environment_components(
+                            relations,
+                            outcomes,
+                            unwritable_root(&self.settings.roots),
+                        ),
+                        Err(error) => report.push(Stage::Environment, Err(format!("{error:#}"))),
+                    }
+                }
+                environment => report.push(Stage::Environment, environment),
+            };
+            boundary(
+                Stage::Environment,
+                "Validating installation environment",
+                true,
+            );
+            if !passed {
+                return finish(report);
+            }
+            boundary(Stage::Conflicts, "Checking conflicts", false);
             report.declared_conflicts(guide, &validated_components, &selected);
             boundary(Stage::Conflicts, "Checking conflicts", true);
             boundary(
@@ -676,7 +1153,7 @@ impl Engine {
         if !dry_run_only {
             boundary(Stage::ComponentValidation, "Validating mod archives", false);
             let component = fresh_engine()
-                .and_then(|engine| engine.validate_archives(guide, &mut emit))
+                .and_then(|engine| engine.validate_archives(guide, &mut emit, full_validation))
                 .map_err(|error| format!("{error:#}"));
             report.component_validation(&validated_components, component);
             boundary(Stage::ComponentValidation, "Validating mod archives", true);
@@ -686,15 +1163,37 @@ impl Engine {
             "Checking FOMOD configuration",
             false,
         );
-        let fomod = fresh_engine()
-            .and_then(|mut engine| engine.validate_fomod_configuration(guide))
-            .map_err(|error| format!("{error:#}"));
-        report.fomod_configuration(fomod);
+        let (warnings, issues) = match fresh_engine() {
+            Ok(mut engine) => engine.validate_fomod_configuration(guide),
+            Err(error) => (Vec::new(), vec![error]),
+        };
+        report.fomod_configuration(
+            warnings,
+            issues.iter().map(|issue| format!("{issue:#}")).collect(),
+        );
         boundary(
             Stage::FomodConfiguration,
             "Checking FOMOD configuration",
             true,
         );
+        // Without a dry run the stages above run no step, while plain `validate`
+        // simulates every step and stops at the first failure. Once every stage has
+        // passed, run that simulation too, so this report never passes a guide plain
+        // `validate` refuses.
+        if !dry_run && report.error_count == 0 {
+            let outcome = fresh_engine()
+                .map_err(|error| (None, error))
+                .and_then(|engine| engine.simulate_steps(guide));
+            if let Err((failed, error)) = outcome {
+                let name = failed.and_then(|failed| {
+                    validated_components
+                        .iter()
+                        .find(|component| std::ptr::eq(**component, failed))
+                        .map(|component| component.name.as_str())
+                });
+                report.simulation_failure(name, format!("{error:#}"));
+            }
+        }
         if dry_run {
             boundary(
                 Stage::DryRun,
@@ -716,6 +1215,24 @@ impl Engine {
             );
         }
         finish(report)
+    }
+
+    /// Plain `validate`'s step simulation for the report without a dry run: the
+    /// remaining components in install order, stopping at the first failure, which
+    /// names the component it stopped in (none for an ordering error).
+    fn simulate_steps(
+        mut self,
+        guide: &Guide,
+    ) -> std::result::Result<(), (Option<&Component>, anyhow::Error)> {
+        let ordered = self
+            .remaining_ordered(guide)
+            .map_err(|error| (None, error))?;
+        self.load_selection(guide);
+        for component in ordered {
+            self.run_selected(&[component], &mut |_| {}, None)
+                .map_err(|error| (Some(component), error))?;
+        }
+        Ok(())
     }
 
     fn validate_dry_run(mut self, guide: &Guide) -> Vec<crate::validation::DryRunIssue> {
@@ -799,6 +1316,13 @@ impl Engine {
                         issues.push(crate::validation::DryRunIssue::skipped(component));
                         break;
                     }
+                    // A chosen option's steps retarget validation at the option; C# reports
+                    // the failure against the component and its step.
+                    self.validation_target = Some((
+                        component.name.clone(),
+                        component.guid.clone(),
+                        Some(index + 1),
+                    ));
                     let message = format!("{error:#}");
                     let mut issue = crate::validation::DryRunIssue::engine(
                         message.clone(),
@@ -819,315 +1343,412 @@ impl Engine {
     }
 
     /// Read-only archive/destination checks; never execute installation instructions.
+    /// `full_validation` is the full pipeline, whose Environment stage runs first.
     fn validate_archives(
         mut self,
         guide: &Guide,
         emit: &mut impl FnMut(Event),
-    ) -> Result<Vec<Result<(), String>>> {
+        full_validation: bool,
+    ) -> Result<Vec<crate::validation::ArchiveOutcome>> {
         recovery::ensure_clean(&self.settings.roots)?;
         recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
         self.selected = selected_guid_keys(guide);
         self.selected.extend(self.completed.iter().cloned());
         let mut outcomes = Vec::new();
-        let components: Vec<_> = guide
+        for component in guide
             .ordered()?
             .into_iter()
             .filter(|component| {
                 !self
                     .completed
                     .contains(&crate::guid::key_ascii(&component.guid))
-            })
-            .collect();
-        let mut uncertain = false;
-        for component in components {
-            let outcome = self
-                .validate_component_archives(component, &mut uncertain)
-                .with_context(|| format!("{}: archive/destination validation", component.name))
-                .map_err(|error| format!("{error:#}"));
+        }) {
+            // Missing archives and Destination errors are one error per step, as
+            // the reference lists them; any other failure stops this component's
+            // checks with one error. Warnings show only when there is no error.
+            let outcome = match self.validate_component_archives(component, full_validation) {
+                Ok((errors, warnings)) if errors.is_empty() => Ok(warnings),
+                Ok((errors, _)) => Err(errors
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", component.name))
+                    .collect()),
+                Err(error) => Err(vec![format!(
+                    "{:#}",
+                    error.context(format!(
+                        "{}: archive/destination validation",
+                        component.name
+                    ))
+                )]),
+            };
             emit(Event {
                 component: component.name.clone(),
                 step: 0,
-                message: if uncertain {
-                    "Archive/path checks completed; filesystem existence after external programs remains unproven".into()
-                } else {
-                    "Archive and destination checks completed".into()
-                },
+                message: "Archive and destination checks completed".into(),
             });
             outcomes.push(outcome);
         }
         Ok(outcomes)
     }
 
+    /// Returns the reference's per-step errors, if any: `Missing Required Archives`,
+    /// or else `Destination cannot be found!`, `'Destination' key cannot be used
+    /// with this action` and the Patcher Destination error; and its warnings (an
+    /// empty Patcher Destination). Other failures are errors.
+    ///
+    /// In the full pipeline C#'s Environment stage has already run these checks with
+    /// AttemptFixes and created each missing Destination folder it could, so this
+    /// stage finds them. Rust creates nothing while validating; it leaves out a
+    /// missing Copy, Move or CleanList folder that could be created, since executing
+    /// the step creates it (or, for CleanList, finds nothing to delete).
     fn validate_component_archives(
-        &mut self,
+        &self,
         component: &Component,
-        uncertain: &mut bool,
-    ) -> Result<()> {
+        full_validation: bool,
+    ) -> Result<(Vec<String>, Vec<String>)> {
         self.check_cancelled()?;
-        // The reference archive stage includes immediate option instructions.
-        let instructions: Vec<_> = component
+        let instructions = Self::archive_check_instructions(component, &self.selected);
+        let ArchiveMembers {
+            members,
+            has_archives,
+            unknown,
+            mut missing,
+        } = self.archive_members(&instructions)?;
+        // C# reports an own Extract with no Source (`Missing Required Archives: []`)
+        // only when the component has no archive; otherwise execution refuses it as
+        // a missing source, as C#'s install does.
+        missing.retain(|instruction| {
+            !instruction.source.is_empty()
+                || (!has_archives && is_top_level(component, instruction))
+        });
+        if !missing.is_empty() {
+            // C# `ComponentValidation.VerifyExtractPaths`: when none of the component's
+            // archives exists, each top-level Extract is one error naming its Sources,
+            // and the other checks are skipped. Rust also refuses an option-only or a
+            // partly missing Extract there (fail closed), where C# reports nothing.
+            if !has_archives
+                && missing
+                    .iter()
+                    .any(|instruction| is_top_level(component, instruction))
+            {
+                missing.retain(|instruction| is_top_level(component, instruction));
+            }
+            let errors = missing
+                .into_iter()
+                .map(|instruction| {
+                    format!(
+                        "Missing Required Archives: [{}]",
+                        instruction.source.join(",")
+                    )
+                })
+                .collect();
+            return Ok((errors, Vec::new()));
+        }
+        // C# `ParseDestinationWithAction` reports each step whose Destination folder is
+        // missing, or that has a Destination its action cannot use, and goes on; any
+        // other failure still ends this component's checks.
+        let mut step_errors = Vec::new();
+        let mut warnings = Vec::new();
+        for (instruction, _) in instructions {
+            self.check_cancelled()?;
+            match instruction.action.as_str() {
+                "Copy" | "Move" | "CleanList" | "DelDuplicate"
+                    if instruction.destination.is_empty() =>
+                {
+                    step_errors.push("Destination cannot be found! Got ''".to_owned());
+                }
+                "Copy" | "Move" | "CleanList" | "DelDuplicate" => {
+                    let dest = self.path(&instruction.destination, false)?;
+                    let missing = !self.directories.contains_key(&self.path_policy.key(&dest));
+                    // The full pipeline's C# Environment stage has created this folder.
+                    let created = full_validation
+                        && instruction.action != "DelDuplicate"
+                        && self.folder_creatable(&dest);
+                    // C# PathValidator.IsValidPath refuses these parts.
+                    if invalid_destination(&instruction.destination) || missing && !created {
+                        step_errors.push(format!(
+                            "Destination cannot be found! Got '{}'",
+                            self.shown_destination(&dest)
+                        ));
+                    }
+                }
+                "Rename" if !instruction.destination.starts_with("<<") => {
+                    rename_file_name(&instruction.destination)?;
+                }
+                // This stage also checks unselected options' steps, which C# never
+                // runs; a placeholder Rename Destination fails where its step runs
+                // (`rename_file_name`), as the C# install does.
+                "Rename" => {
+                    self.path(&instruction.destination, false)?;
+                }
+                // C# warns about an empty Patcher Destination and reports any other
+                // than the game folder's placeholder, then sets it (AttemptFixes). In
+                // the full pipeline its Environment stage has already set it, so
+                // only the basic report shows them. Rust never uses it (the patcher
+                // runs on the game directory); the step refuses an unsafe one. The
+                // placeholder in another case is not found, in both (fail closed).
+                "Patcher" if instruction.destination.is_empty() => {
+                    if !full_validation {
+                        warnings.push(
+                            "Destination must be <<gameDirectory>> with 'Patcher' action, \
+                             setting it now automatically."
+                                .to_owned(),
+                        );
+                    }
+                }
+                "Patcher" if game_placeholder(&instruction.destination) => {
+                    self.path(&instruction.destination, false)?;
+                }
+                "Patcher" if full_validation => {}
+                "Patcher" => step_errors.push(format!(
+                    "'Destination' key must be either null or string literal \
+                     '<<gameDirectory>>' (legacy: '<<kotorDirectory>>') for this action. \
+                     Got '{}'",
+                    instruction.destination
+                )),
+                // C# reports the Destination, then clears it (AttemptFixes). In the
+                // full pipeline its Environment stage has already cleared it, so only
+                // the basic report fails. Rust never uses it (`extraction_destination`).
+                "Extract" | "Choose" | "Delete"
+                    if !full_validation && !instruction.destination.is_empty() =>
+                {
+                    step_errors.push(format!(
+                        "'Destination' key cannot be used with this action. Got '{}'",
+                        instruction.destination
+                    ));
+                }
+                "Extract" | "Choose" | "Delete" | "Execute" | "Run" => {}
+                other => bail!("Unsupported action {other}; refusing to skip it"),
+            }
+            if has_archives {
+                self.check_archive_sources(component, instruction, |prefix, pattern| {
+                    let found = members
+                        .iter()
+                        .any(|member| self.source_matches(prefix, pattern, member));
+                    Ok((found || !unknown).then_some(found))
+                })?;
+            }
+        }
+        Ok((step_errors, warnings))
+    }
+
+    /// The steps C# `ComponentValidation` checks against the component's archives:
+    /// the component's and every immediate option's, selected or not, whose
+    /// instruction conditions are met, each with whether it runs (the component's
+    /// own, or a chosen option's; every step when a Choose names an unknown option,
+    /// which execution refuses).
+    fn archive_check_instructions<'a>(
+        component: &'a Component,
+        selected: &BTreeSet<crate::guid::Identity>,
+    ) -> Vec<(&'a Instruction, bool)> {
+        let mut chosen = Some(Vec::new());
+        for instruction in &component.instructions {
+            if instruction.action == "Choose" && applies_with(selected, instruction) {
+                match (Self::chosen_options(component, instruction), &mut chosen) {
+                    (Ok(options), Some(chosen)) => chosen.extend(options),
+                    _ => chosen = None,
+                }
+            }
+        }
+        let runs = |option: &Component| {
+            chosen
+                .as_ref()
+                .is_none_or(|chosen| chosen.iter().any(|c| std::ptr::eq(*c, option)))
+        };
+        component
             .instructions
             .iter()
-            .chain(
-                component
-                    .options
+            .map(|instruction| (instruction, true))
+            .chain(component.options.iter().flat_map(|option| {
+                let runs = runs(option);
+                option
+                    .instructions
                     .iter()
-                    .flat_map(|option| &option.instructions),
-            )
-            .filter(|instruction| self.instruction_applies(instruction))
-            .collect();
-        // Only VFS prediction: no disk installation or external programs.
-        ensure!(
-            !self.install,
-            "Archive projection cannot run in disk-install mode"
-        );
-        fn project(
-            engine: &mut Engine,
-            owner: &Component,
-            initial: &BTreeMap<String, PathBuf>,
-            boundaries: &mut BTreeMap<usize, BTreeSet<String>>,
-            unknown: &mut bool,
-            uncertain_boundaries: &mut BTreeSet<usize>,
-        ) -> Result<()> {
-            let entry_files = engine.files.clone();
-            let entry_dirs = engine.directories.clone();
-            let entry_unknown = *unknown;
-            let mut referenced = BTreeSet::new();
-            for instruction in &owner.instructions {
-                engine.check_cancelled()?;
-                if !engine.instruction_applies(instruction) {
-                    continue;
-                }
-                if *unknown {
-                    uncertain_boundaries.insert(instruction as *const Instruction as usize);
-                }
-                boundaries.insert(
-                    instruction as *const Instruction as usize,
-                    engine
-                        .directories
-                        .keys()
-                        .filter(|key| !initial.contains_key(*key))
-                        .cloned()
-                        .collect(),
-                );
-                if instruction.action == "Choose" {
-                    let chosen = Engine::chosen_options(owner, instruction)?;
-                    let before_files = engine.files.clone();
-                    let before_dirs = engine.directories.clone();
-                    let before_unknown = *unknown;
-                    for option in owner.options.iter().filter(|option| {
-                        instruction
-                            .source
-                            .iter()
-                            .any(|guid| crate::guid::eq_ascii(guid, &option.guid))
-                    }) {
-                        referenced.insert(crate::guid::key_ascii(&option.guid));
-                        engine.files = before_files.clone();
-                        engine.directories = before_dirs.clone();
-                        let mut branch_unknown = before_unknown;
-                        project(
-                            engine,
-                            option,
-                            initial,
-                            boundaries,
-                            &mut branch_unknown,
-                            uncertain_boundaries,
-                        )?;
-                    }
-                    engine.files = before_files;
-                    engine.directories = before_dirs;
-                    for option in chosen {
-                        project(
-                            engine,
-                            option,
-                            initial,
-                            boundaries,
-                            unknown,
-                            uncertain_boundaries,
-                        )?;
-                    }
-                } else if matches!(instruction.action.as_str(), "Patcher" | "Execute" | "Run") {
-                    *unknown = true;
-                } else if !*unknown
-                    && matches!(
-                        instruction.action.as_str(),
-                        "Extract" | "CreateDirectory" | "Copy" | "Move" | "Rename" | "Delete"
-                    )
-                {
-                    engine.execute_observed(owner, instruction, &mut |_| {}, None)?;
-                }
-            }
-            let selected_files = engine.files.clone();
-            let selected_dirs = engine.directories.clone();
-            for option in &owner.options {
-                if !referenced.contains(&crate::guid::key_ascii(&option.guid)) {
-                    engine.directories = entry_dirs.clone();
-                    engine.files = entry_files.clone();
-                    let mut branch_unknown = entry_unknown;
-                    project(
-                        engine,
-                        option,
-                        initial,
-                        boundaries,
-                        &mut branch_unknown,
-                        uncertain_boundaries,
-                    )?;
-                }
-            }
-            engine.files = selected_files;
-            engine.directories = selected_dirs;
-            Ok(())
-        }
-        let mut directory_boundaries = BTreeMap::new();
-        let original_directories = self.directories.clone();
-        let original_files = self.files.clone();
-        let mut future_uncertain = *uncertain;
-        let mut uncertain_boundaries = BTreeSet::new();
-        let directory_result = project(
-            self,
-            component,
-            &original_directories,
-            &mut directory_boundaries,
-            &mut future_uncertain,
-            &mut uncertain_boundaries,
-        );
-        let future_directories = std::mem::replace(&mut self.directories, original_directories);
-        let future_files = std::mem::replace(&mut self.files, original_files);
-        directory_result?;
-        let mut members = BTreeSet::new();
-        let mut has_archives = false;
-        for instruction in &instructions {
+                    .map(move |instruction| (instruction, runs))
+            }))
+            .filter(|(instruction, _)| applies_with(selected, instruction))
+            .collect()
+    }
+
+    /// Every file the given Extract steps would extract (keys of their paths in the
+    /// folder named after each archive), whether any of their archives exists, and
+    /// the Extract steps with no Source or with a Source that names no file. Lists
+    /// the archives without extracting them. An archive of a step that runs must be
+    /// listable (its Extract fails otherwise); one only an option that is not chosen
+    /// extracts is skipped when it cannot be listed (`unknown`), as C# opens it only
+    /// when a Source needs it.
+    fn archive_members<'a>(
+        &self,
+        instructions: &[(&'a Instruction, bool)],
+    ) -> Result<ArchiveMembers<'a>> {
+        let mut found = ArchiveMembers {
+            members: BTreeSet::new(),
+            has_archives: false,
+            unknown: false,
+            missing: Vec::new(),
+        };
+        for &(instruction, runs) in instructions {
             self.check_cancelled()?;
             if instruction.action != "Extract" {
                 continue;
             }
-            // Unknown external effects defer existence, never path/root policy.
-            ensure!(!instruction.source.is_empty(), "Extract requires Source");
-            for source in &instruction.source {
-                self.source_pattern(source)?;
-            }
-            if !instruction.destination.is_empty() {
-                self.path(&instruction.destination, false)?;
-            }
-            if uncertain_boundaries.contains(&(*instruction as *const Instruction as usize)) {
+            // An Extract with no Source names no archive to inspect.
+            if instruction.source.is_empty() {
+                found.missing.push(instruction);
                 continue;
             }
-            for source in self.matches(&instruction.source, false)? {
-                has_archives = true;
-                let dest = self.extraction_destination(instruction, &source)?;
+            for source in &instruction.source {
+                if self.matches(std::slice::from_ref(source), true)?.is_empty() {
+                    found.missing.push(instruction);
+                    break;
+                }
+            }
+            for source in self.matches(&instruction.source, true)? {
+                found.has_archives = true;
+                if !runs {
+                    match self.listed_members(&source)? {
+                        Some(members) => found.members.extend(members),
+                        None => found.unknown = true,
+                    }
+                    continue;
+                }
+                let dest = extraction_destination(&source);
                 self.settings.roots.check(&dest)?;
                 ensure!(
                     !self.files.contains_key(&self.path_policy.key(&dest)),
                     "File blocks extraction destination: {}",
                     dest.display()
                 );
-                let entries = archive::unpack(
+                let (entries, _) = archive::list_original_with_size(
                     self.files[&self.path_policy.key(&source)].1.path()?,
                     &source,
                     &self.settings.archive,
                     &self.settings.cancelled,
                 )
                 .with_context(|| format!("Cannot inspect archive {}", source.display()))?;
-                for entry in entries {
+                for entry in entries.into_iter().filter(|entry| !entry.is_directory) {
                     let path = dest.join(entry.path);
                     self.settings.roots.check(&path)?;
-                    members.insert(self.path_policy.key(&path));
+                    found.members.insert(self.path_policy.key(&path));
                 }
             }
         }
-        for instruction in instructions {
-            self.check_cancelled()?;
-            match instruction.action.as_str() {
-                "CreateDirectory" => {
-                    // Projection checked the exact reached/branch boundary. Only
-                    // syntax can be proven after an external unknown-effect step.
-                    ensure!(
-                        instruction.source.is_empty() && instruction.arguments.is_empty(),
-                        "CreateDirectory requires empty Source and Arguments"
-                    );
-                    ensure!(
-                        self.managed.is_none(),
-                        "CreateDirectory directory ownership is unsupported in managed deployment"
-                    );
-                    let path = self.path(&instruction.destination, false)?;
-                    ensure!(
-                        path != self.settings.roots.mods && path != self.settings.roots.game,
-                        "CreateDirectory requires a child destination"
-                    );
-                }
-                "Copy" | "Move" | "CleanList" | "DelDuplicate" => {
-                    let dest = self.path(&instruction.destination, false)?;
-                    ensure!(
-                        uncertain_boundaries
-                            .contains(&(instruction as *const Instruction as usize))
-                            || self.directories.contains_key(&self.path_policy.key(&dest))
-                            || directory_boundaries
-                                .get(&(instruction as *const Instruction as usize))
-                                .is_some_and(
-                                    |created| created.contains(&self.path_policy.key(&dest))
-                                ),
-                        "Destination cannot be found: {}",
-                        instruction.destination
-                    );
-                }
-                "Rename" if !instruction.destination.starts_with("<<") => {
-                    ensure!(
-                        relative(&instruction.destination, false)?
-                            .components()
-                            .count()
-                            == 1,
-                        "Rename needs one filename or a placeholder path"
-                    );
-                }
-                "Rename" | "Patcher" => {
-                    let dest = self.path(&instruction.destination, false)?;
-                    if instruction.action == "Patcher" {
-                        ensure!(
-                            dest == self.settings.roots.game,
-                            "Patcher destination must be the game directory"
-                        );
-                    }
-                }
-                "Extract" | "Choose" | "Delete" | "Execute" | "Run" => {}
-                other => bail!("Unsupported action {other}; refusing to skip it"),
-            }
-            // Source existence is deliberately not a loose-file check here.
-            // When Extract archives exist, check their actual safe member paths.
-            if matches!(
-                instruction.action.as_str(),
-                "Choose" | "DelDuplicate" | "Extract" | "CreateDirectory"
-            ) {
+        Ok(found)
+    }
+
+    /// C# `ComponentValidation.VerifyExtractPaths`, once the component has an archive:
+    /// each Source in the mod folder must name a file (or a folder holding one) that
+    /// the component's archives extract, or fail with `Failed to find '<Source>' in
+    /// any archives`. Game Sources are not checked; a Choose or Extract has no such
+    /// Source and a DelDuplicate's Sources are extensions. C# skips the check for a
+    /// component named "Improved AI" (`ComponentValidation.cs:461-464`).
+    /// `found(prefix, pattern)` says whether the archives hold a matching member;
+    /// `None` is not known (an archive could not be listed), which passes.
+    fn check_archive_sources(
+        &self,
+        component: &Component,
+        instruction: &Instruction,
+        mut found: impl FnMut(Option<&str>, &glob::Pattern) -> Result<Option<bool>>,
+    ) -> Result<()> {
+        if matches!(
+            instruction.action.as_str(),
+            "Choose" | "DelDuplicate" | "Extract"
+        ) || crate::unicode_case::ordinal_eq(&component.name, "Improved AI")
+        {
+            return Ok(());
+        }
+        for source in &instruction.source {
+            let (path, pattern) = self.source_pattern(source)?;
+            if path.starts_with(&self.settings.roots.game) {
                 continue;
             }
-            for source in &instruction.source {
-                let (path, pattern) = self.source_pattern(source)?;
-                if uncertain_boundaries.contains(&(instruction as *const Instruction as usize))
-                    || !has_archives
-                    || path.starts_with(&self.settings.roots.game)
-                {
-                    continue;
-                }
-                let prefix = format!("{}/", self.path_policy.key(&path));
-                ensure!(
-                    members
-                        .iter()
-                        .any(|member| self.source_matches(&prefix, &pattern, member)),
-                    "Failed to find '{source}' in any archives"
-                );
-            }
+            let prefix = self.source_prefix(&path);
+            ensure!(
+                found(prefix.as_deref(), &pattern)? != Some(false),
+                "Failed to find '{source}' in any archives"
+            );
         }
-        self.directories = future_directories;
-        self.files = future_files;
-        *uncertain = future_uncertain;
         Ok(())
     }
 
-    /// Returns warnings for configured registered archives that no selected Extract
-    /// instruction installs: choices are valid, but configuration installs no files.
+    /// The members one archive extracts (keys of their paths in the folder named
+    /// after it), or `None` when Rust cannot list it (a corrupt archive, or one its
+    /// admission rules refuse, such as a link or a case-duplicate entry, which C#
+    /// opens). Only cancellation is an error.
+    fn listed_members(&self, archive: &Path) -> Result<Option<BTreeSet<String>>> {
+        let listed = (|| -> Result<BTreeSet<String>> {
+            let dest = extraction_destination(archive);
+            let (entries, _) = archive::list_original_with_size(
+                self.files[&self.path_policy.key(archive)].1.path()?,
+                archive,
+                &self.settings.archive,
+                &self.settings.cancelled,
+            )?;
+            let mut members = BTreeSet::new();
+            for entry in entries.into_iter().filter(|entry| !entry.is_directory) {
+                let path = dest.join(entry.path);
+                self.settings.roots.check(&path)?;
+                members.insert(self.path_policy.key(&path));
+            }
+            Ok(members)
+        })();
+        self.check_cancelled()?;
+        Ok(listed.ok())
+    }
+
+    /// Whether `Directory.CreateDirectory` could create this missing folder: no file
+    /// stands at it or at any folder above it.
+    fn folder_creatable(&self, dest: &Path) -> bool {
+        dest.ancestors()
+            .all(|folder| !self.files.contains_key(&self.path_policy.key(folder)))
+    }
+
+    /// The Destination folder as C# prints it: the full path, with the folders that
+    /// exist in their on-disk spelling (C# `GetCaseSensitivePath`).
+    fn shown_destination(&self, dest: &Path) -> String {
+        dest.ancestors()
+            .find_map(|folder| {
+                let on_disk = self.directories.get(&self.path_policy.key(folder))?;
+                let rest = dest.strip_prefix(folder).ok()?;
+                // `join("")` would add a trailing separator, which C# trims.
+                Some(if rest.as_os_str().is_empty() {
+                    on_disk.clone()
+                } else {
+                    on_disk.join(rest)
+                })
+            })
+            .unwrap_or_else(|| dest.to_path_buf())
+            .display()
+            .to_string()
+    }
+
+    /// The gate's soft warnings and its issues; no issue means the gate passed. Like
+    /// C# FomodConfigurationGate, every in-gate FOMOD issue is collected in gate order
+    /// with the warnings; an abort (cancellation, an unsafe path, a guide error) ends
+    /// the list. Issues with identical text (one archive shared by components) are kept once.
+    fn validate_fomod_configuration(&mut self, guide: &Guide) -> (Vec<String>, Vec<anyhow::Error>) {
+        let mut warnings = crate::fomod::WarningCollector::default();
+        let mut issues = Vec::new();
+        if let Err(error) = self.check_fomod_configuration(guide, &mut warnings, &mut issues) {
+            issues.push(error);
+        }
+        let mut seen = BTreeSet::new();
+        issues.retain(|issue| seen.insert(format!("{issue:#}")));
+        (warnings.finish(), issues)
+    }
+
+    /// Gates the selected components and, as C# does, their hard dependencies.
+    /// Collects warnings for configured registered archives that no selected Extract
+    /// instruction installs, or whose installer maps no files for any choice (C#'s
+    /// "configured without archive-scoped instructions"): configuration installs nothing.
     /// Mapper fallbacks of each checked installer are logged once per archive, as C#
     /// logs them, outside the report. Reads archives into scratch only; never writes
     /// the game or mod trees.
-    fn validate_fomod_configuration(&mut self, guide: &Guide) -> Result<Vec<String>> {
+    fn check_fomod_configuration(
+        &mut self,
+        guide: &Guide,
+        warnings: &mut crate::fomod::WarningCollector,
+        issues: &mut Vec<anyhow::Error>,
+    ) -> Result<()> {
         fn configured_choices(
             component: &Component,
             filename: &str,
@@ -1143,15 +1764,46 @@ impl Engine {
         // A previously recorded prompt state makes a missing artifact fail closed.
         self.selected = selected_guid_keys(guide);
         self.selected.extend(self.completed.iter().cloned());
+        // FOMOD findings come first, as C# FomodConfigurationGate reports them
+        // whatever the selection. Rust's stricter selection, restriction and order
+        // checks still fail the gate afterwards (C# only warns for a dependency).
+        let ordered = guide.ordered();
+        let seeds: Vec<&Component> = match &ordered {
+            Ok(ordered) => ordered.clone(),
+            Err(_) => guide.components.iter().filter(|c| c.is_selected).collect(),
+        };
         let mut scope = Vec::new();
-        for component in guide.ordered()? {
-            if self
-                .completed
-                .contains(&crate::guid::key_ascii(&component.guid))
-            {
+        let mut visited = BTreeSet::new();
+        let mut queue = std::collections::VecDeque::new();
+        for component in seeds {
+            let key = crate::guid::key_ascii(&component.guid);
+            if self.completed.contains(&key) {
                 continue;
             }
-            self.collect_execution_components(component, &mut scope)?;
+            visited.insert(key);
+            queue.push_back(component);
+            self.collect_components(component, &mut scope, false)?;
+        }
+        // C# ExpandWithHardDependencies: hard dependencies, selected or not, are in
+        // scope transitively. An unselected one only has its registered archives
+        // gated (the C# gate checks nothing else); unknown GUIDs are ignored.
+        let mut dependencies = Vec::new();
+        while let Some(component) = queue.pop_front() {
+            for required in &component.dependencies {
+                let key = crate::guid::key_ascii(required);
+                if self.completed.contains(&key) || visited.contains(&key) {
+                    continue;
+                }
+                if let Some(dependency) = guide
+                    .components
+                    .iter()
+                    .find(|c| crate::guid::key_ascii(&c.guid) == key)
+                {
+                    visited.insert(key);
+                    dependencies.push(dependency);
+                    queue.push_back(dependency);
+                }
+            }
         }
         // Registered archives with valid choices, by path: filename and registrants.
         let mut configured = BTreeMap::<String, (String, Vec<String>)>::new();
@@ -1162,8 +1814,7 @@ impl Engine {
         let mut routes = BTreeSet::new();
         // Checked FOMOD archive paths whose mapper fallbacks were already logged.
         let mut logged = BTreeSet::new();
-        let mut warnings = crate::fomod::WarningCollector::default();
-        for component in &scope {
+        for component in scope.iter().chain(&dependencies) {
             let mut registered = BTreeSet::new();
             for resource in component.resource_registry.values() {
                 let Some(files) = resource
@@ -1188,12 +1839,15 @@ impl Engine {
                     let archive_key = self.path_policy.key(&path);
                     if !self.files.contains_key(&archive_key) {
                         if crate::fomod::prompt_status(component, filename).is_some() {
-                            bail!(
+                            issues.push(anyhow::anyhow!(
                                 "Registered FOMOD archive '{filename}' is missing from the mod directory after configuration state was recorded"
-                            );
+                            ));
+                            continue;
                         }
+                        // C#'s soft warning, attributed per component like its report.
                         warnings.push(format!(
-                            "Registered archive '{}' is missing from the mod directory. Re-download it, then configure its FOMOD installer if present before installation.",
+                            "{}: Registered archive '{}' is not on disk under the mod directory. Re-download the archive (Fetch Downloads), then configure the FOMOD installer before validate/install.",
+                            crate::fomod::warning_text(&component.name),
                             crate::fomod::warning_text(filename)
                         ));
                         continue;
@@ -1201,20 +1855,40 @@ impl Engine {
                     checked.insert((self.path_policy.key(&path), component.guid.clone()));
                     let module = match inspected.entry(self.path_policy.key(&path)) {
                         btree_map::Entry::Occupied(entry) => entry.into_mut(),
-                        btree_map::Entry::Vacant(entry) => entry.insert(
-                            crate::fomod::inspect_listed(
-                                self.files[&archive_key].1.path()?,
-                                &relative_name,
-                                &self.settings.archive,
-                                &self.settings.cancelled,
-                            )
-                            .with_context(|| {
-                                format!("Registered archive '{filename}' cannot be inspected")
-                            })?,
-                        ),
+                        btree_map::Entry::Vacant(entry) => match crate::fomod::inspect_listed(
+                            &path,
+                            &relative_name,
+                            &self.settings.archive,
+                            &self.settings.cancelled,
+                        )
+                        .with_context(|| {
+                            format!("Registered archive '{filename}' cannot be inspected")
+                        }) {
+                            Ok(module) => entry.insert(module),
+                            // C# GateIssue ArchiveUnreadable; cancellation still aborts.
+                            Err(error) => {
+                                self.gate_issue(issues, error)?;
+                                continue;
+                            }
+                        },
                     };
                     if let Some(module) = module {
-                        configured_choices(component, filename, module)?;
+                        if let Err(error) = configured_choices(component, filename, module) {
+                            issues.push(error);
+                            continue;
+                        }
+                        // C# FomodConfigurationGate R1, per component: a configured
+                        // archive whose installer maps no archive-scoped instruction.
+                        if crate::fomod::prompt_status(component, filename).as_deref()
+                            == Some("configured")
+                            && !module.config.maps_any_file()
+                        {
+                            warnings.push(format!(
+                                "{}: FOMOD archive '{}' is marked configured but has no matching archive-scoped instructions. Its installer maps no files for any choice, so this configuration installs nothing from the archive.",
+                                crate::fomod::warning_text(&component.name),
+                                crate::fomod::warning_text(filename)
+                            ));
+                        }
                         if logged.insert(self.path_policy.key(&path)) {
                             for warning in module.config.fallback_warnings() {
                                 warnings.push(format!(
@@ -1232,13 +1906,16 @@ impl Engine {
                 }
             }
         }
-        for component in scope {
+        for component in &scope {
             for instruction in &component.instructions {
                 if instruction.action != "Extract" || !self.instruction_applies(instruction) {
                     continue;
                 }
                 // Missing generic Extract inputs belong to archive validation and
                 // dry-run availability, not the independent FOMOD state gate.
+                if instruction.source.is_empty() {
+                    continue;
+                }
                 for source in self.matches(&instruction.source, true)? {
                     // Any applying Extract of this path is an install route, FOMOD or not.
                     routes.insert(self.path_policy.key(&source));
@@ -1247,14 +1924,18 @@ impl Engine {
                     }
                     let module = match inspected.entry(self.path_policy.key(&source)) {
                         btree_map::Entry::Occupied(entry) => entry.into_mut(),
-                        btree_map::Entry::Vacant(entry) => {
-                            entry.insert(crate::fomod::inspect_listed(
-                                self.files[&self.path_policy.key(&source)].1.path()?,
-                                &source,
-                                &self.settings.archive,
-                                &self.settings.cancelled,
-                            )?)
-                        }
+                        btree_map::Entry::Vacant(entry) => match crate::fomod::inspect_listed(
+                            self.files[&self.path_policy.key(&source)].1.path()?,
+                            &source,
+                            &self.settings.archive,
+                            &self.settings.cancelled,
+                        ) {
+                            Ok(module) => entry.insert(module),
+                            Err(error) => {
+                                self.gate_issue(issues, error)?;
+                                continue;
+                            }
+                        },
                     };
                     let Some(module) = module else {
                         continue;
@@ -1263,7 +1944,10 @@ impl Engine {
                         .file_name()
                         .and_then(|name| name.to_str())
                         .context("FOMOD archive filename is invalid")?;
-                    configured_choices(component, filename, module)?;
+                    if let Err(error) = configured_choices(component, filename, module) {
+                        issues.push(error);
+                        continue;
+                    }
                     if logged.insert(self.path_policy.key(&source)) {
                         for warning in module.config.fallback_warnings() {
                             warnings.push(format!(
@@ -1275,8 +1959,8 @@ impl Engine {
                 }
             }
         }
-        // C# FomodConfigurationGate soft-warns "configured" without archive-scoped
-        // instructions. Rust keeps choices, so the analogue is a missing Extract route.
+        // Rust keeps choices rather than generated instructions, so it also warns when
+        // no Extract route installs a configured archive (no C# counterpart).
         // One warning per archive, naming every registering component.
         for warning in configured
             .into_iter()
@@ -1296,7 +1980,15 @@ impl Engine {
                 )
             })
         { warnings.push(warning); }
-        Ok(warnings.finish())
+        // FOMOD issues fail the gate before Rust's stricter checks, as before.
+        if !issues.is_empty() {
+            return Ok(());
+        }
+        ordered?;
+        for component in scope {
+            self.check_component(component)?;
+        }
+        Ok(())
     }
 
     /// Analyze actual simulated writes without changing either installation tree.
@@ -1422,6 +2114,11 @@ impl Engine {
             recovery::ensure_clean(&self.settings.roots)?;
             None
         };
+        // C#'s install runs the full validation pipeline first, whose Environment
+        // stage refuses a game or mod folder it cannot write to.
+        if let Some(message) = unwritable_root(&self.settings.roots) {
+            bail!("Installation blocked before any write: {message}");
+        }
         if let Some(managed) = &self.managed {
             managed.service.validate_readonly()?;
         }
@@ -1441,6 +2138,10 @@ impl Engine {
             .collect();
         // C# InstallationService blocks installation on FomodConfigurationGate issues.
         self.fomod_gate(guide, &mut emit)
+            .context("Installation blocked before any write")?;
+        self.destination_gate(guide)
+            .context("Installation blocked before any write")?;
+        self.archive_source_gate(guide)
             .context("Installation blocked before any write")?;
         // Managed reinstall restores originals before each component. Simulating
         // against the old deployed tree would validate the wrong inputs. Its
@@ -1599,6 +2300,49 @@ impl Engine {
         self.validate(guide, emit)
     }
 
+    /// The full report for a game folder the engine refused for names that differ
+    /// only in case. C#'s Environment stage lists such names
+    /// (`InstallationService.ValidateInstallationEnvironmentAsync`) and fails with
+    /// its duplicate message, which it sets last, so it replaces every other
+    /// Environment message; the report then stops. `error` is the refusal of
+    /// [`Engine::new`]; `None` keeps it (another error, or a collision only in the
+    /// mod folder, which C# does not check). Rust's recovery-state checks still
+    /// come first, as in [`Engine::validate_report_with_options_observed`].
+    pub fn case_collision_report(
+        settings: &Settings,
+        case_insensitive: bool,
+        error: &anyhow::Error,
+        guide: &Guide,
+        completed: &[String],
+    ) -> Option<crate::validation::Report> {
+        error.downcast_ref::<CaseCollision>()?;
+        let policy = crate::paths::PathPolicy::new(case_insensitive).ok()?;
+        let roots = &settings.roots;
+        // Walk the game folder alone even when the scan stopped inside it: the
+        // scan's first copy of a name may sit in the mod folder when the two
+        // roots differ only in case.
+        let path = game_case_collision(&roots.game, policy)?;
+        let completed_keys: BTreeSet<_> = completed
+            .iter()
+            .map(|id| crate::guid::key_ascii(id))
+            .collect();
+        let count = guide
+            .components
+            .iter()
+            .filter(|c| c.is_selected)
+            .filter(|c| !completed_keys.contains(&crate::guid::key_ascii(&c.guid)))
+            .count();
+        let mut report = crate::validation::Report::new(count);
+        let environment = recovery::ensure_clean(roots)
+            .and_then(|()| recovery::verify_completion(roots, guide, completed.len()))
+            .map_err(|error| format!("{error:#}"));
+        match environment {
+            Ok(()) => report.environment_case_duplicates(&path),
+            environment => report.push(crate::validation::Stage::Environment, environment),
+        };
+        Some(report.finish())
+    }
+
     /// Run the shared wizard report on the uninstalled suffix while retaining
     /// completed components as dependency context and verifying their receipt.
     pub fn validate_report_remaining(
@@ -1660,6 +2404,16 @@ impl Engine {
         Ok(())
     }
 
+    /// Collect a per-archive inspection failure as a gate issue, unless the run was
+    /// cancelled: cancellation aborts the gate with that error.
+    fn gate_issue(&self, issues: &mut Vec<anyhow::Error>, error: anyhow::Error) -> Result<()> {
+        if self.settings.cancelled.load(Ordering::Relaxed) {
+            return Err(error);
+        }
+        issues.push(error);
+        Ok(())
+    }
+
     fn check_cancelled(&self) -> Result<()> {
         ensure!(
             !self.settings.cancelled.load(Ordering::Relaxed),
@@ -1686,8 +2440,13 @@ impl Engine {
         guide: &Guide,
         ordered: &[&Component],
         emit: &mut impl FnMut(Event),
-        mut progress: Option<&mut InstallObserver<'_>>,
+        progress: Option<&mut InstallObserver<'_>>,
     ) -> Result<()> {
+        self.load_selection(guide);
+        self.run_selected(ordered, emit, progress)
+    }
+
+    fn load_selection(&mut self, guide: &Guide) {
         self.selected = selected_guid_keys(guide);
         self.selected_names = guide
             .components
@@ -1695,6 +2454,15 @@ impl Engine {
             .filter(|c| c.is_selected)
             .map(|c| c.name.clone())
             .collect();
+    }
+
+    /// `run_ordered` after `load_selection`.
+    fn run_selected(
+        &mut self,
+        ordered: &[&Component],
+        emit: &mut impl FnMut(Event),
+        mut progress: Option<&mut InstallObserver<'_>>,
+    ) -> Result<()> {
         for (index, c) in ordered.iter().enumerate() {
             if self.exact_patcher_prediction && c.instructions.is_empty() {
                 self.check_component(c)?;
@@ -1861,29 +2629,34 @@ impl Engine {
     }
 
     fn instruction_applies(&self, instruction: &Instruction) -> bool {
-        instruction
-            .dependencies
-            .iter()
-            .all(|id| self.selected.contains(&crate::guid::key_ascii(id)))
-            && !instruction
-                .restrictions
-                .iter()
-                .any(|id| self.selected.contains(&crate::guid::key_ascii(id)))
+        applies_with(&self.selected, instruction)
     }
 
     /// The same immediate-option selection used by execution and read-only gates.
+    /// An entry that names no option is refused (fail closed), where C# ignores it.
     fn chosen_options<'a>(
         component: &'a Component,
         instruction: &Instruction,
     ) -> Result<Vec<&'a Component>> {
         for id in &instruction.source {
-            ensure!(
-                component
-                    .options
-                    .iter()
-                    .any(|option| crate::guid::eq_ascii(&option.guid, id)),
-                "Unknown option {id}"
-            );
+            if component
+                .options
+                .iter()
+                .any(|option| crate::guid::names_option(&option.guid, id))
+            {
+                continue;
+            }
+            match crate::guid::try_parse(id) {
+                Some(value)
+                    if component
+                        .options
+                        .iter()
+                        .any(|option| crate::guid::try_parse(&option.guid) == Some(value)) =>
+                {
+                    bail!("Unknown option {id}: a Choose entry names an option only as {value}")
+                }
+                _ => bail!("Unknown option {id}"),
+            }
         }
         Ok(component
             .options
@@ -1893,7 +2666,7 @@ impl Engine {
                     && instruction
                         .source
                         .iter()
-                        .any(|id| crate::guid::eq_ascii(&option.guid, id))
+                        .any(|id| crate::guid::names_option(&option.guid, id))
             })
             .collect())
     }
@@ -1903,12 +2676,27 @@ impl Engine {
         component: &'a Component,
         scope: &mut Vec<&'a Component>,
     ) -> Result<()> {
-        self.check_component(component)?;
+        self.collect_components(component, scope, true)
+    }
+
+    /// A component and its chosen options; `check` applies the readiness checks
+    /// before each one, which the FOMOD gate defers until after its findings.
+    fn collect_components<'a>(
+        &self,
+        component: &'a Component,
+        scope: &mut Vec<&'a Component>,
+        check: bool,
+    ) -> Result<()> {
+        if check {
+            self.check_component(component)?;
+        } else {
+            self.check_cancelled()?;
+        }
         scope.push(component);
         for instruction in &component.instructions {
             if instruction.action == "Choose" && self.instruction_applies(instruction) {
                 for option in Self::chosen_options(component, instruction)? {
-                    self.collect_execution_components(option, scope)?;
+                    self.collect_components(option, scope, check)?;
                 }
             }
         }
@@ -1941,25 +2729,83 @@ impl Engine {
     }
 
     fn matches(&self, sources: &[String], missing_ok: bool) -> Result<Vec<PathBuf>> {
+        self.matches_scoped(sources, missing_ok, true)
+    }
+
+    /// The files the Sources name, in Source order as C# `SetRealPaths` lists them
+    /// (so a later Source's file wins a collision), each Source's own matches in key
+    /// order, and a file two Sources name only at its first place. With
+    /// `descendants` false, a Source names only the files its literal or wildcard
+    /// path matches; a directory Source matches nothing beneath it.
+    fn matches_scoped(
+        &self,
+        sources: &[String],
+        missing_ok: bool,
+        descendants: bool,
+    ) -> Result<Vec<PathBuf>> {
         ensure!(!sources.is_empty(), "Instruction has no Source");
-        let mut found = BTreeMap::new();
+        let mut seen = BTreeSet::new();
+        let mut found = Vec::new();
         for source in sources {
             let (path, pattern) = self.source_pattern(source)?;
-            let prefix = format!("{}/", self.path_policy.key(&path));
+            let prefix = self.source_prefix(&path);
             let matches: Vec<_> = self
                 .files
                 .iter()
-                .filter(|(k, _)| self.source_matches(&prefix, &pattern, k))
+                .filter(|(k, _)| {
+                    if descendants {
+                        self.source_matches(prefix.as_deref(), &pattern, k)
+                    } else {
+                        self.path_policy.glob_matches(&pattern, k)
+                    }
+                })
                 .collect();
             if !missing_ok && matches.is_empty() {
                 return Err(MissingSource(source.clone()).into());
             }
             for (k, (p, _)) in matches {
                 self.settings.roots.check(p)?;
-                found.insert(k.clone(), p.clone());
+                if seen.insert(k) {
+                    found.push(p.clone());
+                }
             }
         }
-        Ok(found.into_values().collect())
+        Ok(found)
+    }
+
+    /// Copy, Move and Rename: C# `SetRealPaths` gathers the files of every Source, so
+    /// a wildcard Source that matches nothing is dropped when another Source of the
+    /// step names a file (`[m/*.tga, m/*.tpc]` with only TGAs). A literal Source that
+    /// names no file still fails the step (Copy and Move: C# drops it, Rust stays
+    /// strict, documented; Rename: C# fails it too), as does a step whose Sources
+    /// all matched nothing. Order and duplicates are as in [`Self::matches_scoped`];
+    /// a miss names the first literal Source that matched nothing, else the first
+    /// Source.
+    fn gathered_matches(&self, sources: &[String], descendants: bool) -> Result<Vec<PathBuf>> {
+        ensure!(!sources.is_empty(), "Instruction has no Source");
+        let mut seen = BTreeSet::new();
+        let mut found = Vec::new();
+        let mut first_miss = None;
+        let mut literal_miss = None;
+        for source in sources {
+            let matches = self.matches_scoped(std::slice::from_ref(source), true, descendants)?;
+            if matches.is_empty() {
+                first_miss.get_or_insert(source);
+                if !source.contains(['*', '?']) {
+                    literal_miss.get_or_insert(source);
+                }
+            }
+            for path in matches {
+                if seen.insert(self.path_policy.key(&path)) {
+                    found.push(path);
+                }
+            }
+        }
+        match (literal_miss, first_miss) {
+            (Some(source), _) => Err(MissingSource(source.clone()).into()),
+            (None, Some(source)) if found.is_empty() => Err(MissingSource(source.clone()).into()),
+            _ => Ok(found),
+        }
     }
 
     fn source_pattern(&self, source: &str) -> Result<(PathBuf, glob::Pattern)> {
@@ -1971,13 +2817,67 @@ impl Engine {
         let pattern = glob::Pattern::new(&format!(
             "{}/{}",
             glob::Pattern::escape(&self.path_policy.key(root)),
-            self.path_policy.key(path.strip_prefix(root)?)
+            source_wildcard_glob(&self.path_policy.key(path.strip_prefix(root)?))
         ))?;
         Ok((path, pattern))
     }
 
-    fn source_matches(&self, prefix: &str, pattern: &glob::Pattern, candidate: &str) -> bool {
-        self.path_policy.glob_matches(pattern, candidate) || candidate.starts_with(prefix)
+    /// The folder prefix whose files a literal Source reaches. A bare root Source
+    /// has none: C# keeps it as one literal path, which is not a file.
+    fn source_prefix(&self, path: &Path) -> Option<String> {
+        (!self.settings.roots.is_root(path)).then(|| format!("{}/", self.path_policy.key(path)))
+    }
+
+    fn source_matches(
+        &self,
+        prefix: Option<&str>,
+        pattern: &glob::Pattern,
+        candidate: &str,
+    ) -> bool {
+        self.path_policy.glob_matches(pattern, candidate)
+            || prefix.is_some_and(|prefix| candidate.starts_with(prefix))
+    }
+
+    /// Whether any literal Source (no `*` or `?`; `[` and `]` are literal) of an
+    /// instruction names no file. C# `SetRealPaths(skipExistenceCheck: true)` keeps
+    /// every literal Source, so its expansion is empty only when every Source is a
+    /// wildcard and none matched.
+    fn any_literal_source_missing(&self, sources: &[String]) -> Result<bool> {
+        for source in sources {
+            if !source.contains(['*', '?']) {
+                let path = self.path(source, true)?;
+                if !self.files.contains_key(&self.path_policy.key(&path)) {
+                    return Ok(true);
+                }
+            }
+        }
+        Ok(false)
+    }
+
+    /// Types a `MissingSource` miss as `MissingSourceFiles` (the dry run's
+    /// `DryRunSkipped`) where the reference does, else keeps it an untyped error:
+    /// - `LiteralTyped` (Rename, CleanList): typed when a literal Source is missing;
+    ///   an all-wildcard empty expansion throws `ArgumentException` (UnknownError).
+    /// - `WildcardTyped` (Execute, Run): typed when every Source is a wildcard; a
+    ///   missing literal program is `UnknownError`.
+    fn classify_miss<T>(&self, result: Result<T>, sources: &[String], kind: MissKind) -> Result<T> {
+        match result {
+            Err(error) if error.is::<MissingSource>() => {
+                let literal_missing = self.any_literal_source_missing(sources)?;
+                let typed = match kind {
+                    MissKind::LiteralTyped => literal_missing,
+                    MissKind::WildcardTyped => {
+                        !literal_missing && sources.iter().all(|s| s.contains(['*', '?']))
+                    }
+                };
+                Err(if typed {
+                    anyhow::Error::new(MissingSourceFiles(error))
+                } else {
+                    error
+                })
+            }
+            result => result,
+        }
     }
 
     fn instruction_sources(&self, sources: &[String]) -> Result<Vec<PathBuf>> {
@@ -1985,13 +2885,9 @@ impl Engine {
         for source in sources {
             self.source_pattern(source)?;
         }
-        let paths = self.matches(sources, false).map_err(|error| {
-            if error.is::<MissingSource>() {
-                anyhow::Error::new(MissingSourceFiles(error))
-            } else {
-                error
-            }
-        })?;
+        // Execute/Run only: a folder Source is a miss, never every program in it.
+        // The caller classifies the miss (see `classify_miss`).
+        let paths = self.matches_scoped(sources, false, false)?;
         for path in &paths {
             // Reading must be possible even when virtual copying needs no bytes.
             let content = &self.files[&self.path_policy.key(path)].1;
@@ -2000,22 +2896,6 @@ impl Engine {
             }
         }
         Ok(paths)
-    }
-
-    fn extraction_destination(&self, instruction: &Instruction, source: &Path) -> Result<PathBuf> {
-        let default = source.parent().unwrap().join(source.file_stem().unwrap());
-        if instruction.destination.is_empty() {
-            Ok(default)
-        } else {
-            let path = self.path(&instruction.destination, false)?;
-            Ok(
-                if self.path_policy.key(&path) == self.path_policy.key(source.parent().unwrap()) {
-                    default
-                } else {
-                    path
-                },
-            )
-        }
     }
 
     fn actual(&self, path: &Path) -> PathBuf {
@@ -2285,18 +3165,28 @@ impl Engine {
                     if let Some(observer) = progress.as_deref_mut() {
                         observer.current.owner_path.pop();
                     }
-                    result?;
+                    result.map_err(OptionalInstallFailed::wrap)?;
                 }
             }
             "Extract" => {
                 if !i.destination.is_empty() {
+                    // Still refused when unsafe (fail closed), though never used.
                     self.path(&i.destination, false)?;
+                    emit(Event {
+                        component: component.name.clone(),
+                        step: 0,
+                        message: format!(
+                            "Extract Destination '{}' is not used; each archive extracts \
+                             to a folder named after it, next to the archive",
+                            i.destination
+                        ),
+                    });
                 }
                 let mut resolution = self.resolve_instruction(component, i)?;
                 self.publish_resolution(&mut resolution)?;
                 for source in resolution.sources {
                     let content = self.files[&self.path_policy.key(&source)].1.clone();
-                    let dest = self.extraction_destination(i, &source)?;
+                    let dest = extraction_destination(&source);
                     let entries = archive::unpack(
                         content.path()?,
                         &source,
@@ -2337,12 +3227,15 @@ impl Engine {
                             "Configured FOMOD extraction cannot retain existing files with Overwrite=false"
                         );
                     }
+                    // C# extraction writes every entry with FileMode.Create, so
+                    // Overwrite=false never keeps an existing file. Configured FOMOD
+                    // extraction with Overwrite=false was refused above instead.
                     for entry in entries {
                         self.check_cancelled()?;
                         self.put(
                             &dest.join(entry.path),
                             Content::Scratch(entry.file, entry.mode, entry.modified),
-                            i.overwrite,
+                            true,
                         )?;
                     }
                     for copy in configured {
@@ -2358,18 +3251,16 @@ impl Engine {
                 }
             }
             "Copy" | "Move" | "Rename" => {
-                let dest = if i.action == "Rename" && !i.destination.starts_with("<<") {
-                    let path = relative(&i.destination, false)?;
-                    ensure!(
-                        path.components().count() == 1,
-                        "Rename needs one filename or a placeholder path"
-                    );
-                    path
+                let dest = if i.action == "Rename" {
+                    rename_file_name(&i.destination)?
                 } else {
                     self.path(&i.destination, false)?
                 };
                 let sources = if i.action == "Rename" {
-                    self.matches(&i.source, false)?
+                    // RenameFile: FileNotFoundPost for a missing literal, an
+                    // ArgumentException on an all-wildcard empty expansion.
+                    let sources = self.gathered_matches(&i.source, authored_descendants(&i.action));
+                    self.classify_miss(sources, &i.source, MissKind::LiteralTyped)?
                 } else {
                     let mut resolution = self.resolve_instruction(component, i)?;
                     if resolution.satisfied {
@@ -2383,32 +3274,49 @@ impl Engine {
                     self.publish_resolution(&mut resolution)?;
                     resolution.sources
                 };
+                let mut blocked_rename = None;
                 for source in sources {
                     self.check_cancelled()?;
                     let target = if i.action == "Rename" {
-                        if dest.is_absolute() {
-                            dest.clone()
-                        } else {
-                            source.parent().unwrap().join(&dest)
-                        }
+                        source.parent().unwrap().join(&dest)
                     } else {
                         dest.join(source.file_name().unwrap())
                     };
+                    // C# Copy/Move find the target present and, with Overwrite=false,
+                    // warn and skip it; with Overwrite=true they delete the only copy
+                    // and fail. Rust skips the first and refuses the second unchanged.
                     ensure!(
-                        self.path_policy.key(&source) != self.path_policy.key(&target),
+                        self.path_policy.key(&source) != self.path_policy.key(&target)
+                            || (i.action != "Rename" && !i.overwrite),
                         "Source equals destination: {}",
                         source.display()
                     );
                     let exists = self.files.contains_key(&self.path_policy.key(&target));
+                    if exists && !i.overwrite && i.action == "Rename" {
+                        // C# RenameFile skips this source, renames the rest, then
+                        // returns RenameTargetAlreadyExists, which fails the component.
+                        blocked_rename.get_or_insert(target);
+                        continue;
+                    }
                     if exists && !i.overwrite {
-                        self.validation_warning(
-                            &format!("{}File", i.action),
-                            format!(
-                                "Destination file already exists and overwrite is false: {}",
-                                target.display()
-                            ),
-                            &target,
+                        let message = format!(
+                            "Destination file already exists and overwrite is false: {}",
+                            target.display()
                         );
+                        // C# CopyFile/MoveFile log a warning for each skipped file
+                        // during install too; validation records it as an issue.
+                        if self.install {
+                            emit(Event {
+                                component: component.name.clone(),
+                                step: self
+                                    .validation_target
+                                    .as_ref()
+                                    .and_then(|target| target.2)
+                                    .unwrap_or(0),
+                                message: format!("WARNING: {message}"),
+                            });
+                        }
+                        self.validation_warning(&format!("{}File", i.action), message, &target);
                         continue;
                     }
                     let data = self.files[&self.path_policy.key(&source)].1.clone();
@@ -2417,24 +3325,85 @@ impl Engine {
                         self.delete(&source)?;
                     }
                 }
+                if let Some(target) = blocked_rename {
+                    bail!(
+                        "Rename target already exists and overwrite is false: {}",
+                        target.display()
+                    );
+                }
             }
             "Delete" => {
-                let sources = self.matches(&i.source, true)?;
-                if sources.is_empty() {
+                if i.source.is_empty() {
+                    // C# DeleteFile with no source paths logs and returns Success,
+                    // or FileNotFoundPost (MissingSourceFiles) when Overwrite=true.
+                    if i.overwrite {
+                        return Err(MissingSourceFiles(anyhow::anyhow!(
+                            "Delete has no Source and Overwrite is true"
+                        ))
+                        .into());
+                    }
+                    emit(Event {
+                        component: component.name.clone(),
+                        step: 0,
+                        message: "Delete has no Source; nothing to delete".into(),
+                    });
+                    return Ok(());
+                }
+                // C# DeleteFile deletes only paths for which File.Exists holds, so
+                // a directory Source deletes nothing beneath it (a miss).
+                let sources =
+                    self.matches_scoped(&i.source, true, authored_descendants(&i.action))?;
+                // A strict miss fails the step below with no warning, as C# DeleteFile
+                // reports it without touching the virtual file system.
+                if sources.is_empty() && !i.overwrite {
                     for source in &i.source {
                         let path = self.path(source, true)?;
-                        self.validation_warning(
-                            "DeleteFile",
-                            format!("Attempting to delete non-existent file: {}", path.display()),
-                            &path,
-                        );
+                        let message = if self.directories.contains_key(&self.path_policy.key(&path))
+                        {
+                            format!(
+                                "Delete Source is a directory; Delete removes files only: {}",
+                                path.display()
+                            )
+                        } else {
+                            format!("Attempting to delete non-existent file: {}", path.display())
+                        };
+                        self.validation_warning("DeleteFile", message, &path);
                     }
                 }
+                // C# DeleteFile with Overwrite=true returns FileNotFoundPost for a
+                // missing literal, or when nothing resolves at all; that maps to
+                // MissingSourceFiles after the present matches are deleted.
+                let strict_miss = if !i.overwrite {
+                    None
+                } else if sources.is_empty() {
+                    i.source.first()
+                } else {
+                    let mut missing = None;
+                    for source in &i.source {
+                        if !source.contains(['*', '?']) {
+                            let path = self.path(source, true)?;
+                            if !self.files.contains_key(&self.path_policy.key(&path)) {
+                                missing = missing.or(Some(source));
+                            }
+                        }
+                    }
+                    missing
+                };
                 for source in sources {
                     self.delete(&source)?;
                 }
+                if let Some(source) = strict_miss {
+                    return Err(MissingSourceFiles(MissingSource(source.clone()).into()).into());
+                }
             }
             "DelDuplicate" => {
+                // C# DeleteDuplicateFile throws "Invalid directory path" for a
+                // Destination `PathValidator.IsValidPath` refuses (UnknownError).
+                ensure!(
+                    !invalid_destination(&i.destination),
+                    "DelDuplicate destination cannot be found: {}",
+                    i.destination
+                );
                 let dir = self.path(&i.destination, false)?;
                 ensure!(
                     self.directories.contains_key(&self.path_policy.key(&dir)),
@@ -2507,9 +3476,24 @@ impl Engine {
                 }
             }
             "CleanList" => {
+                // C# fails a CleanList into a Destination `PathValidator.IsValidPath`
+                // refuses (UnknownError).
+                ensure!(
+                    !invalid_destination(&i.destination),
+                    "CleanList destination cannot be found: {}",
+                    i.destination
+                );
                 let dir = self.path(&i.destination, false)?;
-                let sources = self.matches(&i.source, false)?;
-                let source = sources.first().context("CleanList needs a source file")?;
+                // CleanList: MissingSourceFiles for a missing literal list, an
+                // ArgumentException (UnknownError) on an all-wildcard empty expansion.
+                let descendants = authored_descendants(&i.action);
+                let sources = self.matches_scoped(&i.source, false, descendants);
+                self.classify_miss(sources, &i.source, MissKind::LiteralTyped)?;
+                // C# reads RealSourcePaths[0]: the first authored Source's file, not
+                // the first in sorted-key order. Every Source matched above, so the
+                // first one does; within one wildcard the sorted first match is used.
+                let first = self.matches_scoped(&i.source[..1], false, descendants)?;
+                let source = first.first().context("CleanList needs a source file")?;
                 let cancelled = self.settings.cancelled.clone();
                 let mut budget = cleanlist::Budget::new(&cancelled);
                 let matcher = cleanlist::Matcher::new(&self.selected_names, &mut budget)?;
@@ -2545,7 +3529,14 @@ impl Engine {
                             .filter(|s| !s.is_empty())
                         {
                             budget.text(raw)?;
-                            let path = self.actual(&dir.join(relative(raw, false)?));
+                            // C# deletes Path.Combine(target, name) when FileExists:
+                            // a name no file can have is skipped as missing, and
+                            // `[`/`]` are literal. Otherwise-parsed `..`, absolute,
+                            // trailing-dot and device names stay refused.
+                            if cleanlist::unnameable(raw) {
+                                continue;
+                            }
+                            let path = self.actual(&dir.join(relative(raw, true)?));
                             self.settings.roots.check(&path)?;
                             let key = self.path_policy.key(&path);
                             if self.files.contains_key(&key) && seen.insert(key) {
@@ -2566,6 +3557,23 @@ impl Engine {
                 }
             }
             "Patcher" => {
+                if !i.destination.is_empty() {
+                    // Still refused when unsafe (fail closed), though never used.
+                    let dest = self.path(&i.destination, false)?;
+                    if self.path_policy.key(&dest)
+                        != self.path_policy.key(&self.settings.roots.game)
+                    {
+                        emit(Event {
+                            component: component.name.clone(),
+                            step: 0,
+                            message: format!(
+                                "Patcher Destination '{}' is not used; the patcher runs on \
+                                 the game directory",
+                                i.destination
+                            ),
+                        });
+                    }
+                }
                 let mut resolution = self.resolve_instruction(component, i)?;
                 self.publish_resolution(&mut resolution)?;
                 let path = resolution
@@ -2610,7 +3618,11 @@ impl Engine {
         let mut paths = Vec::new();
         let mut seen = BTreeSet::new();
         for source in &i.source {
-            for path in self.instruction_sources(std::slice::from_ref(source))? {
+            let resolved = self.instruction_sources(std::slice::from_ref(source));
+            // ExecuteProgram: UnknownError for a missing literal program; an
+            // all-wildcard empty expansion checks FileExists(pattern) instead,
+            // FileNotFoundPost (MissingSourceFiles).
+            for path in self.classify_miss(resolved, &i.source, MissKind::WildcardTyped)? {
                 if seen.insert(self.path_policy.key(&path)) {
                     paths.push(path);
                 }
@@ -2665,11 +3677,11 @@ impl Engine {
         let mut patcher_data = None;
         let mut native_patcher = None;
         let mut command = if i.action == "Patcher" {
-            let dest = if i.destination.is_empty() {
-                self.settings.roots.game.clone()
-            } else {
-                self.actual(&self.path(&i.destination, false)?)
-            };
+            // C# runs every patcher on the game folder (`ExecuteTSLPatcherAsync`
+            // passes `MainConfig.DestinationPath`, and the VFS simulation uses it
+            // too); its validation rewrites any other Destination to
+            // `<<gameDirectory>>`. The Patcher arm has refused an unsafe one.
+            let dest = self.settings.roots.game.clone();
             let base = if self.files.contains_key(&self.path_policy.key(path)) {
                 path.parent().unwrap()
             } else {

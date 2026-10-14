@@ -1,0 +1,193 @@
+{
+ "copy_clash_false": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Rename Probe: Success"
+    ]
+   },
+   "tree": {
+    "Override/a.txt": "A\n",
+    "Override/b.txt": "B\n"
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  }
+ },
+ "move_clash_false": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Rename Probe: Success"
+    ]
+   },
+   "tree": {
+    "Override/a.txt": "A\n",
+    "Override/b.txt": "B\n"
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  }
+ },
+ "rename_clash_default": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Rename Probe: Success"
+    ]
+   },
+   "tree": {
+    "Override/b.txt": "A\n"
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  }
+ },
+ "rename_clash_false": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Rename Probe: UnknownError"
+    ]
+   },
+   "tree": null
+  },
+  "validate": {
+   "accepted": false,
+   "raw": {
+    "Errors": [
+     "Dry-run failed for 'Rename Probe' with exit code UnknownError."
+    ],
+    "Warnings": []
+   },
+   "tree": null
+  }
+ },
+ "rename_clash_one_of_two": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Rename Probe: UnknownError"
+    ]
+   },
+   "tree": null
+  },
+  "validate": {
+   "accepted": false,
+   "raw": {
+    "Errors": [
+     "Dry-run failed for 'Rename Probe' with exit code UnknownError."
+    ],
+    "Warnings": []
+   },
+   "tree": null
+  }
+ },
+ "rename_clash_then_later": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Rename Probe: UnknownError"
+    ]
+   },
+   "tree": null
+  },
+  "validate": {
+   "accepted": false,
+   "raw": {
+    "Errors": [
+     "Dry-run failed for 'Rename Probe' with exit code UnknownError."
+    ],
+    "Warnings": []
+   },
+   "tree": null
+  }
+ },
+ "rename_clash_true": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Rename Probe: Success"
+    ]
+   },
+   "tree": {
+    "Override/b.txt": "A\n"
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  }
+ },
+ "rename_clash_wildcard": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Rename Probe: UnknownError"
+    ]
+   },
+   "tree": null
+  },
+  "validate": {
+   "accepted": false,
+   "raw": {
+    "Errors": [
+     "Dry-run failed for 'Rename Probe' with exit code UnknownError."
+    ],
+    "Warnings": []
+   },
+   "tree": null
+  }
+ },
+ "rename_free_false": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Rename Probe: Success"
+    ]
+   },
+   "tree": {
+    "Override/b.txt": "A\n"
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  }
+ }
+}

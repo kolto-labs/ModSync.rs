@@ -135,27 +135,28 @@ impl<'a> Inventory<'a> {
                 relevant = true;
             }
             let key = self.policy.key(&path);
-            if !self
-                .entries
-                .get(&key)
-                .is_some_and(|(_, directory)| *directory)
-                && super::source_may_extract(source, &filename)
-            {
+            // A bare root Source names no file or folder and has no descendants,
+            // as Engine::source_prefix.
+            let bare_root = self.roots.is_root(&path);
+            let is_directory = !bare_root
+                && self
+                    .entries
+                    .get(&key)
+                    .is_some_and(|(_, directory)| *directory);
+            if !is_directory && super::source_may_extract(source, &filename) {
                 relevant = true;
             }
-            let prefix = format!("{key}/");
+            let prefix = (!bare_root).then(|| format!("{key}/"));
             let pattern = glob::Pattern::new(&format!(
                 "{}/{}",
                 glob::Pattern::escape(&self.policy.key(root)),
-                self.policy.key(path.strip_prefix(root)?)
+                crate::engine::source_wildcard_glob(&self.policy.key(path.strip_prefix(root)?))
             ))?;
             // Preserve explicit literal archive ownership when the input is missing.
             // A verified directory, even with an archive suffix, takes only its real members.
-            if !source.contains(['*', '?', '[', ']'])
-                && !self
-                    .entries
-                    .get(&key)
-                    .is_some_and(|(_, directory)| *directory)
+            // `[` and `]` are literal Source characters (C# WildcardPathMatch).
+            if !source.contains(['*', '?'])
+                && !is_directory
                 && path
                     .file_name()
                     .and_then(|name| name.to_str())
@@ -180,7 +181,11 @@ impl<'a> Inventory<'a> {
                     continue;
                 }
                 // Identical to Engine::source_matches: a glob or a literal folder prefix.
-                if self.policy.glob_matches(&pattern, candidate) || candidate.starts_with(&prefix) {
+                if self.policy.glob_matches(&pattern, candidate)
+                    || prefix
+                        .as_deref()
+                        .is_some_and(|prefix| candidate.starts_with(prefix))
+                {
                     ensure!(
                         matched_path.is_none_or(|previous| previous == candidate),
                         "Multiple physical archives share a FOMOD choices filename in one component's Extract scope"

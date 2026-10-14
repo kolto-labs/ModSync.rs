@@ -1,4 +1,4 @@
-use crate::paths::relative;
+use crate::paths::literal_relative;
 mod timestamps;
 use anyhow::{Result, bail, ensure};
 use std::{
@@ -45,7 +45,7 @@ impl Output<'_> {
             "Archive operation cancelled"
         );
         ensure!(self.names.len() < 100_000, "Archive has too many entries");
-        let path = relative(name, false)?;
+        let path = literal_relative(name)?;
         ensure!(
             !name.is_empty() && (directory || !path.as_os_str().is_empty()),
             "Empty archive entry"

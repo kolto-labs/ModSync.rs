@@ -1408,28 +1408,81 @@ impl App {
                         if !finished.report.cancelled
                             && let Some(followups) = &finished.fomod
                         {
-                            if let Ok(options) = self.archive_options() {
-                                for followup in &followups.followups {
-                                    let consumers = followups
-                                        .followups
-                                        .iter()
-                                        .filter(|item| item.archive == followup.archive)
-                                        .map(|item| item.component_guid.clone())
-                                        .filter(|guid| {
-                                            !self.completed_base.as_ref().is_some_and(|ids| {
-                                                ids.iter().any(|id| id.eq_ignore_ascii_case(guid))
+                            // A prompt-eligible consumer whose saved choices need repair
+                            // stays queued with the positively detected follow-ups, so
+                            // the queue raises the blocking Retry/Dismiss error and keeps
+                            // Validate/Install blocked (downloads-gui-plan.md G7/G8;
+                            // downloads-gui-step2-review.md P1). Archives that could not
+                            // be inspected are not follow-ups and stay log-only.
+                            let repair =
+                                |error: &&modsync::download_orchestrator::FomodInspectionError| {
+                                    error.repair
+                                        && self.guide.as_ref().is_some_and(|guide| {
+                                            guide.components.iter().any(|c| {
+                                                c.guid == error.component_guid
+                                                    && error
+                                                        .archive
+                                                        .file_name()
+                                                        .and_then(|n| n.to_str())
+                                                        .is_some_and(|name| {
+                                                            modsync::fomod::should_prompt(c, name)
+                                                        })
                                             })
                                         })
-                                        .collect();
-                                    {
-                                        self.enqueue_bound_fomod(
-                                            run,
-                                            followup.archive.clone(),
-                                            options.clone(),
-                                            true,
-                                            consumers,
-                                        );
+                                };
+                            let pending: Vec<(&Path, &str)> =
+                                followups
+                                    .followups
+                                    .iter()
+                                    .map(|f| (f.archive.as_path(), f.component_guid.as_str()))
+                                    .chain(
+                                        followups.inspection_errors.iter().filter(repair).map(
+                                            |e| (e.archive.as_path(), e.component_guid.as_str()),
+                                        ),
+                                    )
+                                    .collect();
+                            // Shared acquisition order, so one archive's error does not
+                            // jump ahead of an earlier archive's editor.
+                            let mut archives: Vec<&Path> = finished
+                                .report
+                                .outcomes
+                                .iter()
+                                .filter_map(|o| o.path.as_deref())
+                                .chain(
+                                    finished
+                                        .report
+                                        .skipped
+                                        .iter()
+                                        .filter_map(|s| s.path.as_deref()),
+                                )
+                                .chain(pending.iter().map(|(archive, _)| *archive))
+                                .filter(|archive| pending.iter().any(|(a, _)| a == archive))
+                                .collect();
+                            let mut seen = Vec::new();
+                            archives.retain(|archive| {
+                                let first = !seen.contains(archive);
+                                seen.push(*archive);
+                                first
+                            });
+                            if let Ok(options) = self.archive_options() {
+                                for archive in archives {
+                                    let mut consumers: Vec<String> = Vec::new();
+                                    for (_, guid) in pending.iter().filter(|(a, _)| *a == archive) {
+                                        if !consumers.iter().any(|c| c == guid)
+                                            && !self.completed_base.as_ref().is_some_and(|ids| {
+                                                ids.iter().any(|id| id.eq_ignore_ascii_case(guid))
+                                            })
+                                        {
+                                            consumers.push((*guid).to_owned());
+                                        }
                                     }
+                                    self.enqueue_bound_fomod(
+                                        run,
+                                        archive.to_path_buf(),
+                                        options.clone(),
+                                        true,
+                                        consumers,
+                                    );
                                 }
                             }
                             for error in &followups.inspection_errors {
@@ -4061,10 +4114,30 @@ impl App {
                         )));
                         ctx.request_repaint();
                     };
-                    let mut engine = Engine::new_with_case_insensitive_pathing(
+                    let report_settings = (job == Job::Validate).then(|| settings.clone());
+                    let mut engine = match Engine::new_with_case_insensitive_pathing(
                         settings,
                         case_insensitive_pathing,
-                    )?;
+                    ) {
+                        Ok(engine) => engine,
+                        Err(error) => {
+                            // As the CLI's full report: C#'s Environment stage fails
+                            // for case duplicates in the game folder.
+                            let Some(report) = report_settings.and_then(|settings| {
+                                Engine::case_collision_report(
+                                    &settings,
+                                    case_insensitive_pathing,
+                                    &error,
+                                    &guide,
+                                    completed.as_deref().unwrap_or_default(),
+                                )
+                            }) else {
+                                return Err(error);
+                            };
+                            let _ = tx.send(Message::ValidationTerminal(validation_run, report));
+                            anyhow::bail!("Validation pipeline reported errors");
+                        }
+                    };
                     if job == Job::Install {
                         let mut config = checkpoint_config;
                         if resume.is_some() {
@@ -4295,6 +4368,9 @@ impl App {
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        // The footer can open this modal during the current input frame. Its
+        // opening click is outside the modal and must not dismiss it immediately.
+        let install_confirmation_was_open = self.confirm_install;
         self.poll_resource_watch();
         self.poll_protocol_inbox(ctx);
         let messages: Vec<_> = self
@@ -4786,7 +4862,7 @@ impl eframe::App for App {
                     if ui.button("Cancel").clicked() { self.confirm_install = false; }
                 });
             });
-            if response.should_close() {
+            if install_confirmation_was_open && response.should_close() {
                 self.confirm_install = false;
             }
         }

@@ -97,8 +97,8 @@ pub(crate) fn wide_integer_lexeme(n: &Number) -> Option<&str> {
 /// Wraps a `&Value` so that `Serialize` renders scalars/maps/sequences
 /// natively instead of delegating `Number` to `serde_json::Number::serialize`
 /// (which emits the private `arbitrary_precision` wrapper protocol under
-/// non-JSON formats).
-struct NativeValue<'a>(&'a Value);
+/// non-JSON formats). The flag is true for TOML output.
+struct NativeValue<'a>(&'a Value, bool);
 
 impl Serialize for NativeValue<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
@@ -110,14 +110,33 @@ impl Serialize for NativeValue<'_> {
             Value::Array(items) => {
                 let mut seq = serializer.serialize_seq(Some(items.len()))?;
                 for item in items {
-                    seq.serialize_element(&NativeValue(item))?;
+                    seq.serialize_element(&NativeValue(item, self.1))?;
                 }
                 seq.end()
+            }
+            // A TOML date-time read through `toml`'s private datetime
+            // protocol renders back as the native date-time in TOML and as its
+            // date-time text in YAML, which has no such type. The key is the
+            // `toml` crate's reserved protocol, not a ModSync marker: a TOML
+            // load already yields this exact object for a native date-time,
+            // and no key a `serde_json::Value` can hold is unforgeable, so a
+            // JSON, YAML or XML object of exactly this shape (one key, a valid
+            // TOML date-time string) is treated as a date-time too.
+            Value::Object(map)
+                if map.len() == 1
+                    && let Some(Value::String(text)) = map.get("$__toml_private_datetime")
+                    && let Ok(datetime) = text.parse::<toml::value::Datetime>() =>
+            {
+                if self.1 {
+                    datetime.serialize(serializer)
+                } else {
+                    serializer.serialize_str(&datetime.to_string())
+                }
             }
             Value::Object(map) => {
                 let mut ser_map = serializer.serialize_map(Some(map.len()))?;
                 for (key, item) in map {
-                    ser_map.serialize_entry(key, &NativeValue(item))?;
+                    ser_map.serialize_entry(key, &NativeValue(item, self.1))?;
                 }
                 ser_map.end()
             }
@@ -156,7 +175,7 @@ fn serialize_number<S: Serializer>(n: &Number, serializer: S) -> Result<S::Ok, S
 /// Charges `budget` with `value`'s logical size before serializing.
 pub(crate) fn to_toml_pretty(value: &Value, budget: &mut ValueBudget) -> Result<String> {
     budget.check(value)?;
-    match toml::to_string_pretty(&NativeValue(value)) {
+    match toml::to_string_pretty(&NativeValue(value, true)) {
         Ok(text) => Ok(text),
         Err(err) => bail!("{err}"),
     }
@@ -166,7 +185,7 @@ pub(crate) fn to_toml_pretty(value: &Value, budget: &mut ValueBudget) -> Result<
 /// Charges `budget` with `value`'s logical size before serializing.
 pub(crate) fn to_yaml_string(value: &Value, budget: &mut ValueBudget) -> Result<String> {
     budget.check(value)?;
-    match serde_yaml_ng::to_string(&NativeValue(value)) {
+    match serde_yaml_ng::to_string(&NativeValue(value, false)) {
         Ok(text) => Ok(text),
         Err(err) => bail!("{err}"),
     }

@@ -10,9 +10,10 @@ Cancellation/failure stops before any later program. Patcher retains exactly one
 Source so its selected configuration, staging and expected log root remain bound
 to one invocation.
 
-Arguments are tokenized before root substitution. Unix uses the existing shell-like
-quoting grammar through shlex; Windows uses CRT-style double-quote/backslash rules
-with literal single quotes. No shell is invoked. Supported placeholders are
+Arguments are tokenized before root substitution with CRT-style
+double-quote/backslash rules and literal single quotes on every host (until
+2026-10-04 Unix used shlex; see
+[execute-arguments-contract.md](execute-arguments-contract.md)). No shell is invoked. Supported placeholders are
 modDirectory, kotorDirectory and gameDirectory, case-insensitively. Each resulting
 argument remains one OS string even when a root has spaces or non-UTF-8 bytes.
 Unknown/unclosed markers, malformed quote text and NUL input fail before spawn.

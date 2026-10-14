@@ -163,15 +163,20 @@ impl Acquire for PeerAcquire {
             }
         };
 
-        // An unnamed target learns its name from the torrent before any transfer. When
-        // that name is already present, nothing is fetched or replaced: the orchestrator
-        // adopts the present file only if it has the authored digest, which every Peer
-        // copy must have. (In a race `destination` is an empty staging folder instead.)
-        if target.filename.is_none() && destination_file.exists() {
-            return Err(anyhow::Error::new(download::DestinationExists {
-                path: destination_file,
+        // The name is known before any transfer: authored, or learned from the torrent.
+        // When it is already present (for a known name, because an ungrouped target
+        // published it first), nothing is fetched or replaced: the orchestrator adopts
+        // the present file only if it has the authored digest, which every Peer copy
+        // must have. (In a race `destination` is in an empty staging folder instead, and
+        // `PeerStaging::publish` settles the final name the same way.)
+        let present = || {
+            anyhow::Error::new(download::DestinationExists {
+                path: destination_file.clone(),
                 sha256: sha256.to_ascii_lowercase(),
-            }));
+            })
+        };
+        if std::fs::symlink_metadata(&destination_file).is_ok() {
+            return Err(present());
         }
 
         // P3: policy is bootstrapped only now, from this eligible call.
@@ -230,6 +235,15 @@ impl Acquire for PeerAcquire {
                 sha256,
             }),
             Err(error) if cancelled.load(Ordering::SeqCst) => Err(download::cancelled(error)),
+            // The name was taken while this copy transferred: its no-clobber move lost.
+            Err(error)
+                if error.chain().any(|e| {
+                    e.downcast_ref::<std::io::Error>()
+                        .is_some_and(|e| e.kind() == std::io::ErrorKind::AlreadyExists)
+                }) && std::fs::symlink_metadata(&destination_file).is_ok() =>
+            {
+                Err(present())
+            }
             Err(error) => Err(error),
         }
     }

@@ -98,6 +98,7 @@ That check is not needed for install safety. `Guide::parse` in `src/model.rs` al
 2. Direct-Markdown preflight policy (`src/direct_markdown.rs`). The reference `DirectMarkdownInstallPreflight` counts flagged drafts as executable. Rust adds any component that needs review to `unresolved_components`. This follows the draft service's never-auto-trust contract. The conflict is still to be settled by the owner.
    - The reference `drafted` count also includes option-level review flags. Rust counts component-level flags only.
 3. Still open: URL-based generation, desktop inference controls, editing unresolved drafts, all parser edge cases and full-corpus installs. Drafting equivalence itself remains as recorded in `draft-check.json`. It was not re-run against the new parser output.
+4. **Drafted Rename (intentional, 2026-10-04).** Rust drafts "rename a.ext to b.ext" as `Rename [<<modDirectory>>\a.ext] -> b.ext`; the reference drafts a `<<kotorDirectory>>\Override` Destination (and `b.ext` as a second Source after "to"), which neither install renames as intended. `tools/check_drafts.py` lists this shape as an intentional difference; re-run against `mod-builds` `21b2f04`, the K1/K2 full and spoiler-free drafts had 0 differences. See [drafted-rename-contract.md](drafted-rename-contract.md).
 
 ## Reproduce
 

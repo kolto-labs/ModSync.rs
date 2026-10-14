@@ -246,7 +246,19 @@ follow-up matches the way the engine resolves sources (`scope_folder_*`,
 `scope_char_class_*`):
 
 - The last source component is matched with the engine's own glob matcher
-  (`*`, `?`, `[...]`, case-insensitive after Unicode folding).
+  (`*`, `?`, case-insensitive after Unicode folding). Since 2026-10-04 that matcher
+  follows C# `PathHelper.WildcardPathMatch`: `[` and `]` are literal and `**` stays
+  within one level (see [delete-directory-contract.md](../delete-directory-contract.md)).
+  `scope_char_class_*` therefore now expects `[e]xample.zip` to name no file: the
+  FOMOD stage still passes, but install, the report and plain validate refuse the
+  missing source (exit 1, no game writes). The reference refuses the same Extract
+  with `MissingSourceFiles` (delete-directory proof, `extract_bracket_literal`).
+  A third label, `scope_bracket_literal_*` (11 checks), extracts an archive literally
+  named `[e]xample.zip` that the Source names literally: it is in scope and installs.
+  The total is now 265. (It named Destination `<<modDirectory>>/bracket` until
+  2026-10-05; an Extract Destination is no longer used and fails the basic report, as
+  in C#, so it now extracts to `[e]xample/`. See
+  [extract-destination-contract.md](../extract-destination-contract.md).)
 - The archive's folder is not known when choices are applied, so any source whose last
   component is not an archive file name (`.zip`, `.7z`, `.rar`, `.exe`, `.tar`, `.gz`)
   is treated as a possible folder containing it. An unparseable glob is kept as well.
@@ -255,6 +267,15 @@ follow-up matches the way the engine resolves sources (`scope_folder_*`,
 - Completed components are never touched. A completed component that no entry
   references was also untouched in the base phase, so its recorded definition
   still matches.
+
+Since [loose-source](../loose-source-contract.md) (2026-10-05) a component that
+extracts an archive may not copy a loose file in the mod folder that none of its
+archives holds, as the C# CLI refuses it. `gate_valid_extract` and the
+`unpack_*_extract` cases copied `notes.txt` in the component that extracts
+`example.zip`; that component now only extracts, so the five checks that failed
+(`gate_extract_plain_exit`, both `unpack_*_extract_exit` and both
+`unpack_*_extract_spooled`) pass again with the same expectations. The total stays
+265.
 
 ## What remains of S2
 
@@ -287,3 +308,15 @@ Residual (documented at merge): a folder source whose own name ends in an archiv
 extension is compared as a file name, so its component fails for lack of choices rather
 than installing unconfigured; an included component with unparseable `FomodChoices`
 fails with the repair hint.
+
+Update 2026-10-03: rooted resolution (`a185ced`) closed this residual for the CLI; a
+suffixed directory now owns only the archives it contains. Ownership propagation, gate
+dependency scope and the missing-archive soft warning are settled in
+[the gate-scope contract](../fomod-gate-scope.md).
+
+**Warning: `MODSYNC_PROOF_OUT`.** This probe treats `MODSYNC_PROOF_OUT` as its own
+output directory and deletes it (`shutil.rmtree`) before running. Other probes treat
+the variable as a parent directory. Point it at a dedicated, disposable folder. Since
+2026-10-04 this probe and the other seven that clear their output directory refuse to
+delete a non-empty folder unless it holds the `.modsync-proof-out` marker a previous
+run wrote, or it lies under `target/cloud-proof`.

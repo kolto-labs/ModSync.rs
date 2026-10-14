@@ -1,0 +1,445 @@
+{
+ "backslash_missing": {
+  "counts": [
+   1,
+   1,
+   1
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Missing Required Archives: [<<modDirectory>>/nope.zip]"
+   ]
+  ]
+ },
+ "base_and_option_missing": {
+  "counts": [
+   1,
+   1,
+   1
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Missing Required Archives: [<<modDirectory>>/nope.zip]"
+   ]
+  ]
+ },
+ "conditional_missing": {
+  "counts": [
+   1,
+   0,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Missing Required Archives: [<<modDirectory>>/nope.zip]"
+   ]
+  ]
+ },
+ "conditional_present": {
+  "counts": [
+   1,
+   0,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Missing Required Archives: [<<modDirectory>>/a.zip]"
+   ]
+  ]
+ },
+ "control_copy": {
+  "counts": [
+   0,
+   0,
+   3
+  ],
+  "decision": [
+   0,
+   true
+  ],
+  "stage": [
+   true,
+   false,
+   "All components passed archive validation.",
+   [
+    "OK: A"
+   ]
+  ]
+ },
+ "control_empty_source_and_present": {
+  "counts": [
+   0,
+   1,
+   2
+  ],
+  "decision": [
+   0,
+   true
+  ],
+  "stage": [
+   true,
+   false,
+   "All components passed archive validation.",
+   [
+    "OK: A"
+   ]
+  ]
+ },
+ "control_extract": {
+  "counts": [
+   0,
+   0,
+   3
+  ],
+  "decision": [
+   0,
+   true
+  ],
+  "stage": [
+   true,
+   false,
+   "All components passed archive validation.",
+   [
+    "OK: A"
+   ]
+  ]
+ },
+ "duplicate_missing": {
+  "counts": [
+   2,
+   1,
+   1
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "2 component error(s)",
+   [
+    "ERROR: A: Missing Required Archives: [<<modDirectory>>/nope.zip]",
+    "ERROR: A: Missing Required Archives: [<<modDirectory>>/nope.zip]"
+   ]
+  ]
+ },
+ "empty_source_only": {
+  "counts": [
+   1,
+   1,
+   1
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Missing Required Archives: []"
+   ]
+  ]
+ },
+ "missing": {
+  "counts": [
+   1,
+   1,
+   1
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Missing Required Archives: [<<modDirectory>>/nope.zip]"
+   ]
+  ]
+ },
+ "missing_and_conditional_missing": {
+  "counts": [
+   2,
+   1,
+   1
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "2 component error(s)",
+   [
+    "ERROR: A: Missing Required Archives: [<<modDirectory>>/nope2.zip]",
+    "ERROR: A: Missing Required Archives: [<<modDirectory>>/nope.zip]"
+   ]
+  ]
+ },
+ "missing_bad_destination": {
+  "counts": [
+   1,
+   1,
+   1
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Missing Required Archives: [<<modDirectory>>/nope.zip]"
+   ]
+  ]
+ },
+ "missing_then_copy": {
+  "counts": [
+   1,
+   1,
+   1
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Missing Required Archives: [<<modDirectory>>/nope.zip]"
+   ]
+  ]
+ },
+ "option_only_missing": {
+  "counts": [
+   1,
+   0,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   true,
+   false,
+   "All components passed archive validation.",
+   [
+    "OK: A"
+   ]
+  ]
+ },
+ "option_present_base_missing": {
+  "counts": [
+   0,
+   1,
+   2
+  ],
+  "decision": [
+   0,
+   true
+  ],
+  "stage": [
+   true,
+   false,
+   "All components passed archive validation.",
+   [
+    "OK: A"
+   ]
+  ]
+ },
+ "partly_missing": {
+  "counts": [
+   0,
+   1,
+   2
+  ],
+  "decision": [
+   0,
+   true
+  ],
+  "stage": [
+   true,
+   false,
+   "All components passed archive validation.",
+   [
+    "OK: A"
+   ]
+  ]
+ },
+ "partly_missing_sources": {
+  "counts": [
+   0,
+   0,
+   3
+  ],
+  "decision": [
+   0,
+   true
+  ],
+  "stage": [
+   true,
+   false,
+   "All components passed archive validation.",
+   [
+    "OK: A"
+   ]
+  ]
+ },
+ "second_component_missing": {
+  "counts": [
+   1,
+   1,
+   1
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "OK: A",
+    "ERROR: B: Missing Required Archives: [<<modDirectory>>/nope.zip]"
+   ]
+  ]
+ },
+ "two_components_missing": {
+  "counts": [
+   3,
+   2,
+   1
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "3 component error(s)",
+   [
+    "ERROR: A: Missing Required Archives: [<<modDirectory>>/nope.zip]",
+    "ERROR: B: Missing Required Archives: [<<modDirectory>>/nope2.zip]",
+    "ERROR: B: Missing Required Archives: [<<modDirectory>>/nope.zip]"
+   ]
+  ]
+ },
+ "two_missing": {
+  "counts": [
+   2,
+   1,
+   1
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "2 component error(s)",
+   [
+    "ERROR: A: Missing Required Archives: [<<modDirectory>>/nope.zip]",
+    "ERROR: A: Missing Required Archives: [<<modDirectory>>/nope2.zip]"
+   ]
+  ]
+ },
+ "two_sources_missing": {
+  "counts": [
+   1,
+   1,
+   1
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Missing Required Archives: [<<modDirectory>>/nope.zip,<<modDirectory>>/nope2.zip]"
+   ]
+  ]
+ },
+ "unselected_missing": {
+  "counts": [
+   0,
+   0,
+   3
+  ],
+  "decision": [
+   0,
+   true
+  ],
+  "stage": [
+   true,
+   false,
+   "All components passed archive validation.",
+   [
+    "OK: A"
+   ]
+  ]
+ },
+ "wildcard_missing": {
+  "counts": [
+   1,
+   1,
+   1
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Missing Required Archives: [<<modDirectory>>/*.7z]"
+   ]
+  ]
+ }
+}

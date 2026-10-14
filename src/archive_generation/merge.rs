@@ -155,19 +155,20 @@ pub(super) fn consolidate(component: &mut Component) {
                 .iter_mut()
                 .filter(|i| i.action == "Choose")
             {
+                // Choose entries name options by C# `Guid.ToString()` text.
                 if let Some(position) = choose
                     .source
                     .iter()
-                    .position(|s| s.eq_ignore_ascii_case(&duplicate.guid))
+                    .position(|s| crate::guid::names_option(&duplicate.guid, s))
                 {
                     if choose
                         .source
                         .iter()
-                        .any(|s| s.eq_ignore_ascii_case(&primary_id))
+                        .any(|s| crate::guid::names_option(&primary_id, s))
                     {
                         choose.source.remove(position);
                     } else {
-                        choose.source[position] = primary_id.clone();
+                        choose.source[position] = crate::guid::option_text(&primary_id);
                     }
                 }
             }

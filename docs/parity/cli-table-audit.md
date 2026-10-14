@@ -27,7 +27,7 @@ The C# Core parser recognizes exactly nine declared verbs and maps every parser 
 | `convert` | convert; legacy merge mode; default TOML; stdout without output path | `convert` | **differing** — core conversion/stdin/drafting overlap, but C# download/selection/merge/spoiler controls are absent and Rust adds positional forms/review | C# MBC:385-483,1815-2370; `src/main.rs:154-178,738-794` |
 | `merge` | two inputs; stdout or file; download/selection/FOMOD hooks | `merge` | **differing** — Rust requires positional output and lacks download/selection/FOMOD/spoiler controls; field names also differ | C# MBC:485-568,2384-2793; `src/main.rs:109-140,696-737` |
 | `validate` | structural/full/dry-run pipeline; text or one JSON report | `validate` | **differing** — shared pipeline exists, but flag spelling/modes and ordinary JSON are different | C# MBC:570-605,3014-3275; `src/main.rs:141-142,287-364,897-1163` |
-| `install` | validation, optional downloads, prompts, patcher and managed/best-effort controls | `install` | **differing** — shared safe pipeline exists, but many C# controls are absent or deliberately incompatible with fail-stop policy | C# MBC:607-678,3279-3696; `src/main.rs:145-146,287-364,897-1163` |
+| `install` | validation, optional downloads, prompts, patcher and managed/best-effort controls | `install` | **differing** — shared safe pipeline exists, but many C# controls are absent or deliberately incompatible with fail-stop policy. 2026-10-05: a game or mod folder Rust cannot write to is refused before any write, as C#'s pipeline refuses it (no permission-fix prompt; [writable-roots-contract.md](writable-roots-contract.md)) | C# MBC:607-678,3279-3696; `src/main.rs:145-146,287-364,897-1163` |
 | `set-nexus-api-key` | validate and persist positional secret | none | **missing** — Rust consumes settings/env keys in download/update paths but has no setter verb | C# MBC:680-688,4070-4129; `src/main.rs:633-650,674-688` |
 | `install-python-deps` | install embedded Python dependencies | none | **missing** | C# MBC:690-695,4134-4325; `src/main.rs:21-236` |
 | `holopatcher` | locate and invoke bundled HoloPatcher with a raw argument string | none | **missing** — Rust invokes configured patchers only inside installation | C# MBC:697-702,4329-4401; `src/main.rs:321-339,1061-1070` |
@@ -67,12 +67,12 @@ C# successful handlers normally return `0`, errors `1`; validation can propagate
 
 | C# flag | C# default/shape | Rust flag | Status and reason | Referent |
 |---|---|---|---|---|
-| `-i/--input` | optional path | `-i/--input`, plus positional input | **differing** — Rust adds positional form and explicit conflicts | C# MBC:388-389; `src/main.rs:155-163` |
+| `-i/--input` | optional path | `-i/--input`, plus positional input | **differing** — Rust adds positional form and explicit conflicts 2026-10-05: a guide that is not a file gives C#'s `Input file not found: <path>` ([missing-guides-contract.md](missing-guides-contract.md)) | C# MBC:388-389; `src/main.rs:155-163` |
 | `-o/--output` | optional; stdout if absent | `-o/--output`, plus positional output | **differing** — Rust named output does not drive format inference | C# MBC:391-395; `src/main.rs:156-166,780-792` |
 | `-f/--format` | `toml` | `-f/--format` optional; positional output extension may choose default | **differing** | C# MBC:394-395; `src/main.rs:164-166,780-786` |
 | `-a/--auto` | false | none | **missing** | C# MBC:397-398; `src/main.rs:154-178` |
 | `-d/--download` | false; requires source | none | **missing** | C# MBC:400-401,1972-1978; `src/main.rs:154-178` |
-| `-s/--select` | repeatable category/tier | none | **missing** | C# MBC:403-404; `src/main.rs:154-178` |
+| `-s/--select` | repeatable category/tier | none | **missing** (since added: `-s, --select`, one value per flag; see [select-values-contract.md](select-values-contract.md)) | C# MBC:403-404; `src/main.rs:154-178` |
 | `--source-path` | optional path | `--source-path` | **matched** for name/shape | C# MBC:406-407; `src/main.rs:171-174` |
 | `--nexus-mods-api-key` | optional secret | none | **missing** | C# MBC:409-410; `src/main.rs:154-178` |
 | `-m/--merge` | false; legacy redirect | none | **missing** | C# MBC:412-419,1905-1943; `src/main.rs:154-178` |
@@ -107,12 +107,12 @@ The C# legacy `convert --merge` adapter also drops `concurrent`, `ignore-errors`
 
 | C# flag | C# default/shape | Rust flag | Status and reason | Referent |
 |---|---|---|---|---|
-| `-e/--existing` | required | positional `EXISTING` | **differing** — alias/grammar | C# MBC:488-489; `src/main.rs:110-113` |
-| `-n/--incoming` | required | positional `INCOMING` | **differing** — alias/grammar | C# MBC:491-492; `src/main.rs:110-113` |
-| `-o/--output` | optional; stdout if absent | positional `OUTPUT`, required | **differing** | C# MBC:494-498; `src/main.rs:110-113,736-737` |
+| `-e/--existing` | required | positional `EXISTING` | **differing** — alias/grammar 2026-10-05: a guide that is not a file gives C#'s `Existing file not found: <path>` ([missing-guides-contract.md](missing-guides-contract.md)) | C# MBC:488-489; `src/main.rs:110-113` |
+| `-n/--incoming` | required | positional `INCOMING` | **differing** — alias/grammar 2026-10-05: a guide that is not a file gives C#'s `Incoming file not found: <path>` ([missing-guides-contract.md](missing-guides-contract.md)) | C# MBC:491-492; `src/main.rs:110-113` |
+| `-o/--output` | optional; stdout if absent | positional `OUTPUT`, required | **differing** 2026-10-05 observation: the current binary also accepts `-o/--output` and prints to stdout without an output, as C# does; this row is stale and was not re-audited ([missing-guides-contract.md](missing-guides-contract.md)) | C# MBC:494-498; `src/main.rs:110-113,736-737` |
 | `-f/--format` | `toml` | inferred from output | **differing** | C# MBC:497-498; `src/main.rs:714-737` |
 | `-d/--download` | false | none | **missing** | C# MBC:500-501; `src/main.rs:109-140` |
-| `-s/--select` | repeatable | none | **missing** | C# MBC:503-504; `src/main.rs:109-140` |
+| `-s/--select` | repeatable | none | **missing** (since added: `-s, --select`, one value per flag; see [select-values-contract.md](select-values-contract.md)) | C# MBC:503-504; `src/main.rs:109-140` |
 | `--source-path` | optional | none | **missing** | C# MBC:506-507; `src/main.rs:109-140` |
 | `--nexus-mods-api-key` | optional | none | **missing** | C# MBC:509-510; `src/main.rs:109-140` |
 | `--exclude-existing-only` | false | same | **matched** | C# MBC:512-513; `src/main.rs:137-139` |
@@ -139,13 +139,13 @@ The C# legacy `convert --merge` adapter also drops `concurrent`, `ignore-errors`
 
 | C# flag | C# default/shape | Rust flag | Status and reason | Referent |
 |---|---|---|---|---|
-| `-i/--input` | required | same unless profile supplies it | **differing** — Rust allows profile-derived input | C# MBC:573-574; `src/main.rs:298-306` |
-| `-g/--game-dir` | optional except full/dry modes | `--game-dir`, profile-capable; no `-g` | **differing** | C# MBC:576-577,3042-3078; `src/main.rs:300-303` |
-| `-s/--source-dir` | optional except full/dry modes | `--source-dir`, profile-capable; no `-s` | **differing** | C# MBC:579-580,3042-3078; `src/main.rs:302-303` |
-| `--select` | repeatable category/tier | repeatable name/GUID/category/tier | **differing** — Rust grammar is broader | C# MBC:582-583; `src/main.rs:315-317,989-997` |
-| `--full` | false | same, requires `--validation-report` | **differing** — C# mode directly selects pipeline; Rust gates it behind report mode | C# MBC:585-586; `src/main.rs:352-360` |
+| `-i/--input` | required | same unless profile supplies it | **differing** — Rust allows profile-derived input. 2026-10-05: a guide that is not a file gives C#'s `Input file not found: <path>` ([missing-paths-contract.md](missing-paths-contract.md)) | C# MBC:573-574; `src/main.rs:298-306` |
+| `-g/--game-dir` | optional except full/dry modes | `--game-dir`/`-g`, profile-capable | **differing**; 2026-10-05: a missing game folder gives C#'s `Game directory not found: <path>` ([missing-paths-contract.md](missing-paths-contract.md)) | C# MBC:576-577,3042-3078; `src/main.rs:300-303` |
+| `-s/--source-dir` | optional except full/dry modes | `--source-dir`/`-s`, profile-capable | **differing**; 2026-10-05: a missing mod folder gives C#'s `Source directory not found: <path>` ([missing-paths-contract.md](missing-paths-contract.md)) | C# MBC:579-580,3042-3078; `src/main.rs:302-303` |
+| `--select` | list (several values after one flag; a repeated flag is refused) | repeatable name/GUID/category/tier | **differing** — Rust grammar is broader. 2026-10-05: C#'s list form `--select a b` (CommandLineParser sequence; a repeated flag is refused there) is now read as in C#, and a repeated flag still works ([select-values-contract.md](select-values-contract.md)) | C# MBC:582-583; `src/main.rs:315-317,989-997` |
+| `--full` | false | same, requires `--validation-report` | **differing** — C# mode directly selects pipeline; Rust gates it behind report mode. 2026-10-05: the Environment stage now fails a game or mod folder Rust cannot write to with C#'s message, as C# does; Windows is not checked ([writable-roots-contract.md](writable-roots-contract.md)). 2026-10-05: a game folder with two names that differ only in case now fails the Environment stage with C#'s duplicate message instead of a report with no stages ([case-duplicates-contract.md](case-duplicates-contract.md)). 2026-10-05: a selected component whose Restriction is selected, or whose Dependency is not, now fails the Environment stage with C#'s `Some components failed to validate` message (one error, the report ends) instead of failing three later stages ([environment-relations-contract.md](environment-relations-contract.md)) | C# MBC:585-586; `src/main.rs:800-802,3279-3313`; `src/engine.rs:465-540,1010-1063,2233-2275` |
 | `--dry-run` | false | same, requires report | **differing** | C# MBC:588-589; `src/main.rs:355-357` |
-| `--dry-run-only` | false | same, requires report; remaining forbidden | **differing** | C# MBC:591-592; `src/main.rs:361-363,920-923` |
+| `--dry-run-only` | false | same, requires report; remaining forbidden | **differing**. 2026-10-05: with `--full`, the Environment stage now fails a selected component's archive/destination error with C#'s message, as C# does; a partly missing Extract or an option's missing archive also fails there (fail closed, C# passes the stage) ([dry-run-only-environment-contract.md](dry-run-only-environment-contract.md)) | C# MBC:591-592; `src/main.rs:361-363,920-923` |
 | `--errors-only` | false | none | **missing** | C# MBC:594-595; `src/main.rs:287-364` |
 | `--ignore-errors` | false | none | **missing** | C# MBC:597-598; `src/main.rs:287-364` |
 | `--use-file-selection` | false; absent select means all | same | **matched** | C# MBC:600-601,3145-3203; `src/main.rs:312-317,989-1004` |
@@ -158,30 +158,37 @@ The C# legacy `convert --merge` adapter also drops `concurrent`, `ignore-errors`
 
 ## `install` flag table
 
+Note (2026-10-05): the rows for `--no-checkpoint`, `--skip-validation`, `-y/--yes`,
+`-d/--download`, `--concurrent`, the continuation flags, `--best-effort`,
+`--nexus-api-key`, `--download-timeout-hours` and `--ignore-errors` were refreshed
+from source at `f6d2ec5` and checked with the release binary (the refused flags exit
+1 before anything runs). Line references in the other rows still predate later
+slices.
+
 | C# flag | C# default/shape | Rust flag | Status and reason | Referent |
 |---|---|---|---|---|
-| `-i/--input` | required | same unless profile supplies it | **differing** | C# MBC:610-611; `src/main.rs:298-306` |
-| `-g/--game-dir` | required | `--game-dir`, profile-capable; no `-g` | **differing** | C# MBC:613-614; `src/main.rs:300-306` |
-| `-s/--source-dir` | input directory if absent | required unless profile supplies it; no `-s` | **differing** — default differs | C# MBC:616-617,3342-3347; `src/main.rs:302-306,962-973` |
-| `--select` | repeatable category/tier | repeatable broader selector | **differing** | C# MBC:619-620; `src/main.rs:315-317,989-997` |
+| `-i/--input` | required | same unless profile supplies it | **differing**; 2026-10-05: a guide that is not a file gives C#'s `Input file not found: <path>` ([missing-paths-contract.md](missing-paths-contract.md)) | C# MBC:610-611; `src/main.rs:298-306` |
+| `-g/--game-dir` | required | `--game-dir`/`-g`, profile-capable | **differing**; 2026-10-05: a missing game folder gives C#'s `Game directory not found: <path>` ([missing-paths-contract.md](missing-paths-contract.md)) | C# MBC:613-614; `src/main.rs:300-306` |
+| `-s/--source-dir` | input directory if absent | required unless profile supplies it; `-s` accepted | **differing** — default differs. 2026-10-05: a missing mod folder gives C#'s `Source directory not found: <path>` ([missing-paths-contract.md](missing-paths-contract.md)) | C# MBC:616-617,3342-3347; `src/main.rs:302-306,962-973` |
+| `--select` | list (several values after one flag; a repeated flag is refused) | repeatable broader selector | **differing**. 2026-10-05: `--select a b` is now read as in C#, as for `validate` ([select-values-contract.md](select-values-contract.md)) | C# MBC:619-620; `src/main.rs:315-317,989-997` |
 | `--use-file-selection` | false; absent select means all | same | **matched** | C# MBC:622-623; `src/main.rs:312-317,989-1004` |
-| `--no-checkpoint` | false | none | **missing** — Rust recovery snapshot is mandatory | C# MBC:625-626; `src/main.rs:287-364` |
-| `--skip-validation` | false | none | **missing** — Rust preflight is mandatory | C# MBC:628-629; `src/main.rs:1095-1121`; `src/engine.rs:786-861` |
-| `-y/--yes` | false | none | **missing** — Rust has no install confirmation prompt | C# MBC:631-632; `src/main.rs:287-364` |
-| `-d/--download` | false | none | **missing** | C# MBC:634-635; `src/main.rs:287-364` |
-| `--concurrent` | false | none | **missing** | C# MBC:637-638; `src/main.rs:287-364` |
+| `--no-checkpoint` | false | same | **differing** — keeps the whole-run recovery snapshot and drops only per-component history; conflicts with `--component-checkpoints` and `--managed` | C# MBC:625-626; `src/main.rs:690-692` |
+| `--skip-validation` | false | hidden, refused by name before anything runs (exit 1) | **differing** — Rust preflight is mandatory | C# MBC:628-629; `src/main.rs:698-699,2998-3016` |
+| `-y/--yes` | false | hidden, refused by name before anything runs (exit 1) | **differing** — Rust has no install confirmation prompt | C# MBC:631-632; `src/main.rs:706-707,2998-3016` |
+| `-d/--download` | false | same | **differing** — same spelling; acquires the selected resources before validation and the snapshot through Rust's shared fetch pipeline, not compared invocation by invocation | C# MBC:634-635; `src/main.rs:675-677` |
+| `--concurrent` | false | same, requires `-d` | **differing** — four download workers instead of one; refused without `-d` | C# MBC:637-638; `src/main.rs:680-682` |
 | `--patcher-engine` | optional enum | same canonical Rust enum plus value aliases | **differing** — accepted values/spelling differ | C# MBC:640-641; `src/main.rs:331-333,382-398` |
 | `--kpatcher-path` | optional | visible alias of `--patcher` | **differing** — shared destination and no backend-specific validation at parse time | C# MBC:643-644; `src/main.rs:324-330` |
 | `--odypatcher-path` | optional | visible alias of `--patcher` | **differing** | C# MBC:646-647; `src/main.rs:324-330` |
 | `--direct-markdown` | false | same | **differing** — Rust additionally conflicts with profiles/options/FOMOD and forbids phased use | C# MBC:649-650,3286-3305; `src/main.rs:292-297,910-923,975-1047` |
-| `--continue-on-missing-sources` | false | none | **missing** — conflicts with binding fail-stop rule | C# MBC:652-653,3656-3663; `src/main.rs:287-364` |
-| `--continue-on-mod-failure` | false | none | **missing** — conflicts with binding fail-stop rule | C# MBC:655-656,3665-3671; `src/main.rs:287-364` |
-| `--best-effort` | false; enables both continuation flags and `-y`; partial failure can exit 0 | none | **missing** — unsafe reference behavior cannot be silently copied | C# MBC:658-659,3359-3365,3656-3671; `docs/parity/ACCEPTANCE.md:75` |
-| `--nexus-api-key` | optional | none on install | **missing** | C# MBC:661-662; `src/main.rs:287-364` |
-| `--download-timeout-hours` | 48 | none | **missing** | C# MBC:664-665; `src/main.rs:287-364` |
-| `--ignore-errors` | false | none | **missing** — dependency failures remain fail-closed | C# MBC:667-668; `src/main.rs:287-364` |
-| `--managed` | false | no install flag; deployment is separate | **missing** | C# MBC:670-671; `src/main.rs:25-26,237-286` |
-| `--no-managed` | false | none | **missing** | C# MBC:673-674; `src/main.rs:287-364` |
+| `--continue-on-missing-sources` | false | hidden, refused by name before anything runs (exit 1) | **differing** — conflicts with binding fail-stop rule | C# MBC:652-653,3656-3663; `src/main.rs:700-701,2998-3016` |
+| `--continue-on-mod-failure` | false | hidden, refused by name before anything runs (exit 1) | **differing** — conflicts with binding fail-stop rule | C# MBC:655-656,3665-3671; `src/main.rs:702-703,2998-3016` |
+| `--best-effort` | false; enables both continuation flags and `-y`; partial failure can exit 0 | same, alias `--continue-on-error`; parsed, then refused before anything runs (exit 1) | **differing** — unsafe reference behavior cannot be silently copied | C# MBC:658-659,3359-3365,3656-3671; `src/main.rs:693-695,3106-3109`; `docs/parity/ACCEPTANCE.md:75` |
+| `--nexus-api-key` | optional | same, alias of `--nexus-mods-api-key` | **matched** for name/shape | C# MBC:661-662; `src/main.rs:678-679` |
+| `--download-timeout-hours` | 48 | same, default 48; `0` also means 48 | **matched** for name/default | C# MBC:664-665; `src/main.rs:683-685` |
+| `--ignore-errors` | false | hidden, refused by name before anything runs (exit 1) | **differing** — dependency failures remain fail-closed | C# MBC:667-668; `src/main.rs:704-705,2998-3016` |
+| `--managed` | false | `install --managed` (needs `--component-checkpoints` or a checkpoint resume) | **differing** | C# MBC:670-671; `src/main.rs:25-26,237-286` |
+| `--no-managed` | false | same; classic install, the Rust CLI default | **differing** — 2026-10-05: accepted and refused beside `--managed` with C#'s message; the CLI never reads settings.json's managed toggle, so the flag changes nothing else ([no-managed-contract.md](no-managed-contract.md)) | C# MBC:673-674; `src/main.rs:711-713,3016-3023` |
 | `--profile` | optional | same name, different meaning: stored paths/selections | **differing** | C# MBC:676-677; `src/main.rs:304-311,948-973` |
 | none | — | `--phase`, `--active-profile`, `--settings-dir`, `--option` | **differing** — Rust-only orchestration | `src/main.rs:289-320` |
 | none | — | `--allow-processes` | **differing** — Rust-only explicit authorization | `src/main.rs:321-323,1061-1063` |

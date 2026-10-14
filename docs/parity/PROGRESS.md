@@ -9,12 +9,626 @@ is assigned because the remaining domains differ greatly in scope and proof cost
 
 ## Current working source — 2026-10-02
 
+A missing guide for `convert` or `merge` (2026-10-05, F26): `convert` stops with
+C#'s `Input file not found: <path>` and `merge` (and `convert --merge`) with
+`Existing file not found: <path>` or `Incoming file not found: <path>`, checked
+before either guide is read, where Rust said `Read <path>: No such file or directory
+(os error 2)`. A folder gets the same message, as `File.Exists` is false for it. Exit
+codes and the absence of writes were already the same; only the message changes.
+Proof: 45 match / 0 known against the live C# CLI; 13 fail on `5796295`. The
+regression probes stay at baseline, with this proof added to the set. See
+[missing-guides-contract.md](missing-guides-contract.md).
+
+A missing guide, game folder or mod folder (2026-10-05, F26): `validate`, `install`
+and `conflicts` now stop with C#'s `Input file not found: <path>`, `Game directory not
+found: <path>` or `Source directory not found: <path>` (guide, then game folder, then
+mod folder; the JSON report's `error` field with `--output json`), where Rust said
+`No such file or directory (os error 2)` without naming the folder, or `Read <path>:
+...` for the guide. Exit codes and the absence of writes were already the same; only
+the message changes, also for `restore`, checkpoint and maintenance commands and the
+desktop steps that share the root check. C#'s plain `validate` ignores `-s`/`-g`
+(documented difference). Proof: 62 match / 1 known against the live C# CLI with a
+HoloPatcher stub; 19 fail on `b0483d5`. The regression probes stay at baseline, with
+this proof added to the set. See [missing-paths-contract.md](missing-paths-contract.md).
+
+Restrictions and Dependencies in the full report (2026-10-05, F08): `validate
+--full` (with `--dry-run`, `--dry-run-only` or `--phase remaining`) and the desktop
+Validate step now fail the Environment stage, as C# does, when a selected component
+restricts another selected one or depends on one that is not selected: one error,
+`Some components failed to validate. ...`, then Rust's `Cannot install 'A' due to 'C'
+being selected for install.` lines (C#'s log wording). Rust's Environment stage
+passed and three later stages failed (four with `--dry-run-only`). Both failed; only
+the report changes. `install`, plain `validate`, `conflicts` and the basic report keep
+their refusal before any write; C#'s load-time selection fixes and Rust's `--select`
+dependency closure stay documented differences. Proof: 85 match / 33 known against the
+live C# CLI with a HoloPatcher stub; 44 fail on `1ab3d27`. The regression probes stay
+at baseline, with this proof added to the set. See
+[environment-relations-contract.md](environment-relations-contract.md).
+
+Case duplicates in the game folder (2026-10-05, F08): `validate --full` (with
+`--dry-run`, `--dry-run-only` or `--phase remaining`) and the desktop Validate step now
+report a game folder holding two names that differ only in case as C#'s Environment
+stage does: one error, `You have duplicate files/folders in your installation
+directory ...`, which replaces the stage's other messages, then Rust's found path.
+Rust refused the folder before any report (JSON `error`, no stages, `errorCount` 0,
+`componentCount` 0). Both failed; only the report changes. `install`, plain
+`validate`, `conflicts` and the basic report keep Rust's `Case-colliding ...` refusal
+(C#'s basic report passes; fail closed), and a duplicate only in the mod folder is
+still refused (C# passes; documented). Proof: 95 match / 12 known against the live C#
+CLI with a HoloPatcher stub; 42 fail on `0f41c1f`. The regression probes stay at
+baseline, with this proof added to the set. See
+[case-duplicates-contract.md](case-duplicates-contract.md).
+
+A read-only game or mod folder (2026-10-05, F08): the full report's Environment stage
+now fails with C#'s `The Install directory is not writable! ...` or `The Mod directory
+is not writable! ...` when Rust cannot write to the game or mod folder, and `install`
+refuses the same folders before any write, as C#'s install refuses after its
+pipeline; Rust's full report passed (exit 0) and `install` took its snapshot and
+stopped at the first write, leaving an install to restore. Rust asks the operating
+system (`access(2)`) instead of writing a probe file; Windows is not checked, Rust
+does not offer to fix permissions, and under `--full` a component error still comes
+later in ComponentValidation (documented). Proof: 58 match / 1 known against the live
+C# CLI with a HoloPatcher stub; 31 fail on `2de5a47`. The regression probes stay at
+baseline, with this proof added to the set. See
+[writable-roots-contract.md](writable-roots-contract.md).
+
+Component checks in `validate --full --dry-run-only` (2026-10-05, F08): the full
+report's Environment stage now runs the archive/destination checks on every selected
+component under `--dry-run-only` and fails with C#'s `Some components failed to
+validate. ...` when one has an error, as C#'s Environment stage does; Rust's checked
+only the recovery state, so the report passed (exit 0) a guide whose archive was
+missing or whose loose Source no archive holds. Rust lists each component's errors
+after C#'s message. A partly missing Extract (one of its archives absent) now fails
+this stage in Rust where C# passes (fail closed, a new refusal), and an option's
+missing archive fails it in Rust and C#'s dry run in C# (documented). Proof: 101
+match / 11 known against the live C# CLI with a HoloPatcher stub; 42 fail on
+`72ed369`. The regression probes stay at baseline, with
+this proof added to the set. See
+[dry-run-only-environment-contract.md](dry-run-only-environment-contract.md).
+
+A Patcher step's Destination (2026-10-05, F05/F09): the patcher now always runs on
+the game folder, as C# `ExecuteTSLPatcherAsync` does; Rust ran it on the step's
+Destination, so `<<kotorDirectory>>/Override` patched `Override/Override` and
+`<<modDirectory>>` the mod folder. The basic report gives C#'s warning for no
+Destination and C#'s error for another one; the full report and the desktop Validate
+step pass both, as C#'s Environment stage has fixed them (both reports failed them,
+so the desktop would not install a Patcher step with no Destination). A Destination
+Rust cannot resolve stays refused (documented). Proof: 63 match / 9 known against the
+live C# CLI with a HoloPatcher stub; 30 fail on `d4f30d1`. The missing-destination
+proof now matches its `missing_then_bad_patcher` case (77 / 10); the other regression
+probes stay at baseline, with this proof added to the set. See
+[patcher-destination-contract.md](patcher-destination-contract.md).
+
+A wildcard Source that matches nothing beside one that does (2026-10-05, F05): a
+Copy, Move or Rename step now handles the files its other Sources name, as C#
+`SetRealPaths` gathers them, so `Move [m/*.tga, m/*.tpc]` with only TGAs moves the
+TGAs; Rust required every Source to match, so plain `validate`, `install` and
+`conflicts` refused the step before any write and the reports skipped (or failed) the
+component. A step whose Sources all match nothing still fails, as in C#. A missing
+literal Copy or Move Source stays refused (C# drops it; fail closed), as do Extract,
+CleanList, Execute and Run (documented). Proof: 71 match / 13 known against the live
+C# CLI with a HoloPatcher stub; 40 fail on `f6d2ec5`. The delete-directory proof now
+matches its `rename_present_and_wildcard_nomatch` case (170 / 10); the other
+regression probes stay at baseline, with no-managed and this proof added to the set.
+The cli-table audit's stale `install` rows were refreshed. See
+[wildcard-miss-contract.md](wildcard-miss-contract.md).
+
+`install --no-managed` (2026-10-05, F26): `install` now accepts the C# CLI's
+`--no-managed` and installs classic, as it already did without `--managed`; Rust
+stopped with a usage error and ran nothing. `--managed --no-managed` stops with C#'s
+`Cannot combine --managed and --no-managed.`; `validate` and `conflicts` refuse the
+flag. The CLI still ignores settings.json's managed toggle (documented). Proof: 14
+match / 3 known against the live C# CLI with a HoloPatcher stub; 7 fail on `bef5735`.
+The regression probes stay at baseline, with select-values added to the set. See
+[no-managed-contract.md](no-managed-contract.md).
+
+Several values after one `--select` (2026-10-05, F26): `validate`, `install` and
+`conflicts` (and `selection` and `fetch-downloads`) now read every value after
+`--select` up to the next option, as the C# CLI reads its list option, so `--select
+category:Bugfix category:Immersion` selects both categories; Rust stopped with a usage
+error and ran nothing. A repeated `--select` still works (C# refuses it);
+`--select=a b` stays a usage error and `convert`/`merge` keep one value per flag
+(documented). Proof: 34 match / 8 known against the live C# CLI with a HoloPatcher
+stub; 23 fail on `b97c090`. The missing-archives probe's live mode now runs a copy of
+the reference build with the stub under `unshare -Urnm` (50 / 19 live, oracle
+unchanged). The regression probes stay at baseline. See
+[select-values-contract.md](select-values-contract.md).
+
+An Extract with no Source in the reports (2026-10-05, F05/F08): an `Extract` with an
+empty Source list in a component with no archive that exists now fails the reports'
+archive stage with `Missing Required Archives: []`, as C# `VerifyExtractPaths` does,
+so the basic and full reports and the desktop Validate step fail it where the C# CLI
+does; the reports with a dry run passed it (`DryRunSkipped`) though plain `validate`
+and `install` refused it. Beside an archive that exists it still passes the reports,
+as in C#. Proof: the empty-source probe, now also compared with the live C# CLI with a
+HoloPatcher stub, 86 match / 3 known (7 fail on `b8b4d57`); missing-archives 50 / 19
+(its `empty_source_only` case now matches). See
+[empty-extract-report-contract.md](empty-extract-report-contract.md).
+
+The order of a step's Sources (2026-10-05, F05): Copy, Move and Extract now handle
+the files their Sources name in the order the Sources are written, as C#
+`SetRealPaths` lists them, so the later Source's file wins a collision; Rust sorted
+them by path. Found while adding Destination-free collision cases (`pack.zip` and
+`pack.7z` both extracting to `mods/pack/`) to the extract-overwrite proof, now 14
+match / 16 known (2 fail on `b8b4d57`). Proof: 18/18 against the live C# CLI (5 fail
+on `b8b4d57`). The loose-source proof now probes its fail-open case
+(`unchosen_dup_loose`: 98 match / 56 known). The other regression probes stay at
+baseline. See [source-order-contract.md](source-order-contract.md).
+
+A loose Source next to an Extract (2026-10-05, F05): plain `validate` and `install`
+now refuse, before any write, a step whose Source in the mod folder none of its
+component's archives holds, once the component extracts an archive that exists, as
+the C# CLI `install` and the desktop Validate step do
+(`ComponentValidation.VerifyExtractPaths`); only Rust's reports ran that check, so
+Rust installed the loose file. Components with no Extract (mods unpacked by hand) are
+not checked, in either; a component named `Improved AI` is exempt, as in C#. Archives
+are listed only when a Source needs them, in C#'s order, so an unchosen option's
+archive Rust cannot list no longer refuses the component (in the reports either). Case
+(C# is case-sensitive), DelDuplicate extensions (C# reads them as paths) and C#'s
+doubled-folder rewrite stay documented differences. Proof: 98 match / 49 known
+against the live C# CLI with a HoloPatcher stub; 33 fail on `6ca4d35`. The
+extract-overwrite proof (4 / 16) now expects its `stale_*` refusals, and the FOMOD S2b
+(265/265) and gate-scope (74/74) fixtures no longer copy a loose note next to an
+Extract; the other regression probes stay at baseline. See
+[loose-source-contract.md](loose-source-contract.md).
+
+Extract with a Destination (2026-10-05, F05/F06): an `Extract` step now always
+extracts into a folder named after the archive, next to it, as the C# CLI and GUI do,
+whose validation (`ComponentValidation`, AttemptFixes) clears an Extract Destination
+before the dry run and the install; Rust extracted into the Destination, so a later
+step written for C#'s layout failed and the archive's files landed in `Override` or
+the game root. The basic report now fails an Extract, Choose or Delete Destination
+with C#'s error; the full report passes it, as in C#. A Destination outside the roots
+stays refused (fail closed). Proof: 82 match / 9 known against the live C# CLI with a
+HoloPatcher stub; 41 fail on `c0e9cef`. The root-destination (114 / 9),
+delete-directory (167 / 13), empty-source (49 / 2), extract-overwrite (4 / 16, its
+Destination cases now compared with the live C# CLI) and FOMOD S2b (265/265) proofs
+were updated; the other regression probes stay at baseline. See
+[extract-destination-contract.md](extract-destination-contract.md).
+
+Rename to a name that is not a valid file name (2026-10-04, F05/F03): a `Rename`
+Destination with `..` inside the name, a control character, a `./` part or a trailing
+separator is now refused in every report, plain `validate` and `install` before any
+write, where Rust renamed to it; names it already refused (a trailing dot or space, a
+device name) fail at the same points. C# never checks a Rename Destination and its
+Linux install renames to the name, so Rust is stricter (documented). The drafter keeps
+a bare new name only when the engine accepts it. Proof: 37 match / 63 known against
+the live C# CLI; 50 fail on `c2c9002`. The regression probes stay at baseline. See
+[rename-file-name-contract.md](rename-file-name-contract.md).
+
+Drafted Renames (2026-10-04, F03/F05): a Rename drafted from prose ("Rename the file
+old.tga to new.tga.") now has the bare new name as its Destination and the named file
+as its only Source, as C# `RenameFile` reads a Destination and as the newer C# parser
+drafts it; the drafter gave it a `<<kotorDirectory>>\Override` Destination (and the new
+name as a second Source after "to"), as the pinned C# drafter does, so no reviewed
+drafted Rename could install. Drafts still need review; a name without an extension or
+with a folder part keeps the refused Destination. `tools/check_drafts.py` lists the
+shape as an intentional difference from the pinned drafter. Proof: 57 match / 4 known;
+24 fail on `b5df010`. The regression probes stay at baseline. See
+[drafted-rename-contract.md](drafted-rename-contract.md).
+
+Rename to a placeholder path (2026-10-04, F05): a `Rename` Destination is now only the
+new file name in the source's folder, as C# `RenameFile` joins it unresolved
+(`Instruction.cs:976-979`); a placeholder path such as `<<kotorDirectory>>/Override/z.txt`
+fails the dry run, so every report, plain `validate` and `install` refuse it before any
+write. C#'s install fails such a step (`UnknownError`); Rust resolved the placeholder
+and moved the file there, mod folder to game folder included. C#'s reports pass it and
+its install keeps earlier steps' writes, and a Destination with a folder part stays
+refused where C# renames into or out of the source's folder (documented). Proof: 25
+match / 29 known against the live C# CLI with a HoloPatcher stub; 24 fail on `044fca5`.
+The regression probes stay at baseline. See
+[rename-destination-contract.md](rename-destination-contract.md).
+
+Restrictions and step conditions that name a nested option (2026-10-04, F04): a GUID
+naming an option below another option now counts as not selected in component
+Restrictions, step Dependencies and Restrictions and the report's Conflicts stage, as
+in C#, whose loader keeps no option below an option (`DeserializeOptions`,
+`Services/ModComponentSerializationService.cs:2406-2467`), so `FindComponentFromGuid`
+finds nothing. `Guide::selected_ids` collected selected options at every depth, so a
+Restriction naming a selected nested option refused every report, plain `validate` and
+`install`, and step conditions naming one ran the steps C# skips and skipped the ones
+it runs. A Restriction naming a selected immediate option stays refused (C# deselects
+it while loading) and a Choose step of an option still runs nested options (Rust
+extension), documented. Proof: 62 match / 8 known against the live C# CLI with a
+HoloPatcher stub; 11 fail on `c386d33`. The regression probes stay at baseline. See
+[nested-option-references-contract.md](nested-option-references-contract.md).
+
+Dependencies that name an option (2026-10-04, F04): a component whose Dependencies
+name an immediate selected option of a selected component now validates and installs,
+as in C#, whose `GetConflictingComponents` looks immediate options up too (`FindComponentFromGuid`,
+`ModComponent.cs:2030-2063`). `Guide::ordered` looked at top-level components only, so
+every report, plain `validate` and `install` refused the guide with `requires selected
+component <option GUID>`, although Rust's selection layer follows such a Dependency.
+Such a Dependency adds no ordering edge, as in C#. An unselected option, or one whose
+component is unselected, or a nested option, stays refused (documented). Proof: 49
+match / 17 known against the live C# CLI with a HoloPatcher stub; 42 fail on `0bc0efa`. The
+regression probes stay at baseline. See
+[option-dependencies-contract.md](option-dependencies-contract.md).
+
+Destination path parts C# validation refuses (2026-10-04, F05/F08): a Copy, Move,
+CleanList or DelDuplicate Destination with a `.` part, `..` inside a longer name or a
+control character is now refused by plain `validate` and by `install` before any
+write, as C# `install` refuses it (its validation fails `PathValidator.IsValidPath`,
+`ComponentValidation.cs:331-365`, `FileSystemUtils/PathValidator.cs:30-96`). Before,
+Rust installed `Override/.` into `Override` although its own report refused it, and
+installed into `a..b` or a folder with a tab with every report passing; the reports
+and the desktop Validate step now fail those too. Copy and Move still pass the dry run
+itself, as in C#; a step whose instruction conditions exclude it stays unchecked
+(documented). Proof: 138 match / 62 known against the live C# CLI with a HoloPatcher
+stub; 79 fail on `a5b2053`. The full-pipeline and root-destination probes now count
+the `.` Copy/Move cases as matches (122 / 16) and known differences (113 / 10); the
+other regression probes stay at baseline. See
+[destination-path-parts-contract.md](destination-path-parts-contract.md).
+
+Windows device names and Peer staging folders in instruction paths (2026-10-04,
+F05/F08): the reserved-name rule now also refuses `COM¹`-`COM³`, `LPT¹`-`LPT³`,
+`CONIN$`, `CONOUT$`, `COM0`, `LPT0` and a stem with spaces before the extension, on
+every host, and an instruction path under `<<modDirectory>>` inside a Peer download
+staging folder (`.peer-<nonce>.part`, any case) is refused before any write in plain
+`validate`, reports, the dry run and `install`. Both were fail-open: Rust installed
+them. Fail-closed hardening, not parity: C# `PathValidator` refuses only `COM0`/`LPT0`
+of these (`FileSystemUtils/PathValidator.cs:24-28`) and has no staging folders. New
+checkpoint sessions refuse a device name already on disk with `Checkpoint cannot record
+<path>: Windows device name`; stores and journals written before are read with the
+older rule and stay usable. Proof: 246 match / 42 known against the live C# CLI; 172
+fail on `e756730`, 10 on `81003bd`. The regression probes stay at baseline. See
+[reserved-staging-paths-contract.md](reserved-staging-paths-contract.md).
+
+Missing destination folders in the full validation pipeline (2026-10-04, F08): the
+full report (`validate --full`, `--full --dry-run`, the desktop Validate step,
+`--phase remaining`) no longer fails a Copy, Move or CleanList into a missing folder
+that can be created, as C# does: its Environment stage creates the folder first with
+AttemptFixes (`Services/InstallationService.cs:967-1010`,
+`ComponentValidation.cs:331-365`), so its archive stage passes and its `install`
+(which validates unless `--skip-validation`) installs. Rust's plain `validate` and
+`install` already passed; Rust still creates nothing while validating. The basic
+report still fails it, as C#'s does; DelDuplicate stays refused (deliberate). Proof:
+120 match / 18 known against the live C# CLI with a HoloPatcher stub; 78 fail on
+`38c6ca9`. The regression probes stay at baseline. See
+[full-pipeline-destination-contract.md](full-pipeline-destination-contract.md).
+
+A patcher without changes.ini in the validation dry run (2026-10-04, F05/F08/F09):
+when a Patcher step's executable is present but the patcher folder and its
+`tslpatchdata` folder hold no `changes.ini`, `validate --dry-run` and the desktop
+Validate step no longer add a `PatcherSimulation` warning, as C# does not: its
+`TslPatcherVfsSimulator.SimulateInstallAsync` only logs the miss
+(`TSLPatcher/TslPatcherVfsSimulator.cs:44-50`) and the step succeeds. The decision was
+already the same. The unknown-payload warning stays (deliberate). Proof: 69 match / 3
+known against the live C# CLI; 30 fail on `c22836a`. The regression probes stay at
+baseline. See
+[patcher-missing-configuration-contract.md](patcher-missing-configuration-contract.md).
+
+Step simulation in the validation report without a dry run (2026-10-04, F08): with
+both roots and a report flag but no `--dry-run` (`--output json`, `--output text`,
+`--validation-report`, `--errors-only`, `--full`), `validate` now simulates every step
+once its stages pass, as plain `validate` does, and a failure fails the
+`ComponentValidation` stage with plain `validate`'s wording. Before, that report passed
+(exit 0) a guide with a missing Copy, Move, Patcher, strict Delete, Rename or CleanList
+source, an untrusted Execute step or a component without instructions, which plain
+`validate` and `install` refused. The pinned C# CLI fails every such report (its basic
+mode never sets the mod folder, so its FOMOD stage fails,
+`InstallationValidationPipeline.cs:440-449`; a Patcher guide throws `'path' cannot be
+null or whitespace` first); a guide that simulates cleanly still passes in Rust
+(documented). The dry-run report is unchanged. Proof: 63 match / 6 known against the
+live C# CLI; 48 fail on `fd9ec46`. The regression probes stay at baseline (the FOMOD
+S2a fixture's instruction-less consumer now copies a file). See
+[plain-report-simulation-contract.md](plain-report-simulation-contract.md).
+
+A missing patcher in the validation dry run (2026-10-04, F05/F08/F09): when a
+component's own `Patcher` step names a patcher folder or executable that is not in the
+mod folder, `validate --dry-run` and the desktop Validate step now report the
+component as `DryRunSkipped` (a warning) and pass, as C# does: its Patcher branch
+returns `FileNotFoundPre` (`ModComponent.cs:1630-1641`), mapped to
+`MissingSourceFiles` (`:1862-1866`) and reported as a skip
+(`DryRunValidator.cs:515-527`). Rust failed the report with `Missing external
+program/mod`. Install still refuses; a wildcard or empty Patcher Source stays refused
+and a folder Source stays bound (documented). Proof: 58 match / 11 known against the
+live C# CLI; 32 fail on `0f71baa`. The regression probes stay at baseline. See
+[patcher-missing-source-contract.md](patcher-missing-source-contract.md).
+
+A failing chosen option in the validation dry run (2026-10-04, F04/F05/F08): when an
+option that a `Choose` step runs is missing a source, `validate --dry-run` and the
+desktop Validate step now fail that component (`ERROR: [EngineSimulation] <component>
+/ step <n> (Choose): ...`, exit 1), as C# does: it maps any option failure to
+`OptionalInstallFailed` and `UserCancelledInstall` (`ModComponent.cs:1648-1667`,
+`:1857-1860`), which its dry run reports as an error (`DryRunValidator.cs:535-546`).
+Rust reported the component as `DryRunSkipped` and passed, although its install refused
+the selection. A miss in the component's own steps stays `DryRunSkipped`. Proof: 67
+match / 1 known against the live C# CLI; 37 fail on `b89484d`. The regression probes
+stay at baseline. See [option-failure-contract.md](option-failure-contract.md).
+
+Install order and reference checks (2026-10-04, F04): `install` now runs the selected
+components in the C# CLI's order, a breadth-first sort of every component by
+Dependencies, InstallAfter and InstallBefore from the resolver's order
+(`InstallCoordinator.cs:97-186`); Rust took the first ready selected component in file
+order (`A`, `B` after `A`, `C`: C# and now Rust `A, C, B`, Rust before `A, B, C`).
+Widescreen-only components take their breadth-first place, Markdown guides order by
+Dependencies only (C# drops InstallBefore/InstallAfter there) and `--direct-markdown`
+keeps source order, as in C#. Validate, install and `conflicts` now refuse a missing,
+self or circular InstallBefore/InstallAfter reference on any component of a
+non-Markdown guide before the report, and list components in the resolver's order, as
+C# does (`ModBuildConverter.cs:3092`, `:3418`). New: `--phase base`/`remaining` keep
+widescreen-only components after the base build, and `--phase base` refuses before
+any write when a base component must follow one. The dry run follows the install
+order and `--ignore-errors` stays refused (documented). Proof: 161 match / 1 known
+against the live C# CLI; 85 fail on `e4c0b4d`, 23 on the first version `174482a`. The
+regression probes stay at baseline. See
+[install-order-contract.md](install-order-contract.md).
+
+Component order in `convert` (2026-10-04, F01/F04): `convert` now writes components in
+the C# dependency resolver's order (`DependencyResolverService.cs:48-403`, called at
+`ModBuildConverter.cs:2046`) and refuses missing, self and circular
+InstallBefore/InstallAfter references unless `--ignore-errors`, which it now accepts;
+Rust wrote the file order and refused nothing. Markdown input keeps file order and is
+never refused, as in C# (its Markdown reader drops those fields). With
+`--ignore-errors` a cycle stays refused (C# writes an empty guide). Install order was
+unchanged (since compared, above). Proof: 126 match / 14 known against the live C# CLI; 57 fail on `24897e6`. The regression probes stay at
+baseline. See [convert-dependency-order-contract.md](convert-dependency-order-contract.md).
+
+File selection when the file selects nothing (2026-10-04, F04/F08): `validate` and
+`install` with `--use-file-selection` now select every component of a guide that
+selects none, as the C# file loader does (`ModComponentSerializationService.cs:895-903`);
+Rust refused (`No components are marked IsSelected in the instruction file.`, or the
+install FOMOD gate). Markdown keeps its flags in both; profile runs are unchanged.
+Proof: 58 match against the live C# CLI; 30 fail on `a0df4b7`. The regression probes
+stay at baseline. See
+[file-selection-fallback-contract.md](file-selection-fallback-contract.md).
+
+Missing destination folders in the validation report (2026-10-04, F08): the report's
+archive stage (`validate --output json`, the desktop Validate step) now reports each
+Copy, Move, CleanList or DelDuplicate step whose Destination folder does not exist as
+C# does: `Destination cannot be found! Got '<full path>'`, one error per step, counted
+in `errorCount`. Rust stopped at the first such step with `archive/destination
+validation: Destination cannot be found: <Destination>`. C# creates the missing folder
+while validating, so it reports a folder once; Rust never creates folders and reports
+every step (documented). Proof: 75 match and 12 known differences against the live C#
+CLI; 32 fail on `1e2d133`. The regression probes stay at baseline. See
+[missing-destination-contract.md](missing-destination-contract.md).
+
+Missing archives in the validation report (2026-10-04, F08): the report's archive
+stage (`validate --output json`, the desktop Validate step) now reports a missing
+download as C# does: one `Missing Required Archives: [<Sources>]` error per Extract
+step, counted in `errorCount`, with the component's other checks skipped. Rust named
+only the first missing archive per component, as `archive/destination validation:
+Source matches no files: ...`, and counted one error. Rust still refuses a partly
+missing component or an option-only missing archive, where C# passes the stage
+(fail-closed, documented). Proof: 47 match and 22 known differences against the live
+C# CLI; 27 fail on `3024e4d`. The regression probes stay at baseline. See
+[missing-archives-contract.md](missing-archives-contract.md).
+
+Patcher INI names with brackets (2026-10-04, F09/F19): the virtual Patcher simulation
+now takes `[` and `]` in a patcher's own INI names literally (InstallList folders and
+`File*`/`Replace*` names, namespaces.ini `IniName`/`DataPath`), as C#
+`TslPatcherVfsSimulator` does with `Path.Combine`. Rust refused them as wildcards
+(`Wildcards are not allowed here: [HD]tex.tga`), so validate, the dry-run report,
+`conflicts` and install preflight failed a guide whose mod ships such names; C#
+validates it and reports its conflicts. `*` and `?` stay refused (fail-closed, as for
+archive members). Proof: 39 match and 6 known differences against the live reference
+pipeline and `FileConflictAnalyzer`; 33 fail on `c2225e3`. The regression probes stay
+at baseline. See [patcher-ini-brackets-contract.md](patcher-ini-brackets-contract.md).
+
+Execute and Run Arguments (2026-10-04, F05/F09): an `Execute` or `Run` step's
+`Arguments` text is now split with the Windows command-line rules on every host, as
+.NET splits C# `ProcessStartInfo.Arguments` on Linux too. Rust used POSIX shell rules
+on Linux and macOS, so the program received other arguments: backslashes vanished
+(`<<kotorDirectory>>\Override` became `<game>Override`), `'a b'` grouped, `#` began a
+comment and a newline separated. Validation could not show it. Unclosed quotes and
+unknown placeholders stay refused, and a root with spaces stays one argument
+(documented). Proof: 89 match and 21 known differences against a live reference
+oracle; 21 fail on `0cc50a7`. The regression probes stay at baseline. See
+[execute-arguments-contract.md](execute-arguments-contract.md).
+
+Archive members with brackets (2026-10-04, F06/F05): an archive whose member names
+contain `[` or `]` (`Override/x[1].tga`, `[HD] textures/`) now extracts and installs as
+in C#, whose `TryGetZipSafeArchiveEntryExtractPath` keeps those characters. Rust
+admitted member names with the literal guide-path rule, so one bracketed member failed
+the archive: the FOMOD gate refused plain `validate` and `install`, the Validate
+step's archive stage failed, and download verification would also refuse it (not probed).
+Checkpoint capture, managed process capture and FOMOD mapping (archive name, wrapper
+folder, ModuleConfig `source`) now also take bracketed names literally (review
+follow-up). `*` and `?` in a member name stay refused (no Windows file can have them;
+documented). Proof: 83 match and 8 known differences against a live reference oracle
+and mapper; 9 fail on `4a09589`, 45 of the first 68 on `31e98ec`. The regression
+probes stay at baseline. See
+[archive-member-brackets-contract.md](archive-member-brackets-contract.md).
+
+Install root as Destination (2026-10-04, F05/F07): a Copy, Move, CleanList or
+DelDuplicate whose Destination is `<<kotorDirectory>>`, `<<gameDirectory>>` or
+`<<modDirectory>>` (with or without a trailing separator) now passes the
+archive/destination validation stage, and DelDuplicate runs in that root, as in C#.
+Rust resolved a bare root with a trailing separator and missed the root directory, so
+the Validate step failed every such guide and a root DelDuplicate failed install. A
+bare-root Source still matches nothing (a review follow-up: the first fix let
+`Extract [<<modDirectory>>]` extract every archive under the root). A `.` Destination
+part fails that stage, and DelDuplicate/CleanList into it fail at execution, as in C#.
+Rename to a bare placeholder stays a fail-closed known difference. Proof: 119 match and
+4 known differences against a live reference oracle; 17 fail on `6e67b3c`, 45 on
+`8c79761`. The regression
+probes stay at baseline. See [root-destination-contract.md](root-destination-contract.md).
+
+CleanList rows and listed names (2026-10-04, F07-D): a CleanList row that lists a
+name no file can have (a quoted field, `*`, `?`, `<`, `>`, `|`, `:`) now skips that
+name as C# `File.Exists` does; Rust failed the whole step, so validate and install
+refused a list such as `"Mod, by Author",a.tga`. `[` and `]` are literal. `..`,
+absolute, drive-qualified, trailing-dot and device names stay refused (fail-closed,
+documented). Row grammar, matching, comments and blank rows already matched. Proof:
+121 match and 20 known differences against a live reference oracle; 30 fail on
+`f9eab15`. The regression probes stay at baseline. See
+[cleanlist-rows-contract.md](cleanlist-rows-contract.md).
+
+CleanList list-file choice (2026-10-04, F07-D): a CleanList whose Sources name
+more than one existing list now reads the first authored Source's list, as C#
+`ExecuteCleanListAsync` reads `RealSourcePaths[0]`. Rust read the match with the
+smallest sorted path, so `CleanList [l/b.csv, l/a.csv]` applied `a.csv` and deleted
+the wrong files. Every Source must still match (fail-closed, unchanged); within one
+wildcard Source with several matches Rust keeps sorted order, where C# order is
+unspecified (documented). Proof: 39 match and 3 known differences against a live
+reference oracle; 9 fail on `0997b0f`. The regression probes stay at baseline. See
+[cleanlist-list-choice-contract.md](cleanlist-list-choice-contract.md).
+
+Directory Sources and wildcard rules (2026-10-04, follow-ups to the Delete slice): a
+`Delete`, `Copy`, `Move`, `Rename`, `CleanList`, `Execute` or `Run` Source that names a
+directory now reaches no file beneath it, as in C# (`EnumerateFilesWithWildcards`
+returns files only). Delete deletes nothing (strict Delete fails); the others fail.
+Before, Rust deleted, moved, copied or renamed the whole subtree, read a CleanList from
+the folder, or (with `--allow-processes`) ran every program in it. Every Source's
+wildcards now follow C# `WildcardPathMatch`: `**` stays within one level and `[`/`]`
+are literal. Missing Rename, CleanList and Execute/Run Sources are classified as in C#
+in the dry-run report (one shared literal-versus-wildcard test; the actions differ on
+an all-wildcard empty expansion). Extract, Patcher and the FOMOD gate keep the folder rule, so
+Rust still extracts a folder of archives that C# refuses (documented). Proof: 169 match
+and 11 known differences against a live reference oracle; 4 fail on `ab6b389`, 13 on
+`df67229`. The S2b proof now has 265 checks (`[e]xample.zip` is a
+missing source; a literally so named archive installs); the other regression probes
+stay at baseline. See [delete-directory-contract.md](delete-directory-contract.md).
+
+Copy/Move onto itself, follow-up (2026-10-04): a self-target next to a source that
+miss-only recovery binds from a `ResourceRegistry` archive was still refused by
+recovery qualification; with `Overwrite = false` it is now skipped with a warning,
+as on the direct path and in C#. Install now also emits one ordinary event,
+`WARNING: Destination file already exists and overwrite is false: <path>`, for each
+file a Copy/Move skips with `Overwrite = false`, as C# logs one warning per skipped
+file; exit codes and results are unchanged. Proof: 51 match and 4 known
+differences against a live reference oracle; 17 fail on `6b8baff`. See
+[copy-move-self-contract.md](copy-move-self-contract.md).
+
+Copy/Move onto itself (2026-10-04): a Copy or Move with `Overwrite = false` whose
+target is the source file itself (a wildcard back into its own folder, or a Source
+list that names a file already in the destination) now warns, skips that file and
+goes on, as C# does. Rust refused it with `Source equals destination`. With
+`Overwrite = true` or omitted Rust still refuses before any write; C# fails after
+deleting the file. Proof: 30 match and 2 known symlink differences against a live
+reference oracle; 20 fail on `354055b`. See
+[copy-move-self-contract.md](copy-move-self-contract.md).
+
+Archive-generation check (2026-10-04): `tools/check_archive_generation.py` runs
+without wrappers again (`-f json`, `DOTNET_ROLL_FORWARD`, reference mounted into its
+sandbox). It requires a 7-Zip CLI that lists ZIP, which the reference falls back to,
+and records its environment in the receipt. It gives 27 of 28 CLI cases matching
+plus the annotated `.exe` difference. Its second, raw-Source capture reproduces
+`tests/fixtures/csharp/archive-generation.json` byte for byte. The CLI capture now
+keeps C#'s loaded Sources, which `62b6f70` (intended) made Rust match; that explains
+four of the six earlier differences. The other two came from a missing 7-Zip CLI.
+No Rust source change; see COMPATIBILITY.
+
 Ordinal path identity (2026-10-03): engine VFS, managed process capture,
 deployment and conflict path keys share the pinned .NET `OrdinalIgnoreCase`
 key, and conflict rows sort in reference UTF-16 ordinal order. Checkpoint tree
 alias checks use the same key. Production gates only; see COMPATIBILITY.
 
+Guide `lastModified` (2026-10-03): TOML and YAML saves now normalize the
+value as the reference does. Values the reference cannot parse are omitted,
+and unmodeled forms keep the authored text with a warning. The C#/Rust convert
+differential gives 217 matches and 18 documented retentions; see
+[lastmodified-contract.md](lastmodified-contract.md). Review follow-up: the
+`LastModified` key choice now follows each loader, retained native TOML values
+no longer leak a table into YAML, key order is kept and warnings are deduped.
+Live oracle regenerated: 249 match, 18 retained, 2 reference load errors,
+0 failures. In-repo tests deferred under the AGENTS.md freeze.
+
+FOMOD residuals (2026-10-03c): the gate scope now includes hard dependencies like C#
+`ExpandWithHardDependencies`, a missing registered archive without prompt state gets
+C#'s per-component soft warning, and run-choice ownership, archive-suffixed folder
+sources and per-archive preservation are proved at runtime; see
+[fomod-gate-scope.md](fomod-gate-scope.md) (74/74; 12 fail on `15b11cb`).
+
+FOMOD archive-scoped warning (2026-10-03d): C#'s soft gate warning "marked configured but
+has no matching archive-scoped instructions" now has a Rust form. It fires once per
+registering component when a `configured` FOMOD archive's installer maps no files for any
+choice, the same partition as a live reference oracle. The proof is 37/37 (7 fail on
+`223ed92`), and the regression probes still pass. See
+[fomod-archive-scoped.md](fomod-archive-scoped.md).
+
+FOMOD gate warnings after a failure (2026-10-03e): soft gate warnings (missing archive,
+"configured but has no matching archive-scoped instructions", no route) collected before a
+later hard failure of the gate (an unselected dependency, a restriction conflict or an
+in-gate issue) are no longer dropped. They stay in the failed report stage before the error,
+as in C#, and are emitted as `WARNING:` events on plain validate and install. Errors and
+exits are unchanged. The proof is 55/55 (17 fail on `438bb73`), and the regression probes
+still pass. See [fomod-gate-warnings.md](fomod-gate-warnings.md).
+
+FOMOD gate collects every issue (2026-10-04): the gate no longer stops at its first
+in-gate FOMOD issue. Like C# `FomodConfigurationGate`, it collects every issue and every
+warning. Issues are a missing archive with prompt state, an unreadable archive, and
+missing, unparseable or stale saved choices. Cancellation, unsafe paths and guide errors
+still abort. The report stage lists all warnings, then every issue, with `errorCount`
+counting each issue. Plain validate and install keep a single issue's text unchanged and
+number several issues in one line: `<n> issues: [1] ...; [2] ...`. The proof is 67/67
+(22 fail on `d78aea2`), and the regression probes still pass. See
+[fomod-gate-collect.md](fomod-gate-collect.md).
+
+Empty Source list (2026-10-04): Delete, Copy, Move and Extract with no usable Source
+failed every verb with the untyped `Instruction has no Source`. As C# does, a
+non-strict Delete is now a no-op. A strict Delete, Copy, Move or Extract raises the
+typed missing-source cause: `DryRunSkipped` in the dry-run report, rejected by plain
+validate and install. The proof is 51/51 against a live reference oracle (26 fail on
+`fba4eb1`), and the regression probes still pass. See
+[empty-source-contract.md](empty-source-contract.md).
+
+Scalar empty Source (2026-10-04): XML `<Source></Source>` (or whitespace) and Markdown
+metadata `Source = ""` / `Source: ''` were read as an empty list, so a non-strict Delete
+installed as a no-op and a Copy passed the dry-run report. They are now kept as `[""]`
+and refused by every verb, as TOML, JSON and YAML already were; C# refuses the XML guide
+at load and drops the Markdown metadata block (documented difference). `<Source />`
+stays an empty list and a Choose stays an empty no-op, as in C#. Saving writes the
+blank scalar back, so `convert` to any format keeps the refusal. The proof is 99/99
+against a live reference oracle (30 fail on `3911e74`), and the regression probes
+still pass. See
+[scalar-empty-source-contract.md](scalar-empty-source-contract.md).
+
+Choose with a scalar Source (2026-10-04): the shared loader now decides Choose on the
+raw Action text and splits a scalar Choose Source on `;` and `,`, as C# does. A blank
+(`""`, `"  "`, `" , "`) Choose Source is an empty no-op Choose in every format; before,
+standalone TOML, JSON and YAML (and `" , "` anywhere) refused it. A Markdown
+`Action = 9` with a blank Source is now refused, as in TOML, JSON and XML. The XML and
+Markdown Choose special cases are removed. The scalar-empty-source proof is now
+190/190 (235/235 with live reference loads; 117/73 on `1b3faeb`), and the regression
+probes still pass. See
+[scalar-empty-source-contract.md](scalar-empty-source-contract.md).
+
+Choose option matching (2026-10-04): Rust matched Choose entries as parsed GUID
+values, so a braced, parenthesized, dash-free or padded entry installed the option.
+C# `GetChosenOptions` matches only the hyphenated `Guid.ToString()` text, ignoring
+case, and skips such an entry. Rust now uses the C# text rule, and an entry that names
+no option is still refused (deliberate fail-closed; C# ignores it). The archive
+generators now write `Option.Guid.ToString()` text into a Choose, as C# does, and the
+editor's reference check uses the same rule. Before, a braced authored option ID made
+`--auto-generate-local` write a Choose entry the engine refused. Legacy Markdown
+already split a Choose Source on `,` only, as C# does, so it needs no change. The proof
+is 69/69 (92/92 with live reference runs; 48/21 on `a09ca4a`, 63/6 on `5eb80d5`), and
+the regression probes still pass. See [choose-option-match-contract.md](choose-option-match-contract.md).
+
+Delete of a missing file with Overwrite=true (2026-10-04): Rust ignored `Overwrite`
+on Delete. As C# `DeleteFile` does (`FileNotFoundPost`, then `MissingSourceFiles`), a
+strict Delete now deletes the present matches and fails on a missing literal or an
+empty match, with the typed missing-source cause. The dry-run report gives the
+reference `DryRunSkipped` warning; plain validate and install reject. The proof is
+39/39 against a live reference oracle (15 fail on `8fad43c`), and the regression
+probes still pass. See [delete-strict-contract.md](delete-strict-contract.md).
+
+Extract onto existing files with Overwrite=false (2026-10-04): Rust kept an existing
+file when an `Extract` step with `Overwrite = false` reached it, so stale output, a
+game file or the first of two archives survived. C# extraction never reads
+`Overwrite` and writes every entry with `FileMode.Create`. Rust now always replaces,
+and the last archive wins; configured FOMOD extraction keeps its fail-closed refusal.
+The proof is 20/20 against a live reference oracle (5 fail on `5905259`), and the
+regression probes still pass. See [extract-overwrite-contract.md](extract-overwrite-contract.md).
+
+Rename onto an existing file (2026-10-04): a `Rename` with `Overwrite=false` whose
+target exists no longer passes silently. As C# `RenameFile` does
+(`RenameTargetAlreadyExists`), the engine renames the other sources and then fails
+the instruction, so validate fails its dry run and install is blocked before any
+write. Copy and Move keep the reference warn-and-skip. The proof is 18/18 against a
+live reference oracle (8 fail on `5643276`), and the regression probes still pass.
+See [rename-overwrite-contract.md](rename-overwrite-contract.md).
+
 Runtime revalidation of `25296da` (2026-10-03b): all retained CLI suites and the C#/Rust differentials pass, native GUI probes recalibrated, one Windows Clippy fix; see [runtime-revalidation-2026-10-03b.md](runtime-revalidation-2026-10-03b.md).
+
+Step-2 broken-choices follow-up (2026-10-03b): unparseable saved `FomodChoices` on a
+prompt-eligible Fetch consumer again raise the blocking "FOMOD choices need attention"
+Retry/Dismiss prompt and keep Validate/Install blocked (plan G7/G8, step-2 review P1),
+instead of only an Activity line. The step-2 probe now passes 48/48 and step 1 46/46;
+see the resolved item in [runtime-revalidation-2026-10-03b.md](runtime-revalidation-2026-10-03b.md).
 
 Latest source wave (after `f528e4b`): Extract, Copy, Move and Patcher recover a
 missing source only after a direct miss, through registry auto-extraction,
@@ -299,15 +913,36 @@ are recorded in the production receipt; runtime and domain acceptance remain ope
    instead of failing with `File exists`; and the README states the reported source and
    what `origin_denies_peer` does. [Evidence](fetch-shared-url-proof/README.md) is
    381/381 (10 new checks fail on `d4ccbc1`; the race and Fallback changes are
-   source-only). Still open here: when Origin finds its name present inside a race, Peer is
-   stopped before adoption is decided, so a refused adoption cannot fall back to Peer as
-   Fallback mode does (`src/download_orchestrator.rs` ~1624); `adopt_present`'s hash pass
-   ignores cancellation; and an unnamed Nexus target whose API-revealed name is
-   present fails before transferring, and a known name's publish that loses a
-   no-clobber race outside a group still fails with `File exists`. Also open:
-   one-run `validate/install --fomod-choices` still replaces all embedded archive
-   choices.
-   Remaining S2 semantic items and native acceptance follow.
+   source-only). The later residuals are settled in source: an Origin-present name in a
+   race is adopted before Peer stops and a refusal leaves Peer running; hash passes take
+   the run's cancel flag; and revealed or known names adopt through `DestinationExists`.
+   The [download residuals proof](download-residuals-proof/README.md) (102/102; 16 fail
+   on `9548a73`) accepts these over the production CLI. It also fixes two runtime gaps:
+   a known name taken by an ungrouped target *before* its transfer started failed with
+   the untyped `Download destination already exists` (Origin now publishes a known name
+   through the same `Directory` path, and MEGA drops its pre-transfer check), and Origin
+   `transferring.total` was read after the sniff prefix (`0` for a small archive). Ctrl+C
+   during planning now exits 130. Its review's three Low follow-ups are fixed: a hashed
+   target whose name is already present is adopted or refused with no transfer; a Peer
+   copy for a known name that collides is typed and adopted or refused as Origin is
+   (source only, no Peer on this kernel); and Ctrl+C during execution-time discovery
+   exits 130. The extended proof is 183/183 (9 fail on `59e4e57`). Only the race's
+   refusal-to-Peer path is still without runtime evidence (no Peer seeding on this
+   kernel). (An older note here said one-run `validate/install --fomod-choices`
+   replaces all embedded archive choices; S2b superseded that with a per-archive merge.)
+   The FOMOD residuals are settled by the [gate-scope contract](fomod-gate-scope.md):
+   the gate expands the selection with hard dependencies like C#
+   `ExpandWithHardDependencies` and reports their FOMOD findings before Rust's stricter
+   selection error; a missing registered archive without prompt state gets C#'s
+   per-component soft warning; run-choice ownership, archive-suffixed folder sources and
+   per-archive preservation are proved at runtime; and the `--fomod-choices` help says
+   it merges per archive. [Evidence](fomod-gate-scope-proof/README.md) is 74/74 (12
+   fail on `15b11cb`); S1 339/339, inherited 41/41, S2a 224/224 and S2b 254/254 hold.
+   Soft gate warnings now survive a later hard gate failure
+   ([gate-warnings contract](fomod-gate-warnings.md), 55/55; 17 fail on `438bb73`),
+   and the gate collects every issue and warning instead of stopping at the first issue
+   ([gate-collect contract](fomod-gate-collect.md), 67/67; 22 fail on `d78aea2`).
+   Desktop reconfiguration, the S3 corpora and native acceptance follow.
    The [actual full.md conversion baseline](full-markdown-baseline/README.md)
    retains eight production conversions and an independent anonymous comparison.
    Both engines draft 72 instructions for 186 K1 components and 56 for 145 K2

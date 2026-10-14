@@ -31,7 +31,7 @@ messages, real hosts or real game installations were used.
 | --- | ---: | --- |
 | Serial choices and settings | 27 | [receipt](native/serial/receipt.json) |
 | Configured/warned suppression | 2 | [receipt](native/suppressed/receipt.json) |
-| Malformed saved choices | 9 | [receipt](native/broken-choices/receipt.json) |
+| Malformed saved choices | 11 | [receipt](native/broken-choices/receipt.json) |
 | Archive disappears before editor inspection | 3 | [receipt](native/vanished-archive/receipt.json) |
 | Malformed settings and repair | 5 | [receipt](native/malformed/receipt.json) |
 
@@ -49,9 +49,14 @@ checked against the actual page numbers, not the word “Validation” in old lo
 Authored guide bytes and game bytes remain unchanged, with no install receipts.
 
 Malformed saved choices retain a blocking error. Retry neither redownloads nor
-changes authored choices. The existing saved-choice reader encounters the malformed
-record for both archives, so two explicit dismissals are required. Validation then
-runs and reports the malformed choices. A separate case removes a disposable
+changes authored choices. Only the archive whose consumer has the unparseable
+record blocks; after its explicit dismissal the second archive opens its ordinary
+editor (runtime revalidation 2026-10-03b, where the earlier double-dismissal
+expectation was traced to the reader checking the wrong component). Validation then
+runs and reports the malformed choices. Choices that parse but no longer fit the
+archive open the ordinary editor pre-filled instead of the modal; readiness stays
+blocked while it is open. Dismissing a repair item also dismisses any ordinary
+consumer bound to the same archive item; validation then reports it. A separate case removes a disposable
 archive after shared inspection but before its queued editor opens: inspection
 fails, Cancel returns no choice outcome, and validation subsequently runs. Finally,
 malformed settings keep Fetch disabled with zero origin requests and no file changes;
