@@ -293,6 +293,9 @@ enum Action {
         /// Accepted for C# CLI compatibility. Incoming values already win by default.
         #[arg(long)]
         prefer_incoming_fields: bool,
+        /// Reference merge compatibility flag; merging does not resolve dependency order.
+        #[arg(long)]
+        ignore_errors: bool,
         #[arg(long)]
         exclude_existing_only: bool,
         #[arg(long)]
@@ -2226,6 +2229,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             prefer_existing_options,
             prefer_existing_resource_registry,
             prefer_incoming_fields: _,
+            ignore_errors: _,
             exclude_existing_only,
             exclude_incoming_only,
         }) => {

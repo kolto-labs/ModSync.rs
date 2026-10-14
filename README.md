@@ -107,12 +107,18 @@ Snapshots live beside the game directory in `.modsync-<id>/snapshot`. They requi
 
 ```sh
 cargo fmt --all -- --check
-cargo clippy --locked --all-targets -- -D warnings
-cargo test --locked --all-targets
-cargo test --locked --no-default-features
+cargo build --locked --lib --bin modsync -j2
+cargo clippy --locked --lib --bin modsync -j2 -- -D warnings
+cargo build --locked --no-default-features --lib --bin modsync -j2
+cargo clippy --locked --no-default-features --lib --bin modsync -j2 -- -D warnings
 ```
 
-The test suite covers simulated and real file changes, ZIP/7z/RAR, path and symlink rejection, dependency ordering, option selection, texture cleanup, cancellation, recovery hashes, and the CLI. CI runs on Linux, Windows, and macOS.
+Rust tests and custom Rust harnesses are frozen during the parity effort; do not
+build or run test targets or use `--all-targets`. CI runs production checks on
+Linux, including a Windows cross-check; native Windows and macOS builds require
+manual dispatch. These gates verify compilation and linting, not full parity.
+See [the cloud bootstrap](docs/parity/cloud/README.md) for isolated production CLI
+proofs and their prerequisites.
 
 ## Attribution
 

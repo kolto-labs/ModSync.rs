@@ -1,0 +1,50 @@
+name: Synthetic full-build CLI (linux)
+on:
+  workflow_dispatch:
+    inputs:
+      guide_ref:
+        description: Public kolto-labs/mod-builds revision (recorded in artifacts)
+        default: 21b2f0499d28ecd4ee2092701dee5792ba5da4b9
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  cli:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: kolto-labs/mod-builds
+          ref: ${{ inputs.guide_ref }}
+          path: guide-corpus
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@1.95.0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: Swatinem/rust-cache@v2
+      - name: Install production CLI dependencies
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends pkg-config libssl-dev
+      - name: Build production CLI (Rust test targets remain frozen)
+        run: cargo build --locked --no-default-features --lib --bin modsync -j2
+      - name: Record source identities
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          git rev-parse HEAD > artifacts/modsync-commit.txt
+          git -C guide-corpus rev-parse HEAD > artifacts/guide-commit.txt
+      - name: K1 production conversion and synthetic installation
+        run: python tools/prove_synthetic_full_build.py --binary target/debug/modsync --guides guide-corpus --game k1 --output artifacts/k1
+      - name: TSL production conversion and synthetic installation
+        if: always()
+        run: python tools/prove_synthetic_full_build.py --binary target/debug/modsync --guides guide-corpus --game k2 --output artifacts/k2
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: synthetic-full-build-cli-linux-${{ github.run_id }}
+          path: artifacts
+          if-no-files-found: error
+          retention-days: 14

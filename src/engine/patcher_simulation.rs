@@ -12,7 +12,9 @@ use std::{
 const MAX_INI_BYTES: u64 = 8 * 1024 * 1024;
 const MAX_EFFECTS: usize = 100_000;
 
-/// Case-insensitive names; insertion order matters for namespaces and install writes.
+/// Pinned .NET OrdinalIgnoreCase names; insertion order matters for namespaces
+/// and install writes. Unicode lowercase is not this comparer: final sigma must
+/// alias ordinary sigma, while dotted capital I must retain its own identity.
 #[derive(Default)]
 struct Ini(BTreeMap<String, Vec<(String, String)>>);
 
@@ -34,13 +36,13 @@ impl Ini {
                 continue;
             }
             if line.starts_with('[') && line.ends_with(']') {
-                let name = line[1..line.len() - 1].trim().to_lowercase();
+                let name = crate::unicode_case::ordinal_key(line[1..line.len() - 1].trim());
                 ini.0.entry(name.clone()).or_default();
                 section = Some(name);
             } else if let Some(section) = &section
                 && let Some((key, value)) = line.split_once('=')
             {
-                let key = key.trim().to_lowercase();
+                let key = crate::unicode_case::ordinal_key(key.trim());
                 if key.is_empty() {
                     continue;
                 }
@@ -62,13 +64,15 @@ impl Ini {
     }
 
     fn section(&self, name: &str) -> Option<&[(String, String)]> {
-        self.0.get(&name.to_lowercase()).map(Vec::as_slice)
+        self.0
+            .get(&crate::unicode_case::ordinal_key(name))
+            .map(Vec::as_slice)
     }
 
     fn field(&self, section: &str, name: &str) -> Option<&str> {
         self.section(section)?
             .iter()
-            .find(|(key, _)| key.eq_ignore_ascii_case(name))
+            .find(|(key, _)| crate::unicode_case::ordinal_eq(key, name))
             .map(|(_, value)| value.as_str())
     }
 }
@@ -214,7 +218,7 @@ impl Engine {
         let mut effects = Vec::new();
         if let Some(folders) = ini.section("InstallList") {
             for (section, folder) in folders {
-                if !section.starts_with("install_folder") || folder.is_empty() {
+                if !section.starts_with("INSTALL_FOLDER") || folder.is_empty() {
                     continue;
                 }
                 let Some(files) = ini.section(section) else {
@@ -225,7 +229,7 @@ impl Engine {
                 let folder = literal_relative(folder)?;
                 for (operation, filename) in files {
                     self.check_cancelled()?;
-                    if !(operation.starts_with("file") || operation.starts_with("replace"))
+                    if !(operation.starts_with("FILE") || operation.starts_with("REPLACE"))
                         || filename.is_empty()
                     {
                         continue;

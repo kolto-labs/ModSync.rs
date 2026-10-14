@@ -130,6 +130,13 @@ impl Profile {
             "CreatedUtc":self.created_utc,"LastUsedUtc":self.last_used_utc})
     }
 }
+/// Profile-name identity used for activity presentation and deactivation.
+/// This follows the reference's OrdinalIgnoreCase comparer without rewriting
+/// stored names or changing platform-specific profile filename lookup.
+pub fn names_equal(left: &str, right: &str) -> bool {
+    crate::unicode_case::ordinal_eq(left, right)
+}
+
 pub fn sanitize(name: &str) -> Result<String> {
     ensure!(
         !name.trim().is_empty(),
@@ -318,7 +325,9 @@ impl Store {
                 )),
             }
         }
-        report.profiles.sort_by_key(|p| p.name.to_lowercase());
+        report
+            .profiles
+            .sort_by(|left, right| crate::unicode_case::ordinal_cmp(&left.name, &right.name));
         Ok(report)
     }
     pub fn list(&self) -> Result<Vec<Profile>> {
@@ -395,7 +404,7 @@ impl Store {
         let mut settings = self.settings()?;
         if managed_fields(&settings)
             .1
-            .is_some_and(|active| active.eq_ignore_ascii_case(name))
+            .is_some_and(|active| names_equal(&active, name))
         {
             for (key, value) in settings.as_object_mut().unwrap().iter_mut() {
                 if key.eq_ignore_ascii_case("activeProfileName") {

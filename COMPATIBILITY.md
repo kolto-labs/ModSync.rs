@@ -3618,3 +3618,28 @@ fresh C#/Rust K1/K2 differential are in
 One adjacent correction: H4 metadata collection skipped nothing for a different-URL
 follower, so `--record` could store the headers of a URL whose bytes were never
 downloaded. Such followers now get no metadata lookup.
+
+
+## 2026-10-14 continuation
+
+Direct downloads now check cancellation before network admission, after response
+headers and prefix reads, and before publication after archive verification and
+fsync. Observed cancellation discards staging and returns the typed nonretryable
+Cancelled outcome. Blocking network reads still obey their existing timeouts;
+the final cancellation check does not eliminate the check-to-publication race.
+
+Patcher InstallList simulation now uses the retained .NET ordinal Unicode comparer
+for section names, keys and duplicate replacement. Profiles use the same comparer
+for sorting, active-name presentation and desktop deactivation. Stored spelling
+and native filename lookup remain unchanged. `merge` and legacy `convert --merge`
+accept the reference's inert `--ignore-errors` flag; it does not relax install or
+validation safety gates. These changes passed independent source review.
+
+The [synthetic runner proof](tools/SYNTHETIC_FULL_BUILD.md) reads the pinned public
+`kolto-labs/mod-builds` K1/TSL `full.md` corpus, records parser/review gaps and
+projects supported action families onto original synthetic payloads. CLI and
+native GUI have separate manual workflows for Linux, Windows and macOS. Source
+corpus parsing, derived synthetic installs, and actual game/backend parity are
+distinct evidence boundaries. Screenshots, command logs, omitted actions, ordered
+completion receipts and final file hashes are retained as workflow artifacts.
+No copyrighted game files or downloaded mod assets are used or required.

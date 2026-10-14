@@ -4366,6 +4366,9 @@ impl App {
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        // The footer can open this modal during the current input frame. Its
+        // opening click is outside the modal and must not dismiss it immediately.
+        let install_confirmation_was_open = self.confirm_install;
         self.poll_resource_watch();
         self.poll_protocol_inbox(ctx);
         let messages: Vec<_> = self
@@ -4855,7 +4858,7 @@ impl eframe::App for App {
                     if ui.button("Cancel").clicked() { self.confirm_install = false; }
                 });
             });
-            if response.should_close() {
+            if install_confirmation_was_open && response.should_close() {
                 self.confirm_install = false;
             }
         }
