@@ -28,6 +28,8 @@ def main():
     common = [sys.executable, str(fixture), '--binary', str(binary), '--guides',
               str(args.guides.resolve()), '--game', args.game, '--output', str(out)]
     subprocess.run(common + ['--prepare-only'], check=True, timeout=900)
+    from prove_synthetic_full_build import isolated_environment
+    environment = isolated_environment(out)
     os.environ.setdefault('OMP_THREAD_LIMIT', '2')
     import pyautogui
     import pytesseract
@@ -122,7 +124,7 @@ def main():
                 '--source-dir', str(out / 'mods'), '--settings-dir', str(out / 'settings')]
         (out / 'gui-command.json').write_text(json.dumps(argv, indent=2), encoding='utf-8')
         with (out / 'gui.stdout').open('wb') as stdout, (out / 'gui.stderr').open('wb') as stderr:
-            process = subprocess.Popen(argv, cwd=out, stdout=stdout, stderr=stderr)
+            process = subprocess.Popen(argv, cwd=out, env=environment, stdout=stdout, stderr=stderr)
             click('Keep telemetry off')
             click('Validation / install')
             click('Pause sharing to edit')
@@ -162,7 +164,7 @@ def main():
             subprocess.run(common + ['--verify-only'], check=True, timeout=120)
             result = subprocess.run([str(binary), 'completion-summary', '--game-dir',
                                      str(out / 'game'), '--source-dir', str(out / 'mods'), '--json'],
-                                    capture_output=True, check=True, timeout=30)
+                                    capture_output=True, check=True, timeout=30, env=environment)
             (out / 'gui-completion-summary.json').write_bytes(result.stdout)
             receipt = json.loads(result.stdout)
             guide = json.loads((out / 'synthetic-guide.json').read_text(encoding='utf-8'))
