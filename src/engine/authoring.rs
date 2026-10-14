@@ -226,6 +226,7 @@ impl Engine {
         let single = Guide {
             components: vec![owner.clone()],
             metadata: guide.metadata.clone(),
+            ordering: guide.ordering,
         };
         self.fomod_gate(&single, &mut emit)?;
         self.scan()?;
