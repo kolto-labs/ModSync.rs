@@ -1,0 +1,9 @@
+{
+  "platform": "Linux",
+  "runnerType": "ephemeral self-hosted session",
+  "cli": "https://github.com/bodencrouch/ModSync.rs/actions/runs/38509232684",
+  "gui": "https://github.com/bodencrouch/ModSync.rs/actions/runs/38509549581",
+  "hostedWindowsMacOS": "Rejected before runner allocation for account billing",
+  "artifactDelivery": "Azure artifact storage denied by session network; curated safe receipts and screenshots retained here",
+  "fullGameParity": false
+}
