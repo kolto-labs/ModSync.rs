@@ -135,6 +135,47 @@ impl Session {
         Ok(())
     }
 
+    /// Move one authored instruction within its component while fencing the
+    /// edit against the revision and instruction identity shown to the user.
+    /// The move is stored as a normal immutable recipe revision, so undo/redo
+    /// restores the exact prior ordering without regenerating instruction IDs.
+    pub fn move_instruction(
+        &mut self,
+        component: &str,
+        index: usize,
+        expected_guid: &str,
+        destination: usize,
+        expected_revision: &str,
+    ) -> Result<()> {
+        ensure!(
+            self.head.revisions[self.head.cursor].id == expected_revision,
+            "The recipe changed; reopen the action"
+        );
+        let instruction = super::find_component(&self.guide, component)
+            .and_then(|component| component.instructions.get(index))
+            .context("Saved action no longer exists")?;
+        ensure!(
+            instruction.guid == expected_guid,
+            "The action changed; reopen it"
+        );
+        ensure!(
+            destination < super::find_component(&self.guide, component)
+                .context("Mod is no longer in this session")?
+                .instructions
+                .len(),
+            "Action destination is out of range"
+        );
+        ensure!(index != destination, "Action is already at that position");
+        self.edit(
+            "Move saved action",
+            &[EditOperation::MoveInstruction {
+                component: component.to_owned(),
+                index,
+                destination,
+            }],
+        )
+    }
+
     pub fn seek(&mut self, cursor: usize) -> Result<()> {
         ensure!(
             cursor < self.head.revisions.len(),
