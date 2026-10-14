@@ -2,6 +2,12 @@ name: Synthetic full-build CLI (linux)
 on:
   workflow_dispatch:
     inputs:
+      runner:
+        description: Hosted runner or the temporary session Linux runner
+        type: choice
+        options: [hosted, session]
+        default: hosted
+        required: true
       guide_ref:
         description: Public kolto-labs/mod-builds revision (recorded in artifacts)
         default: 21b2f0499d28ecd4ee2092701dee5792ba5da4b9
@@ -11,7 +17,9 @@ permissions:
   contents: read
 jobs:
   cli:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner == 'session' && fromJSON('["self-hosted","Linux","modsync-session"]') || 'ubuntu-24.04' }}
+    env:
+      RUSTUP_TOOLCHAIN: 1.95.0
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
@@ -22,12 +30,25 @@ jobs:
           path: guide-corpus
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@1.95.0
+        if: inputs.runner != 'session'
       - uses: actions/setup-python@v5
+        if: inputs.runner != 'session'
         with:
           python-version: '3.12'
       - uses: Swatinem/rust-cache@v2
+        if: inputs.runner != 'session'
       - name: Install production CLI dependencies
+        if: inputs.runner != 'session'
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends pkg-config libssl-dev
+      - name: Reuse the temporary session production build directory
+        if: inputs.runner == 'session'
+        shell: bash
+        run: |
+          if [ -e target ] || [ -L target ]; then
+            test "$(readlink -f target)" = /workspace/ModSync.rs/target
+          else
+            ln -s /workspace/ModSync.rs/target target
+          fi
       - name: Build production CLI (Rust test targets remain frozen)
         run: cargo build --locked --no-default-features --lib --bin modsync -j2
       - name: Record source identities
