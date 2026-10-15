@@ -524,15 +524,25 @@ Repeated generation leaves existing actions unchanged. Patcher, mixed-method,
 partial-prose and general archive integration remain unsupported by this slice.
 No Rust tests or harnesses were created or run.
 
-Production reachability remains limited: CLI `convert --auto` resolves filenames
-for every guide resource and rejects any discovery diagnostic before invoking the
-resolved binder. `--auto-generate-local` uses the older local inference path.
-The editor's single-archive path constructs a component-only guide without the
-canonical preamble, so it cannot establish the binder's required guide default.
-Full-guide, offline, explicit component/archive binding needs a separate production
-input surface; compilation does not demonstrate a real archive binding through
-these frontends. No component filtering, fabricated guide, or review bypass is
-used as substitute evidence.
+The production CLI now accepts an offline, explicit binding file with
+`convert --resolved-archives <JSON> --source-path <archive-directory>`. The JSON
+is a bounded array using the `ResolvedFiles` shape, for example:
+
+```json
+[{"componentGuid":"<exact guide component GUID>","filenames":["example.zip"]}]
+```
+
+Each GUID must exactly identify one component in the intact input guide; component
+bindings must be unique and archive names must be safe literal ZIP/7z/RAR
+basenames. The file is limited to 8 MiB, 4096 component bindings, 4096 filenames
+and 1 MiB of filename text. Explicit bindings bypass provider filename discovery
+without filtering guide components. Every unbound component with an
+`InstallationMethod` and no authored instructions retains a method review gap.
+This option conflicts with remote `--auto`, local auto-generation and download;
+it does not merge an older TOML or approve review. Real archive binding still
+requires a separate production invocation and remains subject to the same
+archive-member and `RequiresReview` rules above. The editor's single-archive path
+still lacks the full guide preamble context.
 
 `src/draft.rs` ports the reference's 56 ordered instruction patterns, sentence/conditional splitting, source/destination inference, exclusions, cleanlist handling, download recommendations and sandbox normalization. Existing authored instructions remain untouched. Desktop file-open and CLI install/validate automatically draft Markdown, while `convert --parse-directions` opts in for conversion. Draft diagnostics and the reference review warning persist in the component; the desktop displays steps and notes, and `convert --review-draft <GUID>` or the desktop review button records explicit acceptance. Gaps, conditional clauses or rejected drafts prevent acceptance. The engine still checks real paths and external-program permissions after review.
 

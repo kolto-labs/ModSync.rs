@@ -646,8 +646,11 @@ struct ConversionProcessing {
     #[arg(long, requires = "source_path")]
     auto_generate_local: bool,
     /// Infer review-required instructions from resolved resource filenames.
-    #[arg(short = 'a', long = "auto")]
+    #[arg(short = 'a', long = "auto", conflicts_with = "resolved_archives")]
     auto_generate: bool,
+    /// Bind explicitly named local archives to component GUIDs from this guide (JSON array).
+    #[arg(long, requires = "source_path", conflicts_with_all = ["auto_generate", "auto_generate_local", "download"])]
+    resolved_archives: Option<PathBuf>,
     /// Download all guide resources before generating or rendering output.
     #[arg(short = 'd', long, requires = "source_path")]
     download: bool,
@@ -1335,6 +1338,20 @@ fn process_conversion_inner(
         conversion_cancelled(cancelled)?;
         eprintln!("{}", serde_json::to_string_pretty(&reports)?);
     }
+    if let Some(path) = &options.resolved_archives {
+        conversion_cancelled(cancelled)?;
+        let resolved = load_resolved_archives(path, guide)?;
+        modsync::draft::generate_method_contexts(guide);
+        let reports = modsync::archive_generation::resolved::generate(
+            guide,
+            &resolved,
+            options.source_path.as_deref(),
+            &modsync::archive::Options::default(),
+            cancelled,
+        )?;
+        conversion_cancelled(cancelled)?;
+        eprintln!("{}", serde_json::to_string_pretty(&reports)?);
+    }
     if options.auto_generate_local {
         conversion_cancelled(cancelled)?;
         let reports = modsync::archive_generation::generate_local_with_cancel(
@@ -1359,6 +1376,92 @@ fn process_conversion_inner(
     }
     conversion_cancelled(cancelled)?;
     Ok(())
+}
+
+fn load_resolved_archives(
+    path: &std::path::Path,
+    guide: &Guide,
+) -> Result<Vec<modsync::archive_generation::resolved::ResolvedFiles>> {
+    use anyhow::ensure;
+    use std::collections::BTreeSet;
+
+    let metadata = std::fs::symlink_metadata(path)?;
+    ensure!(
+        metadata.is_file() && !metadata.file_type().is_symlink(),
+        "Resolved archive input must be an ordinary file"
+    );
+    ensure!(
+        metadata.len() <= 8 * 1024 * 1024,
+        "Resolved archive input exceeds 8 MiB"
+    );
+    let bytes = std::fs::read(path)?;
+    ensure!(
+        bytes.len() <= 8 * 1024 * 1024,
+        "Resolved archive input exceeds 8 MiB"
+    );
+    let resolved: Vec<modsync::archive_generation::resolved::ResolvedFiles> =
+        serde_json::from_slice(&bytes)?;
+    ensure!(
+        !resolved.is_empty() && resolved.len() <= 4096,
+        "Resolved archive input must contain 1 to 4096 component bindings"
+    );
+    let mut component_guids = BTreeSet::new();
+    let mut total_files = 0usize;
+    let mut total_name_bytes = 0usize;
+    for binding in &resolved {
+        ensure!(
+            guide
+                .components
+                .iter()
+                .filter(|component| component.guid == binding.component_guid)
+                .count()
+                == 1,
+            "Resolved archive component GUID must exactly identify one component in the input guide"
+        );
+        ensure!(
+            component_guids.insert(binding.component_guid.clone()),
+            "Duplicate resolved archive component GUID"
+        );
+        ensure!(
+            !binding.filenames.is_empty(),
+            "Each resolved archive binding needs at least one filename"
+        );
+        total_files = total_files
+            .checked_add(binding.filenames.len())
+            .context("Resolved archive filename count overflow")?;
+        for filename in &binding.filenames {
+            ensure!(
+                !filename.is_empty()
+                    && filename.len() <= 255
+                    && !filename.contains(['/', '\\', '*', '?', '[', ']'])
+                    && !filename.chars().any(char::is_control)
+                    && modsync::paths::relative(filename, false)?
+                        .components()
+                        .count()
+                        == 1,
+                "Resolved archive filename must be a safe literal basename"
+            );
+            ensure!(
+                matches!(
+                    std::path::Path::new(filename)
+                        .extension()
+                        .and_then(|extension| extension.to_str())
+                        .map(str::to_ascii_lowercase)
+                        .as_deref(),
+                    Some("zip" | "7z" | "rar")
+                ),
+                "Resolved archive filename must name a ZIP, 7z, or RAR archive"
+            );
+            total_name_bytes = total_name_bytes
+                .checked_add(filename.len())
+                .context("Resolved archive filename bytes overflow")?;
+        }
+    }
+    ensure!(
+        total_files <= 4096 && total_name_bytes <= 1024 * 1024,
+        "Resolved archive input exceeds filename limits"
+    );
+    Ok(resolved)
 }
 
 fn command_definition() -> clap::Command {

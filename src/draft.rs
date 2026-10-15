@@ -331,29 +331,7 @@ pub fn generate(guide: &mut Guide) -> Vec<DraftResult> {
             .and_then(|value| value.as_str())
             .map(str::trim)
             .filter(|method| !method.is_empty());
-        let method_context = method.map(|method| {
-            let bounded = method.chars().take(257).count() <= 256;
-            let kind = if bounded {
-                match method.to_ascii_lowercase().as_str() {
-                    "loose-file" | "loose-file mod" => "LooseFile",
-                    "tslpatcher" | "tslpatcher mod" | "holopatcher" | "holopatcher mod" => {
-                        "Patcher"
-                    }
-                    "multi-run tslpatcher" | "multi-run holopatcher" => "MultiRunPatcher",
-                    _ => "Unsupported",
-                }
-            } else {
-                "Unsupported"
-            };
-            json!({
-                "Method": method.chars().take(256).collect::<String>(),
-                "MethodTruncated": !bounded,
-                "Kind": kind,
-                "GuideDefaults": defaults,
-                "ExplicitDirectionsTakePrecedence": true,
-                "ArchiveBinding": "Unresolved",
-            })
-        });
+        let method_context = method.map(|method| method_context(method, &defaults));
         if !component.instructions.is_empty()
             || (component.directions.trim().is_empty() && method_context.is_none())
             || component.metadata.contains_key("DraftReview")
@@ -442,6 +420,68 @@ pub fn generate(guide: &mut Guide) -> Vec<DraftResult> {
         results.push(result);
     }
     results
+}
+
+pub fn generate_method_contexts(guide: &mut Guide) {
+    let defaults = guide_defaults(guide);
+    for component in &mut guide.components {
+        if !component.instructions.is_empty() || component.metadata.contains_key("DraftReview") {
+            continue;
+        }
+        let Some(method) = component
+            .metadata
+            .get("InstallationMethod")
+            .and_then(|value| value.as_str())
+            .map(str::trim)
+            .filter(|method| !method.is_empty())
+        else {
+            continue;
+        };
+        let context = method_context(method, &defaults);
+        let mut result = DraftResult {
+            component_guid: component.guid.clone(),
+            draft_instruction_count: 0,
+            unparsed_gaps: vec![METHOD_UNRESOLVED.into()],
+            conditional_drafts: Vec::new(),
+            rejected_drafts: 0,
+        };
+        match context["Kind"].as_str() {
+            Some("Unsupported") => result.unparsed_gaps.push(
+                "Installation method is unsupported, mixed, or exceeds 256 characters; explicit archive-aware interpretation is required.".into(),
+            ),
+            Some("MultiRunPatcher") => result.unparsed_gaps.push(
+                "Multi-run patcher order and namespace selections remain unresolved.".into(),
+            ),
+            _ => {}
+        }
+        append_warning(component, REVIEW_FLAG, true);
+        component.metadata.insert(
+            "DraftReview".into(),
+            json!({"RequiresReview": true, "Result": result, "MethodContext": context}),
+        );
+    }
+}
+
+fn method_context(method: &str, defaults: &serde_json::Value) -> serde_json::Value {
+    let bounded = method.chars().take(257).count() <= 256;
+    let kind = if bounded {
+        match method.to_ascii_lowercase().as_str() {
+            "loose-file" | "loose-file mod" => "LooseFile",
+            "tslpatcher" | "tslpatcher mod" | "holopatcher" | "holopatcher mod" => "Patcher",
+            "multi-run tslpatcher" | "multi-run holopatcher" => "MultiRunPatcher",
+            _ => "Unsupported",
+        }
+    } else {
+        "Unsupported"
+    };
+    json!({
+        "Method": method.chars().take(256).collect::<String>(),
+        "MethodTruncated": !bounded,
+        "Kind": kind,
+        "GuideDefaults": defaults,
+        "ExplicitDirectionsTakePrecedence": true,
+        "ArchiveBinding": "Unresolved",
+    })
 }
 
 pub(crate) fn guide_defaults(guide: &Guide) -> serde_json::Value {
