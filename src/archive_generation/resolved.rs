@@ -18,6 +18,10 @@ use std::{
 pub struct ResolvedFiles {
     pub component_guid: String,
     pub filenames: Vec<String>,
+    #[serde(default)]
+    pub sha256: Option<String>,
+    #[serde(default)]
+    pub size_bytes: Option<u64>,
 }
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -30,6 +34,52 @@ fn check(cancelled: &AtomicBool) -> Result<()> {
     ensure!(
         !cancelled.load(Ordering::Acquire),
         "Resolved filename inference cancelled"
+    );
+    Ok(())
+}
+
+fn verify_archive_binding(root: Option<&Path>, item: &ResolvedFiles) -> Result<()> {
+    let Some(root) = root else {
+        ensure!(
+            item.sha256.is_none() && item.size_bytes.is_none(),
+            "Archive hash binding requires a local source root"
+        );
+        return Ok(());
+    };
+    if item.sha256.is_none() && item.size_bytes.is_none() {
+        return Ok(());
+    }
+    ensure!(
+        item.filenames.len() == 1,
+        "Archive hash binding requires exactly one archive"
+    );
+    let expected = item.sha256.as_deref().unwrap_or("");
+    ensure!(
+        expected.len() == 64 && expected.bytes().all(|byte| byte.is_ascii_hexdigit()),
+        "Archive SHA-256 binding is invalid"
+    );
+    let archive = root.join(&item.filenames[0]);
+    ordinary(&archive, false)?;
+    let metadata = fs::metadata(&archive)?;
+    if let Some(size) = item.size_bytes {
+        ensure!(
+            metadata.len() == size,
+            "Archive size does not match its binding"
+        );
+    }
+    let mut input = fs::File::open(&archive)?;
+    let mut digest = Sha256::new();
+    let mut buffer = [0u8; 1024 * 1024];
+    loop {
+        let count = input.read(&mut buffer)?;
+        if count == 0 {
+            break;
+        }
+        digest.update(&buffer[..count]);
+    }
+    ensure!(
+        format!("{:x}", digest.finalize()).eq_ignore_ascii_case(expected),
+        "Archive SHA-256 does not match its binding"
     );
     Ok(())
 }
@@ -464,6 +514,7 @@ pub fn generate(
     let mut seen = BTreeMap::new();
     for group in resolved {
         check(cancelled)?;
+        verify_archive_binding(root.as_deref(), group)?;
         let matches: Vec<_> = candidate
             .components
             .iter()

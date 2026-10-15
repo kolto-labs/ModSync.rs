@@ -229,6 +229,8 @@ pub fn resolve(guide: &Guide, nexus_key: Option<String>, cancelled: &AtomicBool)
             report.resolved.push(ResolvedFiles {
                 component_guid: component.guid.clone(),
                 filenames: ordered_names,
+                sha256: None,
+                size_bytes: None,
             });
         }
         if report.cancelled {

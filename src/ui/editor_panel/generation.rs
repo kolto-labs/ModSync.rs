@@ -153,6 +153,8 @@ pub(super) fn run(mut request: Request, cancelled: &AtomicBool) -> Result<Previe
             vec![resolved::ResolvedFiles {
                 component_guid: request.draft.guid.clone(),
                 filenames: vec![filename.into()],
+                sha256: None,
+                size_bytes: None,
             }],
             Some(
                 path.parent()
