@@ -15,7 +15,16 @@ use std::{
 };
 
 const FORMAT: u32 = 1;
+const REVISION_FORMAT: u32 = 1;
 const LIMIT: usize = 4096;
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct AuthoringRevision {
+    authoring_revision_format: u32,
+    ordering: crate::model::Ordering,
+    guide: Guide,
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -272,6 +281,7 @@ impl Session {
             {
                 let saved = load_revision(&self.directory, &applied.revision)?;
                 if !selection_matches
+                    || saved.ordering != self.guide.ordering
                     || serde_json::to_value(saved)? != current
                     || serde_json::to_value(&applied.definition)?
                         != serde_json::to_value(disk::action_definition(owner, index)?)?
@@ -328,6 +338,21 @@ impl Session {
             instructions <= guide.components[component].instructions.len(),
             "Instruction is out of range"
         );
+        ensure!(
+            guide.components[component].is_selected,
+            "Cannot preview an excluded component: {}",
+            guide.components[component].name
+        );
+        let ordered = guide.ordered()?;
+        let target = ordered
+            .iter()
+            .position(|owner| crate::guid::eq_ascii(&owner.guid, &guide.components[component].guid))
+            .context("Preview target is not in the selected execution order")?;
+        let future: std::collections::BTreeSet<_> = ordered
+            .iter()
+            .skip(target + 1)
+            .map(|owner| crate::guid::key_ascii(&owner.guid))
+            .collect();
         guide.components[component]
             .instructions
             .truncate(instructions);
@@ -335,8 +360,10 @@ impl Session {
         // Keep it intact for dependencies, restrictions and CleanList names.
         // Explicit prediction accepts these empty effect lists while retaining
         // the complete selected ordering graph and checkpoint context.
-        for future in guide.components.iter_mut().skip(component + 1) {
-            future.instructions.clear();
+        for owner in &mut guide.components {
+            if future.contains(&crate::guid::key_ascii(&owner.guid)) {
+                owner.instructions.clear();
+            }
         }
         Ok(guide)
     }
@@ -377,13 +404,33 @@ fn revision_path(directory: &Path, id: &str) -> Result<PathBuf> {
 }
 
 fn save_revision(directory: &Path, id: &str, guide: &Guide) -> Result<()> {
-    let text = super::render_preview(guide)?;
+    let text = super::render_preview(&AuthoringRevision {
+        authoring_revision_format: REVISION_FORMAT,
+        ordering: guide.ordering,
+        guide: guide.clone(),
+    })?;
     crate::recovery::atomic_write(&revision_path(directory, id)?, text.as_bytes())
 }
 fn load_revision(directory: &Path, id: &str) -> Result<Guide> {
-    Ok(serde_json::from_str(&read_document(&revision_path(
-        directory, id,
-    )?)?)?)
+    let text = read_document(&revision_path(directory, id)?)?;
+    let value: serde_json::Value = serde_json::from_str(&text)?;
+    let guide = if value.get("authoringRevisionFormat").is_some()
+        || (value.get("thisMod").is_none() && value.get("Components").is_none())
+    {
+        let revision: AuthoringRevision = serde_json::from_str(&text)?;
+        ensure!(
+            revision.authoring_revision_format == REVISION_FORMAT,
+            "Unsupported authoring revision format: {}",
+            revision.authoring_revision_format
+        );
+        let mut guide = revision.guide;
+        guide.ordering = revision.ordering;
+        guide
+    } else {
+        serde_json::from_str::<Guide>(&text)?
+    };
+    super::validate_guide(&guide)?;
+    Ok(guide)
 }
 fn save_head(directory: &Path, head: &Head) -> Result<()> {
     crate::recovery::atomic_write(

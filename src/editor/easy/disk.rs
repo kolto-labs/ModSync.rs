@@ -149,6 +149,11 @@ impl Session {
             .collect();
         for (applied, (owner, index)) in history.actions.iter().take(history.cursor).zip(&positions)
         {
+            let saved = super::load_revision(&self.directory, &applied.revision)?;
+            ensure!(
+                saved.ordering == self.guide.ordering,
+                "Previously applied ordering changed; restore its filesystem boundary before proceeding"
+            );
             ensure!(
                 serde_json::to_value(&applied.definition)?
                     == serde_json::to_value(action_definition(owner, *index)?)?,

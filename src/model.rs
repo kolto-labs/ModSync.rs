@@ -51,7 +51,8 @@ pub struct Guide {
 }
 
 /// Install-order rules that depend on how a guide was read and run.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Ordering {
     /// The file was read as Markdown. The C# Markdown ingest drops InstallBefore and
     /// InstallAfter, so they neither order nor stop the install (Dependencies still do).

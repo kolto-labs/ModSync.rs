@@ -4387,3 +4387,25 @@ corpus parsing, derived synthetic installs, and actual game/backend parity are
 distinct evidence boundaries. Screenshots, command logs, omitted actions, ordered
 completion receipts and final file hashes are retained as workflow artifacts.
 No copyrighted game files or downloaded mod assets are used or required.
+
+### Easy-builder execution boundaries and revision ordering (2026-10-15)
+
+Previews retain the complete selection/dependency graph and cut effects after the
+target identity in `Guide::ordered()`, not after its raw array position. Qt's raw
+component-index API is unchanged; excluded preview targets fail explicitly.
+New immutable authoring revisions use a private version-1 envelope containing the
+guide and all three ordering flags. Every revision load (including cursor undo/redo)
+restores and validates it; prediction checkpoint matching and disk-prefix acceptance
+include ordering. Public guide serialization/export remains unchanged.
+
+Existing bare-guide revisions are never rewritten. Their explicit legacy policy is
+`Ordering::default()` (all flags false), matching their previous reload behavior;
+the original import policy is unknown and is not inferred. New edits persist that
+effective policy. Legacy checkpoints cannot prove the original import ordering;
+restore the initial disk boundary or create a new session from an explicitly loaded
+guide when that provenance matters. Unknown envelope versions, missing/invalid
+ordering flags and unknown envelope fields fail closed, without legacy fallback.
+The `authoringRevisionFormat` root key is reserved; a legacy guide using it as
+extension metadata is rejected rather than ambiguously interpreted. Source review
+and scoped formatting are the validation boundary here; the parent performs the
+final production build. No tests, harnesses or install-tree operations were run.
