@@ -159,10 +159,11 @@ impl Session {
             "The action changed; reopen it"
         );
         ensure!(
-            destination < super::find_component(&self.guide, component)
-                .context("Mod is no longer in this session")?
-                .instructions
-                .len(),
+            destination
+                < super::find_component(&self.guide, component)
+                    .context("Mod is no longer in this session")?
+                    .instructions
+                    .len(),
             "Action destination is out of range"
         );
         ensure!(index != destination, "Action is already at that position");

@@ -1355,13 +1355,10 @@ impl Engine {
         self.selected = selected_guid_keys(guide);
         self.selected.extend(self.completed.iter().cloned());
         let mut outcomes = Vec::new();
-        for component in guide
-            .ordered()?
-            .into_iter()
-            .filter(|component| {
-                !self
-                    .completed
-                    .contains(&crate::guid::key_ascii(&component.guid))
+        for component in guide.ordered()?.into_iter().filter(|component| {
+            !self
+                .completed
+                .contains(&crate::guid::key_ascii(&component.guid))
         }) {
             // Missing archives and Destination errors are one error per step, as
             // the reference lists them; any other failure stops this component's
