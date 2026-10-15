@@ -78,14 +78,28 @@ pub(crate) fn parse_with_yaml_budget(
     let mut comment = false;
     let mut fence: Option<(char, usize)> = None;
     let mod_list = text.find("## Mod List");
+    let mut widescreen_header = None;
+    let is_widescreen_heading = |line: &str| {
+        let heading = line.trim_end();
+        heading.eq_ignore_ascii_case("## Optional Widescreen & Extended Widescreen Support Mods")
+            || heading.eq_ignore_ascii_case("## Enhanced Widescreen Support Mods")
+    };
     let mut end = text.len();
     for line in text.split_inclusive('\n') {
         let trimmed = line.trim();
         let protected = comment || fence.is_some();
         if !protected {
             if mod_list.is_some_and(|i| offset > i) && line.starts_with("## ") {
-                end = offset;
-                break;
+                if let Some(begin) = start.take() {
+                    sections.push((begin, &text[begin..offset]));
+                }
+                if !is_widescreen_heading(line) {
+                    end = offset;
+                    break;
+                }
+            }
+            if is_widescreen_heading(line) {
+                widescreen_header = Some(offset);
             }
             if line.starts_with("### ") || line.starts_with("## ") || trimmed == "___" {
                 if let Some(begin) = start.take() {
@@ -170,9 +184,7 @@ pub(crate) fn parse_with_yaml_budget(
             .metadata
             .insert("preambleContent".into(), text[..index].trim_end().into());
     }
-    // The reference extracts this from the complete document, even when its
-    // Mod List boundary excludes widescreen components from parsing.
-    if let Some(header) = text.to_ascii_lowercase().find("## optional widescreen") {
+    if let Some(header) = widescreen_header {
         let mut position = header;
         let mut first_mod = None;
         let mut next_section = None;
@@ -191,6 +203,7 @@ pub(crate) fn parse_with_yaml_budget(
                 && next_section.is_none()
             {
                 next_section = Some(position);
+                break;
             }
             position += line.len();
         }
