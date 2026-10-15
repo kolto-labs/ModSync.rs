@@ -484,7 +484,7 @@ impl Store {
             );
             let shard_metadata = safe_path(&path)?.context("CAS shard disappeared")?;
             ensure!(shard_metadata.is_dir(), "CAS shard is not a directory");
-            for object in fs::read_dir(&path)? {
+            if let Some(object) = fs::read_dir(&path)?.next() {
                 cancelled(flag)?;
                 inspected += 1;
                 ensure!(inspected <= 200_000, "CAS inventory exceeds bound");
