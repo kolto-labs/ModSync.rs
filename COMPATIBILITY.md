@@ -473,6 +473,28 @@ The Rust parser loads the desktop K1 full/spoiler-free prose guides (186/180 com
 
 ### Draft-service checkpoint
 
+Preparatory method-context slice (2026-10-15): `draft::generate` now retains
+instruction-free components with a nonblank `InstallationMethod` even when they
+have no explicit directions. Their `DraftReview.MethodContext` records a bounded
+method label and classification, unresolved archive binding, explicit-direction
+precedence, and guide-default hints. Only the exact canonical preamble clauses
+(ignoring emphasis, ASCII case and whitespace) identify the patcher game-root
+default, loose-file Override default, and prohibition on Override/Modules
+subfolders. Preambles over 64 KiB are not interpreted; absent or unrecognized
+clauses supply no destination. Labels over 256 characters are unsupported and their
+stored preview is limited to 256 characters.
+
+Every method-context draft carries an unresolved archive/review diagnostic and
+`RequiresReview=true`, including when explicit prose also produces draft actions.
+Unsupported/mixed methods and multi-run patchers add explicit diagnostics.
+Original directions and method metadata are preserved; the existing explicit
+prose parser still runs. Existing authored instructions and prior review records
+remain untouched. Method labels and guide defaults generate no install actions,
+perform no archive observation, and cannot be accepted through `mark_reviewed`
+while their diagnostics remain unresolved. Archive-bound generation and merging
+are follow-up work; this slice does not establish installation-method support or
+full-build parity. No Rust tests or harnesses were created or run for this slice.
+
 `src/draft.rs` ports the reference's 56 ordered instruction patterns, sentence/conditional splitting, source/destination inference, exclusions, cleanlist handling, download recommendations and sandbox normalization. Existing authored instructions remain untouched. Desktop file-open and CLI install/validate automatically draft Markdown, while `convert --parse-directions` opts in for conversion. Draft diagnostics and the reference review warning persist in the component; the desktop displays steps and notes, and `convert --review-draft <GUID>` or the desktop review button records explicit acceptance. Gaps, conditional clauses or rejected drafts prevent acceptance. The engine still checks real paths and external-program permissions after review.
 
 `tools/check_drafts.py` compares the pinned C# service's raw objects rather than relying on lossy C# JSON export. It assigns the input's prose fields directly because the legacy JSON loader drops some installation warnings. Across 19 focused cases and four desktop guide component sets (669 component records), instructions, option names/descriptions/selections, warnings, gaps and conditional notes matched with zero differences. The corpus inputs are parsed component JSON, so this proves the draft stage, not complete C# Markdown ingestion or installation. Source/input hashes and scope are in `docs/parity/draft-check.json`. Since 2026-10-04 a drafted Rename deliberately differs (see "Drafted Renames" below).

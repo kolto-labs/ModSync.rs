@@ -322,9 +322,39 @@ fn validate_component_review(value: &serde_json::Value) -> anyhow::Result<()> {
 /// Drafts are attached for review, never substituted for existing authored instructions.
 pub fn generate(guide: &mut Guide) -> Vec<DraftResult> {
     let mut results = Vec::new();
+    let defaults = guide_defaults(guide);
     for component in &mut guide.components {
+        let method = component
+            .metadata
+            .get("InstallationMethod")
+            .and_then(|value| value.as_str())
+            .map(str::trim)
+            .filter(|method| !method.is_empty());
+        let method_context = method.map(|method| {
+            let bounded = method.chars().take(257).count() <= 256;
+            let kind = if bounded {
+                match method.to_ascii_lowercase().as_str() {
+                    "loose-file" | "loose-file mod" => "LooseFile",
+                    "tslpatcher" | "tslpatcher mod" | "holopatcher" | "holopatcher mod" => {
+                        "Patcher"
+                    }
+                    "multi-run tslpatcher" | "multi-run holopatcher" => "MultiRunPatcher",
+                    _ => "Unsupported",
+                }
+            } else {
+                "Unsupported"
+            };
+            json!({
+                "Method": method.chars().take(256).collect::<String>(),
+                "MethodTruncated": !bounded,
+                "Kind": kind,
+                "GuideDefaults": defaults,
+                "ExplicitDirectionsTakePrecedence": true,
+                "ArchiveBinding": "Unresolved",
+            })
+        });
         if !component.instructions.is_empty()
-            || component.directions.trim().is_empty()
+            || (component.directions.trim().is_empty() && method_context.is_none())
             || component.metadata.contains_key("DraftReview")
         {
             continue;
@@ -336,6 +366,22 @@ pub fn generate(guide: &mut Guide) -> Vec<DraftResult> {
             conditional_drafts: Vec::new(),
             rejected_drafts: 0,
         };
+        if let Some(context) = &method_context {
+            result.unparsed_gaps.push(
+                "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+                    .into(),
+            );
+            if context["Kind"] == "Unsupported" {
+                result.unparsed_gaps.push(
+                    "Installation method is unsupported, mixed, or exceeds 256 characters; explicit archive-aware interpretation is required."
+                        .into(),
+                );
+            } else if context["Kind"] == "MultiRunPatcher" {
+                result.unparsed_gaps.push(
+                    "Multi-run patcher order and namespace selections remain unresolved.".into(),
+                );
+            }
+        }
         let normalized = component
             .directions
             .replace("**", "")
@@ -378,7 +424,7 @@ pub fn generate(guide: &mut Guide) -> Vec<DraftResult> {
                 .extend(download_options(download, &component.guid));
         }
         result.draft_instruction_count = component.instructions.len();
-        if result.draft_instruction_count > 0 {
+        if result.draft_instruction_count > 0 || method_context.is_some() {
             append_warning(component, REVIEW_FLAG, true);
         }
         for note in &result.conditional_drafts {
@@ -389,14 +435,42 @@ pub fn generate(guide: &mut Guide) -> Vec<DraftResult> {
             || !result.conditional_drafts.is_empty()
             || result.rejected_drafts > 0
         {
-            component.metadata.insert(
-                "DraftReview".into(),
-                json!({"RequiresReview": true, "Result": result}),
-            );
+            let mut record = json!({"RequiresReview": true, "Result": result});
+            if let Some(context) = method_context {
+                record["MethodContext"] = context;
+            }
+            component.metadata.insert("DraftReview".into(), record);
         }
         results.push(result);
     }
     results
+}
+
+fn guide_defaults(guide: &Guide) -> serde_json::Value {
+    let preamble = guide
+        .metadata
+        .get("preambleContent")
+        .and_then(|value| value.as_str())
+        .filter(|text| !text.trim().is_empty());
+    let bounded = preamble.is_none_or(|text| text.len() <= 64 * 1024);
+    let normalized = preamble
+        .filter(|_| bounded)
+        .unwrap_or("")
+        .replace('*', "")
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ")
+        .to_ascii_lowercase();
+    let patcher_root = normalized.contains("if you are asked to direct a tslpatcher or holopatcher executable to a folder to begin install, that folder should always be the main game folder");
+    let loose_override = normalized.contains("for mods that are not installed with the tslpatcher or holopatcher, unless otherwise noted their loose-file contents are placed directly in the override directory.");
+    let no_subfolders = normalized
+        .contains("you should never have any subfolders inside the modules or override folders.");
+    json!({
+        "PreambleStatus": if !bounded { "TooLarge" } else if preamble.is_some() { "Inspected" } else { "Absent" },
+        "PatcherDestination": patcher_root.then_some(GAME),
+        "LooseFilesDestination": loose_override.then(|| format!("{GAME}\\Override")),
+        "NoOverrideOrModulesSubfolders": no_subfolders,
+    })
 }
 
 fn append_warning(component: &mut Component, note: &str, prepend: bool) {
