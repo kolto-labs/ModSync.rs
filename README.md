@@ -56,7 +56,9 @@ modsync validate --input KOTOR1_Full.toml --game-dir /path/to/game --source-dir 
 modsync convert instructions.toml instructions.json
 ```
 
-CLI validation and installation select all top-level components by default, matching ModSync. Use `--use-file-selection` to honor `IsSelected`, or repeat `--select NAME_OR_GUID` to select specific components. Repeat `--option GUID` to enable options. Option defaults from the guide remain intact. Dependencies must be selected explicitly; missing dependencies and incompatible selections stop validation.
+CLI validation and installation select all top-level components by default, matching ModSync. Use `--use-file-selection` to honor `IsSelected`, or repeat `--select NAME_OR_GUID` (or list several values after one `--select`) to select specific components. Repeat `--option GUID` to enable options. Option defaults from the guide remain intact. Dependencies must be selected explicitly; missing dependencies and incompatible selections stop validation.
+
+`install` does not use managed deployment unless you pass `--managed` (with `--component-checkpoints`); the settings.json toggle applies to the desktop only. `--no-managed`, the C# CLI spelling for a classic install, is accepted and cannot be combined with `--managed`.
 
 The desktop can save selections as a TOML file. The CLI reads the same file with `--use-file-selection`.
 
@@ -105,12 +107,18 @@ Snapshots live beside the game directory in `.modsync-<id>/snapshot`. They requi
 
 ```sh
 cargo fmt --all -- --check
-cargo clippy --locked --all-targets -- -D warnings
-cargo test --locked --all-targets
-cargo test --locked --no-default-features
+cargo build --locked --lib --bin modsync -j2
+cargo clippy --locked --lib --bin modsync -j2 -- -D warnings
+cargo build --locked --no-default-features --lib --bin modsync -j2
+cargo clippy --locked --no-default-features --lib --bin modsync -j2 -- -D warnings
 ```
 
-The test suite covers simulated and real file changes, ZIP/7z/RAR, path and symlink rejection, dependency ordering, option selection, texture cleanup, cancellation, recovery hashes, and the CLI. CI runs on Linux, Windows, and macOS.
+Rust tests and custom Rust harnesses are frozen during the parity effort; do not
+build or run test targets or use `--all-targets`. CI runs production checks on
+Linux, including a Windows cross-check; native Windows and macOS builds require
+manual dispatch. These gates verify compilation and linting, not full parity.
+See [the cloud bootstrap](docs/parity/cloud/README.md) for isolated production CLI
+proofs and their prerequisites.
 
 ## Attribution
 

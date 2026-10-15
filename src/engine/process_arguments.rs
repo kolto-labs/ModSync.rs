@@ -1,14 +1,14 @@
 //! Tokenize before substituting roots so spaces in folders cannot create arguments.
+//!
+//! Arguments use the Windows command-line rules on every host, as the reference
+//! does: .NET splits `ProcessStartInfo.Arguments` with those rules on Linux and
+//! macOS too, so a guide's Arguments mean the same thing everywhere.
 use crate::paths::Roots;
 use anyhow::{Context, Result, bail, ensure};
 use std::ffi::OsString;
 
 pub(super) fn expand(text: &str, roots: &Roots) -> Result<Vec<OsString>> {
-    #[cfg(not(windows))]
-    let tokens = shlex::split(text).context("Unclosed quote in Arguments")?;
-    #[cfg(windows)]
-    let tokens = windows_split(text)?;
-    tokens
+    windows_split(text)?
         .into_iter()
         .map(|token| {
             ensure!(!token.contains('\0'), "Arguments contain a NUL character");
@@ -47,9 +47,9 @@ pub(super) fn expand(text: &str, roots: &Roots) -> Result<Vec<OsString>> {
         .collect()
 }
 
-/// Windows CRT-style argument quoting. Single quotes are literal; backslashes
-/// only escape quotes and remain unchanged in ordinary Windows paths.
-#[cfg(windows)]
+/// Windows CRT-style argument quoting. Only space and tab separate arguments;
+/// single quotes, `#` and newlines are literal; backslashes only escape quotes
+/// and remain unchanged in ordinary Windows paths. An unclosed quote is refused.
 pub(crate) fn windows_split(text: &str) -> Result<Vec<String>> {
     let mut chars = text.chars().peekable();
     let mut result = Vec::new();

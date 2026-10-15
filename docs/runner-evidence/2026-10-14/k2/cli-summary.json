@@ -1,0 +1,53 @@
+{
+  "game": "k2",
+  "guideSha256": "f442bdf574031623ed577609730d887069b9bc8e38e8e2f38ecc43a7e7487d5f",
+  "binarySha256": "9acae37a4b50cfef9574f301ddc22e45639948ca1b3a69b3933805498b32bed9",
+  "rootComponents": 145,
+  "owners": 148,
+  "draftAddedOwners": [
+    {
+      "owner": [
+        76,
+        0
+      ]
+    },
+    {
+      "owner": [
+        80,
+        0
+      ]
+    },
+    {
+      "owner": [
+        81,
+        0
+      ]
+    }
+  ],
+  "originalRecursiveOwnerOrderChecked": true,
+  "authoredActionCounts": {
+    "Move": 29,
+    "Delete": 17,
+    "Patcher": 6,
+    "Rename": 1,
+    "Extract": 1,
+    "CleanList": 2
+  },
+  "reviewRequiredOwners": 62,
+  "ownersWithoutInstructions": 107,
+  "syntheticComponents": 48,
+  "syntheticInstructions": 48,
+  "omittedInstructions": 8,
+  "authoredInstallRefused": true,
+  "syntheticInstallHashesVerified": true,
+  "completionReceiptOrderChecked": true,
+  "limitations": [
+    "No copyrighted game/mod bytes, real downloads or backend execution",
+    "Safe action families only; authored paths/selection/conditions are replaced",
+    "Unparsed prose, unresolved drafts and omitted actions remain incomplete",
+    "No real K1/TSL installation, resource equivalence or live-game proof"
+  ],
+  "curatedRedactions": [
+    "draftAddedOwners.name (published mod names remain outside this repository)"
+  ]
+}

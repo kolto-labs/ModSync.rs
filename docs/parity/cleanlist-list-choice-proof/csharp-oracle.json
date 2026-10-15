@@ -1,0 +1,435 @@
+{
+ "backslash_then_literal": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList List Choice Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/s.tga": "S\n",
+     "Override/z.csv": "Mandatory Deletions,s.tga\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "l/a.csv": "Mandatory Deletions,a.tga\n",
+     "l/b.csv": "Mandatory Deletions,b.2da\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "case_variant_then_literal": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList List Choice Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/s.tga": "S\n",
+     "Override/z.csv": "Mandatory Deletions,s.tga\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "l/a.csv": "Mandatory Deletions,a.tga\n",
+     "l/b.csv": "Mandatory Deletions,b.2da\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "folder_then_literal": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList List Choice Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/s.tga": "S\n",
+     "Override/z.csv": "Mandatory Deletions,s.tga\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "l/a.csv": "Mandatory Deletions,a.tga\n",
+     "l/b.csv": "Mandatory Deletions,b.2da\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "game_list_then_mod_list": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList List Choice Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/b.2da": "B\n",
+     "Override/z.csv": "Mandatory Deletions,s.tga\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "l/a.csv": "Mandatory Deletions,a.tga\n",
+     "l/b.csv": "Mandatory Deletions,b.2da\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "literal_ab": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList List Choice Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/s.tga": "S\n",
+     "Override/z.csv": "Mandatory Deletions,s.tga\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "l/a.csv": "Mandatory Deletions,a.tga\n",
+     "l/b.csv": "Mandatory Deletions,b.2da\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "literal_ba": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList List Choice Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/s.tga": "S\n",
+     "Override/z.csv": "Mandatory Deletions,s.tga\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "l/a.csv": "Mandatory Deletions,a.tga\n",
+     "l/b.csv": "Mandatory Deletions,b.2da\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "literal_bab_duplicate": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList List Choice Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/s.tga": "S\n",
+     "Override/z.csv": "Mandatory Deletions,s.tga\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "l/a.csv": "Mandatory Deletions,a.tga\n",
+     "l/b.csv": "Mandatory Deletions,b.2da\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "literal_then_overlapping_wildcard": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList List Choice Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/s.tga": "S\n",
+     "Override/z.csv": "Mandatory Deletions,s.tga\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "l/a.csv": "Mandatory Deletions,a.tga\n",
+     "l/b.csv": "Mandatory Deletions,b.2da\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "literal_then_wildcard": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList List Choice Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/b.2da": "B\n",
+     "Override/s.tga": "S\n",
+     "Override/z.csv": "Mandatory Deletions,s.tga\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "l/a.csv": "Mandatory Deletions,a.tga\n",
+     "l/b.csv": "Mandatory Deletions,b.2da\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "mod_list_then_game_list": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList List Choice Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/s.tga": "S\n",
+     "Override/z.csv": "Mandatory Deletions,s.tga\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "l/a.csv": "Mandatory Deletions,a.tga\n",
+     "l/b.csv": "Mandatory Deletions,b.2da\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "question_then_literal": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList List Choice Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/s.tga": "S\n",
+     "Override/z.csv": "Mandatory Deletions,s.tga\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "l/a.csv": "Mandatory Deletions,a.tga\n",
+     "l/b.csv": "Mandatory Deletions,b.2da\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "single_control": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList List Choice Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/s.tga": "S\n",
+     "Override/z.csv": "Mandatory Deletions,s.tga\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "l/a.csv": "Mandatory Deletions,a.tga\n",
+     "l/b.csv": "Mandatory Deletions,b.2da\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "two_steps": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList List Choice Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/z.csv": "Mandatory Deletions,s.tga\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "l/a.csv": "Mandatory Deletions,a.tga\n",
+     "l/b.csv": "Mandatory Deletions,b.2da\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "wildcard_then_literal": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "CleanList List Choice Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/a.tga": "A\n",
+     "Override/s.tga": "S\n",
+     "Override/z.csv": "Mandatory Deletions,s.tga\n",
+     "chitin.key": "KEY\n"
+    },
+    "mods": {
+     "l/a.csv": "Mandatory Deletions,a.tga\n",
+     "l/b.csv": "Mandatory Deletions,b.2da\n"
+    }
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ }
+}

@@ -45,8 +45,10 @@ Delete, Run, Execute and CleanList never recover.
    source is a nonempty literal basename already present at the target.
 
 A final miss is `MissingSourceFiles` for Copy, Move and Extract, which is the
-existing dry-run skip cause. Patcher keeps its existing
-`Missing external program/mod` error.
+existing dry-run skip cause. A Patcher miss is the same cause with the message
+`Missing external program/mod: <Source>`, so the dry run skips the component as C#
+does (since 2026-10-04,
+[patcher-missing-source-contract.md](patcher-missing-source-contract.md)).
 
 ## Staging
 
@@ -60,7 +62,11 @@ after the whole binding succeeds. Checks:
 - two derived writes to one target are refused, including FOMOD members that
   would overwrite each other during implicit extraction;
 - recovered Copy/Move sources may not collide at one flattened target, or equal
-  their target;
+  their target unless `Overwrite = false` (then that source is skipped with the
+  usual warning, as in the Copy/Move arm, and another source landing on that
+  existing file is not refused as a collision but skipped the same way, since
+  `Overwrite = false` keeps the file; see
+  [copy-move-self-contract.md](copy-move-self-contract.md));
 - a recovered Patcher file binds its parent directory, which must exist and hold
   a patcher configuration.
 

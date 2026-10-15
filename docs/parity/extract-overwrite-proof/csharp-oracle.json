@@ -1,0 +1,273 @@
+{
+ "fresh_false": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Extract Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Extract Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/x.txt": "NEW\n"
+    },
+    "mods": {
+     "out/x.txt": "NEW\n",
+     "out/y.txt": "Y\n"
+    }
+   }
+  }
+ },
+ "game_override_false": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Extract Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/x.txt": "NEW\n",
+     "Override/y.txt": "Y\n"
+    },
+    "mods": {}
+   }
+  }
+ },
+ "game_override_true": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Extract Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/x.txt": "NEW\n",
+     "Override/y.txt": "Y\n"
+    },
+    "mods": {}
+   }
+  }
+ },
+ "stale_default_destination_false": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Extract Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/x.txt": "NEW\n"
+    },
+    "mods": {
+     "pack/x.txt": "NEW\n",
+     "pack/y.txt": "Y\n"
+    }
+   }
+  }
+ },
+ "stale_false": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Extract Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/x.txt": "NEW\n"
+    },
+    "mods": {
+     "out/x.txt": "NEW\n",
+     "out/y.txt": "Y\n"
+    }
+   }
+  }
+ },
+ "stale_omitted": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Extract Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/x.txt": "NEW\n"
+    },
+    "mods": {
+     "out/x.txt": "NEW\n",
+     "out/y.txt": "Y\n"
+    }
+   }
+  }
+ },
+ "stale_true": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Extract Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/x.txt": "NEW\n"
+    },
+    "mods": {
+     "out/x.txt": "NEW\n",
+     "out/y.txt": "Y\n"
+    }
+   }
+  }
+ },
+ "two_archives_false": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Extract Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Extract Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/x.txt": "FROM B\n"
+    },
+    "mods": {
+     "out/x.txt": "FROM B\n"
+    }
+   }
+  }
+ },
+ "two_archives_true": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Extract Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Extract Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/x.txt": "FROM B\n"
+    },
+    "mods": {
+     "out/x.txt": "FROM B\n"
+    }
+   }
+  }
+ },
+ "two_steps_false": {
+  "dryrun": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Extract Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "tree": null
+  },
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Extract Probe: Success"
+    ]
+   },
+   "tree": {
+    "game": {
+     "Override/x.txt": "FROM B\n"
+    },
+    "mods": {
+     "out/x.txt": "FROM B\n"
+    }
+   }
+  }
+ }
+}

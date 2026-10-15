@@ -14,3 +14,14 @@ than copying this silent loss. This is conversion evidence only, not installatio
 validation, a Rust fix, or whole-format parity.
 
 Raw inputs, exact argv/exits/stdout/stderr/output objects and driver are retained.
+
+**Rust follow-up (after `3911e74`).** The Rust XML reader used to turn the empty and
+whitespace XML scalars into an empty list, and the Markdown metadata reader did the same
+for `Source = ""` / `Source: ''`. Both now keep the scalar as `[""]`, which Rust refuses
+in the dry-run report, `validate` and `install`, as it already did for JSON/TOML/YAML.
+A live rerun of this method on XML and Markdown fixtures, with the C# Markdown result
+(the metadata block is dropped, not refused), is in
+[scalar-empty-source-proof](../scalar-empty-source-proof/README.md); the contract is
+[scalar-empty-source-contract.md](../scalar-empty-source-contract.md). The `probe.py`
+here is the original driver with its original absolute paths and is kept as recorded;
+only this README line in `SHA256SUMS` was refreshed for the note.

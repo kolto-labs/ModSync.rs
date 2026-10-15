@@ -62,7 +62,7 @@ no behavior:
 | `deployment-csharp-differential.sh` (C# DLL + Rust) | 8/8, `TOTAL fail=0` | — |
 | `downloads-gui/probe.py` (step 1) | 9/12, then stopped (click missed) | 46/46 |
 | `downloads-gui-step2/probe.py`: serial, suppressed, vanished-archive, malformed | 8, then stopped (serial) | 37/37 |
-| `downloads-gui-step2/probe.py`: broken-choices | stops before its first assertion | not updated (see below) |
+| `downloads-gui-step2/probe.py`: broken-choices | stops before its first assertion | 11/11 after restoring the blocking prompt (see below); all five scenarios 48/48 |
 | `downloads-gui-step3/probe.py` (install-gate) | 0/1, then stopped | 9/9 |
 | `downloads-gui-step3/record_probe.py` | 4/4, then stopped | 14/14 (1 pending) |
 | `downloads-gui-step3/window_close_probe.py` | 0, then stopped | 6/6 |
@@ -141,20 +141,50 @@ The retained probes were updated as follows:
    - It drops two checks that contradict the new contract: the window stays open,
      and the "no install rollback" wording.
 
-**Open item, not updated: the step-2 broken-choices scenario.**
+**Resolved: the step-2 broken-choices scenario (blocking prompt restored).**
 
-- When a component's saved `FomodChoices` cannot be parsed, Fetch now reports it
-  as an inspection error. The text is "Saved FOMOD choices need repair" plus the
-  repair hint (`src/download_orchestrator.rs` FOMOD follow-ups; COMPATIBILITY
-  "Saved `FomodChoices` that cannot be parsed ... Fetch, validate and install
-  instead name a repair hint").
-- The desktop shows this only as an Activity line, "FOMOD inspection failed for …".
-  The blocking "FOMOD choices need attention" modal and its Retry/Dismiss flow no
-  longer appear for this case. Other archives' editors still open.
-- The step-2 acceptance described a blocking modal. The probe was not rewritten,
-  because whether the desktop should surface this as a blocking prompt is a
-  product decision, not a stale expectation.
-- This behavior existed before `73e8819`, so it is not a regression from the
+- When a component's saved `FomodChoices` cannot be parsed, Fetch reports it as an
+  inspection error: "Saved FOMOD choices need repair" plus the repair hint
+  (`src/download_orchestrator.rs` `bound_fomod_followups`; COMPATIBILITY "Saved
+  `FomodChoices` that cannot be parsed ... Fetch, validate and install instead name
+  a repair hint"). Since `f68dcfc` the desktop only logged this as an Activity line,
+  so the archive left the FOMOD queue and Validate/Install were no longer blocked.
+- Decision: the blocking prompt is the documented behaviour.
+  - [Plan](downloads-gui-plan.md) G8: "retain inspection errors as visible failures,
+    not empty-success"; G7: "Disable Validate/Install while a FOMOD dialog or queued
+    choice remains unresolved".
+  - [Step-2 review](downloads-gui-step2-review.md) P1: saved-choice parsing errors
+    must not "consume an unanswered FOMOD prompt and remove its readiness block";
+    round 2 accepted the Retry/Dismiss error modal for this.
+  - [Step-2 evidence](downloads-gui-step2/README.md): "Malformed saved choices retain
+    a blocking error. Retry neither redownloads nor changes authored choices."
+  - C# (`FomodPostDownloadOrchestrator.ProcessAsync`, `FomodGuiPostDownloadHost`)
+    never parses saved choices after download: a detected FOMOD archive whose
+    prompt status is not configured/warned always gets a modal prompt.
+  - `f68dcfc` documents the repair hint for Fetch/validate/install (the S2a CLI
+    work), not a desktop downgrade to a log line.
+- Fix (`src/ui.rs`, acquisition terminal): a repair error for a prompt-eligible
+  consumer is queued with the positively detected follow-ups for that archive, in
+  acquisition order. The existing queue then raises "FOMOD choices need attention"
+  with Retry/Dismiss and keeps Validate/Install blocked. Errors from archives that
+  could not be inspected stay log-only, as before. The Activity line is kept.
+  Review follow-up: the repair case is identified by a typed `repair` flag on
+  `FomodInspectionError` (set only by `bound_fomod_followups`; serialized only when
+  true), not by message text. The modal appears for unparseable records; choices that
+  parse but no longer fit open the ordinary editor pre-filled, and readiness stays
+  blocked while it is open. A shared archive item's dismissal also drops its other
+  consumers, which validation then reports.
+- Probe: the scenario now expects the queue's per-item consumer binding. Only the
+  malformed component's archive (`one.zip`) blocks. After its explicit dismissal,
+  `two.zip`, whose component has no saved choices, opens its ordinary editor
+  instead of a second error. New checks: the blocker names the parse failure, and
+  the second archive gets an ordinary editor. Result: 11/11, and 48/48 across all
+  five scenarios on a rebuilt binary. Step 1 is 46/46 on the same binary.
+  Binding: `src/ui.rs` SHA-256 `9ba13def…c2b8`, probe `e943ecfd…68a1`, binary
+  (default features, rebuilt last) `95a5ff7f…16b1`. fmt, build and strict Clippy
+  for lib/bin with and without default features, and windows-gnu Clippy in both
+  modes, all pass. Receipts went to scratch; retained receipts are unchanged.
+- This behaviour existed before `73e8819`, so it was not a regression from the
   ordinal or YAML work.
 
 ## C#/Rust differential on the public guides
@@ -197,5 +227,4 @@ They do not prove the following:
 - installs of real mods;
 - live providers;
 - Windows/macOS runtime (only Clippy ran for windows-gnu);
-- the step-2 malformed-choices desktop prompt;
 - the F29 full build.

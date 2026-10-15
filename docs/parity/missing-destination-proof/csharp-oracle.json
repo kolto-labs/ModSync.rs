@@ -1,0 +1,561 @@
+{
+ "backslash_nested": {
+  "counts": [
+   1,
+   0,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Destination cannot be found! Got '<root>/game/Nope/Deeper'"
+   ]
+  ]
+ },
+ "base_and_option_missing": {
+  "counts": [
+   2,
+   0,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "2 component error(s)",
+   [
+    "ERROR: A: Destination cannot be found! Got '<root>/game/Nope'",
+    "ERROR: A: Destination cannot be found! Got '<root>/game/Nope2'"
+   ]
+  ]
+ },
+ "case_of_parent": {
+  "counts": [
+   1,
+   0,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Destination cannot be found! Got '<root>/game/Override/Nope'"
+   ]
+  ]
+ },
+ "cleanlist": {
+  "counts": [
+   1,
+   0,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Destination cannot be found! Got '<root>/game/Nope'"
+   ]
+  ]
+ },
+ "control_case": {
+  "counts": [
+   0,
+   0,
+   3
+  ],
+  "decision": [
+   0,
+   true
+  ],
+  "stage": [
+   true,
+   false,
+   "All components passed archive validation.",
+   [
+    "OK: A"
+   ]
+  ]
+ },
+ "control_extract_copy": {
+  "counts": [
+   0,
+   0,
+   3
+  ],
+  "decision": [
+   0,
+   true
+  ],
+  "stage": [
+   true,
+   false,
+   "All components passed archive validation.",
+   [
+    "OK: A"
+   ]
+  ]
+ },
+ "control_override": {
+  "counts": [
+   0,
+   0,
+   3
+  ],
+  "decision": [
+   0,
+   true
+  ],
+  "stage": [
+   true,
+   false,
+   "All components passed archive validation.",
+   [
+    "OK: A"
+   ]
+  ]
+ },
+ "deldup": {
+  "counts": [
+   1,
+   0,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Destination cannot be found! Got '<root>/game/Nope'"
+   ]
+  ]
+ },
+ "dot_dot_part": {
+  "counts": [
+   1,
+   0,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Destination cannot be found! Got '<root>/game/Nope'"
+   ]
+  ]
+ },
+ "dot_part": {
+  "counts": [
+   1,
+   0,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Destination cannot be found! Got '<root>/game/Override/.'"
+   ]
+  ]
+ },
+ "duplicate_destination": {
+  "counts": [
+   1,
+   0,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Destination cannot be found! Got '<root>/game/Nope'"
+   ]
+  ]
+ },
+ "empty_destination": {
+  "counts": [
+   2,
+   0,
+   1
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Destination cannot be found! Got ''"
+   ]
+  ]
+ },
+ "extract_then_copy_missing": {
+  "counts": [
+   1,
+   0,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Destination cannot be found! Got '<root>/game/Nope'"
+   ]
+  ]
+ },
+ "game_directory": {
+  "counts": [
+   1,
+   0,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Destination cannot be found! Got '<root>/game/Nope'"
+   ]
+  ]
+ },
+ "member_miss_and_missing": {
+  "counts": [
+   2,
+   1,
+   1
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "2 component error(s)",
+   [
+    "ERROR: A: Failed to find 'a/zz.txt' in any archives!",
+    "ERROR: A: Failed to find 'a/a/zz.txt' in any archives!"
+   ]
+  ]
+ },
+ "missing": {
+  "counts": [
+   1,
+   0,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Destination cannot be found! Got '<root>/game/Nope'"
+   ]
+  ]
+ },
+ "missing_archive_and_destination": {
+  "counts": [
+   1,
+   1,
+   1
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Missing Required Archives: [<<modDirectory>>/nope.zip]"
+   ]
+  ]
+ },
+ "missing_between_present": {
+  "counts": [
+   2,
+   0,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "2 component error(s)",
+   [
+    "ERROR: A: Destination cannot be found! Got '<root>/game/Nope'",
+    "ERROR: A: Destination cannot be found! Got '<root>/game/Nope2'"
+   ]
+  ]
+ },
+ "missing_then_bad_patcher": {
+  "counts": [
+   2,
+   0,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "2 component error(s)",
+   [
+    "ERROR: A: Destination cannot be found! Got '<root>/game/Nope'",
+    "ERROR: A: 'Destination' key must be either null or string literal '<<gameDirectory>>' (legacy: '<<kotorDirectory>>') for this action. Got '<<kotorDirectory>>/Override'"
+   ]
+  ]
+ },
+ "mod_directory": {
+  "counts": [
+   1,
+   0,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Destination cannot be found! Got '<root>/mods/Nope'"
+   ]
+  ]
+ },
+ "move": {
+  "counts": [
+   1,
+   0,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Destination cannot be found! Got '<root>/game/Nope'"
+   ]
+  ]
+ },
+ "no_destination": {
+  "counts": [
+   2,
+   0,
+   1
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Destination cannot be found! Got ''"
+   ]
+  ]
+ },
+ "option_missing": {
+  "counts": [
+   1,
+   0,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Destination cannot be found! Got '<root>/game/Nope'"
+   ]
+  ]
+ },
+ "same_folder_two_components": {
+  "counts": [
+   1,
+   0,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Destination cannot be found! Got '<root>/game/Nope'",
+    "OK: B"
+   ]
+  ]
+ },
+ "second_component_missing": {
+  "counts": [
+   1,
+   0,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "OK: A",
+    "ERROR: B: Destination cannot be found! Got '<root>/game/Nope'"
+   ]
+  ]
+ },
+ "trailing_separator": {
+  "counts": [
+   1,
+   0,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Destination cannot be found! Got '<root>/game/Nope'"
+   ]
+  ]
+ },
+ "two_components": {
+  "counts": [
+   2,
+   0,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "2 component error(s)",
+   [
+    "ERROR: A: Destination cannot be found! Got '<root>/game/Nope'",
+    "ERROR: B: Destination cannot be found! Got '<root>/game/Nope2'"
+   ]
+  ]
+ },
+ "two_missing": {
+  "counts": [
+   2,
+   0,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "2 component error(s)",
+   [
+    "ERROR: A: Destination cannot be found! Got '<root>/game/Nope'",
+    "ERROR: A: Destination cannot be found! Got '<root>/game/Nope2'"
+   ]
+  ]
+ },
+ "unselected_option_missing": {
+  "counts": [
+   1,
+   0,
+   2
+  ],
+  "decision": [
+   1,
+   false
+  ],
+  "stage": [
+   false,
+   false,
+   "1 component error(s)",
+   [
+    "ERROR: A: Destination cannot be found! Got '<root>/game/Nope'"
+   ]
+  ]
+ }
+}

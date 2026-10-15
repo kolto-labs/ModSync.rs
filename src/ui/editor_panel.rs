@@ -174,7 +174,7 @@ fn resource_trees(inventory: &ResourceInventory, flag: &AtomicBool) -> Result<Ve
                 entries <= MAX_BROWSER_ENTRIES && text <= MAX_BROWSER_TEXT,
                 "Resource browser inventory exceeds its 20000 member / 4 MiB limit"
             );
-            let path = modsync::paths::relative(member, false)?;
+            let path = modsync::paths::literal_relative(member)?;
             anyhow::ensure!(
                 !path.as_os_str().is_empty() && !member.contains('\\'),
                 "Invalid archive member path"
@@ -1222,7 +1222,7 @@ impl App {
                                 anyhow::ensure!(resource.archive_entries.contains(member), "Archive member selection changed");
                                 let extraction = PathBuf::from(&self.editor.extraction_directory);
                                 anyhow::ensure!(extraction.is_absolute(), "Enter the actual absolute extraction directory before projecting archive members");
-                                extraction.join(modsync::paths::relative(member, false)?)
+                                extraction.join(modsync::paths::literal_relative(member)?)
                             } else {
                                 std::path::absolute(&self.mods)?.join(modsync::paths::relative(&resource.filename, false)?)
                             });

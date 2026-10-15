@@ -1,0 +1,608 @@
+{
+ "json_comma_choose": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Choose",
+    "Source": []
+   }
+  ],
+  "loaded": true
+ },
+ "json_empty_choose": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Choose",
+    "Source": []
+   }
+  ],
+  "loaded": true
+ },
+ "json_numeric_choose": {
+  "exit": 1,
+  "instructions": null,
+  "loaded": false
+ },
+ "json_split_choose": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Choose",
+    "Source": [
+     "44444444-4444-4444-4444-444444444444",
+     "55555555-5555-5555-5555-555555555555"
+    ]
+   }
+  ],
+  "loaded": true
+ },
+ "md_toml_blank_list_copy": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Copy",
+    "Source": []
+   }
+  ],
+  "loaded": true
+ },
+ "md_toml_comma_choose": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Choose",
+    "Source": []
+   }
+  ],
+  "loaded": true
+ },
+ "md_toml_empty_choose": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Choose",
+    "Source": []
+   }
+  ],
+  "loaded": true
+ },
+ "md_toml_empty_copy": {
+  "exit": 0,
+  "instructions": [],
+  "loaded": true
+ },
+ "md_toml_empty_delete_false": {
+  "exit": 0,
+  "instructions": [],
+  "loaded": true
+ },
+ "md_toml_empty_list_delete_false": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Delete",
+    "Source": []
+   }
+  ],
+  "loaded": true
+ },
+ "md_toml_nokey_copy": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Copy",
+    "Source": []
+   }
+  ],
+  "loaded": true
+ },
+ "md_toml_numeric_choose": {
+  "exit": 0,
+  "instructions": [],
+  "loaded": true
+ },
+ "md_toml_split_choose": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Choose",
+    "Source": [
+     "44444444-4444-4444-4444-444444444444",
+     "55555555-5555-5555-5555-555555555555"
+    ]
+   }
+  ],
+  "loaded": true
+ },
+ "md_toml_whitespace_copy": {
+  "exit": 0,
+  "instructions": [],
+  "loaded": true
+ },
+ "md_yaml_empty_choose": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Choose",
+    "Source": []
+   }
+  ],
+  "loaded": true
+ },
+ "md_yaml_empty_copy": {
+  "exit": 0,
+  "instructions": [],
+  "loaded": true
+ },
+ "md_yaml_empty_delete_false": {
+  "exit": 0,
+  "instructions": [],
+  "loaded": true
+ },
+ "md_yaml_empty_list_copy": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Copy",
+    "Source": []
+   }
+  ],
+  "loaded": true
+ },
+ "md_yaml_numeric_choose": {
+  "exit": 0,
+  "instructions": [],
+  "loaded": true
+ },
+ "md_yaml_path_copy": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt"
+    ]
+   }
+  ],
+  "loaded": true
+ },
+ "md_yaml_whitespace_copy": {
+  "exit": 0,
+  "instructions": [],
+  "loaded": true
+ },
+ "toml_comma_choose": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Choose",
+    "Source": []
+   }
+  ],
+  "loaded": true
+ },
+ "toml_empty_choose": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Choose",
+    "Source": []
+   }
+  ],
+  "loaded": true
+ },
+ "toml_empty_copy_control": {
+  "exit": 1,
+  "instructions": null,
+  "loaded": false
+ },
+ "toml_lowercase_choose": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Choose",
+    "Source": []
+   }
+  ],
+  "loaded": true
+ },
+ "toml_numeric_choose": {
+  "exit": 1,
+  "instructions": null,
+  "loaded": false
+ },
+ "toml_semicolon_choose": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Choose",
+    "Source": []
+   }
+  ],
+  "loaded": true
+ },
+ "toml_split_choose": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Choose",
+    "Source": [
+     "44444444-4444-4444-4444-444444444444",
+     "55555555-5555-5555-5555-555555555555"
+    ]
+   }
+  ],
+  "loaded": true
+ },
+ "toml_whitespace_choose": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Choose",
+    "Source": []
+   }
+  ],
+  "loaded": true
+ },
+ "xml_comma_choose": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Choose",
+    "Source": []
+   }
+  ],
+  "loaded": true
+ },
+ "xml_component_empty_source": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt"
+    ]
+   }
+  ],
+  "loaded": true
+ },
+ "xml_empty_choose": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Choose",
+    "Source": []
+   }
+  ],
+  "loaded": true
+ },
+ "xml_empty_copy": {
+  "exit": 1,
+  "instructions": null,
+  "loaded": false
+ },
+ "xml_empty_delete_false": {
+  "exit": 1,
+  "instructions": null,
+  "loaded": false
+ },
+ "xml_nokey_copy": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Copy",
+    "Source": []
+   }
+  ],
+  "loaded": true
+ },
+ "xml_numeric_choose": {
+  "exit": 1,
+  "instructions": null,
+  "loaded": false
+ },
+ "xml_path_copy": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt"
+    ]
+   }
+  ],
+  "loaded": true
+ },
+ "xml_selfclose_copy": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Copy",
+    "Source": []
+   }
+  ],
+  "loaded": true
+ },
+ "xml_selfclose_delete_false": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Delete",
+    "Source": []
+   }
+  ],
+  "loaded": true
+ },
+ "xml_split_choose": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Choose",
+    "Source": [
+     "44444444-4444-4444-4444-444444444444",
+     "55555555-5555-5555-5555-555555555555"
+    ]
+   }
+  ],
+  "loaded": true
+ },
+ "xml_whitespace_copy": {
+  "exit": 1,
+  "instructions": null,
+  "loaded": false
+ },
+ "yaml_comma_choose": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Choose",
+    "Source": []
+   }
+  ],
+  "loaded": true
+ },
+ "yaml_empty_choose": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Choose",
+    "Source": []
+   }
+  ],
+  "loaded": true
+ },
+ "yaml_split_choose": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Choose",
+    "Source": [
+     "44444444-4444-4444-4444-444444444444",
+     "55555555-5555-5555-5555-555555555555"
+    ]
+   }
+  ],
+  "loaded": true
+ },
+ "yaml_whitespace_choose": {
+  "exit": 0,
+  "instructions": [
+   {
+    "Action": "Copy",
+    "Source": [
+     "<<modDirectory>>/a.txt",
+     "<<modDirectory>>/b.txt"
+    ]
+   },
+   {
+    "Action": "Choose",
+    "Source": []
+   }
+  ],
+  "loaded": true
+ }
+}

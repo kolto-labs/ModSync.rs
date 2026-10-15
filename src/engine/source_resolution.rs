@@ -138,19 +138,38 @@ impl Engine {
             } else {
                 Err(MissingSource(instruction.source[0].clone()).into())
             }
+        } else if instruction.source.is_empty() {
+            // C# SetRealPaths finds no files and throws; nothing can be recovered,
+            // so the action fails as a missing source (FileNotFoundPre).
+            return Err(MissingSourceFiles(anyhow::anyhow!(
+                "{} has no Source",
+                instruction.action
+            ))
+            .into());
         } else {
             // A miss in one pattern must not hide an unsafe/malformed later pattern.
             for source in &instruction.source {
                 self.source_pattern(source)?;
             }
-            self.matches(&instruction.source, false)
+            let descendants = authored_descendants(&instruction.action);
+            if matches!(instruction.action.as_str(), "Copy" | "Move") {
+                self.gathered_matches(&instruction.source, descendants)
+            } else {
+                self.matches_scoped(&instruction.source, false, descendants)
+            }
         };
         let sources = match direct {
             Ok(sources) => sources,
             Err(error) if error.is::<MissingSource>() => {
+                // A Patcher miss stays typed: C# returns FileNotFoundPre, which the
+                // dry run reports as DryRunSkipped, as for Copy/Move/Extract.
                 return self.recover(component, instruction).map_err(|error| {
                     if patcher && error.is::<MissingSourceFiles>() {
-                        anyhow::anyhow!("Missing external program/mod: {}", instruction.source[0])
+                        MissingSourceFiles(anyhow::anyhow!(
+                            "Missing external program/mod: {}",
+                            instruction.source[0]
+                        ))
+                        .into()
                     } else {
                         error
                     }
@@ -202,6 +221,8 @@ impl Engine {
                 instruction.source.len() == 1,
                 "Patcher needs exactly one source binding"
             );
+            // `[`/`]` are literal Source characters, but a literal path still may
+            // not contain them (`paths::relative`), so they stay refused here.
             ensure!(
                 !instruction.source[0].contains(['*', '?', '[', ']']),
                 "Patcher source must bind one literal file or directory"
@@ -216,15 +237,8 @@ impl Engine {
                     "Configure an executable with --patcher or install complete packaged patcher resources"
                 );
             }
-            let dest = if instruction.destination.is_empty() {
-                self.settings.roots.game.clone()
-            } else {
-                self.path(&instruction.destination, false)?
-            };
-            ensure!(
-                self.path_policy.key(&dest) == self.path_policy.key(&self.settings.roots.game),
-                "Patcher destination must be the game directory"
-            );
+            // The Destination was qualified above; the patcher always runs on the game
+            // directory, as in C# (`process_path`).
             let args = instruction.arguments.trim();
             if !args.is_empty() && args.parse::<usize>().is_err() {
                 let name = relative(args, false)?;
@@ -267,10 +281,13 @@ impl Engine {
         }
     }
 
+    /// `descendants` false (authored Copy/Move, see [`authored_descendants`]): a
+    /// Source names only the files its literal or wildcard path matches.
     fn recovery_matches(
         &self,
         sources: &[String],
         directory: bool,
+        descendants: bool,
         budget: &mut Budget,
     ) -> Result<Vec<PathBuf>> {
         let mut result = BTreeMap::new();
@@ -279,15 +296,24 @@ impl Engine {
             budget.visit()?;
             let (path, pattern) = self.source_pattern(raw)?;
             let key = self.path_policy.key(&path);
-            if directory && (self.files.contains_key(&key) || self.directories.contains_key(&key)) {
+            // A bare root Source names no file or folder (see `source_prefix`).
+            if directory
+                && !self.settings.roots.is_root(&path)
+                && (self.files.contains_key(&key) || self.directories.contains_key(&key))
+            {
                 result.insert(key, self.actual(&path));
                 continue;
             }
-            let prefix = format!("{key}/");
+            let prefix = self.source_prefix(&path);
             let mut found = false;
             for (key, (path, content)) in &self.files {
                 budget.visit()?;
-                if self.source_matches(&prefix, &pattern, key) {
+                let matched = if descendants {
+                    self.source_matches(prefix.as_deref(), &pattern, key)
+                } else {
+                    self.path_policy.glob_matches(&pattern, key)
+                };
+                if matched {
                     self.settings.roots.check(path)?;
                     if !matches!(content, Content::Unknown) || self.install {
                         content.open()?;
@@ -296,7 +322,14 @@ impl Engine {
                     found = true;
                 }
             }
-            if !found && missing.is_none() {
+            // Name the first literal miss, as `gathered_matches` does, else the first.
+            if !found
+                && (missing.is_none()
+                    || (!raw.contains(['*', '?'])
+                        && missing
+                            .as_deref()
+                            .is_some_and(|m: &str| m.contains(['*', '?']))))
+            {
                 missing = Some(raw.clone());
             }
         }
@@ -315,7 +348,8 @@ impl Engine {
         let mut writes = Vec::new();
         let mut produced = BTreeSet::new();
         let directory = instruction.action == "Patcher";
-        let direct = self.recovery_matches(&instruction.source, directory, budget);
+        let descendants = authored_descendants(&instruction.action);
+        let direct = self.recovery_matches(&instruction.source, directory, descendants, budget);
         let sources = match direct {
             Ok(sources) => sources,
             Err(error) if error.is::<MissingSource>() => {
@@ -326,7 +360,8 @@ impl Engine {
                     &mut writes,
                     &mut produced,
                 )? {
-                    match self.recovery_matches(&instruction.source, directory, budget) {
+                    match self.recovery_matches(&instruction.source, directory, descendants, budget)
+                    {
                         Ok(sources) => sources,
                         Err(error) if error.is::<MissingSource>() => {
                             self.descendants(instruction, budget)?
@@ -335,7 +370,7 @@ impl Engine {
                     }
                 } else {
                     let variant = self.move_variant(instruction, budget)?;
-                    match self.recovery_matches(&variant, directory, budget) {
+                    match self.recovery_matches(&variant, directory, descendants, budget) {
                         Ok(sources) => sources,
                         Err(error) if error.is::<MissingSource>() => {
                             if self.redundant_move(instruction, budget)? {
@@ -432,7 +467,7 @@ impl Engine {
             .context("Resolved archive vanished from VFS")?
             .1
             .clone();
-        let dest = self.extraction_destination(instruction, source)?;
+        let dest = extraction_destination(source);
         self.settings.roots.check(&dest)?;
         ensure!(
             !self.files.contains_key(&self.path_policy.key(&dest)),
@@ -509,7 +544,10 @@ impl Engine {
             for raw in &copy.source {
                 self.source_pattern(raw)?;
             }
-            let sources = self.recovery_matches(&copy.source, false, budget)?;
+            // As in the explicit Extract path, which runs these through the Copy
+            // arm: the mapper writes folders as `folder/*`, so files only.
+            let sources =
+                self.recovery_matches(&copy.source, false, authored_descendants("Copy"), budget)?;
             let target = self.path(&copy.destination, false)?;
             for source in sources {
                 budget.visit()?;
@@ -548,6 +586,7 @@ impl Engine {
             match self.recovery_matches(
                 std::slice::from_ref(raw),
                 instruction.action == "Patcher",
+                authored_descendants(&instruction.action),
                 budget,
             ) {
                 Ok(_) => continue,
@@ -627,6 +666,7 @@ impl Engine {
             match self.recovery_matches(
                 std::slice::from_ref(raw),
                 instruction.action == "Patcher",
+                authored_descendants(&instruction.action),
                 budget,
             ) {
                 Ok(paths) => {
@@ -775,6 +815,8 @@ impl Engine {
         }
         for raw in &instruction.source {
             budget.name(raw)?;
+            // A literal path may not contain `[`/`]` (`paths::relative`), so such
+            // a Source is never treated as already satisfied.
             if raw.contains(['*', '?', '[', ']']) {
                 return Ok(false);
             }
@@ -831,10 +873,15 @@ impl Engine {
                     ),
                 );
                 self.settings.roots.check(&target)?;
-                ensure!(
-                    self.path_policy.key(source) != self.path_policy.key(&target),
-                    "Source equals destination"
-                );
+                if self.path_policy.key(source) == self.path_policy.key(&target) {
+                    // As in the Copy/Move arm: with Overwrite=false the action skips
+                    // this source with a warning and writes nothing for it.
+                    ensure!(
+                        instruction.action != "Rename" && !instruction.overwrite,
+                        "Source equals destination"
+                    );
+                    continue;
+                }
                 ensure!(
                     !self
                         .directories

@@ -1,0 +1,238 @@
+{
+ "after_copy": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [],
+  "issues": []
+ },
+ "beside_present_patcher": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [],
+  "issues": []
+ },
+ "control_ini_at_base": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [],
+  "issues": []
+ },
+ "control_ini_empty": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [],
+  "issues": []
+ },
+ "control_ini_no_installlist": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [],
+  "issues": []
+ },
+ "control_missing_exe": {
+  "counts": [
+   0,
+   1
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [
+   "skipped"
+  ],
+  "issues": [
+   [
+    "Warning",
+    "DryRunSkipped",
+    "B",
+    "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    null
+   ]
+  ]
+ },
+ "control_present": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [],
+  "issues": []
+ },
+ "control_present_then_rename": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [],
+  "issues": []
+ },
+ "control_then_rename_expected": {
+  "counts": [
+   0,
+   1
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [
+   "skipped"
+  ],
+  "issues": [
+   [
+    "Warning",
+    "DryRunSkipped",
+    "B",
+    "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    null
+   ]
+  ]
+ },
+ "empty_tslpatchdata": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [],
+  "issues": []
+ },
+ "index_zero": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [],
+  "issues": []
+ },
+ "ini_in_subfolder": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [],
+  "issues": []
+ },
+ "ini_other_name": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [],
+  "issues": []
+ },
+ "known_payload_missing": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [],
+  "issues": []
+ },
+ "no_tslpatchdata": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [],
+  "issues": []
+ },
+ "then_copy": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [],
+  "issues": []
+ },
+ "tslpatchdata_without_ini": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [],
+  "issues": []
+ },
+ "two_components": {
+  "counts": [
+   0,
+   0
+  ],
+  "decision": [
+   true,
+   true
+  ],
+  "dryrun": [],
+  "issues": []
+ }
+}

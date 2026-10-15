@@ -1,0 +1,1290 @@
+ ▐▛███▛█   Claude Code v2.1.300
+▝▜██████▀  Opus 5.5 · API Usage Billing
+ ▝▝   ▝▝   /run/media/brunner56/MyBook/Workspaces/ModSync.rs
+
+
+❯ <pasted_content id="3590">                                                    
+  please restart all of these from scratch doing the K1 and TSL (k2) manual     
+  ones first. Remember manual should be done by manually going through and      
+  following the guides on https://github.com/KOTOR-Community-Portal/mod-builds  
+  Now, modsync.rs should have an alternative instruction builder (used for      
+  'easy mode') that will allow users to create mod builds EXACTLY as the        
+  mod-builds repo (specifically the full.md file(s)) specify. Meaning it should 
+  have its own folder/file explorer that looks almost identical to Windows or   
+  dolphin in KDE Plasma or finder in mac (optionally swapping between). I'd     
+  like the instructions on the mod builds to be possible to be executed almost  
+  perfectly identically within modsync as they would be outside of modsync. The 
+  only difference would be various feedback/tooltips/progress tracking that     
+  shows how the instructions are built in real time with their choices.         
+  Similarly it should have a built-in patcher that does the same thing. Needs   
+  undo/redo functionality and anything/everything that'll make this more usable 
+  such as saving what we have easily and not requiring manual saves. Etc. The   
+  instruction builder interactive 'easy' mode should be possible to build       
+  within *without* modifying things externally. It could optionally modify      
+  things externally as well I guess but this isn't the focus right now? I'd     
+  like the folder/file explorer and patcher interface to operate within a       
+  specified 'state' within the future so if we have nothing installed yet but   
+  we have several mods in our instruction sets, the virtual filesystem thing we 
+  have implemented should be able to predict the future basically. Rephrase     
+  anything/everything I'm explaining in my own words. Basically look at the     
+  conversation within discord between me and snigaroo for when I mention that   
+  the tool could be intuitive enough to just be drop-in compatible with his     
+  current workflow. Semantically find any and all similar convesration topics   
+  we talked about relevant to the intuitivity of the instruction builder and    
+  build it meeting my ambition fully.                                           
+  Actually use the instruction 'easy mode' builder thing in a way so that each  
+  action you perform within it will do that real time on disk, knowing that     
+  this shouldn't be the default (which should default to prediction via the     
+  virtual filesystemmmmm implementation within modsync). Then once you're done  
+  actually start running the instructions ensuring we can get k1_auto and       
+  tsl_auto matching the k1_manual and tsl_manual without any discrepancies in   
+  the diff. Actually should be k1_auto_odypatcher and tsl_auto_odypatcher and   
+  k1_auto_providedpatcher and tsl_auto_providedpatcher where provided patcher   
+  is whatever the mod archive provides as its patcher. Should be diffed against 
+  the auto_odypatcher to ensure odypatcher isn't introducing any                
+  discrepancies. Also each diff should be performed *after* each mod is         
+  installed!!!                                                                  
+  At any point you deem it important to make the interface have some            
+  functionality/accessibilit/robustness that prevents some tedious              
+  click(s)/navigation, you should do so. Figure out how to make it so we can    
+  hotreload modsync so we don't have to restart it i guess if possible as well. 
+  Focus on \~/Workspaces/ModSync.rs. Use OdyPatcher which should be a           
+  dependency instead of kpatcher or whatever.                                   
+  rephrase this entire prompt in your own words to ensure maximum retention     
+  before you begin, but before you rephrase actually semantically search        
+  \~/boden_wizard_chat_context for ModSync putting importance in the snigaroo   
+  DMs (doug dimmidome i think?) lol, and include the brainstorms and ideas      
+  within that.                                                                  
+  </pasted_content id="3590">                                                   
+                                                                                
+   all subagents should run with sonnet 5.5 pls                                 
+
+● Starting with orientation: repo state, the chat archive, and the semantic
+  index.
+
+  Read 1 file, listed 4 directories, ran 3 shell commands (ctrl+o to expand)
+
+● I see an uncommitted src/editor/easy.rs for durable undo/redo sessions, and I
+  have a semantic search running in the background for ModSync and snigaroo chat
+  discussions. Next I'll locate the OdyPatcher source and existing install
+  fixtures.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Both searches are running on the slow MyBook disk. I'll wait for the results.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● The semantic search is still loading its model. I'll wait for it to finish.
+
+✻ Sautéed for 5m 13s · done Friday 9:27 AM
+
+● Background command "Show repo status, layout, and patcher dependency"
+completed (exit code 1: No matches found)
+
+● That was the earlier repo-status check finishing, and it gave nothing new. I'm
+  still waiting on the semantic search of the chat archive.
+
+✻ Sautéed for 4s · done Friday 9:27 AM
+
+● Background command "Locate OdyPatcher repo and patcher engine enum" completed
+(exit code 0)
+
+● I already read that output. I'm still waiting on the semantic search.
+
+✻ Worked for 4s · done Friday 9:28 AM
+
+● Background command "Semantic-search the archive for ModSync/snigaroo topics"
+completed (exit code -1)
+
+  Read 1 file (ctrl+o to expand)
+
+● The semantic query timed out without output, because loading the model is
+  CPU-bound on this box. I'll fall back to a direct grep of the raw DM streams.
+
+  Listed 1 directory, ran 1 shell command (ctrl+o to expand)
+
+● I'll extract the snigaroo DM history to a compact form, then run the archive
+  digest and a repo survey in parallel on Sonnet agents.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Found the snigaroo DMs (dm-sniggles, 4.3k messages). I'm now launching three
+  parallel Sonnet agents to build an archive digest, survey the ModSync.rs repo,
+  and check the mod-builds repo, game baselines, and OdyPatcher.
+
+● 3 background agents launched (↓ to manage)
+   ├ Agent (Digest snigaroo DMs on ModSync)
+   ├ Explore (Survey ModSync.rs codebase)
+   └ Agent (Locate games, mods, OdyPatcher, mod-builds)
+
+● Three Sonnet agents are running: the snigaroo DM digest, the ModSync.rs code
+  survey, and the search for game baselines, mod archives, OdyPatcher and
+  mod-builds. Once they report, I'll write the rephrased brief and start the K1
+  and TSL manual installs.
+
+✻ Brewed for 1m 16s · done Friday 9:34 AM
+
+› Message from Explore
+  Survey of /run/media/brunner56/MyBook/Workspaces/ModSync.rs (read-only; branch
+  codex/easy-builder-workflow; last commit 2278915). I did not read
+  docs/parity/full-markdown-baseline/*, the editor_panel UI internals, or
+  whether mod-builds full.md parses end-to-end.
+
+  ## 1. GUI
+  - Framework: eframe 0.32.3 / egui. It sits behind the `desktop` feature
+  (Cargo.toml:16, :43). Entry points are `src/bin/modsync-gui.rs` and the `gui`
+  subcommand in `src/main.rs:~60`.
+  - App state: `pub struct App` at `src/ui.rs:127`. `impl eframe::App for App`
+  is at `src/ui.rs:4294`.
+  - Screens: wizard pages come from the `wizard::Page` enum in
+  `src/wizard.rs:6`. The pages are Welcome, Preamble, ModDirectory,
+  GameDirectory, AspyrNotice, ModSelection, DownloadsExplain, Validate,
+  InstallStart, Installing, BaseInstallComplete, the Widescreen* pages, and
+  Finished. Panels and pages live in `src/ui/*.rs`.
+  - Instruction editor UI: yes, `src/ui/editor_panel.rs` (1328 lines) plus
+  `src/ui/editor_panel/generation.rs`.
+    - It has an `EditorWorker` background thread and a `State` struct.
+    - It applies `EditOperation`s through `editor_apply` (line 322).
+    - It has a resource tree (line 152) and jump-to-instruction (line 281).
+    - It does not use `editor::easy::Session`. Nothing outside
+  `src/editor/easy.rs` references `easy::`, `Prediction` or `.predict(`.
+  - File sizes in lines: ui.rs 5960, editor_panel 1328, downloads_panel 948,
+  installing_page 781, desktop_settings 712, completion_pages 672, main_window
+  639, sharing 586, validation_page 479, maintenance 484, checkpoints 415,
+  protocol_settings 398, merge_panel 277, standalone_patcher 274, summary_page
+  262, tools_panel 242, protocol_load 251, rich_content 239, deployment_panel
+  228, structured_log 215, resource_watch 164, protocol_inbox 89.
+
+  ## 2. Virtual filesystem / prediction
+  - The simulation is the install engine's own dry-run, in `src/engine.rs` and
+  `src/engine/{patcher_simulation,source_resolution}.rs`.
+  - Internal VFS state is `Engine.files` and `Engine.directories`. File content
+  is `enum Content { Unknown, Disk(PathBuf), Scratch(..) }` (engine.rs:172).
+  `Unknown` means "present per InstallList, content not known".
+  - The Engine already had a public read-only entry point for this simulation
+  (the `validate` and `conflicts` CLI commands use it). The uncommitted diff
+  adds `Engine::predict(self, &Guide) -> Result<Prediction>` (engine.rs ~459).
+    - It runs `recovery::ensure_clean`, `fomod_gate` and `run` in the same
+  simulation mode as validation.
+    - It returns `Prediction { entries: Vec<PredictedEntry{path, directory,
+  content_known, bytes: Option<u64>}>, events: Vec<Event> }`, sorted by path.
+    - `Session::predict(settings, component, instructions)` in
+  `src/editor/easy.rs` calls it. It truncates component N's instructions to the
+  first K, deselects every later component (`is_selected = false`), and refuses
+  to run if the session directory overlaps the game or mod roots.
+  - Actions are the 12 names in `src/model/action.rs`: Unset, Extract, Execute,
+  Patcher, Move, Copy, Rename, Delete, DelDuplicate, Choose, Run, CleanList. The
+  simulation models the file actions (extract, move, copy, rename, delete,
+  DelDuplicate, CleanList) and `Choose`. I did not read how each action is
+  simulated.
+  - Patcher actions: `src/engine/patcher_simulation.rs` does a bounded
+  InstallList presence simulation. It parses the INI, handles namespaces, and
+  records the files the patch would write as `Content::Unknown`.
+    - It never runs a patcher and does not model binary patch operations (file
+  header, line 1).
+    - Those files appear with `content_known=false` and no byte count.
+    - It caps effects at 100,000 and INI size at 8 MiB.
+  - `Execute` and `Run` are not simulated. They need `--allow-processes` and
+  validation cannot predict their effects (README.md ~78,
+  docs/parity/full-build-audit.md:45).
+  - Limits: no real patched bytes (TSLPatcher edits to 2DA, GFF or TLK are
+  unknown); the `Unknown` guard fails any later step that needs to read such a
+  file (engine.rs:1865 and `Content::path`). Archive and FOMOD handling depend
+  on the real mod-dir archives.
+
+  ## 3. Instruction model and parsing
+  - `src/model.rs` (903 lines):
+    - `Guide { components, metadata }` serializes as `thisMod`, with alias
+  `Components`.
+    - `Component` has Guid, Name, Author, Description, Directions, Tier,
+  Category, IsSelected, Dependencies, Restrictions, InstallBefore, InstallAfter,
+  Instructions, Options (nested `Component`s), ResourceRegistry, and flattened
+  extra metadata.
+    - `Instruction` has Guid, Parent, Action (string), Source (Vec),
+  Destination, Arguments, Overwrite (default true), Dependencies and
+  Restrictions.
+  - Formats: TOML (primary, `[[thisMod]]`), JSON, YAML, XML and Markdown.
+  `Guide::load` and `Guide::parse` detect the format. `load_for_install` runs
+  `draft::generate` on Markdown.
+  - Markdown parsing:
+    - `src/markdown.rs` (522 lines, plus
+  `markdown/{extract,legacy,export,spoiler}.rs`) parses mod-build style Markdown
+  into a Guide using a field table (Name, Author, Installation Instructions,
+  Category & Tier, and so on).
+    - `src/draft.rs` and `src/draft/review.rs` turn prose into draft
+  instructions that need human review (`requires_review`, `mark_reviewed`).
+    - `src/direct_markdown.rs` (146 lines) is the `--direct-markdown` preflight.
+  It skips 4GB patcher and widescreen-only entries and stops until every
+  selected draft is reviewed.
+  - Corpus evidence: `docs/parity/markdown-corpus-check.json` states the corpus
+  is mod-builds 336b36d `content/k1/*.md` and `content/k2/*.md`.
+  `docs/parity/full-build-audit.md` records K1 full.md at 3460 lines and K2
+  full.md at 2841 lines. The TOMLs in `mod-builds/TOMLs/KOTOR1_Full.toml` (189
+  `[[thisMod]]`) and `KOTOR2_Full.toml` (145) are the authoritative instruction
+  sources. The Markdown path yields prose-derived drafts, not guaranteed-correct
+  instructions.
+
+  ## 4. Editor
+  - `src/editor.rs` (209 lines) exports:
+    - `EditOperation` (in `editor/transaction.rs`, 458 lines): ResolveDraft,
+  InsertComponent, ReplaceComponent, RemoveComponent, MoveComponent,
+  InsertInstruction, ReplaceInstruction, RemoveInstruction, MoveInstruction,
+  SetResource, RemoveResource, SetGuideMetadata, RemoveGuideMetadata.
+    - `apply_operations` and `validate_guide`.
+    - `browser.rs` (134 lines): `ResourceInventory`, `resource_inventory`,
+  `variable_path`.
+    - `import.rs` (109 lines): `preview_import`, `apply_preview`.
+    - `regex_import.rs` (367 lines): `preview_regex_import`.
+    - Helpers: `load_operations`, `read_document` (8 MiB cap), `read_guide`,
+  `render_preview`, `find_component`.
+  - `git diff --stat`:
+    ```
+    src/editor.rs |  1 +
+    src/engine.rs | 40 ++++++++++++++++++++++++++++++++++++++++
+    ```
+    `git status --short src` also shows `?? src/editor/easy.rs` (138 lines).
+  - Uncommitted diff:
+    - `src/editor.rs` adds `pub mod easy;`.
+    - `src/engine.rs` adds the `PredictedEntry` and `Prediction` structs and
+  `Engine::predict` described in section 2.
+    - `src/editor/easy.rs` is a durable authoring `Session`, with these parts:
+      - Storage and locking: a session directory holds `head.json`, a
+  `revision-<uuid>.json` per revision, and an fs2 exclusive `session.lock`.
+  Format version is 1 and the limit is 4096 revisions.
+      - API: `create`, `open`, `guide`, `revisions`, `cursor`, `can_undo`,
+  `can_redo`, `edit(label, &[EditOperation])`, `seek(cursor)` (undo/redo by
+  moving the cursor), `predict(settings, component, instructions)`, and
+  `export(path)`.
+      - Behaviour: `edit` truncates abandoned redo revisions from the head but
+  keeps their files on disk. Writes are atomic through `recovery::atomic_write`.
+      - Status: nothing calls it yet. It has no CLI or GUI wiring and no tests
+  (tests are frozen).
+
+  ## 5. Patcher
+  - OdyPatcher is not a Cargo dependency. Patchers (HoloPatcher, KPatcher,
+  OdyPatcher) are external subprocess backends, resolved from a configured path,
+  the packaged manifest, or PATH.
+  - `src/patcher.rs` (412 lines) holds the backend specification and discovery.
+  `src/patcher/{package,standalone,checkpoint_job}.rs` handle packaged backends
+  and standalone runs.
+  - Argument forms (docs/parity/patcher-plan.md:176-178):
+    - HoloPatcher: `--install --game-dir G --tslpatchdata D
+  [--namespace-option-index n]`
+    - KPatcher: the same with `--console` first on non-Windows
+    - OdyPatcher: the HoloPatcher form plus `--cli -y`
+  - CLI flags are `--patcher PATH`, `--patcher-engine ody-patcher|k-patcher`,
+  and `--allow-processes`. Named INI installs use a temporary copy of
+  `tslpatchdata`.
+  - OdyPatcher source: `packaging/produce_patcher.py` is an offline producer
+  that requires an exact clean full commit of the standalone OdyPatcher
+  checkout. It admits the package `odypatcher` (AGPL-3.0-or-later), builds it
+  via `cargo --package odypatcher --bin odypatcher`, and emits a receipt.
+  `packaging/build_package.py:147,244` selects the engine, and
+  `packaging/README.md:40` covers the checkout requirement. I found no in-repo
+  path to the OdyPatcher source. The checkout location is an argument; I did not
+  chase it further.
+
+  ## 6. CLI (src/main.rs, `enum Action` at line 41 plus a second enum around
+  lines 120-330)
+  - Install and validation: `selection`, `validate`, `conflicts`, `install`,
+  `restore`, `completion-summary`.
+  - Guide handling: `convert`, `merge`, `merge-preview`, `merge-apply`, `list`,
+  `guide-edit`, `guide-import-preview`, `guide-import-apply`, `guide-resources`,
+  `guide-draft-review`, `fomod-inspect`.
+  - Other: `checkpoint` (checkpoint_cli.rs, plus `install` with checkpoint,
+  resume and failure-continuation flags), `deployment` (status, deploy,
+  uninstall, purge, snapshot, record), `holopatcher`, `profile`, `settings`,
+  `maintenance`, `protocol`, `gui`, and the update and nxm commands.
+  - There is no `predict`, `diff`, or `easy` command. `validate` and `conflicts`
+  are the closest, and `Engine::predict` and `easy::Session` are unexposed.
+
+  ## 7. Docs and prior run data
+  - Docs: `docs/parity/full-build-audit.md` (F29 plan), `full-build-plan.md`,
+  `ACCEPTANCE.md` (F29 is unverified), `GUI-CLI.md`, `patcher-plan.md`,
+  `patcher-install-list-simulation.md`, `runtime-revalidation-2026-10-03*.md`,
+  `docs/parity/cloud/README.md`, and `docs/handoffs/rust-parity-cloud.md` and
+  `-2.md`. `docs/parity/full-markdown-baseline/` has `summary.json` and
+  `conversion-counts.json`. The `tools/` scripts (`check_markdown_corpus.py`,
+  `check_drafts.py`, and others) are format and corpus checkers, not install
+  runners.
+  - Only `docs/parity/full-build-audit.md` mentions the external run-data
+  directories, and by a different name; it says nothing about `manual` vs `auto`
+  lanes.
+  - It names `/run/media/brunner56/MyBook/kotor_mod_archives` (458 files, 454
+  archive/installer candidates: 159 zip, 161 7z, 132 rar, 2 exe; 410 extracted
+  dirs).
+  - It names the sibling repo `/run/media/brunner56/MyBook/Workspaces/ModSync`
+  (the C# oracle), which contains `mod-builds` at 336b36d (`content/k1/full.md`,
+  `content/k2/full.md`, `TOMLs/KOTOR1_Full.toml`, `TOMLs/KOTOR2_Full.toml`),
+  `MANUAL_INSTALL_PROGRESS_*.md`, and
+  `scripts/agents/create_*_kotor_install.sh`.
+  - Directories I found on disk under `/run/media/brunner56/MyBook/` that are
+  not referenced in the repo docs. I only listed them:
+    - `kotor_vanilla_refs/K1_vanilla` (README: "hardlinked to snap_0000;
+  break_hardlinks before mutate").
+    - `modbuild_oracles/K1_manual_oracle` and `K2_manual_oracle`.
+    - `kotor_incremental_v2/K1_ody_v2` (a K1 game tree) and `K2_auto_v2`.
+    - `kotor_mod_archives`.
+  - The docs say no pristine game baseline or archive cache is bundled with the
+  repo.
+  - The audit says to copy baselines with `rsync` or a full copy, never
+  hardlinks or the live tree.
+
+  ## 8. Hot reload and dev loop
+  - None found. I grepped docs and README for hot-reload, watch and dev-loop
+  terms and found nothing. `src/ui/resource_watch.rs` and `resource_watcher.rs`
+  watch resource files, not the GUI. The loop is a build-and-run of `modsync
+  gui` or `modsync-gui`. `COMPATIBILITY.md:454` mentions running the native GUI
+  under an isolated X11 session.
+
+  ## 9. AGENTS.md rules (14 lines)
+  - Desktop and CLI installation behavior stays in `src/engine.rs`. This is a
+  Rust port; the C# .NET commands do not apply.
+  - Rust tests and temporary or custom harnesses are frozen until full parity.
+  Do not create, modify, compile or run them, and do not use `--all-targets`.
+  - Production checks: `cargo fmt --all -- --check`, plus `cargo build --locked
+  --lib --bin modsync -j2` and `cargo clippy --locked --lib --bin modsync -j2 --
+  -D warnings`, each with and without `--no-default-features`.
+  - Cloud continuation reads `docs/handoffs/rust-parity-cloud.md` and
+  `docs/parity/cloud/README.md`.
+  - Use isolated temp dirs for install tests and never mutate a user's game or
+  baseline. Validation must not mutate game or mod trees or run external
+  programs.
+  - Preserve guide order and stop on failure. Restore the verified snapshot
+  before retrying and never backfill an earlier mod at the end.
+  - Reject unsafe or unsupported instructions and do not claim feature parity
+  from preserved metadata.
+  - Update `COMPATIBILITY.md` when a supported behavior or proof boundary
+  changes.
+  - No releases or upstream PRs without a user request.
+
+● The code survey is back. What I found:
+
+  - Already in place:
+    - an egui instruction editor panel.
+    - a dry-run engine that predicts what's on disk without touching it.
+    - the new easy.rs undo/redo session.
+  - Not wired yet: that session has no GUI or CLI hookup yet.
+  - Patchers: OdyPatcher runs as an external program, not a Cargo dependency.
+  - Prior run data on MyBook: K1 vanilla refs, K1 and K2 manual oracles, and the
+    kotor_mod_archives folder.
+
+  I'm still waiting on the DM digest and the environment check.
+
+✻ Baked for 6s · done Friday 9:38 AM
+
+● Agent "Survey ModSync.rs codebase" finished · 3m 34s
+
+› Message from general-purpose
+  The digest is written to `/tmp/modsync-ctx/digest.md` (about 2,700 words, so
+  slightly over the 2,500 target). I read all 4,336 lines of `sniggles.txt`. I
+  then searched the other dm-*.jsonl files and `openkotor-guild.jsonl` for
+  modsync, dry run, instruction, drop-in, full.md, mod-builds, virtual file,
+  rollback and checkpoint. I skipped "wizard" because it matches Boden's own
+  handle ("Wizard", "PuritanWizard", "erreto / I hate AI lol"). Nothing was
+  written outside `/tmp/modsync-ctx/`; the extra files there (`other_hits.json`,
+  `other_hits.txt`) are scratch output.
+
+  The 10 most important findings:
+
+  1. **How Snig works.** He hand-edits the markdown guides in the browser, and
+  says "I want to build it all by hand" (2025-10-12). He does 8 builds (K1 and
+  K2, each full, spoiler-free, full-mobile and spoiler-free-mobile). He only
+  writes the install lists after about a month of live testing, because "the
+  build as I install it the first time rarely looks anything like the build as
+  it finishes" (2025-06-13).
+  2. **His core objection.** He will not maintain instruction files or code-like
+  syntax ("eyes glaze over"). A Revision update takes him about 3 months
+  already, and any extra upkeep is a dealbreaker (2023-05, 2024-04-24,
+  2025-10-12).
+  3. **Automation he accepts.** "I love automation that helps me confirm things.
+  I don't like automation that does things for me" (2025-10-21). He accepts a
+  linter or syntax checker that reports differences. He does not accept
+  auto-fix, auto-upload, or tools that check his instructions.
+  4. **Boden's key pitch for drop-in compatibility.** Snapshot the vanilla
+  folder, detect changes while Snig installs by hand, and generate the
+  instructions from that (2025-06-13). Snig said it is a chicken-and-egg
+  problem: the lists change a lot between first install and final, and the tool
+  would have to track what changes.ini writes that is not in the TSLPatcher
+  manifest. He also said "I just can't visualize myself ever properly getting a
+  grasp of an install without working it over by hand."
+  5. **Earlier capture ideas.** In 2023, Boden proposed generating the config
+  from a verified manual install (2023-05-12T18:38) and appending each
+  move/delete/execute to the config as the user runs it (2023-05-13T05:50). Snig
+  explicitly accepted a GUI to drag mods into install order, and generated docs
+  that match his post as closely as possible.
+  6. **Trust bar for recommending ModSync.** Snig will only recommend it if a
+  diff against a manual install shows no doubt (2025-10-31). ModSync missed
+  Revision 11 and Revision 12, so releases were decoupled on 2025-11-01.
+  7. **Boden's parsing and generation work.** He built a
+  markdown-to-instructions merge dialog (his estimate: about 70% of the work),
+  natural-language phrase parsing, and four default instruction templates by
+  archive shape. He proposed hiding the instructions in a comment inside the
+  markdown. Snig said instruction prose would be 19 lines against his 2 and
+  "blow the length of the build lists up", and said a fully standard syntax is
+  "a pipedream" (cases like HQ Blasters).
+  8. **Domain rules Snig stated that a builder must model.**
+     - Texture priority is TPC > DDS > TGA > ERF.
+     - Delete-duplicate TGA/TPC is a breakpoint in the install order.
+     - The Redrob CleanList is a "surgical" deletion, conditional on which mods
+  the user chose.
+     - UCO compat patches are the one place a mod isn't playable until a later
+  step.
+     - K2 3C-FD and Aspyr detection.
+     - Spoiler-free and mobile builds have different mods, versions and order.
+  9. **Validation, rollback and dry-run ideas.** Boden proposed a
+  virtual-filesystem dry run with a git-style before/after diff report, and
+  checkpoints (snapshot per mod, anchors every 10th). Snig called rollback
+  "infeasible" but a "game-changer", and described the ideal exactly: restore
+  each file to its state after mod X but before mod Y.
+  10. **Other things Snig rejects.** P2P or any reupload of mods, a 4-label
+  compat scheme beyond Compatible / Soft Incompatible / Unknown / Incompatible,
+  merging ModSync into HoloPatcher, donation links, numbered mods, and unvetted
+  tools (he asks for third-party testers).
+
+  The digest's other sections cover Boden's full idea list with timestamps, 16
+  verbatim exchanges, and 14 implied hard requirements for the easy-mode
+  builder. It also quotes the 2026 OpenKotOR documentation of the action set:
+  Extract, Move, Copy, Rename, Delete, DelDuplicate, Patcher, Execute, Choose,
+  CleanList. Snig's DM log ends 2026-05-04 when he blocked Boden, so I treated
+  the 2025 positions as his final stance.
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Agent "Digest snigaroo DMs on ModSync" finished · 5m 35s
+● The DM digest is in. While the environment check finishes, I'm writing the
+  rephrased brief (your restated prompt plus the archive brainstorms) into the
+  repo so it stays durable.
+
+● Write(docs/plans/easy-builder-brief.md)
+  ⎿  Wrote 91 lines to docs/plans/easy-builder-brief.md
+      1 # Easy-mode instruction builder: restated brief (2026-10-09)
+      2 
+        aroo DMs
+      4 (`dm-sniggles`, 2023-05 to 2026-05) and the OpenKotOR guild archi
+        ve.
+      6 ## Goal in one line
+      7 
+      8 Let a guide author build a mod build in ModSync the same way they
+      9 from the mod-builds `full.md`, and get a working instruction file
+         out as a side effect.
+     … +124 lines (ctrl+o to expand)
+
+● Bash(cp /tmp/modsync-ctx/digest.md /run/media/brunner56/MyBook/Workspaces/ModS
+      ync.rs/docs/plans/easy-builder-archive-digest.md && echo ok)
+  ⎿  ok
+  ⎿  Created docs/plans/easy-builder-archive-digest.md (+103 -0)
+        1 +# ModSync / instruction-builder digest (Snigaroo DM log 2023-0
+          +5 to 2026-05, plus other OpenKotOR DMs)                       
+        2 +                                                              
+        3 +Cast: BODEN = Boden (aka Wizard / PuritanWizard / th3w1zard1).
+          + SNIG = snigaroo, maintainer of the KOTOR mod-builds guides. J
+          +C = Snig's co-maintainer and web dev. Timestamps are from snig
+          +gles.txt unless a source name is given.                       
+        4 +                                                              
+        5 +## 1. Snigaroo's workflow and pain points                     
+        6 +                                                              
+        7 +**How he builds and maintains the guides**                    
+        8 +- Hand-written markdown, edited in the browser. Quote 2025-10-
+          +12T07:52: "I just edit them directly in the browser. Always ha
+          +ve." 2025-10-12T07:53: "I want to build it all by hand."      
+        9 +- History: Reddit wiki plus PDFs on Nexus (2023). Then the neo
+          +cities site, with markdown on GitHub (KOTOR-Community-Portal/m
+          +od-builds, dev branch, `content/k1|k2/full.md`, spoiler-free, 
+          +mobile variants). He asked JC to keep the markdown syntax the 
+          +same (2025-02-20T16:45).                                      
+       10 +- Build count: 8 (K1 and K2, each full, spoiler-free, full-mob
+          +ile, spoiler-free-mobile). Boden listed them 2025-03-07T00:49.
+          + Snig wanted PC-only full and spoiler-free (4 lists) and later
+          + said to drop mobile (2025-10-30T16:19).                      
+       11 +- Scale: ~107 mods per K2 list in 2023 (2023-05-24T02:52), 200
+          ++ by 2025, ~300 instructions per build, 4400+ TOML lines (2023
+          +-06-06T01:54).                                                
+       12 +- Per-mod markdown fields: `### Name`, **Name** (linked), **Au
+          +thor**, **Description**, **Category & Tier**, **Non-English Fu
+          +nctionality**, **Installation Method**, **Installation Instruc
+          +tions** (free prose), **Download Instructions**, Masters, `___
+          +` separators, and `:::note` blocks for warnings.              
+       13 +- Revision cycle (2024-10-31T02:28): wait for about 10 new mod
+          +s. "I slot the new mods in where I think they'll work in the i
+          +nstall order, try a dry-run install to determine any outright 
+          +incompatibilities, fine-tune the install order with that knowl
+          +edge, then do the live test." Then get spoiler-censor permissi
+          +ons, "write up the new instruction sets and push live."       
+       14 +- Time cost: live test is "20 hours a pop" (2024-10-31T01:11),
+          + about a month for both games (2023-05-13T06:57). A Revision-l
+          +evel update is "kind of a pain in the ass" (02:29). Rev 12 ran
+          + Aug 1 to Nov 1 2025 (2025-10-12T07:24).                      
+       15 +- He writes the install lists only after testing ends, because
+          + the build changes during the test (2025-06-13T06:42-43): "The
+          + build as I install it the first time rarely looks anything li
+          +ke the build as it finishes."                                 
+       16 +- Earlier maintenance cost: ~10 substantive edits Dec-Feb at 3
+          +0+ min each via wiki-then-PDF (2023-05-12T18:35).             
+       17 +                                                              
+       18 +**Objections and what he will or won't accept**               
+       19 +- Hand-editing configs: 2023-05-12T16:35 "the idea of making m
+          +odifications to it by hand on a Revision-level update unnerves
+          + me a bit." 2024-04-24T22:24 "Formulaic lines of detail make m
+          +y eyes glaze over... The syntax never made good sense to me ev
+          +en with your efforts to make it parseable."                   
+       20 +- He will not maintain instruction files himself. 2025-10-12T0
+          +7:10 "...I would probably bash my head in with my keyboard bef
+          +ore I spend additional time doing setup for a tool that I won'
+          +t even personally be using." 2026-02-11T08:02: the question is
+          + whether Boden "can... properly match build functionality and 
+          +commit to keeping it updated."                                
+       21 +- Automation stance (2025-10-21T20:45): "I love automation tha
+          +t helps me confirm things. I don't like automation that does t
+          +hings for me." 2025-10-21T20:32: wants a syntax checker that "
+          +spit[s] out what it sees as differences so I can manually chec
+          +k them", with no auto-fix, no MEGA upload, no instruction-chec
+          +king ("I develop those during the process of live testing").  
+       22 +- Length and clutter: 2025-10-21T20:09 his install line is "ma
+          +ybe 2 lines", Boden's structured form was 19. 2025-10-31T19:19
+          + structured instructions would blow "the length of the build l
+          +ists up." Build size is the main user complaint. He refused nu
+          +mbered mods (2025-09-27T17:16) because order shifts per build.
+       23 +- Recommendation bar (2025-10-31T19:04): "If there is any doub
+          +t whatsoever that the builds will install fully as intended...
+          + I don't want to actively recommend ModSync." Result of a diff
+          + against a manual install is the trust test. He called an inst
+          +aller that is worse than manual "convenience only" (2026-01-17
+          +T06:46).                                                      
+       24 +- Releases: wanted ModSync live at the same moment as the Revi
+          +sion. It was 0 for 2, so on 2025-11-01T04:13 he decoupled them
+          + ("revert to the separated nature").                          
+       25 +- Rollback and uninstall: "Auto-installing is fine, rolling ba
+          +ck an existing install ranges between pointlessly difficult an
+          +d actually infeasible" (2024-10-31T01:22). He described the id
+          +eal rollback precisely (01:37, 01:38): restore each file to it
+          +s state after mod X but before mod Y, including hard overwrite
+          +s. "this basically is git."                                   
+       26 +- Won't do: P2P/reupload (2025-10-14T07:09, modders won't tole
+          +rate it), donations (2025-10-13T03:37), keeping old revisions 
+          +visible (2025-04-09T20:08), unvetted tools (iOS guide, transla
+          +tor, GUI generator all demanded third-party testers).         
+       27 +                                                              
+       28 +**What he said he would accept**                              
+       29 +- 2023-05-12T17:15: "a basic GUI to make edits to the config f
+          +ile... link to a mod... drag it to the place in the install or
+          +der they want it to install at."                              
+       30 +- 2023-05-12T17:33: separate unconditional steps from conditio
+          +nal ones, and use `conditional=` wording (2023-05-12T18:04).  
+       31 +- 2023-05-19T04:51 forgiving parser: "I would go with option 2
+          +, because option 1 would be infuriating for most end-users to 
+          +try to edit."                                                 
+       32 +- Docs generated from the config (2023-05-23): "Anything that 
+          +requires me to make less changes" (23:54), "The closer it matc
+          +hes the source of the post the better" (23:37).               
+       33 +- Install choices (2023-05-29T07:43, 08:02): pre-install check
+          +boxes; `default = true` per option ("Oh, that would work."). F
+          +our compat labels only (2023-06-10T03:53): Compatible, Soft In
+          +compatible, Unknown, Incompatible.                            
+       34 +- "As long as install instructions can be updated for each rev
+          +ision. That's the biggest thing" (2023-05-15T00:14). He said o
+          +lder installers died from weak instruction-modification system
+          +s.                                                            
+       35 +- Essential-only default selection (2025-10-04T19:42).        
+       36 +                                                              
+       37 +**Domain rules he stated (the builder must model these)**     
+       38 +- Texture priority TPC > DDS > TGA > ERF (2025-10-04T19:11-12)
+          +. Delete-duplicate TGA/TPC is a breakpoint: later mods' TPCs a
+          +re intentionally kept (2025-10-10T16:03). The delete list is a
+          + backup, not primary (2023-06-06T01:03).                      
+       39 +- "Surgical" CleanList deletes of Redrob's files, conditional 
+          +on which mods the user chose (2025-10-10T16:36-50). Files are 
+          +chosen by a human by texture quality, "almost 2000 files," "no
+          +t something that can be automated further."                   
+       40 +- You can delete after moving, if before later mod installs (2
+          +023-05-29T08:12). "An install doesn't need to be perfect, it j
+          +ust needs to be perfectly functional... the less instructions 
+          +you can give a user, the better" (2023-07-02T02:36).          
+     … 63 more lines (ctrl+o to expand)
+  ⎿  (another command ran in this repository at the same time; a change 
+     made by either may show under either result)
+
+● Bash(mv /run/media/brunner56/MyBook/Workspaces/ModSync.rs/docs/plans/easy-buil
+      der-archive-digest.md
+      ~/koltolabs-work/research/openkotor-drama/notes/modsync-easy-buil…)
+  ⎿  76:- Full requirement list: see the private digest (`~/koltolabs-work/
+     research/openkotor-drama/notes/modsync-easy-builder-digest.md`, not in
+      the repo)
+     77-  .
+  ⎿  Deleted docs/plans/easy-builder-archive-digest.md (+0 -103)
+        1 -# ModSync / instruction-builder digest (Snigaroo DM log 2023-0
+          -5 to 2026-05, plus other OpenKotOR DMs)                       
+        2 -                                                              
+        3 -Cast: BODEN = Boden (aka Wizard / PuritanWizard / th3w1zard1).
+          - SNIG = snigaroo, maintainer of the KOTOR mod-builds guides. J
+          -C = Snig's co-maintainer and web dev. Timestamps are from snig
+          -gles.txt unless a source name is given.                       
+        4 -                                                              
+        5 -## 1. Snigaroo's workflow and pain points                     
+        6 -                                                              
+        7 -**How he builds and maintains the guides**                    
+        8 -- Hand-written markdown, edited in the browser. Quote 2025-10-
+          -12T07:52: "I just edit them directly in the browser. Always ha
+          -ve." 2025-10-12T07:53: "I want to build it all by hand."      
+        9 -- History: Reddit wiki plus PDFs on Nexus (2023). Then the neo
+          -cities site, with markdown on GitHub (KOTOR-Community-Portal/m
+          -od-builds, dev branch, `content/k1|k2/full.md`, spoiler-free, 
+          -mobile variants). He asked JC to keep the markdown syntax the 
+          -same (2025-02-20T16:45).                                      
+       10 -- Build count: 8 (K1 and K2, each full, spoiler-free, full-mob
+          -ile, spoiler-free-mobile). Boden listed them 2025-03-07T00:49.
+          - Snig wanted PC-only full and spoiler-free (4 lists) and later
+          - said to drop mobile (2025-10-30T16:19).                      
+       11 -- Scale: ~107 mods per K2 list in 2023 (2023-05-24T02:52), 200
+          -+ by 2025, ~300 instructions per build, 4400+ TOML lines (2023
+          --06-06T01:54).                                                
+       12 -- Per-mod markdown fields: `### Name`, **Name** (linked), **Au
+          -thor**, **Description**, **Category & Tier**, **Non-English Fu
+          -nctionality**, **Installation Method**, **Installation Instruc
+          -tions** (free prose), **Download Instructions**, Masters, `___
+          -` separators, and `:::note` blocks for warnings.              
+       13 -- Revision cycle (2024-10-31T02:28): wait for about 10 new mod
+          -s. "I slot the new mods in where I think they'll work in the i
+          -nstall order, try a dry-run install to determine any outright 
+          -incompatibilities, fine-tune the install order with that knowl
+          -edge, then do the live test." Then get spoiler-censor permissi
+          -ons, "write up the new instruction sets and push live."       
+       14 -- Time cost: live test is "20 hours a pop" (2024-10-31T01:11),
+          - about a month for both games (2023-05-13T06:57). A Revision-l
+          -evel update is "kind of a pain in the ass" (02:29). Rev 12 ran
+          - Aug 1 to Nov 1 2025 (2025-10-12T07:24).                      
+       15 -- He writes the install lists only after testing ends, because
+          - the build changes during the test (2025-06-13T06:42-43): "The
+          - build as I install it the first time rarely looks anything li
+          -ke the build as it finishes."                                 
+       16 -- Earlier maintenance cost: ~10 substantive edits Dec-Feb at 3
+          -0+ min each via wiki-then-PDF (2023-05-12T18:35).             
+       17 -                                                              
+       18 -**Objections and what he will or won't accept**               
+       19 -- Hand-editing configs: 2023-05-12T16:35 "the idea of making m
+          -odifications to it by hand on a Revision-level update unnerves
+          - me a bit." 2024-04-24T22:24 "Formulaic lines of detail make m
+          -y eyes glaze over... The syntax never made good sense to me ev
+          -en with your efforts to make it parseable."                   
+       20 -- He will not maintain instruction files himself. 2025-10-12T0
+          -7:10 "...I would probably bash my head in with my keyboard bef
+          -ore I spend additional time doing setup for a tool that I won'
+          -t even personally be using." 2026-02-11T08:02: the question is
+          - whether Boden "can... properly match build functionality and 
+          -commit to keeping it updated."                                
+       21 -- Automation stance (2025-10-21T20:45): "I love automation tha
+          -t helps me confirm things. I don't like automation that does t
+          -hings for me." 2025-10-21T20:32: wants a syntax checker that "
+          -spit[s] out what it sees as differences so I can manually chec
+          -k them", with no auto-fix, no MEGA upload, no instruction-chec
+          -king ("I develop those during the process of live testing").  
+       22 -- Length and clutter: 2025-10-21T20:09 his install line is "ma
+          -ybe 2 lines", Boden's structured form was 19. 2025-10-31T19:19
+          - structured instructions would blow "the length of the build l
+          -ists up." Build size is the main user complaint. He refused nu
+          -mbered mods (2025-09-27T17:16) because order shifts per build.
+       23 -- Recommendation bar (2025-10-31T19:04): "If there is any doub
+          -t whatsoever that the builds will install fully as intended...
+          - I don't want to actively recommend ModSync." Result of a diff
+          - against a manual install is the trust test. He called an inst
+          -aller that is worse than manual "convenience only" (2026-01-17
+          -T06:46).                                                      
+       24 -- Releases: wanted ModSync live at the same moment as the Revi
+          -sion. It was 0 for 2, so on 2025-11-01T04:13 he decoupled them
+          - ("revert to the separated nature").                          
+       25 -- Rollback and uninstall: "Auto-installing is fine, rolling ba
+          -ck an existing install ranges between pointlessly difficult an
+          -d actually infeasible" (2024-10-31T01:22). He described the id
+          -eal rollback precisely (01:37, 01:38): restore each file to it
+          -s state after mod X but before mod Y, including hard overwrite
+          -s. "this basically is git."                                   
+       26 -- Won't do: P2P/reupload (2025-10-14T07:09, modders won't tole
+          -rate it), donations (2025-10-13T03:37), keeping old revisions 
+          -visible (2025-04-09T20:08), unvetted tools (iOS guide, transla
+          -tor, GUI generator all demanded third-party testers).         
+       27 -                                                              
+       28 -**What he said he would accept**                              
+       29 -- 2023-05-12T17:15: "a basic GUI to make edits to the config f
+          -ile... link to a mod... drag it to the place in the install or
+          -der they want it to install at."                              
+       30 -- 2023-05-12T17:33: separate unconditional steps from conditio
+          -nal ones, and use `conditional=` wording (2023-05-12T18:04).  
+       31 -- 2023-05-19T04:51 forgiving parser: "I would go with option 2
+          -, because option 1 would be infuriating for most end-users to 
+          -try to edit."                                                 
+       32 -- Docs generated from the config (2023-05-23): "Anything that 
+          -requires me to make less changes" (23:54), "The closer it matc
+          -hes the source of the post the better" (23:37).               
+       33 -- Install choices (2023-05-29T07:43, 08:02): pre-install check
+          -boxes; `default = true` per option ("Oh, that would work."). F
+          -our compat labels only (2023-06-10T03:53): Compatible, Soft In
+          -compatible, Unknown, Incompatible.                            
+       34 -- "As long as install instructions can be updated for each rev
+          -ision. That's the biggest thing" (2023-05-15T00:14). He said o
+          -lder installers died from weak instruction-modification system
+          -s.                                                            
+       35 -- Essential-only default selection (2025-10-04T19:42).        
+       36 -                                                              
+       37 -**Domain rules he stated (the builder must model these)**     
+       38 -- Texture priority TPC > DDS > TGA > ERF (2025-10-04T19:11-12)
+          -. Delete-duplicate TGA/TPC is a breakpoint: later mods' TPCs a
+          -re intentionally kept (2025-10-10T16:03). The delete list is a
+          - backup, not primary (2023-06-06T01:03).                      
+       39 -- "Surgical" CleanList deletes of Redrob's files, conditional 
+          -on which mods the user chose (2025-10-10T16:36-50). Files are 
+          -chosen by a human by texture quality, "almost 2000 files," "no
+          -t something that can be automated further."                   
+       40 -- You can delete after moving, if before later mod installs (2
+          -023-05-29T08:12). "An install doesn't need to be perfect, it j
+          -ust needs to be perfectly functional... the less instructions 
+          -you can give a user, the better" (2023-07-02T02:36).          
+     … 63 more lines (ctrl+o to expand)
+  ⎿  Updated docs/plans/easy-builder-brief.md (+2 -2)
+      73    - UCO compat patches finish later in the order.
+      74    - TSL needs Aspyr and 3C-FD detection.
+      75    - Spoiler-free and mobile variants differ in mods, versions a
+          nd order.
+      76 -- Full requirement list: see the digest that the session archiv
+         -ed next to this                                                
+      77 -  plan (`easy-builder-archive-digest.md`).                     
+      76 +- Full requirement list: see the private digest (`~/koltolabs-w
+         +ork/research/openkotor-drama/notes/modsync-easy-builder-digest.
+         +md`, not in the repo)                                          
+      77 +  .                                                            
+      78  
+      79  ## How this maps onto the code
+      80  
+
+● Bash(python3 - <<'E'
+      p='docs/plans/easy-builder-brief.md';s=open(p).read()…)
+  ⎿    - CLI entry points for easy sessions and per-mod diffs.
+       - a hot-reload dev loop.
+       - OdyPatcher wiring as the default engine.
+  ⎿  Updated docs/plans/easy-builder-brief.md (+1 -2)
+      73    - UCO compat patches finish later in the order.
+      74    - TSL needs Aspyr and 3C-FD detection.
+      75    - Spoiler-free and mobile variants differ in mods, versions a
+          nd order.
+      76 -- Full requirement list: see the private digest (`~/koltolabs-w
+         -ork/research/openkotor-drama/notes/modsync-easy-builder-digest.
+         -md`, not in the repo)                                          
+      77 -  .                                                            
+      76 +- Full requirement list: see the private digest (`~/koltolabs-w
+         +ork/research/openkotor-drama/notes/modsync-easy-builder-digest.
+         +md`, not in the repo).                                         
+      77  
+      78  ## How this maps onto the code
+      79  
+
+● The brief is at docs/plans/easy-builder-brief.md. I kept the DM digest out of
+  the repo because it quotes private messages; it's in the private OpenKotOR
+  notes folder. I'm waiting on the environment check (game baselines, mod
+  archives, OdyPatcher) before starting the manual installs.
+
+✻ Crunched for 49s · done Friday 9:41 AM
+
+› Message from general-purpose
+  Recon is done and saved to /tmp/modsync-ctx/env.md. Nothing was modified. This
+  session runs directly on the host: `host-spawn` is not installed, and wine
+  and flatpak are in /usr/bin.
+
+  **1. Vanilla baselines**
+  - K1 pristine: `/run/media/brunner56/MyBook/kotor_vanilla_refs/K1_vanilla`
+  (3.4G). It has swkotor.exe, chitin.key and dialog.tlk. Its README says it is
+  hardlinked to snap_0000, so copy with `rsync -a` or a byte copy and never
+  hardlink.
+  - K1 live Steam:
+  `/run/media/brunner56/MyBook/SteamLibrary/steamapps/common/swkotor` (26G). It
+  is modified (krayt proxy dll), so do not use it as a baseline.
+  - K2/TSL has no separate pristine dir. The live Steam copy is
+  `.../common/Knights of the Old Republic II` (36G), in the Aspyr Linux layout.
+  It has no swkotor2.exe. It has a `kotor2` binary and a `steamassets/` dir
+  holding chitin.key and dialog.tlk. The earlier K2 manual run seeded from a
+  "pristine oracle", per `ModSync/MANUAL_INSTALL_PROGRESS_K2_2026-07-30.md`.
+  - Finished manual builds, not pristine:
+    - `/run/media/brunner56/MyBook/modbuild_oracles/K1_manual_oracle` (18G)
+    - `/run/media/brunner56/MyBook/modbuild_oracles/K2_manual_oracle` (16G,
+  steamassets layout)
+  - Incremental outputs:
+  `/run/media/brunner56/MyBook/kotor_incremental_v2/K1_ody_v2` (5.0G) and
+  `K2_auto_v2` (16G).
+  - Previous-run dirs are in `~/modsync-hot`:
+    - K1: `K1_manual`, `K1_auto`, `k1_manual_holopatcher`,
+  `k1_manual_odypatcher`, `k1_auto_cli_holopatcher`, `k1_auto_cli_odypatcher`,
+  `k1_ody_rollback/stepNNN`
+    - K2: `k2_manual_holopatcher`, `k2_auto_cli_holopatcher`,
+  `k2_auto_cli_odypatcher`
+    - Extract dirs for both games, `*_ledger.jsonl`,
+  `k1_holo_ody_discrepancies`, `worktrees/`, `vendor/bin/`
+  - No wine prefix with KOTOR was found. `~/.wine` exists.
+
+  **2. Mod archives**
+  - The archive root is `/run/media/brunner56/MyBook/kotor_mod_archives`. It is
+  146G with 868 entries: about 159 zip, 161 7z, 132 rar, two exe
+  (`tslrcm2022.exe`, `3C-FD Tool v4.1.2.exe`), and extracted twin dirs.
+  - Extracted dirs can be incomplete, so extract fresh from the original
+  archives.
+  - Watch for zero-byte rars and byte-identical files with different names. Bind
+  each archive by SHA-256.
+  - The docs name no "mods root" env var. Env vars found:
+    - `KOTOR_MODSYNC_NEXUS_API_KEY`
+    - `NEXUS_MODS_API_KEY`
+    - `MODSYNC_FOMOD_CHOICES`
+    - `MODSYNC_FOMOD_POST_DOWNLOAD_MODE`
+    - `MODSYNC_PROOF_OUT`
+  - The best source is `ModSync.rs/docs/parity/full-build-audit.md`. It covers
+  the archive inventory, the hardlink ban, and baseline manifesting.
+
+  **3. mod-builds**
+  - There are local clones at:
+    - `/home/brunner56/modsync-restart-20261009/guides/mod-builds` (HEAD
+  10d2316, which matches remote `dev`)
+    - `/run/media/brunner56/MyBook/Workspaces/org-scrub-20261009/mod-builds`
+  (21b2f04)
+    - `/run/media/brunner56/MyBook/Workspaces/ModSync/mod-builds` (336b36d,
+  older)
+  - On the remote, the files are `content/k1/full.md` and `content/k2/full.md`.
+  Each has a `full_mobile.md` variant, and `meta.json` sits at the repo root.
+  - Remote branches: `dev` is 10d2316, `main` is a4244bf, plus `feat/flows` and
+  `release/v0.0.1`.
+
+  **4. OdyPatcher**
+  - It is a Rust crate named `odypatcher` 0.1.0, with a lib (`src/lib.rs`) and a
+  bin (`src/main.rs`). The default feature `gui` pulls in eframe.
+  - Source is `/run/media/brunner56/MyBook/Workspaces/odypatcher-scrub-wt`:
+    - Branch is `scrub/kolto-labs`, remote is codeberg
+  `bodencrouch-ws/OdyPatcher`.
+    - Many files are modified, and AGENTS.md, SUPPORT.md and dist/ are
+  untracked.
+    - There is no `target/`, so no `target/release/odypatcher` is built there.
+  - A built binary is at `~/modsync-hot/vendor/bin/odypatcher`, next to
+  `biopatcher`. CI artifacts are in
+  `~/modsync-hot/odypatcher-platform-artifacts/run-*` (macos-arm64).
+  - Lib API:
+    - `patcher::engine`: `new(base_path, data_path, ini_name)`,
+  `set_path_mode(paths::Mode)`, `run(&mut Log, &mut dyn Host) ->
+  Result<PatchSummary>`
+    - `session`: `Session::discover`, `locate_mod`
+    - `cli`: `parse(&[String]) -> Options`, `run(Options) -> i32`
+    - Other modules: `gamepaths`, `host`, `ini`, `paths`, `rtf`, `summary`,
+  `tools`, `ui`
+  - ModSync.rs does not link the crate. It runs the exe as `--install --game-dir
+  <dest> --tslpatchdata <data> --cli -y` (`ModSync.rs/src/engine.rs` ~2491).
+  The exe path comes from the `odyPatcherExecutablePath` setting in
+  `src/profiles.rs`.
+  - The `odypatcher-wip-*` items in Workspaces:
+    - `odypatcher-wip-copy-20261009` and `odypatcher-wip-pristine-20261009` are
+  full tree snapshots (with `logs/`) from 2026-10-09, around the scrub.
+    - `odypatcher-wip-scrub-20261009.patch` is a 168-line scrub diff.
+    - `odypatcher-status-before-apply.txt` is the git status taken before
+  applying it.
+    - `odyedit-target` and `odyedit-target-patcher` are separate.
+
+  **5. Wine and HoloPatcher**
+  - wine-11.0 (Staging) is at `/usr/bin/wine` and `wine64`, so `TSLPatcher.exe`
+  from the archives can run under wine. flatpak is also present.
+  - I did not find a HoloPatcher binary. The "holopatcher" lanes in
+  `~/modsync-hot` exist, but their tool wasn't located. The
+  `vendor/bin/biopatcher` binary is the nearest candidate.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Agent "Locate games, mods, OdyPatcher, mod-builds" finished · 6m 58s
+
+  Listed 2 directories, ran 2 shell commands (ctrl+o to expand)
+
+● I've gathered the full picture across the code, archives, baselines, mod
+  files, OdyPatcher source, and wine setup. One issue: the TSL seed from an
+  earlier session has 60 files in override/, so it may not be vanilla—I'll check
+  my plan with the advisor before committing disk space and install time.
+
+● Advising using Opus 5.5
+  ⎿  ✔ Advisor has reviewed the conversation and will apply the feedback
+
+● Following the advice. First, removing the private DM attribution and quotes
+  from the repo brief:
+
+● Bash(python3 - <<'E'
+      p='docs/plans/easy-builder-brief.md';s=open(p).read()…)
+  ⎿  3:Restated from Boden's request, plus the ModSync ideas in the snigaro
+     o DMs
+     4:(`dm-sniggles`, 2023-05 to 2026-05) and the OpenKotOR guild archive.
+  ⎿  Updated docs/plans/easy-builder-brief.md (+20 -23)
+      47  7. Use OdyPatcher as the patcher dependency, not KPatcher.
+      48  8. All subagents run on Sonnet.
+      49  
+      50 -## What the archive adds (snigaroo DMs)                        
+      50 +## Guide-author constraints (summary)                          
+      51  
+      52 -- Snig maintains 8 builds (K1/K2 × full, spoiler-free, mobile v
+         -ariants). A                                                    
+      53 -  revision already takes about 3 months. He will not hand-edit 
+         -configs or code-like                                           
+      54 -  syntax ("my eyes glaze over"). Any extra upkeep is a dealbrea
+         -ker.                                                           
+      55 -- "I love automation that helps me confirm things. I don't like
+         - automation                                                    
+      56 -  that does things for me." Report differences. Never auto-fix 
+         -his text.                                                      
+      57 -- He only writes install lists after about a month of live test
+         -ing. The order changes a                                       
+      58 -  lot, so reordering, dropping and inserting mods must not cost
+         - rework.                                                       
+      59 -- Boden's long-standing pitch is the drop-in idea. Snapshot van
+         -illa, let the author                                           
+      60 -  install by hand, and generate the instructions from what they
+         - did (2023-05-12,                                              
+      61 -  2023-05-13, 2025-06-13). Snig's objection: the tool must also
+         - track what a                                                  
+      62 -  patcher's changes.ini writes, not just its InstallList.      
+      63 -- Snig accepts a GUI to drag mods into order, and generated doc
+         -s that match his                                               
+      64 -  markdown post. Instruction prose must stay short, at his 2 li
+         -nes rather than 19.                                            
+      65 -- Trust bar: a diff of a ModSync install against a manual insta
+         -ll that leaves no                                              
+      66 -  doubt (2025-10-31).                                          
+      67 -- Rollback is "infeasible" but would be a "game-changer". The i
+         -deal he described:                                             
+      68 -  restore each file to its state after mod X but before mod Y. 
+         -Make it optional.                                              
+      69 -- Domain rules the builder must model:                         
+      52 +The detailed source notes are private and are not in this repo.
+      53 +                                                               
+      54 +- Authors maintain several build variants (K1/K2 × full, spoile
+         +r-free, mobile).                                               
+      55 +  They will not hand-edit configs or code-like syntax. Extra up
+         +keep is a dealbreaker.                                         
+      56 +- Help them confirm things. Do not do things for them: report d
+         +ifferences and never                                           
+      57 +  auto-rewrite their text.                                     
+      58 +- Install lists change a lot during testing, so reordering, dro
+         +pping and                                                      
+      59 +  inserting mods must not cost rework.                         
+      60 +- Drop-in idea: snapshot vanilla, let the author install by han
+         +d inside                                                       
+      61 +  ModSync, and record instructions from what they did. Track wh
+         +at a patcher                                                   
+      62 +  actually writes (changes.ini), not only its InstallList.     
+      63 +- Generated docs must match the guide markdown and stay short. 
+      64 +- Trust bar: a per-mod diff of a ModSync install against a manu
+         +al install                                                     
+      65 +  shows zero differences.                                      
+      66 +- Rollback to "after mod X, before mod Y" is valuable. Make it 
+         +optional.                                                      
+      67 +- Domain rules to model:                                       
+     … 13 more lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● These 60 files are confirmed as the stock Aspyr-update controller and UI files
+  from Steam TSL, matching swkotor2.exe's date—just a vanilla Aspyr
+  Windows-layout seed. Next I'll fix the brief header and pin the mod-builds
+  commit.
+
+● Bash(sed -i '3,4c Restated from Boden'"'"'s request, plus earlier ModSync
+      design discussions\n(private notes, not in this repo).'
+      docs/plans/easy-builder-brief.md &&…)
+  ⎿  # Easy-mode instruction builder: restated brief (2026-10-09)
+
+     Restated from Boden's request, plus earlier ModSync design discussions
+     … +11 lines (ctrl+o to expand)
+  ⎿  Shell cwd was reset to 
+     /run/media/brunner56/MyBook/Workspaces/ModSync.rs
+  ⎿  Updated docs/plans/easy-builder-brief.md (+2 -2)
+      1  # Easy-mode instruction builder: restated brief (2026-10-09)
+      2  
+      3 -Restated from Boden's request, plus the ModSync ideas in the sni
+        -garoo DMs                                                       
+      4 -(`dm-sniggles`, 2023-05 to 2026-05) and the OpenKotOR guild arch
+        -ive.                                                            
+      3 +Restated from Boden's request, plus earlier ModSync design discu
+        +ssions                                                          
+      4 +(private notes, not in this repo).                              
+      5  
+      6  ## Goal in one line
+      7  
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Got it — manual K1/TSL installs will serve as the oracle while ModSync's easy
+  mode (virtual filesystem, patcher, undo/redo) and real-disk mode get built and
+  diffed against them, per the brief in docs/plans/easy-builder-brief.md. I've
+  pinned mod-builds to dev at 10d2316 (the only local branch); now setting up
+  the work root on MyBook and tracing the TSL seed's origin. · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● The TSL override files match a manually applied Aspyr patch, a valid starting
+  point per the guide. Now I'll seed the K1 lane and record hashes as step 000. 
+  · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Background command "Seed K1 lane and hash TSL seed in background" completed
+(exit code 0)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Checking whether the K1 seed copy and the hashing finished.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+● Nothing is installed yet. I've done the research and set up the work area, and
+  I'm waiting on the two seed copies.
+
+  - Brief: docs/plans/easy-builder-brief.md has the restated prompt. I removed
+    the private DM details from it. The full DM digest is in ~/koltolabs-work/re
+    search/openkotor-drama/notes/modsync-easy-builder-digest.md, outside the
+    repo.
+  - Existing code: ModSync.rs already has an editor panel, an install dry-run
+    that predicts files without writing them, and the uncommitted easy.rs
+    undo/redo session. None of that is connected to a GUI or CLI yet. OdyPatcher
+    is an external program, not a Cargo dependency.
+  - Guide version: I pinned mod-builds to dev at 10d2316. I haven't checked it
+    against the archives on disk.
+  - Work area: /run/media/brunner56/MyBook/modsync-restart-20261009. /home has
+    only 31 GB free and each lane grows to about 16–18 GB, so everything lives
+    on MyBook.
+  - Seeds: I'm copying the K1 vanilla reference into lanes/k1_manual and hashing
+    it. I'm also hashing the existing TSL seed. That seed looks like a legacy
+    game with the Aspyr patch applied, which the guide allows, but I haven't
+    confirmed it's clean.
+
+  Open problems before the long runs:
+  - Provided patchers. The "provided patcher" lanes run each archive's
+    TSLPatcher.exe under wine. It has a GUI, so I'll test driving it on one mod
+    before committing 330+ mods to it.
+  - Manual lane. I'll drive it only from the full.md text, not the old TOML
+    files. Otherwise manual would match auto by construction.
+  - Diff rules. I'll write the diff and its exclusions down first, such as
+    patcher backup folders and logs, so "zero discrepancies" means something.
+
+  Next, once the seeds finish, I'll start the K1 and TSL manual runs as
+  background Sonnet agents with append-only ledgers. I'll build easy mode in the
+  foreground meanwhile.
+
+✻ Cooked for 12m 11s · done Friday 9:45 AM
+
+※ recap: Goal: rebuild the K1 and TSL mod builds by hand from the guides, then build ModSync's easy-mode builder and prove automated installs match them. Right now the K1 and TSL seed folders are still copying and hashing; once done, I'll start the manual install agents. (disable recaps in /config)
+❯ /goal rebuild the K1 and TSL mod builds by hand from the guides, then build   
+ModSync's easy-mode builder and prove automated installs match them.            
+  ⎿  Interrupted · What should Claude do instead?
+
+❯ /goal build ModSYnc's easy-mode builder in tandem with installing the k1 and  
+tsl mod builds within them by hand from the guides. Then prove automated        
+installs that were created matching the instructions built within easy-mode     
+builder match them. And any other criteria given to you during the session must 
+be achieved.                                                                    
+
+● The CreateGoal tool wasn't available, so I won't arm a goal, but I'll proceed
+  with the same objective: build the easy-mode tool with the listed features,
+  install K1/TSL manually per full.md, then verify the automated patcher scripts
+  produce zero differences against the manual installs. · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● The goal wasn't armed because CreateGoal doesn't exist in this session. I'm
+  continuing on the same objective without it.
+
+  Nothing is installed yet. The TSL seed is hashed. The K1 seed copy is at 2.1
+  GB of about 3.4 GB. A background watcher will notify me when both manifests
+  are done, and then I'll start the K1 and TSL manual runs.
+
+✻ Cogitated for 15s · done Friday 9:49 AM
+
+※ recap: We're rebuilding the K1 and TSL mod builds by hand, then building ModSync's easy-mode builder and proving automated installs match them; right now the K1 vanilla seed is still copying. Next, once seeds finish, I start the manual runs. (disable recaps in /config)
+
+❯ build ModSYnc's easy-mode builder in tandem with installing the k1 and tsl    
+  mod builds within them by hand from the guides. Then prove automated installs 
+  that were created matching the instructions built within easy-mode builder    
+  match them. And any other criteria given to you during the session must be    
+  achieved. Set as the goal for the sesh                                        
+
+● No goal tool is available here—only the unrelated Lance and Todoist connectors
+  showed up—so I'll keep treating your wording as the standing goal and track
+  it directly in docs/plans/easy-builder-brief.md. · summary
+
+● Bash(cat >> docs/plans/easy-builder-brief.md <<'E'…)
+  ⎿  k1_seed.log
+     tsl_seed_src.done
+     tsl_seed_src.sha256
+     … +2 lines (ctrl+o to expand)
+  ⎿  Updated docs/plans/easy-builder-brief.md (+7 -0)
+      85    - CLI entry points for easy sessions and per-mod diffs.
+      86    - a hot-reload dev loop.
+      87    - OdyPatcher wiring as the default engine.
+      88 +                                                               
+      89 +## Session goal (set by Boden, 2026-10-09)                     
+      90 +                                                               
+      91 +Build ModSync's easy-mode builder in tandem with installing the
+         + K1 and TSL mod                                                
+      92 +builds inside it by hand from the guides. Then prove the automa
+         +ted installs built                                             
+      93 +from those easy-mode instructions match the manual installs. Ev
+         +ery other criterion                                            
+      94 +given during the session must also be met.                     
+
+● I couldn't set a real session goal, because this session has no goal tool. The
+  goal is written at the end of docs/plans/easy-builder-brief.md and I'm
+  working to it. If you want it armed properly, /goal has to run in a session
+  where that tool exists.
+
+  Still nothing installed. The K1 seed copy is at 2.3 GB of about 3.4 GB, and
+  the TSL seed hashing is finished. A background watcher will notify me when the
+  K1 seed finishes. After that I'll start the K1 and TSL manual runs and build
+  easy mode alongside them.
+
+✻ Churned for 16s · done Friday 9:50 AM
+
+❯ /goal build ModSYnc's easy-mode builder in tandem with installing the k1 and  
+tsl mod builds within them by hand from the guides. Then prove automated        
+installs that were created matching the instructions built within easy-mode     
+builder match them. And any other criteria given to you during the session must 
+be achieved. Set as the goal for the sesh                                       
+
+● CreateGoal is still not one of my tools, and my earlier search for it found
+  nothing. So the goal can't be armed from here, and I won't retry. It's
+  recorded in docs/plans/easy-builder-brief.md and I'm working to it. The next
+  step is checking the K1 seed copy.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● No goal is armed, because CreateGoal doesn't exist in this session. I'm still
+  working to it, and it's recorded in docs/plans/easy-builder-brief.md.
+
+  The K1 seed copy is at 2.6 GB of about 3.4 GB. When it finishes, the
+  background watcher will notify me and I'll start the manual installs.
+
+✻ Churned for 12s · done Friday 9:50 AM
+
+❯ /exit                                                                         
+
+※ recap: The goal is to build ModSync's easy-mode builder while hand-installing the K1 and TSL mod builds, then prove automated installs match them. Right now the K1 seed copy is still finishing; once done, I'll start the manual installs. (disable recaps in /config)
+
+❯ condense all user messages/directives into one message in your own words to   
+  ensure you fully understand the directions.                                   
+
+● Here is everything you've asked for, in one message.
+
+  The work
+
+  Redo the K1 and TSL (K2) mod builds from scratch. Do the two manual installs
+  first. Do them by hand, following the full.md guides in
+  KOTOR-Community-Portal/mod-builds. Those become k1_manual and tsl_manual, the
+  reference installs.
+
+  At the same time, build an easy mode into ModSync.rs's instruction builder. It
+  must let someone create a mod build exactly as full.md describes it, and
+  following the instructions inside ModSync should work as it would outside:
+  - File browser. It has its own file/folder browser that looks like Windows
+    Explorer, KDE Dolphin or macOS Finder, and the user can switch between them.
+  - Built-in patcher. It has a patcher interface that does the same job.
+  - Live feedback. The only differences from working outside ModSync are
+    tooltips, feedback and progress tracking that show how the instructions are
+    being built as choices are made.
+  - Editing safety. It needs undo/redo and automatic saving, so nothing needs a
+    manual save.
+  - No outside changes. The whole build must be possible without modifying
+    anything outside ModSync.
+  - Predicted state. By default the browser and patcher work on a predicted
+    future state. They use ModSync's virtual filesystem to show what the game
+    folder will look like even when nothing is installed yet.
+  - Real-disk mode. An optional mode writes each action to disk in real time. It
+    is not the default.
+  - Drop-in for Snig. It should be intuitive enough to drop into snigaroo's
+    current workflow. I'm building that from the DM history, including your
+    ideas and brainstorms, not only the one conversation you pointed to.
+
+  The proof
+  - Build the instructions. Use easy mode in real-disk mode to build the K1 and
+    TSL instructions.
+  - Run four automated installs. The lanes are k1_auto_odypatcher,
+    tsl_auto_odypatcher, k1_auto_providedpatcher and tsl_auto_providedpatcher.
+    "Provided patcher" means the patcher each mod archive ships.
+  - Diff after every mod. Diff each auto install against its manual one after
+    each mod is installed, not only at the end.
+  - Check OdyPatcher. Also diff providedpatcher against odypatcher, to show
+    OdyPatcher adds no differences.
+  - Target. The goal is zero discrepancies.
+
+  Standing rules
+  - Usability. Whenever a feature would save tedious clicks or navigation, add
+    it. Add accessibility and robustness too.
+  - Hot reload. Find a way to hot-reload ModSync so it doesn't need restarting,
+    if that's possible.
+  - Where to work. Work in ~/Workspaces/ModSync.rs.
+  - Patcher choice. Use OdyPatcher as the dependency, not kpatcher.
+  - Subagents. All subagents run on Sonnet 5.5.
+  - Restate first. Rephrase the prompt in my own words before starting. Before
+    that, search ~/boden_wizard_chat_context for ModSync, weighting the snigaroo
+    DMs, and fold in the brainstorms.
+  - Session goal. The session goal is to build easy mode alongside the by-hand
+    installs, prove the automated installs match them, and meet any other
+    criteria given during the session.
+
+  Where it stands
+
+  Nothing is installed yet. I've done the research, written the brief at
+  docs/plans/easy-builder-brief.md, and picked MyBook as the work root. The K1
+  seed copy was still running when you exited. I haven't launched the manual
+  runs.
+
+  I couldn't arm the goal because this session has no goal tool. It's written
+  into the brief instead.
+
+✻ Crunched for 24s · done Friday 9:59 AM
+
+❯ /reload-plugins                                                               
+  ⎿  Reloaded: 86 plugins · 520 skills · 100 agents · 29 hooks · 33 plugin MCP servers · 0 plugin LSP servers
+     22 errors during load. Run /plugin for details.
+
+※ recap: Goal: build ModSync's easy-mode builder while hand-installing the K1 and TSL builds, then prove automated installs match them. Right now the K1 seed copy is still finishing, and the next action is launching both manual install runs on Sonnet agents.
+
+● Background command "Wait for both seed manifests" completed (exit code 0)
+
+  Ran 1 shell command (ctrl+o to expand)
+● Both seeds finished hashing — 15,392 K1 files and 18,580 TSL files, with K1
+  files confirmed as real copies (hardlink count 1). Now I'll verify writes to
+  the work root aren't blocked before starting the longer manual runs. · summary
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Writes to the work root work. I'm launching the K1 manual run now as a
+  background Sonnet agent. TSL follows once its seed copy finishes.
+
+● Agent(K1 manual install from full.md) Sonnet 5.5
+  ⎿  Backgrounded agent (↓ to manage · ctrl+o to expand)
+
+● The K1 manual run is going in the background on a Sonnet agent. The TSL seed
+  copy is still running. When it finishes I'll start the TSL manual run the same
+  way, then begin building easy mode in the foreground.
+
+✻ Churned for 42s · done Friday 10:12 AM
+
+❯ /export                                                                       
+  ⎿  Conversation exported to: /run/media/brunner56/MyBook/Workspaces/ModSync.rs
+     /2026-10-09-103829-pastedcontent-id3590.txt
+
+● Remote Control disconnected — signed-in claude.ai account or 
+  organization changed on this machine — run /remote-control to start a 
+  session for the current account, or /login to switch back, then 
+  /remote-control
+
+● Agent "K1 manual install from full.md" failed: Agent terminated early due to
+an API error: You've hit your weekly limit · resets Oct 10, 12pm
+(America/Chicago) (error type rate_limit, HTTP 429, request id
+req_011CfrvEWYqnc4yh9XS35ffL, model sent to the API: claude-sonnet-5-5)
+
+● Claude can't use thinking from another organization
+  Claude's earlier thinking was written while you were signed in to 
+  another organization, so Claude can't use it now. It isn't deleted: 
+  resume this session signed in to that organization to use it again. 
+  Claude's next responses may be slower and use more tokens because it 
+  has to reread this session and generate new thinking. See docs for 
+  more: https://platform.claude.com/docs/en/build-with-claude/preserved-
+  thinking
+  ⎿  You've hit your weekly limit · resets Oct 10, 12pm (America/Chicago)
+
+✻ Baked for 31m 20s · done Friday 10:42 AM

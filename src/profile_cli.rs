@@ -68,7 +68,7 @@ impl ProfileArgs {
                     None
                 });
                 active_name = active.clone();
-                json!(store.list()?.iter().map(|p|json!({"Name":p.name,"KotorDirectory":p.kotor_directory,"ModDirectory":p.mod_directory,"InstructionFilePath":p.instruction_file_path,"ComponentSelectionCount":p.component_selections.len(),"CreatedUtc":p.created_utc,"LastUsedUtc":p.last_used_utc,"IsActive":active.as_ref().is_some_and(|s|s.eq_ignore_ascii_case(&p.name))})).collect::<Vec<_>>())
+                json!(store.list()?.iter().map(|p|json!({"Name":p.name,"KotorDirectory":p.kotor_directory,"ModDirectory":p.mod_directory,"InstructionFilePath":p.instruction_file_path,"ComponentSelectionCount":p.component_selections.len(),"CreatedUtc":p.created_utc,"LastUsedUtc":p.last_used_utc,"IsActive":active.as_ref().is_some_and(|s|profiles::names_equal(s, &p.name))})).collect::<Vec<_>>())
             }
             Action::Show => store
                 .require(&required(self.name.as_deref(), "name")?)?

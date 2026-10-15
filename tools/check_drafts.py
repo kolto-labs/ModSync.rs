@@ -54,6 +54,51 @@ probe.mkdir(exist_ok=True)
 (probe / 'probe.csproj').write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net9.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><NuGetAudit>false</NuGetAudit></PropertyGroup><ItemGroup><Reference Include="ModSync.Core"><HintPath>' + escape(str(reference)) + '</HintPath><Private>false</Private></Reference></ItemGroup></Project>')
 (probe / 'Program.cs').write_text(PROBE)
 
+def file_name(destination):
+    return ('.' in destination and destination.rsplit('.', 1)[1] != ''
+            and not any(c in destination for c in '/\\:<>'))
+
+
+def engine_refuses(name):
+    """A Python mirror of what Rust's rename_file_name refuses for a single name."""
+    stem = name.split('.', 1)[0].rstrip(' ').upper()
+    device = stem in ('CON', 'PRN', 'AUX', 'NUL', 'CONIN$', 'CONOUT$') or (
+        len(stem) == 4 and stem[:3] in ('COM', 'LPT') and stem[3] in '0123456789\u00b9\u00b2\u00b3')
+    return ('..' in name or any(ord(c) < 0x20 for c in name) or name.endswith(('.', ' '))
+            or device or any(c in name for c in '[]*?:<>|"'))
+
+
+def intentional_rename(x, y):
+    """Rust drafts a Rename's new name as a bare file name, as C# RenameFile reads it.
+
+    The pinned drafter gives every Rename a placeholder Destination (Rust refuses it;
+    C# never renames as meant) and, for "rename a.ext to b.ext", the new name as a
+    second Source. See docs/parity/drafted-rename-contract.md. When the engine refuses
+    the new name (docs/parity/rename-file-name-contract.md), Rust keeps the placeholder
+    too but still drafts one Source.
+    """
+    if len(x) != len(y):
+        return False
+    override = '<<kotorDirectory>>\\Override'
+    for a, b in zip(x, y):
+        if a == b:
+            continue
+        name = b.get('Destination') or ''
+        if name == a.get('Destination') == override and len(a['Source']) == 2:
+            name = a['Source'][1].replace('/', '\\').rsplit('\\', 1)[-1]
+            if a['Source'][1] != '<<modDirectory>>\\' + name or not engine_refuses(name):
+                return False
+        elif not file_name(name):
+            return False
+        source = [s for s in a['Source'] if s.replace('/', '\\').rsplit('\\', 1)[-1].lower() != name.lower()]
+        if not (a['Action'] == b['Action'] == 'Rename'
+                and a.get('Destination') == override and b['Source'] == source
+                and {k: v for k, v in a.items() if k not in ('Source', 'Destination')}
+                == {k: v for k, v in b.items() if k not in ('Source', 'Destination')}):
+            return False
+    return True
+
+
 def run(command, label):
     result = subprocess.run(command, cwd=output, capture_output=True, timeout=300)
     (output / (label + '.log')).write_bytes(result.stdout + result.stderr)
@@ -62,17 +107,20 @@ def run(command, label):
 run(['dotnet', 'build', str(probe / 'probe.csproj'), '-v', 'quiet'], 'build-probe')
 sandbox = ['bwrap', '--ro-bind', '/', '/', '--dev', '/dev', '--tmpfs', '/tmp',
            '--tmpfs', str(Path.home() / '.local/share'), '--tmpfs', str(Path.home() / '.config'),
+           '--ro-bind', str(reference.parent), str(reference.parent),
            '--bind', str(output), str(output), '--unshare-net', '--die-with-parent']
 checks = []
 for index, source in enumerate(inputs):
     source = source.resolve(strict=True)
     cs = output / f'{index}-csharp.json'
     rs = output / f'{index}-rust.json'
-    run(sandbox + ['dotnet', str(probe / 'bin/Debug/net9.0/probe.dll'), str(reference.parent), str(source), str(cs)], f'{index}-csharp')
-    run([str(rust), 'convert', str(source), str(rs), '--parse-directions'], f'{index}-rust')
+    staged = output / f'{index}-input.json'  # the sandbox hides /tmp but binds the output
+    shutil.copyfile(source, staged)
+    run(sandbox + ['dotnet', str(probe / 'bin/Debug/net9.0/probe.dll'), str(reference.parent), str(staged), str(cs)], f'{index}-csharp')
+    run([str(rust), 'convert', str(source), str(rs), '--parse-directions', '--format', 'json'], f'{index}-rust')
     expected = json.loads(cs.read_text())
     actual = json.loads(rs.read_text())
-    differences = []
+    differences, known = [], []
     if len(expected) != len(actual):
         differences.append({'field': 'component_count', 'csharp': len(expected), 'rust': len(actual)})
     for a, b in zip(expected, actual):
@@ -85,7 +133,8 @@ for index, source in enumerate(inputs):
             if key == 'InstallationWarning':
                 x, y = x.replace('\r\n', '\n'), y.replace('\r\n', '\n')
             if x != y:
-                differences.append({'component': a['Name'], 'field': key, 'csharp': x, 'rust': y})
+                entry = {'component': a['Name'], 'field': key, 'csharp': x, 'rust': y}
+                (known if key == 'Instructions' and intentional_rename(x, y) else differences).append(entry)
         if a['Result'] is not None:
             result = b.get('DraftReview', {}).get('Result', {})
             for key, default in [('DraftInstructionCount', 0), ('UnparsedGaps', []), ('ConditionalDrafts', [])]:
@@ -93,9 +142,11 @@ for index, source in enumerate(inputs):
                 if x != y:
                     differences.append({'component': a['Name'], 'field': key, 'csharp': x, 'rust': y})
     checks.append({'input': str(source), 'input_sha256': hashlib.sha256(source.read_bytes()).hexdigest(),
-                   'components': len(expected), 'draft_instructions': sum(len(c['Instructions']) for c in expected), 'differences': differences})
-    print(f'{source.name}: {len(expected)} components; {len(differences)} differences', flush=True)
+                   'components': len(expected), 'draft_instructions': sum(len(c['Instructions']) for c in expected), 'differences': differences,
+                   'intentional_rename_differences': known})
+    print(f'{source.name}: {len(expected)} components; {len(differences)} differences; '
+          f'{len(known)} intentional Rename differences', flush=True)
 receipt = {'reference_dll_sha256': hashlib.sha256(reference.read_bytes()).hexdigest(), 'checks': checks,
-           'scope': 'Prose fields assigned directly to isolate DraftInstructionService from legacy JSON-loader omissions. Raw instructions, option fields excluding generated IDs, review warnings, unparsed gaps and conditional notes. Not final install correctness or full guide ingestion.'}
+           'scope': 'Prose fields assigned directly to isolate DraftInstructionService from legacy JSON-loader omissions. Raw instructions, option fields excluding generated IDs, review warnings, unparsed gaps and conditional notes. A drafted Rename whose Rust Destination is the bare new file name (and whose Sources leave out that name), or the same placeholder with the second Source (the refused new name) left out, is listed under intentional_rename_differences, not differences. Not final install correctness or full guide ingestion.'}
 (output / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
 assert not any(c['differences'] for c in checks), f'Draft differences recorded in {output / "receipt.json"}'

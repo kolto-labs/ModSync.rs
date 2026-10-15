@@ -1,0 +1,380 @@
+{
+ "copy_blank": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Empty Source Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": null
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Empty Source Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
+ "copy_empty": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Empty Source Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": null
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Empty Source Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
+ "delete_blank_false": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Empty Source Probe: Success"
+    ]
+   },
+   "tree": {
+    "Override/a.txt": "A\n",
+    "Override/b.txt": "B\n"
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "delete_blank_true": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Empty Source Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": null
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Empty Source Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
+ "delete_empty_false": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Empty Source Probe: Success"
+    ]
+   },
+   "tree": {
+    "Override/a.txt": "A\n",
+    "Override/b.txt": "B\n"
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "delete_empty_false_then_later": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Empty Source Probe: Success"
+    ]
+   },
+   "tree": {
+    "Override/a.txt": "A\n"
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "delete_empty_omitted": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Empty Source Probe: Success"
+    ]
+   },
+   "tree": {
+    "Override/a.txt": "A\n",
+    "Override/b.txt": "B\n"
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "delete_empty_true": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Empty Source Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": null
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Empty Source Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
+ "delete_empty_true_then_later": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Empty Source Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": null
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Empty Source Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
+ "delete_nokey_false": {
+  "install": {
+   "accepted": true,
+   "raw": {
+    "Exits": [
+     "Empty Source Probe: Success"
+    ]
+   },
+   "tree": {
+    "Override/a.txt": "A\n",
+    "Override/b.txt": "B\n"
+   }
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ },
+ "delete_nokey_true": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Empty Source Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": null
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Empty Source Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
+ "extract_blank_nodest": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Empty Source Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": null
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Empty Source Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
+ "extract_empty": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Empty Source Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": null
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Empty Source Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
+ "extract_nokey": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Empty Source Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": null
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Empty Source Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
+ "move_empty": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Empty Source Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": null
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Empty Source Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
+ "move_empty_true": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Empty Source Probe: MissingSourceFiles"
+    ]
+   },
+   "tree": null
+  },
+  "validate": {
+   "accepted": true,
+   "raw": {
+    "Errors": [],
+    "Warnings": [
+     "Skipped 'Empty Source Probe' during dry-run: source archives or files are not available."
+    ]
+   },
+   "skipped": true,
+   "tree": null
+  }
+ },
+ "rename_empty_control": {
+  "install": {
+   "accepted": false,
+   "raw": {
+    "Exits": [
+     "Empty Source Probe: UnknownError"
+    ]
+   },
+   "tree": null
+  },
+  "validate": {
+   "accepted": false,
+   "raw": {
+    "Errors": [
+     "Failed to validate component: No source paths available for Rename instruction. Source paths may be empty, or wildcard patterns may not have matched any files. (Parameter 'sourcePaths')"
+    ],
+    "Warnings": []
+   },
+   "skipped": false,
+   "tree": null
+  }
+ }
+}

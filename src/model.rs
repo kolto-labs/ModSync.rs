@@ -5,7 +5,7 @@ pub(crate) mod keys;
 mod text;
 pub(crate) mod yaml;
 use anyhow::{Context, Result, bail, ensure};
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::{
     collections::{BTreeMap, BTreeSet},
     path::Path,
@@ -27,6 +27,17 @@ fn strings<'de, D: Deserializer<'de>>(d: D) -> Result<Vec<String>, D::Error> {
 fn yes() -> bool {
     true
 }
+/// The loaders drop blank Source list entries, so a single blank path comes from a
+/// scalar `Source = ""` (or a `guide-edit` transaction, which bypasses the loader
+/// filter); path resolution refuses it either way. Write it back as a
+/// scalar so a saved or converted non-Choose guide keeps that refusal instead of
+/// reading back as an empty list. A canonical Choose scalar reloads as an empty Choose.
+fn source_out<S: Serializer>(source: &[String], s: S) -> Result<S::Ok, S::Error> {
+    match source {
+        [path] if path.trim().is_empty() => s.serialize_str(path),
+        _ => source.serialize(s),
+    }
+}
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Guide {
@@ -34,6 +45,23 @@ pub struct Guide {
     pub components: Vec<Component>,
     #[serde(flatten)]
     pub metadata: BTreeMap<String, serde_json::Value>,
+    /// How `ordered` treats this guide; set by the loader and the CLI, never written.
+    #[serde(skip)]
+    pub ordering: Ordering,
+}
+
+/// Install-order rules that depend on how a guide was read and run.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Ordering {
+    /// The file was read as Markdown. The C# Markdown ingest drops InstallBefore and
+    /// InstallAfter, so they neither order nor stop the install (Dependencies still do).
+    pub markdown: bool,
+    /// Install the selection in list order, as C# does for `--direct-markdown`
+    /// (`preserveInputOrder`).
+    pub preserve_input_order: bool,
+    /// Keep selected widescreen-only components after the base build, for the
+    /// Base/Remaining phase split.
+    pub widescreen_last: bool,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -73,7 +101,7 @@ pub struct Instruction {
     pub parent: String,
     #[serde(default = "action::unset", deserialize_with = "action::deserialize")]
     pub action: String,
-    #[serde(default, deserialize_with = "strings")]
+    #[serde(default, deserialize_with = "strings", serialize_with = "source_out")]
     pub source: Vec<String>,
     #[serde(default)]
     pub destination: String,
@@ -100,6 +128,17 @@ impl Guide {
     /// CLI adapters apply profile or default-all selection after this ingestion.
     pub fn load_for_install_preserving_selection(path: &Path) -> Result<Self> {
         Self::load_for_install_with_selection_default(path, false)
+    }
+
+    /// Load as the reference CLI's `FileLoadingService.LoadFromFileAsync` does for
+    /// validate and install. A Markdown extension goes through guide ingestion, which
+    /// keeps the authored selection; any other file goes through
+    /// `DeserializeModComponentFromString`, which selects every component when the file
+    /// selects none.
+    pub fn load_like_file_loader(path: &Path) -> Result<Self> {
+        let markdown =
+            canonical_format(path.extension().and_then(|s| s.to_str()).unwrap_or("")) == Some("md");
+        Self::load_for_install_with_selection_default(path, !markdown)
     }
 
     fn load_for_install_with_selection_default(
@@ -155,7 +194,7 @@ impl Guide {
 
     fn parse_observed(text: &str, format: &str, default_selection: bool) -> Result<Self> {
         let started = std::time::Instant::now();
-        let result = Self::parse_with(text, format, true, default_selection);
+        let mut result = Self::parse_with(text, format, true, default_selection);
         let normalized = format.trim().to_ascii_lowercase();
         let kind = canonical_format(&normalized).unwrap_or(
             if normalized.is_empty() || normalized == "auto" {
@@ -164,6 +203,13 @@ impl Guide {
                 "unsupported"
             },
         );
+        if let Ok(guide) = &mut result {
+            // C#'s Markdown ingest drops InstallBefore/InstallAfter; `ordered` follows it.
+            guide.ordering.markdown = match kind {
+                "auto" => Self::markdown_text(text),
+                kind => kind == "md",
+            };
+        }
         let error = result.as_ref().err().map(|error| format!("{error:#}"));
         crate::telemetry::global().record_parsing_operation(
             kind,
@@ -222,10 +268,14 @@ impl Guide {
             });
         }
         let mut guide: Self = match canonical_format(&format).unwrap_or(&format) {
-            "toml" => Self::from_value_with_format(
-                toml::from_str(text).context("Parse ModSync TOML")?,
-                keys::Format::Toml,
-            )?,
+            "toml" => {
+                let mut guide = Self::from_value_with_format(
+                    toml::from_str(text).context("Parse ModSync TOML")?,
+                    keys::Format::Toml,
+                )?;
+                select_last_modified_key(&mut guide, true);
+                guide
+            }
             "json" => {
                 let value = serde_json::from_str(text)?;
                 Self::from_value_with_format(value, keys::Format::Json)?
@@ -284,6 +334,7 @@ impl Guide {
                     }
                 }
                 ensure!(directives.is_empty(), "YAML directives require a document");
+                select_last_modified_key(&mut guide, false);
                 guide
             }
             "md" => crate::markdown::parse_with_selection_default(text, default_selection)?,
@@ -426,42 +477,45 @@ impl Guide {
                 .entry("fileFormatVersion")
                 .or_insert_with(|| "2.0".into());
         }
-        Ok(
-            match canonical_format(format).context("Save as TOML, JSON, YAML, XML or Markdown")? {
-                "toml" => {
-                    let mut value = serde_json::to_value(self)?;
-                    for key in CONTENT_FIELDS {
-                        value.as_object_mut().unwrap().remove(*key);
-                    }
-                    if metadata.as_object().is_none_or(|m| !m.is_empty()) {
-                        value["metadata"] = metadata.clone();
-                    }
+        let format =
+            canonical_format(format).context("Save as TOML, JSON, YAML, XML or Markdown")?;
+        if matches!(format, "toml" | "yaml") {
+            normalize_last_modified(&mut metadata, format == "toml");
+        }
+        Ok(match format {
+            "toml" => {
+                let mut value = serde_json::to_value(self)?;
+                for key in CONTENT_FIELDS {
+                    value.as_object_mut().unwrap().remove(*key);
+                }
+                if metadata.as_object().is_none_or(|m| !m.is_empty()) {
+                    value["metadata"] = metadata.clone();
+                }
+                encode_nullable_files(&mut value);
+                let mut budget = crate::json_native::ValueBudget::default();
+                crate::json_native::to_toml_pretty(&value, &mut budget)?
+            }
+            "json" => serde_json::to_string_pretty(&self.components)?,
+            "xml" => crate::xml::render(&serde_json::to_value(&self.components)?)?,
+            "yaml" => {
+                let mut text = String::new();
+                let mut budget = crate::json_native::ValueBudget::default();
+                if metadata.as_object().is_none_or(|m| !m.is_empty()) {
+                    text.push_str("---\n# Metadata\n");
+                    text.push_str(&crate::json_native::to_yaml_string(&metadata, &mut budget)?);
+                }
+                for component in &self.components {
+                    text.push_str("---\n");
+                    let mut value = serde_json::to_value(component)?;
                     encode_nullable_files(&mut value);
-                    let mut budget = crate::json_native::ValueBudget::default();
-                    crate::json_native::to_toml_pretty(&value, &mut budget)?
+                    yaml_legacy_resources(&mut value);
+                    text.push_str(&crate::json_native::to_yaml_string(&value, &mut budget)?);
                 }
-                "json" => serde_json::to_string_pretty(&self.components)?,
-                "xml" => crate::xml::render(&serde_json::to_value(&self.components)?)?,
-                "yaml" => {
-                    let mut text = String::new();
-                    let mut budget = crate::json_native::ValueBudget::default();
-                    if metadata.as_object().is_none_or(|m| !m.is_empty()) {
-                        text.push_str("---\n# Metadata\n");
-                        text.push_str(&crate::json_native::to_yaml_string(&metadata, &mut budget)?);
-                    }
-                    for component in &self.components {
-                        text.push_str("---\n");
-                        let mut value = serde_json::to_value(component)?;
-                        encode_nullable_files(&mut value);
-                        yaml_legacy_resources(&mut value);
-                        text.push_str(&crate::json_native::to_yaml_string(&value, &mut budget)?);
-                    }
-                    text
-                }
-                "md" => crate::markdown::render(self, &metadata)?,
-                _ => unreachable!("canonical_format returned an unsupported format"),
-            },
-        )
+                text
+            }
+            "md" => crate::markdown::render(self, &metadata)?,
+            _ => unreachable!("canonical_format returned an unsupported format"),
+        })
     }
 
     pub fn save(&self, path: &Path) -> Result<()> {
@@ -470,94 +524,418 @@ impl Guide {
         crate::recovery::atomic_write(&path, output.as_bytes())
     }
 
+    /// The GUIDs a Dependency or Restriction (of a component or an instruction) finds
+    /// selected: each selected top-level component and its selected immediate options.
+    /// C# `FindComponentFromGuid` looks no deeper, and its loader keeps no option below
+    /// an option, so a GUID naming a nested option counts as not selected.
     pub fn selected_ids(&self) -> BTreeSet<String> {
-        fn collect(c: &Component, ids: &mut BTreeSet<String>) {
-            if c.is_selected {
-                ids.insert(c.guid.to_ascii_lowercase());
-                for option in &c.options {
-                    collect(option, ids);
-                }
-            }
-        }
-        let mut ids = BTreeSet::new();
-        for c in &self.components {
-            collect(c, &mut ids);
-        }
-        ids
+        self.components
+            .iter()
+            .filter(|c| c.is_selected)
+            .flat_map(|c| std::iter::once(c).chain(c.options.iter().filter(|o| o.is_selected)))
+            .map(|c| c.guid.to_ascii_lowercase())
+            .collect()
     }
 
-    /// Stable topological sort: keep guide order whenever graph constraints allow it.
+    /// The order C# installs the selected components in
+    /// (`InstallCoordinator.GetOrderedInstallList`): a breadth-first sort of every
+    /// top-level component, selected or not, by Dependencies, InstallAfter and
+    /// InstallBefore, starting from the dependency resolver's order as C# loads a guide
+    /// (file order when that reports an error). A Markdown guide orders by Dependencies
+    /// alone from file order, and `preserve_input_order` keeps the list order, as in C#.
+    /// With `widescreen_last` (phased installs) selected widescreen-only components
+    /// follow the base build unless a selected base component must follow one. Rust
+    /// refuses Dependencies that are not selected, Restrictions conflicts, missing
+    /// references and cycles among the selection; C# installs those components anyway.
+    /// A Dependency may name an immediate option of a component, as C#
+    /// `FindComponentFromGuid` looks those up too (not options nested below them): it is
+    /// met when the option's and its component's selection flags are set, whether or not
+    /// a Choose step runs the option, and it adds no ordering edge, as in C#.
     pub fn ordered(&self) -> Result<Vec<&Component>> {
-        use crate::guid::{Identity, key_ascii};
+        use crate::guid::key_ascii;
+        let Ordering {
+            markdown,
+            preserve_input_order,
+            widescreen_last,
+        } = self.ordering;
         let selected: Vec<_> = self.components.iter().filter(|c| c.is_selected).collect();
         ensure!(!selected.is_empty(), "Select at least one component");
-        let all: BTreeSet<_> = self.components.iter().map(|c| key_ascii(&c.guid)).collect();
+        let index: BTreeMap<_, _> = self
+            .components
+            .iter()
+            .enumerate()
+            .map(|(i, c)| (key_ascii(&c.guid), i))
+            .collect();
         ensure!(
-            all.len() == self.components.len(),
+            index.len() == self.components.len(),
             "Duplicate component GUID values in ordering graph"
         );
-        let ids: BTreeSet<_> = selected.iter().map(|c| key_ascii(&c.guid)).collect();
-        let mut predecessors: BTreeMap<Identity, BTreeSet<Identity>> =
-            ids.iter().map(|id| (id.clone(), BTreeSet::new())).collect();
+        let find = |guid: &String| index.get(&key_ascii(guid)).copied();
+        let chosen = |i: usize| self.components[i].is_selected;
+        let met: BTreeSet<_> = selected
+            .iter()
+            .flat_map(|c| std::iter::once(*c).chain(c.options.iter().filter(|o| o.is_selected)))
+            .map(|c| key_ascii(&c.guid))
+            .collect();
         for c in &selected {
-            let id = key_ascii(&c.guid);
             for required in &c.dependencies {
-                let required_key = key_ascii(required);
                 ensure!(
-                    ids.contains(&required_key),
+                    met.contains(&key_ascii(required)),
                     "{} requires selected component {required}",
                     c.name
                 );
-                predecessors.get_mut(&id).unwrap().insert(required_key);
             }
             for conflict in &c.restrictions {
                 ensure!(
-                    !ids.contains(&key_ascii(conflict)),
+                    !find(conflict).is_some_and(chosen),
                     "{} conflicts with {conflict}",
                     c.name
                 );
             }
-            for after in &c.install_after {
-                let after_key = key_ascii(after);
+            for after in order_references(&c.install_after, markdown) {
                 ensure!(
-                    all.contains(&after_key),
+                    find(after).is_some(),
                     "{} references missing InstallAfter {after}",
                     c.name
                 );
-                if ids.contains(&after_key) {
-                    predecessors.get_mut(&id).unwrap().insert(after_key);
-                }
             }
-            for before in &c.install_before {
-                let before_key = key_ascii(before);
+            for before in order_references(&c.install_before, markdown) {
                 ensure!(
-                    all.contains(&before_key),
+                    find(before).is_some(),
                     "{} references missing InstallBefore {before}",
                     c.name
                 );
-                if ids.contains(&before_key) {
-                    predecessors
-                        .get_mut(&before_key)
-                        .unwrap()
-                        .insert(id.clone());
+            }
+        }
+        if preserve_input_order {
+            return Ok(selected);
+        }
+        let n = self.components.len();
+        let base = match markdown {
+            true => (0..n).collect(),
+            false => match self.resolve_dependencies()? {
+                Resolution {
+                    errors,
+                    order: Some(order),
+                } if errors.is_empty() => order,
+                _ => (0..n).collect(),
+            },
+        };
+        let mut next = vec![Vec::new(); n];
+        let mut indegree = vec![0_usize; n];
+        for &i in &base {
+            let c = &self.components[i];
+            for j in c
+                .dependencies
+                .iter()
+                .chain(order_references(&c.install_after, markdown))
+                .filter_map(find)
+            {
+                next[j].push(i);
+                indegree[i] += 1;
+            }
+            for j in order_references(&c.install_before, markdown)
+                .iter()
+                .filter_map(find)
+            {
+                next[i].push(j);
+                indegree[j] += 1;
+            }
+        }
+        let mut queue: std::collections::VecDeque<_> =
+            base.iter().copied().filter(|&i| indegree[i] == 0).collect();
+        let mut placed = vec![false; n];
+        let mut order = Vec::with_capacity(n);
+        while let Some(i) = queue.pop_front() {
+            placed[i] = true;
+            if chosen(i) {
+                order.push(i);
+            }
+            for &j in &next[i] {
+                indegree[j] -= 1;
+                if indegree[j] == 0 {
+                    queue.push_back(j);
                 }
             }
         }
-        let mut result = Vec::new();
-        let mut done = BTreeSet::new();
-        while result.len() < selected.len() {
-            let next = selected.iter().find(|c| {
-                let id = key_ascii(&c.guid);
-                !done.contains(&id) && predecessors[&id].is_subset(&done)
-            });
-            let Some(c) = next else {
-                bail!("Dependency/order cycle among selected components");
-            };
-            done.insert(key_ascii(&c.guid));
-            result.push(*c);
+        if let Some(&i) = base.iter().find(|&&i| !placed[i] && chosen(i)) {
+            bail!(
+                "Dependency/order cycle: {} cannot be ordered",
+                self.components[i].name
+            );
         }
-        Ok(result)
+        if widescreen_last {
+            let widescreen = |i: usize| crate::phase::widescreen(&self.components[i]);
+            let mut later = vec![false; n];
+            let mut stack: Vec<_> = order.iter().copied().filter(|&i| widescreen(i)).collect();
+            while let Some(i) = stack.pop() {
+                for &j in &next[i] {
+                    if !later[j] {
+                        later[j] = true;
+                        stack.push(j);
+                    }
+                }
+            }
+            if !order.iter().any(|&i| later[i] && !widescreen(i)) {
+                order.sort_by_key(|&i| widescreen(i));
+            }
+        }
+        Ok(order.into_iter().map(|i| &self.components[i]).collect())
     }
+
+    /// Whether `load(path)` reads the file as Markdown: by its extension, or by content
+    /// when the extension names no format (the C# file loader's hint rule).
+    pub fn markdown_input(path: &Path) -> Result<bool> {
+        let extension = path.extension().and_then(|s| s.to_str()).unwrap_or("");
+        Ok(match canonical_format(extension) {
+            Some(format) => format == "md",
+            None => {
+                let text = text::read(path).with_context(|| format!("Read {}", path.display()))?;
+                Self::markdown_text(&text)
+            }
+        })
+    }
+
+    /// Whether `parse(text, "auto")` reads `text` as Markdown.
+    pub fn markdown_text(text: &str) -> bool {
+        Self::parse_with(text, "toml", true, true).is_err()
+            && Self::parse_with(text, "md", true, true).is_ok()
+    }
+
+    /// C# `convert` (`ModBuildConverter.HandleDependencyResolutionErrors` over
+    /// `DependencyResolverService.ResolveDependencies`): order every top-level component,
+    /// selected or not, by InstallBefore/InstallAfter with a depth-first post-order,
+    /// visiting components in guide order and each one's edges in authored order. Missing,
+    /// self and circular references fail unless `ignore_errors`, which then orders around
+    /// missing references but still refuses a cycle: C# writes an empty guide there.
+    /// Returns the warning lines C# logs when `ignore_errors` lets errors through.
+    pub fn sort_like_dependency_resolver(&mut self, ignore_errors: bool) -> Result<Vec<String>> {
+        let Resolution { errors, order } = self.resolve_dependencies()?;
+        let listed = listed_errors(&errors);
+        ensure!(
+            errors.is_empty() || ignore_errors,
+            "Dependency resolution failed with {} errors. Use --ignore-errors flag to attempt loading in best possible order.\n{}",
+            errors.len(),
+            listed.join("\n")
+        );
+        let order = order.context(
+            "Dependency resolution failed: a circular InstallBefore/InstallAfter order cannot be resolved, even with --ignore-errors. Remove the cycle from the guide.",
+        )?;
+        self.reorder(order);
+        if errors.is_empty() {
+            return Ok(Vec::new());
+        }
+        let mut warnings = vec![format!(
+            "Dependency resolution failed with {} errors:",
+            errors.len()
+        )];
+        warnings.extend(listed);
+        Ok(warnings)
+    }
+
+    /// C# validate and install (`HandleDependencyResolutionErrors` without
+    /// `--ignore-errors`, which Rust refuses there): a missing, self or circular
+    /// InstallBefore/InstallAfter reference on any top-level component, selected or not,
+    /// stops the run; otherwise the components take the resolver's order, as in convert.
+    pub fn sort_for_install(&mut self) -> Result<()> {
+        let Resolution { errors, order } = self.resolve_dependencies()?;
+        ensure!(
+            errors.is_empty(),
+            "Dependency resolution failed with {} errors. Fix these InstallBefore/InstallAfter references in the guide (validate and install do not take --ignore-errors):\n{}",
+            errors.len(),
+            listed_errors(&errors).join("\n")
+        );
+        self.reorder(order.context("Circular InstallBefore/InstallAfter order")?);
+        Ok(())
+    }
+
+    fn reorder(&mut self, order: Vec<usize>) {
+        let mut slots: Vec<_> = std::mem::take(&mut self.components)
+            .into_iter()
+            .map(Some)
+            .collect();
+        self.components = order.into_iter().filter_map(|i| slots[i].take()).collect();
+    }
+
+    /// C# `DependencyResolverService.ResolveDependencies` over the top-level components:
+    /// its errors in its order, and its depth-first post-order (`None` on a cycle).
+    fn resolve_dependencies(&self) -> Result<Resolution> {
+        use crate::guid::{key_ascii, option_text};
+        let n = self.components.len();
+        let mut index = BTreeMap::new();
+        for (i, c) in self.components.iter().enumerate() {
+            ensure!(
+                index.insert(key_ascii(&c.guid), i).is_none(),
+                "Duplicate Guid: {}",
+                c.guid
+            );
+        }
+        let find = |guid: &String| index.get(&key_ascii(guid)).copied();
+        let mut errors = Vec::new();
+        let mut graph: Vec<Vec<usize>> = vec![Vec::new(); n];
+        for (i, c) in self.components.iter().enumerate() {
+            let lists = [
+                ("InstallBefore", &c.install_before),
+                ("InstallAfter", &c.install_after),
+            ];
+            for (field, list) in lists {
+                for guid in list.iter().filter(|g| find(g).is_none()) {
+                    errors.push(format!(
+                        "{}: {field} references non-existent component with GUID: {}",
+                        c.name,
+                        option_text(guid)
+                    ));
+                }
+            }
+            for (field, list) in lists {
+                if list.iter().any(|g| find(g) == Some(i)) {
+                    errors.push(format!(
+                        "{}: Component references itself in {field}",
+                        c.name
+                    ));
+                }
+            }
+        }
+        let mut edge = |from: usize, to: usize| {
+            if !graph[from].contains(&to) {
+                graph[from].push(to);
+            }
+        };
+        for (i, c) in self.components.iter().enumerate() {
+            for j in c.install_before.iter().filter_map(find) {
+                edge(j, i);
+            }
+            for j in c.install_after.iter().filter_map(find) {
+                edge(i, j);
+            }
+        }
+        // C# reconstructs a cycle through the first component (in guide order) whose
+        // edges hold the current one.
+        let mut first_predecessor = vec![None; n];
+        for (k, edges) in graph.iter().enumerate() {
+            for &to in edges {
+                first_predecessor[to].get_or_insert(k);
+            }
+        }
+        let (mut visited, mut stack) = (vec![false; n], vec![false; n]);
+        for root in 0..n {
+            if !visited[root]
+                && let Some(cycle) =
+                    detect_cycle(root, &graph, &first_predecessor, &mut visited, &mut stack)
+            {
+                let mut names = cycle
+                    .iter()
+                    .take(SHOWN_ERRORS)
+                    .map(|&i| self.components[i].name.as_str())
+                    .collect::<Vec<_>>()
+                    .join(" → ");
+                if cycle.len() > SHOWN_ERRORS {
+                    names.push_str(&format!(" → … ({} components)", cycle.len()));
+                }
+                errors.push(format!("{names}: Circular dependency detected: {names}"));
+            }
+        }
+        let mut order = Vec::with_capacity(n);
+        let (mut done, mut open) = (vec![false; n], vec![false; n]);
+        let complete =
+            (0..n).all(|root| post_order(root, &graph, &mut done, &mut open, &mut order));
+        Ok(Resolution {
+            errors,
+            order: complete.then_some(order),
+        })
+    }
+}
+
+/// The InstallBefore/InstallAfter entries that order a guide: none for Markdown, whose
+/// C# ingest drops them.
+fn order_references(list: &[String], markdown: bool) -> &[String] {
+    if markdown { &[] } else { list }
+}
+
+const SHOWN_ERRORS: usize = 50;
+
+struct Resolution {
+    errors: Vec<String>,
+    order: Option<Vec<usize>>,
+}
+
+/// The error lines C# logs, at most `SHOWN_ERRORS` of them.
+fn listed_errors(errors: &[String]) -> Vec<String> {
+    let mut listed = errors
+        .iter()
+        .take(SHOWN_ERRORS)
+        .map(|e| format!("  - {e}"))
+        .collect::<Vec<_>>();
+    if errors.len() > SHOWN_ERRORS {
+        listed.push(format!("  … and {} more", errors.len() - SHOWN_ERRORS));
+    }
+    listed
+}
+
+/// C# `DependencyResolverService.DetectCycleDFS`, including its early return that leaves
+/// the walked components on the recursion stack and its first-predecessor reconstruction.
+/// The reconstruction stops at the first repeated component: a C# walk that repeats one
+/// never finishes, so this cannot cut short a walk C# completes.
+fn detect_cycle(
+    current: usize,
+    graph: &[Vec<usize>],
+    first_predecessor: &[Option<usize>],
+    visited: &mut [bool],
+    stack: &mut [bool],
+) -> Option<Vec<usize>> {
+    visited[current] = true;
+    stack[current] = true;
+    for &next in &graph[current] {
+        if !visited[next] {
+            if let Some(cycle) = detect_cycle(next, graph, first_predecessor, visited, stack) {
+                return Some(cycle);
+            }
+        } else if stack[next] {
+            let mut cycle = Vec::new();
+            let mut seen = vec![false; graph.len()];
+            let mut temp = current;
+            while temp != next && !seen[temp] {
+                seen[temp] = true;
+                cycle.push(temp);
+                match first_predecessor[temp] {
+                    Some(previous) => temp = previous,
+                    None => break,
+                }
+            }
+            cycle.push(next);
+            cycle.reverse();
+            return Some(cycle);
+        }
+    }
+    stack[current] = false;
+    None
+}
+
+/// C# `DependencyResolverService.TopologicalSortDFS`: a component follows everything it
+/// must be installed after. False on a cycle.
+fn post_order(
+    current: usize,
+    graph: &[Vec<usize>],
+    done: &mut [bool],
+    open: &mut [bool],
+    order: &mut Vec<usize>,
+) -> bool {
+    if open[current] {
+        return false;
+    }
+    if done[current] {
+        return true;
+    }
+    done[current] = true;
+    open[current] = true;
+    for &next in &graph[current] {
+        if !post_order(next, graph, done, open, order) {
+            return false;
+        }
+    }
+    open[current] = false;
+    order.push(current);
+    true
 }
 
 /// C# compares instruction Dependencies and Restrictions as `List<Guid>` and matches Choose
@@ -808,6 +1186,18 @@ fn normalize_component(
                     !path.is_null() && !path.as_str().is_some_and(|text| text.trim().is_empty())
                 });
             }
+            // C# skips `PrefixPath` for a raw Action of Choose and reads a scalar
+            // Source through the getter's string-to-list split, so `""`, `"  "` or
+            // `" , "` is an empty Choose. Already-normalized values (the Markdown
+            // second pass, which receives the scalar `""` written by `source_out`)
+            // are not split, so a canonical-only Choose such as `Action = 9` stays refused.
+            if action.raw_choose
+                && format != keys::Format::Internal
+                && let Some(source) = instruction.get_mut("Source")
+                && let Value::String(text) = source
+            {
+                *source = Value::Array(choose_sources(text));
+            }
             if evidence.source
                 && !action.raw_choose
                 && let Some(source) = instruction.get_mut("Source")
@@ -836,6 +1226,15 @@ fn normalize_component(
         }
     }
     Ok(())
+}
+
+/// `GetValue<List<string>>` on a string: split on `;` and `,`, trim, drop blanks.
+fn choose_sources(text: &str) -> Vec<serde_json::Value> {
+    text.split([';', ','])
+        .map(str::trim)
+        .filter(|part| !part.is_empty())
+        .map(|part| serde_json::Value::String(part.into()))
+        .collect()
 }
 
 pub(crate) fn yaml_legacy_resources(value: &mut serde_json::Value) {
@@ -899,5 +1298,144 @@ pub(crate) fn encode_nullable_files(value: &mut serde_json::Value) {
             }
         }
         _ => {}
+    }
+}
+
+/// Reference guide `lastModified` intake key choice
+/// (`docs/parity/lastmodified-contract.md`): TOML reads only `lastModified`,
+/// so a `LastModified` key is never stored and never saved. YAML reads
+/// `LastModified` when present (with no fallback when it fails to parse),
+/// else `lastModified`. The chosen value keeps its position as `lastModified`.
+fn select_last_modified_key(guide: &mut Guide, toml: bool) {
+    let Some(fields) = guide
+        .metadata
+        .get_mut("metadata")
+        .and_then(serde_json::Value::as_object_mut)
+    else {
+        return;
+    };
+    let Some(pascal) = fields.get("LastModified").cloned() else {
+        return;
+    };
+    if toml {
+        fields.shift_remove("LastModified");
+        last_modified_warning(
+            "Guide LastModified metadata is not read from TOML by the reference and is omitted on save".into(),
+            &pascal,
+        );
+    } else {
+        fields.shift_remove("lastModified");
+        *fields = std::mem::take(fields)
+            .into_iter()
+            .map(|(key, value)| match key.as_str() {
+                "LastModified" => ("lastModified".to_owned(), value),
+                _ => (key, value),
+            })
+            .collect();
+    }
+}
+
+/// Reference guide `lastModified` save contract
+/// (`docs/parity/lastmodified-contract.md`): the reference stores the value
+/// from invariant `DateTime.TryParse(..., DateTimeStyles.None)`, omits it when
+/// that fails, writes YAML with the `O` pattern and TOML as a native local
+/// date-time truncated to milliseconds. Forms outside the bounded shared date
+/// model keep the authored value with a warning. The intake already chose the
+/// key (`select_last_modified_key`).
+fn normalize_last_modified(metadata: &mut serde_json::Value, toml: bool) {
+    use crate::profiles::InvariantDate;
+    use serde_json::Value;
+    const TOML_DATETIME: &str = "$__toml_private_datetime";
+    let Some(fields) = metadata.as_object_mut() else {
+        return;
+    };
+    let Some(authored) = fields.get("lastModified") else {
+        return;
+    };
+    let text = match authored {
+        Value::Null => None,
+        Value::Bool(value) => Some(if *value { "True" } else { "False" }.to_owned()),
+        Value::String(text) => Some(text.clone()),
+        // Integer ToString is culture-neutral; other number text is not.
+        Value::Number(number) if !number.as_str().contains(['.', 'e', 'E']) => {
+            Some(number.as_str().to_owned())
+        }
+        Value::Object(object) if object.len() == 1 => match object.get(TOML_DATETIME) {
+            Some(Value::String(text)) => Some(tomlyn_text(text)),
+            _ => return retain_last_modified("value is not a date-time scalar", authored),
+        },
+        _ => return retain_last_modified("value is not a date-time scalar", authored),
+    };
+    let outcome = text.map_or(InvariantDate::Rejected, |text| {
+        crate::profiles::invariant_try_parse(&text)
+    });
+    match outcome {
+        InvariantDate::Parsed { round_trip } => {
+            let value = if toml {
+                // Tomlyn writes a DateTime as a local date-time with
+                // millisecond precision and no offset.
+                let millis = &round_trip[20..23];
+                let mut local = round_trip[..19].to_owned();
+                if millis != "000" {
+                    local.push('.');
+                    local.push_str(millis);
+                }
+                serde_json::json!({ TOML_DATETIME: local })
+            } else {
+                Value::String(round_trip)
+            };
+            fields["lastModified"] = value;
+        }
+        InvariantDate::Rejected => {
+            last_modified_warning(
+                "Guide lastModified metadata is not a reference DateTime and is omitted on save"
+                    .into(),
+                authored,
+            );
+            fields.shift_remove("lastModified");
+        }
+        InvariantDate::Unsupported(reason) => retain_last_modified(&reason, authored),
+    }
+}
+fn retain_last_modified(reason: &str, authored: &serde_json::Value) {
+    last_modified_warning(
+        format!(
+            "Guide lastModified metadata retains its authored value: {}",
+            reason.chars().take(512).collect::<String>()
+        ),
+        authored,
+    );
+}
+/// Log a lastModified warning once per message and authored value in a row,
+/// so repeated renders of one guide (the desktop raw preview) do not repeat it.
+fn last_modified_warning(message: String, authored: &serde_json::Value) {
+    static LAST: std::sync::Mutex<Option<(String, serde_json::Value)>> =
+        std::sync::Mutex::new(None);
+    let key = (message, authored.clone());
+    let mut last = LAST
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    if last.as_ref() != Some(&key) {
+        crate::logging::warning(&key.0);
+        *last = Some(key);
+    }
+}
+/// Tomlyn's `TomlDateTime.ToString()` omits the fraction when its
+/// millisecond component is zero.
+fn tomlyn_text(text: &str) -> String {
+    let Some(dot) = text.find('.') else {
+        return text.to_owned();
+    };
+    let digits = text[dot + 1..]
+        .bytes()
+        .take_while(u8::is_ascii_digit)
+        .count();
+    if text[dot + 1..dot + 1 + digits.min(3)]
+        .bytes()
+        .all(|b| b == b'0')
+    {
+        format!("{}{}", &text[..dot], &text[dot + 1 + digits..])
+    } else {
+        text.to_owned()
     }
 }

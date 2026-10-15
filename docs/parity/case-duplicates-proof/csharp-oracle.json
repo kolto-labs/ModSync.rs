@@ -1,0 +1,358 @@
+{
+ "both_files": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "dro/counts": [
+   1,
+   0,
+   0,
+   1
+  ],
+  "dro/decision": [
+   false,
+   false
+  ],
+  "dro/environment": "ERROR: You have duplicate files/folders in your installation directory in a case-insensitive environment.Please resolve these before continuing. Check the output window for the specific files to resolve.",
+  "full/counts": [
+   1,
+   0,
+   0,
+   1
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full/environment": "ERROR: You have duplicate files/folders in your installation directory in a case-insensitive environment.Please resolve these before continuing. Check the output window for the specific files to resolve.",
+  "full/stages": [
+   [
+    "Environment",
+    false
+   ]
+  ],
+  "text/decision": false,
+  "text/message": true
+ },
+ "game_files": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "dro/counts": [
+   1,
+   0,
+   0,
+   1
+  ],
+  "dro/decision": [
+   false,
+   false
+  ],
+  "dro/environment": "ERROR: You have duplicate files/folders in your installation directory in a case-insensitive environment.Please resolve these before continuing. Check the output window for the specific files to resolve.",
+  "full/counts": [
+   1,
+   0,
+   0,
+   1
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full/environment": "ERROR: You have duplicate files/folders in your installation directory in a case-insensitive environment.Please resolve these before continuing. Check the output window for the specific files to resolve.",
+  "full/stages": [
+   [
+    "Environment",
+    false
+   ]
+  ],
+  "text/decision": false,
+  "text/message": true
+ },
+ "game_files_missing_archive": {
+  "basic/decision": [
+   false,
+   false
+  ],
+  "dro/counts": [
+   1,
+   0,
+   0,
+   1
+  ],
+  "dro/decision": [
+   false,
+   false
+  ],
+  "dro/environment": "ERROR: You have duplicate files/folders in your installation directory in a case-insensitive environment.Please resolve these before continuing. Check the output window for the specific files to resolve.",
+  "full/counts": [
+   1,
+   0,
+   0,
+   1
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full/environment": "ERROR: You have duplicate files/folders in your installation directory in a case-insensitive environment.Please resolve these before continuing. Check the output window for the specific files to resolve.",
+  "full/stages": [
+   [
+    "Environment",
+    false
+   ]
+  ],
+  "text/decision": false,
+  "text/message": true
+ },
+ "game_files_mods_readonly": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "dro/counts": [
+   1,
+   0,
+   0,
+   1
+  ],
+  "dro/decision": [
+   false,
+   false
+  ],
+  "dro/environment": "ERROR: You have duplicate files/folders in your installation directory in a case-insensitive environment.Please resolve these before continuing. Check the output window for the specific files to resolve.",
+  "full/counts": [
+   1,
+   0,
+   0,
+   1
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full/environment": "ERROR: You have duplicate files/folders in your installation directory in a case-insensitive environment.Please resolve these before continuing. Check the output window for the specific files to resolve.",
+  "full/stages": [
+   [
+    "Environment",
+    false
+   ]
+  ],
+  "text/decision": false,
+  "text/message": true
+ },
+ "game_folders": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "dro/counts": [
+   1,
+   0,
+   0,
+   1
+  ],
+  "dro/decision": [
+   false,
+   false
+  ],
+  "dro/environment": "ERROR: You have duplicate files/folders in your installation directory in a case-insensitive environment.Please resolve these before continuing. Check the output window for the specific files to resolve.",
+  "full/counts": [
+   1,
+   0,
+   0,
+   1
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full/environment": "ERROR: You have duplicate files/folders in your installation directory in a case-insensitive environment.Please resolve these before continuing. Check the output window for the specific files to resolve.",
+  "full/stages": [
+   [
+    "Environment",
+    false
+   ]
+  ],
+  "text/decision": false,
+  "text/message": true
+ },
+ "game_nested": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "dro/counts": [
+   1,
+   0,
+   0,
+   1
+  ],
+  "dro/decision": [
+   false,
+   false
+  ],
+  "dro/environment": "ERROR: You have duplicate files/folders in your installation directory in a case-insensitive environment.Please resolve these before continuing. Check the output window for the specific files to resolve.",
+  "full/counts": [
+   1,
+   0,
+   0,
+   1
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full/environment": "ERROR: You have duplicate files/folders in your installation directory in a case-insensitive environment.Please resolve these before continuing. Check the output window for the specific files to resolve.",
+  "full/stages": [
+   [
+    "Environment",
+    false
+   ]
+  ],
+  "text/decision": false,
+  "text/message": true
+ },
+ "mods_files": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "dro/counts": [
+   0,
+   0,
+   5,
+   1
+  ],
+  "dro/decision": [
+   true,
+   true
+  ],
+  "dro/environment": null,
+  "full/counts": [
+   0,
+   0,
+   5,
+   1
+  ],
+  "full/decision": [
+   true,
+   true
+  ],
+  "full/environment": null,
+  "full/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ]
+  ],
+  "text/decision": true,
+  "text/message": false
+ },
+ "ok": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "dro/counts": [
+   0,
+   0,
+   5,
+   1
+  ],
+  "dro/decision": [
+   true,
+   true
+  ],
+  "dro/environment": null,
+  "full/counts": [
+   0,
+   0,
+   5,
+   1
+  ],
+  "full/decision": [
+   true,
+   true
+  ],
+  "full/environment": null,
+  "full/stages": [
+   [
+    "Environment",
+    true
+   ],
+   [
+    "Conflicts",
+    true
+   ],
+   [
+    "InstallOrder",
+    true
+   ],
+   [
+    "ComponentValidation",
+    true
+   ],
+   [
+    "FomodConfiguration",
+    true
+   ]
+  ],
+  "text/decision": true,
+  "text/message": false
+ },
+ "ok_readonly_mods": {
+  "basic/decision": [
+   true,
+   true
+  ],
+  "dro/counts": [
+   1,
+   0,
+   0,
+   1
+  ],
+  "dro/decision": [
+   false,
+   false
+  ],
+  "dro/environment": "ERROR: The Mod directory is not writable! Please ensure administrative privileges or choose a new mod directory.",
+  "full/counts": [
+   1,
+   0,
+   0,
+   1
+  ],
+  "full/decision": [
+   false,
+   false
+  ],
+  "full/environment": "ERROR: The Mod directory is not writable! Please ensure administrative privileges or choose a new mod directory.",
+  "full/stages": [
+   [
+    "Environment",
+    false
+   ]
+  ],
+  "text/decision": false,
+  "text/message": false
+ }
+}

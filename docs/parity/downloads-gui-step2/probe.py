@@ -447,13 +447,15 @@ try:
         check('retry_same_failure_no_second_editor', 'Configure two.zip' in screen('broken-choices-retry')[1], False)
         check('retry_does_not_redownload', len(REQUESTS), before_retry)
         check('retry_preserves_authored_choices', digest(broken / 'guide.json'), broken_source)
+        check('malformed_choices_blocker_names_parse_failure', 'cannot be parsed' in failure.casefold())
         click('Dismiss FOMOD prompt')
-        # The shared saved-choices reader parses selected consumers before selecting
-        # an archive entry. A malformed first consumer therefore blocks the second
-        # queued archive too; both require an explicit outcome.
-        await_text('FOMOD choices need attention')
-        screen('broken-choices-second-item')
-        click('Dismiss FOMOD prompt', 'Dismiss second malformed choices item')
+        # Queue items bind their own consumers (bound_fomod_followups), so only the
+        # malformed component blocks. two.zip's consumer has no saved choices and gets
+        # its ordinary editor after the explicit dismissal; it is dismissed too.
+        await_text('Configure two.zip')
+        second = screen('broken-choices-second-item')[1]
+        check('second_archive_gets_ordinary_editor', 'FOMOD choices need attention' in second, False)
+        click('Cancel', 'Dismiss second archive editor')
         time.sleep(2)
         check('malformed_choices_no_automatic_relaunch', 'FOMOD choices need attention' in screen('broken-choices-dismissed')[1], False)
         check('malformed_choices_no_game_mutation', manifest(broken / 'game'), broken_game)

@@ -50,17 +50,19 @@ existing receipt-verification contract; preparation does not certify completion.
 
 ## Missing registered archives
 
-The engine FOMOD gate now emits a bounded filename-only warning when a registered
-archive is absent and no prior prompt state exists. It does not include provider
+The engine FOMOD gate now emits a bounded warning when a registered archive is
+absent and no prior prompt state exists (since 2026-10-03 in C#'s wording, once per
+registering component; see [gate scope](fomod-gate-scope.md)). It does not include provider
 URLs or resource metadata. Recorded prompt state still makes absence a hard
 error. This follows pinned `FomodConfigurationGate.cs` lines 119–139. Generic
 archive availability validation remains independent.
 
 ## Separate differences and verification boundary
 
-Hard-dependency handling is unchanged: Rust selected ordering rejects an
-unselected required dependency before this gate; the pinned gate expands hard
-dependencies for inspection. This change does not silently select dependencies.
+Hard-dependency handling (updated 2026-10-03, [gate scope](fomod-gate-scope.md)): the
+gate now expands hard dependencies for inspection like the pinned gate and reports
+their FOMOD findings first; Rust's selected ordering still rejects an unselected
+required dependency afterwards. Nothing silently selects dependencies.
 C# configured markers without usable Rust choices still require explicit
 reconfiguration; generated C# instructions are not imported as choices.
 

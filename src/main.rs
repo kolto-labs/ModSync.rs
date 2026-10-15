@@ -299,6 +299,9 @@ enum Action {
         /// Accepted for C# CLI compatibility. Incoming values already win by default.
         #[arg(long)]
         prefer_incoming_fields: bool,
+        /// Reference merge compatibility flag; merging does not resolve dependency order.
+        #[arg(long)]
+        ignore_errors: bool,
         #[arg(long)]
         exclude_existing_only: bool,
         #[arg(long)]
@@ -349,6 +352,9 @@ enum Action {
         /// Mark a component's displayed drafts reviewed (GUID; repeat for multiple components).
         #[arg(long)]
         review_draft: Vec<String>,
+        /// Order around missing InstallBefore/InstallAfter references instead of failing.
+        #[arg(long)]
+        ignore_errors: bool,
         #[command(flatten)]
         processing: ConversionProcessing,
     },
@@ -444,8 +450,9 @@ enum Action {
         /// Honor IsSelected flags; by default select all top-level components.
         #[arg(long)]
         use_file_selection: bool,
-        /// Select component names/GUIDs or category:Name/tier:Name filters (repeat the flag).
-        #[arg(long)]
+        /// Select component names/GUIDs or category:Name/tier:Name filters (repeat the flag
+        /// or list several values after it).
+        #[arg(long, num_args = 1..)]
         select: Vec<String>,
         /// Select option GUIDs and their parent mods (repeat the flag).
         #[arg(long)]
@@ -710,6 +717,9 @@ struct InstallArgs {
     /// Stage and track managed deployment effects within component checkpoints.
     #[arg(long)]
     managed: bool,
+    /// Install without managed deployment, as without --managed (C# CLI spelling).
+    #[arg(long)]
+    no_managed: bool,
     /// Managed staging root; supply together with --manifest-dir.
     #[arg(long, requires_all = ["managed", "manifest_dir"])]
     staging_dir: Option<PathBuf>,
@@ -722,7 +732,8 @@ struct InstallArgs {
     /// Install a Markdown guide in source order after direct-Markdown preflight.
     #[arg(long, conflicts_with_all = ["fomod_choices", "profile", "active_profile", "use_file_selection", "select", "option", "deselect", "deselect_option", "select_through_tier", "add_category", "select_visible_search", "spoiler_free"])]
     direct_markdown: bool,
-    /// Version-1 FOMOD choices JSON; overrides embedded choices for this run.
+    /// Version-1 FOMOD choices JSON for this run, merged per archive: an entry replaces
+    /// that archive's embedded choices and other archives keep theirs. Never saved.
     #[arg(long)]
     fomod_choices: Option<PathBuf>,
     #[arg(long, short, required_unless_present_any = ["profile", "active_profile"])]
@@ -743,8 +754,9 @@ struct InstallArgs {
     /// Honor IsSelected flags; by default select all top-level components.
     #[arg(long)]
     use_file_selection: bool,
-    /// Select component names/GUIDs or category:Name/tier:Name filters (repeat the flag).
-    #[arg(long)]
+    /// Select component names/GUIDs or category:Name/tier:Name filters (repeat the flag
+    /// or list several values after it).
+    #[arg(long, num_args = 1..)]
     select: Vec<String>,
     /// Select option GUIDs and their parent mods (repeat the flag). Existing option selections are retained.
     #[arg(long)]
@@ -846,8 +858,9 @@ struct SelectionArgs {
     /// Honor IsSelected flags; by default select all top-level components.
     #[arg(long)]
     use_file_selection: bool,
-    /// Select component names/GUIDs or category:Name/tier:Name filters (repeat the flag).
-    #[arg(long)]
+    /// Select component names/GUIDs or category:Name/tier:Name filters (repeat the flag
+    /// or list several values after it).
+    #[arg(long, num_args = 1..)]
     select: Vec<String>,
     /// Select option GUIDs and their parent mods (repeat the flag).
     #[arg(long)]
@@ -953,6 +966,25 @@ fn apply_selection(
         outcomes.push(outcome);
     }
     Ok(outcomes)
+}
+
+/// Load the guide for validate, install and conflicts. Without a profile this is the
+/// reference file loader, which selects every component when a non-Markdown file
+/// selects none, so `--use-file-selection` then sees them all, as in C#. A profile
+/// replaces the selection after loading, so its runs keep the authored flags.
+/// Like C#, a non-Markdown guide then takes its dependency resolver's order and is
+/// refused for a bad InstallBefore/InstallAfter reference on any component; the C#
+/// Markdown ingest drops those references, so Markdown is neither reordered nor refused.
+fn load_validation_guide(input: &std::path::Path, profile: bool) -> Result<Guide> {
+    let mut guide = if profile {
+        Guide::load_for_install_preserving_selection(input)?
+    } else {
+        Guide::load_like_file_loader(input)?
+    };
+    if !guide.ordering.markdown {
+        guide.sort_for_install()?;
+    }
+    Ok(guide)
 }
 
 fn require_validation_selection(guide: &Guide, args: &InstallArgs) -> Result<()> {
@@ -1064,7 +1096,7 @@ fn validate_without_roots(
         })
         .context("Supply --input or configure the profile's input path")?;
     conversion_cancelled(cancelled)?;
-    let mut guide = Guide::load_for_install_preserving_selection(&input)?;
+    let mut guide = load_validation_guide(&input, profile.is_some())?;
     if let Some(profile) = profile {
         profile.apply(&mut guide);
     } else if args.select.is_empty() && !args.use_file_selection {
@@ -2216,6 +2248,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             prefer_existing_options,
             prefer_existing_resource_registry,
             prefer_incoming_fields: _,
+            ignore_errors: _,
             exclude_existing_only,
             exclude_incoming_only,
         }) => {
@@ -2225,6 +2258,17 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             let incoming_path = incoming_path
                 .or(incoming)
                 .context("Supply --incoming or an incoming guide path")?;
+            // C# checks both guides before reading either, as File.Exists (not a folder).
+            ensure!(
+                existing_path.is_file(),
+                "Existing file not found: {}",
+                existing_path.display()
+            );
+            ensure!(
+                incoming_path.is_file(),
+                "Incoming file not found: {}",
+                incoming_path.display()
+            );
             let existing = Guide::load(&existing_path)?;
             let mut incoming = Guide::load(&incoming_path)?;
             incoming.components = modsync::merge::components(
@@ -2279,10 +2323,11 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             format,
             parse_directions,
             review_draft,
+            ignore_errors,
             processing,
         }) => {
             let input_file = input_path.or(input);
-            let mut guide = if stdin {
+            let (mut guide, markdown) = if stdin {
                 use std::io::Read;
                 let mut bytes = Vec::new();
                 std::io::stdin()
@@ -2295,14 +2340,21 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                 // The qualified UTF-8 console path retains replacement characters;
                 // file ingestion separately replaces them with underscores.
                 let text = String::from_utf8_lossy(&bytes);
-                Guide::parse(&text, "auto")?
+                (Guide::parse(&text, "auto")?, Guide::markdown_text(&text))
             } else {
-                Guide::load(
-                    input_file
-                        .as_deref()
-                        .context("Use --input <file> or --stdin")?,
-                )?
+                let path = input_file
+                    .as_deref()
+                    .context("Use --input <file> or --stdin")?;
+                ensure!(path.is_file(), "Input file not found: {}", path.display());
+                (Guide::load(path)?, Guide::markdown_input(path)?)
             };
+            // C# convert writes components in its dependency resolver's order. Its Markdown
+            // ingest drops InstallBefore/InstallAfter, so Markdown keeps file order there.
+            if !markdown {
+                for warning in guide.sort_like_dependency_resolver(ignore_errors)? {
+                    eprintln!("{warning}");
+                }
+            }
             if parse_directions {
                 modsync::draft::generate(&mut guide);
             }
@@ -2551,8 +2603,11 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             } else {
                 p2p::stop_signal_flag()?
             };
-            let plan =
-                orchestrator::plan_with_cancel(&execution, &candidates, &plan_options, &cancelled)?;
+            // A Ctrl+C during planning (present-file hashing) exits 130 like one during the run.
+            let plan = finish_acquisition_result(
+                orchestrator::plan_with_cancel(&execution, &candidates, &plan_options, &cancelled),
+                &cancelled,
+            )?;
 
             let loopback_ca = extra_ca_file
                 .as_deref()
@@ -2606,14 +2661,18 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                 mega_api_base,
                 peer,
             };
-            // Execution only: dry-run returned above without network discovery.
-            let plan = orchestrator::discover_with_loopback_ca(
-                &execution,
-                &plan,
-                &plan_options,
-                &run_settings,
+            // Execution only: dry-run returned above without network discovery. A
+            // discovery error after a signal exits 130, as planning and the run do.
+            let plan = finish_acquisition_result(
+                orchestrator::discover_with_loopback_ca(
+                    &execution,
+                    &plan,
+                    &plan_options,
+                    &run_settings,
+                    &cancelled,
+                    loopback_ca.as_ref(),
+                ),
                 &cancelled,
-                loopback_ca.as_ref(),
             )?;
             let stdout = std::sync::Mutex::new(std::io::stdout());
             let report = orchestrator::run_with_source_context(
@@ -2990,6 +3049,14 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                     refused.join(", ")
                 );
                 ensure!(
+                    install || !args.no_managed,
+                    "--no-managed is only supported by install"
+                );
+                ensure!(
+                    !(args.managed && args.no_managed),
+                    "Cannot combine --managed and --no-managed."
+                );
+                ensure!(
                     (!install && !conflicts) || !validation_only_flags(&args),
                     "Validation report/output/full/dry-run/error-filter options are only supported by validate"
                 );
@@ -3016,6 +3083,11 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                 } else {
                     None
                 };
+                // C# `validate` and `install` name a missing guide before anything else
+                // (`CLI/ModBuildConverter.cs:3030-3040`, `:3318-3322`).
+                if let Some(input) = &args.input {
+                    ensure!(input.is_file(), "Input file not found: {}", input.display());
+                }
                 let basic_validation = !install
                     && !conflicts
                     && args.phase == PhaseArg::All
@@ -3132,7 +3204,12 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                         "Direct Markdown mode requires a .md input file"
                     );
                 }
-                let mut guide = Guide::load_for_install_preserving_selection(&paths.input)?;
+                ensure!(
+                    paths.input.is_file(),
+                    "Input file not found: {}",
+                    paths.input.display()
+                );
+                let mut guide = load_validation_guide(&paths.input, profile.is_some())?;
                 if let Some(profile) = &profile {
                     profile.apply(&mut guide);
                 }
@@ -3163,6 +3240,8 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                         patcher_engine == PatcherEngine::OdyPatcher,
                         "Direct Markdown mode requires --patcher-engine ody-patcher"
                     );
+                    // C# installs a direct-Markdown guide in source order (`preserveInputOrder`).
+                    guide.ordering.preserve_input_order = true;
                     let result = modsync::direct_markdown::apply(&mut guide.components);
                     eprintln!(
                         "Direct Markdown NLP: draftedFromProse={}, 4GB Patcher skipped={}, widescreen skipped={}",
@@ -3242,9 +3321,41 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                         },
                     )?;
                 }
-                let mut engine =
-                    Engine::new_with_case_insensitive_pathing(settings, case_insensitive_pathing)?
-                        .with_component_checkpoints(component_checkpoints);
+                let full_report = pipeline_mode
+                    && !install
+                    && !conflicts
+                    && (args.full || args.phase == PhaseArg::Remaining);
+                let report_settings = full_report.then(|| settings.clone());
+                let mut engine = match Engine::new_with_case_insensitive_pathing(
+                    settings,
+                    case_insensitive_pathing,
+                ) {
+                    Ok(engine) => engine,
+                    Err(error) => {
+                        // C#'s Environment stage fails the full report for case
+                        // duplicates in the game folder; show it as that stage.
+                        let completed: &[String] = if args.phase == PhaseArg::Remaining {
+                            &prepared.completed
+                        } else {
+                            &[]
+                        };
+                        let Some(mut report) = report_settings.and_then(|settings| {
+                            Engine::case_collision_report(
+                                &settings,
+                                case_insensitive_pathing,
+                                &error,
+                                &guide,
+                                completed,
+                            )
+                        }) else {
+                            return Err(error);
+                        };
+                        report.input_path = Some(paths.input.to_string_lossy().into_owned());
+                        validation_emitted = true;
+                        return present_validation_report(&report, args.errors_only, report_mode);
+                    }
+                }
+                .with_component_checkpoints(component_checkpoints);
                 if args.managed {
                     let deployment = modsync::deployment::Service::resolve_readonly(
                         &paths.game,

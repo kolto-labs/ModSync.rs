@@ -1,0 +1,44 @@
+[
+  {
+    "label": "Keep telemetry off",
+    "ocr": "Keep telemetry off Allow configured telemetry",
+    "x": 427.75,
+    "y": 477.25
+  },
+  {
+    "label": "Validation / install",
+    "ocr": "Validation / install",
+    "x": 289.25,
+    "y": 32.25
+  },
+  {
+    "label": "Pause sharing to edit",
+    "ocr": "Pause sharing to edit",
+    "x": 69.5,
+    "y": 189.25
+  },
+  {
+    "label": "Run validation",
+    "ocr": "Run validation",
+    "x": 168.0,
+    "y": 402.25
+  },
+  {
+    "label": "Install selected mods",
+    "ocr": "Install selected mods",
+    "x": 281.0,
+    "y": 402.25
+  },
+  {
+    "label": "Next",
+    "ocr": "Next",
+    "x": 1218.5,
+    "y": 690.75
+  },
+  {
+    "label": "Create snapshot and install",
+    "ocr": "Create snapshot and install Cancel",
+    "x": 504.25,
+    "y": 443.25
+  }
+]

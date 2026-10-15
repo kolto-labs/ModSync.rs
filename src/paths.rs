@@ -96,6 +96,37 @@ pub struct Roots {
 
 /// Windows names are rejected on every host so a guide cannot change meaning across platforms.
 pub fn relative(raw: &str, wildcards: bool) -> Result<PathBuf> {
+    let refused: &[char] = if wildcards {
+        &[]
+    } else {
+        &['*', '?', '[', ']']
+    };
+    checked_relative(raw, refused, is_reserved_name)
+}
+
+/// A relative path whose names are taken literally, never as a pattern: an archive
+/// member or a checkpoint tree entry. C# extraction
+/// (`TryGetZipSafeArchiveEntryExtractPath`) writes `[` and `]` as ordinary
+/// characters, so they are allowed here; `*` and `?` stay refused because no
+/// Windows file can carry them.
+pub fn literal_relative(raw: &str) -> Result<PathBuf> {
+    checked_relative(raw, &['*', '?'], is_reserved_name)
+}
+
+/// Reads a path from state Rust wrote earlier (checkpoint stores and history,
+/// maintenance journals and fences) with the device-name rule those writers used
+/// (`legacy_reserved_name`), so state recorded before the wider rule stays readable.
+/// `literal` is `literal_relative`'s character rule, else `relative`'s without wildcards.
+pub(crate) fn stored_relative(raw: &str, literal: bool) -> Result<PathBuf> {
+    let refused: &[char] = if literal {
+        &['*', '?']
+    } else {
+        &['*', '?', '[', ']']
+    };
+    checked_relative(raw, refused, legacy_reserved_name)
+}
+
+fn checked_relative(raw: &str, refused: &[char], reserved: fn(&str) -> bool) -> Result<PathBuf> {
     let text = raw.replace('\\', "/");
     ensure!(!text.starts_with('/'), "Absolute path is forbidden: {raw}");
     let mut path = PathBuf::new();
@@ -107,24 +138,83 @@ pub fn relative(raw: &str, wildcards: bool) -> Result<PathBuf> {
             "Unsafe path: {raw}"
         );
         ensure!(
-            wildcards || !part.contains(['*', '?', '[', ']']),
+            !part.contains(refused),
             "Wildcards are not allowed here: {raw}"
         );
-        let stem = part.split('.').next().unwrap().to_ascii_uppercase();
-        ensure!(
-            !matches!(stem.as_str(), "CON" | "PRN" | "AUX" | "NUL")
-                && !(stem.len() == 4
-                    && (stem.starts_with("COM") || stem.starts_with("LPT"))
-                    && matches!(stem.as_bytes()[3], b'1'..=b'9')),
-            "Reserved filename: {raw}"
-        );
+        ensure!(!reserved(part), "Reserved filename: {raw}");
         path.push(part);
     }
     Ok(path)
 }
 
+/// A Windows device name, with or without an extension: `CON`, `PRN`, `AUX`, `NUL`,
+/// `CONIN$`, `CONOUT$`, and `COM`/`LPT` followed by one digit `0`-`9` or one of the
+/// superscripts `¹`, `²`, `³`, which Windows also treats as device numbers. The stem ends
+/// at the first `.`, and trailing spaces before it are ignored, as Windows does.
+/// C# `PathValidator` refuses the same `COM0`/`LPT0`; a longer stem such as `COM10` or
+/// `com1x` is an ordinary name.
+pub(crate) fn is_reserved_name(part: &str) -> bool {
+    let stem = part
+        .split('.')
+        .next()
+        .unwrap_or_default()
+        .trim_end_matches(' ')
+        .to_ascii_uppercase();
+    let numbered = |prefix| {
+        let mut number = stem.strip_prefix(prefix).unwrap_or_default().chars();
+        matches!(
+            (number.next(), number.next()),
+            (Some('0'..='9' | '\u{b9}' | '\u{b2}' | '\u{b3}'), None)
+        )
+    };
+    matches!(
+        stem.as_str(),
+        "CON" | "PRN" | "AUX" | "NUL" | "CONIN$" | "CONOUT$"
+    ) || numbered("COM")
+        || numbered("LPT")
+}
+
+/// The device-name rule before 2026-10-04: `CON`, `PRN`, `AUX`, `NUL` and
+/// `COM1`-`COM9`/`LPT1`-`LPT9`, the stem ending at the first `.`. Only for reading
+/// stored state (`stored_relative`).
+fn legacy_reserved_name(part: &str) -> bool {
+    let stem = part
+        .split('.')
+        .next()
+        .unwrap_or_default()
+        .to_ascii_uppercase();
+    matches!(stem.as_str(), "CON" | "PRN" | "AUX" | "NUL")
+        || (stem.len() == 4
+            && (stem.starts_with("COM") || stem.starts_with("LPT"))
+            && matches!(stem.as_bytes()[3], b'1'..=b'9'))
+}
+
+/// True for a `<<modDirectory>>` part that names a Peer download staging folder
+/// (`.peer-<nonce>.part`, `download_orchestrator::is_peer_staging`), matched without ASCII
+/// case so a case-insensitive volume cannot reach one either. Scans skip these folders,
+/// so an instruction path into one would write where validation cannot see.
+fn is_peer_staging_part(part: &std::ffi::OsStr) -> bool {
+    part.to_str().is_some_and(|part| {
+        crate::download_orchestrator::is_peer_staging(std::ffi::OsStr::new(
+            &part.to_ascii_lowercase(),
+        ))
+    })
+}
+
 impl Roots {
     pub fn new(mods: &Path, game: &Path) -> Result<Self> {
+        // C# `validate` and `install` check the game folder, then the mod folder, and
+        // name the one that is missing (`CLI/ModBuildConverter.cs:3056-3078`, `:3324-3353`).
+        ensure!(
+            game.is_dir(),
+            "Game directory not found: {}",
+            game.display()
+        );
+        ensure!(
+            mods.is_dir(),
+            "Source directory not found: {}",
+            mods.display()
+        );
         let mods = mods.canonicalize()?;
         let game = game.canonicalize()?;
         ensure!(
@@ -153,15 +243,22 @@ impl Roots {
                     tail.is_empty() || tail.starts_with(['/', '\\']),
                     "Missing separator after {prefix}"
                 );
-                let p = root.join(relative(tail.trim_start_matches(['/', '\\']), wildcards)?);
+                // A bare root (`<<kotorDirectory>>`, `<<kotorDirectory>>/`) is the root
+                // itself, as C# FixPathFormatting trims the trailing separator.
+                // `root.join("")` would add one and miss the root's directory key.
+                let tail = relative(tail.trim_start_matches(['/', '\\']), wildcards)?;
+                ensure!(
+                    prefix != "<<modDirectory>>" || !tail.iter().any(is_peer_staging_part),
+                    "Path is inside a Peer download staging folder: {raw}"
+                );
+                let p = if tail.as_os_str().is_empty() {
+                    root.clone()
+                } else {
+                    root.join(tail)
+                };
                 let mut literal = root.clone();
                 for part in p.strip_prefix(root)?.components() {
-                    if wildcards
-                        && part
-                            .as_os_str()
-                            .to_string_lossy()
-                            .contains(['*', '?', '[', ']'])
-                    {
+                    if wildcards && part.as_os_str().to_string_lossy().contains(['*', '?']) {
                         break;
                     }
                     literal.push(part);
@@ -171,6 +268,12 @@ impl Roots {
             }
         }
         bail!("Path must start with <<modDirectory>> or <<kotorDirectory>>: {raw}")
+    }
+
+    /// Whether `path` is one of the install roots itself. A bare root Source
+    /// (`<<modDirectory>>`) names no file and has no descendants, as in C#.
+    pub fn is_root(&self, path: &Path) -> bool {
+        path == self.mods || path == self.game
     }
 
     pub fn check(&self, path: &Path) -> Result<()> {

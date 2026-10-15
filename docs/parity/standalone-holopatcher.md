@@ -10,8 +10,10 @@ Rust exposes `patcher::standalone::run(&Options, &AtomicBool) -> Result<Output>`
 It reuses `resolve_invocation` and `Invocation::command`, including packaged
 backend integrity revalidation and the existing Python isolated bootstrap.
 `--allow-processes` is mandatory. Native argv and legacy argument text are
-mutually exclusive; Unix legacy text uses the same shlex tokenizer as engine
-process arguments, with no shell expansion or root substitution. Arguments are
+mutually exclusive; Unix legacy text uses POSIX shell-style splitting (`shlex`),
+with no shell expansion or root substitution. Guide Execute/Run Arguments use the
+Windows rules on every host since 2026-10-04
+([execute-arguments-contract.md](execute-arguments-contract.md)). Arguments are
 limited to 256 items and 64 KiB. The optional working directory must exist as an
 ordinary directory. The timeout defaults to one hour and accepts 1–86,400 seconds.
 

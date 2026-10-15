@@ -1,0 +1,160 @@
+{
+ "both_flags": {
+  "exit_zero": false,
+  "message": true,
+  "tree": [
+   [
+    "game/chitin.key",
+    "KEY\n"
+   ],
+   [
+    "mods/a.txt",
+    "a\n"
+   ],
+   [
+    "mods/b.txt",
+    "b\n"
+   ]
+  ]
+ },
+ "control": {
+  "exit_zero": true,
+  "tree": [
+   [
+    "game/Override/a.txt",
+    "a\n"
+   ],
+   [
+    "game/Override/b.txt",
+    "b\n"
+   ],
+   [
+    "game/chitin.key",
+    "KEY\n"
+   ],
+   [
+    "mods/a.txt",
+    "a\n"
+   ],
+   [
+    "mods/b.txt",
+    "b\n"
+   ]
+  ]
+ },
+ "no_managed": {
+  "exit_zero": true,
+  "tree": [
+   [
+    "game/Override/a.txt",
+    "a\n"
+   ],
+   [
+    "game/Override/b.txt",
+    "b\n"
+   ],
+   [
+    "game/chitin.key",
+    "KEY\n"
+   ],
+   [
+    "mods/a.txt",
+    "a\n"
+   ],
+   [
+    "mods/b.txt",
+    "b\n"
+   ]
+  ]
+ },
+ "no_managed_broken": {
+  "exit_zero": false,
+  "tree": [
+   [
+    "game/Override/a.txt",
+    "a\n"
+   ],
+   [
+    "game/chitin.key",
+    "KEY\n"
+   ],
+   [
+    "mods/a.txt",
+    "a\n"
+   ]
+  ]
+ },
+ "no_managed_first": {
+  "exit_zero": true,
+  "tree": [
+   [
+    "game/Override/a.txt",
+    "a\n"
+   ],
+   [
+    "game/Override/b.txt",
+    "b\n"
+   ],
+   [
+    "game/chitin.key",
+    "KEY\n"
+   ],
+   [
+    "mods/a.txt",
+    "a\n"
+   ],
+   [
+    "mods/b.txt",
+    "b\n"
+   ]
+  ]
+ },
+ "rootless_no_managed": {
+  "exit_zero": false
+ },
+ "settings_no_managed": {
+  "exit_zero": true,
+  "tree": [
+   [
+    "game/Override/a.txt",
+    "a\n"
+   ],
+   [
+    "game/Override/b.txt",
+    "b\n"
+   ],
+   [
+    "game/chitin.key",
+    "KEY\n"
+   ],
+   [
+    "mods/a.txt",
+    "a\n"
+   ],
+   [
+    "mods/b.txt",
+    "b\n"
+   ]
+  ]
+ },
+ "settings_only": {
+  "exit_zero": false,
+  "tree": [
+   [
+    "game/chitin.key",
+    "KEY\n"
+   ],
+   [
+    "mods/a.txt",
+    "a\n"
+   ],
+   [
+    "mods/b.txt",
+    "b\n"
+   ]
+  ]
+ },
+ "validate_no_managed": {
+  "exit_zero": false
+ }
+}

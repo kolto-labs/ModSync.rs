@@ -1,0 +1,11 @@
+{
+ "[e]xample.zip|a.tga": [
+  "Copy [<<modDirectory>>/[e]xample/a.tga] -> <<kotorDirectory>>/Override"
+ ],
+ "a.zip|[x]/a.tga": [
+  "Copy [<<modDirectory>>/a/[x]/a.tga] -> <<kotorDirectory>>/Override"
+ ],
+ "a.zip|a.tga": [
+  "Copy [<<modDirectory>>/a/a.tga] -> <<kotorDirectory>>/Override"
+ ]
+}

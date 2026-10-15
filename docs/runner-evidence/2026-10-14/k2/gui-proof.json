@@ -1,0 +1,57 @@
+{
+  "status": "passed",
+  "input": "native mouse clicks",
+  "events": [
+    {
+      "label": "Keep telemetry off",
+      "ocr": "Keep telemetry off Allow configured telemetry",
+      "x": 427.75,
+      "y": 477.25
+    },
+    {
+      "label": "Validation / install",
+      "ocr": "Validation / install",
+      "x": 289.25,
+      "y": 32.25
+    },
+    {
+      "label": "Pause sharing to edit",
+      "ocr": "Pause sharing to edit",
+      "x": 69.5,
+      "y": 189.25
+    },
+    {
+      "label": "Run validation",
+      "ocr": "Run validation",
+      "x": 168.0,
+      "y": 402.25
+    },
+    {
+      "label": "Install selected mods",
+      "ocr": "Install selected mods",
+      "x": 281.0,
+      "y": 402.25
+    },
+    {
+      "label": "Next",
+      "ocr": "Next",
+      "x": 1218.5,
+      "y": 690.75
+    },
+    {
+      "label": "Create snapshot and install",
+      "ocr": "Create snapshot and install Cancel",
+      "x": 504.25,
+      "y": 443.25
+    }
+  ],
+  "error": null,
+  "platform": "linux",
+  "copyrightedAssets": false,
+  "binarySha256": "7d035bbd3ba64e7005df263e8d53670e91a76fc5bd12e8e009210a48bd31b4e3",
+  "guideSha256": "f442bdf574031623ed577609730d887069b9bc8e38e8e2f38ecc43a7e7487d5f",
+  "limitations": [
+    "Synthetic action families only; real mod builds remain unverified",
+    "Hosted desktop permissions must permit real input and screenshots"
+  ]
+}

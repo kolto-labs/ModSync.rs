@@ -158,6 +158,10 @@ impl ErrorReport {
         }
     }
 }
+
+/// A component's archive/destination checks: its warnings, or its errors.
+pub(crate) type ArchiveOutcome = Result<Vec<String>, Vec<String>>;
+
 impl Report {
     /// Aggregate the basic validator's diagnostics as the reference pipeline does:
     /// component errors suppress that component's warnings, and stage errors
@@ -216,10 +220,18 @@ impl Report {
     /// the reference wizard which makes the control available for warnings as
     /// well as errors.
     pub fn first_issue(&self) -> Option<&str> {
+        if let Some(stage) = self.stages.iter().find(|stage| !stage.passed) {
+            // A failed stage can list soft warnings or passed entries before its error.
+            return stage
+                .messages
+                .iter()
+                .find(|message| !message.starts_with("WARNING:") && !message.starts_with("OK:"))
+                .or(stage.messages.first())
+                .map(String::as_str);
+        }
         self.stages
             .iter()
-            .find(|stage| !stage.passed)
-            .or_else(|| self.stages.iter().find(|stage| stage.has_warnings))
+            .find(|stage| stage.has_warnings)
             .and_then(|stage| stage.messages.first().map(String::as_str))
     }
 
@@ -262,47 +274,190 @@ impl Report {
             }
         }
     }
+    /// C#'s Environment stage when a selected component fails its checks: one error
+    /// with C#'s message. C# writes each component's errors only to its log; Rust
+    /// lists them after that message, the Restriction and Dependency errors
+    /// (`relations`, in C#'s log wording) first. `unwritable` is C#'s message for a
+    /// game or mod folder it cannot write to; C#'s component message replaces it.
+    pub(crate) fn environment_components(
+        &mut self,
+        relations: Vec<String>,
+        outcomes: Vec<ArchiveOutcome>,
+        unwritable: Option<&str>,
+    ) -> bool {
+        let mut errors: Vec<_> = outcomes.into_iter().filter_map(Result::err).collect();
+        if !relations.is_empty() {
+            errors.insert(0, relations);
+        }
+        if errors.is_empty() {
+            let Some(unwritable) = unwritable else {
+                return self.push(Stage::Environment, Ok(()));
+            };
+            self.error_count += 1;
+            self.stages.push(StageResult {
+                stage: Stage::Environment,
+                passed: false,
+                has_warnings: false,
+                summary: unwritable.into(),
+                messages: vec![format!("ERROR: {unwritable}")],
+            });
+            return false;
+        }
+        const FAILED: &str = "Some components failed to validate. Check the output/console \
+             window for details.\nIf you are seeing this as an end user you most likely need \
+             to whitelist ModSync and HoloPatcher in your antivirus, or download the missing \
+             mods.";
+        self.error_count += 1;
+        let mut messages = vec![format!("ERROR: {FAILED}")];
+        messages.extend(errors.into_iter().flatten().map(|e| format!("ERROR: {e}")));
+        self.stages.push(StageResult {
+            stage: Stage::Environment,
+            passed: false,
+            has_warnings: false,
+            summary: FAILED.into(),
+            messages,
+        });
+        false
+    }
+    /// C#'s Environment stage when the game folder holds two names that differ only
+    /// in case: one error with C#'s message. C# writes each such name only to its
+    /// log; Rust lists the one it found after that message, in C#'s log wording.
+    pub(crate) fn environment_case_duplicates(&mut self, path: &std::path::Path) -> bool {
+        const DUPLICATES: &str = "You have duplicate files/folders in your installation \
+             directory in a case-insensitive environment.Please resolve these before \
+             continuing. Check the output window for the specific files to resolve.";
+        self.error_count += 1;
+        self.stages.push(StageResult {
+            stage: Stage::Environment,
+            passed: false,
+            has_warnings: false,
+            summary: DUPLICATES.into(),
+            messages: vec![
+                format!("ERROR: {DUPLICATES}"),
+                format!(
+                    "ERROR: {} has a duplicate, please resolve before attempting an install.",
+                    path.display()
+                ),
+            ],
+        });
+        false
+    }
+    /// One outcome per component (see [`ArchiveOutcome`]). As C#
+    /// `RunComponentValidationStage`, a component with errors shows only those, the
+    /// stage counts every error, else every warning, else one pass.
     pub(crate) fn component_validation(
         &mut self,
         components: &[&crate::Component],
-        outcome: Result<Vec<Result<(), String>>, String>,
+        outcome: Result<Vec<ArchiveOutcome>, String>,
     ) {
-        let outcomes = outcome.unwrap_or_else(|error| vec![Err(error)]);
-        let errors = outcomes.iter().filter(|result| result.is_err()).count();
+        let outcomes = outcome.unwrap_or_else(|error| vec![Err(vec![error])]);
+        // One component can report several errors (one per missing archive).
+        let count = |errors: bool| {
+            outcomes
+                .iter()
+                .filter(|result| result.is_err() == errors)
+                .map(|result| result.as_ref().map_or_else(Vec::len, Vec::len))
+                .sum::<usize>()
+        };
+        let (errors, warnings) = (count(true), count(false));
         let passed = errors == 0;
-        if passed {
-            self.passed_count += 1;
-        } else {
+        if !passed {
             self.error_count += errors;
+        } else if warnings > 0 {
+            self.warning_count += warnings;
+        } else {
+            self.passed_count += 1;
         }
         self.stages.push(StageResult {
             stage: Stage::ComponentValidation,
             passed,
-            has_warnings: false,
-            summary: if passed {
-                "All components passed archive validation.".into()
-            } else {
+            has_warnings: warnings > 0,
+            summary: if !passed {
                 format!("{errors} component error(s)")
+            } else if warnings > 0 {
+                format!("{warnings} warning(s)")
+            } else {
+                "All components passed archive validation.".into()
             },
             messages: outcomes
                 .into_iter()
                 .enumerate()
-                .map(|(index, outcome)| {
-                    outcome.map_or_else(
+                .flat_map(|(index, outcome)| {
+                    match outcome {
                         // The engine retains component identity in this diagnostic. Give
                         // shared cards and first-issue navigation its explicit severity.
-                        |error| {
-                            if error.starts_with("ERROR:") {
-                                error
-                            } else {
-                                format!("ERROR: {error}")
-                            }
-                        },
-                        |()| format!("OK: {}", components[index].name),
-                    )
+                        Err(errors) => errors
+                            .into_iter()
+                            .map(|error| {
+                                if error.starts_with("ERROR:") {
+                                    error
+                                } else {
+                                    format!("ERROR: {error}")
+                                }
+                            })
+                            .collect(),
+                        Ok(warnings) if warnings.is_empty() => {
+                            vec![format!("OK: {}", components[index].name)]
+                        }
+                        Ok(warnings) => warnings
+                            .into_iter()
+                            .map(|warning| {
+                                format!("WARNING: {}: {warning}", components[index].name)
+                            })
+                            .collect(),
+                    }
                 })
                 .collect(),
         });
+    }
+    /// The report without a dry run: plain `validate`'s step simulation failed after
+    /// every stage passed. The component stage fails with that error, which replaces
+    /// the failing component's `OK:` or `WARNING:` lines, as C# lists only errors for
+    /// a component with errors (or is added when no component is named).
+    pub(crate) fn simulation_failure(&mut self, component: Option<&str>, error: String) {
+        let message = format!("ERROR: {error}");
+        self.error_count += 1;
+        let Some(stage) = self
+            .stages
+            .iter_mut()
+            .find(|stage| stage.stage == Stage::ComponentValidation)
+        else {
+            self.stages.push(StageResult {
+                stage: Stage::ComponentValidation,
+                passed: false,
+                has_warnings: false,
+                summary: "1 component error(s)".into(),
+                messages: vec![message],
+            });
+            return;
+        };
+        // A passing stage counted one pass, or its warnings; a failing one counts
+        // only its errors. Warning lines are not one per component, so the error
+        // is then added after them.
+        let warnings = stage
+            .messages
+            .iter()
+            .filter(|line| line.starts_with("WARNING:"))
+            .count();
+        if stage.passed && warnings == 0 {
+            self.passed_count = self.passed_count.saturating_sub(1);
+        } else if stage.passed {
+            self.warning_count = self.warning_count.saturating_sub(warnings);
+        }
+        stage.passed = false;
+        stage.summary = "1 component error(s)".into();
+        let at = component.and_then(|name| {
+            let ok = format!("OK: {name}");
+            let warning = format!("WARNING: {name}: ");
+            let own = |line: &String| *line == ok || line.starts_with(&warning);
+            let at = stage.messages.iter().position(own)?;
+            stage.messages.retain(|line| !own(line));
+            Some(at)
+        });
+        match at {
+            Some(at) => stage.messages.insert(at, message),
+            None => stage.messages.push(message),
+        }
     }
     pub(crate) fn install_order(&mut self, outcome: Result<(), String>) {
         let passed = self.push(Stage::InstallOrder, outcome);
@@ -310,16 +465,30 @@ impl Report {
             self.stages.last_mut().unwrap().summary = "Install order is correct.".into();
         }
     }
-    /// Warnings (configured archives without an install route) keep the stage
-    /// passing but are counted and shown, like dry-run warnings.
-    pub(crate) fn fomod_configuration(&mut self, outcome: Result<Vec<String>, String>) {
-        let warnings = match outcome {
-            Ok(warnings) => warnings,
-            Err(error) => {
-                self.push(Stage::FomodConfiguration, Err(error));
-                return;
+    /// Gate warnings are counted and shown. Alone they keep the stage passing,
+    /// like dry-run warnings; with gate errors they are listed before them. Each
+    /// error is one message, in gate order, and counts once in `errorCount`.
+    pub(crate) fn fomod_configuration(&mut self, warnings: Vec<String>, errors: Vec<String>) {
+        let mut errors = errors.into_iter();
+        if let Some(error) = errors.next() {
+            // As in C#, soft warnings stay in a failed stage, before the errors.
+            self.push(Stage::FomodConfiguration, Err(error));
+            let rest: Vec<String> = errors.collect();
+            self.error_count += rest.len();
+            self.stages.last_mut().unwrap().messages.extend(rest);
+            if !warnings.is_empty() {
+                self.warning_count += warnings.len();
+                let stage = self.stages.last_mut().unwrap();
+                stage.has_warnings = true;
+                stage.messages.splice(
+                    0..0,
+                    warnings
+                        .into_iter()
+                        .map(|warning| format!("WARNING: {warning}")),
+                );
             }
-        };
+            return;
+        }
         if warnings.is_empty() {
             self.push(Stage::FomodConfiguration, Ok(()));
             self.stages.last_mut().unwrap().summary =

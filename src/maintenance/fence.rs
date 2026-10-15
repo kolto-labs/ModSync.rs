@@ -136,7 +136,7 @@ fn validate(record: &Record, root: &Path) -> Result<()> {
         platform::validate_identity(identity, &record.capability)?;
     }
     ensure!(
-        crate::paths::relative(&record.subtree, false)?
+        crate::paths::stored_relative(&record.subtree, false)?
             .to_string_lossy()
             .replace('\\', "/")
             == record.subtree,

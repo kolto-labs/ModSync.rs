@@ -1,0 +1,724 @@
+{
+ "all_miss": {
+  "basic/counts": [
+   0,
+   1,
+   2
+  ],
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   1,
+   5
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "install": [
+   false,
+   [
+    [
+     "game/Override/g.tga",
+     "game tga\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/c.txt",
+     "c\n"
+    ],
+    [
+     "mods/m/a.tga",
+     "a tga\n"
+    ],
+    [
+     "mods/m/b.txi",
+     "b txi\n"
+    ],
+    [
+     "mods/p.zip",
+     "<zip>"
+    ]
+   ]
+  ]
+ },
+ "copy_game_sources": {
+  "basic/counts": [
+   0,
+   0,
+   3
+  ],
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/g.tga",
+     "game tga\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/backup/g.tga",
+     "game tga\n"
+    ],
+    [
+     "mods/c.txt",
+     "c\n"
+    ],
+    [
+     "mods/m/a.tga",
+     "a tga\n"
+    ],
+    [
+     "mods/m/b.txi",
+     "b txi\n"
+    ],
+    [
+     "mods/p.zip",
+     "<zip>"
+    ]
+   ]
+  ]
+ },
+ "copy_miss_first": {
+  "basic/counts": [
+   0,
+   0,
+   3
+  ],
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/a.tga",
+     "a tga\n"
+    ],
+    [
+     "game/Override/g.tga",
+     "game tga\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/c.txt",
+     "c\n"
+    ],
+    [
+     "mods/m/a.tga",
+     "a tga\n"
+    ],
+    [
+     "mods/m/b.txi",
+     "b txi\n"
+    ],
+    [
+     "mods/p.zip",
+     "<zip>"
+    ]
+   ]
+  ]
+ },
+ "copy_missing_folder": {
+  "basic/counts": [
+   0,
+   0,
+   3
+  ],
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/a.tga",
+     "a tga\n"
+    ],
+    [
+     "game/Override/g.tga",
+     "game tga\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/c.txt",
+     "c\n"
+    ],
+    [
+     "mods/m/a.tga",
+     "a tga\n"
+    ],
+    [
+     "mods/m/b.txi",
+     "b txi\n"
+    ],
+    [
+     "mods/p.zip",
+     "<zip>"
+    ]
+   ]
+  ]
+ },
+ "copy_two_of_three": {
+  "basic/counts": [
+   0,
+   0,
+   3
+  ],
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/a.tga",
+     "a tga\n"
+    ],
+    [
+     "game/Override/b.txi",
+     "b txi\n"
+    ],
+    [
+     "game/Override/g.tga",
+     "game tga\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/c.txt",
+     "c\n"
+    ],
+    [
+     "mods/m/a.tga",
+     "a tga\n"
+    ],
+    [
+     "mods/m/b.txi",
+     "b txi\n"
+    ],
+    [
+     "mods/p.zip",
+     "<zip>"
+    ]
+   ]
+  ]
+ },
+ "extract_wildcard_miss": {
+  "basic/counts": [
+   0,
+   0,
+   3
+  ],
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/g.tga",
+     "game tga\n"
+    ],
+    [
+     "game/Override/x.tga",
+     "x tga\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/c.txt",
+     "c\n"
+    ],
+    [
+     "mods/m/a.tga",
+     "a tga\n"
+    ],
+    [
+     "mods/m/b.txi",
+     "b txi\n"
+    ],
+    [
+     "mods/p.zip",
+     "<zip>"
+    ]
+   ]
+  ]
+ },
+ "extracted_other_component": {
+  "basic/counts": [
+   0,
+   0,
+   3
+  ],
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/g.tga",
+     "game tga\n"
+    ],
+    [
+     "game/Override/x.tga",
+     "x tga\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/c.txt",
+     "c\n"
+    ],
+    [
+     "mods/m/a.tga",
+     "a tga\n"
+    ],
+    [
+     "mods/m/b.txi",
+     "b txi\n"
+    ],
+    [
+     "mods/p.zip",
+     "<zip>"
+    ]
+   ]
+  ]
+ },
+ "extracted_same_component": {
+  "basic/counts": [
+   2,
+   0,
+   2
+  ],
+  "basic/decision": [
+   false,
+   false
+  ],
+  "full_dry/counts": [
+   1,
+   0,
+   0
+  ],
+  "full_dry/decision": [
+   false,
+   false
+  ],
+  "install": [
+   false,
+   [
+    [
+     "game/Override/g.tga",
+     "game tga\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/c.txt",
+     "c\n"
+    ],
+    [
+     "mods/m/a.tga",
+     "a tga\n"
+    ],
+    [
+     "mods/m/b.txi",
+     "b txi\n"
+    ],
+    [
+     "mods/p.zip",
+     "<zip>"
+    ]
+   ]
+  ]
+ },
+ "literal_miss": {
+  "basic/counts": [
+   0,
+   0,
+   3
+  ],
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/a.tga",
+     "a tga\n"
+    ],
+    [
+     "game/Override/g.tga",
+     "game tga\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/c.txt",
+     "c\n"
+    ],
+    [
+     "mods/m/a.tga",
+     "a tga\n"
+    ],
+    [
+     "mods/m/b.txi",
+     "b txi\n"
+    ],
+    [
+     "mods/p.zip",
+     "<zip>"
+    ]
+   ]
+  ]
+ },
+ "move_one_miss": {
+  "basic/counts": [
+   0,
+   0,
+   3
+  ],
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/a.tga",
+     "a tga\n"
+    ],
+    [
+     "game/Override/g.tga",
+     "game tga\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/c.txt",
+     "c\n"
+    ],
+    [
+     "mods/m/b.txi",
+     "b txi\n"
+    ],
+    [
+     "mods/p.zip",
+     "<zip>"
+    ]
+   ]
+  ]
+ },
+ "next_component": {
+  "basic/counts": [
+   0,
+   0,
+   3
+  ],
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/a.tga",
+     "a tga\n"
+    ],
+    [
+     "game/Override/c.txt",
+     "c\n"
+    ],
+    [
+     "game/Override/g.tga",
+     "game tga\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/c.txt",
+     "c\n"
+    ],
+    [
+     "mods/m/b.txi",
+     "b txi\n"
+    ],
+    [
+     "mods/p.zip",
+     "<zip>"
+    ]
+   ]
+  ]
+ },
+ "option_move": {
+  "basic/counts": [
+   0,
+   0,
+   3
+  ],
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/a.tga",
+     "a tga\n"
+    ],
+    [
+     "game/Override/g.tga",
+     "game tga\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/c.txt",
+     "c\n"
+    ],
+    [
+     "mods/m/b.txi",
+     "b txi\n"
+    ],
+    [
+     "mods/p.zip",
+     "<zip>"
+    ]
+   ]
+  ]
+ },
+ "rename_literal_miss": {
+  "basic/counts": [
+   0,
+   1,
+   2
+  ],
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   1,
+   5
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "install": [
+   false,
+   [
+    [
+     "game/Override/g.tga",
+     "game tga\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/c.txt",
+     "c\n"
+    ],
+    [
+     "mods/m/b.txi",
+     "b txi\n"
+    ],
+    [
+     "mods/m/z.tga",
+     "a tga\n"
+    ],
+    [
+     "mods/p.zip",
+     "<zip>"
+    ]
+   ]
+  ]
+ },
+ "rename_wildcard_miss": {
+  "basic/counts": [
+   0,
+   0,
+   3
+  ],
+  "basic/decision": [
+   true,
+   true
+  ],
+  "full_dry/counts": [
+   0,
+   0,
+   6
+  ],
+  "full_dry/decision": [
+   true,
+   true
+  ],
+  "install": [
+   true,
+   [
+    [
+     "game/Override/g.tga",
+     "game tga\n"
+    ],
+    [
+     "game/chitin.key",
+     "KEY\n"
+    ],
+    [
+     "mods/c.txt",
+     "c\n"
+    ],
+    [
+     "mods/m/b.txi",
+     "b txi\n"
+    ],
+    [
+     "mods/m/z.tga",
+     "a tga\n"
+    ],
+    [
+     "mods/p.zip",
+     "<zip>"
+    ]
+   ]
+  ]
+ }
+}

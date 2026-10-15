@@ -1,0 +1,71 @@
+{
+ "convert_dir": {
+  "exit": false,
+  "message": "Input file not found: adir",
+  "written": []
+ },
+ "convert_missing": {
+  "exit": false,
+  "message": "Input file not found: nope.toml",
+  "written": []
+ },
+ "convert_missing_json": {
+  "exit": false,
+  "message": "Input file not found: nope.toml",
+  "written": []
+ },
+ "convert_missing_out": {
+  "exit": false,
+  "message": "Input file not found: nope.toml",
+  "written": []
+ },
+ "convert_ok": {
+  "exit": true,
+  "message": null,
+  "written": [
+   "out.toml"
+  ]
+ },
+ "legacy_existing_missing": {
+  "exit": false,
+  "message": "Existing file not found: nope.toml",
+  "written": []
+ },
+ "legacy_incoming_missing": {
+  "exit": false,
+  "message": "Incoming file not found: nope.toml",
+  "written": []
+ },
+ "merge_both_missing": {
+  "exit": false,
+  "message": "Existing file not found: nope.toml",
+  "written": []
+ },
+ "merge_existing_dir": {
+  "exit": false,
+  "message": "Existing file not found: adir",
+  "written": []
+ },
+ "merge_existing_missing": {
+  "exit": false,
+  "message": "Existing file not found: nope.toml",
+  "written": []
+ },
+ "merge_incoming_dir": {
+  "exit": false,
+  "message": "Incoming file not found: adir",
+  "written": []
+ },
+ "merge_incoming_missing": {
+  "exit": false,
+  "message": "Incoming file not found: nope.toml",
+  "written": []
+ },
+ "merge_ok": {
+  "exit": true,
+  "message": null,
+  "written": [
+   "out.toml"
+  ]
+ }
+}

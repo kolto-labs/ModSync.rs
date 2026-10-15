@@ -553,3 +553,12 @@ expectation updates, and no shared-destination contract changed:
   `different_no_follower_metadata`: a different-URL follower gets no lookup.
 - **DeadlyStream is automated.** `same_manual` now uses a GameFront URL, which is
   still manual-only, to exercise a shared manual outcome.
+
+## 2026-10-03 download residuals
+
+The out-of-scope notes in section (c) are superseded. A known name that finds its name
+taken, before its transfer or at the no-clobber move, now adopts or refuses through
+`DestinationExists`. An unnamed Nexus target whose API-revealed name is present
+transfers and then adopts or refuses. See
+[download-residuals-proof](../download-residuals-proof/README.md). This probe still
+passes 382/382 with that change.
