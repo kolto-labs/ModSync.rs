@@ -9,6 +9,7 @@ pub mod review;
 pub const REVIEW_FLAG: &str = "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.";
 const MODS: &str = "<<modDirectory>>";
 const GAME: &str = "<<kotorDirectory>>";
+pub(crate) const METHOD_UNRESOLVED: &str = "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults.";
 
 pub fn requires_review(component: &Component) -> bool {
     if let Some(review) = component.metadata.get("DraftReview") {
@@ -367,10 +368,7 @@ pub fn generate(guide: &mut Guide) -> Vec<DraftResult> {
             rejected_drafts: 0,
         };
         if let Some(context) = &method_context {
-            result.unparsed_gaps.push(
-                "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
-                    .into(),
-            );
+            result.unparsed_gaps.push(METHOD_UNRESOLVED.into());
             if context["Kind"] == "Unsupported" {
                 result.unparsed_gaps.push(
                     "Installation method is unsupported, mixed, or exceeds 256 characters; explicit archive-aware interpretation is required."
@@ -446,7 +444,7 @@ pub fn generate(guide: &mut Guide) -> Vec<DraftResult> {
     results
 }
 
-fn guide_defaults(guide: &Guide) -> serde_json::Value {
+pub(crate) fn guide_defaults(guide: &Guide) -> serde_json::Value {
     let preamble = guide
         .metadata
         .get("preambleContent")

@@ -3,9 +3,11 @@ use crate::{Component, Guide, archive, draft};
 use anyhow::{Context, Result, ensure};
 use serde::Serialize;
 use serde_json::json;
+use sha2::{Digest, Sha256};
 use std::{
     collections::BTreeMap,
     fs,
+    io::{Read, Write},
     path::{Path, PathBuf},
     sync::atomic::{AtomicBool, Ordering},
 };
@@ -212,6 +214,221 @@ fn merge_inferred(
     }
     Ok(added)
 }
+
+fn documentation(basename: &str) -> bool {
+    let Some((stem, extension)) = basename.rsplit_once('.') else {
+        return false;
+    };
+    matches!(
+        stem.to_ascii_lowercase().as_str(),
+        "readme" | "read me" | "read_me" | "read-me" | "license" | "licence"
+    ) && matches!(
+        extension.to_ascii_lowercase().as_str(),
+        "txt" | "md" | "rtf" | "pdf"
+    )
+}
+
+fn bind_loose_method(
+    component: &mut Component,
+    filename: &str,
+    root: Option<&Path>,
+    defaults: &serde_json::Value,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+) -> Result<()> {
+    ensure!(
+        defaults["LooseFilesDestination"] == "<<kotorDirectory>>\\Override",
+        "Current guide preamble does not establish the loose-file Override default"
+    );
+    ensure!(
+        !filename.is_empty()
+            && filename.len() <= 255
+            && !filename.contains(['/', '\\', '*', '?'])
+            && !filename.chars().any(char::is_control)
+            && crate::paths::relative(filename, false)?
+                .components()
+                .count()
+                == 1
+            && !matches!(filename, "." | ".."),
+        "Method archive must have a safe literal basename"
+    );
+    let name = Path::new(filename);
+    ensure!(
+        matches!(
+            name.extension()
+                .and_then(|value| value.to_str())
+                .map(str::to_ascii_lowercase)
+                .as_deref(),
+            Some("zip" | "7z" | "rar")
+        ),
+        "Method binding currently requires a ZIP, 7z, or RAR archive"
+    );
+    let path = root
+        .context("Method binding requires a local archive root")?
+        .join(filename);
+    ordinary(&path, false)?;
+    let mut input = crate::paths::open_regular_read(&path)?;
+    let limit = 256 * 1024 * 1024;
+    ensure!(
+        input.metadata()?.len() <= limit,
+        "Method archive exceeds 256 MiB"
+    );
+    let mut builder = tempfile::Builder::new();
+    builder.prefix("modsync-method-");
+    let mut snapshot = match &options.scratch_dir {
+        Some(directory) => builder.tempfile_in(directory)?,
+        None => builder.tempfile()?,
+    };
+    let mut hash = Sha256::new();
+    let mut bytes = 0u64;
+    let mut buffer = [0u8; 64 * 1024];
+    loop {
+        check(cancelled)?;
+        let count = input.read(&mut buffer)?;
+        if count == 0 {
+            break;
+        }
+        bytes += count as u64;
+        ensure!(bytes <= limit, "Method archive exceeds 256 MiB");
+        hash.update(&buffer[..count]);
+        snapshot.write_all(&buffer[..count])?;
+    }
+    snapshot.flush()?;
+    let observed_options = archive::Options {
+        scratch_dir: options.scratch_dir.clone(),
+        max_expanded_bytes: Some(
+            options
+                .max_expanded_bytes
+                .unwrap_or(u64::MAX)
+                .min(1024 * 1024 * 1024),
+        ),
+    };
+    let (entries, _) =
+        archive::list_original_with_size(snapshot.path(), name, &observed_options, cancelled)?;
+    ensure!(
+        !entries.is_empty() && entries.len() <= 4096,
+        "Method archive must contain 1 to 4096 entries"
+    );
+    let mut payload = Vec::new();
+    let mut excluded_documentation = Vec::new();
+    let mut wrapper = None;
+    for entry in entries.iter().filter(|entry| !entry.is_directory) {
+        check(cancelled)?;
+        ensure!(
+            !entry.path.contains(['*', '?']),
+            "Method archive contains a wildcard filename"
+        );
+        let (parent, basename) = entry.path.rsplit_once('/').unwrap_or(("", &entry.path));
+        ensure!(
+            !parent.contains('/'),
+            "Method archive contains nested payload or variants"
+        );
+        if documentation(basename) {
+            excluded_documentation.push(entry.path.clone());
+            continue;
+        }
+        ensure!(
+            super::game_file(&entry.path),
+            "Method archive has an unclassified file; no contents may be silently omitted"
+        );
+        ensure!(
+            !matches!(
+                basename
+                    .rsplit('.')
+                    .next()
+                    .unwrap_or("")
+                    .to_ascii_lowercase()
+                    .as_str(),
+                "are" | "bik" | "erf" | "git" | "ifo" | "mod" | "rim" | "tlk" | "wav" | "lip"
+            ),
+            "Method archive contains a resource whose Override destination is not established"
+        );
+        if let Some(previous) = wrapper {
+            ensure!(
+                previous == parent,
+                "Method archive has multiple payload roots or variants"
+            );
+        } else {
+            wrapper = Some(parent);
+        }
+        payload.push(entry.path.clone());
+    }
+    let wrapper = wrapper.context("Method archive has no recognized loose-file payload")?;
+    ensure!(
+        excluded_documentation.iter().all(|path| {
+            let parent = path.rsplit_once('/').map_or("", |(parent, _)| parent);
+            parent.is_empty() || parent == wrapper
+        }),
+        "Method documentation must be at the archive root or shared payload wrapper"
+    );
+    ensure!(
+        entries
+            .iter()
+            .filter(|entry| entry.is_directory)
+            .all(|entry| !wrapper.is_empty() && entry.path.trim_end_matches('/') == wrapper),
+        "Method archive has additional directories or variants"
+    );
+    payload.sort();
+    excluded_documentation.sort();
+    let stem = name
+        .file_stem()
+        .and_then(|value| value.to_str())
+        .context("Invalid method archive stem")?;
+    let sources: Vec<_> = payload
+        .iter()
+        .map(|member| format!("<<modDirectory>>\\{stem}\\{}", member.replace('/', "\\")))
+        .collect();
+    ensure!(
+        sources.iter().map(String::len).sum::<usize>() <= 1024 * 1024,
+        "Method source inventory exceeds one MiB"
+    );
+    let mut bound = component.clone();
+    bound.instructions = vec![
+        super::instruction(
+            "Extract",
+            vec![format!("<<modDirectory>>\\{filename}")],
+            "",
+            "",
+        ),
+        super::instruction("Move", sources, "<<kotorDirectory>>\\Override", ""),
+    ];
+    bound.metadata.insert(
+        "ArchiveMethodBinding".into(),
+        json!({
+            "Filename": filename,
+            "Sha256": format!("{:x}", hash.finalize()),
+            "Bytes": bytes,
+            "Members": payload,
+            "ExcludedDocumentation": excluded_documentation,
+            "Method": component.metadata.get("InstallationMethod"),
+            "GuideDefaults": defaults,
+        }),
+    );
+    review(&mut bound, &[])?;
+    let record = bound
+        .metadata
+        .get_mut("DraftReview")
+        .context("Missing bound method review")?;
+    let mut result: draft::DraftResult = serde_json::from_value(record["Result"].clone())?;
+    result
+        .unparsed_gaps
+        .retain(|gap| gap != draft::METHOD_UNRESOLVED);
+    record["Result"] = serde_json::to_value(result)?;
+    record["MethodContext"] = json!({
+        "Method": component.metadata.get("InstallationMethod"),
+        "Kind": "LooseFile",
+        "GuideDefaults": defaults,
+        "ExplicitDirectionsTakePrecedence": true,
+        "ArchiveBinding": "Bound",
+    });
+    ensure!(
+        serde_json::to_vec(record)?.len() <= 1024 * 1024,
+        "Method review exceeds one MiB"
+    );
+    check(cancelled)?;
+    *component = bound;
+    Ok(())
+}
 /// Append safe inferred drafts atomically. The caller supplies authoritative
 /// component bindings; unsupported names remain explicit review diagnostics.
 pub fn generate(
@@ -240,6 +457,7 @@ pub fn generate(
             Ok((count, bytes))
         })?;
     let root = root.map(local_root).transpose()?;
+    let defaults = draft::guide_defaults(guide);
     let mut candidate = guide.clone();
     let mut reports = Vec::new();
     let mut seen = BTreeMap::new();
@@ -263,6 +481,66 @@ pub fn generate(
             instructions_added: 0,
             diagnostics: Vec::new(),
         };
+        let method = component
+            .metadata
+            .get("InstallationMethod")
+            .and_then(|value| value.as_str())
+            .map(str::trim)
+            .filter(|value| !value.is_empty());
+        if method.is_some()
+            || component
+                .metadata
+                .get("DraftReview")
+                .is_some_and(|record| record.get("MethodContext").is_some())
+        {
+            let eligible = method.is_some_and(|method| {
+                method.eq_ignore_ascii_case("Loose-File")
+                    || method.eq_ignore_ascii_case("Loose-File Mod")
+            }) && component.directions.trim().is_empty()
+                && component.instructions.is_empty()
+                && component.options.is_empty()
+                && !["DownloadInstructions", "InstallationWarning"]
+                    .iter()
+                    .any(|key| {
+                        component
+                            .metadata
+                            .get(*key)
+                            .and_then(|value| value.as_str())
+                            .is_some_and(|text| {
+                                !text.replace(draft::REVIEW_FLAG, "").trim().is_empty()
+                            })
+                    });
+            if !eligible {
+                report.diagnostics.push("Method binding requires a method-only LooseFile component without instructions, choices, or additional installation/download guidance; component unchanged.".into());
+            } else if group.filenames.len() != 1
+                || resolved
+                    .iter()
+                    .filter(|other| other.component_guid == group.component_guid)
+                    .count()
+                    != 1
+            {
+                report.diagnostics.push("Method binding requires exactly one archive in one resolved component group; component unchanged.".into());
+            } else {
+                match bind_loose_method(
+                    component,
+                    &group.filenames[0],
+                    root.as_deref(),
+                    &defaults,
+                    options,
+                    cancelled,
+                ) {
+                    Ok(()) => report.instructions_added = 2,
+                    Err(error) => {
+                        check(cancelled)?;
+                        report
+                            .diagnostics
+                            .push(format!("Loose-file method remains unresolved: {error:#}"));
+                    }
+                }
+            }
+            reports.push(report);
+            continue;
+        }
         for filename in &group.filenames {
             check(cancelled)?;
             ensure!(

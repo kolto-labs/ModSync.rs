@@ -495,6 +495,45 @@ while their diagnostics remain unresolved. Archive-bound generation and merging
 are follow-up work; this slice does not establish installation-method support or
 full-build parity. No Rust tests or harnesses were created or run for this slice.
 
+Archive-bound method-only loose files (2026-10-15): resolved-filename generation
+now uses the current `InstallationMethod` and current preamble default, rather
+than saved method hints. Only `Loose-File`/`Loose-File Mod` with empty directions,
+instructions and options, no additional installation/download guidance, and one
+resolved local ZIP/7z/RAR archive qualify. Every file must be a recognized
+Override resource in one flat payload or one shared wrapper directory, apart
+from narrowly recognized documentation. Documentation basenames must be exactly
+`readme`, `read me`, `read_me`, `read-me`, `license`, or `licence`, with `.txt`,
+`.md`, `.rtf`, or `.pdf` extensions (ASCII case-insensitive), located at the
+archive root or shared payload wrapper. Every excluded document is recorded in
+`ArchiveMethodBinding.ExcludedDocumentation` and covered by the archive hash and
+review identity. Other documents, screenshots, unknown files,
+destination-sensitive resources, additional directories and variants block the
+entire binding; nothing is silently omitted.
+Other methods and partial prose retain their components and unresolved reports.
+
+Observation uses a private archive snapshot (at most 256 MiB compressed, 1 GiB
+expanded or the caller's smaller limit, 4096 entries). Successful drafts contain
+exactly `Extract` followed by `Move` with explicit observed member sources and the
+proven Override destination. `ArchiveMethodBinding` stores filename, SHA-256,
+byte count, members, actual method and current defaults outside `DraftReview`,
+so explicit review identity includes the binding. Prior acceptance is invalidated;
+`RequiresReview` remains true. Only the exact generic method-unresolved gap is
+removed after successful observation; all other diagnostics remain. This records
+the observed archive identity; it does not add an engine-time archive hash check.
+Repeated generation leaves existing actions unchanged. Patcher, mixed-method,
+partial-prose and general archive integration remain unsupported by this slice.
+No Rust tests or harnesses were created or run.
+
+Production reachability remains limited: CLI `convert --auto` resolves filenames
+for every guide resource and rejects any discovery diagnostic before invoking the
+resolved binder. `--auto-generate-local` uses the older local inference path.
+The editor's single-archive path constructs a component-only guide without the
+canonical preamble, so it cannot establish the binder's required guide default.
+Full-guide, offline, explicit component/archive binding needs a separate production
+input surface; compilation does not demonstrate a real archive binding through
+these frontends. No component filtering, fabricated guide, or review bypass is
+used as substitute evidence.
+
 `src/draft.rs` ports the reference's 56 ordered instruction patterns, sentence/conditional splitting, source/destination inference, exclusions, cleanlist handling, download recommendations and sandbox normalization. Existing authored instructions remain untouched. Desktop file-open and CLI install/validate automatically draft Markdown, while `convert --parse-directions` opts in for conversion. Draft diagnostics and the reference review warning persist in the component; the desktop displays steps and notes, and `convert --review-draft <GUID>` or the desktop review button records explicit acceptance. Gaps, conditional clauses or rejected drafts prevent acceptance. The engine still checks real paths and external-program permissions after review.
 
 `tools/check_drafts.py` compares the pinned C# service's raw objects rather than relying on lossy C# JSON export. It assigns the input's prose fields directly because the legacy JSON loader drops some installation warnings. Across 19 focused cases and four desktop guide component sets (669 component records), instructions, option names/descriptions/selections, warnings, gaps and conditional notes matched with zero differences. The corpus inputs are parsed component JSON, so this proves the draft stage, not complete C# Markdown ingestion or installation. Source/input hashes and scope are in `docs/parity/draft-check.json`. Since 2026-10-04 a drafted Rename deliberately differs (see "Drafted Renames" below).
