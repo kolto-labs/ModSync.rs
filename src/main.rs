@@ -420,6 +420,17 @@ enum Action {
         #[command(flatten)]
         proxy: TorrentProxyArgs,
     },
+    /// Verify a local archive against an authored magnet and optional TorrentInfo without networking.
+    TorrentInspect {
+        archive: PathBuf,
+        magnet: String,
+        #[arg(long)]
+        sha256: Option<String>,
+        #[arg(long)]
+        torrent_info: Option<String>,
+        #[arg(long)]
+        max_expanded_bytes: Option<u64>,
+    },
     /// Download a JSON array of direct HTTPS jobs with bounded concurrency and retries.
     DownloadBatch {
         input: PathBuf,
@@ -2999,6 +3010,30 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             torrent_info.as_deref(),
             &proxy.into(),
         ),
+        Some(Action::TorrentInspect {
+            archive,
+            magnet,
+            sha256,
+            torrent_info,
+            max_expanded_bytes,
+        }) => {
+            let inspection = modsync::p2p::inspect(
+                &archive,
+                &magnet,
+                sha256.as_deref(),
+                torrent_info.as_deref(),
+                &modsync::archive::Options {
+                    max_expanded_bytes,
+                    ..Default::default()
+                },
+            )?;
+            println!("{}", serde_json::to_string_pretty(&inspection)?);
+            ensure!(
+                inspection.matches_content_hash,
+                "Archive does not match the authored ContentHashSHA256"
+            );
+            Ok(())
+        }
         Some(Action::DownloadBatch {
             input,
             source_dir,

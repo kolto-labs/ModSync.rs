@@ -1,6 +1,6 @@
 # Peer-assisted mod acquisition plan
 
-Status: design only. Nothing in this plan is implemented. Revised 2026-09-27 for the user's default-on direction, lead rulings (a)–(f), and the user's no-external-dependency override (transport: librqbit SOCKS5). It was written read-only against `codex/rust-port` at `cd8f0b07d994f2833e57327118c9919ecf3da58d`. The pinned C# oracle is `d31ccbd3bfcddb4705917eafa6483715c166de3b`, and C# master has no P2P. This is a Wizard-authored feature, not a parity item. It depends on the shared acquisition pipeline owned by the download-orchestration slice (`docs/parity/download-orchestration-plan.md`, being written by that slice). The interface in the "Agreed acquisition-source interface" section below was negotiated with that slice and has converged.
+Status: implemented in Rust; TypeScript has no equivalent P2P transport yet. Revised 2026-10-15 to record the verified content-identity boundary. The transport and authored-resource flow are implemented in `src/p2p.rs`, `src/peer_acquire.rs`, and `src/peer_sharing.rs`; this document remains the design authority for their safety rules. The pinned C# oracle is `d31ccbd3bfcddb4705917eafa6483715c166de3b`, and C# master has no P2P. This is a Wizard-authored feature, not a parity item.
 
 ## Product source and how it was read
 

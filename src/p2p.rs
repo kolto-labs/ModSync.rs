@@ -27,6 +27,70 @@ pub struct SeedInfo {
     pub torrent_info: Option<String>,
 }
 
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TorrentInspection {
+    pub sha256: String,
+    pub expected_sha256: Option<String>,
+    pub info_hash: String,
+    pub name: Option<String>,
+    pub torrent_info_valid: bool,
+    pub torrent_length: Option<u64>,
+    pub matches_content_hash: bool,
+}
+
+/// Verify a local archive against an already-authored torrent identity.
+///
+/// This is deliberately offline: a SHA-256 cannot be used to search the
+/// BitTorrent network, and accepting a peer-discovered mapping would let an
+/// untrusted swarm authorize its own bytes. Guides authorize the mapping with
+/// Magnet, ContentHashSHA256, and optionally TorrentInfo.
+pub fn inspect(
+    archive: &Path,
+    magnet: &str,
+    expected_sha256: Option<&str>,
+    torrent_info: Option<&str>,
+    options: &crate::archive::Options,
+) -> Result<TorrentInspection> {
+    ensure!(archive.is_file(), "Inspect archive does not exist");
+    crate::archive::verify(archive, archive, options, &AtomicBool::new(false))?;
+    let sha256 = file_sha256(archive)?;
+    let magnet = sanitize_magnet(magnet, &[])?;
+    let expected = expected_sha256.map(str::to_ascii_lowercase);
+    if let Some(expected) = &expected {
+        ensure!(
+            expected.len() == 64 && expected.bytes().all(|b| b.is_ascii_hexdigit()),
+            "Expected SHA-256 must be 64 hexadecimal characters"
+        );
+    }
+    let checked = torrent_info
+        .map(base64_decode)
+        .transpose()?
+        .map(|info| check_torrent_info(&info, &magnet.info_hash))
+        .transpose()?;
+    let matches_content_hash = expected
+        .as_deref()
+        .is_none_or(|expected| expected.eq_ignore_ascii_case(&sha256));
+    if let Some(checked) = &checked {
+        ensure!(
+            checked.length == std::fs::metadata(archive)?.len(),
+            "TorrentInfo length does not match the archive"
+        );
+    }
+    Ok(TorrentInspection {
+        sha256,
+        expected_sha256: expected,
+        info_hash: magnet.info_hash,
+        name: checked
+            .as_ref()
+            .map(|checked| checked.name.clone())
+            .or(magnet.name),
+        torrent_info_valid: checked.is_some(),
+        torrent_length: checked.map(|checked| checked.length),
+        matches_content_hash,
+    })
+}
+
 /// Validate an authored archive, announce it to the swarm, and seed until Ctrl+C.
 pub fn seed(archive: &Path, trackers: Vec<String>) -> Result<SeedInfo> {
     ensure!(archive.is_file(), "Seed archive does not exist");
