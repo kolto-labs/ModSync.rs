@@ -2725,6 +2725,19 @@ impl Engine {
         Ok(path)
     }
 
+    /// A Source that binds one literal file or folder, as a Patcher does: `[` and `]`
+    /// are ordinary characters, `*` and `?` are refused.
+    pub(super) fn literal_source_path(&self, raw: &str) -> Result<PathBuf> {
+        let path = self.settings.roots.resolve_literal(raw)?;
+        let root = [&self.settings.roots.mods, &self.settings.roots.game]
+            .into_iter()
+            .find(|root| path.starts_with(root))
+            .context("Path outside install roots")?;
+        self.path_policy
+            .check_spelling(root, &path, &self.settings.cancelled)?;
+        Ok(path)
+    }
+
     fn matches(&self, sources: &[String], missing_ok: bool) -> Result<Vec<PathBuf>> {
         self.matches_scoped(sources, missing_ok, true)
     }

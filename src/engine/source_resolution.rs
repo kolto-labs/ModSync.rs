@@ -131,7 +131,7 @@ impl Engine {
                 instruction.source.len() == 1,
                 "Patcher needs exactly one source to bind its configuration and logs"
             );
-            let path = self.actual(&self.path(&instruction.source[0], false)?);
+            let path = self.actual(&self.literal_source_path(&instruction.source[0])?);
             let key = self.path_policy.key(&path);
             if self.files.contains_key(&key) || self.directories.contains_key(&key) {
                 Ok(vec![path])
@@ -221,10 +221,10 @@ impl Engine {
                 instruction.source.len() == 1,
                 "Patcher needs exactly one source binding"
             );
-            // `[`/`]` are literal Source characters, but a literal path still may
-            // not contain them (`paths::relative`), so they stay refused here.
+            // `[`/`]` are literal Source characters and bind as such; `*`/`?`
+            // would be wildcards, which a single binding cannot be.
             ensure!(
-                !instruction.source[0].contains(['*', '?', '[', ']']),
+                !instruction.source[0].contains(['*', '?']),
                 "Patcher source must bind one literal file or directory"
             );
             if self.install {

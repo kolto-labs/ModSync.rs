@@ -535,6 +535,34 @@ fn bracketed_archive_name_installs_literally_and_never_as_a_character_class() {
 }
 
 #[test]
+fn bracketed_patcher_folder_generates_a_literal_patcher_source() {
+    let dir = tempfile::tempdir().unwrap();
+    let mods = dir.path().join("mods");
+    fs::create_dir(&mods).unwrap();
+    zip(
+        &mods.join("pack.zip"),
+        &json!({
+            "[Example] Texture Pack A/tslpatchdata/changes.ini":"[Settings]",
+            "[Example] Texture Pack A/Setup.exe":"x"
+        }),
+    );
+    let mut guide = Guide::parse(
+        r#"[{"Guid":"example","Name":"Sample","ResourceRegistry":{"pack.zip":{}}}]"#,
+        "json",
+    )
+    .unwrap();
+    let reports = archive_generation::generate_local(&mut guide, &mods).unwrap();
+    assert!(reports[0].success, "{:?}", reports[0]);
+    let steps = &guide.components[0].instructions;
+    assert_eq!(steps[0].action, "Extract");
+    assert_eq!(steps[1].action, "Patcher");
+    assert_eq!(
+        steps[1].source,
+        ["<<modDirectory>>\\pack/[Example] Texture Pack A\\Setup.exe"]
+    );
+}
+
+#[test]
 fn unusable_archive_names_skip_only_their_component() {
     let dir = tempfile::tempdir().unwrap();
     let mods = dir.path().join("mods");
@@ -567,7 +595,7 @@ fn unusable_archive_names_skip_only_their_component() {
     let reports = archive_generation::generate_local(&mut guide, &mods).unwrap();
     assert_eq!(
         reports.iter().map(|r| r.success).collect::<Vec<_>>(),
-        [true, false, false, true, false]
+        [true, false, false, true, true]
     );
     assert!(
         reports[1].skip_reason.contains("wildcard"),
@@ -579,16 +607,11 @@ fn unusable_archive_names_skip_only_their_component() {
         "{:?}",
         reports[2]
     );
-    assert!(
-        reports[4].skip_reason.contains("Patcher"),
-        "{:?}",
-        reports[4]
-    );
     assert!(!guide.components[0].instructions.is_empty());
     assert!(guide.components[1].instructions.is_empty());
     assert!(guide.components[2].instructions.is_empty());
     assert!(!guide.components[3].instructions.is_empty());
-    assert!(guide.components[4].instructions.is_empty());
+    assert_eq!(guide.components[4].instructions[1].action, "Patcher");
 }
 
 fn archive_map_guide(links: &[&str]) -> Guide {

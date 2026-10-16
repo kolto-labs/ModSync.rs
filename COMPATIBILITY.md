@@ -1602,8 +1602,8 @@ mapper does; before, the gate reported the saved choices as stale.
 Unchanged: a member name with `*` or `?` fails the archive in Rust on every host
 (no Windows file can have it; C# on Linux writes it), and the other unsafe member
 rules stay fail-closed. Destinations (including a FOMOD ModuleConfig `destination`,
-whose error now names it), Rename Destinations, Patcher Sources and maintenance
-transactions still refuse `[`/`]`.
+whose error now names it), Rename Destinations and maintenance transactions still
+refuse `[`/`]`. A Patcher Source no longer does; see the next entry.
 Evidence: [archive member brackets
 proof](docs/parity/archive-member-brackets-proof/README.md), 83 checks match and 8 are
 known differences against a live reference oracle and mapper (9 fail on `4a09589`; 45
@@ -1615,6 +1615,23 @@ Source exactly as it is spelled; brackets never form a character class. A FOMOD'
 archive name, wrapper folder and ModuleConfig `source` may contain them; a
 ModuleConfig `destination` may not. Archives with `*` or `?` in a member name are
 refused.
+
+## Patcher Sources with brackets in their path — 2026-10-16 UTC
+
+A Patcher whose Source path holds `[` or `]` (an archive folder such as `[Example]
+Texture Pack A/`) now binds and runs. A Patcher Source names one literal file or
+folder, but Rust resolved it with the guide Destination rule, which refuses `[`/`]`
+(they are not a pattern here, only characters that rule did not admit). Install
+stopped with `Patcher source must bind one literal file or directory`, and local
+archive generation skipped such a component rather than write a step install could not
+run. The Source now resolves with the literal-name rule archive members use, so
+`<<modDirectory>>/pack/[Example] Texture Pack A` reaches that folder and never a
+sibling such as `E Texture Pack A`; generation emits the step.
+
+Unchanged: a Patcher Source with `*` or `?` is refused (it must bind exactly one
+path), and Destinations, Rename Destinations and maintenance transactions still refuse
+`[`/`]`. Covered by `tests/installer.rs` and `tests/archive_generation.rs`; the full
+installer suite still has 11 failures that also fail without this change.
 
 ## Execute and Run Arguments — 2026-10-04 UTC
 

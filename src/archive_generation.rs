@@ -451,12 +451,6 @@ pub fn generate_from_archive(
         !(namespace_entry.is_some() || changes) || executable.is_some(),
         "Archive patcher tree has no identifiable sibling installer executable"
     );
-    // A Patcher Source binds one literal path and install refuses `[` and `]` there,
-    // so a step naming one could never run; report it now instead of generating it.
-    ensure!(
-        !(namespace_entry.is_some() || changes) || !patcher_root.contains(['[', ']']),
-        "Patcher Source would contain '[' or ']', which install refuses in a Patcher path: {patcher_root}"
-    );
     if let Some(index) = namespace_entry {
         let mut file = crate::paths::open_regular_read(entries[index].file.path())?;
         ensure!(

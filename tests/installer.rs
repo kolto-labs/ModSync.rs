@@ -513,6 +513,78 @@ exit 0
 }
 
 #[cfg(unix)]
+fn bracket_stub(dir: &Path) -> std::path::PathBuf {
+    use std::os::unix::fs::PermissionsExt;
+    let stub = dir.join("patcher");
+    fs::write(
+        &stub,
+        "#!/bin/sh\ncat \"$5/tslpatchdata/changes.ini\" > \"$3/chosen.txt\"\nprintf 'ok\\n' > \"$5/installlog.txt\"\n",
+    )
+    .unwrap();
+    fs::set_permissions(&stub, fs::Permissions::from_mode(0o755)).unwrap();
+    stub
+}
+
+#[cfg(unix)]
+#[test]
+fn bracketed_patcher_source_runs_the_real_folder_and_never_a_character_class() {
+    for source in [
+        "<<modDirectory>>/pack/[Example] Texture Pack A",
+        "<<modDirectory>>\\pack\\[Example] Texture Pack A\\Setup.exe",
+    ] {
+        let (dir, mut settings) = setup();
+        let real = settings.roots.mods.join("pack/[Example] Texture Pack A");
+        let decoy = settings.roots.mods.join("pack/E Texture Pack A");
+        for (folder, text) in [(&real, "real"), (&decoy, "decoy")] {
+            fs::create_dir_all(folder.join("tslpatchdata")).unwrap();
+            fs::write(folder.join("tslpatchdata/changes.ini"), text).unwrap();
+            fs::write(folder.join("Setup.exe"), b"x").unwrap();
+        }
+        settings.patcher = Some(bracket_stub(dir.path()));
+        settings.patcher_engine = PatcherEngine::OdyPatcher;
+        settings.allow_processes = true;
+        let g = guide(serde_json::json!([{"Action":"Patcher", "Source":source}]));
+        Engine::new(settings.clone())
+            .unwrap()
+            .validate(&g, |_| {})
+            .unwrap();
+        Engine::new(settings.clone())
+            .unwrap()
+            .install(&g, |_| {})
+            .unwrap();
+        assert_eq!(
+            fs::read(settings.roots.game.join("chosen.txt")).unwrap(),
+            b"real",
+            "{source}"
+        );
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn patcher_source_still_refuses_wildcards() {
+    for source in [
+        "<<modDirectory>>/pack/*",
+        "<<modDirectory>>/pack/[Example] Texture Pack ?",
+    ] {
+        let (dir, mut settings) = setup();
+        fs::create_dir_all(
+            settings
+                .roots
+                .mods
+                .join("pack/[Example] Texture Pack A/tslpatchdata"),
+        )
+        .unwrap();
+        settings.patcher = Some(bracket_stub(dir.path()));
+        settings.patcher_engine = PatcherEngine::OdyPatcher;
+        settings.allow_processes = true;
+        let g = guide(serde_json::json!([{"Action":"Patcher", "Source":source}]));
+        let error = Engine::new(settings).unwrap().validate(&g, |_| {});
+        assert!(error.is_err(), "{source}");
+    }
+}
+
+#[cfg(unix)]
 #[test]
 fn kpatcher_uses_console_without_ody_flags() {
     use std::os::unix::fs::PermissionsExt;

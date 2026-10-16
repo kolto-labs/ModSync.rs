@@ -46,7 +46,7 @@ fn bounded_file(roots: &Roots, path: &Path, optional: bool) -> Result<()> {
 }
 
 pub fn inspect(roots: &Roots, source: &str, selected: Option<usize>) -> Result<PatchPreview> {
-    let path = roots.resolve(source, false)?;
+    let path = roots.resolve_literal(source)?;
     let metadata = std::fs::symlink_metadata(&path)?;
     ensure!(
         metadata.is_file() || metadata.is_dir(),

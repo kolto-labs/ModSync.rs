@@ -233,6 +233,16 @@ impl Roots {
     }
 
     pub fn resolve(&self, raw: &str, wildcards: bool) -> Result<PathBuf> {
+        self.resolve_with(raw, wildcards, false)
+    }
+
+    /// A path whose names are taken literally, never as a pattern: `[` and `]` are
+    /// ordinary characters (`literal_relative`); `*` and `?` stay refused.
+    pub fn resolve_literal(&self, raw: &str) -> Result<PathBuf> {
+        self.resolve_with(raw, false, true)
+    }
+
+    fn resolve_with(&self, raw: &str, wildcards: bool, literal: bool) -> Result<PathBuf> {
         for (prefix, root) in [
             ("<<modDirectory>>", &self.mods),
             ("<<kotorDirectory>>", &self.game),
@@ -246,7 +256,12 @@ impl Roots {
                 // A bare root (`<<kotorDirectory>>`, `<<kotorDirectory>>/`) is the root
                 // itself, as C# FixPathFormatting trims the trailing separator.
                 // `root.join("")` would add one and miss the root's directory key.
-                let tail = relative(tail.trim_start_matches(['/', '\\']), wildcards)?;
+                let tail = tail.trim_start_matches(['/', '\\']);
+                let tail = if literal {
+                    literal_relative(tail)?
+                } else {
+                    relative(tail, wildcards)?
+                };
                 ensure!(
                     prefix != "<<modDirectory>>" || !tail.iter().any(is_peer_staging_part),
                     "Path is inside a Peer download staging folder: {raw}"

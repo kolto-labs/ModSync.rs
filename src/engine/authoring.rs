@@ -354,7 +354,7 @@ impl Engine {
         recovery::ensure_clean(&self.settings.roots)?;
         self.fomod_gate(guide, &mut |_| {})?;
         self.run(guide, &mut |_| {})?;
-        let path = self.path(source, false)?;
+        let path = self.literal_source_path(source)?;
         let key = self.path_policy.key(&path);
         let (folder, selected_file) = if let Some(directory) = self.directories.get(&key) {
             (directory.clone(), None)
