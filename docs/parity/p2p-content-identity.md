@@ -38,6 +38,16 @@ mint a second identity for the same resource. The seed path verifies the
 archive first and serves a private copy; it never gives the torrent engine the
 user's source file.
 
+Every torrent ModSync mints or accepts is one file with 2 MiB pieces, a
+nonzero length, and an info dictionary of at most 32 KiB (`check_torrent_info`,
+shared by `torrent-inspect`, peer downloads and sharing). Minting passes the
+piece length explicitly so a torrent library upgrade cannot change infohashes.
+A magnet with two different BTv1 infohashes is rejected. Magnet trackers and
+`--peer-proxy` addresses that are loopback, private, link-local or otherwise
+non-global IP literals are dropped. A magnet-only download first resolves the
+metadata list-only, applies the same checks plus a free-space check, and only
+then downloads.
+
 Peer traffic is supplementary to canonical host downloads. It is never used
 to bypass login, CAPTCHA, free-user waits, or other manual host gates; when
 peer transport is unavailable the canonical source remains the fallback.

@@ -187,27 +187,34 @@ fn fetch_direct(
     let download = tempfile::Builder::new()
         .prefix(".modsync-torrent-")
         .tempdir_in(parent)?;
+    let sanitized = sanitize_magnet(magnet, &[])?;
     let runtime = tokio::runtime::Runtime::new()?;
     runtime.block_on(async {
-        let add = match torrent {
-            Some(torrent) => AddTorrent::from_bytes(torrent.torrent.clone()),
-            None => AddTorrent::from_url(magnet),
-        };
-        let trackers = match torrent {
-            Some(_) => Some(sanitize_magnet(magnet, &[])?.all_trackers),
-            None => None,
-        };
         let session = session(download.path().to_path_buf()).await?;
         let result = async {
             ensure!(!cancelled.load(Ordering::Acquire), "Download cancelled");
-            let pending = session.add_torrent(
-                add,
-                Some(librqbit::AddTorrentOptions {
-                    initial_peers: (!peers.is_empty()).then_some(peers),
-                    trackers,
-                    ..Default::default()
-                }),
-            );
+            let options = || librqbit::AddTorrentOptions {
+                initial_peers: (!peers.is_empty()).then(|| peers.clone()),
+                trackers: Some(sanitized.all_trackers.clone()),
+                ..Default::default()
+            };
+            let pending = async {
+                let add = match torrent {
+                    Some(torrent) => AddTorrent::from_bytes(torrent.torrent.clone()),
+                    None => AddTorrent::from_bytes(
+                        resolve_checked_info(
+                            &session,
+                            AddTorrent::from_url(magnet),
+                            options(),
+                            &sanitized.info_hash,
+                            download.path(),
+                        )
+                        .await?
+                        .torrent,
+                    ),
+                };
+                session.add_torrent(add, Some(options())).await
+            };
             let handle = tokio::select! {
                 added = pending => added?.into_handle().context("Torrent did not start")?,
                 _ = wait_for_cancel(cancelled) => anyhow::bail!("Download cancelled"),
@@ -232,6 +239,35 @@ fn fetch_direct(
         cancelled,
         options,
     )
+}
+
+async fn resolve_checked_info(
+    session: &std::sync::Arc<Session>,
+    add: AddTorrent<'_>,
+    options: librqbit::AddTorrentOptions,
+    info_hash: &str,
+    download: &Path,
+) -> Result<CheckedInfo> {
+    let listed = session
+        .add_torrent(
+            add,
+            Some(librqbit::AddTorrentOptions {
+                list_only: true,
+                ..options
+            }),
+        )
+        .await?;
+    let librqbit::AddTorrentResponse::ListOnly(listed) = listed else {
+        anyhow::bail!("Torrent metadata did not resolve");
+    };
+    let parsed = librqbit::torrent_from_bytes(&listed.torrent_bytes)
+        .map_err(|error| anyhow::anyhow!("Torrent metadata is invalid: {error}"))?;
+    let checked = check_torrent_info(parsed.info.raw_bytes.as_ref(), info_hash)?;
+    ensure!(
+        fs2::available_space(download)? >= checked.length,
+        "Not enough free space for the torrent"
+    );
+    Ok(checked)
 }
 
 async fn session(root: PathBuf) -> Result<std::sync::Arc<Session>> {
@@ -1634,20 +1670,29 @@ fn fetch_authored_inner(
             )
             .await?;
             let result = async {
-                let add = match &info {
-                    Some(info) => AddTorrent::from_bytes(info.torrent.clone()),
-                    None => AddTorrent::from_url(&magnet.uri),
+                let options = || librqbit::AddTorrentOptions {
+                    overwrite: true,
+                    initial_peers: (!policy.extra_peers.is_empty())
+                        .then(|| policy.extra_peers.clone()),
+                    ..Default::default()
                 };
-                let handle = session
-                    .add_torrent(
-                        add,
-                        Some(librqbit::AddTorrentOptions {
-                            overwrite: true,
-                            initial_peers: (!policy.extra_peers.is_empty())
-                                .then(|| policy.extra_peers.clone()),
-                            ..Default::default()
-                        }),
-                    );
+                let handle = async {
+                    let add = match &info {
+                        Some(info) => AddTorrent::from_bytes(info.torrent.clone()),
+                        None => AddTorrent::from_bytes(
+                            resolve_checked_info(
+                                &session,
+                                AddTorrent::from_url(&magnet.uri),
+                                options(),
+                                &magnet.info_hash,
+                                download.path(),
+                            )
+                            .await?
+                            .torrent,
+                        ),
+                    };
+                    session.add_torrent(add, Some(options())).await
+                };
                 // Magnet metadata resolution waits for a peer; bound it.
                 let handle = tokio::select! {
                     added = handle => added?.into_handle().context("Torrent did not start")?,
