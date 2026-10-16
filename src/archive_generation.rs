@@ -1,8 +1,10 @@
 //! Local archive inference shared by guide conversion and desktop callers.
+pub mod archive_map;
 mod merge;
 pub mod resolved;
 use crate::{Component, Guide, Instruction, archive};
 use anyhow::{Context, Result, ensure};
+pub use archive_map::ArchiveMap;
 use serde::Serialize;
 use std::{
     collections::BTreeMap,
@@ -53,13 +55,16 @@ fn vet_archive_name(name: &std::ffi::OsStr) -> Result<()> {
 /// Fill instruction-free components from matching top-level downloads. Reports retain
 /// failures; an unsuccessful component is left unchanged and inputs are never deleted.
 pub fn generate_local(guide: &mut Guide, source: &Path) -> Result<Vec<GenerationResult>> {
-    generate_local_with_cancel(guide, source, &AtomicBool::new(false))
+    generate_local_with_cancel(guide, source, None, &AtomicBool::new(false))
 }
 
 /// Cancellable local inference. No partial guide edits are published on cancellation.
+/// A component whose link appears in `archive_map` uses exactly the mapped archive(s);
+/// all other components keep filename matching.
 pub fn generate_local_with_cancel(
     guide: &mut Guide,
     source: &Path,
+    archive_map: Option<&ArchiveMap>,
     cancelled: &AtomicBool,
 ) -> Result<Vec<GenerationResult>> {
     let check = || -> Result<()> {
@@ -144,52 +149,69 @@ pub fn generate_local_with_cancel(
                 !component.resource_registry.is_empty(),
                 "No mod links available"
             );
-            let link = component.resource_registry.keys().next().unwrap();
-            let term = search_term(link, &component.name)?;
-            let normalized = normalize(&term);
-            let matching = archives
-                .iter()
-                .filter_map(|candidate| {
-                    let name = normalize(candidate.path.file_stem()?.to_str()?);
-                    let score = if name == normalized {
-                        100
-                    } else if name.contains(&normalized) {
-                        50
-                    } else if normalized.contains(&name) {
-                        25
-                    } else {
-                        0
-                    };
-                    (score > 0).then_some((score, candidate.modified, candidate))
-                })
-                .reduce(|best, candidate| {
-                    if (candidate.0, candidate.1) > (best.0, best.1) {
-                        candidate
-                    } else {
-                        best
-                    }
-                })
-                .with_context(|| format!("No matching archive found for '{term}'"))?
-                .2;
-            if let Some(reason) = &matching.rejection {
-                anyhow::bail!(
-                    "Best matching archive '{}' skipped: {reason}",
-                    matching
-                        .path
-                        .file_name()
-                        .unwrap_or_default()
-                        .to_string_lossy()
+            let mapped = mapped_archives(archive_map, &component, &source)?;
+            let mapped_used = !mapped.is_empty();
+            let selected = if mapped_used {
+                mapped
+            } else {
+                let link = component.resource_registry.keys().next().unwrap();
+                let term = search_term(link, &component.name)?;
+                let normalized = normalize(&term);
+                let matching = archives
+                    .iter()
+                    .filter_map(|candidate| {
+                        let name = normalize(candidate.path.file_stem()?.to_str()?);
+                        let score = if name == normalized {
+                            100
+                        } else if name.contains(&normalized) {
+                            50
+                        } else if normalized.contains(&name) {
+                            25
+                        } else {
+                            0
+                        };
+                        (score > 0).then_some((score, candidate.modified, candidate))
+                    })
+                    .reduce(|best, candidate| {
+                        if (candidate.0, candidate.1) > (best.0, best.1) {
+                            candidate
+                        } else {
+                            best
+                        }
+                    })
+                    .with_context(|| format!("No matching archive found for '{term}'"))?
+                    .2;
+                if let Some(reason) = &matching.rejection {
+                    anyhow::bail!(
+                        "Best matching archive '{}' skipped: {reason}",
+                        matching
+                            .path
+                            .file_name()
+                            .unwrap_or_default()
+                            .to_string_lossy()
+                    );
+                }
+                vec![matching.path.clone()]
+            };
+            for path in &selected {
+                let detail = if mapped_used {
+                    format!(
+                        " in mapped archive '{}'",
+                        path.file_name().unwrap_or_default().to_string_lossy()
+                    )
+                } else {
+                    String::new()
+                };
+                ensure!(
+                    generate_from_archive(
+                        &mut component,
+                        path,
+                        &archive::Options::default(),
+                        cancelled
+                    )?,
+                    "No supported game files or patcher data found{detail}"
                 );
             }
-            ensure!(
-                generate_from_archive(
-                    &mut component,
-                    &matching.path,
-                    &archive::Options::default(),
-                    cancelled
-                )?,
-                "No supported game files or patcher data found"
-            );
             component
                 .metadata
                 .insert("IsDownloaded".into(), true.into());
@@ -209,6 +231,36 @@ pub fn generate_local_with_cancel(
     check()?;
     *guide = candidate;
     Ok(results)
+}
+
+/// Archives the operator mapped to any of the component's links, in link order.
+/// A mapped name that cannot be used is an error for this component; it never falls
+/// back to filename matching.
+fn mapped_archives(
+    archive_map: Option<&ArchiveMap>,
+    component: &Component,
+    source: &Path,
+) -> Result<Vec<PathBuf>> {
+    let Some(archive_map) = archive_map else {
+        return Ok(Vec::new());
+    };
+    let mut paths: Vec<PathBuf> = Vec::new();
+    for link in component.resource_registry.keys() {
+        for name in archive_map.lookup(link).unwrap_or_default() {
+            vet_archive_name(std::ffi::OsStr::new(name)).with_context(|| {
+                format!("Mapped archive '{name}' for link '{link}' is unusable")
+            })?;
+            let path = source.join(name);
+            ensure!(
+                fs::symlink_metadata(&path).is_ok_and(|metadata| metadata.is_file()),
+                "Mapped archive '{name}' for link '{link}' was not found in the source directory"
+            );
+            if !paths.contains(&path) {
+                paths.push(path);
+            }
+        }
+    }
+    Ok(paths)
 }
 
 fn normalize(text: &str) -> String {

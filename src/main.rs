@@ -667,6 +667,9 @@ struct ConversionProcessing {
     download: bool,
     #[arg(long)]
     source_path: Option<PathBuf>,
+    /// JSON object mapping guide link URLs to archive filename(s) in --source-path; mapped links bypass filename matching in --auto-generate-local.
+    #[arg(long, requires = "source_path")]
+    archive_map: Option<PathBuf>,
     /// Use four acquisition workers instead of one.
     #[arg(long, requires = "download")]
     concurrent: bool,
@@ -1365,12 +1368,18 @@ fn process_conversion_inner(
     }
     if options.auto_generate_local {
         conversion_cancelled(cancelled)?;
+        let archive_map = options
+            .archive_map
+            .as_deref()
+            .map(modsync::archive_generation::ArchiveMap::load)
+            .transpose()?;
         let reports = modsync::archive_generation::generate_local_with_cancel(
             guide,
             options
                 .source_path
                 .as_deref()
                 .context("Local generation requires --source-path")?,
+            archive_map.as_ref(),
             cancelled,
         );
         conversion_cancelled(cancelled)?;

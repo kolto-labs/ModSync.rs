@@ -590,3 +590,236 @@ fn unusable_archive_names_skip_only_their_component() {
     assert!(!guide.components[3].instructions.is_empty());
     assert!(guide.components[4].instructions.is_empty());
 }
+
+fn archive_map_guide(links: &[&str]) -> Guide {
+    let registry: serde_json::Map<String, Value> = links
+        .iter()
+        .map(|link| ((*link).into(), json!({})))
+        .collect();
+    Guide::parse(
+        &json!([{"Guid":"example","Name":"Texture Pack A","ResourceRegistry":registry}])
+            .to_string(),
+        "json",
+    )
+    .unwrap()
+}
+
+fn archive_map_from(value: Value) -> archive_generation::ArchiveMap {
+    archive_generation::ArchiveMap::parse(&value.to_string()).unwrap()
+}
+
+fn generate_mapped(
+    guide: &mut Guide,
+    dir: &Path,
+    map: Option<&archive_generation::ArchiveMap>,
+) -> Vec<archive_generation::GenerationResult> {
+    archive_generation::generate_local_with_cancel(guide, dir, map, &AtomicBool::new(false))
+        .unwrap()
+}
+
+#[test]
+fn archive_map_exact_hit_overrides_heuristic() {
+    let dir = tempfile::tempdir().unwrap();
+    zip(
+        &dir.path().join("texture-pack-a.zip"),
+        &json!({"decoy.tga":"x"}),
+    );
+    zip(
+        &dir.path().join("example-mod.zip"),
+        &json!({"mapped.tga":"x"}),
+    );
+    let link = "https://example.com/files/file/123-texture-pack-a/";
+    let map = archive_map_from(json!({ link: "example-mod.zip" }));
+    let mut guide = archive_map_guide(&[link]);
+    let reports = generate_mapped(&mut guide, dir.path(), Some(&map));
+    assert!(reports[0].success, "{:?}", reports[0]);
+    let sources: Vec<_> = guide.components[0]
+        .instructions
+        .iter()
+        .flat_map(|step| step.source.clone())
+        .collect();
+    assert!(sources.contains(&"<<modDirectory>>\\example-mod.zip".to_string()));
+    assert!(
+        !sources
+            .iter()
+            .any(|source| source.contains("texture-pack-a"))
+    );
+}
+
+#[test]
+fn archive_map_missing_file_is_skipped_without_heuristic_fallback() {
+    let dir = tempfile::tempdir().unwrap();
+    zip(
+        &dir.path().join("texture-pack-a.zip"),
+        &json!({"decoy.tga":"x"}),
+    );
+    let link = "https://example.com/files/file/123-texture-pack-a/";
+    let map = archive_map_from(json!({ link: "example-mod.zip" }));
+    let mut guide = archive_map_guide(&[link]);
+    let before = serde_json::to_value(&guide).unwrap();
+    let reports = generate_mapped(&mut guide, dir.path(), Some(&map));
+    assert!(!reports[0].success);
+    assert!(
+        reports[0].skip_reason.contains("example-mod.zip")
+            && reports[0].skip_reason.contains("not found"),
+        "{}",
+        reports[0].skip_reason
+    );
+    assert_eq!(serde_json::to_value(&guide).unwrap(), before);
+}
+
+#[test]
+fn archive_map_unmapped_link_uses_heuristic_and_matches_default_output() {
+    let dir = tempfile::tempdir().unwrap();
+    zip(
+        &dir.path().join("texture-pack-a.zip"),
+        &json!({"decoy.tga":"x"}),
+    );
+    zip(
+        &dir.path().join("example-mod.zip"),
+        &json!({"mapped.tga":"x"}),
+    );
+    let link = "https://example.com/files/file/123-texture-pack-a/";
+    let map = archive_map_from(json!({ "https://example.com/other/": "example-mod.zip" }));
+    let mut mapped = archive_map_guide(&[link]);
+    let mut plain = archive_map_guide(&[link]);
+    let mapped_reports = generate_mapped(&mut mapped, dir.path(), Some(&map));
+    let plain_reports = generate_mapped(&mut plain, dir.path(), None);
+    assert!(plain_reports[0].success);
+    assert_eq!(
+        serde_json::to_value(&mapped_reports).unwrap(),
+        serde_json::to_value(&plain_reports).unwrap()
+    );
+    assert_eq!(
+        serde_json::to_value(&mapped).unwrap(),
+        serde_json::to_value(&plain).unwrap()
+    );
+    assert_eq!(
+        mapped.components[0].instructions[0].source,
+        ["<<modDirectory>>\\texture-pack-a.zip"]
+    );
+}
+
+#[test]
+fn archive_map_canonicalizes_query_and_fragment_on_both_sides() {
+    let dir = tempfile::tempdir().unwrap();
+    zip(
+        &dir.path().join("example-mod.zip"),
+        &json!({"mapped.tga":"x"}),
+    );
+    for (guide_link, map_key) in [
+        (
+            "https://example.com/files/file/9-unrelated/?do=download&r=77#comments",
+            "https://example.com/files/file/9-unrelated/",
+        ),
+        (
+            "https://example.com/files/file/9-unrelated/",
+            "https://example.com/files/file/9-unrelated/?do=download#top",
+        ),
+    ] {
+        let map = archive_map_from(json!({ map_key: "example-mod.zip" }));
+        let mut guide = archive_map_guide(&[guide_link]);
+        let reports = generate_mapped(&mut guide, dir.path(), Some(&map));
+        assert!(reports[0].success, "{guide_link}: {:?}", reports[0]);
+        assert_eq!(
+            guide.components[0].instructions[0].source,
+            ["<<modDirectory>>\\example-mod.zip"]
+        );
+    }
+}
+
+#[test]
+fn archive_map_multi_file_value_installs_each_archive_in_order() {
+    let dir = tempfile::tempdir().unwrap();
+    zip(&dir.path().join("part-two.zip"), &json!({"two.tga":"2"}));
+    zip(&dir.path().join("part-one.zip"), &json!({"one.tga":"1"}));
+    let link = "https://example.com/files/file/5-texture-pack-a/";
+    let map = archive_map_from(json!({ link: ["part-one.zip", "part-two.zip"] }));
+    let mut guide = archive_map_guide(&[link]);
+    let reports = generate_mapped(&mut guide, dir.path(), Some(&map));
+    assert!(reports[0].success, "{:?}", reports[0]);
+    let extracts: Vec<_> = guide.components[0]
+        .instructions
+        .iter()
+        .filter(|step| step.action == "Extract")
+        .flat_map(|step| step.source.clone())
+        .collect();
+    assert_eq!(
+        extracts,
+        [
+            "<<modDirectory>>\\part-one.zip",
+            "<<modDirectory>>\\part-two.zip"
+        ]
+    );
+    let missing = archive_map_from(json!({ link: ["part-one.zip", "absent.zip"] }));
+    let mut guide = archive_map_guide(&[link]);
+    let reports = generate_mapped(&mut guide, dir.path(), Some(&missing));
+    assert!(!reports[0].success);
+    assert!(reports[0].skip_reason.contains("absent.zip"));
+    assert!(guide.components[0].instructions.is_empty());
+}
+
+#[test]
+fn archive_map_cli_flag_applies_map_and_rejects_bad_files() {
+    let dir = tempfile::tempdir().unwrap();
+    zip(
+        &dir.path().join("texture-pack-a.zip"),
+        &json!({"decoy.tga":"x"}),
+    );
+    zip(
+        &dir.path().join("example-mod.zip"),
+        &json!({"mapped.tga":"x"}),
+    );
+    let link = "https://example.com/files/file/123-texture-pack-a/";
+    let input = dir.path().join("input.json");
+    let output = dir.path().join("output.json");
+    fs::write(
+        &input,
+        serde_json::to_string(&archive_map_guide(&[link])).unwrap(),
+    )
+    .unwrap();
+    let run = |map: &Path| {
+        std::process::Command::new(env!("CARGO_BIN_EXE_modsync"))
+            .args(["convert", "--input"])
+            .arg(&input)
+            .arg("--output")
+            .arg(&output)
+            .args(["--format", "json", "--auto-generate-local", "--source-path"])
+            .arg(dir.path())
+            .arg("--archive-map")
+            .arg(map)
+            .output()
+            .unwrap()
+    };
+    let good = dir.path().join("map.json");
+    fs::write(&good, json!({ link: "example-mod.zip" }).to_string()).unwrap();
+    let result = run(&good);
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    let guide = Guide::load(&output).unwrap();
+    assert_eq!(
+        guide.components[0].instructions[0].source[0].replace('\\', "/"),
+        "<<modDirectory>>/example-mod.zip"
+    );
+    let broken = dir.path().join("broken.json");
+    fs::write(&broken, "[1, 2").unwrap();
+    for path in [broken, dir.path().join("absent.json")] {
+        let result = run(&path);
+        assert!(!result.status.success());
+        assert!(
+            String::from_utf8_lossy(&result.stderr).contains("archive map"),
+            "{}",
+            String::from_utf8_lossy(&result.stderr)
+        );
+    }
+    let no_source = std::process::Command::new(env!("CARGO_BIN_EXE_modsync"))
+        .args(["convert", "--archive-map"])
+        .arg(&good)
+        .output()
+        .unwrap();
+    assert!(!no_source.status.success());
+    assert!(String::from_utf8_lossy(&no_source.stderr).contains("--source-path"));
+}
