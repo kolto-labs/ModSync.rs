@@ -208,7 +208,13 @@ pub fn generate_local_with_cancel(
                         path,
                         &archive::Options::default(),
                         cancelled
-                    )?,
+                    )
+                    .with_context(|| {
+                        format!(
+                            "Failed to process archive '{}'",
+                            path.file_name().unwrap_or_default().to_string_lossy()
+                        )
+                    })?,
                     "No supported game files or patcher data found{detail}"
                 );
             }
@@ -474,7 +480,7 @@ pub fn generate_from_archive(
             );
             bytes.extend_from_slice(&chunk[..count]);
         }
-        let namespaces = parse_namespaces(std::str::from_utf8(&bytes)?, cancelled)?;
+        let namespaces = parse_namespaces(&decode_ini_text(&bytes), cancelled)?;
         if let Some(values) = namespaces.get("namespaces") {
             let mut ids = Vec::new();
             for (index, (_, namespace)) in values.iter().enumerate() {
@@ -730,6 +736,29 @@ fn game_file(path: &str) -> bool {
             | "vis"
             | "wav"
     )
+}
+
+const WINDOWS_1252_HIGH: [char; 32] = [
+    '\u{20AC}', '\u{81}', '\u{201A}', '\u{0192}', '\u{201E}', '\u{2026}', '\u{2020}', '\u{2021}',
+    '\u{02C6}', '\u{2030}', '\u{0160}', '\u{2039}', '\u{0152}', '\u{8D}', '\u{017D}', '\u{8F}',
+    '\u{90}', '\u{2018}', '\u{2019}', '\u{201C}', '\u{201D}', '\u{2022}', '\u{2013}', '\u{2014}',
+    '\u{02DC}', '\u{2122}', '\u{0161}', '\u{203A}', '\u{0153}', '\u{9D}', '\u{017E}', '\u{0178}',
+];
+
+/// TSLPatcher INI files are usually ANSI (Windows-1252); accept UTF-8 first, then fall back.
+fn decode_ini_text(bytes: &[u8]) -> std::borrow::Cow<'_, str> {
+    let bytes = bytes.strip_prefix(&[0xEF, 0xBB, 0xBF]).unwrap_or(bytes);
+    match std::str::from_utf8(bytes) {
+        Ok(text) => text.into(),
+        Err(_) => bytes
+            .iter()
+            .map(|&byte| match byte {
+                0x80..=0x9F => WINDOWS_1252_HIGH[usize::from(byte - 0x80)],
+                _ => char::from(byte),
+            })
+            .collect::<String>()
+            .into(),
+    }
 }
 
 fn parse_namespaces(

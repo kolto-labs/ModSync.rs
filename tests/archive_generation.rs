@@ -846,3 +846,76 @@ fn archive_map_cli_flag_applies_map_and_rejects_bad_files() {
     assert!(!no_source.status.success());
     assert!(String::from_utf8_lossy(&no_source.stderr).contains("--source-path"));
 }
+
+fn zip_bytes(path: &Path, files: &[(&str, &[u8])]) {
+    let mut archive = zip::ZipWriter::new(fs::File::create(path).unwrap());
+    for (name, content) in files {
+        archive
+            .start_file(*name, zip::write::SimpleFileOptions::default())
+            .unwrap();
+        archive.write_all(content).unwrap();
+    }
+    archive.finish().unwrap();
+}
+
+fn namespace_option_names(ini: &[u8]) -> Vec<String> {
+    let dir = tempfile::tempdir().unwrap();
+    zip_bytes(
+        &dir.path().join("texture-pack-a.zip"),
+        &[
+            ("tslpatchdata/namespaces.ini", ini),
+            ("tslpatchdata/first/changes.ini", b"[Settings]"),
+            ("Setup.exe", b"x"),
+        ],
+    );
+    let mut guide = archive_map_guide(&["https://example.com/files/file/1-texture-pack-a/"]);
+    let reports = generate_mapped(&mut guide, dir.path(), None);
+    assert!(reports[0].success, "{:?}", reports[0]);
+    guide.components[0]
+        .options
+        .iter()
+        .map(|option| option.name.clone())
+        .collect()
+}
+
+#[test]
+fn namespaces_ini_accepts_ansi_utf8_and_bom_text() {
+    let ansi =
+        b"[Namespaces]\r\n0=first\r\n[first]\r\nName=Pack\x92s Option\r\nDescription=Caf\xE9\r\n";
+    let names = namespace_option_names(ansi);
+    assert!(
+        names.iter().any(|name| name == "Pack\u{2019}s Option"),
+        "{names:?}"
+    );
+
+    let utf8 = "[Namespaces]\n0=first\n[first]\nName=Pack\u{2019}s Option\n".as_bytes();
+    let names = namespace_option_names(utf8);
+    assert!(
+        names.iter().any(|name| name == "Pack\u{2019}s Option"),
+        "{names:?}"
+    );
+
+    let mut bom = vec![0xEF, 0xBB, 0xBF];
+    bom.extend_from_slice(utf8);
+    let names = namespace_option_names(&bom);
+    assert!(
+        names.iter().any(|name| name == "Pack\u{2019}s Option"),
+        "{names:?}"
+    );
+}
+
+#[test]
+fn failing_mapped_archive_skip_reason_names_the_archive() {
+    let dir = tempfile::tempdir().unwrap();
+    fs::write(dir.path().join("example-mod.zip"), b"not a real archive").unwrap();
+    let link = "https://example.com/files/file/123-texture-pack-a/";
+    let map = archive_map_from(json!({ link: "example-mod.zip" }));
+    let mut guide = archive_map_guide(&[link]);
+    let reports = generate_mapped(&mut guide, dir.path(), Some(&map));
+    assert!(!reports[0].success);
+    assert!(
+        reports[0].skip_reason.contains("example-mod.zip"),
+        "{}",
+        reports[0].skip_reason
+    );
+}
