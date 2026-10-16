@@ -8,8 +8,9 @@ use std::{
     collections::BTreeMap,
     fs,
     io::Read,
-    path::Path,
+    path::{Path, PathBuf},
     sync::atomic::{AtomicBool, Ordering},
+    time::SystemTime,
 };
 
 #[derive(Debug, Serialize)]
@@ -20,6 +21,33 @@ pub struct GenerationResult {
     pub success: bool,
     pub instructions_generated: usize,
     pub skip_reason: String,
+}
+
+struct Candidate {
+    path: PathBuf,
+    modified: SystemTime,
+    rejection: Option<String>,
+}
+
+/// A top-level archive name that generated Sources can name exactly. `[` and `]` are
+/// ordinary characters: install escapes them in a Source, so they never form a
+/// character class. `*` and `?` stay wildcards in a Source and no Windows file can
+/// carry them, so such a name is refused here, for that archive alone.
+fn vet_archive_name(name: &std::ffi::OsStr) -> Result<()> {
+    let name = name.to_str().context("Archive filename is not UTF-8")?;
+    ensure!(
+        !name.contains(['*', '?']),
+        "Archive filename contains a wildcard character (* or ?) that a Source would read as a pattern: {name}"
+    );
+    ensure!(
+        name.len() <= 255 && !name.contains(['/', '\\']) && !name.chars().any(char::is_control),
+        "Unsafe local archive filename"
+    );
+    ensure!(
+        crate::paths::literal_relative(name)?.components().count() == 1,
+        "Unsafe local archive filename"
+    );
+    Ok(())
 }
 
 /// Fill instruction-free components from matching top-level downloads. Reports retain
@@ -62,27 +90,26 @@ pub fn generate_local_with_cancel(
                 Some("zip" | "rar" | "7z" | "exe")
             )
         {
-            let filename = entry.file_name();
-            let filename = filename.to_str().context("Archive filename is not UTF-8")?;
-            ensure!(
-                filename.len() <= 255
-                    && !filename.contains(['/', '\\'])
-                    && !filename.chars().any(char::is_control),
-                "Unsafe local archive filename"
-            );
-            ensure!(
-                crate::paths::relative(filename, false)?
-                    .components()
-                    .count()
-                    == 1,
-                "Unsafe local archive filename"
-            );
-            let handle = crate::paths::open_regular_read(&entry.path())?;
-            archives.push((entry.path(), handle.metadata()?.modified()?));
+            let path = entry.path();
+            let candidate = vet_archive_name(&entry.file_name())
+                .and_then(|()| {
+                    let handle = crate::paths::open_regular_read(&path)?;
+                    Ok(handle.metadata()?.modified()?)
+                })
+                .map_or_else(
+                    |error| (SystemTime::UNIX_EPOCH, Some(format!("{error:#}"))),
+                    |modified| (modified, None),
+                );
+            archives.push(Candidate {
+                path,
+                modified: candidate.0,
+                rejection: candidate.1,
+            });
         }
     }
-    archives.sort_by_key(|(path, _)| {
-        match path
+    archives.sort_by_key(|candidate| {
+        match candidate
+            .path
             .extension()
             .and_then(|e| e.to_str())
             .unwrap_or("")
@@ -122,8 +149,8 @@ pub fn generate_local_with_cancel(
             let normalized = normalize(&term);
             let matching = archives
                 .iter()
-                .filter_map(|(path, modified)| {
-                    let name = normalize(path.file_stem()?.to_str()?);
+                .filter_map(|candidate| {
+                    let name = normalize(candidate.path.file_stem()?.to_str()?);
                     let score = if name == normalized {
                         100
                     } else if name.contains(&normalized) {
@@ -133,7 +160,7 @@ pub fn generate_local_with_cancel(
                     } else {
                         0
                     };
-                    (score > 0).then_some((score, modified, path))
+                    (score > 0).then_some((score, candidate.modified, candidate))
                 })
                 .reduce(|best, candidate| {
                     if (candidate.0, candidate.1) > (best.0, best.1) {
@@ -142,11 +169,22 @@ pub fn generate_local_with_cancel(
                         best
                     }
                 })
-                .with_context(|| format!("No matching archive found for '{term}'"))?;
+                .with_context(|| format!("No matching archive found for '{term}'"))?
+                .2;
+            if let Some(reason) = &matching.rejection {
+                anyhow::bail!(
+                    "Best matching archive '{}' skipped: {reason}",
+                    matching
+                        .path
+                        .file_name()
+                        .unwrap_or_default()
+                        .to_string_lossy()
+                );
+            }
             ensure!(
                 generate_from_archive(
                     &mut component,
-                    matching.2,
+                    &matching.path,
                     &archive::Options::default(),
                     cancelled
                 )?,
@@ -223,6 +261,7 @@ pub fn generate_from_archive(
         .file_name()
         .and_then(|v| v.to_str())
         .context("Archive filename is not UTF-8")?;
+    vet_archive_name(path.file_name().unwrap_or_default())?;
     let extension = path
         .extension()
         .and_then(|v| v.to_str())
@@ -359,6 +398,12 @@ pub fn generate_from_archive(
     ensure!(
         !(namespace_entry.is_some() || changes) || executable.is_some(),
         "Archive patcher tree has no identifiable sibling installer executable"
+    );
+    // A Patcher Source binds one literal path and install refuses `[` and `]` there,
+    // so a step naming one could never run; report it now instead of generating it.
+    ensure!(
+        !(namespace_entry.is_some() || changes) || !patcher_root.contains(['[', ']']),
+        "Patcher Source would contain '[' or ']', which install refuses in a Patcher path: {patcher_root}"
     );
     if let Some(index) = namespace_entry {
         let mut file = crate::paths::open_regular_read(entries[index].file.path())?;

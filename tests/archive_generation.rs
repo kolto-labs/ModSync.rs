@@ -492,3 +492,101 @@ fn legacy_download_links_reach_local_inference_and_shared_install_engine() {
         assert!(mods.join("sample.zip").exists());
     }
 }
+
+#[test]
+fn bracketed_archive_name_installs_literally_and_never_as_a_character_class() {
+    let dir = tempfile::tempdir().unwrap();
+    let mods = dir.path().join("mods");
+    let game = dir.path().join("game");
+    fs::create_dir(&mods).unwrap();
+    fs::create_dir(&game).unwrap();
+    zip(
+        &mods.join("[ex]_pack.zip"),
+        &json!({"Override/sample.tga":"bracketed"}),
+    );
+    zip(
+        &mods.join("e_pack.zip"),
+        &json!({"Override/sample.tga":"decoy"}),
+    );
+    let mut guide = Guide::parse(
+        r#"[{"Guid":"example","Name":"Sample","ResourceRegistry":{"[ex]_pack.zip":{}}}]"#,
+        "json",
+    )
+    .unwrap();
+    let reports = archive_generation::generate_local(&mut guide, &mods).unwrap();
+    assert!(reports[0].success, "{:?}", reports[0]);
+    let extract = &guide.components[0].instructions[0];
+    assert_eq!(extract.action, "Extract");
+    assert_eq!(extract.source, ["<<modDirectory>>\\[ex]_pack.zip"]);
+    let settings = Settings::new(&mods, &game).unwrap();
+    Engine::new(settings.clone())
+        .unwrap()
+        .validate(&guide, |_| {})
+        .unwrap();
+    Engine::new(settings)
+        .unwrap()
+        .install(&guide, |_| {})
+        .unwrap();
+    assert_eq!(
+        fs::read(game.join("Override/sample.tga")).unwrap(),
+        b"bracketed"
+    );
+    assert!(!mods.join("e_pack").exists());
+}
+
+#[test]
+fn unusable_archive_names_skip_only_their_component() {
+    let dir = tempfile::tempdir().unwrap();
+    let mods = dir.path().join("mods");
+    fs::create_dir(&mods).unwrap();
+    zip(&mods.join("[a]_pack.zip"), &json!({"Override/one.tga":"1"}));
+    zip(
+        &mods.join("star*pack.zip"),
+        &json!({"Override/two.tga":"2"}),
+    );
+    zip(
+        &mods.join("what?pack.zip"),
+        &json!({"Override/three.tga":"3"}),
+    );
+    zip(&mods.join("plain.zip"), &json!({"Override/four.tga":"4"}));
+    zip(
+        &mods.join("[b]_patcher.zip"),
+        &json!({"tslpatchdata/changes.ini":"[Settings]","Setup.exe":"x"}),
+    );
+    let mut guide = Guide::parse(
+        r#"[
+        {"Guid":"a","Name":"One","ResourceRegistry":{"[a]_pack.zip":{}}},
+        {"Guid":"b","Name":"Two","ResourceRegistry":{"star*pack.zip":{}}},
+        {"Guid":"c","Name":"Three","ResourceRegistry":{"what?pack.zip":{}}},
+        {"Guid":"d","Name":"Four","ResourceRegistry":{"plain.zip":{}}},
+        {"Guid":"e","Name":"Five","ResourceRegistry":{"[b]_patcher.zip":{}}}
+        ]"#,
+        "json",
+    )
+    .unwrap();
+    let reports = archive_generation::generate_local(&mut guide, &mods).unwrap();
+    assert_eq!(
+        reports.iter().map(|r| r.success).collect::<Vec<_>>(),
+        [true, false, false, true, false]
+    );
+    assert!(
+        reports[1].skip_reason.contains("wildcard"),
+        "{:?}",
+        reports[1]
+    );
+    assert!(
+        reports[2].skip_reason.contains("wildcard"),
+        "{:?}",
+        reports[2]
+    );
+    assert!(
+        reports[4].skip_reason.contains("Patcher"),
+        "{:?}",
+        reports[4]
+    );
+    assert!(!guide.components[0].instructions.is_empty());
+    assert!(guide.components[1].instructions.is_empty());
+    assert!(guide.components[2].instructions.is_empty());
+    assert!(!guide.components[3].instructions.is_empty());
+    assert!(guide.components[4].instructions.is_empty());
+}
