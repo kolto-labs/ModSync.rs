@@ -31,7 +31,7 @@ use std::{
 
 const VERSION: u32 = 1;
 const MAX_RECORD: u64 = 64 * 1024;
-const MAX_INFO: usize = 32 * 1024;
+pub(crate) const MAX_INFO: usize = 32 * 1024;
 pub const PAGE_SIZE: usize = 128;
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]

@@ -91,6 +91,8 @@ pub fn inspect(
     })
 }
 
+pub const PIECE_LENGTH: u32 = 2 * 1024 * 1024;
+
 /// Validate an authored archive, announce it to the swarm, and seed until Ctrl+C.
 pub fn seed(archive: &Path, trackers: Vec<String>) -> Result<SeedInfo> {
     ensure!(archive.is_file(), "Seed archive does not exist");
@@ -119,6 +121,7 @@ pub fn seed(archive: &Path, trackers: Vec<String>) -> Result<SeedInfo> {
                 &copy.path,
                 librqbit::CreateTorrentOptions {
                     trackers,
+                    piece_length: Some(PIECE_LENGTH),
                     ..Default::default()
                 },
             )
@@ -714,7 +717,48 @@ pub fn parse_proxy_line(line: &str) -> Option<SocketAddr> {
         Some(_) => return None,
         None => line,
     };
-    rest.trim_end_matches('/').parse::<SocketAddr>().ok()
+    rest.trim_end_matches('/')
+        .parse::<SocketAddr>()
+        .ok()
+        .filter(|address| is_global_ip(address.ip()))
+}
+
+fn is_global_ip(ip: IpAddr) -> bool {
+    match ip {
+        IpAddr::V4(ip) => {
+            let octets = ip.octets();
+            !(ip.is_unspecified()
+                || ip.is_loopback()
+                || ip.is_private()
+                || ip.is_link_local()
+                || ip.is_broadcast()
+                || ip.is_multicast()
+                || ip.is_documentation()
+                || octets[0] == 0
+                || (octets[0] == 100 && octets[1] & 0xc0 == 64))
+        }
+        IpAddr::V6(ip) => match ip.to_ipv4_mapped() {
+            Some(mapped) => is_global_ip(IpAddr::V4(mapped)),
+            None => {
+                let first = ip.segments()[0];
+                !(ip.is_unspecified()
+                    || ip.is_loopback()
+                    || ip.is_multicast()
+                    || first & 0xfe00 == 0xfc00
+                    || first & 0xffc0 == 0xfe80)
+            }
+        },
+    }
+}
+
+fn tracker_host_is_global(tracker: &str) -> bool {
+    reqwest::Url::parse(tracker)
+        .ok()
+        .and_then(|url| {
+            url.host_str()
+                .and_then(|host| host.trim_matches(['[', ']']).parse::<IpAddr>().ok())
+        })
+        .is_none_or(is_global_ip)
 }
 
 /// Parse a whole proxy list, keeping order and dropping duplicates.
@@ -1036,7 +1080,12 @@ pub fn sanitize_magnet(magnet: &str, extra_trackers: &[String]) -> Result<Saniti
                         hash.len() == 40 && hash.bytes().all(|b| b.is_ascii_hexdigit()),
                         "The magnet needs a 40-digit hex BTv1 infohash"
                     );
-                    info_hash = Some(hash.to_ascii_lowercase());
+                    let hash = hash.to_ascii_lowercase();
+                    ensure!(
+                        info_hash.as_ref().is_none_or(|existing| *existing == hash),
+                        "The magnet has conflicting BTv1 infohashes"
+                    );
+                    info_hash = Some(hash);
                 }
             }
             "dn" if !value.is_empty() => name = Some(value.into_owned()),
@@ -1045,6 +1094,7 @@ pub fn sanitize_magnet(magnet: &str, extra_trackers: &[String]) -> Result<Saniti
         }
     }
     let info_hash = info_hash.context("The magnet needs a BTv1 infohash")?;
+    trackers.retain(|tracker| tracker_host_is_global(tracker));
     let all_trackers = trackers.clone();
     // A guide-authored tracker host name would be resolved by the user's
     // own DNS resolver (reqwest resolves `socks5://` proxy targets locally),
@@ -1151,8 +1201,14 @@ pub struct CheckedInfo {
 
 /// Check an authored `TorrentInfo` (bencoded info dictionary) against the
 /// magnet's BTv1 infohash. It must describe exactly one file with a safe
-/// name, and must not be a private torrent.
+/// name, a nonzero length and `PIECE_LENGTH` pieces, fit in the info size
+/// cap, and must not be a private torrent.
 pub fn check_torrent_info(info: &[u8], info_hash: &str) -> Result<CheckedInfo> {
+    ensure!(
+        info.len() <= crate::peer_sharing::MAX_INFO,
+        "TorrentInfo is larger than {} bytes",
+        crate::peer_sharing::MAX_INFO
+    );
     let actual = format!("{:x}", sha1::Sha1::digest(info));
     ensure!(
         actual.eq_ignore_ascii_case(info_hash),
@@ -1176,7 +1232,12 @@ pub fn check_torrent_info(info: &[u8], info_hash: &str) -> Result<CheckedInfo> {
         "ModSync torrents must contain exactly one archive"
     );
     ensure!(!data.private, "Private torrents are not shared");
+    ensure!(
+        data.piece_length == PIECE_LENGTH,
+        "ModSync torrents use {PIECE_LENGTH}-byte pieces"
+    );
     let length = data.length.context("TorrentInfo has no file length")?;
+    ensure!(length > 0, "TorrentInfo describes an empty file");
     let name = data
         .name
         .as_ref()
@@ -1793,7 +1854,7 @@ pub fn share_verified_authored_observed(
 
 fn rebuild_single_info(path: &Path, name: &str, cancelled: &AtomicBool) -> Result<Vec<u8>> {
     ensure!(safe_file_name(name), "Unsafe torrent name");
-    const PIECE: usize = 2 * 1024 * 1024;
+    const PIECE: usize = PIECE_LENGTH as usize;
     let mut file = crate::paths::open_regular_read(path)?;
     let mut buffer = [0u8; 64 * 1024];
     let mut length = 0u64;
@@ -2020,7 +2081,7 @@ fn share_authored_observed(
                     librqbit::CreateTorrentOptions {
                         name: Some(&name),
                         trackers: magnet.trackers.clone(),
-                        piece_length: None,
+                        piece_length: Some(PIECE_LENGTH),
                     },
                     &spawner,
                 )
@@ -2339,7 +2400,7 @@ impl CliProxyOptions {
         let mut proxies = Vec::new();
         for proxy in &self.proxies {
             proxies.push(parse_proxy_line(proxy).with_context(|| {
-                format!("--peer-proxy must be socks5://IP:PORT with a literal IP: {proxy}")
+                format!("--peer-proxy must be socks5://IP:PORT with a literal global IP: {proxy}")
             })?);
         }
         let list_url = match &self.proxy_list_url {
@@ -2628,6 +2689,7 @@ fn seed_minted_proxied(
                 &copy.path,
                 librqbit::CreateTorrentOptions {
                     trackers: policy.trackers.clone(),
+                    piece_length: Some(PIECE_LENGTH),
                     ..Default::default()
                 },
             )
