@@ -189,6 +189,106 @@ struct ProcessResult {
     original_entries: Vec<OriginalEntry>,
     expanded_bytes: u64,
 }
+const RAR_HOST_UNIX: u32 = 3;
+
+struct RarHeaderInfo {
+    host_os: u32,
+    directory: bool,
+    unpacked_size: u64,
+}
+
+/// RAR `file_attr` is a Unix `st_mode` only when the archiving host was Unix.
+/// Archives written on Windows/DOS/OS2 carry a Windows attribute bitmask whose
+/// bits (for example 0x2000 not-content-indexed) alias Unix file-type bits.
+fn rar_unix_mode(host_os: u32, file_attr: u32) -> Option<u32> {
+    (host_os == RAR_HOST_UNIX && file_attr & 0o170000 != 0).then_some(file_attr)
+}
+
+/// Unknown or mismatched header metadata is treated as a Unix host, which
+/// keeps the strict link/special-file rejection.
+fn rar_host_os(info: Option<&RarHeaderInfo>, directory: bool, unpacked_size: u64) -> u32 {
+    match info {
+        Some(info) if info.directory == directory && info.unpacked_size == unpacked_size => {
+            info.host_os
+        }
+        _ => RAR_HOST_UNIX,
+    }
+}
+
+#[cfg(any(target_os = "linux", target_os = "netbsd"))]
+fn rar_native_name(path: &Path) -> Option<std::ffi::CString> {
+    std::ffi::CString::new(path.as_os_str().as_encoded_bytes()).ok()
+}
+
+#[cfg(windows)]
+fn rar_native_name(path: &Path) -> Option<Vec<unrar_sys::WCHAR>> {
+    use std::os::windows::ffi::OsStrExt;
+    let mut name: Vec<unrar_sys::WCHAR> = path.as_os_str().encode_wide().collect();
+    if name.contains(&0) {
+        return None;
+    }
+    name.push(0);
+    Some(name)
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "netbsd", windows)))]
+fn rar_native_name(path: &Path) -> Option<Vec<unrar_sys::WCHAR>> {
+    let mut name: Vec<unrar_sys::WCHAR> = path.to_str()?.chars().map(|c| c as _).collect();
+    if name.contains(&0) {
+        return None;
+    }
+    name.push(0);
+    Some(name)
+}
+
+struct RarHandle(*const unrar_sys::Handle);
+impl Drop for RarHandle {
+    fn drop(&mut self) {
+        unsafe { unrar_sys::RARCloseArchive(self.0) };
+    }
+}
+
+/// The `unrar` crate does not expose the header host OS, so list the headers
+/// once through the native bindings. Any failure yields a short inventory and
+/// the caller falls back to strict Unix semantics for the missing entries.
+fn rar_header_inventory(path: &Path) -> Vec<RarHeaderInfo> {
+    let mut headers = Vec::new();
+    let Some(name) = rar_native_name(path) else {
+        return headers;
+    };
+    let mut open = unrar_sys::OpenArchiveDataEx::new(name.as_ptr(), unrar_sys::RAR_OM_LIST);
+    let handle = unsafe { unrar_sys::RAROpenArchiveEx(std::ptr::addr_of_mut!(open)) };
+    if handle.is_null() {
+        return headers;
+    }
+    let handle = RarHandle(handle);
+    if open.open_result != 0 {
+        return headers;
+    }
+    let mut header = Box::new(unrar_sys::HeaderDataEx::default());
+    while unsafe { unrar_sys::RARReadHeaderEx(handle.0, std::ptr::addr_of_mut!(*header)) }
+        == unrar_sys::ERAR_SUCCESS
+    {
+        headers.push(RarHeaderInfo {
+            host_os: header.host_os,
+            directory: header.flags & unrar_sys::RHDF_DIRECTORY != 0,
+            unpacked_size: (u64::from(header.unp_size_high) << 32) | u64::from(header.unp_size),
+        });
+        let skipped = unsafe {
+            unrar_sys::RARProcessFile(
+                handle.0,
+                unrar_sys::RAR_SKIP,
+                std::ptr::null(),
+                std::ptr::null(),
+            )
+        };
+        if skipped != unrar_sys::ERAR_SUCCESS {
+            break;
+        }
+    }
+    headers
+}
+
 fn process(
     path: &Path,
     name: &Path,
@@ -231,7 +331,9 @@ fn process(
     let signature = &signature[..n];
     file.rewind()?;
     if signature.starts_with(b"Rar!\x1a\x07") {
+        let headers = rar_header_inventory(path);
         let mut archive = unrar::Archive::new(path).open_for_processing()?;
+        let mut index = 0;
         while let Some(entry) = archive.read_header()? {
             let header = entry.entry();
             let name = header
@@ -239,7 +341,13 @@ fn process(
                 .to_str()
                 .ok_or_else(|| anyhow::anyhow!("Non-UTF8 RAR entry"))?
                 .to_owned();
-            let mode = (header.file_attr & 0o170000 != 0).then_some(header.file_attr);
+            let host_os = rar_host_os(
+                headers.get(index),
+                header.is_directory(),
+                header.unpacked_size,
+            );
+            index += 1;
+            let mode = rar_unix_mode(host_os, header.file_attr);
             let path = output.name(&name, mode, header.is_directory())?;
             ensure!(
                 !header.is_split() && !header.is_encrypted(),
@@ -458,5 +566,89 @@ fn find_7z(file: &mut File, cancelled: &AtomicBool) -> Result<u64> {
                 return Ok(position - SIGNATURE.len() as u64);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const RAR_HOST_MSDOS: u32 = 0;
+    const RAR_HOST_OS2: u32 = 1;
+    const RAR_HOST_WINDOWS: u32 = 2;
+    const RAR_HOST_BEOS: u32 = 5;
+
+    #[test]
+    fn windows_attributes_are_never_unix_modes() {
+        for host in [RAR_HOST_MSDOS, RAR_HOST_OS2, RAR_HOST_WINDOWS] {
+            for attr in [0x20, 0x2000, 0x4000, 0x8000, 0x2020, 0xa000, 0x6000] {
+                assert_eq!(
+                    rar_unix_mode(host, attr),
+                    None,
+                    "host {host} attr {attr:#x}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn unix_host_keeps_mode_and_special_kinds_are_rejected() {
+        let mut output = Output {
+            options: &Options::default(),
+            cancelled: &AtomicBool::new(false),
+            spool: false,
+            limit: u64::MAX,
+            total: 0,
+            names: BTreeSet::new(),
+            original_entries: None,
+            original_name_bytes: 0,
+            files: Vec::new(),
+        };
+        let regular = rar_unix_mode(RAR_HOST_UNIX, 0o100644);
+        let symlink = rar_unix_mode(RAR_HOST_UNIX, 0o120777);
+        let character = rar_unix_mode(RAR_HOST_UNIX, 0o020000);
+        assert_eq!(regular, Some(0o100644));
+        assert_eq!(symlink, Some(0o120777));
+        assert_eq!(character, Some(0o020000));
+        assert_eq!(rar_unix_mode(RAR_HOST_UNIX, 0x20), None);
+        assert!(output.name("plain.bin", regular, false).is_ok());
+        assert!(output.name("link", symlink, false).is_err());
+        assert!(output.name("device", character, false).is_err());
+    }
+
+    #[test]
+    fn windows_attribute_aliasing_a_special_kind_is_accepted() {
+        let mut output = Output {
+            options: &Options::default(),
+            cancelled: &AtomicBool::new(false),
+            spool: false,
+            limit: u64::MAX,
+            total: 0,
+            names: BTreeSet::new(),
+            original_entries: None,
+            original_name_bytes: 0,
+            files: Vec::new(),
+        };
+        let mode = rar_unix_mode(RAR_HOST_WINDOWS, 0x2000);
+        assert!(output.name("example.tga", mode, false).is_ok());
+    }
+
+    #[test]
+    fn beos_and_unknown_hosts_do_not_expose_windows_bits() {
+        assert_eq!(rar_unix_mode(RAR_HOST_BEOS, 0x2000), None);
+        assert_eq!(rar_unix_mode(99, 0x2000), None);
+    }
+
+    #[test]
+    fn missing_or_mismatched_header_info_is_strict_unix() {
+        let info = RarHeaderInfo {
+            host_os: RAR_HOST_WINDOWS,
+            directory: false,
+            unpacked_size: 7,
+        };
+        assert_eq!(rar_host_os(Some(&info), false, 7), RAR_HOST_WINDOWS);
+        assert_eq!(rar_host_os(Some(&info), true, 7), RAR_HOST_UNIX);
+        assert_eq!(rar_host_os(Some(&info), false, 8), RAR_HOST_UNIX);
+        assert_eq!(rar_host_os(None, false, 7), RAR_HOST_UNIX);
     }
 }

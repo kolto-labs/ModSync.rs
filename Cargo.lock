@@ -3581,6 +3581,7 @@ dependencies = [
  "tokio",
  "toml",
  "unrar",
+ "unrar_sys",
  "unsafe-libyaml",
  "uuid",
  "walkdir",
