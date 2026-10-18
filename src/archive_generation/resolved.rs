@@ -288,6 +288,100 @@ fn documentation(basename: &str) -> bool {
     )
 }
 
+/// A component that is only an installation method of `Loose-File`: no
+/// directions, instructions, choices, or extra installation/download guidance.
+/// Shared by generation and by the verifier's replay so both gate identically.
+fn method_only_loose_file(component: &Component) -> bool {
+    component
+        .metadata
+        .get("InstallationMethod")
+        .and_then(|value| value.as_str())
+        .map(str::trim)
+        .is_some_and(|method| {
+            method.eq_ignore_ascii_case("Loose-File")
+                || method.eq_ignore_ascii_case("Loose-File Mod")
+        })
+        && component.directions.trim().is_empty()
+        && component.instructions.is_empty()
+        && component.options.is_empty()
+        && !["DownloadInstructions", "InstallationWarning"]
+            .iter()
+            .any(|key| {
+                component
+                    .metadata
+                    .get(*key)
+                    .and_then(|value| value.as_str())
+                    .is_some_and(|text| !text.replace(draft::REVIEW_FLAG, "").trim().is_empty())
+            })
+}
+
+/// Rebuild what `bind_loose_method` derived for one method-only loose-file
+/// component, from the hash-verified archive, on a copy stripped of its
+/// instructions, options and prior draft record. The recorded guide defaults
+/// come from the draft's own binding receipt (the verifier sees no guide
+/// preamble); they only unlock the fixed Override destination, and the caller
+/// compares the result with the saved draft. Nothing here mutates `component`.
+pub(crate) fn replay_method_binding(
+    component: &Component,
+    derivation: &draft::review::Derivation,
+    root: &Path,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+) -> Result<Component> {
+    check(cancelled)?;
+    let record = component
+        .metadata
+        .get("DraftReview")
+        .context("Missing draft review")?;
+    let context = record
+        .get("MethodContext")
+        .context("Missing method context")?;
+    ensure!(
+        context["Kind"] == "LooseFile" && context["ArchiveBinding"] == "Bound",
+        "Method context is not an archive-bound loose-file binding"
+    );
+    let binding = component
+        .metadata
+        .get("ArchiveMethodBinding")
+        .context("Missing archive method binding")?;
+    ensure!(
+        binding["Filename"] == derivation.filename.as_str()
+            && binding["Sha256"]
+                .as_str()
+                .is_some_and(|hash| hash.eq_ignore_ascii_case(&derivation.sha256))
+            && binding["Bytes"] == derivation.bytes
+            && binding["GuideDefaults"] == context["GuideDefaults"],
+        "Method binding does not match its archive derivation"
+    );
+    let defaults = binding["GuideDefaults"].clone();
+    let mut target = component.clone();
+    target.instructions.clear();
+    target.options.clear();
+    target.metadata.remove("ArchiveMethodBinding");
+    target.metadata.remove("DraftReview");
+    ensure!(
+        method_only_loose_file(&target),
+        "Component is not a method-only loose-file component"
+    );
+    let root = local_root(root)?;
+    let (before, bytes) = archive_digest(&root.join(&derivation.filename))
+        .context("Derived archive is unavailable")?;
+    ensure!(
+        before.eq_ignore_ascii_case(&derivation.sha256) && bytes == derivation.bytes,
+        "Archive no longer matches its recorded SHA-256"
+    );
+    bind_loose_method(
+        &mut target,
+        &derivation.filename,
+        Some(&root),
+        &defaults,
+        options,
+        cancelled,
+    )
+    .context("Archive no longer yields the recorded method binding")?;
+    Ok(target)
+}
+
 fn bind_loose_method(
     component: &mut Component,
     filename: &str,
@@ -621,23 +715,7 @@ pub fn generate(
                 .get("DraftReview")
                 .is_some_and(|record| record.get("MethodContext").is_some())
         {
-            let eligible = method.is_some_and(|method| {
-                method.eq_ignore_ascii_case("Loose-File")
-                    || method.eq_ignore_ascii_case("Loose-File Mod")
-            }) && component.directions.trim().is_empty()
-                && component.instructions.is_empty()
-                && component.options.is_empty()
-                && !["DownloadInstructions", "InstallationWarning"]
-                    .iter()
-                    .any(|key| {
-                        component
-                            .metadata
-                            .get(*key)
-                            .and_then(|value| value.as_str())
-                            .is_some_and(|text| {
-                                !text.replace(draft::REVIEW_FLAG, "").trim().is_empty()
-                            })
-                    });
+            let eligible = method_only_loose_file(component);
             if !eligible {
                 report.diagnostics.push("Method binding requires a method-only LooseFile component without instructions, choices, or additional installation/download guidance; component unchanged.".into());
             } else if group.filenames.len() != 1

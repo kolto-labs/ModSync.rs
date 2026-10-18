@@ -363,8 +363,10 @@ fn clear_subtree(component: &mut Component, verification: &Value, depth: usize) 
 }
 
 /// Clear review only for a draft that a fresh replay reproduces from one
-/// hash-bound local archive. Anything authored, edited, gapful, prose-drafted,
-/// method-bound or not reproducible stays fenced and `component` is unchanged.
+/// hash-bound local archive, or a method-only loose-file draft that
+/// `bind_loose_method` produced and a fresh binding replay reproduces exactly.
+/// Anything authored, edited, gapful, prose-drafted, otherwise method-bound or
+/// not reproducible stays fenced and `component` is unchanged.
 /// This is not a blanket acceptance: the proof is the archive replay.
 pub fn verify_archive_derived(
     component: &mut Component,
@@ -384,18 +386,31 @@ pub fn verify_archive_derived(
         record.get("Generator").and_then(Value::as_str) == Some(GENERATOR),
         "Draft was not generated from resolved archive filenames"
     );
-    ensure!(
-        record.get("MethodContext").is_none(),
-        "Method-bound drafts are not verifiable by archive replay"
-    );
-    ensure!(
-        !component
-            .metadata
-            .get("InstallationWarning")
-            .and_then(Value::as_str)
-            .is_some_and(|text| text.contains(super::REVIEW_FLAG)),
-        "Prose-drafted instructions are not verifiable by archive replay"
-    );
+    let method_bound = record.get("MethodContext").is_some();
+    if method_bound {
+        const BOUND_KEYS: [&str; 5] = [
+            "RequiresReview",
+            "Result",
+            "Generator",
+            "Derivation",
+            "MethodContext",
+        ];
+        ensure!(
+            record
+                .as_object()
+                .is_some_and(|object| object.keys().all(|key| BOUND_KEYS.contains(&key.as_str()))),
+            "Method-bound draft carries review history or resolution records"
+        );
+    } else {
+        ensure!(
+            !component
+                .metadata
+                .get("InstallationWarning")
+                .and_then(Value::as_str)
+                .is_some_and(|text| text.contains(super::REVIEW_FLAG)),
+            "Prose-drafted instructions are not verifiable by archive replay"
+        );
+    }
     let result: DraftResult = serde_json::from_value(
         record
             .get("Result")
@@ -442,13 +457,35 @@ pub fn verify_archive_derived(
             .context("Draft records no archive derivation")?,
     )
     .context("Invalid archive derivation")?;
-    let replayed = crate::archive_generation::resolved::replay_archive_derivation(
-        component,
-        &derivation,
-        root,
-        options,
-        cancelled,
-    )?;
+    let replayed = if method_bound {
+        let replayed = crate::archive_generation::resolved::replay_method_binding(
+            component,
+            &derivation,
+            root,
+            options,
+            cancelled,
+        )?;
+        let replayed_record = replayed
+            .metadata
+            .get("DraftReview")
+            .context("Method replay left no draft record")?;
+        ensure!(
+            component.metadata.get("ArchiveMethodBinding")
+                == replayed.metadata.get("ArchiveMethodBinding")
+                && record.get("MethodContext") == replayed_record.get("MethodContext")
+                && record.get("Derivation") == replayed_record.get("Derivation"),
+            "Saved method binding differs from the archive replay"
+        );
+        replayed
+    } else {
+        crate::archive_generation::resolved::replay_archive_derivation(
+            component,
+            &derivation,
+            root,
+            options,
+            cancelled,
+        )?
+    };
     let expected = shape(&replayed)?;
     ensure!(
         shape(component)? == expected,

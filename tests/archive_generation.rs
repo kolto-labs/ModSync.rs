@@ -1194,33 +1194,211 @@ fn archive_replay_never_clears_prose_or_method_drafts() {
     assert!(draft::requires_review(&forged));
 }
 
-#[test]
-fn archive_replay_refuses_method_bound_drafts_even_with_a_derivation() {
-    let dir = tempfile::tempdir().unwrap();
-    zip_bytes(
-        &dir.path().join("texture-pack-a.zip"),
-        &[("sample.tga", b"texture")],
-    );
+const OVERRIDE_DEFAULT: &str = "If you are asked to direct a TSLPatcher or HoloPatcher executable to a folder to begin install, that folder should always be the main game folder. For mods that are not installed with the TSLPatcher or HoloPatcher, unless otherwise noted their loose-file contents are placed directly in the Override directory.";
+
+fn method_guide(method: &str, preamble: bool) -> Guide {
     let mut guide = Guide::parse(
-        &json!([{"Guid":EXAMPLE_GUID,"Name":"Texture Pack A","InstallationMethod":"Loose-File"}])
+        &json!([{"Guid":EXAMPLE_GUID,"Name":"Texture Pack A","InstallationMethod":method}])
             .to_string(),
         "json",
     )
     .unwrap();
-    guide.metadata.insert(
-        "preambleContent".into(),
-        json!(
-            "For mods that are not installed with the TSLPatcher or HoloPatcher, unless otherwise noted their loose-file contents are placed directly in the Override directory."
-        ),
+    if preamble {
+        guide
+            .metadata
+            .insert("preambleContent".into(), json!(OVERRIDE_DEFAULT));
+    }
+    guide
+}
+
+fn loose_zip(dir: &Path) {
+    zip_bytes(
+        &dir.join("texture-pack-a.zip"),
+        &[("sample.tga", b"texture"), ("readme.txt", b"notes")],
     );
-    resolve_into(&mut guide, dir.path(), &[&["texture-pack-a.zip"]]);
+}
+
+fn bound_method_guide(dir: &Path) -> Guide {
+    loose_zip(dir);
+    let mut guide = method_guide("Loose-File", true);
+    draft::generate(&mut guide);
+    resolve_into(&mut guide, dir, &[&["texture-pack-a.zip"]]);
     let record = review_record(&guide.components[0]);
-    assert!(record.get("MethodContext").is_some(), "{record}");
+    assert_eq!(
+        record["MethodContext"]["ArchiveBinding"], "Bound",
+        "{record}"
+    );
     assert_eq!(record["Derivation"]["Filename"], "texture-pack-a.zip");
     assert!(draft::requires_review(&guide.components[0]));
-    let error = verify(&mut guide.components[0], dir.path()).unwrap_err();
-    assert!(format!("{error:#}").contains("Method-bound"), "{error:#}");
-    assert!(draft::requires_review(&guide.components[0]));
+    guide
+}
+
+#[test]
+fn archive_replay_clears_a_draft_that_method_binding_produced() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut guide = bound_method_guide(dir.path());
+    assert_eq!(guide.components[0].instructions.len(), 2);
+    verify(&mut guide.components[0], dir.path()).unwrap();
+    let cleared = guide.components[0].clone();
+    assert!(!draft::requires_review(&cleared));
+    assert_eq!(
+        review_record(&cleared)["Verification"]["Kind"],
+        "ArchiveDerived"
+    );
+    assert_eq!(
+        review_record(&cleared)["Verification"]["ArchiveFilename"],
+        "texture-pack-a.zip"
+    );
+
+    let mut edited = cleared.clone();
+    edited.instructions[1].destination = "<<kotorDirectory>>\\Elsewhere".into();
+    assert!(draft::requires_review(&edited));
+
+    let reloaded = Guide::parse(&guide.render("toml").unwrap(), "toml").unwrap();
+    assert!(!draft::requires_review(&reloaded.components[0]));
+}
+
+#[test]
+fn bound_method_drafts_survive_a_toml_round_trip_before_verification() {
+    let dir = tempfile::tempdir().unwrap();
+    let guide = bound_method_guide(dir.path());
+    let mut reloaded = Guide::parse(&guide.render("toml").unwrap(), "toml").unwrap();
+    assert!(draft::requires_review(&reloaded.components[0]));
+    verify(&mut reloaded.components[0], dir.path()).unwrap();
+    assert!(!draft::requires_review(&reloaded.components[0]));
+}
+
+#[test]
+fn toml_input_keeps_the_preamble_default_for_method_binding() {
+    let dir = tempfile::tempdir().unwrap();
+    loose_zip(dir.path());
+    let source = method_guide("Loose-File", true);
+    let mut guide = Guide::parse(&source.render("toml").unwrap(), "toml").unwrap();
+    draft::generate(&mut guide);
+    resolve_into(&mut guide, dir.path(), &[&["texture-pack-a.zip"]]);
+    assert_eq!(guide.components[0].instructions[1].action, "Move");
+    verify(&mut guide.components[0], dir.path()).unwrap();
+
+    let plain = method_guide("Loose-File", false);
+    let mut guide = Guide::parse(&plain.render("toml").unwrap(), "toml").unwrap();
+    resolve_into(&mut guide, dir.path(), &[&["texture-pack-a.zip"]]);
+    assert!(guide.components[0].instructions.is_empty());
+}
+
+#[test]
+fn edited_bound_method_drafts_stay_fenced() {
+    let dir = tempfile::tempdir().unwrap();
+    let guide = bound_method_guide(dir.path());
+    let fenced = |edit: &dyn Fn(&mut Component)| {
+        let mut component = guide.components[0].clone();
+        edit(&mut component);
+        assert!(verify(&mut component, dir.path()).is_err());
+        assert!(draft::requires_review(&component));
+    };
+    fenced(&|c| c.instructions[1].destination = "<<kotorDirectory>>\\Elsewhere".into());
+    fenced(&|c| {
+        c.instructions[1]
+            .source
+            .push("<<modDirectory>>\\extra.tga".into())
+    });
+    fenced(&|c| c.instructions[0].source = vec!["<<modDirectory>>\\other.zip".into()]);
+    fenced(&|c| {
+        c.instructions.pop();
+    });
+    fenced(&|c| c.options.push(c.clone()));
+    fenced(&|c| {
+        c.metadata
+            .insert("InstallationMethod".into(), json!("TSLPatcher"));
+    });
+    fenced(&|c| {
+        c.metadata.get_mut("ArchiveMethodBinding").unwrap()["Members"] = json!(["forged.tga"]);
+    });
+    fenced(&|c| {
+        c.metadata.get_mut("ArchiveMethodBinding").unwrap()["GuideDefaults"]["LooseFilesDestination"] =
+            json!("<<kotorDirectory>>\\Modules");
+    });
+    fenced(&|c| {
+        c.metadata.get_mut("DraftReview").unwrap()["MethodContext"]["ArchiveBinding"] =
+            json!("Unresolved");
+    });
+    fenced(&|c| {
+        c.metadata.remove("ArchiveMethodBinding");
+    });
+    fenced(&|c| {
+        c.metadata
+            .get_mut("DraftReview")
+            .unwrap()
+            .as_object_mut()
+            .unwrap()
+            .remove("Derivation");
+    });
+    fenced(&|c| {
+        c.metadata.get_mut("DraftReview").unwrap()["InferenceHistory"] = json!([]);
+    });
+    fenced(&|c| {
+        c.metadata.get_mut("DraftReview").unwrap()["Result"]["UnparsedGaps"] = json!(["open"]);
+    });
+}
+
+#[test]
+fn bound_method_replay_refuses_prose_and_non_loose_file_methods() {
+    let dir = tempfile::tempdir().unwrap();
+    let guide = bound_method_guide(dir.path());
+
+    let mut prose = guide.components[0].clone();
+    prose.directions = "Move only sample.tga to your Override.".into();
+    assert!(verify(&mut prose, dir.path()).is_err());
+    assert!(draft::requires_review(&prose));
+
+    let mut warned = guide.components[0].clone();
+    warned
+        .metadata
+        .insert("InstallationWarning".into(), json!("Extra guidance"));
+    assert!(verify(&mut warned, dir.path()).is_err());
+
+    let mut patcher = method_guide("TSLPatcher", true);
+    draft::generate(&mut patcher);
+    resolve_into(&mut patcher, dir.path(), &[&["texture-pack-a.zip"]]);
+    assert!(patcher.components[0].instructions.is_empty());
+    assert!(verify(&mut patcher.components[0], dir.path()).is_err());
+    assert!(draft::requires_review(&patcher.components[0]));
+
+    let mut unbound = method_guide("Loose-File", true);
+    draft::generate(&mut unbound);
+    assert!(verify(&mut unbound.components[0], dir.path()).is_err());
+    assert!(draft::requires_review(&unbound.components[0]));
+}
+
+#[test]
+fn tampered_or_missing_archives_keep_bound_method_drafts_fenced() {
+    let dir = tempfile::tempdir().unwrap();
+    let guide = bound_method_guide(dir.path());
+
+    let mut swapped = guide.components[0].clone();
+    zip_bytes(
+        &dir.path().join("texture-pack-a.zip"),
+        &[("sample.tga", b"changed"), ("readme.txt", b"notes")],
+    );
+    let error = verify(&mut swapped, dir.path()).unwrap_err();
+    assert!(format!("{error:#}").contains("no longer"), "{error:#}");
+    assert!(draft::requires_review(&swapped));
+
+    let mut extra = guide.components[0].clone();
+    zip_bytes(
+        &dir.path().join("texture-pack-a.zip"),
+        &[
+            ("sample.tga", b"texture"),
+            ("readme.txt", b"notes"),
+            ("second.tga", b"more"),
+        ],
+    );
+    assert!(verify(&mut extra, dir.path()).is_err());
+    assert!(draft::requires_review(&extra));
+
+    let mut missing = guide.components[0].clone();
+    let empty = tempfile::tempdir().unwrap();
+    assert!(verify(&mut missing, empty.path()).is_err());
+    assert!(draft::requires_review(&missing));
 }
 
 #[test]

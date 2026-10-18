@@ -514,9 +514,15 @@ fn method_context(method: &str, defaults: &serde_json::Value) -> serde_json::Val
 }
 
 pub(crate) fn guide_defaults(guide: &Guide) -> serde_json::Value {
+    let nested = guide
+        .metadata
+        .get("metadata")
+        .and_then(|value| value.as_object());
     let preamble = guide
         .metadata
         .get("preambleContent")
+        .or_else(|| nested.and_then(|fields| fields.get("preambleContent")))
+        .or_else(|| nested.and_then(|fields| fields.get("PreambleContent")))
         .and_then(|value| value.as_str())
         .filter(|text| !text.trim().is_empty());
     let bounded = preamble.is_none_or(|text| text.len() <= 64 * 1024);
