@@ -1401,6 +1401,200 @@ fn tampered_or_missing_archives_keep_bound_method_drafts_fenced() {
     assert!(draft::requires_review(&missing));
 }
 
+const PATCHER_FILES: [(&str, &[u8]); 4] = [
+    ("tslpatchdata/changes.ini", b"[Settings]"),
+    ("tslpatchdata/sample.tga", b"texture"),
+    ("Setup.exe", b"x"),
+    ("readme.txt", b"notes"),
+];
+
+fn patcher_bound_guide(dir: &Path, method: &str, files: &[(&str, &[u8])]) -> Guide {
+    zip_bytes(&dir.join("texture-pack-a.zip"), files);
+    let mut guide = method_guide(method, true);
+    draft::generate(&mut guide);
+    resolve_into(&mut guide, dir, &[&["texture-pack-a.zip"]]);
+    guide
+}
+
+fn assert_patcher_fenced(guide: &Guide, dir: &Path) {
+    let mut component = guide.components[0].clone();
+    assert!(component.instructions.is_empty(), "{component:?}");
+    assert_eq!(
+        review_record(&component)["MethodContext"]["ArchiveBinding"],
+        "Unresolved"
+    );
+    assert!(draft::requires_review(&component));
+    assert!(verify(&mut component, dir).is_err());
+    assert!(draft::requires_review(&component));
+}
+
+#[test]
+fn patcher_method_binding_emits_extract_and_patcher_and_verifies() {
+    for method in ["TSLPatcher", "HoloPatcher Mod"] {
+        let dir = tempfile::tempdir().unwrap();
+        let mut guide = patcher_bound_guide(dir.path(), method, &PATCHER_FILES);
+        let component = &guide.components[0];
+        let record = review_record(component);
+        assert_eq!(record["MethodContext"]["Kind"], "Patcher", "{record}");
+        assert_eq!(record["MethodContext"]["ArchiveBinding"], "Bound");
+        assert_eq!(record["Derivation"]["Filename"], "texture-pack-a.zip");
+        assert_eq!(component.metadata["InstallationMethod"], method);
+        assert_eq!(component.instructions.len(), 2);
+        assert_eq!(component.instructions[0].action, "Extract");
+        assert_eq!(
+            component.instructions[0].source,
+            ["<<modDirectory>>\\texture-pack-a.zip"]
+        );
+        assert_eq!(component.instructions[1].action, "Patcher");
+        assert_eq!(
+            component.instructions[1].source,
+            ["<<modDirectory>>\\texture-pack-a\\Setup.exe"]
+        );
+        assert_eq!(component.instructions[1].destination, "<<gameDirectory>>");
+        assert!(component.options.is_empty());
+        assert!(draft::requires_review(component));
+
+        verify(&mut guide.components[0], dir.path()).unwrap();
+        let cleared = guide.components[0].clone();
+        assert!(!draft::requires_review(&cleared));
+        assert_eq!(
+            review_record(&cleared)["Verification"]["Kind"],
+            "ArchiveDerived"
+        );
+        let mut edited = cleared.clone();
+        edited.instructions[1].destination = "<<kotorDirectory>>\\Elsewhere".into();
+        assert!(draft::requires_review(&edited));
+    }
+}
+
+#[test]
+fn patcher_method_binding_stays_fenced_outside_its_strict_gates() {
+    let namespaces: &[(&str, &[u8])] = &[
+        (
+            "tslpatchdata/namespaces.ini",
+            b"[Namespaces]\r\n0=first\r\n[first]\r\nName=One\r\n",
+        ),
+        ("tslpatchdata/first/changes.ini", b"[Settings]"),
+        ("Setup.exe", b"x"),
+    ];
+    let namespaces_beside_changes: &[(&str, &[u8])] = &[
+        ("tslpatchdata/namespaces.ini", b"[Namespaces]"),
+        ("tslpatchdata/changes.ini", b"[Settings]"),
+        ("Setup.exe", b"x"),
+    ];
+    let extra_payload: &[(&str, &[u8])] = &[
+        ("tslpatchdata/changes.ini", b"[Settings]"),
+        ("Setup.exe", b"x"),
+        ("extra.tga", b"texture"),
+    ];
+    let two_exes: &[(&str, &[u8])] = &[
+        ("tslpatchdata/changes.ini", b"[Settings]"),
+        ("Setup.exe", b"x"),
+        ("Setup64.exe", b"x"),
+    ];
+    let wrapped: &[(&str, &[u8])] = &[
+        ("wrapper/tslpatchdata/changes.ini", b"[Settings]"),
+        ("wrapper/Setup.exe", b"x"),
+    ];
+    let no_exe: &[(&str, &[u8])] = &[("tslpatchdata/changes.ini", b"[Settings]")];
+    let two_changes: &[(&str, &[u8])] = &[
+        ("tslpatchdata/changes.ini", b"[Settings]"),
+        ("tslpatchdata/second/changes.ini", b"[Settings]"),
+        ("Setup.exe", b"x"),
+    ];
+    for files in [
+        namespaces,
+        namespaces_beside_changes,
+        extra_payload,
+        two_exes,
+        wrapped,
+        no_exe,
+        two_changes,
+    ] {
+        let dir = tempfile::tempdir().unwrap();
+        let guide = patcher_bound_guide(dir.path(), "TSLPatcher", files);
+        assert_patcher_fenced(&guide, dir.path());
+    }
+
+    let dir = tempfile::tempdir().unwrap();
+    zip_bytes(&dir.path().join("texture-pack-a.zip"), &PATCHER_FILES);
+    let mut no_preamble = method_guide("TSLPatcher", false);
+    draft::generate(&mut no_preamble);
+    resolve_into(&mut no_preamble, dir.path(), &[&["texture-pack-a.zip"]]);
+    assert_patcher_fenced(&no_preamble, dir.path());
+
+    let mut directions = method_guide("TSLPatcher", true);
+    draft::generate(&mut directions);
+    directions.components[0].directions = "Run the installer twice.".into();
+    resolve_into(&mut directions, dir.path(), &[&["texture-pack-a.zip"]]);
+    assert!(directions.components[0].instructions.is_empty());
+    assert!(draft::requires_review(&directions.components[0]));
+    assert!(verify(&mut directions.components[0], dir.path()).is_err());
+
+    let mut warned = method_guide("TSLPatcher", true);
+    draft::generate(&mut warned);
+    warned.components[0].metadata.insert(
+        "DownloadInstructions".into(),
+        json!("Pick the second file."),
+    );
+    resolve_into(&mut warned, dir.path(), &[&["texture-pack-a.zip"]]);
+    assert!(warned.components[0].instructions.is_empty());
+    assert!(draft::requires_review(&warned.components[0]));
+}
+
+#[test]
+fn patcher_method_replay_rejects_mismatch_and_drift() {
+    let dir = tempfile::tempdir().unwrap();
+    let guide = patcher_bound_guide(dir.path(), "TSLPatcher", &PATCHER_FILES);
+    assert_eq!(guide.components[0].instructions.len(), 2);
+
+    let mut edited = guide.components[0].clone();
+    edited.instructions[1].source = vec!["<<modDirectory>>\\texture-pack-a\\Other.exe".into()];
+    let error = verify(&mut edited, dir.path()).unwrap_err();
+    assert!(format!("{error:#}").contains("differ"), "{error:#}");
+    assert!(draft::requires_review(&edited));
+
+    let mut kind = guide.components[0].clone();
+    kind.metadata.get_mut("DraftReview").unwrap()["MethodContext"]["Kind"] = "LooseFile".into();
+    assert!(verify(&mut kind, dir.path()).is_err());
+    assert!(draft::requires_review(&kind));
+
+    let mut forged = guide.components[0].clone();
+    forged.metadata.get_mut("ArchiveMethodBinding").unwrap()["Installer"] = "Other.exe".into();
+    assert!(verify(&mut forged, dir.path()).is_err());
+    assert!(draft::requires_review(&forged));
+
+    let mut warned = guide.components[0].clone();
+    warned
+        .metadata
+        .insert("InstallationWarning".into(), json!("Extra guidance"));
+    assert!(verify(&mut warned, dir.path()).is_err());
+
+    let mut drifted = guide.components[0].clone();
+    zip_bytes(
+        &dir.path().join("texture-pack-a.zip"),
+        &[
+            ("tslpatchdata/changes.ini", b"[Settings]\r\nchanged=1"),
+            ("Setup.exe", b"x"),
+        ],
+    );
+    let error = verify(&mut drifted, dir.path()).unwrap_err();
+    assert!(format!("{error:#}").contains("no longer"), "{error:#}");
+    assert!(draft::requires_review(&drifted));
+
+    let mut extra = guide.components[0].clone();
+    zip_bytes(
+        &dir.path().join("texture-pack-a.zip"),
+        &[
+            ("tslpatchdata/changes.ini", b"[Settings]"),
+            ("Setup.exe", b"x"),
+            ("Setup64.exe", b"x"),
+        ],
+    );
+    assert!(verify(&mut extra, dir.path()).is_err());
+    assert!(draft::requires_review(&extra));
+}
+
 #[test]
 fn archive_replay_receipt_is_bound_to_instructions_and_verification() {
     let dir = tempfile::tempdir().unwrap();

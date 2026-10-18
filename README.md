@@ -142,7 +142,7 @@ cargo run -- convert guide.md draft.json --parse-directions
 cargo run -- convert draft.json reviewed.toml --review-draft <component-guid>
 ```
 
-Drafts inferred from exactly one local archive record that archive's SHA-256. `convert draft.json reviewed.toml --source-path <archive-folder> --review-verified-drafts` clears review only for drafts whose stored instructions a fresh replay of that archive reproduces exactly (no gaps, no authored edits, no prose drafts; a method-bound draft qualifies only when it is a method-only `Loose-File` binding that `--resolved-archives` produced and a fresh binding replay reproduces), records a `Verification` receipt, and prints `{cleared, skipped}` on stderr. Everything else stays fenced.
+Drafts inferred from exactly one local archive record that archive's SHA-256. `convert draft.json reviewed.toml --source-path <archive-folder> --review-verified-drafts` clears review only for drafts whose stored instructions a fresh replay of that archive reproduces exactly (no gaps, no authored edits, no prose drafts; a method-bound draft qualifies only when it is a method-only `Loose-File` or single-run `TSLPatcher`/`HoloPatcher` binding that `--resolved-archives` produced and a fresh binding replay reproduces), records a `Verification` receipt, and prints `{cleared, skipped}` on stderr. Everything else stays fenced.
 
 For instruction-free components whose archives are already downloaded:
 

@@ -363,8 +363,9 @@ fn clear_subtree(component: &mut Component, verification: &Value, depth: usize) 
 }
 
 /// Clear review only for a draft that a fresh replay reproduces from one
-/// hash-bound local archive, or a method-only loose-file draft that
-/// `bind_loose_method` produced and a fresh binding replay reproduces exactly.
+/// hash-bound local archive, or a method-only loose-file or single-run patcher
+/// draft that `bind_loose_method`/`bind_patcher_method` produced and a fresh
+/// binding replay reproduces exactly.
 /// Anything authored, edited, gapful, prose-drafted, otherwise method-bound or
 /// not reproducible stays fenced and `component` is unchanged.
 /// This is not a blanket acceptance: the proof is the archive replay.

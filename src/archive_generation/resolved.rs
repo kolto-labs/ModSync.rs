@@ -288,18 +288,19 @@ fn documentation(basename: &str) -> bool {
     )
 }
 
-/// A component that is only an installation method of `Loose-File`: no
+/// A component that is only an installation method (one of `methods`): no
 /// directions, instructions, choices, or extra installation/download guidance.
 /// Shared by generation and by the verifier's replay so both gate identically.
-fn method_only_loose_file(component: &Component) -> bool {
+fn method_only(component: &Component, methods: &[&str]) -> bool {
     component
         .metadata
         .get("InstallationMethod")
         .and_then(|value| value.as_str())
         .map(str::trim)
         .is_some_and(|method| {
-            method.eq_ignore_ascii_case("Loose-File")
-                || method.eq_ignore_ascii_case("Loose-File Mod")
+            methods
+                .iter()
+                .any(|known| method.eq_ignore_ascii_case(known))
         })
         && component.directions.trim().is_empty()
         && component.instructions.is_empty()
@@ -315,8 +316,24 @@ fn method_only_loose_file(component: &Component) -> bool {
             })
 }
 
-/// Rebuild what `bind_loose_method` derived for one method-only loose-file
-/// component, from the hash-verified archive, on a copy stripped of its
+fn method_only_loose_file(component: &Component) -> bool {
+    method_only(component, &["Loose-File", "Loose-File Mod"])
+}
+
+fn method_only_patcher(component: &Component) -> bool {
+    method_only(
+        component,
+        &[
+            "TSLPatcher",
+            "TSLPatcher Mod",
+            "HoloPatcher",
+            "HoloPatcher Mod",
+        ],
+    )
+}
+
+/// Rebuild what `bind_loose_method` or `bind_patcher_method` derived for one
+/// method-only loose-file or patcher component, from the hash-verified archive, on a copy stripped of its
 /// instructions, options and prior draft record. The recorded guide defaults
 /// come from the draft's own binding receipt (the verifier sees no guide
 /// preamble); they only unlock the fixed Override destination, and the caller
@@ -336,9 +353,10 @@ pub(crate) fn replay_method_binding(
     let context = record
         .get("MethodContext")
         .context("Missing method context")?;
+    let patcher = context["Kind"] == "Patcher";
     ensure!(
-        context["Kind"] == "LooseFile" && context["ArchiveBinding"] == "Bound",
-        "Method context is not an archive-bound loose-file binding"
+        (patcher || context["Kind"] == "LooseFile") && context["ArchiveBinding"] == "Bound",
+        "Method context is not an archive-bound loose-file or patcher binding"
     );
     let binding = component
         .metadata
@@ -360,8 +378,12 @@ pub(crate) fn replay_method_binding(
     target.metadata.remove("ArchiveMethodBinding");
     target.metadata.remove("DraftReview");
     ensure!(
-        method_only_loose_file(&target),
-        "Component is not a method-only loose-file component"
+        if patcher {
+            method_only_patcher(&target)
+        } else {
+            method_only_loose_file(&target)
+        },
+        "Component is not a method-only loose-file or patcher component"
     );
     let root = local_root(root)?;
     let (before, bytes) = archive_digest(&root.join(&derivation.filename))
@@ -370,7 +392,12 @@ pub(crate) fn replay_method_binding(
         before.eq_ignore_ascii_case(&derivation.sha256) && bytes == derivation.bytes,
         "Archive no longer matches its recorded SHA-256"
     );
-    bind_loose_method(
+    let rebind = if patcher {
+        bind_patcher_method
+    } else {
+        bind_loose_method
+    };
+    rebind(
         &mut target,
         &derivation.filename,
         Some(&root),
@@ -382,18 +409,20 @@ pub(crate) fn replay_method_binding(
     Ok(target)
 }
 
-fn bind_loose_method(
-    component: &mut Component,
+struct MethodArchive {
+    entries: Vec<archive::OriginalEntry>,
+    sha256: String,
+    bytes: u64,
+}
+
+/// Hash and list one safely named local method archive from a private snapshot,
+/// so the digest and the listing describe the same bytes.
+fn snapshot_method_archive(
     filename: &str,
     root: Option<&Path>,
-    defaults: &serde_json::Value,
     options: &archive::Options,
     cancelled: &AtomicBool,
-) -> Result<()> {
-    ensure!(
-        defaults["LooseFilesDestination"] == "<<kotorDirectory>>\\Override",
-        "Current guide preamble does not establish the loose-file Override default"
-    );
+) -> Result<MethodArchive> {
     ensure!(
         !filename.is_empty()
             && filename.len() <= 255
@@ -463,6 +492,31 @@ fn bind_loose_method(
         !entries.is_empty() && entries.len() <= 4096,
         "Method archive must contain 1 to 4096 entries"
     );
+    Ok(MethodArchive {
+        entries,
+        sha256: format!("{:x}", hash.finalize()),
+        bytes,
+    })
+}
+
+fn bind_loose_method(
+    component: &mut Component,
+    filename: &str,
+    root: Option<&Path>,
+    defaults: &serde_json::Value,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+) -> Result<()> {
+    ensure!(
+        defaults["LooseFilesDestination"] == "<<kotorDirectory>>\\Override",
+        "Current guide preamble does not establish the loose-file Override default"
+    );
+    let MethodArchive {
+        entries,
+        sha256: archive_sha256,
+        bytes,
+    } = snapshot_method_archive(filename, root, options, cancelled)?;
+    let name = Path::new(filename);
     let mut payload = Vec::new();
     let mut excluded_documentation = Vec::new();
     let mut wrapper = None;
@@ -546,9 +600,10 @@ fn bind_loose_method(
         ),
         super::instruction("Move", sources, "<<kotorDirectory>>\\Override", ""),
     ];
-    let archive_sha256 = format!("{:x}", hash.finalize());
-    bound.metadata.insert(
-        "ArchiveMethodBinding".into(),
+    finish_method_binding(
+        component,
+        bound,
+        "LooseFile",
         json!({
             "Filename": filename,
             "Sha256": archive_sha256,
@@ -558,7 +613,29 @@ fn bind_loose_method(
             "Method": component.metadata.get("InstallationMethod"),
             "GuideDefaults": defaults,
         }),
-    );
+        draft::review::Derivation {
+            filename: filename.to_owned(),
+            sha256: archive_sha256,
+            bytes,
+        },
+        cancelled,
+    )
+}
+
+/// Record the binding receipt, the archive derivation and the bound method
+/// context on a freshly bound component, then publish it.
+fn finish_method_binding(
+    component: &mut Component,
+    mut bound: Component,
+    kind: &str,
+    binding: serde_json::Value,
+    derivation: draft::review::Derivation,
+    cancelled: &AtomicBool,
+) -> Result<()> {
+    let defaults = binding["GuideDefaults"].clone();
+    bound
+        .metadata
+        .insert("ArchiveMethodBinding".into(), binding);
     review(&mut bound, &[])?;
     let record = bound
         .metadata
@@ -569,14 +646,10 @@ fn bind_loose_method(
         .unparsed_gaps
         .retain(|gap| gap != draft::METHOD_UNRESOLVED);
     record["Result"] = serde_json::to_value(result)?;
-    record["Derivation"] = serde_json::to_value(draft::review::Derivation {
-        filename: filename.to_owned(),
-        sha256: archive_sha256,
-        bytes,
-    })?;
+    record["Derivation"] = serde_json::to_value(derivation)?;
     record["MethodContext"] = json!({
         "Method": component.metadata.get("InstallationMethod"),
-        "Kind": "LooseFile",
+        "Kind": kind,
         "GuideDefaults": defaults,
         "ExplicitDirectionsTakePrecedence": true,
         "ArchiveBinding": "Bound",
@@ -589,6 +662,172 @@ fn bind_loose_method(
     *component = bound;
     Ok(())
 }
+
+struct PatcherLayout {
+    members: Vec<String>,
+    excluded_documentation: Vec<String>,
+    installer: String,
+}
+
+/// Accept only a single-run patcher archive: one `tslpatchdata/changes.ini`
+/// at the archive root, no `namespaces.ini`, exactly one
+/// installer executable beside `tslpatchdata`, and nothing else outside it
+/// except root-level documentation.
+fn patcher_layout(entries: &[archive::OriginalEntry]) -> Result<PatcherLayout> {
+    let files: Vec<_> = entries.iter().filter(|entry| !entry.is_directory).collect();
+    for entry in &files {
+        ensure!(
+            !entry.path.contains(['*', '?', '\\']),
+            "Method archive contains a wildcard or backslash filename"
+        );
+    }
+    let lower_name = |path: &str| path.rsplit('/').next().unwrap_or("").to_ascii_lowercase();
+    ensure!(
+        files
+            .iter()
+            .all(|entry| lower_name(&entry.path) != "namespaces.ini"),
+        "Method archive carries namespaces.ini; namespace selections stay unresolved"
+    );
+    let changes: Vec<_> = files
+        .iter()
+        .filter(|entry| lower_name(&entry.path) == "changes.ini")
+        .collect();
+    ensure!(
+        changes.len() == 1,
+        "Method archive must contain exactly one tslpatchdata/changes.ini"
+    );
+    let changes_parts: Vec<_> = changes[0].path.split('/').collect();
+    ensure!(
+        changes_parts.len() == 2 && changes_parts[0].eq_ignore_ascii_case("tslpatchdata"),
+        "Method archive changes.ini is not directly inside a root-level tslpatchdata folder"
+    );
+    let in_data = |path: &str, directory: bool| {
+        let parts: Vec<_> = path.trim_end_matches('/').split('/').collect();
+        parts[0].eq_ignore_ascii_case("tslpatchdata") && (directory || parts.len() > 1)
+    };
+    let mut members = Vec::new();
+    let mut excluded_documentation = Vec::new();
+    let mut installers = Vec::new();
+    for entry in &files {
+        let path = entry.path.as_str();
+        let executable = path.to_ascii_lowercase().ends_with(".exe");
+        if in_data(path, false) {
+            ensure!(
+                !executable,
+                "Method archive has an executable inside tslpatchdata"
+            );
+            members.push(path.to_owned());
+        } else if executable {
+            ensure!(
+                !path.contains('/'),
+                "Method archive installer is not beside tslpatchdata"
+            );
+            installers.push(path.to_owned());
+        } else if documentation(path) {
+            excluded_documentation.push(path.to_owned());
+        } else {
+            anyhow::bail!("Method archive has payload outside tslpatchdata");
+        }
+    }
+    ensure!(
+        installers.len() == 1,
+        "Method archive must contain exactly one patcher executable"
+    );
+    ensure!(
+        entries
+            .iter()
+            .filter(|entry| entry.is_directory)
+            .all(|entry| in_data(&entry.path, true)),
+        "Method archive has additional directories or variants"
+    );
+    members.sort();
+    excluded_documentation.sort();
+    Ok(PatcherLayout {
+        members,
+        excluded_documentation,
+        installer: installers.remove(0),
+    })
+}
+
+fn bind_patcher_method(
+    component: &mut Component,
+    filename: &str,
+    root: Option<&Path>,
+    defaults: &serde_json::Value,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+) -> Result<()> {
+    ensure!(
+        defaults["PatcherDestination"] == "<<kotorDirectory>>",
+        "Current guide preamble does not establish the patcher game-folder default"
+    );
+    let MethodArchive {
+        entries,
+        sha256: archive_sha256,
+        bytes,
+    } = snapshot_method_archive(filename, root, options, cancelled)?;
+    let layout = patcher_layout(&entries)?;
+    let path = root
+        .context("Method binding requires a local archive root")?
+        .join(filename);
+    let mut inferred = component.clone();
+    inferred.instructions.clear();
+    inferred.options.clear();
+    ensure!(
+        super::generate_from_archive(&mut inferred, &path, options, cancelled)?,
+        "Archive no longer yields inferred instructions"
+    );
+    ensure!(
+        archive_digest(&path)?.0 == archive_sha256,
+        "Method archive changed during binding"
+    );
+    let stem = Path::new(filename)
+        .file_stem()
+        .and_then(|value| value.to_str())
+        .context("Invalid method archive stem")?;
+    let installer_source = format!(
+        "<<modDirectory>>\\{stem}\\{}",
+        layout.installer.replace('/', "\\")
+    );
+    ensure!(
+        inferred.options.is_empty()
+            && matches!(
+                inferred.instructions.as_slice(),
+                [extract, patch]
+                    if extract.action == "Extract"
+                        && extract.source == [format!("<<modDirectory>>\\{filename}")]
+                        && extract.destination.is_empty()
+                        && patch.action == "Patcher"
+                        && patch.source == [installer_source.clone()]
+                        && patch.destination == "<<gameDirectory>>"
+            ),
+        "Patcher archive does not yield exactly an Extract and a Patcher instruction"
+    );
+    let mut bound = component.clone();
+    bound.instructions = inferred.instructions;
+    finish_method_binding(
+        component,
+        bound,
+        "Patcher",
+        json!({
+            "Filename": filename,
+            "Sha256": archive_sha256,
+            "Bytes": bytes,
+            "Members": layout.members,
+            "ExcludedDocumentation": layout.excluded_documentation,
+            "Installer": layout.installer,
+            "Method": component.metadata.get("InstallationMethod"),
+            "GuideDefaults": defaults,
+        }),
+        draft::review::Derivation {
+            filename: filename.to_owned(),
+            sha256: archive_sha256,
+            bytes,
+        },
+        cancelled,
+    )
+}
+
 /// Rebuild what `generate` derived from one hash-bound local archive, on a
 /// component stripped of every instruction and option. The caller compares the
 /// result with the saved draft; nothing here mutates `component`.
@@ -715,9 +954,9 @@ pub fn generate(
                 .get("DraftReview")
                 .is_some_and(|record| record.get("MethodContext").is_some())
         {
-            let eligible = method_only_loose_file(component);
-            if !eligible {
-                report.diagnostics.push("Method binding requires a method-only LooseFile component without instructions, choices, or additional installation/download guidance; component unchanged.".into());
+            let patcher = method_only_patcher(component);
+            if !patcher && !method_only_loose_file(component) {
+                report.diagnostics.push("Method binding requires a method-only LooseFile or Patcher component without instructions, choices, or additional installation/download guidance; component unchanged.".into());
             } else if group.filenames.len() != 1
                 || resolved
                     .iter()
@@ -727,7 +966,12 @@ pub fn generate(
             {
                 report.diagnostics.push("Method binding requires exactly one archive in one resolved component group; component unchanged.".into());
             } else {
-                match bind_loose_method(
+                let bound = if patcher {
+                    bind_patcher_method
+                } else {
+                    bind_loose_method
+                };
+                match bound(
                     component,
                     &group.filenames[0],
                     root.as_deref(),
@@ -738,9 +982,10 @@ pub fn generate(
                     Ok(()) => report.instructions_added = 2,
                     Err(error) => {
                         check(cancelled)?;
-                        report
-                            .diagnostics
-                            .push(format!("Loose-file method remains unresolved: {error:#}"));
+                        report.diagnostics.push(format!(
+                            "{} method remains unresolved: {error:#}",
+                            if patcher { "Patcher" } else { "Loose-file" }
+                        ));
                     }
                 }
             }
