@@ -118,6 +118,8 @@ pub(crate) fn validate_raw_review_aliases(value: &serde_json::Value) -> anyhow::
                 "OriginalResult",
                 "Resolution",
                 "ReviewedIdentity",
+                "Derivation",
+                "Verification",
                 "ComponentGuid",
                 "DraftInstructionCount",
                 "UnparsedGaps",
@@ -134,6 +136,22 @@ pub(crate) fn validate_raw_review_aliases(value: &serde_json::Value) -> anyhow::
             if let Some(value) = object.get(field) {
                 receipt(value, depth + 1, work)?;
             }
+        }
+        if let Some(derivation) = object.get("Derivation").and_then(Value::as_object) {
+            reserved(derivation, &["Filename", "Sha256", "Bytes"])?;
+        }
+        if let Some(verification) = object.get("Verification").and_then(Value::as_object) {
+            reserved(
+                verification,
+                &[
+                    "Reviewer",
+                    "Kind",
+                    "ToolVersion",
+                    "ArchiveSha256",
+                    "ArchiveFilename",
+                    "ReplayDigest",
+                ],
+            )?;
         }
         Ok(())
     }
@@ -209,6 +227,17 @@ pub(crate) fn canonicalize_text_review_records(value: &mut serde_json::Value) {
                 } else if text.eq_ignore_ascii_case("false") {
                     *flag = Value::Bool(false);
                 }
+            }
+            if let Some(bytes) = review
+                .get_mut("Derivation")
+                .and_then(Value::as_object_mut)
+                .and_then(|derivation| derivation.get_mut("Bytes"))
+                && let Some(parsed) = bytes
+                    .as_str()
+                    .filter(|text| !text.is_empty() && text.bytes().all(|b| b.is_ascii_digit()))
+                    .and_then(|text| text.parse::<u64>().ok())
+            {
+                *bytes = Value::from(parsed);
             }
             if let Some(result) = review.get_mut("Result").and_then(Value::as_object_mut) {
                 for key in ["DraftInstructionCount", "RejectedDrafts"] {

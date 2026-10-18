@@ -1,4 +1,4 @@
-use modsync::{Component, Engine, Guide, Settings, archive, archive_generation};
+use modsync::{Component, Engine, Guide, Settings, archive, archive_generation, draft};
 use serde_json::{Value, json};
 use std::{fs, io::Write, path::Path, sync::atomic::AtomicBool};
 
@@ -918,4 +918,491 @@ fn failing_mapped_archive_skip_reason_names_the_archive() {
         "{}",
         reports[0].skip_reason
     );
+}
+
+const EXAMPLE_GUID: &str = "00000000-0000-4000-8000-0000000000aa";
+
+fn example_guide() -> Guide {
+    Guide::parse(
+        &json!([{"Guid":EXAMPLE_GUID,"Name":"Texture Pack A"}]).to_string(),
+        "json",
+    )
+    .unwrap()
+}
+
+fn resolve_into(guide: &mut Guide, dir: &Path, groups: &[&[&str]]) {
+    let resolved: Vec<_> = groups
+        .iter()
+        .map(|names| archive_generation::resolved::ResolvedFiles {
+            component_guid: EXAMPLE_GUID.into(),
+            filenames: names.iter().map(|name| (*name).into()).collect(),
+            sha256: None,
+            size_bytes: None,
+        })
+        .collect();
+    archive_generation::resolved::generate(
+        guide,
+        &resolved,
+        Some(dir),
+        &archive::Options::default(),
+        &AtomicBool::new(false),
+    )
+    .unwrap();
+}
+
+fn verify(component: &mut Component, dir: &Path) -> anyhow::Result<()> {
+    draft::review::verify_archive_derived(
+        component,
+        dir,
+        &archive::Options::default(),
+        &AtomicBool::new(false),
+    )
+}
+
+fn review_record(component: &Component) -> &Value {
+    &component.metadata["DraftReview"]
+}
+
+fn validation(dir: &Path, guide: &Guide) -> anyhow::Result<()> {
+    let game = tempfile::tempdir().unwrap();
+    Engine::new(Settings::new(dir, game.path()).unwrap())
+        .unwrap()
+        .validate(guide, |_| {})
+}
+
+fn tslpatchdata_zip(dir: &Path) {
+    zip_bytes(
+        &dir.join("texture-pack-a.zip"),
+        &[
+            ("tslpatchdata/changes.ini", b"[Settings]"),
+            ("tslpatchdata/sample.tga", b"texture"),
+            ("Setup.exe", b"x"),
+        ],
+    );
+}
+
+fn namespaces_zip(dir: &Path) {
+    zip_bytes(
+        &dir.join("texture-pack-a.zip"),
+        &[
+            (
+                "tslpatchdata/namespaces.ini",
+                b"[Namespaces]\r\n0=first\r\n1=second\r\n[first]\r\nName=Option One\r\n[second]\r\nName=Option Two\r\n",
+            ),
+            ("tslpatchdata/first/changes.ini", b"[Settings]"),
+            ("tslpatchdata/second/changes.ini", b"[Settings]"),
+            ("Setup.exe", b"x"),
+        ],
+    );
+}
+
+fn drafted(dir: &Path, build: fn(&Path)) -> Guide {
+    build(dir);
+    let mut guide = example_guide();
+    resolve_into(&mut guide, dir, &[&["texture-pack-a.zip"]]);
+    assert!(draft::requires_review(&guide.components[0]));
+    guide
+}
+
+#[test]
+fn archive_replay_clears_tslpatchdata_zip_and_validation_agrees() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut guide = drafted(dir.path(), tslpatchdata_zip);
+    assert!(
+        format!("{:#}", validation(dir.path(), &guide).unwrap_err()).contains("unreviewed draft")
+    );
+    assert!(review_record(&guide.components[0])["Derivation"]["Sha256"].is_string());
+    verify(&mut guide.components[0], dir.path()).unwrap();
+    assert!(!draft::requires_review(&guide.components[0]));
+    let verification = &review_record(&guide.components[0])["Verification"];
+    assert_eq!(verification["Reviewer"], "modsync-ci-tool");
+    assert_eq!(verification["Kind"], "ArchiveDerived");
+    assert_eq!(verification["ArchiveFilename"], "texture-pack-a.zip");
+    assert_eq!(
+        verification["ArchiveSha256"],
+        review_record(&guide.components[0])["Derivation"]["Sha256"]
+    );
+    validation(dir.path(), &guide).unwrap();
+}
+
+#[test]
+fn archive_replay_clears_namespaces_zip_with_its_option_subtree() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut guide = drafted(dir.path(), namespaces_zip);
+    assert_eq!(guide.components[0].options.len(), 2);
+    assert!(
+        guide.components[0]
+            .options
+            .iter()
+            .all(draft::requires_review)
+    );
+    assert!(validation(dir.path(), &guide).is_err());
+    verify(&mut guide.components[0], dir.path()).unwrap();
+    assert!(!draft::requires_review(&guide.components[0]));
+    assert!(
+        guide.components[0]
+            .options
+            .iter()
+            .all(|option| !draft::requires_review(option))
+    );
+    validation(dir.path(), &guide).unwrap();
+}
+
+#[test]
+fn archive_replay_refuses_without_a_matching_derived_archive() {
+    let dir = tempfile::tempdir().unwrap();
+
+    let mut absent = example_guide();
+    resolve_into(&mut absent, dir.path(), &[&["missing-pack.zip"]]);
+    assert!(
+        review_record(&absent.components[0])
+            .get("Derivation")
+            .is_none()
+    );
+    let before = serde_json::to_value(&absent.components[0]).unwrap();
+    assert!(verify(&mut absent.components[0], dir.path()).is_err());
+    assert_eq!(serde_json::to_value(&absent.components[0]).unwrap(), before);
+
+    let mut bare = example_guide();
+    resolve_into(&mut bare, dir.path(), &[&["N_Example01.tga"]]);
+    assert!(
+        review_record(&bare.components[0])
+            .get("Derivation")
+            .is_none()
+    );
+    assert!(verify(&mut bare.components[0], dir.path()).is_err());
+    assert!(draft::requires_review(&bare.components[0]));
+
+    let mut multi = drafted(dir.path(), tslpatchdata_zip);
+    zip_bytes(
+        &dir.path().join("texture-pack-b.zip"),
+        &[("sample.tga", b"b")],
+    );
+    let mut grouped = example_guide();
+    resolve_into(
+        &mut grouped,
+        dir.path(),
+        &[&["texture-pack-a.zip", "texture-pack-b.zip"]],
+    );
+    assert!(
+        review_record(&grouped.components[0])
+            .get("Derivation")
+            .is_none()
+    );
+    assert!(verify(&mut grouped.components[0], dir.path()).is_err());
+    let mut separate = example_guide();
+    resolve_into(
+        &mut separate,
+        dir.path(),
+        &[&["texture-pack-a.zip"], &["texture-pack-b.zip"]],
+    );
+    assert!(verify(&mut separate.components[0], dir.path()).is_err());
+    assert!(draft::requires_review(&separate.components[0]));
+    verify(&mut multi.components[0], dir.path()).unwrap();
+}
+
+#[test]
+fn archive_replay_refuses_hash_drift_and_edited_drafts() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut guide = drafted(dir.path(), tslpatchdata_zip);
+    let pristine = guide.components[0].clone();
+
+    let mut appended = pristine.clone();
+    appended.instructions.push(appended.instructions[0].clone());
+    appended.instructions.last_mut().unwrap().guid = "extra".into();
+    appended.instructions.last_mut().unwrap().source = vec!["<<modDirectory>>\\extra.tga".into()];
+    appended.instructions.last_mut().unwrap().action = "Move".into();
+    appended.instructions.last_mut().unwrap().destination = "<<kotorDirectory>>\\Override".into();
+    assert!(verify(&mut appended, dir.path()).is_err());
+    assert!(draft::requires_review(&appended));
+    let count = appended.instructions.len();
+    appended.metadata.get_mut("DraftReview").unwrap()["Result"]["DraftInstructionCount"] =
+        json!(count);
+    let error = verify(&mut appended, dir.path()).unwrap_err();
+    assert!(
+        format!("{error:#}").contains("differ from the archive replay"),
+        "{error:#}"
+    );
+    assert!(draft::requires_review(&appended));
+
+    let mut gapful = pristine.clone();
+    gapful.metadata.get_mut("DraftReview").unwrap()["Result"]["UnparsedGaps"] =
+        json!(["Unsupported resolved filename: notes.xyz"]);
+    let error = verify(&mut gapful, dir.path()).unwrap_err();
+    assert!(
+        format!("{error:#}").contains("unresolved gaps"),
+        "{error:#}"
+    );
+    assert!(draft::requires_review(&gapful));
+
+    let mut masters = pristine.clone();
+    masters
+        .metadata
+        .insert("UnresolvedMasters".into(), json!(["Texture Pack B"]));
+    let error = verify(&mut masters, dir.path()).unwrap_err();
+    assert!(format!("{error:#}").contains("masters"), "{error:#}");
+
+    zip_bytes(
+        &dir.path().join("texture-pack-a.zip"),
+        &[
+            ("tslpatchdata/changes.ini", b"[Settings]"),
+            ("Setup.exe", b"y"),
+        ],
+    );
+    let error = verify(&mut guide.components[0], dir.path()).unwrap_err();
+    assert!(format!("{error:#}").contains("SHA-256"), "{error:#}");
+    assert!(draft::requires_review(&guide.components[0]));
+    fs::remove_file(dir.path().join("texture-pack-a.zip")).unwrap();
+    assert!(verify(&mut guide.components[0], dir.path()).is_err());
+}
+
+#[test]
+fn archive_replay_never_clears_prose_or_method_drafts() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut prose = Guide::parse(
+        &json!([{"Guid":EXAMPLE_GUID,"Name":"Texture Pack A","Directions":"Move only sample.tga to your Override."}]).to_string(),
+        "json",
+    )
+    .unwrap();
+    draft::generate(&mut prose);
+    assert!(draft::requires_review(&prose.components[0]));
+    assert!(verify(&mut prose.components[0], dir.path()).is_err());
+    assert!(draft::requires_review(&prose.components[0]));
+
+    let mut installer = example_guide();
+    fs::write(dir.path().join("setup-pack.exe"), b"not an archive").unwrap();
+    resolve_into(&mut installer, dir.path(), &[&["setup-pack.exe"]]);
+    assert_eq!(installer.components[0].instructions[0].action, "Execute");
+    assert!(
+        review_record(&installer.components[0])
+            .get("Derivation")
+            .is_some()
+    );
+    let error = verify(&mut installer.components[0], dir.path()).unwrap_err();
+    assert!(
+        format!("{error:#}").contains("external installer"),
+        "{error:#}"
+    );
+    assert!(draft::requires_review(&installer.components[0]));
+
+    let mut forged = prose.components[0].clone();
+    let record = forged.metadata.get_mut("DraftReview").unwrap();
+    record["Generator"] = "resolved-filenames".into();
+    record["Derivation"] =
+        json!({"Filename":"texture-pack-a.zip","Sha256":"0".repeat(64),"Bytes":1});
+    assert!(verify(&mut forged, dir.path()).is_err());
+    assert!(draft::requires_review(&forged));
+}
+
+#[test]
+fn archive_replay_refuses_method_bound_drafts_even_with_a_derivation() {
+    let dir = tempfile::tempdir().unwrap();
+    zip_bytes(
+        &dir.path().join("texture-pack-a.zip"),
+        &[("sample.tga", b"texture")],
+    );
+    let mut guide = Guide::parse(
+        &json!([{"Guid":EXAMPLE_GUID,"Name":"Texture Pack A","InstallationMethod":"Loose-File"}])
+            .to_string(),
+        "json",
+    )
+    .unwrap();
+    guide.metadata.insert(
+        "preambleContent".into(),
+        json!(
+            "For mods that are not installed with the TSLPatcher or HoloPatcher, unless otherwise noted their loose-file contents are placed directly in the Override directory."
+        ),
+    );
+    resolve_into(&mut guide, dir.path(), &[&["texture-pack-a.zip"]]);
+    let record = review_record(&guide.components[0]);
+    assert!(record.get("MethodContext").is_some(), "{record}");
+    assert_eq!(record["Derivation"]["Filename"], "texture-pack-a.zip");
+    assert!(draft::requires_review(&guide.components[0]));
+    let error = verify(&mut guide.components[0], dir.path()).unwrap_err();
+    assert!(format!("{error:#}").contains("Method-bound"), "{error:#}");
+    assert!(draft::requires_review(&guide.components[0]));
+}
+
+#[test]
+fn archive_replay_receipt_is_bound_to_instructions_and_verification() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut guide = drafted(dir.path(), namespaces_zip);
+    verify(&mut guide.components[0], dir.path()).unwrap();
+    let verified = guide.components[0].clone();
+    assert!(!draft::requires_review(&verified));
+
+    let mut edited = verified.clone();
+    edited.instructions[0].destination = "<<kotorDirectory>>\\Elsewhere".into();
+    assert!(draft::requires_review(&edited));
+
+    let mut option_edit = verified.clone();
+    option_edit.options[0].instructions[0].arguments = "--changed".into();
+    assert!(draft::requires_review(&option_edit));
+
+    let mut forged = verified.clone();
+    forged.metadata.get_mut("DraftReview").unwrap()["Verification"]["ArchiveSha256"] =
+        "f".repeat(64).into();
+    assert!(draft::requires_review(&forged));
+
+    let mut unkinded = verified.clone();
+    unkinded.metadata.get_mut("DraftReview").unwrap()["Verification"]["Kind"] = "Manual".into();
+    assert!(draft::requires_review(&unkinded));
+
+    let mut stripped = verified.clone();
+    stripped
+        .metadata
+        .get_mut("DraftReview")
+        .unwrap()
+        .as_object_mut()
+        .unwrap()
+        .remove("Verification");
+    assert!(draft::requires_review(&stripped));
+
+    assert!(verify(&mut guide.components[0], dir.path()).is_err());
+}
+
+#[test]
+fn archive_replay_verification_round_trips_in_every_format() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut guide = drafted(dir.path(), namespaces_zip);
+    verify(&mut guide.components[0], dir.path()).unwrap();
+    let expected = serde_json::to_value(&guide.components[0].metadata["DraftReview"]).unwrap();
+    for format in ["json", "toml", "yaml", "xml"] {
+        let text = guide.render(format).unwrap();
+        let reloaded = Guide::parse(&text, format).unwrap_or_else(|error| {
+            panic!("{format}: {error:#}\n{text}");
+        });
+        let component = &reloaded.components[0];
+        assert!(!draft::requires_review(component), "{format}");
+        assert!(
+            component.options.iter().all(|o| !draft::requires_review(o)),
+            "{format}"
+        );
+        assert_eq!(
+            component.metadata["DraftReview"]["Verification"], expected["Verification"],
+            "{format}"
+        );
+        assert_eq!(
+            component.metadata["DraftReview"]["Derivation"]["Bytes"],
+            expected["Derivation"]["Bytes"],
+            "{format}"
+        );
+    }
+    let mut pending = drafted(dir.path(), namespaces_zip);
+    for format in ["toml", "yaml", "xml"] {
+        let reloaded = Guide::parse(&pending.render(format).unwrap(), format).unwrap();
+        assert!(draft::requires_review(&reloaded.components[0]), "{format}");
+        let mut component = reloaded.components[0].clone();
+        verify(&mut component, dir.path()).unwrap();
+        assert!(!draft::requires_review(&component), "{format}");
+    }
+    pending.components[0]
+        .metadata
+        .get_mut("DraftReview")
+        .unwrap()
+        .as_object_mut()
+        .unwrap()
+        .insert("derivation".into(), json!({}));
+    let text = serde_json::to_string(&pending).unwrap();
+    assert!(Guide::parse(&text, "json").is_err());
+}
+
+#[test]
+fn convert_review_verified_drafts_clears_only_replayable_components() {
+    use std::process::Command;
+    let dir = tempfile::tempdir().unwrap();
+    let source = dir.path().join("mods");
+    fs::create_dir(&source).unwrap();
+    namespaces_zip(&source);
+    let input = dir.path().join("guide.json");
+    fs::write(
+        &input,
+        json!([
+            {"Guid":EXAMPLE_GUID,"Name":"Texture Pack A"},
+            {"Guid":"prose","Name":"Texture Pack B","Directions":"Move only sample.tga to your Override."}
+        ])
+        .to_string(),
+    )
+    .unwrap();
+    let bindings = dir.path().join("resolved.json");
+    fs::write(
+        &bindings,
+        json!([{"componentGuid":EXAMPLE_GUID,"filenames":["texture-pack-a.zip"]}]).to_string(),
+    )
+    .unwrap();
+    let run = |args: &[&str]| {
+        Command::new(env!("CARGO_BIN_EXE_modsync"))
+            .arg("convert")
+            .args(args)
+            .output()
+            .unwrap()
+    };
+    let drafted = dir.path().join("drafted.json");
+    let result = run(&[
+        input.to_str().unwrap(),
+        drafted.to_str().unwrap(),
+        "--parse-directions",
+        "--format",
+        "json",
+        "--source-path",
+        source.to_str().unwrap(),
+        "--resolved-archives",
+        bindings.to_str().unwrap(),
+    ]);
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+
+    let missing_source = run(&[
+        drafted.to_str().unwrap(),
+        dir.path().join("x.json").to_str().unwrap(),
+        "--review-verified-drafts",
+    ]);
+    assert!(!missing_source.status.success());
+
+    let reviewed = dir.path().join("reviewed.toml");
+    let result = run(&[
+        drafted.to_str().unwrap(),
+        reviewed.to_str().unwrap(),
+        "--source-path",
+        source.to_str().unwrap(),
+        "--review-verified-drafts",
+    ]);
+    let stderr = String::from_utf8_lossy(&result.stderr);
+    assert!(result.status.success(), "{stderr}");
+    let report: Value =
+        serde_json::from_str(stderr.trim()).unwrap_or_else(|error| panic!("{error}: {stderr}"));
+    assert_eq!(report["cleared"], json!([EXAMPLE_GUID]));
+    assert_eq!(report["skipped"][0]["guid"], "prose");
+    assert_eq!(report["skipped"][0]["name"], "Texture Pack B");
+    assert!(report["skipped"][0]["reason"].is_string());
+    let guide = Guide::load(&reviewed).unwrap();
+    assert!(!draft::requires_review(&guide.components[0]));
+    assert!(draft::requires_review(&guide.components[1]));
+    assert!(
+        guide.components[0]
+            .options
+            .iter()
+            .all(|o| !draft::requires_review(o))
+    );
+
+    let manual = dir.path().join("manual.json");
+    let result = run(&[
+        drafted.to_str().unwrap(),
+        manual.to_str().unwrap(),
+        "--review-draft",
+        "prose",
+        "--format",
+        "json",
+    ]);
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    let guide = Guide::load(&manual).unwrap();
+    assert!(draft::requires_review(&guide.components[0]));
+    assert!(!draft::requires_review(&guide.components[1]));
 }

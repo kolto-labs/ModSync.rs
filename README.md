@@ -142,6 +142,8 @@ cargo run -- convert guide.md draft.json --parse-directions
 cargo run -- convert draft.json reviewed.toml --review-draft <component-guid>
 ```
 
+Drafts inferred from exactly one local archive record that archive's SHA-256. `convert draft.json reviewed.toml --source-path <archive-folder> --review-verified-drafts` clears review only for drafts whose stored instructions a fresh replay of that archive reproduces exactly (no gaps, no authored edits, no prose or method-bound drafts), records a `Verification` receipt, and prints `{cleared, skipped}` on stderr. Everything else stays fenced.
+
 For instruction-free components whose archives are already downloaded:
 
 ```bash

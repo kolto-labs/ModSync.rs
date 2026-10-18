@@ -67,21 +67,28 @@ fn verify_archive_binding(root: Option<&Path>, item: &ResolvedFiles) -> Result<(
             "Archive size does not match its binding"
         );
     }
-    let mut input = fs::File::open(&archive)?;
+    ensure!(
+        archive_digest(&archive)?.0.eq_ignore_ascii_case(expected),
+        "Archive SHA-256 does not match its binding"
+    );
+    Ok(())
+}
+/// Lowercase SHA-256 and byte length of an ordinary local file.
+pub(crate) fn archive_digest(path: &Path) -> Result<(String, u64)> {
+    ordinary(path, false)?;
+    let mut input = fs::File::open(path)?;
     let mut digest = Sha256::new();
+    let mut bytes = 0u64;
     let mut buffer = [0u8; 1024 * 1024];
     loop {
         let count = input.read(&mut buffer)?;
         if count == 0 {
             break;
         }
+        bytes += count as u64;
         digest.update(&buffer[..count]);
     }
-    ensure!(
-        format!("{:x}", digest.finalize()).eq_ignore_ascii_case(expected),
-        "Archive SHA-256 does not match its binding"
-    );
-    Ok(())
+    Ok((format!("{:x}", digest.finalize()), bytes))
 }
 fn ordinary(path: &Path, directory: bool) -> Result<()> {
     let metadata = fs::symlink_metadata(path)?;
@@ -107,7 +114,7 @@ fn ordinary(path: &Path, directory: bool) -> Result<()> {
     );
     Ok(())
 }
-pub(super) fn local_root(root: &Path) -> Result<PathBuf> {
+pub(crate) fn local_root(root: &Path) -> Result<PathBuf> {
     let absolute = std::path::absolute(root)?;
     ensure!(
         absolute.components().count() <= 128,
@@ -167,6 +174,8 @@ fn review(component: &mut Component, diagnostics: &[String]) -> Result<()> {
         "Resolution",
         "OriginalResult",
         "PriorOriginalResult",
+        "Derivation",
+        "Verification",
     ]
     .into_iter()
     .filter_map(|key| object.remove(key).map(|value| (key.to_owned(), value)))
@@ -443,11 +452,12 @@ fn bind_loose_method(
         ),
         super::instruction("Move", sources, "<<kotorDirectory>>\\Override", ""),
     ];
+    let archive_sha256 = format!("{:x}", hash.finalize());
     bound.metadata.insert(
         "ArchiveMethodBinding".into(),
         json!({
             "Filename": filename,
-            "Sha256": format!("{:x}", hash.finalize()),
+            "Sha256": archive_sha256,
             "Bytes": bytes,
             "Members": payload,
             "ExcludedDocumentation": excluded_documentation,
@@ -465,6 +475,11 @@ fn bind_loose_method(
         .unparsed_gaps
         .retain(|gap| gap != draft::METHOD_UNRESOLVED);
     record["Result"] = serde_json::to_value(result)?;
+    record["Derivation"] = serde_json::to_value(draft::review::Derivation {
+        filename: filename.to_owned(),
+        sha256: archive_sha256,
+        bytes,
+    })?;
     record["MethodContext"] = json!({
         "Method": component.metadata.get("InstallationMethod"),
         "Kind": "LooseFile",
@@ -479,6 +494,67 @@ fn bind_loose_method(
     check(cancelled)?;
     *component = bound;
     Ok(())
+}
+/// Rebuild what `generate` derived from one hash-bound local archive, on a
+/// component stripped of every instruction and option. The caller compares the
+/// result with the saved draft; nothing here mutates `component`.
+pub(crate) fn replay_archive_derivation(
+    component: &Component,
+    derivation: &draft::review::Derivation,
+    root: &Path,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+) -> Result<Component> {
+    check(cancelled)?;
+    let filename = derivation.filename.as_str();
+    ensure!(
+        !filename.is_empty()
+            && filename.len() <= 255
+            && !filename.contains(['/', '\\'])
+            && !filename.chars().any(char::is_control)
+            && crate::paths::relative(filename, false)?
+                .components()
+                .count()
+                == 1
+            && !matches!(filename, "." | ".."),
+        "Derived archive name is not a safe basename"
+    );
+    ensure!(
+        derivation.sha256.len() == 64 && derivation.sha256.bytes().all(|b| b.is_ascii_hexdigit()),
+        "Derivation SHA-256 is invalid"
+    );
+    ensure!(
+        matches!(
+            Path::new(filename)
+                .extension()
+                .and_then(|value| value.to_str())
+                .map(str::to_ascii_lowercase)
+                .as_deref(),
+            Some("zip" | "7z" | "rar" | "exe" | "tar" | "gz")
+        ),
+        "Derived archive has an unsupported extension"
+    );
+    let path = local_root(root)?.join(filename);
+    let (before, bytes) = archive_digest(&path).context("Derived archive is unavailable")?;
+    ensure!(
+        before.eq_ignore_ascii_case(&derivation.sha256) && bytes == derivation.bytes,
+        "Archive no longer matches its recorded SHA-256"
+    );
+    let mut target = component.clone();
+    target.instructions.clear();
+    target.options.clear();
+    let mut inferred = target.clone();
+    ensure!(
+        super::generate_from_archive(&mut inferred, &path, options, cancelled)?,
+        "Archive no longer yields inferred instructions"
+    );
+    merge_inferred(&mut target, inferred, filename)?;
+    check(cancelled)?;
+    ensure!(
+        archive_digest(&path)?.0 == before,
+        "Archive changed during replay"
+    );
+    Ok(target)
 }
 /// Append safe inferred drafts atomically. The caller supplies authoritative
 /// component bindings; unsupported names remain explicit review diagnostics.
@@ -593,6 +669,14 @@ pub fn generate(
             reports.push(report);
             continue;
         }
+        let single_archive = group.filenames.len() == 1
+            && resolved
+                .iter()
+                .filter(|other| other.component_guid == group.component_guid)
+                .map(|other| other.filenames.len())
+                .sum::<usize>()
+                == 1;
+        let mut derivation = None;
         for filename in &group.filenames {
             check(cancelled)?;
             ensure!(
@@ -648,8 +732,18 @@ pub fn generate(
                 let mut inferred = component.clone();
                 inferred.instructions.clear();
                 inferred.options.clear();
+                let bound = if single_archive {
+                    Some(archive_digest(path)?)
+                } else {
+                    None
+                };
                 if super::generate_from_archive(&mut inferred, path, options, cancelled)? {
                     report.instructions_added += merge_inferred(component, inferred, filename)?;
+                    derivation = bound.map(|(sha256, bytes)| draft::review::Derivation {
+                        filename: filename.clone(),
+                        sha256,
+                        bytes,
+                    });
                 } else {
                     report.diagnostics.push(format!(
                         "No supported archive contents inferred for {filename}"
@@ -688,6 +782,14 @@ pub fn generate(
             || !report.diagnostics.is_empty()
         {
             review(component, &report.diagnostics)?;
+            if let Some(derivation) = derivation {
+                let record = component
+                    .metadata
+                    .get_mut("DraftReview")
+                    .and_then(serde_json::Value::as_object_mut)
+                    .context("Missing inferred draft review")?;
+                record.insert("Derivation".into(), serde_json::to_value(derivation)?);
+            }
         }
         reports.push(report);
     }

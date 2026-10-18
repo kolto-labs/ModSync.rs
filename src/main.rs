@@ -352,6 +352,10 @@ enum Action {
         /// Mark a component's displayed drafts reviewed (GUID; repeat for multiple components).
         #[arg(long)]
         review_draft: Vec<String>,
+        /// Clear review only for drafts a fresh replay reproduces from their one hash-bound
+        /// local archive; everything else stays fenced. Reports {cleared, skipped} on stderr.
+        #[arg(long, requires = "source_path")]
+        review_verified_drafts: bool,
         /// Order around missing InstallBefore/InstallAfter references instead of failing.
         #[arg(long)]
         ignore_errors: bool,
@@ -2446,6 +2450,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             format,
             parse_directions,
             review_draft,
+            review_verified_drafts,
             ignore_errors,
             processing,
         }) => {
@@ -2491,6 +2496,19 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                     .find(|c| c.guid.eq_ignore_ascii_case(&id))
                     .with_context(|| format!("Unknown component GUID: {id}"))?;
                 modsync::draft::mark_reviewed(component)?;
+            }
+            if review_verified_drafts {
+                let report = modsync::draft::review::review_verified_drafts(
+                    &mut guide.components,
+                    processing
+                        .source_path
+                        .as_deref()
+                        .context("--review-verified-drafts requires --source-path")?,
+                    &modsync::archive::Options::default(),
+                    &cancelled,
+                )?;
+                conversion_cancelled(&cancelled)?;
+                eprintln!("{}", serde_json::to_string_pretty(&report)?);
             }
             let format = format.as_deref().unwrap_or("toml");
             conversion_cancelled(&cancelled)?;
