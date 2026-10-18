@@ -4030,17 +4030,127 @@ impl Engine {
                 report.errors
             ),
         });
-        result.map_err(|error| anyhow::anyhow!("Built-in OdyPatcher failed: {error}"))?;
-        self.check_cancelled()?;
-        ensure!(
-            !report.completed_with_errors(),
-            "Built-in OdyPatcher reported errors; restore before retrying"
-        );
-        ensure!(
-            log_path.is_some(),
-            "Built-in OdyPatcher did not write its install log"
-        );
+        let outcome = result
+            .map_err(|error| anyhow::anyhow!("Built-in OdyPatcher failed: {error}"))
+            .and_then(|()| self.check_cancelled())
+            .and_then(|()| {
+                ensure!(
+                    !report.completed_with_errors(),
+                    "Built-in OdyPatcher reported errors; restore before retrying"
+                );
+                ensure!(
+                    log_path.is_some(),
+                    "Built-in OdyPatcher did not write its install log"
+                );
+                Ok(())
+            });
+        if let Err(error) = outcome {
+            // The staged install log is deleted with its staging directory, so the
+            // diagnosis must be published here, before the error leaves.
+            emit_patcher_failure_log(&installer.log.all_logs, emit);
+            return Err(anyhow::anyhow!(
+                "{error}{}",
+                patcher_failure_summary(&installer.log.all_logs)
+            ));
+        }
         Ok(())
+    }
+}
+
+const PATCHER_FAILURE_TAIL_LINES: usize = 200;
+const PATCHER_FAILURE_SUMMARY_ERRORS: usize = 3;
+const PATCHER_FAILURE_LINE_CHARS: usize = 400;
+
+fn bounded_patcher_line(line: &str) -> String {
+    match line.char_indices().nth(PATCHER_FAILURE_LINE_CHARS) {
+        Some((end, _)) => format!("{}...", &line[..end]),
+        None => line.to_owned(),
+    }
+}
+
+fn patcher_log_lines(log: &odypatcher::PatchLog) -> Vec<String> {
+    log.formatted_message()
+        .lines()
+        .map(bounded_patcher_line)
+        .collect()
+}
+
+fn emit_patcher_failure_log(logs: &[odypatcher::PatchLog], emit: &mut impl FnMut(Event)) {
+    let mut flagged = Vec::new();
+    let mut flagged_total = 0usize;
+    for log in logs.iter().filter(|log| {
+        matches!(
+            log.log_type,
+            odypatcher::LogType::Error | odypatcher::LogType::Warning
+        )
+    }) {
+        for line in patcher_log_lines(log) {
+            flagged_total += 1;
+            if flagged.len() < PATCHER_FAILURE_TAIL_LINES {
+                flagged.push(line);
+            }
+        }
+    }
+    if flagged.is_empty() {
+        emit(Event {
+            component: "Patcher".into(),
+            step: 0,
+            message: "Built-in OdyPatcher logged no error or warning lines".into(),
+        });
+    } else {
+        emit(Event {
+            component: "Patcher".into(),
+            step: 0,
+            message: format!(
+                "Built-in OdyPatcher error and warning lines ({} of {flagged_total}):\n{}",
+                flagged.len(),
+                flagged.join("\n")
+            ),
+        });
+    }
+    let mut tail = std::collections::VecDeque::with_capacity(PATCHER_FAILURE_TAIL_LINES);
+    let mut total = 0usize;
+    for line in logs.iter().flat_map(patcher_log_lines) {
+        total += 1;
+        if tail.len() == PATCHER_FAILURE_TAIL_LINES {
+            tail.pop_front();
+        }
+        tail.push_back(line);
+    }
+    let tail = tail.into_iter().collect::<Vec<_>>();
+    emit(Event {
+        component: "Patcher".into(),
+        step: 0,
+        message: format!(
+            "Built-in OdyPatcher install log tail (last {} of {total} lines):\n{}",
+            tail.len(),
+            tail.join("\n")
+        ),
+    });
+}
+
+fn patcher_failure_summary(logs: &[odypatcher::PatchLog]) -> String {
+    let errors = logs
+        .iter()
+        .filter(|log| log.log_type == odypatcher::LogType::Error)
+        .filter_map(|log| {
+            log.message
+                .lines()
+                .map(str::trim)
+                .find(|line| !line.is_empty())
+                .map(bounded_patcher_line)
+        })
+        .take(PATCHER_FAILURE_SUMMARY_ERRORS)
+        .collect::<Vec<_>>();
+    if errors.is_empty() {
+        String::new()
+    } else {
+        format!(
+            "; first {} error line{} from the install log: {}",
+            errors.len(),
+            if errors.len() == 1 { "" } else { "s" },
+            errors.join(" | ")
+        )
     }
 }
 

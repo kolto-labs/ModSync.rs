@@ -4525,3 +4525,15 @@ destination directory`. The files inside the capsule are not modelled.
 Install is unchanged and still runs the patcher backend. Proof is targeted tests in
 `tests/validate_capsule_install_folders.rs` plus source comparison against the pinned
 patcher; no real patcher run.
+
+### Built-in patcher failure log (2026-10-18)
+
+Built-in patcher failures are now diagnosable. When the linked patcher errors,
+reports errors or failed operations, is cancelled after running, or leaves no
+install log, the engine emits the log's error and warning lines and a tail
+bounded to 200 lines (each line capped at 400 characters) to the progress
+channel before returning, and appends the first three error lines to the
+returned error text. The staged log is otherwise deleted with its staging
+directory. Successful runs emit exactly what they did before. Covered by a
+generic stand-in patch with one failing operation; external-patcher failure
+output is unchanged and runtime behavior on other platforms is unverified.

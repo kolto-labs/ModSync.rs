@@ -1725,3 +1725,60 @@ fn cli_validation_report_emits_structured_error_when_setup_fails() {
     assert!(!object.contains_key("dryRun"));
     assert!(!object.contains_key("inputPath"));
 }
+
+#[test]
+fn builtin_patcher_failure_publishes_log_and_names_first_errors() {
+    let (_dir, mut settings) = setup();
+    let data = settings.roots.mods.join("patch/tslpatchdata");
+    fs::create_dir_all(&data).unwrap();
+    fs::write(
+        data.join("changes.ini"),
+        "[Settings]\n\n[InstallList]\ninstall_folder0=Override\n\n[install_folder0]\nFile0=absent-resource.utc\nFile1=present-resource.utc\n",
+    )
+    .unwrap();
+    fs::write(data.join("present-resource.utc"), b"payload").unwrap();
+    for folder in ["Override", "Modules", "streamwaves"] {
+        fs::create_dir_all(settings.roots.game.join(folder)).unwrap();
+    }
+    fs::write(settings.roots.game.join("swkotor.exe"), b"").unwrap();
+    fs::write(settings.roots.game.join("swkotor.ini"), b"").unwrap();
+    settings.patcher_engine = PatcherEngine::OdyPatcher;
+    fs::write(settings.roots.mods.join("sample.tga"), b"later step").unwrap();
+    let g = guide(serde_json::json!([
+        {"Action":"Patcher", "Source":"<<modDirectory>>/patch"}, copy()
+    ]));
+    let mut messages = Vec::new();
+    let error = Engine::new(settings.clone())
+        .unwrap()
+        .install(&g, |event| messages.push(event.message))
+        .unwrap_err();
+    let text = format!("{error:#}");
+    assert!(
+        text.contains("Built-in OdyPatcher reported errors"),
+        "{text}"
+    );
+    assert!(
+        text.contains("first 3 error lines from the install log: Could not load source file to copy: | Could not locate resource to copy: 'absent-resource.utc' | Installation completed with errors."),
+        "{text}"
+    );
+    assert!(messages.iter().any(|m| {
+        m.starts_with("Built-in OdyPatcher: 2 configured, 1 completed, 0 skipped, 1 failed;")
+    }));
+    let flagged = messages
+        .iter()
+        .find(|m| m.starts_with("Built-in OdyPatcher error and warning lines"))
+        .expect("error lines are emitted before the error returns");
+    assert!(flagged.contains("[Error]"));
+    assert!(flagged.contains("Could not locate resource to copy: 'absent-resource.utc'"));
+    let tail = messages
+        .iter()
+        .find(|m| m.starts_with("Built-in OdyPatcher install log tail"))
+        .expect("log tail is emitted before the error returns");
+    assert!(tail.contains("Installation completed with errors. Processed 2 operations"));
+    assert!(
+        !messages
+            .iter()
+            .any(|m| m.starts_with("Patcher install log "))
+    );
+    assert!(!settings.roots.game.join("Override/sample.tga").exists());
+}
