@@ -4,6 +4,7 @@
 use super::{Content, Engine, Event};
 use crate::paths::{literal_relative, relative};
 use anyhow::{Context, Result, ensure};
+use odypatcher::patcher::installation::{is_capsule_file, is_mod_path};
 use std::{
     collections::BTreeMap,
     io::Read,
@@ -224,6 +225,7 @@ impl Engine {
             .parent()
             .context("Patcher INI has no parent")?;
         let mut effects = Vec::new();
+        let mut capsules = BTreeMap::<String, PathBuf>::new();
         if let Some(folders) = ini.section("InstallList") {
             for (section, folder) in folders {
                 if !section.starts_with("INSTALL_FOLDER") || folder.is_empty() {
@@ -234,6 +236,9 @@ impl Engine {
                 };
                 // InstallList names are literal (TslPatcherVfsSimulator passes them to
                 // Path.Combine), so `[` and `]` are ordinary characters here.
+                // The pinned patcher treats an `.erf`/`.mod`/`.rim` destination as a capsule
+                // file (`is_capsule_file`), never as a directory.
+                let capsule = is_capsule_file(folder);
                 let folder = literal_relative(folder)?;
                 for (operation, filename) in files {
                     self.check_cancelled()?;
@@ -248,16 +253,40 @@ impl Engine {
                         "Patcher InstallList entry has no filename"
                     );
                     let source = self.actual(&source_root.join(&filename));
-                    let target = self.actual(&destination.join(&folder).join(&filename));
                     self.settings.roots.check(&source)?;
-                    self.settings.roots.check(&target)?;
                     ensure!(
-                        effects.len() < MAX_EFFECTS,
+                        effects.len() + capsules.len() < MAX_EFFECTS,
                         "Patcher InstallList exceeds {MAX_EFFECTS} effects"
                     );
+                    if capsule {
+                        let container = self.actual(&destination.join(&folder));
+                        self.settings.roots.check(&container)?;
+                        capsules
+                            .entry(self.path_policy.key(&container))
+                            .or_insert(container);
+                        continue;
+                    }
+                    let target = self.actual(&destination.join(&folder).join(&filename));
+                    self.settings.roots.check(&target)?;
                     effects.push((source, target));
                 }
             }
+        }
+        for (key, container) in &capsules {
+            self.check_cancelled()?;
+            if self.files.contains_key(key) {
+                continue;
+            }
+            ensure!(
+                is_mod_path(container),
+                "InstallList capsule is missing and the patcher cannot create it: {}",
+                container.display()
+            );
+            self.validation_warning(
+                "PatcherSimulation",
+                "InstallList capsule is absent; the patcher builds a .mod from the module's .rim files at install time, and the files placed in it are not modelled".into(),
+                container,
+            );
         }
         let count = effects.len();
         let mut unknown = 0;
@@ -278,11 +307,19 @@ impl Engine {
             }
             self.put(&target, content, true)?;
         }
+        let capsule_note = if capsules.is_empty() {
+            String::new()
+        } else {
+            format!(
+                "; {} InstallList capsule files left unmodelled",
+                capsules.len()
+            )
+        };
         emit(Event {
             component: "Patcher".into(),
             step: 0,
             message: format!(
-                "Simulated {count} InstallList files ({unknown} unknown payloads) from {}; binary patch effects remain unmodeled",
+                "Simulated {count} InstallList files ({unknown} unknown payloads) from {}{capsule_note}; binary patch effects remain unmodeled",
                 configuration.display()
             ),
         });

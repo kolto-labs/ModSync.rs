@@ -4504,3 +4504,24 @@ The `authoringRevisionFormat` root key is reserved; a legacy guide using it as
 extension metadata is rejected rather than ambiguously interpreted. Source review
 and scoped formatting are the validation boundary here; the parent performs the
 final production build. No tests, harnesses or install-tree operations were run.
+
+### Validation: capsule `[InstallList]` folders (2026-10-18)
+
+In the validation dry run, an `[InstallList]` folder whose last component ends in
+`.mod`, `.erf` or `.rim` (any case) is now treated as a capsule file, as the pinned
+OdyPatcher `is_capsule_file` does, instead of as a directory under which each file was
+placed. Before, a game tree that held the capsule as a file failed with `File blocks
+destination directory`. The files inside the capsule are not modelled.
+
+- Capsule present: left unchanged, no warning.
+- Absent `.mod`: a `PatcherSimulation` warning, because the real patcher builds it
+  from the module's `.rim` files (and `_dlg.erf` on K2); whether those sources exist is
+  not checked.
+- Absent `.erf` or `.rim`: the step fails, because the real patcher cannot create them
+  and logs an error for that file.
+- The capsule path must stay inside the install roots. Other folders (for example
+  `Override`) keep the literal directory behaviour.
+
+Install is unchanged and still runs the patcher backend. Proof is targeted tests in
+`tests/validate_capsule_install_folders.rs` plus source comparison against the pinned
+patcher; no real patcher run.
