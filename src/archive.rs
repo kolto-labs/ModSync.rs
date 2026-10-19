@@ -204,6 +204,26 @@ fn rar_unix_mode(host_os: u32, file_attr: u32) -> Option<u32> {
     (host_os == RAR_HOST_UNIX && file_attr & 0o170000 != 0).then_some(file_attr)
 }
 
+const SEVENZ_UNIX_EXTENSION: u32 = 0x8000;
+
+/// A 7z attribute word carries a Unix `st_mode` in its high 16 bits only when
+/// the Unix-extension flag (0x8000 in the low word) is set. Archives written on
+/// Windows leave those bits unspecified, so they must never be read as a mode.
+fn sevenz_unix_mode(has_attributes: bool, attributes: u32) -> Option<u32> {
+    if !has_attributes || attributes & SEVENZ_UNIX_EXTENSION == 0 {
+        return None;
+    }
+    let mode = attributes >> 16;
+    (mode & 0o170000 != 0).then_some(mode)
+}
+
+/// Permission bits applied to an extracted file: whatever the archive asked for,
+/// but never without owner read/write, so later install steps can read, move and
+/// replace the file.
+pub(crate) fn extracted_file_mode(mode: u32) -> u32 {
+    (mode & 0o777) | 0o600
+}
+
 /// Unknown or mismatched header metadata is treated as a Unix host, which
 /// keeps the strict link/special-file rejection.
 fn rar_host_os(info: Option<&RarHeaderInfo>, directory: bool, unpacked_size: u64) -> u32 {
@@ -425,11 +445,7 @@ fn process(
             |entry, reader, _| {
                 let result = (|| -> Result<()> {
                     let mode =
-                        if entry.has_windows_attributes && entry.windows_attributes >> 16 != 0 {
-                            Some(entry.windows_attributes >> 16)
-                        } else {
-                            None
-                        };
+                        sevenz_unix_mode(entry.has_windows_attributes, entry.windows_attributes);
                     if entry.is_directory() {
                         output.name(entry.name(), mode, true)?;
                     } else {
@@ -637,6 +653,103 @@ mod tests {
     fn beos_and_unknown_hosts_do_not_expose_windows_bits() {
         assert_eq!(rar_unix_mode(RAR_HOST_BEOS, 0x2000), None);
         assert_eq!(rar_unix_mode(99, 0x2000), None);
+    }
+
+    const SEVENZ_ARCHIVE_ATTRIBUTE: u32 = 0x20;
+
+    fn sevenz_with_attributes(name: &str, attributes: Option<u32>) -> Vec<u8> {
+        let mut writer =
+            sevenz_rust2::ArchiveWriter::new(std::io::Cursor::new(Vec::new())).unwrap();
+        let mut entry = sevenz_rust2::ArchiveEntry::new_file(name);
+        if let Some(attributes) = attributes {
+            entry.has_windows_attributes = true;
+            entry.windows_attributes = attributes;
+        }
+        writer
+            .push_archive_entry(entry, Some(&b"sample"[..]))
+            .unwrap();
+        writer.finish().unwrap().into_inner()
+    }
+
+    fn unpack_sevenz(bytes: &[u8]) -> Vec<Entry> {
+        let mut file = tempfile::NamedTempFile::new().unwrap();
+        file.write_all(bytes).unwrap();
+        unpack(
+            file.path(),
+            Path::new("sample.7z"),
+            &Options::default(),
+            &AtomicBool::new(false),
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn sevenz_mode_needs_the_unix_extension_flag() {
+        let unix = (0o100644u32 << 16) | SEVENZ_UNIX_EXTENSION | SEVENZ_ARCHIVE_ATTRIBUTE;
+        assert_eq!(sevenz_unix_mode(true, unix), Some(0o100644));
+        assert_eq!(sevenz_unix_mode(false, unix), None);
+        let without_flag = unix & !SEVENZ_UNIX_EXTENSION;
+        assert_eq!(sevenz_unix_mode(true, without_flag), None);
+        assert_eq!(sevenz_unix_mode(true, 0xffff_0020), None);
+        assert_eq!(sevenz_unix_mode(true, 0x8000_0020), None);
+    }
+
+    #[test]
+    fn sevenz_mode_needs_a_file_type_bit_even_with_the_flag() {
+        assert_eq!(sevenz_unix_mode(true, SEVENZ_UNIX_EXTENSION), None);
+        assert_eq!(
+            sevenz_unix_mode(true, (0o644u32 << 16) | SEVENZ_UNIX_EXTENSION),
+            None
+        );
+        assert_eq!(
+            sevenz_unix_mode(true, (0o040755u32 << 16) | SEVENZ_UNIX_EXTENSION),
+            Some(0o040755)
+        );
+    }
+
+    #[test]
+    fn sevenz_unix_links_are_still_rejected() {
+        let mut output = Output {
+            options: &Options::default(),
+            cancelled: &AtomicBool::new(false),
+            spool: false,
+            limit: u64::MAX,
+            total: 0,
+            names: BTreeSet::new(),
+            original_entries: None,
+            original_name_bytes: 0,
+            files: Vec::new(),
+        };
+        let symlink = sevenz_unix_mode(true, (0o120777u32 << 16) | SEVENZ_UNIX_EXTENSION);
+        assert_eq!(symlink, Some(0o120777));
+        assert!(output.name("link", symlink, false).is_err());
+    }
+
+    #[test]
+    fn extracted_file_mode_keeps_owner_read_and_write() {
+        assert_eq!(extracted_file_mode(0), 0o600);
+        assert_eq!(extracted_file_mode(0o100000), 0o600);
+        assert_eq!(extracted_file_mode(0o100444), 0o644);
+        assert_eq!(extracted_file_mode(0o100755), 0o755);
+        assert_eq!(extracted_file_mode(0o104755), 0o755);
+    }
+
+    #[test]
+    fn sevenz_entry_with_garbage_attribute_high_bits_has_no_mode() {
+        for attributes in [0x8000_0020, 0xffff_0020, 0x0001_0020] {
+            let entries = unpack_sevenz(&sevenz_with_attributes("sample.bin", Some(attributes)));
+            assert_eq!(entries.len(), 1);
+            assert_eq!(entries[0].mode, None, "attributes {attributes:#x}");
+        }
+        let plain = unpack_sevenz(&sevenz_with_attributes("sample.bin", None));
+        assert_eq!(plain[0].mode, None);
+    }
+
+    #[test]
+    fn sevenz_entry_with_unix_extension_keeps_its_mode() {
+        let attributes = (0o100755u32 << 16) | SEVENZ_UNIX_EXTENSION | SEVENZ_ARCHIVE_ATTRIBUTE;
+        let entries = unpack_sevenz(&sevenz_with_attributes("sample.bin", Some(attributes)));
+        assert_eq!(entries[0].mode, Some(0o100755));
     }
 
     #[test]

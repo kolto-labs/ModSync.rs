@@ -300,6 +300,53 @@ fn seven_zip_roundtrip() {
     assert!(unpack(b"MZnot an archive").is_err());
 }
 
+#[cfg(unix)]
+fn sevenz_with_attributes(name: &str, attributes: u32) -> Vec<u8> {
+    let mut writer = sevenz_rust2::ArchiveWriter::new(Cursor::new(Vec::new())).unwrap();
+    let mut entry = sevenz_rust2::ArchiveEntry::new_file(name);
+    entry.has_windows_attributes = true;
+    entry.windows_attributes = attributes;
+    writer
+        .push_archive_entry(entry, Some(&b"sample"[..]))
+        .unwrap();
+    writer.finish().unwrap().into_inner()
+}
+
+#[cfg(unix)]
+#[test]
+fn extract_then_move_survives_unspecified_or_empty_seven_zip_modes() {
+    use std::os::unix::fs::PermissionsExt;
+    let unix_extension_with_empty_permissions = (0o100000u32 << 16) | 0x8000 | 0x20;
+    for attributes in [
+        0x8000_0020u32,
+        0xffff_0020,
+        unix_extension_with_empty_permissions,
+    ] {
+        let (_dir, settings) = setup();
+        fs::write(
+            settings.roots.mods.join("mod.7z"),
+            sevenz_with_attributes("sample.bin", attributes),
+        )
+        .unwrap();
+        let g = guide(serde_json::json!([
+            {"Action":"Extract", "Source":"<<modDirectory>>/mod.7z"},
+            {"Action":"Move", "Source":"<<modDirectory>>/mod/sample.bin", "Destination":"<<kotorDirectory>>/Override"}
+        ]));
+        Engine::new(settings.clone())
+            .unwrap()
+            .install(&g, |_| {})
+            .unwrap_or_else(|error| panic!("attributes {attributes:#x}: {error:#}"));
+        let installed = settings.roots.game.join("Override/sample.bin");
+        assert_eq!(fs::read(&installed).unwrap(), b"sample");
+        assert_eq!(
+            fs::metadata(&installed).unwrap().permissions().mode() & 0o600,
+            0o600,
+            "attributes {attributes:#x}"
+        );
+        assert!(!settings.roots.mods.join("mod/sample.bin").exists());
+    }
+}
+
 #[test]
 fn rar_reads_and_checks_crc_without_extracting_paths() {
     let files = unpack(include_bytes!("fixtures/version.rar")).unwrap();

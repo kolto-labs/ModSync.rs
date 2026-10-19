@@ -2959,12 +2959,20 @@ impl Engine {
                 let modified = content.modified()?;
                 let permissions = match &content {
                     Content::Unknown => bail!("Cannot publish unknown simulated patcher content"),
-                    Content::Disk(source) => Some(fs::metadata(source)?.permissions()),
+                    Content::Disk(source) => Some(
+                        fs::metadata(source)
+                            .with_context(|| format!("Cannot read {}", source.display()))?
+                            .permissions(),
+                    ),
                     Content::Scratch(_, mode, _) => {
                         #[cfg(unix)]
                         {
                             use std::os::unix::fs::PermissionsExt;
-                            mode.map(|mode| fs::Permissions::from_mode(mode & 0o777))
+                            mode.map(|mode| {
+                                fs::Permissions::from_mode(crate::archive::extracted_file_mode(
+                                    mode,
+                                ))
+                            })
                         }
                         #[cfg(not(unix))]
                         {
@@ -2974,7 +2982,12 @@ impl Engine {
                     }
                 };
                 let physical = self.managed_output(&path)?;
-                recovery::atomic_copy(&physical, content.open()?, &self.settings.cancelled)?;
+                let input = content.open().with_context(|| match content.path() {
+                    Ok(source) => format!("Cannot read {}", source.display()),
+                    Err(_) => "Cannot read source content".to_owned(),
+                })?;
+                recovery::atomic_copy(&physical, input, &self.settings.cancelled)
+                    .with_context(|| format!("Cannot write {}", physical.display()))?;
                 if let Some(modified) = modified {
                     // Set time before readonly permissions, on the actual managed or
                     // ordinary output. Metadata failure retains the install journal.
@@ -3332,7 +3345,8 @@ impl Engine {
                     let data = self.files[&self.path_policy.key(&source)].1.clone();
                     self.put(&target, data, i.overwrite)?;
                     if i.action != "Copy" {
-                        self.delete(&source)?;
+                        self.delete(&source)
+                            .with_context(|| format!("Cannot remove {}", source.display()))?;
                     }
                 }
                 if let Some(target) = blocked_rename {
