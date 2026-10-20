@@ -14,24 +14,22 @@ Popup {
     modal: true
     focus: true
     width: Math.min(520, (parent ? parent.width : 520) - 48)
-    padding: Palette.pad
+    padding: Theme.pad
     closePolicy: Popup.CloseOnEscape
     onWantedChanged: wanted ? open() : close()
     onClosed: if (wanted) dismissed()
-    Accessible.role: Accessible.Dialog
-    Accessible.name: heading
     background: Rectangle {
-        radius: Palette.radius + 4
-        color: Palette.panel
-        border.color: Palette.border
+        radius: Theme.radius + 4
+        color: Theme.panel
+        border.color: Theme.border
         border.width: 1
     }
     Overlay.modal: Rectangle { color: "#99000000" }
     contentItem: ColumnLayout {
-        spacing: Palette.gap
+        spacing: Theme.gap
         Label {
             text: popup.heading
-            color: Palette.text
+            color: Theme.text
             font.pixelSize: 22
             font.bold: true
             Layout.fillWidth: true
@@ -39,14 +37,14 @@ Popup {
         }
         Label {
             text: popup.body
-            color: Palette.muted
+            color: Theme.muted
             font.pixelSize: 15
             Layout.fillWidth: true
             wrapMode: Text.Wrap
         }
         RowLayout {
             Layout.alignment: Qt.AlignRight
-            spacing: Palette.gap
+            spacing: Theme.gap
             ActionButton {
                 text: "Keep installing"
                 focus: true

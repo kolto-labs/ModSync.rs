@@ -12,6 +12,9 @@ RowLayout {
     spacing: 0
 
     readonly property string page: view.page ?? ""
+    readonly property var installProgress: activity.install ?? null
+    readonly property bool installFailed: view.install?.failed ?? false
+    readonly property bool installDone: page === "WidescreenInstalling" ? (view.install?.finished ?? false) : (view.install?.baseComplete ?? false)
     readonly property bool lastPage: view.loaded && view.pageIndex === (view.pages?.length ?? 0) - 1
 
     function fileUrlToPath(url) {
@@ -39,13 +42,13 @@ RowLayout {
     Rectangle {
         Layout.fillHeight: true
         Layout.preferredWidth: 248
-        color: Palette.panel
+        color: Theme.panel
         visible: root.view.loaded
         Rectangle {
             anchors.right: parent.right
             width: 1
             height: parent.height
-            color: Palette.border
+            color: Theme.border
         }
         ListView {
             id: steps
@@ -65,10 +68,10 @@ RowLayout {
                 readonly property bool done: index < root.view.pageIndex
                 width: ListView.view.width
                 height: 40
-                radius: Palette.radius
-                color: current ? Palette.raised : "transparent"
+                radius: Theme.radius
+                color: current ? Theme.raised : "transparent"
                 border.width: current ? 1 : 0
-                border.color: Palette.accent
+                border.color: Theme.accent
                 Accessible.role: Accessible.ListItem
                 Accessible.name: modelData.title + (current ? ", current step" : done ? ", done" : "")
                 RowLayout {
@@ -80,13 +83,13 @@ RowLayout {
                         Layout.preferredWidth: 22
                         Layout.preferredHeight: 22
                         radius: 11
-                        color: step.done ? Palette.success : step.current ? Palette.accent : "transparent"
+                        color: step.done ? Theme.success : step.current ? Theme.accent : "transparent"
                         border.width: 2
-                        border.color: step.done ? Palette.success : step.current ? Palette.accent : Palette.muted
+                        border.color: step.done ? Theme.success : step.current ? Theme.accent : Theme.muted
                         Text {
                             anchors.centerIn: parent
                             text: step.done ? "\u2713" : step.index + 1
-                            color: step.done || step.current ? Palette.accentText : Palette.muted
+                            color: step.done || step.current ? Theme.accentText : Theme.muted
                             font.pixelSize: 12
                             font.bold: true
                         }
@@ -94,7 +97,7 @@ RowLayout {
                     Label {
                         Layout.fillWidth: true
                         text: step.modelData.title
-                        color: step.current ? Palette.text : Palette.muted
+                        color: step.current ? Theme.text : Theme.muted
                         font.pixelSize: 14
                         font.bold: step.current
                         elide: Text.ElideRight
@@ -113,11 +116,11 @@ RowLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.margins: 28
-            spacing: Palette.gap
+            spacing: Theme.gap
 
             Label {
                 text: root.view.loaded ? root.view.pageTitle : "Welcome"
-                color: Palette.text
+                color: Theme.text
                 font.pixelSize: 30
                 font.bold: true
                 Layout.fillWidth: true
@@ -127,7 +130,7 @@ RowLayout {
             }
             Label {
                 text: root.view.loaded ? root.view.pageSubtitle : "Welcome to the ModSync Installation Wizard"
-                color: Palette.muted
+                color: Theme.muted
                 font.pixelSize: 16
                 Layout.fillWidth: true
                 wrapMode: Text.Wrap
@@ -135,7 +138,7 @@ RowLayout {
             Rectangle {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 1
-                color: Palette.border
+                color: Theme.border
             }
 
             StackLayout {
@@ -159,41 +162,41 @@ RowLayout {
                 }
 
                 ColumnLayout {
-                    spacing: Palette.gap
+                    spacing: Theme.gap
                     Label {
                         Layout.fillWidth: true
                         wrapMode: Text.Wrap
-                        color: Palette.text
+                        color: Theme.text
                         font.pixelSize: 16
                         text: "ModSync installs a curated set of mods into your game folder, checks every step first, and keeps a snapshot so a failed install can be undone."
                     }
                     Label {
                         Layout.fillWidth: true
                         visible: root.view.loaded
-                        color: Palette.success
+                        color: Theme.success
                         font.pixelSize: 16
                         font.bold: true
                         text: (root.view.guideName ? root.view.guideName + " \u2014 " : "") + (root.view.components?.length ?? 0) + " mods loaded. Choose Next to continue."
                         wrapMode: Text.Wrap
                     }
                     RowLayout {
-                        spacing: Palette.gap
+                        spacing: Theme.gap
                         TextField {
                             id: guidePath
                             Layout.fillWidth: true
                             implicitHeight: 40
                             font.pixelSize: 15
                             placeholderText: "Path to a guide file"
-                            placeholderTextColor: Palette.muted
-                            color: Palette.text
+                            placeholderTextColor: Theme.muted
+                            color: Theme.text
                             text: root.view.input ?? ""
                             Accessible.name: "Guide file path"
                             onAccepted: WizardBackend.loadGuide(text)
                             background: Rectangle {
-                                radius: Palette.radius
-                                color: Palette.raised
+                                radius: Theme.radius
+                                color: Theme.raised
                                 border.width: guidePath.activeFocus ? 2 : 1
-                                border.color: guidePath.activeFocus ? Palette.focus : Palette.border
+                                border.color: guidePath.activeFocus ? Theme.focus : Theme.border
                             }
                         }
                         ActionButton {
@@ -218,8 +221,8 @@ RowLayout {
                         width: notice.availableWidth
                         wrapMode: Text.Wrap
                         textFormat: Text.MarkdownText
-                        color: Palette.text
-                        linkColor: Palette.accent
+                        color: Theme.text
+                        linkColor: Theme.accent
                         font.pixelSize: 15
                         text: root.page === "AspyrNotice" ? root.view.aspyr
                             : root.page === "WidescreenNotice" ? root.view.widescreenWarning : root.view.preamble
@@ -228,32 +231,32 @@ RowLayout {
                 }
 
                 ColumnLayout {
-                    spacing: Palette.gap
+                    spacing: Theme.gap
                     Label {
                         Layout.fillWidth: true
                         wrapMode: Text.Wrap
-                        color: Palette.muted
+                        color: Theme.muted
                         font.pixelSize: 15
                         text: "Pick a folder for downloaded archives and temporary work. It must already exist and have room for the mod archives."
                     }
                     RowLayout {
-                        spacing: Palette.gap
+                        spacing: Theme.gap
                         TextField {
                             id: modsPath
                             Layout.fillWidth: true
                             implicitHeight: 40
                             font.pixelSize: 15
                             placeholderText: "Mod workspace folder"
-                            placeholderTextColor: Palette.muted
-                            color: Palette.text
+                            placeholderTextColor: Theme.muted
+                            color: Theme.text
                             text: root.view.mods ?? ""
                             Accessible.name: "Mod workspace folder"
                             onEditingFinished: WizardBackend.setMods(text)
                             background: Rectangle {
-                                radius: Palette.radius
-                                color: Palette.raised
+                                radius: Theme.radius
+                                color: Theme.raised
                                 border.width: modsPath.activeFocus ? 2 : 1
-                                border.color: modsPath.activeFocus ? Palette.focus : Palette.border
+                                border.color: modsPath.activeFocus ? Theme.focus : Theme.border
                             }
                         }
                         ActionButton {
@@ -263,7 +266,7 @@ RowLayout {
                     }
                     Label {
                         text: root.view.modsValid ? "Folder found." : "Choose an existing folder."
-                        color: root.view.modsValid ? Palette.success : Palette.warning
+                        color: root.view.modsValid ? Theme.success : Theme.warning
                         font.pixelSize: 15
                         font.bold: true
                     }
@@ -271,32 +274,32 @@ RowLayout {
                 }
 
                 ColumnLayout {
-                    spacing: Palette.gap
+                    spacing: Theme.gap
                     Label {
                         Layout.fillWidth: true
                         wrapMode: Text.Wrap
-                        color: Palette.muted
+                        color: Theme.muted
                         font.pixelSize: 15
                         text: "Point to your KOTOR installation folder. ModSync checks it before installing and snapshots it so the install can be undone."
                     }
                     RowLayout {
-                        spacing: Palette.gap
+                        spacing: Theme.gap
                         TextField {
                             id: gamePath
                             Layout.fillWidth: true
                             implicitHeight: 40
                             font.pixelSize: 15
                             placeholderText: "Game folder"
-                            placeholderTextColor: Palette.muted
-                            color: Palette.text
+                            placeholderTextColor: Theme.muted
+                            color: Theme.text
                             text: root.view.game ?? ""
                             Accessible.name: "Game folder"
                             onEditingFinished: WizardBackend.setGame(text)
                             background: Rectangle {
-                                radius: Palette.radius
-                                color: Palette.raised
+                                radius: Theme.radius
+                                color: Theme.raised
                                 border.width: gamePath.activeFocus ? 2 : 1
-                                border.color: gamePath.activeFocus ? Palette.focus : Palette.border
+                                border.color: gamePath.activeFocus ? Theme.focus : Theme.border
                             }
                         }
                         ActionButton {
@@ -306,7 +309,7 @@ RowLayout {
                     }
                     Label {
                         text: root.view.gameDetected ? "Detected: " + root.view.gameDetected : "No supported game found in that folder."
-                        color: root.view.gameDetected ? Palette.success : Palette.warning
+                        color: root.view.gameDetected ? Theme.success : Theme.warning
                         font.pixelSize: 15
                         font.bold: true
                     }
@@ -318,18 +321,18 @@ RowLayout {
                 }
 
                 ColumnLayout {
-                    spacing: Palette.gap
+                    spacing: Theme.gap
                     Label {
                         Layout.fillWidth: true
                         wrapMode: Text.Wrap
-                        color: Palette.text
+                        color: Theme.text
                         font.pixelSize: 16
                         text: "Mod archives must be present in the workspace folder before validation. Place the archives your guide lists there, then continue to validation. Installation always needs a fresh passing validation."
                     }
                     Label {
                         Layout.fillWidth: true
                         wrapMode: Text.Wrap
-                        color: Palette.warning
+                        color: Theme.warning
                         font.pixelSize: 14
                         text: "In-app downloading is not available in this build yet."
                     }
@@ -343,13 +346,13 @@ RowLayout {
                 }
 
                 ColumnLayout {
-                    spacing: Palette.gap
+                    spacing: Theme.gap
                     Rectangle {
                         Layout.fillWidth: true
                         implicitHeight: reviewColumn.implicitHeight + 32
-                        radius: Palette.radius
-                        color: Palette.panel
-                        border.color: Palette.border
+                        radius: Theme.radius
+                        color: Theme.panel
+                        border.color: Theme.border
                         ColumnLayout {
                             id: reviewColumn
                             anchors.fill: parent
@@ -357,27 +360,27 @@ RowLayout {
                             spacing: 6
                             Label {
                                 text: (root.view.selectedBase ?? 0) + " mods selected"
-                                color: Palette.text
+                                color: Theme.text
                                 font.pixelSize: 20
                                 font.bold: true
                             }
                             Label {
                                 Layout.fillWidth: true
                                 text: "Game folder: " + (root.view.game ?? "")
-                                color: Palette.muted
+                                color: Theme.muted
                                 font.pixelSize: 15
                                 wrapMode: Text.WrapAnywhere
                             }
                             Label {
                                 Layout.fillWidth: true
                                 text: "Mod workspace: " + (root.view.mods ?? "")
-                                color: Palette.muted
+                                color: Theme.muted
                                 font.pixelSize: 15
                                 wrapMode: Text.WrapAnywhere
                             }
                             Label {
                                 text: "Validation passed for this selection and these folders."
-                                color: Palette.success
+                                color: Theme.success
                                 font.pixelSize: 15
                                 visible: root.view.validation?.success ?? false
                             }
@@ -386,7 +389,7 @@ RowLayout {
                     Label {
                         Layout.fillWidth: true
                         wrapMode: Text.Wrap
-                        color: Palette.muted
+                        color: Theme.muted
                         font.pixelSize: 15
                         text: "Choose Next to review the snapshot and start the installation."
                     }
@@ -394,26 +397,23 @@ RowLayout {
                 }
 
                 ColumnLayout {
-                    spacing: Palette.gap
-                    readonly property var progress: root.activity.install ?? null
-                    readonly property bool failed: root.view.install?.failed ?? false
-                    readonly property bool done: root.page === "WidescreenInstalling" ? (root.view.install?.finished ?? false) : (root.view.install?.baseComplete ?? false)
+                    spacing: Theme.gap
                     Rectangle {
                         Layout.fillWidth: true
                         implicitHeight: statusColumn.implicitHeight + 28
-                        radius: Palette.radius
-                        color: Palette.panel
+                        radius: Theme.radius
+                        color: Theme.panel
                         border.width: 2
-                        border.color: parent.failed ? Palette.danger : parent.done ? Palette.success : Palette.border
+                        border.color: root.installFailed ? Theme.danger : root.installDone ? Theme.success : Theme.border
                         ColumnLayout {
                             id: statusColumn
                             anchors.fill: parent
                             anchors.margins: 14
                             spacing: 8
                             Label {
-                                text: parent.parent.parent.failed ? "Installation stopped"
-                                    : parent.parent.parent.done ? "Installation complete" : "Installing\u2026"
-                                color: parent.parent.parent.failed ? Palette.danger : parent.parent.parent.done ? Palette.success : Palette.text
+                                text: root.installFailed ? "Installation stopped"
+                                    : root.installDone ? "Installation complete" : "Installing\u2026"
+                                color: root.installFailed ? Theme.danger : root.installDone ? Theme.success : Theme.text
                                 font.pixelSize: 22
                                 font.bold: true
                                 Accessible.name: text
@@ -421,31 +421,31 @@ RowLayout {
                             Label {
                                 Layout.fillWidth: true
                                 wrapMode: Text.Wrap
-                                color: Palette.text
+                                color: Theme.text
                                 font.pixelSize: 15
                                 visible: text.length > 0
-                                text: parent.parent.parent.failed ? (root.view.install?.error ?? "")
-                                    : parent.parent.parent.progress
-                                      ? (parent.parent.parent.progress.component ? parent.parent.parent.progress.component + " \u2014 " : "") + parent.parent.parent.progress.message : ""
+                                text: root.installFailed ? (root.view.install?.error ?? "")
+                                    : root.installProgress
+                                      ? (root.installProgress.component ? root.installProgress.component + " \u2014 " : "") + root.installProgress.message : ""
                             }
                             ProgressBar {
                                 Layout.fillWidth: true
-                                visible: !parent.parent.parent.failed && !parent.parent.parent.done
+                                visible: !root.installFailed && !root.installDone
                                 from: 0
-                                to: Math.max(1, parent.parent.parent.progress?.componentTotal ?? 1)
-                                value: parent.parent.parent.progress?.componentIndex ?? 0
-                                indeterminate: (parent.parent.parent.progress?.componentTotal ?? 0) === 0
+                                to: Math.max(1, root.installProgress?.componentTotal ?? 1)
+                                value: root.installProgress?.componentIndex ?? 0
+                                indeterminate: (root.installProgress?.componentTotal ?? 0) === 0
                                 Accessible.name: "Installation progress"
                             }
                             Label {
-                                visible: !parent.parent.parent.failed && !parent.parent.parent.done && (parent.parent.parent.progress?.componentTotal ?? 0) > 0
-                                color: Palette.muted
+                                visible: !root.installFailed && !root.installDone && (root.installProgress?.componentTotal ?? 0) > 0
+                                color: Theme.muted
                                 font.pixelSize: 14
-                                text: "Mod " + (parent.parent.parent.progress?.componentIndex ?? 0) + " of " + (parent.parent.parent.progress?.componentTotal ?? 0)
+                                text: "Mod " + (root.installProgress?.componentIndex ?? 0) + " of " + (root.installProgress?.componentTotal ?? 0)
                             }
                             Flow {
                                 Layout.fillWidth: true
-                                spacing: Palette.gap
+                                spacing: Theme.gap
                                 ActionButton {
                                     text: "Stop Install"
                                     danger: true
@@ -470,7 +470,7 @@ RowLayout {
                     }
                     Label {
                         text: "What's Happening"
-                        color: Palette.text
+                        color: Theme.text
                         font.pixelSize: 16
                         font.bold: true
                     }
@@ -480,9 +480,9 @@ RowLayout {
                         Layout.minimumHeight: 120
                         padding: 0
                         background: Rectangle {
-                            radius: Palette.radius
-                            color: Palette.panel
-                            border.color: Palette.border
+                            radius: Theme.radius
+                            color: Theme.panel
+                            border.color: Theme.border
                         }
                         ListView {
                             id: logView
@@ -498,7 +498,7 @@ RowLayout {
                                 required property string modelData
                                 width: ListView.view.width
                                 text: modelData
-                                color: Palette.muted
+                                color: Theme.muted
                                 font.pixelSize: 13
                                 wrapMode: Text.WrapAnywhere
                             }
@@ -507,7 +507,7 @@ RowLayout {
                 }
 
                 ColumnLayout {
-                    spacing: Palette.gap
+                    spacing: Theme.gap
                     SelectionView {
                         Layout.fillHeight: true
                         Layout.fillWidth: true
@@ -524,11 +524,11 @@ RowLayout {
                 }
 
                 ColumnLayout {
-                    spacing: Palette.gap
+                    spacing: Theme.gap
                     Label {
                         Layout.fillWidth: true
                         wrapMode: Text.Wrap
-                        color: Palette.text
+                        color: Theme.text
                         font.pixelSize: 16
                         text: root.page === "Finished" ? "All selected mods are installed. You can close ModSync, or start again with another guide."
                             : root.page === "WidescreenComplete" ? "Every selected widescreen mod is installed." : "The base mod installation finished successfully. Choose Next to continue."
@@ -544,7 +544,7 @@ RowLayout {
                             width: epilogue.availableWidth
                             wrapMode: Text.Wrap
                             textFormat: Text.MarkdownText
-                            color: Palette.text
+                            color: Theme.text
                             font.pixelSize: 15
                             text: root.view.epilogue ?? ""
                             onLinkActivated: link => Qt.openUrlExternally(link)
@@ -558,12 +558,12 @@ RowLayout {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 1
-            color: Palette.border
+            color: Theme.border
         }
         RowLayout {
             Layout.fillWidth: true
             Layout.margins: 16
-            spacing: Palette.gap
+            spacing: Theme.gap
             ActionButton {
                 text: "Back"
                 enabled: root.view.canBack ?? false
@@ -573,7 +573,7 @@ RowLayout {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 text: root.view.loaded && !(root.view.canNext ?? false) && !root.lastPage ? root.view.hint : ""
-                color: Palette.muted
+                color: Theme.muted
                 font.pixelSize: 14
                 elide: Text.ElideRight
             }

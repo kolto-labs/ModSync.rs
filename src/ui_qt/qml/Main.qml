@@ -12,18 +12,18 @@ ApplicationWindow {
     minimumHeight: 640
     visible: true
     title: "ModSync"
-    color: Palette.window
+    color: Theme.window
     font.family: regularFont.name
     font.pixelSize: 15
-    palette.window: Palette.window
-    palette.windowText: Palette.text
-    palette.text: Palette.text
-    palette.base: Palette.panel
-    palette.button: Palette.raised
-    palette.buttonText: Palette.text
-    palette.highlight: Palette.accent
-    palette.highlightedText: Palette.accentText
-    palette.placeholderText: Palette.muted
+    palette.window: Theme.window
+    palette.windowText: Theme.text
+    palette.text: Theme.text
+    palette.base: Theme.panel
+    palette.button: Theme.raised
+    palette.buttonText: Theme.text
+    palette.highlight: Theme.accent
+    palette.highlightedText: Theme.accentText
+    palette.placeholderText: Theme.muted
 
     function parse(text) {
         try {
@@ -45,7 +45,7 @@ ApplicationWindow {
     }
 
     Binding {
-        target: Palette
+        target: Theme
         property: "mode"
         value: window.view.theme ?? "dark"
     }
@@ -70,21 +70,21 @@ ApplicationWindow {
 
     header: Rectangle {
         implicitHeight: 64
-        color: Palette.panel
+        color: Theme.panel
         Rectangle {
             anchors.bottom: parent.bottom
             width: parent.width
             height: 1
-            color: Palette.border
+            color: Theme.border
         }
         RowLayout {
             anchors.fill: parent
             anchors.leftMargin: 20
             anchors.rightMargin: 20
-            spacing: Palette.gap
+            spacing: Theme.gap
             Label {
                 text: "ModSync"
-                color: Palette.accent
+                color: Theme.accent
                 font.pixelSize: 24
                 font.bold: true
                 Accessible.role: Accessible.Heading
@@ -103,7 +103,7 @@ ApplicationWindow {
                     text: modelData.label
                     checkable: true
                     checked: window.surface === modelData.key
-                    flat: true
+                    quiet: true
                     enabled: window.view.loaded ?? false
                     onClicked: WizardBackend.setSurface(modelData.key)
                 }
@@ -111,7 +111,7 @@ ApplicationWindow {
             Item { Layout.fillWidth: true }
             ActionButton {
                 text: "Easy mode"
-                flat: true
+                quiet: true
                 onClicked: easyLoader.active = true
             }
             ComboBox {
@@ -126,16 +126,16 @@ ApplicationWindow {
                 contentItem: Text {
                     leftPadding: 12
                     text: "Theme: " + themeBox.displayText
-                    color: Palette.text
+                    color: Theme.text
                     font: themeBox.font
                     verticalAlignment: Text.AlignVCenter
                     elide: Text.ElideRight
                 }
                 background: Rectangle {
-                    radius: Palette.radius
-                    color: Palette.raised
+                    radius: Theme.radius
+                    color: Theme.raised
                     border.width: themeBox.visualFocus ? 3 : 1
-                    border.color: themeBox.visualFocus ? Palette.focus : Palette.border
+                    border.color: themeBox.visualFocus ? Theme.focus : Theme.border
                 }
                 delegate: ItemDelegate {
                     id: themeOption
@@ -145,15 +145,15 @@ ApplicationWindow {
                     highlighted: themeBox.highlightedIndex === index
                     contentItem: Text {
                         text: themeOption.modelData
-                        color: Palette.text
+                        color: Theme.text
                         font.pixelSize: 14
                     }
-                    background: Rectangle { color: themeOption.highlighted ? Palette.raised : Palette.panel }
+                    background: Rectangle { color: themeOption.highlighted ? Theme.raised : Theme.panel }
                 }
                 popup.background: Rectangle {
-                    color: Palette.panel
-                    border.color: Palette.border
-                    radius: Palette.radius
+                    color: Theme.panel
+                    border.color: Theme.border
+                    radius: Theme.radius
                 }
             }
         }
@@ -166,14 +166,14 @@ ApplicationWindow {
             Layout.fillWidth: true
             visible: (WizardBackend.message ?? "").length > 0
             implicitHeight: messageLabel.implicitHeight + 20
-            color: Palette.raised
-            border.color: Palette.warning
+            color: Theme.raised
+            border.color: Theme.warning
             Label {
                 id: messageLabel
                 anchors.fill: parent
                 anchors.margins: 10
                 text: WizardBackend.message
-                color: Palette.text
+                color: Theme.text
                 font.pixelSize: 15
                 wrapMode: Text.Wrap
                 verticalAlignment: Text.AlignVCenter

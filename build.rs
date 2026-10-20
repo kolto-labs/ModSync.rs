@@ -11,7 +11,7 @@ fn build_qt() {
         QmlFile::from("src/ui_qt/qml/InstallModal.qml"),
         QmlFile::from("src/ui_qt/qml/StopModal.qml"),
         QmlFile::from("src/ui_qt/qml/ActionButton.qml"),
-        QmlFile::from("src/ui_qt/qml/Palette.qml").singleton(true),
+        QmlFile::from("src/ui_qt/qml/Theme.qml").singleton(true),
     ]))
     .include_dir("src/ui_qt")
     .qt_module("Quick")

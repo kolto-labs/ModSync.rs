@@ -11,11 +11,11 @@ ColumnLayout {
     property bool embedded: false
     readonly property var validation: view.validation ?? null
     readonly property bool validating: view.busy === "validate"
-    spacing: Palette.gap
+    spacing: Theme.gap
 
     Flow {
         Layout.fillWidth: true
-        spacing: Palette.gap
+        spacing: Theme.gap
         ActionButton {
             text: "Run validation"
             primary: true
@@ -40,7 +40,7 @@ ColumnLayout {
         Layout.fillWidth: true
         visible: !root.view.loaded
         text: "Load a guide first."
-        color: Palette.muted
+        color: Theme.muted
         font.pixelSize: 16
     }
 
@@ -48,9 +48,9 @@ ColumnLayout {
         Layout.fillWidth: true
         visible: root.validating
         implicitHeight: progressColumn.implicitHeight + 24
-        radius: Palette.radius
-        color: Palette.panel
-        border.color: Palette.border
+        radius: Theme.radius
+        color: Theme.panel
+        border.color: Theme.border
         ColumnLayout {
             id: progressColumn
             anchors.fill: parent
@@ -58,7 +58,7 @@ ColumnLayout {
             spacing: 8
             Label {
                 text: "Validating\u2026 " + (root.activity.validationProgress?.message ?? "Starting validation")
-                color: Palette.text
+                color: Theme.text
                 font.pixelSize: 16
                 Layout.fillWidth: true
                 wrapMode: Text.Wrap
@@ -78,10 +78,10 @@ ColumnLayout {
         Layout.fillWidth: true
         visible: root.validation !== null && !root.validating
         implicitHeight: banner.implicitHeight + 24
-        radius: Palette.radius
-        color: Palette.panel
+        radius: Theme.radius
+        color: Theme.panel
         border.width: 2
-        border.color: root.validation?.success ? Palette.success : Palette.danger
+        border.color: root.validation?.success ? Theme.success : Theme.danger
         ColumnLayout {
             id: banner
             anchors.fill: parent
@@ -90,7 +90,7 @@ ColumnLayout {
             Label {
                 text: root.validation?.failure ? "Validation stopped"
                     : root.validation?.success ? "Validation passed" : "Validation found problems"
-                color: root.validation?.success ? Palette.success : Palette.danger
+                color: root.validation?.success ? Theme.success : Theme.danger
                 font.pixelSize: 20
                 font.bold: true
                 Accessible.name: text
@@ -98,7 +98,7 @@ ColumnLayout {
             Label {
                 Layout.fillWidth: true
                 wrapMode: Text.Wrap
-                color: Palette.text
+                color: Theme.text
                 font.pixelSize: 15
                 text: root.validation?.failure
                     ? root.validation.failure
@@ -116,9 +116,9 @@ ColumnLayout {
         visible: root.validation !== null && !root.validating && (root.validation?.failure ?? null) === null
         padding: 0
         background: Rectangle {
-            radius: Palette.radius
-            color: Palette.panel
-            border.color: Palette.border
+            radius: Theme.radius
+            color: Theme.panel
+            border.color: Theme.border
         }
         ListView {
             id: stages
@@ -146,11 +146,11 @@ ColumnLayout {
                             Layout.preferredWidth: 10
                             Layout.preferredHeight: 10
                             radius: 5
-                            color: !stage.modelData.passed ? Palette.danger : stage.modelData.warnings ? Palette.warning : Palette.success
+                            color: !stage.modelData.passed ? Theme.danger : stage.modelData.warnings ? Theme.warning : Theme.success
                         }
                         Label {
                             text: stage.modelData.name
-                            color: Palette.text
+                            color: Theme.text
                             font.pixelSize: 15
                             font.bold: true
                         }
@@ -159,7 +159,7 @@ ColumnLayout {
                         Layout.fillWidth: true
                         Layout.leftMargin: 18
                         text: stage.modelData.summary
-                        color: Palette.muted
+                        color: Theme.muted
                         font.pixelSize: 14
                         wrapMode: Text.Wrap
                     }
@@ -170,7 +170,7 @@ ColumnLayout {
                             Layout.fillWidth: true
                             Layout.leftMargin: 18
                             text: modelData
-                            color: Palette.muted
+                            color: Theme.muted
                             font.pixelSize: 13
                             wrapMode: Text.Wrap
                         }

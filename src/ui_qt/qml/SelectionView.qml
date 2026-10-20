@@ -8,7 +8,7 @@ ColumnLayout {
     id: root
     required property var view
     property bool widescreen: false
-    spacing: Palette.gap
+    spacing: Theme.gap
 
     ListModel { id: rows }
 
@@ -35,7 +35,7 @@ ColumnLayout {
 
     RowLayout {
         Layout.fillWidth: true
-        spacing: Palette.gap
+        spacing: Theme.gap
         visible: !root.widescreen
         TextField {
             id: search
@@ -43,17 +43,17 @@ ColumnLayout {
             Layout.minimumWidth: 160
             placeholderText: "Search mods"
             text: root.view.search ?? ""
-            color: Palette.text
-            placeholderTextColor: Palette.muted
+            color: Theme.text
+            placeholderTextColor: Theme.muted
             font.pixelSize: 15
             implicitHeight: 40
             Accessible.name: "Search mods"
             onTextEdited: WizardBackend.setSearch(text)
             background: Rectangle {
-                radius: Palette.radius
-                color: Palette.raised
+                radius: Theme.radius
+                color: Theme.raised
                 border.width: search.activeFocus ? 2 : 1
-                border.color: search.activeFocus ? Palette.focus : Palette.border
+                border.color: search.activeFocus ? Theme.focus : Theme.border
             }
         }
         ComboBox {
@@ -68,16 +68,16 @@ ColumnLayout {
             contentItem: Text {
                 leftPadding: 12
                 text: categoryBox.displayText
-                color: Palette.text
+                color: Theme.text
                 font: categoryBox.font
                 verticalAlignment: Text.AlignVCenter
                 elide: Text.ElideRight
             }
             background: Rectangle {
-                radius: Palette.radius
-                color: Palette.raised
+                radius: Theme.radius
+                color: Theme.raised
                 border.width: categoryBox.visualFocus ? 3 : 1
-                border.color: categoryBox.visualFocus ? Palette.focus : Palette.border
+                border.color: categoryBox.visualFocus ? Theme.focus : Theme.border
             }
             delegate: ItemDelegate {
                 id: option
@@ -87,16 +87,16 @@ ColumnLayout {
                 highlighted: categoryBox.highlightedIndex === index
                 contentItem: Text {
                     text: option.modelData
-                    color: Palette.text
+                    color: Theme.text
                     font.pixelSize: 15
                     elide: Text.ElideRight
                 }
-                background: Rectangle { color: option.highlighted ? Palette.raised : Palette.panel }
+                background: Rectangle { color: option.highlighted ? Theme.raised : Theme.panel }
             }
             popup.background: Rectangle {
-                color: Palette.panel
-                border.color: Palette.border
-                radius: Palette.radius
+                color: Theme.panel
+                border.color: Theme.border
+                radius: Theme.radius
             }
         }
         ActionButton {
@@ -108,7 +108,7 @@ ColumnLayout {
 
     RowLayout {
         Layout.fillWidth: true
-        spacing: Palette.gap
+        spacing: Theme.gap
         ActionButton {
             text: "Select all"
             visible: !root.widescreen
@@ -124,7 +124,7 @@ ColumnLayout {
         Item { Layout.fillWidth: true }
         Label {
             text: "Required: " + (root.view.required ?? 0) + "   Optional: " + (root.view.optional ?? 0)
-            color: Palette.muted
+            color: Theme.muted
             font.pixelSize: 14
             visible: !root.widescreen
         }
@@ -135,7 +135,7 @@ ColumnLayout {
         text: root.widescreen
             ? "Widescreen build: " + (root.view.selectedWidescreen ?? 0) + " mods selected"
             : "Base build: " + (root.view.summary ?? "")
-        color: Palette.text
+        color: Theme.text
         font.pixelSize: 17
         font.bold: true
         wrapMode: Text.Wrap
@@ -148,9 +148,9 @@ ColumnLayout {
         Layout.minimumHeight: 160
         padding: 0
         background: Rectangle {
-            radius: Palette.radius
-            color: Palette.panel
-            border.color: Palette.border
+            radius: Theme.radius
+            color: Theme.panel
+            border.color: Theme.border
         }
         ListView {
             id: list
@@ -185,26 +185,26 @@ ColumnLayout {
                 enabled: !root.view.busy
                 onClicked: WizardBackend.setComponent(modelIndex, !selected)
                 background: Rectangle {
-                    color: row.highlighted || row.visualFocus ? Palette.raised : row.hovered ? Qt.rgba(1, 1, 1, 0.04) : "transparent"
+                    color: row.highlighted || row.visualFocus ? Theme.raised : row.hovered ? Qt.rgba(1, 1, 1, 0.04) : "transparent"
                     border.width: row.visualFocus ? 2 : 0
-                    border.color: Palette.focus
+                    border.color: Theme.focus
                 }
                 contentItem: RowLayout {
                     id: body
-                    spacing: Palette.gap
+                    spacing: Theme.gap
                     Rectangle {
                         Layout.preferredWidth: 22
                         Layout.preferredHeight: 22
                         Layout.alignment: Qt.AlignTop
                         radius: 5
-                        color: row.selected ? Palette.accent : "transparent"
+                        color: row.selected ? Theme.accent : "transparent"
                         border.width: 2
-                        border.color: row.selected ? Palette.accent : Palette.muted
+                        border.color: row.selected ? Theme.accent : Theme.muted
                         Text {
                             anchors.centerIn: parent
                             text: "\u2713"
                             visible: row.selected
-                            color: Palette.accentText
+                            color: Theme.accentText
                             font.pixelSize: 15
                             font.bold: true
                         }
@@ -215,7 +215,7 @@ ColumnLayout {
                         Label {
                             Layout.fillWidth: true
                             text: row.name
-                            color: Palette.text
+                            color: Theme.text
                             font.pixelSize: 15
                             font.bold: true
                             elide: Text.ElideRight
@@ -224,7 +224,7 @@ ColumnLayout {
                             Layout.fillWidth: true
                             text: row.description
                             visible: text.length > 0
-                            color: Palette.muted
+                            color: Theme.muted
                             font.pixelSize: 13
                             maximumLineCount: 2
                             wrapMode: Text.Wrap
@@ -234,7 +234,7 @@ ColumnLayout {
                     Label {
                         text: [row.tier, row.categoriesText].filter(s => s.length > 0).join(" \u00b7 ")
                         visible: text.length > 0
-                        color: Palette.muted
+                        color: Theme.muted
                         font.pixelSize: 12
                         Layout.maximumWidth: 240
                         elide: Text.ElideRight
@@ -245,7 +245,7 @@ ColumnLayout {
                 anchors.centerIn: parent
                 visible: list.count === 0
                 text: root.view.loaded ? "No mods match the current filter." : "Load a guide first."
-                color: Palette.muted
+                color: Theme.muted
                 font.pixelSize: 16
             }
         }
