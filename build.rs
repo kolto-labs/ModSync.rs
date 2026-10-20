@@ -16,6 +16,7 @@ fn build_qt() {
         QmlFile::from("src/ui_qt/qml/SharingGate.qml"),
         QmlFile::from("src/ui_qt/qml/ConsentModal.qml"),
         QmlFile::from("src/ui_qt/qml/SettingsDialog.qml"),
+        QmlFile::from("src/ui_qt/qml/CategoryPicker.qml"),
         QmlFile::from("src/ui_qt/qml/Theme.qml").singleton(true),
     ]))
     .include_dir("src/ui_qt")

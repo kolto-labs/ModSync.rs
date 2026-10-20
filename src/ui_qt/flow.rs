@@ -381,6 +381,18 @@ impl Flow {
         Ok(())
     }
 
+    pub fn select_categories(&mut self, categories: &[String]) -> Result<()> {
+        ensure!(!self.busy(), "Wait for the current operation to finish.");
+        ensure!(!categories.is_empty(), "Choose at least one category.");
+        let detected = self.detected();
+        let guide = self.guide.as_mut().context("Load a guide first.")?;
+        selection::select_categories(&mut guide.components, categories);
+        selection::resolve_selected(&mut guide.components);
+        game::enforce_selectable(&mut guide.components, detected);
+        self.invalidate();
+        Ok(())
+    }
+
     pub fn deselect_all(&mut self) -> Result<()> {
         ensure!(!self.busy(), "Wait for the current operation to finish.");
         let guide = self.guide.as_mut().context("Load a guide first.")?;

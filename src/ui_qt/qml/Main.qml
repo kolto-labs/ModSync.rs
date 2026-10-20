@@ -122,7 +122,7 @@ ApplicationWindow {
             }
             ComboBox {
                 id: themeBox
-                Layout.preferredWidth: 130
+                Layout.preferredWidth: 110
                 implicitHeight: 40
                 font.pixelSize: 14
                 model: ["Dark", "Light", "K1", "K2"]
@@ -131,7 +131,7 @@ ApplicationWindow {
                 onActivated: WizardBackend.setTheme(currentText.toLowerCase())
                 contentItem: Text {
                     leftPadding: 12
-                    text: "Theme: " + themeBox.displayText
+                    text: themeBox.displayText
                     color: Theme.text
                     font: themeBox.font
                     verticalAlignment: Text.AlignVCenter

@@ -121,6 +121,12 @@ ColumnLayout {
             enabled: !root.view.busy
             onClicked: WizardBackend.deselectAll()
         }
+        ActionButton {
+            text: "Select multiple categories\u2026"
+            visible: !root.widescreen
+            enabled: !root.view.busy && (root.view.categories ?? []).length > 0
+            onClicked: picker.open()
+        }
         Item { Layout.fillWidth: true }
         Label {
             text: "Required: " + (root.view.required ?? 0) + "   Optional: " + (root.view.optional ?? 0)
@@ -249,5 +255,11 @@ ColumnLayout {
                 font.pixelSize: 16
             }
         }
+    }
+
+    CategoryPicker {
+        id: picker
+        categories: root.view.categories ?? []
+        onAccepted: picked => WizardBackend.selectCategories(JSON.stringify(picked))
     }
 }

@@ -47,6 +47,9 @@ pub mod ffi {
         #[cxx_name = "selectCategory"]
         fn select_category(self: Pin<&mut Self>, category: &QString);
         #[qinvokable]
+        #[cxx_name = "selectCategories"]
+        fn select_categories(self: Pin<&mut Self>, categories_json: &QString);
+        #[qinvokable]
         #[cxx_name = "deselectAll"]
         fn deselect_all(self: Pin<&mut Self>);
         #[qinvokable]
@@ -122,7 +125,7 @@ use super::desktop::{
     telemetry_save_work,
 };
 use super::flow::{Flow, JobSpec, Surface, Terminal, Update, run_job};
-use anyhow::Result;
+use anyhow::{Context, Result};
 use cxx_qt::{CxxQtType, Threading};
 use cxx_qt_lib::QString;
 use std::pin::Pin;
@@ -504,6 +507,15 @@ impl ffi::WizardBackend {
             .as_mut()
             .guarded()
             .and_then(|()| self.as_mut().flow().select_category(&category.to_string()));
+        self.settle(result);
+    }
+
+    pub fn select_categories(mut self: Pin<&mut Self>, categories_json: &QString) {
+        let result = self.as_mut().guarded().and_then(|()| {
+            let categories: Vec<String> = serde_json::from_str(&categories_json.to_string())
+                .context("Invalid category selection.")?;
+            self.as_mut().flow().select_categories(&categories)
+        });
         self.settle(result);
     }
 
