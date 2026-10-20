@@ -6,14 +6,23 @@ description = "A Rust desktop and command-line installer for ModSync instruction
 repository = "https://github.com/bodencrouch/ModSync.rs"
 license-file = "LICENSE.txt"
 
+autobins = false
+
+[[bin]]
+name = "modsync"
+path = "src/main.rs"
+
 [[bin]]
 name = "modsync-gui"
 path = "src/bin/modsync-gui.rs"
-required-features = ["desktop"]
+required-features = ["gui"]
 
 [features]
-default = ["desktop"]
-desktop = ["dep:eframe", "dep:rfd", "dep:pulldown-cmark"]
+default = ["ui-qt"]
+gui = []
+ui-qt = ["gui", "dep:cxx", "dep:cxx-qt", "dep:cxx-qt-lib", "dep:cxx-qt-build"]
+ui-egui = ["gui", "dep:eframe", "dep:rfd", "dep:pulldown-cmark"]
+desktop = ["ui-egui"]
 
 [dependencies]
 anyhow = "1"
@@ -55,6 +64,12 @@ futures = "0.3"
 icu_normalizer = "2"
 libloading = "=0.8.9"
 pulldown-cmark = { version = "=0.13.4", default-features = false, optional = true }
+cxx = { version = "1", optional = true }
+cxx-qt = { version = "=0.10.0", optional = true }
+cxx-qt-lib = { version = "=0.10.0", features = ["qt_gui", "qt_qml"], optional = true }
+
+[build-dependencies]
+cxx-qt-build = { version = "=0.10.0", optional = true }
 
 [profile.dev]
 debug = 0

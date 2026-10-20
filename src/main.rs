@@ -19,9 +19,9 @@ use std::{
     },
 };
 
-#[cfg(feature = "desktop")]
+#[cfg(feature = "ui-egui")]
 mod fomod_ui;
-#[cfg(feature = "desktop")]
+#[cfg(feature = "ui-egui")]
 mod ui;
 
 #[derive(Parser)]
@@ -3709,47 +3709,42 @@ fn gui(
         probe,
         easy_session,
     } = invocation;
-    #[cfg(feature = "desktop")]
-    {
-        let probe = (probe.nexus_mods_api_key.is_some()
-            || probe.nexus_api_base.is_some()
-            || probe.extra_ca_file.is_some())
-        .then_some(ui::Probe {
-            nexus_api_key: probe.nexus_mods_api_key,
-            nexus_api_base: probe.nexus_api_base,
-            extra_ca_file: probe.extra_ca_file,
-        });
-        ui::launch(
-            input,
-            game,
-            mods,
-            settings_dir,
-            protocol,
-            allow_multiple_instances,
-            ui::LaunchContext {
-                probe,
-                easy_session,
-            },
-        )
-    }
-    #[cfg(not(feature = "desktop"))]
-    {
-        let _ = (
-            input,
-            game,
-            mods,
-            settings_dir,
-            protocol,
-            allow_multiple_instances,
-            probe.nexus_mods_api_key,
-            probe.nexus_api_base,
-            probe.extra_ca_file,
-            easy_session,
-        );
-        anyhow::bail!(
-            "Desktop support is disabled. Build with the default features, or use --help for CLI commands."
-        )
-    }
+    let probe = (probe.nexus_mods_api_key.is_some()
+        || probe.nexus_api_base.is_some()
+        || probe.extra_ca_file.is_some())
+    .then_some(modsync::ui_backend::Probe {
+        nexus_api_key: probe.nexus_mods_api_key,
+        nexus_api_base: probe.nexus_api_base,
+        extra_ca_file: probe.extra_ca_file,
+    });
+    run_gui(modsync::ui_backend::LaunchRequest {
+        input,
+        game,
+        mods,
+        settings_dir,
+        protocol,
+        allow_multiple_instances,
+        probe,
+        easy_session,
+    })
+}
+
+#[cfg(feature = "ui-qt")]
+fn run_gui(request: modsync::ui_backend::LaunchRequest) -> Result<()> {
+    <modsync::ui_qt::QtBackend as modsync::ui_backend::UiBackend>::run(request)
+}
+
+#[cfg(feature = "ui-egui")]
+fn run_gui(request: modsync::ui_backend::LaunchRequest) -> Result<()> {
+    <ui::EguiBackend as modsync::ui_backend::UiBackend>::run(request)
+}
+
+#[cfg(not(feature = "gui"))]
+fn run_gui(request: modsync::ui_backend::LaunchRequest) -> Result<()> {
+    let _ = request;
+    anyhow::bail!(
+        "Desktop support is disabled. Build with the default features (Qt), or with --no-default-features --features ui-egui, or use --help for CLI commands."
+    )
 }
 
 fn main() {

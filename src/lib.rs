@@ -1,3 +1,10 @@
+extern crate self as modsync;
+
+#[cfg(all(feature = "ui-qt", feature = "ui-egui"))]
+compile_error!(
+    "Enable exactly one GUI toolkit: ui-qt (default) or ui-egui (--no-default-features --features ui-egui)."
+);
+
 pub mod acquisition;
 pub mod acquisition_guard;
 pub mod archive;
@@ -53,6 +60,9 @@ pub mod fomod;
 
 pub mod checkpoint;
 pub mod conflicts;
+pub mod ui_backend;
+#[cfg(feature = "ui-qt")]
+pub mod ui_qt;
 pub mod wizard;
 
 #[cfg(target_os = "macos")]

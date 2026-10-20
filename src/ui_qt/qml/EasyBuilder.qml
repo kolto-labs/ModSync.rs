@@ -29,10 +29,10 @@ ApplicationWindow {
 
     FontLoader {
         id: regularFont
-        source: "qrc:/qt/qml/org/modsync/desktop/assets/fonts/NotoSans-Regular.ttf"
+        source: "qrc:/qt/qml/org/modsync/desktop/src/ui_qt/assets/fonts/NotoSans-Regular.ttf"
     }
     FontLoader {
-        source: "qrc:/qt/qml/org/modsync/desktop/assets/fonts/NotoSans-Bold.ttf"
+        source: "qrc:/qt/qml/org/modsync/desktop/src/ui_qt/assets/fonts/NotoSans-Bold.ttf"
     }
     readonly property var backend: AuthoringBackend
     property var document: ({})
