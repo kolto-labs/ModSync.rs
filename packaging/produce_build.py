@@ -16,6 +16,9 @@ sys.dont_write_bytecode = True
 from build_package import ROOT, binary, digest, git, regular, require, validate_windows_resource
 
 
+UI_FEATURES = {"qt": [], "egui": ["--no-default-features", "--features", "ui-egui"], "headless": ["--no-default-features"]}
+
+
 def capture(command, environment):
     return subprocess.check_output(command, cwd=ROOT, env=environment, text=True).strip()
 
@@ -40,6 +43,7 @@ def main():
     parser.add_argument("--toolchain", required=True, help="Installed exact Rust version, for example 1.95.0")
     parser.add_argument("--windows-resource-object", type=Path)
     parser.add_argument("--windows-resource-receipt", type=Path)
+    parser.add_argument("--ui", choices=sorted(UI_FEATURES), default=os.environ.get("MODSYNC_UI") or "egui", help="GUI toolkit: qt, egui or headless; defaults to MODSYNC_UI, else egui because the Qt runtime is not bundled yet")
     args = parser.parse_args()
     require(args.toolchain.isascii() and len(args.toolchain.split(".")) == 3 and all(part.isdecimal() for part in args.toolchain.split(".")), "Use an exact installed Rust release")
     target = json.loads((ROOT / "packaging/targets.json").read_text())["targets"].get(args.target)
@@ -63,7 +67,7 @@ def main():
     receipt = {"schemaVersion": 1, "sourceCommit": args.commit, "target": args.target,
                "cargoLockSha256": initial["cargoLockSha256"], "sourceStart": initial,
                "host": {"os": platform.system(), "architecture": platform.machine()},
-               "nativeAcceptance": "unverified", "publication": False, "offline": True,
+               "nativeAcceptance": "unverified", "publication": False, "ui": args.ui, "offline": True,
                "startedUnix": int(time.time()), "commands": [], "binaries": {}, "status": "building"}
     try:
         for name, command in (("rustc", rustc + ["--version", "--verbose"]), ("cargo", cargo + ["--version", "--verbose"])):
@@ -88,7 +92,7 @@ def main():
         else:
             require(not args.windows_resource_object and not args.windows_resource_receipt, "Windows resource inputs only apply to Windows")
             resource_config = None
-        command = cargo + ["build", "--locked", "--offline", "--release", "--target", args.target, "--bin", "modsync", "--message-format=json-render-diagnostics", "-j2"]
+        command = cargo + ["build", "--locked", "--offline", "--release", "--target", args.target, "--bin", "modsync", "--message-format=json-render-diagnostics", "-j2"] + UI_FEATURES[args.ui]
         if target["os"] == "windows":
             command += ["--bin", "modsync-gui", "--config", resource_config]
         receipt["commands"].append(command)

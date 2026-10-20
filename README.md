@@ -14,7 +14,19 @@ cd ModSync.rs
 cargo run --release
 ```
 
-The default build includes the desktop app. Linux needs an X11 or Wayland session with OpenGL support. File dialogs use the desktop portal. Windows builds need the MSVC C++ tools; macOS needs the Xcode command-line tools. The RAR reader compiles the bundled UnRAR C++ library.
+The default build includes the Qt desktop app (feature `ui-qt`). It needs a Qt 6.10 or newer SDK with Core, Gui, Network, Qml, Quick and Quick Controls, a C++17 compiler, and an LLD, mold or gold linker on Linux; set `QMAKE` when several Qt installations exist. See [docs/qt-desktop.md](docs/qt-desktop.md). Windows builds need the MSVC C++ tools; macOS needs the Xcode command-line tools. The RAR reader compiles the bundled UnRAR sources with the platform C++ toolchain.
+
+### Choose the GUI toolkit
+
+Exactly one toolkit is compiled into a GUI build. `ui-qt` is the default; `ui-egui` is the small-binary alternative (X11 or Wayland with OpenGL, file dialogs through the desktop portal). Enabling both is a compile error.
+
+```sh
+cargo build --release                                           # Qt GUI + CLI (default)
+cargo build --release --no-default-features --features ui-egui  # egui GUI + CLI (small binary)
+cargo build --release --no-default-features                     # CLI only, no GUI toolkit
+```
+
+`tools/build.sh` wraps these and reads `MODSYNC_UI=qt|egui|headless` (or `--ui qt|egui|headless`); `packaging/produce_build.py` accepts the same `--ui` value and `MODSYNC_UI`, defaulting to egui for release packages until the Qt runtime is bundled. For example `MODSYNC_UI=egui tools/build.sh --release --locked --bin modsync`. `MODSYNC_UI` alone never changes a plain `cargo build`; the build script warns when it disagrees with the selected feature.
 
 For a CLI-only binary:
 

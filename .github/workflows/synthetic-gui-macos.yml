@@ -40,7 +40,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Build production desktop only
         shell: bash
-        run: cargo +1.95.0 build --locked --lib --bin modsync -j2
+        run: cargo +1.95.0 build --locked --no-default-features --features ui-egui --lib --bin modsync -j2
       - name: Record source and guide pins
         shell: bash
         run: |

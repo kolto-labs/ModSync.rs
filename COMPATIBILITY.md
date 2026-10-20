@@ -3974,8 +3974,12 @@ preview roots: 3 then 16 entries, no unknown file content, roots still empty, an
 the saved authoring head unchanged. This is read-only authoring proof, not stock
 baseline, external-installer checkpoint, or six-lane per-mod parity proof.
 
-Desktop toolkit replacement is in progress in the standalone `desktop/qt`
-production crate. Qt Quick/Quick Controls with CXX-Qt 0.10.0 uses the parent
+Desktop toolkit replacement is in progress: Qt is now the default GUI toolkit
+(cargo feature `ui-qt`, sources under `src/ui_qt`) with egui kept as the
+build-time alternative (`ui-egui`); exactly one may be enabled and a build with
+neither is the headless CLI. The Qt frontend still covers only the easy-mode slice
+described below; the wizard, validation/install and the other panels remain
+egui-only until ported. Qt Quick/Quick Controls with CXX-Qt 0.10.0 uses the parent
 Rust engine without egui, shared custom controls and embedded Noto Sans fonts.
 Initial bridges cover existing saved sessions, read-only predictions, archive
 import, durable revision seek and recorded actions. Full workflow migration,

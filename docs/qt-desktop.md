@@ -1,8 +1,11 @@
-# Qt desktop migration
+# Qt desktop
 
-Production frontend for the existing Rust ModSync engine. This crate is a
-partial replacement under development; the default egui entry point remains
-until the current application workflows are restored.
+Qt Quick frontend for the Rust ModSync engine. It is the default GUI toolkit
+(cargo feature `ui-qt`) and lives in the main package under `src/ui_qt`. The egui
+frontend remains available as the small-binary alternative (`ui-egui`). The Qt
+frontend currently covers the easy-mode authoring, preview and disk-action slice;
+the wizard, validation/install, sharing, profiles and the remaining panels are
+being ported and are still reachable only in egui builds.
 
 Use a matching Qt 6.10 or newer SDK, development tools and runtime (current local SDK 6.11.2),
 including Core, Gui, Network, Qml, Quick and Quick Controls. CXX-Qt is pinned to
@@ -12,12 +15,16 @@ Set QMAKE when multiple SDKs are installed.
 From the repository root:
 
 ```sh
-cargo build --locked --manifest-path desktop/qt/Cargo.toml --bin modsync-desktop-qt -j2
-cargo clippy --locked --manifest-path desktop/qt/Cargo.toml --bin modsync-desktop-qt -j2 -- -D warnings
-cargo fmt --manifest-path desktop/qt/Cargo.toml -- --check
+cargo build --locked --bin modsync -j2
+cargo clippy --locked --lib --bin modsync -j2 -- -D warnings
+cargo fmt --all -- --check
 ```
 
-Run the resulting `modsync-desktop-qt` binary. Use Session to open an existing
+The same sources build the egui frontend with
+`cargo build --locked --no-default-features --features ui-egui --bin modsync`.
+Run `modsync gui`; `--easy-session <dir>` opens an authoring session directly.
+
+Use Session to open an existing
 authoring session or create one from a Markdown/JSON/YAML/TOML guide, and choose
 existing game/mod roots. A new session needs an absolute, unused directory whose
 parent exists, outside both roots. Guide input is read through the bounded shared
@@ -97,8 +104,8 @@ private directory on the active fast disk for both Cargo and the app. Archive
 prediction requires scratch space even when it leaves game roots unchanged.
 
 Development QML reload is available in debug builds. Set
-`MODSYNC_QML_DEV_SOURCE` to the absolute path of the real `qml/Main.qml` before
-launching the Qt binary. The bounded regular-file source is watched, including
+`MODSYNC_QML_DEV_SOURCE` to the absolute path of the real `src/ui_qt/qml/EasyBuilder.qml` before
+launching `modsync gui`. The bounded regular-file source is watched, including
 atomic editor saves. Rust remains an engine-owned QML singleton. Reload waits
 while the backend is busy and replaces the window only after a candidate loads;
 failed creation keeps the prior window. Mod, folder, presentation and sorting

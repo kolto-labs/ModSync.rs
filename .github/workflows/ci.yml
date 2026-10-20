@@ -42,8 +42,8 @@ jobs:
       - run: cargo fmt --all -- --check
       - run: cargo build --locked --no-default-features --lib --bin modsync -j2
       - run: cargo clippy --locked --no-default-features --lib --bin modsync -j2 -- -D warnings
-      - run: cargo build --locked --lib --bin modsync -j2
-      - run: cargo clippy --locked --lib --bin modsync -j2 -- -D warnings
+      - run: cargo build --locked --no-default-features --features ui-egui --lib --bin modsync -j2
+      - run: cargo clippy --locked --no-default-features --features ui-egui --lib --bin modsync -j2 -- -D warnings
       - name: Windows cross-check headers
         # Vendored unrar includes <PowrProf.h> and <Wbemidl.h>; MinGW ships them in
         # lowercase, which only matters on a case-sensitive filesystem.
@@ -55,7 +55,30 @@ jobs:
           done
           echo "CXXFLAGS_x86_64_pc_windows_gnu=-I$dir" >> "$GITHUB_ENV"
       - run: cargo clippy --locked --no-default-features --lib --bin modsync --target x86_64-pc-windows-gnu -j2 -- -D warnings
-      - run: cargo clippy --locked --lib --bin modsync --target x86_64-pc-windows-gnu -j2 -- -D warnings
+      - run: cargo clippy --locked --no-default-features --features ui-egui --lib --bin modsync --target x86_64-pc-windows-gnu -j2 -- -D warnings
+
+  qt-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.95.0
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+      - name: Install Qt 6 and native build packages
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: 6.10.*
+          cache: true
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends pkg-config libssl-dev lld \
+            libgl1-mesa-dev libxkbcommon-dev libxkbcommon-x11-dev libvulkan-dev
+      - run: cargo build --locked --lib --bin modsync -j2
+      - run: cargo clippy --locked --lib --bin modsync -j2 -- -D warnings
 
   native:
     if: github.event_name == 'workflow_dispatch' && inputs.native
@@ -74,5 +97,5 @@ jobs:
           cache-on-failure: true
       - run: cargo build --locked --no-default-features --lib --bin modsync -j2
       - run: cargo clippy --locked --no-default-features --lib --bin modsync -j2 -- -D warnings
-      - run: cargo build --locked --lib --bin modsync -j2
-      - run: cargo clippy --locked --lib --bin modsync -j2 -- -D warnings
+      - run: cargo build --locked --no-default-features --features ui-egui --lib --bin modsync -j2
+      - run: cargo clippy --locked --no-default-features --features ui-egui --lib --bin modsync -j2 -- -D warnings

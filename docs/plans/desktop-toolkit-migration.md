@@ -75,8 +75,9 @@ Authoritative research (2026-10-09):
 - https://github.com/slint-ui/slint
 - https://github.com/iced-rs/iced/issues/552
 
-Current first migration slice: independent desktop/qt production crate using the
-same parent Rust library without egui. Full migration and default cutover pending.
+Current state: Qt (`src/ui_qt`, cargo feature `ui-qt`) is the default toolkit and
+egui (`ui-egui`) the build-time alternative, both behind the `UiBackend` entry point.
+Only the easy-mode slice is ported; wizard, install, sharing and profiles pending.
 
 Cross-platform clarification: use identical application controls, explorer styles
 and Rust action semantics on all desktop platforms. Do not use OS-specific native
