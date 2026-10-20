@@ -1,0 +1,221 @@
+pragma ComponentBehavior: Bound
+import QtQuick
+import QtQuick.Controls.Basic
+import QtQuick.Layouts
+import org.modsync.desktop
+
+ApplicationWindow {
+    id: window
+    width: 1200
+    height: 800
+    minimumWidth: 940
+    minimumHeight: 640
+    visible: true
+    title: "ModSync"
+    color: Palette.window
+    font.family: regularFont.name
+    font.pixelSize: 15
+    palette.window: Palette.window
+    palette.windowText: Palette.text
+    palette.text: Palette.text
+    palette.base: Palette.panel
+    palette.button: Palette.raised
+    palette.buttonText: Palette.text
+    palette.highlight: Palette.accent
+    palette.highlightedText: Palette.accentText
+    palette.placeholderText: Palette.muted
+
+    function parse(text) {
+        try {
+            return JSON.parse(text)
+        } catch (error) {
+            return {}
+        }
+    }
+    readonly property var view: parse(WizardBackend.snapshot)
+    readonly property var activity: parse(WizardBackend.activity)
+    readonly property string surface: view.surface ?? "wizard"
+
+    FontLoader {
+        id: regularFont
+        source: "qrc:/qt/qml/org/modsync/desktop/src/ui_qt/assets/fonts/NotoSans-Regular.ttf"
+    }
+    FontLoader {
+        source: "qrc:/qt/qml/org/modsync/desktop/src/ui_qt/assets/fonts/NotoSans-Bold.ttf"
+    }
+
+    Binding {
+        target: Palette
+        property: "mode"
+        value: window.view.theme ?? "dark"
+    }
+
+    Component.onCompleted: {
+        WizardBackend.bootstrap()
+        if (WizardBackend.easy) easyLoader.active = true
+    }
+
+    Loader {
+        id: easyLoader
+        active: false
+        sourceComponent: EasyBuilder {}
+        Connections {
+            target: easyLoader.item
+            ignoreUnknownSignals: true
+            function onClosing() {
+                easyLoader.active = false
+            }
+        }
+    }
+
+    header: Rectangle {
+        implicitHeight: 64
+        color: Palette.panel
+        Rectangle {
+            anchors.bottom: parent.bottom
+            width: parent.width
+            height: 1
+            color: Palette.border
+        }
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 20
+            anchors.rightMargin: 20
+            spacing: Palette.gap
+            Label {
+                text: "ModSync"
+                color: Palette.accent
+                font.pixelSize: 24
+                font.bold: true
+                Accessible.role: Accessible.Heading
+                Accessible.name: "ModSync"
+            }
+            Item { Layout.preferredWidth: 12 }
+            Repeater {
+                model: [
+                    {label: "Getting started", key: "wizard"},
+                    {label: "Summary / selection", key: "selection"},
+                    {label: "Validation / install", key: "validation"}
+                ]
+                ActionButton {
+                    id: navButton
+                    required property var modelData
+                    text: modelData.label
+                    checkable: true
+                    checked: window.surface === modelData.key
+                    flat: true
+                    enabled: window.view.loaded ?? false
+                    onClicked: WizardBackend.setSurface(modelData.key)
+                }
+            }
+            Item { Layout.fillWidth: true }
+            ActionButton {
+                text: "Easy mode"
+                flat: true
+                onClicked: easyLoader.active = true
+            }
+            ComboBox {
+                id: themeBox
+                Layout.preferredWidth: 130
+                implicitHeight: 40
+                font.pixelSize: 14
+                model: ["Dark", "Light", "K1", "K2"]
+                currentIndex: Math.max(0, ["dark", "light", "k1", "k2"].indexOf(window.view.theme ?? "dark"))
+                Accessible.name: "Theme"
+                onActivated: WizardBackend.setTheme(currentText.toLowerCase())
+                contentItem: Text {
+                    leftPadding: 12
+                    text: "Theme: " + themeBox.displayText
+                    color: Palette.text
+                    font: themeBox.font
+                    verticalAlignment: Text.AlignVCenter
+                    elide: Text.ElideRight
+                }
+                background: Rectangle {
+                    radius: Palette.radius
+                    color: Palette.raised
+                    border.width: themeBox.visualFocus ? 3 : 1
+                    border.color: themeBox.visualFocus ? Palette.focus : Palette.border
+                }
+                delegate: ItemDelegate {
+                    id: themeOption
+                    required property var modelData
+                    required property int index
+                    width: themeBox.width
+                    highlighted: themeBox.highlightedIndex === index
+                    contentItem: Text {
+                        text: themeOption.modelData
+                        color: Palette.text
+                        font.pixelSize: 14
+                    }
+                    background: Rectangle { color: themeOption.highlighted ? Palette.raised : Palette.panel }
+                }
+                popup.background: Rectangle {
+                    color: Palette.panel
+                    border.color: Palette.border
+                    radius: Palette.radius
+                }
+            }
+        }
+    }
+
+    ColumnLayout {
+        anchors.fill: parent
+        spacing: 0
+        Rectangle {
+            Layout.fillWidth: true
+            visible: (WizardBackend.message ?? "").length > 0
+            implicitHeight: messageLabel.implicitHeight + 20
+            color: Palette.raised
+            border.color: Palette.warning
+            Label {
+                id: messageLabel
+                anchors.fill: parent
+                anchors.margins: 10
+                text: WizardBackend.message
+                color: Palette.text
+                font.pixelSize: 15
+                wrapMode: Text.Wrap
+                verticalAlignment: Text.AlignVCenter
+                Accessible.role: Accessible.AlertMessage
+                Accessible.name: text
+            }
+        }
+        StackLayout {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            currentIndex: window.surface === "selection" ? 1 : window.surface === "validation" ? 2 : 0
+            WizardView {
+                view: window.view
+                activity: window.activity
+            }
+            ColumnLayout {
+                SelectionView {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    Layout.margins: 28
+                    view: window.view
+                }
+            }
+            ColumnLayout {
+                ValidationView {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    Layout.margins: 28
+                    view: window.view
+                    activity: window.activity
+                }
+            }
+        }
+    }
+
+    InstallModal {
+        wanted: window.view.confirmInstall ?? false
+        game: window.view.game ?? ""
+    }
+    StopModal {
+        wanted: window.view.stopPrompt ?? false
+        onConfirmed: WizardBackend.stop()
+        onDismissed: WizardBackend.dismissStop()
+    }
+}

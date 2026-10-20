@@ -1,4 +1,6 @@
 mod backend;
+mod flow;
+mod wizard;
 
 use crate::ui_backend::{self, LaunchRequest, PreparedLaunch, Toolkit, UiBackend};
 use anyhow::{Result, bail};
@@ -8,7 +10,20 @@ use std::sync::{
     atomic::{AtomicBool, Ordering},
 };
 
-const MAIN_QML: &str = "qrc:/qt/qml/org/modsync/desktop/src/ui_qt/qml/EasyBuilder.qml";
+const MAIN_QML: &str = "qrc:/qt/qml/org/modsync/desktop/src/ui_qt/qml/Main.qml";
+
+pub(crate) struct Launch {
+    pub input: Option<std::path::PathBuf>,
+    pub game: Option<std::path::PathBuf>,
+    pub mods: Option<std::path::PathBuf>,
+    pub easy_session: Option<std::path::PathBuf>,
+}
+
+static LAUNCH: std::sync::Mutex<Option<Launch>> = std::sync::Mutex::new(None);
+
+pub(crate) fn take_launch() -> Option<Launch> {
+    LAUNCH.lock().ok().and_then(|mut launch| launch.take())
+}
 
 pub struct QtBackend;
 
@@ -44,6 +59,14 @@ fn development_source() -> Result<Option<QUrl>> {
 }
 
 fn run_application(prepared: PreparedLaunch) -> Result<()> {
+    if let Ok(mut launch) = LAUNCH.lock() {
+        *launch = Some(Launch {
+            input: prepared.input.clone(),
+            game: prepared.game.clone(),
+            mods: prepared.mods.clone(),
+            easy_session: prepared.easy_session.clone(),
+        });
+    }
     let _prepared = prepared;
     let source = development_source()?;
     backend::ffi::QQuickStyle::use_shared_style(&QString::from("Basic"));

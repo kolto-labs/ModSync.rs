@@ -1,15 +1,24 @@
 #[cfg(feature = "ui-qt")]
 fn build_qt() {
-    use cxx_qt_build::{CxxQtBuilder, QmlModule};
+    use cxx_qt_build::{CxxQtBuilder, QmlFile, QmlModule};
     println!("cargo:rerun-if-changed=src/ui_qt/development_reload.h");
-    CxxQtBuilder::new_qml_module(
-        QmlModule::new("org.modsync.desktop").qml_file("src/ui_qt/qml/EasyBuilder.qml"),
-    )
+    CxxQtBuilder::new_qml_module(QmlModule::new("org.modsync.desktop").qml_files([
+        QmlFile::from("src/ui_qt/qml/Main.qml"),
+        QmlFile::from("src/ui_qt/qml/EasyBuilder.qml"),
+        QmlFile::from("src/ui_qt/qml/WizardView.qml"),
+        QmlFile::from("src/ui_qt/qml/SelectionView.qml"),
+        QmlFile::from("src/ui_qt/qml/ValidationView.qml"),
+        QmlFile::from("src/ui_qt/qml/InstallModal.qml"),
+        QmlFile::from("src/ui_qt/qml/StopModal.qml"),
+        QmlFile::from("src/ui_qt/qml/ActionButton.qml"),
+        QmlFile::from("src/ui_qt/qml/Palette.qml").singleton(true),
+    ]))
     .include_dir("src/ui_qt")
     .qt_module("Quick")
     .qt_module("QuickControls2")
     .qt_module("Network")
     .file("src/ui_qt/backend.rs")
+    .file("src/ui_qt/wizard.rs")
     .qrc_resources([
         "src/ui_qt/assets/fonts/NotoSans-Regular.ttf",
         "src/ui_qt/assets/fonts/NotoSans-Bold.ttf",
