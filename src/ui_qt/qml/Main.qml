@@ -34,6 +34,7 @@ ApplicationWindow {
     }
     readonly property var view: parse(WizardBackend.snapshot)
     readonly property var activity: parse(WizardBackend.activity)
+    readonly property var host: parse(WizardBackend.desktop)
     readonly property string surface: view.surface ?? "wizard"
 
     FontLoader {
@@ -114,6 +115,11 @@ ApplicationWindow {
                 quiet: true
                 onClicked: easyLoader.active = true
             }
+            ActionButton {
+                text: "Settings"
+                quiet: true
+                onClicked: settingsDialog.open()
+            }
             ComboBox {
                 id: themeBox
                 Layout.preferredWidth: 130
@@ -181,6 +187,11 @@ ApplicationWindow {
                 Accessible.name: text
             }
         }
+        SharingGate {
+            Layout.fillWidth: true
+            host: window.host
+            visible: (window.host.sharing?.gated ?? false) && window.surface !== "validation"
+        }
         StackLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
@@ -209,6 +220,14 @@ ApplicationWindow {
         }
     }
 
+    ConsentModal {
+        host: window.host
+    }
+    SettingsDialog {
+        id: settingsDialog
+        host: window.host
+        view: window.view
+    }
     InstallModal {
         wanted: window.view.confirmInstall ?? false
         game: window.view.game ?? ""

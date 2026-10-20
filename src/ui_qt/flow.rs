@@ -46,6 +46,7 @@ pub enum JobKind {
     Validate,
     Install,
     Restore,
+    Conflicts,
 }
 
 pub struct JobSpec {
@@ -69,6 +70,7 @@ pub enum Terminal {
     Installed { pending: bool },
     InstallFailed { error: String, pending: bool },
     Restored(std::result::Result<(), String>),
+    Conflicts(std::result::Result<Box<modsync::conflicts::Presentation>, String>),
 }
 
 #[derive(Default)]
@@ -105,6 +107,7 @@ pub struct Flow {
     validation: Option<ValidationView>,
     validation_stamp: Option<String>,
     validation_progress: Option<(usize, usize, String)>,
+    conflicts: Option<Value>,
     install: InstallView,
     completed_base: Option<Vec<String>>,
     pending_base: Vec<Component>,
@@ -141,6 +144,7 @@ impl Default for Flow {
             validation: None,
             validation_stamp: None,
             validation_progress: None,
+            conflicts: None,
             install: InstallView::default(),
             completed_base: None,
             pending_base: Vec::new(),
@@ -160,6 +164,50 @@ impl Default for Flow {
 impl Flow {
     pub fn busy(&self) -> bool {
         self.job.is_some()
+    }
+
+    pub fn guide(&self) -> Option<&Guide> {
+        self.guide.as_ref()
+    }
+
+    pub fn input(&self) -> &str {
+        &self.input
+    }
+
+    pub fn mods(&self) -> &str {
+        &self.mods
+    }
+
+    pub fn game(&self) -> &str {
+        &self.game
+    }
+
+    pub fn selected_count(&self) -> (usize, usize) {
+        self.guide.as_ref().map_or((0, 0), |guide| {
+            (
+                guide.components.len(),
+                guide.components.iter().filter(|c| c.is_selected).count(),
+            )
+        })
+    }
+
+    pub fn set_case_insensitive(&mut self, enabled: bool) {
+        self.case_insensitive = enabled;
+    }
+
+    pub fn apply_profile(&mut self, profile: &modsync::profiles::Profile) -> Result<()> {
+        ensure!(!self.busy(), "Wait for the current operation to finish.");
+        let guide = self.guide.as_mut().context("Load a guide first.")?;
+        profile.apply(guide);
+        if let Some(game) = profile.kotor_directory.as_ref().filter(|p| !p.is_empty()) {
+            self.game = game.clone();
+        }
+        if let Some(mods) = profile.mod_directory.as_ref().filter(|p| !p.is_empty()) {
+            self.mods = mods.clone();
+        }
+        self.invalidate();
+        self.apply_target();
+        Ok(())
     }
 
     pub fn set_theme(&mut self, theme: &str) {
@@ -208,6 +256,7 @@ impl Flow {
         self.validation = None;
         self.validation_stamp = None;
         self.validation_progress = None;
+        self.conflicts = None;
         self.confirm_install = false;
     }
 
@@ -474,6 +523,10 @@ impl Flow {
         self.begin(JobKind::Validate)
     }
 
+    pub fn begin_conflicts(&mut self) -> Result<JobSpec> {
+        self.begin(JobKind::Conflicts)
+    }
+
     pub fn begin_restore(&mut self) -> Result<JobSpec> {
         self.begin(JobKind::Restore)
     }
@@ -518,6 +571,10 @@ impl Flow {
                 self.log("Installing…");
             }
             JobKind::Restore => self.log("Restoring snapshot…"),
+            JobKind::Conflicts => {
+                self.conflicts = None;
+                self.log("Analyzing file conflicts…");
+            }
         }
         Ok(JobSpec {
             kind,
@@ -643,6 +700,16 @@ impl Flow {
                 self.pending_base.clear();
                 self.log(format!("Stopped: {error}"));
             }
+            Terminal::Conflicts(result) => match result {
+                Ok(presentation) => {
+                    self.conflicts = serde_json::to_value(&*presentation).ok();
+                    self.log("Conflict analysis complete. Review the report and its limitations.");
+                }
+                Err(error) => {
+                    self.conflicts = Some(json!({"failure": error}));
+                    self.log(format!("Stopped: {error}"));
+                }
+            },
             Terminal::Restored(result) => {
                 debug_assert_eq!(kind, Some(JobKind::Restore));
                 match result {
@@ -767,6 +834,7 @@ impl Flow {
         let summary = guide
             .map(|guide| selection::selection_summary(&guide.components))
             .unwrap_or_default();
+        let conflicts = self.conflicts.clone();
         let validation = self.validation.as_ref().map(|view| {
             json!({"success": view.success, "errors": view.errors, "warnings": view.warnings,
                 "passed": view.passed, "components": view.components, "stages": view.stages,
@@ -826,6 +894,7 @@ impl Flow {
         });
         let job_state = json!({
             "validation": validation,
+            "conflicts": conflicts,
             "canInstallReview": install_review,
             "confirmInstall": self.confirm_install,
             "stopPrompt": self.stop_prompt,
@@ -833,6 +902,7 @@ impl Flow {
                 JobKind::Validate => "validate",
                 JobKind::Install => "install",
                 JobKind::Restore => "restore",
+                JobKind::Conflicts => "conflicts",
             }),
             "install": {
                 "active": self.install.active,
@@ -879,6 +949,7 @@ pub fn run_job(spec: JobSpec, mut observe: impl FnMut(Update) + Send) -> Termina
                 pending: true,
             },
             JobKind::Restore => Terminal::Restored(Err(error)),
+            JobKind::Conflicts => Terminal::Conflicts(Err(error)),
         }
     };
     let mut terminal = result.unwrap_or_else(|_| panicked());
@@ -903,6 +974,9 @@ fn execute(spec: JobSpec, observe: &mut (impl FnMut(Update) + Send)) -> Terminal
         retained,
         case_insensitive,
     } = spec;
+    if kind == JobKind::Conflicts {
+        return conflict_analysis(guide, settings, retained, case_insensitive);
+    }
     if kind == JobKind::Restore {
         return Terminal::Restored(
             recovery::restore(&settings.roots).map_err(|e| format!("{e:#}")),
@@ -1014,6 +1088,44 @@ fn execute(spec: JobSpec, observe: &mut (impl FnMut(Update) + Send)) -> Terminal
                 },
             }
         }
-        JobKind::Restore => unreachable!("restore returns before engine construction"),
+        JobKind::Restore | JobKind::Conflicts => {
+            unreachable!("restore and conflict analysis return before this point")
+        }
     }
+}
+
+fn conflict_analysis(
+    guide: Guide,
+    settings: Settings,
+    retained: Option<Vec<String>>,
+    case_insensitive: bool,
+) -> Terminal {
+    let outcome = (|| -> Result<modsync::conflicts::Presentation> {
+        let phase = if retained.is_some() {
+            Phase::Remaining
+        } else {
+            Phase::Base
+        };
+        let context = match retained.as_deref() {
+            Some(ids) => CompletionContext::Retained { ids },
+            None => CompletionContext::None,
+        };
+        let prepared = modsync::phase::prepare_with_roots(
+            &guide,
+            phase,
+            context,
+            None,
+            &settings.roots,
+            case_insensitive,
+            &settings.cancelled,
+        )?;
+        let completed = retained.as_ref().map(|_| prepared.completed.clone());
+        let engine = Engine::new_with_case_insensitive_pathing(settings, case_insensitive)?;
+        let report = match completed {
+            Some(ids) => engine.analyze_conflicts_remaining(&prepared.guide, &ids)?,
+            None => engine.analyze_conflicts(&prepared.guide)?,
+        };
+        Ok(modsync::conflicts::Presentation::from_report(&report)?)
+    })();
+    Terminal::Conflicts(outcome.map(Box::new).map_err(|error| format!("{error:#}")))
 }

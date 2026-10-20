@@ -1,4 +1,5 @@
 mod backend;
+mod desktop;
 mod flow;
 mod wizard;
 
@@ -17,6 +18,8 @@ pub(crate) struct Launch {
     pub game: Option<std::path::PathBuf>,
     pub mods: Option<std::path::PathBuf>,
     pub easy_session: Option<std::path::PathBuf>,
+    pub settings_dir: Option<std::path::PathBuf>,
+    pub probe: bool,
 }
 
 static LAUNCH: std::sync::Mutex<Option<Launch>> = std::sync::Mutex::new(None);
@@ -65,6 +68,8 @@ fn run_application(prepared: PreparedLaunch) -> Result<()> {
             game: prepared.game.clone(),
             mods: prepared.mods.clone(),
             easy_session: prepared.easy_session.clone(),
+            settings_dir: prepared.settings_dir.clone(),
+            probe: prepared.probe.is_some(),
         });
     }
     let _prepared = prepared;
@@ -95,5 +100,6 @@ fn run_application(prepared: PreparedLaunch) -> Result<()> {
     if let Some(app) = app.as_mut() {
         app.exec();
     }
+    desktop::shutdown();
     Ok(())
 }
