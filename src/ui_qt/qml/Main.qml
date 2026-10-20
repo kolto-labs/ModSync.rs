@@ -170,7 +170,7 @@ ApplicationWindow {
         spacing: 0
         Rectangle {
             Layout.fillWidth: true
-            visible: (WizardBackend.message ?? "").length > 0
+            visible: (WizardBackend.message ?? "").length > 0 && !(sharingGate.visible && (WizardBackend.message ?? "").startsWith("Pause sharing before editing"))
             implicitHeight: messageLabel.implicitHeight + 20
             color: Theme.raised
             border.color: Theme.warning
@@ -188,6 +188,7 @@ ApplicationWindow {
             }
         }
         SharingGate {
+            id: sharingGate
             Layout.fillWidth: true
             host: window.host
             visible: (window.host.sharing?.gated ?? false) && window.surface !== "validation"

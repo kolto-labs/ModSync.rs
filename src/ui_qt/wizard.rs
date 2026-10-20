@@ -311,6 +311,10 @@ impl ffi::WizardBackend {
                         host.sharing_ready = false;
                     }
                 }
+                let cleared = self.as_mut().rust_mut().get_mut().host.sharing_ready;
+                if cleared {
+                    self.as_mut().set_message(QString::from(""));
+                }
                 self.publish();
             }
             Event::TelemetrySaved(result) => {
