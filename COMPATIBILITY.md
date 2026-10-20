@@ -3977,9 +3977,16 @@ baseline, external-installer checkpoint, or six-lane per-mod parity proof.
 Desktop toolkit replacement is in progress: Qt is now the default GUI toolkit
 (cargo feature `ui-qt`, sources under `src/ui_qt`) with egui kept as the
 build-time alternative (`ui-egui`); exactly one may be enabled and a build with
-neither is the headless CLI. The Qt frontend still covers only the easy-mode slice
-described below; the wizard, validation/install and the other panels remain
-egui-only until ported. Qt Quick/Quick Controls with CXX-Qt 0.10.0 uses the parent
+neither is the headless CLI. The Qt frontend covers the easy-mode slice described
+below, the install wizard through Ready to Install, the snapshot confirmation
+modal, validation, conflict analysis, install progress and stop/restore, the
+Settings dialog (telemetry consent, privacy, sharing and peer settings, profiles,
+patcher and Nexus key), the sharing edit gate and the Dark/Light/K1/K2 themes.
+Downloads, managed deployments, merge, provider updates, checkpoint history,
+maintenance, the standalone patcher, the guide editor, FOMOD choices and
+structured logs remain egui-only until ported. Runtime checks so far were
+Xvfb software-rendered walkthroughs; HiDPI, keyboard-navigation and screen
+reader audits are not done. Qt Quick/Quick Controls with CXX-Qt 0.10.0 uses the parent
 Rust engine without egui, shared custom controls and embedded Noto Sans fonts.
 Initial bridges cover existing saved sessions, read-only predictions, archive
 import, durable revision seek and recorded actions. Full workflow migration,

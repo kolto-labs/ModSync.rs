@@ -3,9 +3,15 @@
 Qt Quick frontend for the Rust ModSync engine. It is the default GUI toolkit
 (cargo feature `ui-qt`) and lives in the main package under `src/ui_qt`. The egui
 frontend remains available as the small-binary alternative (`ui-egui`). The Qt
-frontend currently covers the easy-mode authoring, preview and disk-action slice;
-the wizard, validation/install, sharing, profiles and the remaining panels are
-being ported and are still reachable only in egui builds.
+frontend covers the easy-mode authoring, preview and disk-action slice, the
+install wizard (guide, folders, selection, validation, conflict analysis, Ready to
+Install, the "Install selected mods?" snapshot modal, install progress, stop and
+restore), the desktop Settings dialog (general flags, telemetry consent and
+privacy, sharing and peer settings, profiles, patcher and Nexus key), the
+sharing edit gate, and the Dark, Light, K1 and K2 themes. Downloads, managed
+deployments, merge, provider updates, checkpoint history, maintenance, the
+standalone patcher, the guide editor, FOMOD choices and structured logs are still
+reachable only in egui builds.
 
 Use a matching Qt 6.10 or newer SDK, development tools and runtime (current local SDK 6.11.2),
 including Core, Gui, Network, Qml, Quick and Quick Controls. CXX-Qt is pinned to
