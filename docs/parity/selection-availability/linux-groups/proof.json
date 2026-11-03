@@ -1,0 +1,140 @@
+{
+  "binarySha256": "f5bf9fad33bca5b3a39fc31755f20c6ba9857d0b86044bfddf363e3674aecbdc",
+  "actions": [
+    {
+      "action": "Keep telemetry off",
+      "x": 425,
+      "y": 478
+    },
+    {
+      "action": "Summary / selection",
+      "x": 166,
+      "y": 32
+    },
+    {
+      "action": "Pause sharing to edit",
+      "x": 78,
+      "y": 189
+    },
+    {
+      "action": "Select all",
+      "x": 43,
+      "y": 309
+    },
+    {
+      "action": "Prepare selection receipt",
+      "x": 91,
+      "y": 266
+    },
+    {
+      "action": "Copy selection receipt",
+      "x": 89,
+      "y": 287
+    },
+    {
+      "action": "Deselect all",
+      "x": 115,
+      "y": 329
+    },
+    {
+      "action": "Select group",
+      "x": 55,
+      "y": 477
+    },
+    {
+      "action": "Prepare selection receipt",
+      "x": 91,
+      "y": 266
+    },
+    {
+      "action": "Copy selection receipt",
+      "x": 89,
+      "y": 287
+    },
+    {
+      "action": "Deselect group",
+      "x": 63,
+      "y": 498
+    },
+    {
+      "action": "Prepare selection receipt",
+      "x": 91,
+      "y": 266
+    },
+    {
+      "action": "Copy selection receipt",
+      "x": 89,
+      "y": 287
+    },
+    {
+      "action": "Search field",
+      "x": 300,
+      "y": 329
+    },
+    {
+      "action": "Filtered Select all",
+      "x": 43,
+      "y": 329
+    },
+    {
+      "action": "Prepare selection receipt",
+      "x": 91,
+      "y": 266
+    },
+    {
+      "action": "Copy selection receipt",
+      "x": 89,
+      "y": 287
+    }
+  ],
+  "comparisons": [
+    {
+      "label": "select-all",
+      "cliFlags": [],
+      "selected": [
+        "good",
+        "independent"
+      ]
+    },
+    {
+      "label": "group-selected",
+      "cliFlags": [],
+      "selected": [
+        "good",
+        "independent"
+      ]
+    },
+    {
+      "label": "group-deselected",
+      "cliFlags": [
+        "--use-file-selection"
+      ],
+      "selected": []
+    },
+    {
+      "label": "filtered-selected",
+      "cliFlags": [
+        "--use-file-selection",
+        "--select-visible-search",
+        "good"
+      ],
+      "selected": [
+        "good"
+      ]
+    }
+  ],
+  "inputHashes": {
+    "mods/broken.zip": "6bbf954ab0045bc546f16a6db16c95afef820dccd807348411ea924dabb972e9",
+    "mods/good.zip": "6099e727bba7a6adb5507b9e0a760234591cf17faefc7b9d4397b24da2e5ab22",
+    "guide.json": "5a37984ba64283c7574d261c72bc6e8607d4e9f93f6db64988c93e3631d8e313"
+  },
+  "fixtureGuideSha256": "5a37984ba64283c7574d261c72bc6e8607d4e9f93f6db64988c93e3631d8e313",
+  "inputsUnchanged": true,
+  "receiptsEqual": true,
+  "staleReceiptCleared": true,
+  "eligibleGroupToggle": true,
+  "filteredSelectAll": true,
+  "sourceBase": "93bbdb78ac716b49f50b30b80b02eea53193abc6",
+  "sourceDiffSha256": "56029e23e1086eb0904d022f2fdd702e552b2881da1cfed18e7f22908061c0ee",
+  "scope": "Linux production GUI actual mouse/keyboard input; no TypeScript or Windows/macOS proof"
+}

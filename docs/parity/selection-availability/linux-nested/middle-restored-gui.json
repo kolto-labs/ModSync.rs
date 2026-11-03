@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "guideDefinitionSha256": "2b7d53c1e72e3286ad89d3eb6a098fa897bc54c0f13b1c92d881f77707564c90",
+  "modInventorySha256": "b256e6a35fe2efdfa7efe619f5d4baf32f53e6ad2915880b628460da1e4bc648",
+  "modInventory": [
+    {
+      "path": "broken.zip",
+      "bytes": 14,
+      "sha256": "6bbf954ab0045bc546f16a6db16c95afef820dccd807348411ea924dabb972e9"
+    },
+    {
+      "path": "good.zip",
+      "bytes": 129,
+      "sha256": "01cdfdaab2f4162a876edd9d204cae7380c5d6673464169065e118fd71514a3d"
+    }
+  ],
+  "detectedGame": "Unknown",
+  "caseInsensitivePathing": true,
+  "maxExpandedBytes": null,
+  "selected": [
+    "parent",
+    "middle",
+    "leaf",
+    "independent"
+  ],
+  "excluded": [
+    {
+      "guid": "badoption",
+      "category": "missing_archive",
+      "reason": "Missing required archive: <<modDirectory>>/absent-option.zip"
+    },
+    {
+      "guid": "usesleaf",
+      "category": "not_selected",
+      "reason": "Not selected in the current selection"
+    }
+  ]
+}

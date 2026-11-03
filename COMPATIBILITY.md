@@ -4631,3 +4631,19 @@ transitive dependents. Actual Deselect All invalidated the copied receipt. See
 [replay and receipts](docs/parity/selection-availability/README.md). This bounded
 native proof does not establish all category/option/wizard flows, Windows/macOS,
 or TypeScript parity; issue #68 remains open.
+
+### Native group and nested-option acceptance follow-up
+
+A category group's toggle now offers Deselect group when every currently eligible
+entry is selected, even if missing archives leave other entries unchecked. It
+continues to offer Select group while any eligible entry remains unselected.
+The eligibility decision uses the current availability snapshot and game filter.
+
+Actual Linux desktop evidence now additionally covers group select/deselect,
+filtered Select All, parent deselection through nested required dependencies,
+option-subtree clearing/restoration with saved choices, disabled missing-option
+clicks, and leaf deselection. All ten recorded selection states match the
+corresponding CLI receipts. Proof retains the raw fixture guide and initial input
+hashes as well as the normalized receipts and action history. These are bounded
+native cases; wizard-page variants, native Windows/macOS and TypeScript remain
+outside this evidence. See the selection-availability replay notes.

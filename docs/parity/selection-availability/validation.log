@@ -53,3 +53,26 @@ PASS missing nested option and transitive required dependents are unavailable
 PASS permission failure publishes no selection changes; successful retry clears only confirmed missing item
 PASS archive mutation during inspection aborts without publishing deselections
 PASS actual Select All and receipt-copy buttons; exact CLI/GUI receipt match; deselection invalidates receipt; inputs unchanged
+
+Broader native selection follow-up: fmt --check, default and no-default-feature production builds and Clippy -D warnings: PASS. No Rust tests/harnesses run.
+PASS available-only selection, corrupt/missing inputs, transitive dependency reasons, unknown dependency, read-only guide/game
+PASS normalized reasons and content receipts: file hashes verified, relocation stable, changed inputs detected, choices separated
+PASS saved unavailable selection cleared without rewriting source guide
+PASS rejected selection preserves saved conflicting choice
+PASS option choices retained, unchosen missing option isolated, option dependency blocked
+PASS available required dependency cycle
+PASS changed archive invalidates its transitive selection
+PASS repaired archive becomes selectable
+PASS nested archive input projection without extraction
+PASS identical referenced options retain the saved identity
+PASS rooted validate uses native eligibility before pipeline
+PASS saved corrupt archive and transitive dependents cleared; healthy choice retained
+PASS bad saved option cleared without losing healthy saved option or parent
+PASS parent deselection clears nested-option dependents transitively, hides dormant flags, and retains option preferences
+PASS option subtree deselection clears nested required dependents
+PASS missing nested option and transitive required dependents are unavailable
+PASS permission failure publishes no selection changes; successful retry clears only confirmed missing item
+PASS archive mutation during inspection aborts without publishing deselections
+PASS actual Select All, eligible-group select/deselect, filtered Select All; all receipts match CLI; stale receipt cleared; inputs unchanged
+PASS actual nested parent/subtree/leaf controls and unavailable-option refusal; receipts match CLI; saved choices retained
+Final nested comparison repeats the full CLI option action sequence, including the rejected unavailable option: PASS.

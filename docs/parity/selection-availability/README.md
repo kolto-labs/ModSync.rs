@@ -150,3 +150,39 @@ guide fingerprints, and choice-independent definition identity.
 Still open: broader native group/option/wizard cases, inventory-change-during-export
 runtime proof, native Windows/macOS, identical starting-choice/action evidence,
 and deferred TypeScript comparison. Do not close #68 on this bounded result.
+
+## Broader Linux controls and starting-input evidence
+
+The native replay now exercises two scenarios. The default `base` scenario checks
+Select All, Deselect All, group select/deselect in a group containing unavailable
+items, and Select All with a search filter. A discovered group-toggle bug is
+fixed: a fully selected eligible subset now exposes Deselect group, instead of
+forever offering Select group because unavailable members are unchecked.
+
+`MODSYNC_NATIVE_CASE=nested` covers a parent with a saved middle/leaf option chain,
+a missing unchosen sibling option, a root requiring the leaf, and an independent
+root. Actual checkboxes exercise parent deselection, subtree clearing/restoration,
+a disabled missing option, and leaf deselection. Saved choices survive the
+appropriate transitions; required dependents are removed when the effective
+requirement is unchecked. Six resulting GUI receipts exactly match CLI receipts.
+The base scenario compares four states. Each proof includes the exact authored
+fixture guide, its SHA-256, original mod/game input hashes, GUI click history,
+and the equivalent CLI flags. Thus starting selection flags are evidenced
+separately from the choice-independent definition hash. No instruction prefilter
+is generated or supplied to either route.
+
+Retained proof directories are [linux-groups](linux-groups/proof.json) and
+[linux-nested](linux-nested/proof.json). The original narrower proof remains as
+historical evidence. Both scenarios use actual mouse/keyboard input and clipboard
+export from the production binary; all source guide/mod/game inputs remain intact.
+
+```sh
+MODSYNC_NATIVE_CASE=nested MODSYNC_DISPLAY=:97 MODSYNC_BIN=/absolute/path/to/modsync \
+  MODSYNC_PROOF_OUT=/tmp/selection-nested-proof \
+  python3 docs/parity/selection-availability/native.py
+```
+
+The prior production fmt/build/Clippy requirements still apply. No Rust tests or
+custom Rust harnesses were run. Remaining acceptance includes wizard navigation,
+native Windows/macOS, receipt generation during concurrent disk changes, and the
+deferred TypeScript comparison; issue #68 remains open.

@@ -2488,16 +2488,28 @@ impl App {
                                     .iter()
                                     .filter(|i| g.components[**i].is_selected)
                                     .count();
+                                let has_unselected_eligible = indices.iter().any(|index| {
+                                    let component = &g.components[*index];
+                                    !component.is_selected
+                                        && modsync::game::selectable(component, detected_game)
+                                        && (self.selection_panel.stamp != self.input_stamp
+                                            || self
+                                                .selection_panel
+                                                .availability
+                                                .reason(&component.guid)
+                                                .is_none())
+                                });
+                                let select_group = selected_count == 0 || has_unselected_eligible;
                                 ui.horizontal(|ui| {
                                     if ui
-                                        .small_button(if selected_count == indices.len() {
+                                        .small_button(if !select_group {
                                             "Deselect group"
                                         } else {
                                             "Select group"
                                         })
                                         .clicked()
                                     {
-                                        let selected = selected_count < indices.len();
+                                        let selected = select_group;
                                         selection_action =
                                             Some(modsync::selection::Action::SetGroup {
                                                 category: category.clone(),
