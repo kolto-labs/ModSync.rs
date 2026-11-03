@@ -4683,3 +4683,31 @@ cancel without selection changes. Four selector states match equivalent CLI
 receipts. Together with export-repair and wizard cases, nine additional receipt
 states are verified. No production source change was needed; the replay uses
 sparse-text OCR for modal visibility and calibrated actual checkbox coordinates.
+
+### Aspyr native selection follow-up
+
+Actual Linux wizard navigation through the Aspyr notice now covers marker-only
+legacy and supported KOTOR II fixtures. Incompatible saved Aspyr choices and their
+transitive dependents clear on legacy; compatible saved choices remain on Aspyr.
+Select All excludes the missing archive in both cases. Four unchanged-input GUI
+receipts exactly match CLI. No executable game, download, or installation is
+claimed. Original screenshots remain local; JSON evidence and replay are in the
+selection-availability documentation.
+
+Game-incompatible receipt entries still use `not_selected`, not a distinct game
+reason category. Acquisition, direct-Markdown preparation, and verified remaining
+phase intentionally bypass the dispatcher's ordinary archive prefilter; their
+full runtime acceptance is separate from this bounded selection evidence.
+
+The widescreen selection page now disables archive-unavailable and game-incompatible
+checkboxes using the same current availability snapshot and game policy as the
+main selection page, and displays the reason beside the control. Controls also
+wait while a selection worker is active. Engine behavior and the preparation
+exceptions above are unchanged.
+
+The genuine Linux wizard now reaches widescreen selection after a verified
+isolated base Copy installation. Missing-archive clicks leave it unselected;
+the available mod selects and passes remaining-phase validation. Content hashes
+prove the base Copy is the only game/mod change. No remaining install, external
+program, download, full-guide or patcher acceptance is claimed. See the native
+widescreen evidence in the selection-availability replay documentation.

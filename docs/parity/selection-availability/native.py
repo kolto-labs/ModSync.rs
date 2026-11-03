@@ -6,7 +6,8 @@ MODSYNC_BIN selects the production desktop binary; MODSYNC_PROOF_OUT is optional
 import csv, hashlib, io, json, os, pathlib, subprocess, tempfile, time, zipfile
 
 scenario = os.environ.get('MODSYNC_NATIVE_CASE', 'base')
-assert scenario in ('base','nested','receipt-failure','selectors','wizard'), 'Unknown native case'
+assert scenario in ('base','nested','receipt-failure','selectors','wizard','aspyr-legacy','aspyr-supported','widescreen'), 'Unknown native case'
+wizard_route = scenario in ('wizard','widescreen') or scenario.startswith('aspyr-')
 binary = pathlib.Path(os.environ['MODSYNC_BIN']).resolve()
 out = pathlib.Path(os.environ.get('MODSYNC_PROOF_OUT', tempfile.mkdtemp(prefix='modsync-native-receipt-'))).resolve()
 out.mkdir(parents=True, exist_ok=True)
@@ -14,7 +15,7 @@ root = pathlib.Path(tempfile.mkdtemp(prefix='modsync-native-inputs-'))
 env = os.environ.copy()
 for key, directory in [('HOME','home'), ('XDG_CONFIG_HOME','config'), ('XDG_DATA_HOME','data'), ('XDG_CACHE_HOME','cache'), ('XDG_RUNTIME_DIR','runtime')]:
     path = root/directory; path.mkdir(mode=0o700); env[key] = str(path)
-env.update(DISPLAY=os.environ.get('MODSYNC_DISPLAY', ':96'), LIBGL_ALWAYS_SOFTWARE='1')
+env.update(DISPLAY=os.environ.get('MODSYNC_DISPLAY', ':96'), LIBGL_ALWAYS_SOFTWARE='1', OMP_THREAD_LIMIT='1')
 for directory in ['mods','game','settings']: (root/directory).mkdir()
 with zipfile.ZipFile(root/'mods/good.zip','w') as archive: archive.writestr('good.txt','generic fixture')
 (root/'mods/broken.zip').write_bytes(b'not an archive')
@@ -28,8 +29,30 @@ if scenario == 'nested':
     (root/'guide.json').write_text(json.dumps({'thisMod':components}))
 else:
     (root/'guide.json').write_text(json.dumps({'thisMod':[component('good','good.zip'),component('missing','missing.zip'),component('broken','broken.zip'),component('dependent',dependencies=['missing']),component('transitive',dependencies=['dependent']),component('independent')]}))
+if scenario.startswith('aspyr-'):
+    (root/'game/swkotor2.exe').write_bytes(b'')
+    if scenario == 'aspyr-supported':
+        # Empty detection markers, never a claim of runnable game resources.
+        for relative in ['override/cntrl_ps3_eng.tga', 'override/cntrl_ps3_fre.tga', 'override/cntrl_ps3_ger.tga', 'override/cntrl_ps3_ita.tga', 'override/cntrl_ps3_spa.tga', 'override/cntrl_xb360_eng.tga', 'override/cntrl_xb360_fre.tga', 'override/cntrl_xb360_ger.tga', 'override/cntrl_xb360_ita.tga', 'override/cntrl_xb360_spa.tga', 'override/cus_button_a.tga', 'override/cus_button_aps.tga', 'override/cus_button_b.tga', 'override/cus_button_bps.tga', 'override/cus_button_x.tga', 'override/cus_button_xps.tga', 'override/cus_button_y.tga', 'override/cus_button_yps.tga', 'override/cus_gpad_bg.tga', 'override/cus_gpad_fper.tga', 'override/cus_gpad_fper2.tga', 'override/cus_gpad_gen.tga', 'override/cus_gpad_gen2.tga', 'override/cus_gpad_hand.tga', 'override/cus_gpad_hand2.tga', 'override/cus_gpad_help.tga', 'override/cus_gpad_help2.tga', 'override/cus_gpad_map.tga', 'override/cus_gpad_map2.tga', 'override/cus_gpad_save.tga', 'override/cus_gpad_save2.tga', 'override/cus_gpad_solo.tga', 'override/cus_gpad_solo2.tga', 'override/cus_gpad_solox.tga', 'override/cus_gpad_solox2.tga', 'override/cus_gpad_ste.tga', 'override/cus_gpad_ste2.tga', 'override/cus_gpad_ste3.tga', 'override/custom.txt', 'override/custpnl_p.gui', 'override/d2xfnt_d16x16b.tga', 'override/d2xfont16x16b_ps.tga', 'override/d2xfont16x16b.tga', 'override/d3xfnt_d16x16b.tga', 'override/d3xfont16x16b_ps.tga', 'override/d3xfont16x16b.tga', 'override/diafnt16x16b_ps.tga', 'override/dialogfont16x16b.tga', 'override/equip_p.gui', 'override/fx_step_splash.MDL', 'override/gamepad.txt', 'override/gui_scroll.wav', 'override/handmaiden.DLG', 'override/lbl_miscroll_op']:
+            path=root/'game'/relative; path.parent.mkdir(parents=True,exist_ok=True); path.write_bytes(b'')
+    good=component('aspyrgood','good.zip');good.update(AspyrExclusive=True,IsSelected=True)
+    missing=component('aspyrmissing','missing.zip');missing.update(AspyrExclusive=True)
+    required=component('requiresaspyr',dependencies=['aspyrgood']);required['IsSelected']=True
+    transitive=component('transitiveaspyr',dependencies=['requiresaspyr']);transitive['IsSelected']=True
+    (root/'guide.json').write_text(json.dumps({'thisMod':[good,missing,required,transitive,component('independent')],'TargetGame':'KOTOR2','AspyrExclusiveWarningContent':'Fixture Aspyr compatibility notice'}))
 if scenario == 'wizard':
     (root/'game/swkotor.exe').write_bytes(b'') # Detection marker only; never execute or install.
+if scenario == 'widescreen':
+    (root/'game/swkotor.exe').write_bytes(b'')
+    (root/'mods/base.txt').write_text('controlled base fixture')
+    def copy_component(guid, target):
+        item=component(guid)
+        item['Instructions']=[dict(Action='Copy',Source=['<<modDirectory>>/base.txt'],Destination='<<kotorDirectory>>/override/'+target)]
+        return item
+    base=copy_component('base','base.txt'); base['IsSelected']=True
+    good=copy_component('widegood','wide.txt'); good['WidescreenOnly']=True
+    missing=component('widemissing','absent.zip'); missing['WidescreenOnly']=True
+    (root/'guide.json').write_text(json.dumps({'thisMod':[base,good,missing],'WidescreenWarningContent':'Fixture widescreen compatibility notice'}))
 if scenario == 'selectors':
     data=json.loads((root/'guide.json').read_text())
     tiers=['Essential','Essential','Recommended','Suggested','Optional','Recommended']
@@ -47,15 +70,24 @@ original=inputs(); events=[]; comparisons=[]; gui=None; server=None
 
 def run(args): return subprocess.run(args,env=env,check=True,capture_output=True,text=True).stdout
 
+def ocr_source(path):
+    if scenario.startswith('aspyr-'):
+        # Preserve the native screenshot; normalize a disposable OCR-only copy.
+        normalized=out/'ocr-only.png'
+        run(['convert',str(path),'-colorspace','Gray','-auto-level','-negate',str(normalized)])
+        return normalized
+    return path
+
 def screen(label):
     path=out/(label+'.png'); run(['import','-window','root',str(path)])
-    return run(['tesseract',str(path),'stdout',*(['--psm','11'] if 'modal' in label else [])])
+    return run(['tesseract',str(ocr_source(path)),'stdout',*(['--psm','11'] if 'modal' in label or scenario == 'widescreen' or scenario.startswith('aspyr-') else [])])
 
 def await_screen(label, text):
     deadline=time.monotonic()+30
     while time.monotonic()<deadline:
         result=screen(label)
-        if text in result: return
+        normalized=lambda value: ''.join(character.lower() for character in value if character.isalnum())
+        if normalized(text) in normalized(result): return
         if gui is not None and gui.poll() is not None: raise AssertionError('GUI exited')
         time.sleep(.2)
     raise AssertionError((label,text,result))
@@ -65,8 +97,13 @@ def click(label,x,y):
     run(['xdotool','mousemove',str(x),str(y),'click','1'])
 
 def click_label(label, column=None, checkbox=False, bounds=None):
+    if scenario.startswith('aspyr-') and label in ('Next','Prepare selection receipt','Copy selection receipt','Select all'):
+        screen('before-aspyr-control')
+        coordinates={'Next':(1218,741),'Prepare selection receipt':(90,317),'Copy selection receipt':(90,338),'Select all':(43,380)}
+        click(label,*coordinates[label])
+        return
     run(['import','-window','root',str(out/'before-label-click.png')])
-    rows=list(csv.DictReader(io.StringIO(run(['tesseract',str(out/'before-label-click.png'),'stdout','--psm','11','tsv'])),delimiter='\t'))
+    rows=list(csv.DictReader(io.StringIO(run(['tesseract',str(ocr_source(out/'before-label-click.png')),'stdout','--psm','11','tsv'])),delimiter='\t'))
     words=[r for r in rows if r['text'].strip()]
     wanted=label.lower().split()
     for i in range(len(words)-len(wanted)+1):
@@ -79,10 +116,10 @@ def click_label(label, column=None, checkbox=False, bounds=None):
     raise AssertionError(('Visible label not found',label))
 
 def compare_receipt(label, flags, expected):
-    if scenario == 'wizard': click_label('Prepare selection receipt')
+    if wizard_route: click_label('Prepare selection receipt')
     else: click('Prepare selection receipt',91,266)
     await_screen(label+'-ready','Copy selection receipt')
-    if scenario == 'wizard': click_label('Copy selection receipt')
+    if wizard_route: click_label('Copy selection receipt')
     else: click('Copy selection receipt',89,287)
     receipt=json.loads(run(['xclip','-selection','clipboard','-o']))
     cli=json.loads(run([str(binary),'selection',*args,'--json','--receipt',*flags]))
@@ -105,20 +142,74 @@ try:
         gui=subprocess.Popen([str(binary),'gui','--allow-multiple-instances','--settings-dir',str(root/'settings'),*args],env=env,stdout=log,stderr=subprocess.STDOUT)
     await_screen('startup','Keep telemetry off')
     click('Keep telemetry off',425,478)
-    if scenario == 'wizard':
+    screen('telemetry-dismissed')
+    if wizard_route:
         click('Stop sharing before wizard navigation',415,53)
         click_label('Next',bounds=(1100,1280,650,850))
         await_screen('wizard-mod-directory','Mod Workspace Directory')
         click_label('Next',bounds=(1100,1280,650,850))
         await_screen('wizard-game-directory','KOTOR Game Directory')
         click_label('Next',bounds=(1100,1280,650,850))
+        if scenario.startswith('aspyr-'):
+            await_screen('aspyr-notice','Fixture Aspyr compatibility notice')
+            click_label('Next',bounds=(1100,1280,650,850))
         await_screen('wizard-selection','Prepare selection receipt')
     else:
         click('Summary / selection',166,32)
         await_screen('pause','Pause sharing to edit')
         click('Pause sharing to edit',78,189)
         await_screen('before-select','Prepare selection receipt')
-    if scenario == 'wizard':
+    if scenario.startswith('aspyr-'):
+        supported=scenario=='aspyr-supported'
+        saved=['aspyrgood','requiresaspyr','transitiveaspyr'] if supported else []
+        expected=[*saved,'independent']
+        await_screen('aspyr-saved',f'{len(saved)} of 5 mods selected')
+        compare_receipt('aspyr-saved',['--use-file-selection'],saved)
+        click_label('Select all')
+        await_screen('aspyr-selected',f'{len(expected)} of 5 mods selected')
+        compare_receipt('aspyr-selected',[],expected)
+        receipt=json.loads((out/'aspyr-selected-gui.json').read_text())
+        assert receipt['detectedGame']==('Kotor2Aspyr' if supported else 'Kotor2Legacy'),receipt
+        assert inputs()==original
+        (out/'proof.json').write_text(json.dumps(dict(binarySha256=digest(binary),actions=events,comparisons=comparisons,inputHashes=original,fixtureGuideSha256=digest(out/'fixture-guide.json'),inputsUnchanged=True,receiptsEqual=True,scenario=scenario,gameMarkersOnly=True,noInstallOrDownload=True),indent=2)+'\n')
+        print('PASS actual Aspyr notice, saved choice/dependent handling, and Select All with matching CLI receipts: '+scenario)
+    elif scenario == 'widescreen':
+        click_label('Next',bounds=(1100,1280,650,850))
+        await_screen('downloads','Nothing downloads automatically')
+        click_label('Next',bounds=(1100,1280,650,850))
+        await_screen('validation','Run Validation')
+        click_label('Run Validation')
+        await_screen('validated','Validation passed')
+        assert inputs()==original,'Validation mutated input files'
+        click_label('Next',bounds=(1100,1280,650,850))
+        await_screen('install-start','Next asks you to confirm')
+        click_label('Next',bounds=(1100,1280,650,850))
+        await_screen('install-modal','Install selected mods?')
+        click('Create snapshot and install',502,429)
+        await_screen('installed','Installation complete')
+        screen('installed-state')
+        click('Continue',1218,691)
+        await_screen('base-complete','Base Installation Complete')
+        after_base=inputs()
+        expected_after_base=original | {'game/override/base.txt/base.txt':digest(root/'mods/base.txt')}
+        assert after_base==expected_after_base,('Unexpected base install output',after_base)
+        click('Next after verified base completion',1218,691)
+        await_screen('widescreen-notice','Widescreen Mods')
+        click('Next to widescreen selection',1218,691)
+        await_screen('widescreen-page','Widescreen Mod Selection')
+        if 'Pause sharing to edit' in screen('widescreen-edit-state'):
+            click('Pause sharing to edit widescreen selection',76,302)
+        await_screen('widescreen-selection','Next skips the empty widescreen phase')
+        click('Disabled missing-archive widescreen checkbox',23,306)
+        await_screen('widescreen-missing','Next skips the empty widescreen phase')
+        click('Available widescreen checkbox',23,285)
+        await_screen('widescreen-good','Validate the remaining phase against the verified base completion')
+        click('Validate remaining phase',169,551)
+        await_screen('widescreen-validated','Validation passed')
+        assert inputs()==after_base,'Widescreen selection mutated input files'
+        (out/'proof.json').write_text(json.dumps(dict(binarySha256=digest(binary),actions=events,inputHashes=original,finalHashes=inputs(),fixtureGuideSha256=digest(out/'fixture-guide.json'),scenario=scenario,baseInstallOnly=True,selectionInputsUnchanged=True),indent=2)+'\n')
+        print('PASS actual base Copy installation and widescreen selections')
+    elif scenario == 'wizard':
         click_label('Select all')
         await_screen('wizard-selected','2 of 6 mods selected')
         compare_receipt('wizard-selected',[],['good','independent'])

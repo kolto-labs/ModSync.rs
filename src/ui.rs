@@ -2066,10 +2066,19 @@ impl App {
             Page::WidescreenModSelection => {
                 if !self.sharing.edit_gate(ui) { return; }
                 let mut change = None;
+                let detected = modsync::game::detect(&modsync::game::resolve_install_root(Path::new(&self.game)));
                 if let Some(guide) = &mut self.guide { for (index, c) in guide.components.iter().enumerate() {
                     if c.metadata.get("WidescreenOnly").and_then(serde_json::Value::as_bool) == Some(true) {
                         let mut selected = c.is_selected;
-                        if ui.checkbox(&mut selected, &c.name).changed() { change = Some((index, selected)); }
+                        let reason = (self.selection_panel.stamp == self.input_stamp)
+                            .then(|| self.selection_panel.availability.reason(&c.guid))
+                            .flatten();
+                        let compatible = modsync::game::selectable(c, detected);
+                        if ui.add_enabled(reason.is_none() && compatible && !self.selection_panel.busy(), egui::Checkbox::new(&mut selected, &c.name)).changed() {
+                            change = Some((index, selected));
+                        }
+                        if let Some(reason) = reason { ui.label(reason); }
+                        else if !compatible { ui.label("This mod is not compatible with the detected game."); }
                     }
                 } }
                 if let Some((index, selected)) = change {

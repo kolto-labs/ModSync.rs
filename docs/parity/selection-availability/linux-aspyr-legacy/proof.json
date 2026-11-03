@@ -1,0 +1,104 @@
+{
+  "binarySha256": "7422ac1841bb881ca033aa2de7fccda46ef9527e7c3ade7b5ceed85644bcf780",
+  "actions": [
+    {
+      "action": "Keep telemetry off",
+      "x": 425,
+      "y": 478
+    },
+    {
+      "action": "Stop sharing before wizard navigation",
+      "x": 415,
+      "y": 53
+    },
+    {
+      "action": "Next",
+      "x": 1218,
+      "y": 741
+    },
+    {
+      "action": "Next",
+      "x": 1218,
+      "y": 741
+    },
+    {
+      "action": "Next",
+      "x": 1218,
+      "y": 741
+    },
+    {
+      "action": "Next",
+      "x": 1218,
+      "y": 741
+    },
+    {
+      "action": "Prepare selection receipt",
+      "x": 90,
+      "y": 317
+    },
+    {
+      "action": "Copy selection receipt",
+      "x": 90,
+      "y": 338
+    },
+    {
+      "action": "Select all",
+      "x": 43,
+      "y": 380
+    },
+    {
+      "action": "Prepare selection receipt",
+      "x": 90,
+      "y": 317
+    },
+    {
+      "action": "Copy selection receipt",
+      "x": 90,
+      "y": 338
+    }
+  ],
+  "comparisons": [
+    {
+      "label": "aspyr-saved",
+      "cliFlags": [
+        "--use-file-selection"
+      ],
+      "selected": []
+    },
+    {
+      "label": "aspyr-selected",
+      "cliFlags": [],
+      "selected": [
+        "independent"
+      ]
+    }
+  ],
+  "inputHashes": {
+    "mods/broken.zip": "6bbf954ab0045bc546f16a6db16c95afef820dccd807348411ea924dabb972e9",
+    "mods/good.zip": "84e9e8ba8bfff7e52fe5eceefd90169ebadbb7b7a7b8a446ff071415fa1db827",
+    "game/swkotor2.exe": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "guide.json": "eb12e06877581cfc80cc530cbf888e49614ae94bc6baf89ee45dbb7056428d9f"
+  },
+  "fixtureGuideSha256": "eb12e06877581cfc80cc530cbf888e49614ae94bc6baf89ee45dbb7056428d9f",
+  "inputsUnchanged": true,
+  "receiptsEqual": true,
+  "scenario": "aspyr-legacy",
+  "gameMarkersOnly": true,
+  "noInstallOrDownload": true,
+  "sourceRevision": "bc7f38bba3f5d5deaae1ae3c77490d5e51ab6389",
+  "scope": "Actual Linux production GUI; isolated marker-only fixtures; screenshots retained locally, not uploaded",
+  "localScreenshots": [
+    {
+      "path": "/workspace/artifacts/selection-gui-followup/linux-aspyr-legacy/aspyr-notice.png",
+      "sha256": "a6d36bde7607e89c1a61f7490cdb7e4641eff37511e68c8b16535c37899116d2"
+    },
+    {
+      "path": "/workspace/artifacts/selection-gui-followup/linux-aspyr-legacy/aspyr-saved.png",
+      "sha256": "cce1fc630a799d86c54e4fdfc6568a4dcadac7a51bb9d5358ca34eecfa423916"
+    },
+    {
+      "path": "/workspace/artifacts/selection-gui-followup/linux-aspyr-legacy/aspyr-selected.png",
+      "sha256": "ccc3486d41612738961636e435a2026df54e921f765bc5afb90bf8eb70bc0684"
+    }
+  ]
+}

@@ -1,0 +1,165 @@
+{
+  "binarySha256": "7422ac1841bb881ca033aa2de7fccda46ef9527e7c3ade7b5ceed85644bcf780",
+  "actions": [
+    {
+      "action": "Keep telemetry off",
+      "x": 425,
+      "y": 478
+    },
+    {
+      "action": "Stop sharing before wizard navigation",
+      "x": 415,
+      "y": 53
+    },
+    {
+      "action": "Next",
+      "x": 1218,
+      "y": 741
+    },
+    {
+      "action": "Next",
+      "x": 1218,
+      "y": 741
+    },
+    {
+      "action": "Next",
+      "x": 1218,
+      "y": 741
+    },
+    {
+      "action": "Next",
+      "x": 1218,
+      "y": 741
+    },
+    {
+      "action": "Prepare selection receipt",
+      "x": 90,
+      "y": 317
+    },
+    {
+      "action": "Copy selection receipt",
+      "x": 90,
+      "y": 338
+    },
+    {
+      "action": "Select all",
+      "x": 43,
+      "y": 380
+    },
+    {
+      "action": "Prepare selection receipt",
+      "x": 90,
+      "y": 317
+    },
+    {
+      "action": "Copy selection receipt",
+      "x": 90,
+      "y": 338
+    }
+  ],
+  "comparisons": [
+    {
+      "label": "aspyr-saved",
+      "cliFlags": [
+        "--use-file-selection"
+      ],
+      "selected": [
+        "aspyrgood",
+        "requiresaspyr",
+        "transitiveaspyr"
+      ]
+    },
+    {
+      "label": "aspyr-selected",
+      "cliFlags": [],
+      "selected": [
+        "aspyrgood",
+        "requiresaspyr",
+        "transitiveaspyr",
+        "independent"
+      ]
+    }
+  ],
+  "inputHashes": {
+    "mods/broken.zip": "6bbf954ab0045bc546f16a6db16c95afef820dccd807348411ea924dabb972e9",
+    "mods/good.zip": "1b74d5e39beab380de2bf7587cb2f1698b564e32f374ca8daf426447fc82b22b",
+    "game/swkotor2.exe": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/lbl_miscroll_op": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/handmaiden.DLG": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/gui_scroll.wav": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/gamepad.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/fx_step_splash.MDL": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/equip_p.gui": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/dialogfont16x16b.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/diafnt16x16b_ps.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/d3xfont16x16b.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/d3xfont16x16b_ps.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/d3xfnt_d16x16b.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/d2xfont16x16b.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/d2xfont16x16b_ps.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/d2xfnt_d16x16b.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/custpnl_p.gui": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/custom.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_gpad_ste3.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_gpad_ste2.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_gpad_ste.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_gpad_solox2.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_gpad_solox.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_gpad_solo2.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_gpad_solo.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_gpad_save2.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_gpad_save.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_gpad_map2.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_gpad_map.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_gpad_help2.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_gpad_help.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_gpad_hand2.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_gpad_hand.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_gpad_gen2.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_gpad_gen.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_gpad_fper2.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_gpad_fper.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_gpad_bg.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_button_yps.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_button_y.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_button_xps.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_button_x.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_button_bps.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_button_b.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_button_aps.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cus_button_a.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cntrl_xb360_spa.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cntrl_xb360_ita.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cntrl_xb360_ger.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cntrl_xb360_fre.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cntrl_xb360_eng.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cntrl_ps3_spa.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cntrl_ps3_ita.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cntrl_ps3_ger.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cntrl_ps3_fre.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/cntrl_ps3_eng.tga": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "guide.json": "eb12e06877581cfc80cc530cbf888e49614ae94bc6baf89ee45dbb7056428d9f"
+  },
+  "fixtureGuideSha256": "eb12e06877581cfc80cc530cbf888e49614ae94bc6baf89ee45dbb7056428d9f",
+  "inputsUnchanged": true,
+  "receiptsEqual": true,
+  "scenario": "aspyr-supported",
+  "gameMarkersOnly": true,
+  "noInstallOrDownload": true,
+  "sourceRevision": "bc7f38bba3f5d5deaae1ae3c77490d5e51ab6389",
+  "scope": "Actual Linux production GUI; isolated marker-only fixtures; screenshots retained locally, not uploaded",
+  "localScreenshots": [
+    {
+      "path": "/workspace/artifacts/selection-gui-followup/linux-aspyr-supported/aspyr-notice.png",
+      "sha256": "a6d36bde7607e89c1a61f7490cdb7e4641eff37511e68c8b16535c37899116d2"
+    },
+    {
+      "path": "/workspace/artifacts/selection-gui-followup/linux-aspyr-supported/aspyr-saved.png",
+      "sha256": "9cc26353489141c8c2e710d3a70e7b2b567fd700d3c945dfb2cd57e4da5b859a"
+    },
+    {
+      "path": "/workspace/artifacts/selection-gui-followup/linux-aspyr-supported/aspyr-selected.png",
+      "sha256": "c0a4b40af504d9257a598246c7c90d23994b49567cb03e633d99036c33b3fd4d"
+    }
+  ]
+}

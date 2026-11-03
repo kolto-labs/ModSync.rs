@@ -1,0 +1,90 @@
+{
+  "game": "Kotor2Legacy",
+  "counts": {
+    "selected": 0,
+    "total": 5,
+    "required": 0,
+    "optional": 0
+  },
+  "availability": {
+    "unavailable": [
+      {
+        "guid": "aspyrmissing",
+        "category": "missing_archive",
+        "reason": "Missing required archive: <<modDirectory>>/missing.zip"
+      }
+    ]
+  },
+  "receipt": {
+    "schemaVersion": 1,
+    "guideDefinitionSha256": "5bd0cba72cc3bf567ab1ecab17e0c5c078e7c6d9b5a7e09b16a4c45cf7e7fe38",
+    "modInventorySha256": "5dbcbee927918f4875f8473696a1aa5708f20c701e5660d5688a50385f647360",
+    "modInventory": [
+      {
+        "path": "broken.zip",
+        "bytes": 14,
+        "sha256": "6bbf954ab0045bc546f16a6db16c95afef820dccd807348411ea924dabb972e9"
+      },
+      {
+        "path": "good.zip",
+        "bytes": 129,
+        "sha256": "84e9e8ba8bfff7e52fe5eceefd90169ebadbb7b7a7b8a446ff071415fa1db827"
+      }
+    ],
+    "detectedGame": "Kotor2Legacy",
+    "caseInsensitivePathing": true,
+    "maxExpandedBytes": null,
+    "selected": [],
+    "excluded": [
+      {
+        "guid": "aspyrgood",
+        "category": "not_selected",
+        "reason": "Not selected in the current selection"
+      },
+      {
+        "guid": "aspyrmissing",
+        "category": "missing_archive",
+        "reason": "Missing required archive: <<modDirectory>>/missing.zip"
+      },
+      {
+        "guid": "requiresaspyr",
+        "category": "not_selected",
+        "reason": "Not selected in the current selection"
+      },
+      {
+        "guid": "transitiveaspyr",
+        "category": "not_selected",
+        "reason": "Not selected in the current selection"
+      },
+      {
+        "guid": "independent",
+        "category": "not_selected",
+        "reason": "Not selected in the current selection"
+      }
+    ]
+  },
+  "filterSummary": "Showing all 5 mods",
+  "selected": [],
+  "outcomes": [
+    {
+      "selected": [],
+      "deselected": [
+        "aspyrgood",
+        "requiresaspyr",
+        "transitiveaspyr"
+      ],
+      "autoSelected": [],
+      "autoDeselected": [
+        "aspyrgood",
+        "requiresaspyr",
+        "transitiveaspyr"
+      ],
+      "warnings": []
+    }
+  ],
+  "downloadCandidates": {
+    "base": [],
+    "widescreen": [],
+    "all": []
+  }
+}

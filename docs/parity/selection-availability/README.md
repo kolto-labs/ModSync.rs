@@ -257,3 +257,58 @@ widescreen/completed-base phase controls, Aspyr-specific routes, native Windows 
 macOS, acquisition/direct-Markdown/remaining-phase exceptions, and the deferred
 TypeScript comparison. Issue #68 remains open; no full installation claim follows
 from these selection/navigation cases.
+
+## Aspyr wizard selection and preparation boundaries
+
+`MODSYNC_NATIVE_CASE=aspyr-legacy` and `aspyr-supported` navigate the actual
+wizard through its authored Aspyr notice. Both use isolated empty game-detection
+markers, never runnable game resources. The legacy case clears an incompatible
+saved Aspyr-only component and its two transitive dependents. The supported case
+retains those saved choices. Actual Select All adds the independent component;
+the missing-archive Aspyr component stays excluded in both cases. Four copied
+GUI receipts exactly match CLI on identical guide/mod inputs. Original input
+content remains unchanged; no download or installation runs.
+
+See [legacy evidence](linux-aspyr-legacy/proof.json) and
+[supported evidence](linux-aspyr-supported/proof.json). These use production
+revision `bc7f38b`; original screenshots remain local at the recorded paths/hashes.
+The dark KOTOR II theme needs a disposable grayscale/inverted OCR copy; original
+screenshot evidence is unmodified. Game-incompatible receipt entries currently
+use `not_selected`, so this evidence does not establish a distinct game-exclusion
+category or inline explanation for every incompatible dependent.
+
+Source review confirms explicit preparation exceptions in the validation/install
+command dispatcher (`src/main.rs`): `--download`, `--direct-markdown`, and
+`--phase remaining` bypass the ordinary archive-selection prefilter. These are
+not equivalent to silently treating unavailable archives as installable:
+
+- Acquisition must retain requested components before their files exist.
+- Direct Markdown runs its dedicated reviewed-action preparation before execution.
+- Remaining-phase work reconstructs verified base completion; completed base
+  inputs must not be indiscriminately removed by a fresh whole-guide prefilter.
+
+Rootless graph operations also cannot assert filesystem availability. This turn
+preserves those paths and documents their scope; source review alone does not
+prove their GUI/download/remaining-phase runtime acceptance. Native Windows/macOS
+and the deferred TypeScript comparison remain outstanding. No issue was updated.
+
+## Widescreen selection after a real base completion
+
+`MODSYNC_NATIVE_CASE=widescreen` performs the actual wizard validation,
+confirmation and base installation with one generic Copy instruction in fresh
+isolated roots. It verifies that the only added file is
+`game/override/base.txt/base.txt` (Copy destinations are directories). No external
+program, download, game executable or patcher runs. Actual Continue/Next controls
+reach the authored widescreen notice and selection page; the replay pauses
+sharing through its visible edit control when required.
+
+The page now uses current archive availability and game compatibility to disable
+ineligible checkboxes and display their reason. While a selection worker is
+active, checkboxes wait. The missing archive stays unchecked when clicked; the
+available mod can be selected. Actual Run validation then validates the remaining
+phase against the verified base completion. Widescreen selection and validation
+leave game/mod/guide contents exactly as they were after the base Copy. The
+remaining phase is not installed. See [proof](linux-widescreen/proof.json), which
+retains the exact production source patch and binary identity; screenshots stay
+local. This is generic base/remaining navigation and selection evidence, not a
+full guide or patcher installation, or GUI/CLI receipt equivalence for that phase.

@@ -1,0 +1,144 @@
+{
+  "binarySha256": "2198161372fd604330c7aebf14e1c37866e853fb5b67b937908ce6a811be001d",
+  "actions": [
+    {
+      "action": "Keep telemetry off",
+      "x": 425,
+      "y": 478
+    },
+    {
+      "action": "Stop sharing before wizard navigation",
+      "x": 415,
+      "y": 53
+    },
+    {
+      "action": "Next",
+      "x": 1219,
+      "y": 740
+    },
+    {
+      "action": "Next",
+      "x": 1219,
+      "y": 740
+    },
+    {
+      "action": "Next",
+      "x": 1219,
+      "y": 740
+    },
+    {
+      "action": "Next",
+      "x": 1219,
+      "y": 740
+    },
+    {
+      "action": "Next",
+      "x": 1219,
+      "y": 740
+    },
+    {
+      "action": "Run Validation",
+      "x": 102,
+      "y": 396
+    },
+    {
+      "action": "Next",
+      "x": 1219,
+      "y": 779
+    },
+    {
+      "action": "Next",
+      "x": 1219,
+      "y": 690
+    },
+    {
+      "action": "Create snapshot and install",
+      "x": 502,
+      "y": 429
+    },
+    {
+      "action": "Continue",
+      "x": 1218,
+      "y": 691
+    },
+    {
+      "action": "Next after verified base completion",
+      "x": 1218,
+      "y": 691
+    },
+    {
+      "action": "Next to widescreen selection",
+      "x": 1218,
+      "y": 691
+    },
+    {
+      "action": "Pause sharing to edit widescreen selection",
+      "x": 76,
+      "y": 302
+    },
+    {
+      "action": "Disabled missing-archive widescreen checkbox",
+      "x": 23,
+      "y": 306
+    },
+    {
+      "action": "Available widescreen checkbox",
+      "x": 23,
+      "y": 285
+    },
+    {
+      "action": "Validate remaining phase",
+      "x": 169,
+      "y": 551
+    }
+  ],
+  "inputHashes": {
+    "mods/base.txt": "c103f85b754a51356e9bcfe32f4817bf1384cd266221fd5c532edd8c4cb8490b",
+    "mods/broken.zip": "6bbf954ab0045bc546f16a6db16c95afef820dccd807348411ea924dabb972e9",
+    "mods/good.zip": "988d2d3c1175e6acd0e3fb9f6e2b079a23a100c35b5daefbc9cce259a1728124",
+    "game/swkotor.exe": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "guide.json": "9cb8282c483db91935959290eaabb2905716c461e0a8b0c23eaf4d731db7feb1"
+  },
+  "finalHashes": {
+    "mods/base.txt": "c103f85b754a51356e9bcfe32f4817bf1384cd266221fd5c532edd8c4cb8490b",
+    "mods/broken.zip": "6bbf954ab0045bc546f16a6db16c95afef820dccd807348411ea924dabb972e9",
+    "mods/good.zip": "988d2d3c1175e6acd0e3fb9f6e2b079a23a100c35b5daefbc9cce259a1728124",
+    "game/swkotor.exe": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "game/override/base.txt/base.txt": "c103f85b754a51356e9bcfe32f4817bf1384cd266221fd5c532edd8c4cb8490b",
+    "guide.json": "9cb8282c483db91935959290eaabb2905716c461e0a8b0c23eaf4d731db7feb1"
+  },
+  "fixtureGuideSha256": "9cb8282c483db91935959290eaabb2905716c461e0a8b0c23eaf4d731db7feb1",
+  "scenario": "widescreen",
+  "baseInstallOnly": true,
+  "selectionInputsUnchanged": true,
+  "sourceBaseRevision": "d10470104c5b2acc9d2d724362209d1d4d98b67a",
+  "sourcePatchSha256": "a3180599ea0dfcfa116890456a31edf126c8c8e0b189b126dfc143efc4bb6073",
+  "scope": "Actual Linux egui production window; generic isolated base Copy only; remaining phase validated, not installed",
+  "remainingValidationPassed": true,
+  "localScreenshots": [
+    {
+      "path": "/workspace/artifacts/selection-gui-followup/linux-widescreen/installed-state.png",
+      "sha256": "16dbbfa9062662570122ae7c2b7212c5b35fa92c482c99a7b56efee9b31549c4"
+    },
+    {
+      "path": "/workspace/artifacts/selection-gui-followup/linux-widescreen/base-complete.png",
+      "sha256": "32447627371d722c38be5fd096c932936bd037123d9c89cf447b68cc50d56207"
+    },
+    {
+      "path": "/workspace/artifacts/selection-gui-followup/linux-widescreen/widescreen-selection.png",
+      "sha256": "d85df9712a05edc712fe87080469c87624636977c2f43f27d5b30a6368dc845f"
+    },
+    {
+      "path": "/workspace/artifacts/selection-gui-followup/linux-widescreen/widescreen-missing.png",
+      "sha256": "d85df9712a05edc712fe87080469c87624636977c2f43f27d5b30a6368dc845f"
+    },
+    {
+      "path": "/workspace/artifacts/selection-gui-followup/linux-widescreen/widescreen-good.png",
+      "sha256": "c24822ceed6d5cf89eb70002ef6d22616a54d05e51435296045358b1e26c1423"
+    },
+    {
+      "path": "/workspace/artifacts/selection-gui-followup/linux-widescreen/widescreen-validated.png",
+      "sha256": "b2cd544a741d48da8c68ec98dac5f33899233fc72ca4e6a46c308c84f00c6af6"
+    }
+  ]
+}

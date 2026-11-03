@@ -1,0 +1,75 @@
+{
+  "game": "Kotor2Aspyr",
+  "counts": {
+    "selected": 3,
+    "total": 5,
+    "required": 2,
+    "optional": 1
+  },
+  "availability": {
+    "unavailable": [
+      {
+        "guid": "aspyrmissing",
+        "category": "missing_archive",
+        "reason": "Missing required archive: <<modDirectory>>/missing.zip"
+      }
+    ]
+  },
+  "receipt": {
+    "schemaVersion": 1,
+    "guideDefinitionSha256": "5bd0cba72cc3bf567ab1ecab17e0c5c078e7c6d9b5a7e09b16a4c45cf7e7fe38",
+    "modInventorySha256": "b543d8af08a954c9a49bcd465959b07677200262f619f482dd0dce1ce12f89b2",
+    "modInventory": [
+      {
+        "path": "broken.zip",
+        "bytes": 14,
+        "sha256": "6bbf954ab0045bc546f16a6db16c95afef820dccd807348411ea924dabb972e9"
+      },
+      {
+        "path": "good.zip",
+        "bytes": 129,
+        "sha256": "1b74d5e39beab380de2bf7587cb2f1698b564e32f374ca8daf426447fc82b22b"
+      }
+    ],
+    "detectedGame": "Kotor2Aspyr",
+    "caseInsensitivePathing": true,
+    "maxExpandedBytes": null,
+    "selected": [
+      "aspyrgood",
+      "requiresaspyr",
+      "transitiveaspyr"
+    ],
+    "excluded": [
+      {
+        "guid": "aspyrmissing",
+        "category": "missing_archive",
+        "reason": "Missing required archive: <<modDirectory>>/missing.zip"
+      },
+      {
+        "guid": "independent",
+        "category": "not_selected",
+        "reason": "Not selected in the current selection"
+      }
+    ]
+  },
+  "filterSummary": "Showing all 5 mods",
+  "selected": [
+    "aspyrgood",
+    "requiresaspyr",
+    "transitiveaspyr"
+  ],
+  "outcomes": [
+    {
+      "selected": [],
+      "deselected": [],
+      "autoSelected": [],
+      "autoDeselected": [],
+      "warnings": []
+    }
+  ],
+  "downloadCandidates": {
+    "base": [],
+    "widescreen": [],
+    "all": []
+  }
+}
