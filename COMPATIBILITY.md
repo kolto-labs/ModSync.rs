@@ -4660,3 +4660,26 @@ Linux synchronized production CLI evidence covers that exact race, an unreadable
 receipt-only inventory file, and a repaired stable retry with the current content
 hash. This closes the previously unverified CLI export-race case, not all possible
 concurrent mutations or the corresponding native GUI failure presentation.
+
+### Native export failure and wizard selection evidence
+
+Actual Linux GUI proof now covers receipt-export permission failures and the
+synchronized late-file inventory mutation from the CLI race fixture. Both errors
+are displayed, the stale Copy selection receipt control is absent, and selected
+mods remain intact. Repairing the inputs produces receipts equal to CLI again.
+The only file-content mutation is the controlled fixture change, restored before
+retry; guide/game content is preserved.
+
+The actual wizard Next/Back path through mod/game directories, Mod Selection and
+the download explanation also preserves selection and matches CLI receipts. Its
+isolated game folder contains a detection marker only; no download, validation,
+or installation action is invoked. This is navigation/selection evidence, not
+proof of a usable game installation. Widescreen phase controls, native
+Windows/macOS and the deferred TypeScript comparison remain outstanding.
+
+Additional native selector evidence covers cumulative tier selection, a single
+category, multi-category apply (including unavailable dependent categories), and
+cancel without selection changes. Four selector states match equivalent CLI
+receipts. Together with export-repair and wizard cases, nine additional receipt
+states are verified. No production source change was needed; the replay uses
+sparse-text OCR for modal visibility and calibrated actual checkbox coordinates.

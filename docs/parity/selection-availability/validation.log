@@ -99,3 +99,9 @@ PASS archive mutation during inspection aborts without publishing deselections
 PASS receipt rejects an earlier-file mutation during the later-file final hash pass; no partial JSON
 PASS unreadable receipt-only file aborts export; repaired stable retry produces current content hash
 Controlled late-file race baseline 5787e21: exit=0, receipt matches final first-file bytes=False. Corrected source: exit=1, stdout empty=True; error=Mod inventory changed while preparing receipt.
+
+Native GUI acceptance follow-up, production source unchanged from bc7f38b: formatting, default/no-default production builds and Clippy -D warnings: PASS. No Rust tests/harnesses run.
+PASS actual GUI unreadable/changing-inventory export errors; stale Copy hidden; selections retained; repaired receipts match CLI
+PASS actual wizard directory navigation, Select All, next/back retention; receipts match CLI; no install/download
+PASS actual tier, single-category, multi-category and cancel controls; receipts match CLI; inputs unchanged
+Nine additional CLI/GUI receipt states match, plus two GUI error paths. New screenshot evidence remains local.

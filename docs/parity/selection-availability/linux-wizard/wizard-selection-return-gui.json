@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "guideDefinitionSha256": "6501bf9406135c3a33143814f1aebd47e04899dcbde9ed7d25d78d4466048573",
+  "modInventorySha256": "3189af336d0c69a13766a2bedead0181d41e74f5bb8539479ed1feb305c0cbcc",
+  "modInventory": [
+    {
+      "path": "broken.zip",
+      "bytes": 14,
+      "sha256": "6bbf954ab0045bc546f16a6db16c95afef820dccd807348411ea924dabb972e9"
+    },
+    {
+      "path": "good.zip",
+      "bytes": 129,
+      "sha256": "97abb852e35fea9dcef9c4e6af6ba9ba635af0451d80934d2d943de0a444c50c"
+    }
+  ],
+  "detectedGame": "Kotor1",
+  "caseInsensitivePathing": true,
+  "maxExpandedBytes": null,
+  "selected": [
+    "good",
+    "independent"
+  ],
+  "excluded": [
+    {
+      "guid": "missing",
+      "category": "missing_archive",
+      "reason": "Missing required archive: <<modDirectory>>/missing.zip"
+    },
+    {
+      "guid": "broken",
+      "category": "invalid_archive",
+      "reason": "Invalid archive /tmp/modsync-native-inputs-oa8w3d96/mods/broken.zip: Unsupported archive signature. ZIP, 7z, RAR, TAR and GZip are supported. Only embedded 7z SFX payloads are decoded; executables are never run as archives."
+    },
+    {
+      "guid": "dependent",
+      "category": "unavailable_dependency",
+      "reason": "Requires missing (missing): Missing required archive: <<modDirectory>>/missing.zip"
+    },
+    {
+      "guid": "transitive",
+      "category": "unavailable_dependency",
+      "reason": "Requires dependent (dependent): Requires missing (missing): Missing required archive: <<modDirectory>>/missing.zip"
+    }
+  ]
+}

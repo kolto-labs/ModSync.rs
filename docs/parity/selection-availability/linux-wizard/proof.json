@@ -1,0 +1,115 @@
+{
+  "binarySha256": "7422ac1841bb881ca033aa2de7fccda46ef9527e7c3ade7b5ceed85644bcf780",
+  "actions": [
+    {
+      "action": "Keep telemetry off",
+      "x": 425,
+      "y": 478
+    },
+    {
+      "action": "Stop sharing before wizard navigation",
+      "x": 415,
+      "y": 53
+    },
+    {
+      "action": "Next",
+      "x": 1219,
+      "y": 740
+    },
+    {
+      "action": "Next",
+      "x": 1219,
+      "y": 740
+    },
+    {
+      "action": "Next",
+      "x": 1219,
+      "y": 740
+    },
+    {
+      "action": "Select all",
+      "x": 45,
+      "y": 364
+    },
+    {
+      "action": "Prepare selection receipt",
+      "x": 90,
+      "y": 323
+    },
+    {
+      "action": "Copy selection receipt",
+      "x": 82,
+      "y": 344
+    },
+    {
+      "action": "Next",
+      "x": 1219,
+      "y": 690
+    },
+    {
+      "action": "Back",
+      "x": 1110,
+      "y": 690
+    },
+    {
+      "action": "Prepare selection receipt",
+      "x": 90,
+      "y": 323
+    },
+    {
+      "action": "Copy selection receipt",
+      "x": 82,
+      "y": 344
+    }
+  ],
+  "comparisons": [
+    {
+      "label": "wizard-selected",
+      "cliFlags": [],
+      "selected": [
+        "good",
+        "independent"
+      ]
+    },
+    {
+      "label": "wizard-selection-return",
+      "cliFlags": [],
+      "selected": [
+        "good",
+        "independent"
+      ]
+    }
+  ],
+  "inputHashes": {
+    "mods/broken.zip": "6bbf954ab0045bc546f16a6db16c95afef820dccd807348411ea924dabb972e9",
+    "mods/good.zip": "97abb852e35fea9dcef9c4e6af6ba9ba635af0451d80934d2d943de0a444c50c",
+    "game/swkotor.exe": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "guide.json": "5a37984ba64283c7574d261c72bc6e8607d4e9f93f6db64988c93e3631d8e313"
+  },
+  "fixtureGuideSha256": "5a37984ba64283c7574d261c72bc6e8607d4e9f93f6db64988c93e3631d8e313",
+  "inputsUnchanged": true,
+  "receiptsEqual": true,
+  "scenario": "wizard",
+  "gameMarkerOnly": true,
+  "noInstallOrDownload": true,
+  "sourceRevision": "bc7f38bba3f5d5deaae1ae3c77490d5e51ab6389",
+  "localScreenshots": [
+    {
+      "path": "/workspace/artifacts/selection-gui-followup/linux-wizard/wizard-mod-directory.png",
+      "sha256": "bdbfc95e7963dd2bbf680329644149cb7750c88028c11d51978dfc95164f90e7"
+    },
+    {
+      "path": "/workspace/artifacts/selection-gui-followup/linux-wizard/wizard-game-directory.png",
+      "sha256": "4cf5bb936b469996b674cf55aa223a27364204aa3d388facb58b0c9ab44e6d87"
+    },
+    {
+      "path": "/workspace/artifacts/selection-gui-followup/linux-wizard/wizard-selected.png",
+      "sha256": "46aeb2078bfe7c1d7db26e4dc75857dda0af7461a79bc421ff5019f7c8c982d5"
+    },
+    {
+      "path": "/workspace/artifacts/selection-gui-followup/linux-wizard/wizard-selection-return.png",
+      "sha256": "7289d7ad028f81c14835807b9c80a1adb31fa7768b95bec7ca2e00131f781b6a"
+    }
+  ],
+  "scope": "Actual Linux production GUI; isolated fixtures; screenshots retained locally, not uploaded"
+}

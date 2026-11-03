@@ -1,0 +1,122 @@
+{
+  "binarySha256": "7422ac1841bb881ca033aa2de7fccda46ef9527e7c3ade7b5ceed85644bcf780",
+  "actions": [
+    {
+      "action": "Keep telemetry off",
+      "x": 425,
+      "y": 478
+    },
+    {
+      "action": "Summary / selection",
+      "x": 166,
+      "y": 32
+    },
+    {
+      "action": "Pause sharing to edit",
+      "x": 78,
+      "y": 189
+    },
+    {
+      "action": "Select all",
+      "x": 43,
+      "y": 309
+    },
+    {
+      "action": "Prepare selection receipt",
+      "x": 91,
+      "y": 266
+    },
+    {
+      "action": "Copy selection receipt",
+      "x": 89,
+      "y": 287
+    },
+    {
+      "action": "Prepare receipt with unreadable inventory file",
+      "x": 91,
+      "y": 266
+    },
+    {
+      "action": "Prepare selection receipt",
+      "x": 91,
+      "y": 266
+    },
+    {
+      "action": "Copy selection receipt",
+      "x": 89,
+      "y": 287
+    },
+    {
+      "action": "Prepare receipt with synchronized later mutation",
+      "x": 91,
+      "y": 266
+    },
+    {
+      "action": "Prepare selection receipt",
+      "x": 91,
+      "y": 266
+    },
+    {
+      "action": "Copy selection receipt",
+      "x": 89,
+      "y": 287
+    }
+  ],
+  "comparisons": [
+    {
+      "label": "failure-baseline",
+      "cliFlags": [],
+      "selected": [
+        "good",
+        "independent"
+      ]
+    },
+    {
+      "label": "permission-repaired",
+      "cliFlags": [],
+      "selected": [
+        "good",
+        "independent"
+      ]
+    },
+    {
+      "label": "changed-inventory-repaired",
+      "cliFlags": [],
+      "selected": [
+        "good",
+        "independent"
+      ]
+    }
+  ],
+  "inputHashes": {
+    "mods/zz-padding.bin": "a6d72ac7690f53be6ae46ba88506bd97302a093f7108472bd9efc3cefda06484",
+    "mods/a-receipt-only.txt": "6db7d803e74f1ffa7d8f5adc0bf95b3e15bf4c8373fffadf546227cc6c6742cb",
+    "mods/broken.zip": "6bbf954ab0045bc546f16a6db16c95afef820dccd807348411ea924dabb972e9",
+    "mods/good.zip": "e107969aa73f0a5ab39cec0587b15e1ceec886e206027ec581e49be783260a76",
+    "guide.json": "5a37984ba64283c7574d261c72bc6e8607d4e9f93f6db64988c93e3631d8e313"
+  },
+  "fixtureGuideSha256": "5a37984ba64283c7574d261c72bc6e8607d4e9f93f6db64988c93e3631d8e313",
+  "inputsRestoredAfterControlledMutation": true,
+  "receiptsEqual": true,
+  "permissionErrorShown": true,
+  "changedInventoryErrorShown": true,
+  "staleCopyHidden": true,
+  "selectedStatePreserved": true,
+  "scenario": "receipt-failure",
+  "sourceRevision": "bc7f38bba3f5d5deaae1ae3c77490d5e51ab6389",
+  "localScreenshots": [
+    {
+      "path": "/workspace/artifacts/selection-gui-followup/linux-export-failure/permission-error.png",
+      "sha256": "54e10a097f422b72604b92ae08fc46a5a894af78e49a38a1593efd1f6bb84705"
+    },
+    {
+      "path": "/workspace/artifacts/selection-gui-followup/linux-export-failure/changed-inventory-error.png",
+      "sha256": "ca7140d23358f2ba8a78428a683172a9cfae0a9d64ed7b27fbb4e520c1bce707"
+    },
+    {
+      "path": "/workspace/artifacts/selection-gui-followup/linux-export-failure/changed-inventory-repaired-ready.png",
+      "sha256": "9f782ecb351fcd671fd65249781c15657e1d9696fee07953e0e735eb1ab1c523"
+    }
+  ],
+  "scope": "Actual Linux production GUI; isolated fixtures; screenshots retained locally, not uploaded"
+}

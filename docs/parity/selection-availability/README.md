@@ -208,3 +208,52 @@ These are bounded Linux CLI results. A receipt remains a historical inspected
 snapshot, not a filesystem lock or a promise that files cannot change after the
 checks. Native GUI presentation of this export failure, wizard variants, native
 Windows/macOS, and the deferred TypeScript comparison remain outstanding.
+
+## Native export failures and wizard navigation
+
+The replay adds `MODSYNC_NATIVE_CASE=receipt-failure` and `wizard`.
+[Export-failure evidence](linux-export-failure/proof.json) observes actual GUI
+Prepare actions with an unreadable receipt-only file and a file changed while a
+later inventory file is being hashed on the second pass. The owned GUI process
+is stopped/resumed using Linux inotify synchronization; no internal application
+messages are injected. Both errors are visible, stale Copy is hidden, and the
+selected mod count remains unchanged. Permissions/content are restored and each
+retry's copied receipt matches CLI. Guide/game contents remain unchanged; the
+one controlled mod-file content change is restored before retry.
+
+[Wizard evidence](linux-wizard/proof.json) presses actual Next/Back controls through
+mod and game directories, Mod Selection, and the download explanation. Select All
+and returning to the selection page produce receipts equal to CLI. The game
+fixture contains an empty detection marker, not a game executable; it is never
+executed. No download, validation, or install action is triggered.
+
+These cases ran against production revision `bc7f38b`. Receipt JSON, starting
+guide bytes/hashes, and action history are retained here. New screenshots remain
+local under `/workspace/artifacts/selection-gui-followup/`; their exact paths and
+hashes are in each proof. No screenshots are added to this commit. All activity
+uses the existing private Xvfb runtime and isolated settings/input directories.
+
+Run either case with the same `MODSYNC_BIN`, `MODSYNC_DISPLAY`, and
+`MODSYNC_PROOF_OUT` settings described above. `receipt-failure` requires Linux
+inotify and an ordinary non-root user for the permission denial check. Receipts
+remain historical snapshots; these cases do not establish every possible race
+or native Windows/macOS behavior.
+
+## Tier and category controls
+
+`MODSYNC_NATIVE_CASE=selectors` adds actual tier dropdown/Select through tier,
+category dropdown/Select category, multi-category dialog/apply, and modal cancel.
+[Four receipt comparisons](linux-selectors/proof.json) match CLI for the same full
+input guide and inventory. Unavailable entries and required dependents remain
+excluded even when their tier/category is requested. Cancel leaves selections
+unchanged. The replay uses sparse-text OCR for the dimmed modal and calibrated
+checkbox coordinates; no application-source change was needed. Screen recognition
+was checked against the actual captured pixels, not inferred from a failed OCR
+match. The new screenshot hashes/paths are local-only in the proof manifest.
+
+Across these three new scenarios, nine successful receipt states and two explicit
+GUI export-failure presentations are verified on Linux. Remaining scope includes
+widescreen/completed-base phase controls, Aspyr-specific routes, native Windows /
+macOS, acquisition/direct-Markdown/remaining-phase exceptions, and the deferred
+TypeScript comparison. Issue #68 remains open; no full installation claim follows
+from these selection/navigation cases.

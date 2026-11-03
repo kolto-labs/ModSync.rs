@@ -1,0 +1,230 @@
+{
+  "binarySha256": "7422ac1841bb881ca033aa2de7fccda46ef9527e7c3ade7b5ceed85644bcf780",
+  "actions": [
+    {
+      "action": "Keep telemetry off",
+      "x": 425,
+      "y": 478
+    },
+    {
+      "action": "Summary / selection",
+      "x": 166,
+      "y": 32
+    },
+    {
+      "action": "Pause sharing to edit",
+      "x": 78,
+      "y": 189
+    },
+    {
+      "action": "Open tier dropdown",
+      "x": 65,
+      "y": 351
+    },
+    {
+      "action": "Recommended",
+      "x": 86,
+      "y": 417
+    },
+    {
+      "action": "Select through tier",
+      "x": 208,
+      "y": 350
+    },
+    {
+      "action": "Prepare selection receipt",
+      "x": 91,
+      "y": 266
+    },
+    {
+      "action": "Copy selection receipt",
+      "x": 89,
+      "y": 287
+    },
+    {
+      "action": "Deselect all after tier",
+      "x": 115,
+      "y": 329
+    },
+    {
+      "action": "Clear filters",
+      "x": 494,
+      "y": 308
+    },
+    {
+      "action": "Open category dropdown",
+      "x": 294,
+      "y": 351
+    },
+    {
+      "action": "Core",
+      "x": 269,
+      "y": 396
+    },
+    {
+      "action": "Select category",
+      "x": 400,
+      "y": 350
+    },
+    {
+      "action": "Prepare selection receipt",
+      "x": 91,
+      "y": 266
+    },
+    {
+      "action": "Copy selection receipt",
+      "x": 89,
+      "y": 287
+    },
+    {
+      "action": "Select multiple categories",
+      "x": 92,
+      "y": 447
+    },
+    {
+      "action": "Modal Core checkbox",
+      "x": 552,
+      "y": 381
+    },
+    {
+      "action": "Modal Visual checkbox",
+      "x": 552,
+      "y": 423
+    },
+    {
+      "action": "Modal Extras checkbox",
+      "x": 552,
+      "y": 402
+    },
+    {
+      "action": "Apply category dialog",
+      "x": 597,
+      "y": 444
+    },
+    {
+      "action": "Prepare selection receipt",
+      "x": 91,
+      "y": 266
+    },
+    {
+      "action": "Copy selection receipt",
+      "x": 89,
+      "y": 287
+    },
+    {
+      "action": "Select multiple categories",
+      "x": 92,
+      "y": 447
+    },
+    {
+      "action": "Modal Core checkbox",
+      "x": 552,
+      "y": 381
+    },
+    {
+      "action": "Cancel category dialog",
+      "x": 679,
+      "y": 444
+    },
+    {
+      "action": "Prepare selection receipt",
+      "x": 91,
+      "y": 266
+    },
+    {
+      "action": "Copy selection receipt",
+      "x": 89,
+      "y": 287
+    }
+  ],
+  "comparisons": [
+    {
+      "label": "tier-selected",
+      "cliFlags": [
+        "--use-file-selection",
+        "--select-through-tier",
+        "Recommended"
+      ],
+      "selected": [
+        "good",
+        "independent"
+      ]
+    },
+    {
+      "label": "category-selected",
+      "cliFlags": [
+        "--use-file-selection",
+        "--add-category",
+        "Core"
+      ],
+      "selected": [
+        "good"
+      ]
+    },
+    {
+      "label": "categories-selected",
+      "cliFlags": [
+        "--use-file-selection",
+        "--add-category",
+        "Core",
+        "--add-category",
+        "Visual",
+        "--add-category",
+        "Extras"
+      ],
+      "selected": [
+        "good",
+        "independent"
+      ]
+    },
+    {
+      "label": "category-modal-cancelled",
+      "cliFlags": [
+        "--use-file-selection",
+        "--add-category",
+        "Core",
+        "--add-category",
+        "Visual",
+        "--add-category",
+        "Extras"
+      ],
+      "selected": [
+        "good",
+        "independent"
+      ]
+    }
+  ],
+  "inputHashes": {
+    "mods/broken.zip": "6bbf954ab0045bc546f16a6db16c95afef820dccd807348411ea924dabb972e9",
+    "mods/good.zip": "1240e495064e3ecdf6bbdeaa9556a1f9dcfbab6a57fafef180d37a77b4be1d19",
+    "guide.json": "0dedf56a41c87069946edac05a79d25316bc4143566bd0aca604f499ab9510be"
+  },
+  "fixtureGuideSha256": "0dedf56a41c87069946edac05a79d25316bc4143566bd0aca604f499ab9510be",
+  "inputsUnchanged": true,
+  "receiptsEqual": true,
+  "scenario": "selectors",
+  "sourceRevision": "bc7f38bba3f5d5deaae1ae3c77490d5e51ab6389",
+  "localScreenshots": [
+    {
+      "path": "/workspace/artifacts/selection-gui-followup/linux-selectors/tier-selected.png",
+      "sha256": "ccaf183ac1690ba16eba532c7c871c2aec150883d1721e28258615e5a4e6bb14"
+    },
+    {
+      "path": "/workspace/artifacts/selection-gui-followup/linux-selectors/category-selected.png",
+      "sha256": "24c13cc46c3de0c42bdee1bd11647dceb1908b7a2b5630b0663f2a3bae101e7d"
+    },
+    {
+      "path": "/workspace/artifacts/selection-gui-followup/linux-selectors/category-modal-chosen.png",
+      "sha256": "1d0bec0d7a5ba0e7d86eee7767fa30f27175290861f8f2b6609d5bfdebb00415"
+    },
+    {
+      "path": "/workspace/artifacts/selection-gui-followup/linux-selectors/categories-selected.png",
+      "sha256": "899dd7e8be89eab2fa3ad216ea19602a77a0e9545ef3a3ecaf349ce54495ffa3"
+    },
+    {
+      "path": "/workspace/artifacts/selection-gui-followup/linux-selectors/category-modal-cancelled-ready.png",
+      "sha256": "f68c827aabe246826f73852cb273430faac6da6966edb62493efec02c1b0dd3b"
+    }
+  ],
+  "scope": "Actual Linux production GUI; isolated fixtures; screenshots retained locally, not uploaded"
+}

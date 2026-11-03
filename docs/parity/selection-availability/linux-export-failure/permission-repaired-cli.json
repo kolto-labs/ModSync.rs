@@ -1,0 +1,123 @@
+{
+  "game": "Unknown",
+  "counts": {
+    "selected": 2,
+    "total": 6,
+    "required": 0,
+    "optional": 2
+  },
+  "availability": {
+    "unavailable": [
+      {
+        "guid": "missing",
+        "category": "missing_archive",
+        "reason": "Missing required archive: <<modDirectory>>/missing.zip"
+      },
+      {
+        "guid": "broken",
+        "category": "invalid_archive",
+        "reason": "Invalid archive /tmp/modsync-native-inputs-aee1k0r8/mods/broken.zip: Unsupported archive signature. ZIP, 7z, RAR, TAR and GZip are supported. Only embedded 7z SFX payloads are decoded; executables are never run as archives."
+      },
+      {
+        "guid": "dependent",
+        "category": "unavailable_dependency",
+        "reason": "Requires missing (missing): Missing required archive: <<modDirectory>>/missing.zip"
+      },
+      {
+        "guid": "transitive",
+        "category": "unavailable_dependency",
+        "reason": "Requires dependent (dependent): Requires missing (missing): Missing required archive: <<modDirectory>>/missing.zip"
+      }
+    ]
+  },
+  "receipt": {
+    "schemaVersion": 1,
+    "guideDefinitionSha256": "6501bf9406135c3a33143814f1aebd47e04899dcbde9ed7d25d78d4466048573",
+    "modInventorySha256": "4459b5f9b957123c7a3316f8c5e0d3e0f2ef611fda1e1791930bc1a5db78c553",
+    "modInventory": [
+      {
+        "path": "a-receipt-only.txt",
+        "bytes": 6,
+        "sha256": "6db7d803e74f1ffa7d8f5adc0bf95b3e15bf4c8373fffadf546227cc6c6742cb"
+      },
+      {
+        "path": "broken.zip",
+        "bytes": 14,
+        "sha256": "6bbf954ab0045bc546f16a6db16c95afef820dccd807348411ea924dabb972e9"
+      },
+      {
+        "path": "good.zip",
+        "bytes": 129,
+        "sha256": "e107969aa73f0a5ab39cec0587b15e1ceec886e206027ec581e49be783260a76"
+      },
+      {
+        "path": "zz-padding.bin",
+        "bytes": 268435456,
+        "sha256": "a6d72ac7690f53be6ae46ba88506bd97302a093f7108472bd9efc3cefda06484"
+      }
+    ],
+    "detectedGame": "Unknown",
+    "caseInsensitivePathing": true,
+    "maxExpandedBytes": null,
+    "selected": [
+      "good",
+      "independent"
+    ],
+    "excluded": [
+      {
+        "guid": "missing",
+        "category": "missing_archive",
+        "reason": "Missing required archive: <<modDirectory>>/missing.zip"
+      },
+      {
+        "guid": "broken",
+        "category": "invalid_archive",
+        "reason": "Invalid archive /tmp/modsync-native-inputs-aee1k0r8/mods/broken.zip: Unsupported archive signature. ZIP, 7z, RAR, TAR and GZip are supported. Only embedded 7z SFX payloads are decoded; executables are never run as archives."
+      },
+      {
+        "guid": "dependent",
+        "category": "unavailable_dependency",
+        "reason": "Requires missing (missing): Missing required archive: <<modDirectory>>/missing.zip"
+      },
+      {
+        "guid": "transitive",
+        "category": "unavailable_dependency",
+        "reason": "Requires dependent (dependent): Requires missing (missing): Missing required archive: <<modDirectory>>/missing.zip"
+      }
+    ]
+  },
+  "filterSummary": "Showing all 6 mods",
+  "selected": [
+    "good",
+    "independent"
+  ],
+  "outcomes": [
+    {
+      "selected": [
+        "good",
+        "independent"
+      ],
+      "deselected": [],
+      "autoSelected": [],
+      "autoDeselected": [],
+      "warnings": [
+        "Cannot select missing (missing): Missing required archive: <<modDirectory>>/missing.zip",
+        "Cannot select broken (broken): Invalid archive /tmp/modsync-native-inputs-aee1k0r8/mods/broken.zip: Unsupported archive signature. ZIP, 7z, RAR, TAR and GZip are supported. Only embedded 7z SFX payloads are decoded; executables are never run as archives.",
+        "Cannot select dependent (dependent): Requires missing (missing): Missing required archive: <<modDirectory>>/missing.zip",
+        "Cannot select transitive (transitive): Requires dependent (dependent): Requires missing (missing): Missing required archive: <<modDirectory>>/missing.zip"
+      ]
+    },
+    {
+      "selected": [],
+      "deselected": [],
+      "autoSelected": [],
+      "autoDeselected": [],
+      "warnings": []
+    }
+  ],
+  "downloadCandidates": {
+    "base": [],
+    "widescreen": [],
+    "all": []
+  }
+}

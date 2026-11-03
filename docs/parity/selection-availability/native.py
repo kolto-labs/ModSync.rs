@@ -6,7 +6,7 @@ MODSYNC_BIN selects the production desktop binary; MODSYNC_PROOF_OUT is optional
 import csv, hashlib, io, json, os, pathlib, subprocess, tempfile, time, zipfile
 
 scenario = os.environ.get('MODSYNC_NATIVE_CASE', 'base')
-assert scenario in ('base','nested'), 'Unknown native case'
+assert scenario in ('base','nested','receipt-failure','selectors','wizard'), 'Unknown native case'
 binary = pathlib.Path(os.environ['MODSYNC_BIN']).resolve()
 out = pathlib.Path(os.environ.get('MODSYNC_PROOF_OUT', tempfile.mkdtemp(prefix='modsync-native-receipt-'))).resolve()
 out.mkdir(parents=True, exist_ok=True)
@@ -28,6 +28,18 @@ if scenario == 'nested':
     (root/'guide.json').write_text(json.dumps({'thisMod':components}))
 else:
     (root/'guide.json').write_text(json.dumps({'thisMod':[component('good','good.zip'),component('missing','missing.zip'),component('broken','broken.zip'),component('dependent',dependencies=['missing']),component('transitive',dependencies=['dependent']),component('independent')]}))
+if scenario == 'wizard':
+    (root/'game/swkotor.exe').write_bytes(b'') # Detection marker only; never execute or install.
+if scenario == 'selectors':
+    data=json.loads((root/'guide.json').read_text())
+    tiers=['Essential','Essential','Recommended','Suggested','Optional','Recommended']
+    categories=['Core','Core','Visual','Extras','Extras','Visual']
+    for item,tier,category in zip(data['thisMod'],tiers,categories):
+        item.update(Tier=tier,Category=[category])
+    (root/'guide.json').write_text(json.dumps(data))
+if scenario == 'receipt-failure':
+    (root/'mods/a-receipt-only.txt').write_text('before')
+    with (root/'mods/zz-padding.bin').open('wb') as file: file.truncate(256*1024*1024)
 def digest(path): return hashlib.sha256(path.read_bytes()).hexdigest()
 def inputs(): return {str(p.relative_to(root)):digest(p) for directory in [root/'mods',root/'game'] for p in directory.rglob('*') if p.is_file()} | {'guide.json':digest(root/'guide.json')}
 original=inputs(); events=[]; comparisons=[]; gui=None; server=None
@@ -37,7 +49,7 @@ def run(args): return subprocess.run(args,env=env,check=True,capture_output=True
 
 def screen(label):
     path=out/(label+'.png'); run(['import','-window','root',str(path)])
-    return run(['tesseract',str(path),'stdout'])
+    return run(['tesseract',str(path),'stdout',*(['--psm','11'] if 'modal' in label else [])])
 
 def await_screen(label, text):
     deadline=time.monotonic()+30
@@ -52,14 +64,14 @@ def click(label,x,y):
     events.append(dict(action=label,x=x,y=y))
     run(['xdotool','mousemove',str(x),str(y),'click','1'])
 
-def click_label(label, column=None, checkbox=False):
-    screen('before-label-click')
+def click_label(label, column=None, checkbox=False, bounds=None):
+    run(['import','-window','root',str(out/'before-label-click.png')])
     rows=list(csv.DictReader(io.StringIO(run(['tesseract',str(out/'before-label-click.png'),'stdout','--psm','11','tsv'])),delimiter='\t'))
     words=[r for r in rows if r['text'].strip()]
     wanted=label.lower().split()
     for i in range(len(words)-len(wanted)+1):
         match=words[i:i+len(wanted)]
-        if [r['text'].lower().strip('()[]') for r in match]==wanted and (column is None or (int(match[0]['left'])<640)==(column=='left')):
+        if [r['text'].lower().strip('()[]….') for r in match]==wanted and (column is None or (int(match[0]['left'])<640)==(column=='left')) and (bounds is None or (bounds[0] <= int(match[0]['left']) <= bounds[1] and bounds[2] <= int(match[0]['top']) <= bounds[3])):
             first,last=match[0],match[-1]
             x=(int(first['left'])+int(last['left'])+int(last['width']))//2
             y=int(first['top'])+int(first['height'])//2
@@ -67,9 +79,11 @@ def click_label(label, column=None, checkbox=False):
     raise AssertionError(('Visible label not found',label))
 
 def compare_receipt(label, flags, expected):
-    click('Prepare selection receipt',91,266)
+    if scenario == 'wizard': click_label('Prepare selection receipt')
+    else: click('Prepare selection receipt',91,266)
     await_screen(label+'-ready','Copy selection receipt')
-    click('Copy selection receipt',89,287)
+    if scenario == 'wizard': click_label('Copy selection receipt')
+    else: click('Copy selection receipt',89,287)
     receipt=json.loads(run(['xclip','-selection','clipboard','-o']))
     cli=json.loads(run([str(binary),'selection',*args,'--json','--receipt',*flags]))
     assert receipt==cli['receipt'],(label,receipt,cli)
@@ -91,11 +105,106 @@ try:
         gui=subprocess.Popen([str(binary),'gui','--allow-multiple-instances','--settings-dir',str(root/'settings'),*args],env=env,stdout=log,stderr=subprocess.STDOUT)
     await_screen('startup','Keep telemetry off')
     click('Keep telemetry off',425,478)
-    click('Summary / selection',166,32)
-    await_screen('pause','Pause sharing to edit')
-    click('Pause sharing to edit',78,189)
-    await_screen('before-select','Prepare selection receipt')
-    if scenario == 'nested':
+    if scenario == 'wizard':
+        click('Stop sharing before wizard navigation',415,53)
+        click_label('Next',bounds=(1100,1280,650,850))
+        await_screen('wizard-mod-directory','Mod Workspace Directory')
+        click_label('Next',bounds=(1100,1280,650,850))
+        await_screen('wizard-game-directory','KOTOR Game Directory')
+        click_label('Next',bounds=(1100,1280,650,850))
+        await_screen('wizard-selection','Prepare selection receipt')
+    else:
+        click('Summary / selection',166,32)
+        await_screen('pause','Pause sharing to edit')
+        click('Pause sharing to edit',78,189)
+        await_screen('before-select','Prepare selection receipt')
+    if scenario == 'wizard':
+        click_label('Select all')
+        await_screen('wizard-selected','2 of 6 mods selected')
+        compare_receipt('wizard-selected',[],['good','independent'])
+        click_label('Next',bounds=(1100,1280,650,850))
+        await_screen('wizard-download-explanation','Nothing downloads automatically')
+        click_label('Back',bounds=(1000,1280,650,850))
+        await_screen('wizard-selection-return','2 of 6 mods selected')
+        compare_receipt('wizard-selection-return',[],['good','independent'])
+        (out/'proof.json').write_text(json.dumps(dict(binarySha256=digest(binary),actions=events,comparisons=comparisons,inputHashes=original,fixtureGuideSha256=digest(out/'fixture-guide.json'),inputsUnchanged=inputs()==original,receiptsEqual=True,scenario=scenario,gameMarkerOnly=True,noInstallOrDownload=True),indent=2)+'\n')
+        print('PASS actual wizard directory navigation, Select All, next/back retention; receipts match CLI; no install/download')
+    elif scenario == 'selectors':
+        click('Open tier dropdown',65,351)
+        click_label('Recommended')
+        click_label('Select through tier')
+        await_screen('tier-selected','2 of 6 mods selected')
+        compare_receipt('tier-selected',['--use-file-selection','--select-through-tier','Recommended'],['good','independent'])
+        click('Deselect all after tier',115,329)
+        await_screen('tier-deselected','0 of 6 mods selected')
+        click_label('Clear filters')
+        click('Open category dropdown',294,351)
+        click_label('Core')
+        click_label('Select category')
+        await_screen('category-selected','1 of 6 mods selected')
+        compare_receipt('category-selected',['--use-file-selection','--add-category','Core'],['good'])
+        click_label('Select multiple categories')
+        await_screen('category-modal','Select mods by category')
+        click('Modal Core checkbox',552,381)
+        click('Modal Visual checkbox',552,423)
+        click('Modal Extras checkbox',552,402)
+        screen('category-modal-chosen')
+        click('Apply category dialog',597,444)
+        await_screen('categories-selected','2 of 6 mods selected')
+        category_flags=['--use-file-selection','--add-category','Core','--add-category','Visual','--add-category','Extras']
+        compare_receipt('categories-selected',category_flags,['good','independent'])
+        click_label('Select multiple categories')
+        await_screen('category-modal-cancel','Select mods by category')
+        click('Modal Core checkbox',552,381)
+        click('Cancel category dialog',679,444)
+        compare_receipt('category-modal-cancelled',category_flags,['good','independent'])
+        (out/'proof.json').write_text(json.dumps(dict(binarySha256=digest(binary),actions=events,comparisons=comparisons,inputHashes=original,fixtureGuideSha256=digest(out/'fixture-guide.json'),inputsUnchanged=inputs()==original,receiptsEqual=True,scenario=scenario),indent=2)+'\n')
+        print('PASS actual tier, single-category, multi-category and cancel controls; receipts match CLI; inputs unchanged')
+    elif scenario == 'receipt-failure':
+        click('Select all',43,309)
+        await_screen('failure-baseline-selected','2 of 6 mods selected')
+        compare_receipt('failure-baseline',[],['good','independent'])
+        first=root/'mods/a-receipt-only.txt'
+        first.chmod(0)
+        try:
+            click('Prepare receipt with unreadable inventory file',91,266)
+            await_screen('permission-error','Permission denied')
+            shown=screen('permission-error')
+            assert 'Copy selection receipt' not in shown, 'Failed export exposed stale Copy control'
+            assert '2 of 6 mods selected' in shown, 'Failed export changed selection'
+            cli=subprocess.run([str(binary),'selection',*args,'--json','--receipt'],env=env,capture_output=True,text=True)
+            assert cli.returncode!=0 and not cli.stdout.strip() and 'Permission denied' in cli.stderr,(cli.stdout,cli.stderr)
+            (out/'permission-error-cli.txt').write_text(cli.stderr)
+        finally:
+            first.chmod(0o600)
+        compare_receipt('permission-repaired',[],['good','independent'])
+        import ctypes, select, signal
+        libc=ctypes.CDLL(None,use_errno=True)
+        fd=libc.inotify_init1(os.O_CLOEXEC|os.O_NONBLOCK)
+        assert fd>=0 and libc.inotify_add_watch(fd,os.fsencode(root/'mods/zz-padding.bin'),0x20)>=0
+        try:
+            click('Prepare receipt with synchronized later mutation',91,266)
+            for iteration in range(2):
+                assert select.select([fd],[],[],15)[0], 'Receipt did not open final inventory file'
+                os.read(fd,4096)
+            gui.send_signal(signal.SIGSTOP)
+            _,status=os.waitpid(gui.pid,os.WUNTRACED)
+            assert os.WIFSTOPPED(status), 'GUI exited before controlled mutation'
+            first.write_text('after!')
+            gui.send_signal(signal.SIGCONT)
+            await_screen('changed-inventory-error','Mod inventory changed while preparing receipt')
+            shown=screen('changed-inventory-error')
+            assert 'Copy selection receipt' not in shown, 'Changing inventory exposed stale Copy control'
+            assert '2 of 6 mods selected' in shown, 'Changing inventory changed selection'
+        finally:
+            os.close(fd)
+            if gui.poll() is None: gui.send_signal(signal.SIGCONT)
+            first.write_text('before')
+        compare_receipt('changed-inventory-repaired',[],['good','independent'])
+        assert inputs()==original
+        (out/'proof.json').write_text(json.dumps(dict(binarySha256=digest(binary),actions=events,comparisons=comparisons,inputHashes=original,fixtureGuideSha256=digest(out/'fixture-guide.json'),inputsRestoredAfterControlledMutation=True,receiptsEqual=True,permissionErrorShown=True,changedInventoryErrorShown=True,staleCopyHidden=True,selectedStatePreserved=True,scenario=scenario),indent=2)+'\n')
+        print('PASS actual GUI unreadable/changing-inventory export errors; stale Copy hidden; selections retained; repaired receipts match CLI')
+    elif scenario == 'nested':
         click('Select all',43,309)
         await_screen('nested-selected','3 of 3 mods selected')
         compare_receipt('nested-selected',[],['parent','middle','leaf','usesleaf','independent'])

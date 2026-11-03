@@ -1,0 +1,112 @@
+{
+  "game": "Unknown",
+  "counts": {
+    "selected": 1,
+    "total": 6,
+    "required": 0,
+    "optional": 1
+  },
+  "availability": {
+    "unavailable": [
+      {
+        "guid": "missing",
+        "category": "missing_archive",
+        "reason": "Missing required archive: <<modDirectory>>/missing.zip"
+      },
+      {
+        "guid": "broken",
+        "category": "invalid_archive",
+        "reason": "Invalid archive /tmp/modsync-native-inputs-5ca3m5xz/mods/broken.zip: Unsupported archive signature. ZIP, 7z, RAR, TAR and GZip are supported. Only embedded 7z SFX payloads are decoded; executables are never run as archives."
+      },
+      {
+        "guid": "dependent",
+        "category": "unavailable_dependency",
+        "reason": "Requires missing (missing): Missing required archive: <<modDirectory>>/missing.zip"
+      },
+      {
+        "guid": "transitive",
+        "category": "unavailable_dependency",
+        "reason": "Requires dependent (dependent): Requires missing (missing): Missing required archive: <<modDirectory>>/missing.zip"
+      }
+    ]
+  },
+  "receipt": {
+    "schemaVersion": 1,
+    "guideDefinitionSha256": "e9feb4f1b28f6bfbf0f7bce565184ceb7e0aa93f34fc55532ba30f3233fd4a16",
+    "modInventorySha256": "c7cdd1532d377dcbfe7336a642d270aeee682707b7e7d60453839b09bdd8d0d4",
+    "modInventory": [
+      {
+        "path": "broken.zip",
+        "bytes": 14,
+        "sha256": "6bbf954ab0045bc546f16a6db16c95afef820dccd807348411ea924dabb972e9"
+      },
+      {
+        "path": "good.zip",
+        "bytes": 129,
+        "sha256": "1240e495064e3ecdf6bbdeaa9556a1f9dcfbab6a57fafef180d37a77b4be1d19"
+      }
+    ],
+    "detectedGame": "Unknown",
+    "caseInsensitivePathing": true,
+    "maxExpandedBytes": null,
+    "selected": [
+      "good"
+    ],
+    "excluded": [
+      {
+        "guid": "missing",
+        "category": "missing_archive",
+        "reason": "Missing required archive: <<modDirectory>>/missing.zip"
+      },
+      {
+        "guid": "broken",
+        "category": "invalid_archive",
+        "reason": "Invalid archive /tmp/modsync-native-inputs-5ca3m5xz/mods/broken.zip: Unsupported archive signature. ZIP, 7z, RAR, TAR and GZip are supported. Only embedded 7z SFX payloads are decoded; executables are never run as archives."
+      },
+      {
+        "guid": "dependent",
+        "category": "unavailable_dependency",
+        "reason": "Requires missing (missing): Missing required archive: <<modDirectory>>/missing.zip"
+      },
+      {
+        "guid": "transitive",
+        "category": "unavailable_dependency",
+        "reason": "Requires dependent (dependent): Requires missing (missing): Missing required archive: <<modDirectory>>/missing.zip"
+      },
+      {
+        "guid": "independent",
+        "category": "not_selected",
+        "reason": "Not selected in the current selection"
+      }
+    ]
+  },
+  "filterSummary": "Showing all 6 mods",
+  "selected": [
+    "good"
+  ],
+  "outcomes": [
+    {
+      "selected": [
+        "good"
+      ],
+      "deselected": [],
+      "autoSelected": [],
+      "autoDeselected": [],
+      "warnings": [
+        "Cannot select missing (missing): Missing required archive: <<modDirectory>>/missing.zip"
+      ]
+    },
+    {
+      "selected": [],
+      "deselected": [],
+      "autoSelected": [],
+      "autoDeselected": [],
+      "warnings": []
+    }
+  ],
+  "downloadCandidates": {
+    "base": [],
+    "widescreen": [],
+    "all": []
+  }
+}
