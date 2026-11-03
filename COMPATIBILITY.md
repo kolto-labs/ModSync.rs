@@ -1,5 +1,27 @@
 # Compatibility and proof boundaries
 
+## Bulk selection and option identity — 2026-11-03
+
+The egui installer bulk selection buttons (Select all, Select through tier,
+and Select category) now call the same `selection::apply` actions as the CLI.
+This shares nested-option dependency closure and game enforcement, while logging
+automatic changes and warnings. Existing base/widescreen scope and filters remain.
+This is not proof of archive availability, native GUI interaction, complete
+selection parity, or a Qt frontend. Deselection, individual and group controls, common input
+identity, unavailable-archive reasons and cross-route receipts remain to audit.
+Production build and clippy pass with and without desktop features on Rust 1.95.0,
+and formatting passes. Eighteen isolated production CLI cases cover referenced
+options, authored selections, nested closure and the legacy deduplication negative
+control. Rust tests remain frozen by AGENTS.md; their source regions are unchanged.
+
+Instruction-only option deduplication now preserves referenced options (including
+Choose targets and nested references), selected options, options with children,
+and options declaring dependencies, restrictions or ordering. Previously an
+identical empty instruction list could erase a required option GUID before
+selection ran. Unreferenced, unselected leaf options without relations retain
+legacy deduplication. This is an intentional correction to the C# loader rule;
+it does not establish archive unselectability or complete selection parity.
+
 ## Desktop acquisition, step 2 — 2026-09-28
 
 Step 1 was subsequently reviewed and merged in PR #5 (`d438528`), including the

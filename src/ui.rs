@@ -33,6 +33,35 @@ use std::{
     time::Duration,
 };
 
+/// Use the same bulk selection rules as the CLI, retaining explanations in the log.
+fn apply_bulk_selection(
+    components: &mut [Component],
+    detected_game: modsync::game::Detected,
+    action: modsync::selection::Action,
+    logs: &mut Vec<String>,
+) {
+    match modsync::selection::apply(components, Some(detected_game), action) {
+        Ok(outcome) => {
+            for warning in outcome.warnings {
+                logs.push(format!("Selection warning: {warning}"));
+            }
+            for guid in outcome.auto_selected {
+                logs.push(format!(
+                    "Selection: auto-selected {}",
+                    modsync::selection::describe(components, &guid)
+                ));
+            }
+            for guid in outcome.auto_deselected {
+                logs.push(format!(
+                    "Selection: auto-deselected {}",
+                    modsync::selection::describe(components, &guid)
+                ));
+            }
+        }
+        Err(error) => logs.push(format!("Selection failed: {error:#}")),
+    }
+}
+
 enum Message {
     ShellTerminal(Box<main_window::Finished>),
     DeploymentTerminal(Box<deployment_panel::Finished>),
@@ -2252,15 +2281,17 @@ impl App {
                 modsync::game::enforce_selectable(&mut g.components, detected_game);
                 ui.horizontal(|ui| {
                     if ui.button("Select all").clicked() {
-                        modsync::selection::select_visible(
+                        apply_bulk_selection(
                             &mut g.components,
-                            &self.search,
-                            &self.tier_filter,
-                            &self.category_filter,
-                            self.spoiler_free,
+                            detected_game,
+                            modsync::selection::Action::SelectVisible(modsync::selection::Filter {
+                                search: self.search.clone(),
+                                tier: self.tier_filter.clone(),
+                                category: self.category_filter.clone(),
+                                spoiler_free: self.spoiler_free,
+                            }),
+                            &mut self.logs,
                         );
-                        modsync::selection::resolve_selected(&mut g.components);
-                        modsync::game::enforce_selectable(&mut g.components, detected_game);
                         self.validated = false;
                         self.conflicts = None;
                         validation_page::clear_report(
@@ -2336,9 +2367,12 @@ impl App {
                         )
                         .clicked()
                     {
-                        modsync::selection::select_tier(&mut g.components, &self.tier_filter);
-                        modsync::selection::resolve_selected(&mut g.components);
-                        modsync::game::enforce_selectable(&mut g.components, detected_game);
+                        apply_bulk_selection(
+                            &mut g.components,
+                            detected_game,
+                            modsync::selection::Action::SelectThroughTier(self.tier_filter.clone()),
+                            &mut self.logs,
+                        );
                         self.validated = false;
                         self.conflicts = None;
                         validation_page::clear_report(
@@ -2374,12 +2408,14 @@ impl App {
                         )
                         .clicked()
                     {
-                        modsync::selection::select_categories(
+                        apply_bulk_selection(
                             &mut g.components,
-                            std::slice::from_ref(&self.category_filter),
+                            detected_game,
+                            modsync::selection::Action::SelectCategories(vec![
+                                self.category_filter.clone(),
+                            ]),
+                            &mut self.logs,
                         );
-                        modsync::selection::resolve_selected(&mut g.components);
-                        modsync::game::enforce_selectable(&mut g.components, detected_game);
                         self.validated = false;
                         self.conflicts = None;
                         validation_page::clear_report(

@@ -364,8 +364,9 @@ impl Guide {
         // C# runs RemoveDuplicateOptions only in DeserializeModComponentFromString
         // (TOML/JSON/YAML/XML); Markdown ingest goes through MarkdownParser and keeps duplicates.
         if dedup && canonical_format(&format) != Some("md") {
+            let referenced = selection_references(&guide.components);
             for component in &mut guide.components {
-                remove_duplicate_options(component);
+                remove_duplicate_options(component, &referenced);
             }
         }
         if default_selection && !guide.components.iter().any(|c| c.is_selected) {
@@ -1013,9 +1014,66 @@ fn same_instructions(left: &[Instruction], right: &[Instruction]) -> bool {
         })
 }
 
-/// Port of C# `RemoveDuplicateOptions`: an option whose instructions match an earlier
-/// option's is dropped (names are ignored), and its GUID leaves the component's Choose lists.
-fn remove_duplicate_options(component: &mut Component) {
+/// Gather references before deduplication so one component cannot erase another's graph.
+fn selection_references(components: &[Component]) -> BTreeSet<crate::guid::Identity> {
+    fn collect(component: &Component, out: &mut BTreeSet<crate::guid::Identity>) {
+        for reference in component
+            .dependencies
+            .iter()
+            .chain(&component.restrictions)
+            .chain(&component.install_before)
+            .chain(&component.install_after)
+        {
+            out.insert(crate::guid::key_ascii(reference));
+        }
+        for instruction in &component.instructions {
+            for reference in instruction
+                .dependencies
+                .iter()
+                .chain(&instruction.restrictions)
+            {
+                out.insert(crate::guid::key_ascii(reference));
+            }
+            if instruction.action == "Choose" {
+                out.extend(
+                    instruction
+                        .source
+                        .iter()
+                        .map(|id| crate::guid::key_ascii(id)),
+                );
+            }
+        }
+        for option in &component.options {
+            collect(option, out);
+        }
+    }
+    let mut out = BTreeSet::new();
+    for component in components {
+        collect(component, &mut out);
+    }
+    out
+}
+
+/// Instruction equality alone does not make two selection nodes interchangeable.
+fn option_has_selection_identity(
+    option: &Component,
+    referenced: &BTreeSet<crate::guid::Identity>,
+) -> bool {
+    referenced.contains(&crate::guid::key_ascii(&option.guid))
+        || option.is_selected
+        || !option.options.is_empty()
+        || !option.dependencies.is_empty()
+        || !option.restrictions.is_empty()
+        || !option.install_before.is_empty()
+        || !option.install_after.is_empty()
+}
+
+/// Retain the legacy instruction-only deduplication for unreferenced, unselected
+/// leaf options without relations. Never discard authored choices or graph nodes.
+fn remove_duplicate_options(
+    component: &mut Component,
+    referenced: &BTreeSet<crate::guid::Identity>,
+) {
     let mut drop = vec![false; component.options.len()];
     let mut dropped = BTreeSet::new();
     for i in 0..component.options.len() {
@@ -1024,7 +1082,11 @@ fn remove_duplicate_options(component: &mut Component) {
         }
         let kept = &component.options[i];
         for (j, duplicate) in component.options.iter().enumerate().skip(i + 1) {
-            if !drop[j] && same_instructions(&kept.instructions, &duplicate.instructions) {
+            if !drop[j]
+                && !option_has_selection_identity(kept, referenced)
+                && !option_has_selection_identity(duplicate, referenced)
+                && same_instructions(&kept.instructions, &duplicate.instructions)
+            {
                 drop[j] = true;
                 if let Some(id) = guid_key(&duplicate.guid) {
                     dropped.insert(id);
