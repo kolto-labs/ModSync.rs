@@ -4587,3 +4587,16 @@ JSON. No CI-generated GUID prefilter or TypeScript change is involved. See
 [selection availability](docs/parity/selection-availability/README.md) for the
 acquisition/direct-Markdown/remaining-phase boundaries and native GUI acceptance
 limits. This does not establish full installation or cross-route parity.
+
+### Enforce confirmed archive unavailability on saved selections
+
+Successful native selection scans now clear confirmed unavailable saved items
+and transitive required dependents, including during desktop refresh and CLI
+`--use-file-selection`. Healthy option choices remain intact; the source guide is
+not automatically rewritten. Incomplete/cancelled scans retain existing choices
+and do not publish partial corrections. The scanner checks directory snapshots
+and archive identity/size/timestamps, and distinguishes permission/read failures
+from stable archive-format failures. Desktop scan errors also invalidate prior
+validation readiness. See the selection-availability proof notes for fixtures
+and native-platform/runtime limitations. This supersedes the earlier behavior
+that retained unavailable saved checkmarks until validation rejected them.

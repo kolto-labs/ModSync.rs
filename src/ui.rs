@@ -2528,12 +2528,11 @@ impl App {
                                         ui.horizontal(|ui| {
                                             if ui
                                                 .add_enabled(
-                                                    checked
-                                                        || (reason.is_none()
-                                                            && modsync::game::selectable(
-                                                                c,
-                                                                detected_game,
-                                                            )),
+                                                    reason.is_none()
+                                                        && modsync::game::selectable(
+                                                            c,
+                                                            detected_game,
+                                                        ),
                                                     egui::Checkbox::new(&mut checked, ""),
                                                 )
                                                 .on_hover_text(reason.unwrap_or("Select component"))
@@ -4346,10 +4345,7 @@ impl App {
             let reason = availability.and_then(|available| available.reason(&option.guid));
             let mut selected = option.is_selected;
             if ui
-                .add_enabled(
-                    selected || reason.is_none(),
-                    egui::Checkbox::new(&mut selected, name),
-                )
+                .add_enabled(reason.is_none(), egui::Checkbox::new(&mut selected, name))
                 .on_hover_text(
                     reason
                         .map(str::to_owned)

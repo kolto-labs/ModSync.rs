@@ -1420,6 +1420,27 @@ impl Availability {
             .map(|entry| entry.reason.as_str())
     }
 
+    /// Apply only a completed availability snapshot. Never call this after a
+    /// failed or cancelled inspection; those do not establish unavailability.
+    pub fn enforce(&self, components: &mut [Component]) -> Outcome {
+        let mut outcome = Outcome::default();
+        for path in all_nodes(components) {
+            let component = node_mut(components, &path);
+            if component.is_selected
+                && let Some(reason) = self.reason(&component.guid)
+            {
+                component.is_selected = false;
+                outcome.deselected.push(component.guid.clone());
+                outcome.auto_deselected.push(component.guid.clone());
+                outcome.warnings.push(format!(
+                    "Deselected unavailable {} ({}): {reason}",
+                    component.name, component.guid
+                ));
+            }
+        }
+        outcome
+    }
+
     /// Propagate required edges to a fixed point, including option ancestors.
     /// Restrictions and ordering edges are not required dependencies.
     pub fn from_archive_failures(components: &[Component], failures: Vec<Unavailable>) -> Self {
@@ -1479,9 +1500,9 @@ impl Availability {
     }
 }
 
-/// Use the same graph as ordinary selection, then refuse unavailable additions.
-/// Existing selections are retained: an unavailable saved choice remains visible
-/// and validation still refuses it; merely inspecting archives never rewrites it.
+/// Use the same graph as ordinary selection, then remove every confirmed
+/// unavailable selection, including saved choices. Available options are retained.
+/// This mutates the in-memory selection only; adapters do not rewrite the guide.
 pub fn apply_available(
     components: &mut [Component],
     game: Option<game::Detected>,
@@ -1510,17 +1531,14 @@ pub fn apply_available(
     let nodes = all_nodes(components);
     let before = snapshot(components, &nodes);
     let mut outcome = apply_internal(components, game, action, Some(availability))?;
+    let enforced = availability.enforce(components);
+    outcome.warnings.extend(enforced.warnings);
     for (path, was_selected) in nodes.iter().zip(&before) {
-        let component = node_mut(components, path);
-        if component.is_selected
-            && !was_selected
-            && let Some(reason) = availability.reason(&component.guid)
+        let component = node(components, path);
+        if *was_selected && !component.is_selected && availability.reason(&component.guid).is_some()
         {
-            component.is_selected = false;
-            outcome.warnings.push(format!(
-                "Cannot select {} ({}): {reason}",
-                component.name, component.guid
-            ));
+            push_unique(&mut outcome.deselected, &component.guid);
+            push_unique(&mut outcome.auto_deselected, &component.guid);
         }
     }
     outcome.selected.retain(|guid| {

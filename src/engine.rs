@@ -454,6 +454,82 @@ fn game_case_collision(game: &Path, policy: crate::paths::PathPolicy) -> Option<
     None
 }
 
+#[derive(Debug)]
+struct SelectionInspectionIncomplete;
+impl std::fmt::Display for SelectionInspectionIncomplete {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("Archive selection inputs changed during inspection; retry the scan")
+    }
+}
+impl std::error::Error for SelectionInspectionIncomplete {}
+
+fn selection_io_uncertain(error: &std::io::Error) -> bool {
+    !matches!(
+        error.kind(),
+        std::io::ErrorKind::InvalidData | std::io::ErrorKind::UnexpectedEof
+    )
+}
+
+fn selection_inspection_uncertain(error: &anyhow::Error) -> bool {
+    error.chain().any(|cause| {
+        if cause.is::<SelectionInspectionIncomplete>() {
+            return true;
+        }
+        if let Some(error) = cause.downcast_ref::<std::io::Error>() {
+            return selection_io_uncertain(error);
+        }
+        // These decoders do not expose their wrapped I/O errors through source().
+        if let Some(error) = cause.downcast_ref::<sevenz_rust2::Error>() {
+            return match error {
+                sevenz_rust2::Error::Io(error, _)
+                | sevenz_rust2::Error::FileOpen(error, _)
+                | sevenz_rust2::Error::MaybeBadPassword(error) => selection_io_uncertain(error),
+                sevenz_rust2::Error::MaxMemLimited { .. } | sevenz_rust2::Error::FileNotFound => {
+                    true
+                }
+                _ => false,
+            };
+        }
+        if let Some(error) = cause.downcast_ref::<unrar::error::UnrarError>() {
+            return matches!(
+                error.code,
+                unrar::error::Code::EOpen
+                    | unrar::error::Code::ERead
+                    | unrar::error::Code::EClose
+                    | unrar::error::Code::NoMemory
+                    | unrar::error::Code::Unknown
+            );
+        }
+        false
+    })
+}
+
+fn selection_file_stamp(path: &Path) -> Result<String> {
+    let metadata = fs::symlink_metadata(path)?;
+    let base = format!(
+        "{:?}/{}/{:?}/{:?}",
+        metadata.file_type(),
+        metadata.len(),
+        metadata.modified()?,
+        metadata.created().ok()
+    );
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::MetadataExt;
+        Ok(format!(
+            "{base}/{}/{}/{}/{}",
+            metadata.dev(),
+            metadata.ino(),
+            metadata.ctime(),
+            metadata.ctime_nsec()
+        ))
+    }
+    #[cfg(not(unix))]
+    {
+        Ok(base)
+    }
+}
+
 pub struct Engine {
     pub settings: Settings,
     path_policy: crate::paths::PathPolicy,
@@ -463,6 +539,7 @@ pub struct Engine {
     authoring_inputs: Vec<(PathBuf, PathBuf)>,
     exact_patcher_prediction: bool,
     directories: BTreeMap<String, PathBuf>,
+    selection_directory_stamps: BTreeMap<PathBuf, String>,
     install: bool,
     component_checkpoints: bool,
     checkpoint_report: Option<CheckpointRunReport>,
@@ -675,6 +752,7 @@ impl Engine {
             authoring_inputs: Vec::new(),
             exact_patcher_prediction: false,
             directories: BTreeMap::new(),
+            selection_directory_stamps: BTreeMap::new(),
             install: false,
             component_checkpoints: false,
             checkpoint_report: None,
@@ -697,6 +775,7 @@ impl Engine {
     fn scan(&mut self) -> Result<()> {
         self.files.clear();
         self.directories.clear();
+        self.selection_directory_stamps.clear();
         for root in [&self.settings.roots.mods, &self.settings.roots.game] {
             let walk = walkdir::WalkDir::new(root)
                 .into_iter()
@@ -739,6 +818,8 @@ impl Engine {
                         "Unsupported special file: {}",
                         path.display()
                     );
+                    self.selection_directory_stamps
+                        .insert(path.clone(), selection_file_stamp(&path)?);
                     if self
                         .directories
                         .insert(self.path_policy.key(&path), path.clone())
@@ -754,6 +835,16 @@ impl Engine {
             }
         }
         self.seed_authoring_inputs()?;
+        Ok(())
+    }
+
+    fn verify_selection_directories(&self) -> Result<()> {
+        for (path, before) in &self.selection_directory_stamps {
+            self.check_cancelled()?;
+            if selection_file_stamp(path)? != *before {
+                return Err(SelectionInspectionIncomplete.into());
+            }
+        }
         Ok(())
     }
 
@@ -783,6 +874,7 @@ impl Engine {
     /// Inspect archive inputs using the install engine's path and archive rules.
     /// No extraction, external process, selection mutation, or game write occurs.
     pub fn selection_availability(&self, guide: &Guide) -> Result<crate::selection::Availability> {
+        self.verify_selection_directories()?;
         fn owners<'a>(components: &'a [Component], out: &mut Vec<&'a Component>) {
             for component in components {
                 out.push(component);
@@ -817,6 +909,7 @@ impl Engine {
         let mut components = Vec::new();
         owners(&guide.components, &mut components);
         let mut failures = Vec::new();
+        let mut inspected_stamps = BTreeMap::<PathBuf, String>::new();
         let mut archives = BTreeMap::<String, std::result::Result<BTreeSet<String>, String>>::new();
         for component in components {
             self.check_cancelled()?;
@@ -872,6 +965,10 @@ impl Engine {
                             self.check_cancelled()?;
                             let key = self.path_policy.key(&archive_path);
                             if !archives.contains_key(&key) {
+                                let path = self.files[&key].1.path()?;
+                                let before = selection_file_stamp(path)?;
+                                // Distinguish access failures before a decoder can flatten them.
+                                drop(fs::File::open(path)?);
                                 let inspected = (|| -> Result<BTreeSet<String>> {
                                     let destination = extraction_destination(&archive_path);
                                     self.settings.roots.check(&destination)?;
@@ -894,6 +991,16 @@ impl Engine {
                                     }
                                     Ok(members)
                                 })();
+                                if selection_file_stamp(path)? != before {
+                                    return Err(SelectionInspectionIncomplete.into());
+                                }
+                                let inspected = match inspected {
+                                    Err(error) if selection_inspection_uncertain(&error) => {
+                                        return Err(error.context("Archive inspection is incomplete; selections were not changed"));
+                                    }
+                                    other => other,
+                                };
+                                inspected_stamps.insert(path.to_owned(), before);
                                 archives.insert(
                                     key.clone(),
                                     inspected.map_err(|error| format!("{error:#}")),
@@ -910,10 +1017,21 @@ impl Engine {
             })();
             if let Err(error) = checked {
                 self.check_cancelled()?;
+                if selection_inspection_uncertain(&error) {
+                    return Err(error
+                        .context("Archive inspection is incomplete; selections were not changed"));
+                }
                 failures.push(crate::selection::Unavailable {
                     guid: component.guid.clone(),
                     reason: format!("{error:#}"),
                 });
+            }
+        }
+        self.verify_selection_directories()?;
+        for (path, before) in inspected_stamps {
+            self.check_cancelled()?;
+            if selection_file_stamp(&path)? != before {
+                return Err(SelectionInspectionIncomplete.into());
             }
         }
         Ok(crate::selection::Availability::from_archive_failures(

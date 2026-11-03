@@ -977,9 +977,7 @@ fn apply_selection(
     let mut outcomes = Vec::new();
     for step in steps {
         let outcome = match selection_engine {
-            Some(engine) if step != Step::EnforceGame => {
-                engine.select_available(components, game, step)?.0
-            }
+            Some(engine) => engine.select_available(components, game, step)?.0,
             _ => apply(components, game, step)?,
         };
         if report {

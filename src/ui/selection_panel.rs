@@ -41,7 +41,6 @@ fn selection_messages(
 struct Finished {
     stamp: String,
     result: Result<(Guide, Availability, Vec<String>)>,
-    apply: bool,
 }
 
 #[derive(Default)]
@@ -119,7 +118,6 @@ impl App {
         let cancelled = self.selection_panel.cancelled.clone();
         self.selection_panel.status = "Checking local archives and required dependencies…".into();
         self.selection_panel.worker = Some(std::thread::spawn(move || {
-            let apply = action.is_some();
             let result = std::panic::catch_unwind(|| -> Result<_> {
                 let mut settings = Settings::new(Path::new(&mods), Path::new(&game))?;
                 settings.cancelled = cancelled;
@@ -136,13 +134,12 @@ impl App {
                 }
                 let detected = Some(modsync::game::detect(&settings.roots.game));
                 let engine = Engine::new_with_case_insensitive_pathing(settings, case_insensitive)?;
-                let (warnings, availability) = if let Some(action) = action {
-                    let (outcome, availability) =
-                        engine.select_available(&mut guide.components, detected, action)?;
-                    (selection_messages(&guide.components, outcome), availability)
-                } else {
-                    (Vec::new(), engine.selection_availability(&guide)?)
-                };
+                let (outcome, availability) = engine.select_available(
+                    &mut guide.components,
+                    detected,
+                    action.unwrap_or(Action::EnforceGame),
+                )?;
+                let warnings = selection_messages(&guide.components, outcome);
                 Ok((guide, availability, warnings))
             })
             .unwrap_or_else(|_| {
@@ -150,11 +147,7 @@ impl App {
                     "Archive selection inspection stopped unexpectedly"
                 ))
             });
-            Finished {
-                stamp,
-                result,
-                apply,
-            }
+            Finished { stamp, result }
         }));
     }
 
@@ -180,14 +173,12 @@ impl App {
                 Ok(finished) if finished.stamp == self.input_stamp && !self.sharing.closing => {
                     match finished.result {
                         Ok((guide, availability, warnings)) => {
-                            if finished.apply {
-                                self.guide = Some(guide);
-                                self.invalidate_validation();
-                                self.refresh_input_stamp();
-                            }
+                            self.guide = Some(guide);
+                            self.invalidate_validation();
+                            self.refresh_input_stamp();
                             self.logs.extend(warnings);
                             self.selection_panel.status = format!(
-                                "{} unavailable mod/option(s). Saved choices are retained; refresh after changing archives.",
+                                "{} unavailable mod/option(s). Unavailable selections were cleared; refresh after changing archives.",
                                 availability.unavailable.len()
                             );
                             self.selection_panel.availability = availability;
@@ -195,6 +186,7 @@ impl App {
                             self.selection_panel.attempted = self.input_stamp.clone();
                         }
                         Err(error) => {
+                            self.invalidate_validation();
                             self.selection_panel.stamp.clear();
                             self.selection_panel.status =
                                 format!("Archive selection checks unavailable: {error:#}");

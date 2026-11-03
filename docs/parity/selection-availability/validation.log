@@ -1,5 +1,5 @@
 PASS available-only selection, corrupt/missing inputs, transitive dependency reasons, unknown dependency, read-only guide/game
-PASS saved unavailable choice retained
+PASS saved unavailable selection cleared without rewriting source guide
 PASS rejected selection preserves saved conflicting choice
 PASS option choices retained, unchosen missing option isolated, option dependency blocked
 PASS available required dependency cycle
@@ -8,3 +8,7 @@ PASS repaired archive becomes selectable
 PASS nested archive input projection without extraction
 PASS identical referenced options retain the saved identity
 PASS rooted validate uses native eligibility before pipeline
+PASS saved corrupt archive and transitive dependents cleared; healthy choice retained
+PASS bad saved option cleared without losing healthy saved option or parent
+PASS permission failure publishes no selection changes; successful retry clears only confirmed missing item
+PASS archive mutation during inspection aborts without publishing deselections

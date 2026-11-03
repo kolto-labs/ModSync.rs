@@ -21,9 +21,10 @@ with tempfile.TemporaryDirectory(prefix='modsync-selection-') as tmp:
     assert list(game.iterdir())==[]
     print('PASS available-only selection, corrupt/missing inputs, transitive dependency reasons, unknown dependency, read-only guide/game')
     components[1]['IsSelected']=True; guide.write_text(json.dumps({'thisMod':components})); original=guide.read_bytes()
-    result=run('--use-file-selection'); assert result['selected']==['missing'],result
+    result=run('--use-file-selection'); assert result['selected']==[],result
+    assert any('missing' in outcome['autoDeselected'] for outcome in result['outcomes']),result
     assert guide.read_bytes()==original
-    print('PASS saved unavailable choice retained')
+    print('PASS saved unavailable selection cleared without rewriting source guide')
     components[1]['IsSelected']=False
     components.append(component('conflict',selected=True)); components[1]['Restrictions']=['conflict']
     guide.write_text(json.dumps({'thisMod':components})); result=run('--use-file-selection','--select-visible-search','missing')
@@ -85,3 +86,75 @@ with tempfile.TemporaryDirectory(prefix='modsync-selection-') as tmp:
     assert 'Missing required archive' in p.stderr,p.stderr
     assert not list(game.iterdir())
     print('PASS rooted validate uses native eligibility before pipeline')
+
+    # A saved unavailable chain is cleared, while healthy saved choices survive.
+    components=[component('saved-broken','broken.zip',selected=True),component('saved-dependent',deps=['saved-broken'],selected=True),component('saved-transitive',deps=['saved-dependent'],selected=True),component('healthy','good.zip',selected=True)]
+    guide.write_text(json.dumps({'thisMod':components})); original=guide.read_bytes()
+    result=run('--use-file-selection')
+    assert result['selected']==['healthy'],result
+    assert guide.read_bytes()==original
+    print('PASS saved corrupt archive and transitive dependents cleared; healthy choice retained')
+
+    parent=component('saved-parent',selected=True)
+    parent['Instructions']=[dict(Action='Choose',Source=['healthy-option','bad-option'])]
+    parent['Options']=[component('healthy-option','good.zip',selected=True),component('bad-option','broken.zip',selected=True)]
+    guide.write_text(json.dumps({'thisMod':[parent]})); original=guide.read_bytes()
+    result=run('--use-file-selection')
+    assert set(result['selected'])=={'saved-parent','healthy-option'},result
+    assert guide.read_bytes()==original
+    print('PASS bad saved option cleared without losing healthy saved option or parent')
+
+    # Uncertain I/O must fail the entire scan rather than publish deselections.
+    components=[component('saved-missing','missing.zip',selected=True),component('unreadable','good.zip',selected=True)]
+    guide.write_text(json.dumps({'thisMod':components})); original=guide.read_bytes()
+    (mods/'good.zip').chmod(0)
+    try:
+        p=subprocess.run([binary,'selection','--input',str(guide),'--source-dir',str(mods),'--game-dir',str(game),'--use-file-selection','--json'],text=True,capture_output=True)
+        assert p.returncode!=0,(p.stdout,p.stderr)
+        assert 'inspection is incomplete' in p.stderr,(p.stdout,p.stderr)
+        assert not p.stdout.strip(),p.stdout
+        assert guide.read_bytes()==original
+    finally:
+        (mods/'good.zip').chmod(0o600)
+    result=run('--use-file-selection'); assert result['selected']==['unreadable'],result
+    print('PASS permission failure publishes no selection changes; successful retry clears only confirmed missing item')
+
+    # Synchronize a metadata change with an actual archive open on Linux.
+    # The owned CLI is stopped before mutation and always resumed/terminated.
+    import sys
+    if sys.platform.startswith('linux'):
+        import ctypes, select, signal
+        archive_path=mods/'changing.zip'
+        with zipfile.ZipFile(archive_path,'w',compression=zipfile.ZIP_DEFLATED) as archive:
+            with archive.open('payload.bin','w') as member:
+                block=b'0'*(1024*1024)
+                for _ in range(128): member.write(block)
+        components=[component('saved-missing','missing.zip',selected=True),component('changing','changing.zip',selected=True)]
+        guide.write_text(json.dumps({'thisMod':components})); original=guide.read_bytes()
+        libc=ctypes.CDLL(None,use_errno=True)
+        fd=libc.inotify_init1(os.O_CLOEXEC|os.O_NONBLOCK)
+        assert fd>=0,ctypes.get_errno()
+        assert libc.inotify_add_watch(fd,os.fsencode(archive_path),0x20)>=0,ctypes.get_errno() # IN_OPEN
+        process=None
+        try:
+            process=subprocess.Popen([binary,'selection','--input',str(guide),'--source-dir',str(mods),'--game-dir',str(game),'--use-file-selection','--json'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
+            assert select.select([fd],[],[],10)[0], 'CLI did not open the watched archive'
+            os.read(fd,4096)
+            process.send_signal(signal.SIGSTOP)
+            _,status=os.waitpid(process.pid,os.WUNTRACED)
+            assert os.WIFSTOPPED(status),'CLI completed before the controlled mutation'
+            metadata=archive_path.stat()
+            os.utime(archive_path,ns=(metadata.st_atime_ns,metadata.st_mtime_ns+1_000_000_000))
+            process.send_signal(signal.SIGCONT)
+            stdout,stderr=process.communicate(timeout=30)
+            assert process.returncode!=0,(stdout,stderr)
+            assert 'changed during inspection' in stderr,(stdout,stderr)
+            assert not stdout.strip(),stdout
+            assert guide.read_bytes()==original
+        finally:
+            os.close(fd)
+            if process is not None and process.poll() is None:
+                process.send_signal(signal.SIGCONT)
+                process.kill()
+                process.communicate()
+        print('PASS archive mutation during inspection aborts without publishing deselections')
