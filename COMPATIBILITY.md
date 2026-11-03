@@ -4574,3 +4574,16 @@ pinned OdyPatcher Git dependency are unchanged. Formatting, locked production
 builds and strict Clippy passed in both feature modes; ten isolated CLI settings
 inspections passed. Native UI save interaction remains unverified; Rust tests
 remain frozen under AGENTS.md.
+
+### Native archive-aware installer selection (source implementation)
+
+The installer desktop's selection controls and complete-root ordinary CLI
+selection now call the same engine selection entry point. Local archive failures
+and unavailable required dependencies prevent new selections, with explicit
+reasons, while saved choices remain intact. Desktop archive work is cancellable,
+owned, and bound to the current input snapshot. The selection inspection command
+accepts `--source-dir` alongside `--game-dir` and emits availability reasons in
+JSON. No CI-generated GUID prefilter or TypeScript change is involved. See
+[selection availability](docs/parity/selection-availability/README.md) for the
+acquisition/direct-Markdown/remaining-phase boundaries and native GUI acceptance
+limits. This does not establish full installation or cross-route parity.

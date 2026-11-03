@@ -13,6 +13,7 @@ mod protocol_load;
 mod protocol_settings;
 mod resource_watch;
 mod rich_content;
+mod selection_panel;
 mod sharing;
 mod standalone_patcher;
 mod structured_log;
@@ -32,35 +33,6 @@ use std::{
     },
     time::Duration,
 };
-
-/// Use the same bulk selection rules as the CLI, retaining explanations in the log.
-fn apply_bulk_selection(
-    components: &mut [Component],
-    detected_game: modsync::game::Detected,
-    action: modsync::selection::Action,
-    logs: &mut Vec<String>,
-) {
-    match modsync::selection::apply(components, Some(detected_game), action) {
-        Ok(outcome) => {
-            for warning in outcome.warnings {
-                logs.push(format!("Selection warning: {warning}"));
-            }
-            for guid in outcome.auto_selected {
-                logs.push(format!(
-                    "Selection: auto-selected {}",
-                    modsync::selection::describe(components, &guid)
-                ));
-            }
-            for guid in outcome.auto_deselected {
-                logs.push(format!(
-                    "Selection: auto-deselected {}",
-                    modsync::selection::describe(components, &guid)
-                ));
-            }
-        }
-        Err(error) => logs.push(format!("Selection failed: {error:#}")),
-    }
-}
 
 enum Message {
     ShellTerminal(Box<main_window::Finished>),
@@ -165,6 +137,7 @@ pub struct App {
     standalone: standalone_patcher::State,
     maintenance: maintenance::State,
     resource_watch: resource_watch::State,
+    selection_panel: selection_panel::State,
     sharing: sharing::View,
     sharing_continuation: Option<SharingContinuation>,
     theme: String,
@@ -2100,8 +2073,8 @@ impl App {
                     }
                 } }
                 if let Some((index, selected)) = change {
-                    modsync::selection::set_component_selected(&mut self.guide.as_mut().unwrap().components, index, selected);
-                    self.invalidate_validation();
+                    let guid = self.guide.as_ref().unwrap().components[index].guid.clone();
+                    self.start_selection(Some(modsync::selection::Action::SetWidescreen { guid, selected }));
                 }
                 ui.label(format!("{} widescreen mods selected", self.selected_widescreen()));
                 if self.selected_widescreen() > 0 {
@@ -2123,6 +2096,8 @@ impl App {
         let mut summary_action = None;
         let mut preference_save = false;
         let mut patcher_save = false;
+        let mut selection_action = None;
+        let mut refresh_selection = false;
         let deployed_guid = self
             .guide
             .as_ref()
@@ -2278,20 +2253,20 @@ impl App {
                     ui.label("Load a guide first.");
                     return;
                 };
-                modsync::game::enforce_selectable(&mut g.components, detected_game);
+                ui.label(&self.selection_panel.status);
+                if ui.button("Refresh archive availability").clicked() {
+                    refresh_selection = true;
+                }
                 ui.horizontal(|ui| {
                     if ui.button("Select all").clicked() {
-                        apply_bulk_selection(
-                            &mut g.components,
-                            detected_game,
-                            modsync::selection::Action::SelectVisible(modsync::selection::Filter {
+                        selection_action = Some(modsync::selection::Action::SelectVisible(
+                            modsync::selection::Filter {
                                 search: self.search.clone(),
                                 tier: self.tier_filter.clone(),
                                 category: self.category_filter.clone(),
                                 spoiler_free: self.spoiler_free,
-                            }),
-                            &mut self.logs,
-                        );
+                            },
+                        ));
                         self.validated = false;
                         self.conflicts = None;
                         validation_page::clear_report(
@@ -2301,7 +2276,7 @@ impl App {
                         self.confirm_install = false;
                     }
                     if ui.button("Deselect all").clicked() {
-                        modsync::selection::deselect_base(&mut g.components);
+                        selection_action = Some(modsync::selection::Action::DeselectBase);
                         self.validated = false;
                         self.conflicts = None;
                         validation_page::clear_report(
@@ -2367,12 +2342,9 @@ impl App {
                         )
                         .clicked()
                     {
-                        apply_bulk_selection(
-                            &mut g.components,
-                            detected_game,
-                            modsync::selection::Action::SelectThroughTier(self.tier_filter.clone()),
-                            &mut self.logs,
-                        );
+                        selection_action = Some(modsync::selection::Action::SelectThroughTier(
+                            self.tier_filter.clone(),
+                        ));
                         self.validated = false;
                         self.conflicts = None;
                         validation_page::clear_report(
@@ -2408,14 +2380,10 @@ impl App {
                         )
                         .clicked()
                     {
-                        apply_bulk_selection(
-                            &mut g.components,
-                            detected_game,
-                            modsync::selection::Action::SelectCategories(vec![
+                        selection_action =
+                            Some(modsync::selection::Action::SelectCategories(vec![
                                 self.category_filter.clone(),
-                            ]),
-                            &mut self.logs,
-                        );
+                            ]));
                         self.validated = false;
                         self.conflicts = None;
                         validation_page::clear_report(
@@ -2515,17 +2483,17 @@ impl App {
                                         .clicked()
                                     {
                                         let selected = selected_count < indices.len();
-                                        for index in indices {
-                                            modsync::selection::set_component_selected(
-                                                &mut g.components,
-                                                *index,
+                                        selection_action =
+                                            Some(modsync::selection::Action::SetGroup {
+                                                category: category.clone(),
                                                 selected,
-                                            );
-                                        }
-                                        modsync::game::enforce_selectable(
-                                            &mut g.components,
-                                            detected_game,
-                                        );
+                                                filter: modsync::selection::Filter {
+                                                    search: self.search.clone(),
+                                                    tier: self.tier_filter.clone(),
+                                                    category: self.category_filter.clone(),
+                                                    spoiler_free: self.spoiler_free,
+                                                },
+                                            });
                                         self.validated = false;
                                         self.conflicts = None;
                                         validation_page::clear_report(
@@ -2550,16 +2518,28 @@ impl App {
                                     for index in indices {
                                         let c = &mut g.components[*index];
                                         let mut toggled = None;
+                                        let mut checked = c.is_selected;
+                                        let reason = (self.selection_panel.stamp
+                                            == self.input_stamp)
+                                            .then(|| {
+                                                self.selection_panel.availability.reason(&c.guid)
+                                            })
+                                            .flatten();
                                         ui.horizontal(|ui| {
                                             if ui
                                                 .add_enabled(
-                                                    modsync::game::selectable(c, detected_game),
-                                                    egui::Checkbox::new(&mut c.is_selected, ""),
+                                                    checked
+                                                        || (reason.is_none()
+                                                            && modsync::game::selectable(
+                                                                c,
+                                                                detected_game,
+                                                            )),
+                                                    egui::Checkbox::new(&mut checked, ""),
                                                 )
-                                                .on_hover_text("Select component")
+                                                .on_hover_text(reason.unwrap_or("Select component"))
                                                 .changed()
                                             {
-                                                toggled = Some(c.is_selected);
+                                                toggled = Some(checked);
                                                 self.validated = false;
                                                 self.conflicts = None;
                                                 validation_page::clear_report(
@@ -2589,16 +2569,15 @@ impl App {
                                                 );
                                             }
                                         });
+                                        if let Some(reason) = reason {
+                                            ui.small(reason);
+                                        }
                                         if let Some(selected) = toggled {
-                                            modsync::selection::set_component_selected(
-                                                &mut g.components,
-                                                *index,
-                                                selected,
-                                            );
-                                            modsync::game::enforce_selectable(
-                                                &mut g.components,
-                                                detected_game,
-                                            );
+                                            selection_action =
+                                                Some(modsync::selection::Action::SetComponent {
+                                                    guid: g.components[*index].guid.clone(),
+                                                    selected,
+                                                });
                                         }
                                     }
                                 });
@@ -2634,7 +2613,13 @@ impl App {
                                 if actions.download || actions.jump_to_instruction.is_some() {
                                     summary_action = Some((c.guid.clone(), actions));
                                 }
-                                option_change = Self::options(ui, c, self.spoiler_free);
+                                option_change = Self::options(
+                                    ui,
+                                    c,
+                                    self.spoiler_free,
+                                    (self.selection_panel.stamp == self.input_stamp)
+                                        .then_some(&self.selection_panel.availability),
+                                );
                                 if option_change.is_some() {
                                     self.validated = false;
                                     self.conflicts = None;
@@ -2672,13 +2657,10 @@ impl App {
                                 }
                             }
                             if let Some((option, selected)) = option_change {
-                                modsync::selection::set_option_selected(
-                                    &mut g.components,
-                                    self.selected,
-                                    option,
+                                selection_action = Some(modsync::selection::Action::SetOption {
+                                    guid: option,
                                     selected,
-                                );
-                                modsync::game::enforce_selectable(&mut g.components, detected_game);
+                                });
                             }
                         });
                 });
@@ -2892,6 +2874,11 @@ impl App {
             }
             _ => self.guide_editor(ui),
         }
+        if let Some(action) = selection_action {
+            self.start_selection(Some(action));
+        } else if refresh_selection {
+            self.start_selection(None);
+        }
         if patcher_save {
             self.save_patcher_preferences();
         } else if preference_save {
@@ -2948,6 +2935,7 @@ impl App {
             standalone: Default::default(),
             maintenance: Default::default(),
             resource_watch: Default::default(),
+            selection_panel: Default::default(),
             sharing: Default::default(),
             sharing_continuation: None,
             theme: "/Styles/LightStyle.axaml".into(),
@@ -3081,7 +3069,7 @@ impl App {
             return;
         }
         self.reset_installation();
-        match Guide::load_for_install(Path::new(&self.input)) {
+        match Guide::load_for_install_preserving_selection(Path::new(&self.input)) {
             Ok(g) => {
                 self.logs
                     .push(format!("Loaded {} components", g.components.len()));
@@ -3268,14 +3256,7 @@ impl App {
         if selected.is_empty() {
             return;
         }
-        if let Some(guide) = &mut self.guide {
-            modsync::selection::select_categories(&mut guide.components, &selected);
-            modsync::selection::resolve_selected(&mut guide.components);
-            self.validated = false;
-            self.conflicts = None;
-            validation_page::clear_report(&mut self.validation_report, &mut self.validation_page);
-            self.confirm_install = false;
-        }
+        self.start_selection(Some(modsync::selection::Action::SelectCategories(selected)));
     }
 
     fn sync_target_presentation(&mut self, ctx: &egui::Context) {
@@ -4355,27 +4336,38 @@ impl App {
 
     fn options(
         ui: &mut egui::Ui,
-        component: &mut Component,
+        component: &Component,
         spoiler_free: bool,
-    ) -> Option<(usize, bool)> {
+        availability: Option<&modsync::selection::Availability>,
+    ) -> Option<(String, bool)> {
         let mut changed = None;
-        for (index, option) in component.options.iter_mut().enumerate() {
+        for option in &component.options {
             let name = modsync::selection::display_name(option, spoiler_free);
-            let tooltip = modsync::selection::tooltip(option, spoiler_free);
+            let reason = availability.and_then(|available| available.reason(&option.guid));
+            let mut selected = option.is_selected;
             if ui
-                .checkbox(&mut option.is_selected, name)
-                .on_hover_text(tooltip)
+                .add_enabled(
+                    selected || reason.is_none(),
+                    egui::Checkbox::new(&mut selected, name),
+                )
+                .on_hover_text(
+                    reason
+                        .map(str::to_owned)
+                        .unwrap_or_else(|| modsync::selection::tooltip(option, spoiler_free)),
+                )
                 .changed()
             {
-                changed = Some((index, option.is_selected));
+                changed = Some((option.guid.clone(), selected));
+            }
+            if let Some(reason) = reason {
+                ui.small(reason);
             }
             let description = modsync::selection::display_description(option, spoiler_free);
             if !description.trim().is_empty() {
-                ui.label(description)
-                    .on_hover_text(modsync::selection::tooltip(option, spoiler_free));
+                ui.label(description);
             }
             if option.is_selected {
-                let _ = Self::options(ui, option, spoiler_free);
+                changed = Self::options(ui, option, spoiler_free, availability).or(changed);
             }
         }
         changed
@@ -4408,6 +4400,7 @@ impl eframe::App for App {
         // opening click is outside the modal and must not dismiss it immediately.
         let install_confirmation_was_open = self.confirm_install;
         self.poll_resource_watch();
+        self.poll_selection();
         self.poll_protocol_inbox(ctx);
         let messages: Vec<_> = self
             .receiver
@@ -4471,6 +4464,7 @@ impl eframe::App for App {
         self.sync_target_presentation(ctx);
         if self.sharing.closing
             && self.resource_watch.closed()
+            && !self.selection_panel.busy()
             && self.standalone.closed()
             && self.maintenance.closed()
             && self.protocol_load.closed()
@@ -4497,12 +4491,14 @@ impl eframe::App for App {
             ctx.request_repaint_after(Duration::from_millis(100));
         }
         let busy = self.receiver.is_some()
+            || self.selection_panel.busy()
             || self.desktop.busy()
             || self.sharing.closing
             || self.sharing_continuation.is_some();
         if ctx.input(|i| i.viewport().close_requested())
             && !(self.sharing.closing
                 && self.resource_watch.closed()
+                && !self.selection_panel.busy()
                 && self.standalone.closed()
                 && self.maintenance.closed()
                 && self.protocol_load.closed()

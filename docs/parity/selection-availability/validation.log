@@ -1,0 +1,10 @@
+PASS available-only selection, corrupt/missing inputs, transitive dependency reasons, unknown dependency, read-only guide/game
+PASS saved unavailable choice retained
+PASS rejected selection preserves saved conflicting choice
+PASS option choices retained, unchosen missing option isolated, option dependency blocked
+PASS available required dependency cycle
+PASS changed archive invalidates its transitive selection
+PASS repaired archive becomes selectable
+PASS nested archive input projection without extraction
+PASS identical referenced options retain the saved identity
+PASS rooted validate uses native eligibility before pipeline

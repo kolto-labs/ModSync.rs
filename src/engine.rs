@@ -757,6 +757,171 @@ impl Engine {
         Ok(())
     }
 
+    /// Execute a native selection action against its candidate archive inputs.
+    pub fn select_available(
+        &self,
+        components: &mut [Component],
+        game: Option<crate::game::Detected>,
+        action: crate::selection::Action,
+    ) -> Result<(crate::selection::Outcome, crate::selection::Availability)> {
+        let mut candidate = Guide {
+            components: components.to_vec(),
+            ..Guide::default()
+        };
+        let initial = self.selection_availability(&candidate)?;
+        crate::selection::apply_available(
+            &mut candidate.components,
+            game,
+            action.clone(),
+            &initial,
+        )?;
+        let availability = self.selection_availability(&candidate)?;
+        let outcome = crate::selection::apply_available(components, game, action, &availability)?;
+        Ok((outcome, availability))
+    }
+
+    /// Inspect archive inputs using the install engine's path and archive rules.
+    /// No extraction, external process, selection mutation, or game write occurs.
+    pub fn selection_availability(&self, guide: &Guide) -> Result<crate::selection::Availability> {
+        fn owners<'a>(components: &'a [Component], out: &mut Vec<&'a Component>) {
+            for component in components {
+                out.push(component);
+                owners(&component.options, out);
+            }
+        }
+        fn contains(component: &Component, guid: &str) -> bool {
+            crate::guid::eq_ascii(&component.guid, guid)
+                || component
+                    .options
+                    .iter()
+                    .any(|option| contains(option, guid))
+        }
+        fn instructions<'a>(
+            component: &'a Component,
+            selected: &BTreeSet<crate::guid::Identity>,
+            out: &mut Vec<&'a Instruction>,
+        ) -> Result<()> {
+            for instruction in &component.instructions {
+                if !applies_with(selected, instruction) {
+                    continue;
+                }
+                out.push(instruction);
+                if instruction.action == "Choose" {
+                    for option in Engine::chosen_options(component, instruction)? {
+                        instructions(option, selected, out)?;
+                    }
+                }
+            }
+            Ok(())
+        }
+        let mut components = Vec::new();
+        owners(&guide.components, &mut components);
+        let mut failures = Vec::new();
+        let mut archives = BTreeMap::<String, std::result::Result<BTreeSet<String>, String>>::new();
+        for component in components {
+            self.check_cancelled()?;
+            let mut candidate = guide.clone();
+            let action = if guide
+                .components
+                .iter()
+                .any(|top| std::ptr::eq(top, component))
+            {
+                crate::selection::Action::SetComponent {
+                    guid: component.guid.clone(),
+                    selected: true,
+                }
+            } else {
+                crate::selection::Action::SetOption {
+                    guid: component.guid.clone(),
+                    selected: true,
+                }
+            };
+            if !component.is_selected {
+                crate::selection::apply(&mut candidate.components, None, action)?;
+            }
+            let selected = selected_guid_keys(&candidate);
+            let candidate_root = candidate
+                .components
+                .iter()
+                .find(|owner| contains(owner, &component.guid))
+                .context("Selection archive owner disappeared")?;
+            let checked = (|| -> Result<()> {
+                let mut checked_instructions = Vec::new();
+                instructions(candidate_root, &selected, &mut checked_instructions)?;
+                let mut projected = BTreeSet::<String>::new();
+                for instruction in checked_instructions {
+                    if instruction.action != "Extract" {
+                        continue;
+                    }
+                    ensure!(
+                        !instruction.source.is_empty(),
+                        "Extract has no required archive source"
+                    );
+                    for source in &instruction.source {
+                        let matches = self.matches(std::slice::from_ref(source), true)?;
+                        if matches.is_empty() {
+                            let (_, pattern) = self.source_pattern(source)?;
+                            // Nested archives produced by an earlier Extract are validated
+                            // by the actual engine when their bytes become available.
+                            ensure!(
+                                projected.iter().any(|member| pattern.matches(member)),
+                                "Missing required archive: {source}"
+                            );
+                        }
+                        for archive_path in matches {
+                            self.check_cancelled()?;
+                            let key = self.path_policy.key(&archive_path);
+                            if !archives.contains_key(&key) {
+                                let inspected = (|| -> Result<BTreeSet<String>> {
+                                    let destination = extraction_destination(&archive_path);
+                                    self.settings.roots.check(&destination)?;
+                                    let (entries, _) = archive::list_original_with_size(
+                                        self.files[&key].1.path()?,
+                                        &archive_path,
+                                        &self.settings.archive,
+                                        &self.settings.cancelled,
+                                    )
+                                    .with_context(|| {
+                                        format!("Invalid archive {}", archive_path.display())
+                                    })?;
+                                    let mut members = BTreeSet::new();
+                                    for entry in
+                                        entries.into_iter().filter(|entry| !entry.is_directory)
+                                    {
+                                        let path = destination.join(entry.path);
+                                        self.settings.roots.check(&path)?;
+                                        members.insert(self.path_policy.key(&path));
+                                    }
+                                    Ok(members)
+                                })();
+                                archives.insert(
+                                    key.clone(),
+                                    inspected.map_err(|error| format!("{error:#}")),
+                                );
+                            }
+                            let members = archives[&key]
+                                .as_ref()
+                                .map_err(|error| anyhow::anyhow!(error.clone()))?;
+                            projected.extend(members.iter().cloned());
+                        }
+                    }
+                }
+                Ok(())
+            })();
+            if let Err(error) = checked {
+                self.check_cancelled()?;
+                failures.push(crate::selection::Unavailable {
+                    guid: component.guid.clone(),
+                    reason: format!("{error:#}"),
+                });
+            }
+        }
+        Ok(crate::selection::Availability::from_archive_failures(
+            &guide.components,
+            failures,
+        ))
+    }
+
     pub fn validate(mut self, guide: &Guide, mut emit: impl FnMut(Event)) -> Result<()> {
         recovery::ensure_clean(&self.settings.roots)?;
         recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;

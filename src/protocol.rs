@@ -124,7 +124,7 @@ pub fn fetch_modsync_guide_with_cancel(raw: &str, cancelled: &AtomicBool) -> Res
     check_cancel()?;
     fetch_instruction_with_cancel(instruction_url, &destination, cancelled)?;
     check_cancel()?;
-    let guide = Guide::load_for_install(&destination)?;
+    let guide = Guide::load_for_install_preserving_selection(&destination)?;
     check_cancel()?;
     Ok((link, guide))
 }

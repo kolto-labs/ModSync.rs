@@ -1399,6 +1399,145 @@ fn push_unique(list: &mut Vec<String>, guid: &str) {
     }
 }
 
+/// Read-only archive and required-dependency eligibility, separate from saved choices.
+#[derive(Clone, Debug, Default, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Availability {
+    pub unavailable: Vec<Unavailable>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct Unavailable {
+    pub guid: String,
+    pub reason: String,
+}
+
+impl Availability {
+    pub fn reason(&self, guid: &str) -> Option<&str> {
+        self.unavailable
+            .iter()
+            .find(|entry| crate::guid::eq_ascii(&entry.guid, guid))
+            .map(|entry| entry.reason.as_str())
+    }
+
+    /// Propagate required edges to a fixed point, including option ancestors.
+    /// Restrictions and ordering edges are not required dependencies.
+    pub fn from_archive_failures(components: &[Component], failures: Vec<Unavailable>) -> Self {
+        let nodes = all_nodes(components);
+        let mut blocked: BTreeMap<Identity, String> = failures
+            .into_iter()
+            .map(|entry| (guid::key_ascii(&entry.guid), entry.reason))
+            .collect();
+        loop {
+            let mut additions = Vec::new();
+            for path in &nodes {
+                let component = node(components, path);
+                let key = guid::key_ascii(&component.guid);
+                if blocked.contains_key(&key) {
+                    continue;
+                }
+                let parent =
+                    (path.len() > 1).then(|| &node(components, &path[..path.len() - 1]).guid);
+                for dependency in component.dependencies.iter().chain(parent) {
+                    let required = nodes
+                        .iter()
+                        .map(|path| node(components, path))
+                        .find(|required| guid::eq_ascii(&required.guid, dependency));
+                    let reason = match required {
+                        None => Some(format!(
+                            "Required dependency is absent from the guide: {dependency}"
+                        )),
+                        Some(required) => blocked.get(&guid::key_ascii(dependency)).map(|reason| {
+                            format!("Requires {} ({}): {reason}", required.name, required.guid)
+                        }),
+                    };
+                    if let Some(reason) = reason {
+                        additions.push((key, reason));
+                        break;
+                    }
+                }
+            }
+            if additions.is_empty() {
+                break;
+            }
+            blocked.extend(additions);
+        }
+        Self {
+            unavailable: nodes
+                .iter()
+                .map(|path| node(components, path))
+                .filter_map(|component| {
+                    blocked
+                        .get(&guid::key_ascii(&component.guid))
+                        .map(|reason| Unavailable {
+                            guid: component.guid.clone(),
+                            reason: reason.clone(),
+                        })
+                })
+                .collect(),
+        }
+    }
+}
+
+/// Use the same graph as ordinary selection, then refuse unavailable additions.
+/// Existing selections are retained: an unavailable saved choice remains visible
+/// and validation still refuses it; merely inspecting archives never rewrites it.
+pub fn apply_available(
+    components: &mut [Component],
+    game: Option<game::Detected>,
+    action: Action,
+    availability: &Availability,
+) -> anyhow::Result<Outcome> {
+    // Resolve the public action's supported name alias before refusal, so a
+    // rejected alias cannot run its restriction cascade against saved choices.
+    let action = match action {
+        Action::SetComponent {
+            guid,
+            selected: true,
+        } => {
+            let index = component_index(components, &guid).or_else(|| {
+                components
+                    .iter()
+                    .position(|component| crate::fomod::eq_ignore_case(&component.name, &guid))
+            });
+            Action::SetComponent {
+                guid: index.map_or(guid, |index| components[index].guid.clone()),
+                selected: true,
+            }
+        }
+        other => other,
+    };
+    let nodes = all_nodes(components);
+    let before = snapshot(components, &nodes);
+    let mut outcome = apply_internal(components, game, action, Some(availability))?;
+    for (path, was_selected) in nodes.iter().zip(&before) {
+        let component = node_mut(components, path);
+        if component.is_selected
+            && !was_selected
+            && let Some(reason) = availability.reason(&component.guid)
+        {
+            component.is_selected = false;
+            outcome.warnings.push(format!(
+                "Cannot select {} ({}): {reason}",
+                component.name, component.guid
+            ));
+        }
+    }
+    outcome.selected.retain(|guid| {
+        nodes.iter().any(|path| {
+            let component = node(components, path);
+            guid::eq_ascii(&component.guid, guid) && component.is_selected
+        })
+    });
+    outcome.auto_selected.retain(|guid| {
+        outcome
+            .selected
+            .iter()
+            .any(|selected| guid::eq_ascii(selected, guid))
+    });
+    Ok(outcome)
+}
+
 /// Apply one selection action: direct mutation, the shared cascade or
 /// dependency closure, game enforcement, then a before/after diff.
 ///
@@ -1409,6 +1548,37 @@ pub fn apply(
     game: Option<game::Detected>,
     action: Action,
 ) -> anyhow::Result<Outcome> {
+    apply_internal(components, game, action, None)
+}
+
+fn apply_internal(
+    components: &mut [Component],
+    game: Option<game::Detected>,
+    action: Action,
+    availability: Option<&Availability>,
+) -> anyhow::Result<Outcome> {
+    if let Action::SetComponent {
+        guid,
+        selected: true,
+    }
+    | Action::SetOption {
+        guid,
+        selected: true,
+    }
+    | Action::SetWidescreen {
+        guid,
+        selected: true,
+    } = &action
+        && let Some(reason) = availability.and_then(|available| available.reason(guid))
+    {
+        return Ok(Outcome {
+            warnings: vec![format!(
+                "Cannot select {}: {reason}",
+                describe(components, guid)
+            )],
+            ..Outcome::default()
+        });
+    }
     let nodes = all_nodes(components);
     let before = snapshot(components, &nodes);
     let before_top: Vec<bool> = components.iter().map(|c| c.is_selected).collect();
@@ -1473,7 +1643,7 @@ pub fn apply(
                 .iter_mut()
                 .filter(|c| base(c) && filter.matches(c))
             {
-                select_direct(c, game, &mut direct, &mut outcome.warnings);
+                select_direct(c, game, availability, &mut direct, &mut outcome.warnings);
             }
             close = true;
         }
@@ -1496,6 +1666,7 @@ pub fn apply(
                             select_direct(
                                 &mut components[index],
                                 game,
+                                availability,
                                 &mut direct,
                                 &mut outcome.warnings,
                             );
@@ -1516,7 +1687,7 @@ pub fn apply(
                 .iter_mut()
                 .filter(|c| base(c) && tier_matches(&c.tier, &tier))
             {
-                select_direct(c, game, &mut direct, &mut outcome.warnings);
+                select_direct(c, game, availability, &mut direct, &mut outcome.warnings);
             }
             close = true;
         }
@@ -1526,7 +1697,7 @@ pub fn apply(
                     .iter_mut()
                     .filter(|c| base(c) && matches_category_tier(c, &categories, &[]))
                 {
-                    select_direct(c, game, &mut direct, &mut outcome.warnings);
+                    select_direct(c, game, availability, &mut direct, &mut outcome.warnings);
                 }
                 close = true;
             }
@@ -1617,9 +1788,14 @@ fn refusal(c: &Component) -> String {
 fn select_direct(
     c: &mut Component,
     game: Option<game::Detected>,
+    availability: Option<&Availability>,
     direct: &mut BTreeMap<Identity, bool>,
     warnings: &mut Vec<String>,
 ) {
+    if let Some(reason) = availability.and_then(|available| available.reason(&c.guid)) {
+        warnings.push(format!("Cannot select {} ({}): {reason}", c.name, c.guid));
+        return;
+    }
     if refused(game, c) {
         warnings.push(refusal(c));
         return;

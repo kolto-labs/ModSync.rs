@@ -176,7 +176,7 @@ impl App {
                                     .pick_file()
                                     .context("No guide selected")?
                             };
-                            let guide = Guide::load_for_install(&path)?;
+                            let guide = Guide::load_for_install_preserving_selection(&path)?;
                             Output::Guide(guide, Some(path))
                         }
                         Work::SaveGuide => {

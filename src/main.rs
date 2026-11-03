@@ -876,6 +876,9 @@ struct SelectionArgs {
     /// Detect the game here to apply Aspyr-only rules. Without it they are only reported.
     #[arg(long)]
     game_dir: Option<PathBuf>,
+    /// Inspect local archives with the same engine used by desktop selection.
+    #[arg(long, requires = "game_dir")]
+    source_dir: Option<PathBuf>,
     /// Honor IsSelected flags; by default select all top-level components.
     #[arg(long)]
     use_file_selection: bool,
@@ -952,8 +955,8 @@ fn ordered_selection_steps(
     steps.into_iter().map(|(_, step)| step).collect()
 }
 
-/// Explicit selection flags go through the shared actions; default-all, file and
-/// profile selections are left as loaded. Game rules run once at the end.
+/// Explicit selection flags use the shared graph and, when roots are available,
+/// the same engine eligibility checks as the desktop. Game rules run once at the end.
 /// Warnings and every resolution change go to stderr when `report` is set.
 fn apply_selection(
     components: &mut [modsync::Component],
@@ -962,6 +965,7 @@ fn apply_selection(
     option: &[String],
     flags: &SelectionFlags,
     report: bool,
+    selection_engine: Option<&Engine>,
 ) -> Result<Vec<modsync::selection::Outcome>> {
     use modsync::selection::{Action as Step, apply, describe};
     let mut steps = Vec::new();
@@ -972,7 +976,12 @@ fn apply_selection(
     steps.push(Step::EnforceGame);
     let mut outcomes = Vec::new();
     for step in steps {
-        let outcome = apply(components, game, step)?;
+        let outcome = match selection_engine {
+            Some(engine) if step != Step::EnforceGame => {
+                engine.select_available(components, game, step)?.0
+            }
+            _ => apply(components, game, step)?,
+        };
         if report {
             for warning in &outcome.warnings {
                 eprintln!("Selection warning: {warning}");
@@ -989,15 +998,11 @@ fn apply_selection(
     Ok(outcomes)
 }
 
-/// Load the guide for validate, install and conflicts. Without a profile this is the
-/// reference file loader, which selects every component when a non-Markdown file
-/// selects none, so `--use-file-selection` then sees them all, as in C#. A profile
-/// replaces the selection after loading, so its runs keep the authored flags.
-/// Like C#, a non-Markdown guide then takes its dependency resolver's order and is
-/// refused for a bad InstallBefore/InstallAfter reference on any component; the C#
-/// Markdown ingest drops those references, so Markdown is neither reordered nor refused.
-fn load_validation_guide(input: &std::path::Path, profile: bool) -> Result<Guide> {
-    let mut guide = if profile {
+/// Load and order a guide without mutating authored selection when requested.
+/// Rooted selection and profiles preserve the flags; legacy rootless validation
+/// retains its reference file-loader default. Ordering checks remain unchanged.
+fn load_validation_guide(input: &std::path::Path, preserve_selection: bool) -> Result<Guide> {
+    let mut guide = if preserve_selection {
         Guide::load_for_install_preserving_selection(input)?
     } else {
         Guide::load_like_file_loader(input)?
@@ -1134,6 +1139,7 @@ fn validate_without_roots(
         &args.option,
         &args.selection_flags,
         !report_mode && !args.errors_only,
+        None,
     )?;
     require_validation_selection(&guide, args)?;
     let choices = args
@@ -2656,6 +2662,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                 &option,
                 &selection_flags,
                 true,
+                None,
             )?;
             let candidates =
                 selection::download_candidates(&execution.components, selection::Scope::All);
@@ -3105,24 +3112,58 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
         }
         Some(Action::Selection(args)) => {
             use modsync::selection;
-            let mut guide = Guide::load_for_install(&args.input)?;
-            if args.select.is_empty() && !args.use_file_selection {
-                for c in &mut guide.components {
-                    c.is_selected = true;
-                }
-            }
+            let mut guide = Guide::load_for_install_preserving_selection(&args.input)?;
             let detected = args
                 .game_dir
                 .as_deref()
                 .map(|dir| modsync::game::detect(&modsync::game::resolve_install_root(dir)));
-            let outcomes = apply_selection(
+            let selection_engine = args
+                .source_dir
+                .as_deref()
+                .map(|source| {
+                    let settings = Settings::new(
+                        source,
+                        args.game_dir.as_deref().context("Supply --game-dir")?,
+                    )?;
+                    Engine::new_with_case_insensitive_pathing(settings, case_insensitive_pathing)
+                })
+                .transpose()?;
+            let mut outcomes = Vec::new();
+            if args.select.is_empty() && !args.use_file_selection {
+                let action = selection::Action::SelectVisible(selection::Filter::default());
+                outcomes.push(match &selection_engine {
+                    Some(engine) => {
+                        engine
+                            .select_available(&mut guide.components, detected, action)?
+                            .0
+                    }
+                    None => selection::apply(&mut guide.components, detected, action)?,
+                });
+            }
+            outcomes.extend(apply_selection(
                 &mut guide.components,
                 detected,
                 &args.select,
                 &args.option,
                 &args.selection_flags,
                 true,
-            )?;
+                selection_engine.as_ref(),
+            )?);
+            let availability = selection_engine
+                .as_ref()
+                .map(|engine| engine.selection_availability(&guide))
+                .transpose()?;
+            if !args.json
+                && let Some(availability) = &availability
+            {
+                for entry in &availability.unavailable {
+                    eprintln!(
+                        "Unavailable {}: {}",
+                        selection::describe(&guide.components, &entry.guid),
+                        entry.reason
+                    );
+                }
+            }
             let components = &guide.components;
             let counts = selection::counts(components);
             let search = args
@@ -3145,6 +3186,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                     serde_json::to_string_pretty(&serde_json::json!({
                         "game": detected.map(|game| format!("{game:?}")),
                         "counts": counts,
+                        "availability": availability,
                         "filterSummary": summary,
                         "selected": selected,
                         "outcomes": outcomes,
@@ -3374,19 +3416,45 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                     "Input file not found: {}",
                     paths.input.display()
                 );
-                let mut guide = load_validation_guide(&paths.input, profile.is_some())?;
+                let mut guide = load_validation_guide(&paths.input, true)?;
                 if let Some(profile) = &profile {
                     profile.apply(&mut guide);
                 }
-                if args.select.is_empty() {
-                    for c in &mut guide.components {
-                        if !args.use_file_selection && profile.is_none() {
-                            c.is_selected = true;
-                        }
-                    }
-                }
                 let detected =
                     modsync::game::detect(&modsync::game::resolve_install_root(&paths.game));
+                let selection_engine =
+                    if args.download || args.direct_markdown || args.phase == PhaseArg::Remaining {
+                        None
+                    } else {
+                        let mut settings = Settings::new(&paths.source, &paths.game)?;
+                        settings.cancelled = dispatch_cancelled.clone();
+                        settings.archive.scratch_dir = args.scratch_dir.clone();
+                        settings.archive.max_expanded_bytes = args.max_expanded_bytes;
+                        Some(Engine::new_with_case_insensitive_pathing(
+                            settings,
+                            case_insensitive_pathing,
+                        )?)
+                    };
+                if args.select.is_empty() && !args.use_file_selection && profile.is_none() {
+                    let action = modsync::selection::Action::SelectVisible(
+                        modsync::selection::Filter::default(),
+                    );
+                    let outcome = match &selection_engine {
+                        Some(engine) => {
+                            engine
+                                .select_available(&mut guide.components, Some(detected), action)?
+                                .0
+                        }
+                        None => modsync::selection::apply(
+                            &mut guide.components,
+                            Some(detected),
+                            action,
+                        )?,
+                    };
+                    for warning in outcome.warnings {
+                        eprintln!("Selection warning: {warning}");
+                    }
+                }
                 apply_selection(
                     &mut guide.components,
                     Some(detected),
@@ -3394,6 +3462,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                     &args.option,
                     &args.selection_flags,
                     !report_mode || args.phase == PhaseArg::All,
+                    selection_engine.as_ref(),
                 )?;
                 // Ordinary validation rejects an empty effective selection before
                 // pipeline construction, so JSON uses the setup ErrorReport shape.
