@@ -218,3 +218,54 @@ with tempfile.TemporaryDirectory(prefix='modsync-selection-') as tmp:
                 process.kill()
                 process.communicate()
         print('PASS archive mutation during inspection aborts without publishing deselections')
+
+        # Receipt-only files are not opened by archive inspection. Synchronize
+        # with the final file's second hash pass, then mutate an earlier file
+        # whose bytes have already been read. A per-file immediate check misses it.
+        receipt_mods=root/'receipt-mods'; receipt_mods.mkdir()
+        first=receipt_mods/'a-state.txt'; first.write_text('before')
+        last=receipt_mods/'zz-padding.bin'
+        with last.open('wb') as file: file.truncate(256*1024*1024)
+        guide.write_text(json.dumps({'thisMod':[component('independent',selected=True)]})); original=guide.read_bytes()
+        receipt_args=[binary,'selection','--input',str(guide),'--source-dir',str(receipt_mods),'--game-dir',str(game),'--use-file-selection','--json','--receipt']
+        receipt_env=dict(os.environ,XDG_CONFIG_HOME=str(root/'receipt-config'))
+        fd=libc.inotify_init1(os.O_CLOEXEC|os.O_NONBLOCK)
+        assert fd>=0 and libc.inotify_add_watch(fd,os.fsencode(last),0x20)>=0
+        process=None
+        try:
+            process=subprocess.Popen(receipt_args,env=receipt_env,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
+            for iteration in range(2):
+                assert select.select([fd],[],[],15)[0], 'Receipt did not open final inventory file'
+                os.read(fd,4096)
+            process.send_signal(signal.SIGSTOP)
+            _,status=os.waitpid(process.pid,os.WUNTRACED)
+            assert os.WIFSTOPPED(status),'Receipt completed before controlled mutation'
+            first.write_text('after!')
+            process.send_signal(signal.SIGCONT)
+            stdout,stderr=process.communicate(timeout=30)
+            assert process.returncode!=0,(stdout,stderr)
+            assert 'Mod inventory changed while preparing receipt' in stderr,(stdout,stderr)
+            assert not stdout.strip(),stdout
+            assert guide.read_bytes()==original and list(game.iterdir())==[]
+        finally:
+            os.close(fd)
+            if process is not None and process.poll() is None:
+                process.send_signal(signal.SIGCONT); process.kill(); process.communicate()
+        print('PASS receipt rejects an earlier-file mutation during the later-file final hash pass; no partial JSON')
+
+        first.chmod(0)
+        try:
+            p=subprocess.run(receipt_args,env=receipt_env,text=True,capture_output=True)
+            assert p.returncode!=0 and not p.stdout.strip(),(p.stdout,p.stderr)
+            assert 'Permission denied' in p.stderr,p.stderr
+            assert guide.read_bytes()==original
+        finally:
+            first.chmod(0o600)
+        p=subprocess.run(receipt_args,env=receipt_env,text=True,capture_output=True)
+        assert p.returncode==0,p.stderr
+        receipt=json.loads(p.stdout)['receipt']
+        entry=next(entry for entry in receipt['modInventory'] if entry['path']=='a-state.txt')
+        assert entry['sha256']==hashlib.sha256(first.read_bytes()).hexdigest(),receipt
+        assert receipt['selected']==['independent'],receipt
+        assert guide.read_bytes()==original and list(game.iterdir())==[]
+        print('PASS unreadable receipt-only file aborts export; repaired stable retry produces current content hash')

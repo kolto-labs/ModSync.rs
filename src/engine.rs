@@ -1054,6 +1054,7 @@ impl Engine {
         let inventory = || -> Result<Vec<serde_json::Value>> {
             self.verify_selection_directories()?;
             let mut entries = Vec::new();
+            let mut inspected = Vec::new();
             for (path, content) in self.files.values() {
                 let Ok(relative) = path.strip_prefix(&self.settings.roots.mods) else {
                     continue;
@@ -1078,6 +1079,7 @@ impl Engine {
                     before == selection_file_stamp(disk)?,
                     "Mod inventory changed while preparing receipt"
                 );
+                inspected.push((disk.to_owned(), before));
                 let relative = relative
                     .iter()
                     .map(|part| part.to_str().context("Receipt requires UTF-8 mod paths"))
@@ -1086,6 +1088,15 @@ impl Engine {
                 entries.push(serde_json::json!({"path":relative,"bytes":bytes,"sha256":format!("{:x}",hash.finalize())}));
             }
             entries.sort_by(|a, b| a["path"].as_str().cmp(&b["path"].as_str()));
+            // Earlier files can change while later files are being hashed.
+            // Validate the entire pass before publishing its content identities.
+            for (path, stamp) in inspected {
+                self.check_cancelled()?;
+                ensure!(
+                    stamp == selection_file_stamp(&path)?,
+                    "Mod inventory changed while preparing receipt"
+                );
+            }
             self.verify_selection_directories()?;
             Ok(entries)
         };

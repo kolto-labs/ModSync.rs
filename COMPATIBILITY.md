@@ -4647,3 +4647,16 @@ corresponding CLI receipts. Proof retains the raw fixture guide and initial inpu
 hashes as well as the normalized receipts and action history. These are bounded
 native cases; wizard-page variants, native Windows/macOS and TypeScript remain
 outside this evidence. See the selection-availability replay notes.
+
+### Receipt inventory stability across a complete hash pass
+
+A production CLI race fixture exposed successful receipt export with a stale hash
+when an earlier file changed while a later file was being hashed on the final
+inventory pass. Receipt hashing now retains each file's metadata stamp and
+rechecks every file after the whole pass, in addition to immediate per-file and
+directory checks. A detected change aborts export without partial JSON.
+
+Linux synchronized production CLI evidence covers that exact race, an unreadable
+receipt-only inventory file, and a repaired stable retry with the current content
+hash. This closes the previously unverified CLI export-race case, not all possible
+concurrent mutations or the corresponding native GUI failure presentation.

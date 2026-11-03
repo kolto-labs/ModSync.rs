@@ -186,3 +186,25 @@ The prior production fmt/build/Clippy requirements still apply. No Rust tests or
 custom Rust harnesses were run. Remaining acceptance includes wizard navigation,
 native Windows/macOS, receipt generation during concurrent disk changes, and the
 deferred TypeScript comparison; issue #68 remains open.
+
+## Concurrent receipt export: reproduced race and fix
+
+At `5787e21`, a synchronized production CLI probe changed `a-state.txt` after it
+had been hashed during the second inventory pass, while `zz-padding.bin` was open
+for hashing. The command exited successfully and its receipt hash disagreed with
+the current first file. Immediate per-file checks and equality between the two
+recorded inventories missed this late mutation.
+
+The export now retains all per-file stamps and rechecks them at the end of each
+whole inventory pass. The retained `check.py` production CLI fixture uses Linux
+inotify to observe the later file's second open, stops only its owned CLI process,
+mutates the earlier file, and resumes it. The corrected command fails with
+`Mod inventory changed while preparing receipt` and no partial JSON; guide/game
+inputs remain unchanged. Another receipt-only inventory file permission failure
+also produces no receipt, and a stable retry succeeds with the current file hash.
+No Rust tests or custom Rust harnesses are used.
+
+These are bounded Linux CLI results. A receipt remains a historical inspected
+snapshot, not a filesystem lock or a promise that files cannot change after the
+checks. Native GUI presentation of this export failure, wizard variants, native
+Windows/macOS, and the deferred TypeScript comparison remain outstanding.
