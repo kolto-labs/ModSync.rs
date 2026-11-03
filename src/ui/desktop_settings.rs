@@ -269,6 +269,39 @@ impl App {
         });
     }
 
+    pub(super) fn save_patcher_preferences(&mut self) {
+        if self.desktop.busy() || self.receiver.is_some() || self.sharing.closing {
+            return;
+        }
+        self.sharing.mutation();
+        let directory = self.profile_directory.clone();
+        let engine = self.patcher_engine;
+        let executable = self.patcher.clone();
+        let explicit = self.desktop.explicit.clone();
+        let (tx, rx) = mpsc::channel();
+        self.desktop.receiver = Some(rx);
+        self.desktop.status = "Saving patcher preferences…".into();
+        std::thread::spawn(move || {
+            let result = std::panic::catch_unwind(|| -> Result<Output> {
+                anyhow::ensure!(
+                    modsync::profiles::settings_directory(explicit.as_deref())?
+                        == Path::new(&directory),
+                    "Settings root changed"
+                );
+                let store = Store::from_settings_directory(explicit.as_deref())?;
+                let (settings, patcher) =
+                    store.save_patcher_preferences_with_desktop(engine, &executable)?;
+                Ok(Output::SettingsSaved(settings, patcher))
+            })
+            .unwrap_or_else(|_| {
+                Err(anyhow::anyhow!(
+                    "Patcher preference writer stopped unexpectedly"
+                ))
+            });
+            let _ = tx.send(Finished { directory, result });
+        });
+    }
+
     pub(super) fn poll_desktop(&mut self, ctx: &egui::Context) {
         self.poll_protocol_settings(ctx);
         if !self.desktop.initialized {

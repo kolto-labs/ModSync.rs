@@ -4537,3 +4537,18 @@ returned error text. The staged log is otherwise deleted with its staging
 directory. Successful runs emit exactly what they did before. Covered by a
 generic stand-in patch with one failing operation; external-patcher failure
 output is unchanged and runtime behavior on other platforms is unverified.
+
+### Desktop patcher defaults and backend-specific saves (2026-11-03)
+
+Typed desktop defaults and the invalid-settings session fallback now select
+OdyPatcher, matching the engine and raw patcher preference decoder. Valid saved
+backend choices remain authoritative; loading an invalid document does not rewrite
+it. The dedicated desktop patcher save now updates only the selected backend and
+its own executable key under the settings lock, returning the persisted desktop
+and patcher projections together. HoloPatcher and OdyPatcher paths no longer land
+in the KPatcher field. A blank executable clears only that backend's override;
+other backend paths and unrelated settings survive. External executables and the
+pinned OdyPatcher Git dependency are unchanged. Formatting, locked production
+builds and strict Clippy passed in both feature modes; ten isolated CLI settings
+inspections passed. Native UI save interaction remains unverified; Rust tests
+remain frozen under AGENTS.md.

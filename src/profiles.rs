@@ -581,8 +581,17 @@ impl Store {
         PatcherPreferences::decode(&self.lookup_settings()?)
     }
     pub fn save_patcher_preferences(&self, engine: PatcherEngine, executable: &str) -> Result<()> {
+        self.save_patcher_preferences_with_desktop(engine, executable)
+            .map(|_| ())
+    }
+    /// Save only the chosen backend and return both projections under the same lock.
+    pub fn save_patcher_preferences_with_desktop(
+        &self,
+        engine: PatcherEngine,
+        executable: &str,
+    ) -> Result<(DesktopSettings, PatcherPreferences)> {
         let _lock = self.lock()?;
-        let mut settings = self.read_settings(false)?;
+        let mut settings = self.desktop_root()?;
         let (engine_name, key) = match engine {
             PatcherEngine::HoloPatcher => ("Holopatcher", "holopatcherExecutablePath"),
             PatcherEngine::KPatcher => ("KPatcher", "kpatcherExecutablePath"),
@@ -595,10 +604,10 @@ impl Store {
         if !executable.trim().is_empty() {
             settings[key] = executable.trim().into();
         }
-        storage::write(
-            &self.root.join("settings.json"),
-            &serde_json::to_vec_pretty(&settings)?,
-        )
+        let desktop = DesktopSettings::decode(&settings)?;
+        let patcher = PatcherPreferences::decode(&settings)?;
+        self.write_desktop_root(&settings)?;
+        Ok((desktop, patcher))
     }
     pub fn theme_preference(&self) -> Result<String> {
         Ok(setting_text(&self.read_settings(false)?, "theme")?

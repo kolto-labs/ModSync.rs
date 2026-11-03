@@ -2093,6 +2093,7 @@ impl App {
     fn surface(&mut self, ui: &mut egui::Ui, ctx: &egui::Context, surface: usize) {
         let mut summary_action = None;
         let mut preference_save = false;
+        let mut patcher_save = false;
         let deployed_guid = self
             .guide
             .as_ref()
@@ -2761,10 +2762,7 @@ impl App {
                         );
                     }
                     if ui.button("Save patcher setting").clicked() {
-                        self.desktop.settings.patcher_engine =
-                            Some(format!("{:?}", self.patcher_engine));
-                        self.desktop.settings.kpatcher_executable_path = Some(self.patcher.clone());
-                        preference_save = true;
+                        patcher_save = true;
                     }
                 }
                 ui.horizontal(|ui| {
@@ -2858,7 +2856,9 @@ impl App {
             }
             _ => self.guide_editor(ui),
         }
-        if preference_save {
+        if patcher_save {
+            self.save_patcher_preferences();
+        } else if preference_save {
             self.save_desktop_preferences();
         }
         if let Some((guid, actions)) = summary_action {

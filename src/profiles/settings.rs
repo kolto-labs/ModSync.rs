@@ -99,7 +99,7 @@ impl Default for DesktopSettings {
             nexus_mods_api_key: None,
             file_encoding: Some("utf-8".into()),
             selected_holopatcher_version: None,
-            patcher_engine: Some("Holopatcher".into()),
+            patcher_engine: Some("OdyPatcher".into()),
             kpatcher_executable_path: None,
             enable_file_watcher: true,
             spoiler_free_mode: false,
@@ -171,7 +171,7 @@ pub struct DesktopSettingsReport {
     pub warnings: Vec<String>,
 }
 impl Store {
-    fn desktop_root(&self) -> Result<Value> {
+    pub(super) fn desktop_root(&self) -> Result<Value> {
         storage::directory(&self.root, false)?;
         let current = self.root.join("settings.json");
         let path = match fs::symlink_metadata(&current) {
@@ -231,7 +231,7 @@ impl Store {
                     )],
                 },
                 PatcherPreferences {
-                    engine: crate::PatcherEngine::HoloPatcher,
+                    engine: crate::PatcherEngine::default(),
                     executable: None,
                 },
             ),
@@ -291,7 +291,7 @@ impl Store {
         self.write_desktop_root(&root)?;
         Ok((settings, patcher))
     }
-    fn write_desktop_root(&self, root: &Value) -> Result<()> {
+    pub(super) fn write_desktop_root(&self, root: &Value) -> Result<()> {
         let bytes = serde_json::to_vec_pretty(root)?;
         ensure!(
             bytes.len() <= LIMIT,
