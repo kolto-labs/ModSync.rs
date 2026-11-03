@@ -4600,3 +4600,15 @@ from stable archive-format failures. Desktop scan errors also invalidate prior
 validation readiness. See the selection-availability proof notes for fixtures
 and native-platform/runtime limitations. This supersedes the earlier behavior
 that retained unavailable saved checkmarks until validation rejected them.
+
+### Nested required dependencies after explicit deselection
+
+The shared CLI/installer selection graph now removes effective dependents when
+an individual, option subtree, category group, or base-selection action unchecks
+one of their required components/options, including nested option requirements.
+The cascade reaches a fixed point and reports dependency reasons. Dormant option
+flags remain saved preferences; selection receipts list only nodes whose full
+ancestor chain is selected. Production CLI fixtures cover parent/subtree
+removal, retained preferences on re-selection, and missing nested archives.
+Group/base GUI actions share the source handler but actual native button proof
+remains outstanding. No TypeScript comparison or full parity is claimed.

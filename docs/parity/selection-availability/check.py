@@ -104,6 +104,38 @@ with tempfile.TemporaryDirectory(prefix='modsync-selection-') as tmp:
     assert guide.read_bytes()==original
     print('PASS bad saved option cleared without losing healthy saved option or parent')
 
+    # Parent deselection invalidates required nested options, even when their
+    # saved flags remain true for a later deliberate re-selection.
+    parent=component('nested-parent',selected=True)
+    middle=component('middle',selected=True)
+    middle['Options']=[component('leaf',selected=True)]
+    parent['Options']=[middle]
+    components=[parent,component('needs-leaf',deps=['leaf'],selected=True),component('needs-dependent',deps=['needs-leaf'],selected=True),component('independent',selected=True)]
+    guide.write_text(json.dumps({'thisMod':components})); original=guide.read_bytes()
+    result=run('--use-file-selection','--deselect','nested-parent')
+    assert result['selected']==['independent'],result
+    assert any('needs-leaf' in outcome['autoDeselected'] for outcome in result['outcomes']),result
+    assert guide.read_bytes()==original
+    result=run('--use-file-selection','--deselect','nested-parent','--select-visible-search','nested-parent')
+    assert set(result['selected'])=={'nested-parent','middle','leaf','independent'},result
+    print('PASS parent deselection clears nested-option dependents transitively, hides dormant flags, and retains option preferences')
+
+    # Deselecting an option subtree must also remove users of its descendants.
+    result=run('--use-file-selection','--deselect-option','middle')
+    assert result['selected']==['independent'],result
+    print('PASS option subtree deselection clears nested required dependents')
+
+    # A missing nested option propagates through required edges at every depth.
+    middle['Instructions']=[dict(Action='Choose',Source=['leaf'])]
+    middle['Options'][0]['Instructions']=[dict(Action='Extract',Source=['<<modDirectory>>/missing-nested.zip'])]
+    parent['Instructions']=[dict(Action='Choose',Source=['middle'])]
+    guide.write_text(json.dumps({'thisMod':components})); original=guide.read_bytes()
+    result=run('--use-file-selection')
+    assert set(result['selected'])=={'nested-parent','middle','independent'},result
+    assert {'leaf','needs-leaf','needs-dependent'} <= {entry['guid'] for entry in result['availability']['unavailable']},result
+    assert guide.read_bytes()==original
+    print('PASS missing nested option and transitive required dependents are unavailable')
+
     # Uncertain I/O must fail the entire scan rather than publish deselections.
     components=[component('saved-missing','missing.zip',selected=True),component('unreadable','good.zip',selected=True)]
     guide.write_text(json.dumps({'thisMod':components})); original=guide.read_bytes()

@@ -844,10 +844,10 @@ pub enum Action {
     SetOption { guid: String, selected: bool },
     /// Additive, base only, then the dependency closure.
     SelectVisible(Filter),
-    /// Base only. No cascade and no closure, so widescreen mods stay as they are.
+    /// Deselect base mods and their required dependents, retaining dormant option choices.
     DeselectBase,
     /// Group = first category or `Other`, from `base_category_groups`.
-    /// Selecting adds the dependency closure; deselecting is a direct mutation only.
+    /// Selecting adds the dependency closure; deselecting removes required dependents.
     SetGroup {
         category: String,
         filter: Filter,
@@ -973,13 +973,12 @@ pub fn summary_detail(counts: &Counts) -> String {
     }
 }
 
-/// GUIDs of every selected component and option, in guide order (pre-order).
+/// GUIDs of effective selections (including selected ancestors), in guide order.
 pub fn selected_guids(components: &[Component]) -> Vec<String> {
     all_nodes(components)
         .into_iter()
-        .map(|path| node(components, &path))
-        .filter(|c| c.is_selected)
-        .map(|c| c.guid.clone())
+        .filter(|path| effective(components, path))
+        .map(|path| node(components, &path).guid.clone())
         .collect()
 }
 
@@ -1260,6 +1259,43 @@ fn cascade_option_unchecked(components: &mut [Component], path: &[usize], visite
             component_unchecked(components, parent[0], &mut visited.components);
         } else {
             cascade_option_unchecked(components, parent, visited);
+        }
+    }
+}
+
+/// Remove effective dependents of unchecked requirements at any option depth.
+/// Dormant option flags under unchecked ancestors remain saved preferences.
+fn remove_unselected_dependents(components: &mut [Component], warnings: &mut Vec<String>) {
+    loop {
+        let removals: Vec<_> = all_nodes(components)
+            .into_iter()
+            .filter(|path| effective(components, path))
+            .filter_map(|path| {
+                let owner = node(components, &path);
+                owner.dependencies.iter().find_map(|dependency| {
+                    let required = match resolve(components, dependency)? {
+                        Target::Component(index) => vec![index],
+                        Target::Option(path) => path,
+                    };
+                    (!effective(components, &required)).then(|| {
+                        (
+                            path.clone(),
+                            format!(
+                                "Deselected {}: requires selected {}",
+                                describe(components, &owner.guid),
+                                describe(components, dependency)
+                            ),
+                        )
+                    })
+                })
+            })
+            .collect();
+        if removals.is_empty() {
+            break;
+        }
+        for (path, reason) in removals {
+            node_mut(components, &path).is_selected = false;
+            warnings.push(reason);
         }
     }
 }
@@ -1605,6 +1641,26 @@ fn apply_internal(
     let mut direct = BTreeMap::<Identity, bool>::new();
     let mut close = false;
     let enforcing = action == Action::EnforceGame;
+    let deselecting = matches!(
+        &action,
+        Action::DeselectBase
+            | Action::SetComponent {
+                selected: false,
+                ..
+            }
+            | Action::SetOption {
+                selected: false,
+                ..
+            }
+            | Action::SetWidescreen {
+                selected: false,
+                ..
+            }
+            | Action::SetGroup {
+                selected: false,
+                ..
+            }
+    );
 
     match action {
         Action::SetComponent { guid, selected } => {
@@ -1756,6 +1812,10 @@ fn apply_internal(
             }
         }
         enforce_game(components, detected);
+    }
+
+    if deselecting {
+        remove_unselected_dependents(components, &mut outcome.warnings);
     }
 
     let after = snapshot(components, &nodes);

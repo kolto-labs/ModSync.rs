@@ -80,3 +80,16 @@ saved options, permission failure and retry, plus a Linux archive-mutation check
 synchronized to a real file-open event. This does not claim exhaustive filesystem
 race coverage or native GUI interaction acceptance. Windows/macOS runtime checks
 remain unperformed.
+
+## Nested dependency and deselection follow-up
+
+Explicit deselections now remove effective required dependents at every option
+depth, transitively. The same final pass is used by individual, option, category,
+and base deselection controls. Saved option flags under unchecked parents stay
+intact as preferences, while the CLI selected-ID receipt excludes inactive
+subtrees. This does not rewrite the source guide. Added production CLI fixtures
+cover parent and option-subtree removal, restoring dormant option preferences,
+and a missing nested archive with required dependents. Actual GUI category/base
+button interaction, normalized reason categories, common-input receipts, and
+cross-route comparisons remain open under issue #68. Native Windows/macOS
+behavior remains unverified. The current Linux environment has no Xvfb/xdotool.

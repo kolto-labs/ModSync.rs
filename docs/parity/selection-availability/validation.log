@@ -12,3 +12,23 @@ PASS saved corrupt archive and transitive dependents cleared; healthy choice ret
 PASS bad saved option cleared without losing healthy saved option or parent
 PASS permission failure publishes no selection changes; successful retry clears only confirmed missing item
 PASS archive mutation during inspection aborts without publishing deselections
+
+Nested dependency/deselection follow-up production CLI fixtures:
+PASS available-only selection, corrupt/missing inputs, transitive dependency reasons, unknown dependency, read-only guide/game
+PASS saved unavailable selection cleared without rewriting source guide
+PASS rejected selection preserves saved conflicting choice
+PASS option choices retained, unchosen missing option isolated, option dependency blocked
+PASS available required dependency cycle
+PASS changed archive invalidates its transitive selection
+PASS repaired archive becomes selectable
+PASS nested archive input projection without extraction
+PASS identical referenced options retain the saved identity
+PASS rooted validate uses native eligibility before pipeline
+PASS saved corrupt archive and transitive dependents cleared; healthy choice retained
+PASS bad saved option cleared without losing healthy saved option or parent
+PASS parent deselection clears nested-option dependents transitively, hides dormant flags, and retains option preferences
+PASS option subtree deselection clears nested required dependents
+PASS missing nested option and transitive required dependents are unavailable
+PASS permission failure publishes no selection changes; successful retry clears only confirmed missing item
+PASS archive mutation during inspection aborts without publishing deselections
+Production checks: cargo fmt --all -- --check; cargo build --locked --lib --bin modsync -j2; cargo clippy --locked --lib --bin modsync -j2 -- -D warnings; build and Clippy repeated with --no-default-features: PASS. No Rust tests/harnesses run.
