@@ -93,3 +93,60 @@ and a missing nested archive with required dependents. Actual GUI category/base
 button interaction, normalized reason categories, common-input receipts, and
 cross-route comparisons remain open under issue #68. Native Windows/macOS
 behavior remains unverified. The current Linux environment has no Xvfb/xdotool.
+
+## Normalized reasons and common-input receipt (latest)
+
+`selection --input GUIDE --source-dir MODS --game-dir GAME --json --receipt`
+adds an explicit `receipt` object. Without `--receipt`, no full-inventory hashing
+is performed. The desktop offers **Prepare selection receipt**, then **Copy
+selection receipt**, using the same production engine export on its owned worker.
+A new action or changed in-memory context invalidates the cached export. Receipts
+are snapshots: refresh after changing disk files.
+
+Schema version 1 uses these availability categories: `missing_archive`,
+`invalid_archive` (including decoder/unsafe-member rejection), `invalid_instruction`,
+`missing_dependency`, `unavailable_dependency`, `unavailable_ancestor`. The complete
+excluded list additionally uses `not_selected` and `ancestor_unselected` for
+usable inactive nodes; these describe selection state, not an inferred user intent.
+Readable reasons remain available, including dependency chains. Compare stable
+GUIDs/categories; absolute paths in human explanations can differ across hosts.
+
+`guideDefinitionSha256` hashes the serialized loaded guide after recursively
+clearing selection flags and sorting object keys. Guide/option order and metadata
+remain significant. It is a semantic loaded-definition hash, not the original
+file byte hash and not a claim about identical starting user choices or actions.
+`modInventory` covers all regular files in the engine-scanned mod root, with
+relative paths, byte sizes, and SHA-256; the engine's private peer-staging exclusion
+still applies. `modInventorySha256` hashes that sorted inventory. Neither field
+hashes the game tree. Detected game, case policy, and expanded-byte limit are
+recorded separately. Export hashes before/after a fresh availability scan and
+rejects observed changes, uncertain I/O, or now-unavailable effective selections.
+
+The retained [Linux native proof](linux-native/proof.json) records actual clicks
+on the production desktop: Select All, Prepare, Copy, and Deselect All. The copied
+[GUI receipt](linux-native/gui-receipt.json) exactly matched the [CLI receipt](linux-native/cli.json)
+for the same full guide and inventory. Selected IDs were `good` and `independent`;
+`missing`, `broken`, `dependent`, and `transitive` were excluded with the expected
+categories. Guide/mod/game input hashes remained unchanged, and deselection
+removed the stale Copy control. Screenshots retain the selected and exported
+states. This supersedes the earlier lack of display tooling: Xvfb dependencies
+were privately extracted under `/tmp`, without hosted workflow runs.
+
+Replay with a default-feature production binary and Xvfb, xdotool, xclip,
+ImageMagick `import`, and tesseract available on PATH:
+
+```sh
+MODSYNC_BIN=/absolute/path/to/modsync MODSYNC_PROOF_OUT=/tmp/selection-native-proof \
+  python3 docs/parity/selection-availability/native.py
+```
+
+The replay uses private home/settings/game/mod folders and actual desktop input;
+no Rust test harness or synthetic GUI message injection. Display `:96` defaults
+can be changed through `MODSYNC_DISPLAY`. Fixed click positions are calibrated to
+the retained 1280x800 desktop on a 1280x900 private display. Production CLI fixtures
+also verify individual file hashes, relocation-stable identities, changed file /
+guide fingerprints, and choice-independent definition identity.
+
+Still open: broader native group/option/wizard cases, inventory-change-during-export
+runtime proof, native Windows/macOS, identical starting-choice/action evidence,
+and deferred TypeScript comparison. Do not close #68 on this bounded result.

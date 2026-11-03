@@ -2098,6 +2098,7 @@ impl App {
         let mut patcher_save = false;
         let mut selection_action = None;
         let mut refresh_selection = false;
+        let mut prepare_receipt = false;
         let deployed_guid = self
             .guide
             .as_ref()
@@ -2254,6 +2255,20 @@ impl App {
                     return;
                 };
                 ui.label(&self.selection_panel.status);
+                if ui
+                    .button("Prepare selection receipt")
+                    .on_hover_text(
+                        "Hash mod files and record selection evidence; large folders can take time",
+                    )
+                    .clicked()
+                {
+                    prepare_receipt = true;
+                }
+                if let Some(receipt) = &self.selection_panel.receipt
+                    && ui.button("Copy selection receipt").clicked()
+                {
+                    ctx.copy_text(receipt.clone());
+                }
                 if ui.button("Refresh archive availability").clicked() {
                     refresh_selection = true;
                 }
@@ -2875,6 +2890,8 @@ impl App {
         }
         if let Some(action) = selection_action {
             self.start_selection(Some(action));
+        } else if prepare_receipt {
+            self.start_selection_with_receipt(None, true);
         } else if refresh_selection {
             self.start_selection(None);
         }

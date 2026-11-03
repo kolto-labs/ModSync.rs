@@ -20,6 +20,34 @@ with tempfile.TemporaryDirectory(prefix='modsync-selection-') as tmp:
     assert guide.read_bytes()==original
     assert list(game.iterdir())==[]
     print('PASS available-only selection, corrupt/missing inputs, transitive dependency reasons, unknown dependency, read-only guide/game')
+    categories={entry['guid']:entry['category'] for entry in result['availability']['unavailable']}
+    assert categories=={'missing':'missing_archive','broken':'invalid_archive','dependent':'unavailable_dependency','transitive':'unavailable_dependency','missing-ref':'missing_dependency'},categories
+    receipt=run('--receipt')['receipt']
+    assert receipt['schemaVersion']==1 and receipt['selected']==result['selected'],receipt
+    assert {entry['guid']:entry['category'] for entry in receipt['excluded']}==categories,receipt
+    import hashlib, shutil
+    assert {entry['path']:entry['sha256'] for entry in receipt['modInventory']}=={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in mods.iterdir()},receipt
+    relocated=root/'relocated'; shutil.copytree(mods,relocated)
+    p=subprocess.run([binary,'selection','--input',str(guide),'--source-dir',str(relocated),'--game-dir',str(game),'--json','--receipt'],text=True,capture_output=True)
+    assert p.returncode==0,p.stderr
+    relocated_receipt=json.loads(p.stdout)['receipt']
+    for key in ['guideDefinitionSha256','modInventorySha256','modInventory','selected']:
+        assert receipt[key]==relocated_receipt[key],(key,receipt,relocated_receipt)
+    (mods/'unused.txt').write_text('inventory change')
+    changed=run('--receipt')['receipt']
+    assert changed['modInventorySha256']!=receipt['modInventorySha256'],changed
+    assert changed['guideDefinitionSha256']==receipt['guideDefinitionSha256'],changed
+    (mods/'unused.txt').unlink()
+    components[0]['Name']='changed definition'; guide.write_text(json.dumps({'thisMod':components}))
+    changed=run('--receipt')['receipt']
+    assert changed['guideDefinitionSha256']!=receipt['guideDefinitionSha256'],changed
+    components[0]['Name']='good'; guide.write_bytes(original)
+    unchecked=run('--use-file-selection','--receipt')['receipt']
+    assert unchecked['guideDefinitionSha256']==receipt['guideDefinitionSha256'],unchecked
+    assert unchecked['selected']==[],unchecked
+    assert next(entry for entry in unchecked['excluded'] if entry['guid']=='good')['category']=='not_selected',unchecked
+    assert guide.read_bytes()==original and list(game.iterdir())==[]
+    print('PASS normalized reasons and content receipts: file hashes verified, relocation stable, changed inputs detected, choices separated')
     components[1]['IsSelected']=True; guide.write_text(json.dumps({'thisMod':components})); original=guide.read_bytes()
     result=run('--use-file-selection'); assert result['selected']==[],result
     assert any('missing' in outcome['autoDeselected'] for outcome in result['outcomes']),result

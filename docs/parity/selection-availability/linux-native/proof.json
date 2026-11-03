@@ -1,0 +1,46 @@
+{
+  "binarySha256": "28e2039f3da1718ff7dcec9ec41d8a4dd15953f5d78bdcdd174fad14afd93763",
+  "actions": [
+    {
+      "action": "Keep telemetry off",
+      "x": 425,
+      "y": 478
+    },
+    {
+      "action": "Summary / selection",
+      "x": 166,
+      "y": 32
+    },
+    {
+      "action": "Pause sharing to edit",
+      "x": 78,
+      "y": 189
+    },
+    {
+      "action": "Select all",
+      "x": 43,
+      "y": 309
+    },
+    {
+      "action": "Prepare selection receipt",
+      "x": 91,
+      "y": 266
+    },
+    {
+      "action": "Copy selection receipt",
+      "x": 89,
+      "y": 287
+    },
+    {
+      "action": "Deselect all",
+      "x": 115,
+      "y": 329
+    }
+  ],
+  "inputsUnchanged": true,
+  "receiptsEqual": true,
+  "staleReceiptCleared": true,
+  "sourceBase": "104fd3e2f3287be5415e4d2804822c7d60e14f94",
+  "sourceDiffSha256": "9d2749717c3fa7d3e7b03487441cec61ac47e4e9c336adce5ff1c60902e59d6c",
+  "scope": "Linux production binary; actual mouse input on private Xvfb; generic six-component fixture; no TypeScript or native Windows/macOS comparison"
+}

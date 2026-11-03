@@ -38,9 +38,15 @@ fn selection_messages(
     messages
 }
 
+struct Prepared {
+    guide: Guide,
+    availability: Availability,
+    warnings: Vec<String>,
+    receipt: Option<String>,
+}
 struct Finished {
     stamp: String,
-    result: Result<(Guide, Availability, Vec<String>)>,
+    result: Result<Prepared>,
 }
 
 #[derive(Default)]
@@ -51,6 +57,7 @@ pub(super) struct State {
     pub stamp: String,
     pub availability: Availability,
     pub status: String,
+    pub receipt: Option<String>,
 }
 impl State {
     pub fn busy(&self) -> bool {
@@ -67,9 +74,18 @@ impl Drop for State {
 }
 impl App {
     pub(super) fn start_selection(&mut self, action: Option<Action>) {
+        self.start_selection_with_receipt(action, false);
+    }
+
+    pub(super) fn start_selection_with_receipt(
+        &mut self,
+        action: Option<Action>,
+        receipt_requested: bool,
+    ) {
         if self.selection_panel.busy() || self.receiver.is_some() || self.sharing.closing {
             return;
         }
+        self.selection_panel.receipt = None;
         if let Some(action) = &action
             && matches!(
                 action,
@@ -140,7 +156,19 @@ impl App {
                     action.unwrap_or(Action::EnforceGame),
                 )?;
                 let warnings = selection_messages(&guide.components, outcome);
-                Ok((guide, availability, warnings))
+                let receipt = if receipt_requested {
+                    Some(serde_json::to_string_pretty(
+                        &engine.selection_receipt(&guide)?,
+                    )?)
+                } else {
+                    None
+                };
+                Ok(Prepared {
+                    guide,
+                    availability,
+                    warnings,
+                    receipt,
+                })
             })
             .unwrap_or_else(|_| {
                 Err(anyhow::anyhow!(
@@ -153,6 +181,9 @@ impl App {
 
     pub(super) fn poll_selection(&mut self) {
         self.refresh_input_stamp();
+        if self.selection_panel.stamp != self.input_stamp {
+            self.selection_panel.receipt = None;
+        }
         if self.sharing.closing || self.selection_panel.attempted != self.input_stamp {
             self.selection_panel
                 .cancelled
@@ -172,7 +203,13 @@ impl App {
             match worker.join() {
                 Ok(finished) if finished.stamp == self.input_stamp && !self.sharing.closing => {
                     match finished.result {
-                        Ok((guide, availability, warnings)) => {
+                        Ok(Prepared {
+                            guide,
+                            availability,
+                            warnings,
+                            receipt,
+                        }) => {
+                            self.selection_panel.receipt = receipt;
                             self.guide = Some(guide);
                             self.invalidate_validation();
                             self.refresh_input_stamp();

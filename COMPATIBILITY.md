@@ -4612,3 +4612,22 @@ ancestor chain is selected. Production CLI fixtures cover parent/subtree
 removal, retained preferences on re-selection, and missing nested archives.
 Group/base GUI actions share the source handler but actual native button proof
 remains outstanding. No TypeScript comparison or full parity is claimed.
+
+### Comparable native selection receipts
+
+Archive eligibility now carries stable snake_case exclusion categories alongside
+human reasons. `selection --json --receipt` and the installer desktop's Prepare /
+Copy selection receipt controls share an engine export: schema version, normalized
+guide-definition SHA-256 (selection flags cleared), relative-path mod-file sizes
+and SHA-256s, inventory SHA-256, detected game/path policy/archive limit, effective
+selected IDs, and all excluded IDs with categories/reasons. Export is explicit
+because it hashes the scanned mod inventory twice around a fresh inspection.
+It fails on uncertain I/O or observed input changes; ordinary selection remains
+free of full-inventory hashing. This is not a raw-guide-byte or game-tree identity.
+
+Linux actual Select All / Prepare / Copy clicks matched the CLI receipt exactly
+for an unchanged full six-component fixture with missing/corrupt archives and
+transitive dependents. Actual Deselect All invalidated the copied receipt. See
+[replay and receipts](docs/parity/selection-availability/README.md). This bounded
+native proof does not establish all category/option/wizard flows, Windows/macOS,
+or TypeScript parity; issue #68 remains open.

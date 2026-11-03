@@ -894,6 +894,9 @@ struct SelectionArgs {
     /// Print JSON instead of text.
     #[arg(long)]
     json: bool,
+    /// Hash the mod inventory and include a comparable selection receipt (can be slow).
+    #[arg(long, requires_all = ["json", "source_dir"])]
+    receipt: bool,
 }
 
 /// --option and the SelectionFlags as shared actions, in command-line order.
@@ -3177,6 +3180,16 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                 args.selection_flags.spoiler_free,
             );
             let selected = selection::selected_guids(components);
+            let receipt = if args.receipt {
+                Some(
+                    selection_engine
+                        .as_ref()
+                        .context("Receipt requires source directory")?
+                        .selection_receipt(&guide)?,
+                )
+            } else {
+                None
+            };
             if args.json {
                 let candidates = |scope| selection::download_candidates(components, scope);
                 println!(
@@ -3185,6 +3198,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                         "game": detected.map(|game| format!("{game:?}")),
                         "counts": counts,
                         "availability": availability,
+                        "receipt": receipt,
                         "filterSummary": summary,
                         "selected": selected,
                         "outcomes": outcomes,

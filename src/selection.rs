@@ -1442,9 +1442,21 @@ pub struct Availability {
     pub unavailable: Vec<Unavailable>,
 }
 
+#[derive(Clone, Copy, Debug, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ExclusionCategory {
+    MissingArchive,
+    InvalidArchive,
+    InvalidInstruction,
+    MissingDependency,
+    UnavailableDependency,
+    UnavailableAncestor,
+}
+
 #[derive(Clone, Debug, Serialize)]
 pub struct Unavailable {
     pub guid: String,
+    pub category: ExclusionCategory,
     pub reason: String,
 }
 
@@ -1481,9 +1493,9 @@ impl Availability {
     /// Restrictions and ordering edges are not required dependencies.
     pub fn from_archive_failures(components: &[Component], failures: Vec<Unavailable>) -> Self {
         let nodes = all_nodes(components);
-        let mut blocked: BTreeMap<Identity, String> = failures
+        let mut blocked: BTreeMap<Identity, (ExclusionCategory, String)> = failures
             .into_iter()
-            .map(|entry| (guid::key_ascii(&entry.guid), entry.reason))
+            .map(|entry| (guid::key_ascii(&entry.guid), (entry.category, entry.reason)))
             .collect();
         loop {
             let mut additions = Vec::new();
@@ -1501,12 +1513,29 @@ impl Availability {
                         .map(|path| node(components, path))
                         .find(|required| guid::eq_ascii(&required.guid, dependency));
                     let reason = match required {
-                        None => Some(format!(
-                            "Required dependency is absent from the guide: {dependency}"
+                        None => Some((
+                            ExclusionCategory::MissingDependency,
+                            format!("Required dependency is absent from the guide: {dependency}"),
                         )),
-                        Some(required) => blocked.get(&guid::key_ascii(dependency)).map(|reason| {
-                            format!("Requires {} ({}): {reason}", required.name, required.guid)
-                        }),
+                        Some(required) => {
+                            blocked
+                                .get(&guid::key_ascii(dependency))
+                                .map(|(_, reason)| {
+                                    (
+                                        if parent.is_some_and(|parent| {
+                                            guid::eq_ascii(parent, dependency)
+                                        }) {
+                                            ExclusionCategory::UnavailableAncestor
+                                        } else {
+                                            ExclusionCategory::UnavailableDependency
+                                        },
+                                        format!(
+                                            "Requires {} ({}): {reason}",
+                                            required.name, required.guid
+                                        ),
+                                    )
+                                })
+                        }
                     };
                     if let Some(reason) = reason {
                         additions.push((key, reason));
@@ -1526,14 +1555,31 @@ impl Availability {
                 .filter_map(|component| {
                     blocked
                         .get(&guid::key_ascii(&component.guid))
-                        .map(|reason| Unavailable {
+                        .map(|(category, reason)| Unavailable {
                             guid: component.guid.clone(),
+                            category: *category,
                             reason: reason.clone(),
                         })
                 })
                 .collect(),
         }
     }
+}
+
+/// Every excluded node in guide order, including usable but unchecked choices.
+pub fn exclusion_receipt(
+    components: &[Component],
+    availability: &Availability,
+) -> Vec<serde_json::Value> {
+    all_nodes(components).into_iter().filter(|path| !effective(components, path)).map(|path| {
+        let component = node(components, &path);
+        if let Some(entry) = availability.unavailable.iter().find(|entry| guid::eq_ascii(&entry.guid, &component.guid)) {
+            serde_json::to_value(entry).expect("serializable exclusion")
+        } else {
+            let dormant = path.len() > 1 && !effective(components, &path[..path.len()-1]);
+            serde_json::json!({"guid": component.guid, "category": if dormant { "ancestor_unselected" } else { "not_selected" }, "reason": if dormant { "An ancestor is not selected" } else { "Not selected in the current selection" }})
+        }
+    }).collect()
 }
 
 /// Use the same graph as ordinary selection, then remove every confirmed

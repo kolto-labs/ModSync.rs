@@ -938,6 +938,7 @@ impl Engine {
                 .iter()
                 .find(|owner| contains(owner, &component.guid))
                 .context("Selection archive owner disappeared")?;
+            let mut category = crate::selection::ExclusionCategory::InvalidInstruction;
             let checked = (|| -> Result<()> {
                 let mut checked_instructions = Vec::new();
                 instructions(candidate_root, &selected, &mut checked_instructions)?;
@@ -946,16 +947,19 @@ impl Engine {
                     if instruction.action != "Extract" {
                         continue;
                     }
+                    category = crate::selection::ExclusionCategory::InvalidInstruction;
                     ensure!(
                         !instruction.source.is_empty(),
                         "Extract has no required archive source"
                     );
                     for source in &instruction.source {
+                        category = crate::selection::ExclusionCategory::InvalidInstruction;
                         let matches = self.matches(std::slice::from_ref(source), true)?;
                         if matches.is_empty() {
                             let (_, pattern) = self.source_pattern(source)?;
                             // Nested archives produced by an earlier Extract are validated
                             // by the actual engine when their bytes become available.
+                            category = crate::selection::ExclusionCategory::MissingArchive;
                             ensure!(
                                 projected.iter().any(|member| pattern.matches(member)),
                                 "Missing required archive: {source}"
@@ -1006,6 +1010,7 @@ impl Engine {
                                     inspected.map_err(|error| format!("{error:#}")),
                                 );
                             }
+                            category = crate::selection::ExclusionCategory::InvalidArchive;
                             let members = archives[&key]
                                 .as_ref()
                                 .map_err(|error| anyhow::anyhow!(error.clone()))?;
@@ -1023,6 +1028,7 @@ impl Engine {
                 }
                 failures.push(crate::selection::Unavailable {
                     guid: component.guid.clone(),
+                    category,
                     reason: format!("{error:#}"),
                 });
             }
@@ -1038,6 +1044,85 @@ impl Engine {
             &guide.components,
             failures,
         ))
+    }
+
+    /// Explicit, read-only proof export. Hash the mod inventory on both sides of
+    /// a fresh inspection; never return a receipt for changing or uncertain inputs.
+    pub fn selection_receipt(&self, guide: &Guide) -> Result<serde_json::Value> {
+        use sha2::{Digest, Sha256};
+        use std::io::Read;
+        let inventory = || -> Result<Vec<serde_json::Value>> {
+            self.verify_selection_directories()?;
+            let mut entries = Vec::new();
+            for (path, content) in self.files.values() {
+                let Ok(relative) = path.strip_prefix(&self.settings.roots.mods) else {
+                    continue;
+                };
+                self.check_cancelled()?;
+                let disk = content.path()?;
+                let before = selection_file_stamp(disk)?;
+                let mut file = fs::File::open(disk)?;
+                let mut hash = Sha256::new();
+                let mut buffer = [0u8; 65536];
+                let mut bytes = 0u64;
+                loop {
+                    self.check_cancelled()?;
+                    let count = file.read(&mut buffer)?;
+                    if count == 0 {
+                        break;
+                    }
+                    bytes += count as u64;
+                    hash.update(&buffer[..count]);
+                }
+                ensure!(
+                    before == selection_file_stamp(disk)?,
+                    "Mod inventory changed while preparing receipt"
+                );
+                let relative = relative
+                    .iter()
+                    .map(|part| part.to_str().context("Receipt requires UTF-8 mod paths"))
+                    .collect::<Result<Vec<_>>>()?
+                    .join("/");
+                entries.push(serde_json::json!({"path":relative,"bytes":bytes,"sha256":format!("{:x}",hash.finalize())}));
+            }
+            entries.sort_by(|a, b| a["path"].as_str().cmp(&b["path"].as_str()));
+            self.verify_selection_directories()?;
+            Ok(entries)
+        };
+        let before = inventory()?;
+        let availability = self.selection_availability(guide)?;
+        let after = inventory()?;
+        ensure!(
+            before == after,
+            "Mod inventory changed while preparing receipt"
+        );
+        let selected = crate::selection::selected_guids(&guide.components);
+        ensure!(
+            selected.iter().all(|id| availability.reason(id).is_none()),
+            "Selection changed availability; refresh selection before preparing a receipt"
+        );
+        let mut definition = guide.clone();
+        fn clear_choices(components: &mut [Component]) {
+            for component in components {
+                component.is_selected = false;
+                clear_choices(&mut component.options);
+            }
+        }
+        clear_choices(&mut definition.components);
+        // Value serializes maps in canonical key order; guide/option order is retained.
+        let definition = serde_json::to_vec(&serde_json::to_value(definition)?)?;
+        let inventory_bytes = serde_json::to_vec(&before)?;
+        Ok(serde_json::json!({
+            "schemaVersion": 1,
+            "guideDefinitionSha256": format!("{:x}", Sha256::digest(&definition)),
+            "modInventorySha256": format!("{:x}", Sha256::digest(&inventory_bytes)),
+            "modInventory": before,
+            "detectedGame": format!("{:?}",crate::game::detect(&self.settings.roots.game)),
+            "caseInsensitivePathing": self.path_policy.case_insensitive,
+            "maxExpandedBytes": self.settings.archive.max_expanded_bytes,
+            "selected": selected,
+            "excluded": crate::selection::exclusion_receipt(&guide.components, &availability),
+        }))
     }
 
     pub fn validate(mut self, guide: &Guide, mut emit: impl FnMut(Event)) -> Result<()> {
