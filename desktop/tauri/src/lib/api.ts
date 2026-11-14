@@ -69,6 +69,14 @@ export interface ModOption {
   options: ModOption[];
 }
 
+export interface CheckReport {
+  success: boolean;
+  errorCount: number;
+  warningCount: number;
+  stages: { stage: string; passed: boolean; hasWarnings: boolean; summary: string; messages?: string[] }[];
+  dryRun?: { issues: { severity: string; message: string; componentName?: string; affectedPath?: string; solution?: string }[] };
+}
+
 export interface AppStatus {
   version: string;
   logged_in: boolean;
@@ -278,6 +286,11 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ build_key, unattended: true, game_path, selected_file_ids,
         gamefront_browser: isTauri() }),
+    }),
+  checkInstall: (build_key: string, game_path: string | undefined, selected_file_ids: string[]) =>
+    req<{ ok: boolean; report: CheckReport | null; error?: string | null }>("/api/install/check", {
+      method: "POST",
+      body: JSON.stringify({ build_key, game_path, selected_file_ids }),
     }),
   gamefrontRequest: () => req<{ request: GameFrontRequest | null }>("/api/gamefront/request"),
   gamefrontExternal: () => req<{ ok: boolean; destination: string }>("/api/gamefront/external", { method: "POST" }),

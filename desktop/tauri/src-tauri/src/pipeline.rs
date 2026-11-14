@@ -52,6 +52,8 @@ struct Job {
     resolution: Option<(u32, u32)>,
     case_insensitive: bool,
     cancelled: Arc<AtomicBool>,
+    /// Stop after the check; nothing is installed.
+    check_only: bool,
 }
 
 /// The folders of an install that stopped and left a restore point: the
@@ -106,7 +108,10 @@ pub fn restore(app: &AppHandle) -> Reply {
     Ok(json!({"ok": true}))
 }
 
-pub fn start(app: &AppHandle, r: &Request) -> Reply {
+/// Everything an install or a check needs, gathered and checked up front.
+/// The fingerprint names the exact inputs (selection, options and folders), so
+/// an install can require a passing check of the same inputs.
+fn prepare(app: &AppHandle, r: &Request, check_only: bool) -> Result<(Job, String, String), Value> {
     let st = state(app);
     if pending_roots(app).is_some() {
         return Err(fail(409, "restore_pending"));
@@ -171,22 +176,77 @@ pub fn start(app: &AppHandle, r: &Request) -> Reply {
     store
         .save_directory_preferences(&mods, &path)
         .map_err(fail_any)?;
-    let cancelled = Arc::new(AtomicBool::new(false));
-    let job = {
-        let mut inner = st.lock();
-        inner.running = true;
-        inner.cancelled = cancelled.clone();
-        Job {
-            guide,
-            selected: selected.clone(),
-            game: PathBuf::from(&path),
-            mods: PathBuf::from(&mods),
-            nexus_key: st.nexus_key(),
-            resolution: screen_resolution(app, &st),
-            case_insensitive: inner.case_insensitive,
-            cancelled,
-        }
+    let fingerprint = {
+        use std::hash::{Hash, Hasher};
+        let mut sorted = selected.clone();
+        sorted.sort();
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        (
+            sorted,
+            serde_json::to_string(&guide.components).unwrap_or_default(),
+            &path,
+            &mods,
+        )
+            .hash(&mut hasher);
+        format!("{:x}", hasher.finish())
     };
+    let inner = st.lock();
+    let job = Job {
+        guide,
+        selected,
+        game: PathBuf::from(&path),
+        mods: PathBuf::from(&mods),
+        nexus_key: st.nexus_key(),
+        resolution: screen_resolution(app, &st),
+        case_insensitive: inner.case_insensitive,
+        cancelled: Arc::new(AtomicBool::new(false)),
+        check_only,
+    };
+    Ok((job, path, fingerprint))
+}
+
+fn begin(app: &AppHandle, job: &Job) -> Result<(), Value> {
+    let st = state(app);
+    let mut inner = st.lock();
+    if inner.running {
+        return Err(fail(409, "Install already running"));
+    }
+    inner.running = true;
+    inner.cancelled = job.cancelled.clone();
+    Ok(())
+}
+
+/// Get the files and check the install, changing nothing in the game. A
+/// passing check unlocks Install for the same inputs.
+pub fn check(app: &AppHandle, r: &Request) -> Reply {
+    let (job, _, fingerprint) = prepare(app, r, true)?;
+    begin(app, &job)?;
+    let mut tally = Tally::default();
+    let result =
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| run(app, job, &mut tally)))
+            .unwrap_or_else(|_| Err(anyhow!("The check stopped unexpectedly.")));
+    let st = state(app);
+    let passed = result.is_ok() && tally.report.as_ref().is_some_and(|r| r["success"] == true);
+    {
+        let mut inner = st.lock();
+        inner.running = false;
+        inner.checked = passed.then_some(fingerprint);
+    }
+    if let Err(error) = &result {
+        log(app, format!("{error:#}"), "error");
+    }
+    Ok(
+        json!({"ok": passed, "report": tally.report, "error": result.err().map(|e| format!("{e:#}"))}),
+    )
+}
+
+pub fn start(app: &AppHandle, r: &Request) -> Reply {
+    let (job, path, fingerprint) = prepare(app, r, false)?;
+    if state(app).lock().checked.as_deref() != Some(fingerprint.as_str()) {
+        return Err(fail(409, "check_required"));
+    }
+    begin(app, &job)?;
+    let selected = job.selected.clone();
     let worker = app.clone();
     std::thread::spawn(move || {
         let total = job.selected.len();
@@ -203,7 +263,11 @@ pub fn start(app: &AppHandle, r: &Request) -> Reply {
             log(&worker, format!("{error:#}"), "error");
         }
         let st = state(&worker);
-        st.lock().running = false;
+        {
+            let mut inner = st.lock();
+            inner.running = false;
+            inner.checked = None;
+        }
         emit(
             &worker,
             json!({"type": "pipeline", "event": "finished", "done": tally.done, "total": total, "manual": tally.manual, "errors": tally.errors}),
@@ -253,6 +317,8 @@ struct Tally {
     done: usize,
     manual: usize,
     errors: usize,
+    /// The engine's validation report, from the check step.
+    report: Option<Value>,
 }
 
 fn name_of(guide: &Guide, id: &str) -> String {
@@ -273,6 +339,7 @@ fn run(app: &AppHandle, job: Job, tally: &mut Tally) -> Result<()> {
         resolution,
         case_insensitive,
         cancelled,
+        check_only,
     } = job;
     // 1. The player's selection, with what each mod needs (engine selection rules).
     selection::apply(&mut guide.components, None, Action::DeselectBase)?;
@@ -369,6 +436,7 @@ fn run(app: &AppHandle, job: Job, tally: &mut Tally) -> Result<()> {
     log(app, "Checking the selected mods before installing.", "info");
     let report = Engine::new_with_case_insensitive_pathing(settings.clone(), case_insensitive)?
         .validate_report_with_options_observed(&prepared, |_| {}, true, true, false, |_| {});
+    tally.report = serde_json::to_value(&report).ok();
     if !report.success {
         for stage in report.stages.iter().filter(|s| !s.passed) {
             for message in &stage.messages {
@@ -394,6 +462,10 @@ fn run(app: &AppHandle, job: Job, tally: &mut Tally) -> Result<()> {
         }
         tally.errors += failed.len().max(1);
         anyhow::bail!("The check found problems, so nothing was installed.");
+    }
+    if check_only {
+        log(app, "The check passed. You can install now.", "success");
+        return Ok(());
     }
     // 4. Install, into the active game install's library when possible.
     let mut engine = Engine::new_with_case_insensitive_pathing(settings, case_insensitive)?;

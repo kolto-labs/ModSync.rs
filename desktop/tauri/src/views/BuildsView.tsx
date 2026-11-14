@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import {
   Play, Pause, Square, AlertTriangle, RotateCcw, Download, X, FolderInput, UploadCloud,
-  FolderOpen, ScrollText, Plus, Trash2, FileUp,
+  FolderOpen, ScrollText, Plus, Trash2, FileUp, ShieldCheck,
   Search,
 } from "lucide-react";
 import { api, type BuildInfo, type BuildMod } from "@/lib/api";
@@ -9,6 +9,8 @@ import { pickDirectory, pickInstructionFile, onFilesDropped, onDragHover } from 
 import { ModList, type ModRuntime } from "@/components/ModList";
 import { ContextMenu, type ContextMenuItem } from "@/components/ui/context-menu";
 import { BuildModDetail } from "@/components/BuildModDetail";
+import { CheckReport } from "@/components/CheckReport";
+import { type CheckReport as CheckReportData } from "@/lib/api";
 import { AddBuildDialog } from "@/components/AddBuildDialog";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
@@ -222,6 +224,38 @@ export function BuildsView(props: BuildsViewProps) {
       setLoading(false);
     }
   };
+
+  // Check the install first (the engine's validation, with the files
+  // downloaded); Install unlocks for exactly the checked selection.
+  const [checking, setChecking] = useState(false);
+  const [report, setReport] = useState<CheckReportData | null>(null);
+  const [showReport, setShowReport] = useState(false);
+  const [checkedKey, setCheckedKey] = useState("");
+  const selectionKey = `${selectedBuild}:${Array.from(selected).sort().join(",")}`;
+  const checkInstall = async (gamePath?: string) => {
+    if (!loggedIn) { requestLogin(); return; }
+    if (selectedCount === 0) { addLog(t("builds.selectNoneWarn"), "warning"); return; }
+    setInstallError(null);
+    setChecking(true);
+    try {
+      const r = await api.checkInstall(selectedBuild, gamePath, Array.from(selected));
+      setReport(r.report);
+      if (r.report) setShowReport(true);
+      setCheckedKey(r.ok ? selectionKey : "");
+      if (!r.ok && !r.report && r.error) setInstallError(r.error);
+    } catch (e: any) {
+      const err = e?.data?.error;
+      if (err === "game_path_required" || err === "game_path_invalid") {
+        const dir = await pickDirectory(t("builds.pickGameFolder", { game: e.data.game }));
+        if (dir) { setChecking(false); return checkInstall(dir); }
+      } else {
+        setInstallError(`Check failed: ${e?.message}`);
+      }
+    } finally {
+      setChecking(false);
+    }
+  };
+  const checkPassed = checkedKey === selectionKey && !!report?.success;
 
   const startInstall = async () => {
     if (!loggedIn) { requestLogin(); return; }
@@ -517,9 +551,28 @@ export function BuildsView(props: BuildsViewProps) {
       {/* Sticky action bar */}
       <footer className="flex flex-wrap items-center gap-3 border-t bg-card px-6 py-3">
         {!running ? (
-          <Button onClick={startInstall} disabled={!ready || mods.length === 0 || selectedCount === 0 || recovery.pending}>
-            <Play /> {t("builds.installSelected", { count: selectedCount })}
-          </Button>
+          <>
+            <Button
+              variant={checkPassed ? "outline" : "default"}
+              onClick={() => checkInstall()}
+              disabled={!ready || mods.length === 0 || selectedCount === 0 || recovery.pending || checking}
+              title={t("builds.checkHint")}
+            >
+              <ShieldCheck /> {checking ? t("builds.checking") : t("builds.check")}
+            </Button>
+            <Button
+              onClick={startInstall}
+              disabled={!ready || mods.length === 0 || selectedCount === 0 || recovery.pending || !checkPassed}
+              title={checkPassed ? undefined : t("builds.installNeedsCheck")}
+            >
+              <Play /> {t("builds.installSelected", { count: selectedCount })}
+            </Button>
+            {report && (
+              <Button variant="ghost" size="sm" onClick={() => setShowReport(true)}>
+                {t("check.view")}
+              </Button>
+            )}
+          </>
         ) : (
           <>
             {!paused ? (
@@ -566,6 +619,8 @@ export function BuildsView(props: BuildsViewProps) {
           onClose={() => setMenu(null)}
         />
       )}
+
+      {showReport && <CheckReport report={report} onClose={() => setShowReport(false)} />}
 
       {openMod && (
         <BuildModDetail

@@ -40,6 +40,8 @@ pub struct Inner {
     /// DeadlyStream sign-in checked during this session.
     pub signed_in: bool,
     pub case_insensitive: bool,
+    /// Fingerprint of the inputs of the last passing check.
+    pub checked: Option<String>,
 }
 
 pub struct AppState {
@@ -64,6 +66,7 @@ impl AppState {
                 cancelled: Arc::new(AtomicBool::new(false)),
                 failed_roots: None,
                 case_insensitive,
+                checked: None,
             }),
             prefs,
         }
