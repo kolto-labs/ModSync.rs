@@ -15,10 +15,12 @@ on:
       MODSYNC_SOURCE_TOKEN: {required: false}
       ARTSTORE_READ_TOKEN: {required: false}
       CACHE_ENCRYPTION_KEY: {required: true}
-      DIAGNOSTICS_ENCRYPTION_KEY: {required: true}
+      DIAGNOSTICS_ENCRYPTION_KEY: {required: false}
       MOD_CACHE_S3_READ_ACCESS_KEY_ID: {required: false}
       MOD_CACHE_S3_READ_SECRET_ACCESS_KEY: {required: false}
       MOD_CACHE_S3_ENDPOINT: {required: false}
+env:
+  DIAGNOSTICS_ENCRYPTION_RECIPIENT: ${{ vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT }}
 permissions: {contents: read, actions: read}
 jobs:
   install:
@@ -67,7 +69,7 @@ jobs:
         shell: bash
         run: |
           rustup toolchain install 1.95.0 --profile minimal
-          packages=(7zip 7zip-rar megatools libarchive-tools pkg-config libssl-dev)
+          packages=(age 7zip 7zip-rar megatools libarchive-tools pkg-config libssl-dev)
           if [[ "$MODE" == gui ]]; then
             packages+=(xvfb xauth python3-tk tesseract-ocr libxkbcommon-x11-dev libx11-dev libxcursor-dev libxrandr-dev libxi-dev libgl1-mesa-dev libwayland-dev scrot)
           fi
@@ -123,7 +125,7 @@ jobs:
       - name: Install the admitted full guide and require complete coverage
         env:
           ARTSTORE_REPOSITORY: ${{ inputs.artifact_repository || github.repository }}
-          ARTSTORE_TOKEN: ${{ secrets.ARTSTORE_READ_TOKEN || github.token }}
+          ARTSTORE_TOKEN: ${{ (!inputs.artifact_repository || inputs.artifact_repository == github.repository) && github.token || secrets.ARTSTORE_READ_TOKEN }}
           CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
           RCLONE_CONFIG_MODCACHE_TYPE: s3
           RCLONE_CONFIG_MODCACHE_PROVIDER: Cloudflare
@@ -144,3 +146,4 @@ jobs:
           source: ${{ runner.temp }}/lane-evidence
           name: fullrun-${{ inputs.game }}-${{ inputs.mode }}-${{ github.run_id }}-${{ github.run_attempt }}
           encryption-key: ${{ secrets.DIAGNOSTICS_ENCRYPTION_KEY }}
+          encryption-recipient: ${{ vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT }}

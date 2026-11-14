@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
-"""Stream a regular-file tree into an authenticated encrypted cache envelope."""
+"""Stream a regular-file tree into an encrypted envelope.
+
+The default symmetric format remains compatible with game caches. --recipient
+uses standard age X25519 encryption without a decryption secret on the producer.
+Recipient encryption provides integrity, not producer identity: verify artifact
+repository/run/commit provenance separately before trusting decrypted evidence.
+"""
 
 import argparse
 from contextlib import ExitStack
 import hashlib
 import hmac
 import os
+import re
 from pathlib import Path, PurePosixPath
 import shutil
 import stat
@@ -17,6 +24,7 @@ import tempfile
 MAGIC = b"MODSYNC-SEAL-1\n"
 CHUNK = 1024 * 1024
 MIN_KEY_BYTES = 32
+AGE_MAGIC = b"age-encryption.org/v1\n"
 
 
 def keys(salt):
@@ -40,21 +48,66 @@ def openssl(password, incoming, outgoing, decrypt=False):
                             stderr=subprocess.DEVNULL, env=environment)
 
 
-def seal(source, output):
+def validate_recipient(recipient):
+    """Validate native X25519 key shape, Bech32 checksum and zero padding."""
+    if not isinstance(recipient, str) or not re.fullmatch(
+            r"age1[023456789acdefghjklmnpqrstuvwxyz]{58}", recipient):
+        raise ValueError("Expected one native age X25519 public recipient")
+    # Native age recipients use the original Bech32 (BIP 173) checksum,
+    # not Bech32m: https://age-encryption.org/v1#native-x25519-identity
+    alphabet = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
+    symbols = [alphabet.index(character) for character in recipient[4:]]
+    prefix = [ord(character) >> 5 for character in "age"] + [0]
+    prefix += [ord(character) & 31 for character in "age"]
+    generators = (0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3)
+    checksum = 1
+    for symbol in prefix + symbols:
+        high = checksum >> 25
+        checksum = ((checksum & 0x1ffffff) << 5) ^ symbol
+        for bit, generator in enumerate(generators):
+            if high & (1 << bit):
+                checksum ^= generator
+    # 52 data symbols encode 256 key bits followed by four zero padding bits.
+    if checksum != 1 or symbols[-7] & 15:
+        raise ValueError("Invalid native age recipient checksum or padding")
+
+
+def age(incoming, outgoing, *, recipient=None, identity=None):
+    # Limit encryption to native X25519 keys; never invoke recipient plugins.
+    command = ["age"]
+    if recipient is not None:
+        validate_recipient(recipient)
+        command.extend(["--encrypt", "--recipient", recipient])
+    else:
+        if identity is None:
+            raise ValueError("An offline age identity file is required")
+        command.extend(["--decrypt", "--identity", str(identity)])
+    environment = dict(os.environ)
+    environment.pop("CACHE_ENCRYPTION_KEY", None)
+    environment.pop("DIAGNOSTICS_ENCRYPTION_KEY", None)
+    return subprocess.Popen(command, stdin=incoming, stdout=outgoing,
+                            stderr=subprocess.DEVNULL, env=environment)
+
+
+def seal(source, output, recipient=None):
     if source.is_symlink() or not source.is_dir():
         raise ValueError("Source must be a directory")
     if output.resolve().is_relative_to(source.resolve()):
         raise ValueError("Output must be outside source")
     output.parent.mkdir(parents=True, exist_ok=True)
-    salt = os.urandom(32)
-    password, authentication = keys(salt)
-    header = MAGIC + salt
+    header = b""
+    if recipient is None:
+        salt = os.urandom(32)
+        password, authentication = keys(salt)
+        header = MAGIC + salt
     descriptor, temporary = tempfile.mkstemp(dir=output.parent)
     try:
         with os.fdopen(descriptor, "w+b") as envelope:
             envelope.write(header)
             envelope.flush()
-            process = openssl(password, subprocess.PIPE, envelope)
+            process = (age(subprocess.PIPE, envelope, recipient=recipient)
+                       if recipient is not None else
+                       openssl(password, subprocess.PIPE, envelope))
             try:
                 with ExitStack() as handles:
                     directory_flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
@@ -144,11 +197,12 @@ def seal(source, output):
                     process.stdin.close()
                 except BrokenPipeError:
                     pass
-            mac = hmac.new(authentication, header, "sha256")
-            envelope.seek(len(header))
-            for chunk in iter(lambda: envelope.read(CHUNK), b""):
-                mac.update(chunk)
-            envelope.write(mac.digest())
+            if recipient is None:
+                mac = hmac.new(authentication, header, "sha256")
+                envelope.seek(len(header))
+                for chunk in iter(lambda: envelope.read(CHUNK), b""):
+                    mac.update(chunk)
+                envelope.write(mac.digest())
             envelope.flush()
             os.fsync(envelope.fileno())
         os.replace(temporary, output)
@@ -156,10 +210,18 @@ def seal(source, output):
         Path(temporary).unlink(missing_ok=True)
 
 
-def unseal(source, destination):
+def unseal(source, destination, identity=None):
     if destination.exists() or destination.is_symlink():
         raise ValueError("Destination must not exist")
-    with source.open("rb") as envelope, tempfile.TemporaryFile() as ciphertext:
+    # The age subprocess reads the same descriptor after format detection.
+    with source.open("rb", buffering=0) as envelope, tempfile.TemporaryFile() as ciphertext:
+        prefix = envelope.read(len(AGE_MAGIC))
+        envelope.seek(0)
+        if prefix == AGE_MAGIC:
+            if identity is None:
+                raise ValueError("An offline age identity file is required")
+            extract_tree(envelope, destination, identity=identity)
+            return
         header = envelope.read(len(MAGIC) + 32)
         if len(header) != len(MAGIC) + 32 or not header.startswith(MAGIC):
             raise ValueError("Invalid envelope")
@@ -178,39 +240,47 @@ def unseal(source, destination):
         if not hmac.compare_digest(mac.digest(), envelope.read(32)) or envelope.read(1):
             raise ValueError("Envelope authentication failed")
         ciphertext.seek(0)
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        with tempfile.TemporaryDirectory(dir=destination.parent) as temporary:
-            staged = Path(temporary) / "tree"
-            staged.mkdir(mode=0o700)
-            process = openssl(password, ciphertext, subprocess.PIPE, decrypt=True)
-            try:
-                seen = set()
-                with tarfile.open(fileobj=process.stdout, mode="r|") as archive:
-                    for member in archive:
-                        name = PurePosixPath(member.name)
-                        if (name.is_absolute() or ".." in name.parts or not name.parts
-                                or "\\" in member.name or member.name in seen
-                                or not (member.isdir() or member.isreg())):
-                            raise ValueError("Unsafe archive member")
-                        seen.add(member.name)
-                        target = staged.joinpath(*name.parts)
-                        target.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
-                        if member.isdir():
-                            target.mkdir(exist_ok=True, mode=0o700)
-                        else:
-                            with archive.extractfile(member) as incoming, target.open("xb") as outgoing:
-                                shutil.copyfileobj(incoming, outgoing, CHUNK)
-                            target.chmod(0o700 if member.mode & 0o111 else 0o600)
-                while process.stdout.read(CHUNK):
-                    pass
-                if process.wait() != 0:
-                    raise ValueError("Decryption failed")
-                staged.rename(destination)
-            finally:
-                process.stdout.close()
-                if process.poll() is None:
-                    process.kill()
-                process.wait()
+        extract_tree(ciphertext, destination, password=password)
+
+
+def extract_tree(ciphertext, destination, *, password=None, identity=None):
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=destination.parent) as temporary:
+        staged = Path(temporary) / "tree"
+        staged.mkdir(mode=0o700)
+        process = (age(ciphertext, subprocess.PIPE, identity=identity)
+                   if identity is not None else
+                   openssl(password, ciphertext, subprocess.PIPE, decrypt=True))
+        try:
+            seen = set()
+            with tarfile.open(fileobj=process.stdout, mode="r|") as archive:
+                for member in archive:
+                    name = PurePosixPath(member.name)
+                    if (name.is_absolute() or ".." in name.parts or not name.parts
+                            or "\\" in member.name or member.name in seen
+                            or not (member.isdir() or member.isreg())):
+                        raise ValueError("Unsafe archive member")
+                    seen.add(member.name)
+                    target = staged.joinpath(*name.parts)
+                    target.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+                    if member.isdir():
+                        target.mkdir(exist_ok=True, mode=0o700)
+                    else:
+                        with archive.extractfile(member) as incoming, target.open("xb") as outgoing:
+                            shutil.copyfileobj(incoming, outgoing, CHUNK)
+                        target.chmod(0o700 if member.mode & 0o111 else 0o600)
+            # Tar EOF can precede the final age authentication tag. Verify all
+            # ciphertext and process success before publishing the staged tree.
+            while process.stdout.read(CHUNK):
+                pass
+            if process.wait() != 0:
+                raise ValueError("Decryption failed")
+            staged.rename(destination)
+        finally:
+            process.stdout.close()
+            if process.poll() is None:
+                process.kill()
+            process.wait()
 
 
 def main():
@@ -218,10 +288,18 @@ def main():
     parser.add_argument("command", choices=("seal", "unseal"))
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--destination", type=Path, required=True)
+    parser.add_argument("--recipient", help="Native age public key; seal without a shared secret")
+    parser.add_argument("--identity", type=Path, help="Offline age private identity file for unseal")
     args = parser.parse_args()
+    if (args.command == "seal" and args.identity is not None
+            or args.command == "unseal" and args.recipient is not None):
+        parser.error("--recipient is seal-only; --identity is unseal-only")
     os.umask(0o077)
     try:
-        (seal if args.command == "seal" else unseal)(args.source, args.destination)
+        if args.command == "seal":
+            seal(args.source, args.destination, recipient=args.recipient)
+        else:
+            unseal(args.source, args.destination, identity=args.identity)
     except (OSError, ValueError, tarfile.TarError, subprocess.SubprocessError):
         parser.exit(1, "Cache sealing operation failed; no private diagnostics emitted.\n")
 

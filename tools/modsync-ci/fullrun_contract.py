@@ -11,7 +11,7 @@ from pathlib import Path
 import re
 import sys
 
-from seal import MIN_KEY_BYTES
+from seal import MIN_KEY_BYTES, validate_recipient
 
 OPERATIONS = ("check", "full", "games", "archives", "install", "seed", "p2p")
 SHA = re.compile(r"[0-9a-f]{40}")
@@ -124,6 +124,12 @@ def require_stage_credentials(stage):
                 "seed": ("DIAGNOSTICS_ENCRYPTION_KEY",)}
     if stage not in required:
         raise ValueError("unknown credential-bearing stage")
+    # GitHub resolves repository-over-organization secrets before passing them.
+    # Diagnostics can be encrypted using only an offline custodian's public key.
+    recipient = os.environ.get("DIAGNOSTICS_ENCRYPTION_RECIPIENT", "")
+    if stage != "games" and recipient:
+        validate_recipient(recipient)  # age also verifies its checksum before sealing.
+        required[stage] = tuple(key for key in required[stage] if key != "DIAGNOSTICS_ENCRYPTION_KEY")
     missing = [key for key in required[stage] if not os.environ.get(key)]
     short = [key for key in required[stage]
              if key not in missing and len(os.environ[key].encode()) < MIN_KEY_BYTES]
@@ -134,7 +140,9 @@ def require_stage_credentials(stage):
         if short:
             problems.append(f"shorter than {MIN_KEY_BYTES} bytes: " + ", ".join(short))
         raise ValueError(f"{stage} credential setup is incomplete ({'; '.join(problems)}). "
-                         "Set or expose the named Actions secrets in the owning repository; "
+                         "Set or expose the named Actions secrets in the owning repository "
+                         "(organization secrets are supported). Diagnostics may instead use the "
+                         "DIAGNOSTICS_ENCRYPTION_RECIPIENT public Actions variable; "
                          "see docs/ci-fullruns.md#minimum-setup.")
     return {"stage": stage, "status": "credentials-present"}
 

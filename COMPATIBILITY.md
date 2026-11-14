@@ -4716,3 +4716,7 @@ widescreen evidence in the selection-availability replay documentation.
 ## Repository-owned CI integration boundary
 
 The full-run workflow now owns its local cache/install/seed/P2P/tooling stages and binds the engine to the triggering source SHA. Owned engine pushes request the complete graph; PRs request credential-free checks. The six synthetic CLI/GUI workflow entry points have been removed; real install routes remain in the full-run matrix. The separately owned mod-builds variant binds the triggering guide SHA and retains its own event policy. See [CI operation and proof limits](docs/ci-fullruns.md). Full-run completeness rejects partial or omitted component coverage and GUI subset phases; this is single-lane evidence, not cross-route/per-mod parity. Packaging proofs retain their existing limitations. Rust test and custom-harness execution remains frozen; no product feature or parity completion is claimed by the CI migration.
+
+## Full-run diagnostics encryption
+
+Full-run evidence can use a native age X25519 public recipient (`DIAGNOSTICS_ENCRYPTION_RECIPIENT` Actions variable), with its private identity held offline. The legacy independent diagnostics secret remains supported; game/cache envelopes and their matching keys are unchanged. Public-key encryption does not authenticate the producer: evidence consumers must verify GitHub artifact/run/commit provenance and the ciphertext receipt. Credential reduction does not establish full-guide installation or change required coverage gates.

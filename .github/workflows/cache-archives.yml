@@ -14,12 +14,14 @@ on:
         description: Exact verified producer cache key; empty on producer failure
         value: ${{ jobs.archives.outputs.archive_cache_key }}
     secrets:
-      DIAGNOSTICS_ENCRYPTION_KEY: {required: true}
+      DIAGNOSTICS_ENCRYPTION_KEY: {required: false}
       ARTSTORE_READ_TOKEN: {required: false}
       CACHE_ENCRYPTION_KEY: {required: false}
       MOD_CACHE_S3_READ_ACCESS_KEY_ID: {required: false}
       MOD_CACHE_S3_READ_SECRET_ACCESS_KEY: {required: false}
       MOD_CACHE_S3_ENDPOINT: {required: false}
+env:
+  DIAGNOSTICS_ENCRYPTION_RECIPIENT: ${{ vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT }}
 permissions: {contents: read, actions: read}
 jobs:
   archives:
@@ -52,7 +54,7 @@ jobs:
       - name: Install archive tools
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends 7zip 7zip-rar megatools libarchive-tools
+          sudo apt-get install -y --no-install-recommends age 7zip 7zip-rar megatools libarchive-tools
           python -m pip install gdown==5.2.0
           python tools/modsync-ci/bootstrap_rclone.py --directory "$RUNNER_TEMP/rclone"
       - name: Restore existing archive accelerator
@@ -66,7 +68,7 @@ jobs:
         env:
           GAMES: ${{ inputs.games }}
           ARTSTORE_REPOSITORY: ${{ inputs.artifact_repository || github.repository }}
-          ARTSTORE_TOKEN: ${{ secrets.ARTSTORE_READ_TOKEN || github.token }}
+          ARTSTORE_TOKEN: ${{ (!inputs.artifact_repository || inputs.artifact_repository == github.repository) && github.token || secrets.ARTSTORE_READ_TOKEN }}
           CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
           RCLONE_CONFIG_MODCACHE_TYPE: s3
           RCLONE_CONFIG_MODCACHE_PROVIDER: Cloudflare
@@ -93,3 +95,4 @@ jobs:
           source: ${{ runner.temp }}/archive-evidence
           name: cache-archives-${{ github.run_id }}-${{ github.run_attempt }}
           encryption-key: ${{ secrets.DIAGNOSTICS_ENCRYPTION_KEY }}
+          encryption-recipient: ${{ vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT }}

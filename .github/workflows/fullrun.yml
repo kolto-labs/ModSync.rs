@@ -46,6 +46,10 @@ on:
         description: Seed operation verifies staged objects without publishing by default
         type: boolean
         default: true
+      use_steam_guard_codes:
+        description: Explicitly permit single-use Steam backup codes after saved-login/password attempts
+        type: boolean
+        default: false
 permissions: {contents: read, actions: read}
 concurrency:
   group: fullrun-${{ github.event_name }}-${{ github.ref }}
@@ -100,6 +104,7 @@ jobs:
       games: ${{ needs.plan.outputs.games }}
       cache_writer: ${{ fromJSON(needs.plan.outputs.cache_writer) }}
       allow_steam: ${{ vars.FULLRUN_ALLOW_STEAM == 'true' }}
+      use_steam_guard_codes: ${{ github.event_name == 'workflow_dispatch' && inputs.use_steam_guard_codes || false }}
       artifact_repository: ${{ vars.FULLRUN_ARTIFACT_REPOSITORY || github.repository }}
     secrets:
       ARTSTORE_READ_TOKEN: ${{ secrets.ARTSTORE_READ_TOKEN }}
