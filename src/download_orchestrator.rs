@@ -21,12 +21,12 @@ use serde::Serialize;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::{
-    collections::BTreeSet,
+    collections::{BTreeMap, BTreeSet},
     io::Read,
     path::{Path, PathBuf},
     sync::{
         Arc, Mutex,
-        atomic::{AtomicBool, AtomicU8, Ordering},
+        atomic::{AtomicBool, AtomicU8, AtomicUsize, Ordering},
         mpsc,
     },
     thread,
@@ -614,14 +614,12 @@ fn bare_deadlystream_page(target: &ArchiveTarget) -> Option<&str> {
 fn expand_deadlystream_page(
     guide: &Guide,
     target: &ArchiveTarget,
+    files: Result<Vec<deadlystream::File>>,
     options: &PlanOptions,
-    settings: &RunSettings,
-    loopback_ca: Option<&download::LoopbackCa>,
     result: &mut AcquisitionPlan,
+    present: &mut Vec<(usize, PathBuf)>,
     filename_selection: &mut download_plan::SelectionContext<'_>,
 ) -> Result<()> {
-    let cancelled = filename_selection.cancelled();
-    let page = bare_deadlystream_page(target).context("Target has no DeadlyStream page")?;
     let component = guide
         .components
         .iter()
@@ -632,12 +630,7 @@ fn expand_deadlystream_page(
                 target.component_guid
             )
         })?;
-    let files = deadlystream::resolve(
-        page,
-        settings.deadlystream_base.as_deref(),
-        loopback_ca,
-        cancelled,
-    )?;
+    let files = files?;
     let names: Vec<String> = files
         .iter()
         .map(|file| file.name.clone())
@@ -666,23 +659,9 @@ fn expand_deadlystream_page(
             .filter(|source| single || !matches!(source, Source::Peer { .. }))
             .cloned()
             .collect();
-        if let Some(path) = find_existing(&result.source_dir, &name)
-            && existing_valid(
-                &path,
-                target.expected_sha256.as_deref(),
-                &options.archive,
-                cancelled,
-            )
-        {
-            result.skipped.push(PlannedSkip {
-                component_guid: target.component_guid.clone(),
-                registry_url: target.registry_url.clone(),
-                filename: Some(name),
-                reason: SkipReason::AlreadyPresent,
-                path: Some(path),
-                detail: None,
-            });
-            continue;
+        // Verified later, with every other present archive of this discovery.
+        if let Some(path) = find_existing(&result.source_dir, &name) {
+            present.push((result.targets.len(), path));
         }
         result.targets.push(ArchiveTarget {
             component_guid: target.component_guid.clone(),
@@ -708,6 +687,7 @@ fn expand_deadlystream_page(
 }
 
 /// Expands one bare Nexus page target. `Err` leaves the target as planned.
+#[allow(clippy::too_many_arguments)]
 fn expand_nexus_page(
     guide: &Guide,
     target: &ArchiveTarget,
@@ -715,6 +695,7 @@ fn expand_nexus_page(
     options: &PlanOptions,
     client: &mut NexusClient,
     result: &mut AcquisitionPlan,
+    present: &mut Vec<(usize, PathBuf)>,
     filename_selection: &mut download_plan::SelectionContext<'_>,
 ) -> Result<()> {
     let cancelled = filename_selection.cancelled();
@@ -809,23 +790,9 @@ fn expand_nexus_page(
                 other => other.clone(),
             })
             .collect();
-        if let Some(path) = find_existing(&result.source_dir, &name)
-            && existing_valid(
-                &path,
-                target.expected_sha256.as_deref(),
-                &options.archive,
-                cancelled,
-            )
-        {
-            result.skipped.push(PlannedSkip {
-                component_guid: target.component_guid.clone(),
-                registry_url: target.registry_url.clone(),
-                filename: Some(name),
-                reason: SkipReason::AlreadyPresent,
-                path: Some(path),
-                detail: None,
-            });
-            continue;
+        // Verified later, with every other present archive of this discovery.
+        if let Some(path) = find_existing(&result.source_dir, &name) {
+            present.push((result.targets.len(), path));
         }
         result.targets.push(ArchiveTarget {
             component_guid: target.component_guid.clone(),
@@ -882,16 +849,98 @@ pub fn discover_with_loopback_ca(
     cancelled: &AtomicBool,
     loopback_ca: Option<&download::LoopbackCa>,
 ) -> Result<AcquisitionPlan> {
+    discover_observed(
+        guide,
+        plan,
+        options,
+        settings,
+        cancelled,
+        loopback_ca,
+        |_| {},
+    )
+}
+
+/// Which part of execution-time discovery a [`DiscoveryProgress`] counts.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum DiscoveryStage {
+    /// Provider pages listed for their archive names.
+    Pages,
+    /// Archives already in the mod folder, hashed and test-read before they are skipped.
+    ExistingFiles,
+}
+
+/// One finished step of discovery, which runs before the first [`AcquisitionEvent`].
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DiscoveryProgress {
+    pub stage: DiscoveryStage,
+    pub done: usize,
+    pub total: usize,
+}
+
+/// As [`discover_with_loopback_ca`], reporting progress. DeadlyStream pages are listed
+/// and present archives verified on up to `settings.workers` threads (bounded to 1..=32),
+/// so a large selection does not wait on one request or one archive at a time. Filename
+/// selection and the returned plan keep plan order, exactly as one sequential pass would.
+/// `observe` may be called from those threads, one call at a time.
+pub fn discover_observed(
+    guide: &Guide,
+    plan: &AcquisitionPlan,
+    options: &PlanOptions,
+    settings: &RunSettings,
+    cancelled: &AtomicBool,
+    loopback_ca: Option<&download::LoopbackCa>,
+    observe: impl FnMut(DiscoveryProgress) + Send,
+) -> Result<AcquisitionPlan> {
+    let workers = settings.workers.clamp(1, 32);
+    let observe = Mutex::new(observe);
+    let report = |stage, done: &AtomicUsize, total| {
+        let done = done.fetch_add(1, Ordering::SeqCst) + 1;
+        if let Ok(mut observe) = observe.lock() {
+            observe(DiscoveryProgress { stage, done, total });
+        }
+    };
+
+    // Every page listing is independent network work: run them together up front.
+    let pages: Vec<(usize, &str)> = plan
+        .targets
+        .iter()
+        .enumerate()
+        .filter_map(|(index, target)| bare_deadlystream_page(target).map(|page| (index, page)))
+        .collect();
+    let total = pages.len();
+    let done = AtomicUsize::new(0);
+    let mut listings: BTreeMap<usize, Result<Vec<deadlystream::File>>> =
+        download_queue::run_ordered(pages, workers.min(total.max(1)), |_, (index, page)| {
+            if cancelled.load(Ordering::SeqCst) {
+                return (index, None);
+            }
+            let files = deadlystream_files(page, settings, loopback_ca, cancelled);
+            report(DiscoveryStage::Pages, &done, total);
+            (index, Some(files))
+        })?
+        .into_iter()
+        .filter_map(|(index, files)| files.map(|files| (index, files)))
+        .collect();
+
     let mut filename_selection =
         download_plan::SelectionContext::new(Some(&plan.source_dir), cancelled)?;
     let mut result = AcquisitionPlan {
         targets: Vec::new(),
         ..plan.clone()
     };
+    // (index in `result.targets`, existing file of that name) for every expanded target.
+    let mut present: Vec<(usize, PathBuf)> = Vec::new();
     let mut nexus: Option<NexusClient> = None;
     let mut premium: Option<bool> = None;
-    for target in &plan.targets {
+    for (index, target) in plan.targets.iter().enumerate() {
         if bare_deadlystream_page(target).is_some() {
+            let Some(files) = listings.remove(&index) else {
+                // Stopped before this page was listed.
+                result.targets.push(target.clone());
+                continue;
+            };
             if cancelled.load(Ordering::SeqCst) {
                 result.targets.push(target.clone());
                 continue;
@@ -904,16 +953,19 @@ pub fn discover_with_loopback_ca(
                 skipped: Vec::new(),
                 warnings: Vec::new(),
             };
+            let mut found = Vec::new();
             match expand_deadlystream_page(
                 guide,
                 target,
+                files,
                 options,
-                settings,
-                loopback_ca,
                 &mut expanded,
+                &mut found,
                 &mut filename_selection,
             ) {
                 Ok(()) => {
+                    let offset = result.targets.len();
+                    present.extend(found.into_iter().map(|(at, path)| (offset + at, path)));
                     result.targets.extend(expanded.targets);
                     result.skipped.extend(expanded.skipped);
                     result.warnings.extend(expanded.warnings);
@@ -969,6 +1021,7 @@ pub fn discover_with_loopback_ca(
             skipped: Vec::new(),
             warnings: Vec::new(),
         };
+        let mut found = Vec::new();
         match expand_nexus_page(
             guide,
             target,
@@ -976,9 +1029,12 @@ pub fn discover_with_loopback_ca(
             options,
             client,
             &mut expanded,
+            &mut found,
             &mut filename_selection,
         ) {
             Ok(()) => {
+                let offset = result.targets.len();
+                present.extend(found.into_iter().map(|(at, path)| (offset + at, path)));
                 result.targets.extend(expanded.targets);
                 result.skipped.extend(expanded.skipped);
                 result.warnings.extend(expanded.warnings);
@@ -993,6 +1049,43 @@ pub fn discover_with_loopback_ca(
                 result.targets.push(target.clone());
             }
         }
+    }
+
+    // A present archive that hashes and reads cleanly is skipped instead of fetched.
+    // Each check reads the whole archive, so the checks share the worker threads too.
+    let total = present.len();
+    let done = AtomicUsize::new(0);
+    let targets = &result.targets;
+    let valid: BTreeMap<usize, PathBuf> =
+        download_queue::run_ordered(present, workers.min(total.max(1)), |_, (at, path)| {
+            let valid = existing_valid(
+                &path,
+                targets[at].expected_sha256.as_deref(),
+                &options.archive,
+                cancelled,
+            );
+            report(DiscoveryStage::ExistingFiles, &done, total);
+            valid.then_some((at, path))
+        })?
+        .into_iter()
+        .flatten()
+        .collect();
+    if !valid.is_empty() {
+        let mut kept = Vec::with_capacity(result.targets.len());
+        for (at, target) in std::mem::take(&mut result.targets).into_iter().enumerate() {
+            match valid.get(&at) {
+                Some(path) => result.skipped.push(PlannedSkip {
+                    component_guid: target.component_guid,
+                    registry_url: target.registry_url,
+                    filename: target.filename,
+                    reason: SkipReason::AlreadyPresent,
+                    path: Some(path.clone()),
+                    detail: None,
+                }),
+                None => kept.push(target),
+            }
+        }
+        result.targets = kept;
     }
     let links = shared_destinations(&result.targets, cancelled)?;
     for (target, link) in result.targets.iter_mut().zip(links) {
@@ -1214,7 +1307,9 @@ fn run_guarded(
     let original_root = std::path::absolute(&plan.source_dir)?;
     let mut canonical = plan.clone();
     canonical.source_dir = root_lock.root().to_path_buf();
-    for skip in &mut canonical.skipped {
+    // (skip index, path, authored hash, metadata before the reread) per present archive.
+    let mut rereads = Vec::new();
+    for (at, skip) in canonical.skipped.iter_mut().enumerate() {
         if skip.reason != SkipReason::AlreadyPresent {
             continue;
         }
@@ -1319,12 +1414,25 @@ fn run_guarded(
             "Existing-file archive is no longer selected by its consumer; replan acquisition"
         );
         let before = std::fs::symlink_metadata(&path)?;
-        let valid = existing_valid(
-            &path,
+        rereads.push((
+            at,
+            path,
             metadata_str(metadata, "ContentHashSHA256"),
-            &settings.archive,
-            cancelled,
-        );
+            before,
+        ));
+    }
+    // Each reread hashes and test-reads a whole archive; a full build has hundreds, so
+    // they share the run's workers instead of delaying the first transfer one by one.
+    let reread = rereads.len();
+    let rereads = download_queue::run_ordered(
+        rereads,
+        settings.workers.min(reread.max(1)),
+        |_, (at, path, expected, before)| {
+            let valid = existing_valid(&path, expected, &settings.archive, cancelled);
+            (at, path, before, valid)
+        },
+    )?;
+    for (at, path, before, valid) in rereads {
         ensure!(!cancelled.load(Ordering::Acquire), "Acquisition cancelled");
         ensure!(
             valid,
@@ -1338,7 +1446,7 @@ fn run_guarded(
                 && before.modified()? == after.modified()?,
             "Existing-file archive changed during revalidation; replan acquisition"
         );
-        skip.path = Some(path);
+        canonical.skipped[at].path = Some(path);
     }
     let plan = &canonical;
     // A hand-built plan must link exactly as `plan` would, or two workers could write one
@@ -2809,6 +2917,22 @@ fn mega_resolve(
     )
 }
 
+/// The archives a DeadlyStream page offers. Every page listing goes through here, the
+/// parallel discovery pass included, so how pages are read is decided in one place.
+fn deadlystream_files(
+    page: &str,
+    settings: &RunSettings,
+    loopback_ca: Option<&download::LoopbackCa>,
+    cancelled: &AtomicBool,
+) -> Result<Vec<deadlystream::File>> {
+    deadlystream::resolve(
+        page,
+        settings.deadlystream_base.as_deref(),
+        loopback_ca,
+        cancelled,
+    )
+}
+
 /// The archive of a DeadlyStream page that `target` wants: the one named by its filename
 /// (ASCII case-insensitive), or, unnamed, the page's only one. Never a guess between several.
 fn deadlystream_file(
@@ -2817,12 +2941,7 @@ fn deadlystream_file(
     url: &str,
     cancelled: &AtomicBool,
 ) -> Result<deadlystream::File> {
-    let mut files = deadlystream::resolve(
-        url,
-        context.settings.deadlystream_base.as_deref(),
-        context.loopback_ca,
-        cancelled,
-    )?;
+    let mut files = deadlystream_files(url, context.settings, context.loopback_ca, cancelled)?;
     match &target.filename {
         Some(name) => {
             let position = files

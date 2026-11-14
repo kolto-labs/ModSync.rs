@@ -2789,6 +2789,24 @@ A wildcard reaches only its own folder level: `Override/**` is the same as
 `Override/*`, so name each subfolder level you need (`textures/*`, `textures/hd/*`).
 `[` and `]` in a Source are ordinary characters.
 
+## Fetch discovery on large selections
+
+Before its first acquisition event, `fetch-downloads` lists every unnamed DeadlyStream
+page for its archive names and hashes and test-reads every archive already in the mod
+folder, then rereads those archives again under the mod-root lock. All of this ran one
+page or one archive at a time with no output, so a full build (about 170 mods, almost
+every one a DeadlyStream page) sat silent for over ten minutes and looked hung, while a
+batch of 15 finished in about a minute. Page listings and present-archive checks now
+run on the `--workers` threads (bounded to 1 to 32, default 4), and so does the
+reread under the lock. Filename selection, warnings, targets, skips and the order of
+the returned plan are unchanged; a reread failure still stops the run before any
+transfer. Discovery now writes `Checking download pages: N of M` and `Checking files
+already in the mods folder: N of M` to stderr as it goes, with or without
+`--progress-json`; stdout still carries only acquisition events and the summary.
+Library callers get the same counts from `discover_observed`. Nexus page discovery
+stays sequential. The desktop runs the same parallel discovery without the progress
+lines.
+
 ## Fetch shared URL and destination — 2026-09-28 UTC
 
 `fetch-downloads` no longer lets two selected components race for one archive file.
