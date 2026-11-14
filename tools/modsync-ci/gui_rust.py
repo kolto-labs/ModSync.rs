@@ -1254,7 +1254,8 @@ def main():
               "source_contract": ["src/ui/validation_page.rs", "src/ui.rs",
                                   "src/ui/installing_page.rs", "src/recovery.rs",
                                   "src/checkpoint/finalize.rs"],
-              "limitations": ["Default mode installs one phase; --complete-guide requires both native phase receipts",
+              "limitations": ["Widescreen components are never installed in default single-phase mode; "
+                              "--complete-guide requires both native phase receipts",
                               "Draft review cannot be authorized by this driver",
                               "Full guide coverage must be established by the caller",
                               "A failed install requires application recovery before retry"]}
