@@ -2990,6 +2990,20 @@ Clippy without desktop features passed after the initial T2/E6 integration;
 later review changes still require their own production checks. These checks
 do not establish package execution or full feature acceptance.
 
+### Windows managed deployment roots
+
+On Windows, `install --managed --component-checkpoints` stopped before the first
+mod with "Incorrect function. (os error 1)", whether the roots came from
+`--staging-dir`/`--manifest-dir` or from a profile. The managed path check
+inspected every component of a path, including the bare drive prefix of the
+verbatim owner-record path (`\\?\D:`), which opens the volume device rather than
+a directory. Prefix components are now skipped; the root directory and every
+folder below it are still checked for symlinks, reparse points and file types.
+The staging and manifest roots are also held in the same canonical spelling as the
+game directory, because the checkpoint store binds managed participants to that
+spelling and refused the ordinary `D:\...` form. Ownership records already used
+the canonical spelling and are unchanged. Unix paths are unaffected.
+
 ### Opt-in managed checkpoints and archive times (2026-10-02)
 
 `install --component-checkpoints` now connects the engine to durable component
