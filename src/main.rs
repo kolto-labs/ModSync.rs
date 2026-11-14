@@ -2641,8 +2641,12 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             // C1/C4: the loaded guide stays pristine for `record`/`save`; selection runs on
             // a separate, transient clone that plan/run/the Peer adapter/`fomod_followups`
             // see instead. No selection change from this run is ever written back.
+            // The clone drafts prose Markdown as `selection`, `validate`, `install` and the
+            // desktop do, so the option GUIDs they print select here and planning sees the
+            // same drafted instructions; drafts are never recorded into the guide.
             let mut guide = Guide::load_preserving_selection(&input)?;
             let mut execution = guide.clone();
+            execution.draft_for_install(&input);
             let has_selector = !select.is_empty()
                 || !option.is_empty()
                 || !selection_flags.select_through_tier.is_empty()

@@ -1267,6 +1267,33 @@ The issue texts keep Rust's wording, without C#'s `ERROR: <component>:` prefix. 
 [gate-collect proof](docs/parity/fomod-gate-collect-proof/README.md), 67/67 checks (22
 fail on `d78aea2`); contract in [fomod-gate-collect.md](docs/parity/fomod-gate-collect.md).
 
+## Download recommendations phrased against an option, 2026-11-14 UTC
+
+Markdown drafting turned a download recommendation phrased against something into an
+option to choose. In the KOTOR 1 Full Build, "which I recommend against" (Stunbaton HD)
+became an option named `against`, "do not download the "stunbaton 2025" file" became
+`"stunbaton 2025"`, and "recommend against the "ZaalbarHD (...)" version" became
+`against the "ZaalbarHD (...)"`; all three were preselected and listed by `selection`
+as if they were mods. The drafter now skips a recommendation whose option starts with
+`against` or `not`, or whose verb follows `not`, `n't`, `never`, `avoid`, `skip` or
+`ignore`. This deliberately differs from the pinned C# parser, which drafts them. Other
+drafted download options are unchanged: the build now drafts 6 options instead of 9 and
+preselects 2 instead of 5 (`Base install` and the HQ Cockpit Skyboxes medium option).
+The 4 unselected options C# also drafts from loose wording (`and install both`, `only
+the`, `a non-English mod`, `mod`) are kept. An option's GUID depends on its position,
+so an option that followed a skipped one gets a new GUID.
+
+`fetch-downloads` now drafts prose Markdown on its working copy of the guide, as
+`selection`, `validate`, `install` and the desktop already did. Before, it loaded the
+Markdown undrafted, so an option GUID printed by `selection` was unknown to
+`fetch-downloads --option`, and planning did not see drafted instructions. The authored
+guide that `--record` saves is still the undrafted one.
+
+Unchanged and by design: every loader reads 197 top-level mods from the build (186
+under "Mod List" plus 11 widescreen-only). `selection` counts and preselects base mods
+only (186), as the desktop main page does; the 11 widescreen-only mods belong to the
+widescreen phase. `--select` takes mods; options are selected with `--option`.
+
 ## Delete, Copy, Move and Extract with an empty Source list — 2026-10-04 UTC
 
 An instruction whose `Source` list is empty after loading (`Source = []`, only blank
