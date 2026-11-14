@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { X, ExternalLink, Loader2, AlertTriangle } from "lucide-react";
-import { api, type BuildMod, type ModInfo } from "@/lib/api";
+import { api, type BuildMod, type ModInfo, type ModOption } from "@/lib/api";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Screenshots } from "@/components/Screenshots";
@@ -39,6 +40,12 @@ export function BuildModDetail({ mod, onClose, error }: BuildModDetailProps) {
       .finally(() => { if (alive) setInfoLoading(false); });
     return () => { alive = false; };
   }, [mod.file_id, mod.slug, mod.game, onDeadlyStream]);
+
+  const [options, setOptions] = useState<ModOption[]>(mod.options ?? []);
+  useEffect(() => { setOptions(mod.options ?? []); }, [mod]);
+  const toggleOption = (o: ModOption, selected: boolean) => {
+    api.setOption(mod.build_key, o.guid, selected).then((r) => setOptions(r.options)).catch(() => {});
+  };
 
   const title = info?.title?.trim() || mod.name;
   const description = info?.description?.trim() || mod.description?.trim();
@@ -128,6 +135,36 @@ export function BuildModDetail({ mod, onClose, error }: BuildModDetailProps) {
           )}
 
           {/* Install instructions straight from the build guide */}
+          {/* Choices inside the mod */}
+          {options.length > 0 && (
+            <section>
+              <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {t("modDetail.options")}
+              </h3>
+              <OptionList options={options} onToggle={toggleOption} />
+            </section>
+          )}
+
+          {(mod.dependencies?.length ?? 0) > 0 && (
+            <section>
+              <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {t("modDetail.requires")}
+              </h3>
+              <ul className="list-disc space-y-0.5 pl-5 text-sm text-muted-foreground">
+                {mod.dependencies!.map((n) => <li key={n}>{n}</li>)}
+              </ul>
+            </section>
+          )}
+
+          {(mod.restrictions?.length ?? 0) > 0 && (
+            <section className="border-l-2 border-warning pl-3">
+              <h3 className="mb-1 text-sm font-semibold text-warning">{t("modDetail.cannotCombine")}</h3>
+              <ul className="list-disc space-y-0.5 pl-5 text-sm text-muted-foreground">
+                {mod.restrictions!.map((n) => <li key={n}>{n}</li>)}
+              </ul>
+            </section>
+          )}
+
           {instructions && (
             <section>
               <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -183,5 +220,24 @@ export function BuildModDetail({ mod, onClose, error }: BuildModDetailProps) {
         </div>
       </aside>
     </div>
+  );
+}
+
+function OptionList({ options, onToggle }: { options: ModOption[]; onToggle: (o: ModOption, selected: boolean) => void }) {
+  return (
+    <ul className="space-y-2">
+      {options.map((o) => (
+        <li key={o.guid} className="space-y-1">
+          <label className="flex items-start gap-2 text-sm">
+            <Checkbox checked={o.selected} onCheckedChange={(v) => onToggle(o, v)} aria-label={o.name} className="mt-0.5" />
+            <span className="min-w-0">
+              <span className="text-foreground">{o.name}</span>
+              {o.description && <span className="block text-xs text-muted-foreground">{o.description}</span>}
+            </span>
+          </label>
+          {o.options.length > 0 && <div className="pl-6"><OptionList options={o.options} onToggle={onToggle} /></div>}
+        </li>
+      ))}
+    </ul>
   );
 }

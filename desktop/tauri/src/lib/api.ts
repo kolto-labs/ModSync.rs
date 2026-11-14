@@ -52,6 +52,19 @@ export interface BuildMod {
   auto_downloadable?: boolean;
   patch_urls?: string[];
   installed?: boolean;
+  /** Choices inside the mod, as the guide defines them. */
+  options?: ModOption[];
+  /** Other mods this one needs, and mods it cannot be combined with. */
+  dependencies?: string[];
+  restrictions?: string[];
+}
+
+export interface ModOption {
+  guid: string;
+  name: string;
+  description: string;
+  selected: boolean;
+  options: ModOption[];
 }
 
 export interface AppStatus {
@@ -215,6 +228,11 @@ export const api = {
     req<{ ok: boolean; build: BuildInfo }>("/api/builds/local", {
       method: "POST",
       body: JSON.stringify({ path }),
+    }),
+  setOption: (key: string, guid: string, selected: boolean) =>
+    req<{ ok: boolean; options: ModOption[] }>(`/api/builds/${encodeURIComponent(key)}/option`, {
+      method: "POST",
+      body: JSON.stringify({ guid, selected }),
     }),
   deleteBuild: (key: string) =>
     req<{ ok: boolean }>(`/api/builds/${encodeURIComponent(key)}`, { method: "DELETE" }),

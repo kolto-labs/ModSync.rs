@@ -185,8 +185,77 @@ fn text(c: &Component, key: &str) -> String {
         .to_owned()
 }
 
+/// A component's options (nested), for choosing them in the mod details.
+fn options_json(options: &[Component]) -> Vec<Value> {
+    options
+        .iter()
+        .map(|o| {
+            json!({
+                "guid": o.guid,
+                "name": o.name,
+                "description": o.description,
+                "selected": o.is_selected,
+                "options": options_json(&o.options),
+            })
+        })
+        .collect()
+}
+
+fn names(all: &[Component], ids: &[String]) -> Vec<String> {
+    ids.iter()
+        .map(|id| {
+            all.iter()
+                .find(|c| c.guid.eq_ignore_ascii_case(id))
+                .map_or_else(|| id.clone(), |c| c.name.clone())
+        })
+        .collect()
+}
+
+/// Turn one option of a mod on or off in the open build, with the engine's
+/// selection rules (`selection::Action::SetOption`). Returns the mod's options.
+pub fn set_option(app: &AppHandle, key: &str, r: &Request) -> Reply {
+    let st = state(app);
+    let mut inner = st.lock();
+    let loaded = inner
+        .loaded
+        .as_mut()
+        .filter(|l| l.key == key)
+        .ok_or_else(|| fail(400, "Load the mod list first"))?;
+    let guid = r.b("guid");
+    let selected = r
+        .body
+        .get("selected")
+        .and_then(Value::as_bool)
+        .unwrap_or(false);
+    modsync::selection::apply(
+        &mut loaded.guide.components,
+        None,
+        modsync::selection::Action::SetOption {
+            guid: guid.clone(),
+            selected,
+        },
+    )
+    .map_err(fail_any)?;
+    let owner = loaded
+        .guide
+        .components
+        .iter()
+        .find(|c| {
+            fn has(options: &[Component], id: &str) -> bool {
+                options
+                    .iter()
+                    .any(|o| o.guid.eq_ignore_ascii_case(id) || has(&o.options, id))
+            }
+            has(&c.options, &guid)
+        })
+        .ok_or_else(|| fail(404, "Unknown option"))?;
+    Ok(json!({"ok": true, "options": options_json(&owner.options)}))
+}
+
 /// A component in the shape the interface's mod list expects.
+#[allow(clippy::too_many_arguments)]
 pub fn mod_json(
+    all: &[Component],
     spoiler_free: bool,
     c: &Component,
     order: usize,
@@ -244,6 +313,9 @@ pub fn mod_json(
         },
         "patch_urls": links.iter().skip(1).collect::<Vec<_>>(),
         "installed": installed,
+        "options": options_json(&c.options),
+        "dependencies": names(all, &c.dependencies),
+        "restrictions": names(all, &c.restrictions),
     })
 }
 
@@ -277,6 +349,7 @@ pub fn load(app: &AppHandle, key: &str, r: &Request) -> Reply {
         .enumerate()
         .map(|(i, c)| {
             mod_json(
+                &guide.components,
                 spoiler_free,
                 c,
                 i + 1,

@@ -104,6 +104,7 @@ fn route(app: &AppHandle, r: &Request) -> Reply {
         (["api", "builds", "local"], "POST") => crate::builds::add_local(app, r),
         (["api", "builds", key], "DELETE") => crate::builds::delete(app, key),
         (["api", "builds", key, "load"], _) => crate::builds::load(app, key, r),
+        (["api", "builds", key, "option"], _) if post => crate::builds::set_option(app, key, r),
         (["api", "library", ..], _) | (["api", "conflicts", ..], _) | (["api", "cache", ..], _) => {
             crate::library::route(app, r, &s)
         }
