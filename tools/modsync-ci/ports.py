@@ -671,9 +671,22 @@ def bound_result(before, after):
                 # The fallback restarts conversion from the guide. It may not
                 # replace a previously generated movie recipe with an unbound
                 # or semantically different draft, even at the same step count.
-                found[str(component.get("Guid", "")).lower()] = {
+                recipe = {
                     key: component.get(key) for key in
                     ("Instructions", "Options", "ArchiveMovieBinding", "DraftReview")}
+                if isinstance(recipe["Instructions"], list):
+                    # Guide::from_value canonicalizes instruction Source paths
+                    # on reload. Match only that transformation for the typed
+                    # movie paths; every other instruction/provenance field
+                    # remains exact, including path spelling and order.
+                    recipe["Instructions"] = [
+                        {**step, "Source": [path.replace("\\", "/") for path in step["Source"]]}
+                        if (isinstance(step, dict) and step.get("Action") in ("Extract", "Move")
+                            and isinstance(step.get("Source"), list)
+                            and all(isinstance(path, str) and path.startswith(
+                                ("<<modDirectory>>\\", "<<modDirectory>>/")) for path in step["Source"]))
+                        else step for step in recipe["Instructions"]]
+                found[str(component.get("Guid", "")).lower()] = recipe
             found.update(movie_bindings([
                 option for option in component.get("Options") or [] if isinstance(option, dict)]))
         return found
