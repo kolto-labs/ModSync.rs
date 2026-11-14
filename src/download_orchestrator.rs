@@ -644,6 +644,24 @@ fn expand_deadlystream_page(
         .filter(|name| resolution_allows(options.resolution, name))
         .collect();
     let selected = filename_selection.select(component, &target.registry_url, &names)?;
+    // Every download must verify as an archive before it is published, so a loose file
+    // the page also offers (`Readme.rtf`, a sample `N_DarthMalak01.tga`) can only fail
+    // after downloading and would mark the mod failed although its archive arrived.
+    // When the page offers an archive too, plan only the archives and name the rest.
+    let (archives, loose): (Vec<String>, Vec<String>) =
+        selected.into_iter().partition(|name| archive_name(name));
+    let selected = if archives.is_empty() {
+        loose
+    } else {
+        if !loose.is_empty() {
+            result.warnings.push(format!(
+                "{}: skipped {} on this DeadlyStream page; only archives are downloaded",
+                diagnostic_resource(&target.registry_url),
+                loose.join(", ")
+            ));
+        }
+        archives
+    };
     if selected.is_empty() {
         // As `plan` drops named files the component's Extract patterns do not need.
         result.warnings.push(format!(
@@ -705,6 +723,15 @@ fn expand_deadlystream_page(
         ));
     }
     Ok(())
+}
+
+/// A file name the archive reader can take by its extension: the guide archive types
+/// (`engine::is_archive`) plus `.tgz`.
+fn archive_name(name: &str) -> bool {
+    crate::engine::is_archive(name)
+        || std::path::Path::new(name)
+            .extension()
+            .is_some_and(|extension| extension.eq_ignore_ascii_case("tgz"))
 }
 
 /// Expands one bare Nexus page target. `Err` leaves the target as planned.

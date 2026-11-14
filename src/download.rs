@@ -511,7 +511,7 @@ fn fetch_inner(
     let disposition = response
         .headers()
         .get(reqwest::header::CONTENT_DISPOSITION)
-        .and_then(|v| v.to_str().ok())
+        .and_then(header_utf8)
         .map(str::to_owned);
     // Every response's bounded prefix is read before any status decision, so a challenge,
     // login or countdown page is a manual boundary whatever its status or content type.
@@ -925,4 +925,11 @@ pub(crate) fn percent_decode(text: &str) -> String {
         }
     }
     String::from_utf8_lossy(&out).into_owned()
+}
+
+/// A header value as UTF-8 text. `HeaderValue::to_str` accepts visible ASCII only, so a
+/// server that sends a file name's UTF-8 bytes in a plain `filename="..."` (DeadlyStream
+/// does, for a name with a long dash) would otherwise look as if it named nothing.
+pub(crate) fn header_utf8(value: &reqwest::header::HeaderValue) -> Option<&str> {
+    std::str::from_utf8(value.as_bytes()).ok()
 }
