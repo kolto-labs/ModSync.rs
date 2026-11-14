@@ -39,13 +39,38 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          cfg="$RUNNER_TEMP/fullrun-git-config"
-          trap 'rm -f "$cfg"' EXIT
+          source_token=${SOURCE_TOKEN:-}
+          export -n source_token
+          unset SOURCE_TOKEN GITHUB_TOKEN GH_TOKEN ACTIONS_RUNTIME_TOKEN ACTIONS_ID_TOKEN_REQUEST_TOKEN
+          unset GIT_ASKPASS SSH_ASKPASS GIT_CURL_VERBOSE GIT_CONFIG_PARAMETERS
+          for trace_name in "${!GIT_TRACE@}"; do unset "$trace_name"; done
+          for config_name in "${!GIT_CONFIG_KEY_@}" "${!GIT_CONFIG_VALUE_@}"; do unset "$config_name"; done
+          auth_dir=$(mktemp -d "$RUNNER_TEMP/fullrun-source-auth.XXXXXX")
+          cfg="$auth_dir/gitconfig"
+          retry_log="$auth_dir/fetch.log"
+          trap 'rm -rf -- "$auth_dir"' EXIT
           : > "$cfg"
-          if [[ -n "$SOURCE_TOKEN" ]]; then
-            git config --file "$cfg" url."https://x-access-token:$SOURCE_TOKEN@github.com/".insteadOf https://github.com/
+          export GIT_CONFIG_GLOBAL="$cfg" GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_COUNT=0
+          export GIT_TERMINAL_PROMPT=0 GIT_TRACE_REDACT=1 CARGO_NET_GIT_FETCH_WITH_CLI=true
+          if cargo fetch --locked; then
+            unset source_token
+            exit 0
           fi
-          GIT_CONFIG_GLOBAL="$cfg" CARGO_NET_GIT_FETCH_WITH_CLI=true cargo fetch --locked
+          if [[ -z "$source_token" ]]; then
+            echo "::error::Anonymous dependency fetch failed; optional MODSYNC_SOURCE_TOKEN is needed only for private source access."
+            exit 1
+          fi
+          # The optional token reaches only the private temporary Git config,
+          # never a child environment or this config writer's argument vector.
+          if ! printf '%s' "$source_token" | python -c 'import sys, urllib.parse; token = urllib.parse.quote(sys.stdin.read(), safe=""); print("[url \"https://x-access-token:" + token + "@github.com/\"]\n\tinsteadOf = https://github.com/")' > "$cfg" 2> "$retry_log"; then
+            echo "::error::Optional source credential configuration failed. Private output was withheld."
+            exit 1
+          fi
+          unset source_token
+          if ! cargo fetch --locked > "$retry_log" 2>&1; then
+            echo "::error::Authenticated dependency fallback failed; verify optional MODSYNC_SOURCE_TOKEN access. Private fetch output was withheld."
+            exit 1
+          fi
       - name: Build production CLI only
         working-directory: .
         run: cargo build --locked --no-default-features --lib --bin modsync -j2
