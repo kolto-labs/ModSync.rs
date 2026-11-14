@@ -4761,3 +4761,11 @@ Hosted full-run lanes can release their disposable hash-object copies only after
 Complete-guide CLI/GUI adapters select optimized release binaries with checked arithmetic and debug assertions enabled. Legacy adapter calls retain debug builds. Repeated full archive decoding in validation, simulation and extraction is preserved; this changes compilation, not instruction admission or integrity coverage. Full-guide runtime acceptance still requires the real CI lanes.
 
 The full-run fallback preservation guard accepts the production loader's source-path separator canonicalization for archive-bound movie Extract/Move instructions. Source order, spelling and every other instruction, option, binding and review field remain exact. An actual K1 archive generated its 61-file Movies recipe and independently cleared archive-derived review; its model reload changed only 62 Source separators. This component evidence does not establish full-guide installation.
+
+Complete-guide admission stops before archive simulation when a required component
+already has unresolved or missing instructions; it cannot validate a reduced subset
+and later claim complete installation. Native subprocess logs and converted recipes
+are retained with strict file/total size bounds inside encrypted diagnostics, including
+on failure. Archive, game and build trees remain outside that evidence. The real K2
+CLI and GUI lanes exposed unresolved recipes and a validation timeout; neither lane
+has established complete installation.

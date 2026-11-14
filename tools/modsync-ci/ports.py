@@ -3427,6 +3427,12 @@ def execute(args, report):
             item for item in diagnostics if item.get("component_guid") in inactive]
         report[BIND_DIAGNOSTICS_KEY] = [
             item for item in diagnostics if item.get("component_guid") not in inactive]
+        # A complete run cannot recover missing required instructions by
+        # validating and installing the remaining subset. Preserve every
+        # refusal in the report and stop before expensive archive simulation.
+        if any(item.get("status") == NOT_INSTALLED
+               for item in report.get(SKIPPED_REPORT_KEY, [])):
+            raise Blocked("complete_guide_unresolved_components")
     deselect = []
     for record in report.get(SKIPPED_REPORT_KEY, []):
         if record["component_guid"] is not None:

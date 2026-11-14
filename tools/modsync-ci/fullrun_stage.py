@@ -249,15 +249,61 @@ def install(args):
              *options, *remote_options()], temp / "restore-private.log")
     if getattr(args, "prune_restored_object_cache", False):
         prune_restored_object_cache(args, work / "archives", temp / "restore.json", temp / "archive-map.json")
-    checked([sys.executable, str(HERE / "ports.py"), "--implementation", "rust", "--mode", args.mode, "--complete-guide", "--max-quarantine", "0",
-             "--source", args.engine, "--guide", str(Path(args.guides) / "content" / args.game / "full.md"),
-             "--game-dir", args.game_dir, "--archives", str(work / "archives"),
-             "--archive-map", str(temp / "archive-map.json"), "--restore-report", str(temp / "restore.json"),
-             "--work-dir", str(work / "work"), "--report", str(temp / "report.json")], temp / "install-private.log",
-            env=installer_environment())
+    try:
+        checked([sys.executable, str(HERE / "ports.py"), "--implementation", "rust", "--mode", args.mode, "--complete-guide", "--max-quarantine", "0",
+                 "--source", args.engine, "--guide", str(Path(args.guides) / "content" / args.game / "full.md"),
+                 "--game-dir", args.game_dir, "--archives", str(work / "archives"),
+                 "--archive-map", str(temp / "archive-map.json"), "--restore-report", str(temp / "restore.json"),
+                 "--work-dir", str(work / "work"), "--report", str(temp / "report.json")], temp / "install-private.log",
+                env=installer_environment())
+    finally:
+        retain_port_diagnostics(work / "work", temp / "native-diagnostics")
     digest = hashlib.sha256((Path(args.guides) / "content" / args.game / "full.md").read_bytes()).hexdigest()
     result = contract.require_complete(json.loads((temp / "report.json").read_text()), args.mode, digest)
     contract.write_json(temp / "completion.json", result)
+
+
+def retain_port_diagnostics(work, destination):
+    """Retain bounded native text evidence, never build, archive or game trees.
+
+    The workflow seals the entire private evidence directory before upload.
+    Include failed/timed-out subprocess logs and exact converted recipes, which
+    are otherwise outside that directory and lost when the runner exits.
+    """
+    if not work.exists():
+        return
+    if work.is_symlink() or not work.is_dir():
+        raise ValueError("unsafe native diagnostics directory")
+    allowed = {"resolved-archives.json", "gui-report.json"}
+    remaining = 64 * 1024 ** 2
+    destination.mkdir(mode=0o700)
+    for directory in sorted(work.iterdir()):
+        if not directory.name.startswith("ports-"):
+            continue
+        if directory.is_symlink() or not directory.is_dir():
+            raise ValueError("unsafe native diagnostics entry")
+        target = destination / directory.name
+        target.mkdir(mode=0o700)
+        for path in sorted(directory.iterdir()):
+            if not (path.suffix == ".log" or
+                    path.name.startswith("converted") and path.suffix == ".toml" or
+                    path.name in allowed):
+                continue
+            limit = min(16 * 1024 ** 2, remaining)
+            descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+            with os.fdopen(descriptor, "rb") as incoming:
+                info = os.fstat(incoming.fileno())
+                if not stat.S_ISREG(info.st_mode):
+                    raise ValueError("native diagnostics must be regular files")
+                if info.st_size > limit:
+                    raise ValueError("native diagnostics exceeds evidence budget")
+                data = incoming.read(limit + 1)
+                if len(data) > limit:
+                    raise ValueError("native diagnostics exceeds evidence budget")
+            with (target / path.name).open("xb") as output:
+                os.chmod(target / path.name, 0o600)
+                output.write(data)
+            remaining -= len(data)
 
 
 def main(argv=None):
