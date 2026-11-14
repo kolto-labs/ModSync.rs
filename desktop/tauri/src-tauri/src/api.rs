@@ -69,23 +69,6 @@ fn route(app: &AppHandle, r: &Request) -> Reply {
             Ok(json!({"username": state(app).lock().ui.deadlystream_username}))
         }
         (["api", "logout"], _) => logout(app),
-        (["api", "source-site"], "GET") => {
-            let st = state(app);
-            let ui = &st.lock().ui;
-            Ok(
-                json!({"url": ui.source_site_url, "username": ui.source_site_username, "has_password": false}),
-            )
-        }
-        (["api", "source-site"], "POST") => {
-            let st = state(app);
-            {
-                let mut inner = st.lock();
-                inner.ui.source_site_url = r.b("url").trim().to_owned();
-                inner.ui.source_site_username = r.b("username").trim().to_owned();
-            }
-            st.save_ui();
-            Ok(json!({"ok": true, "has_password": false}))
-        }
         (["api", "install", "confirm"], _) => Ok(json!({"ok": true})),
         (["api", "install", "start"], _) => crate::pipeline::start(app, r),
         (["api", "install", "check"], _) => crate::pipeline::check(app, r),
