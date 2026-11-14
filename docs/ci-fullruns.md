@@ -139,3 +139,5 @@ Archive preparation and install/seed runtimes include the distribution `unrar` r
 One-time migration publishes a cumulative owning-repository index after verifying all payload transfers. It preserves prior object associations and records prior index provenance, so the consumer’s bounded three-index lookup cannot forget older imports when another reviewed seed is added. The merge uses only the owning repository’s built-in read token.
 
 Complete-guide CLI lanes build the production library and CLI with `--no-default-features`; GUI lanes retain desktop features. Both use two compiler jobs. The shared installer engine and all coverage requirements remain the same.
+
+Seed callers select destination credentials through the publication/dry-run choice. The receiving `mod-cache-seed` job resolves the bucket and endpoint in its own environment, so an environment-only bucket can use repository or organization credentials. Dry-runs still omit destination credentials at both boundaries.

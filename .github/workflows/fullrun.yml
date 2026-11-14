@@ -176,9 +176,9 @@ jobs:
     secrets:
       DIAGNOSTICS_ENCRYPTION_KEY: ${{ !vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT && secrets.DIAGNOSTICS_ENCRYPTION_KEY || '' }}
       SEED_STAGING_RCLONE_CONF_B64: ${{ secrets.SEED_STAGING_RCLONE_CONF_B64 }}
-      MOD_CACHE_S3_ACCESS_KEY_ID: ${{ !inputs.seed_dry_run && vars.MOD_CACHE_BUCKET && secrets.MOD_CACHE_S3_ACCESS_KEY_ID || '' }}
-      MOD_CACHE_S3_SECRET_ACCESS_KEY: ${{ !inputs.seed_dry_run && vars.MOD_CACHE_BUCKET && secrets.MOD_CACHE_S3_SECRET_ACCESS_KEY || '' }}
-      MOD_CACHE_S3_ENDPOINT: ${{ !inputs.seed_dry_run && vars.MOD_CACHE_BUCKET && secrets.MOD_CACHE_S3_ENDPOINT || '' }}
+      MOD_CACHE_S3_ACCESS_KEY_ID: ${{ !inputs.seed_dry_run && secrets.MOD_CACHE_S3_ACCESS_KEY_ID || '' }}
+      MOD_CACHE_S3_SECRET_ACCESS_KEY: ${{ !inputs.seed_dry_run && secrets.MOD_CACHE_S3_SECRET_ACCESS_KEY || '' }}
+      MOD_CACHE_S3_ENDPOINT: ${{ !inputs.seed_dry_run && secrets.MOD_CACHE_S3_ENDPOINT || '' }}
   p2p:
     needs: plan
     if: ${{ needs.plan.outputs.operation == 'full' || needs.plan.outputs.operation == 'p2p' }}
