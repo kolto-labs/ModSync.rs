@@ -1,0 +1,1533 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CLI reference - ModSync</title>
+<meta name="description" content="Full reference for every modsync command and option: installing, guides, downloads, profiles, checkpoints, deployments, maintenance and protocol links." />
+<meta name="theme-color" content="#14110d" />
+<link rel="icon" href="assets/modsync.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<script src="assets/theme-init.js"></script>
+<link rel="stylesheet" href="assets/site.css" />
+<script src="assets/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<div class="docs">
+<aside class="docs-side">
+  <div class="docs-side-top">
+    <a class="docs-brand" href="./" aria-label="ModSync home"><img class="logo" src="assets/modsync.svg" alt="" width="22" height="22" />ModSync <span>docs</span></a>
+    <button class="icon-btn" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch appearance">
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg>
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+    <button id="docs-menu" class="icon-btn docs-menu" type="button" aria-label="Show the list of pages" aria-expanded="false" aria-controls="docs-nav">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+  <nav id="docs-nav" class="docs-nav" aria-label="Documentation">
+    <div class="docs-quick">
+      <a href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg>Home</a>
+      <a data-repo="/releases" href="https://github.com/kolto-labs/ModSync.rs/releases"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 11l6 6 6-6M4 20h16"/></svg>Download</a>
+      <a data-repo="" href="https://github.com/kolto-labs/ModSync.rs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>Source on GitHub</a>
+      <a data-repo="/issues" href="https://github.com/kolto-labs/ModSync.rs/issues"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>Report a problem</a>
+    </div>
+    <h2>For players</h2><a href="getting-started.html">Getting started</a><a href="desktop.html">Desktop app</a><a href="walkthrough-install.html">Walkthrough: your first build</a><a href="safety.html">Safety and recovery</a><a href="troubleshooting.html">Troubleshooting</a><a href="faq.html">FAQ</a><h2>For guide authors</h2><a href="instruction-files.html">Instruction files</a><a href="walkthrough-authoring.html">Walkthrough: writing a guide</a><a href="format-reference.html">Format reference</a><a href="cli.html">Command line</a><a href="cli-reference.html" aria-current="page">CLI reference</a><h2>For developers</h2><a href="api.html">Library API</a><h2>Project</h2><a href="status.html">Features and roadmap</a>
+  </nav>
+</aside>
+<div class="docs-main">
+<main class="docs-article" id="content">
+<p class="crumb"><a href="./">ModSync</a><span>/</span>For guide authors<span>/</span><strong>CLI reference</strong></p>
+<h1>CLI <span class="serif">reference</span></h1>
+<p class="lead">Every command and option of the <code>modsync</code> command line, grouped by the job you are doing. For a short overview, read <a href="cli.html">Command line</a>. Run <code>modsync --help</code> or <code>modsync &lt;command&gt; --help</code> to see the same list in your terminal.</p>
+
+<section id="global">
+<h2>Global options and conventions</h2>
+<p>These options work with any command. Put them before the command name, for example <code>modsync -v validate ...</code>.</p>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>-v</code>, <code>--verbose</code></td><td>Adds diagnostic log lines on stderr. Structured output on stdout stays the same, so scripts are not affected.</td></tr>
+<tr><td><code>--plaintext</code></td><td>Uses plain text progress output. This is already the default for the command line.</td></tr>
+<tr><td><code>-h</code>, <code>--help</code></td><td>Shows help for the command you name, or for everything when no command is given.</td></tr>
+<tr><td><code>-V</code>, <code>--version</code></td><td>Prints the version number.</td></tr>
+</tbody></table></div>
+<p>Running <code>modsync</code> with no command opens the desktop app, the same as <code>modsync gui</code>.</p>
+
+<h3>Exit codes</h3>
+<div class="table"><table>
+<thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>0</code></td><td>The command finished and succeeded.</td></tr>
+<tr><td><code>1</code></td><td>The command failed. A message starting with <code>Error:</code> is printed on stderr. A validation report that does not pass also exits with <code>1</code>.</td></tr>
+<tr><td><code>130</code></td><td>The command was cancelled, for example with <kbd>Ctrl</kbd>+<kbd>C</kbd>. Maintenance that was cancelled and rolled back also uses <code>130</code>.</td></tr>
+</tbody></table></div>
+<p><code>modsync holopatcher</code> passes the exit code of the patcher backend it ran.</p>
+
+<h3>Output formats</h3>
+<ul>
+<li>Most commands print plain text by default.</li>
+<li>Commands with <code>--json</code> print one JSON document. Some print a single pretty-printed document, and some print one JSON event per line (called newline-delimited JSON). Each command's section says which.</li>
+<li><code>install --install-progress-json</code> prints typed progress lines on stdout. The last line has <code>"phase": "completed"</code> on success.</li>
+</ul>
+<div class="note"><p><strong>Hidden options.</strong> A few options exist only for testing and do not appear in <code>--help</code>. They are not documented here, and you do not need them.</p></div>
+</section>
+
+<section id="installing">
+<h2>Installing</h2>
+<p>These commands read a guide, check it against your game and mod folders, and install it. Most of them share the same set of options. Start with <code>list</code> and <code>validate</code> before you run <code>install</code>.</p>
+
+<h3 id="list"><code>list</code></h3>
+<p>Lists the components in a guide, with their download links, as JSON.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync list &lt;input&gt;</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;input&gt;</code></td><td>file</td><td>The guide to read. Required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync list KOTOR1_Full.toml</code></pre>
+
+<h3 id="selection"><code>selection</code></h3>
+<p>Prints the components and options that would be selected, without downloading or installing anything.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync selection --input &lt;guide&gt; [--game-dir &lt;folder&gt;] [--source-dir &lt;folder&gt;] [selection options] [--json]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>-i</code>, <code>--input</code></td><td>file</td><td>The guide. Required.</td><td>None</td></tr>
+<tr><td><code>-g</code>, <code>--game-dir</code></td><td>folder</td><td>Your game folder. Lets ModSync apply the Aspyr-only rules. Without it, those rules are only reported.</td><td>None</td></tr>
+<tr><td><code>--source-dir</code></td><td>folder</td><td>Your mod folder. Inspects the local archives the same way the desktop app does. Needs <code>--game-dir</code>.</td><td>None</td></tr>
+<tr><td><code>--use-file-selection</code></td><td>none</td><td>Uses the <code>IsSelected</code> values in the guide.</td><td>Off. All top-level components are selected.</td></tr>
+<tr><td><code>--select</code></td><td>name, GUID, <code>category:Name</code> or <code>tier:Name</code></td><td>Selects components. Repeat the flag, or list several values after one flag.</td><td>None</td></tr>
+<tr><td><code>--option</code></td><td>GUID</td><td>Turns on an option and its parent mod. Repeat for more options.</td><td>None</td></tr>
+<tr><td><code>--deselect</code></td><td>name or GUID</td><td>Removes a mod. Mods that depend on it are removed too. Repeatable.</td><td>None</td></tr>
+<tr><td><code>--deselect-option</code></td><td>GUID</td><td>Removes an option. Anything that depends on it is removed too. Repeatable.</td><td>None</td></tr>
+<tr><td><code>--select-through-tier</code></td><td>tier</td><td>Adds base mods in that tier and every higher tier. Repeatable.</td><td>None</td></tr>
+<tr><td><code>--add-category</code></td><td>category</td><td>Adds base mods in that category. Ignores upper and lower case. Repeatable.</td><td>None</td></tr>
+<tr><td><code>--select-visible-search</code></td><td>text</td><td>Adds base mods whose shown name or description contains the text. Repeatable.</td><td>None</td></tr>
+<tr><td><code>--spoiler-free</code></td><td>none</td><td>Makes the text search above use the spoiler-free names and descriptions.</td><td>Off</td></tr>
+<tr><td><code>--receipt</code></td><td>none</td><td>Adds a selection receipt that can be compared later. Hashes the mod folder, so it can be slow. Needs <code>--json</code> and <code>--source-dir</code>.</td><td>Off</td></tr>
+<tr><td><code>--json</code></td><td>none</td><td>Prints JSON instead of text.</td><td>Off</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync selection --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods --select "Some Mod" --json</code></pre>
+
+<h3 id="validate-install-conflicts">Validate, install and conflicts</h3>
+<p><code>validate</code> checks a guide without changing anything. <code>install</code> validates, takes a snapshot of both folders, and then installs in order. <code>conflicts</code> reports game files that more than one component writes. All three accept the same options, so the table below covers them together.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync validate  --input &lt;guide&gt; --game-dir &lt;folder&gt; --source-dir &lt;folder&gt; [options]
+modsync install   --input &lt;guide&gt; --game-dir &lt;folder&gt; --source-dir &lt;folder&gt; [options]
+modsync conflicts --input &lt;guide&gt; --game-dir &lt;folder&gt; --source-dir &lt;folder&gt; [options]</code></pre>
+<p>Options marked <strong>validate only</strong> are refused by <code>install</code> and <code>conflicts</code>. Options marked <strong>install only</strong> are refused by <code>validate</code>.</p>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>-i</code>, <code>--input</code></td><td>file</td><td>The guide. Required, unless you use <code>--profile</code> or <code>--active-profile</code>.</td><td>None</td></tr>
+<tr><td><code>-g</code>, <code>--game-dir</code></td><td>folder</td><td>Your game folder. Required, unless you use a profile that already has it.</td><td>None</td></tr>
+<tr><td><code>-s</code>, <code>--source-dir</code></td><td>folder</td><td>The folder that holds the downloaded mod archives.</td><td>The folder that contains the guide</td></tr>
+<tr><td><code>-d</code>, <code>--download</code></td><td>none</td><td>Downloads the selected resources before validation and the snapshot. <strong>Install only.</strong></td><td>Off</td></tr>
+<tr><td><code>--concurrent</code></td><td>none</td><td>Uses four download workers instead of one. Needs <code>--download</code>.</td><td>One worker</td></tr>
+<tr><td><code>--nexus-mods-api-key</code></td><td>key</td><td>Nexus Mods API key for downloads. Also accepted as <code>--nexus-api-key</code>.</td><td>The key in your settings</td></tr>
+<tr><td><code>--download-timeout-hours</code></td><td>whole hours</td><td>Longest time the download step may take. Zero uses the 48-hour default.</td><td>48</td></tr>
+<tr><td><code>--profile</code></td><td>name</td><td>Applies a saved profile before your explicit options. Cannot be used with <code>--active-profile</code>.</td><td>None</td></tr>
+<tr><td><code>--active-profile</code></td><td>none</td><td>Uses the profile that is currently active in the settings. Fails if none is set.</td><td>Off</td></tr>
+<tr><td><code>--settings-dir</code></td><td>folder</td><td>The folder that holds settings and profiles.</td><td>The ModSync settings folder for your platform</td></tr>
+<tr><td><code>--use-file-selection</code></td><td>none</td><td>Uses the <code>IsSelected</code> values in the guide.</td><td>Off. All top-level components are selected.</td></tr>
+<tr><td><code>--select</code></td><td>name, GUID, <code>category:Name</code> or <code>tier:Name</code></td><td>Selects components. Repeat the flag, or list several values after one flag. Selections are applied in the order you type them, together with <code>--option</code>.</td><td>None</td></tr>
+<tr><td><code>--option</code></td><td>GUID</td><td>Turns on an option. Existing option selections are kept.</td><td>None</td></tr>
+<tr><td><code>--deselect</code>, <code>--deselect-option</code>, <code>--select-through-tier</code>, <code>--add-category</code>, <code>--select-visible-search</code>, <code>--spoiler-free</code></td><td>as for <code>selection</code></td><td>Same selection changes as the <code>selection</code> command. They are applied after <code>--select</code>.</td><td>None</td></tr>
+<tr><td><code>--fomod-choices</code></td><td>file</td><td>A saved FOMOD choices file (version 1) for this run. It is not saved back to disk.</td><td>None</td></tr>
+<tr><td><code>--pause-file</code></td><td>file</td><td>While this file exists, the run holds at the next safe point: between downloads or reads, or between components, never inside one. Delete the file to carry on. Stopping still works while held.</td><td>None</td></tr>
+<tr><td><code>--fomod-skip</code></td><td>none</td><td>Skips the FOMOD setup step. Installers that are still unresolved stop the run.</td><td>Off</td></tr>
+<tr><td><code>--interactive</code></td><td>none</td><td>Asks you to set up FOMOD installers in the terminal.</td><td>Off</td></tr>
+<tr><td><code>--non-interactive</code></td><td>none</td><td>Turns off the terminal FOMOD prompts. Cannot be used with <code>--interactive</code>.</td><td>Off</td></tr>
+<tr><td><code>--allow-processes</code></td><td>none</td><td>Allows steps that run a patcher or another program, using your user permissions.</td><td>Off</td></tr>
+<tr><td><code>--patcher</code></td><td>file</td><td>Patcher program to use for patcher steps. Also accepted as <code>--kpatcher-path</code> or <code>--odypatcher-path</code>.</td><td>The built-in OdyPatcher library</td></tr>
+<tr><td><code>--patcher-engine</code></td><td><code>ody-patcher</code>, <code>k-patcher</code> or <code>holo-patcher</code></td><td>Which patcher backend runs patcher steps. Not case sensitive.</td><td>Built-in OdyPatcher</td></tr>
+<tr><td><code>--direct-markdown</code></td><td>none</td><td>Installs a Markdown guide in the order it is written. <strong>Install only.</strong> Cannot be combined with selection, profile or FOMOD options.</td><td>Off</td></tr>
+<tr><td><code>--phase</code></td><td><code>all</code>, <code>base</code> or <code>remaining</code></td><td>Runs all selected components, only the base build, or the verified remaining part after a checkpoint.</td><td><code>all</code></td></tr>
+<tr><td><code>--managed</code></td><td>none</td><td>Uses managed deployment. Needs <code>--component-checkpoints</code>. <strong>Install only.</strong></td><td>Off</td></tr>
+<tr><td><code>--no-managed</code></td><td>none</td><td>Installs without managed deployment. <strong>Install only.</strong> Cannot be used with <code>--managed</code>.</td><td>Off</td></tr>
+<tr><td><code>--staging-dir</code>, <code>--manifest-dir</code></td><td>folders</td><td>Folders for managed deployment. Use both together, with <code>--managed</code>.</td><td>None</td></tr>
+<tr><td><code>--component-checkpoints</code></td><td>none</td><td>Keeps a verified checkpoint after each top-level component finishes. <strong>Install only.</strong></td><td>Off</td></tr>
+<tr><td><code>--no-checkpoint</code></td><td>none</td><td>Keeps recovery for the whole run only, with no per-component history. Cannot be used with the two options above. <strong>Install only.</strong></td><td>Off</td></tr>
+<tr><td><code>--scratch-dir</code></td><td>folder</td><td>A folder for temporary archive files. It must already exist and be outside both the game and mod folders.</td><td>The system temporary folder</td></tr>
+<tr><td><code>--max-expanded-bytes</code></td><td>bytes</td><td>Largest size one archive may expand to. Extraction also checks free space in the scratch folder.</td><td>No limit</td></tr>
+<tr><td><code>--json</code></td><td>none</td><td><code>install</code> prints one JSON event per line. <code>validate</code> prints events per line when both folders are given, or one report when they are not. <code>conflicts</code> always prints JSON.</td><td>Off</td></tr>
+<tr><td><code>--install-progress-json</code></td><td>none</td><td>Prints typed progress lines on stdout. <strong>Install only.</strong> Cannot be used with <code>--json</code>.</td><td>Off</td></tr>
+<tr><td><code>--output</code></td><td><code>text</code> or <code>json</code></td><td>Output format for the validation report. Use <code>json</code> for a single pretty-printed report. <strong>Validate only.</strong></td><td><code>text</code></td></tr>
+<tr><td><code>--validation-report</code></td><td>none</td><td>Prints the validation report as JSON. Same as <code>--output json</code>. <strong>Validate only.</strong></td><td>Off</td></tr>
+<tr><td><code>--errors-only</code></td><td>none</td><td>Hides successful stages and warnings in text output. <strong>Validate only.</strong></td><td>Off</td></tr>
+<tr><td><code>--full</code></td><td>none</td><td>Adds the environment, conflict and install-order checks. <strong>Validate only.</strong></td><td>Off</td></tr>
+<tr><td><code>--dry-run</code></td><td>none</td><td>Adds a dry run that changes nothing, and includes its result in the report. <strong>Validate only.</strong></td><td>Off</td></tr>
+<tr><td><code>--dry-run-only</code></td><td>none</td><td>Runs only the FOMOD setup check and the dry run. <strong>Validate only.</strong></td><td>Off</td></tr>
+</tbody></table></div>
+<div class="note warn"><p><strong>ModSync always stops at the first failure.</strong> <code>--best-effort</code> is refused, and so are several older flags that would skip validation or keep going after an error. Fix the cause, then <a href="#restore">restore</a> and run again from the start.</p></div>
+<p>Examples:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync validate --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods --output json
+modsync install  --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods --select "Some Mod" --select "Another Mod"
+modsync conflicts --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods</code></pre>
+<p>To pause a long install from another terminal, start it with <code>--pause-file</code>, then create the file to pause and delete it to resume:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync install --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods --pause-file /tmp/modsync.pause
+touch /tmp/modsync.pause   # holds at the next safe point
+rm /tmp/modsync.pause      # carries on</code></pre>
+
+<h3 id="restore"><code>restore</code></h3>
+<p>Puts both folders back to the snapshot taken before an unfinished install. It checks the snapshot before and after restoring. It only works on an unfinished install.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync restore --game-dir &lt;folder&gt; --source-dir &lt;folder&gt;</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--game-dir</code></td><td>folder</td><td>Your game folder. Required.</td><td>None</td></tr>
+<tr><td><code>--source-dir</code></td><td>folder</td><td>Your mod folder. Required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync restore --game-dir /path/to/game --source-dir /path/to/mods</code></pre>
+
+<h3 id="completion-summary"><code>completion-summary</code></h3>
+<p>Shows the saved result of the last completed install, or says that none is saved.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync completion-summary --game-dir &lt;folder&gt; --source-dir &lt;folder&gt; [--json]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--game-dir</code></td><td>folder</td><td>Your game folder. Required.</td><td>None</td></tr>
+<tr><td><code>--source-dir</code></td><td>folder</td><td>Your mod folder. Required.</td><td>None</td></tr>
+<tr><td><code>--json</code></td><td>none</td><td>Prints the summary as JSON. Prints <code>null</code> when there is no saved result.</td><td>Off</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync completion-summary --game-dir /path/to/game --source-dir /path/to/mods --json</code></pre>
+
+<h3 id="fomod-inspect"><code>fomod-inspect</code></h3>
+<p>Reads the FOMOD setup options inside a mod archive and prints them as JSON. Nothing is installed.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync fomod-inspect &lt;archive&gt; [options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;archive&gt;</code></td><td>file</td><td>The mod archive to read. Required.</td><td>None</td></tr>
+<tr><td><code>--choices</code></td><td>file</td><td>Applies the matching entry from a saved FOMOD choices file (version 1).</td><td>None</td></tr>
+<tr><td><code>--extracted-directory</code></td><td>relative path</td><td>Adds copy steps for this folder inside the mod.</td><td>None</td></tr>
+<tr><td><code>--save-choices</code></td><td>file</td><td>Saves your current selections to a reusable choices file (version 1).</td><td>None</td></tr>
+<tr><td><code>--interactive</code></td><td>none</td><td>Asks you to pick plugin options in the terminal. Prompts go to stderr.</td><td>Off</td></tr>
+<tr><td><code>--scratch-dir</code></td><td>folder</td><td>A folder for temporary files. Must already exist.</td><td>The system temporary folder</td></tr>
+<tr><td><code>--max-expanded-bytes</code></td><td>bytes</td><td>Largest size the archive may expand to.</td><td>No limit</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync fomod-inspect "Some Mod.7z" --save-choices some-mod-choices.json</code></pre>
+</section>
+
+<section id="patchers">
+<h2>Patchers</h2>
+<p>Patcher steps run a program, so they need your permission. Use <code>--allow-processes</code> on <code>install</code>, or the explicit trust option on the commands below.</p>
+
+<h3 id="holopatcher"><code>holopatcher</code></h3>
+<p>Runs a HoloPatcher backend on its own, outside a guide install. You can use it to test a patcher run. Nothing is checked against a guide.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync holopatcher --patcher &lt;program&gt; --allow-processes [options] [-- &lt;backend arguments&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--patcher</code></td><td>file</td><td>The HoloPatcher program to run.</td><td>None</td></tr>
+<tr><td><code>--allow-processes</code></td><td>none</td><td>Lets the program run with your user permissions. Required.</td><td>Off</td></tr>
+<tr><td><code>-a</code>, <code>--args</code></td><td>text</td><td>Arguments as one string. Split without a shell. Cannot be used with the arguments after <code>--</code>.</td><td>None</td></tr>
+<tr><td><code>--working-directory</code></td><td>folder</td><td>The folder the program starts in.</td><td>None</td></tr>
+<tr><td><code>--timeout-seconds</code></td><td>1 to 86400</td><td>Stops the program after this many seconds.</td><td>3600</td></tr>
+<tr><td><code>-- ...</code></td><td>arguments</td><td>Passes everything after <code>--</code> to the program unchanged.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync holopatcher --patcher /path/to/holopatcher --allow-processes --timeout-seconds 600 -- --help</code></pre>
+
+<h3 id="install-python-deps"><code>install-python-deps</code></h3>
+<p>Always fails with an explanation. It does not install anything. Use a HoloPatcher package you have checked, or a Python environment you manage yourself.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync install-python-deps [--force]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--force</code></td><td>none</td><td>Accepted, but makes no difference.</td><td>Off</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync install-python-deps</code></pre>
+</section>
+
+<section id="guides">
+<h2>Guides: convert, merge and drafting</h2>
+<p>These commands read, change, compare and save guide files. They never install anything. Guides can be TOML, JSON, YAML, XML or Markdown.</p>
+
+<h3 id="convert"><code>convert</code></h3>
+<p>Converts a guide to another format. It can also draft instructions from a Markdown guide, or generate instructions from archives you already have.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync convert &lt;input&gt; &lt;output&gt; [options]
+modsync convert --stdin --format yaml &lt; guide.json</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;input&gt;</code>, <code>-i</code>, <code>--input</code></td><td>file</td><td>The guide to convert. Give it as a position or with the flag.</td><td>None</td></tr>
+<tr><td><code>&lt;output&gt;</code>, <code>-o</code>, <code>--output</code></td><td>file</td><td>Where to save the result. If left out, the result is printed to the terminal.</td><td>Terminal</td></tr>
+<tr><td><code>--stdin</code></td><td>none</td><td>Reads the guide from standard input (up to 8 MiB). Cannot be used with an input file.</td><td>Off</td></tr>
+<tr><td><code>-f</code>, <code>--format</code></td><td><code>toml</code>, <code>json</code>, <code>yaml</code> or <code>xml</code></td><td>The format to write.</td><td><code>toml</code></td></tr>
+<tr><td><code>--parse-directions</code></td><td>none</td><td>Drafts instructions from the written directions. Generated steps must be reviewed before you install.</td><td>Off</td></tr>
+<tr><td><code>--review-draft</code></td><td>component GUID</td><td>Marks a component's drafts as reviewed. Repeat for more components.</td><td>None</td></tr>
+<tr><td><code>--review-verified-drafts</code></td><td>none</td><td>Marks drafts as reviewed only when a fresh check of the matching local archive gives the same result. Needs <code>--source-path</code>. Prints a JSON summary on stderr.</td><td>Off</td></tr>
+<tr><td><code>--ignore-errors</code></td><td>none</td><td>Sorts components even when an install-before or install-after reference is missing, instead of stopping.</td><td>Off</td></tr>
+</tbody></table></div>
+<p>Also accepts the options in <a href="#processing">Shared processing options</a>.</p>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync convert instructions.toml instructions.json
+modsync convert guide.md draft.json --parse-directions</code></pre>
+
+<h3 id="processing">Shared processing options</h3>
+<p>These options are used by <code>convert</code> and <code>merge</code>. They can download resources, generate instructions from local archives, and add spoiler-free text.</p>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--fomod-choices</code></td><td>file</td><td>FOMOD choices (version 1) used during the download step.</td><td>None</td></tr>
+<tr><td><code>--fomod-skip</code></td><td>none</td><td>Skips FOMOD setup after downloads. Installers that are still unresolved block processing.</td><td>Off</td></tr>
+<tr><td><code>--interactive</code>, <code>--non-interactive</code></td><td>none</td><td>Turns FOMOD terminal prompts on or off. Cannot be used together.</td><td>Off</td></tr>
+<tr><td><code>-s</code>, <code>--select</code></td><td>name, GUID, <code>category:Name</code> or <code>tier:Name</code></td><td>Chooses which components are kept in the output. Repeatable.</td><td>None</td></tr>
+<tr><td><code>-d</code>, <code>--download</code></td><td>none</td><td>Downloads every resource in the guide before writing output. Needs <code>--source-path</code>.</td><td>Off</td></tr>
+<tr><td><code>--concurrent</code></td><td>none</td><td>Uses four download workers. Needs <code>--download</code>.</td><td>One worker</td></tr>
+<tr><td><code>--source-path</code></td><td>folder</td><td>The folder with your downloaded archives.</td><td>None</td></tr>
+<tr><td><code>--auto-generate-local</code></td><td>none</td><td>Creates missing instructions from the archives in <code>--source-path</code>. Input archives are never deleted. Needs <code>--source-path</code>.</td><td>Off</td></tr>
+<tr><td><code>-a</code>, <code>--auto</code></td><td>none</td><td>Creates instructions from file names of resources the guide already resolved, marked for review. Cannot be used with <code>--resolved-archives</code>.</td><td>Off</td></tr>
+<tr><td><code>--resolved-archives</code></td><td>file (JSON array)</td><td>Links named archives in <code>--source-path</code> to component GUIDs. Needs <code>--source-path</code>.</td><td>None</td></tr>
+<tr><td><code>--archive-map</code></td><td>file (JSON object)</td><td>Maps guide link URLs to archive file names in <code>--source-path</code>. Those links skip file name matching in <code>--auto-generate-local</code>. Needs <code>--source-path</code>.</td><td>None</td></tr>
+<tr><td><code>--nexus-mods-api-key</code></td><td>key</td><td>Nexus Mods API key for downloads.</td><td>The key in your settings</td></tr>
+<tr><td><code>--settings-dir</code></td><td>folder</td><td>The folder that holds settings and profiles.</td><td>The ModSync settings folder for your platform</td></tr>
+<tr><td><code>--spoiler-free</code></td><td>Markdown file</td><td>Adds the five spoiler-free text fields from a separate Markdown guide.</td><td>None</td></tr>
+</tbody></table></div>
+
+<h3 id="merge"><code>merge</code></h3>
+<p>Merges two guides into one. Components are matched by GUID first, then by normalized name and author.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync merge &lt;existing&gt; &lt;incoming&gt; [output] [options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;existing&gt;</code>, <code>-e</code>, <code>--existing</code></td><td>file</td><td>The guide you already have. Give it as a position or with the flag.</td><td>None</td></tr>
+<tr><td><code>&lt;incoming&gt;</code>, <code>-n</code>, <code>--incoming</code></td><td>file</td><td>The guide with new or changed content.</td><td>None</td></tr>
+<tr><td><code>[output]</code>, <code>-o</code>, <code>--output</code></td><td>file</td><td>Where to save the merged guide.</td><td>Terminal</td></tr>
+<tr><td><code>-f</code>, <code>--format</code></td><td>format</td><td>Format of the merged guide.</td><td>TOML</td></tr>
+<tr><td><code>--use-existing-order</code></td><td>none</td><td>Keeps the order of components in the existing guide.</td><td>Off</td></tr>
+<tr><td><code>--prefer-existing-fields</code></td><td>none</td><td>Keeps values from the existing guide for every field.</td><td>Off</td></tr>
+<tr><td><code>--prefer-existing-name</code>, <code>--prefer-existing-author</code>, <code>--prefer-existing-description</code>, <code>--prefer-existing-directions</code>, <code>--prefer-existing-category</code>, <code>--prefer-existing-tier</code>, <code>--prefer-existing-installation-method</code>, <code>--prefer-existing-instructions</code>, <code>--prefer-existing-options</code></td><td>none</td><td>Keeps the existing guide's value for that one field.</td><td>Off</td></tr>
+<tr><td><code>--prefer-existing-resource-registry</code></td><td>none</td><td>Keeps the existing guide's resource links. Also accepted as <code>--prefer-existing-modlinks</code>.</td><td>Off</td></tr>
+<tr><td><code>--prefer-incoming-fields</code></td><td>none</td><td>Accepted for older scripts. Incoming values already win by default.</td><td>Incoming wins</td></tr>
+<tr><td><code>--ignore-errors</code></td><td>none</td><td>Accepted for older scripts. Merging does not sort dependencies.</td><td>Off</td></tr>
+<tr><td><code>--exclude-existing-only</code></td><td>none</td><td>Leaves out components that appear only in the existing guide.</td><td>Off</td></tr>
+<tr><td><code>--exclude-incoming-only</code></td><td>none</td><td>Leaves out components that appear only in the incoming guide.</td><td>Off</td></tr>
+</tbody></table></div>
+<p>Also accepts the options in <a href="#processing">Shared processing options</a>.</p>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync merge old-guide.toml new-guide.toml merged.toml --prefer-existing-resource-registry</code></pre>
+
+<h3 id="merge-preview"><code>merge-preview</code></h3>
+<p>Shows what a merge would change, field by field, without saving anything. Use this before <a href="#merge-apply"><code>merge-apply</code></a>.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync merge-preview &lt;existing&gt; &lt;incoming&gt; [--options &lt;file&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;existing&gt;</code></td><td>file</td><td>The guide you already have. Required.</td><td>None</td></tr>
+<tr><td><code>&lt;incoming&gt;</code></td><td>file</td><td>The guide with new content. Required.</td><td>None</td></tr>
+<tr><td><code>--options</code></td><td>file (JSON)</td><td>Merge settings as a JSON object. Fields you leave out use the usual defaults.</td><td>Built-in defaults</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync merge-preview old-guide.toml new-guide.toml --options merge-options.json > preview.json</code></pre>
+
+<h3 id="merge-apply"><code>merge-apply</code></h3>
+<p>Saves a merge that you reviewed with <code>merge-preview</code>. It first checks that both guides are still the same ones.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync merge-apply &lt;existing&gt; &lt;incoming&gt; &lt;preview&gt; &lt;output&gt;</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;existing&gt;</code></td><td>file</td><td>The same existing guide you previewed. Required.</td><td>None</td></tr>
+<tr><td><code>&lt;incoming&gt;</code></td><td>file</td><td>The same incoming guide you previewed. Required.</td><td>None</td></tr>
+<tr><td><code>&lt;preview&gt;</code></td><td>file</td><td>The preview file saved from <code>merge-preview</code>. Required.</td><td>None</td></tr>
+<tr><td><code>&lt;output&gt;</code></td><td>file</td><td>Where to save the merged guide. Required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync merge-apply old-guide.toml new-guide.toml preview.json merged.toml</code></pre>
+
+<h3 id="guide-draft-review"><code>guide-draft-review</code></h3>
+<p>Creates a review template for one generated component or option. The template is not approved. You still have to review it yourself.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync guide-draft-review &lt;input&gt; &lt;component&gt;</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;input&gt;</code></td><td>file</td><td>The guide with generated drafts. Required.</td><td>None</td></tr>
+<tr><td><code>&lt;component&gt;</code></td><td>component name or GUID</td><td>The component to prepare. Required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync guide-draft-review drafted.json "Some Mod"</code></pre>
+
+<h3 id="guide-edit"><code>guide-edit</code></h3>
+<p>Applies a list of edits, in order, to a guide. The result is saved to a new file. The original is never changed.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync guide-edit &lt;input&gt; &lt;operations&gt; &lt;output&gt;</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;input&gt;</code></td><td>file</td><td>The guide to edit. Required.</td><td>None</td></tr>
+<tr><td><code>&lt;operations&gt;</code></td><td>file (JSON)</td><td>The list of edits to apply, in order. Required.</td><td>None</td></tr>
+<tr><td><code>&lt;output&gt;</code></td><td>file</td><td>The new file to save. Must be a different file from the input. Required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync guide-edit guide.toml edits.json guide-edited.toml</code></pre>
+
+<h3 id="guide-import-preview"><code>guide-import-preview</code></h3>
+<p>Previews adding a component document to a guide, from a local file or one you fetched earlier. Nothing is changed.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync guide-import-preview &lt;input&gt; &lt;document&gt; [options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;input&gt;</code></td><td>file</td><td>The guide to add to. Required.</td><td>None</td></tr>
+<tr><td><code>&lt;document&gt;</code></td><td>file</td><td>The component document to preview. Required.</td><td>None</td></tr>
+<tr><td><code>--format</code></td><td><code>auto</code> or a format name</td><td>Format of the document. <code>auto</code> detects it.</td><td><code>auto</code></td></tr>
+<tr><td><code>--regex-profile</code></td><td>file</td><td>A limited custom regex profile. The output shows the matches. Cannot be used with <code>--format</code>.</td><td>None</td></tr>
+<tr><td><code>--replace</code></td><td>component name or GUID</td><td>Replaces this component. Cannot be used with <code>--parent</code> or <code>--index</code>.</td><td>None</td></tr>
+<tr><td><code>--parent</code></td><td>component name or GUID</td><td>Adds the new component under this parent.</td><td>None</td></tr>
+<tr><td><code>--index</code></td><td>number</td><td>Position to insert the component at.</td><td>Not set</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync guide-import-preview guide.toml new-mod.json > import-preview.json</code></pre>
+
+<h3 id="guide-import-apply"><code>guide-import-apply</code></h3>
+<p>Saves an import you previewed. It only works if the original guide has not changed since the preview.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync guide-import-apply &lt;input&gt; &lt;preview&gt; &lt;output&gt;</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;input&gt;</code></td><td>file</td><td>The guide you previewed. Required.</td><td>None</td></tr>
+<tr><td><code>&lt;preview&gt;</code></td><td>file</td><td>The preview saved from <code>guide-import-preview</code>. Required.</td><td>None</td></tr>
+<tr><td><code>&lt;output&gt;</code></td><td>file</td><td>Where to save the updated guide. Required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync guide-import-apply guide.toml import-preview.json guide-with-mod.toml</code></pre>
+
+<h3 id="guide-resources"><code>guide-resources</code></h3>
+<p>Lists the download resources a component has, and what is inside each archive you already have. It does not extract anything.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync guide-resources &lt;input&gt; &lt;component&gt; --source-dir &lt;folder&gt; --game-dir &lt;folder&gt; [--max-expanded-bytes &lt;bytes&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;input&gt;</code></td><td>file</td><td>The guide. Required.</td><td>None</td></tr>
+<tr><td><code>&lt;component&gt;</code></td><td>component name or GUID</td><td>The component to look at. Required.</td><td>None</td></tr>
+<tr><td><code>--source-dir</code></td><td>folder</td><td>Your mod folder. Required.</td><td>None</td></tr>
+<tr><td><code>--game-dir</code></td><td>folder</td><td>Your game folder. Required.</td><td>None</td></tr>
+<tr><td><code>--max-expanded-bytes</code></td><td>bytes</td><td>Largest size an archive may expand to when it is read.</td><td>268435456 (256 MiB)</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync guide-resources guide.toml "Some Mod" --source-dir /path/to/mods --game-dir /path/to/game</code></pre>
+
+<h3 id="update-summary"><code>update-summary</code></h3>
+<p>Shows the saved update check from a guide, with its timestamp. Guide metadata is not changed.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync update-summary &lt;input&gt; [--settings-dir &lt;folder&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;input&gt;</code></td><td>file</td><td>The guide. Required.</td><td>None</td></tr>
+<tr><td><code>--settings-dir</code></td><td>folder</td><td>The folder that holds settings and profiles.</td><td>The ModSync settings folder for your platform</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync update-summary guide.toml</code></pre>
+
+<h3 id="update-apply"><code>update-apply</code></h3>
+<p>Applies version information you already have to a guide. The version information is a JSON object keyed by game and mod ID.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync update-apply &lt;input&gt; &lt;versions&gt; &lt;output&gt; [--summary &lt;file&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;input&gt;</code></td><td>file</td><td>The guide to update. Required.</td><td>None</td></tr>
+<tr><td><code>&lt;versions&gt;</code></td><td>file (JSON)</td><td>Version data keyed as <code>game/modId</code>. Required.</td><td>None</td></tr>
+<tr><td><code>&lt;output&gt;</code></td><td>file</td><td>Where to save the updated guide. Required.</td><td>None</td></tr>
+<tr><td><code>--summary</code></td><td>file</td><td>Also saves a JSON summary of the update to this file. The result is printed as JSON as well.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync update-apply guide.toml versions.json guide-updated.toml --summary update-summary.json</code></pre>
+
+<h3 id="update-check"><code>update-check</code></h3>
+<p>Asks Nexus Mods for the latest versions of the mods a guide tracks, then saves the updated guide. This needs an internet connection and a Nexus Mods API key.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync update-check &lt;input&gt; &lt;output&gt; [--nexus-mods-api-key &lt;key&gt;] [--settings-dir &lt;folder&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;input&gt;</code></td><td>file</td><td>The guide to check. Required.</td><td>None</td></tr>
+<tr><td><code>&lt;output&gt;</code></td><td>file</td><td>Where to save the updated guide. Required.</td><td>None</td></tr>
+<tr><td><code>--nexus-mods-api-key</code></td><td>key</td><td>Uses this key instead of the one in your settings.</td><td>The key in your settings</td></tr>
+<tr><td><code>--settings-dir</code></td><td>folder</td><td>The folder that holds settings and profiles.</td><td>The ModSync settings folder for your platform</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync update-check guide.toml guide-checked.toml</code></pre>
+</section>
+
+<section id="downloads">
+<h2>Downloads and sharing</h2>
+<p>These commands download archives, check them, and share them through BitTorrent. Downloaded archives are checked before they are saved. An existing file is never overwritten.</p>
+
+<h3 id="proxy-options">Privacy options for BitTorrent commands</h3>
+<p>These options apply to <code>torrent-seed</code>, <code>torrent-download</code> and <code>torrent-inspect</code>. Peer traffic goes through a SOCKS5 proxy by default, so peers see the proxy's address instead of yours. The proxy operator can still see your traffic.</p>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--peer-proxy</code></td><td><code>socks5://IP:PORT</code></td><td>A SOCKS5 proxy for every peer and tracker connection. Repeat to add fallbacks.</td><td>None</td></tr>
+<tr><td><code>--peer-proxy-list-url</code></td><td>URL, or <code>""</code></td><td>A public proxy list to try when none of your proxies work. Pass <code>""</code> to turn this off.</td><td>The monosans proxy list</td></tr>
+<tr><td><code>--tracker-list-url</code></td><td>HTTP or HTTPS URL</td><td>A tracker list to use. Repeat for more lists.</td><td>The ngosang HTTP and HTTPS lists</td></tr>
+<tr><td><code>--no-proxy</code></td><td>none</td><td>Connects to peers directly. Peers can see your IP address. Opens a listening port, and uses DHT and UPnP.</td><td>Off</td></tr>
+<tr><td><code>--upload-kibps</code></td><td>KiB per second (16 or more)</td><td>Caps how fast you upload while sharing.</td><td>100</td></tr>
+<tr><td><code>--no-upload-while-downloading</code></td><td>none</td><td>Downloads from peers without uploading to them.</td><td>Off</td></tr>
+<tr><td><code>--share-hours</code></td><td>hours (0 for no limit)</td><td>Stops sharing after this many hours. Used with <code>--authored-magnet</code>.</td><td>24</td></tr>
+<tr><td><code>--share-ratio</code></td><td>ratio (0 for no limit)</td><td>Stops sharing once you have uploaded this much compared with what you downloaded. Used with <code>--authored-magnet</code>.</td><td>1.0</td></tr>
+</tbody></table></div>
+<div class="note warn"><p><strong>With no working proxy, the command stops.</strong> It does not connect to peers directly. Use <code>--no-proxy</code> only if you accept that peers will see your IP address.</p></div>
+
+<h3 id="download"><code>download</code></h3>
+<p>Downloads one archive over HTTPS and checks it before saving. A web page, a damaged archive, an unsafe file name or a checksum mismatch makes the download fail.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync download &lt;url&gt; &lt;output&gt; [options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;url&gt;</code></td><td>HTTPS link</td><td>The archive's address. Required.</td><td>None</td></tr>
+<tr><td><code>&lt;output&gt;</code></td><td>file</td><td>Where to save the archive. Required. Existing files are not overwritten.</td><td>None</td></tr>
+<tr><td><code>--source-dir</code></td><td>folder</td><td>Your mod folder. Coordinates nested outputs with installs and maintenance on this folder.</td><td>None</td></tr>
+<tr><td><code>--sha256</code></td><td>hash</td><td>The expected SHA-256 hash. The download fails if it does not match.</td><td>No check</td></tr>
+<tr><td><code>--max-expanded-bytes</code></td><td>bytes</td><td>Largest size the archive may expand to during the check.</td><td>No limit</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync download https://example.org/mod.zip /path/to/mods/mod.zip --sha256 EXPECTED_HASH</code></pre>
+<p>This command works with direct HTTPS links to ZIP, 7z, RAR, TAR and GZip files. Nexus Mods and DeadlyStream pages, and MEGA links, are downloaded in your browser instead.</p>
+
+<h3 id="download-plan"><code>download-plan</code></h3>
+<p>Shows which of the file names a download page offers would be used for a component. It downloads nothing. It is a file name plan, not a check that the install is ready.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync download-plan &lt;input&gt; --component &lt;component&gt; --url &lt;url&gt; [--filename &lt;name&gt;]... [--source-dir &lt;folder&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;input&gt;</code></td><td>file</td><td>The guide. Required.</td><td>None</td></tr>
+<tr><td><code>--component</code></td><td>component name or GUID</td><td>The component. Required.</td><td>None</td></tr>
+<tr><td><code>--url</code></td><td>URL</td><td>The download page the file names came from. Required.</td><td>None</td></tr>
+<tr><td><code>--filename</code></td><td>file name</td><td>A file name the page offers. Repeat for each one, in order.</td><td>None</td></tr>
+<tr><td><code>--source-dir</code></td><td>folder</td><td>Your mod folder.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync download-plan guide.toml --component "Some Mod" --url https://example.com/mod --source-dir /path/to/mods --filename first.zip --filename alternative.zip</code></pre>
+
+<h3 id="download-provider"><code>download-provider</code></h3>
+<p>Reports which download provider handles a web address. Nothing is downloaded.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync download-provider &lt;url&gt;</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;url&gt;</code></td><td>HTTP or HTTPS link</td><td>The address to check. Required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync download-provider https://example.org/mod.zip</code></pre>
+
+<h3 id="download-batch"><code>download-batch</code></h3>
+<p>Downloads a list of archives at the same time, with a limit on how many run together and a number of retries.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync download-batch &lt;input&gt; [options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;input&gt;</code></td><td>file (JSON array)</td><td>The download jobs, as a JSON array. Required.</td><td>None</td></tr>
+<tr><td><code>--source-dir</code></td><td>folder</td><td>Every output must be inside this mod folder. It must already exist.</td><td>None</td></tr>
+<tr><td><code>--workers</code></td><td>number</td><td>How many downloads run at once.</td><td>4</td></tr>
+<tr><td><code>--retries</code></td><td>number</td><td>How many times to retry a failed download.</td><td>1</td></tr>
+<tr><td><code>--scratch-dir</code></td><td>folder</td><td>A folder for temporary files. Must already exist.</td><td>Not set</td></tr>
+<tr><td><code>--max-expanded-bytes</code></td><td>bytes</td><td>Largest size each archive may expand to.</td><td>No limit</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync download-batch jobs.json --source-dir /path/to/mods --workers 2</code></pre>
+
+<h3 id="fetch-downloads"><code>fetch-downloads</code></h3>
+<p>Downloads the archives for every selected component in a guide. It uses the existing archives, the Origin links and peer sources where it can. It can also save what it learned to the guide.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync fetch-downloads --input &lt;guide&gt; --source-dir &lt;folder&gt; [options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--input</code></td><td>file</td><td>The guide. Required.</td><td>None</td></tr>
+<tr><td><code>--source-dir</code></td><td>folder</td><td>Your mod folder. Required.</td><td>None</td></tr>
+<tr><td><code>--game-dir</code></td><td>folder</td><td>Your game folder. Lets ModSync apply the Aspyr-only rules.</td><td>None</td></tr>
+<tr><td><code>--use-file-selection</code></td><td>none</td><td>Uses the <code>IsSelected</code> values in the guide.</td><td>Off. All top-level components are selected.</td></tr>
+<tr><td><code>--select</code></td><td>name, GUID, <code>category:Name</code> or <code>tier:Name</code></td><td>Selects components. Repeat the flag, or list several values after one flag.</td><td>None</td></tr>
+<tr><td><code>--option</code></td><td>GUID</td><td>Turns on an option and its parent mod. Repeatable.</td><td>None</td></tr>
+<tr><td><code>--deselect</code>, <code>--deselect-option</code>, <code>--select-through-tier</code>, <code>--add-category</code>, <code>--select-visible-search</code>, <code>--spoiler-free</code></td><td>as for <code>selection</code></td><td>Same selection changes as the <code>selection</code> command.</td><td>None</td></tr>
+<tr><td><code>--workers</code></td><td>number</td><td>How many downloads run at once.</td><td>4</td></tr>
+<tr><td><code>--retries</code></td><td>number</td><td>How many times to retry a failed download.</td><td>1</td></tr>
+<tr><td><code>--nexus-mods-api-key</code></td><td>key</td><td>Nexus Mods API key for downloads.</td><td>The key in your settings</td></tr>
+<tr><td><code>--settings-dir</code></td><td>folder</td><td>The folder that holds settings and profiles.</td><td>The ModSync settings folder for your platform</td></tr>
+<tr><td><code>--peer-mode</code></td><td><code>off</code>, <code>race</code> or <code>fallback</code></td><td>Chooses how peer sources are used. Overrides the peer mode saved in settings. A peer sharing setting that is turned off still wins.</td><td>The saved peer mode</td></tr>
+<tr><td><code>--scratch-dir</code></td><td>folder</td><td>A folder for temporary files outside the game and mod folders. Must already exist.</td><td>The system temporary folder</td></tr>
+<tr><td><code>--max-expanded-bytes</code></td><td>bytes</td><td>Largest size each archive may expand to.</td><td>No limit</td></tr>
+<tr><td><code>--dry-run</code></td><td>none</td><td>Prints the plan and stops. Downloads, records and saves nothing.</td><td>Off</td></tr>
+<tr><td><code>--progress-json</code></td><td>none</td><td>Prints one JSON event per line as it works, then one summary line.</td><td>Off</td></tr>
+<tr><td><code>--record</code></td><td>none</td><td>Saves the acquisition details, and any FOMOD choices and status changes you accept, back into the guide.</td><td>Off</td></tr>
+<tr><td><code>--fomod-skip</code></td><td>none</td><td>Leaves FOMOD installers unconfigured and marks them as dismissed.</td><td>Off</td></tr>
+<tr><td><code>--fomod-choices</code></td><td>file</td><td>FOMOD choices (version 1). Overrides the <code>MODSYNC_FOMOD_CHOICES</code> environment variable.</td><td>None</td></tr>
+<tr><td><code>--interactive</code>, <code>--non-interactive</code></td><td>none</td><td>Asks you to configure downloaded FOMOD installers in the terminal, or turns the prompts off. Cannot be used together.</td><td>See description</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<p>If you saved a DeadlyStream sign-in with <a href="#deadlystream-sign-in"><code>deadlystream-sign-in --save</code></a>, DeadlyStream downloads are made signed in.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync fetch-downloads --input guide.toml --source-dir /path/to/mods --game-dir /path/to/game --select "Some Mod" --dry-run</code></pre>
+
+<h3 id="nxm-download"><code>nxm-download</code></h3>
+<p>Turns a Nexus Mods download link (<code>nxm://</code>) into an archive. It uses your Nexus Mods API key. Optionally, it matches the link to a component in a guide.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync nxm-download &lt;url&gt; &lt;output&gt; [options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;url&gt;</code></td><td><code>nxm://</code> link</td><td>The link to resolve. Required.</td><td>None</td></tr>
+<tr><td><code>&lt;output&gt;</code></td><td>file, or folder with <code>--input</code></td><td>Where to save the archive. With <code>--input</code>, this is the mod folder instead.</td><td>None</td></tr>
+<tr><td><code>--source-dir</code></td><td>folder</td><td>The mod folder for a nested archive. Cannot be used with <code>--input</code>.</td><td>None</td></tr>
+<tr><td><code>--input</code></td><td>file</td><td>The guide to match the link against. Prints the run report.</td><td>None</td></tr>
+<tr><td><code>--record</code></td><td>none</td><td>Writes the matched file back into the guide. Needs <code>--input</code>.</td><td>Off</td></tr>
+<tr><td><code>--nexus-mods-api-key</code></td><td>key</td><td>Nexus Mods API key to use.</td><td>The key in your settings</td></tr>
+<tr><td><code>--settings-dir</code></td><td>folder</td><td>The folder that holds settings and profiles.</td><td>The ModSync settings folder for your platform</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync nxm-download "nxm://kotor/mods/123/files/456" /path/to/mods/mod.7z</code></pre>
+
+<h3 id="torrent-seed"><code>torrent-seed</code></h3>
+<p>Shares one exact archive through BitTorrent, so others can download it. It prints the magnet link, the SHA-256 hash and the torrent info as JSON, then keeps sharing until you press <kbd>Ctrl</kbd>+<kbd>C</kbd>. A guide maintainer uses this, and then records the three values in the guide.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync torrent-seed &lt;archive&gt; [options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;archive&gt;</code></td><td>file</td><td>The archive to share. Required.</td><td>None</td></tr>
+<tr><td><code>--tracker</code></td><td>HTTP or HTTPS announce URL</td><td>A tracker to announce to. Repeat to add fallbacks.</td><td>Built-in tracker lists</td></tr>
+<tr><td><code>--authored-magnet</code></td><td>magnet link</td><td>Shares under this magnet link, instead of creating a new torrent. Use it with <code>--torrent-info</code>.</td><td>None</td></tr>
+<tr><td><code>--torrent-info</code></td><td>base64 text</td><td>The saved torrent info from your guide. Shared as it is. Needs <code>--authored-magnet</code>.</td><td>None</td></tr>
+<tr><td>Privacy options</td><td>see above</td><td>The options in <a href="#proxy-options">Privacy options for BitTorrent commands</a>.</td><td>See above</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync torrent-seed /path/to/archives/mod.7z --tracker https://tracker.example.org/announce</code></pre>
+<p>When sharing stops, the command prints a second JSON line with the outcome, the reason and how much was uploaded. With <code>--authored-magnet</code>, ModSync shares a private copy of the archive, not the file itself, and deletes the copy when sharing stops.</p>
+
+<h3 id="torrent-download"><code>torrent-download</code></h3>
+<p>Downloads one archive from a BitTorrent link, checks it against the SHA-256 hash in the guide, and saves it. It never overwrites an existing file.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync torrent-download &lt;magnet&gt; &lt;output&gt; --sha256 &lt;digest&gt; [options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;magnet&gt;</code></td><td>magnet link</td><td>The link from the guide. Required. Quote it in your shell.</td><td>None</td></tr>
+<tr><td><code>&lt;output&gt;</code></td><td>file</td><td>Where to save the archive. Required.</td><td>None</td></tr>
+<tr><td><code>--sha256</code></td><td>hash</td><td>The expected SHA-256 hash. The torrent is thrown away if it does not match. Required.</td><td>None</td></tr>
+<tr><td><code>--torrent-info</code></td><td>base64 text</td><td>The torrent info saved in the guide.</td><td>None</td></tr>
+<tr><td><code>--peer</code></td><td>address and port</td><td>A known seeder, from <code>torrent-seed</code> output. Repeat for fallbacks.</td><td>None</td></tr>
+<tr><td><code>--source-dir</code></td><td>folder</td><td>Your mod folder. Coordinates nested outputs with installs and maintenance on this folder.</td><td>None</td></tr>
+<tr><td><code>--max-expanded-bytes</code></td><td>bytes</td><td>Largest size the archive may expand to during the check.</td><td>No limit</td></tr>
+<tr><td>Privacy options</td><td>see above</td><td>The options in <a href="#proxy-options">Privacy options for BitTorrent commands</a>.</td><td>See above</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync torrent-download 'magnet:?xt=urn:btih:EXAMPLE' /path/to/mods/mod.7z --sha256 EXPECTED_HASH --torrent-info BASE64_TEXT</code></pre>
+<p>The torrent must hold exactly one archive.</p>
+
+<h3 id="torrent-inspect"><code>torrent-inspect</code></h3>
+<p>Checks a local archive against a magnet link and the torrent info, without using the network.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync torrent-inspect &lt;archive&gt; &lt;magnet&gt; [options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;archive&gt;</code></td><td>file</td><td>The local archive to check. Required.</td><td>None</td></tr>
+<tr><td><code>&lt;magnet&gt;</code></td><td>magnet link</td><td>The magnet link from the guide. Required.</td><td>None</td></tr>
+<tr><td><code>--sha256</code></td><td>hash</td><td>The expected SHA-256 hash.</td><td>No check</td></tr>
+<tr><td><code>--torrent-info</code></td><td>base64 text</td><td>The torrent info saved in the guide.</td><td>None</td></tr>
+<tr><td><code>--max-expanded-bytes</code></td><td>bytes</td><td>Largest size the archive may expand to.</td><td>No limit</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync torrent-inspect /path/to/mods/mod.7z 'magnet:?xt=urn:btih:EXAMPLE' --sha256 EXPECTED_HASH</code></pre>
+</section>
+
+<section id="profiles">
+<h2>Profiles and settings</h2>
+<p>A profile saves your guide path, folders and selections under one name. Profiles and settings live in a <code>ModSync</code> folder in your settings location, unless you choose another folder with <code>--settings-dir</code>.</p>
+
+<h3 id="profile"><code>profile</code></h3>
+<p>Creates, lists, shows, copies, renames, deletes, activates, captures and applies profiles. Add <code>--json</code> to get JSON output.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync profile --action &lt;action&gt; [options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>-a</code>, <code>--action</code></td><td><code>list</code>, <code>show</code>, <code>create</code>, <code>clone</code>, <code>rename</code>, <code>delete</code>, <code>activate</code>, <code>capture</code> or <code>apply</code></td><td>What to do. Not case sensitive.</td><td><code>list</code></td></tr>
+<tr><td><code>-n</code>, <code>--name</code></td><td>text</td><td>Profile name. Used by most actions. For <code>clone</code> and <code>rename</code>, it can stand in for <code>--from</code>.</td><td>None</td></tr>
+<tr><td><code>--from</code></td><td>text</td><td>The profile to copy or rename from.</td><td>None</td></tr>
+<tr><td><code>--to</code></td><td>text</td><td>The new profile name, for <code>clone</code> and <code>rename</code>.</td><td>None</td></tr>
+<tr><td><code>--input</code></td><td>file</td><td>The guide. Required for <code>capture</code>. Used by <code>apply</code>.</td><td>None</td></tr>
+<tr><td><code>--output</code></td><td>file</td><td>Where <code>apply</code> saves the guide with the profile's selections.</td><td>None</td></tr>
+<tr><td><code>--game-dir</code></td><td>folder</td><td>Your game folder, saved with the profile by <code>capture</code>.</td><td>None</td></tr>
+<tr><td><code>--source-dir</code></td><td>folder</td><td>Your mod folder, saved with the profile by <code>capture</code>.</td><td>None</td></tr>
+<tr><td><code>--settings-dir</code></td><td>folder</td><td>The folder that holds settings and profiles.</td><td>The ModSync settings folder for your platform</td></tr>
+<tr><td><code>--json</code></td><td>none</td><td>Prints the result as JSON. Without it, the result is a short text summary.</td><td>Off</td></tr>
+</tbody></table></div>
+<p>Notes:</p>
+<ul>
+<li><code>show</code>, <code>create</code>, <code>delete</code>, <code>activate</code> and <code>capture</code> take <code>--name</code>.</li>
+<li><code>clone</code> and <code>rename</code> take <code>--from</code> and <code>--to</code>.</li>
+<li><code>capture</code> updates an existing profile and keeps its creation time.</li>
+<li><code>activate</code> saves the profile as active. It leaves other settings alone.</li>
+</ul>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync profile --action capture --name "Full Build" --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods</code></pre>
+
+<h3 id="settings"><code>settings</code></h3>
+<p>Reads and changes single keys in <code>settings.json</code>. Passwords and keys are hidden unless you ask for them.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync settings --action &lt;inspect|list|get|set&gt; [options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>-a</code>, <code>--action</code></td><td><code>inspect</code>, <code>list</code>, <code>get</code> or <code>set</code></td><td><code>inspect</code> shows the main settings. <code>list</code> shows every key. <code>get</code> reads one key. <code>set</code> writes one key. Required.</td><td>None</td></tr>
+<tr><td><code>-k</code>, <code>--key</code></td><td>text</td><td>The key to read or write. Needed for <code>get</code> and <code>set</code>.</td><td>None</td></tr>
+<tr><td><code>--value</code></td><td>text</td><td>The new value for <code>set</code>. <code>true</code>, <code>false</code>, <code>null</code>, numbers, and JSON objects or arrays are stored as JSON. Anything else is stored as text. Leave it empty to remove the key.</td><td>None</td></tr>
+<tr><td><code>--settings-dir</code></td><td>folder</td><td>The folder that holds <code>settings.json</code>.</td><td>The ModSync settings folder for your platform</td></tr>
+<tr><td><code>--json</code></td><td>none</td><td>Prints JSON instead of text.</td><td>Off</td></tr>
+<tr><td><code>--reveal-secrets</code></td><td>none</td><td>Shows secret values, such as your Nexus Mods API key, instead of <code>***</code>.</td><td>Off</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync settings --action list
+modsync settings --action get --key nexusModsApiKey</code></pre>
+
+<h3 id="set-nexus-api-key"><code>set-nexus-api-key</code></h3>
+<p>Saves your Nexus Mods API key in your settings. It checks the key first, unless you skip the check. The key is never printed.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync set-nexus-api-key &lt;api-key&gt; [options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument or option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;api-key&gt;</code></td><td>text</td><td>Your personal Nexus Mods API key. Required.</td><td>None</td></tr>
+<tr><td><code>--skip-validation</code></td><td>none</td><td>Saves the key without checking it first.</td><td>Off</td></tr>
+<tr><td><code>--settings-dir</code></td><td>folder</td><td>The folder that holds <code>settings.json</code>.</td><td>The ModSync settings folder for your platform</td></tr>
+<tr><td><code>--json</code></td><td>none</td><td>Prints whether the key was saved and whether it was checked. The key itself is not included.</td><td>Off</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync set-nexus-api-key YOUR_API_KEY</code></pre>
+</section>
+
+<section id="builds-accounts">
+<h2>Builds and accounts</h2>
+<p>These commands keep a list of mod builds, look up mod pages, find game installs, import loose archives and manage a DeadlyStream sign-in. The desktop app uses the same features. Commands that print JSON are meant for scripts as well as people.</p>
+
+<h3 id="builds"><code>builds</code></h3>
+<p>Lists, adds, removes and fetches mod builds: the KOTOR Community builds plus build links you add. Each build is an instruction file fetched over HTTPS and kept in <code>builds/</code> inside the settings folder, so it opens again without a connection. Run as <code>modsync builds &lt;action&gt;</code>.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync builds list
+modsync builds add --label &lt;name&gt; --game &lt;KOTOR1|KOTOR2&gt; --url &lt;link&gt;
+modsync builds remove --key &lt;key&gt;
+modsync builds fetch --key &lt;key&gt; [--refresh]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Action or option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>list</code></td><td>none</td><td>Prints every build as JSON, with its key, name, game and link.</td><td>None</td></tr>
+<tr><td><code>add</code></td><td><code>--label</code>, <code>--game</code>, <code>--url</code></td><td>Adds a build link: an instruction file, or a community portal build page. <code>--game</code> is <code>KOTOR1</code> or <code>KOTOR2</code>. Prints the new build as JSON.</td><td>None</td></tr>
+<tr><td><code>remove</code></td><td><code>--key</code></td><td>Removes a build you added and its saved copy. The community builds cannot be removed.</td><td>None</td></tr>
+<tr><td><code>fetch</code></td><td><code>--key</code>, <code>--refresh</code></td><td>Prints the path of the build's instruction file, downloading it if there is no saved copy. <code>--refresh</code> downloads the latest version even when a saved copy exists. If the download fails, the saved copy is used and a warning is printed.</td><td>None</td></tr>
+<tr><td><code>--settings-dir</code></td><td>folder</td><td>The folder that holds settings.</td><td>The ModSync settings folder for your platform</td></tr>
+</tbody></table></div>
+<p><code>--settings-dir</code> can go before or after the action. Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>guide=$(modsync builds fetch --key KEY_FROM_LIST)
+modsync validate --input "$guide" --game-dir /path/to/game --source-dir /path/to/mods</code></pre>
+
+<h3 id="import-archive"><code>import-archive</code></h3>
+<p>Imports a mod archive that is not part of a build. The archive is copied into the mod folder (an existing different file with the same name is never replaced), its contents are inspected without changing anything, and a one-mod guide that installs it is written. Install that guide with <code>install</code>. Archives with no game files or TSLPatcher data are refused, because they need installing by hand.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync import-archive &lt;archive&gt; --source-dir &lt;folder&gt; --output &lt;guide&gt; [--name &lt;name&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument or option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;archive&gt;</code></td><td>file</td><td>A ZIP, 7z or RAR mod archive. Required.</td><td>None</td></tr>
+<tr><td><code>--source-dir</code></td><td>folder</td><td>The mod folder the archive is placed in. Required.</td><td>None</td></tr>
+<tr><td><code>--output</code></td><td>file</td><td>Where to write the guide. Required.</td><td>None</td></tr>
+<tr><td><code>--name</code></td><td>text</td><td>The mod's name.</td><td>The archive name</td></tr>
+</tbody></table></div>
+<p>It prints JSON with the archive path, whether it was copied, its SHA-256, the install method it found, and the new guide's component name and GUID.</p>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync import-archive ~/Downloads/SomeMod.7z --source-dir /path/to/mods --output somemod.toml
+modsync install --input somemod.toml --game-dir /path/to/game --source-dir /path/to/mods</code></pre>
+
+<h3 id="mod-info"><code>mod-info</code></h3>
+<p>Shows the title, description, author and screenshots of a DeadlyStream or Nexus Mods page as JSON. Nexus pages need a saved Nexus API key. Nothing is written to disk.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync mod-info &lt;url&gt; [--settings-dir &lt;folder&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument or option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;url&gt;</code></td><td>link</td><td>A DeadlyStream or Nexus Mods mod page. Required.</td><td>None</td></tr>
+<tr><td><code>--settings-dir</code></td><td>folder</td><td>The folder that holds the Nexus API key.</td><td>The ModSync settings folder for your platform</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync mod-info https://deadlystream.com/files/file/EXAMPLE-mod/</code></pre>
+
+<h3 id="detect-games"><code>detect-games</code></h3>
+<p>Lists the KOTOR installs found on this computer: Steam (every library), and on Windows the GOG and Origin/EA folders. It only reads; nothing is created or changed.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync detect-games [--json]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--json</code></td><td>none</td><td>Prints the installs as JSON, including whether a KOTOR 2 install has the Aspyr update.</td><td>Off. One line per install.</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync detect-games</code></pre>
+
+<h3 id="deadlystream-sign-in"><code>deadlystream-sign-in</code></h3>
+<p>Checks a DeadlyStream account by signing in the way a browser does. The password is read from the <code>MODSYNC_DEADLYSTREAM_PASSWORD</code> environment variable, sent once over HTTPS to deadlystream.com only, and never stored. With <code>--save</code>, the signed-in session (not the password) is kept in settings so DeadlyStream downloads are made signed in.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>MODSYNC_DEADLYSTREAM_PASSWORD=&lt;password&gt; modsync deadlystream-sign-in --username &lt;name&gt; [--save] [--settings-dir &lt;folder&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--username</code></td><td>text</td><td>Your DeadlyStream user name. Required.</td><td>None</td></tr>
+<tr><td><code>--save</code></td><td>none</td><td>Keeps the signed-in session for later downloads.</td><td>Off</td></tr>
+<tr><td><code>--settings-dir</code></td><td>folder</td><td>The folder that holds settings.</td><td>The ModSync settings folder for your platform</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>read -rs MODSYNC_DEADLYSTREAM_PASSWORD &amp;&amp; export MODSYNC_DEADLYSTREAM_PASSWORD
+modsync deadlystream-sign-in --username YOUR_NAME --save</code></pre>
+
+<h3 id="deadlystream-status"><code>deadlystream-status</code></h3>
+<p>Checks whether the session saved by <code>deadlystream-sign-in --save</code> is still signed in, and prints the user name and <code>signedIn</code> as JSON. An expired session is forgotten; a renewed one is saved.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deadlystream-status [--settings-dir &lt;folder&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--settings-dir</code></td><td>folder</td><td>The folder that holds settings.</td><td>The ModSync settings folder for your platform</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deadlystream-status</code></pre>
+
+<h3 id="deadlystream-sign-out"><code>deadlystream-sign-out</code></h3>
+<p>Forgets the DeadlyStream session saved by <code>deadlystream-sign-in --save</code>.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deadlystream-sign-out [--settings-dir &lt;folder&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--settings-dir</code></td><td>folder</td><td>The folder that holds settings.</td><td>The ModSync settings folder for your platform</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deadlystream-sign-out</code></pre>
+
+<h3 id="app-update"><code>app-update</code></h3>
+<p>Checks a GitHub repository's latest release against the version you have, and can download the build for this system. Prints the check, and the downloaded file if any, as JSON. Replacing the running program is left to you.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync app-update --repo &lt;owner/name&gt; --current &lt;version&gt; [--download &lt;folder&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--repo</code></td><td><code>owner/name</code></td><td>The repository to check. Required.</td><td>None</td></tr>
+<tr><td><code>--current</code></td><td>version</td><td>The version installed now. Required.</td><td>None</td></tr>
+<tr><td><code>--download</code></td><td>folder</td><td>Downloads the new build into this folder when one is available.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync app-update --repo kolto-labs/ModSync.rs --current 0.1.0</code></pre>
+
+<h3 id="changelog-section"><code>changelog-section</code></h3>
+<p>Prints the notes for one version from a changelog file. Fails if the changelog has no section for that version.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync changelog-section --changelog &lt;file&gt; --version &lt;version&gt;</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--changelog</code></td><td>file</td><td>The changelog to read. Required.</td><td>None</td></tr>
+<tr><td><code>--version</code></td><td>version</td><td>The version whose notes to print. Required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync changelog-section --changelog CHANGELOG.md --version 0.1.0</code></pre>
+</section>
+
+<section id="checkpoints">
+<h2>Checkpoints</h2>
+<p>A checkpoint is a saved copy of both folders at a known point, so you can go back to it. These commands create, check, compare and restore checkpoints. Each one is run as <code>modsync checkpoint &lt;action&gt;</code>.</p>
+
+<h3 id="checkpoint-roots">Folder options for checkpoint commands</h3>
+<p>Every checkpoint action except <code>resume</code> takes these two folders. <code>resume</code> accepts the install options instead.</p>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--game-dir</code></td><td>folder</td><td>Your game folder. Required.</td><td>None</td></tr>
+<tr><td><code>--source-dir</code></td><td>folder</td><td>Your mod folder. Required.</td><td>None</td></tr>
+</tbody></table></div>
+
+<h3 id="checkpoint-capture"><code>checkpoint capture</code></h3>
+<p>Saves a new baseline of both folders as a new session. It does not install, restore, or mark any component as done.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint capture --game-dir &lt;folder&gt; --source-dir &lt;folder&gt;</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td>Folder options</td><td>see above</td><td>Both folders are required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint capture --game-dir /path/to/game --source-dir /path/to/mods</code></pre>
+
+<h3 id="checkpoint-list"><code>checkpoint list</code></h3>
+<p>Lists saved checkpoint sessions. It does not create or repair anything.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint list --game-dir &lt;folder&gt; --source-dir &lt;folder&gt;</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td>Folder options</td><td>see above</td><td>Both folders are required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint list --game-dir /path/to/game --source-dir /path/to/mods</code></pre>
+
+<h3 id="checkpoint-history"><code>checkpoint history</code></h3>
+<p>Lists every saved checkpoint in one session, with short details.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint history --game-dir &lt;folder&gt; --source-dir &lt;folder&gt; --session &lt;session&gt;</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td>Folder options</td><td>see above</td><td>Both folders are required.</td><td>None</td></tr>
+<tr><td><code>--session</code></td><td>session ID</td><td>The session to list. Required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint history --game-dir /path/to/game --source-dir /path/to/mods --session SESSION_ID</code></pre>
+
+<h3 id="checkpoint-verify"><code>checkpoint verify</code></h3>
+<p>Checks a checkpoint's records and every stored file it refers to.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint verify --game-dir &lt;folder&gt; --source-dir &lt;folder&gt; --session &lt;session&gt; [--checkpoint &lt;id&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td>Folder options</td><td>see above</td><td>Both folders are required.</td><td>None</td></tr>
+<tr><td><code>--session</code></td><td>session ID</td><td>The session to check. Required.</td><td>None</td></tr>
+<tr><td><code>--checkpoint</code></td><td>checkpoint ID</td><td>The checkpoint to check.</td><td>The session's current (HEAD) checkpoint</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint verify --game-dir /path/to/game --source-dir /path/to/mods --session SESSION_ID</code></pre>
+
+<h3 id="checkpoint-inspect"><code>checkpoint inspect</code></h3>
+<p>Shows one checkpoint and where its session came from.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint inspect --game-dir &lt;folder&gt; --source-dir &lt;folder&gt; --session &lt;session&gt; [--checkpoint &lt;id&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td>Folder options</td><td>see above</td><td>Both folders are required.</td><td>None</td></tr>
+<tr><td><code>--session</code></td><td>session ID</td><td>The session. Required.</td><td>None</td></tr>
+<tr><td><code>--checkpoint</code></td><td>checkpoint ID</td><td>The checkpoint to show.</td><td>The session's current (HEAD) checkpoint</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint inspect --game-dir /path/to/game --source-dir /path/to/mods --session SESSION_ID</code></pre>
+
+<h3 id="checkpoint-diff"><code>checkpoint diff</code></h3>
+<p>Compares the files and folders in two checkpoints.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint diff --game-dir &lt;folder&gt; --source-dir &lt;folder&gt; --session &lt;session&gt; --from &lt;id&gt; --to &lt;id&gt;</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td>Folder options</td><td>see above</td><td>Both folders are required.</td><td>None</td></tr>
+<tr><td><code>--session</code></td><td>session ID</td><td>The session both checkpoints belong to. Required.</td><td>None</td></tr>
+<tr><td><code>--from</code></td><td>checkpoint ID</td><td>The older checkpoint. Required.</td><td>None</td></tr>
+<tr><td><code>--to</code></td><td>checkpoint ID</td><td>The newer checkpoint. Required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint diff --game-dir /path/to/game --source-dir /path/to/mods --session SESSION_ID --from CHECKPOINT_A --to CHECKPOINT_B</code></pre>
+
+<h3 id="checkpoint-provenance"><code>checkpoint provenance</code></h3>
+<p>Shows every saved change to one file or folder path, across the checkpoints in a session.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint provenance --game-dir &lt;folder&gt; --source-dir &lt;folder&gt; --session &lt;session&gt; --tree &lt;mods|game&gt; --path &lt;path&gt; [--checkpoint &lt;id&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td>Folder options</td><td>see above</td><td>Both folders are required.</td><td>None</td></tr>
+<tr><td><code>--session</code></td><td>session ID</td><td>The session. Required.</td><td>None</td></tr>
+<tr><td><code>--tree</code></td><td><code>mods</code> or <code>game</code></td><td>Which folder the path is in. Required.</td><td>None</td></tr>
+<tr><td><code>--path</code></td><td>relative path</td><td>The file or folder path to look up. Required.</td><td>None</td></tr>
+<tr><td><code>--checkpoint</code></td><td>checkpoint ID</td><td>The checkpoint to look at.</td><td>Not set</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint provenance --game-dir /path/to/game --source-dir /path/to/mods --session SESSION_ID --tree game --path Override/sample.tga</code></pre>
+
+<h3 id="checkpoint-restore"><code>checkpoint restore</code></h3>
+<p>Restores a saved checkpoint. The restore starts a new linked branch of history, so the older checkpoints are kept.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint restore --game-dir &lt;folder&gt; --source-dir &lt;folder&gt; --session &lt;session&gt; --checkpoint &lt;id&gt;</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td>Folder options</td><td>see above</td><td>Both folders are required.</td><td>None</td></tr>
+<tr><td><code>--session</code></td><td>session ID</td><td>The session. Required.</td><td>None</td></tr>
+<tr><td><code>--checkpoint</code></td><td>checkpoint ID</td><td>The checkpoint to restore. Required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint restore --game-dir /path/to/game --source-dir /path/to/mods --session SESSION_ID --checkpoint CHECKPOINT_ID</code></pre>
+
+<h3 id="checkpoint-recover"><code>checkpoint recover</code></h3>
+<p>Finishes a checkpoint operation that was interrupted. Run it before you install anything else.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint recover --game-dir &lt;folder&gt; --source-dir &lt;folder&gt; [--session &lt;session&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td>Folder options</td><td>see above</td><td>Both folders are required.</td><td>None</td></tr>
+<tr><td><code>--session</code></td><td>session ID</td><td>Which session to recover, if more than one needs it.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint recover --game-dir /path/to/game --source-dir /path/to/mods</code></pre>
+
+<h3 id="checkpoint-resume"><code>checkpoint resume</code></h3>
+<p>Continues an install from the last verified checkpoint. It runs the components that come after it, in guide order.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint resume --input &lt;guide&gt; --game-dir &lt;folder&gt; --source-dir &lt;folder&gt; --session &lt;session&gt; [options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td>All install options</td><td>see <a href="#validate-install-conflicts">validate, install and conflicts</a></td><td>Accepts every option that <code>install</code> accepts.</td><td>See that table</td></tr>
+<tr><td><code>--session</code></td><td>session ID</td><td>The session whose checkpoint is the starting point. Required.</td><td>None</td></tr>
+<tr><td><code>--accept-source-changes</code></td><td>none</td><td>Accepts that archives in your mod folder have changed since the checkpoint. The game and managed state must still match.</td><td>Off</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint resume --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods --session SESSION_ID</code></pre>
+
+<h3 id="checkpoint-repair"><code>checkpoint repair</code></h3>
+<p>Fixes stored files that are damaged. A file is only repaired from a copy whose bytes match the hash and size saved with it.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint repair --game-dir &lt;folder&gt; --source-dir &lt;folder&gt; --session &lt;session&gt; [--checkpoint &lt;id&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td>Folder options</td><td>see above</td><td>Both folders are required.</td><td>None</td></tr>
+<tr><td><code>--session</code></td><td>session ID</td><td>The session to repair. Required.</td><td>None</td></tr>
+<tr><td><code>--checkpoint</code></td><td>checkpoint ID</td><td>The checkpoint to repair from.</td><td>Not set</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint repair --game-dir /path/to/game --source-dir /path/to/mods --session SESSION_ID</code></pre>
+
+<h3 id="checkpoint-delete-session"><code>checkpoint delete-session</code></h3>
+<p>Moves a session into the checkpoint trash. It only works on a session that is not in use and that no checkpoint or receipt still needs.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint delete-session --game-dir &lt;folder&gt; --source-dir &lt;folder&gt; --session &lt;session&gt;</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td>Folder options</td><td>see above</td><td>Both folders are required.</td><td>None</td></tr>
+<tr><td><code>--session</code></td><td>session ID</td><td>The session to move to the trash. Required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint delete-session --game-dir /path/to/game --source-dir /path/to/mods --session OLD_SESSION_ID</code></pre>
+
+<h3 id="checkpoint-gc"><code>checkpoint gc</code></h3>
+<p>Frees disk space by removing stored content that no kept checkpoint or receipt still refers to.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint gc --game-dir &lt;folder&gt; --source-dir &lt;folder&gt;</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td>Folder options</td><td>see above</td><td>Both folders are required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync checkpoint gc --game-dir /path/to/game --source-dir /path/to/mods</code></pre>
+</section>
+
+<section id="deployment">
+<h2>Deployments</h2>
+<p>Deployments copy mod files from a staging folder into your game folder, and keep a record (a manifest) of each one. You can remove a single deployment later and put back the files it replaced. Run as <code>modsync deployment &lt;action&gt;</code>.</p>
+
+<h3 id="deployment-roots">Folder options for deployment commands</h3>
+<p>Most deployment actions use these options to find the staging and manifest folders. You can give the folders directly, or name a profile and let ModSync use the folders inside it.</p>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--game-dir</code></td><td>folder</td><td>Your game folder. Required.</td><td>None</td></tr>
+<tr><td><code>--staging-dir</code></td><td>folder</td><td>The folder that holds the mod files to deploy.</td><td>The profile's staging folder</td></tr>
+<tr><td><code>--manifest-dir</code></td><td>folder</td><td>The folder that holds the deployment records.</td><td>The profile's deployment folder</td></tr>
+<tr><td><code>--profile</code></td><td>name</td><td>The profile whose folders to use.</td><td>The active profile</td></tr>
+<tr><td><code>--settings-dir</code></td><td>folder</td><td>The folder that holds settings and profiles.</td><td>The ModSync settings folder for your platform</td></tr>
+</tbody></table></div>
+
+<h3 id="deployment-status"><code>deployment status</code></h3>
+<p>Lists the deployed component records, oldest first.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deployment status --game-dir &lt;folder&gt; [folder options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td>Folder options</td><td>see above</td><td>Which folders to read.</td><td>See above</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deployment status --game-dir /path/to/game --profile "Full Build"</code></pre>
+
+<h3 id="deployment-deploy"><code>deployment deploy</code></h3>
+<p>Copies one component from the staging folder into your game folder, and records what it did.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deployment deploy --game-dir &lt;folder&gt; --component &lt;name&gt; [--name &lt;label&gt;] [folder options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--component</code></td><td>component folder name</td><td>The component folder inside the staging folder. Required.</td><td>None</td></tr>
+<tr><td><code>--name</code></td><td>text</td><td>An optional name for this deployment.</td><td>None</td></tr>
+<tr><td>Folder options</td><td>see above</td><td>Which folders to use.</td><td>See above</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deployment deploy --game-dir /path/to/game --staging-dir /path/to/staging --manifest-dir /path/to/manifests --component "Some Mod"</code></pre>
+
+<h3 id="deployment-uninstall"><code>deployment uninstall</code></h3>
+<p>Removes the files one deployment owns, and puts back the files it had replaced.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deployment uninstall --game-dir &lt;folder&gt; --component &lt;name&gt; [folder options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--component</code></td><td>component name</td><td>The deployment to remove. Required.</td><td>None</td></tr>
+<tr><td>Folder options</td><td>see above</td><td>Which folders to use.</td><td>See above</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deployment uninstall --game-dir /path/to/game --profile "Full Build" --component "Some Mod"</code></pre>
+
+<h3 id="deployment-purge"><code>deployment purge</code></h3>
+<p>Removes every deployment, newest first.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deployment purge --game-dir &lt;folder&gt; [folder options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td>Folder options</td><td>see above</td><td>Which folders to use.</td><td>See above</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deployment purge --game-dir /path/to/game --profile "Full Build"</code></pre>
+
+<h3 id="deployment-remove"><code>deployment remove</code></h3>
+<p>Deletes the staged copy of a component that is not deployed, so it leaves the library. A deployed component must be uninstalled first. The game folder is never touched. Prints whether anything was removed.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deployment remove --game-dir &lt;folder&gt; --component &lt;name&gt; [folder options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--component</code></td><td>component name</td><td>The staged component to delete. Required.</td><td>None</td></tr>
+<tr><td>Folder options</td><td>see above</td><td>Which folders to use.</td><td>See above</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deployment remove --game-dir /path/to/game --profile "Full Build" --component "Some Mod"</code></pre>
+
+<h3 id="deployment-duplicates"><code>deployment duplicates</code></h3>
+<p>Lists deployed components that share a name, such as older copies of the same mod, as JSON. For each name it shows the newest copy, which is kept, and the older ones. It only reads.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deployment duplicates --game-dir &lt;folder&gt; [folder options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td>Folder options</td><td>see above</td><td>Which folders to read.</td><td>See above</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deployment duplicates --game-dir /path/to/game --profile "Full Build"</code></pre>
+
+<h3 id="deployment-snapshot"><code>deployment snapshot</code></h3>
+<p>Saves a list of hashes for every file in the game folder. Run it before you run a patcher, so you can later see what the patcher changed.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deployment snapshot --game-dir &lt;folder&gt; --out &lt;file&gt; [folder options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--out</code></td><td>file</td><td>Where to save the hash list. Required.</td><td>None</td></tr>
+<tr><td>Folder options</td><td>see above</td><td>Which folders to use.</td><td>See above</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deployment snapshot --game-dir /path/to/game --profile "Full Build" --out before-patch.json</code></pre>
+
+<h3 id="deployment-record"><code>deployment record</code></h3>
+<p>Records the game files that changed since a snapshot, as one component's deployment. Use it after a patcher has run.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deployment record --game-dir &lt;folder&gt; --component &lt;name&gt; --before &lt;snapshot&gt; [--name &lt;label&gt;] [--backup-source &lt;folder&gt;] [folder options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--component</code></td><td>component name</td><td>The component the changes belong to. Required.</td><td>None</td></tr>
+<tr><td><code>--before</code></td><td>file</td><td>The snapshot saved by <code>deployment snapshot</code>. Required.</td><td>None</td></tr>
+<tr><td><code>--name</code></td><td>text</td><td>A label for this deployment.</td><td>None</td></tr>
+<tr><td><code>--backup-source</code></td><td>folder</td><td>A copy of the game folder from before the patcher ran. Supplies the originals of changed files.</td><td>None</td></tr>
+<tr><td>Folder options</td><td>see above</td><td>Which folders to use.</td><td>See above</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deployment record --game-dir /path/to/game --profile "Full Build" --component "Some Mod" --before before-patch.json</code></pre>
+
+<h3 id="deployment-switch"><code>deployment switch</code></h3>
+<p>Makes another profile the active one. It is refused while the current profile still has deployments, unless you add <code>--purge-current</code>.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deployment switch --game-dir &lt;folder&gt; --to &lt;profile&gt; [--settings-dir &lt;folder&gt;] [--purge-current]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--game-dir</code></td><td>folder</td><td>Your game folder. Required.</td><td>None</td></tr>
+<tr><td><code>--to</code></td><td>profile name</td><td>The profile to activate. Required.</td><td>None</td></tr>
+<tr><td><code>--settings-dir</code></td><td>folder</td><td>The folder that holds settings and profiles.</td><td>The ModSync settings folder for your platform</td></tr>
+<tr><td><code>--purge-current</code></td><td>none</td><td>Removes the current profile's deployments first, then switches.</td><td>Off</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deployment switch --game-dir /path/to/game --to "Light Build" --purge-current</code></pre>
+</section>
+
+<section id="maintenance">
+<h2>Maintenance</h2>
+<p>Maintenance changes the names or access rights of files in your game or mod folder. It always previews first. Apply only runs the exact plan you reviewed. Run as <code>modsync maintenance &lt;action&gt;</code>.</p>
+
+<h3 id="maintenance-preview"><code>maintenance preview</code></h3>
+<p>Shows what a change would do, without changing anything. It prints a digest. Give that digest to <code>maintenance apply</code>.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync maintenance preview --game-dir &lt;folder&gt; --source-dir &lt;folder&gt; --target &lt;game|mods&gt; --subtree &lt;path&gt; --action &lt;action&gt; [--json]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--game-dir</code></td><td>folder</td><td>Your game folder. Required.</td><td>None</td></tr>
+<tr><td><code>--source-dir</code></td><td>folder</td><td>Your mod folder. Required.</td><td>None</td></tr>
+<tr><td><code>--target</code></td><td><code>game</code> or <code>mods</code></td><td>Which folder to change. Required.</td><td>None</td></tr>
+<tr><td><code>--subtree</code></td><td>relative path</td><td>A folder inside the target. Use an empty string to pick the whole target folder. Required.</td><td>None</td></tr>
+<tr><td><code>--action</code></td><td><code>lowercase-names</code> or <code>owner-writable</code></td><td><code>lowercase-names</code> changes the names of the files and folders inside the subtree to lower case. <code>owner-writable</code> makes them writable by their owner and keeps their ownership as it is. Taking over access lists is not supported. Required.</td><td>None</td></tr>
+<tr><td><code>--json</code></td><td>none</td><td>Prints one structured result, including failures.</td><td>Off</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync maintenance preview --game-dir /path/to/game --source-dir /path/to/mods --target game --subtree "Override" --action lowercase-names --json</code></pre>
+
+<h3 id="maintenance-apply"><code>maintenance apply</code></h3>
+<p>Makes the change from a preview, but only if the digest matches the plan you reviewed.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync maintenance apply --game-dir &lt;folder&gt; --source-dir &lt;folder&gt; --target &lt;game|mods&gt; --subtree &lt;path&gt; --action &lt;action&gt; --expect &lt;digest&gt; [--json]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td>Preview options</td><td>see <a href="#maintenance-preview">maintenance preview</a></td><td>The same target, subtree and action you previewed.</td><td>None</td></tr>
+<tr><td><code>--expect</code></td><td>digest</td><td>The digest that <code>preview</code> printed. Required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync maintenance apply --game-dir /path/to/game --source-dir /path/to/mods --target game --subtree "Override" --action lowercase-names --expect DIGEST_FROM_PREVIEW</code></pre>
+<p>Exit codes: <code>0</code> applied, <code>130</code> cancelled and rolled back, <code>1</code> failed and rolled back, or recovery is needed.</p>
+
+<h3 id="maintenance-status"><code>maintenance status</code></h3>
+<p>Shows whether an unfinished maintenance operation is waiting. It does not change the folders.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync maintenance status --game-dir &lt;folder&gt; --source-dir &lt;folder&gt; [--json]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--game-dir</code></td><td>folder</td><td>Your game folder. Required.</td><td>None</td></tr>
+<tr><td><code>--source-dir</code></td><td>folder</td><td>Your mod folder. Required.</td><td>None</td></tr>
+<tr><td><code>--json</code></td><td>none</td><td>Prints one structured result.</td><td>Off</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync maintenance status --game-dir /path/to/game --source-dir /path/to/mods --json</code></pre>
+
+<h3 id="maintenance-recover"><code>maintenance recover</code></h3>
+<p>Finishes the unfinished maintenance operation that matches the digest you give.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync maintenance recover --game-dir &lt;folder&gt; --source-dir &lt;folder&gt; --operation &lt;digest&gt; [--json]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--game-dir</code></td><td>folder</td><td>Your game folder. Required.</td><td>None</td></tr>
+<tr><td><code>--source-dir</code></td><td>folder</td><td>Your mod folder. Required.</td><td>None</td></tr>
+<tr><td><code>--operation</code></td><td>digest</td><td>The digest that identifies the pending operation. Required.</td><td>None</td></tr>
+<tr><td><code>--json</code></td><td>none</td><td>Prints one structured result.</td><td>Off</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync maintenance recover --game-dir /path/to/game --source-dir /path/to/mods --operation DIGEST_FROM_STATUS</code></pre>
+</section>
+
+<section id="easy">
+<h2>Authoring history (easy)</h2>
+<p>The <code>easy</code> commands keep a guide's edits in a saved history with undo and redo. Every change is saved as you go. Run as <code>modsync easy &lt;action&gt;</code>. Most actions work on a session folder, which is the folder that holds the saved history.</p>
+<div class="note"><p><strong>Revision checks.</strong> Several actions take <code>--expected-revision</code>. Give the revision you last saw. If someone else changed the guide since then, the command refuses to act, so you do not overwrite their work.</p></div>
+
+<h3 id="easy-create"><code>easy create</code></h3>
+<p>Starts a new session from a guide. Your current selections are kept.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy create &lt;directory&gt; &lt;input&gt;</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;directory&gt;</code></td><td>folder</td><td>The session folder to create. Required.</td><td>None</td></tr>
+<tr><td><code>&lt;input&gt;</code></td><td>file</td><td>The guide to start from. Required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy create my-session guide.toml</code></pre>
+
+<h3 id="easy-status"><code>easy status</code></h3>
+<p>Shows the current revision and the labels of saved changes.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy status &lt;directory&gt;</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;directory&gt;</code></td><td>folder</td><td>The session folder. Required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy status my-session</code></pre>
+
+<h3 id="easy-edit"><code>easy edit</code></h3>
+<p>Applies a list of edits to the guide and saves the result as a new revision with a label.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy edit &lt;directory&gt; &lt;operations&gt; --label &lt;text&gt; [--expected-revision &lt;revision&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument or option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;directory&gt;</code></td><td>folder</td><td>The session folder. Required.</td><td>None</td></tr>
+<tr><td><code>&lt;operations&gt;</code></td><td>file (JSON), or <code>-</code></td><td>The list of edits, in order. Use <code>-</code> to read it from standard input (up to 8 MiB). Required.</td><td>None</td></tr>
+<tr><td><code>--label</code></td><td>text</td><td>A short name for this change, shown in the history. Required.</td><td>None</td></tr>
+<tr><td><code>--expected-revision</code></td><td>revision</td><td>Refuses the edit if the guide has changed since this revision.</td><td>No check</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy edit my-session edits.json --label "Add texture pack" --expected-revision REVISION_ID</code></pre>
+
+<h3 id="easy-undo"><code>easy undo</code></h3>
+<p>Goes back to the previous saved revision of the guide. It does not change any installed files.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy undo &lt;directory&gt; [--expected-revision &lt;revision&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument or option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;directory&gt;</code></td><td>folder</td><td>The session folder. Required.</td><td>None</td></tr>
+<tr><td><code>--expected-revision</code></td><td>revision</td><td>Refuses the step if the guide has changed since this revision.</td><td>No check</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy undo my-session</code></pre>
+
+<h3 id="easy-redo"><code>easy redo</code></h3>
+<p>Moves forward again to the next saved revision. It does not change any installed files.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy redo &lt;directory&gt; [--expected-revision &lt;revision&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument or option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;directory&gt;</code></td><td>folder</td><td>The session folder. Required.</td><td>None</td></tr>
+<tr><td><code>--expected-revision</code></td><td>revision</td><td>Refuses the step if the guide has changed since this revision.</td><td>No check</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy redo my-session</code></pre>
+
+<h3 id="easy-export"><code>easy export</code></h3>
+<p>Saves the current guide to a file. The history is not changed.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy export &lt;directory&gt; &lt;output&gt;</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;directory&gt;</code></td><td>folder</td><td>The session folder. Required.</td><td>None</td></tr>
+<tr><td><code>&lt;output&gt;</code></td><td>file</td><td>Where to save the guide. Required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy export my-session exported-guide.toml</code></pre>
+
+<h3 id="easy-import-archive"><code>easy import-archive</code></h3>
+<p>Copies an archive into the session privately, and saves that in the history so you can undo it.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy import-archive &lt;directory&gt; &lt;source&gt; [--max-bytes &lt;bytes&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument or option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;directory&gt;</code></td><td>folder</td><td>The session folder. Required.</td><td>None</td></tr>
+<tr><td><code>&lt;source&gt;</code></td><td>file</td><td>The archive to import. Required.</td><td>None</td></tr>
+<tr><td><code>--max-bytes</code></td><td>bytes</td><td>Largest archive size to accept.</td><td>8 GiB (8589934592)</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy import-archive my-session /path/to/mods/texture-pack.7z</code></pre>
+
+<h3 id="easy-apply"><code>easy apply</code></h3>
+<p>Runs exactly one saved action from the history, the next one, with a checkpoint that can be recovered. It can run a patcher, but only if you allow processes.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy apply &lt;directory&gt; --source-dir &lt;folder&gt; --game-dir &lt;folder&gt; --component &lt;number&gt; --instruction &lt;number&gt; [options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument or option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;directory&gt;</code></td><td>folder</td><td>The session folder. Required.</td><td>None</td></tr>
+<tr><td><code>--source-dir</code></td><td>folder</td><td>Your mod folder. Required.</td><td>None</td></tr>
+<tr><td><code>--game-dir</code></td><td>folder</td><td>Your game folder. Required.</td><td>None</td></tr>
+<tr><td><code>--component</code></td><td>number</td><td>The component to act on. Required.</td><td>None</td></tr>
+<tr><td><code>--instruction</code></td><td>number</td><td>The instruction to run inside that component. Required.</td><td>None</td></tr>
+<tr><td><code>--allow-processes</code></td><td>none</td><td>Allows a patcher or other program to run, using your user permissions.</td><td>Off</td></tr>
+<tr><td><code>--patcher</code></td><td>file</td><td>The patcher program to use.</td><td>Built-in</td></tr>
+<tr><td><code>--expected-revision</code></td><td>revision</td><td>Refuses to run if the guide has changed since this revision.</td><td>No check</td></tr>
+<tr><td><code>--provided-request-dir</code></td><td>folder</td><td>A private folder of request files that explicitly selects the installers you supply. Cannot be used with <code>--patcher</code>. Needs <code>--provided-xvfb</code>.</td><td>None</td></tr>
+<tr><td><code>--provided-xvfb</code></td><td>file</td><td>An installed Xvfb program. A new display is started for each run. Needs <code>--provided-request-dir</code>.</td><td>None</td></tr>
+<tr><td><code>--provided-wine</code>, <code>--provided-wineserver</code>, <code>--provided-wine-prefix</code></td><td>file or folder</td><td>The Wine program, wineserver and Wine prefix to use with the supplied installers. Each needs <code>--provided-request-dir</code>.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy apply my-session --source-dir /path/to/mods --game-dir /path/to/game --component 0 --instruction 0</code></pre>
+
+<h3 id="easy-disk-recover"><code>easy disk-recover</code></h3>
+<p>Recovers the checkpoint that belongs to the action still pending in the session. Only that checkpoint is touched.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy disk-recover &lt;directory&gt;</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;directory&gt;</code></td><td>folder</td><td>The session folder. Required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy disk-recover my-session</code></pre>
+
+<h3 id="easy-disk-seek"><code>easy disk-seek</code></h3>
+<p>Puts the game and mod folders back to a saved point in the history. The installation steps are not run again.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy disk-seek &lt;directory&gt; &lt;cursor&gt;</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;directory&gt;</code></td><td>folder</td><td>The session folder. Required.</td><td>None</td></tr>
+<tr><td><code>&lt;cursor&gt;</code></td><td>number</td><td>The saved point to return to. Required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy disk-seek my-session 3</code></pre>
+
+<h3 id="easy-patcher-inspect"><code>easy patcher-inspect</code></h3>
+<p>Reads a mod's patcher details, its options, and a summary of its instructions. Nothing is changed.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy patcher-inspect &lt;source&gt; --source-dir &lt;folder&gt; --game-dir &lt;folder&gt; [options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument or option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;source&gt;</code></td><td>text</td><td>The mod to inspect. Required.</td><td>None</td></tr>
+<tr><td><code>--source-dir</code></td><td>folder</td><td>Your mod folder. Required.</td><td>None</td></tr>
+<tr><td><code>--game-dir</code></td><td>folder</td><td>Your game folder. Required.</td><td>None</td></tr>
+<tr><td><code>--namespace</code></td><td>number</td><td>The namespace index to read.</td><td>Not set</td></tr>
+<tr><td><code>--directory</code></td><td>folder</td><td>A saved session folder to read from. Use it together with <code>--component</code> and <code>--instructions</code>.</td><td>None</td></tr>
+<tr><td><code>--component</code></td><td>number</td><td>The component to read, with <code>--directory</code>.</td><td>None</td></tr>
+<tr><td><code>--instructions</code></td><td>number</td><td>The saved point to inspect, with <code>--directory</code>. Earlier archive steps are included.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy patcher-inspect "Some Mod" --source-dir /path/to/mods --game-dir /path/to/game</code></pre>
+
+<h3 id="easy-diff"><code>easy diff</code></h3>
+<p>Compares two folder trees, byte for byte. Nothing is excluded unless you ask.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy diff &lt;left&gt; &lt;right&gt; [--exclude &lt;path&gt;]...</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument or option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;left&gt;</code></td><td>folder</td><td>The first tree. Required.</td><td>None</td></tr>
+<tr><td><code>&lt;right&gt;</code></td><td>folder</td><td>The second tree. Required.</td><td>None</td></tr>
+<tr><td><code>--exclude</code></td><td>relative path</td><td>A file or folder to leave out on both sides. Repeat for more.</td><td>Nothing excluded</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy diff /path/to/before /path/to/after --exclude Logs</code></pre>
+
+<h3 id="easy-predict"><code>easy predict</code></h3>
+<p>Shows which files an instruction would create or change, at a chosen point. The install folders are not changed.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy predict &lt;directory&gt; --source-dir &lt;folder&gt; --game-dir &lt;folder&gt; --component &lt;number&gt; --instructions &lt;number&gt; [--expected-revision &lt;revision&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument or option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;directory&gt;</code></td><td>folder</td><td>The session folder. Required.</td><td>None</td></tr>
+<tr><td><code>--source-dir</code></td><td>folder</td><td>Your mod folder. Required.</td><td>None</td></tr>
+<tr><td><code>--game-dir</code></td><td>folder</td><td>Your game folder. Required.</td><td>None</td></tr>
+<tr><td><code>--component</code></td><td>number</td><td>The top-level mod, counting from zero. Required.</td><td>None</td></tr>
+<tr><td><code>--instructions</code></td><td>number</td><td>How many of that mod's instructions to simulate. Required.</td><td>None</td></tr>
+<tr><td><code>--expected-revision</code></td><td>revision</td><td>Refuses the prediction if the guide has changed since this revision.</td><td>No check</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy predict my-session --source-dir /path/to/mods --game-dir /path/to/game --component 0 --instructions 2</code></pre>
+</section>
+
+<section id="links">
+<h2>Desktop app and links</h2>
+<p>These commands open the desktop app, handle <code>nxm://</code> and <code>modsync://</code> links, and register those links with your system.</p>
+
+<h3 id="gui"><code>gui</code></h3>
+<p>Opens the built-in ModSync window. You can open it with a guide and folders already filled in, or reopen an easy-mode session. Running <code>modsync</code> with no command does the same thing. The KOTOR desktop app described on the <a href="desktop.html">Desktop app</a> page is a separate program, built from <code>desktop/tauri</code>.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync gui [options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--input</code></td><td>file</td><td>Opens this guide.</td><td>None</td></tr>
+<tr><td><code>--game-dir</code></td><td>folder</td><td>Fills in the game folder.</td><td>The saved folder</td></tr>
+<tr><td><code>--source-dir</code></td><td>folder</td><td>Fills in the mod folder.</td><td>The saved folder</td></tr>
+<tr><td><code>--settings-dir</code></td><td>folder</td><td>Uses this folder for settings and profiles.</td><td>The ModSync settings folder for your platform</td></tr>
+<tr><td><code>--easy-session</code></td><td>folder</td><td>Reopens a saved easy-mode session once the app is ready. Cannot be used with <code>--protocol</code>.</td><td>None</td></tr>
+<tr><td><code>--protocol</code></td><td><code>nxm://</code> or <code>modsync://</code> link</td><td>Handles a link passed in by your system's link handler.</td><td>None</td></tr>
+<tr><td><code>--allow-multiple-instances</code></td><td>none</td><td>Starts a separate app window instead of using the one already open.</td><td>Off</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync gui --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods</code></pre>
+
+<h3 id="protocol-parse"><code>protocol-parse</code></h3>
+<p>Checks a link and shows what it means. It does not download anything.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync protocol-parse &lt;url&gt;</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;url&gt;</code></td><td><code>nxm://</code> or <code>modsync://</code> link</td><td>The link to check. Required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync protocol-parse "modsync://EXAMPLE_LINK"</code></pre>
+
+<h3 id="protocol-fetch"><code>protocol-fetch</code></h3>
+<p>Downloads an instruction file from a web link and saves it. It has limits on address and size to protect you.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync protocol-fetch &lt;url&gt; &lt;output&gt;</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;url&gt;</code></td><td>HTTP or HTTPS link</td><td>The file to download. Required.</td><td>None</td></tr>
+<tr><td><code>&lt;output&gt;</code></td><td>file</td><td>Where to save the file. Required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync protocol-fetch https://example.org/guide.toml guide.toml</code></pre>
+
+<h3 id="protocol-open"><code>protocol-open</code></h3>
+<p>Downloads and loads a <code>modsync://</code> instruction link, without keeping the temporary download.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync protocol-open &lt;url&gt;</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;url&gt;</code></td><td><code>modsync://</code> link</td><td>The instruction link to load. Required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync protocol-open "modsync://EXAMPLE_LINK"</code></pre>
+
+<h3 id="protocol-resolve"><code>protocol-resolve</code></h3>
+<p>Matches an <code>nxm://</code> link to exactly one top-level component in a guide. It fails if the link matches none or more than one.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync protocol-resolve &lt;input&gt; &lt;url&gt;</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;input&gt;</code></td><td>file</td><td>The guide to search. Required.</td><td>None</td></tr>
+<tr><td><code>&lt;url&gt;</code></td><td><code>nxm://</code> link</td><td>The link to match. Required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync protocol-resolve guide.toml "nxm://kotor/mods/123/files/456"</code></pre>
+
+<h3 id="protocol-register-linux"><code>protocol-register-linux</code></h3>
+<p>Registers <code>modsync://</code> links with your Linux desktop, so a click opens this program. It prints the path of the file it wrote.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync protocol-register-linux &lt;executable&gt; [--applications-dir &lt;folder&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument or option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;executable&gt;</code></td><td>file</td><td>The ModSync program to open. Required.</td><td>None</td></tr>
+<tr><td><code>--applications-dir</code></td><td>folder</td><td>Where to write the desktop entry.</td><td>The applications folder in your local data folder</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync protocol-register-linux /path/to/modsync</code></pre>
+
+<h3 id="protocol"><code>protocol</code> status, register and unregister</h3>
+<p>Shows, adds or removes this program's link handlers for <code>nxm://</code> and <code>modsync://</code>. Removing only affects links that this program owns.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync protocol status [options]
+modsync protocol register [options]
+modsync protocol unregister [options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--executable</code></td><td>file</td><td>The program to register. On Windows, when you leave this out, the <code>modsync-gui.exe</code> launcher in the same folder is used.</td><td>The program you are running</td></tr>
+<tr><td><code>--package-token</code></td><td>text</td><td>The package identity token to use. Read from the installed package if you leave it out.</td><td>Read from the package</td></tr>
+<tr><td><code>--channel</code></td><td>text</td><td>The channel name to use. Read from the installed package if you leave it out.</td><td>Read from the package</td></tr>
+<tr><td><code>--scheme</code></td><td><code>both</code>, <code>modsync</code> or <code>nxm</code></td><td>Which link types to handle.</td><td><code>both</code></td></tr>
+<tr><td><code>--replace</code></td><td>none</td><td>Replaces a different program that currently handles these links. <strong>Register only.</strong></td><td>Off</td></tr>
+<tr><td><code>--json</code></td><td>none</td><td>Prints the result as JSON.</td><td>Off</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync protocol status --json
+modsync protocol register --scheme modsync</code></pre>
+</section>
+
+<section id="recipes">
+<h2>Common recipes</h2>
+<p>These short workflows combine the commands above.</p>
+
+<h3 id="recipe-json">Validate in a script and read the result</h3>
+<p>Use this when another program needs to decide whether a guide is ready. Validation prints a JSON report. The command exits with <code>1</code> when the report does not pass.</p>
+<ol>
+<li><p>Run validation with JSON output, and save the report to a file.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync validate --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods --output json > report.json</code></pre></li>
+<li><p>Check the exit code. <code>0</code> means the report passed, and <code>1</code> means it did not.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>if modsync validate --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods --output json > report.json; then
+  echo "Guide is ready"
+else
+  echo "Guide has problems, see report.json"
+fi</code></pre></li>
+<li><p>Read the <code>success</code> and <code>errorCount</code> fields in <code>report.json</code> if you need details.</p></li>
+</ol>
+
+<h3 id="recipe-subset">Install only some components</h3>
+<p>Repeat <code>--select</code> for each component you want, and <code>--option</code> for each option. Repeating the flag is safer than listing many values after one flag, because the list ends at the next flag.</p>
+<ol>
+<li><p>Check the names and GUIDs first with <code>list</code> or <code>selection</code>.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync selection --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods --select "Some Mod" --select "Another Mod" --json</code></pre></li>
+<li><p>Validate the same selection.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync validate --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods --select "Some Mod" --select "Another Mod" --option OPTION_GUID</code></pre></li>
+<li><p>Install with the same options.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync install --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods --select "Some Mod" --select "Another Mod" --option OPTION_GUID</code></pre></li>
+</ol>
+
+<h3 id="recipe-restore">Recover after a failed install</h3>
+<p>When an install stops, the folders are not left half-changed. Restore them first, then fix the cause and run again.</p>
+<ol>
+<li><p>Put both folders back to the snapshot from before the install.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync restore --game-dir /path/to/game --source-dir /path/to/mods</code></pre></li>
+<li><p>Fix the cause that the error message named, such as a missing archive.</p></li>
+<li><p>Validate again, then install from the start of the guide. Do not add a failed mod to the end of a run.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync validate --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods
+modsync install  --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods</code></pre></li>
+</ol>
+
+<h3 id="recipe-profile">Install from a saved profile</h3>
+<p>Save your setup once, then reuse it. Explicit options you add still override the profile.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync profile --action capture --name "Full Build" --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods
+modsync profile --action activate --name "Full Build"
+modsync validate --active-profile
+modsync install --active-profile</code></pre>
+
+<h3 id="recipe-conflicts">See which files clash before you install</h3>
+<p>The <code>conflicts</code> report lists every game file written by more than one component, in install order. Use it to decide which mod should win.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync conflicts --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods > conflicts.json</code></pre>
+
+<h3 id="recipe-hash">Check a download against a known hash</h3>
+<p>Give <code>--sha256</code> with the hash from the guide. A file that does not match is not saved.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync download https://example.org/mod.zip /path/to/mods/mod.zip --sha256 EXPECTED_HASH</code></pre>
+</section>
+
+<nav class="pager" aria-label="Previous and next page"><a class="prev" href="cli.html"><small>Previous</small>Command line</a><a class="next" href="api.html"><small>Next</small>Library API</a></nav>
+</main>
+<nav class="docs-outline" aria-label="On this page"><h2>On this page</h2><a href="#global">Global options and conventions</a><a href="#installing">Installing</a><a href="#patchers">Patchers</a><a href="#guides">Guides: convert, merge and drafting</a><a href="#downloads">Downloads and sharing</a><a href="#profiles">Profiles and settings</a><a href="#builds-accounts">Builds and accounts</a><a href="#checkpoints">Checkpoints</a><a href="#deployment">Deployments</a><a href="#maintenance">Maintenance</a><a href="#easy">Authoring history (easy)</a><a href="#links">Desktop app and links</a><a href="#recipes">Common recipes</a></nav>
+<footer class="docs-foot"><span>ModSync. Made for the KOTOR modding community.</span><span><a data-repo="/issues" href="https://github.com/kolto-labs/ModSync.rs/issues">Report a problem</a></span></footer>
+</div>
+</div>
+</body>
+</html>

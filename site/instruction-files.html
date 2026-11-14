@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Instruction files - ModSync</title>
+<meta name="description" content="What a ModSync instruction file is, the formats ModSync reads, the instruction actions, and the tools for drafting and checking a guide." />
+<meta name="theme-color" content="#14110d" />
+<link rel="icon" href="assets/modsync.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<script src="assets/theme-init.js"></script>
+<link rel="stylesheet" href="assets/site.css" />
+<script src="assets/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<div class="docs">
+<aside class="docs-side">
+  <div class="docs-side-top">
+    <a class="docs-brand" href="./" aria-label="ModSync home"><img class="logo" src="assets/modsync.svg" alt="" width="22" height="22" />ModSync <span>docs</span></a>
+    <button class="icon-btn" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch appearance">
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg>
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+    <button id="docs-menu" class="icon-btn docs-menu" type="button" aria-label="Show the list of pages" aria-expanded="false" aria-controls="docs-nav">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+  <nav id="docs-nav" class="docs-nav" aria-label="Documentation">
+    <div class="docs-quick">
+      <a href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg>Home</a>
+      <a data-repo="/releases" href="https://github.com/kolto-labs/ModSync.rs/releases"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 11l6 6 6-6M4 20h16"/></svg>Download</a>
+      <a data-repo="" href="https://github.com/kolto-labs/ModSync.rs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>Source on GitHub</a>
+      <a data-repo="/issues" href="https://github.com/kolto-labs/ModSync.rs/issues"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>Report a problem</a>
+    </div>
+    <h2>For players</h2><a href="getting-started.html">Getting started</a><a href="desktop.html">Desktop app</a><a href="walkthrough-install.html">Walkthrough: your first build</a><a href="safety.html">Safety and recovery</a><a href="troubleshooting.html">Troubleshooting</a><a href="faq.html">FAQ</a><h2>For guide authors</h2><a href="instruction-files.html" aria-current="page">Instruction files</a><a href="walkthrough-authoring.html">Walkthrough: writing a guide</a><a href="format-reference.html">Format reference</a><a href="cli.html">Command line</a><a href="cli-reference.html">CLI reference</a><h2>For developers</h2><a href="api.html">Library API</a><h2>Project</h2><a href="status.html">Features and roadmap</a>
+  </nav>
+</aside>
+<div class="docs-main">
+<main class="docs-article" id="content">
+<p class="crumb"><a href="./">ModSync</a><span>/</span>For guide authors<span>/</span><strong>Instruction files</strong></p>
+<h1>Instruction files and <span class="serif">guides</span></h1>
+<p class="lead">An instruction file is the part of a mod build that ModSync reads: the list of mods and the exact steps to install each one. Guide authors write it; players only load it.</p>
+<section id="what">
+<h2>What an instruction file is</h2>
+<p>A KOTOR mod build is usually a long written guide: install this mod, then that one, copy these files, delete those, pick this option. An instruction file is the same guide written so a program can follow it.</p>
+<p>It lists every mod (a <em>component</em>) with its name, author, tier, category, description and download links, whether it is selected by default, what it depends on, and the <em>instructions</em> that install it. Each component has a unique ID, so two mods with the same name never get mixed up.</p>
+<p>The file belongs to the build and is published with it. ModSync only reads it. Players never need to edit it.</p>
+</section>
+
+<section id="formats">
+<h2>Formats</h2>
+<div class="table"><table>
+<thead><tr><th>Format</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td>TOML</td><td>The usual ModSync format, with one <code>[[thisMod]]</code> table per component. Keeps build-level metadata.</td></tr>
+<tr><td>YAML</td><td>A metadata document followed by one document per component. Keeps build-level metadata.</td></tr>
+<tr><td>JSON</td><td>An array of components.</td></tr>
+<tr><td>XML</td><td>Structured XML guides.</td></tr>
+<tr><td>Markdown</td><td>Structured instructions in fenced or comment blocks are read directly. A plain prose guide can be drafted into instructions for review (see <a href="#drafting">below</a>).</td></tr>
+</tbody></table></div>
+<p>File extensions are not case sensitive, and an unknown extension is detected from the content. Use <code>modsync convert</code> to move a guide between formats.</p>
+</section>
+
+<section id="example">
+<h2>A small example</h2>
+<p>This is <code>examples/demo.toml</code> from the source. The first component copies a texture into <code>Override</code>. The second depends on the first, and removes any <code>.tpc</code> that has a matching <code>.tga</code>.</p>
+<pre class="code" data-lang="TOML" tabindex="0"><code>[metadata]
+title = "ModSync sample install"
+
+[[thisMod]]
+Guid = "sample-textures"
+Name = "Sample textures"
+Author = "ModSync"
+Tier = "Essential"
+Category = ["Textures"]
+Description = "Copies sample.tga from the mod directory into Override. Use empty demo folders, not a real game install."
+IsSelected = true
+
+[[thisMod.Instructions]]
+Action = "Copy"
+Source = ["&lt;&lt;modDirectory&gt;&gt;/sample.tga"]
+Destination = "&lt;&lt;kotorDirectory&gt;&gt;/Override"
+
+[[thisMod]]
+Guid = "sample-cleanup"
+Name = "Remove conflicting textures"
+Tier = "Essential"
+Description = "Removes a TPC when a TGA with the same name exists."
+IsSelected = true
+Dependencies = ["sample-textures"]
+
+[[thisMod.Instructions]]
+Action = "DelDuplicate"
+Source = [".tga", ".tpc"]
+Destination = "&lt;&lt;kotorDirectory&gt;&gt;/Override"
+Arguments = ".tpc"</code></pre>
+</section>
+
+<section id="paths">
+<h2>Folders in instructions</h2>
+<p>Paths start from one of two placeholders, so the same file works on every computer:</p>
+<ul>
+<li><code>&lt;&lt;modDirectory&gt;&gt;</code> is the folder that holds the player's downloaded mod archives.</li>
+<li><code>&lt;&lt;kotorDirectory&gt;&gt;</code> (or <code>&lt;&lt;gameDirectory&gt;&gt;</code>) is the player's game folder.</li>
+</ul>
+<p>Write placeholders exactly as shown, including capital letters. Sources may use wildcards. Anything that would reach outside those two folders is refused.</p>
+</section>
+
+<section id="actions">
+<h2>Instruction actions</h2>
+<div class="table"><table>
+<thead><tr><th>Action</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>Extract</code></td><td>Unpacks a ZIP, 7z, RAR, TAR, GZip or 7z self-extracting archive into a folder named after the archive, next to it.</td></tr>
+<tr><td><code>Copy</code>, <code>Move</code></td><td>Copy or move matching files into the destination folder.</td></tr>
+<tr><td><code>Rename</code></td><td>Renames a file within its own folder.</td></tr>
+<tr><td><code>Delete</code></td><td>Deletes matching files.</td></tr>
+<tr><td><code>DelDuplicate</code></td><td>Removes a file of one type when a file of another compatible type has the same name, such as an old <code>.tpc</code> next to a new <code>.tga</code>.</td></tr>
+<tr><td><code>CleanList</code></td><td>Removes files listed in a comma-separated clean list.</td></tr>
+<tr><td><code>Patcher</code></td><td>Runs a TSLPatcher-style patch. Uses the built-in OdyPatcher library by default, or an OdyPatcher, HoloPatcher or KPatcher program you choose. Needs the player's permission.</td></tr>
+<tr><td><code>Execute</code>, <code>Run</code></td><td>Runs a local program directly, without a shell. Needs the player's permission.</td></tr>
+<tr><td><code>Choose</code></td><td>Applies the options the player selected, in the order the options are declared.</td></tr>
+</tbody></table></div>
+<p>An unknown action name fails validation instead of being skipped. Every supported action and field is listed in <a data-repo="/blob/main/COMPATIBILITY.md" href="https://github.com/kolto-labs/ModSync.rs/blob/main/COMPATIBILITY.md">COMPATIBILITY.md</a>.</p>
+</section>
+
+<section id="order">
+<h2>Order, dependencies and options</h2>
+<ul>
+<li><code>Dependencies</code> names the components that must be installed first. <code>InstallBefore</code> and <code>InstallAfter</code> adjust the order further. A reference to a missing component, or a loop, fails validation.</li>
+<li>Restrictions mark components that cannot be installed together.</li>
+<li>Options let the player pick variants of a mod. An option is referred to by its ID.</li>
+<li><code>IsSelected</code> sets the default choice. <code>Tier</code> and <code>Category</code> drive the bulk selection buttons in the desktop.</li>
+<li>Widescreen-only components install in their own phase after the main build.</li>
+</ul>
+</section>
+
+<section id="drafting">
+<h2>Drafting from a Markdown guide</h2>
+<p>If your build exists only as a prose Markdown guide, ModSync can draft instructions from it for you to check. Drafts stay blocked until each one has been reviewed.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync convert guide.md draft.json --parse-directions
+modsync convert draft.json reviewed.toml --review-draft &lt;component-guid&gt;</code></pre>
+<p>When the archives are already downloaded, <code>--review-verified-drafts</code> with <code>--source-path</code> clears review only for drafts that a fresh replay of the archive reproduces exactly. For components with no instructions at all, <code>--auto-generate-local</code> infers extraction, file moves, folder choices and patcher steps from the archives and prints a report per component.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync convert guide.toml generated.toml --auto-generate-local --source-path /path/to/mods</code></pre>
+<div class="note warn"><p><strong>A draft is a starting point.</strong> Check every generated action and path before you accept it, then validate the guide. A generated draft is not proof that the prose was understood correctly.</p></div>
+<p>Players can also install straight from a prose guide with <code>install --direct-markdown</code>. It installs in source order, skips 4GB Patcher and widescreen-only entries, and stops before changing the game until every selected draft has been reviewed.</p>
+</section>
+
+<section id="tools">
+<h2>Other tools for guide authors</h2>
+<dl>
+<dt>Check without installing</dt>
+<dd><code>modsync validate</code> runs the full check against real folders, and <code>modsync conflicts</code> lists every game file that more than one component writes, in install order.</dd>
+<dt>Merge two guides</dt>
+<dd><code>modsync merge EXISTING INCOMING OUTPUT</code> matches components by ID, then by name and author.</dd>
+<dt>See which files a download page offers</dt>
+<dd><code>modsync download-plan</code> shows which filenames a component would use from a host's list, without downloading.</dd>
+<dt>Share an exact archive by BitTorrent</dt>
+<dd><code>modsync torrent-seed</code> prints a magnet link, SHA-256 and torrent info for the guide to record. Players fetch it with <code>modsync torrent-download</code>. See <a href="cli.html#torrent">Command line</a>.</dd>
+<dt>Edit in the desktop</dt>
+<dd>The desktop includes a guide editor for component details, dependencies and restrictions, and for adding, removing and reordering components and instructions. It does not edit options yet. A separate Qt-based authoring app is in development in <code>desktop/qt</code>.</dd>
+</dl>
+</section>
+<nav class="pager" aria-label="Previous and next page"><a class="prev" href="faq.html"><small>Previous</small>FAQ</a><a class="next" href="walkthrough-authoring.html"><small>Next</small>Walkthrough: writing a guide</a></nav>
+</main>
+<nav class="docs-outline" aria-label="On this page"><h2>On this page</h2><a href="#what">What an instruction file is</a><a href="#formats">Formats</a><a href="#example">A small example</a><a href="#paths">Folders in instructions</a><a href="#actions">Instruction actions</a><a href="#order">Order, dependencies and options</a><a href="#drafting">Drafting from a Markdown guide</a><a href="#tools">Other tools for guide authors</a></nav>
+<footer class="docs-foot"><span>ModSync. Made for the KOTOR modding community.</span><span><a data-repo="/issues" href="https://github.com/kolto-labs/ModSync.rs/issues">Report a problem</a></span></footer>
+</div>
+</div>
+</body>
+</html>

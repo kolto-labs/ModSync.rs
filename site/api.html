@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Library API - ModSync</title>
+<meta name="description" content="Guide to the modsync Rust library: load and validate guides, choose components, install with progress and cancellation, restore, convert, download and manage profiles." />
+<meta name="theme-color" content="#14110d" />
+<link rel="icon" href="assets/modsync.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<script src="assets/theme-init.js"></script>
+<link rel="stylesheet" href="assets/site.css" />
+<script src="assets/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<div class="docs">
+<aside class="docs-side">
+  <div class="docs-side-top">
+    <a class="docs-brand" href="./" aria-label="ModSync home"><img class="logo" src="assets/modsync.svg" alt="" width="22" height="22" />ModSync <span>docs</span></a>
+    <button class="icon-btn" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch appearance">
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg>
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+    <button id="docs-menu" class="icon-btn docs-menu" type="button" aria-label="Show the list of pages" aria-expanded="false" aria-controls="docs-nav">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+  <nav id="docs-nav" class="docs-nav" aria-label="Documentation">
+    <div class="docs-quick">
+      <a href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg>Home</a>
+      <a data-repo="/releases" href="https://github.com/kolto-labs/ModSync.rs/releases"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 11l6 6 6-6M4 20h16"/></svg>Download</a>
+      <a data-repo="" href="https://github.com/kolto-labs/ModSync.rs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>Source on GitHub</a>
+      <a data-repo="/issues" href="https://github.com/kolto-labs/ModSync.rs/issues"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>Report a problem</a>
+    </div>
+    <h2>For players</h2><a href="getting-started.html">Getting started</a><a href="desktop.html">Desktop app</a><a href="walkthrough-install.html">Walkthrough: your first build</a><a href="safety.html">Safety and recovery</a><a href="troubleshooting.html">Troubleshooting</a><a href="faq.html">FAQ</a><h2>For guide authors</h2><a href="instruction-files.html">Instruction files</a><a href="walkthrough-authoring.html">Walkthrough: writing a guide</a><a href="format-reference.html">Format reference</a><a href="cli.html">Command line</a><a href="cli-reference.html">CLI reference</a><h2>For developers</h2><a href="api.html" aria-current="page">Library API</a><h2>Project</h2><a href="status.html">Features and roadmap</a>
+  </nav>
+</aside>
+<div class="docs-main">
+<main class="docs-article" id="content">
+<p class="crumb"><a href="./">ModSync</a><span>/</span>For developers<span>/</span><strong>Library API</strong></p>
+<h1>Library <span class="serif">API</span></h1>
+<p class="lead">The <code>modsync</code> crate contains the engine behind the desktop app and the <code>modsync</code> command. Use it to build your own installer, guide checker or guide tool. The examples here call the same public functions the command line calls.</p>
+
+<section id="build">
+<h2>Adding the dependency</h2>
+<p>Add the crate from its Git repository and turn off the default <code>desktop</code> feature. That feature brings in the graphical app and its toolkit, which a library does not need.</p>
+<pre class="code" data-lang="TOML" tabindex="0"><code>[dependencies]
+modsync = { git = "https://github.com/kolto-labs/ModSync.rs", default-features = false }</code></pre>
+<p>The examples assume a function that returns <code>anyhow::Result</code>, so <code>?</code> works throughout. The project builds with and without the <code>desktop</code> feature.</p>
+</section>
+
+<section id="layout">
+<h2>Crate layout</h2>
+<p>The public modules are declared in <code>src/lib.rs</code>. The most useful ones are:</p>
+<div class="table"><table>
+<thead><tr><th>Module</th><th>What it is for</th></tr></thead>
+<tbody>
+<tr><td><code>model</code></td><td><code>Guide</code> and <code>Component</code> types. Loads, parses, renders and saves instruction files, and puts components in install order.</td></tr>
+<tr><td><code>selection</code></td><td>Selection actions (select, deselect, by tier or category, options) and the dependency rules that go with them.</td></tr>
+<tr><td><code>engine</code></td><td><code>Engine</code> for validating and installing, with <code>Settings</code> and <code>Event</code>. These are also re-exported at the crate root.</td></tr>
+<tr><td><code>validation</code></td><td><code>Report</code> and its stage results, returned by validation.</td></tr>
+<tr><td><code>install_progress</code></td><td><code>Phase</code> and <code>Progress</code> values reported while an install runs.</td></tr>
+<tr><td><code>recovery</code></td><td>The recovery snapshot: restoring folders after a stopped install and reading the saved completion summary.</td></tr>
+<tr><td><code>download</code></td><td>Fetches one archive over HTTPS, with an optional SHA-256 check.</td></tr>
+<tr><td><code>archive</code></td><td><code>Options</code> for archive handling (scratch folder, size limit), used by downloads and installs.</td></tr>
+<tr><td><code>profiles</code></td><td>Saved selections and folder settings, in a <code>Store</code>.</td></tr>
+<tr><td><code>draft</code></td><td>Drafts instructions from prose in a Markdown guide.</td></tr>
+<tr><td><code>conflicts</code></td><td>Reports of game files written by more than one component.</td></tr>
+<tr><td><code>paths</code></td><td><code>Roots</code>, the pair of mod folder and game folder.</td></tr>
+<tr><td><code>game</code></td><td>Detects the game in a folder and resolves the install root.</td></tr>
+<tr><td><code>download_plan</code></td><td>Works out which offered filename a component would use from a download page.</td></tr>
+<tr><td><code>phase</code></td><td>Prepares a guide for one install phase, as the <code>--phase</code> option does.</td></tr>
+</tbody></table></div>
+<p>These modules serve players' apps such as the desktop app:</p>
+<div class="table"><table>
+<thead><tr><th>Module</th><th>What it is for</th></tr></thead>
+<tbody>
+<tr><td><code>builds</code></td><td>The mod build <code>Catalog</code>: the KOTOR Community builds (<code>builds::community()</code>) plus links players add, each fetched over HTTPS and kept in a local cache with <code>Catalog::fetch</code>.</td></tr>
+<tr><td><code>import</code></td><td>Turns a loose mod archive into a one-mod guide: <code>import::prepare</code> places it in the mod folder, inspects it read-only, and returns a <code>Prepared</code> guide. <code>archives_in</code> lists the archives in a folder.</td></tr>
+<tr><td><code>pause</code></td><td>Pausing a download, check or install at its next safe point, with a shared <code>Arc&lt;AtomicBool&gt;</code> flag like the cancel flag. <code>follow_file</code> makes a flag that follows whether a file exists.</td></tr>
+<tr><td><code>mod_info</code></td><td>A mod page's title, description, author and screenshots, from DeadlyStream or the Nexus Mods API. <code>image_data_url</code> fetches a screenshot as a <code>data:</code> URL.</td></tr>
+<tr><td><code>app_update</code></td><td>Checks a GitHub repository's releases for a newer version, downloads this platform's build, and reads one version's notes from a changelog.</td></tr>
+<tr><td><code>deadlystream_account</code></td><td>Signs in to DeadlyStream and returns a <code>Session</code> to keep in place of the password; <code>check_session</code> tells whether a kept session still works.</td></tr>
+<tr><td><code>game_locator</code></td><td><code>find_installs</code> lists KOTOR installs in Steam, GOG and Origin/EA folders. Read-only.</td></tr>
+<tr><td><code>deployment</code></td><td>Besides deploying, <code>Service::duplicates</code> lists deployed mods that share a name, and <code>Service::remove_from_library</code> deletes a staged mod that is not deployed.</td></tr>
+<tr><td><code>download_orchestrator</code></td><td>Downloads a whole guide. <code>RunSettings::paused</code> holds downloads between reads, <code>RunSettings::deadlystream_session</code> reads DeadlyStream pages signed in, and <code>nxm_target</code> turns a Nexus <code>nxm://</code> link into a download for the matching mod.</td></tr>
+</tbody></table></div>
+<p>Checkpoints, managed deployment, peer sharing and torrents also live in the crate (<code>checkpoint</code>, <code>deployment</code>, <code>p2p</code>, <code>peer_sharing</code>). They are advanced features and are not covered on this page.</p>
+</section>
+
+<section id="load">
+<h2>Loading a guide</h2>
+<p><code>Guide::load_for_install_preserving_selection</code> reads a TOML, JSON, YAML, XML or Markdown guide and keeps the selection the file records. Markdown guides are drafted when they are read. The command line then puts the components in install order with <code>sort_for_install</code>, except for Markdown guides, which do not carry the install-before and install-after data that ordering uses.</p>
+<pre class="code" data-lang="Rust" tabindex="0"><code>use std::path::Path;
+use modsync::Guide;
+
+fn load(path: &amp;Path) -&gt; anyhow::Result&lt;Guide&gt; {
+    let mut guide = Guide::load_for_install_preserving_selection(path)?;
+    if !guide.ordering.markdown {
+        guide.sort_for_install()?;
+    }
+    Ok(guide)
+}</code></pre>
+<p><code>Guide::load</code> is similar, but selects every component when the file selects none. <code>Guide::parse(text, "auto")</code> reads guide text that is already in memory. Use <code>Guide::ordered()</code> to get the components in install order without changing the guide.</p>
+</section>
+
+<section id="choose">
+<h2>Choosing components and options</h2>
+<p>Use <code>Engine::select_available</code> to change the selection, as the command line and desktop app do. It applies one <code>selection::Action</code> and checks archive availability first. It returns an <code>Outcome</code> that lists what was selected or deselected, and any warnings.</p>
+<pre class="code" data-lang="Rust" tabindex="0"><code>use modsync::{Engine, Settings, game};
+use modsync::selection::{Action, Filter};
+use std::path::Path;
+
+fn choose_defaults(guide: &amp;mut modsync::Guide, mods: &amp;Path, game_dir: &amp;Path) -&gt; anyhow::Result&lt;()&gt; {
+    let engine = Engine::new(Settings::new(mods, game_dir)?)?;
+    let detected = game::detect(&amp;game::resolve_install_root(game_dir));
+    let (outcome, _availability) = engine.select_available(
+        &amp;mut guide.components,
+        Some(detected),
+        Action::SelectVisible(Filter::default()),
+    )?;
+    for warning in &amp;outcome.warnings {
+        eprintln!("Selection warning: {warning}");
+    }
+    Ok(())
+}</code></pre>
+<p>The main actions are:</p>
+<ul>
+<li><code>Action::SetComponent { guid, selected }</code> and <code>Action::SetOption { guid, selected }</code>, for one component or option. The cascade rules apply.</li>
+<li><code>Action::SelectVisible(Filter)</code>, which selects the base components that match the filter, with their dependencies. This is the command line's default when you pass no selection flags.</li>
+<li><code>Action::ResetFromSelectors(Vec&lt;String&gt;)</code>, the reset behavior of <code>--select</code>.</li>
+<li><code>Action::SelectThroughTier(String)</code>, <code>Action::SelectCategories(Vec&lt;String&gt;)</code> and <code>Action::DeselectBase</code>.</li>
+<li><code>Action::SetWidescreen { guid, selected }</code> and <code>Action::EnforceGame</code>, which handle widescreen-only components and game-specific exclusions.</li>
+</ul>
+<p>If you have only a guide and no folders yet, <code>selection::apply(components, game, action)</code> applies the same actions without the archive checks. For selectors written the way <code>--select</code> takes them, <code>selection::apply_cli_selection(&amp;mut guide.components, &amp;selectors)</code> returns warnings as a <code>Vec&lt;String&gt;</code>.</p>
+
+<h3>Saved profiles</h3>
+<p>A <code>profiles::Store</code> keeps named profiles, each with the selections and folders. Use <code>Store::new</code> with a folder you choose, or <code>Store::from_settings_directory(None)</code> for the default location.</p>
+<pre class="code" data-lang="Rust" tabindex="0"><code>use std::path::Path;
+use modsync::profiles::Store;
+
+let store = Store::new(Path::new("/path/to/settings"))?;
+store.capture("Full Build", &amp;guide, Some(input), Some(game_dir), Some(mods))?;
+store.apply("Full Build", &amp;mut guide)?;
+store.activate("Full Build")?;</code></pre>
+</section>
+
+<section id="validate">
+<h2>Validating without touching files</h2>
+<p><code>Engine::validate_report</code> runs the same checks as the command line's <code>validate</code> command. It returns a <code>validation::Report</code> instead of failing on the first problem. Validation never writes to the mod or game folder and never runs external programs.</p>
+<pre class="code" data-lang="Rust" tabindex="0"><code>let engine = Engine::new(Settings::new(mods, game_dir)?)?;
+let report = engine.validate_report(&amp;guide, |event| {
+    println!("{}: {}", event.component, event.message);
+});
+if !report.success {
+    eprintln!("{} error(s), {} warning(s)", report.error_count, report.warning_count);
+}</code></pre>
+<p>The report also has <code>stages</code>, one <code>StageResult</code> per check, with <code>passed</code>, <code>summary</code> and <code>messages</code>. <code>Engine::validate</code> takes the same guide and returns a <code>Result</code> instead, for callers who want an error rather than a report. To see which game files each component would write, call <code>engine.analyze_conflicts(&amp;guide)</code>, which returns a <code>conflicts::Report</code> and also changes neither folder.</p>
+</section>
+
+<section id="install">
+<h2>Installing with progress and cancellation</h2>
+<p><code>Engine::install_observed_report</code> installs the guide and returns an <code>InstallReport</code>. It takes two callbacks. The first receives an <code>Event</code> for each step, with the same text the command line prints. The second receives an <code>install_progress::Progress</code> at each real stage of the install, with the <code>Phase</code>, the active component and its index, and whether a recovery snapshot is pending. Progress reports real boundaries, not byte counts.</p>
+<pre class="code" data-lang="Rust" tabindex="0"><code>use modsync::{Engine, Settings};
+use modsync::install_progress::Phase;
+
+let settings = Settings::new(mods, game_dir)?;
+let cancel = settings.cancelled.clone();
+// From another thread, set it to stop: cancel.store(true, std::sync::atomic::Ordering::Relaxed);
+let engine = Engine::new(settings)?;
+
+let report = engine.install_observed_report(
+    &amp;guide,
+    |event| println!("{}: {}", event.component, event.message),
+    |progress| {
+        if progress.phase == Phase::InstallingComponent {
+            println!(
+                "Installing {} of {}: {}",
+                progress.component_index, progress.component_total, progress.message
+            );
+        }
+    },
+)?;</code></pre>
+<p>The engine checks the cancel flag between steps. A cancelled or failed install returns an error. Once it has started changing files, it leaves the recovery snapshot in place, so restore before you try again (see the next section). If you do not need progress, <code>engine.install(&amp;guide, |event| ...)</code> does the same work and returns <code>Result&lt;()&gt;</code>.</p>
+<p>Steps that run a patcher or another program need <code>settings.allow_processes = true</code>. Set <code>settings.patcher</code> to the program's path and <code>settings.patcher_engine</code> to a <code>PatcherEngine</code> value if you do not want the built-in OdyPatcher library.</p>
+</section>
+
+<section id="restore">
+<h2>Restoring after a failure</h2>
+<p>A stopped install leaves the game and mod folders partly changed. Restore them before doing anything else. <code>recovery::restore</code> checks the saved snapshot, puts both folders back as they were before the install, and clears the unfinished-install marker. It refuses to run if the snapshot no longer matches what was recorded.</p>
+<pre class="code" data-lang="Rust" tabindex="0"><code>use modsync::{Settings, recovery};
+
+let settings = Settings::new(mods, game_dir)?;
+recovery::restore(&amp;settings.roots)?;
+// The folders match the snapshot again. Start the install from the beginning to retry.</code></pre>
+<p><code>recovery::completion_summary</code> reads the saved result of the last completed install without checking the game files. It returns <code>Ok(None)</code> when there is no saved result.</p>
+<pre class="code" data-lang="Rust" tabindex="0"><code>if let Some(summary) = recovery::completion_summary(&amp;settings.roots)? {
+    println!("{} components recorded", summary.components.len());
+}</code></pre>
+</section>
+
+<section id="pause">
+<h2>Pausing and resuming</h2>
+<p><code>Settings::paused</code> is a shared flag, like <code>Settings::cancelled</code>. While it is set, checks and installs hold at the next boundary between components, never inside one. Clearing it carries on from there in the same process. Cancelling still stops a held run, and then recovery works as usual.</p>
+<pre class="code" data-lang="Rust" tabindex="0"><code>use std::sync::atomic::Ordering;
+use modsync::{Engine, Settings};
+
+let settings = Settings::new(mods, game_dir)?;
+let paused = settings.paused.clone();
+let engine = Engine::new(settings)?;
+// From another thread:
+//   paused.store(true, Ordering::Release);   // hold at the next component boundary
+//   paused.store(false, Ordering::Release);  // carry on
+engine.install(&amp;guide, |event| println!("{}: {}", event.component, event.message))?;</code></pre>
+<p>For a command-line tool, <code>modsync::pause::follow_file(path)</code> returns a flag that is set while the file exists, which is how <code>install --pause-file</code> works. Downloads take the same kind of flag in <code>download_orchestrator::RunSettings::paused</code>. Your own long-running work can wait on a flag with <code>pause::hold(&amp;paused, &amp;cancelled)</code>.</p>
+</section>
+
+<section id="import">
+<h2>Importing a loose archive</h2>
+<p><code>import::prepare</code> copies an archive into the mod folder (never replacing a different file with the same name), inspects it without changing anything, and returns a one-mod guide that installs it. It returns <code>Ok(None)</code> for an archive with no game files or TSLPatcher data. Validate and install the guide like any other.</p>
+<pre class="code" data-lang="Rust" tabindex="0"><code>use std::path::Path;
+use std::sync::atomic::AtomicBool;
+use modsync::{archive, import, Engine, Settings};
+
+let cancelled = AtomicBool::new(false);
+let Some(prepared) = import::prepare(
+    Path::new("/downloads/SomeMod.7z"),
+    mods,
+    Some("Some Mod"),
+    &amp;archive::Options::default(),
+    &amp;cancelled,
+)? else {
+    anyhow::bail!("Install this archive by hand");
+};
+println!("{} ({:?})", prepared.archive.display(), prepared.method);
+
+// validate and install each take the engine by value, so make one per call.
+Engine::new(Settings::new(mods, game_dir)?)?.validate(&amp;prepared.guide, |_| {})?;
+Engine::new(Settings::new(mods, game_dir)?)?
+    .install(&amp;prepared.guide, |event| println!("{}", event.message))?;</code></pre>
+<p>To import a folder, call <code>import::archives_in(folder, &amp;cancelled)</code> and prepare each archive on its own.</p>
+</section>
+
+<section id="convert">
+<h2>Converting between formats</h2>
+<p>Load a guide in one format and <code>render</code> it as another. The format names are <code>toml</code>, <code>json</code>, <code>yaml</code>, <code>xml</code> and <code>md</code>, plus common aliases such as <code>yml</code>. <code>save</code> writes the file atomically and picks the format from the file extension, using TOML when there is none. The command line's <code>convert</code> command also orders components by their dependencies first, and can draft instructions from prose with <code>draft::generate</code>.</p>
+<pre class="code" data-lang="Rust" tabindex="0"><code>use modsync::Guide;
+use std::path::Path;
+
+let mut guide = Guide::load(Path::new("guide.toml"))?;
+for warning in guide.sort_like_dependency_resolver(false)? {
+    eprintln!("{warning}");
+}
+let json = guide.render("json")?;
+guide.save(Path::new("guide.yaml"))?;</code></pre>
+<div class="note"><p><strong>Tip.</strong> <code>save</code> replaces the file at the path you give it. Write converted output to a new file name so the original guide is kept.</p></div>
+</section>
+
+<section id="download">
+<h2>Downloading archives</h2>
+<p><code>download::fetch_with_options</code> downloads one direct archive URL over HTTPS. It checks the archive (ZIP, 7z, RAR, TAR and GZip are supported) and the SHA-256 when you give one, then saves it. It never overwrites an existing file. Host landing pages, such as Nexus Mods pages and MEGA links, are not fetched. They remain browser downloads.</p>
+<pre class="code" data-lang="Rust" tabindex="0"><code>use modsync::{archive, download};
+use std::path::Path;
+use std::sync::atomic::AtomicBool;
+
+let cancelled = AtomicBool::new(false);
+download::fetch_with_options(
+    "https://example.org/mod.zip",
+    Path::new("/path/to/mods/mod.zip"),
+    Some("EXPECTED_SHA256_HEX"),
+    &amp;cancelled,
+    &amp;archive::Options::default(),
+)?;</code></pre>
+<p>To download into a folder and let the server name the file, use <code>download::fetch_to</code> with <code>download::Destination::Directory</code>. It returns a <code>Fetched</code> value with the saved path and its SHA-256. To find which selected components have downloads, call <code>selection::download_candidates(&amp;guide.components, selection::Scope::Base)</code>.</p>
+</section>
+
+<section id="errors">
+<h2>Errors</h2>
+<p>Most functions in the crate return <code>anyhow::Result</code>, so you can propagate errors with <code>?</code> and add context with <code>anyhow::Context</code>. Download failures also carry a class. <code>download::classify</code> returns it, so your tool can retry a temporary failure, send a web page to the browser, or stop.</p>
+<pre class="code" data-lang="Rust" tabindex="0"><code>use modsync::download::{self, FailureClass};
+
+match download::fetch_with_options(url, dest, Some(sha), &amp;cancelled, &amp;options) {
+    Ok(()) =&gt; {}
+    Err(error) =&gt; {
+        let class = download::classify(&amp;error).cloned();
+        match class {
+            Some(FailureClass::Transient { retry_after_secs }) =&gt; {
+                println!("Try again later (retry after {retry_after_secs:?} seconds)");
+            }
+            Some(FailureClass::ManualRequired { url, .. }) =&gt; {
+                println!("Download this one in a browser: {url}");
+            }
+            _ =&gt; return Err(error),
+        }
+    }
+}</code></pre>
+</section>
+
+<section id="safety">
+<h2>Safety rules every caller must keep</h2>
+<p>These rules come from the engine's design. A tool that follows them is as safe as the command line. Breaking them can damage a player's game.</p>
+<ol>
+<li>
+<p><strong>Validation never changes files.</strong> When you only want to check a guide, call <code>validate_report</code> or <code>validate</code>, never <code>install</code>.</p>
+<pre class="code" data-lang="Rust" tabindex="0"><code>let report = Engine::new(Settings::new(mods, game_dir)?)?
+    .validate_report(&amp;guide, |_| {});</code></pre>
+</li>
+<li>
+<p><strong>Keep guide order.</strong> Show and run components in the order <code>Guide::ordered</code> returns. Do not sort them yourself.</p>
+<pre class="code" data-lang="Rust" tabindex="0"><code>for component in guide.ordered()? {
+    println!("{}", component.name);
+}</code></pre>
+</li>
+<li>
+<p><strong>Stop on failure.</strong> When an install returns an error, stop. Do not skip the failed component, move on to the next one, or retry it in place. Propagating the error with <code>?</code> does this.</p>
+<pre class="code" data-lang="Rust" tabindex="0"><code>engine.install(&amp;guide, |_| {})?; // an error ends the run here</code></pre>
+</li>
+<li>
+<p><strong>Restore before retrying.</strong> Restore the verified snapshot first, then install from the beginning. Never add a skipped mod to the end of an install.</p>
+<pre class="code" data-lang="Rust" tabindex="0"><code>recovery::restore(&amp;settings.roots)?;
+Engine::new(settings)?.install(&amp;guide, |_| {})?;</code></pre>
+</li>
+<li>
+<p><strong>Test in isolated folders.</strong> Install tests should use temporary folders, never a real game or mod folder. The example uses the <code>tempfile</code> crate, which you add as a dev-dependency.</p>
+<pre class="code" data-lang="Rust" tabindex="0"><code>let scratch = tempfile::tempdir()?;
+let mods = scratch.path().join("mods");
+let game = scratch.path().join("game");
+std::fs::create_dir_all(&amp;mods)?;
+std::fs::create_dir_all(&amp;game)?;
+let settings = Settings::new(&amp;mods, &amp;game)?;</code></pre>
+</li>
+</ol>
+</section>
+<nav class="pager" aria-label="Previous and next page"><a class="prev" href="cli-reference.html"><small>Previous</small>CLI reference</a><a class="next" href="status.html"><small>Next</small>Features and roadmap</a></nav>
+</main>
+<nav class="docs-outline" aria-label="On this page"><h2>On this page</h2><a href="#build">Adding the dependency</a><a href="#layout">Crate layout</a><a href="#load">Loading a guide</a><a href="#choose">Choosing components and options</a><a href="#validate">Validating without touching files</a><a href="#install">Installing with progress and cancellation</a><a href="#restore">Restoring after a failure</a><a href="#pause">Pausing and resuming</a><a href="#import">Importing a loose archive</a><a href="#convert">Converting between formats</a><a href="#download">Downloading archives</a><a href="#errors">Errors</a><a href="#safety">Safety rules every caller must keep</a></nav>
+<footer class="docs-foot"><span>ModSync. Made for the KOTOR modding community.</span><span><a data-repo="/issues" href="https://github.com/kolto-labs/ModSync.rs/issues">Report a problem</a></span></footer>
+</div>
+</div>
+</body>
+</html>
