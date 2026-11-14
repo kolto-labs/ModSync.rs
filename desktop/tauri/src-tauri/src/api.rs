@@ -48,11 +48,38 @@ pub async fn api_request(
         body: body.unwrap_or(Value::Null),
     };
     tauri::async_runtime::spawn_blocking(move || {
-        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| route(&app, &request)))
-            .unwrap_or_else(|_| Err(fail(500, "The request stopped unexpectedly.")))
+        let run = || {
+            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| route(&app, &request)))
+                .unwrap_or_else(|_| Err(fail(500, "The request stopped unexpectedly.")))
+        };
+        // Reading the game install takes the engine's exclusive game-folder lock, so
+        // two reads at once (say the library and conflicts refresh after an install)
+        // collide. A read waits briefly for the other to finish instead of failing.
+        let mut reply = run();
+        if request.method == "GET" {
+            for _ in 0..GAME_BUSY_RETRIES {
+                if !reply.as_ref().err().is_some_and(game_folder_busy) {
+                    break;
+                }
+                std::thread::sleep(std::time::Duration::from_millis(250));
+                reply = run();
+            }
+        }
+        reply
     })
     .await
     .map_err(|error| fail(500, error.to_string()))?
+}
+
+/// How many times a read retries, 250 ms apart, while the game folder is in use.
+const GAME_BUSY_RETRIES: usize = 20;
+
+/// Whether an error is the engine's game-folder lock being held by other work.
+fn game_folder_busy(error: &Value) -> bool {
+    error
+        .get("error")
+        .and_then(Value::as_str)
+        .is_some_and(|message| message.contains("is using the game directory"))
 }
 
 fn route(app: &AppHandle, r: &Request) -> Reply {
