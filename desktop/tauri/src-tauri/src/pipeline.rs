@@ -440,6 +440,12 @@ fn run(app: &AppHandle, job: Job, tally: &mut Tally) -> Result<()> {
     if !guide.components.iter().any(|c| c.is_selected) {
         return Ok(());
     }
+    // 3. Steps for mods the build only describes, from their downloads.
+    crate::drafts::complete(app, &mut guide, &mods, &cancelled);
+    if cancelled.load(Ordering::Acquire) {
+        log(app, "Install stopped.", "warning");
+        return Ok(());
+    }
     let target = Target {
         mods,
         game,
@@ -477,7 +483,7 @@ pub(crate) fn check_and_install(
         paused,
     } = target;
     let case_insensitive = *case_insensitive;
-    // 3. Check, changing nothing on disk.
+    // 4. Check, changing nothing on disk.
     let settings = rebuild_settings(app, mods, game, cancelled, paused)?;
     let roots = settings.roots.clone();
     let prepared = modsync::phase::prepare_with_roots(
@@ -514,8 +520,23 @@ pub(crate) fn check_and_install(
                     .or_insert_with(|| issue.message.clone());
             }
         }
+        let mut unknown = 0;
         for (id, message) in &failed {
-            status(app, id, "ERROR", "Error", message);
+            if needs_steps(message) {
+                unknown += 1;
+                status(app, id, "ERROR", "Error", NEEDS_STEPS);
+            } else {
+                status(app, id, "ERROR", "Error", message);
+            }
+        }
+        if unknown > 0 {
+            log(
+                app,
+                format!(
+                    "{unknown} mod(s) have no install steps the app can confirm yet. Install them by hand, or leave them out and check again."
+                ),
+                "warning",
+            );
         }
         tally.errors += failed.len().max(1);
         anyhow::bail!("The check found problems, so nothing was installed.");
@@ -524,7 +545,7 @@ pub(crate) fn check_and_install(
         log(app, "The check passed. You can install now.", "success");
         return Ok(());
     }
-    // 4. Install, into the active game install's library when possible.
+    // 5. Install, into the active game install's library when possible.
     let mut engine = Engine::new_with_case_insensitive_pathing(settings, case_insensitive)?;
     match crate::library::service_for(app, &roots.game.to_string_lossy()) {
         Ok(service) => match engine
@@ -595,6 +616,15 @@ pub(crate) fn check_and_install(
     }
     log(app, "Install finished.", "success");
     Ok(())
+}
+
+/// Shown on a mod the engine will not install because its steps are missing
+/// or still an unconfirmed draft.
+const NEEDS_STEPS: &str = "Needs install steps: the app could not confirm how to install this mod from its download. Install it by hand, or leave it out and check again.";
+
+fn needs_steps(message: &str) -> bool {
+    message.ends_with("has no executable instructions; review the guide")
+        || message.ends_with("has unreviewed draft instructions; review them before installation")
 }
 
 fn rebuild_settings(

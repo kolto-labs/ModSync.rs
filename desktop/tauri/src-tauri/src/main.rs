@@ -3,6 +3,7 @@
 
 mod api;
 mod builds;
+mod drafts;
 mod extras;
 mod importing;
 mod library;

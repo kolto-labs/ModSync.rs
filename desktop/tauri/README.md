@@ -19,7 +19,10 @@ ModSync engine. It is a separate crate with its own `Cargo.toml` and
 - Builds: `builds::Catalog` for the build list (plus instruction files opened
   from the computer), `Guide::load_for_install_preserving_selection` to read a
   build, `selection` for the chosen mods and their options. Check runs the
-  download (`download_orchestrator`) and
+  download (`download_orchestrator`), then works out steps for mods that have
+  none from their downloads (`drafts.rs`: `archive_generation::resolved::generate`,
+  `draft::review::review_verified_drafts`, which clears a draft only when a
+  replay of its archive reproduces it, and `generate_local_with_cancel`), then
   `Engine::validate_report_with_options_observed`; Install runs them again and
   then `Engine::install_observed_report` into the game install's library
   (`with_component_checkpoints`, `with_managed_deployment`). Pause and Resume
