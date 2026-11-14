@@ -277,6 +277,24 @@ placeholders survive conversion but still fail Rust execution. This does not clo
 F01/F05, full validation or complete format/action parity. Five production gates
 pass and53 frozen entries remain unchanged; no Rust tests were run.
 
+## DeadlyStream pages with loose files or non-ASCII file names, 2026-11-14 UTC
+
+A DeadlyStream page that offers an archive beside a loose file now plans only its
+archives. Rust verifies every download as an archive before publishing it, so the extra
+file (HD Darth Malak's `N_DarthMalak01.tga`, Rebalanced Grenades' `Readme.rtf`) always
+failed with `Unsupported archive signature` after downloading and marked the mod failed
+although its archives arrived. Such a file is now skipped with a plan warning naming it.
+Guides that name the file under `Files` or a filename are planned as before. A page
+whose only files are loose (CineMalak's single `N_DarthMalak01.tga`) is unchanged: it
+still fails archive verification, because a non-archive download is not supported.
+
+A file name sent as raw UTF-8 in a plain `filename="..."` header is now read. Header
+values were taken only when they were visible ASCII, so Jolee Bindo HD's
+`Jolee Bindo HD <U+2014> clothes.rar` looked unnamed and failed with `DeadlyStream did
+not name a download`. DeadlyStream pages, direct downloads and direct-link metadata now
+decode Content-Disposition as UTF-8; a value that is not valid UTF-8 is still ignored.
+Verified live against the four pages.
+
 ## Typed install progress and Installing page — 2026-09-27
 
 Commits `065ffee` (shared contract), `57f198f`, `cd8f0b0` and `33de7f6` (CLI adapter and help text), `dcd1373`..`ac9cf3a`, `a24e96b` and `9df6c3b` (desktop page). Rulings, commit map and review findings are in [install-progress-integration.md](docs/parity/install-progress-integration.md). Evidence is in [install-progress-native/](docs/parity/install-progress-native/README.md).

@@ -270,11 +270,13 @@ impl Reply {
     }
 }
 
+/// A header as UTF-8 text (`download::header_utf8`), so a Content-Disposition file name
+/// holding non-ASCII characters is read rather than dropped.
 fn header_text(response: &Response, name: &str) -> Option<String> {
     response
         .headers()
         .get(name)
-        .and_then(|value| value.to_str().ok())
+        .and_then(download::header_utf8)
         .map(str::to_owned)
 }
 

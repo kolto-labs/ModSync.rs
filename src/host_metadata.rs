@@ -376,7 +376,7 @@ fn direct_metadata(url: &str, ca: Option<&LoopbackCa>, cancelled: &AtomicBool) -
     );
     let name = headers
         .get(header::CONTENT_DISPOSITION)
-        .and_then(|v| v.to_str().ok())
+        .and_then(download::header_utf8)
         .and_then(download::disposition_filename)
         .or_else(|| {
             response
