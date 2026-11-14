@@ -69,6 +69,19 @@ export function GeneralSection({ addLog, onRunSetup }: GeneralSectionProps) {
     }
   };
 
+  // Spoiler-free mod names and descriptions.
+  const [spoilerFree, setSpoilerFree] = useState(false);
+  useEffect(() => { api.spoilers().then((s) => setSpoilerFree(s.spoiler_free)).catch(() => {}); }, []);
+  const toggleSpoilers = async (on: boolean) => {
+    setSpoilerFree(on);
+    try {
+      await api.setSpoilers(on);
+      window.dispatchEvent(new Event("kmm:spoilers"));
+    } catch (e: any) {
+      addLog(`Failed to save settings: ${e?.message}`, "error");
+    }
+  };
+
   const toggleSound = (on: boolean) => {
     setSoundOn(on);
     setUiSoundEnabled(on);
@@ -149,6 +162,19 @@ export function GeneralSection({ addLog, onRunSetup }: GeneralSectionProps) {
             <Button variant="outline" size="sm" onClick={onRunSetup}>
               <Wand2 /> {t("settings.general.runSetup")}
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>{t("settings.general.spoilers")}</CardTitle></CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between gap-4">
+            <div className="space-y-0.5">
+              <Label htmlFor="spoilerfree">{t("settings.general.spoilerFree")}</Label>
+              <p className="text-xs text-muted-foreground">{t("settings.general.spoilerFreeHint")}</p>
+            </div>
+            <Switch id="spoilerfree" checked={spoilerFree} onCheckedChange={toggleSpoilers} />
           </div>
         </CardContent>
       </Card>

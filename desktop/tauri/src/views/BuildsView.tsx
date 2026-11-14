@@ -167,6 +167,17 @@ export function BuildsView(props: BuildsViewProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [buildGame, activeProfile, props.active]);
 
+  // Show the list again with spoiler-free names when that setting changes.
+  useEffect(() => {
+    const reload = () => {
+      if (!selectedBuild) return;
+      api.loadBuild(selectedBuild, activeProfile || undefined, false).then(r => setMods(r.mods)).catch(() => {});
+    };
+    window.addEventListener("kmm:spoilers", reload);
+    return () => window.removeEventListener("kmm:spoilers", reload);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedBuild, activeProfile]);
+
   // Show the saved copy of a build the moment it is selected, so switching
   // builds is instant. The Load button re-fetches the guide for the latest.
   useEffect(() => {

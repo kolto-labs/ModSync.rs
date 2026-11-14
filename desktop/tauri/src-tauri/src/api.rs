@@ -113,6 +113,27 @@ fn route(app: &AppHandle, r: &Request) -> Reply {
                 .map(|_| json!({"ok": true, "path": mods, "fallback": true}))
         }
         (["api", "patcher", "status"], _) => patcher_status(app),
+        (["api", "spoilers"], "GET") => {
+            let on = state(app)
+                .prefs
+                .store()
+                .and_then(|store| store.spoiler_free_preference())
+                .unwrap_or(false);
+            Ok(json!({"spoiler_free": on}))
+        }
+        (["api", "spoilers"], "POST") => {
+            let on = r
+                .body
+                .get("spoiler_free")
+                .and_then(Value::as_bool)
+                .unwrap_or(false);
+            state(app)
+                .prefs
+                .store()
+                .and_then(|store| store.save_spoiler_free_preference(on))
+                .map_err(fail_any)?;
+            Ok(json!({"ok": true}))
+        }
         (["api", "patcher", "options"], "GET") => patcher_options(app),
         (["api", "patcher", "options"], "POST") => save_patcher_options(app, r),
         (["api", "extractor", "status"], _) => {

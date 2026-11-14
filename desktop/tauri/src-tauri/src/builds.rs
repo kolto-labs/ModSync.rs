@@ -110,6 +110,7 @@ fn text(c: &Component, key: &str) -> String {
 
 /// A component in the shape the interface's mod list expects.
 pub fn mod_json(
+    spoiler_free: bool,
     c: &Component,
     order: usize,
     game: &str,
@@ -142,7 +143,7 @@ pub fn mod_json(
         "install_order": order,
         "file_id": c.guid,
         "slug": "",
-        "name": c.name,
+        "name": if spoiler_free { modsync::selection::display_name(c, true) } else { c.name.clone() },
         "url": url,
         "game": game,
         "section": c.tier,
@@ -151,10 +152,10 @@ pub fn mod_json(
         "option_hint": "",
         "install_method_hint": text(c, "InstallationMethod"),
         "build_key": key,
-        "instructions": c.directions,
+        "instructions": if spoiler_free { String::new() } else { c.directions.clone() },
         "warnings": warnings,
         "install_method": text(c, "InstallationMethod"),
-        "description": c.description,
+        "description": modsync::selection::tooltip_description(c, spoiler_free),
         "author": c.author,
         "directive_summary": "",
         "source_host": host_key,
@@ -188,12 +189,18 @@ pub fn load(app: &AppHandle, key: &str, r: &Request) -> Reply {
         .map(|game| crate::library::installed_ids(&st, &game))
         .unwrap_or_default();
     let nexus = st.nexus_key().is_some();
+    let spoiler_free = st
+        .prefs
+        .store()
+        .and_then(|store| store.spoiler_free_preference())
+        .unwrap_or(false);
     let mods: Vec<Value> = guide
         .components
         .iter()
         .enumerate()
         .map(|(i, c)| {
             mod_json(
+                spoiler_free,
                 c,
                 i + 1,
                 &build.game,
