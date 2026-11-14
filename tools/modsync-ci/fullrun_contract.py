@@ -11,6 +11,8 @@ from pathlib import Path
 import re
 import sys
 
+from seal import MIN_KEY_BYTES
+
 OPERATIONS = ("check", "full", "games", "archives", "install", "seed", "p2p")
 SHA = re.compile(r"[0-9a-f]{40}")
 REPO = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+")
@@ -123,8 +125,17 @@ def require_stage_credentials(stage):
     if stage not in required:
         raise ValueError("unknown credential-bearing stage")
     missing = [key for key in required[stage] if not os.environ.get(key)]
-    if missing:
-        raise ValueError(stage + " requires repository secrets: " + ", ".join(missing))
+    short = [key for key in required[stage]
+             if key not in missing and len(os.environ[key].encode()) < MIN_KEY_BYTES]
+    if missing or short:
+        problems = []
+        if missing:
+            problems.append("missing: " + ", ".join(missing))
+        if short:
+            problems.append(f"shorter than {MIN_KEY_BYTES} bytes: " + ", ".join(short))
+        raise ValueError(f"{stage} credential setup is incomplete ({'; '.join(problems)}). "
+                         "Set or expose the named Actions secrets in the owning repository; "
+                         "see docs/ci-fullruns.md#minimum-setup.")
     return {"stage": stage, "status": "credentials-present"}
 
 

@@ -102,6 +102,32 @@ class WorkflowGraph(unittest.TestCase):
     def test_synthetic_cli_and_gui_workflows_are_removed(self):
         for path in (ROOT / ".github/workflows").glob("synthetic-*.yml"):
             self.assertFalse(path.name.startswith(("synthetic-full-cli-", "synthetic-gui-")), path.name)
+    def test_seed_digest_can_be_a_variable_but_urls_and_keys_stay_private(self):
+        doc = yaml.load((ROOT / ".github/workflows/cache-game.yml").read_text(), Loader=yaml.BaseLoader)
+        seed = next(step for step in doc["jobs"]["game"]["steps"] if step.get("id") == "seed")
+        for game in ("k1", "k2"):
+            for item in ("URL", "KEY", "SHA256"):
+                variable = f"GAME_SEED_{item}_{game.upper()}"
+                expression = seed["env"][variable]
+                self.assertIn(f"matrix.game == '{game}'", expression)
+                self.assertIn(f"secrets.{variable}", expression)
+                self.assertEqual(f"vars.{variable}" in expression, item == "SHA256")
+        self.assertIn("A pinned SHA-256 is required", seed["run"])
+    def test_archive_provider_credentials_are_only_scoped_to_refresh(self):
+        doc = yaml.load((ROOT / ".github/workflows/cache-archives.yml").read_text(), Loader=yaml.BaseLoader)
+        archive_job = doc["jobs"]["archives"]
+        self.assertFalse(archive_job.get("env"))
+        for step in archive_job["steps"]:
+            keys = set(step.get("env", {}))
+            self.assertEqual("ARTSTORE_TOKEN" in keys, step.get("id") == "refresh")
+            self.assertEqual("RCLONE_CONFIG_MODCACHE_SECRET_ACCESS_KEY" in keys, step.get("id") == "refresh")
+        for file, job in (("cache-archives.yml", "archives"), ("fullrun-lane.yml", "install"),
+                          ("cache-seed.yml", "seed")):
+            doc = yaml.load((ROOT / ".github/workflows" / file).read_text(), Loader=yaml.BaseLoader)
+            step, = (step for step in doc["jobs"][job]["steps"]
+                     if "RCLONE_CONFIG_MODCACHE_ENDPOINT" in step.get("env", {}))
+            self.assertEqual(step["env"]["RCLONE_CONFIG_MODCACHE_ENDPOINT"],
+                             "${{ secrets.MOD_CACHE_S3_ENDPOINT || vars.MOD_CACHE_S3_ENDPOINT }}")
     def test_evidence_upload_requires_a_successful_new_seal(self):
         action = yaml.load((ROOT / ".github/actions/retain-fullrun-evidence/action.yml").read_text(), Loader=yaml.BaseLoader)
         seal, upload = action["runs"]["steps"]

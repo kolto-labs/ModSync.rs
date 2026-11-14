@@ -16,12 +16,13 @@ import tempfile
 
 MAGIC = b"MODSYNC-SEAL-1\n"
 CHUNK = 1024 * 1024
+MIN_KEY_BYTES = 32
 
 
 def keys(salt):
     secret = os.environ.get("CACHE_ENCRYPTION_KEY", "")
-    if len(secret.encode()) < 32:
-        raise ValueError("CACHE_ENCRYPTION_KEY must contain at least 32 bytes")
+    if len(secret.encode()) < MIN_KEY_BYTES:
+        raise ValueError(f"CACHE_ENCRYPTION_KEY must contain at least {MIN_KEY_BYTES} bytes")
     master = hashlib.pbkdf2_hmac("sha256", secret.encode(), salt, 200000)
     return (hmac.digest(master, b"encryption", "sha256").hex(),
             hmac.digest(master, b"authentication", "sha256"))

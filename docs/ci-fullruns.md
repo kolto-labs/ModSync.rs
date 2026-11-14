@@ -39,6 +39,16 @@ The stage workflows are reusable **inside this repository**. The operator entry 
 
 ## Configuration and credentials
 
+### Minimum setup
+
+1. **Contract checks and P2P loopback:** no custom secrets. A green PR run is contract-only; the install matrix runs on an owned push or eligible dispatch.
+2. **Full runs:** in the owning repository's [Actions secrets](https://github.com/kolto-labs/ModSync.rs/settings/secrets/actions), expose `CACHE_ENCRYPTION_KEY` and a separate `DIAGNOSTICS_ENCRYPTION_KEY`. Each key must be at least 32 bytes. Use the original cache key for pre-existing encrypted games and archive packs; generating a new one does not unlock them. If there is no existing key/material to retain, provision independent cryptographically random keys through your authorized secret manager. Do not reuse one key for both roles or share either key in chat or logs.
+3. **Verified inputs:** use sealed baselines already available to this repository for both games, plus access to every archive in the pinned guide. Same-repository artifact reads use the built-in read-only token. For a cold start, point `FULLRUN_ARTIFACT_REPOSITORY` at an authorized legacy artifact repository and provide an `ARTSTORE_READ_TOKEN` limited to Actions read on that repository. The legacy token is only needed for inputs not available locally; do not remove it until both games and dependent archive inputs are independently available. Other existing options are per-game pinned encrypted seeds or explicitly enabled, licensed Steam acquisition.
+
+For a bootstrap run, use the `games` operation with cache writes enabled to verify and publish both baselines, then `archives` to verify every guide input. Choose `full` to verify the four K1/K2 × CLI/GUI install lanes. Missing required inputs still fail; a key alone will not make unavailable source bytes accessible. If the workflow is not yet on the default branch and dispatch is unavailable, an owned push with matching paths exercises the full graph on that ref.
+
+### Optional setup
+
 | Setting | Purpose |
 | --- | --- |
 | `.github/fullrun.json` | Owned role, repository identities, immutable counterpart pin and inherited-toolkit provenance |
@@ -47,10 +57,10 @@ The stage workflows are reusable **inside this repository**. The operator entry 
 | `MODSYNC_SOURCE_TOKEN` (optional) | Explicit source checkout and locked dependency prefetch where access is needed |
 | `ARTSTORE_READ_TOKEN` (optional) | Read an explicitly configured legacy artifact repository |
 | `FULLRUN_ARTIFACT_REPOSITORY` (optional variable) | Optional legacy artifact read namespace; new publication remains in this repository |
-| `MOD_CACHE_BUCKET`, `MOD_CACHE_S3_ENDPOINT` (optional) | Existing S3-compatible archive store, not a required new service |
+| `MOD_CACHE_BUCKET`, `MOD_CACHE_S3_ENDPOINT` (optional variables) | Existing S3-compatible archive store, not a required new service. Use a variable for a plain, unsigned endpoint only. The existing endpoint secret takes precedence if configured. |
 | `MOD_CACHE_S3_READ_ACCESS_KEY_ID`, `MOD_CACHE_S3_READ_SECRET_ACCESS_KEY` | Read-only archive consumers |
 | `SEED_STAGING_RCLONE_CONF_B64`, write credentials | Existing staged import; `mod-cache-seed` environment; no implicit seed during installs |
-| `GAME_SEED_URL_K1/K2`, `GAME_SEED_KEY_K1/K2`, `GAME_SEED_SHA256_K1/K2` | Reviewed owned game seeds |
+| `GAME_SEED_URL_K1/K2`, `GAME_SEED_KEY_K1/K2`, `GAME_SEED_SHA256_K1/K2` | Reviewed owned game seeds. Keep URLs and decryption keys secret; the mandatory ciphertext SHA-256 pins can be Actions variables. An existing checksum secret takes precedence. |
 | `FULLRUN_ALLOW_STEAM` (optional variable) | Explicitly enable fallback acquisition in the designated account-owning variant |
 | `STEAM_*` | Only the opted-in producer fallback uses these; single-use code consumption remains opt-in |
 

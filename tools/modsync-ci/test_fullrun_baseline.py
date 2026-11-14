@@ -116,6 +116,24 @@ class RecoveryTests(unittest.TestCase):
         self.assertTrue(result["backup_required"])
         self.assertEqual(self.clients, [("owner/current", "current-only"), ("owner/legacy", "legacy-only")])
 
+    def test_configured_legacy_source_without_token_is_reported_only_when_needed(self):
+        self.environ.pop("ARTSTORE_READ_TOKEN")
+        warnings = io.StringIO()
+        with contextlib.redirect_stdout(warnings):
+            result = baseline.recover("k1", self.seals, self.game, legacy_repository="owner/legacy",
+                                      environ=self.environ, now=NOW)
+        self.assertFalse(result["available"])
+        self.assertEqual(self.clients, [("owner/current", "current-only")])
+        self.assertIn("ARTSTORE_READ_TOKEN", warnings.getvalue())
+        self.assertNotIn("current-only", warnings.getvalue())
+        self.cached()
+        warnings = io.StringIO()
+        with contextlib.redirect_stdout(warnings):
+            result = baseline.recover("k1", self.seals, self.game, legacy_repository="owner/legacy",
+                                      environ=self.environ, now=NOW)
+        self.assertTrue(result["available"])
+        self.assertNotIn("ARTSTORE_READ_TOKEN", warnings.getvalue())
+
     def test_current_backups_are_discovered_first_after_previous_legacy_publication(self):
         self.backup(identifier=4, payload=b"current-published")
         self.backup("owner/legacy", identifier=5, payload=b"legacy-good")

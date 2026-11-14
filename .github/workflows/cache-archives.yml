@@ -28,18 +28,6 @@ jobs:
     concurrency: {group: fullrun-mod-cache-writer, cancel-in-progress: false}
     outputs:
       archive_cache_key: ${{ steps.refresh.outputs.archive_cache_key }}
-    env:
-      ARTSTORE_REPOSITORY: ${{ inputs.artifact_repository || github.repository }}
-      ARTSTORE_TOKEN: ${{ secrets.ARTSTORE_READ_TOKEN || github.token }}
-      CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
-      RCLONE_CONFIG_MODCACHE_TYPE: s3
-      RCLONE_CONFIG_MODCACHE_PROVIDER: Cloudflare
-      RCLONE_CONFIG_MODCACHE_REGION: auto
-      RCLONE_CONFIG_MODCACHE_NO_CHECK_BUCKET: 'true'
-      RCLONE_CONFIG_MODCACHE_ACCESS_KEY_ID: ${{ secrets.MOD_CACHE_S3_READ_ACCESS_KEY_ID }}
-      RCLONE_CONFIG_MODCACHE_SECRET_ACCESS_KEY: ${{ secrets.MOD_CACHE_S3_READ_SECRET_ACCESS_KEY }}
-      RCLONE_CONFIG_MODCACHE_ENDPOINT: ${{ secrets.MOD_CACHE_S3_ENDPOINT }}
-      MOD_CACHE_BUCKET: ${{ vars.MOD_CACHE_BUCKET }}
     steps:
       - name: Checkout owned CI
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -77,6 +65,17 @@ jobs:
         id: refresh
         env:
           GAMES: ${{ inputs.games }}
+          ARTSTORE_REPOSITORY: ${{ inputs.artifact_repository || github.repository }}
+          ARTSTORE_TOKEN: ${{ secrets.ARTSTORE_READ_TOKEN || github.token }}
+          CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
+          RCLONE_CONFIG_MODCACHE_TYPE: s3
+          RCLONE_CONFIG_MODCACHE_PROVIDER: Cloudflare
+          RCLONE_CONFIG_MODCACHE_REGION: auto
+          RCLONE_CONFIG_MODCACHE_NO_CHECK_BUCKET: 'true'
+          RCLONE_CONFIG_MODCACHE_ACCESS_KEY_ID: ${{ secrets.MOD_CACHE_S3_READ_ACCESS_KEY_ID }}
+          RCLONE_CONFIG_MODCACHE_SECRET_ACCESS_KEY: ${{ secrets.MOD_CACHE_S3_READ_SECRET_ACCESS_KEY }}
+          RCLONE_CONFIG_MODCACHE_ENDPOINT: ${{ secrets.MOD_CACHE_S3_ENDPOINT || vars.MOD_CACHE_S3_ENDPOINT }}
+          MOD_CACHE_BUCKET: ${{ vars.MOD_CACHE_BUCKET }}
         run: |
           python tools/modsync-ci/fullrun_stage.py refresh --guides guide-input --games "$GAMES" \
             --cache "$RUNNER_TEMP/mod-cache" --output "$RUNNER_TEMP/archive-evidence"
