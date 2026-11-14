@@ -321,8 +321,13 @@ fn deployed(svc: &Service) -> BTreeSet<String> {
         .unwrap_or_default()
 }
 
-fn duplicate_ids(_: &Service) -> BTreeSet<String> {
-    BTreeSet::new()
+fn duplicate_ids(svc: &Service) -> BTreeSet<String> {
+    svc.duplicates()
+        .unwrap_or_default()
+        .into_iter()
+        .flat_map(|g| g.older)
+        .map(|g| g.to_ascii_lowercase())
+        .collect()
 }
 
 fn listing(st: &AppState, profile: &str) -> anyhow::Result<Value> {
@@ -560,6 +565,61 @@ pub fn route(app: &AppHandle, r: &Request, s: &[&str]) -> Reply {
                 json!({"ok": true, "action": r.q("action"), "changed": changed_ids, "failed": failed}),
             )
         }
+        ["api", "library", "bulk", "uninstall"] if post => {
+            let ids: Vec<String> = r
+                .body
+                .get("mod_ids")
+                .and_then(Value::as_array)
+                .map(|a| {
+                    a.iter()
+                        .filter_map(Value::as_str)
+                        .map(str::to_owned)
+                        .collect()
+                })
+                .unwrap_or_default();
+            let (mut removed, mut failed) = (Vec::new(), Vec::new());
+            let total = ids.len();
+            for (i, id) in ids.iter().enumerate() {
+                emit(
+                    app,
+                    json!({"type": "library", "event": "bulk_progress", "action": "uninstall", "current": i + 1, "total": total, "mod": id}),
+                );
+                match uninstall(&st, &profile, id) {
+                    Ok(()) => removed.push(id.clone()),
+                    Err(e) => failed.push(json!({"mod": id, "reason": format!("{e:#}")})),
+                }
+            }
+            emit(
+                app,
+                json!({"type": "library", "event": "bulk_progress", "action": "uninstall", "current": total, "total": total, "mod": "", "done": true}),
+            );
+            changed(app);
+            Ok(json!({"ok": true, "removed": removed, "failed": failed, "requested": total}))
+        }
+        ["api", "library", "dedupe"] if post => {
+            let (svc, _, _) = service(&st, &profile).map_err(fail_any)?;
+            let mut removed = Vec::new();
+            for group in svc.duplicates().map_err(fail_any)? {
+                for guid in group.older {
+                    manage(&svc, ManagementAction::Uninstall(guid.clone())).map_err(fail_any)?;
+                    svc.remove_from_library(&guid).map_err(fail_any)?;
+                    removed.push(group.name.clone());
+                }
+            }
+            let remaining = svc
+                .management_status()
+                .map(|s| s.manifests.len())
+                .unwrap_or(0);
+            changed(app);
+            Ok(
+                json!({"ok": true, "removed": removed.len(), "mods": removed, "remaining": remaining}),
+            )
+        }
+        ["api", "library", id, "uninstall"] if post => {
+            uninstall(&st, &profile, id).map_err(fail_any)?;
+            changed(app);
+            Ok(json!({"ok": true}))
+        }
         ["api", "library", id, action @ ("enable" | "disable")] if post => {
             set_enabled(&st, &profile, id, *action == "enable").map_err(fail_any)?;
             changed(app);
@@ -744,4 +804,13 @@ pub fn route(app: &AppHandle, r: &Request, s: &[&str]) -> Reply {
         }
         _ => Err(fail(404, "This part of the app is not available yet.")),
     }
+}
+
+fn uninstall(st: &AppState, profile: &str, id: &str) -> anyhow::Result<()> {
+    let (svc, _, _) = service(st, profile)?;
+    if svc.manifest(id)?.is_some() {
+        manage(&svc, ManagementAction::Uninstall(id.to_owned()))?;
+    }
+    svc.remove_from_library(id)?;
+    Ok(())
 }

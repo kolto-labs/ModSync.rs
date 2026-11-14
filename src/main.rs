@@ -655,6 +655,18 @@ enum DeploymentAction {
         #[command(flatten)]
         roots: DeploymentRoots,
     },
+    /// Delete the staged copy of a component that is not deployed.
+    Remove {
+        #[command(flatten)]
+        roots: DeploymentRoots,
+        #[arg(long)]
+        component: String,
+    },
+    /// List deployed components that share a name (older copies of the same mod).
+    Duplicates {
+        #[command(flatten)]
+        roots: DeploymentRoots,
+    },
     /// Write a hash index of the game directory (run before a patcher).
     Snapshot {
         #[command(flatten)]
@@ -1755,6 +1767,20 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                         warn(&report.warnings);
                     }
                     print(serde_json::json!({"purged": reports.len(), "components": reports}))
+                }
+                DeploymentAction::Remove { roots, component } => {
+                    let removed = roots.service()?.remove_from_library(&component)?;
+                    print(serde_json::json!({"component": component, "removed": removed}))
+                }
+                DeploymentAction::Duplicates { roots } => {
+                    let service = modsync::deployment::Service::resolve_readonly(
+                        &roots.game_dir,
+                        roots.staging_dir.as_deref(),
+                        roots.manifest_dir.as_deref(),
+                        roots.settings_dir.as_deref(),
+                        roots.profile.as_deref(),
+                    )?;
+                    print(serde_json::to_value(service.duplicates()?)?)
                 }
                 DeploymentAction::Snapshot { roots, out } => {
                     let index = roots.service()?.capture_index()?;

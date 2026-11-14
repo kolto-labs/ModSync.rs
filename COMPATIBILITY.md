@@ -1,5 +1,16 @@
 # Compatibility and proof boundaries
 
+## Library removal and duplicates - 2026-11-14
+
+`Service::remove_from_library` deletes `staging/<component>` for a component
+that has no manifest, under the game lock and checkpoint gate; a deployed
+component is refused until it is uninstalled, and the game directory is never
+touched. `Service::duplicates` (and `duplicate_groups`) groups deployed
+manifests by case-insensitive component name, keeping the most recently
+deployed one; manifests without a name never match. `modsync deployment remove`
+and `modsync deployment duplicates` expose them. Not covered by Rust tests
+(frozen by AGENTS.md).
+
 ## Mod build catalog - 2026-11-14
 
 `builds::Catalog` lists the KOTOR Community Portal builds (KOTOR 1 and 2, full
