@@ -322,6 +322,12 @@ enum Action {
         #[arg(long)]
         source_dir: PathBuf,
     },
+    /// List KOTOR installs found on this computer (Steam, GOG, Origin). Read-only.
+    DetectGames {
+        /// Print the installs as JSON.
+        #[arg(long)]
+        json: bool,
+    },
     /// Print the saved completion receipt summary, or report that there is none.
     CompletionSummary {
         #[arg(long)]
@@ -2557,6 +2563,26 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             game_dir,
             source_dir,
         }) => recovery::restore(&Roots::new(&source_dir, &game_dir)?),
+        Some(Action::DetectGames { json }) => {
+            let installs = modsync::game_locator::find_installs();
+            if json {
+                println!("{}", serde_json::to_string_pretty(&installs)?);
+            } else if installs.is_empty() {
+                println!("No KOTOR installs found.");
+            } else {
+                for install in &installs {
+                    let game = match install.game {
+                        modsync::game_locator::Game::Kotor1 => "KOTOR 1",
+                        modsync::game_locator::Game::Kotor2 if install.aspyr => {
+                            "KOTOR 2 (Aspyr update)"
+                        }
+                        modsync::game_locator::Game::Kotor2 => "KOTOR 2",
+                    };
+                    println!("{game} ({}): {}", install.source, install.path.display());
+                }
+            }
+            Ok(())
+        }
         Some(Action::CompletionSummary {
             game_dir,
             source_dir,

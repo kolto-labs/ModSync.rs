@@ -14,6 +14,7 @@ pub mod editor;
 pub mod engine;
 pub mod fomod_cli;
 pub mod game;
+pub mod game_locator;
 pub mod host_metadata;
 pub mod install_progress;
 pub mod merge;

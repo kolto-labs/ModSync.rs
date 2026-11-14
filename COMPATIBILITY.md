@@ -1,5 +1,19 @@
 # Compatibility and proof boundaries
 
+## Finding game installs - 2026-11-14
+
+`game_locator::find_installs` lists KOTOR folders found on this computer: the
+Steam library (registry `SteamPath`, the default Program Files folders and every
+extra library in `libraryfolders.vdf`; the usual, Flatpak and Snap Steam folders
+on Linux) plus, on Windows, the default GOG and Origin/EA folders, the KOTOR
+install folders GOG records in the registry and every folder directly under
+`GOG Games` or GOG Galaxy's `Games` folder. Steam's registry path is shown the
+way Windows spells it. Each candidate
+is classified with `game::detect`, so only folders that look like KOTOR 1 or
+KOTOR 2 are returned. It only reads directories. `modsync detect-games [--json]`
+prints the result. Other stores, custom install folders and macOS app bundles
+are not searched. Not covered by Rust tests (frozen by AGENTS.md).
+
 ## DeadlyStream sign-in check - 2026-11-14
 
 `deadlystream_account::sign_in` reads the DeadlyStream login page, takes its

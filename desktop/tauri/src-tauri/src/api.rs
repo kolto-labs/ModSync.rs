@@ -133,6 +133,7 @@ fn route(app: &AppHandle, r: &Request) -> Reply {
         (["api", "gamefront", "external"], _) => {
             Ok(json!({"ok": true, "destination": state(app).mods_dir()}))
         }
+        (["api", "games", "detect"], _) => detect_games(app),
         (["api", "login"], _) => crate::extras::login(app, r),
         (["api", "nexus", "validate"], _) => nexus_validate(app),
         _ => Err(fail(404, "This part of the app is not available yet.")),
@@ -480,6 +481,32 @@ fn setup_state(app: &AppHandle) -> Reply {
     let inner = st.lock();
     let existing = !inner.ui.last_seen_version.is_empty();
     Ok(json!({"show": !inner.ui.setup_done && !existing}))
+}
+
+fn detect_games(app: &AppHandle) -> Reply {
+    let st = state(app);
+    let known: Vec<String> = st
+        .prefs
+        .store()
+        .and_then(|store| store.list())
+        .map(|list| list.into_iter().filter_map(|p| p.kotor_directory).collect())
+        .unwrap_or_default();
+    let same = |a: &Path, b: &Path| match (std::fs::canonicalize(a), std::fs::canonicalize(b)) {
+        (Ok(a), Ok(b)) => a == b,
+        _ => a == b,
+    };
+    let installs: Vec<Value> = modsync::game_locator::find_installs()
+        .into_iter()
+        .map(|found| {
+            json!({
+                "game": found.game,
+                "path": found.path.display().to_string(),
+                "source": found.source,
+                "already_added": known.iter().any(|dir| same(Path::new(dir), &found.path)),
+            })
+        })
+        .collect();
+    Ok(json!({"installs": installs}))
 }
 
 fn nexus_validate(app: &AppHandle) -> Reply {
