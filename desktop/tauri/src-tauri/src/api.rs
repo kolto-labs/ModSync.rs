@@ -135,6 +135,15 @@ fn route(app: &AppHandle, r: &Request) -> Reply {
         }
         (["api", "games", "detect"], _) => detect_games(app),
         (["api", "mod", "info"], _) => crate::extras::mod_info(app, r),
+        (["api", "update", "check"], _) => crate::extras::update_check(),
+        (["api", "update", "download"], _) => crate::extras::update_download(app),
+        (["api", "whatsnew"], _) => crate::extras::whats_new(app),
+        (["api", "whatsnew", "seen"], _) => {
+            let st = state(app);
+            st.lock().ui.last_seen_version = VERSION.into();
+            st.save_ui();
+            Ok(json!({"ok": true}))
+        }
         (["api", "login"], _) => crate::extras::login(app, r),
         (["api", "nexus", "validate"], _) => nexus_validate(app),
         _ => Err(fail(404, "This part of the app is not available yet.")),

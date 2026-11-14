@@ -6,7 +6,7 @@ use serde_json::json;
 use tauri::AppHandle;
 
 /// Where releases of this app are published.
-pub const UPDATE_REPO: &str = "ChristopherVR/ModSync.rs";
+pub const UPDATE_REPO: &str = "kolto-labs/ModSync.rs";
 
 pub fn open_url(app: &AppHandle, url: &str, releases_default: bool) -> Reply {
     use tauri_plugin_opener::OpenerExt;
@@ -140,6 +140,165 @@ fn percent_decode(text: &str) -> String {
         i += 1;
     }
     String::from_utf8_lossy(&out).into_owned()
+}
+
+const CHANGELOG: &str = include_str!("../../CHANGELOG.md");
+const NO_SELF_UPDATE_MARKER: &str = "no-self-update.flag";
+
+fn self_update_allowed() -> bool {
+    !std::env::current_exe()
+        .ok()
+        .and_then(|path| path.parent().map(|dir| dir.join(NO_SELF_UPDATE_MARKER)))
+        .is_some_and(|path| path.is_file())
+}
+
+pub fn update_check() -> Reply {
+    match modsync::app_update::check(
+        UPDATE_REPO,
+        crate::api::VERSION,
+        &std::sync::atomic::AtomicBool::new(false),
+    ) {
+        Ok(check) => {
+            let latest = check.latest.as_ref();
+            Ok(json!({
+                "available": check.available,
+                "current_version": crate::api::VERSION,
+                "latest_version": latest.map(|r| r.version.clone()),
+                "url": latest.map(|r| r.url.clone()),
+                "asset_url": latest.and_then(|r| r.asset_url.clone()),
+                "notes": latest.map(|r| r.notes.clone()).unwrap_or_default(),
+                "repo": UPDATE_REPO,
+                "can_self_update": self_update_allowed(),
+            }))
+        }
+        Err(error) => Ok(
+            json!({"available": false, "current_version": crate::api::VERSION, "error": format!("{error:#}")}),
+        ),
+    }
+}
+
+fn update_dir() -> std::path::PathBuf {
+    std::env::temp_dir().join("kotor-mod-installer-update")
+}
+
+pub fn update_download(app: &AppHandle) -> Reply {
+    if !self_update_allowed() {
+        return Err(fail(403, "self_update_disabled"));
+    }
+    let cancelled = std::sync::atomic::AtomicBool::new(false);
+    let check = modsync::app_update::check(UPDATE_REPO, crate::api::VERSION, &cancelled)
+        .map_err(crate::state::fail_any)?;
+    let release = check
+        .latest
+        .filter(|_| check.available)
+        .ok_or_else(|| fail(400, "no_exe_asset"))?;
+    if release.asset_url.is_none() {
+        return Err(fail(400, "no_exe_asset"));
+    }
+    let path = modsync::app_update::download(&release, &update_dir(), &cancelled)
+        .map_err(crate::state::fail_any)?;
+    crate::state::emit(
+        app,
+        json!({"type": "update_progress", "pct": 100, "downloaded": 0, "total": 0}),
+    );
+    Ok(json!({"ok": true, "path": path.display().to_string(), "version": release.version}))
+}
+
+pub fn whats_new(app: &AppHandle) -> Reply {
+    let notes = modsync::app_update::changelog_section(CHANGELOG, crate::api::VERSION)
+        .map(|section| format!("## [{}]\n\n{section}", crate::api::VERSION))
+        .unwrap_or_default();
+    let seen = crate::state::state(app).lock().ui.last_seen_version.clone();
+    Ok(
+        json!({"version": crate::api::VERSION, "show": !notes.is_empty() && seen != crate::api::VERSION, "notes": notes}),
+    )
+}
+
+/// Replace the running program with the downloaded one once it exits, then
+/// start it again.
+#[tauri::command]
+pub fn apply_update(app: AppHandle, new_path: String) -> Result<(), String> {
+    use std::{path::PathBuf, process::Command};
+    if !self_update_allowed() {
+        return Err("Self-update is disabled in this build".into());
+    }
+    if crate::state::state(&app).lock().running {
+        return Err("Wait for the install to finish before updating.".into());
+    }
+    let new_path = PathBuf::from(new_path);
+    if !new_path.starts_with(update_dir()) || !new_path.is_file() {
+        return Err("The downloaded update could not be found.".into());
+    }
+    let current = match std::env::var_os("APPIMAGE") {
+        Some(path) if cfg!(unix) => PathBuf::from(path),
+        _ => std::env::current_exe().map_err(|e| e.to_string())?,
+    };
+    let pid = std::process::id();
+    let dir = update_dir();
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+        let quote = |p: &std::path::Path| p.display().to_string().replace('\'', "''");
+        let script = dir.join("swap.ps1");
+        let content = format!(
+            "try {{ Wait-Process -Id {pid} -Timeout 30 }} catch {{}}\n\
+             Start-Sleep -Milliseconds 800\n\
+             for ($i=0; $i -lt 10; $i++) {{ try {{ Copy-Item -LiteralPath '{new}' -Destination '{cur}' -Force; break }} catch {{ Start-Sleep -Milliseconds 700 }} }}\n\
+             Start-Process -FilePath '{cur}'\n\
+             Remove-Item -LiteralPath '{new}' -Force -ErrorAction SilentlyContinue\n",
+            new = quote(&new_path),
+            cur = quote(&current),
+        );
+        std::fs::write(&script, content).map_err(|e| e.to_string())?;
+        Command::new("powershell")
+            .args([
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-WindowStyle",
+                "Hidden",
+                "-File",
+            ])
+            .arg(&script)
+            .creation_flags(CREATE_NO_WINDOW)
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    #[cfg(unix)]
+    {
+        use std::os::unix::{fs::PermissionsExt, process::CommandExt};
+        let script = dir.join("swap.sh");
+        let content = "#!/bin/sh\n\
+            pid=\"$1\"; new=\"$2\"; cur=\"$3\"\n\
+            i=0\n\
+            while kill -0 \"$pid\" 2>/dev/null && [ $i -lt 60 ]; do sleep 0.5; i=$((i+1)); done\n\
+            sleep 1\n\
+            i=0\n\
+            until cp -f \"$new\" \"$cur.tmp\" && chmod 755 \"$cur.tmp\" && mv -f \"$cur.tmp\" \"$cur\"; do\n\
+              i=$((i+1)); [ $i -ge 10 ] && exit 1; sleep 0.7\n\
+            done\n\
+            rm -f \"$new\"\n\
+            nohup \"$cur\" >/dev/null 2>&1 &\n";
+        std::fs::write(&script, content).map_err(|e| e.to_string())?;
+        std::fs::set_permissions(&script, std::fs::Permissions::from_mode(0o755))
+            .map_err(|e| e.to_string())?;
+        Command::new("/bin/sh")
+            .arg(&script)
+            .arg(pid.to_string())
+            .arg(&new_path)
+            .arg(&current)
+            .process_group(0)
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    #[cfg(not(any(windows, unix)))]
+    {
+        let _ = (pid, dir, current);
+        return Err("Updating is not supported on this system.".into());
+    }
+    app.exit(0);
+    Ok(())
 }
 
 pub fn login(app: &AppHandle, r: &crate::api::Request) -> Reply {

@@ -45,6 +45,7 @@ fn main() {
             extras::gamefront_account,
             extras::sign_out_gamefront,
             extras::set_nxm_handler,
+            extras::apply_update,
         ])
         .run(tauri::generate_context!())
         .expect("the KOTOR Mod Installer window could not start");

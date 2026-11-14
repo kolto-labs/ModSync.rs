@@ -332,6 +332,26 @@ enum Action {
         #[arg(long)]
         settings_dir: Option<PathBuf>,
     },
+    /// Check a GitHub repository's latest release against a version, and
+    /// optionally download the build for this system.
+    AppUpdate {
+        /// The repository, as owner/name.
+        #[arg(long)]
+        repo: String,
+        /// The version that is installed now.
+        #[arg(long)]
+        current: String,
+        /// Download the new build into this folder when one is available.
+        #[arg(long)]
+        download: Option<PathBuf>,
+    },
+    /// Print the notes for one version from a changelog file.
+    ChangelogSection {
+        #[arg(long)]
+        changelog: PathBuf,
+        #[arg(long)]
+        version: String,
+    },
     /// List KOTOR installs found on this computer (Steam, GOG, Origin). Read-only.
     DetectGames {
         /// Print the installs as JSON.
@@ -2678,6 +2698,36 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             match modsync::mod_info::fetch(&url, key, &cancelled)? {
                 Some(info) => println!("{}", serde_json::to_string_pretty(&info)?),
                 None => anyhow::bail!("Only DeadlyStream and Nexus Mods pages are supported"),
+            }
+            Ok(())
+        }
+        Some(Action::AppUpdate {
+            repo,
+            current,
+            download,
+        }) => {
+            let cancelled = modsync::p2p::stop_signal_flag()?;
+            let check = modsync::app_update::check(&repo, &current, &cancelled)?;
+            let downloaded = match (&download, &check.latest) {
+                (Some(directory), Some(release)) if check.available => Some(
+                    modsync::app_update::download(release, directory, &cancelled)?,
+                ),
+                _ => None,
+            };
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&serde_json::json!({
+                    "check": check,
+                    "downloaded": downloaded,
+                }))?
+            );
+            Ok(())
+        }
+        Some(Action::ChangelogSection { changelog, version }) => {
+            let text = std::fs::read_to_string(&changelog)?;
+            match modsync::app_update::changelog_section(&text, &version) {
+                Some(section) => println!("{section}"),
+                None => anyhow::bail!("The changelog has no section for {version}"),
             }
             Ok(())
         }

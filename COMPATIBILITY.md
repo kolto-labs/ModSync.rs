@@ -1,5 +1,19 @@
 # Compatibility and proof boundaries
 
+## App update check and release notes - 2026-11-14
+
+`app_update::check` asks GitHub for a repository's latest published release
+(drafts and pre-releases are ignored, no release counts as up to date),
+compares up to three numeric version parts, and picks the build for the running
+system (`.exe` on Windows, a `linux` build on Linux, a `.dmg` or mac `.zip` on
+macOS). `app_update::download` fetches that build with the engine's HTTPS
+fetcher into a folder the caller chooses; replacing the running program is up to
+the frontend. `changelog_section` returns one version's notes from a Keep a
+Changelog file. `modsync app-update --repo owner/name --current X [--download
+DIR]` and `modsync changelog-section` expose them. No signature or checksum of
+the downloaded build is verified beyond HTTPS. Not covered by Rust tests
+(frozen by AGENTS.md).
+
 ## Mod page details - 2026-11-14
 
 `mod_info::fetch` returns the title, description, author and screenshot links
