@@ -25,6 +25,7 @@ pub mod model;
 pub mod p2p;
 pub mod patcher;
 pub mod paths;
+pub mod pause;
 pub mod peer_acquire;
 pub mod peer_sharing;
 pub mod phase;

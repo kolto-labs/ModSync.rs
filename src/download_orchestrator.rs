@@ -1020,6 +1020,9 @@ pub struct RunSettings {
     /// The Peer source (BitTorrent slice). `None` while the tunnel is down or sharing is
     /// off: every Peer step then fails closed and opens no sockets.
     pub peer: Option<Arc<dyn Acquire>>,
+    /// While set, downloads hold in place between reads, and new downloads wait to
+    /// start ([`crate::pause`]). Cancellation still stops a held download.
+    pub paused: Option<Arc<AtomicBool>>,
 }
 
 impl Default for RunSettings {
@@ -1033,6 +1036,7 @@ impl Default for RunSettings {
             deadlystream_base: None,
             mega_api_base: None,
             peer: None,
+            paused: None,
         }
     }
 }
@@ -1093,6 +1097,16 @@ struct RunContext<'a> {
     nexus: Option<Mutex<NexusClient>>,
     /// One run-wide decision: Ok(true) premium, Ok(false) valid free, Err(text) failed.
     premium: Option<std::result::Result<bool, String>>,
+}
+
+impl RunContext<'_> {
+    /// Hold while the run is paused: before a download starts, and between the reads
+    /// of a running one, so nothing is published half written.
+    fn hold_if_paused(&self, cancelled: &AtomicBool) {
+        if let Some(paused) = &self.settings.paused {
+            crate::pause::hold(paused, cancelled);
+        }
+    }
 }
 
 fn validate_premium_with_retries(
@@ -1717,6 +1731,7 @@ fn acquire_sources(
         .sources
         .first()
         .map_or(SourceKind::Manual, Source::kind);
+    context.hold_if_paused(context.cancelled);
     if context.cancelled.load(Ordering::Relaxed) {
         emit(context, index, target, first, Phase::Cancelled);
         return outcome(index, target, TargetStatus::Cancelled);
@@ -2612,6 +2627,7 @@ fn origin_once(
     cancelled: &AtomicBool,
     on: &mut dyn FnMut(AcquisitionEvent),
 ) -> Result<Acquired> {
+    context.hold_if_paused(cancelled);
     let Source::Origin {
         url,
         provider,
@@ -2730,6 +2746,7 @@ fn origin_once(
     };
     let mut last = None::<Instant>;
     let mut progress = |progress: FetchProgress| {
+        context.hold_if_paused(cancelled);
         let phase = match progress {
             FetchProgress::Transferring { bytes, total } => {
                 let done = total == Some(bytes);

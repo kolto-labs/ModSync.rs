@@ -38,7 +38,22 @@ pub fn control(app: &AppHandle, action: &str) -> Reply {
             Ok(json!({"ok": true, "action": action}))
         }
         "retry" => Ok(json!({"ok": true, "action": action})),
-        "pause" | "resume" => Err(fail(400, "Pausing is not supported. Use Stop instead.")),
+        "pause" => {
+            if state(app).set_paused(true) {
+                log(
+                    app,
+                    "Pausing after the current file or mod. Nothing is left half installed.",
+                    "warning",
+                );
+            }
+            Ok(json!({"ok": true, "action": action}))
+        }
+        "resume" => {
+            if state(app).set_paused(false) {
+                log(app, "Resuming.", "info");
+            }
+            Ok(json!({"ok": true, "action": action}))
+        }
         _ => Err(fail(404, "Unknown action")),
     }
 }
@@ -52,6 +67,7 @@ struct Job {
     resolution: Option<(u32, u32)>,
     case_insensitive: bool,
     cancelled: Arc<AtomicBool>,
+    paused: Arc<AtomicBool>,
     /// Stop after the check; nothing is installed.
     check_only: bool,
 }
@@ -200,6 +216,7 @@ fn prepare(app: &AppHandle, r: &Request, check_only: bool) -> Result<(Job, Strin
         resolution: screen_resolution(app, &st),
         case_insensitive: inner.case_insensitive,
         cancelled: Arc::new(AtomicBool::new(false)),
+        paused: Arc::new(AtomicBool::new(false)),
         check_only,
     };
     Ok((job, path, fingerprint))
@@ -213,6 +230,7 @@ fn begin(app: &AppHandle, job: &Job) -> Result<(), Value> {
     }
     inner.running = true;
     inner.cancelled = job.cancelled.clone();
+    inner.paused = job.paused.clone();
     Ok(())
 }
 
@@ -339,6 +357,7 @@ fn run(app: &AppHandle, job: Job, tally: &mut Tally) -> Result<()> {
         resolution,
         case_insensitive,
         cancelled,
+        paused,
         check_only,
     } = job;
     // 1. The player's selection, with what each mod needs (engine selection rules).
@@ -375,7 +394,13 @@ fn run(app: &AppHandle, job: Job, tally: &mut Tally) -> Result<()> {
     }
     // 2. Files.
     let skipped = download(
-        app, &mut guide, &mods, nexus_key, resolution, &cancelled, tally,
+        app,
+        &mut guide,
+        &mods,
+        nexus_key,
+        resolution,
+        (&cancelled, &paused),
+        tally,
     )?;
     for id in skipped {
         let outcome = selection::apply(
@@ -423,6 +448,7 @@ fn run(app: &AppHandle, job: Job, tally: &mut Tally) -> Result<()> {
             .map(PathBuf::from);
     }
     settings.cancelled = cancelled.clone();
+    settings.paused = paused.clone();
     let roots = settings.roots.clone();
     let prepared = modsync::phase::prepare_with_roots(
         &guide,
@@ -483,7 +509,7 @@ fn run(app: &AppHandle, job: Job, tally: &mut Tally) -> Result<()> {
                     "warning",
                 );
                 engine = Engine::new_with_case_insensitive_pathing(
-                    rebuild_settings(app, &mods, &game, &cancelled)?,
+                    rebuild_settings(app, &mods, &game, &cancelled, &paused)?,
                     case_insensitive,
                 )?;
             }
@@ -496,6 +522,10 @@ fn run(app: &AppHandle, job: Job, tally: &mut Tally) -> Result<()> {
     }
     let mut current: Option<String> = None;
     let result = engine.install_observed_report(&prepared, |_| {}, |p| {
+        if p.phase == Phase::Paused {
+            log(app, "Paused. Press Resume to carry on with the next mod.", "warning");
+            return;
+        }
         let Some(id) = p.top_level_component_guid.clone() else { return };
         match p.phase {
             Phase::InstallingComponent => {
@@ -542,6 +572,7 @@ fn rebuild_settings(
     mods: &Path,
     game: &Path,
     cancelled: &Arc<AtomicBool>,
+    paused: &Arc<AtomicBool>,
 ) -> Result<Settings> {
     let mut settings = Settings::new(mods, game)?;
     settings.archive = state(app).archive_options();
@@ -558,6 +589,7 @@ fn rebuild_settings(
             .map(PathBuf::from);
     }
     settings.cancelled = cancelled.clone();
+    settings.paused = paused.clone();
     Ok(settings)
 }
 
@@ -568,7 +600,8 @@ fn download(
     mods: &Path,
     nexus_key: Option<String>,
     resolution: Option<(u32, u32)>,
-    cancelled: &Arc<AtomicBool>,
+    // The run's stop and pause flags.
+    (cancelled, paused): (&Arc<AtomicBool>, &Arc<AtomicBool>),
     tally: &mut Tally,
 ) -> Result<Vec<String>> {
     let candidates = selection::download_candidates(&guide.components, Scope::All);
@@ -590,6 +623,7 @@ fn download(
     let settings = orch::RunSettings {
         nexus_api_key: nexus_key,
         archive: state(app).archive_options(),
+        paused: Some(paused.clone()),
         ..Default::default()
     };
     let plan = orch::discover(guide, &plan, &options, &settings, cancelled)?;

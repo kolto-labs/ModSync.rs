@@ -1,5 +1,22 @@
 # Compatibility and proof boundaries
 
+## Pause and resume - 2026-11-14
+
+`Settings::paused` and `download_orchestrator::RunSettings::paused` are pause
+flags shared like the cancel flag (`pause::hold`, `pause::is_holding`). While a
+flag is set, a download holds between reads (nothing is published until it
+finishes) and new downloads wait to start; checks hold before the next
+component; installs hold before the recovery snapshot and between components
+(after the previous component is committed or checkpointed), never inside one.
+Clearing the flag continues from there in the same process. Cancellation ends
+a hold and then behaves exactly as before, so the recovery snapshot, restore
+and checkpoint rules are unchanged. A held install reports the new
+`install_progress::Phase::Paused` (`"paused"` in `--install-progress-json`).
+`install`, `validate` and `conflicts` take `--pause-file PATH`: while that file
+exists the run holds at the next safe point. A site may drop a download that is
+held for a long time; it is then retried from the start under the normal retry
+rules. Not covered by Rust tests (frozen by AGENTS.md).
+
 ## App update check and release notes - 2026-11-14
 
 `app_update::check` asks GitHub for a repository's latest published release

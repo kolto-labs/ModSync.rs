@@ -784,6 +784,10 @@ enum ValidationOutput {
 
 #[derive(Args)]
 struct InstallArgs {
+    /// While this file exists, downloads, checks and the install hold at the next
+    /// safe point (between downloads or reads, or between mods). Delete it to resume.
+    #[arg(long, value_name = "PATH")]
+    pause_file: Option<PathBuf>,
     /// Suppress post-download configuration; unresolved installers still block installation.
     #[arg(long)]
     fomod_skip: bool,
@@ -1414,6 +1418,7 @@ fn process_conversion_inner(
                 timeout: None,
                 completed: Vec::new(),
                 include_unselected_authoring: true,
+                paused: None,
             },
         );
         if cancelled.load(Ordering::Acquire) {
@@ -3017,6 +3022,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                 deadlystream_base,
                 mega_api_base,
                 peer,
+                paused: None,
             };
             // Execution only: dry-run returned above without network discovery. A
             // discovery error after a signal exits 130, as planning and the run do.
@@ -3456,6 +3462,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             let mut validation_started = false;
             let mut validation_emitted = false;
             let dispatch_cancelled = modsync::p2p::stop_signal_flag()?;
+            let dispatch_paused = args.pause_file.clone().map(modsync::pause::follow_file);
             let dispatch = (|| -> Result<()> {
                 let refused = [
                     (args.skip_validation, "--skip-validation"),
@@ -3728,6 +3735,9 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                 };
                 let mut settings = Settings::new(&paths.source, &paths.game)?;
                 settings.cancelled = dispatch_cancelled.clone();
+                if let Some(paused) = &dispatch_paused {
+                    settings.paused = paused.clone();
+                }
                 let prepared = modsync::phase::prepare_with_roots(
                     &guide,
                     args.phase.into(),
@@ -3772,6 +3782,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                             fomod_non_interactive: args.non_interactive,
                             completed: prepared.completed.clone(),
                             include_unselected_authoring: false,
+                            paused: dispatch_paused.clone(),
                         },
                     )?;
                 }

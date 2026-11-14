@@ -35,6 +35,8 @@ pub struct Inner {
     pub loaded: Option<Loaded>,
     pub running: bool,
     pub cancelled: Arc<AtomicBool>,
+    /// Set while the player has paused the running install.
+    pub paused: Arc<AtomicBool>,
     /// The folders of an install that stopped and left a restore point behind.
     pub failed_roots: Option<Roots>,
     /// DeadlyStream sign-in checked during this session.
@@ -64,6 +66,7 @@ impl AppState {
                 loaded: None,
                 running: false,
                 cancelled: Arc::new(AtomicBool::new(false)),
+                paused: Arc::new(AtomicBool::new(false)),
                 failed_roots: None,
                 case_insensitive,
                 checked: None,
@@ -88,6 +91,16 @@ impl AppState {
         let inner = self.lock();
         if inner.running {
             inner.cancelled.store(true, Ordering::Release);
+            inner.paused.store(false, Ordering::Release);
+        }
+        inner.running
+    }
+
+    /// Pause or resume a running install. Returns true when one is running.
+    pub fn set_paused(&self, paused: bool) -> bool {
+        let inner = self.lock();
+        if inner.running {
+            inner.paused.store(paused, Ordering::Release);
         }
         inner.running
     }

@@ -16,6 +16,10 @@ pub enum Phase {
     ComponentCompleted,
     RecordingCompletion,
     Completed,
+    /// The run is holding at a component boundary because it was paused
+    /// (`Settings::paused`). The next fact follows once it is resumed; a
+    /// cancelled hold ends like any other cancellation.
+    Paused,
 }
 
 /// One GUID-bound owner in a reached top-level/Choose execution path.

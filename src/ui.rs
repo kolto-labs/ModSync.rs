@@ -1282,6 +1282,7 @@ impl App {
                         deadlystream_base: None,
                         mega_api_base: None,
                         peer,
+                        paused: None,
                     };
                     let report = orchestrator::run_with_source_context(
                         &plan,

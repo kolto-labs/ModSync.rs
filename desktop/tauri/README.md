@@ -22,8 +22,9 @@ ModSync engine. It is a separate crate with its own `Cargo.toml` and
   download (`download_orchestrator`) and
   `Engine::validate_report_with_options_observed`; Install runs them again and
   then `Engine::install_observed_report` into the game install's library
-  (`with_component_checkpoints`, `with_managed_deployment`). Restore uses
-  `recovery::restore`.
+  (`with_component_checkpoints`, `with_managed_deployment`). Pause and Resume
+  set the run's pause flag (`Settings::paused`, `RunSettings::paused`), which
+  holds between downloads and between mods. Restore uses `recovery::restore`.
 - Mod details: `mod_info::fetch` and `mod_info::fetch_image` (served through
   the `kmm-image` protocol).
 - Installed mods: `deployment::Service` (`management_status`, `deploy_report`,

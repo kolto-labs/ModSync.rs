@@ -299,6 +299,7 @@ impl State {
                     ),
                     Phase::RecordingCompletion => "Recording completion…".into(),
                     Phase::Completed => "✅ Installation complete".into(),
+                    Phase::Paused => "Paused…".into(),
                 },
             },
         }
