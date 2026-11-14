@@ -254,6 +254,23 @@ report.cancelled is true and CLI exit is130. Body/race cancellation marks the
 target cancelled. This pre-existing distinction remains explicit. GUI downloads,
 persistent sharing, complete providers and F29 remain open.
 
+## Host file names with HTML entities or a quoted `;`, 2026-11-14 UTC
+
+DeadlyStream HTML-escapes the file name in its Content-Disposition header
+(`attachment; filename="Emperor Turnip&#39;s Gizka.rar"`). Rust split the header on
+every `;`, including the one inside the quoted name, so the name became
+`"Emperor Turnip&#39` and the download failed with `DeadlyStream lists an unsafe file
+name`. Emperor Turnip's HD Gizka and Ajunta Pall's Swords Revamped in the KOTOR 1 Full
+Build failed this way.
+
+Content-Disposition parameters are now split on `;` outside quoted strings only (for
+every host), and a DeadlyStream header file name has its HTML entities (numeric such
+as `&#39;`, and `&amp;`, `&lt;`, `&gt;`, `&quot;`, `&apos;`) decoded once, so the file
+is saved as `Emperor Turnip's Gizka.rar`. The one-component file name check still runs
+on the decoded name, so an encoded separator or other unsafe name is still refused. The
+other scraped DeadlyStream fields (links, CSRF key, version, date, size) were already
+decoded; no page title is scraped. Verified live against both pages.
+
 ## Stored instruction Source normalization — 2026-09-28
 
 Source `62b6f70`, evidence `0f48868`, passed independent SPEC and QUALITY review.

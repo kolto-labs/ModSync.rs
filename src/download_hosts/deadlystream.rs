@@ -541,12 +541,15 @@ impl Session<'_> {
     }
 }
 
-/// Content-Disposition first, then the last path segment of the landing URL.
+/// Content-Disposition first, then the last path segment of the landing URL. The site
+/// HTML-escapes the header's file name (`Emperor Turnip&#39;s Gizka.rar`), so its
+/// entities are decoded once; the one-component check still runs on the result.
 fn file_name(reply: &Reply) -> Option<String> {
     reply
         .disposition
         .as_deref()
         .and_then(download::disposition_filename)
+        .map(|name| html_decode(&name))
         .or_else(|| {
             reply
                 .url

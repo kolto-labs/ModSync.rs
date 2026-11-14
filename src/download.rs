@@ -872,10 +872,13 @@ pub(crate) fn gate_reason(challenge_header: bool, body: &str) -> ManualReason {
     }
 }
 
-/// RFC 6266 `filename*` (RFC 5987, UTF-8) wins over `filename`.
+/// RFC 6266 `filename*` (RFC 5987, UTF-8) wins over `filename`. Parameters are split on
+/// `;` outside quoted strings only, so a quoted name may hold `;`: DeadlyStream sends
+/// `filename="Emperor Turnip&#39;s Gizka.rar"`, which a plain split cut to
+/// `"Emperor Turnip&#39`.
 pub(crate) fn disposition_filename(value: &str) -> Option<String> {
     let mut plain = None;
-    for part in value.split(';').map(str::trim) {
+    for part in disposition_parameters(value) {
         let Some((key, raw)) = part.split_once('=') else {
             continue;
         };
@@ -901,6 +904,30 @@ pub(crate) fn disposition_filename(value: &str) -> Option<String> {
         }
     }
     plain
+}
+
+/// The `;`-separated parts of a Content-Disposition value, trimmed. A `;` inside a
+/// quoted string (where `\` escapes the next character) belongs to the value.
+fn disposition_parameters(value: &str) -> Vec<&str> {
+    let mut parts = Vec::new();
+    let (mut start, mut quoted, mut escaped) = (0, false, false);
+    for (index, character) in value.char_indices() {
+        if escaped {
+            escaped = false;
+            continue;
+        }
+        match character {
+            '\\' if quoted => escaped = true,
+            '"' => quoted = !quoted,
+            ';' if !quoted => {
+                parts.push(value[start..index].trim());
+                start = index + 1;
+            }
+            _ => {}
+        }
+    }
+    parts.push(value[start..].trim());
+    parts
 }
 
 /// Decodes `%XX` before the one-component check, so an encoded separator is still rejected.
