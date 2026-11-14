@@ -409,6 +409,7 @@ fn run(app: &AppHandle, job: Job, tally: &mut Tally) -> Result<()> {
     }
     // 3. Check, changing nothing on disk.
     let mut settings = Settings::new(&mods, &game)?;
+    settings.archive = state(app).archive_options();
     settings.allow_processes = !state(app).lock().ui.block_programs;
     if let Ok(prefs) = state(app)
         .prefs
@@ -543,6 +544,7 @@ fn rebuild_settings(
     cancelled: &Arc<AtomicBool>,
 ) -> Result<Settings> {
     let mut settings = Settings::new(mods, game)?;
+    settings.archive = state(app).archive_options();
     settings.allow_processes = !state(app).lock().ui.block_programs;
     if let Ok(prefs) = state(app)
         .prefs
@@ -579,7 +581,7 @@ fn download(
         peer_mode: orch::PeerMode::Off,
         user_peers: Vec::new(),
         nexus_key_present: nexus_key.is_some(),
-        archive: modsync::archive::Options::default(),
+        archive: state(app).archive_options(),
     };
     let plan = orch::plan_with_cancel(guide, &candidates, &options, cancelled)?;
     for skip in &plan.skipped {
@@ -587,6 +589,7 @@ fn download(
     }
     let settings = orch::RunSettings {
         nexus_api_key: nexus_key,
+        archive: state(app).archive_options(),
         ..Default::default()
     };
     let plan = orch::discover(guide, &plan, &options, &settings, cancelled)?;

@@ -97,6 +97,10 @@ export interface Settings {
   seven_zip_path: string;
   nexus_api_key: string;
   filter_downloads_by_resolution: boolean;
+  /** Folder for unpacking archives; empty for the system temporary folder. */
+  scratch_dir?: string;
+  /** Largest unpacked size per archive, in GB; empty for no limit. */
+  max_expanded_gb?: string;
 }
 
 export interface NexusValidation {

@@ -104,7 +104,10 @@ export function GeneralSection({ addLog, onRunSetup }: GeneralSectionProps) {
     try {
       // Other tabs may have saved credentials or a patcher path since we opened.
       const latest = await api.getSettings();
-      await api.setSettings({ ...latest, download_dir: s.download_dir, language: locale });
+      await api.setSettings({
+        ...latest, download_dir: s.download_dir, language: locale,
+        scratch_dir: s.scratch_dir ?? "", max_expanded_gb: s.max_expanded_gb ?? "",
+      });
       setSaved(true);
       addLog("Settings saved.", "success");
     } catch (e: any) {
@@ -223,6 +226,35 @@ export function GeneralSection({ addLog, onRunSetup }: GeneralSectionProps) {
               disabled={loading || saving}
               onCheckedChange={(v: boolean) => { setSaved(false); setS({ ...s, filter_downloads_by_resolution: v }); }}
             />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="scratch-folder">{t("settings.general.scratchFolder")}</Label>
+            <div className="flex gap-2">
+              <Input
+                id="scratch-folder"
+                disabled={loading || saving}
+                value={s.scratch_dir ?? ""}
+                onChange={(e) => { setSaved(false); setS({ ...s, scratch_dir: e.target.value }); }}
+              />
+              <Button variant="outline" size="icon" disabled={loading || saving} title={t("common.browse")}
+                onClick={async () => { const d = await pickDirectory(t("settings.general.scratchFolder")); if (d) { setSaved(false); setS((prev) => ({ ...prev, scratch_dir: d })); } }}>
+                <FolderOpen />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">{t("settings.general.scratchFolderHint")}</p>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="expanded-limit">{t("settings.general.expandedLimit")}</Label>
+            <Input
+              id="expanded-limit"
+              className="max-w-[10rem]"
+              inputMode="decimal"
+              disabled={loading || saving}
+              value={s.max_expanded_gb ?? ""}
+              placeholder="20"
+              onChange={(e) => { setSaved(false); setS({ ...s, max_expanded_gb: e.target.value.trim() }); }}
+            />
+            <p className="text-xs text-muted-foreground">{t("settings.general.expandedLimitHint")}</p>
           </div>
           <div className="flex items-center gap-3">
             <Button onClick={save} disabled={loading || saving}>

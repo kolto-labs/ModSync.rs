@@ -102,6 +102,23 @@ impl AppState {
             .unwrap_or_default()
     }
 
+    /// Archive limits from Settings: unpacking folder and size budget.
+    pub fn archive_options(&self) -> modsync::archive::Options {
+        let inner = self.lock();
+        let scratch = inner.ui.scratch_dir.trim();
+        modsync::archive::Options {
+            scratch_dir: (!scratch.is_empty()).then(|| std::path::PathBuf::from(scratch)),
+            max_expanded_bytes: inner
+                .ui
+                .max_expanded_gb
+                .trim()
+                .parse::<f64>()
+                .ok()
+                .filter(|gb| *gb > 0.0)
+                .map(|gb| (gb * 1024.0 * 1024.0 * 1024.0) as u64),
+        }
+    }
+
     pub fn nexus_key(&self) -> Option<String> {
         self.prefs
             .store()

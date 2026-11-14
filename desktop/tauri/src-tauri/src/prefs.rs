@@ -43,6 +43,11 @@ pub struct UiPrefs {
     pub deadlystream_username: String,
     /// Let guides run patchers and installer programs (on unless turned off).
     pub block_programs: bool,
+    /// Folder for unpacking archives during checks and installs; empty for the
+    /// system temporary folder.
+    pub scratch_dir: String,
+    /// Largest unpacked size allowed per archive, in GB; empty for no limit.
+    pub max_expanded_gb: String,
 }
 
 pub struct Prefs {

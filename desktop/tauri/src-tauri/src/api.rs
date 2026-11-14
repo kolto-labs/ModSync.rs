@@ -456,6 +456,8 @@ fn get_settings(app: &AppHandle) -> Reply {
         "seven_zip_path": ui.seven_zip_path,
         "nexus_api_key": key,
         "filter_downloads_by_resolution": st.prefs.filter_by_resolution(),
+        "scratch_dir": ui.scratch_dir,
+        "max_expanded_gb": ui.max_expanded_gb,
     }))
 }
 
@@ -500,6 +502,10 @@ fn set_settings(app: &AppHandle, r: &Request) -> Reply {
             .and_then(Value::as_bool)
         {
             st.prefs.save_filter_by_resolution(on).map_err(fail_any)?;
+        }
+        if r.body.get("scratch_dir").is_some() {
+            inner.ui.scratch_dir = r.b("scratch_dir").trim().to_owned();
+            inner.ui.max_expanded_gb = r.b("max_expanded_gb").trim().to_owned();
         }
     }
     st.save_ui();
