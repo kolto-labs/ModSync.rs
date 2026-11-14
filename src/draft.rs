@@ -1041,7 +1041,9 @@ fn download_options(text: &str, parent: &str) -> Vec<Component> {
             let Some(name) = capture(&m, "option") else {
                 continue;
             };
-            if name.chars().count() < 3
+            let start = m.get(0).map_or(0, |whole| whole.start());
+            if negated_recommendation(&text[..start], name)
+                || name.chars().count() < 3
                 || [
                     "this", "that", "these", "those", "it", "them", "the", "a", "an", "all",
                     "both", "either", "you", "your", "my", "our",
@@ -1069,6 +1071,18 @@ fn download_options(text: &str, parent: &str) -> Vec<Component> {
         }
     }
     result
+}
+
+/// A download recommendation phrased against its option names something not to choose:
+/// `recommend against the "ZaalbarHD (...)" version`, `which I recommend against`, or a
+/// verb after a negation, as in `do not download the "stunbaton 2025" file`. The pinned
+/// C# parser drafts these as options (`against`, `"stunbaton 2025"`) and preselects
+/// them; Rust skips them. `before` is the text ahead of the match.
+fn negated_recommendation(before: &str, name: &str) -> bool {
+    static AGAINST: LazyLock<Regex> = LazyLock::new(|| compile(r"^(?:against|not)\b", false));
+    static NEGATION: LazyLock<Regex> =
+        LazyLock::new(|| compile(r"(?:\bnot|n't|\bnever|\bavoid|\bskip|\bignore)\s*$", false));
+    AGAINST.is_match(name) || NEGATION.is_match(before)
 }
 
 // Ordered patterns from pinned C# NaturalLanguageInstructionParser; see docs/parity/reference.json.

@@ -151,10 +151,18 @@ impl Guide {
         } else {
             Self::load_preserving_selection(path)?
         };
-        if canonical_format(path.extension().and_then(|s| s.to_str()).unwrap_or("")) == Some("md") {
-            crate::draft::generate(&mut guide);
-        }
+        guide.draft_for_install(path);
         Ok(guide)
+    }
+
+    /// Draft prose Markdown loaded from `path` as file-open and install ingestion do
+    /// (`load_for_install`); any other format is left unchanged. For a caller that keeps
+    /// the authored guide and drafts a separate copy, so both see the same components,
+    /// instructions and option identities.
+    pub fn draft_for_install(&mut self, path: &Path) {
+        if canonical_format(path.extension().and_then(|s| s.to_str()).unwrap_or("")) == Some("md") {
+            crate::draft::generate(self);
+        }
     }
 
     /// Load an instruction file without replacing authored all-false selection.
