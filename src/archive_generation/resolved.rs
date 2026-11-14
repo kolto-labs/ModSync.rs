@@ -957,10 +957,11 @@ struct PatcherLayout {
     installer: String,
 }
 
-/// Accept only a single-run patcher archive: one `tslpatchdata/changes.ini`
-/// at the archive root, no `namespaces.ini`, exactly one
-/// installer executable beside `tslpatchdata`, and nothing else outside it
-/// except root-level documentation.
+/// Accept one single-run patcher tree, either at the archive root or inside
+/// exactly one structural wrapper directory. Its sole installer must sit beside
+/// `tslpatchdata/changes.ini`; namespaces and other payload roots stay refused.
+/// Documentation may sit at the root or beside the installer. Keep every full
+/// authored path in the receipt so replay checks the same exhaustive layout.
 fn patcher_layout(entries: &[archive::OriginalEntry]) -> Result<PatcherLayout> {
     let files: Vec<_> = entries.iter().filter(|entry| !entry.is_directory).collect();
     for entry in &files {
@@ -986,12 +987,18 @@ fn patcher_layout(entries: &[archive::OriginalEntry]) -> Result<PatcherLayout> {
     );
     let changes_parts: Vec<_> = changes[0].path.split('/').collect();
     ensure!(
-        changes_parts.len() == 2 && changes_parts[0].eq_ignore_ascii_case("tslpatchdata"),
-        "Method archive changes.ini is not directly inside a root-level tslpatchdata folder"
+        matches!(changes_parts.len(), 2 | 3)
+            && changes_parts[changes_parts.len() - 2].eq_ignore_ascii_case("tslpatchdata"),
+        "Method archive changes.ini must be inside root-level tslpatchdata or one structural wrapper"
     );
+    let wrapper = (changes_parts.len() == 3).then_some(changes_parts[0]);
     let in_data = |path: &str, directory: bool| {
         let parts: Vec<_> = path.trim_end_matches('/').split('/').collect();
-        parts[0].eq_ignore_ascii_case("tslpatchdata") && (directory || parts.len() > 1)
+        let offset = usize::from(wrapper.is_some());
+        parts.len() > offset
+            && wrapper.is_none_or(|wrapper| parts[0] == wrapper)
+            && parts[offset].eq_ignore_ascii_case("tslpatchdata")
+            && (directory || parts.len() > offset + 1)
     };
     let mut members = Vec::new();
     let mut excluded_documentation = Vec::new();
@@ -1007,14 +1014,17 @@ fn patcher_layout(entries: &[archive::OriginalEntry]) -> Result<PatcherLayout> {
             members.push(path.to_owned());
         } else if executable {
             ensure!(
-                !path.contains('/'),
+                path.rsplit_once('/').map_or("", |(parent, _)| parent) == wrapper.unwrap_or(""),
                 "Method archive installer is not beside tslpatchdata"
             );
             installers.push(path.to_owned());
-        } else if documentation(path) {
-            excluded_documentation.push(path.to_owned());
         } else {
-            anyhow::bail!("Method archive has payload outside tslpatchdata");
+            let (parent, basename) = path.rsplit_once('/').unwrap_or(("", path));
+            ensure!(
+                (parent.is_empty() || Some(parent) == wrapper) && documentation(basename),
+                "Method archive has payload outside tslpatchdata"
+            );
+            excluded_documentation.push(path.to_owned());
         }
     }
     ensure!(
@@ -1025,7 +1035,10 @@ fn patcher_layout(entries: &[archive::OriginalEntry]) -> Result<PatcherLayout> {
         entries
             .iter()
             .filter(|entry| entry.is_directory)
-            .all(|entry| in_data(&entry.path, true)),
+            .all(|entry| {
+                in_data(&entry.path, true)
+                    || wrapper.is_some_and(|wrapper| entry.path.trim_end_matches('/') == wrapper)
+            }),
         "Method archive has additional directories or variants"
     );
     members.sort();
@@ -1087,7 +1100,11 @@ fn bind_patcher_method(
                         && extract.source == [format!("<<modDirectory>>\\{filename}")]
                         && extract.destination.is_empty()
                         && patch.action == "Patcher"
-                        && patch.source == [installer_source.clone()]
+                        // Native inference retains '/' in its structural wrapper.
+                        // Compare separators only; keep its serialized source and
+                        // every prefix, segment, spelling, and order unchanged.
+                        && patch.source.len() == 1
+                        && patch.source[0].replace('/', "\\") == installer_source
                         && patch.destination == "<<gameDirectory>>"
             ),
         "Patcher archive does not yield exactly an Extract and a Patcher instruction"

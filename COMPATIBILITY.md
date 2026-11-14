@@ -4769,3 +4769,15 @@ are retained with strict file/total size bounds inside encrypted diagnostics, in
 on failure. Archive, game and build trees remain outside that evidence. The real K2
 CLI and GUI lanes exposed unresolved recipes and a validation timeout; neither lane
 has established complete installation.
+
+Archive-bound single-run patcher inference can recognize one structural wrapper
+directory around its sole installer and tslpatchdata tree. It records the full
+paths and reuses the same exhaustive layout check during independent review.
+Namespaces, extra executables, other payload roots and unknown files remain
+fenced. Exact retained K2 inventories establish four eligible wrapper layouts;
+native generation/replay and real installation acceptance remain pending.
+
+After documented guide-choice projection, complete runs also refuse policy skips
+that still name an admitted component. A warning label does not prove an Aspyr,
+3C-FD or executable-patch prerequisite. Existing aggregate baseline receipts do
+not establish those states; no additional applicability exclusion is claimed.

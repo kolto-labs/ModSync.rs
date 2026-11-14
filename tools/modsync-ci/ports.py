@@ -3430,7 +3430,11 @@ def execute(args, report):
         # A complete run cannot recover missing required instructions by
         # validating and installing the remaining subset. Preserve every
         # refusal in the report and stop before expensive archive simulation.
-        if any(item.get("status") == NOT_INSTALLED
+        # A policy label does not establish platform applicability. After the
+        # independently checked projection, every remaining component GUID is
+        # required; guide-only applicability records have no component GUID.
+        if any(item.get("component_guid") is not None
+               and item.get("status") in {NOT_INSTALLED, SKIPPED_BY_POLICY}
                for item in report.get(SKIPPED_REPORT_KEY, [])):
             raise Blocked("complete_guide_unresolved_components")
     deselect = []
