@@ -162,9 +162,12 @@ jobs:
           RCLONE_CONFIG_MODCACHE_NO_CHECK_BUCKET: 'true'
           RCLONE_CONFIG_MODCACHE_ACCESS_KEY_ID: ${{ vars.MOD_CACHE_BUCKET && secrets.MOD_CACHE_S3_READ_ACCESS_KEY_ID || '' }}
           RCLONE_CONFIG_MODCACHE_SECRET_ACCESS_KEY: ${{ vars.MOD_CACHE_BUCKET && secrets.MOD_CACHE_S3_READ_SECRET_ACCESS_KEY || '' }}
-          RCLONE_CONFIG_MODCACHE_ENDPOINT: ${{ vars.MOD_CACHE_BUCKET && (secrets.MOD_CACHE_S3_ENDPOINT || vars.MOD_CACHE_S3_ENDPOINT) || '' }}
+          RCLONE_CONFIG_MODCACHE_ENDPOINT: ${{ secrets.MOD_CACHE_S3_ENDPOINT || vars.MOD_CACHE_S3_ENDPOINT }}
           MOD_CACHE_BUCKET: ${{ vars.MOD_CACHE_BUCKET }}
         run: |
+          if [[ -z "${MOD_CACHE_BUCKET:-}" ]]; then
+            unset RCLONE_CONFIG_MODCACHE_ACCESS_KEY_ID RCLONE_CONFIG_MODCACHE_SECRET_ACCESS_KEY RCLONE_CONFIG_MODCACHE_ENDPOINT
+          fi
           python tools/modsync-ci/fullrun_stage.py install --engine . --guides guide-input \
             --game "$GAME" --mode "$MODE" --game-dir "$RUNNER_TEMP/game" \
             --cache "$RUNNER_TEMP/mod-cache" --work-dir "$RUNNER_TEMP/lane-work" --output "$RUNNER_TEMP/lane-evidence"
