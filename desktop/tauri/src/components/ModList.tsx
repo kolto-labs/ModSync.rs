@@ -105,6 +105,11 @@ function Row({
             {mod.source_label}
           </Badge>
         )}
+        {mod.aspyr_only && (
+          <Badge variant="muted" className="shrink-0" title={t("builds.aspyrOnlyHint")}>
+            {t("builds.aspyrOnly")}
+          </Badge>
+        )}
         {mod.installed && rt.status === "PENDING" && (
           <Badge variant="success" className="shrink-0 border-0 bg-transparent px-0">Installed</Badge>
         )}

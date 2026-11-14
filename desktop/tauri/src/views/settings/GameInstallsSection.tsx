@@ -218,6 +218,11 @@ export function GameInstallsSection({
                     <p className="truncate font-mono text-xs text-muted-foreground" title={p.path}>
                       {p.path || t("settings.installs.noPath")}
                     </p>
+                    {p.detected && (
+                      <p className="text-xs text-muted-foreground">
+                        {t("settings.installs.detectedGame", { game: p.detected })}
+                      </p>
+                    )}
                   </div>
                   <div className="flex shrink-0 items-center gap-1">
                     {!isActive && (

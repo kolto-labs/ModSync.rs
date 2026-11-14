@@ -52,6 +52,8 @@ export interface BuildMod {
   auto_downloadable?: boolean;
   patch_urls?: string[];
   installed?: boolean;
+  /** Only works with the KOTOR 2 Aspyr update. */
+  aspyr_only?: boolean;
   /** Choices inside the mod, as the guide defines them. */
   options?: ModOption[];
   /** Other mods this one needs, and mods it cannot be combined with. */
@@ -114,6 +116,8 @@ export interface Profile {
   game: GameKey;
   path: string;
   is_default: boolean;
+  /** What the game folder looks like, e.g. "KOTOR 2 (Aspyr update)". */
+  detected?: string;
 }
 
 export interface ModInfo {

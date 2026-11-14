@@ -302,8 +302,23 @@ pub fn profile_game(st: &AppState, profile: &modsync::profiles::Profile) -> Stri
         .unwrap_or_else(|| "KOTOR1".into())
 }
 
+/// What the game folder looks like (`modsync::game::detect`), for showing.
+fn detected_label(path: &str) -> &'static str {
+    use modsync::game::Detected;
+    if path.trim().is_empty() || !Path::new(path.trim()).is_dir() {
+        return "";
+    }
+    match modsync::game::detect(&modsync::game::resolve_install_root(Path::new(path.trim()))) {
+        Detected::Kotor1 => "KOTOR 1",
+        Detected::Kotor2Legacy => "KOTOR 2",
+        Detected::Kotor2Aspyr => "KOTOR 2 (Aspyr update)",
+        Detected::Unknown => "Not recognized",
+    }
+}
+
 fn profile_json(st: &AppState, profile: &modsync::profiles::Profile) -> Value {
     json!({
+        "detected": detected_label(profile.kotor_directory.as_deref().unwrap_or_default()),
         "id": profile.name,
         "name": profile.name,
         "game": profile_game(st, profile),

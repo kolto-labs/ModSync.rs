@@ -314,6 +314,7 @@ pub fn mod_json(
         "patch_urls": links.iter().skip(1).collect::<Vec<_>>(),
         "installed": installed,
         "options": options_json(&c.options),
+        "aspyr_only": modsync::game::aspyr_exclusive(c),
         "dependencies": names(all, &c.dependencies),
         "restrictions": names(all, &c.restrictions),
     })
