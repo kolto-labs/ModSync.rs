@@ -41,33 +41,6 @@ darkQuery.addEventListener('change', syncToggles);
 syncToggles();
 requestAnimationFrame(() => root.classList.add('theme-anim'));
 
-const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-// Landing page: sections settle in once as they scroll into view.
-const reveals = document.querySelectorAll('.rv');
-if (reveals.length && 'IntersectionObserver' in window && !reduceMotion) {
-  root.classList.add('reveal-ready');
-  const observer = new IntersectionObserver(
-    (entries) => {
-      for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
-        entry.target.classList.add('in');
-        observer.unobserve(entry.target);
-      }
-    },
-    { rootMargin: '0px 0px -8% 0px', threshold: 0.12 },
-  );
-  for (const el of reveals) observer.observe(el);
-}
-
-// Landing top bar: gains a solid background once the page scrolls.
-const bar = document.querySelector('.bar');
-if (bar) {
-  const onScroll = () => bar.classList.toggle('solid', scrollY > 12);
-  addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
-}
-
 // Docs: on a phone the sidebar is a header, and the menu button opens the page list.
 const side = document.querySelector('.docs-side');
 const menu = document.querySelector('#docs-menu');

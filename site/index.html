@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>ModSync.rs</title>
-<meta name="description" content="ModSync.rs installs KOTOR 1 and KOTOR 2 mod builds from a guide's instruction file: the mods you pick, in the order the guide sets, with a check first and a snapshot to restore from." />
+<meta name="description" content="ModSync installs KOTOR 1 and KOTOR 2 mod builds from a guide's instruction file: the mods you pick, in the order the guide sets, with a check first and a snapshot to restore from." />
 <meta name="theme-color" content="#14110d" />
 <link rel="icon" href="assets/modsync.svg" type="image/svg+xml" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -17,11 +17,10 @@
 <body>
 <a class="skip" href="#main">Skip to content</a>
 
-<header class="bar">
+<header class="mp-top">
   <div class="wrap">
-    <a class="mark" href="./"><img class="logo" src="assets/modsync.svg" alt="" width="22" height="22" />ModSync.rs</a>
+    <a class="mark" href="./"><img class="logo" src="assets/modsync.svg" alt="" width="22" height="22" />ModSync</a>
     <nav aria-label="Site">
-      <a class="opt" href="#how">How it works</a>
       <a href="getting-started.html">Docs</a>
       <a data-repo="" href="https://github.com/ChristopherVR/ModSync.rs">GitHub</a>
       <button class="icon-btn" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch appearance">
@@ -32,158 +31,142 @@
   </div>
 </header>
 
-<main id="main">
+<main id="main" class="wrap mp">
 
-  <section class="hero">
-    <div class="wrap hero-grid">
-      <div>
-        <p class="eyebrow rise">For Knights of the Old Republic I &amp; II</p>
-        <h1 class="rise">A whole mod build, <span class="serif">in order.</span></h1>
-        <p class="lead rise">ModSync.rs reads a mod guide's instruction file and installs <b>the mods you pick, one after another, in the order the guide sets</b>. It checks everything first and keeps a snapshot, so a failed install can be put back.</p>
-        <div class="rise">
-          <div class="cta">
-            <a class="btn" data-repo="/releases" href="https://github.com/ChristopherVR/ModSync.rs/releases">
-              <span>Get ModSync.rs</span>
-              <svg viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1v11M2 7.5 7 12.5 12 7.5" stroke="currentColor" stroke-width="1.6"/></svg>
-            </a>
-            <a class="btn ghost" href="getting-started.html">Read the guide</a>
-          </div>
-          <p class="meta">Desktop app and command line &middot; Builds on Windows, macOS and Linux &middot; No .NET needed</p>
-          <a class="status-pill" href="status.html"><i aria-hidden="true"></i>Early version: not yet a verified replacement for the original ModSync</a>
-        </div>
-      </div>
-
-      <figure class="datapad rise">
-        <div class="pad" role="img" aria-label="Illustration of the Choose mods step: a list of mods with check boxes, three ticked, and a validation result reading no problems found, ready to install.">
-          <div class="pad-bar" aria-hidden="true"><b>Choose mods</b><span>KOTOR 1 build</span><span class="pad-steps"><span class="on"></span><span class="on"></span><span></span><span></span></span></div>
-          <div class="pad-body" aria-hidden="true">
-            <div class="pad-row on"><span class="box"></span><span class="name">Community patch</span><small>Essential</small></div>
-            <div class="pad-row on"><span class="box"></span><span class="name">Character texture pack</span><small>Recommended</small></div>
-            <div class="pad-row"><span class="box"></span><span class="name">Alternate music</span><small>Optional</small></div>
-            <div class="pad-row on"><span class="box"></span><span class="name">Restored dialogue</span><small>Recommended</small></div>
-          </div>
-          <div class="pad-foot" aria-hidden="true"><span class="ok">Validation passed</span><span>3 mods</span><span class="go">Install</span></div>
-        </div>
-        <figcaption>An illustration of the steps, not a screenshot. Mod names are made up.</figcaption>
-      </figure>
-    </div>
-  </section>
-
-  <section class="section tight" id="what">
-    <div class="wrap">
-      <div class="head">
-        <h2 class="rv">One guide, <span class="serif">every mod</span> in its place.</h2>
-        <p class="rv">Big KOTOR builds mean dozens of mods that must go in a set order, with files to delete, folders to pick and patchers to run. ModSync.rs does those steps for you, exactly as the guide author wrote them.</p>
-      </div>
-      <ul class="grid rv">
-        <li class="card">
-          <span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M4 12h16M4 18h7"/><path d="m16 15 3 3-3 3"/></svg></span>
-          <h3>Follows the guide's order</h3>
-          <p>Mods install one after another in the order the guide's dependencies set, and the install stops at the first problem instead of carrying on.</p>
-        </li>
-        <li class="card">
-          <span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z"/></svg></span>
-          <h3>Checks before it changes anything</h3>
-          <p>Validation walks through the whole install in memory, looking inside archives, and never changes your game or mod folders.</p>
-        </li>
-        <li class="card">
-          <span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></span>
-          <h3>A snapshot to go back to</h3>
-          <p>Before installing it copies your game and mod folders. If something fails, <code>restore</code> checks that copy and puts both folders back.</p>
-        </li>
-        <li class="card">
-          <span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M12 3v4M12 9v2M12 13v2"/></svg></span>
-          <h3>Opens the archives mods ship in</h3>
-          <p>ZIP, 7z, RAR, TAR, GZip and 7z self-extracting files, read straight from your mod folder.</p>
-        </li>
-        <li class="card">
-          <span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.5-2.5z"/></svg></span>
-          <h3>Runs patchers when you allow it</h3>
-          <p>Mods that use TSLPatcher-style installers can be patched for you. A patcher, or any other outside program, only runs once you allow it.</p>
-        </li>
-        <li class="card">
-          <span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/></svg></span>
-          <h3>Knows which game you have</h3>
-          <p>Detects KOTOR 1, KOTOR 2 and the newer Aspyr release of KOTOR 2, and leaves out Aspyr-only mods when your copy is not the Aspyr release.</p>
-        </li>
+  <section class="panel mp-banner" aria-labelledby="title">
+    <img class="mp-logo" src="assets/modsync.svg" alt="" width="64" height="64" />
+    <div>
+      <h1 id="title">ModSync <small>Rust edition</small></h1>
+      <p class="mp-tagline">Installs a KOTOR mod build from its guide: the mods you pick, in the guide's order.</p>
+      <ul class="mp-meta" aria-label="Details">
+        <li class="pre">Pre-release</li>
+        <li><b>Games:</b> KOTOR 1, KOTOR 2</li>
+        <li><b>Platforms:</b> Windows, Linux, macOS</li>
+        <li><b>License:</b> BSL 1.1</li>
       </ul>
     </div>
-  </section>
-
-  <section class="section tight" id="how">
-    <div class="wrap">
-      <div class="head">
-        <h2 class="rv">Four steps to a <span class="serif">modded game.</span></h2>
-        <p class="rv">Download the mod archives your guide lists first. After that, the install is a short walk through the app.</p>
-      </div>
-      <ol class="steps">
-        <li class="rv">
-          <h3>Load the guide</h3>
-          <p>Open the instruction file that comes with the mod build you want to follow. It can be TOML, JSON, YAML, XML or Markdown.</p>
-        </li>
-        <li class="rv">
-          <h3>Choose your folders</h3>
-          <p>Point ModSync.rs at your <b>game folder</b> and at the folder where you keep the <b>downloaded mod archives</b>. It can remember both for next time.</p>
-        </li>
-        <li class="rv">
-          <h3>Pick your mods</h3>
-          <p>Tick the mods you want, or select a whole tier or category at once. Mods that another mod needs are added for you. A spoiler-free mode hides plot details in names and descriptions.</p>
-        </li>
-        <li class="rv">
-          <h3>Validate, then install</h3>
-          <p>Run validation and read the report. When it passes, install. Progress shows as each mod finishes. If you press Stop, it asks first and then stops at the next safe point.</p>
-        </li>
-      </ol>
-      <p class="rv" style="margin-top:28px"><a href="getting-started.html">Read the full walkthrough</a></p>
+    <div class="mp-actions">
+      <a class="btn" data-repo="/releases" href="https://github.com/ChristopherVR/ModSync.rs/releases">
+        <svg viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1v9M3 6.5 7 10.5 11 6.5M1.5 13h11" stroke="currentColor" stroke-width="1.6"/></svg>
+        <span>Download</span>
+      </a>
+      <a class="btn ghost" data-repo="" href="https://github.com/ChristopherVR/ModSync.rs">View on GitHub</a>
     </div>
+    <p class="mp-notice">This is an early version, not yet a verified replacement for every feature of the original C# ModSync. <a href="status.html">See what works today</a>.</p>
   </section>
 
-  <section class="section tight" id="not-the-build">
-    <div class="wrap">
-      <div class="head">
-        <h2 class="rv">ModSync is <span class="serif">not</span> the mod build.</h2>
-        <p class="rv">It is the tool that follows one. The choices about which mods go in, and how, belong to the people who write the guide.</p>
-      </div>
-      <div class="split rv">
+  <nav aria-label="Sections">
+    <ul class="mp-tabs">
+      <li><a href="#description">Description</a></li>
+      <li><a href="#requirements">Requirements</a></li>
+      <li><a href="#installation">Installation</a></li>
+      <li><a href="#releases">Releases</a></li>
+      <li><a href="getting-started.html">Docs</a></li>
+    </ul>
+  </nav>
+
+  <div class="mp-body">
+    <div class="mp-main">
+
+      <section class="panel mp-section" id="description" aria-labelledby="h-description">
+        <h2 id="h-description">Description</h2>
         <div>
-          <p><b>Guide authors</b> write an instruction file for their build: every mod, where to get it, and each step to install it, such as "extract this archive, copy these files into Override, delete these older textures". That file is published with the build.</p>
-          <p><b>Players</b> load that file, pick the mods they want, and let ModSync.rs carry out the steps. Nobody has to edit the file by hand.</p>
+          <p>Big KOTOR mod builds have dozens of mods that must go in a set order, with archives to extract, files to copy or delete and patchers to run. Guide authors write those steps into an instruction file. ModSync reads that file and carries out the steps for the mods you pick. It is a desktop app and a command line tool, written in Rust, and it does not need .NET.</p>
+          <p>ModSync is not a mod build and contains no mods. You download each mod from the page its guide links to.</p>
+          <h3>How it works</h3>
+          <ol>
+            <li><strong>Load the guide.</strong> Open the build's instruction file (TOML, JSON, YAML, XML or Markdown).</li>
+            <li><strong>Choose your folders.</strong> Your game folder, and the folder with the downloaded mod archives.</li>
+            <li><strong>Pick your mods.</strong> Tick them one by one, or a whole tier or category at once.</li>
+            <li><strong>Validate, then install.</strong> Validation checks everything without changing your folders. Then the mods install one after another, stopping at the first problem.</li>
+          </ol>
+          <h3>Features</h3>
+          <ul>
+            <li>Follows the guide's install order and dependencies.</li>
+            <li>Takes a snapshot of your game and mod folders before installing, and can restore it if an install fails.</li>
+            <li>Opens ZIP, 7z, RAR, TAR and GZip archives.</li>
+            <li>Runs TSLPatcher-style patchers once you allow outside programs.</li>
+            <li>Detects KOTOR 1, KOTOR 2 and the Aspyr release of KOTOR 2.</li>
+            <li>Spoiler-free names and descriptions, if the guide provides them.</li>
+          </ul>
         </div>
-        <div>
-          <p><b>No mods come with ModSync.rs.</b> You download each mod from the page the guide links to, usually on Deadlystream or Nexus Mods, in your browser. Some direct download links can be fetched and checked for you.</p>
-          <p><b>Writing a guide?</b> ModSync.rs can convert between guide formats, draft instructions from a Markdown guide for you to review, and check a guide without installing it. <a href="instruction-files.html">See instruction files</a>.</p>
-        </div>
-      </div>
-    </div>
-  </section>
+      </section>
 
-  <section class="section end">
-    <div class="wrap">
-      <h2 class="rv">Ready when <span class="serif">you are.</span></h2>
-      <div class="cta rv">
-        <a class="btn" data-repo="/releases" href="https://github.com/ChristopherVR/ModSync.rs/releases">
-          <span>Get ModSync.rs</span>
-          <svg viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1v11M2 7.5 7 12.5 12 7.5" stroke="currentColor" stroke-width="1.6"/></svg>
-        </a>
-        <a class="btn ghost" href="getting-started.html#build">Build it yourself</a>
-      </div>
-      <p class="fine rv">Ready-made downloads appear on the Releases page when one is published. Until then, or for any platform without one, you can build it from source. ModSync.rs contains no mods and no game files. Mods belong to their authors. Instruction behaviour is based on <a href="https://github.com/th3w1zard1/ModSync">ModSync</a>, whose license is kept with the source.</p>
+      <section class="panel mp-section" id="requirements" aria-labelledby="h-requirements">
+        <h2 id="h-requirements">Requirements</h2>
+        <div>
+          <ul>
+            <li>KOTOR 1 or KOTOR 2 installed.</li>
+            <li>The instruction file for the mod build you want to follow.</li>
+            <li>The build's mod archives, downloaded into one folder.</li>
+            <li>Free disk space for a full copy of your game folder and mod folder (the snapshot).</li>
+            <li>To build from source: Rust (stable) and a C/C++ build toolchain.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="panel mp-section" id="installation" aria-labelledby="h-installation">
+        <h2 id="h-installation">Installation</h2>
+        <div>
+          <ol>
+            <li>Back up your game folder.</li>
+            <li>Download ModSync from the <a data-repo="/releases" href="https://github.com/ChristopherVR/ModSync.rs/releases">Releases page</a>, or <a href="getting-started.html#build">build it from source</a> if there is no download for your system yet.</li>
+            <li>Optional: <a href="getting-started.html#demo">try it on sample folders</a> first.</li>
+            <li>Open ModSync and follow the four steps above. The <a href="getting-started.html#desktop">full walkthrough</a> covers each screen.</li>
+          </ol>
+          <p>If an install fails, restore first, then run the whole guide again. See <a href="safety.html">Safety and recovery</a>.</p>
+        </div>
+      </section>
+
+      <section class="panel mp-section" id="releases" aria-labelledby="h-releases">
+        <h2 id="h-releases">Releases</h2>
+        <div>
+          <p>Downloads and release notes are published on the <a data-repo="/releases" href="https://github.com/ChristopherVR/ModSync.rs/releases">GitHub Releases page</a> when a release is available. Packages are unsigned pre-releases, so Windows or macOS may warn you the first time you open one.</p>
+        </div>
+      </section>
+
     </div>
-  </section>
+
+    <aside class="mp-aside" aria-label="About this project">
+      <div class="panel">
+        <h2>File information</h2>
+        <div>
+          <dl class="facts">
+            <dt>Status</dt><dd>Pre-release</dd>
+            <dt>Version</dt><dd>0.1.0</dd>
+            <dt>Games</dt><dd>KOTOR 1, KOTOR 2</dd>
+            <dt>Platforms</dt><dd>Windows, Linux, macOS</dd>
+            <dt>Needs .NET</dt><dd>No</dd>
+            <dt>License</dt><dd>Business Source License 1.1</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Links</h2>
+        <div>
+          <ul class="links">
+            <li><a data-repo="/releases" href="https://github.com/ChristopherVR/ModSync.rs/releases">Downloads</a></li>
+            <li><a data-repo="" href="https://github.com/ChristopherVR/ModSync.rs">Source code</a></li>
+            <li><a data-repo="/issues" href="https://github.com/ChristopherVR/ModSync.rs/issues">Report a problem</a></li>
+            <li><a href="getting-started.html">Documentation</a></li>
+            <li><a href="faq.html">FAQ</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Credits</h2>
+        <div>
+          <p>Instruction behaviour is based on <a href="https://github.com/th3w1zard1/ModSync">ModSync</a> by th3w1zard1. Its license and notices are kept with the source.</p>
+          <p>ModSync contains no mods and no game files. Mods belong to their authors.</p>
+        </div>
+      </div>
+    </aside>
+  </div>
 
 </main>
 
 <footer class="site-foot">
-  <div class="wrap">
-    <span>Made for the KOTOR modding community</span>
-    <nav aria-label="Footer">
-      <a href="getting-started.html">Docs</a>
-      <a href="faq.html">FAQ</a>
-      <a data-repo="" href="https://github.com/ChristopherVR/ModSync.rs">Source</a>
-      <a data-repo="/releases" href="https://github.com/ChristopherVR/ModSync.rs/releases">Releases</a>
-      <a data-repo="/issues" href="https://github.com/ChristopherVR/ModSync.rs/issues">Report a problem</a>
-    </nav>
-  </div>
+  <div class="wrap">Made for the KOTOR modding community. <a data-repo="/issues" href="https://github.com/ChristopherVR/ModSync.rs/issues">Report a problem</a></div>
 </footer>
 </body>
 </html>
