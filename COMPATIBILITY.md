@@ -1,5 +1,18 @@
 # Compatibility and proof boundaries
 
+## Mod page details - 2026-11-14
+
+`mod_info::fetch` returns the title, description, author and screenshot links
+for a DeadlyStream file page (parsed from the page's HTML: the file description
+block, profile link and screenshot gallery, falling back to Open Graph tags) or a
+Nexus Mods mod page (from the Nexus API, which needs a saved key; `NexusModInfo`
+now also carries `summary`, `description`, `picture_url` and `author`).
+`fetch_image` fetches one screenshot (and `image_data_url` returns it as a `data:` URL). Requests are HTTPS
+only, limited to those two sites and to bounded sizes, and nothing is written.
+The HTML parsing follows the current site layout and may miss details if it
+changes. `modsync mod-info <url>` prints the details. Not covered by Rust tests
+(frozen by AGENTS.md).
+
 ## Library removal and duplicates - 2026-11-14
 
 `Service::remove_from_library` deletes `staging/<component>` for a component

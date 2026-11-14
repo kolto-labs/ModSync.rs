@@ -44,6 +44,17 @@ pub struct NexusModInfo {
         deserialize_with = "boolean_available_default"
     )]
     pub available: bool,
+    /// Short summary shown on the mod page.
+    #[serde(default, deserialize_with = "null_string_default")]
+    pub summary: String,
+    /// The full description, in Nexus BBCode.
+    #[serde(default, deserialize_with = "null_string_default")]
+    pub description: String,
+    /// The mod's main image.
+    #[serde(default)]
+    pub picture_url: Option<String>,
+    #[serde(default, deserialize_with = "null_string_default")]
+    pub author: String,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]

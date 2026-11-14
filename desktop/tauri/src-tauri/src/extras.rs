@@ -52,6 +52,96 @@ pub fn sign_out_gamefront() {}
 #[tauri::command]
 pub fn set_nxm_handler() {}
 
+fn component_link(app: &AppHandle, id: &str) -> Option<String> {
+    let st = crate::state::state(app);
+    let inner = st.lock();
+    let component = inner
+        .loaded
+        .as_ref()?
+        .guide
+        .components
+        .iter()
+        .find(|c| c.guid.eq_ignore_ascii_case(id))?
+        .clone();
+    drop(inner);
+    let mut links: Vec<String> = component.resource_registry.keys().cloned().collect();
+    if let Some(serde_json::Value::String(url)) = component.metadata.get("Link") {
+        links.push(url.clone());
+    }
+    links
+        .into_iter()
+        .find(|l| modsync::mod_info::page(l).is_some())
+}
+
+pub fn mod_info(app: &AppHandle, r: &crate::api::Request) -> Reply {
+    let id = r.q("file_id");
+    let Some(url) = component_link(app, &id) else {
+        return Ok(
+            json!({"title": "", "description": "", "images": [], "author": "", "ds_url": "", "nexus_url": "", "error": "No mod page"}),
+        );
+    };
+    let key = crate::state::state(app).nexus_key();
+    match modsync::mod_info::fetch(&url, key, &std::sync::atomic::AtomicBool::new(false)) {
+        Ok(Some(info)) => Ok(json!({
+            "title": info.title,
+            "description": info.description,
+            "images": info.images,
+            "author": info.author,
+            "ds_url": if info.source == "deadlystream" { info.page_url.clone() } else { String::new() },
+            "nexus_url": if info.source == "nexus" { info.page_url.clone() } else { String::new() },
+        })),
+        Ok(None) => Err(fail(404, "No mod page")),
+        Err(error) => Ok(
+            json!({"title": "", "description": "", "images": [], "author": "", "ds_url": url, "nexus_url": "", "error": format!("{error:#}")}),
+        ),
+    }
+}
+
+/// Serve `kmm-image://<url>`: a screenshot fetched by the engine, so the
+/// mod sites' hotlink protection does not block it.
+pub fn image_protocol(
+    request: tauri::http::Request<Vec<u8>>,
+    responder: tauri::UriSchemeResponder,
+) {
+    std::thread::spawn(move || {
+        let raw = request.uri().path().trim_start_matches('/').to_owned();
+        let url = percent_decode(&raw);
+        let response = match modsync::mod_info::fetch_image(
+            &url,
+            &std::sync::atomic::AtomicBool::new(false),
+        ) {
+            Ok((kind, bytes)) => tauri::http::Response::builder()
+                .header("Content-Type", kind)
+                .body(bytes),
+            Err(_) => tauri::http::Response::builder()
+                .status(404)
+                .body(Vec::new()),
+        };
+        if let Ok(response) = response {
+            responder.respond(response);
+        }
+    });
+}
+
+fn percent_decode(text: &str) -> String {
+    let bytes = text.as_bytes();
+    let mut out = Vec::with_capacity(bytes.len());
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'%'
+            && i + 2 < bytes.len()
+            && let Ok(byte) = u8::from_str_radix(&text[i + 1..i + 3], 16)
+        {
+            out.push(byte);
+            i += 3;
+            continue;
+        }
+        out.push(bytes[i]);
+        i += 1;
+    }
+    String::from_utf8_lossy(&out).into_owned()
+}
+
 pub fn login(app: &AppHandle, r: &crate::api::Request) -> Reply {
     let username = r.b("username");
     let password = r.b("password");

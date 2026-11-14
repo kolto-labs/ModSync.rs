@@ -324,6 +324,14 @@ enum Action {
         #[arg(long)]
         source_dir: PathBuf,
     },
+    /// Show the title, description, author and screenshots of a DeadlyStream or
+    /// Nexus Mods page as JSON (Nexus needs a saved API key).
+    ModInfo {
+        url: String,
+        /// Settings directory holding the Nexus API key.
+        #[arg(long)]
+        settings_dir: Option<PathBuf>,
+    },
     /// List KOTOR installs found on this computer (Steam, GOG, Origin). Read-only.
     DetectGames {
         /// Print the installs as JSON.
@@ -2656,6 +2664,23 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             game_dir,
             source_dir,
         }) => recovery::restore(&Roots::new(&source_dir, &game_dir)?),
+        Some(Action::ModInfo { url, settings_dir }) => {
+            let key = if matches!(
+                modsync::mod_info::page(&url),
+                Some(modsync::mod_info::Page::Nexus { .. })
+            ) {
+                modsync::profiles::Store::from_settings_directory(settings_dir.as_deref())?
+                    .nexus_api_key()?
+            } else {
+                None
+            };
+            let cancelled = modsync::p2p::stop_signal_flag()?;
+            match modsync::mod_info::fetch(&url, key, &cancelled)? {
+                Some(info) => println!("{}", serde_json::to_string_pretty(&info)?),
+                None => anyhow::bail!("Only DeadlyStream and Nexus Mods pages are supported"),
+            }
+            Ok(())
+        }
         Some(Action::DetectGames { json }) => {
             let installs = modsync::game_locator::find_installs();
             if json {

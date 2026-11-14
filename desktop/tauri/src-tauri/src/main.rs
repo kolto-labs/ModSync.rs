@@ -18,6 +18,10 @@ fn main() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .manage(app_state);
+    let builder = builder
+        .register_asynchronous_uri_scheme_protocol("kmm-image", |_ctx, request, responder| {
+            extras::image_protocol(request, responder)
+        });
     builder
         .on_window_event(|window, event| {
             // Closing mid-install would stop the engine between steps. Ask the

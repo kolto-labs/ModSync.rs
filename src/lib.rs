@@ -19,6 +19,7 @@ pub mod game_locator;
 pub mod host_metadata;
 pub mod install_progress;
 pub mod merge;
+pub mod mod_info;
 pub mod model;
 pub mod p2p;
 pub mod patcher;
