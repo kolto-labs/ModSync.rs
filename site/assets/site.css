@@ -1252,3 +1252,9 @@ details.faq > div {
   .mp-top nav a[data-repo] { display: none; }
   .hero-actions .btn { flex: 1 1 auto; }
 }
+
+/* A separate palette control switches visual themes without changing light/dark. */
+[data-site-style-toggle][aria-pressed='true'] {
+  background: var(--selected);
+  color: var(--accent-ink);
+}

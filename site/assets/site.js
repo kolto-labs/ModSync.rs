@@ -17,7 +17,26 @@ for (const node of document.querySelectorAll('[data-repo-url]')) {
 // Appearance: the lab palette is the default; remember an explicit reading-mode choice.
 const root = document.documentElement;
 const toggles = document.querySelectorAll('[data-theme-toggle]');
+const styleToggles = document.querySelectorAll('[data-site-style-toggle]');
 const current = () => root.dataset.theme || 'dark';
+function syncThemeStyle() {
+  const classic = root.dataset.siteStyle === 'classic';
+  for (const button of styleToggles) {
+    const label = classic
+      ? 'Theme: Classic. Switch to Kolto Labs theme'
+      : 'Theme: Kolto Labs. Switch to Classic theme';
+    button.setAttribute('aria-pressed', String(classic));
+    button.setAttribute('aria-label', label);
+    button.title = label;
+  }
+  const logo = classic ? 'assets/modsync-classic.svg' : 'assets/modsync.svg';
+  for (const image of document.querySelectorAll('[data-project-logo]')) image.src = logo;
+  document.querySelector('link[rel="icon"]').href = logo;
+  const light = current() === 'light';
+  document.querySelector('meta[name="theme-color"]').content = classic
+    ? (light ? '#f5f0e6' : '#14110d')
+    : (light ? '#edf5f8' : '#03131c');
+}
 function syncToggles() {
   const dark = current() === 'dark';
   for (const button of toggles) {
@@ -34,9 +53,22 @@ for (const button of toggles) {
       localStorage.setItem('modsync-site-theme', next);
     } catch (e) {}
     syncToggles();
+    syncThemeStyle();
+  });
+}
+// Switching visual identity preserves the light/dark choice.
+for (const button of styleToggles) {
+  button.addEventListener('click', () => {
+    const next = root.dataset.siteStyle === 'classic' ? 'kolto' : 'classic';
+    root.dataset.siteStyle = next;
+    try {
+      localStorage.setItem('modsync-site-style', next);
+    } catch (e) {}
+    syncThemeStyle();
   });
 }
 syncToggles();
+syncThemeStyle();
 requestAnimationFrame(() => root.classList.add('theme-anim'));
 
 // Docs: on a phone the sidebar is a header, and the menu button opens the page list.

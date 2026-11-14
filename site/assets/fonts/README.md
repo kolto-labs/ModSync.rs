@@ -17,3 +17,13 @@ served locally so the site also works without a Google Fonts connection.
 
 The adjacent `kolto-labs.svg` is the pixel K favicon from the Kolto Labs site.
 The ModSync M mark retains its original shape with the shared blue/cyan palette.
+
+## Classic theme
+
+The optional Classic theme restores the original PR #83 type pairing:
+Instrument Sans Regular, Medium, and Semibold, and Instrument Serif Italic.
+Latin WOFF2 files are distributed by @fontsource/instrument-sans and
+@fontsource/instrument-serif via jsDelivr. Both are licensed under SIL OFL 1.1;
+see `instrumentsans-LICENSE.txt` and `instrumentserif-LICENSE.txt`.
+Upstream sources and licenses: https://github.com/google/fonts/tree/main/ofl/instrumentsans
+and https://github.com/google/fonts/tree/main/ofl/instrumentserif.
