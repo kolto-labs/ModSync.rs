@@ -4720,3 +4720,13 @@ The full-run workflow now owns its local cache/install/seed/P2P/tooling stages a
 ## Full-run diagnostics encryption
 
 Full-run evidence can use a native age X25519 public recipient (`DIAGNOSTICS_ENCRYPTION_RECIPIENT` Actions variable), with its private identity held offline. The legacy independent diagnostics secret remains supported; game/cache envelopes and their matching keys are unchanged. Public-key encryption does not authenticate the producer: evidence consumers must verify GitHub artifact/run/commit provenance and the ciphertext receipt. Credential reduction does not establish full-guide installation or change required coverage gates.
+
+## Full-run input recovery and GUI coverage
+
+Full-run archive preparation can recover a same-repository authenticated encrypted URL-to-object manifest. It checks source/transfer/guide provenance and current pins, filters cache metadata to approved fields, and verifies actual restored archive bytes before pruning the accelerator. A cache size limit no longer counts as byte verification. Legacy artifact credentials remain scoped to their selected namespace; manifest discovery uses the owning repository token.
+
+The explicit `--complete-guide` Rust GUI driver path covers native Base and Remaining phases and requires fresh validation, snapshot confirmation, cumulative component receipts and the actual final game-file manifest. Legacy single-phase behavior remains available. Required omissions, exclusions, partial results and incomplete phase evidence still fail the full-run gate. This adds a verification path; real full-guide runtime acceptance remains pending until an exact-head full CI run succeeds.
+
+Modern full-run game-backup recovery downloads each candidate ZIP once with its GitHub digest and size verified, then retains every existing per-part hash/MAC, joined seal, baseline authentication and required-module check. Legacy providers without modern ZIP metadata keep the original member API.
+
+Full-run `--complete-guide` admission now records the pinned guide's documented Linux installation choices. Original source/model coverage is checked first (K1 197 components, K2 151); one mutually exclusive cutscene alternative is inactive, producing 196/150 admitted components. The Windows-only manual helper was already outside Rust's converted model and is recorded as a guide-only applicability choice. The selected cutscene archives are rehashed on disk, K2's exact pins are enforced, and an exhaustive GUID partition plus unchanged retained model binds the input projection. This is complete coverage of these documented choices, not all alternatives or parity. Any other omission, failed binding, missing input or incomplete phase remains fatal.

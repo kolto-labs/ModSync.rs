@@ -117,3 +117,19 @@ The tools/format readers and immutable fixture corpus originate at Odyssey commi
 Keep behavior in the Python adapters and reusable local stages; keep event admission, runner choice and explicit secret mapping in YAML. Update this repository's tests/docs with its own changes. Cross-repository synchronization is a reviewable maintenance choice, not an execution dependency.
 
 Workflow dispatch files generally must first exist on the default branch to appear in the normal Run workflow UI. The push trigger can run the full graph directly on this feature branch. Runtime success still requires successful producer, installation and P2P jobs; the existence of a branch or workflow file is not full-game evidence.
+
+### Verified materialization before cache pruning
+
+The archive producer restores and verifies each requested guide's required inputs before pruning the reusable accelerator to 2.5 GiB. Per-game verification workspaces are removed between games. Policy-declared inputs stay explicit; unavailable required inputs fail, and install-stage omissions can never satisfy complete coverage. Install runs stop at the first failure instead of automatically quarantining required components.
+
+For cold caches, a same-repository `mod-archive-manifest-sealed` artifact supplies authenticated URL-to-object associations. Recovery checks its transfer/source run and commit, the exact guide files, current reviewed pins and the decrypted manifest's digest. Only approved hashes, sizes, archive names and reviewed selection labels enter the public cache; arbitrary source metadata, credentials and private tracker URLs are discarded. This is input metadata, not proof that archive bytes are available: restore still verifies every object.
+
+Reviewed seed migration accepts an exact source run and commit, one aggregate index and up to two ciphertext packs, plus an optional sealed association manifest. Source credentials stay on the source runner. After verified import, normal acquisition uses owning-repository built-in read credentials and the existing material key.
+
+The native GUI full-run path uses `--complete-guide` to drive both Base and Remaining phases. The coverage gate accepts completed widescreen coverage only with two phase receipts and a verified final component/file union. Legacy subset drivers remain available but cannot satisfy full-run coverage.
+
+### Documented installation choices
+
+A full run uses the pinned guides' Linux installation choices: K1's reviewed rescaled cutscenes and K2's reviewed remastered cutscenes. Each guide explicitly requires choosing one cutscene variant. The incompatible Windows manual helper is already outside Rust's converted model; it is recorded as guide-only context. The alternative cutscene component is the only inactive converted component in each game.
+
+Admission first proves original source/converted heading coverage, then checks the immutable guide revision/body, hashes the actual selected archives, validates the original/admitted component partition, and projects only the private converted input. Every retained field, instruction, order and dependency must be unchanged. K1 admits 196 of 197 converted components and K2 150 of 151; the inactive variant remains available in the product. Required inputs, other omissions and quarantined components still fail. GUI receipts must cover every admitted component across both applicable phases. Reports explicitly claim complete documented Linux installation choices, with parity and other alternatives unverified.

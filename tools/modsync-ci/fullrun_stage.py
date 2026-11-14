@@ -7,6 +7,11 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
+import tarfile
+import zipfile
+import artstore_client
+import fullrun_archive_manifest
 import cache
 import gui_diag
 import fullrun_contract as contract
@@ -86,20 +91,60 @@ def identity(engine, guide_root, engine_sha, guide_sha, output):
                                 "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT"), "cross_lane_parity": "unverified"})
 
 
+def uncached_options(games):
+    options = ["--allow-uncached-by-policy", "Optional Install Assistant - Quicker TSLPatching::Quicker TSLPatching"]
+    for game in games:
+        cutscene = ("Optional Widescreen & Extended Widescreen Support Mods::Remastered Cutscenes" if game == "k1"
+                    else "Enhanced Widescreen Support Mods::K2 Cutscenes Rescaled")
+        options += ["--allow-uncached-by-policy", cutscene]
+    return options
+
+
+def refresh(args, games):
+    guides(args.guides, games)
+    fullrun_archive_manifest.recover(args.cache, args.guides, games)
+    cache_root = Path(args.cache)
+    cache_root.parent.mkdir(parents=True, exist_ok=True)
+    evidence = Path(args.output)
+    receipts = []
+    # Restore verifies every required archive; the cache cap is a storage policy,
+    # never permission to count an unfetched OVER_LIMIT object as verified.
+    for game in games:
+        report_path = evidence / ("verify-%s.json" % game)
+        with tempfile.TemporaryDirectory(prefix="archive-verification-", dir=cache_root.parent) as temporary:
+            checked([sys.executable, str(HERE / "cache.py"), "restore", *guides(args.guides, [game]),
+                     "--cache-dir", args.cache, "--destination", temporary, "--report", str(report_path),
+                     *uncached_options([game]), *remote_options()], evidence / ("verify-%s-private.log" % game))
+            report = json.loads(report_path.read_text())
+            entries = report.get("entries")
+            expected = {item["id"] for item in cache.discover(guides(args.guides, [game])[1::2])}
+            if (report.get("ok") is not True or not isinstance(entries, list) or not entries
+                    or len(entries) != len(expected) or {entry.get("id") for entry in entries} != expected
+                    or any(entry.get("status") not in ("restored", cache.UNCACHED_SKIPPED) for entry in entries)):
+                raise ValueError("Archive verification did not restore every required guide input")
+            receipts.append({"game": game, "restored": sum(entry["status"] == "restored" for entry in entries),
+                             "policy_skipped": sum(entry["status"] == cache.UNCACHED_SKIPPED for entry in entries)})
+    manifest_path = cache_root / "manifest.json"
+    document = json.loads(manifest_path.read_text())
+    cache.prune(cache_root, document, 2684354560)
+    key = cache_key(manifest_path)
+    contract.emit_outputs({"archive_cache_key": key})
+    contract.write_json(evidence / "cache-receipt.json", {
+        "archive_cache_key": key, "games": games, "status": "verified", "verification": receipts})
+
+
 def install(args):
     temp = Path(args.output)
     temp.mkdir(parents=True, exist_ok=True)
     work = Path(args.work_dir)
     work.mkdir(parents=True, exist_ok=True)
-    options = ["--allow-uncached-by-policy", "Optional Install Assistant - Quicker TSLPatching::Quicker TSLPatching"]
-    cutscene = ("Optional Widescreen & Extended Widescreen Support Mods::Remastered Cutscenes" if args.game == "k1"
-                else "Enhanced Widescreen Support Mods::K2 Cutscenes Rescaled")
-    options += ["--allow-uncached-by-policy", cutscene]
+    fullrun_archive_manifest.recover(args.cache, args.guides, [args.game])
+    options = uncached_options([args.game])
     checked([sys.executable, str(HERE / "cache.py"), "restore", *guides(args.guides, [args.game]),
              "--cache-dir", args.cache, "--destination", str(work / "archives"),
              "--archive-map", str(temp / "archive-map.json"), "--report", str(temp / "restore.json"),
-             "--deselect-unavailable", *options, *remote_options()], temp / "restore-private.log")
-    checked([sys.executable, str(HERE / "ports.py"), "--implementation", "rust", "--mode", args.mode,
+             *options, *remote_options()], temp / "restore-private.log")
+    checked([sys.executable, str(HERE / "ports.py"), "--implementation", "rust", "--mode", args.mode, "--complete-guide", "--max-quarantine", "0",
              "--source", args.engine, "--guide", str(Path(args.guides) / "content" / args.game / "full.md"),
              "--game-dir", args.game_dir, "--archives", str(work / "archives"),
              "--archive-map", str(temp / "archive-map.json"), "--restore-report", str(temp / "restore.json"),
@@ -146,12 +191,7 @@ def main(argv=None):
             if not isinstance(requested_games, list) or not requested_games:
                 raise ValueError("games must be a nonempty list")
             if args.command == "refresh":
-                checked([sys.executable, str(HERE / "cache.py"), "refresh", *guides(args.guides, requested_games),
-                         "--cache-dir", args.cache, "--cache-limit-bytes", "2684354560", *remote_options()],
-                        Path(args.output) / "refresh-private.log")
-                key = cache_key(Path(args.cache) / "manifest.json")
-                contract.emit_outputs({"archive_cache_key": key})
-                contract.write_json(Path(args.output) / "cache-receipt.json", {"archive_cache_key": key, "games": requested_games})
+                refresh(args, requested_games)
             else:
                 command = [sys.executable, str(HERE / "seed_archives.py"), *guides(args.guides, requested_games)]
                 for identity in selected_seed_ids(args.guides, requested_games):
@@ -160,7 +200,8 @@ def main(argv=None):
                     command.append("--dry-run")
                 checked(command, Path(args.output) / "seed-private.log")
         return 0
-    except (OSError, ValueError, subprocess.SubprocessError):
+    except (OSError, ValueError, subprocess.SubprocessError, artstore_client.ArtifactError,
+            tarfile.TarError, zipfile.BadZipFile):
         print("::error::full-run stage failed; inspect retained stage evidence.", file=sys.stderr)
         return 1
     finally:

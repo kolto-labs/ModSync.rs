@@ -128,6 +128,7 @@ jobs:
       - name: Install the admitted full guide and require complete coverage
         env:
           ARTSTORE_REPOSITORY: ${{ inputs.artifact_repository || github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
           ARTSTORE_TOKEN: ${{ (!inputs.artifact_repository || inputs.artifact_repository == github.repository) && github.token || secrets.ARTSTORE_READ_TOKEN }}
           CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
           RCLONE_CONFIG_MODCACHE_TYPE: s3

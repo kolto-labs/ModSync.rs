@@ -4,6 +4,8 @@
 import argparse
 from cache import link_key
 import gui_diag
+from fullrun_contract import require_gui_phases
+import fullrun_guide_choices
 import hashlib
 import json
 import math
@@ -2308,7 +2310,7 @@ def rust_gui_failure_fields(failure, components):
 
 def install_rust_gui_with_quarantine(command, source, private, game, archives, converted, policy_guids,
                                      deselect, report, env, max_iterations=QUARANTINE_MAX_ITERATIONS,
-                                     max_fraction=QUARANTINE_MAX_FRACTION):
+                                     max_fraction=QUARANTINE_MAX_FRACTION, complete_guide=False):
     """Run the Rust GUI driver with the shared bounded install quarantine policy."""
     components = converted_components(converted)
     policy = report.get("quarantine") or start_quarantine(
@@ -2333,7 +2335,8 @@ def install_rust_gui_with_quarantine(command, source, private, game, archives, c
                  "--binary", command[0], "--input", str(converted),
                  "--game-dir", str(game), "--archives", str(archives),
                  "--work-dir", str(gui_work), "--report", str(driver_report),
-                 "--timeout", "7000", "--exclude-widescreen"]
+                 "--timeout", "7000"]
+                + (["--complete-guide"] if complete_guide else ["--exclude-widescreen"])
                 + [flag for guid_ in sorted(skipped) for flag in ("--deselect", guid_)],
                 source, private, stage, report, env)
         except Blocked as failure:
@@ -3333,6 +3336,8 @@ def execute(args, report):
     report["component_count"] = coverage(
         guide, converted, report, args.implementation, skipped)
     gui_rust = args.implementation == "rust" and args.mode == "gui"
+    complete_rust = args.implementation == "rust" and getattr(args, "complete_guide", False)
+    complete_gui = gui_rust and complete_rust
 
     def deselected_now():
         return {record["component_guid"] for record in report.get(SKIPPED_REPORT_KEY, [])
@@ -3341,12 +3346,43 @@ def execute(args, report):
     if args.implementation == "rust":
         report["stage"] = "draft_review"
         exempt = deselected_now()
-        if gui_rust:
+        if gui_rust and not complete_gui:
             exempt |= {item["component_guid"] for item in gui_widescreen_scope(converted, exempt)[0]}
         accept_drafts(command, source, converted, private, report, env, exempt, gui_rust)
         if digest(guide) != report["guide_sha256"]:
             raise Blocked("guide_changed_during_conversion")
         report["converted_sha256"] = digest(converted)
+    if complete_rust:
+        if args.restore_report is None or args.archive_map is None:
+            raise Blocked("complete_guide_requires_current_restore_report_and_archive_map")
+        report["stage"] = "guide_selection"
+        try:
+            receipt, retained = fullrun_guide_choices.project(
+                guide, converted, archives, args.restore_report.resolve(strict=True),
+                args.archive_map.resolve(strict=True),
+                Path(__file__).resolve().with_name("seed_pins.json"),
+                guide_step_list(guide.read_text(encoding="utf-8"), "rust")[0],
+                report.get(SKIPPED_REPORT_KEY, []))
+        except (ValueError, OSError, subprocess.SubprocessError) as error:
+            raise Blocked("documented_linux_guide_selection_refused: " + str(error)) from error
+        report["guide_selection"] = receipt
+        report["complete_guide"] = True
+        report["installation_scope"] = fullrun_guide_choices.CLAIM
+        report[SKIPPED_REPORT_KEY] = retained
+        report["original_converted_component_count"] = report["converted_component_count"]
+        report["converted_component_count"] = receipt["admitted_component_count"]
+        report["admitted_component_count"] = receipt["admitted_component_count"]
+        report["component_count"] = receipt["admitted_component_count"]
+        report["converted_sha256"] = digest(converted)
+        inactive = {item["component_guid"] for item in receipt["inactive"]
+                    if item["component_guid"] is not None}
+        # Keep original conversion diagnostics, separately attributed to the two
+        # inactive choices; they are not required admitted recipe components.
+        diagnostics = report.get(BIND_DIAGNOSTICS_KEY, [])
+        report["inactive_choice_bind_diagnostics"] = [
+            item for item in diagnostics if item.get("component_guid") in inactive]
+        report[BIND_DIAGNOSTICS_KEY] = [
+            item for item in diagnostics if item.get("component_guid") not in inactive]
     deselect = []
     for record in report.get(SKIPPED_REPORT_KEY, []):
         if record["component_guid"] is not None:
@@ -3355,8 +3391,10 @@ def execute(args, report):
     excluded, has_widescreen = ([], False)
     if gui_rust:
         excluded, has_widescreen = gui_widescreen_scope(converted, policy_guids)
+        if complete_gui:
+            excluded = []
         report["gui_not_covered"] = {
-            "widescreen_phase": "not_covered_by_gui_lane" if has_widescreen else "none_in_input",
+            "widescreen_phase": ("pending" if complete_gui else "not_covered_by_gui_lane") if has_widescreen else "none_in_input",
             "excluded_widescreen": excluded}
         deselect += [flag for item in excluded for flag in ("--deselect", item["component_guid"])]
     if args.implementation == "rust":
@@ -3446,6 +3484,10 @@ def execute(args, report):
         return
     directories = ["--input", str(converted), "--game-dir", str(game),
                    "--source-dir", str(archives)]
+    if complete_rust:
+        # Complete runs authorize the reviewed admitted external instructions.
+        # Desktop trust is independently enabled through its native checkbox.
+        directories += ["--allow-processes"]
     validate_with_quarantine(
         command, directories, deselect, converted, game, source, private, report, env,
         getattr(args, "max_quarantine", QUARANTINE_MAX_ITERATIONS),
@@ -3457,12 +3499,31 @@ def execute(args, report):
         driver_report = install_rust_gui_with_quarantine(
             command, source, private, game, archives, converted, policy_guids, deselect, report, env,
             getattr(args, "max_quarantine", QUARANTINE_MAX_ITERATIONS),
-            getattr(args, "max_quarantine_fraction", QUARANTINE_MAX_FRACTION))
+            getattr(args, "max_quarantine_fraction", QUARANTINE_MAX_FRACTION),
+            complete_guide=complete_gui)
         gui_skipped = policy_guids | {item["component_guid"] for item in quarantined_entries(report)}
         if not driver_report.is_file() or driver_report.is_symlink():
             raise Blocked("gui_completion_report_missing")
         result = json.loads(driver_report.read_text(encoding="utf-8"))
+        if not isinstance(result, dict):
+            raise Blocked("gui_completion_not_verified")
         expected_completed = (report["component_count"] - len(gui_skipped) - len(excluded))
+        if complete_gui:
+            expected_ids = {str(component.get("Guid", "")).lower()
+                            for component in converted_components(converted)} - gui_skipped
+            if set(result.get("completed_guids", [])) != expected_ids:
+                raise Blocked("gui_complete_guide_component_set_mismatch")
+            if has_widescreen and not gui_skipped:
+                try:
+                    require_gui_phases(result, report["component_count"])
+                except ValueError as error:
+                    raise Blocked("gui_complete_guide_phase_evidence_invalid: " + str(error)) from error
+            selected_widescreen = gui_widescreen_scope(converted, gui_skipped)[0]
+            expected_phase = ("completed_and_verified" if selected_widescreen else
+                              "not_installed_due_to_policy") if has_widescreen else "none_in_input"
+            if result.get("widescreen_phase") != expected_phase:
+                raise Blocked("gui_complete_guide_widescreen_phase_not_verified")
+            report["gui_not_covered"]["widescreen_phase"] = expected_phase
         if (not isinstance(result, dict)
                 or result.get("schema_version") != 1
                 or result.get("implementation") != "rust"
@@ -3506,6 +3567,8 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--implementation", choices=("rust", "typescript"), required=True)
     parser.add_argument("--mode", choices=("cli", "gui"), required=True)
+    parser.add_argument("--complete-guide", action="store_true",
+                        help="drive the Rust desktop through base and remaining phases with full receipt verification")
     parser.add_argument("--review-manifest", type=Path,
                         help="separately authored hash-bound JSON review (TypeScript required)")
     parser.add_argument("--archive-map", type=Path,

@@ -12,6 +12,7 @@ import re
 import sys
 
 from seal import MIN_KEY_BYTES, validate_recipient
+import fullrun_guide_choices
 
 OPERATIONS = ("check", "full", "games", "archives", "install", "seed", "p2p")
 SHA = re.compile(r"[0-9a-f]{40}")
@@ -76,6 +77,53 @@ def plan(config, execution_repository, own_sha, counterpart_sha="", operation="c
     return result
 
 
+def require_gui_phases(gui, count):
+    """Admit a complete native two-phase report only with cumulative receipt evidence."""
+    def identities(value):
+        if (not isinstance(value, list) or not value
+                or any(not isinstance(each, str) or re.fullmatch(
+                    r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", each) is None
+                    for each in value) or len(value) != len(set(value))):
+            raise ValueError("GUI phase component identities missing or duplicate")
+        return set(value)
+
+    def checksum(value):
+        return isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value) is not None
+
+    if (not isinstance(gui, dict) or gui.get("complete_guide") is not True
+            or gui.get("coverage") != "full" or gui.get("excluded_widescreen") != []
+            or gui.get("skipped_by_reviewed_policy") != []
+            or gui.get("status") != "installed" or gui.get("ui_completed") is not True
+            or gui.get("reason") != "native_gui_completed_and_receipt_verified"
+            or gui.get("completed_components") != count or gui.get("expected_components") != count
+            or gui.get("component_count") != count or not checksum(gui.get("receipt_sha256"))):
+        raise ValueError("GUI full-guide final receipt evidence missing")
+    phases = gui.get("phases")
+    if not isinstance(phases, list) or len(phases) != 2:
+        raise ValueError("GUI base and remaining phase receipts required")
+    cumulative = set()
+    for phase, name in zip(phases, ("base", "remaining")):
+        if (not isinstance(phase, dict) or phase.get("phase") != name
+                or phase.get("validation_passed") is not True
+                or phase.get("snapshot_confirmed") is not True
+                or phase.get("ui_completed") is not True
+                or not checksum(phase.get("receipt_sha256"))
+                or type(phase.get("verified_game_files")) is not int
+                or phase["verified_game_files"] <= 0):
+            raise ValueError("GUI phase validation, snapshot or receipt evidence missing")
+        expected = identities(phase.get("expected_guids"))
+        if cumulative & expected:
+            raise ValueError("GUI phase component sets overlap")
+        cumulative |= expected
+        if identities(phase.get("completed_guids")) != cumulative:
+            raise ValueError("GUI phase receipt does not cover cumulative component set")
+    if (len(cumulative) != count or identities(gui.get("completed_guids")) != cumulative
+            or gui["receipt_sha256"] != phases[-1]["receipt_sha256"]
+            or gui.get("verified_game_files") != phases[-1]["verified_game_files"]):
+        raise ValueError("GUI final receipt differs from verified remaining-phase receipt")
+    return cumulative
+
+
 def require_complete(report, mode, expected_guide_sha256=None):
     if not isinstance(report, dict) or report.get("status") != "installed" or report.get("implementation") != "rust":
         raise ValueError("required Rust lane did not complete installation")
@@ -91,14 +139,35 @@ def require_complete(report, mode, expected_guide_sha256=None):
         raise ValueError("missing or failing lane error reconciliation")
     if expected_guide_sha256 is not None and report.get("guide_sha256") != expected_guide_sha256:
         raise ValueError("report guide digest does not match the admitted guide")
+    selection = report.get("guide_selection")
+    if report.get("complete_guide") is True or selection is not None:
+        admitted = fullrun_guide_choices.validate_receipt(selection)
+        if (report.get("complete_guide") is not True
+                or report.get("installation_scope") != fullrun_guide_choices.CLAIM
+                or report.get("guide_sha256") != selection["source_guide_sha256"]
+                or report.get("source_component_count") != selection["original_component_count"]
+                or report.get("original_converted_component_count") != selection["original_component_count"]
+                or report.get("converted_component_count") != count
+                or report.get("admitted_component_count") != count or len(admitted) != count
+                or report.get("converted_sha256") != selection["admitted_input_sha256"]):
+            raise ValueError("guide selection recipe does not match installed lane input or source coverage")
+        if mode == "gui" and set((report.get("gui") or {}).get("completed_guids", [])) != admitted:
+            raise ValueError("GUI receipt does not cover every admitted recipe component")
     if mode == "gui":
         gui = report.get("gui")
         scope = report.get("gui_not_covered")
         if (not isinstance(gui, dict) or gui.get("coverage") != "full"
-                or not isinstance(scope, dict) or scope.get("excluded_widescreen") != []
-                or scope.get("widescreen_phase") != "none_in_input"):
+                or not isinstance(scope, dict) or scope.get("excluded_widescreen") != []):
+            raise ValueError("GUI subset or unverified widescreen phase is incomplete")
+        phase = scope.get("widescreen_phase")
+        if phase == "completed_and_verified":
+            require_gui_phases(gui, count)
+            if gui.get("widescreen_phase") != phase:
+                raise ValueError("GUI widescreen phase evidence mismatch")
+        elif phase != "none_in_input":
             raise ValueError("GUI subset or unverified widescreen phase is incomplete")
     return {"status": "complete", "component_count": count,
+            "installation_scope": fullrun_guide_choices.CLAIM if selection is not None else "all-input-components",
             "cross_lane_parity": "unverified"}
 
 

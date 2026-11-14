@@ -177,7 +177,8 @@ def recover(game, seal_dir, game_dir, *, legacy_repository="", local_only=False,
                     if identifier <= 0:
                         raise ValueError("invalid artifact id")
                     download = Path(tempfile.mkdtemp(prefix=namespace + "-", dir=work))
-                    game_backup.fetch(game, identifier, download, client)
+                    with game_backup.verified_zip_reader(client, item, download) as reader:
+                        game_backup.fetch(game, identifier, download, reader)
                     candidate = verify(download / game_backup.RESTORED_SEAL,
                                        "%s artifact %d" % (namespace, identifier))
                     if selected is None:

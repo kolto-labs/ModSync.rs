@@ -6,6 +6,10 @@ Pillow. Evidence is private under --work-dir; --report contains no OCR beyond
 the numeric "Base build" summary line and no mod names. The supplied game/workspace are real writable install targets. Failures
 leave application recovery state intact; this driver never retries an install.
 
+With --complete-guide the driver selects all admitted components, verifies the base
+receipt, runs fresh remaining-phase validation and installation in the same desktop,
+and verifies the final cumulative receipt and actual game manifest.
+
 Subset installs: --deselect GUID (repeatable, reviewed policy skips) and
 --exclude-widescreen install a defined subset of the converted TOML. The
 driver never edits the supplied file: it writes IsSelected into a private copy
@@ -406,7 +410,7 @@ def review_required(value):
     return isinstance(value, list) and any(review_required(child) for child in value)
 
 
-def plan_selection(components, deselect=(), exclude_widescreen=False):
+def plan_selection(components, deselect=(), exclude_widescreen=False, complete_guide=False):
     """Decide exactly which components the GUI will install, or refuse.
 
     Base components not deselected are selected (what "Select all" would do).
@@ -415,6 +419,8 @@ def plan_selection(components, deselect=(), exclude_widescreen=False):
     that the input selects makes the plan refuse. Draft review is checked on
     the components that remain selected only; the driver never authorizes it.
     """
+    if complete_guide and exclude_widescreen:
+        raise Blocked("complete_guide_conflicts_with_exclude_widescreen")
     identities = [str(component.get("Guid", "")).lower() for component in components]
     requested = [str(value).lower() for value in deselect]
     if len(set(requested)) != len(requested):
@@ -424,18 +430,18 @@ def plan_selection(components, deselect=(), exclude_widescreen=False):
     policy = set(requested)
     widescreen = {identity for identity, component in zip(identities, components)
                   if component.get("WidescreenOnly") is True}
-    not_installed = widescreen - policy
+    not_installed = set() if complete_guide else widescreen - policy
     selection = []
     for identity, component in zip(identities, components):
         if identity in policy:
             selection.append(False)
         elif identity in widescreen:
-            selection.append(component.get("IsSelected") is True and not exclude_widescreen)
+            selection.append(complete_guide or (component.get("IsSelected") is True and not exclude_widescreen))
         else:
             selection.append(True)
     if review_required([component for component, keep in zip(components, selection) if keep]):
         raise Blocked("draft_review_receipts_require_human_source_review_driver_cannot_authorize")
-    if any(keep and identity in widescreen for identity, keep in zip(identities, selection)):
+    if not complete_guide and any(keep and identity in widescreen for identity, keep in zip(identities, selection)):
         raise Blocked("full_input_contains_separate_widescreen_phase_driver_supports_single_phase_only")
     deselected = {identity for identity, keep in zip(identities, selection) if not keep}
     for component, keep in zip(components, selection):
@@ -444,19 +450,28 @@ def plan_selection(components, deselect=(), exclude_widescreen=False):
     if not any(selection):
         raise Blocked("no_component_left_selected")
     base = [identity not in widescreen for identity in identities]
-    return {
+    plan = {
         "selection": selection,
         "identities": identities,
         "expected_components": [identity for identity, keep in zip(identities, selection) if keep],
         "skipped_by_reviewed_policy": sorted(policy),
         "excluded_widescreen": sorted(not_installed),
-        "widescreen_phase": "not_covered_by_gui_lane" if widescreen else "none_in_input",
+        "widescreen_phase": ("pending" if complete_guide else "not_covered_by_gui_lane") if widescreen else "none_in_input",
         "base_total": sum(base),
         "base_selected": sum(keep and is_base for keep, is_base in zip(selection, base)),
         "subset": bool(policy or not_installed),
         "click_select_all": not any(identity in policy for identity, is_base
                                     in zip(identities, base) if is_base),
     }
+    if complete_guide:
+        plan["click_select_all"] = False
+        plan["base_guids"] = [identity for identity, keep in zip(identities, selection)
+                              if keep and identity not in widescreen]
+        plan["remaining_guids"] = [identity for identity, keep in zip(identities, selection)
+                                   if keep and identity in widescreen]
+        if not plan["base_guids"]:
+            raise Blocked("complete_guide_requires_nonempty_base_phase")
+    return plan
 
 
 def query_application_selection(binary, driven_input, game_dir, select_all, private,
@@ -970,6 +985,9 @@ def drive(args, private, result):
                 wait_for_selection_summary(observe_summary, plan, result, private)
             transition("validation_page", VALIDATION_NAV_LABEL, VALIDATION_PAGE_MARKER,
                        "validation_page_not_reached")
+            if getattr(args, "complete_guide", False) and plan.get("needs_process_trust"):
+                click("Trust this guide to run external programs", window=NAV_WINDOW_SECONDS)
+                result["external_program_trust"] = "native_checkbox_in_fresh_desktop"
             transition("validation_start", "Run validation", VALIDATION_STARTED_MARKER,
                        "validation_not_started")
             result["stage"] = "validation"
@@ -990,7 +1008,65 @@ def drive(args, private, result):
                    scales=BANNER_OCR_SCALES)
             result["ui_completed"] = True
             mark(stage="receipt")
-            verify_receipt(args, result, check_time, plan["expected_components"])
+            if not getattr(args, "complete_guide", False):
+                verify_receipt(args, result, check_time, plan["expected_components"])
+            else:
+                phases = []
+
+                def record_phase(phase, installed, cumulative, validation, confirmation):
+                    verify_receipt(args, result, check_time, cumulative)
+                    phases.append({"phase": phase, "expected_guids": sorted(installed),
+                        "completed_guids": result["completed_guids"],
+                        "validation_passed": validation,
+                        "snapshot_confirmed": (result[confirmation + "_navigation"]["reached"]
+                            and result[("installation_start" if phase == "base" else
+                                        "remaining_installation_start") + "_navigation"]["reached"]),
+                        "ui_completed": True, "receipt_sha256": result["receipt_sha256"],
+                        "verified_game_files": result["verified_game_files"]})
+                    result["phases"] = phases
+                    # A base receipt is intermediate evidence, never terminal success.
+                    result["status"] = "blocked"
+                    result["ui_completed"] = False
+
+                record_phase("base", plan["base_guids"], plan["base_guids"], True,
+                             "install_confirmation")
+                if plan["remaining_guids"]:
+                    transition("base_completion", "Continue",
+                        re.compile(r"Base\s*Installation\s*Complete", re.IGNORECASE),
+                        "base_completion_page_not_reached")
+                    if plan["widescreen_notice"]:
+                        transition("widescreen_notice", "Next",
+                            re.compile(r"Widescreen\s*Mods", re.IGNORECASE),
+                            "widescreen_notice_not_reached", pattern=NEXT_PATTERN)
+                    transition("remaining_selection", "Next",
+                        re.compile(r"\d+\s*widescreen\s*mods\s*selected", re.IGNORECASE),
+                        "remaining_selection_not_reached", pattern=NEXT_PATTERN)
+                    transition("remaining_validation_start", "Run validation", VALIDATION_STARTED_MARKER,
+                               "remaining_validation_not_started")
+                    result["stage"] = "remaining_validation"
+                    mark()
+                    locate("Validation passed", scales=BANNER_OCR_SCALES)
+                    transition("remaining_confirmation", "Next", INSTALL_CONFIRMATION_MARKER,
+                               "remaining_confirmation_not_reached", pattern=NEXT_PATTERN,
+                               scales=CONFIRMATION_OCR_SCALES, retry=False,
+                               page_marker=re.compile(r"widescreen\s*mods\s*selected", re.IGNORECASE))
+                    transition("remaining_installation_start", "Create snapshot and install",
+                               INSTALLATION_STARTED_MARKER, "remaining_installation_not_started",
+                               pattern=INSTALL_START_PATTERN, scales=INSTALL_START_OCR_SCALES,
+                               fragments=(INSTALL_START_FRAGMENTS, INSTALL_START_ANCHOR))
+                    result["stage"] = "remaining_installation"
+                    mark()
+                    locate("Installation complete", pattern=INSTALLATION_COMPLETE_PATTERN,
+                           scales=BANNER_OCR_SCALES)
+                    record_phase("remaining", plan["remaining_guids"], plan["expected_components"],
+                                 True, "remaining_confirmation")
+                    result["widescreen_phase"] = "completed_and_verified"
+                elif plan["widescreen_phase"] == "pending":
+                    result["widescreen_phase"] = "not_installed_due_to_policy"
+                # Re-read the final cumulative receipt and all actual files after both phases.
+                verify_receipt(args, result, check_time, plan["expected_components"])
+                result["ui_completed"] = True
+                result["complete_guide"] = True
     finally:
         if process is not None and process.poll() is None:
             process.terminate()
@@ -1037,6 +1113,7 @@ def verify_receipt(args, result, check_time, expected_ids):
     if observed != set(files):
         raise Blocked("completion_manifest_file_set_mismatch")
     result["receipt_sha256"] = digest(path)
+    result["completed_guids"] = sorted(actual_ids)
     result["completed_components"] = len(actual)
     result["verified_game_files"] = len(files)
     result["status"] = "installed"
@@ -1058,7 +1135,8 @@ def execute(args, result):
     identities = [component.get("Guid") for component in components]
     if any(not identity for identity in identities) or len(set(identities)) != len(identities):
         raise Blocked("component_identities_missing_or_duplicate")
-    plan = plan_selection(components, args.deselect, args.exclude_widescreen)
+    complete_guide = getattr(args, "complete_guide", False)
+    plan = plan_selection(components, args.deselect, args.exclude_widescreen, complete_guide)
     if not args.game_dir.is_dir() or not args.archives.is_dir():
         raise Blocked("real_game_and_archive_directories_required")
     args.work_dir = args.work_dir.resolve()
@@ -1086,11 +1164,23 @@ def execute(args, result):
     for name in ("skipped_by_reviewed_policy", "excluded_widescreen", "widescreen_phase"):
         result[name] = plan[name]
     (private / "input.toml").write_text(
-        rewrite_selection(input_text, plan["selection"]) if plan["subset"] else input_text,
+        rewrite_selection(input_text, plan["selection"]) if plan["subset"] or complete_guide else input_text,
         encoding="utf-8")
     result["driven_input_sha256"] = digest(private / "input.toml")
+    if complete_guide:
+        def needs_process(component):
+            return (any(str(step.get("Action", "")).casefold() in ("execute", "run")
+                        for step in component.get("Instructions", []) if isinstance(step, dict))
+                    or any(needs_process(option) for option in component.get("Options", [])
+                           if isinstance(option, dict) and option.get("IsSelected") is True))
+        plan["needs_process_trust"] = any(needs_process(component)
+            for component, keep in zip(components, plan["selection"]) if keep)
+        metadata = document.get("metadata", {})
+        warning = metadata.get("widescreenWarningContent", metadata.get("WidescreenWarningContent",
+            document.get("widescreenWarningContent", document.get("WidescreenWarningContent", ""))))
+        plan["widescreen_notice"] = isinstance(warning, str) and bool(warning.strip())
     save(private / "selection-plan.json", plan)
-    if plan["subset"]:
+    if plan["subset"] or complete_guide:
         selected, counts = query_application_selection(
             args.binary, private / "input.toml", args.game_dir, plan["click_select_all"], private)
         try:
@@ -1153,6 +1243,8 @@ def main():
     parser.add_argument("--exclude-widescreen", action="store_true",
                         help="deselect widescreen-only components in the private copy and report them "
                              "as not covered; without it a selected widescreen component is refused")
+    parser.add_argument("--complete-guide", action="store_true",
+                        help="drive and verify both native base and remaining installation phases")
     parser.add_argument("--timeout", type=float, required=True, help="Total GUI time budget in seconds")
     parser.add_argument("--private-worker", type=Path, help=argparse.SUPPRESS)
     args = parser.parse_args()
@@ -1162,8 +1254,7 @@ def main():
               "source_contract": ["src/ui/validation_page.rs", "src/ui.rs",
                                   "src/ui/installing_page.rs", "src/recovery.rs",
                                   "src/checkpoint/finalize.rs"],
-              "limitations": ["Widescreen-only components are never installed: refused when selected, "
-                              "otherwise reported in excluded_widescreen as not covered",
+              "limitations": ["Default mode installs one phase; --complete-guide requires both native phase receipts",
                               "Draft review cannot be authorized by this driver",
                               "Full guide coverage must be established by the caller",
                               "A failed install requires application recovery before retry"]}
