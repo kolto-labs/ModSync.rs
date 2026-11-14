@@ -4730,3 +4730,28 @@ The explicit `--complete-guide` Rust GUI driver path covers native Base and Rema
 Modern full-run game-backup recovery downloads each candidate ZIP once with its GitHub digest and size verified, then retains every existing per-part hash/MAC, joined seal, baseline authentication and required-module check. Legacy providers without modern ZIP metadata keep the original member API.
 
 Full-run `--complete-guide` admission now records the pinned guide's documented Linux installation choices. Original source/model coverage is checked first (K1 197 components, K2 151); one mutually exclusive cutscene alternative is inactive, producing 196/150 admitted components. The Windows-only manual helper was already outside Rust's converted model and is recorded as a guide-only applicability choice. The selected cutscene archives are rehashed on disk, K2's exact pins are enforced, and an exhaustive GUID partition plus unchanged retained model binds the input projection. This is complete coverage of these documented choices, not all alternatives or parity. Any other omission, failed binding, missing input or incomplete phase remains fatal.
+
+## Archive-bound movie installation
+
+Conversion preserves an explicit Movies destination even when it appears in a
+"Bear in mind" note. A bounded movie binding can generate Extract/Move
+instructions from one or more observed ZIPs containing only disjoint root `.bik`
+files. The reviewed 1920x1080/30fps 7z layout is separately bound to its exact
+archive hash, byte counts and complete inventory: 61 base movies are installed,
+and all 11 optional subtitle/legal overlays are retained in the receipt with an
+explicit no-overlay default. Each archive's SHA-256, size and member inventory is recorded;
+independent replay must reproduce every input and instruction before review is
+cleared. Authored instructions, choices and reviewed provenance are preserved.
+Generic archive inference cannot silently route movie payloads to Override.
+
+The reviewed download-choice and optional post-install video troubleshooting
+statements are matched in full; changed or additional installation language
+stays unresolved. Original directions remain visible, and no batch patcher or
+video encoder is inferred or executed. Overlapping movies, scripts, extra files,
+unsupported layouts and unknown instructions remain fenced. The observed K2
+pair has 5 and 67 disjoint root movie members; runtime installation acceptance
+still requires the real CI lanes. Other archive layouts or download choices
+require a separate proof. The 7z replay uses a bounded 20 GiB input snapshot and
+expanded-byte limit; archive inference does not spool extracted movie payloads.
+
+The full-run archive/install/seed runtime includes distribution `unrar` for RAR integrity validation. The exact retained Extended Enclave and Quarterstaff RARs pass its CRC checks; Ubuntu 24.04 7-Zip crashes on them and libarchive lacks the required VM/solid support. This adds a compatible reader to the existing strict validation path; actual installation still requires the real lanes.

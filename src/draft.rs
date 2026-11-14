@@ -636,7 +636,119 @@ fn units(text: &str) -> Vec<(String, Option<String>)> {
     result
 }
 
+fn movie_destination_statement(text: &str) -> bool {
+    let normalized = text
+        .replace('*', "")
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ")
+        .trim_end_matches('.')
+        .to_ascii_lowercase();
+    matches!(
+        normalized.as_str(),
+        "bear in mind that the files from this mod go in your movies folder, not override"
+            | "the files from this mod go in your movies folder, not override"
+    )
+}
+
+/// Interpret only an explicit movie destination and a bounded set of download /
+/// alternative-selection notes. Unknown installation language remains a gap.
+/// No action is inferred from a possible batch patcher: the archive binder must
+/// independently prove that every input contains only disjoint root movie files.
+pub(crate) fn movie_context(component: &Component) -> Option<(serde_json::Value, Vec<String>)> {
+    let method = component
+        .metadata
+        .get("InstallationMethod")?
+        .as_str()?
+        .trim();
+    if !matches!(
+        method.to_ascii_lowercase().as_str(),
+        "loose-file" | "loose-file mod" | "loose-file components, possible .bat patcher"
+    ) || component.directions.len() > 32 * 1024
+    {
+        return None;
+    }
+    static PARAGRAPHS: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\n\s*\n").unwrap());
+    // Reviewed normalized statements from the immutable guide input. Matching
+    // complete text digests keeps appended commands or altered conditions fenced.
+    const ALTERNATIVE: &str = "75d7fdaf3d195891704f90b2418f86721875217fbeeaa4f21aacd7106acc4e1d";
+    const OPTIONAL_VIDEO_ADVICE: &str =
+        "7a7c5e4f7465fcab0f92f49133236815271791f41ef70d9aebe6d75bb8c92f93";
+    const OPTIONAL_VIDEO_ADVICE_VARIANT: &str =
+        "eb2ce8c0ba27441f3887a2306c64e606175d18d4e5388ca8322114d46cd6cc86";
+    const REVIEWED_MOVIE_VARIANTS: &str =
+        "cde758f5b3754c74b8a89793e3a601caa1a6323ad358853f6bf114279a90b7b9";
+    fn text_digest(text: &str) -> String {
+        use sha2::{Digest, Sha256};
+        format!("{:x}", Sha256::digest(text.as_bytes()))
+    }
+    let mut statements = Vec::new();
+    let mut gaps = Vec::new();
+    let mut destination = false;
+    let mut variants = false;
+    for paragraph in PARAGRAPHS.split(&component.directions) {
+        let text = paragraph.replace('*', "");
+        let normalized_paragraph = text.split_whitespace().collect::<Vec<_>>().join(" ");
+        let lower = normalized_paragraph.to_ascii_lowercase();
+        if text_digest(&lower) == REVIEWED_MOVIE_VARIANTS {
+            destination = true;
+            variants = true;
+            statements.push(json!({"Kind": "ReviewedResolutionFrameRateAndOptionalVariants",
+                                    "Text": paragraph, "Resolution": "1920x1080", "FrameRate": 30,
+                                    "OptionalOverlays": "None; preserve base subtitles and legal movie"}));
+            continue;
+        }
+        // This is explicitly tentative post-install troubleshooting, not an
+        // instruction to run a patcher during installation. Preserve it verbatim.
+        if matches!(
+            text_digest(&lower).as_str(),
+            OPTIONAL_VIDEO_ADVICE | OPTIONAL_VIDEO_ADVICE_VARIANT
+        ) {
+            statements.push(
+                json!({"Kind": "OptionalPostInstallVideoTroubleshooting", "Text": paragraph}),
+            );
+            continue;
+        }
+        for sentence in normalized_paragraph.split(". ") {
+            let normalized = sentence.split_whitespace().collect::<Vec<_>>().join(" ");
+            let lower = normalized.trim_end_matches('.').to_ascii_lowercase();
+            if lower.is_empty() {
+                continue;
+            }
+            let kind = if movie_destination_statement(&normalized) {
+                destination = true;
+                "ExplicitMoviesDestination"
+            } else if text_digest(&lower) == ALTERNATIVE {
+                "MutuallyExclusiveComponentSelection"
+            } else if lower
+                == "to install, choose the resolution option which most closely fits your monitor's screen size during the download process"
+            {
+                "ResolutionSelectedByDownloadedInputs"
+            } else {
+                gaps.push(normalized.clone());
+                "Unresolved"
+            };
+            statements.push(json!({"Kind": kind, "Text": normalized}));
+        }
+    }
+    if !destination || statements.len() > 64 {
+        return None;
+    }
+    Some((
+        json!({"Method": method, "Destination": format!("{GAME}\\Movies"),
+                 "Statements": statements,
+                 "Layout": if variants { "ReviewedMovieVariants" } else { "DisjointRootMovies" }}),
+        gaps,
+    ))
+}
+
 fn parse_unit(unit: &str, gaps: &mut Vec<String>) -> Option<Instruction> {
+    if movie_destination_statement(unit) {
+        // The source files are unknown until archive binding. Do not discard an
+        // imperative destination merely because its sentence is an admonition.
+        gaps.push(unit.into());
+        return None;
+    }
     let lower = unit.to_lowercase();
     if [
         "bear in mind",

@@ -413,6 +413,7 @@ struct MethodArchive {
     entries: Vec<archive::OriginalEntry>,
     sha256: String,
     bytes: u64,
+    expanded_bytes: u64,
 }
 
 /// Hash and list one safely named local method archive from a private snapshot,
@@ -422,6 +423,24 @@ fn snapshot_method_archive(
     root: Option<&Path>,
     options: &archive::Options,
     cancelled: &AtomicBool,
+) -> Result<MethodArchive> {
+    snapshot_bounded_archive(
+        filename,
+        root,
+        options,
+        cancelled,
+        256 * 1024 * 1024,
+        1024 * 1024 * 1024,
+    )
+}
+
+fn snapshot_bounded_archive(
+    filename: &str,
+    root: Option<&Path>,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+    limit: u64,
+    expanded_limit: u64,
 ) -> Result<MethodArchive> {
     ensure!(
         !filename.is_empty()
@@ -451,10 +470,9 @@ fn snapshot_method_archive(
         .join(filename);
     ordinary(&path, false)?;
     let mut input = crate::paths::open_regular_read(&path)?;
-    let limit = 256 * 1024 * 1024;
     ensure!(
         input.metadata()?.len() <= limit,
-        "Method archive exceeds 256 MiB"
+        "Method archive exceeds its bounded input size"
     );
     let mut builder = tempfile::Builder::new();
     builder.prefix("modsync-method-");
@@ -472,7 +490,10 @@ fn snapshot_method_archive(
             break;
         }
         bytes += count as u64;
-        ensure!(bytes <= limit, "Method archive exceeds 256 MiB");
+        ensure!(
+            bytes <= limit,
+            "Method archive exceeds its bounded input size"
+        );
         hash.update(&buffer[..count]);
         snapshot.write_all(&buffer[..count])?;
     }
@@ -483,10 +504,10 @@ fn snapshot_method_archive(
             options
                 .max_expanded_bytes
                 .unwrap_or(u64::MAX)
-                .min(1024 * 1024 * 1024),
+                .min(expanded_limit),
         ),
     };
-    let (entries, _) =
+    let (entries, expanded_bytes) =
         archive::list_original_with_size(snapshot.path(), name, &observed_options, cancelled)?;
     ensure!(
         !entries.is_empty() && entries.len() <= 4096,
@@ -496,7 +517,273 @@ fn snapshot_method_archive(
         entries,
         sha256: format!("{:x}", hash.finalize()),
         bytes,
+        expanded_bytes,
     })
+}
+
+fn reviewed_movie_variant_members(
+    snapshot: &MethodArchive,
+) -> Result<(Vec<String>, Vec<String>, Vec<String>)> {
+    ensure!(
+        snapshot.sha256 == "5b60a4b3e559a40c1a06477431e6a60be3794d116cdb7e594fc2f5e32dc93d26"
+            && snapshot.bytes == 16_567_032_171
+            && snapshot.expanded_bytes == 16_844_254_424,
+        "Movie variants do not match the reviewed resolution and frame-rate archive"
+    );
+    let mut inventory: Vec<_> = snapshot
+        .entries
+        .iter()
+        .map(|entry| {
+            (
+                entry.path.trim_end_matches('/').to_owned(),
+                entry.is_directory,
+            )
+        })
+        .collect();
+    inventory.sort();
+    ensure!(
+        format!("{:x}", Sha256::digest(serde_json::to_vec(&inventory)?))
+            == "2de3f93825fbb7cf8ad9d6d5259001b5bad0dc9b0a2fbf91b7a62f4296ef8bae",
+        "Movie variant layout differs from the complete reviewed inventory"
+    );
+    let mut selected = Vec::new();
+    let mut optional = Vec::new();
+    let mut directories = Vec::new();
+    for (path, directory) in inventory {
+        if directory {
+            directories.push(path);
+        } else if path.starts_with("1920x1080/") && path.matches('/').count() == 1 {
+            selected.push(path);
+        } else if path.starts_with("1920x1080/alts/") {
+            optional.push(path);
+        } else {
+            anyhow::bail!("Movie payload has no reviewed selection classification");
+        }
+    }
+    ensure!(
+        selected.len() == 61 && optional.len() == 11 && directories.len() == 5,
+        "Movie variant partition is incomplete"
+    );
+    ensure!(
+        optional.iter().all(|alternative| selected
+            .iter()
+            .any(|base| base.rsplit('/').next() == alternative.rsplit('/').next())),
+        "An optional movie lacks its selected base variant"
+    );
+    Ok((selected, optional, directories))
+}
+
+/// Bind explicitly directed movies from disjoint flat ZIPs or the exact reviewed
+/// 7z variant inventory. Optional overlays are partitioned and recorded, never
+/// flattened into the default selection. No inferred executable or ordering is used.
+pub(crate) fn bind_movie_archives(
+    component: &mut Component,
+    filenames: &[String],
+    root: &Path,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+) -> Result<bool> {
+    let Some((context, gaps)) = draft::movie_context(component) else {
+        return Ok(false);
+    };
+    ensure!(
+        component.instructions.is_empty() && component.options.is_empty(),
+        "Movie binding must not replace authored instructions or choices"
+    );
+    if let Some(record) = component.metadata.get("DraftReview") {
+        ensure!(
+            record
+                .get("RequiresReview")
+                .and_then(serde_json::Value::as_bool)
+                == Some(true)
+                && record.get("Resolution").is_none()
+                && record.get("Verification").is_none(),
+            "Movie binding must not replace reviewed provenance"
+        );
+    }
+    ensure!(
+        !filenames.is_empty() && filenames.len() <= 16,
+        "Movie binding needs 1 to 16 archives"
+    );
+    let root = local_root(root)?;
+    let mut names = std::collections::BTreeSet::new();
+    let mut payload_names = std::collections::BTreeSet::new();
+    let mut manifests = Vec::new();
+    let mut derivations = Vec::new();
+    let mut bound = component.clone();
+    let variants = context["Layout"] == "ReviewedMovieVariants";
+    for filename in filenames {
+        check(cancelled)?;
+        ensure!(
+            names.insert(filename.to_lowercase()),
+            "Movie archive names collide"
+        );
+        ensure!(
+            Path::new(filename)
+                .extension()
+                .is_some_and(|ext| ext.eq_ignore_ascii_case(if variants { "7z" } else { "zip" }))
+                && (!variants || filenames.len() == 1),
+            "Movie archive format or selection is unsupported"
+        );
+        let snapshot = snapshot_bounded_archive(
+            filename,
+            Some(&root),
+            options,
+            cancelled,
+            (if variants { 20 } else { 4 }) * 1024 * 1024 * 1024,
+            (if variants { 20 } else { 8 }) * 1024 * 1024 * 1024,
+        )?;
+        let (mut members, excluded, directories) = if variants {
+            reviewed_movie_variant_members(&snapshot)?
+        } else {
+            let mut members = Vec::new();
+            for entry in &snapshot.entries {
+                ensure!(
+                    !entry.is_directory
+                        && !entry.path.contains(['/', '\\'])
+                        && entry.path.to_ascii_lowercase().ends_with(".bik"),
+                    "Movie archive contains a directory, script, documentation, or non-movie payload"
+                );
+                members.push(entry.path.clone());
+            }
+            (members, Vec::new(), Vec::new())
+        };
+        for member in &members {
+            let basename = member.rsplit('/').next().context("Empty movie member")?;
+            super::vet_archive_name(std::ffi::OsStr::new(basename))?;
+            ensure!(
+                payload_names.insert(basename.to_lowercase()),
+                "Movie archives overlap; overwrite order needs explicit authoring"
+            );
+        }
+        members.sort();
+        ensure!(
+            !members.is_empty() && payload_names.len() <= 4096,
+            "Movie payload inventory exceeds its bound"
+        );
+        let stem = Path::new(filename)
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .context("Invalid movie archive stem")?;
+        let mut extract = super::instruction(
+            "Extract",
+            vec![format!("<<modDirectory>>\\{filename}")],
+            "",
+            "",
+        );
+        let mut install = super::instruction(
+            "Move",
+            members
+                .iter()
+                .map(|member| format!("<<modDirectory>>\\{stem}\\{}", member.replace('/', "\\")))
+                .collect(),
+            "<<kotorDirectory>>\\Movies",
+            "",
+        );
+        for step in [&mut extract, &mut install] {
+            step.guid = crate::markdown::generated_id(
+                &format!("{}:movie:{filename}", component.guid),
+                bound.instructions.len(),
+            );
+            step.parent = component.guid.clone();
+            bound.instructions.push(step.clone());
+        }
+        manifests.push(json!({"Filename": filename, "Sha256": snapshot.sha256,
+            "Bytes": snapshot.bytes, "ExpandedBytes": snapshot.expanded_bytes, "Members": members,
+            "ExcludedOptionalMembers": excluded, "Directories": directories,
+            "OptionalOverlaySelection": if variants { "None; selected base movies preserve original subtitles and legal movie" } else { "No variants present" }}));
+        derivations.push(draft::review::Derivation {
+            filename: filename.clone(),
+            sha256: snapshot.sha256,
+            bytes: snapshot.bytes,
+        });
+    }
+    let binding = json!({"Schema": 1, "Context": context, "Archives": manifests,
+                         "InputDraftReview": component.metadata.get("DraftReview")});
+    ensure!(
+        serde_json::to_vec(&binding)?.len() <= 1024 * 1024,
+        "Movie binding exceeds one MiB"
+    );
+    bound.metadata.insert("ArchiveMovieBinding".into(), binding);
+    bound.metadata.insert(
+        "DraftReview".into(),
+        json!({"RequiresReview": true,
+        "Generator": "resolved-movie-archives", "Derivations": derivations,
+        "Result": draft::DraftResult {component_guid: component.guid.clone(),
+            draft_instruction_count: bound.instructions.len(), unparsed_gaps: gaps,
+            conditional_drafts: Vec::new(), rejected_drafts: 0}}),
+    );
+    check(cancelled)?;
+    *component = bound;
+    Ok(true)
+}
+
+pub(crate) fn replay_movie_binding(
+    component: &Component,
+    root: &Path,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+) -> Result<Component> {
+    let binding = component
+        .metadata
+        .get("ArchiveMovieBinding")
+        .context("Missing movie binding")?;
+    let record = component
+        .metadata
+        .get("DraftReview")
+        .context("Missing movie review")?;
+    let derivations: Vec<draft::review::Derivation> = serde_json::from_value(
+        record
+            .get("Derivations")
+            .cloned()
+            .context("Missing movie derivations")?,
+    )?;
+    ensure!(
+        !derivations.is_empty() && derivations.len() <= 16,
+        "Invalid movie derivation count"
+    );
+    let mut target = component.clone();
+    target.instructions.clear();
+    ensure!(
+        target.options.is_empty(),
+        "Movie binding acquired unsupported options"
+    );
+    target.metadata.remove("ArchiveMovieBinding");
+    target.metadata.remove("DraftReview");
+    if let Some(input) = binding
+        .get("InputDraftReview")
+        .filter(|value| !value.is_null())
+    {
+        target.metadata.insert("DraftReview".into(), input.clone());
+    }
+    ensure!(
+        bind_movie_archives(
+            &mut target,
+            &derivations
+                .iter()
+                .map(|item| item.filename.clone())
+                .collect::<Vec<_>>(),
+            root,
+            options,
+            cancelled
+        )?,
+        "Guide no longer supports movie binding"
+    );
+    ensure!(
+        target.metadata.get("ArchiveMovieBinding") == Some(binding)
+            && target
+                .metadata
+                .get("DraftReview")
+                .and_then(|r| r.get("Derivations"))
+                == record.get("Derivations")
+            && target
+                .metadata
+                .get("DraftReview")
+                .and_then(|r| r.get("Result"))
+                == record.get("Result"),
+        "Movie guide context, archive hashes, sizes, members, or diagnostics differ from replay"
+    );
+    Ok(target)
 }
 
 fn bind_loose_method(
@@ -515,6 +802,7 @@ fn bind_loose_method(
         entries,
         sha256: archive_sha256,
         bytes,
+        ..
     } = snapshot_method_archive(filename, root, options, cancelled)?;
     let name = Path::new(filename);
     let mut payload = Vec::new();
@@ -765,6 +1053,7 @@ fn bind_patcher_method(
         entries,
         sha256: archive_sha256,
         bytes,
+        ..
     } = snapshot_method_archive(filename, root, options, cancelled)?;
     let layout = patcher_layout(&entries)?;
     let path = root
@@ -942,6 +1231,14 @@ pub fn generate(
             instructions_added: 0,
             diagnostics: Vec::new(),
         };
+        if component.instructions.is_empty()
+            && let Some(root) = root.as_deref()
+            && bind_movie_archives(component, &group.filenames, root, options, cancelled)?
+        {
+            report.instructions_added = component.instructions.len();
+            reports.push(report);
+            continue;
+        }
         let method = component
             .metadata
             .get("InstallationMethod")

@@ -69,7 +69,7 @@ jobs:
         shell: bash
         run: |
           rustup toolchain install 1.95.0 --profile minimal
-          packages=(age 7zip 7zip-rar megatools libarchive-tools pkg-config libssl-dev)
+          packages=(age 7zip 7zip-rar unrar megatools libarchive-tools pkg-config libssl-dev)
           if [[ "$MODE" == gui ]]; then
             packages+=(xvfb xauth python3-tk tesseract-ocr libxkbcommon-x11-dev libx11-dev libxcursor-dev libxrandr-dev libxi-dev libgl1-mesa-dev libwayland-dev scrot)
           fi

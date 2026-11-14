@@ -46,7 +46,7 @@ jobs:
       - name: Install verified transfer tool
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends age
+          sudo apt-get install -y --no-install-recommends age 7zip 7zip-rar unrar libarchive-tools
           if [[ -n "$DIAGNOSTICS_ENCRYPTION_RECIPIENT" ]]; then
             age --encrypt --recipient "$DIAGNOSTICS_ENCRYPTION_RECIPIENT" </dev/null >/dev/null
           fi

@@ -383,6 +383,9 @@ pub fn verify_archive_derived(
         record.get("RequiresReview").and_then(Value::as_bool) == Some(true),
         "Draft is not awaiting review"
     );
+    if record.get("Generator").and_then(Value::as_str) == Some("resolved-movie-archives") {
+        return verify_movie_archive_derived(component, root, options, cancelled);
+    }
     ensure!(
         record.get("Generator").and_then(Value::as_str) == Some(GENERATOR),
         "Draft was not generated from resolved archive filenames"
@@ -499,6 +502,82 @@ pub fn verify_archive_derived(
         archive_sha256: derivation.sha256.to_ascii_lowercase(),
         archive_filename: derivation.filename.clone(),
         replay_digest: format!("{:x}", Sha256::digest(serde_json::to_vec(&expected)?)),
+    };
+    let mut cleared = component.clone();
+    clear_subtree(&mut cleared, &serde_json::to_value(verification)?, 0)?;
+    *component = cleared;
+    Ok(())
+}
+
+fn verify_movie_archive_derived(
+    component: &mut Component,
+    root: &Path,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+) -> Result<()> {
+    let record = component
+        .metadata
+        .get("DraftReview")
+        .context("Missing movie review")?;
+    const KEYS: [&str; 4] = ["RequiresReview", "Result", "Generator", "Derivations"];
+    ensure!(
+        record
+            .as_object()
+            .is_some_and(|object| object.keys().all(|key| KEYS.contains(&key.as_str()))),
+        "Movie draft carries additional review history or resolution records"
+    );
+    let diagnostics: DraftResult = serde_json::from_value(
+        record
+            .get("Result")
+            .cloned()
+            .context("Missing movie diagnostics")?,
+    )?;
+    ensure!(
+        diagnostics
+            .component_guid
+            .eq_ignore_ascii_case(&component.guid)
+            && diagnostics.draft_instruction_count == component.instructions.len()
+            && diagnostics.unparsed_gaps.is_empty()
+            && diagnostics.conditional_drafts.is_empty()
+            && diagnostics.rejected_drafts == 0,
+        "Movie guide directions remain unresolved"
+    );
+    ensure!(
+        !pending_masters(component, 0),
+        "Movie component has unresolved Markdown masters"
+    );
+    let derivations: Vec<Derivation> = serde_json::from_value(
+        record
+            .get("Derivations")
+            .cloned()
+            .context("Missing movie derivations")?,
+    )?;
+    let primary = derivations.first().context("Empty movie derivation set")?;
+    let replayed = crate::archive_generation::resolved::replay_movie_binding(
+        component, root, options, cancelled,
+    )?;
+    let expected = shape(&replayed)?;
+    ensure!(
+        shape(component)? == expected,
+        "Movie instructions or options differ from archive replay"
+    );
+    let binding = replayed
+        .metadata
+        .get("ArchiveMovieBinding")
+        .context("Replay left no movie binding")?;
+    let verification = Verification {
+        reviewer: VERIFIER_NAME.into(),
+        kind: VERIFICATION_KIND.into(),
+        tool_version: concat!("ModSync.rs/", env!("CARGO_PKG_VERSION")).into(),
+        // These legacy summary fields identify the primary archive; the replay
+        // digest below commits to the complete independently verified input set.
+        archive_sha256: primary.sha256.clone(),
+        archive_filename: primary.filename.clone(),
+        replay_digest: format!(
+            "{:x}",
+            Sha256::digest(serde_json::to_vec(&json!({
+            "Shape": expected, "Binding": binding, "Derivations": derivations}))?)
+        ),
     };
     let mut cleared = component.clone();
     clear_subtree(&mut cleared, &serde_json::to_value(verification)?, 0)?;

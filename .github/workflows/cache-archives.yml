@@ -54,7 +54,7 @@ jobs:
       - name: Install archive tools
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends age 7zip 7zip-rar megatools libarchive-tools
+          sudo apt-get install -y --no-install-recommends age 7zip 7zip-rar unrar megatools libarchive-tools
           if [[ -n "$DIAGNOSTICS_ENCRYPTION_RECIPIENT" ]]; then
             age --encrypt --recipient "$DIAGNOSTICS_ENCRYPTION_RECIPIENT" </dev/null >/dev/null
           fi

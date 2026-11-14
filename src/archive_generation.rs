@@ -193,6 +193,27 @@ pub fn generate_local_with_cancel(
                 }
                 vec![matching.path.clone()]
             };
+            let filenames = selected
+                .iter()
+                .map(|path| {
+                    path.file_name()
+                        .and_then(|name| name.to_str())
+                        .map(str::to_owned)
+                        .context("Archive filename is not UTF-8")
+                })
+                .collect::<Result<Vec<_>>>()?;
+            if resolved::bind_movie_archives(
+                &mut component,
+                &filenames,
+                &source,
+                &archive::Options::default(),
+                cancelled,
+            )? {
+                component
+                    .metadata
+                    .insert("IsDownloaded".into(), true.into());
+                return Ok(());
+            }
             for path in &selected {
                 let detail = if mapped_used {
                     format!(
@@ -377,6 +398,7 @@ pub fn generate_from_archive(
     let mut flat = false;
     let mut folders = Vec::new();
     let mut loose = false;
+    let mut loose_movies = false;
     for (index, entry) in paths.iter().enumerate() {
         ensure!(
             !cancelled.load(Ordering::Acquire),
@@ -405,6 +427,7 @@ pub fn generate_from_archive(
             }
         } else if game_file(entry) {
             loose = true;
+            loose_movies |= name.to_ascii_lowercase().ends_with(".bik");
             if parts.len() == 1 {
                 flat = true;
             } else if !folders.contains(&parts[0]) {
@@ -412,6 +435,10 @@ pub fn generate_from_archive(
             }
         }
     }
+    ensure!(
+        !loose_movies,
+        "Loose movie payload requires an explicit guide destination and verified movie archive binding"
+    );
     if !patch_data && !loose {
         return Ok(false);
     }

@@ -194,8 +194,8 @@ def main(argv=None):
                 refresh(args, requested_games)
             else:
                 command = [sys.executable, str(HERE / "seed_archives.py"), *guides(args.guides, requested_games)]
-                for identity in selected_seed_ids(args.guides, requested_games):
-                    command += ["--only", identity]
+                for seed_identity in selected_seed_ids(args.guides, requested_games):
+                    command += ["--only", seed_identity]
                 if args.dry_run:
                     command.append("--dry-run")
                 checked(command, Path(args.output) / "seed-private.log")

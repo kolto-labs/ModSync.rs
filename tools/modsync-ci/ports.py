@@ -534,6 +534,7 @@ def record_draft_review(log, report):
 BIND_STAGE = "bind_archives"
 BIND_GENERATE_STAGE = "bind_generate_local"
 BIND_GENERATOR = "resolved-filenames"
+MOVIE_BIND_GENERATOR = "resolved-movie-archives"
 BIND_SUFFIXES = (".zip", ".7z", ".rar")
 BIND_UNSAFE_NAME = re.compile(r"[/\\*?\[\]\x00-\x1f\x7f]")
 INTERRUPTED = "command_interrupted_or_timed_out"
@@ -662,9 +663,28 @@ def bound_result(before, after):
             flatten([option for option in component.get("Options") or [] if isinstance(option, dict)], found)
         return found
 
+    def movie_bindings(components):
+        found = {}
+        for component in components:
+            record = component.get("DraftReview") or {}
+            if record.get("Generator") == MOVIE_BIND_GENERATOR:
+                # The fallback restarts conversion from the guide. It may not
+                # replace a previously generated movie recipe with an unbound
+                # or semantically different draft, even at the same step count.
+                found[str(component.get("Guid", "")).lower()] = {
+                    key: component.get(key) for key in
+                    ("Instructions", "Options", "ArchiveMovieBinding", "DraftReview")}
+            found.update(movie_bindings([
+                option for option in component.get("Options") or [] if isinstance(option, dict)]))
+        return found
+
     old, new = components_of(before), components_of(after)
     if [item.get("Guid") for item in old] != [item.get("Guid") for item in new]:
         return 0, "bound_output_components_changed"
+    new_movies = movie_bindings(new)
+    if any(new_movies.get(identity) != binding
+           for identity, binding in movie_bindings(old).items()):
+        return 0, "bound_output_changes_resolved_movie_recipe"
     kept = flatten(new, {})
     for guid, (count, drafted, warned, _) in flatten(old, {}).items():
         if guid not in kept:
@@ -676,7 +696,8 @@ def bound_result(before, after):
                 or (new_count < count and not new_bound)):
             return 0, "bound_output_drops_instructions_or_drafts"
     return sum(1 for item in new
-               if (item.get("DraftReview") or {}).get("Generator") == BIND_GENERATOR), None
+               if (item.get("DraftReview") or {}).get("Generator") in
+               (BIND_GENERATOR, MOVIE_BIND_GENERATOR)), None
 
 
 BIND_DIAGNOSTICS_KEY = "bind_diagnostics"
