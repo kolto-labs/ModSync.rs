@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FAQ - ModSync.rs</title>
+<meta name="description" content="Frequently asked questions about ModSync.rs for KOTOR players." />
+<meta name="theme-color" content="#14110d" />
+<link rel="icon" href="assets/modsync.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<script src="assets/theme-init.js"></script>
+<link rel="stylesheet" href="assets/site.css" />
+<script src="assets/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<div class="docs">
+<aside class="docs-side">
+  <div class="docs-side-top">
+    <a class="docs-brand" href="./" aria-label="ModSync.rs home"><img class="logo" src="assets/modsync.svg" alt="" width="22" height="22" />ModSync.rs <span>docs</span></a>
+    <button class="icon-btn" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch appearance">
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg>
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+    <button id="docs-menu" class="icon-btn docs-menu" type="button" aria-label="Show the list of pages" aria-expanded="false" aria-controls="docs-nav">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+  <nav id="docs-nav" class="docs-nav" aria-label="Documentation">
+    <div class="docs-quick">
+      <a href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg>Home</a>
+      <a data-repo="/releases" href="https://github.com/ChristopherVR/ModSync.rs/releases"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 11l6 6 6-6M4 20h16"/></svg>Download</a>
+      <a data-repo="" href="https://github.com/ChristopherVR/ModSync.rs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>Source on GitHub</a>
+      <a data-repo="/issues" href="https://github.com/ChristopherVR/ModSync.rs/issues"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>Report a problem</a>
+    </div>
+    <h2>For players</h2><a href="getting-started.html">Getting started</a><a href="safety.html">Safety and recovery</a><a href="faq.html" aria-current="page">FAQ</a><h2>For guide authors</h2><a href="instruction-files.html">Instruction files</a><a href="cli.html">Command line</a><h2>Project</h2><a href="status.html">Compatibility and status</a>
+  </nav>
+</aside>
+<div class="docs-main">
+<main class="docs-article" id="content">
+<p class="crumb"><a href="./">ModSync.rs</a><span>/</span>For players<span>/</span><strong>FAQ</strong></p>
+<h1>Questions, <span class="serif">answered</span></h1>
+<p class="lead">Short answers to what players ask most.</p>
+<section id="questions"><h2>Common questions</h2><details class="faq"><summary>What is ModSync.rs?</summary><div><p>A desktop app and command line tool that installs KOTOR 1 and KOTOR 2 mod builds by following a guide's instruction file. It is a Rust version of <a href="https://github.com/th3w1zard1/ModSync">ModSync</a>, and it does not need .NET.</p></div></details><details class="faq"><summary>Is it a mod build?</summary><div><p>No. ModSync.rs contains no mods. A mod build, and its instruction file, comes from a guide author. ModSync.rs reads that file and carries out its steps on your computer.</p></div></details><details class="faq"><summary>Does it replace the original ModSync?</summary><div><p>Not yet. It is an early implementation, not a verified replacement for every feature of the original C# app. See <a href="status.html">Compatibility and status</a> for what works today and what is still missing.</p></div></details><details class="faq"><summary>Which games does it support?</summary><div><p>KOTOR 1 and KOTOR 2. It detects KOTOR 1, the original KOTOR 2 release and the newer Aspyr release of KOTOR 2, and leaves out Aspyr-only mods on a copy that is not the Aspyr release.</p></div></details><details class="faq"><summary>Will it download the mods for me?</summary><div><p>Partly. Deadlystream, Nexus Mods and MEGA pages open in your browser and you download from there. Direct download links can be fetched for you, and are checked before they are saved.</p></div></details><details class="faq"><summary>Is my game safe?</summary><div><p>Validation never changes your folders. Before installing, ModSync.rs copies your game and mod folders, and if the install fails you can restore that copy. Still keep your own backup. Read <a href="safety.html">Safety and recovery</a>.</p></div></details><details class="faq"><summary>An install failed. What now?</summary><div><p>Restore first (the <strong>Restore</strong> button, or <code>modsync restore</code>), fix the cause, then run the whole guide again from the start. Do not install the failed mod on its own at the end.</p></div></details><details class="faq"><summary>Can it run TSLPatcher mods?</summary><div><p>Yes, once you allow outside programs to run. That permission is off by default. Validation cannot predict what a patcher will change, so a clean validation report does not guarantee the patch step will succeed.</p></div></details><details class="faq"><summary>Does it work on Windows, macOS and Linux?</summary><div><p>It builds on all three. Linux gets the most testing; native Windows and macOS builds are checked less often. Windows-only patchers need a Windows computer.</p></div></details><details class="faq"><summary>Where are my settings and profiles kept?</summary><div><p>In a <code>ModSync</code> folder in your system's settings location: the XDG config folder on Linux, Application Support on macOS, and roaming application data on Windows. You can choose a different folder.</p></div></details><details class="faq"><summary>I found a bug. Where do I report it?</summary><div><p>Open an issue on <a data-repo="/issues" href="https://github.com/ChristopherVR/ModSync.rs/issues">GitHub</a>. Say which guide you used, which mods you picked and what the report or log said.</p></div></details></section>
+<nav class="pager" aria-label="Previous and next page"><a class="prev" href="safety.html"><small>Previous</small>Safety and recovery</a><a class="next" href="instruction-files.html"><small>Next</small>Instruction files</a></nav>
+</main>
+<nav class="docs-outline" aria-label="On this page"><h2>On this page</h2><a href="#questions">Common questions</a></nav>
+<footer class="docs-foot"><span>ModSync.rs. Instruction behaviour is based on <a href="https://github.com/th3w1zard1/ModSync">ModSync</a>.</span><span><a data-repo="/blob/main/COMPATIBILITY.md" href="https://github.com/ChristopherVR/ModSync.rs/blob/main/COMPATIBILITY.md">Full compatibility notes</a></span></footer>
+</div>
+</div>
+</body>
+</html>

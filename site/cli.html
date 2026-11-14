@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Command line - ModSync.rs</title>
+<meta name="description" content="Reference for the modsync command line: validate, install, restore, conflicts, convert, download, torrents and profiles." />
+<meta name="theme-color" content="#14110d" />
+<link rel="icon" href="assets/modsync.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<script src="assets/theme-init.js"></script>
+<link rel="stylesheet" href="assets/site.css" />
+<script src="assets/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<div class="docs">
+<aside class="docs-side">
+  <div class="docs-side-top">
+    <a class="docs-brand" href="./" aria-label="ModSync.rs home"><img class="logo" src="assets/modsync.svg" alt="" width="22" height="22" />ModSync.rs <span>docs</span></a>
+    <button class="icon-btn" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch appearance">
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg>
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+    <button id="docs-menu" class="icon-btn docs-menu" type="button" aria-label="Show the list of pages" aria-expanded="false" aria-controls="docs-nav">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+  <nav id="docs-nav" class="docs-nav" aria-label="Documentation">
+    <div class="docs-quick">
+      <a href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg>Home</a>
+      <a data-repo="/releases" href="https://github.com/ChristopherVR/ModSync.rs/releases"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 11l6 6 6-6M4 20h16"/></svg>Download</a>
+      <a data-repo="" href="https://github.com/ChristopherVR/ModSync.rs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>Source on GitHub</a>
+      <a data-repo="/issues" href="https://github.com/ChristopherVR/ModSync.rs/issues"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>Report a problem</a>
+    </div>
+    <h2>For players</h2><a href="getting-started.html">Getting started</a><a href="safety.html">Safety and recovery</a><a href="faq.html">FAQ</a><h2>For guide authors</h2><a href="instruction-files.html">Instruction files</a><a href="cli.html" aria-current="page">Command line</a><h2>Project</h2><a href="status.html">Compatibility and status</a>
+  </nav>
+</aside>
+<div class="docs-main">
+<main class="docs-article" id="content">
+<p class="crumb"><a href="./">ModSync.rs</a><span>/</span>For guide authors<span>/</span><strong>Command line</strong></p>
+<h1>Command <span class="serif">line</span></h1>
+<p class="lead">The <code>modsync</code> command uses the same engine as the desktop app. It is handy for checking guides, scripting installs and authoring. Run <code>modsync --help</code>, or <code>modsync &lt;command&gt; --help</code>, for every option.</p>
+<section id="build">
+<h2>Getting the command</h2>
+<p>The default build includes the desktop app and the command line. For a command-line-only binary:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>cargo build --release --no-default-features
+./target/release/modsync --help</code></pre>
+<p>From a source checkout you can also run any command as <code>cargo run -- &lt;command&gt;</code>.</p>
+</section>
+
+<section id="commands">
+<h2>Commands at a glance</h2>
+<div class="table"><table>
+<thead><tr><th>Command</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>gui</code></td><td>Opens the desktop app, optionally with a guide and folders filled in.</td></tr>
+<tr><td><code>list</code></td><td>Lists the components in a guide.</td></tr>
+<tr><td><code>validate</code></td><td>Checks a guide against your folders without changing anything.</td></tr>
+<tr><td><code>install</code></td><td>Validates, snapshots, then installs.</td></tr>
+<tr><td><code>restore</code></td><td>Puts the folders back after an unfinished install.</td></tr>
+<tr><td><code>completion-summary</code></td><td>Reads the saved result of the last install.</td></tr>
+<tr><td><code>conflicts</code></td><td>Reports game files written by more than one component.</td></tr>
+<tr><td><code>convert</code></td><td>Converts between guide formats and drafts instructions from Markdown.</td></tr>
+<tr><td><code>merge</code></td><td>Merges two guides.</td></tr>
+<tr><td><code>download</code></td><td>Downloads one archive over HTTPS and checks it.</td></tr>
+<tr><td><code>download-plan</code></td><td>Shows which filenames a component would take from a download page.</td></tr>
+<tr><td><code>fetch-downloads</code></td><td>Fetches the downloads for the selected components of a guide.</td></tr>
+<tr><td><code>torrent-seed</code>, <code>torrent-download</code></td><td>Share or fetch one exact archive by BitTorrent.</td></tr>
+<tr><td><code>profile</code></td><td>Creates, lists, captures, applies and activates saved profiles.</td></tr>
+</tbody></table></div>
+</section>
+
+<section id="validate">
+<h2>Validate and install</h2>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync list KOTOR1_Full.toml
+modsync validate --input KOTOR1_Full.toml --game-dir /path/to/game --source-dir /path/to/mods
+modsync install  --input KOTOR1_Full.toml --game-dir /path/to/game --source-dir /path/to/mods</code></pre>
+<p><code>--input</code> is the guide, <code>--game-dir</code> the game folder and <code>--source-dir</code> the folder with the downloaded archives. Add <code>--json</code> to <code>validate</code> for a machine-readable report.</p>
+<h3>Choosing components</h3>
+<ul>
+<li>By default every top-level component is selected, as in ModSync.</li>
+<li><code>--use-file-selection</code> uses the guide's <code>IsSelected</code> values instead. The desktop can save your selections as a TOML file that this reads.</li>
+<li><code>--select NAME_OR_GUID</code>, repeated or with several values, picks specific components.</li>
+<li><code>--option GUID</code>, repeated, turns on options. The guide's option defaults still apply.</li>
+</ul>
+<p>When the selection changes to satisfy dependencies or your game version, a <code>Selection:</code> line says what was added or removed. Incompatible selections stop validation.</p>
+<h3>More install options</h3>
+<dl>
+<dt><code>--scratch-dir &lt;folder&gt;</code>, <code>--max-expanded-bytes &lt;bytes&gt;</code></dt>
+<dd>Choose an existing folder outside both install folders for temporary archive storage, and set an optional size budget per archive.</dd>
+<dt><code>--install-progress-json</code></dt>
+<dd>Writes one JSON progress object per line to standard output. Only <code>install</code> accepts it, and it cannot be combined with <code>--json</code>.</dd>
+<dt><code>--direct-markdown</code></dt>
+<dd>Installs from a prose Markdown guide. See <a href="instruction-files.html#drafting">Drafting from a Markdown guide</a>.</dd>
+<dt><code>--managed</code>, <code>--no-managed</code></dt>
+<dd>Managed deployment is off unless you pass <code>--managed</code> together with <code>--component-checkpoints</code>. <code>--no-managed</code> is accepted for a classic install.</dd>
+</dl>
+</section>
+
+<section id="patchers">
+<h2>Patchers and programs</h2>
+<p>Steps that run a patcher or another program need <code>--allow-processes</code>. The built-in OdyPatcher library is used by default. To use a patcher program instead:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync install --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods \
+  --allow-processes --patcher /path/to/odypatcher</code></pre>
+<p>Pick HoloPatcher or KPatcher with <code>--patcher-engine holo-patcher</code> or <code>--patcher-engine k-patcher</code>. The patch files are staged in a private copy, so the mod's original configuration is left alone. If a patch fails, its error and warning lines and the end of its log are printed before the error.</p>
+<p>Programs run directly, without a shell, with your user permissions. Windows programs need a Windows host.</p>
+</section>
+
+<section id="recover">
+<h2>Restore and results</h2>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync restore --game-dir /path/to/game --source-dir /path/to/mods
+modsync completion-summary --game-dir /path/to/game --source-dir /path/to/mods --json</code></pre>
+<p><code>restore</code> only works on an unfinished install, and checks the snapshot before and after restoring. See <a href="safety.html">Safety and recovery</a>.</p>
+</section>
+
+<section id="conflicts">
+<h2>File conflicts</h2>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync conflicts --input guide.toml --source-dir /path/to/mods --game-dir /path/to/game</code></pre>
+<p>The JSON report lists each game file, the components that write it in install order, the last writer, and a conflict count per component. It accepts the same selection and archive options as <code>validate</code>, and changes neither folder. It cannot predict what outside programs will write.</p>
+</section>
+
+<section id="convert">
+<h2>Converting guides</h2>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync convert instructions.toml instructions.json
+modsync convert --input guide.toml --output guide.xml --format xml
+modsync convert --stdin --format yaml &lt; guide.json</code></pre>
+<p>Conversion writes formats the C# app can read. Markdown drafting options are covered in <a href="instruction-files.html#drafting">Instruction files</a>.</p>
+</section>
+
+<section id="download">
+<h2>Downloads</h2>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync download https://example.org/mod.zip /path/to/mods/mod.zip --sha256 EXPECTED_HASH</code></pre>
+<p>Direct HTTPS downloads of ZIP, 7z, RAR, TAR and GZip files are checked before saving. A web page, a damaged archive, an unsafe file name or a checksum mismatch fails, and an existing file is never overwritten. Deadlystream and Nexus Mods pages and MEGA links stay browser downloads.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync download-plan guide.toml --component &lt;GUID&gt; \
+  --url https://example.com/mod --source-dir /path/to/mods \
+  --filename first.zip --filename alternative.zip</code></pre>
+<p><code>download-plan</code> reports which of the offered filenames the component would use. It downloads nothing and is not a readiness check.</p>
+</section>
+
+<section id="torrent">
+<h2>BitTorrent sharing</h2>
+<p>A guide maintainer can share one exact archive:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync torrent-seed &lt;archive&gt; --tracker &lt;http-announce-url&gt;</code></pre>
+<p>It prints JSON with the magnet link, the SHA-256 and <code>torrentInfo</code>, then seeds until <kbd>Ctrl</kbd>+<kbd>C</kbd>. The guide records all three (<code>Magnet</code>, <code>ContentHashSHA256</code>, <code>TorrentInfo</code>). A player fetches it with:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync torrent-download '&lt;magnet-uri&gt;' &lt;output&gt; --sha256 &lt;digest&gt; --torrent-info &lt;base64&gt;</code></pre>
+<p>The torrent must hold one archive. It is downloaded to temporary storage, must match the SHA-256, is checked as an archive, and never overwrites an existing file.</p>
+<div class="note"><p><strong>Privacy.</strong> By default peer traffic goes through a SOCKS5 proxy, so peers see the proxy's address rather than yours, but the proxy operator can see your traffic. Choose one with <code>--peer-proxy socks5://IP:PORT</code>, or let ModSync.rs try a public list. With no working proxy the command fails without connecting to peers. <code>--no-proxy</code> connects directly, and peers then see your IP address.</p></div>
+<p>To share under an identity the guide already records, use <code>--authored-magnet '&lt;magnet&gt;' --torrent-info &lt;base64&gt;</code>. Sharing stops after 24 hours or an upload ratio of 1.0 (<code>--share-hours</code>, <code>--share-ratio</code>), and uploads are capped at 100 KiB/s (<code>--upload-kibps</code>).</p>
+</section>
+
+<section id="profiles">
+<h2>Profiles</h2>
+<p>Profiles store the guide path, the folders and your selections, in JSON that the C# app also uses.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync profile --action create --name "Full Build"
+modsync profile --action list --json
+modsync profile --action capture --name "Full Build" \
+  --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods
+modsync profile --action apply --name "Full Build" --input guide.toml --output selected-guide.toml
+modsync profile --action activate --name "Full Build"</code></pre>
+<p><code>show</code> and <code>delete</code> take <code>--name</code>; <code>clone</code> and <code>rename</code> take <code>--from</code> and <code>--to</code>. Use a profile directly to validate or install:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync validate --profile "Full Build"
+modsync install --active-profile</code></pre>
+<p>Explicit <code>--input</code>, <code>--game-dir</code>, <code>--source-dir</code>, <code>--select</code> and <code>--option</code> flags override the profile. Profiles live in a <code>ModSync</code> folder in your system's settings location unless you pass <code>--settings-dir</code>.</p>
+</section>
+<nav class="pager" aria-label="Previous and next page"><a class="prev" href="instruction-files.html"><small>Previous</small>Instruction files</a><a class="next" href="status.html"><small>Next</small>Compatibility and status</a></nav>
+</main>
+<nav class="docs-outline" aria-label="On this page"><h2>On this page</h2><a href="#build">Getting the command</a><a href="#commands">Commands at a glance</a><a href="#validate">Validate and install</a><a href="#patchers">Patchers and programs</a><a href="#recover">Restore and results</a><a href="#conflicts">File conflicts</a><a href="#convert">Converting guides</a><a href="#download">Downloads</a><a href="#torrent">BitTorrent sharing</a><a href="#profiles">Profiles</a></nav>
+<footer class="docs-foot"><span>ModSync.rs. Instruction behaviour is based on <a href="https://github.com/th3w1zard1/ModSync">ModSync</a>.</span><span><a data-repo="/blob/main/COMPATIBILITY.md" href="https://github.com/ChristopherVR/ModSync.rs/blob/main/COMPATIBILITY.md">Full compatibility notes</a></span></footer>
+</div>
+</div>
+</body>
+</html>
