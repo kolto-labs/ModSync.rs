@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import {
   Play, Pause, Square, AlertTriangle, RotateCcw, Download, X, FolderInput, UploadCloud,
-  FolderOpen, ScrollText, Plus, Trash2,
+  FolderOpen, ScrollText, Plus, Trash2, FileUp,
   Search,
 } from "lucide-react";
 import { api, type BuildInfo, type BuildMod } from "@/lib/api";
-import { pickDirectory, onFilesDropped, onDragHover } from "@/lib/tauri";
+import { pickDirectory, pickInstructionFile, onFilesDropped, onDragHover } from "@/lib/tauri";
 import { ModList, type ModRuntime } from "@/components/ModList";
 import { ContextMenu, type ContextMenuItem } from "@/components/ui/context-menu";
 import { BuildModDetail } from "@/components/BuildModDetail";
@@ -140,6 +140,20 @@ export function BuildsView(props: BuildsViewProps) {
       await api.importMod({ game: buildGame, path, profile: activeProfile || undefined });
     } catch (e: any) {
       addLog(t("builds.importFailed", { error: e?.message ?? "error" }), "error");
+    }
+  };
+
+  // Open an instruction file from this computer as a build.
+  const openFile = async () => {
+    const path = await pickInstructionFile(t("dialog.selectInstructionFile"));
+    if (!path) return;
+    try {
+      const r = await api.addLocalBuild(path);
+      await refreshBuilds();
+      onSelectBuild(r.build.key);
+      addLog(t("builds.openFileDone", { label: r.build.label }), "success");
+    } catch (e: any) {
+      addLog(t("builds.openFileFailed", { error: e?.message ?? "error" }), "error");
     }
   };
 
@@ -422,6 +436,15 @@ export function BuildsView(props: BuildsViewProps) {
           title={t("builds.addBuildHint")}
         >
           <Plus /> {t("builds.addBuild")}
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={openFile}
+          disabled={running}
+          title={t("builds.openFileHint")}
+        >
+          <FileUp /> {t("builds.openFile")}
         </Button>
         {selectedBuildInfo?.custom && !running && (
           <Button

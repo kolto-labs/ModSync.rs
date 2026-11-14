@@ -24,7 +24,7 @@ fn catalog(st: &AppState) -> anyhow::Result<modsync::builds::Catalog> {
 }
 
 fn all(st: &AppState) -> anyhow::Result<Vec<Build>> {
-    Ok(catalog(st)?
+    let mut builds: Vec<Build> = catalog(st)?
         .list()?
         .into_iter()
         .map(|b| Build {
@@ -34,7 +34,76 @@ fn all(st: &AppState) -> anyhow::Result<Vec<Build>> {
             url: b.url,
             custom: b.custom,
         })
-        .collect())
+        .collect();
+    // Instruction files opened from this computer.
+    builds.extend(st.lock().ui.custom_builds.iter().map(|b| Build {
+        key: b.key.clone(),
+        label: b.label.clone(),
+        game: b.game.clone(),
+        url: b.url.clone(),
+        custom: true,
+    }));
+    Ok(builds)
+}
+
+fn is_local(key: &str) -> bool {
+    key.starts_with("file_")
+}
+
+/// Add an instruction file from this computer (TOML, JSON, YAML, XML or
+/// Markdown) to the build list. It is read again from disk every time.
+pub fn add_local(app: &AppHandle, r: &Request) -> Reply {
+    let st = state(app);
+    let path = PathBuf::from(r.b("path").trim());
+    let guide = Guide::load_for_install_preserving_selection(&path)
+        .map_err(|e| fail(422, format!("{e:#}")))?;
+    let label = modsync::wizard::metadata_text(&guide, "title", "Title")
+        .map(str::to_owned)
+        .filter(|t| !t.trim().is_empty())
+        .or_else(|| path.file_stem().map(|s| s.to_string_lossy().into_owned()))
+        .unwrap_or_else(|| "Instruction file".into());
+    let game = st
+        .prefs
+        .store()
+        .ok()
+        .and_then(|store| store.load(&store.active_name().ok()??).ok()?)
+        .map(|p| crate::api::profile_game(&st, &p))
+        .unwrap_or_else(|| "KOTOR1".into());
+    let url = path.display().to_string();
+    let existing = st
+        .lock()
+        .ui
+        .custom_builds
+        .iter()
+        .find(|b| b.url == url)
+        .cloned();
+    let build = match existing {
+        Some(build) => build,
+        None => {
+            let mut n = st.lock().ui.custom_builds.len() + 1;
+            while st
+                .lock()
+                .ui
+                .custom_builds
+                .iter()
+                .any(|b| b.key == format!("file_{n}"))
+            {
+                n += 1;
+            }
+            let build = crate::prefs::CustomBuild {
+                key: format!("file_{n}"),
+                label,
+                game,
+                url,
+            };
+            st.lock().ui.custom_builds.push(build.clone());
+            st.save_ui();
+            build
+        }
+    };
+    Ok(
+        json!({"ok": true, "build": {"key": build.key, "label": build.label, "game": build.game, "custom": true, "url": build.url}}),
+    )
 }
 
 pub fn add(app: &AppHandle, r: &Request) -> Reply {
@@ -49,6 +118,11 @@ pub fn add(app: &AppHandle, r: &Request) -> Reply {
 
 pub fn delete(app: &AppHandle, key: &str) -> Reply {
     let st = state(app);
+    if is_local(key) {
+        st.lock().ui.custom_builds.retain(|b| b.key != key);
+        st.save_ui();
+        return Ok(json!({"ok": true}));
+    }
     catalog(&st)
         .and_then(|c| c.remove(key))
         .map_err(|e| fail(400, format!("{e:#}")))?;
@@ -56,6 +130,9 @@ pub fn delete(app: &AppHandle, key: &str) -> Reply {
 }
 
 fn fetch(st: &AppState, build: &Build, refresh: bool) -> anyhow::Result<(PathBuf, bool)> {
+    if is_local(&build.key) {
+        return Ok((PathBuf::from(&build.url), false));
+    }
     let fetched = catalog(st)?.fetch(&build.key, refresh, &AtomicBool::new(false))?;
     Ok((fetched.path, fetched.from_cache))
 }

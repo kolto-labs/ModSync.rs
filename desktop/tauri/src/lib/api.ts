@@ -211,6 +211,11 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ label, game, url }),
     }),
+  addLocalBuild: (path: string) =>
+    req<{ ok: boolean; build: BuildInfo }>("/api/builds/local", {
+      method: "POST",
+      body: JSON.stringify({ path }),
+    }),
   deleteBuild: (key: string) =>
     req<{ ok: boolean }>(`/api/builds/${encodeURIComponent(key)}`, { method: "DELETE" }),
   sourceSite: () =>

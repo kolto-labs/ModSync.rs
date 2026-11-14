@@ -101,6 +101,7 @@ fn route(app: &AppHandle, r: &Request) -> Reply {
         (["api", "profiles", id], "DELETE") => delete_profile(app, id),
         (["api", "builds"], "GET") => crate::builds::list(app),
         (["api", "builds"], "POST") => crate::builds::add(app, r),
+        (["api", "builds", "local"], "POST") => crate::builds::add_local(app, r),
         (["api", "builds", key], "DELETE") => crate::builds::delete(app, key),
         (["api", "builds", key, "load"], _) => crate::builds::load(app, key, r),
         (["api", "library", ..], _) | (["api", "conflicts", ..], _) | (["api", "cache", ..], _) => {

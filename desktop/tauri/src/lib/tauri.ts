@@ -134,6 +134,26 @@ export async function onDragHover(
   }
 }
 
+/** Pick an instruction file (TOML, JSON, YAML, XML or Markdown). */
+export async function pickInstructionFile(title?: string): Promise<string | null> {
+  if (!isTauri()) {
+    const p = window.prompt(title ?? "Enter file path:");
+    return p && p.trim() ? p.trim() : null;
+  }
+  try {
+    const { open } = await import("@tauri-apps/plugin-dialog");
+    const result = await open({
+      multiple: false,
+      directory: false,
+      title,
+      filters: [{ name: "Instruction file", extensions: ["toml", "json", "yaml", "yml", "xml", "md", "markdown"] }],
+    });
+    return typeof result === "string" ? result : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Pick a single executable file. Pass [] to include extensionless Linux tools. */
 export async function pickFile(
   extensions: string[] = ["exe"],
