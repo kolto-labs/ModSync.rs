@@ -128,8 +128,197 @@ fn mod_json(
     })
 }
 
-fn conflict_counts(_: &Service, _: &AppState) -> BTreeMap<String, usize> {
-    BTreeMap::new()
+/// What the last passing Check of a build looked at: the selected mods (with
+/// what they need) and the engine's conflict analysis of installing them
+/// (`Engine::analyze_conflicts`). Conflicts are shown for this, never guessed
+/// from the files of mods already installed.
+pub(crate) struct Analysis {
+    pub guide: modsync::Guide,
+    pub report: Option<modsync::conflicts::Report>,
+}
+
+static ANALYSIS: std::sync::Mutex<Option<std::sync::Arc<Analysis>>> = std::sync::Mutex::new(None);
+
+/// Keep (or forget) what the last passing Check found.
+#[allow(dead_code)]
+pub(crate) fn set_analysis(analysis: Option<Analysis>) {
+    *ANALYSIS.lock().unwrap_or_else(|p| p.into_inner()) = analysis.map(std::sync::Arc::new);
+}
+
+/// One conflict as the Conflicts screen shows it.
+struct Found {
+    id: String,
+    resource: String,
+    kind: &'static str,
+    severity: &'static str,
+    /// (guid, name), in install order.
+    participants: Vec<(String, String)>,
+    winner: Option<String>,
+    description: String,
+    recommendation: String,
+}
+
+/// The conflicts of the selected mods: pairs the build says must not be used
+/// together (each mod's `Restrictions`), then game files more than one of them
+/// writes, from the engine's install simulation (`conflicts::Presentation`). The
+/// engine decides the winner: the mod installed last in the build's order.
+fn conflicts_found() -> Vec<Found> {
+    let Some(analysis) = ANALYSIS.lock().unwrap_or_else(|p| p.into_inner()).clone() else {
+        return Vec::new();
+    };
+    let selected: Vec<&modsync::Component> = analysis
+        .guide
+        .components
+        .iter()
+        .filter(|c| c.is_selected)
+        .collect();
+    let mut found = Vec::new();
+    let mut seen = BTreeSet::new();
+    for c in &selected {
+        for other in selected.iter().filter(|o| {
+            c.restrictions
+                .iter()
+                .any(|r| r.eq_ignore_ascii_case(&o.guid))
+        }) {
+            let mut pair = [c.guid.to_ascii_lowercase(), other.guid.to_ascii_lowercase()];
+            pair.sort();
+            if !seen.insert(pair.clone()) {
+                continue;
+            }
+            found.push(Found {
+                id: format!("declared:{}:{}", pair[0], pair[1]),
+                resource: String::new(),
+                kind: "declared",
+                severity: "error",
+                participants: vec![
+                    (c.guid.clone(), c.name.clone()),
+                    (other.guid.clone(), other.name.clone()),
+                ],
+                winner: None,
+                description: format!(
+                    "The build says {} and {} must not be used together.",
+                    c.name, other.name
+                ),
+                recommendation: "Leave one of them out of your selection.".into(),
+            });
+        }
+    }
+    let Some(report) = &analysis.report else {
+        return found;
+    };
+    let Ok(presentation) = modsync::conflicts::Presentation::from_report(report) else {
+        return found;
+    };
+    let limits = if presentation.limitations.is_empty() {
+        String::new()
+    } else {
+        format!(
+            " Not covered by this check: {}",
+            presentation.limitations.join(" ")
+        )
+    };
+    for row in &presentation.rows {
+        let mut participants: Vec<(String, String)> = Vec::new();
+        for w in &row.writers {
+            participants.retain(|(g, _)| !g.eq_ignore_ascii_case(&w.component_guid));
+            participants.push((w.component_guid.clone(), w.component_name.clone()));
+        }
+        if participants.len() < 2 {
+            continue;
+        }
+        let winner = row.writers.iter().find(|w| w.is_winner);
+        let lower = row.destination_path.to_ascii_lowercase().replace('\\', "/");
+        let kind = if lower.ends_with(".2da") {
+            "2da"
+        } else if lower.ends_with("dialog.tlk") {
+            "dialog"
+        } else if lower.split('/').any(|part| part == "modules") {
+            "module"
+        } else {
+            "override"
+        };
+        found.push(Found {
+            id: format!("file:{lower}"),
+            resource: row.destination_path.clone(),
+            kind,
+            severity: "warning",
+            participants,
+            winner: winner.map(|w| w.component_guid.clone()),
+            description: match winner {
+                Some(w) => format!(
+                    "More than one selected mod writes {}. {} is installed last in the build's order, so its copy is the one the game uses.",
+                    row.destination_path, w.component_name
+                ),
+                None => format!(
+                    "More than one selected mod writes {}.",
+                    row.destination_path
+                ),
+            },
+            recommendation: format!(
+                "The build's install order already decides this; leave out a mod only if you want the other copy.{limits}"
+            ),
+        });
+    }
+    found
+}
+
+fn conflict_counts(st: &AppState) -> BTreeMap<String, usize> {
+    let mut counts = BTreeMap::new();
+    let dismissed = st.lock().ui.dismissed_conflicts.clone();
+    for c in conflicts_found() {
+        if dismissed.contains(&c.id) {
+            continue;
+        }
+        for (guid, _) in &c.participants {
+            *counts.entry(guid.to_ascii_lowercase()).or_insert(0) += 1;
+        }
+    }
+    counts
+}
+
+/// The conflicts still to show (not dismissed).
+fn conflict_list(st: &AppState, installed: &BTreeSet<String>) -> Vec<Value> {
+    let dismissed = st.lock().ui.dismissed_conflicts.clone();
+    conflicts_found()
+        .iter()
+        .filter(|c| !dismissed.contains(&c.id))
+        .map(|c| conflict_json(c, installed))
+        .collect()
+}
+
+fn conflict_json(c: &Found, installed: &BTreeSet<String>) -> Value {
+    let files: Vec<&str> = if c.resource.is_empty() {
+        Vec::new()
+    } else {
+        vec![c.resource.as_str()]
+    };
+    json!({
+        "id": c.id,
+        "resource": c.resource,
+        "type": c.kind,
+        "severity": c.severity,
+        "participants": c.participants.iter().map(|(guid, name)| json!({
+            "mod_id": guid, "mod_name": name,
+            "enabled": installed.contains(&guid.to_ascii_lowercase()),
+            "toggleable": true, "files": files, "file_count": files.len(),
+        })).collect::<Vec<_>>(),
+        "winner_mod_id": c.winner,
+        "same_build": true,
+        "description": c.description,
+        "recommendation": c.recommendation,
+    })
+}
+
+/// Lowercase ids of the mods deployed in this install.
+fn deployed(svc: &Service) -> BTreeSet<String> {
+    svc.management_status()
+        .map(|s| {
+            s.manifests
+                .iter()
+                .map(|m| m.component_guid.to_ascii_lowercase())
+                .collect()
+        })
+        .unwrap_or_default()
 }
 
 fn duplicate_ids(_: &Service) -> BTreeSet<String> {
@@ -140,7 +329,7 @@ fn listing(st: &AppState, profile: &str) -> anyhow::Result<Value> {
     let (svc, game, name) = service(st, profile)?;
     let status = svc.management_status()?;
     let info = guide_info(st);
-    let conflicts = conflict_counts(&svc, st);
+    let conflicts = conflict_counts(st);
     let dupes = duplicate_ids(&svc);
     let mut mods: Vec<Value> = status
         .manifests
@@ -220,7 +409,10 @@ fn mod_reply(st: &AppState, profile: &str, id: &str) -> Reply {
         })
         .cloned()
         .unwrap_or(Value::Null);
-    Ok(json!({"ok": true, "mod": m, "conflicts": []}))
+    let installed = service(st, profile)
+        .map(|(svc, _, _)| deployed(&svc))
+        .unwrap_or_default();
+    Ok(json!({"ok": true, "mod": m, "conflicts": conflict_list(st, &installed)}))
 }
 
 fn cache_dir(st: &AppState) -> PathBuf {
@@ -395,6 +587,87 @@ pub fn route(app: &AppHandle, r: &Request, s: &[&str]) -> Reply {
                 .into();
             detail["baked_files"] = json!([]);
             Ok(detail)
+        }
+        ["api", "conflicts"] => {
+            let installed = service(&st, &profile)
+                .map(|(svc, _, _)| deployed(&svc))
+                .unwrap_or_default();
+            Ok(json!({"conflicts": conflict_list(&st, &installed)}))
+        }
+        // The build decides which copy of a file wins (its install order), so
+        // there is no winner to pick. Dismiss hides a conflict; "disable losers"
+        // turns off the losing mods that are installed in this game, which
+        // leaves the winner's files in place. A losing mod that is not installed
+        // is reported back: leave it out of the selection instead.
+        ["api", "conflicts", "resolve"] if post => {
+            let action = r.b("action");
+            let ids: Vec<String> = r
+                .body
+                .get("conflict_ids")
+                .and_then(Value::as_array)
+                .map(|a| {
+                    a.iter()
+                        .filter_map(Value::as_str)
+                        .map(str::to_owned)
+                        .collect()
+                })
+                .unwrap_or_default();
+            let severity = r.b("all_of_severity");
+            let all = conflicts_found();
+            let chosen: Vec<&Found> = all
+                .iter()
+                .filter(|c| ids.contains(&c.id) || (!severity.is_empty() && c.severity == severity))
+                .collect();
+            let installed = service(&st, &profile)
+                .map(|(svc, _, _)| deployed(&svc))
+                .unwrap_or_default();
+            let (mut dismissed, mut disabled, mut skipped) = (0, Vec::new(), Vec::new());
+            match action.as_str() {
+                "dismiss" => {
+                    let mut inner = st.lock();
+                    for c in &chosen {
+                        if !inner.ui.dismissed_conflicts.contains(&c.id) {
+                            inner.ui.dismissed_conflicts.push(c.id.clone());
+                            dismissed += 1;
+                        }
+                    }
+                }
+                "undismiss" => st
+                    .lock()
+                    .ui
+                    .dismissed_conflicts
+                    .retain(|id| !chosen.iter().any(|c| &c.id == id)),
+                "disable_losers" => {
+                    for c in &chosen {
+                        let Some(winner) = &c.winner else {
+                            skipped.push(json!({"id": c.id, "reason": "The build says these mods must not be used together; leave one of them out of your selection."}));
+                            continue;
+                        };
+                        for (guid, name) in c
+                            .participants
+                            .iter()
+                            .filter(|(g, _)| !g.eq_ignore_ascii_case(winner))
+                        {
+                            if !installed.contains(&guid.to_ascii_lowercase()) {
+                                skipped.push(json!({"id": c.id, "reason": format!("{name} is not installed; leave it out of your selection to keep the other copy.")}));
+                                continue;
+                            }
+                            match set_enabled(&st, &profile, guid, false) {
+                                Ok(()) => disabled.push(guid.clone()),
+                                Err(e) => {
+                                    skipped.push(json!({"id": c.id, "reason": format!("{e:#}")}))
+                                }
+                            }
+                        }
+                    }
+                }
+                _ => return Err(fail(400, "Unknown action")),
+            }
+            st.save_ui();
+            changed(app);
+            Ok(
+                json!({"ok": true, "requested": chosen.len(), "dismissed": dismissed, "disabled": disabled, "skipped": skipped}),
+            )
         }
         ["api", "cache"] => {
             let dir = cache_dir(&st);
