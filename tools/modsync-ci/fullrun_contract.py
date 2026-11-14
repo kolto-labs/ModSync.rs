@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Repository-owned full-run request, provenance and coverage contract.
 
-No network, credentials, game mutation or Rust test compilation happens here.
+No network access, credential disclosure, game mutation or Rust test compilation happens here.
 """
 import argparse
 import hashlib
@@ -115,6 +115,19 @@ def aggregate(operation, results):
             "cross_lane_parity": "unverified"}
 
 
+def require_stage_credentials(stage):
+    required = {"games": ("CACHE_ENCRYPTION_KEY",),
+                "archives": ("DIAGNOSTICS_ENCRYPTION_KEY",),
+                "install": ("CACHE_ENCRYPTION_KEY", "DIAGNOSTICS_ENCRYPTION_KEY"),
+                "seed": ("DIAGNOSTICS_ENCRYPTION_KEY",)}
+    if stage not in required:
+        raise ValueError("unknown credential-bearing stage")
+    missing = [key for key in required[stage] if not os.environ.get(key)]
+    if missing:
+        raise ValueError(stage + " requires repository secrets: " + ", ".join(missing))
+    return {"stage": stage, "status": "credentials-present"}
+
+
 def write_json(path, value):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -138,6 +151,8 @@ def main(argv=None):
     p = sub.add_parser("plan")
     p.add_argument("--config", default=".github/fullrun.json")
     p.add_argument("--output", required=True)
+    k = sub.add_parser("check-credentials")
+    k.add_argument("--stage", choices=("games", "archives", "install", "seed"), required=True)
     c = sub.add_parser("complete")
     c.add_argument("--report", required=True)
     c.add_argument("--guide", required=True)
@@ -157,17 +172,16 @@ def main(argv=None):
                          os.environ.get("REQUEST_OPERATION", "check"), os.environ.get("REQUEST_GAME", "both"),
                          os.environ.get("REQUEST_MODE", "both"), raw == "true",
                          os.environ["GITHUB_EVENT_NAME"])
-            if value["operation"] in ("full", "games", "install") and not os.environ.get("CACHE_ENCRYPTION_KEY"):
-                raise ValueError("CACHE_ENCRYPTION_KEY is required for game materialization")
-            if value["operation"] in ("full", "install", "archives", "seed") and not os.environ.get("DIAGNOSTICS_ENCRYPTION_KEY"):
-                raise ValueError("DIAGNOSTICS_ENCRYPTION_KEY is required for retained private lane evidence")
             emit_outputs(value)
+        elif args.command == "check-credentials":
+            value = require_stage_credentials(args.stage)
         elif args.command == "complete":
             digest = hashlib.sha256(Path(args.guide).read_bytes()).hexdigest()
             value = require_complete(json.loads(Path(args.report).read_text()), args.mode, digest)
         else:
             value = aggregate(args.operation, json.loads(os.environ.get("NEEDS_JSON", "{}")))
-        write_json(args.output, value)
+        if args.command != "check-credentials":
+            write_json(args.output, value)
         print(json.dumps(value, sort_keys=True))
         return 0
     except (KeyError, OSError, TypeError, ValueError) as error:

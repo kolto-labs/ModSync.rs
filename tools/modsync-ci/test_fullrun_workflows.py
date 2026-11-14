@@ -66,9 +66,7 @@ class WorkflowGraph(unittest.TestCase):
                 ("workflow_dispatch", "check", True, "check", False)):
             context = {"github.event_name": event, "inputs.operation": operation,
                        "inputs.write_cache": write, "inputs.counterpart_sha": "",
-                       "inputs.game": "", "inputs.mode": "",
-                       "secrets.CACHE_ENCRYPTION_KEY": "test-cache-key",
-                       "secrets.DIAGNOSTICS_ENCRYPTION_KEY": "test-evidence-key"}
+                       "inputs.game": "", "inputs.mode": ""}
             env = {}
             for key, expression in step["env"].items():
                 value = re.sub(r"\b(?:github|inputs|secrets)\.[A-Za-z_]+",
@@ -80,21 +78,27 @@ class WorkflowGraph(unittest.TestCase):
                 env.update(GITHUB_REPOSITORY="kolto-labs/ModSync.rs", GITHUB_SHA="a" * 40,
                            GITHUB_EVENT_NAME=event, GITHUB_OUTPUT=str(Path(root) / "outputs"))
                 output = Path(root) / "plan.json"
-                with mock.patch.dict(os.environ, env), contextlib.redirect_stdout(io.StringIO()):
+                with mock.patch.dict(os.environ, env, clear=True), contextlib.redirect_stdout(io.StringIO()):
                     self.assertEqual(fullrun_contract.main(["plan", "--config", str(ROOT / ".github/fullrun.json"),
                                                            "--output", str(output)]), 0)
                 plan = json.loads(output.read_text())
                 self.assertEqual((plan["operation"], plan["cache_writer"]), (expected, writer))
                 for key in ("CACHE_ENCRYPTION_KEY", "DIAGNOSTICS_ENCRYPTION_KEY"):
-                    self.assertEqual(bool(env[key]), event in ("push", "workflow_dispatch"))
-                if event == "push":
-                    for key in ("CACHE_ENCRYPTION_KEY", "DIAGNOSTICS_ENCRYPTION_KEY"):
-                        missing = dict(env, **{key: ""})
-                        rejected = Path(root) / (key + ".json")
-                        with mock.patch.dict(os.environ, missing), contextlib.redirect_stderr(io.StringIO()):
-                            self.assertEqual(fullrun_contract.main(["plan", "--config", str(ROOT / ".github/fullrun.json"),
-                                                                   "--output", str(rejected)]), 1)
-                        self.assertFalse(rejected.exists(), "missing keys must not downgrade full to check")
+                    self.assertNotIn(key, env, "planning must not gate independent stages on private keys")
+    def test_each_private_stage_checks_its_own_credentials_before_any_acquisition(self):
+        for filename, job, stage, keys in (
+                ("cache-game.yml", "game", "games", {"CACHE_ENCRYPTION_KEY"}),
+                ("cache-archives.yml", "archives", "archives", {"DIAGNOSTICS_ENCRYPTION_KEY"}),
+                ("fullrun-lane.yml", "install", "install", {"CACHE_ENCRYPTION_KEY", "DIAGNOSTICS_ENCRYPTION_KEY"}),
+                ("cache-seed.yml", "seed", "seed", {"DIAGNOSTICS_ENCRYPTION_KEY"})):
+            with self.subTest(stage=stage):
+                document = yaml.load((ROOT / ".github/workflows" / filename).read_text(), Loader=yaml.BaseLoader)
+                checkout, gate = document["jobs"][job]["steps"][:2]
+                self.assertTrue(checkout["uses"].startswith("actions/checkout@"))
+                self.assertEqual(gate["run"], "python tools/modsync-ci/fullrun_contract.py check-credentials --stage " + stage)
+                self.assertEqual(set(gate["env"]), keys)
+                for key in keys:
+                    self.assertEqual(gate["env"][key], "${{ secrets." + key + " }}")
     def test_synthetic_cli_and_gui_workflows_are_removed(self):
         for path in (ROOT / ".github/workflows").glob("synthetic-*.yml"):
             self.assertFalse(path.name.startswith(("synthetic-full-cli-", "synthetic-gui-")), path.name)

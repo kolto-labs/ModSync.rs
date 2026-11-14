@@ -47,6 +47,11 @@ jobs:
           repository: ${{ github.repository }}
           ref: ${{ github.sha }}
           persist-credentials: false
+      - name: Check archive-stage credentials before acquisition
+        id: admission
+        env:
+          DIAGNOSTICS_ENCRYPTION_KEY: ${{ secrets.DIAGNOSTICS_ENCRYPTION_KEY }}
+        run: python tools/modsync-ci/fullrun_contract.py check-credentials --stage archives
       - name: Checkout admitted guides
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -83,7 +88,7 @@ jobs:
           key: ${{ steps.refresh.outputs.archive_cache_key }}
 
       - name: Retain encrypted stage evidence
-        if: ${{ success() || failure() }}
+        if: ${{ (success() || failure()) && steps.admission.outcome == 'success' }}
         uses: ./.github/actions/retain-fullrun-evidence
         with:
           source: ${{ runner.temp }}/archive-evidence

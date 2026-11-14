@@ -69,6 +69,11 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
 
+      - name: Check game-stage credentials before acquisition
+        env:
+          CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
+        run: python tools/modsync-ci/fullrun_contract.py check-credentials --stage games
+
       - name: Reserve space on the disposable hosted runner
         run: |
           sudo rm -rf -- /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL

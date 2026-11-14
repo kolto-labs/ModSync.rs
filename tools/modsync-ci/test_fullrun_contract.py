@@ -75,6 +75,28 @@ class Plans(unittest.TestCase):
         for operation in ("check", "install", "seed", "p2p"):
             self.assertFalse(ci.plan(c, c["repository"], OWN, operation=operation, write_cache=True)["cache_writer"])
 
+class StageCredentials(unittest.TestCase):
+    def test_missing_keys_fail_only_the_stage_that_needs_them(self):
+        for stage, keys in (("games", ("CACHE_ENCRYPTION_KEY",)),
+                            ("archives", ("DIAGNOSTICS_ENCRYPTION_KEY",)),
+                            ("install", ("CACHE_ENCRYPTION_KEY", "DIAGNOSTICS_ENCRYPTION_KEY")),
+                            ("seed", ("DIAGNOSTICS_ENCRYPTION_KEY",))):
+            present = {key: "test-private-value" for key in keys}
+            with self.subTest(stage=stage), mock.patch.dict(os.environ, present, clear=True):
+                self.assertEqual(ci.require_stage_credentials(stage)["status"], "credentials-present")
+                for key in keys:
+                    with mock.patch.dict(os.environ, {key: ""}), self.assertRaisesRegex(ValueError, key) as raised:
+                        ci.require_stage_credentials(stage)
+                    self.assertNotIn("test-private-value", str(raised.exception))
+    def test_cli_failure_names_missing_configuration_without_exposing_values(self):
+        import contextlib
+        import io
+        errors = io.StringIO()
+        with mock.patch.dict(os.environ, {"CACHE_ENCRYPTION_KEY": "test-private-value"}, clear=True), contextlib.redirect_stderr(errors):
+            self.assertEqual(ci.main(["check-credentials", "--stage", "install"]), 1)
+        self.assertIn("DIAGNOSTICS_ENCRYPTION_KEY", errors.getvalue())
+        self.assertNotIn("test-private-value", errors.getvalue())
+
 class CompleteCoverage(unittest.TestCase):
     def test_complete_cli_and_gui_are_single_lane_evidence_only(self):
         for mode in ("cli", "gui"):

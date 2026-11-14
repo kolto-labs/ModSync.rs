@@ -36,6 +36,12 @@ jobs:
           repository: ${{ github.repository }}
           ref: ${{ github.sha }}
           persist-credentials: false
+      - name: Check install-stage credentials before materialization
+        id: admission
+        env:
+          CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
+          DIAGNOSTICS_ENCRYPTION_KEY: ${{ secrets.DIAGNOSTICS_ENCRYPTION_KEY }}
+        run: python tools/modsync-ci/fullrun_contract.py check-credentials --stage install
       - name: Checkout admitted guides
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -132,7 +138,7 @@ jobs:
             --game "$GAME" --mode "$MODE" --game-dir "$RUNNER_TEMP/game" \
             --cache "$RUNNER_TEMP/mod-cache" --work-dir "$RUNNER_TEMP/lane-work" --output "$RUNNER_TEMP/lane-evidence"
       - name: Retain encrypted lane evidence
-        if: ${{ success() || failure() }}
+        if: ${{ (success() || failure()) && steps.admission.outcome == 'success' }}
         uses: ./.github/actions/retain-fullrun-evidence
         with:
           source: ${{ runner.temp }}/lane-evidence
