@@ -332,6 +332,12 @@ enum Action {
         #[arg(long)]
         json: bool,
     },
+    /// Check a DeadlyStream account. The password is read from the
+    /// MODSYNC_DEADLYSTREAM_PASSWORD environment variable and never stored.
+    DeadlystreamSignIn {
+        #[arg(long)]
+        username: String,
+    },
     /// Convert TOML, JSON, YAML, XML, or Markdown input.
     /// Use convert --merge --existing <guide> --incoming <guide> for legacy merge mode.
     Convert {
@@ -2446,6 +2452,14 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             } else {
                 println!("{rendered}");
             }
+            Ok(())
+        }
+        Some(Action::DeadlystreamSignIn { username }) => {
+            let password = std::env::var("MODSYNC_DEADLYSTREAM_PASSWORD")
+                .context("Set MODSYNC_DEADLYSTREAM_PASSWORD to the account's password")?;
+            let cancelled = modsync::p2p::stop_signal_flag()?;
+            let account = modsync::deadlystream_account::sign_in(&username, &password, &cancelled)?;
+            println!("{}", serde_json::to_string_pretty(&account)?);
             Ok(())
         }
         Some(Action::Convert {

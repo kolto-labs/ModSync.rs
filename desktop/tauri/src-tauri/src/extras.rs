@@ -51,3 +51,36 @@ pub fn sign_out_gamefront() {}
 
 #[tauri::command]
 pub fn set_nxm_handler() {}
+
+pub fn login(app: &AppHandle, r: &crate::api::Request) -> Reply {
+    let username = r.b("username");
+    let password = r.b("password");
+    match modsync::deadlystream_account::sign_in(
+        &username,
+        &password,
+        &std::sync::atomic::AtomicBool::new(false),
+    ) {
+        Ok(account) => {
+            let st = crate::state::state(app);
+            {
+                let mut inner = st.lock();
+                inner.signed_in = true;
+                inner.ui.deadlystream_username = account.username.clone();
+            }
+            st.save_ui();
+            crate::state::emit(
+                app,
+                json!({"type": "auth", "logged_in": true, "username": account.username}),
+            );
+            Ok(json!({"ok": true, "username": account.username}))
+        }
+        Err(error) => {
+            crate::state::log(
+                app,
+                format!("DeadlyStream sign-in failed: {error:#}"),
+                "warning",
+            );
+            Err(fail(401, format!("{error:#}")))
+        }
+    }
+}

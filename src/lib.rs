@@ -2,6 +2,7 @@ pub mod acquisition;
 pub mod acquisition_guard;
 pub mod archive;
 pub mod archive_generation;
+pub mod deadlystream_account;
 pub mod deployment;
 pub mod direct_markdown;
 pub mod download;

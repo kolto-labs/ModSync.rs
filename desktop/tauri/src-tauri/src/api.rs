@@ -133,6 +133,7 @@ fn route(app: &AppHandle, r: &Request) -> Reply {
         (["api", "gamefront", "external"], _) => {
             Ok(json!({"ok": true, "destination": state(app).mods_dir()}))
         }
+        (["api", "login"], _) => crate::extras::login(app, r),
         (["api", "nexus", "validate"], _) => nexus_validate(app),
         _ => Err(fail(404, "This part of the app is not available yet.")),
     }

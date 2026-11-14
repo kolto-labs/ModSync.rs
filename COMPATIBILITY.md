@@ -1,5 +1,17 @@
 # Compatibility and proof boundaries
 
+## DeadlyStream sign-in check - 2026-11-14
+
+`deadlystream_account::sign_in` reads the DeadlyStream login page, takes its
+CSRF key and posts the username and password to the site's login form over
+HTTPS, following at most five redirects that stay on deadlystream.com. A
+member cookie set by the site counts as success; otherwise the site's error
+text is returned. The password is never stored and the session is discarded:
+the acquisition code still downloads anonymously, so signing in does not yet
+unlock files that need an account. `modsync deadlystream-sign-in --username`
+(password from `MODSYNC_DEADLYSTREAM_PASSWORD`) runs the same check. Not covered
+by Rust tests (frozen by AGENTS.md).
+
 ## Bulk selection and option identity — 2026-11-03
 
 The egui installer bulk selection buttons (Select all, Select through tier,
