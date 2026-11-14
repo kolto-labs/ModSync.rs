@@ -6,8 +6,12 @@ name: Production parity gates
 # native Windows/macOS builds run only on manual dispatch.
 on:
   pull_request:
+  # Every commit on main and on feature branches gets checked. A pull request
+  # from a branch in this repository is already covered by that push run, so
+  # the jobs below skip the duplicate pull_request run (see `if:`). Pull
+  # requests from forks still run, because their pushes happen elsewhere.
   push:
-    branches: [main]
+    branches: ['**']
   workflow_dispatch:
     inputs:
       native:
@@ -23,6 +27,7 @@ concurrency:
 # compile only production lib/bin targets; passing is not full parity acceptance.
 jobs:
   production:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -76,3 +81,27 @@ jobs:
       - run: cargo clippy --locked --no-default-features --lib --bin modsync -j2 -- -D warnings
       - run: cargo build --locked --lib --bin modsync -j2
       - run: cargo clippy --locked --lib --bin modsync -j2 -- -D warnings
+
+  # Rust test suite. Off while upstream's parity freeze is in effect (AGENTS.md:
+  # tests are not compiled or run until full parity). Set the repository
+  # variable RUN_RUST_TESTS to `true` to turn it on for every commit; no
+  # workflow edit is needed. Until then the job is skipped, not failed.
+  tests:
+    if: >-
+      vars.RUN_RUST_TESTS == 'true' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.95.0
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends pkg-config libssl-dev             libwayland-dev libxkbcommon-dev libx11-dev libxi-dev libxrandr-dev             libxcursor-dev libgl1-mesa-dev
+      - name: Tests (CLI-only build)
+        run: cargo test --locked --no-default-features -j2
+      - name: Tests (default build with desktop)
+        run: cargo test --locked -j2
