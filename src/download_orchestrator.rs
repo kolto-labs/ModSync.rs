@@ -157,7 +157,7 @@ fn find_existing(source_dir: &Path, name: &str) -> Option<PathBuf> {
         .map(|entry| entry.path())
 }
 
-/// A name match plus `archive::verify` (and the authored hash when present).
+/// A name match plus content verification (and the authored hash when present).
 fn existing_valid(
     path: &Path,
     expected: Option<&str>,
@@ -173,7 +173,7 @@ fn existing_valid(
     {
         return false;
     }
-    archive::verify(path, path, options, cancelled).is_ok()
+    archive::verify_source(path, path, options, cancelled).is_ok()
 }
 
 fn sources_for(
@@ -517,6 +517,10 @@ fn plan_url(
             .map(Some)
             .collect()
     };
+    ensure!(
+        filenames.len() <= 1 || expected.is_none(),
+        "ContentHashSHA256 identifies one file; name a single file under Files instead of applying its hash to siblings"
+    );
     for filename in filenames {
         if let Some(name) = &filename
             && let Some(path) = find_existing(&options.source_dir, name)
@@ -607,7 +611,55 @@ fn bare_deadlystream_page(target: &ArchiveTarget) -> Option<&str> {
     })
 }
 
-/// Expands one bare DeadlyStream page target into one named target per selected archive
+fn warn_filename_selection(
+    component: &crate::Component,
+    url: &str,
+    names: &[String],
+    selected: &[String],
+    result: &mut AcquisitionPlan,
+) {
+    let selected_names: std::collections::BTreeSet<_> =
+        selected.iter().map(String::as_str).collect();
+    let excluded: Vec<_> = names
+        .iter()
+        .filter(|name| !selected_names.contains(name.as_str()))
+        .cloned()
+        .collect();
+    if !excluded.is_empty() {
+        result.warnings.push(format!(
+            "{}: guide filename rules excluded: {}",
+            diagnostic_resource(url),
+            excluded.join(", ")
+        ));
+    }
+    if names.len() > 1 && selected.len() == names.len() {
+        result.warnings.push(format!(
+            "{}: several files match this page's guide selection: {}; review Files and install instructions if only some are intended",
+            diagnostic_resource(url), selected.join(", ")
+        ));
+    }
+    if !component
+        .instructions
+        .iter()
+        .chain(
+            component
+                .options
+                .iter()
+                .flat_map(|option| &option.instructions),
+        )
+        .any(|instruction| instruction.action == "Extract")
+        && selected
+            .iter()
+            .any(|name| !download_plan::loose_source_selected(component, name))
+    {
+        result.warnings.push(format!(
+            "{}: a loose download can only be installed by an explicit Copy or Move source and destination; no destination is inferred",
+            diagnostic_resource(url)
+        ));
+    }
+}
+
+/// Expands one bare DeadlyStream page target into one named target per selected file
 /// its page offers, as `expand_nexus_page` does. Each named target keeps the page as its
 /// Origin, which `run` reads again to reach that archive, since links and cookies belong
 /// to one session. `Err` leaves the target as planned.
@@ -644,10 +696,11 @@ fn expand_deadlystream_page(
         .filter(|name| resolution_allows(options.resolution, name))
         .collect();
     let selected = filename_selection.select(component, &target.registry_url, &names)?;
+    warn_filename_selection(component, &target.registry_url, &names, &selected, result);
     if selected.is_empty() {
         // As `plan` drops named files the component's Extract patterns do not need.
         result.warnings.push(format!(
-            "{}: no archive of this DeadlyStream page is needed by this component's Extract instructions",
+            "{}: no file on this DeadlyStream page matches the guide filename rules; review Files and install instructions",
             diagnostic_resource(&target.registry_url)
         ));
         return Ok(());
@@ -655,7 +708,7 @@ fn expand_deadlystream_page(
     // One authored hash identifies one archive; which sibling it means is unknown.
     ensure!(
         selected.len() == 1 || target.expected_sha256.is_none(),
-        "The authored ContentHashSHA256 identifies one archive, but {} archives of this DeadlyStream page match; name the file under Files",
+        "The authored ContentHashSHA256 identifies one file, but {} files of this DeadlyStream page match; name the file under Files",
         selected.len()
     );
     let single = selected.len() == 1;
@@ -769,10 +822,11 @@ fn expand_nexus_page(
         .filter(|name| resolution_allows(options.resolution, name))
         .collect();
     let selected = filename_selection.select(component, &target.registry_url, &names)?;
+    warn_filename_selection(component, &target.registry_url, &names, &selected, result);
     if selected.is_empty() {
         // As `plan` drops named files the component's Extract patterns do not need.
         result.warnings.push(format!(
-            "{}: no eligible file of Nexus mod {mod_id} is needed by this component's Extract instructions",
+            "{}: no eligible file of Nexus mod {mod_id} matches the guide filename rules; review Files and install instructions",
             diagnostic_resource(&target.registry_url)
         ));
         return Ok(());
@@ -780,7 +834,7 @@ fn expand_nexus_page(
     // One authored hash identifies one archive; which sibling it means is unknown.
     ensure!(
         selected.len() == 1 || target.expected_sha256.is_none(),
-        "The authored ContentHashSHA256 identifies one archive, but {} files of Nexus mod {mod_id} match; name the file under Files",
+        "The authored ContentHashSHA256 identifies one file, but {} files of Nexus mod {mod_id} match; name the file under Files",
         selected.len()
     );
     let single = selected.len() == 1;
@@ -1878,7 +1932,7 @@ fn step_from_error(error: anyhow::Error, kind: SourceKind, cancelled: &AtomicBoo
 
 /// Takes the file already present under the name a source revealed, by the rule a named
 /// target follows when it is `AlreadyPresent`: the target's own `ContentHashSHA256` must
-/// match, and the archive must verify. With no authored hash, the present file must hold
+/// match, and the content must verify. With no authored hash, the present file must hold
 /// exactly the bytes the source delivered; otherwise nothing says which bytes this
 /// component wants, so it fails. The present file is never replaced or removed.
 fn adopt_present(
@@ -1922,12 +1976,14 @@ fn adopt_present(
         }
         _ => {}
     }
-    archive::verify(path, path, &context.settings.archive, context.cancelled).map_err(|error| {
-        format!(
-            "The present file {} failed verification: {error:#}",
-            path.display()
-        )
-    })?;
+    archive::verify_source(path, path, &context.settings.archive, context.cancelled).map_err(
+        |error| {
+            format!(
+                "The present file {} failed verification: {error:#}",
+                path.display()
+            )
+        },
+    )?;
     Ok(Acquired {
         path: path.clone(),
         sha256: actual,
@@ -3360,6 +3416,9 @@ pub fn collect_fomod_consumers(
     for (path, consumers) in bindings {
         if cancelled.load(Ordering::Relaxed) {
             return FomodConsumerScan::default();
+        }
+        if archive::is_supported(&path, cancelled).is_ok_and(|supported| !supported) {
+            continue;
         }
         match crate::fomod::inspect_archive(&path, options, cancelled) {
             Ok(Some(module)) => result.archives.push(FomodArchiveConsumers {

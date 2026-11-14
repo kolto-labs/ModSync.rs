@@ -247,6 +247,67 @@ fn invalid_destination(raw: &str) -> bool {
     })
 }
 
+/// An exact top-level download consumed by an authored file action. Registry
+/// filenames are authoritative; a bare resource may learn its name at fetch time.
+/// This only qualifies the declaration: callers must check the actual file and
+/// refuse archive content before accepting it outside archive membership.
+pub(crate) fn loose_source_name(
+    component: &Component,
+    instruction: &Instruction,
+    source: &str,
+) -> Result<Option<String>> {
+    if !matches!(instruction.action.as_str(), "Copy" | "Move") {
+        return Ok(None);
+    }
+    let source = source.replace('\\', "/");
+    let name = source.strip_prefix("<<modDirectory>>/").unwrap_or(&source);
+    if name.is_empty()
+        || name == "."
+        || name.contains(['/', '*', '?', '[', ']'])
+        || name.starts_with("<<")
+    {
+        return Ok(None);
+    }
+    relative(name, false)?;
+    let declared = component.resource_registry.iter().any(|(url, metadata)| {
+        if crate::download_hosts::provider(url).is_err() {
+            return false;
+        }
+        match metadata.get("Files") {
+            Some(serde_json::Value::Object(files)) if !files.is_empty() => {
+                files.iter().any(|(file, enabled)| {
+                    crate::unicode_case::ordinal_eq(file, name)
+                        && enabled != &serde_json::Value::Bool(false)
+                })
+            }
+            None | Some(serde_json::Value::Object(_)) => true,
+            _ => false,
+        }
+    });
+    if !declared {
+        return Ok(None);
+    }
+    let destination = &instruction.destination;
+    ensure!(
+        !destination.is_empty() && !invalid_destination(destination),
+        "Loose file Copy/Move requires a valid explicit Destination"
+    );
+    let tail = [
+        "<<modDirectory>>",
+        "<<gameDirectory>>",
+        "<<kotorDirectory>>",
+    ]
+    .into_iter()
+    .find_map(|root| destination.strip_prefix(root))
+    .context("Loose file Destination must start with an install root placeholder")?;
+    ensure!(
+        tail.is_empty() || tail.starts_with(['/', '\\']),
+        "Missing separator after Destination root"
+    );
+    relative(tail.trim_start_matches(['/', '\\']), false)?;
+    Ok(Some(name.to_owned()))
+}
+
 /// A Rename Destination as the new file name in the source's own folder. C#
 /// `RenameFile` joins it to that folder unresolved (`Instruction.cs:976-979`, `:1005`),
 /// so its install fails a placeholder path such as `<<kotorDirectory>>/Override/b.txt`
@@ -2037,6 +2098,21 @@ impl Engine {
             if path.starts_with(&self.settings.roots.game) {
                 continue;
             }
+            if matches!(instruction.action.as_str(), "Copy" | "Move")
+                && path
+                    .strip_prefix(&self.settings.roots.mods)
+                    .is_ok_and(|relative| relative.components().count() == 1)
+            {
+                let matches = self.matches_scoped(std::slice::from_ref(source), true, false)?;
+                let mut loose = !matches.is_empty();
+                for matched in matches {
+                    self.check_cancelled()?;
+                    loose &= self.declared_loose_file(component, instruction, &matched)?;
+                }
+                if loose {
+                    continue;
+                }
+            }
             let prefix = self.source_prefix(&path);
             ensure!(
                 found(prefix.as_deref(), &pattern)? != Some(false),
@@ -2044,6 +2120,33 @@ impl Engine {
             );
         }
         Ok(())
+    }
+
+    /// The actual file must be top-level, declared for this action, and loose by
+    /// content. Archives and predicted files keep their normal validation gates.
+    fn declared_loose_file(
+        &self,
+        component: &Component,
+        instruction: &Instruction,
+        path: &Path,
+    ) -> Result<bool> {
+        let Ok(relative) = path.strip_prefix(&self.settings.roots.mods) else {
+            return Ok(false);
+        };
+        if relative.components().count() != 1 {
+            return Ok(false);
+        }
+        let source = format!("<<modDirectory>>/{}", relative.to_string_lossy());
+        if loose_source_name(component, instruction, &source)?.is_none() {
+            return Ok(false);
+        }
+        self.path(&source, false)?;
+        self.path(&instruction.destination, false)?;
+        let Some((_, content)) = self.files.get(&self.path_policy.key(path)) else {
+            return Ok(false);
+        };
+        Ok(!matches!(content, Content::Unknown)
+            && !archive::is_supported(content.path()?, &self.settings.cancelled)?)
     }
 
     /// The members one archive extracts (keys of their paths in the folder named
@@ -2226,6 +2329,32 @@ impl Engine {
                             crate::fomod::warning_text(&component.name),
                             crate::fomod::warning_text(filename)
                         ));
+                        continue;
+                    }
+                    let mut loose = false;
+                    for (instruction, runs) in
+                        Self::archive_check_instructions(component, &self.selected)
+                    {
+                        if !runs || !matches!(instruction.action.as_str(), "Copy" | "Move") {
+                            continue;
+                        }
+                        for source in &instruction.source {
+                            let (source_path, pattern) = self.source_pattern(source)?;
+                            if source_path
+                                .strip_prefix(&self.settings.roots.mods)
+                                .is_ok_and(|relative| relative.components().count() == 1)
+                                && self.path_policy.glob_matches(&pattern, &archive_key)
+                                && self.declared_loose_file(component, instruction, &path)?
+                            {
+                                loose = true;
+                                break;
+                            }
+                        }
+                        if loose {
+                            break;
+                        }
+                    }
+                    if loose {
                         continue;
                     }
                     checked.insert((self.path_policy.key(&path), component.guid.clone()));

@@ -274,7 +274,7 @@ fn header_text(response: &Response, name: &str) -> Option<String> {
     response
         .headers()
         .get(name)
-        .and_then(|value| value.to_str().ok())
+        .and_then(download::header_utf8)
         .map(str::to_owned)
 }
 

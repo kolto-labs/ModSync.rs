@@ -53,7 +53,7 @@ pub fn inspect(
     options: &crate::archive::Options,
 ) -> Result<TorrentInspection> {
     ensure!(archive.is_file(), "Inspect archive does not exist");
-    crate::archive::verify(archive, archive, options, &AtomicBool::new(false))?;
+    crate::archive::verify_source(archive, archive, options, &AtomicBool::new(false))?;
     let sha256 = file_sha256(archive)?;
     let magnet = sanitize_magnet(magnet, &[])?;
     let expected = expected_sha256.map(str::to_ascii_lowercase);
@@ -96,7 +96,7 @@ pub const PIECE_LENGTH: u32 = 2 * 1024 * 1024;
 /// Validate an authored archive, announce it to the swarm, and seed until Ctrl+C.
 pub fn seed(archive: &Path, trackers: Vec<String>) -> Result<SeedInfo> {
     ensure!(archive.is_file(), "Seed archive does not exist");
-    crate::archive::verify(
+    crate::archive::verify_source(
         archive,
         archive,
         &crate::archive::Options::default(),
@@ -373,7 +373,7 @@ fn publish(
         format!("{:x}", hash.finalize()).eq_ignore_ascii_case(expected_sha256),
         "SHA-256 mismatch; torrent discarded"
     );
-    crate::archive::verify(temp.path(), destination, options, cancelled)?;
+    crate::archive::verify_source(temp.path(), destination, options, cancelled)?;
     temp.as_file().sync_all()?;
     temp.persist_noclobber(destination)
         .map_err(|error| error.error)?;
@@ -2638,7 +2638,7 @@ pub fn cli_seed(
             // Handlers first, so a signal during the copy still cleans up.
             let cancelled = stop_signal_flag()?;
             ensure!(archive.is_file(), "Seed archive does not exist");
-            crate::archive::verify(
+            crate::archive::verify_source(
                 archive,
                 archive,
                 &crate::archive::Options::default(),
@@ -2695,7 +2695,7 @@ fn seed_minted_proxied(
     proxy: &CliProxyOptions,
 ) -> Result<()> {
     ensure!(archive.is_file(), "Seed archive does not exist");
-    crate::archive::verify(
+    crate::archive::verify_source(
         archive,
         archive,
         &crate::archive::Options::default(),

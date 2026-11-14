@@ -623,7 +623,7 @@ fn make_record(
         file_hash_cancelled(&path, cancelled)? == hash,
         "Completed archive differs from authored SHA-256"
     );
-    archive::verify(&path, &path, options, cancelled)?;
+    archive::verify_source(&path, &path, options, cancelled)?;
     let verified_length = Some(fs::metadata(&path)?.len());
     let identity = sha256(&serde_json::to_vec(&(&root, &path, &hash, &info_hash))?);
     let guide_path = guide_path.map(fs::canonicalize).transpose()?;
@@ -853,7 +853,7 @@ pub fn restart_decision(record: &Record) -> Result<(), String> {
     if file_hash(&path).map_err(|e| e.to_string())? != hash {
         return Err("Source archive hash changed".into());
     }
-    archive::verify(
+    archive::verify_source(
         &path,
         &path,
         &record.archive_options(),
@@ -1862,7 +1862,7 @@ fn run_transfer(
             format!("{:x}", hash.finalize()) == record.authored_sha256,
             "Source archive hash changed"
         );
-        archive::verify(&path, &path, &record.archive_options(), &cancelled)?;
+        archive::verify_source(&path, &path, &record.archive_options(), &cancelled)?;
         let info = record.decoded_info()?;
         if let Some(info) = &info {
             p2p::check_torrent_info(info, &record.info_hash)?;

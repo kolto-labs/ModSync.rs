@@ -133,6 +133,48 @@ fn matches(name: &str, source: &str) -> bool {
         || pattern_matches(name, filename(pattern))
 }
 
+/// Loose downloads live directly in the mod directory. Never turn an archive
+/// member path into download evidence by discarding its parent directories.
+fn loose_pattern(source: &str) -> Option<String> {
+    let relative = if let Some(tail) = source.strip_prefix("<<modDirectory>>") {
+        if !tail.starts_with(['/', '\\']) {
+            return None;
+        }
+        tail.trim_start_matches(['/', '\\'])
+    } else {
+        source
+    };
+    let path = crate::paths::relative(relative, true).ok()?;
+    if path.components().count() != 1 {
+        return None;
+    }
+    path.to_str().map(str::to_owned)
+}
+
+/// Whether an authored Copy/Move step explicitly places this loose download.
+pub(crate) fn loose_source_selected(component: &Component, name: &str) -> bool {
+    if name.trim().is_empty() || name.len() > MAX_NAME_BYTES || name.contains(['/', '\\']) {
+        return false;
+    }
+    component
+        .instructions
+        .iter()
+        .chain(
+            component
+                .options
+                .iter()
+                .flat_map(|option| &option.instructions),
+        )
+        .filter(|instruction| {
+            matches!(instruction.action.as_str(), "Copy" | "Move")
+                && !instruction.destination.trim().is_empty()
+        })
+        .flat_map(|instruction| &instruction.source)
+        .filter(|source| source.len() <= MAX_NAME_BYTES)
+        .filter_map(|source| loose_pattern(source))
+        .any(|pattern| pattern_matches(name, &pattern))
+}
+
 /// One invocation owns a lazy disk snapshot and cumulative selection budgets.
 /// This is filename evidence, not an integrity or publication receipt.
 pub(crate) struct SelectionContext<'a> {
@@ -232,14 +274,25 @@ impl<'a> SelectionContext<'a> {
         // Qualify before every return/candidate copy, including no-root/no-Extract.
         self.work.visit(url.len(), self.cancelled)?;
         let mut patterns = Vec::new();
+        let mut loose_patterns = Vec::new();
         let mut has_extract = false;
         for instruction in &component.instructions {
-            self.qualify_instruction(instruction, &mut has_extract, &mut patterns)?;
+            self.qualify_instruction(
+                instruction,
+                &mut has_extract,
+                &mut patterns,
+                &mut loose_patterns,
+            )?;
         }
         for option in &component.options {
             self.work.visit(0, self.cancelled)?;
             for instruction in &option.instructions {
-                self.qualify_instruction(instruction, &mut has_extract, &mut patterns)?;
+                self.qualify_instruction(
+                    instruction,
+                    &mut has_extract,
+                    &mut patterns,
+                    &mut loose_patterns,
+                )?;
             }
         }
         for name in candidates {
@@ -309,10 +362,11 @@ impl<'a> SelectionContext<'a> {
         }
         let mut result = Vec::new();
         let mut seen = BTreeSet::new();
+        let has_patterns = has_extract || !loose_patterns.is_empty();
         for name in candidates {
             let key = self.work.key(name, self.cancelled)?;
             let known = explicit_keys.get(&key).copied();
-            let mut allowed = known.unwrap_or(!has_extract);
+            let mut allowed = known.unwrap_or(!has_patterns);
             if known.is_none() && has_extract && !name.trim().is_empty() {
                 for pattern in &unsatisfied {
                     if self.work.matches(name, pattern, self.cancelled)? {
@@ -321,12 +375,27 @@ impl<'a> SelectionContext<'a> {
                     }
                 }
             }
-            if allowed && (explicit.is_some() || !has_extract || !seen.contains(&key)) {
+            if known.is_none() && !allowed && !name.trim().is_empty() && !name.contains(['/', '\\'])
+            {
+                for pattern in &loose_patterns {
+                    self.work.visit(
+                        (name.len() + pattern.len()).saturating_mul(4),
+                        self.cancelled,
+                    )?;
+                    // Registry names are promises, not existing loose files. A
+                    // different matching name must not satisfy a wildcard either.
+                    if pattern_matches(name, pattern) {
+                        allowed = true;
+                        break;
+                    }
+                }
+            }
+            if allowed && (explicit.is_some() || !has_patterns || !seen.contains(&key)) {
                 // LINQ Where preserves explicit duplicates; inferred names use a
                 // reference ordinal-ignore-case HashSet, retaining first spelling.
                 self.work.retain(name.len())?;
                 result.push(name.clone());
-                if explicit.is_none() && has_extract {
+                if explicit.is_none() && has_patterns {
                     self.work.retain(key.len())?;
                     seen.insert(key);
                 }
@@ -340,6 +409,7 @@ impl<'a> SelectionContext<'a> {
         instruction: &crate::Instruction,
         has_extract: &mut bool,
         patterns: &mut Vec<String>,
+        loose_patterns: &mut Vec<String>,
     ) -> Result<()> {
         self.work.visit(0, self.cancelled)?;
         if instruction.action == "Extract" {
@@ -349,6 +419,17 @@ impl<'a> SelectionContext<'a> {
                 if !source.trim().is_empty() {
                     self.work.retain(source.len())?;
                     patterns.push(source.clone());
+                }
+            }
+        } else if matches!(instruction.action.as_str(), "Copy" | "Move")
+            && !instruction.destination.trim().is_empty()
+        {
+            for source in &instruction.source {
+                self.work.name(source, self.cancelled)?;
+                self.work.visit(source.len(), self.cancelled)?;
+                if let Some(pattern) = loose_pattern(source) {
+                    self.work.retain(pattern.len())?;
+                    loose_patterns.push(pattern);
                 }
             }
         }

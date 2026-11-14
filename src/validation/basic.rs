@@ -409,6 +409,31 @@ impl ContextState<'_> {
                     {
                         continue;
                     }
+                    let top_level = source.strip_prefix("<<modDirectory>>/").unwrap_or(&source);
+                    if matches!(instruction.action.as_str(), "Copy" | "Move")
+                        && !top_level.is_empty()
+                        && !top_level.contains('/')
+                        && !top_level.starts_with("<<")
+                    {
+                        crate::paths::relative(top_level, true)?;
+                        let paths = self.expand(raw)?;
+                        let mut loose = !paths.is_empty();
+                        for path in paths {
+                            check_cancelled(self.cancelled)?;
+                            let name = path
+                                .file_name()
+                                .and_then(|name| name.to_str())
+                                .context("Loose source filename is invalid")?;
+                            let literal = format!("<<modDirectory>>/{name}");
+                            loose &=
+                                crate::engine::loose_source_name(component, instruction, &literal)?
+                                    .is_some()
+                                    && !crate::archive::is_supported(&path, self.cancelled)?;
+                        }
+                        if loose {
+                            continue;
+                        }
+                    }
                     if lower.ends_with("tslpatcher.exe") && instruction.action != "Patcher" {
                         outcome.warnings.push("'tslpatcher.exe' used in Source path without the ActionType 'Patcher', was this intentional?".into());
                     }

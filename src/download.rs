@@ -252,7 +252,7 @@ pub struct Fetched {
     pub sha256: String,
 }
 
-/// Download direct archive URLs only. Host landing pages remain a browser workflow.
+/// Download direct HTTPS files. Host landing pages remain a browser workflow.
 pub fn fetch(
     url: &str,
     destination: &Path,
@@ -511,7 +511,7 @@ fn fetch_inner(
     let disposition = response
         .headers()
         .get(reqwest::header::CONTENT_DISPOSITION)
-        .and_then(|v| v.to_str().ok())
+        .and_then(header_utf8)
         .map(str::to_owned);
     // Every response's bounded prefix is read before any status decision, so a challenge,
     // login or countdown page is a manual boundary whatever its status or content type.
@@ -589,6 +589,15 @@ fn fetch_inner(
         };
         return Err(fail(class, anyhow::anyhow!("HTTP status {status}")));
     }
+    let limit = fs2::available_space(directory)?;
+    ensure!(
+        total.is_none_or(|total| total <= limit),
+        "Download exceeds available space"
+    );
+    ensure!(
+        prefix.len() as u64 <= limit,
+        "Download exceeds available space"
+    );
     let mut temp = tempfile::NamedTempFile::new_in(directory)?;
     let mut hash = Sha256::new();
     let mut buffer = [0u8; 64 * 1024];
@@ -604,9 +613,12 @@ fn fetch_inner(
         if n == 0 {
             break;
         }
+        bytes = bytes
+            .checked_add(n as u64)
+            .ok_or_else(|| anyhow::anyhow!("Download size overflow"))?;
+        ensure!(bytes <= limit, "Download exceeds available space");
         hash.update(&buffer[..n]);
         temp.write_all(&buffer[..n])?;
-        bytes += n as u64;
         progress(FetchProgress::Transferring { bytes, total });
     }
     let digest = format!("{:x}", hash.finalize());
@@ -642,7 +654,7 @@ pub(crate) struct Staged {
 }
 
 /// The shared tail of every transfer: authored hash, one-component name, no-clobber
-/// destination, archive verification, then the no-clobber move. Nothing is published on
+/// destination, content verification, then the no-clobber move. Nothing is published on
 /// any error, and dropping `staged.temp` removes the staging file.
 pub(crate) fn publish_staged(
     staged: Staged,
@@ -686,7 +698,7 @@ pub(crate) fn publish_staged(
         }
     };
     progress(FetchProgress::Verifying);
-    crate::archive::verify(temp.path(), &path, options, cancelled)?;
+    crate::archive::verify_source(temp.path(), &path, options, cancelled)?;
     temp.as_file().sync_all()?;
     // Verification and syncing can be lengthy. A stop observed at this boundary
     // discards staging rather than publishing the now-cancelled transfer.
@@ -925,4 +937,8 @@ pub(crate) fn percent_decode(text: &str) -> String {
         }
     }
     String::from_utf8_lossy(&out).into_owned()
+}
+
+pub(crate) fn header_utf8(value: &reqwest::header::HeaderValue) -> Option<&str> {
+    std::str::from_utf8(value.as_bytes()).ok()
 }

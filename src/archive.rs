@@ -4,7 +4,7 @@ use anyhow::{Result, bail, ensure};
 use std::{
     collections::BTreeSet,
     fs::File,
-    io::{BufRead, BufReader, Read, Seek, SeekFrom, Write},
+    io::{Read, Seek, SeekFrom, Write},
     path::{Path, PathBuf},
     sync::{
         Arc,
@@ -140,6 +140,69 @@ pub fn unpack(
 }
 pub fn verify(path: &Path, name: &Path, options: &Options, cancelled: &AtomicBool) -> Result<()> {
     process(path, name, options, cancelled, false, false).map(|_| ())
+}
+
+/// Content detection is shared by acquisition and archive processing. A recognized
+/// but corrupt archive must fail verification rather than fall back to a loose file.
+pub(crate) fn is_supported(path: &Path, cancelled: &AtomicBool) -> Result<bool> {
+    let mut file = crate::paths::open_regular_read(path)?;
+    let mut header = Vec::with_capacity(512);
+    (&mut file).take(512).read_to_end(&mut header)?;
+    let header = header.as_slice();
+    if header.starts_with(b"MZ") {
+        file.rewind()?;
+        return Ok(find_7z_optional(&mut file, cancelled)?.is_some());
+    }
+    Ok(header.starts_with(b"Rar!\x1a\x07")
+        || header.starts_with(b"PK")
+        || header.starts_with(b"7z\xBC\xAF\x27\x1C")
+        || header.starts_with(b"\x1f\x8b")
+        || tar_header(header))
+}
+
+fn tar_header(bytes: &[u8]) -> bool {
+    if bytes.len() != 512 {
+        return false;
+    }
+    if bytes.iter().all(|byte| *byte == 0) {
+        return true;
+    }
+    let header = tar::Header::from_byte_slice(bytes);
+    let sum: u32 = bytes
+        .iter()
+        .enumerate()
+        .map(|(i, byte)| {
+            if (148..156).contains(&i) {
+                u32::from(b' ')
+            } else {
+                u32::from(*byte)
+            }
+        })
+        .sum();
+    bytes.get(257..262) == Some(b"ustar") || header.cksum().is_ok_and(|expected| expected == sum)
+}
+
+/// Selected loose sources remain one file; archives still pass the full reader.
+pub(crate) fn verify_source(
+    path: &Path,
+    name: &Path,
+    options: &Options,
+    cancelled: &AtomicBool,
+) -> Result<()> {
+    ensure!(
+        !cancelled.load(Ordering::Relaxed),
+        "Source verification cancelled"
+    );
+    if is_supported(path, cancelled)? {
+        verify(path, name, options, cancelled)
+    } else {
+        let file = crate::paths::open_regular_read(path)?;
+        ensure!(
+            file.metadata()?.len() <= options.max_expanded_bytes.unwrap_or(u64::MAX),
+            "Loose file exceeds configured byte limit"
+        );
+        Ok(())
+    }
 }
 /// Verify like [`verify`] and return every entry name (lowercase, `/`-separated),
 /// without spooling any entry to scratch storage.
@@ -346,9 +409,9 @@ fn process(
         files: Vec::new(),
     };
     let mut file = crate::paths::open_regular_read(path)?;
-    let mut signature = [0u8; 8];
-    let n = file.read(&mut signature)?;
-    let signature = &signature[..n];
+    let mut signature = Vec::with_capacity(512);
+    (&mut file).take(512).read_to_end(&mut signature)?;
+    let signature = signature.as_slice();
     file.rewind()?;
     if signature.starts_with(b"Rar!\x1a\x07") {
         let headers = rar_header_inventory(path);
@@ -463,21 +526,18 @@ fn process(
             },
         )?;
     } else if signature.starts_with(b"\x1f\x8b") {
-        let gzip = flate2::read::MultiGzDecoder::new(file);
+        let mut gzip = flate2::read::MultiGzDecoder::new(file);
         let modified = gzip
             .header()
             .map(|header| header.mtime())
             .filter(|seconds| *seconds != 0)
             .map(|seconds| timestamps::unix(u64::from(seconds)))
             .transpose()?;
-        let mut reader = BufReader::new(gzip);
-        let header = reader.fill_buf()?;
-        if name.to_string_lossy().to_lowercase().ends_with(".tar.gz")
-            || name
-                .extension()
-                .is_some_and(|e| e.eq_ignore_ascii_case("tgz"))
-            || header.get(257..262) == Some(b"ustar")
-        {
+        let mut prefix = Vec::with_capacity(512);
+        (&mut gzip).take(512).read_to_end(&mut prefix)?;
+        let is_tar = tar_header(&prefix);
+        let mut reader = std::io::Cursor::new(prefix).chain(gzip);
+        if is_tar {
             read_tar(&mut reader, &mut output)?;
             // Consume the gzip trailer, including its CRC.
             std::io::copy(&mut reader, &mut std::io::sink())?;
@@ -488,10 +548,7 @@ fn process(
                 .ok_or_else(|| anyhow::anyhow!("GZip needs a filename"))?;
             output.add(name, None, modified, &mut reader)?;
         }
-    } else if name
-        .extension()
-        .is_some_and(|e| e.eq_ignore_ascii_case("tar"))
-    {
+    } else if tar_header(signature) {
         read_tar(file, &mut output)?;
     } else {
         bail!(
@@ -557,6 +614,12 @@ impl Seek for Section {
     }
 }
 fn find_7z(file: &mut File, cancelled: &AtomicBool) -> Result<u64> {
+    find_7z_optional(file, cancelled)?.ok_or_else(|| {
+        anyhow::anyhow!("Executable has no supported 7z payload; it will not be executed")
+    })
+}
+
+fn find_7z_optional(file: &mut File, cancelled: &AtomicBool) -> Result<Option<u64>> {
     const SIGNATURE: &[u8] = b"7z\xBC\xAF\x27\x1C";
     let mut matched = 0;
     let mut position = 0;
@@ -567,10 +630,9 @@ fn find_7z(file: &mut File, cancelled: &AtomicBool) -> Result<u64> {
             "Archive operation cancelled"
         );
         let n = file.read(&mut buffer)?;
-        ensure!(
-            n > 0,
-            "Executable has no supported 7z payload; it will not be executed"
-        );
+        if n == 0 {
+            return Ok(None);
+        }
         for byte in &buffer[..n] {
             position += 1;
             if *byte == SIGNATURE[matched] {
@@ -579,7 +641,7 @@ fn find_7z(file: &mut File, cancelled: &AtomicBool) -> Result<u64> {
                 matched = usize::from(*byte == SIGNATURE[0]);
             }
             if matched == SIGNATURE.len() {
-                return Ok(position - SIGNATURE.len() as u64);
+                return Ok(Some(position - SIGNATURE.len() as u64));
             }
         }
     }

@@ -374,7 +374,7 @@ enum Action {
         #[arg(long)]
         source_dir: Option<PathBuf>,
     },
-    /// Fetch and verify a direct HTTPS archive URL.
+    /// Fetch a direct HTTPS file, verifying archive content when present.
     Download {
         url: String,
         output: PathBuf,

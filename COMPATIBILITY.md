@@ -1,5 +1,37 @@
 # Compatibility and proof boundaries
 
+## Loose download sources — 2026-11-14
+
+A selected loose download stays one file. `Files` flags and top-level `Copy` or
+`Move` sources select it, including wildcard sources with an explicit destination.
+`Extract` keeps selecting archives. DeadlyStream and Nexus pages report which names
+the guide excludes; a page whose several files all match warns the user to review
+the selection. Guide filename rules decide whether a texture is selected.
+
+ZIP, RAR, 7z, TAR and GZip are identified by content and verified before publication.
+A corrupt recognized archive still fails. An ordinary DLL or EXE can be copied as
+one loose file; embedded 7z SFX payloads are decoded without executing the program.
+Hashes, safe filenames, cancellation and no-clobber publication apply to both
+sources. Transfers check available space; the configured expanded-byte budget also
+bounds a loose file. Reuse and peer acquisition follow the same content checks.
+
+Installation uses the guide's existing `Copy` and `Move` actions and destinations.
+Mixed-component validation accepts declared loose sources alongside extracted
+members, and FOMOD inspection leaves loose content alone even when its name ends
+in `.zip`. A missing destination remains an error. CineMalak can therefore install
+when the guide supplies an executable file action and destination; prose alone
+still does not authorize a guessed Override path. Malak's unwanted texture can
+remain excluded by the guide's filename rules.
+
+Fifty-three isolated production CLI commands covered mixed and loose-only pages,
+explicit names and exclusions, ambiguity warnings, UTF-8 headers, misleading
+extensions, Copy/Move and wildcard installation, hash failures, size limits,
+unsafe paths and no-clobber conflicts. ZIP/TAR/GZip regression cases included
+empty TARs and a TAR split across gzip members. These are controlled fixtures,
+not a live CineMalak installation or complete parity proof. Rust tests and custom
+Rust harnesses remain frozen; their source regions are unchanged. Production
+formatting, builds and Clippy with warnings denied pass in both feature modes.
+
 ## Bulk selection and option identity — 2026-11-03
 
 The egui installer bulk selection buttons (Select all, Select through tier,
