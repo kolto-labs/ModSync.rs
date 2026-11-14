@@ -43,6 +43,8 @@ pub struct Inner {
     pub signed_in: bool,
     /// The signed-in DeadlyStream session cookies, used for downloads.
     pub deadlystream_session: Option<String>,
+    /// Nexus mods waiting for the player's "Mod Manager Download" click.
+    pub nxm_pending: std::collections::BTreeSet<String>,
     pub case_insensitive: bool,
     /// Fingerprint of the inputs of the last passing check.
     pub checked: Option<String>,
@@ -73,6 +75,7 @@ impl AppState {
             inner: Mutex::new(Inner {
                 signed_in: saved.is_some(),
                 deadlystream_session: saved.map(|(_, session)| session),
+                nxm_pending: Default::default(),
                 ui,
                 loaded: None,
                 running: false,

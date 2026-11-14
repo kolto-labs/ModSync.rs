@@ -26,7 +26,12 @@ ModSync engine. It is a separate crate with its own `Cargo.toml` and
   set the run's pause flag (`Settings::paused`, `RunSettings::paused`), which
   holds between downloads and between mods. Restore uses `recovery::restore`.
   Import folder and dropped archives use `import::prepare` and then the same
-  check and install.
+  check and install. Nexus mods that need the site's "Mod Manager Download"
+  click make the app claim nxm:// links (`protocol_registration::owned`, never
+  over another app's handler) until they arrive; a click while the app is open
+  reaches it through `single_instance` (or `native_url` on macOS, with the
+  scheme declared in `src-tauri/Info.plist`), and the link downloads into the
+  mods folder with `download_orchestrator::nxm_target`.
 - Mod details: `mod_info::fetch` and `mod_info::fetch_image` (served through
   the `kmm-image` protocol).
 - Installed mods: `deployment::Service` (`management_status`, `deploy_report`,

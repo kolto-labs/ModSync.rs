@@ -49,8 +49,11 @@ pub fn gamefront_account() -> bool {
 #[tauri::command]
 pub fn sign_out_gamefront() {}
 
+/// Claim or give back nxm:// links (`nxm::set_handler`).
 #[tauri::command]
-pub fn set_nxm_handler() {}
+pub fn set_nxm_handler(app: AppHandle, enabled: bool) -> Result<(), String> {
+    crate::nxm::set_handler(&app, enabled)
+}
 
 fn component_link(app: &AppHandle, id: &str) -> Option<String> {
     let st = crate::state::state(app);

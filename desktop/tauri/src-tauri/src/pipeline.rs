@@ -224,6 +224,11 @@ fn begin(app: &AppHandle, job: &Job) -> Result<(), Value> {
     inner.running = true;
     inner.cancelled = job.cancelled.clone();
     inner.paused = job.paused.clone();
+    // A new run asks again for any Nexus clicks it still needs.
+    if !std::mem::take(&mut inner.nxm_pending).is_empty() {
+        drop(inner);
+        emit(app, json!({"type": "nxm_wait", "active": false}));
+    }
     Ok(())
 }
 
@@ -684,6 +689,8 @@ fn download(
         None,
     )?;
     let mut skipped = Vec::new();
+    // Free Nexus accounts download through the site's "Mod Manager Download" button.
+    let mut nexus_clicks = Vec::new();
     for outcome in &report.outcomes {
         match outcome.status {
             orch::TargetStatus::ManualRequired => {
@@ -699,6 +706,12 @@ fn download(
                 );
                 tally.manual += 1;
                 skipped.push(outcome.component_guid.clone());
+                if matches!(
+                    modsync::download_hosts::provider(&outcome.registry_url),
+                    Ok(modsync::download_hosts::Provider::Nexus)
+                ) {
+                    nexus_clicks.push(outcome.component_guid.clone());
+                }
             }
             orch::TargetStatus::Failed => {
                 status(
@@ -719,6 +732,7 @@ fn download(
         orch::record(guide, &report)?;
         let _ = orch::record_metadata(guide, &metadata);
     }
+    crate::nxm::waiting(app, nexus_clicks);
     skipped.sort();
     skipped.dedup();
     Ok(skipped)
