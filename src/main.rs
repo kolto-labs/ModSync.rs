@@ -1000,6 +1000,13 @@ fn apply_selection(
 }
 
 /// Load and order a guide without mutating authored selection when requested.
+/// Roots for recovery state lookups. Recovery state is keyed by the game root
+/// that `install` used, and `Settings::new` resolves a Steam `steamassets` layout
+/// first, so restore and completion summaries must resolve it the same way.
+fn recovery_roots(source_dir: &std::path::Path, game_dir: &std::path::Path) -> Result<Roots> {
+    Roots::new(source_dir, &modsync::game::resolve_install_root(game_dir))
+}
+
 /// Rooted selection and profiles preserve the flags; legacy rootless validation
 /// retains its reference file-loader default. Ordering checks remain unchanged.
 fn load_validation_guide(input: &std::path::Path, preserve_selection: bool) -> Result<Guide> {
@@ -2542,13 +2549,13 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
         Some(Action::Restore {
             game_dir,
             source_dir,
-        }) => recovery::restore(&Roots::new(&source_dir, &game_dir)?),
+        }) => recovery::restore(&recovery_roots(&source_dir, &game_dir)?),
         Some(Action::CompletionSummary {
             game_dir,
             source_dir,
             json,
         }) => {
-            let summary = recovery::completion_summary(&Roots::new(&source_dir, &game_dir)?)?;
+            let summary = recovery::completion_summary(&recovery_roots(&source_dir, &game_dir)?)?;
             if json {
                 println!("{}", serde_json::to_string_pretty(&summary)?);
             } else if let Some(summary) = summary {
