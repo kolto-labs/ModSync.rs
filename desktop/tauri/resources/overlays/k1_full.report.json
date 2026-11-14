@@ -1,0 +1,723 @@
+[
+ {
+  "guid": "a3670a2f-f382-86e0-9696-020080fb3a43",
+  "name": "KOTOR Dialogue Fixes",
+  "file_id": "1313",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "bdab3140-1e9e-8600-b95b-bee90658d9ef",
+  "name": "Character Startup Changes",
+  "file_id": "349",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "b5d29c88-4537-86a7-8412-60c659f6ef68",
+  "name": "Thematic KOTOR Companions",
+  "file_id": "2665",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "f01daefc-b4f6-8294-bfa1-2a95b564a1f2",
+  "name": "JC's Minor Fixes",
+  "file_id": "1333",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "b19b97d7-f2da-8975-a14d-6b6d969193e4",
+  "name": "Ajunta Pall Unique Appearance",
+  "file_id": "824",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "6fb1971d-5775-85e5-9e77-ecc68a896e84",
+  "name": "KOTOR Community Patch",
+  "file_id": "1258",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "5dfc02b7-d58f-8769-87f4-25a1dadd4991",
+  "name": "K1 Ported Alien VO Replacements",
+  "file_id": "1426",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "8a8c0a83-cbd4-8f0b-bdcb-3344f2d9b5e6",
+  "name": "Deadeye Duncan on Manaan",
+  "file_id": "guide:19",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "74ab9a39-cdaf-8d68-9110-fe34fadc51c5",
+  "name": "Consistent Conditioning Icons",
+  "file_id": "2013",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "fe1732b9-c5eb-8c01-8273-eace98311429",
+  "name": "HD Pazaak Cards",
+  "file_id": "1361",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "b90ee25b-2fc9-88db-9d17-5a5ef47ee01c",
+  "name": "HD PC Portraits",
+  "file_id": "1547",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "f9228db0-ce83-81b2-918e-8cb3a7811e0f",
+  "name": "HD Realistic Sand People",
+  "file_id": "2514",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "0c2079ec-5d23-8e69-8106-cbed77b3a58d",
+  "name": "Better Twi'lek Heads",
+  "file_id": "1430",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "a01f0922-d858-8a22-abdd-2e58d6f24e60",
+  "name": "HD Twi'lek Females",
+  "file_id": "982",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "f502ec4c-d91d-8e6e-8261-fad6308c68d1",
+  "name": "Calo Nord Recolor",
+  "file_id": "guide:39",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "6a3112ab-1f95-843e-83cb-be42a52ae387",
+  "name": "Detran's Darth Revan",
+  "file_id": "2350",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "da5f96df-9941-89e5-bc38-7318be1456ec",
+  "name": "Random HD UI Elements",
+  "file_id": "1909",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "582504b9-e6ef-876e-a0fe-5389cb80f2cc",
+  "name": "HD NPC Portraits",
+  "file_id": "1213",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "f966fc1f-6b47-88fc-9050-07b1371eb56a",
+  "name": "NPC Clothing M",
+  "file_id": "2516",
+  "covered": false,
+  "reason": "installs N_CommM0801.txi as N_CommM08.tga, a different kind of file"
+ },
+ {
+  "guid": "95519736-cb6c-86e2-bb7a-3cd980fa9c05",
+  "name": "Juhani Appearance Overhaul",
+  "file_id": "1669",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "4188c324-caeb-8ff6-9512-93e481d8b0ae",
+  "name": "Juhani Real Cathar Head",
+  "file_id": "702",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "8e70428e-2dab-8972-bf4c-6900d4ed8c26",
+  "name": "Korriban: Back in Black",
+  "file_id": "1293",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "02034096-4a59-8fbc-b2a0-beb89cbf2067",
+  "name": "Cloaked Jedi Robes",
+  "file_id": "1378",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "d2f4b632-2636-809e-a924-bcd8912b7a21",
+  "name": "JC's Jedi Tailor",
+  "file_id": "1477",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "7deb6488-652d-820e-aee9-00bef11230fe",
+  "name": "Robes with Shadows for K1 (JC's Port)",
+  "file_id": "2357",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "aa4ebbd9-a7a6-8af1-92d2-57d7b9530fb5",
+  "name": "Qel-Droma Robes Reskin",
+  "file_id": "2019",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "4ce833d5-4085-8cc2-9e4f-3460b1fbbfe7",
+  "name": "Quanon's HK-47",
+  "file_id": "1001",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "477d7c00-26ef-87be-adaf-ded4e3ea6f85",
+  "name": "Kiosk HD",
+  "file_id": "2277",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "477d7c00-26ef-87be-adaf-ded4e3ea6f85",
+  "name": "Kiosk HD",
+  "file_id": "2909",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "760fc170-0060-8e41-a18c-49054984d946",
+  "name": "Stunbaton HD",
+  "file_id": "2430",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "42a811e7-1116-8b6b-a738-4135582aa3e3",
+  "name": "Unique Sith Governor",
+  "file_id": "2302",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "90157c32-3ad5-8d28-aa65-cd7cecd20af2",
+  "name": "Ithorians HD",
+  "file_id": "2382",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "5b246909-2689-8a21-ad46-02cb4b502403",
+  "name": "Kebla Yurt HD",
+  "file_id": "2471",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "14b983cd-939a-8564-bf0f-c72100aae46f",
+  "name": "HD Astromech Droids",
+  "file_id": "1894",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "2cb4a7df-dca8-8110-9652-6973aef53eba",
+  "name": "Davik's Trophies",
+  "file_id": "2559",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "418f223c-cf27-85c6-916a-eeaa474c25ca",
+  "name": "HD Carth Onasi",
+  "file_id": "1133",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "2fda8a49-32df-8d2e-8abe-f13861634749",
+  "name": "HD Canderous Ordo",
+  "file_id": "1123",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "09d8f8bb-d321-8c23-adfb-47f5a13765ca",
+  "name": "Quanon's Canderous Ordo",
+  "file_id": "941",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "928892c4-d210-8d5b-bcd5-a27d98fdca6e",
+  "name": "Zaalbar HD",
+  "file_id": "2031",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "ed488679-bc04-892d-973b-107511862024",
+  "name": "Sith Uniform Reformation Revised",
+  "file_id": "2808",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "dbbb57bc-b715-8f2b-bdb6-1b10534002b4",
+  "name": "Stylized Portraits by Tinman888",
+  "file_id": "1929",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "0bc5ef83-c454-8e61-b704-01ab2869bd00",
+  "name": "Star Map Revamp",
+  "file_id": "1262",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "d47702e4-fdbb-81f4-8e75-124758c52d1c",
+  "name": "Background Ship Improvements",
+  "file_id": "1125",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "7bdac77a-e2fc-8bba-aaac-2cd1454e531f",
+  "name": "Kebla Yurt Renovation",
+  "file_id": "2785",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "ab47cdb0-2c31-84c4-a81b-3a0cb8ca6c96",
+  "name": "Ultimate Ebon Hawk Repairs",
+  "file_id": "2036",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "f349d403-6355-8f99-ad7a-de1128210258",
+  "name": "HQ Cockpit Skyboxes",
+  "file_id": "938",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "07416fb0-1f9b-88ba-952f-4029575ad036",
+  "name": "Yavin Station Hangar",
+  "file_id": "2068",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "7469e4e6-1be6-8085-b1c9-3b5f60aff0b4",
+  "name": "Ebon Hawk Cockpit Upgrade (LEH_Scre01)",
+  "file_id": "2258",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "519b915f-ea5e-837f-952e-06594adb93fe",
+  "name": "Ebon Hawk Cockpit Upgrade (LEH_Scre02)",
+  "file_id": "2247",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "f396178b-0707-8bb4-9deb-8e1d0bfae9e3",
+  "name": "High Quality Skyboxes II",
+  "file_id": "723",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "f396178b-0707-8bb4-9deb-8e1d0bfae9e3",
+  "name": "High Quality Skyboxes II",
+  "file_id": "2796",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "be6c7d76-9699-88cd-b7e3-1d23fe54ba09",
+  "name": "Ebon Hawk Transparent Cockpit Windows for K1",
+  "file_id": "2354",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "a47d9415-c747-818b-bcce-72825f17ec11",
+  "name": "Revamped FX",
+  "file_id": "2581",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "ae9cffcf-daae-8012-96e6-0d1c92620ba9",
+  "name": "Terminal Texture",
+  "file_id": "1925",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "e0c60688-88dd-84fe-a2b5-2f47bc956ab5",
+  "name": "New Lightsaber Blade Models",
+  "file_id": "1846",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "21938f6e-c3ae-8c74-bab6-c3d206f4adf8",
+  "name": "Blaster Visual Effects",
+  "file_id": "1271",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "4a1280f0-1856-8ca2-b5c4-6339faf8e948",
+  "name": "Kill the Czerka Jerk on Kashyyyk",
+  "file_id": "1856",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "d5403e9f-1936-8a89-934b-05693c57603c",
+  "name": "Korriban Academy Workbench",
+  "file_id": "375",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "1684fafe-9547-8a4e-b743-c9fb94064f76",
+  "name": "Senni Vek Mod",
+  "file_id": "1090",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "ad424e39-4564-8342-bb3e-fdc491b0fcf0",
+  "name": "KOTOR 1 Twi'lek Male NPC Diversity",
+  "file_id": "2228",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "aec010ca-ba40-80f6-948b-5e9f35939e86",
+  "name": "Ixgil the Bith",
+  "file_id": "2108",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "5dc9bda7-73d0-8cd5-b80a-695428d1237f",
+  "name": "Hidden Bek Control Room Restoration",
+  "file_id": "908",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "92abfa89-260b-827e-9dda-5be6ccbeb83a",
+  "name": "Jedi Choice Dialogue Enhancement",
+  "file_id": "2428",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "eb902642-633b-85b0-8029-eed36bffb70f",
+  "name": "Juhani Dialogue Restoration",
+  "file_id": "2173",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "e3dca703-1956-8a13-bcbb-5f58649626c9",
+  "name": "Vision Enhancement",
+  "file_id": "1402",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "14d77038-49c0-882b-83a1-0a424efa0f60",
+  "name": "Trask Without Tutorials",
+  "file_id": "2184",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "367fef86-46a5-86a5-9ec3-3922ec041779",
+  "name": "Ain't No Air in Space",
+  "file_id": "2281",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "30862622-1a16-8e74-9b33-6a93525e5832",
+  "name": "Party Conversations on the Ebon Hawk",
+  "file_id": "2284",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "3659ab3f-2857-8630-ae48-64bbba1fad15",
+  "name": "JC's Romance Enhancement: Dark Sacrifice",
+  "file_id": "2225",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "4c455e1c-4525-81a9-a443-42b44b79b2b4",
+  "name": "Saber Throw Knockdown Effect",
+  "file_id": "1487",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "e6488994-327d-825c-baed-6f869dad8ac2",
+  "name": "Sunry Murder Recording Enhancement",
+  "file_id": "324",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "ac01b5c6-98d6-8ffe-a19a-7628f0386da6",
+  "name": "PC Dialogue with Davik's Slave Change",
+  "file_id": "2214",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "3f6541d7-9d72-82f9-bf90-a46ca30f4bc0",
+  "name": "Manaan Fast Travel System",
+  "file_id": "2739",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "a794138a-de5d-8dfe-8c8c-9eb47d474997",
+  "name": "Security Spikes for K1",
+  "file_id": "1439",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "97c5f09c-0521-82df-beec-0896382e83f9",
+  "name": "High Quality Blasters",
+  "file_id": "861",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "e6aa5f96-b229-86c6-bdc5-dc4e2ca22f5b",
+  "name": "A Crashed Republic Cruiser on a Nameless World",
+  "file_id": "1878",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "ad945f81-8f8d-83b1-83b2-53fad8ee320b",
+  "name": "Custom Selkath Animation",
+  "file_id": "1555",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "16e96f81-56a6-88bf-8e3e-f8c99e1b3008",
+  "name": "Bastila has TSL Battle Meditation",
+  "file_id": "2379",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "34f2e5ed-26e2-8157-baf5-a027f43e8405",
+  "name": "Sneak Attack 10 Restoration",
+  "file_id": "1124",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "0917559d-309e-8098-9783-b61f524fe439",
+  "name": "Thematic The One",
+  "file_id": "2467",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "83226d49-f919-82a5-923e-c1d00f727c40",
+  "name": "Sherruk Attacks with Lightsabers",
+  "file_id": "693",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "2f0c7dc9-839c-8e1d-9dab-587cb969815d",
+  "name": "Improved Cantina Sitters",
+  "file_id": "2792",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "475f5795-08ae-8ebc-9825-4c427f38fae6",
+  "name": "Bastila's Dark Bodysuit",
+  "file_id": "1006",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "7696c38c-9a45-8510-bda2-328f29eab2c1",
+  "name": "JC's Czerka: Business Attire",
+  "file_id": "2309",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "e2c457a0-c5c2-8200-af67-82286104a1c1",
+  "name": "Sith Soldier Texture Restoration",
+  "file_id": "1289",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "22bd845b-0d9f-8dad-a55b-5a122a020969",
+  "name": "Juhani Romance Enhancement",
+  "file_id": "772",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "31f46bde-5f3c-8e4a-b111-54048ed054fb",
+  "name": "JC's Mandalorian Armor",
+  "file_id": "1454",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "ca59de10-e031-88ac-8c89-115d9cb23b8d",
+  "name": "JC's Blaster Adjustment",
+  "file_id": "2827",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "42af7d19-3bc8-8f7f-b6ef-933aa8b725c3",
+  "name": "Gaffi Stick Improvement",
+  "file_id": "312",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "63d3c66f-a4c4-880f-8228-02e1c1d9625a",
+  "name": "Quarterstaff Replacement Pack",
+  "file_id": "2231",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "a756653a-e346-84e9-b73a-235751c50599",
+  "name": "Logical Datapads",
+  "file_id": "2008",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "00a148d2-6ee2-8212-9607-1bdce9efee1e",
+  "name": "Minor Music Tweaks",
+  "file_id": "2321",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "b236f2f3-efe2-84f1-848e-b00bca9109de",
+  "name": "Alignment Affects Force Powers",
+  "file_id": "2759",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "7c11497d-de47-8eee-b80a-967b984a2822",
+  "name": "Galaxy Map Fix Pack",
+  "file_id": "1068",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "269dc2cf-5e62-85dd-9f6f-3b302fe290a1",
+  "name": "Republic Soldier Fix",
+  "file_id": "1180",
+  "covered": true,
+  "reason": ""
+ },
+ {
+  "guid": "6c3c7165-297e-80eb-b9f8-d47506dab2d5",
+  "name": "KOTOR High Resolution Menus",
+  "file_id": "1159",
+  "covered": false,
+  "reason": "old installer status not run (no download)"
+ },
+ {
+  "guid": "0e6154b2-8591-879d-b410-62baa95cd654",
+  "name": "HD UI Menu Pack",
+  "file_id": "1226",
+  "covered": false,
+  "reason": "old installer status not run (no download)"
+ },
+ {
+  "guid": "10380438-2753-8ebc-8694-70236e6b20c3",
+  "name": "Workbench Upgrade Screen Camera Tweak",
+  "file_id": "1742",
+  "covered": false,
+  "reason": "old installer status not run (no download)"
+ },
+ {
+  "guid": "6ff2988d-370a-8079-9162-093df5c6d60b",
+  "name": "Pretty Good! Icons",
+  "file_id": "1815",
+  "covered": false,
+  "reason": "old installer status not run (no download)"
+ },
+ {
+  "guid": "461350dd-6027-8124-a17e-ae6fd5536f37",
+  "name": "HD Robe Icons for JC's Cloaked Jedi Robes",
+  "file_id": "2303",
+  "covered": false,
+  "reason": "old installer status not run (no download)"
+ },
+ {
+  "guid": "abb0ac12-2ab0-87bf-9f1a-f3a4b059ba38",
+  "name": "Upscaled Computer",
+  "file_id": "2025",
+  "covered": false,
+  "reason": "old installer status not run (no download)"
+ },
+ {
+  "guid": "94eca3b4-0f21-84e1-ad12-9bd08c7e9d72",
+  "name": "Widescreen Fade Fix",
+  "file_id": "1792",
+  "covered": false,
+  "reason": "old installer status not run (no download)"
+ },
+ {
+  "guid": "da831add-0d34-8105-9657-a46418b358e5",
+  "name": "Main Menu Widescreen Fix",
+  "file_id": "1173",
+  "covered": false,
+  "reason": "old installer status not run (no download)"
+ }
+]
