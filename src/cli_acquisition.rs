@@ -246,6 +246,12 @@ fn before_process_inner(
         nexus_api_key,
         peer,
         paused: overrides.paused.clone(),
+        // A saved DeadlyStream sign-in; downloads fall back to anonymous without one.
+        deadlystream_session: Store::from_settings_directory(settings_dir)
+            .and_then(|store| store.deadlystream_session())
+            .ok()
+            .flatten()
+            .map(|(_, session)| session),
         ..Default::default()
     };
     check_cancelled(cancelled)?;

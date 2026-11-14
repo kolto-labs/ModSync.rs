@@ -549,6 +549,38 @@ impl Store {
             &serde_json::to_vec_pretty(&settings)?,
         )
     }
+    /// The saved DeadlyStream sign-in: the account name and the signed-in session
+    /// cookies (`deadlystream_account::Session::header`). The password is never
+    /// stored. Kept like the Nexus key, and masked in settings output.
+    pub fn deadlystream_session(&self) -> Result<Option<(String, String)>> {
+        let settings = self.read_settings(false)?;
+        let Some(session) = setting_text(&settings, DEADLYSTREAM_SESSION_KEY)?
+            .filter(|session| !session.trim().is_empty())
+        else {
+            return Ok(None);
+        };
+        let username = setting_text(&settings, DEADLYSTREAM_USERNAME_KEY)?.unwrap_or_default();
+        Ok(Some((username, session)))
+    }
+    /// Save (Some) or forget (None) the DeadlyStream sign-in.
+    pub fn save_deadlystream_session(&self, account: Option<(&str, &str)>) -> Result<()> {
+        let _lock = self.lock()?;
+        let mut settings = self.read_settings(false)?;
+        settings.as_object_mut().unwrap().retain(|name, _| {
+            !name.eq_ignore_ascii_case(DEADLYSTREAM_SESSION_KEY)
+                && !name.eq_ignore_ascii_case(DEADLYSTREAM_USERNAME_KEY)
+        });
+        if let Some((username, session)) = account
+            && !session.trim().is_empty()
+        {
+            settings[DEADLYSTREAM_USERNAME_KEY] = username.trim().into();
+            settings[DEADLYSTREAM_SESSION_KEY] = session.trim().into();
+        }
+        storage::write(
+            &self.root.join("settings.json"),
+            &serde_json::to_vec_pretty(&settings)?,
+        )
+    }
     pub fn spoiler_free_preference(&self) -> Result<bool> {
         let settings = self.read_settings(false)?;
         match settings
@@ -747,8 +779,12 @@ impl Profile {
         })
     }
 }
+/// Settings key of the saved DeadlyStream account name.
+const DEADLYSTREAM_USERNAME_KEY: &str = "deadlyStreamUsername";
+/// Settings key of the saved DeadlyStream session cookies.
+const DEADLYSTREAM_SESSION_KEY: &str = "deadlyStreamSession";
 /// Keys whose values are masked in settings output unless secrets are revealed.
-pub const SENSITIVE_KEYS: &[&str] = &["nexusModsApiKey"];
+pub const SENSITIVE_KEYS: &[&str] = &["nexusModsApiKey", DEADLYSTREAM_SESSION_KEY];
 
 fn is_sensitive(key: &str) -> bool {
     SENSITIVE_KEYS.iter().any(|k| k.eq_ignore_ascii_case(key))

@@ -632,12 +632,7 @@ fn expand_deadlystream_page(
                 target.component_guid
             )
         })?;
-    let files = deadlystream::resolve(
-        page,
-        settings.deadlystream_base.as_deref(),
-        loopback_ca,
-        cancelled,
-    )?;
+    let files = deadlystream_files(page, settings, loopback_ca, cancelled)?;
     let names: Vec<String> = files
         .iter()
         .map(|file| file.name.clone())
@@ -1023,6 +1018,11 @@ pub struct RunSettings {
     /// While set, downloads hold in place between reads, and new downloads wait to
     /// start ([`crate::pause`]). Cancellation still stops a held download.
     pub paused: Option<Arc<AtomicBool>>,
+    /// The `Cookie` header of a saved DeadlyStream sign-in
+    /// (`deadlystream_account::Session`). DeadlyStream pages are then read signed in, and
+    /// a page that fails signed in is read again anonymously. Never sent in fixture mode
+    /// or to any other site. Never persisted by the orchestrator.
+    pub deadlystream_session: Option<String>,
 }
 
 impl Default for RunSettings {
@@ -1037,6 +1037,7 @@ impl Default for RunSettings {
             mega_api_base: None,
             peer: None,
             paused: None,
+            deadlystream_session: None,
         }
     }
 }
@@ -2826,6 +2827,31 @@ fn mega_resolve(
     )
 }
 
+/// The archives behind a DeadlyStream page: signed in with the run's saved session when
+/// there is one (and no fixture base), falling back to an anonymous read, as the
+/// kotor-mod-manager downloader did.
+fn deadlystream_files(
+    page: &str,
+    settings: &RunSettings,
+    loopback_ca: Option<&download::LoopbackCa>,
+    cancelled: &AtomicBool,
+) -> Result<Vec<deadlystream::File>> {
+    let base = settings.deadlystream_base.as_deref();
+    if let Some(session) = settings
+        .deadlystream_session
+        .as_deref()
+        .filter(|_| base.is_none())
+    {
+        match deadlystream::resolve_with_session(page, None, loopback_ca, Some(session), cancelled)
+        {
+            Ok(files) => return Ok(files),
+            Err(error) if cancelled.load(Ordering::Acquire) => return Err(error),
+            Err(_) => {}
+        }
+    }
+    deadlystream::resolve(page, base, loopback_ca, cancelled)
+}
+
 /// The archive of a DeadlyStream page that `target` wants: the one named by its filename
 /// (ASCII case-insensitive), or, unnamed, the page's only one. Never a guess between several.
 fn deadlystream_file(
@@ -2834,12 +2860,7 @@ fn deadlystream_file(
     url: &str,
     cancelled: &AtomicBool,
 ) -> Result<deadlystream::File> {
-    let mut files = deadlystream::resolve(
-        url,
-        context.settings.deadlystream_base.as_deref(),
-        context.loopback_ca,
-        cancelled,
-    )?;
+    let mut files = deadlystream_files(url, context.settings, context.loopback_ca, cancelled)?;
     match &target.filename {
         Some(name) => {
             let position = files

@@ -36,7 +36,9 @@ ModSync engine. It is a separate crate with its own `Cargo.toml` and
   kept by `library::set_analysis`.
 - Settings: game installs are ModSync profiles (`profiles::Store`, found ones
   from `game_locator::find_installs`); DeadlyStream sign-in uses
-  `deadlystream_account::sign_in`; the Nexus key is checked with
+  `deadlystream_account::sign_in` (the signed-in session, never the password, is
+  kept in the system credential store with `keyring` and checked at start with
+  `check_session`, and downloads use it); the Nexus key is checked with
   `updates::NexusClient`; the patcher choice, spoiler-free mode, mod folder,
   Nexus key and widescreen filtering (`filterDownloadsByResolution`, with the
   size of the monitor the app is on, as in the ModSync desktop app) are shared

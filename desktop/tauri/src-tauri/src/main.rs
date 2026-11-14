@@ -8,6 +8,7 @@ mod importing;
 mod library;
 mod pipeline;
 mod prefs;
+mod secrets;
 mod state;
 
 use tauri::Manager;
@@ -24,6 +25,11 @@ fn main() {
             extras::image_protocol(request, responder)
         });
     builder
+        .setup(|app| {
+            let handle = app.handle().clone();
+            std::thread::spawn(move || extras::restore_sign_in(handle));
+            Ok(())
+        })
         .on_window_event(|window, event| {
             // Closing mid-install would stop the engine between steps. Ask the
             // install to stop instead and keep the window open until it has.

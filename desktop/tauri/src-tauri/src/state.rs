@@ -41,6 +41,8 @@ pub struct Inner {
     pub failed_roots: Option<Roots>,
     /// DeadlyStream sign-in checked during this session.
     pub signed_in: bool,
+    /// The signed-in DeadlyStream session cookies, used for downloads.
+    pub deadlystream_session: Option<String>,
     pub case_insensitive: bool,
     /// Fingerprint of the inputs of the last passing check.
     pub checked: Option<String>,
@@ -54,14 +56,23 @@ pub struct AppState {
 impl AppState {
     pub fn load() -> Self {
         let prefs = Prefs::from_env();
-        let ui = prefs.load_ui();
+        let mut ui = prefs.load_ui();
+        // A sign-in saved in the system credential store; checked against the site
+        // once the window is up (`extras::restore_sign_in`).
+        let saved = crate::secrets::load();
+        if let Some((username, _)) = &saved
+            && !username.is_empty()
+        {
+            ui.deadlystream_username = username.clone();
+        }
         let case_insensitive = prefs
             .store()
             .map(|store| store.desktop_settings().settings.case_insensitive_pathing)
             .unwrap_or(true);
         Self {
             inner: Mutex::new(Inner {
-                signed_in: !ui.deadlystream_username.is_empty(),
+                signed_in: saved.is_some(),
+                deadlystream_session: saved.map(|(_, session)| session),
                 ui,
                 loaded: None,
                 running: false,

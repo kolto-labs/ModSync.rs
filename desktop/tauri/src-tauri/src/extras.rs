@@ -311,12 +311,32 @@ pub fn login(app: &AppHandle, r: &crate::api::Request) -> Reply {
     ) {
         Ok(account) => {
             let st = crate::state::state(app);
+            let session = account.session.header().to_owned();
             {
                 let mut inner = st.lock();
                 inner.signed_in = true;
+                inner.deadlystream_session = Some(session.clone());
                 inner.ui.deadlystream_username = account.username.clone();
             }
             st.save_ui();
+            // Like the original, the sign-in is kept only when asked to; unlike it,
+            // the password is never kept, only the signed-in session.
+            let save = r
+                .body
+                .get("save")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(true);
+            if !save {
+                crate::secrets::forget();
+            } else if let Err(error) = crate::secrets::save(&account.username, &session) {
+                crate::state::log(
+                    app,
+                    format!(
+                        "Your sign-in could not be saved ({error}), so you will be asked to sign in again next time."
+                    ),
+                    "warning",
+                );
+            }
             crate::state::emit(
                 app,
                 json!({"type": "auth", "logged_in": true, "username": account.username}),
@@ -331,5 +351,63 @@ pub fn login(app: &AppHandle, r: &crate::api::Request) -> Reply {
             );
             Err(fail(401, format!("{error:#}")))
         }
+    }
+}
+
+/// Check a saved DeadlyStream sign-in once the app starts, like the original's
+/// sign-in at startup. A session the site no longer accepts is forgotten and the
+/// player is asked to sign in again; an offline start keeps it.
+pub fn restore_sign_in(app: AppHandle) {
+    use modsync::deadlystream_account::{Session, check_session};
+    let st = crate::state::state(&app);
+    let (Some(saved), username) = ({
+        let inner = st.lock();
+        (
+            inner.deadlystream_session.clone(),
+            inner.ui.deadlystream_username.clone(),
+        )
+    }) else {
+        return;
+    };
+    let checked = Session::from_header(&saved)
+        .and_then(|session| check_session(&session, &std::sync::atomic::AtomicBool::new(false)));
+    match checked {
+        Ok(Some(renewed)) => {
+            if renewed.header() != saved {
+                let _ = crate::secrets::save(&username, renewed.header());
+            }
+            {
+                let mut inner = st.lock();
+                inner.signed_in = true;
+                inner.deadlystream_session = Some(renewed.header().to_owned());
+            }
+            crate::state::emit(
+                &app,
+                json!({"type": "auth", "logged_in": true, "username": username}),
+            );
+            crate::state::log(&app, format!("Logged in as {username}."), "success");
+        }
+        Ok(None) => {
+            crate::secrets::forget();
+            {
+                let mut inner = st.lock();
+                inner.signed_in = false;
+                inner.deadlystream_session = None;
+            }
+            crate::state::emit(
+                &app,
+                json!({"type": "auth", "logged_in": false, "username": ""}),
+            );
+            crate::state::log(
+                &app,
+                "Your DeadlyStream sign-in has expired. Sign in again to download mods.",
+                "warning",
+            );
+        }
+        Err(error) => crate::state::log(
+            &app,
+            format!("Could not check your DeadlyStream sign-in: {error:#}"),
+            "warning",
+        ),
     }
 }

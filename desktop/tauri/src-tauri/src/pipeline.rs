@@ -652,6 +652,7 @@ fn download(
         nexus_api_key: nexus_key,
         archive: state(app).archive_options(),
         paused: Some(paused.clone()),
+        deadlystream_session: state(app).lock().deadlystream_session.clone(),
         ..Default::default()
     };
     let plan = orch::discover(guide, &plan, &options, &settings, cancelled)?;

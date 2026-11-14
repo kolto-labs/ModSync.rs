@@ -1,5 +1,25 @@
 # Compatibility and proof boundaries
 
+## Signed-in DeadlyStream downloads - 2026-11-14
+
+`deadlystream_account::sign_in` now also returns the signed-in cookies as a
+`Session` (never serialized or shown by `Debug`), and `check_session` tells
+whether a kept session is still signed in (members get a sign-out link) and
+returns any renewed cookies; a network failure is an error, not a sign-out.
+`download_orchestrator::RunSettings::deadlystream_session` makes DeadlyStream
+page reads signed in (`download_hosts::deadlystream::resolve_with_session`
+seeds the session's one-site cookie jar); a page that fails signed in is read
+again anonymously, and fixture runs never send it. The settings store keeps a
+session like the Nexus key (`Store::deadlystream_session`,
+`save_deadlystream_session`; `deadlyStreamSession` is masked in settings
+output); the password is still never stored. `deadlystream-sign-in --save`
+keeps the session, `deadlystream-status` checks it (forgetting an expired one)
+and `deadlystream-sign-out` forgets it; `fetch-downloads` and `install
+--download` use a kept session. The desktop app keeps its session in the system
+credential store instead. Signed-in downloads were only exercised with an
+invalid session (which fell back to anonymous); a real account was not used.
+Not covered by Rust tests (frozen by AGENTS.md).
+
 ## Importing a mod archive - 2026-11-14
 
 `import::prepare` takes a ZIP, 7z or RAR archive that is not part of a guide,

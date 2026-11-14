@@ -10,8 +10,9 @@
 //! Every request stays on one site: the page's own origin (`deadlystream.com` and
 //! `www.deadlystream.com` count as one site), or the explicit loopback fixture base.
 //! Redirects are followed here, one vetted hop at a time. The cookie jar is one host-only
-//! jar, sent to that apex/www pair and never to another host. No stored credential is
-//! used or sent.
+//! jar, sent to that apex/www pair and never to another host. A saved sign-in session
+//! ([`resolve_with_session`]) only seeds that jar, outside fixture mode; no password is
+//! ever used or sent.
 //! Source only; not built or exercised.
 use super::{Provider, provider};
 use crate::{
@@ -570,14 +571,39 @@ pub fn resolve(
     loopback_ca: Option<&LoopbackCa>,
     cancelled: &AtomicBool,
 ) -> Result<Vec<File>> {
+    resolve_with_session(page, base, loopback_ca, None, cancelled)
+}
+
+/// As [`resolve`], signed in: `session` is the `Cookie` header of a DeadlyStream
+/// sign-in (`deadlystream_account::Session`). Its cookies start the session's jar, so
+/// they reach only the page's own site and the archive endpoint it authorizes. A
+/// fixture run never sends them.
+pub fn resolve_with_session(
+    page: &str,
+    base: Option<&str>,
+    loopback_ca: Option<&LoopbackCa>,
+    session: Option<&str>,
+    cancelled: &AtomicBool,
+) -> Result<Vec<File>> {
     let logical = page_url(page)?;
     let transport = Transport::new(&logical, base, loopback_ca)?;
     let start = transport.admit(transport.locate(&logical))?;
     let client = download::page_client(loopback_ca, transport.fixture)?;
+    let mut jar = BTreeMap::new();
+    if let Some(cookies) = session.filter(|_| !transport.fixture) {
+        for pair in cookies.split(';') {
+            if let Some((name, value)) = pair.split_once('=')
+                && !name.trim().is_empty()
+                && jar.len() < MAX_COOKIES
+            {
+                jar.insert(name.trim().to_owned(), value.trim().to_owned());
+            }
+        }
+    }
     let mut session = Session {
         client,
         transport,
-        jar: BTreeMap::new(),
+        jar,
         manual_url: logical.to_string(),
         cancelled,
         requests: 0,

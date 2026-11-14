@@ -3,8 +3,11 @@
 //!
 //! The password is sent once, over HTTPS, to `deadlystream.com` only, and is
 //! never stored. A successful sign-in is recognized by the member cookie the
-//! site sets. The session is not kept: the acquisition code still downloads
-//! anonymously ([`crate::download_hosts::deadlystream`]).
+//! site sets. The signed-in cookies are returned as a [`Session`], which callers
+//! may keep in place of the password and hand to the downloader
+//! (`download_orchestrator::RunSettings::deadlystream_session`); it is only ever
+//! sent back to `deadlystream.com`. [`check_session`] tells whether a kept
+//! session is still signed in.
 use anyhow::{Context, Result, bail, ensure};
 use regex::Regex;
 use serde::Serialize;
@@ -25,6 +28,41 @@ const PAGE_LIMIT: u64 = 2 * 1024 * 1024;
 #[serde(rename_all = "camelCase")]
 pub struct Account {
     pub username: String,
+    /// The signed-in cookies. Never serialized.
+    #[serde(skip)]
+    pub session: Session,
+}
+
+/// The cookies of a signed-in DeadlyStream session, as one `Cookie` header value.
+/// It stands in for the password, so it is a secret: `Debug` never shows it.
+#[derive(Clone, Default, PartialEq, Eq)]
+pub struct Session(String);
+
+impl Session {
+    /// A session kept from an earlier sign-in. Control characters and malformed
+    /// pairs are refused.
+    pub fn from_header(header: &str) -> Result<Self> {
+        let header = header.trim();
+        ensure!(
+            !header.is_empty()
+                && header.len() <= 8192
+                && !header.chars().any(char::is_control)
+                && header.split(';').all(|pair| pair.trim().contains('=')),
+            "The saved DeadlyStream sign-in is not valid; sign in again"
+        );
+        Ok(Self(header.to_owned()))
+    }
+
+    /// The `Cookie` header value.
+    pub fn header(&self) -> &str {
+        &self.0
+    }
+}
+
+impl std::fmt::Debug for Session {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("Session(<redacted>)")
+    }
 }
 
 static CSRF: LazyLock<Regex> = LazyLock::new(|| {
@@ -84,6 +122,18 @@ impl Cookies {
             .map(|(name, value)| format!("{name}={value}"))
             .collect::<Vec<_>>()
             .join("; ")
+    }
+    fn from_session(session: &Session) -> Self {
+        let mut jar = Self::default();
+        for pair in session.header().split(';') {
+            if let Some((name, value)) = pair.split_once('=')
+                && jar.0.len() < 64
+            {
+                jar.0
+                    .insert(name.trim().to_owned(), value.trim().to_owned());
+            }
+        }
+        jar
     }
     fn signed_in(&self) -> bool {
         self.0
@@ -157,6 +207,7 @@ pub fn sign_in(username: &str, password: &str, cancelled: &AtomicBool) -> Result
     if cookies.signed_in() {
         return Ok(Account {
             username: username.to_owned(),
+            session: Session(cookies.header()),
         });
     }
     let reason = ERROR
@@ -165,4 +216,38 @@ pub fn sign_in(username: &str, password: &str, cancelled: &AtomicBool) -> Result
         .filter(|text| !text.is_empty())
         .unwrap_or_else(|| "The username or password was not accepted.".into());
     bail!(reason)
+}
+
+/// True when a DeadlyStream page is shown to a signed-in member: only members
+/// get the sign-out link.
+fn signed_in_page(html: &str) -> bool {
+    let lower = html.to_ascii_lowercase();
+    lower.contains("/logout/") || lower.contains("do=logout")
+}
+
+/// Check a kept session against the site. Returns the session (with any
+/// cookies the site renewed) while it is still signed in, or None once it has
+/// expired or was signed out, when the player has to sign in again. A network
+/// failure is an error, so an offline start does not throw a session away.
+pub fn check_session(session: &Session, cancelled: &AtomicBool) -> Result<Option<Session>> {
+    let client = reqwest::blocking::Client::builder()
+        .user_agent(concat!("ModSync/", env!("CARGO_PKG_VERSION")))
+        .timeout(Duration::from_secs(30))
+        .https_only(true)
+        .redirect(reqwest::redirect::Policy::none())
+        .build()?;
+    let mut cookies = Cookies::from_session(session);
+    ensure!(
+        !cancelled.load(Ordering::Acquire),
+        "Sign-in check cancelled"
+    );
+    let page = send(
+        &client,
+        &mut cookies,
+        client.get("https://deadlystream.com/"),
+    )?
+    .error_for_status()
+    .context("DeadlyStream did not answer. Try again in a few minutes.")?;
+    let html = read(page)?;
+    Ok((cookies.signed_in() && signed_in_page(&html)).then(|| Session(cookies.header())))
 }

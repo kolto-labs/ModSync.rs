@@ -255,9 +255,16 @@ fn logout(app: &AppHandle) -> Reply {
     {
         let mut inner = st.lock();
         inner.signed_in = false;
+        inner.deadlystream_session = None;
         inner.ui.deadlystream_username.clear();
     }
     st.save_ui();
+    // Signing out also forgets the saved session, so the next start is signed out.
+    crate::secrets::forget();
+    crate::state::emit(
+        app,
+        json!({"type": "auth", "logged_in": false, "username": ""}),
+    );
     Ok(json!({"ok": true}))
 }
 

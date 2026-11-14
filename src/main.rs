@@ -389,6 +389,23 @@ enum Action {
     DeadlystreamSignIn {
         #[arg(long)]
         username: String,
+        /// Keep the signed-in session (not the password) in settings, so downloads
+        /// from DeadlyStream are made signed in.
+        #[arg(long)]
+        save: bool,
+        #[arg(long)]
+        settings_dir: Option<PathBuf>,
+    },
+    /// Check whether the DeadlyStream session kept by `deadlystream-sign-in --save` is
+    /// still signed in; an expired one is forgotten.
+    DeadlystreamStatus {
+        #[arg(long)]
+        settings_dir: Option<PathBuf>,
+    },
+    /// Forget the DeadlyStream session kept by `deadlystream-sign-in --save`.
+    DeadlystreamSignOut {
+        #[arg(long)]
+        settings_dir: Option<PathBuf>,
     },
     /// Convert TOML, JSON, YAML, XML, or Markdown input.
     /// Use convert --merge --existing <guide> --incoming <guide> for legacy merge mode.
@@ -2632,12 +2649,60 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             }
             Ok(())
         }
-        Some(Action::DeadlystreamSignIn { username }) => {
+        Some(Action::DeadlystreamSignIn {
+            username,
+            save,
+            settings_dir,
+        }) => {
             let password = std::env::var("MODSYNC_DEADLYSTREAM_PASSWORD")
                 .context("Set MODSYNC_DEADLYSTREAM_PASSWORD to the account's password")?;
             let cancelled = modsync::p2p::stop_signal_flag()?;
             let account = modsync::deadlystream_account::sign_in(&username, &password, &cancelled)?;
+            if save {
+                modsync::profiles::Store::from_settings_directory(settings_dir.as_deref())?
+                    .save_deadlystream_session(Some((
+                        &account.username,
+                        account.session.header(),
+                    )))?;
+            }
             println!("{}", serde_json::to_string_pretty(&account)?);
+            Ok(())
+        }
+        Some(Action::DeadlystreamStatus { settings_dir }) => {
+            let store = modsync::profiles::Store::from_settings_directory(settings_dir.as_deref())?;
+            let (username, signed_in) = match store.deadlystream_session()? {
+                None => (String::new(), false),
+                Some((username, saved)) => {
+                    let cancelled = modsync::p2p::stop_signal_flag()?;
+                    let session = modsync::deadlystream_account::Session::from_header(&saved)?;
+                    match modsync::deadlystream_account::check_session(&session, &cancelled)? {
+                        Some(renewed) => {
+                            if renewed.header() != saved {
+                                store.save_deadlystream_session(Some((
+                                    &username,
+                                    renewed.header(),
+                                )))?;
+                            }
+                            (username, true)
+                        }
+                        None => {
+                            store.save_deadlystream_session(None)?;
+                            (username, false)
+                        }
+                    }
+                }
+            };
+            println!(
+                "{}",
+                serde_json::to_string_pretty(
+                    &serde_json::json!({"username": username, "signedIn": signed_in})
+                )?
+            );
+            Ok(())
+        }
+        Some(Action::DeadlystreamSignOut { settings_dir }) => {
+            modsync::profiles::Store::from_settings_directory(settings_dir.as_deref())?
+                .save_deadlystream_session(None)?;
             Ok(())
         }
         Some(Action::Convert {
@@ -3059,6 +3124,17 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                     // actually read (see above).
                     (_, None) => None,
                 };
+            // A saved DeadlyStream sign-in, as for the stored Nexus key; a fixture run reads
+            // no stored credential.
+            let deadlystream_session = if deadlystream_base.is_none() && mega_api_base.is_none() {
+                modsync::profiles::Store::from_settings_directory(settings_dir.as_deref())
+                    .and_then(|store| store.deadlystream_session())
+                    .ok()
+                    .flatten()
+                    .map(|(_, session)| session)
+            } else {
+                None
+            };
             let run_settings = orchestrator::RunSettings {
                 workers,
                 retries,
@@ -3069,6 +3145,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                 mega_api_base,
                 peer,
                 paused: None,
+                deadlystream_session,
             };
             // Execution only: dry-run returned above without network discovery. A
             // discovery error after a signal exits 130, as planning and the run do.
