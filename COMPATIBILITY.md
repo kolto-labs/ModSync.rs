@@ -4711,3 +4711,8 @@ the available mod selects and passes remaining-phase validation. Content hashes
 prove the base Copy is the only game/mod change. No remaining install, external
 program, download, full-guide or patcher acceptance is claimed. See the native
 widescreen evidence in the selection-availability replay documentation.
+
+
+## Repository-owned CI integration boundary
+
+The full-run workflow now owns its local cache/install/seed/P2P/tooling stages and binds the engine to the triggering source SHA. The separately owned mod-builds variant binds the triggering guide SHA instead. See [CI operation and proof limits](docs/ci-fullruns.md). Full-run completeness rejects partial or omitted component coverage and GUI subset phases; this is single-lane evidence, not cross-route/per-mod parity. Synthetic/native/packaging proofs retain their existing limitations. Rust test and custom-harness execution remains frozen; no product feature or parity completion is claimed by the CI migration.
