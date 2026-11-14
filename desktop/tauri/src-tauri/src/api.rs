@@ -52,9 +52,19 @@ pub async fn api_request(
             std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| route(&app, &request)))
                 .unwrap_or_else(|_| Err(fail(500, "The request stopped unexpectedly.")))
         };
-        // Reading the game install takes the engine's exclusive game-folder lock, so
-        // two reads at once (say the library and conflicts refresh after an install)
-        // collide. A read waits briefly for the other to finish instead of failing.
+        // Reading the game install takes the engine's exclusive game-folder lock. The
+        // app's own library and conflicts requests queue for it one at a time (after an
+        // install both refresh at once), and a read that still finds the folder in use,
+        // by an install or another program, waits a while before failing.
+        let _queued = matches!(
+            request.segments.get(1).map(String::as_str),
+            Some("library" | "conflicts")
+        )
+        .then(|| {
+            GAME_FOLDER
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+        });
         let mut reply = run();
         if request.method == "GET" {
             for _ in 0..GAME_BUSY_RETRIES {
@@ -72,7 +82,10 @@ pub async fn api_request(
 }
 
 /// How many times a read retries, 250 ms apart, while the game folder is in use.
-const GAME_BUSY_RETRIES: usize = 20;
+const GAME_BUSY_RETRIES: usize = 40;
+
+/// Queues the app's own requests that read or change the installed mods.
+static GAME_FOLDER: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
 /// Whether an error is the engine's game-folder lock being held by other work.
 fn game_folder_busy(error: &Value) -> bool {
@@ -491,7 +504,11 @@ fn patcher_status(app: &AppHandle) -> Reply {
     let (available, source, path) = match resolved {
         Some(path) => (
             true,
-            if configured.is_some() { "custom" } else { "system" },
+            if configured.is_some() {
+                "custom"
+            } else {
+                "system"
+            },
             Value::from(path.display().to_string()),
         ),
         None if configured.is_none() && prefs.engine == modsync::PatcherEngine::OdyPatcher => {
