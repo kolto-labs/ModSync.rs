@@ -3177,6 +3177,18 @@ Every Patcher installation now uses an owned, bounded, cancellable payload copy.
 
 The local fixed-NTFS process-interruption capability now includes persistent named-job ownership for checkpointed external processes. LaunchIntent precedes JOB_LIST process creation; normal completion requires the owned job to drain. Independent process fences block ordinary checkpoint/deployment/legacy mutations and are settled only through explicit, identity-validated recovery. CLI/desktop expose read-only status and preserve partial recovery outcomes. The former blanket Windows engine block was removed after separate ownership/security and combined integration reviews. The guarantee is limited to same-user, same-logon/session process restart while the OS/filesystem remain running; OS/power-loss and native acceptance are unproven. See `docs/parity/windows-checkpoint-job-quiescence-plan.md`.
 
+### Windows checkpoint tree paths
+
+Checkpoint trees always recorded relative paths with `/` separators, but the
+tree reader and provenance lookup compared them with the native Windows spelling
+(`\`), so every checkpointed install, including desktop installs with managed
+deployment, stopped with "Checkpoint path is not portable canonical relative
+text" at the first file inside a folder. Both now compare the portable spelling,
+and a tree entry's ancestors are looked up by their stored `/` prefixes. The
+stored format is unchanged: entries containing `\` are still rejected, and no
+store written by an earlier build used them. Managed live-edit report paths now
+also use `/` on Windows.
+
 ### Desktop presentation completion (2026-10-02 source boundary)
 
 Aspyr and widescreen warnings display literal text while Preamble retains Markdown. Help/About/Other Projects restore the pinned reference destinations. The registered-resource editor now has bounded hierarchy and multiple source selection with explicit variable-path projection and draft confirmation. Saved update results rehydrate read-only after settings load, and provider checks retain implicit/explicit key provenance. The log surface exposes typed severity/time rows through nonblocking snapshots with exact-snapshot save and selected copy; raw activity remains separate. Native interaction/provider acceptance remains open. See `docs/parity/editor-resource-browser.md` and `docs/parity/structured-log-and-update-rehydration.md`.
