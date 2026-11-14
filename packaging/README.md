@@ -16,7 +16,7 @@ Windows also requires `--gui-launcher /build/modsync-gui.exe --platform-icon pac
 
 ### Explicit Windows resource producing step
 
-`windows_resources.py` compiles the checked-in `windows_resources.rc.in` only when invoked. There is no automatic Cargo build script or packaging side effect in ordinary gates. Supply a reviewed native ICO, a four-component numeric version, target, and installed compiler:
+`windows_resources.py` compiles the checked-in `windows_resources.rc.in` only when invoked. No Cargo build script compiles these resources (the root `build.rs` only sets the Windows main-thread stack size), and ordinary gates have no packaging side effect. Supply a reviewed native ICO, a four-component numeric version, target, and installed compiler:
 
 ```
 python3 packaging/windows_resources.py --kind windres --compiler <target-windres> --target x86_64-pc-windows-msvc --icon /reviewed/modsync.ico --version 0.1.0.0 --output /build/resources.obj
