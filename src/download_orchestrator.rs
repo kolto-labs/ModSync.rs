@@ -916,12 +916,7 @@ pub fn discover_observed(
             if cancelled.load(Ordering::SeqCst) {
                 return (index, None);
             }
-            let files = deadlystream::resolve(
-                page,
-                settings.deadlystream_base.as_deref(),
-                loopback_ca,
-                cancelled,
-            );
+            let files = deadlystream_files(page, settings, loopback_ca, cancelled);
             report(DiscoveryStage::Pages, &done, total);
             (index, Some(files))
         })?
@@ -2922,6 +2917,22 @@ fn mega_resolve(
     )
 }
 
+/// The archives a DeadlyStream page offers. Every page listing goes through here, the
+/// parallel discovery pass included, so how pages are read is decided in one place.
+fn deadlystream_files(
+    page: &str,
+    settings: &RunSettings,
+    loopback_ca: Option<&download::LoopbackCa>,
+    cancelled: &AtomicBool,
+) -> Result<Vec<deadlystream::File>> {
+    deadlystream::resolve(
+        page,
+        settings.deadlystream_base.as_deref(),
+        loopback_ca,
+        cancelled,
+    )
+}
+
 /// The archive of a DeadlyStream page that `target` wants: the one named by its filename
 /// (ASCII case-insensitive), or, unnamed, the page's only one. Never a guess between several.
 fn deadlystream_file(
@@ -2930,12 +2941,7 @@ fn deadlystream_file(
     url: &str,
     cancelled: &AtomicBool,
 ) -> Result<deadlystream::File> {
-    let mut files = deadlystream::resolve(
-        url,
-        context.settings.deadlystream_base.as_deref(),
-        context.loopback_ca,
-        cancelled,
-    )?;
+    let mut files = deadlystream_files(url, context.settings, context.loopback_ca, cancelled)?;
     match &target.filename {
         Some(name) => {
             let position = files
