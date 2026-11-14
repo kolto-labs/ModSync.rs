@@ -1662,6 +1662,33 @@ path), and Destinations, Rename Destinations and maintenance transactions still 
 `[`/`]`. Covered by `tests/installer.rs` and `tests/archive_generation.rs`; the full
 installer suite still has 11 failures that also fail without this change.
 
+## Download file names with brackets, 2026-11-14 UTC
+
+A file name a host reports (DeadlyStream, MEGA, Nexus, a direct link's
+Content-Disposition, a peer or torrent name) may now contain `[` and `]`, as in C#.
+Rust checked every downloaded file name with the guide Destination rule, which refuses
+`[`/`]` as wildcards, so a page such as DeadlyStream's
+`[K1]_All_Hands_on_Deck_for_the_Leviathan_Prison_Break.7z` failed with `DeadlyStream
+lists an unsafe file name ... Wildcards are not allowed here`. 25 mods of the KOTOR 1
+Full Build failed this way. A file name is taken literally, never as a pattern, so the
+check now uses the literal-name rule archive members use (`paths::literal_relative`).
+The same rule now admits such names in filename discovery
+(`archive-generation`/`--resolved-archives` input), a `ResourceRegistry` key that names a
+local archive, registered FOMOD archive names under `Files`, and Peer/torrent file
+names.
+
+Matching was already literal: Extract and other Sources, download planning
+(`download_plan`) and missing-source recovery treat `[` and `]` as ordinary characters
+and only `*` and `?` as wildcards, so an authored `<<modDirectory>>/[K1]_Mod_*.7z`
+selects and extracts `[K1]_Mod_v1.7z` and never forms a character class.
+
+Unchanged: a host file name holding `*` or `?` is still refused (no Windows file can
+carry it), as are separators, `..`, drive prefixes, trailing dots or spaces and device
+names. Verified live: five bracket-named DeadlyStream archives (including
+`[K1]_Animated_Swoop_Screen_[TSLPort].7z`) download, and a guide with
+`Extract <<modDirectory>>/[K1]_Animated_Swoop_Screen_*.7z` plus a Copy from the
+bracketed extraction folder selects, downloads and resolves that archive.
+
 ## Execute and Run Arguments — 2026-10-04 UTC
 
 An `Execute` or `Run` step's `Arguments` text is now split into the program's

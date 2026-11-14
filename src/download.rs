@@ -720,10 +720,13 @@ fn check_cancelled(cancelled: &AtomicBool) -> Result<()> {
 }
 
 /// The one-component rule for any server- or guide-supplied filename: exactly one normal
-/// path component, with the Windows name rules `paths::relative` applies everywhere.
+/// path component, with the Windows name rules `paths::literal_relative` applies
+/// everywhere. A file name is taken literally, never as a pattern, so `[` and `]` are
+/// ordinary characters (DeadlyStream serves many `[K1]_...` archives); `*` and `?` stay
+/// refused because no Windows file can carry them.
 pub fn one_component(name: &str) -> Result<&str> {
     let name = crate::updates::validate_download_file_name(name)?;
-    let relative = crate::paths::relative(name, false)?;
+    let relative = crate::paths::literal_relative(name)?;
     ensure!(
         relative.as_os_str() == name,
         "Downloaded filename {name:?} is not a single file name"

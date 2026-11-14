@@ -1215,13 +1215,14 @@ pub fn base64_decode(text: &str) -> Result<Vec<u8>> {
 /// A file name that is safe to create inside a ModSync folder: one path
 /// component, no separators, no drive or parent references.
 fn safe_file_name(name: &str) -> bool {
-    // One component that passes the guide path rules (`paths::relative`):
-    // no separators, `..`, drive colons, trailing dots or spaces, or Windows
-    // reserved names such as CON.zip, on every host.
+    // One component that passes the literal name rules (`paths::literal_relative`,
+    // as `download::one_component`): no separators, `..`, drive colons, trailing dots
+    // or spaces, `*` or `?`, or Windows reserved names such as CON.zip, on every host.
+    // `[` and `]` are ordinary characters.
     !name.is_empty()
         && name.len() <= 255
         && !name.contains(['/', '\\'])
-        && crate::paths::relative(name, false)
+        && crate::paths::literal_relative(name)
             .is_ok_and(|path| path.as_os_str() == std::ffi::OsStr::new(name))
 }
 

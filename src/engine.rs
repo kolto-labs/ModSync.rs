@@ -2204,9 +2204,11 @@ impl Engine {
                     if !is_archive(name) || !registered.insert(crate::fomod::fold_case(name)) {
                         continue;
                     }
-                    let relative_name = relative(name, false).with_context(|| {
-                        format!("Registered FOMOD archive path is unsafe: {name}")
-                    })?;
+                    // A registered archive name is literal; `[`/`]` are ordinary characters.
+                    let relative_name =
+                        crate::paths::literal_relative(name).with_context(|| {
+                            format!("Registered FOMOD archive path is unsafe: {name}")
+                        })?;
                     let path = self.settings.roots.mods.join(&relative_name);
                     let filename = relative_name
                         .file_name()

@@ -609,7 +609,7 @@ impl Engine {
                         {
                             // Reference uses the registry KEY, not a URL basename
                             // nor any Files key, as the archive identity.
-                            let relative = relative(resource, false).map_err(|_| anyhow::anyhow!("ResourceRegistry key is not a qualified local archive path; add explicit Extract"))?;
+                            let relative = crate::paths::literal_relative(resource).map_err(|_| anyhow::anyhow!("ResourceRegistry key is not a qualified local archive path; add explicit Extract"))?;
                             ensure!(
                                 relative
                                     .to_str()
