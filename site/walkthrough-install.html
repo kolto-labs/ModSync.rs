@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Walkthrough: your first build - ModSync</title>
+<meta name="description" content="A step-by-step walkthrough for installing a full KOTOR mod build for the first time with ModSync, from preparing your folders to finishing the install." />
+<meta name="theme-color" content="#14110d" />
+<link rel="icon" href="assets/modsync.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<script src="assets/theme-init.js"></script>
+<link rel="stylesheet" href="assets/site.css" />
+<script src="assets/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<div class="docs">
+<aside class="docs-side">
+  <div class="docs-side-top">
+    <a class="docs-brand" href="./" aria-label="ModSync home"><img class="logo" src="assets/modsync.svg" alt="" width="22" height="22" />ModSync <span>docs</span></a>
+    <button class="icon-btn" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch appearance">
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg>
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+    <button id="docs-menu" class="icon-btn docs-menu" type="button" aria-label="Show the list of pages" aria-expanded="false" aria-controls="docs-nav">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+  <nav id="docs-nav" class="docs-nav" aria-label="Documentation">
+    <div class="docs-quick">
+      <a href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg>Home</a>
+      <a data-repo="/releases" href="https://github.com/ChristopherVR/ModSync.rs/releases"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 11l6 6 6-6M4 20h16"/></svg>Download</a>
+      <a data-repo="" href="https://github.com/ChristopherVR/ModSync.rs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>Source on GitHub</a>
+      <a data-repo="/issues" href="https://github.com/ChristopherVR/ModSync.rs/issues"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>Report a problem</a>
+    </div>
+    <h2>For players</h2><a href="getting-started.html">Getting started</a><a href="walkthrough-install.html" aria-current="page">Walkthrough: your first build</a><a href="safety.html">Safety and recovery</a><a href="troubleshooting.html">Troubleshooting</a><a href="faq.html">FAQ</a><h2>For guide authors</h2><a href="instruction-files.html">Instruction files</a><a href="walkthrough-authoring.html">Walkthrough: writing a guide</a><a href="format-reference.html">Format reference</a><a href="cli.html">Command line</a><a href="cli-reference.html">CLI reference</a><h2>For developers</h2><a href="api.html">Library API</a><h2>Project</h2><a href="status.html">Features and roadmap</a>
+  </nav>
+</aside>
+<div class="docs-main">
+<main class="docs-article" id="content">
+<p class="crumb"><a href="./">ModSync</a><span>/</span>For players<span>/</span><strong>Walkthrough: your first build</strong></p>
+<h1>Your first full <span class="serif">build</span></h1>
+<p class="lead">A step-by-step walkthrough for installing a full KOTOR mod build for the first time. Follow the steps in order and you will end up with a working game.</p>
+
+<section id="before">
+<h2>Before you start</h2>
+<p>A full build is a long list of mods that install in a set order. Spend a few minutes getting ready. It saves a lot of trouble later.</p>
+<ul>
+<li><strong>A clean game install.</strong> Build instructions assume a fresh game. ModSync's welcome screen says the same thing: start with a clean KOTOR install. If you installed mods by hand before, uninstall and reinstall the game first.</li>
+<li><strong>The right game version.</strong> Each build's guide says which game and release it is for. ModSync looks at your game folder and reports what it found, on the game folder step, as <em>Detected game</em>. For KOTOR 2 it can tell the Aspyr release apart from the others. Some mods only work with the Aspyr release. If your game is not Aspyr, ModSync turns those mods off for you. If it cannot tell which version you have, it leaves them on and shows a warning.</li>
+<li><strong>A backup.</strong> Copy your game folder somewhere safe before your first big install. The snapshot ModSync makes is there to undo a failed install. It is not a copy to keep.</li>
+<li><strong>Free disk space.</strong> Before it installs, ModSync makes a full copy of your game folder and your mod folder. You need room for both.</li>
+</ul>
+<div class="note warn"><p><strong>Read the notices.</strong> If the guide has Aspyr notes, ModSync can show them on an <em>Aspyr Version Notice</em> page. Read them before you go on.</p></div>
+</section>
+
+<section id="instructions">
+<h2>Get the instruction file</h2>
+<p>The KOTOR Community publishes mod builds at <a href="https://kotor.neocities.org/modding/mod_builds/">kotor.neocities.org</a>. The instruction files are also in the public repo at <a href="https://github.com/kolto-labs/mod-builds">kolto-labs/mod-builds</a>. Download the instruction file for the build you want and save it somewhere easy to find, such as your Downloads folder.</p>
+<p>The instruction file tells ModSync which mods are in the build and how each one installs. ModSync reads TOML, JSON, YAML, XML and Markdown instruction files. It does not come with any mods.</p>
+</section>
+
+<section id="downloads">
+<h2>Download the mods</h2>
+<p>Most KOTOR mods are on Deadlystream or Nexus Mods, and some are on MEGA. Those pages open in your browser. You download the files yourself, and ModSync checks them once they are in the right folder.</p>
+<ol>
+<li>Make one folder for all the archives. This is your <strong>mod folder</strong>. Keep it separate from your game folder.</li>
+<li>Open each link from the build's guide page and download the file. Some sites ask you to sign in or wait a few seconds first.</li>
+<li>Save every archive into that one mod folder. Keep the file names as they are, and do not unzip or rename the archives unless the guide tells you to. ModSync opens archives itself.</li>
+</ol>
+<p>Not sure which link goes with which mod? Pick your mods in ModSync first. The <strong>Selected mod sources</strong> panel then lists the links for every mod you selected.</p>
+<p>ModSync also has a <strong>Downloads</strong> panel. Nothing downloads automatically. When you select <strong>Fetch Downloads</strong>, it fetches the archives it can get directly, keeps the ones you already have, and leaves the rest for your browser. Sites that need a login, a CAPTCHA or a wait stay manual.</p>
+<p>On the command line there is no step for browser downloads. Use <code>modsync download</code> only for a direct download link, as shown in the <a href="cli.html">command line guide</a>.</p>
+</section>
+
+<section id="load">
+<h2>Open ModSync and load the guide</h2>
+<p>Open ModSync. If you still need to install it, see <a href="getting-started.html">Getting started</a>.</p>
+<ol>
+<li>On the <strong>Load an instruction file</strong> screen, click <strong>Load guide</strong>. Pick the instruction file you downloaded.</li>
+<li>Check that the guide loaded. The welcome screen shows how many components it found.</li>
+</ol>
+<p>When the guide is loaded, click <strong>Next</strong> to start the step-by-step wizard. Use <strong>Back</strong> to return to an earlier step.</p>
+<p>On the command line, you can list the mods in a guide before you install anything:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync list KOTOR1_Full.toml</code></pre>
+</section>
+
+<section id="folders">
+<h2>Choose your game and mod folders</h2>
+<ol>
+<li><strong>Game folder.</strong> Choose the folder that holds your KOTOR game and its <code>Override</code> folder. The wizard step is titled <em>KOTOR Game Directory</em>, and the field is labelled <strong>Game directory</strong>.</li>
+<li><strong>Mod folder.</strong> Choose the folder with your archives. The step is titled <em>Mod Workspace Directory</em>, and the field is labelled <strong>Mod directory</strong>. The app asks you to keep it separate from your game installation.</li>
+<li>Use <strong>Browse…</strong> next to each field if you do not want to type the path.</li>
+<li>Tick <strong>Save directories for next launch</strong> if you want ModSync to fill these in next time.</li>
+</ol>
+<div class="note"><p><strong>The two folders must not overlap.</strong> ModSync refuses a game folder and a mod folder that overlap, and it refuses paths that point outside them.</p></div>
+<p>On the command line, these are the <code>--game-dir</code> and <code>--source-dir</code> options, shown in the steps below.</p>
+</section>
+
+<section id="choose">
+<h2>Pick mods and options</h2>
+<p>On the <strong>Mod Selection</strong> step, tick the mods you want. A few tools help with a long list:</p>
+<ul>
+<li><strong>Select through tier</strong> and <strong>Select category</strong> add a whole group at once. Tiers add up, so choosing tier 3 also selects tiers 1 and 2. Optional is its own tier.</li>
+<li><strong>Select multiple categories…</strong> lets you tick several categories and apply them together.</li>
+<li><strong>Select all</strong>, <strong>Deselect all</strong> and <strong>Clear filters</strong> do what they say.</li>
+<li><strong>Spoiler-free names and descriptions</strong> swaps in text without plot details, where the guide provides it. It only changes the names and descriptions you see.</li>
+</ul>
+<p><strong>Dependencies</strong> are added for you. If a mod you pick needs another mod, ModSync selects that one too and logs the change.</p>
+<p>Some mods have <strong>options</strong>, which are extra choices such as a texture or a tweak you can turn on. Tick the ones you want. Options keep the defaults the guide sets.</p>
+<p>Some mods ask you to answer their own installer questions. When one does, a window opens showing <em>Step X of Y</em>, with <strong>Next</strong>, <strong>Back</strong> and <strong>Use these choices</strong>. Work through each step and then choose <strong>Use these choices</strong>.</p>
+<p>Widescreen-only mods are a separate phase. They install after the main build, and the bulk selection buttons leave them alone.</p>
+<p>On the command line, ModSync selects every top-level mod by default. To pick your own mods, use <code>--use-file-selection</code> or <code>--select</code>. The command line does not add dependencies for you, so select those yourself.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync validate --input KOTOR1_Full.toml --game-dir /path/to/game --source-dir /path/to/mods \
+  --select "Mod Name" --option OPTION_GUID</code></pre>
+</section>
+
+<section id="validate">
+<h2>Run validation and read the report</h2>
+<p>Click <strong>Run validation</strong>. Validation walks through the whole install without changing your files. The app describes it as simulating file changes, so nothing in your game or mod folder changes yet.</p>
+<p>The <strong>Validation report</strong> shows counts for <em>Errors</em>, <em>Warnings</em> and <em>Passed</em>. Use <strong>Go to first issue</strong> to jump to the first problem, or <strong>Copy validation report</strong> if you want to share the report when asking for help.</p>
+<ul>
+<li><strong>Errors</strong> must be fixed before you install.</li>
+<li><strong>Warnings</strong> are worth reading. Check each one before you decide whether it matters.</li>
+</ul>
+<p>These are the messages you are most likely to see, and what to do about them:</p>
+<div class="table"><table>
+<thead><tr><th>What you see</th><th>What it usually means</th><th>What to do</th></tr></thead>
+<tbody>
+<tr><td><code>Missing required archive: ...</code> or <code>Missing Required Archives: [...]</code></td><td>The guide expects an archive that is not in your mod folder, or the file has a different name than the guide expects.</td><td>Download the missing archive into the mod folder, using the file name the guide shows. Then run validation again.</td></tr>
+<tr><td><code>WARNING: ...: missing dependencies: ...</code></td><td>A mod you picked needs another mod that is not selected.</td><td>Select the mod it names, or deselect the mod that needs it.</td></tr>
+<tr><td><code>Required dependency is absent from the guide</code></td><td>The guide itself is missing a mod it depends on.</td><td>Ask the build's author. Changing the guide yourself is not recommended.</td></tr>
+<tr><td><code>... is Aspyr-exclusive and cannot be selected for this game</code></td><td>The mod only works with the Aspyr release of KOTOR 2, and your game is not that release.</td><td>Leave that mod off, or check that you have the right game version.</td></tr>
+<tr><td><code>duplicate files/folders ... in a case-insensitive environment</code></td><td>Your game folder has two copies of a file or folder whose names differ only by capital letters. This often comes from an old manual install.</td><td>Check the output for the names listed. Keep a backup, then remove the extra copy. If you are unsure, ask the build's author before you continue.</td></tr>
+<tr><td><code>Some components failed to validate</code></td><td>One or more mods failed. The message suggests a missing download, or an antivirus program blocking ModSync or HoloPatcher.</td><td>Read the lines under it. Fix the missing downloads first. If files are being blocked, allow ModSync in your antivirus.</td></tr>
+<tr><td><code>Missing external program/mod</code> or <code>Patcher install log not found</code></td><td>A patcher step needs a program or file that is not set up yet.</td><td>Set up the patcher as described in <a href="#patchers">Allow patchers</a>, then run validation again.</td></tr>
+</tbody>
+</table></div>
+<p>After you fix something, run validation again. A passing report is not a promise of a perfect install, and the report says so. Patchers run only at install time, so validation cannot tell you what they will do.</p>
+<p><strong>Analyze conflicts</strong> is optional. It lists game files that more than one mod writes and says which mod ends up winning. Choose <strong>Show conflict details</strong> to read the list. Read the limitations shown with it.</p>
+<p>On the command line:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync validate --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods
+modsync validate --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods --json
+modsync conflicts --input guide.toml --source-dir /path/to/mods --game-dir /path/to/game</code></pre>
+</section>
+
+<section id="patchers">
+<h2>Allow patchers if the build needs them</h2>
+<p>Many KOTOR mods come with a patcher, a small installer program that changes game files. ModSync can run those patchers for you, but only after you give permission.</p>
+<ol>
+<li>On the validation screen, tick <strong>Trust this guide to run external programs</strong>.</li>
+<li>If the guide asks for a specific patcher, set <strong>Patcher backend</strong> and <strong>Patcher executable</strong>, then choose <strong>Save patcher setting</strong>. Otherwise leave these alone.</li>
+<li>Run validation again.</li>
+</ol>
+<div class="note warn"><p><strong>Only tick the trust box for a guide you trust.</strong> The box is off by default. A program you allow runs with your own user permissions.</p></div>
+<p>Windows patcher programs need a Windows computer. ModSync does not run them through Wine for you.</p>
+<p>On the command line, the trust option is <code>--allow-processes</code>:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync install --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods \
+  --allow-processes --patcher /path/to/odypatcher</code></pre>
+</section>
+
+<section id="install">
+<h2>Install and watch the progress</h2>
+<ol>
+<li>When validation has passed, click <strong>Install selected mods</strong>.</li>
+<li>A window titled <em>Install selected mods?</em> explains that the snapshot needs room for both folders and that the install stops at the first error. Click <strong>Create snapshot and install</strong> to go ahead, or <strong>Cancel</strong> to go back.</li>
+<li>The <strong>Installing Mods</strong> screen shows progress. It says <em>Please wait while mods are being installed...</em> and each mod is marked as it finishes.</li>
+<li>When the base build is done, the <strong>Base Installation Complete</strong> screen appears. If you chose widescreen mods, they install next, after the <strong>Widescreen Support</strong> step.</li>
+<li>The <strong>Installation Complete</strong> screen means you are finished.</li>
+</ol>
+<p>To stop part way through, click <strong>Stop Install</strong>. ModSync asks <em>Stop the install?</em>. Choose <strong>Stop install</strong> to stop, or <strong>Keep installing</strong> to carry on. The install stops at the next safe point.</p>
+<p>On the command line, a single command validates, makes the snapshot and installs:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync install --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods</code></pre>
+</section>
+
+<section id="failed">
+<h2>If something fails</h2>
+<p>ModSync stops at the first failure and marks the install as unfinished. It will not start another install on top of a half-finished one.</p>
+<ol>
+<li><strong>Restore first.</strong> On the progress screen, click <strong>Restore snapshot</strong>. You can also use <strong>Restore failed install</strong> on the validation screen. Restore checks the snapshot before it touches either folder, puts your files back, and then checks them again.</li>
+<li><strong>Fix the cause.</strong> Most failures come from a missing or wrong archive. Read the validation report and the messages in the table above.</li>
+<li><strong>Start again from the top.</strong> Run validation, then install again in the guide's order.</li>
+</ol>
+<div class="note warn"><p><strong>Never add a failed mod to the end.</strong> Mods later in a build often overwrite or build on files from earlier ones. Installing an early mod last can undo later mods or break the game. Restore, then rerun the whole guide.</p></div>
+<p>On the command line:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync restore --game-dir /path/to/game --source-dir /path/to/mods</code></pre>
+<p>For more on how the snapshot works, see <a href="safety.html">Safety and recovery</a>.</p>
+</section>
+
+<section id="after">
+<h2>After installing</h2>
+<p>Launch the game and check that it starts. Try a few places where your mods change things, such as a new texture or a changed area.</p>
+<p>ModSync keeps the snapshot from your last successful install until your next install replaces it. Keep it for a while, until you are happy that the game works. The snapshot is not a backup, so keep your own copy of anything valuable, such as your save games.</p>
+<p>If you add or remove mods later, run validation again before installing, so ModSync checks the new set of mods first.</p>
+</section>
+
+<nav class="pager" aria-label="Previous and next page"><a class="prev" href="getting-started.html"><small>Previous</small>Getting started</a><a class="next" href="safety.html"><small>Next</small>Safety and recovery</a></nav>
+</main>
+<nav class="docs-outline" aria-label="On this page"><h2>On this page</h2><a href="#before">Before you start</a><a href="#instructions">Get the instruction file</a><a href="#downloads">Download the mods</a><a href="#load">Open ModSync and load the guide</a><a href="#folders">Choose your game and mod folders</a><a href="#choose">Pick mods and options</a><a href="#validate">Run validation and read the report</a><a href="#patchers">Allow patchers if the build needs them</a><a href="#install">Install and watch the progress</a><a href="#failed">If something fails</a><a href="#after">After installing</a></nav>
+<footer class="docs-foot"><span>ModSync. Made for the KOTOR modding community.</span><span><a data-repo="/issues" href="https://github.com/ChristopherVR/ModSync.rs/issues">Report a problem</a></span></footer>
+</div>
+</div>
+</body>
+</html>

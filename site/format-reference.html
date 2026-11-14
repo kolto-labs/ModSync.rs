@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Instruction format reference - ModSync</title>
+<meta name="description" content="Field-by-field reference for the ModSync instruction file: build and component fields, options, every instruction action, path rules, archive fields and validation rules." />
+<meta name="theme-color" content="#14110d" />
+<link rel="icon" href="assets/modsync.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<script src="assets/theme-init.js"></script>
+<link rel="stylesheet" href="assets/site.css" />
+<script src="assets/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<div class="docs">
+<aside class="docs-side">
+  <div class="docs-side-top">
+    <a class="docs-brand" href="./" aria-label="ModSync home"><img class="logo" src="assets/modsync.svg" alt="" width="22" height="22" />ModSync <span>docs</span></a>
+    <button class="icon-btn" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch appearance">
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg>
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+    <button id="docs-menu" class="icon-btn docs-menu" type="button" aria-label="Show the list of pages" aria-expanded="false" aria-controls="docs-nav">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+  <nav id="docs-nav" class="docs-nav" aria-label="Documentation">
+    <div class="docs-quick">
+      <a href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg>Home</a>
+      <a data-repo="/releases" href="https://github.com/ChristopherVR/ModSync.rs/releases"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 11l6 6 6-6M4 20h16"/></svg>Download</a>
+      <a data-repo="" href="https://github.com/ChristopherVR/ModSync.rs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>Source on GitHub</a>
+      <a data-repo="/issues" href="https://github.com/ChristopherVR/ModSync.rs/issues"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>Report a problem</a>
+    </div>
+    <h2>For players</h2><a href="getting-started.html">Getting started</a><a href="walkthrough-install.html">Walkthrough: your first build</a><a href="safety.html">Safety and recovery</a><a href="troubleshooting.html">Troubleshooting</a><a href="faq.html">FAQ</a><h2>For guide authors</h2><a href="instruction-files.html">Instruction files</a><a href="walkthrough-authoring.html">Walkthrough: writing a guide</a><a href="format-reference.html" aria-current="page">Format reference</a><a href="cli.html">Command line</a><a href="cli-reference.html">CLI reference</a><h2>For developers</h2><a href="api.html">Library API</a><h2>Project</h2><a href="status.html">Features and roadmap</a>
+  </nav>
+</aside>
+<div class="docs-main">
+<main class="docs-article" id="content">
+<p class="crumb"><a href="./">ModSync</a><span>/</span>For guide authors<span>/</span><strong>Instruction format reference</strong></p>
+<h1>Instruction format <span class="serif">reference</span></h1>
+<p class="lead">Every field ModSync reads from an instruction file, what each one means, what it accepts, and which mistakes stop a guide from validating. Read <a href="instruction-files.html">Instruction files</a> first if you have not written a guide before.</p>
+
+<section id="structure">
+<h2>File structure</h2>
+<p>A structured guide has two parts. The <em>build metadata</em> holds text about the whole build, such as the preamble shown before installation. The <em>component list</em> holds one entry per mod. Each component can carry its own instruction steps and its own options.</p>
+<p>The component list is named <code>thisMod</code>. <code>Components</code> is accepted as an alias. The four formats lay the same data out differently:</p>
+<div class="table"><table>
+<thead><tr><th>Format</th><th>Layout</th><th>Build metadata</th></tr></thead>
+<tbody>
+<tr><td>TOML</td><td>A <code>[metadata]</code> table, then one <code>[[thisMod]]</code> table per component. Steps go in <code>[[thisMod.Instructions]]</code>, options in <code>[[thisMod.Options]]</code>, and an option's steps in <code>[[thisMod.Options.Instructions]]</code>.</td><td>Kept</td></tr>
+<tr><td>YAML</td><td>An optional metadata document starting <code>---</code> with a <code># Metadata</code> line, then one <code>---</code> document per component.</td><td>Kept</td></tr>
+<tr><td>JSON</td><td>An array of component objects. An object with a <code>thisMod</code> array is also read.</td><td>Not written by ModSync</td></tr>
+<tr><td>XML</td><td>A <code>&lt;ModSync&gt;</code> root with one <code>&lt;ModComponents&gt;</code> element per component. Repeated values such as <code>Category</code> repeat as elements.</td><td>Not written by ModSync</td></tr>
+</tbody></table></div>
+<p>Because ModSync writes JSON and XML with components only, build metadata has to live in TOML or YAML. The snippets below show the same component in each format.</p>
+<pre class="code" data-lang="TOML" tabindex="0"><code>[[thisMod]]
+Guid = "11111111-1111-1111-1111-111111111111"
+Name = "Sample textures"
+IsSelected = true
+
+[[thisMod.Instructions]]
+Action = "Copy"
+Source = ["&lt;&lt;modDirectory&gt;&gt;/sample.tga"]
+Destination = "&lt;&lt;kotorDirectory&gt;&gt;/Override"</code></pre>
+<pre class="code" data-lang="JSON" tabindex="0"><code>[
+  {
+    "Guid": "11111111-1111-1111-1111-111111111111",
+    "Name": "Sample textures",
+    "IsSelected": true,
+    "Instructions": [
+      {
+        "Action": "Copy",
+        "Source": ["&lt;&lt;modDirectory&gt;&gt;/sample.tga"],
+        "Destination": "&lt;&lt;kotorDirectory&gt;&gt;/Override"
+      }
+    ]
+  }
+]</code></pre>
+<pre class="code" data-lang="YAML" tabindex="0"><code>---
+# Metadata
+fileFormatVersion: "2.0"
+title: Sample build
+---
+Guid: 11111111-1111-1111-1111-111111111111
+Name: Sample textures
+IsSelected: true
+Instructions:
+  - Action: Copy
+    Source:
+      - "&lt;&lt;modDirectory&gt;&gt;/sample.tga"
+    Destination: "&lt;&lt;kotorDirectory&gt;&gt;/Override"</code></pre>
+<pre class="code" data-lang="XML" tabindex="0"><code>&lt;ModSync&gt;
+  &lt;ModComponents&gt;
+    &lt;Guid&gt;11111111-1111-1111-1111-111111111111&lt;/Guid&gt;
+    &lt;Name&gt;Sample textures&lt;/Name&gt;
+    &lt;IsSelected&gt;true&lt;/IsSelected&gt;
+    &lt;Instructions&gt;
+      &lt;Action&gt;Copy&lt;/Action&gt;
+      &lt;Source&gt;&amp;lt;&amp;lt;modDirectory&amp;gt;&amp;gt;/sample.tga&lt;/Source&gt;
+      &lt;Destination&gt;&amp;lt;&amp;lt;kotorDirectory&amp;gt;&amp;gt;/Override&lt;/Destination&gt;
+    &lt;/Instructions&gt;
+  &lt;/ModComponents&gt;
+&lt;/ModSync&gt;</code></pre>
+<p>Field names are matched without regard to capital letters in most places, but write them exactly as shown in the tables below. Two keys are stricter: <code>Instructions</code> must match exactly in TOML, and <code>Overwrite</code> must match exactly in TOML and YAML. A lowercase <code>overwrite</code> in those formats is ignored, so the action's default applies.</p>
+</section>
+
+<section id="build">
+<h2>Build metadata fields</h2>
+<p>These keys sit in the <code>[metadata]</code> table (TOML) or the <code># Metadata</code> document (YAML). Each one is optional.</p>
+<div class="table"><table>
+<thead><tr><th>Key</th><th>Type</th><th>Required?</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>fileFormatVersion</code></td><td>text</td><td>No</td><td>Written as <code>"2.0"</code> when ModSync saves a guide. In YAML, its presence marks a document as metadata.</td></tr>
+<tr><td><code>title</code></td><td>text</td><td>No</td><td>Free text kept with the guide. The code I read does not use it during install.</td></tr>
+<tr><td><code>lastModified</code></td><td>date and time</td><td>No</td><td>When the guide was last changed. A value that cannot be read as a date is dropped on save with a warning. TOML saves it as a local date and time. A capitalised <code>LastModified</code> is ignored in TOML, and read as <code>lastModified</code> in YAML.</td></tr>
+<tr><td><code>preambleContent</code></td><td>rich text</td><td>No</td><td>Shown on the desktop's preamble page, before installation starts.</td></tr>
+<tr><td><code>epilogueContent</code></td><td>rich text</td><td>No</td><td>Shown on the desktop's finish page, after installation.</td></tr>
+<tr><td><code>widescreenWarningContent</code></td><td>rich text</td><td>No</td><td>Warning shown on the desktop's widescreen page, with a Copy button.</td></tr>
+<tr><td><code>aspyrExclusiveWarningContent</code></td><td>rich text</td><td>No</td><td>Notice shown on the desktop's Aspyr notice page.</td></tr>
+<tr><td><code>installationWarningContent</code></td><td>rich text</td><td>No</td><td>Kept and saved with the guide. I did not find a page that displays it.</td></tr>
+</tbody></table></div>
+<p>The five rich text keys are also accepted with a capital first letter, such as <code>PreambleContent</code>.</p>
+</section>
+
+<section id="components">
+<h2>Component fields</h2>
+<p>Each entry in <code>thisMod</code> is a component. Options use the smaller set listed under <a href="#options">Options and choices</a>.</p>
+<div class="table"><table>
+<thead><tr><th>Key</th><th>Type</th><th>Required?</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>Guid</code></td><td>GUID text</td><td>Yes</td><td>Identifies the component. Must be unique across all components and options. Letter case does not matter.</td></tr>
+<tr><td><code>Name</code></td><td>text</td><td>Yes</td><td>The mod's name, shown in the mod list. Blank names are refused.</td></tr>
+<tr><td><code>Author</code></td><td>text</td><td>No</td><td>The mod's author.</td></tr>
+<tr><td><code>Description</code></td><td>rich text</td><td>No</td><td>Main description of the mod.</td></tr>
+<tr><td><code>DescriptionSpoilerFree</code></td><td>rich text</td><td>No</td><td>Used instead of <code>Description</code> when spoiler-free mode is on. The same pattern applies to <code>Directions</code>, <code>DownloadInstructions</code>, <code>UsageWarning</code> and <code>Screenshots</code>.</td></tr>
+<tr><td><code>Directions</code></td><td>rich text</td><td>No</td><td>Installation directions for the player.</td></tr>
+<tr><td><code>DownloadInstructions</code></td><td>rich text</td><td>No</td><td>How the player obtains the mod's files.</td></tr>
+<tr><td><code>UsageWarning</code></td><td>rich text</td><td>No</td><td>A warning the player should read before using the mod.</td></tr>
+<tr><td><code>Screenshots</code></td><td>rich text</td><td>No</td><td>Screenshot text shown with the component.</td></tr>
+<tr><td><code>Heading</code></td><td>text</td><td>No</td><td>Section heading used when the guide is exported to Markdown.</td></tr>
+<tr><td><code>Tier</code></td><td>text</td><td>No</td><td>Priority. Text containing <em>essential</em>, <em>recommend</em>, <em>suggest</em> or <em>option</em> is stored as <code>1 - Essential</code>, <code>2 - Recommended</code>, <code>3 - Suggested</code> or <code>4 - Optional</code>. Other text is kept as typed. The desktop's tier selection buttons use it.</td></tr>
+<tr><td><code>Category</code></td><td>text or list</td><td>No</td><td>Categories for filtering. A single text value is read as a one-item list.</td></tr>
+<tr><td><code>Language</code></td><td>text or list</td><td>No</td><td>Languages the mod supports, shown with the component.</td></tr>
+<tr><td><code>InstallationMethod</code></td><td>text</td><td>No</td><td>Free text describing how the mod installs, for example <code>Executable Installer</code>. Shown in the summary as "uses ...". It does not change what is installed.</td></tr>
+<tr><td><code>ExcludedDownloads</code></td><td>kept as written</td><td>No</td><td>Accepted and saved. I did not find code that acts on it.</td></tr>
+<tr><td><code>Dependencies</code></td><td>GUID text or list</td><td>No</td><td>Components (or immediate options) that must be selected. Validation warns when one is not selected. Install refuses the selection.</td></tr>
+<tr><td><code>Restrictions</code></td><td>GUID text or list</td><td>No</td><td>Components that cannot be installed together with this one. If one of them is selected, validation reports an error and install refuses.</td></tr>
+<tr><td><code>InstallBefore</code></td><td>GUID text or list</td><td>No</td><td>This component installs before the listed ones. Ignored in Markdown guides.</td></tr>
+<tr><td><code>InstallAfter</code></td><td>GUID text or list</td><td>No</td><td>This component installs after the listed ones. Ignored in Markdown guides.</td></tr>
+<tr><td><code>IsSelected</code></td><td>boolean</td><td>No</td><td>Whether the component is selected by default. A missing value means false. If a non-Markdown file selects nothing, every component is selected on load.</td></tr>
+<tr><td><code>Instructions</code></td><td>list of steps</td><td>No</td><td>The steps that install the mod, run in order. See <a href="#steps">Instructions</a>.</td></tr>
+<tr><td><code>Options</code></td><td>list of options</td><td>No</td><td>Choices the player can pick. See <a href="#options">Options and choices</a>.</td></tr>
+<tr><td><code>ResourceRegistry</code></td><td>map</td><td>No</td><td>Download links and their file details, keyed by URL. See <a href="#archives">Archive and download fields</a>.</td></tr>
+<tr><td><code>ModLink</code>, <code>ModLinkFilenames</code></td><td>legacy</td><td>No</td><td>Older forms of download links. They are moved into <code>ResourceRegistry</code> when the guide loads.</td></tr>
+<tr><td><code>WidescreenOnly</code></td><td>boolean</td><td>No</td><td>Marks a widescreen-only component. See <a href="#game">Game detection and flags</a>.</td></tr>
+<tr><td><code>AspyrExclusive</code></td><td>boolean</td><td>No</td><td>Marks a component that only the Aspyr version of KOTOR 2 can use. See <a href="#game">Game detection and flags</a>.</td></tr>
+</tbody></table></div>
+<p><strong>Boolean values.</strong> <code>true</code> and <code>false</code> are the usual forms. A number other than zero is true. Text is true only when it reads <code>true</code>, in any capitalisation. Anything else is false.</p>
+<p><strong>Lists.</strong> Where a list is expected, a single text value is also accepted and read as a one-item list.</p>
+<p><strong>Unknown keys.</strong> Keys the model does not recognise on a component are kept as metadata and saved again. Unknown keys inside a step are ignored by the loader.</p>
+</section>
+
+<section id="options">
+<h2>Options and choices</h2>
+<p>An option is a choice the player can make within a component, such as an alternate texture set. Options sit under the component in <code>Options</code>. Their fields are:</p>
+<div class="table"><table>
+<thead><tr><th>Key</th><th>Type</th><th>Required?</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>Guid</code></td><td>GUID</td><td>Yes</td><td>Identifies the option. A <code>Choose</code> step names options by this value, so give each option a real GUID.</td></tr>
+<tr><td><code>Name</code></td><td>text</td><td>Yes</td><td>The option's name, shown to the player.</td></tr>
+<tr><td><code>Description</code></td><td>text</td><td>No</td><td>Shown with the option.</td></tr>
+<tr><td><code>IsSelected</code></td><td>boolean</td><td>No</td><td>The option's default choice.</td></tr>
+<tr><td><code>Dependencies</code></td><td>GUID text or list</td><td>No</td><td>Same meaning as on a component.</td></tr>
+<tr><td><code>Restrictions</code></td><td>GUID text or list</td><td>No</td><td>Same meaning as on a component.</td></tr>
+<tr><td><code>Instructions</code></td><td>list of steps</td><td>No</td><td>Steps that run only when the option is chosen.</td></tr>
+</tbody></table></div>
+<ul>
+<li>An option has no <code>Author</code>, <code>Category</code>, <code>Tier</code> or <code>Language</code> of its own.</li>
+<li>A <code>Choose</code> step in the component's <code>Instructions</code> lists the options to apply. Only selected options run, in the order the options are declared.</li>
+<li>An entry that names no option stops the install with an "Unknown option" error. Options are named by GUID only, in any letter case.</li>
+<li>Only the immediate options of a component can be named by a <code>Dependencies</code> or <code>Choose</code> entry. Options of options are not offered for selection.</li>
+<li>On load, an option is dropped when it is unselected, has no relations, is not named anywhere, and has exactly the same steps as an earlier option. Markdown guides are not deduplicated.</li>
+</ul>
+</section>
+
+<section id="steps">
+<h2>Instructions</h2>
+<p>Each step is one table in a component's <code>Instructions</code> list (or in an option's list). Steps run in order. These fields apply to every action:</p>
+<div class="table"><table>
+<thead><tr><th>Key</th><th>Type</th><th>Required?</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>Action</code></td><td>text or number</td><td>Yes</td><td>The action to run. See the list below. An unrecognised name loads as no action and fails validation with "Action cannot be null".</td></tr>
+<tr><td><code>Source</code></td><td>text or list</td><td>Depends on action</td><td>Files, folders or archives the action works on. A path with no placeholder is read as relative to <code>&lt;&lt;modDirectory&gt;&gt;</code>.</td></tr>
+<tr><td><code>Destination</code></td><td>text</td><td>Depends on action</td><td>A folder, or a new file name for <code>Rename</code>. Must start with a placeholder when it is a path.</td></tr>
+<tr><td><code>Arguments</code></td><td>text</td><td>Depends on action</td><td>Extra text whose meaning depends on the action.</td></tr>
+<tr><td><code>Overwrite</code></td><td>boolean</td><td>No</td><td>What to do when a target file already exists. Defaults to <code>true</code>, except for <code>Delete</code>, which defaults to <code>false</code>.</td></tr>
+<tr><td><code>Dependencies</code></td><td>GUID text or list</td><td>No</td><td>The step runs only when all of these are selected.</td></tr>
+<tr><td><code>Restrictions</code></td><td>GUID text or list</td><td>No</td><td>The step is skipped when any of these is selected.</td></tr>
+<tr><td><code>Guid</code></td><td>text</td><td>No</td><td>An optional identifier for the step, used by the desktop editor. The install does not depend on it.</td></tr>
+<tr><td><code>Parent</code></td><td>GUID text</td><td>No</td><td>Written as the GUID of the option that owns the step. The install does not read it.</td></tr>
+</tbody></table></div>
+<p>Action names are matched without regard to capitals. <code>TSLPatcher</code> and <code>HoloPatcher</code> are accepted as names for <code>Patcher</code>. A number is also accepted, as its position in this list counting from 0: 1 Extract, 2 Execute, 3 Patcher, 4 Move, 5 Copy, 6 Rename, 7 Delete, 8 DelDuplicate, 9 Choose, 10 Run, 11 CleanList, 12 CreateDirectory.</p>
+<p>The actions are listed below in the order they are described. Path placeholders are explained under <a href="#paths">Path rules</a>.</p>
+
+<section id="actions">
+<h3>Actions</h3>
+
+<section id="act-extract">
+<h3>Extract</h3>
+<p>Unpacks an archive into a folder with the archive's name, placed next to the archive. Supported formats are ZIP, 7z, RAR, TAR, GZip and 7z self-extracting archives. Files already in that folder are replaced whatever <code>Overwrite</code> says.</p>
+<div class="table"><table>
+<thead><tr><th>Field</th><th>Use</th></tr></thead>
+<tbody>
+<tr><td><code>Source</code></td><td>The archive to unpack, under <code>&lt;&lt;modDirectory&gt;&gt;</code>. Wildcards are allowed.</td></tr>
+<tr><td><code>Destination</code></td><td>Leave empty. Validation reports an error when it is set.</td></tr>
+<tr><td><code>Arguments</code></td><td>Not used.</td></tr>
+</tbody></table></div>
+<p>Validation reports "Missing Required Archives" when a component's base steps have an Extract with no matching archive.</p>
+<pre class="code" data-lang="TOML" tabindex="0"><code>[[thisMod.Instructions]]
+Action = "Extract"
+Source = ["&lt;&lt;modDirectory&gt;&gt;/Sample Textures*.zip"]</code></pre>
+</section>
+
+<section id="act-copy">
+<h3>Copy</h3>
+<p>Copies matching files into the destination folder. Subfolders are flattened: each file lands directly in the destination.</p>
+<div class="table"><table>
+<thead><tr><th>Field</th><th>Use</th></tr></thead>
+<tbody>
+<tr><td><code>Source</code></td><td>Files to copy. Paths may use a placeholder and wildcards.</td></tr>
+<tr><td><code>Destination</code></td><td>The folder to copy into. Must start with a placeholder. Validation reports "Destination cannot be found!" when the folder is missing and cannot be created.</td></tr>
+<tr><td><code>Overwrite</code></td><td>Defaults to <code>true</code>. When <code>false</code>, a file already in the destination is skipped with a warning.</td></tr>
+</tbody></table></div>
+<pre class="code" data-lang="TOML" tabindex="0"><code>[[thisMod.Instructions]]
+Action = "Copy"
+Source = ["&lt;&lt;modDirectory&gt;&gt;/Textures/*.tga"]
+Destination = "&lt;&lt;kotorDirectory&gt;&gt;/Override"
+Overwrite = false</code></pre>
+</section>
+
+<section id="act-move">
+<h3>Move</h3>
+<p>Works like <a href="#act-copy">Copy</a>, then deletes each source file once it has been copied.</p>
+<div class="table"><table>
+<thead><tr><th>Field</th><th>Use</th></tr></thead>
+<tbody>
+<tr><td><code>Source</code></td><td>Files to move. Paths may use a placeholder and wildcards.</td></tr>
+<tr><td><code>Destination</code></td><td>The folder to move into. Same rules as <code>Copy</code>.</td></tr>
+<tr><td><code>Overwrite</code></td><td>Defaults to <code>true</code>. When <code>false</code>, a file already in the destination is skipped with a warning. A file that would be moved onto itself is skipped or refused in the same way.</td></tr>
+</tbody></table></div>
+<pre class="code" data-lang="TOML" tabindex="0"><code>[[thisMod.Instructions]]
+Action = "Move"
+Source = ["&lt;&lt;modDirectory&gt;&gt;/Extra/*.utc"]
+Destination = "&lt;&lt;kotorDirectory&gt;&gt;/Override"</code></pre>
+</section>
+
+<section id="act-rename">
+<h3>Rename</h3>
+<p>Renames matching files inside their own folder.</p>
+<div class="table"><table>
+<thead><tr><th>Field</th><th>Use</th></tr></thead>
+<tbody>
+<tr><td><code>Source</code></td><td>The file or files to rename. Paths may use a placeholder and wildcards.</td></tr>
+<tr><td><code>Destination</code></td><td>The new file name only. It cannot contain a folder, a placeholder, or wildcard characters, and it must be a valid Windows file name.</td></tr>
+<tr><td><code>Overwrite</code></td><td>Defaults to <code>true</code>. When <code>false</code> and the new name is already taken, the other files are still renamed and the step then fails.</td></tr>
+</tbody></table></div>
+<pre class="code" data-lang="TOML" tabindex="0"><code>[[thisMod.Instructions]]
+Action = "Rename"
+Source = ["&lt;&lt;kotorDirectory&gt;&gt;/Override/oldname.tga"]
+Destination = "newname.tga"</code></pre>
+</section>
+
+<section id="act-delete">
+<h3>Delete</h3>
+<p>Deletes the matching files. Folders are never deleted, and a folder matched by a pattern deletes nothing beneath it.</p>
+<div class="table"><table>
+<thead><tr><th>Field</th><th>Use</th></tr></thead>
+<tbody>
+<tr><td><code>Source</code></td><td>Files to delete. Paths may use a placeholder and wildcards.</td></tr>
+<tr><td><code>Destination</code></td><td>Leave empty. Validation reports an error when it is set.</td></tr>
+<tr><td><code>Overwrite</code></td><td>Defaults to <code>false</code>. With <code>false</code>, a missing file produces a warning and the step continues. With <code>true</code>, a missing file fails the step.</td></tr>
+</tbody></table></div>
+<p>A Delete with no Source does nothing, unless <code>Overwrite</code> is <code>true</code>, in which case it fails.</p>
+<pre class="code" data-lang="TOML" tabindex="0"><code>[[thisMod.Instructions]]
+Action = "Delete"
+Source = ["&lt;&lt;kotorDirectory&gt;&gt;/Override/old_texture.tga"]</code></pre>
+</section>
+
+<section id="act-delduplicate">
+<h3>DelDuplicate</h3>
+<p>Removes one copy of a file when the same name exists with another listed extension in the same folder. The folder's subfolders are checked separately, one folder at a time.</p>
+<div class="table"><table>
+<thead><tr><th>Field</th><th>Use</th></tr></thead>
+<tbody>
+<tr><td><code>Source</code></td><td>The extensions to compare, such as <code>".tga"</code> and <code>".tpc"</code>. When empty, <code>.dds</code>, <code>.tpc</code> and <code>.tga</code> are used.</td></tr>
+<tr><td><code>Destination</code></td><td>The folder to check. It must already exist.</td></tr>
+<tr><td><code>Arguments</code></td><td>The extension to <em>remove</em> when a duplicate is found, such as <code>".tpc"</code>. When empty, files with no extension are the ones removed.</td></tr>
+</tbody></table></div>
+<p>The demo guide uses it to remove a <code>.tpc</code> when a <code>.tga</code> with the same name is present.</p>
+<pre class="code" data-lang="TOML" tabindex="0"><code>[[thisMod.Instructions]]
+Action = "DelDuplicate"
+Source = [".tga", ".tpc"]
+Destination = "&lt;&lt;kotorDirectory&gt;&gt;/Override"
+Arguments = ".tpc"</code></pre>
+</section>
+
+<section id="act-cleanlist">
+<h3>CleanList</h3>
+<p>Reads a comma-separated list file and deletes the files it names for mods that are selected. Each row starts with a mod name followed by the file names to delete. A row applies when its mod name matches the name of a selected component. Matching is looser than exact equality: the rules accept prefix, substring and token matches (see the CleanList section of COMPATIBILITY.md for the details).</p>
+<div class="table"><table>
+<thead><tr><th>Field</th><th>Use</th></tr></thead>
+<tbody>
+<tr><td><code>Source</code></td><td>The list file. Every Source must exist, and the first one is the file that is read.</td></tr>
+<tr><td><code>Destination</code></td><td>The folder the listed files are in. It must already exist.</td></tr>
+<tr><td><code>Arguments</code></td><td>Not used.</td></tr>
+</tbody></table></div>
+<pre class="code" data-lang="TOML" tabindex="0"><code>[[thisMod.Instructions]]
+Action = "CleanList"
+Source = ["&lt;&lt;modDirectory&gt;&gt;/Cleanup/cleanlist.txt"]
+Destination = "&lt;&lt;kotorDirectory&gt;&gt;/Override"</code></pre>
+</section>
+
+<section id="act-patcher">
+<h3>Patcher</h3>
+<p>Runs a TSLPatcher-style patch. The built-in OdyPatcher library is used by default. A player can instead choose an external patcher program, which needs their permission.</p>
+<div class="table"><table>
+<thead><tr><th>Field</th><th>Use</th></tr></thead>
+<tbody>
+<tr><td><code>Source</code></td><td>Exactly one path under <code>&lt;&lt;modDirectory&gt;&gt;</code>, naming the patch's file or folder. For a file, the folder it sits in is used. Wildcards are not allowed.</td></tr>
+<tr><td><code>Destination</code></td><td>Leave empty, or use <code>&lt;&lt;gameDirectory&gt;&gt;</code>. The patch always runs against the game folder, and validation reports any other value.</td></tr>
+<tr><td><code>Arguments</code></td><td>Extra options for the patcher, usually the name of the INI file it should read, such as <code>changes.ini</code>.</td></tr>
+</tbody></table></div>
+<pre class="code" data-lang="TOML" tabindex="0"><code>[[thisMod.Instructions]]
+Action = "Patcher"
+Source = ["&lt;&lt;modDirectory&gt;&gt;/Patch"]
+Destination = "&lt;&lt;gameDirectory&gt;&gt;"
+Arguments = "changes.ini"</code></pre>
+</section>
+
+<section id="act-execute">
+<h3>Execute and Run</h3>
+<p><code>Execute</code> and <code>Run</code> do the same thing: they start a program directly, without a shell. The program must exist under <code>&lt;&lt;modDirectory&gt;&gt;</code> or <code>&lt;&lt;kotorDirectory&gt;&gt;</code>. Running it needs the player to allow external programs.</p>
+<div class="table"><table>
+<thead><tr><th>Field</th><th>Use</th></tr></thead>
+<tbody>
+<tr><td><code>Source</code></td><td>The program to start. Every Source is resolved before any program starts.</td></tr>
+<tr><td><code>Destination</code></td><td>Not used.</td></tr>
+<tr><td><code>Arguments</code></td><td>The command line passed to the program. It is split the way Windows splits command lines, so group values with double quotes. Placeholders are expanded inside it, in any capitalisation. An unknown placeholder stops the step.</td></tr>
+</tbody></table></div>
+<pre class="code" data-lang="TOML" tabindex="0"><code>[[thisMod.Instructions]]
+Action = "Run"
+Source = ["&lt;&lt;modDirectory&gt;&gt;/Tools/patch.exe"]
+Arguments = "/quiet"</code></pre>
+</section>
+
+<section id="act-choose">
+<h3>Choose</h3>
+<p>Applies the options the player selected. Its <code>Source</code> lists the GUIDs of the options it covers. Only the selected ones run, in the order the options are declared on the component.</p>
+<div class="table"><table>
+<thead><tr><th>Field</th><th>Use</th></tr></thead>
+<tbody>
+<tr><td><code>Source</code></td><td>The GUIDs of options, one per entry. A single text value separated by commas or semicolons is also accepted.</td></tr>
+<tr><td><code>Destination</code></td><td>Leave empty. Validation reports an error when it is set.</td></tr>
+<tr><td><code>Arguments</code></td><td>Not used.</td></tr>
+</tbody></table></div>
+<pre class="code" data-lang="TOML" tabindex="0"><code>[[thisMod.Instructions]]
+Action = "Choose"
+Source = ["22222222-2222-2222-2222-222222222222"]</code></pre>
+</section>
+
+<section id="act-createdirectory">
+<h3>CreateDirectory</h3>
+<p>Creates one new folder. Only the last part of the path is created, so its parent folder must already exist. The name cannot contain wildcard characters.</p>
+<div class="table"><table>
+<thead><tr><th>Field</th><th>Use</th></tr></thead>
+<tbody>
+<tr><td><code>Source</code></td><td>Must be empty.</td></tr>
+<tr><td><code>Destination</code></td><td>The folder to create, starting with a placeholder. It cannot be a root folder itself.</td></tr>
+<tr><td><code>Arguments</code></td><td>Must be empty.</td></tr>
+</tbody></table></div>
+<pre class="code" data-lang="TOML" tabindex="0"><code>[[thisMod.Instructions]]
+Action = "CreateDirectory"
+Destination = "&lt;&lt;kotorDirectory&gt;&gt;/Override/Sample"</code></pre>
+</section>
+</section>
+</section>
+
+<section id="archives">
+<h2>Archive and download fields</h2>
+<p>Download information lives in <code>ResourceRegistry</code>, a map keyed by download URL. Each entry is an object with the fields below. Only the first three are needed for peer sharing, and the hash also lets ModSync check a download.</p>
+<div class="table"><table>
+<thead><tr><th>Key</th><th>Type</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>ContentHashSHA256</code></td><td>64 hexadecimal digits</td><td>The expected SHA-256 of the archive. A download that does not match is not accepted. Peer sharing also requires it.</td></tr>
+<tr><td><code>Magnet</code></td><td>text starting <code>magnet:?xt=urn:btih:</code></td><td>A BitTorrent magnet link for the same archive. Used with <code>ContentHashSHA256</code> for peer downloads. Without the hash, peers are not used.</td></tr>
+<tr><td><code>TorrentInfo</code></td><td>base64 text</td><td>The torrent's metadata. ModSync checks it against the magnet link's hash. Optional when the magnet link carries a display name.</td></tr>
+<tr><td><code>Files</code></td><td>map of filename to <code>true</code>, <code>false</code> or <code>null</code></td><td>Which files from a download page to use. <code>false</code> excludes a file. <code>true</code> or <code>null</code> allows it.</td></tr>
+<tr><td><code>FileSize</code></td><td>number</td><td>The file's size in bytes. Legacy entries use <code>0</code>.</td></tr>
+<tr><td><code>ContentKey</code>, <code>MetadataHash</code></td><td>text</td><td>Identity values for the entry. Legacy entries get a SHA-1 of the URL.</td></tr>
+<tr><td><code>HandlerMetadata</code></td><td>map</td><td>State kept for the download handler. Leave it as <code>{}</code>.</td></tr>
+<tr><td><code>PrimaryUrl</code></td><td>text</td><td>Legacy. Its value becomes the entry's key when the guide loads, and the field is then removed.</td></tr>
+<tr><td><code>FirstSeen</code>, <code>LastVerified</code></td><td>kept as written</td><td>Kept with the entry. I could not confirm what the installer does with them.</td></tr>
+</tbody></table></div>
+<pre class="code" data-lang="TOML" tabindex="0"><code>[[thisMod]]
+Guid = "11111111-1111-1111-1111-111111111111"
+Name = "Sample textures"
+
+[thisMod.ResourceRegistry."https://example.com/sample-textures"]
+ContentHashSHA256 = "0000000000000000000000000000000000000000000000000000000000000000"
+Magnet = "magnet:?xt=urn:btih:0000000000000000000000000000000000000000&amp;dn=sample.zip"
+Files = { "sample.zip" = true }</code></pre>
+<p>The older <code>ModLink</code> and <code>ModLinkFilenames</code> component keys still load. They are merged into <code>ResourceRegistry</code>, and newer entries take precedence.</p>
+<div class="note warn"><p><strong>Placeholder values above are examples.</strong> A real hash must be the SHA-256 of the actual archive, and a real magnet link must carry the torrent's own hash.</p></div>
+</section>
+
+<section id="paths">
+<h2>Path rules</h2>
+<p>Paths start from a placeholder, so the same guide works on every computer. The placeholders are:</p>
+<div class="table"><table>
+<thead><tr><th>Placeholder</th><th>Points to</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;&lt;modDirectory&gt;&gt;</code></td><td>The folder that holds the player's downloaded mod archives.</td></tr>
+<tr><td><code>&lt;&lt;kotorDirectory&gt;&gt;</code></td><td>The player's game folder.</td></tr>
+<tr><td><code>&lt;&lt;gameDirectory&gt;&gt;</code></td><td>The same folder as <code>&lt;&lt;kotorDirectory&gt;&gt;</code>. Both spellings work.</td></tr>
+</tbody></table></div>
+<ul>
+<li><strong>Spelling.</strong> In <code>Source</code> and <code>Destination</code>, write the placeholder exactly as shown, including capitals. A placeholder in another capitalisation fails. Inside <code>Arguments</code>, any capitalisation works.</li>
+<li><strong>Separator.</strong> The placeholder must be followed by <code>/</code> or <code>\</code>, or stand alone. Either slash works after it.</li>
+<li><strong>No placeholder.</strong> A <code>Source</code> with no placeholder is read as relative to <code>&lt;&lt;modDirectory&gt;&gt;</code>. A <code>Destination</code> with no placeholder is refused.</li>
+<li><strong>Wildcards.</strong> <code>*</code> (any run of characters) and <code>?</code> (one character) work in <code>Source</code> for the file actions. They are refused in <code>Destination</code>, in a <code>Rename</code> file name, and in a <code>Patcher</code> Source. Square brackets are not allowed in Destination paths.</li>
+<li><strong>Always refused.</strong> Absolute paths, drive letters (a colon in any part), <code>..</code> parts, the characters <code>&lt; &gt; | "</code>, parts ending in a space or a dot, and Windows device names: <code>CON</code>, <code>PRN</code>, <code>AUX</code>, <code>NUL</code>, <code>CONIN$</code>, <code>CONOUT$</code>, and <code>COM</code> or <code>LPT</code> followed by 0 to 9 (including the superscript digits 1, 2 and 3).</li>
+<li><strong>Links and special files.</strong> A path that passes through a symbolic link is refused, and so is a special file as a source. The game folder and the mod folder must not overlap, and neither can be a drive root.</li>
+<li><strong>Download staging.</strong> A path into a Peer download staging folder (named <code>.peer-...part</code>) inside the mod folder is refused.</li>
+</ul>
+</section>
+
+<section id="validation">
+<h2>Validation rules</h2>
+<p>Validation checks a guide without installing it. Run it with <code>modsync validate</code> before you publish a guide. The checks fall into three groups.</p>
+<h3>Loading the file</h3>
+<ul>
+<li>The guide has no components: it fails to load.</li>
+<li>A component or option has no <code>Guid</code> or no <code>Name</code>.</li>
+<li>Two components or options share a GUID, ignoring letter case.</li>
+<li>The file is larger than 8 MiB, or it cannot be parsed as the format it claims to be.</li>
+<li>A <code>Source</code> or <code>Destination</code> path is refused under the <a href="#paths">path rules</a>.</li>
+</ul>
+<h3>Selection and order</h3>
+<ul>
+<li>Nothing is selected: "Select at least one component".</li>
+<li>A selected component depends on a component that is not selected: install refuses ("requires selected component"). Validation shows the same problem as a warning.</li>
+<li>A selected component is restricted against another selected component: validation reports an error, and install refuses.</li>
+<li>An <code>InstallBefore</code> or <code>InstallAfter</code> entry names a component that does not exist, names the component itself, or forms a cycle. These fail validation and install, even for components that are not selected. Markdown guides ignore these two fields.</li>
+</ul>
+<h3>Steps</h3>
+<ul>
+<li>A step with no action fails with "Action cannot be null".</li>
+<li>An <code>Extract</code> with no matching archive fails with "Missing Required Archives".</li>
+<li>When a component has archives, a <code>&lt;&lt;modDirectory&gt;&gt;</code> Source that is not inside one of them fails with "Failed to find '...' in any archives!". Game folder Sources are not checked this way.</li>
+<li>A <code>Copy</code>, <code>Move</code>, <code>DelDuplicate</code> or <code>CleanList</code> whose Destination folder cannot be found fails with "Destination cannot be found!".</li>
+<li><code>Destination</code> set on <code>Extract</code>, <code>Choose</code> or <code>Delete</code> is an error. A <code>Patcher</code> Destination other than <code>&lt;&lt;gameDirectory&gt;&gt;</code> is an error.</li>
+<li>A <code>Choose</code> entry that names no option stops the install.</li>
+</ul>
+<p>Validation also reports warnings that do not stop the install: a file that already exists when <code>Overwrite</code> is <code>false</code>, a <code>Delete</code> target that is missing, and a <code>tslpatcher.exe</code> used in a Source without the <code>Patcher</code> action.</p>
+<h3>What validation checks, by stage</h3>
+<div class="table"><table>
+<thead><tr><th>Stage</th><th>What it checks</th></tr></thead>
+<tbody>
+<tr><td>Environment</td><td>The game and mod folders exist and can be written to, and the game folder holds no two names that differ only by capitals.</td></tr>
+<tr><td>Conflicts</td><td>Restriction conflicts (errors) and missing dependencies (warnings).</td></tr>
+<tr><td>Install order</td><td>The <code>InstallBefore</code> and <code>InstallAfter</code> rules above.</td></tr>
+<tr><td>Component validation</td><td>Each selected component's archives, Source paths and Destination folders.</td></tr>
+<tr><td>FOMOD configuration</td><td>Archives that use a FOMOD installer have their choices configured.</td></tr>
+<tr><td>Dry run</td><td>Each step is simulated in order, so a step that would fail on a file that is not there is reported.</td></tr>
+</tbody></table></div>
+</section>
+
+<section id="game">
+<h2>Game detection and flags</h2>
+<p>ModSync identifies the installed game from its files. It recognises three kinds of install: KOTOR 1, KOTOR 2 (legacy), and KOTOR 2 (Aspyr). An install is treated as Aspyr when its <code>override</code> folder holds at least about 70 percent of the Aspyr-specific files it checks for. If the game folder contains a <code>steamassets</code> folder with an <code>override</code> folder and either <code>dialog.tlk</code> or <code>chitin.key</code>, that folder is used as the install root.</p>
+<ul>
+<li><strong><code>AspyrExclusive</code></strong> (boolean, in the component). The component can only be selected on the Aspyr version of KOTOR 2. On any other install it is deselected.</li>
+<li><strong><code>WidescreenOnly</code></strong> (boolean, in the component). When the installer runs in phases, widescreen-only components are installed after the base build, in their own phase. The direct Markdown install skips them, along with any component named <code>4GB Patcher</code>.</li>
+</ul>
+</section>
+
+<nav class="pager" aria-label="Previous and next page"><a class="prev" href="walkthrough-authoring.html"><small>Previous</small>Walkthrough: writing a guide</a><a class="next" href="cli.html"><small>Next</small>Command line</a></nav>
+</main>
+<nav class="docs-outline" aria-label="On this page"><h2>On this page</h2><a href="#structure">File structure</a><a href="#build">Build metadata fields</a><a href="#components">Component fields</a><a href="#options">Options and choices</a><a href="#steps">Instructions</a><a href="#actions">Actions</a><a href="#act-extract">Extract</a><a href="#act-copy">Copy</a><a href="#act-move">Move</a><a href="#act-rename">Rename</a><a href="#act-delete">Delete</a><a href="#act-delduplicate">DelDuplicate</a><a href="#act-cleanlist">CleanList</a><a href="#act-patcher">Patcher</a><a href="#act-execute">Execute and Run</a><a href="#act-choose">Choose</a><a href="#act-createdirectory">CreateDirectory</a><a href="#archives">Archive and download fields</a><a href="#paths">Path rules</a><a href="#validation">Validation rules</a><a href="#game">Game detection and flags</a></nav>
+<footer class="docs-foot"><span>ModSync. Made for the KOTOR modding community.</span><span><a data-repo="/issues" href="https://github.com/ChristopherVR/ModSync.rs/issues">Report a problem</a></span></footer>
+</div>
+</div>
+</body>
+</html>
