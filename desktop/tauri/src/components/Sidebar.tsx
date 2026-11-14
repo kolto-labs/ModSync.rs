@@ -81,17 +81,23 @@ export function Sidebar({
         />
       </nav>
 
-      {/* Account footer - pinned at the very bottom, below all nav items */}
-      <Separator className="bg-sidebar-border" />
-      <div className="p-3">
-        <AccountMenu
-          loggedIn={!!status?.logged_in}
-          username={username}
-          onSignIn={onSignIn}
-          onSignOut={onSignOut}
-          onOpenAccount={onOpenAccount}
-        />
-      </div>
+      {/* Account footer - pinned at the very bottom, below all nav items.
+          Signing in is optional, so it is only shown once signed in; sign in
+          from Settings > Account. */}
+      {status?.logged_in && (
+        <>
+          <Separator className="bg-sidebar-border" />
+          <div className="p-3">
+            <AccountMenu
+              loggedIn
+              username={username}
+              onSignIn={onSignIn}
+              onSignOut={onSignOut}
+              onOpenAccount={onOpenAccount}
+            />
+          </div>
+        </>
+      )}
     </aside>
   );
 }

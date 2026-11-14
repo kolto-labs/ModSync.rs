@@ -26,7 +26,6 @@ const NEXUS_LIMIT_WARN_AT = 15;
 interface BuildsViewProps {
   active: boolean;
   ready: boolean;
-  loggedIn: boolean;
   builds: BuildInfo[];
   refreshBuilds: () => Promise<void> | void;
   selectedBuild: string;
@@ -47,7 +46,6 @@ interface BuildsViewProps {
   addLog: (message: string, tag?: string) => void;
   setRunning: (v: boolean) => void;
   setPaused: (v: boolean) => void;
-  requestLogin: () => void;
   /** Take the player to where the Nexus key is set up. */
   onSetupNexus: () => void;
   activeProfile: string;
@@ -55,9 +53,9 @@ interface BuildsViewProps {
 
 export function BuildsView(props: BuildsViewProps) {
   const {
-    ready, loggedIn, builds, refreshBuilds, selectedBuild, onSelectBuild, mods, setMods, runtime,
+    ready, builds, refreshBuilds, selectedBuild, onSelectBuild, mods, setMods, runtime,
     resetRuntime, running, paused, overall, done, errors, manual, markManualDone,
-    patcherMod, clearPatcher, addLog, setRunning, setPaused, requestLogin, onSetupNexus, activeProfile,
+    patcherMod, clearPatcher, addLog, setRunning, setPaused, onSetupNexus, activeProfile,
   } = props;
 
   const t = useT();
@@ -233,7 +231,6 @@ export function BuildsView(props: BuildsViewProps) {
   const [checkedKey, setCheckedKey] = useState("");
   const selectionKey = `${selectedBuild}:${Array.from(selected).sort().join(",")}`;
   const checkInstall = async (gamePath?: string) => {
-    if (!loggedIn) { requestLogin(); return; }
     if (selectedCount === 0) { addLog(t("builds.selectNoneWarn"), "warning"); return; }
     setInstallError(null);
     setChecking(true);
@@ -258,7 +255,6 @@ export function BuildsView(props: BuildsViewProps) {
   const checkPassed = checkedKey === selectionKey && !!report?.success;
 
   const startInstall = async () => {
-    if (!loggedIn) { requestLogin(); return; }
     if (mods.length === 0) { addLog("Load a mod list first.", "warning"); return; }
     if (selectedCount === 0) { addLog(t("builds.selectNoneWarn"), "warning"); return; }
     setInstallError(null);

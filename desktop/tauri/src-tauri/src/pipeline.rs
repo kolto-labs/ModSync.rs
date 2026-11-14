@@ -152,9 +152,6 @@ fn prepare(app: &AppHandle, r: &Request, check_only: bool) -> Result<(Job, Strin
         let Some(loaded) = inner.loaded.as_ref().filter(|l| l.key == key) else {
             return Err(fail(400, "Load the mod list first"));
         };
-        if !inner.signed_in {
-            return Err(fail(401, "Not logged in"));
-        }
         (loaded.guide.clone(), loaded.game.clone())
     };
     if selected.is_empty() {

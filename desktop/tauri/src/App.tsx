@@ -335,7 +335,6 @@ export default function App() {
         <BuildsView
           active={view === "builds"}
           ready={ready}
-          loggedIn={!!status?.logged_in}
           builds={builds}
           refreshBuilds={refreshBuilds}
           selectedBuild={selectedBuild}
@@ -356,7 +355,6 @@ export default function App() {
           addLog={addLog}
           setRunning={setRunning}
           setPaused={setPaused}
-          requestLogin={() => setShowLogin(true)}
           onSetupNexus={() => openSettingsSection("account")}
           activeProfile={activeProfile}
         />
