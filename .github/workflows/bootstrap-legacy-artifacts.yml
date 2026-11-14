@@ -1,6 +1,15 @@
 name: Bootstrap retained legacy ciphertext
 on:
   workflow_dispatch:
+    inputs:
+      seed_run_id:
+        description: Reviewed source seed run ID; leave both pins empty for the fixed legacy snapshot
+        type: string
+        default: ''
+      seed_head_sha:
+        description: Exact reviewed 40-character source seed commit SHA
+        type: string
+        default: ''
 permissions: {contents: read, actions: read}
 concurrency:
   group: bootstrap-legacy-artifacts
@@ -23,6 +32,8 @@ jobs:
           ARTSTORE_REPOSITORY: kolto-labs/odyssey-ci
           ARTSTORE_TOKEN: ${{ secrets.ARTSTORE_READ_TOKEN }}
           PYTHONDONTWRITEBYTECODE: '1'
+          SEED_RUN_ID: ${{ inputs.seed_run_id }}
+          SEED_HEAD_SHA: ${{ inputs.seed_head_sha }}
         shell: bash
         run: |
           set -euo pipefail
@@ -46,27 +57,48 @@ jobs:
               12415594937: 'artstore-index-39755768203-1-0',
               12301995270: 'artstore-index-39499301515-1-0',
           }
+          seed_run = os.environ.get('SEED_RUN_ID', '')
+          seed_sha = os.environ.get('SEED_HEAD_SHA', '')
+          seed_mode = bool(seed_run or seed_sha)
+          if seed_mode and (not re.fullmatch(r'[1-9][0-9]*', seed_run)
+                            or not re.fullmatch(r'[0-9a-f]{40}', seed_sha)):
+              raise SystemExit('Seed migration requires both a positive run ID and reviewed 40-hex commit SHA')
+          expected_indexes, expected_packs = (1, 1) if seed_mode else (4, 6)
+          allowed_heads = {seed_sha} if seed_mode else {
+              'ea7c6c9de63ad2fa9706f9092958559277dbc447',
+              '0f5faf88fa37cf859412b8cc71f6da018bf7a9c4'}
           client = artstore_client.from_environment()
           if client is None:
               raise SystemExit('Temporary source read credential is required')
           listing = client.list_artifacts()
           pinned = []
+          seed_attempts = set()
           for item in listing:
-              if item['id'] not in expected:
-                  continue
               run = item.get('workflow_run') or {}
-              if (item['name'] != expected[item['id']]
+              if seed_mode:
+                  if run.get('id') != int(seed_run) or not item['name'].startswith((core.PACK_PREFIX, core.INDEX_PREFIX)):
+                      continue
+                  name_match = re.fullmatch(r'artstore-(?:pack|index)-' + seed_run + r'-([1-9][0-9]*)-(?:[0-9]+|seed)', item['name'])
+                  if name_match is None:
+                      raise SystemExit('Seed artifact name does not match the pinned source run')
+                  seed_attempts.add(name_match[1])
+              elif item['id'] not in expected:
+                  continue
+              if ((not seed_mode and item['name'] != expected[item['id']])
                       or not re.fullmatch(r'sha256:[0-9a-f]{64}', item.get('digest') or '')
                       or run.get('repository_id') != 1427366340
                       or run.get('head_repository_id') != 1427366340
-                      or run.get('head_sha') not in {
-                          'ea7c6c9de63ad2fa9706f9092958559277dbc447',
-                          '0f5faf88fa37cf859412b8cc71f6da018bf7a9c4'}
+                      or run.get('head_sha') not in allowed_heads
                       or not 0 < item['size_in_bytes'] <= 4 * 1024**3):
                   raise SystemExit('Source artifact identity or digest is invalid')
               pinned.append({key: item[key] for key in (
                   'id', 'name', 'digest', 'size_in_bytes', 'workflow_run', 'expires_at', 'created_at')})
-          if len(pinned) != len(expected):
+          if seed_mode:
+              if (len(pinned) != 2 or len(seed_attempts) != 1
+                      or sum(item['name'].startswith(core.PACK_PREFIX) for item in pinned) != 1
+                      or sum(item['name'].startswith(core.INDEX_PREFIX) for item in pinned) != 1):
+                  raise SystemExit('Expected exactly one seed pack and one index from one source attempt')
+          elif len(pinned) != len(expected):
               raise SystemExit('A pinned source artifact is missing or expired')
           base = Path(os.environ['RUNNER_TEMP']) / 'bootstrap-plan'
           index_dir = base / 'index'
@@ -97,10 +129,12 @@ jobs:
                   fragment_path.unlink()
               archive_path.unlink()
           merged = core.merge_indexes(fragments, now)
-          if len(fragments) != 4 or set(merged['packs']) != set(packs):
-              raise SystemExit('Merged index does not cover all six source packs')
+          if (len(fragments) != expected_indexes or len(packs) != expected_packs
+                  or set(merged['packs']) != set(packs)):
+              raise SystemExit('Merged index does not cover exactly the pinned source packs')
           core.dump_index(merged, index_dir / 'index.json')
           provenance = {'schema_version': 1, 'source_repository': client.repo,
+                        'migration_mode': 'seed' if seed_mode else 'legacy',
                         'source_indexes': indexes, 'source_payloads': [item for item in pinned if item not in indexes],
                         'target_repository': os.environ['GITHUB_REPOSITORY'],
                         'target_sha': os.environ['GITHUB_SHA'], 'target_run_id': os.environ['GITHUB_RUN_ID']}
@@ -108,7 +142,8 @@ jobs:
           (base / 'plan.json').write_text(json.dumps(provenance, sort_keys=True, indent=2))
           with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
               output.write('matrix=' + json.dumps({'artifact': provenance['source_payloads']}, separators=(',', ':')) + '\n')
-          print('Pinned eight encrypted payload artifacts; merged all four index fragments')
+          print('Pinned %d encrypted payload artifacts; merged %d index fragments'
+                % (len(provenance['source_payloads']), len(fragments)))
           PY
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
