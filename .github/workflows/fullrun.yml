@@ -107,7 +107,7 @@ jobs:
       use_steam_guard_codes: ${{ github.event_name == 'workflow_dispatch' && inputs.use_steam_guard_codes || false }}
       artifact_repository: ${{ vars.FULLRUN_ARTIFACT_REPOSITORY || github.repository }}
     secrets:
-      ARTSTORE_READ_TOKEN: ${{ secrets.ARTSTORE_READ_TOKEN }}
+      ARTSTORE_READ_TOKEN: ${{ vars.FULLRUN_ARTIFACT_REPOSITORY && vars.FULLRUN_ARTIFACT_REPOSITORY != github.repository && secrets.ARTSTORE_READ_TOKEN || '' }}
       CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
       GAME_SEED_URL_K1: ${{ secrets.GAME_SEED_URL_K1 }}
       GAME_SEED_KEY_K1: ${{ secrets.GAME_SEED_KEY_K1 }}
@@ -131,8 +131,8 @@ jobs:
       cache_writer: ${{ fromJSON(needs.plan.outputs.cache_writer) }}
       artifact_repository: ${{ vars.FULLRUN_ARTIFACT_REPOSITORY || github.repository }}
     secrets:
-      DIAGNOSTICS_ENCRYPTION_KEY: ${{ secrets.DIAGNOSTICS_ENCRYPTION_KEY }}
-      ARTSTORE_READ_TOKEN: ${{ secrets.ARTSTORE_READ_TOKEN }}
+      DIAGNOSTICS_ENCRYPTION_KEY: ${{ !vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT && secrets.DIAGNOSTICS_ENCRYPTION_KEY || '' }}
+      ARTSTORE_READ_TOKEN: ${{ vars.FULLRUN_ARTIFACT_REPOSITORY && vars.FULLRUN_ARTIFACT_REPOSITORY != github.repository && secrets.ARTSTORE_READ_TOKEN || '' }}
       CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
       MOD_CACHE_S3_READ_ACCESS_KEY_ID: ${{ secrets.MOD_CACHE_S3_READ_ACCESS_KEY_ID }}
       MOD_CACHE_S3_READ_SECRET_ACCESS_KEY: ${{ secrets.MOD_CACHE_S3_READ_SECRET_ACCESS_KEY }}
@@ -158,9 +158,9 @@ jobs:
       artifact_repository: ${{ vars.FULLRUN_ARTIFACT_REPOSITORY || github.repository }}
     secrets:
       MODSYNC_SOURCE_TOKEN: ${{ secrets.MODSYNC_SOURCE_TOKEN }}
-      ARTSTORE_READ_TOKEN: ${{ secrets.ARTSTORE_READ_TOKEN }}
+      ARTSTORE_READ_TOKEN: ${{ vars.FULLRUN_ARTIFACT_REPOSITORY && vars.FULLRUN_ARTIFACT_REPOSITORY != github.repository && secrets.ARTSTORE_READ_TOKEN || '' }}
       CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
-      DIAGNOSTICS_ENCRYPTION_KEY: ${{ secrets.DIAGNOSTICS_ENCRYPTION_KEY }}
+      DIAGNOSTICS_ENCRYPTION_KEY: ${{ !vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT && secrets.DIAGNOSTICS_ENCRYPTION_KEY || '' }}
       MOD_CACHE_S3_READ_ACCESS_KEY_ID: ${{ secrets.MOD_CACHE_S3_READ_ACCESS_KEY_ID }}
       MOD_CACHE_S3_READ_SECRET_ACCESS_KEY: ${{ secrets.MOD_CACHE_S3_READ_SECRET_ACCESS_KEY }}
       MOD_CACHE_S3_ENDPOINT: ${{ secrets.MOD_CACHE_S3_ENDPOINT }}
@@ -174,7 +174,7 @@ jobs:
       games: ${{ needs.plan.outputs.games }}
       dry_run: ${{ inputs.seed_dry_run }}
     secrets:
-      DIAGNOSTICS_ENCRYPTION_KEY: ${{ secrets.DIAGNOSTICS_ENCRYPTION_KEY }}
+      DIAGNOSTICS_ENCRYPTION_KEY: ${{ !vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT && secrets.DIAGNOSTICS_ENCRYPTION_KEY || '' }}
       SEED_STAGING_RCLONE_CONF_B64: ${{ secrets.SEED_STAGING_RCLONE_CONF_B64 }}
       MOD_CACHE_S3_ACCESS_KEY_ID: ${{ secrets.MOD_CACHE_S3_ACCESS_KEY_ID }}
       MOD_CACHE_S3_SECRET_ACCESS_KEY: ${{ secrets.MOD_CACHE_S3_SECRET_ACCESS_KEY }}

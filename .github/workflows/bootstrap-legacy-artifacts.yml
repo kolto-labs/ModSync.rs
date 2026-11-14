@@ -1,8 +1,5 @@
 name: Bootstrap retained legacy ciphertext
 on:
-  push:
-    branches: [fix/fullrun-ci-credentials]
-    paths: [.github/workflows/bootstrap-legacy-artifacts.yml]
   workflow_dispatch:
 permissions: {contents: read, actions: read}
 concurrency:
@@ -120,6 +117,7 @@ jobs:
           retention-days: 90
           if-no-files-found: error
   transfer:
+    name: Transfer ${{ matrix.artifact.name }}
     needs: plan
     runs-on: ubuntu-24.04
     timeout-minutes: 90

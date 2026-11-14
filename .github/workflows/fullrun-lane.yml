@@ -75,6 +75,9 @@ jobs:
           fi
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends "${packages[@]}"
+          if [[ -n "$DIAGNOSTICS_ENCRYPTION_RECIPIENT" ]]; then
+            age --encrypt --recipient "$DIAGNOSTICS_ENCRYPTION_RECIPIENT" </dev/null >/dev/null
+          fi
           python -m pip install pykotor==2.3.12 gdown==5.2.0
           python tools/modsync-ci/bootstrap_rclone.py --directory "$RUNNER_TEMP/rclone"
       - name: Install native GUI input libraries

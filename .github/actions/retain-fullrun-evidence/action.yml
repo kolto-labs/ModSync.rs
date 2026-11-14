@@ -22,7 +22,7 @@ runs:
       shell: bash
       env:
         SOURCE_DIR: ${{ inputs.source }}
-        CACHE_ENCRYPTION_KEY: ${{ inputs.encryption-key }}
+        CACHE_ENCRYPTION_KEY: ${{ !inputs.encryption-recipient && inputs.encryption-key || '' }}
         DIAGNOSTICS_ENCRYPTION_RECIPIENT: ${{ inputs.encryption-recipient }}
       run: |
         python -c 'import os,pathlib; p=pathlib.Path(os.environ["SOURCE_DIR"]).resolve(); assert p.is_relative_to(pathlib.Path(os.environ["RUNNER_TEMP"]).resolve())'
