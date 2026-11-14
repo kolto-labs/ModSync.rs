@@ -298,6 +298,28 @@ export function BuildsView(props: BuildsViewProps) {
 
   const showBanner = !!patcherName;
 
+  // An install that stopped leaves a restore point. Offer to put the game back
+  // and keep new installs blocked until then.
+  const [recovery, setRecovery] = useState<{ pending: boolean; game_path?: string }>({ pending: false });
+  const [restoring, setRestoring] = useState(false);
+  useEffect(() => {
+    if (running) return;
+    api.recovery().then(setRecovery).catch(() => {});
+  }, [running]);
+  const restore = async () => {
+    if (!(await confirm({ message: t("builds.restoreConfirm", { path: recovery.game_path ?? "" }), confirmLabel: t("builds.restore") }))) return;
+    setRestoring(true);
+    try {
+      await api.restore();
+      setRecovery({ pending: false });
+      resetRuntime();
+    } catch (e: any) {
+      addLog(t("builds.restoreFailed", { error: e?.message ?? "error" }), "error");
+    } finally {
+      setRestoring(false);
+    }
+  };
+
   return (
     <div className="flex h-full flex-col">
       {confirmDialog}
@@ -323,6 +345,17 @@ export function BuildsView(props: BuildsViewProps) {
           </span>
         </div>
       </header>
+
+      {/* Unfinished install banner */}
+      {recovery.pending && !running && (
+        <div className="flex items-center gap-2 border-b border-[hsl(var(--warning)/0.4)] bg-[hsl(var(--warning)/0.1)] px-5 py-2.5 text-sm text-[hsl(var(--warning))] animate-fade-in">
+          <AlertTriangle className="size-4 shrink-0" />
+          <span className="flex-1">{t("builds.restoreBanner")}</span>
+          <Button variant="outline" size="sm" onClick={restore} disabled={restoring}>
+            <RotateCcw /> {restoring ? t("builds.restoring") : t("builds.restore")}
+          </Button>
+        </div>
+      )}
 
       {/* TSLPatcher banner */}
       {showBanner && (
@@ -450,7 +483,7 @@ export function BuildsView(props: BuildsViewProps) {
       {/* Sticky action bar */}
       <footer className="flex flex-wrap items-center gap-3 border-t bg-card px-6 py-3">
         {!running ? (
-          <Button onClick={startInstall} disabled={!ready || mods.length === 0 || selectedCount === 0}>
+          <Button onClick={startInstall} disabled={!ready || mods.length === 0 || selectedCount === 0 || recovery.pending}>
             <Play /> {t("builds.installSelected", { count: selectedCount })}
           </Button>
         ) : (

@@ -256,6 +256,9 @@ export const api = {
   gamefrontExternal: () => req<{ ok: boolean; destination: string }>("/api/gamefront/external", { method: "POST" }),
   control: (action: "pause" | "resume" | "stop" | "retry") =>
     req<{ ok: boolean; action: string }>(`/api/install/${action}`, { method: "POST" }),
+  recovery: () =>
+    req<{ pending: boolean; game_path?: string; mods_path?: string }>("/api/recovery"),
+  restore: () => req<{ ok: boolean }>("/api/recovery/restore", { method: "POST" }),
   installState: () =>
     req<{ running: boolean; mods: any[] }>("/api/install/state"),
   // Profiles (multiple game installs on one machine).

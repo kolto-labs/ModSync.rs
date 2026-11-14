@@ -88,6 +88,8 @@ fn route(app: &AppHandle, r: &Request) -> Reply {
         }
         (["api", "install", "confirm"], _) => Ok(json!({"ok": true})),
         (["api", "install", "start"], _) => crate::pipeline::start(app, r),
+        (["api", "recovery"], _) => crate::pipeline::recovery_state(app),
+        (["api", "recovery", "restore"], _) if post => crate::pipeline::restore(app),
         (["api", "install", "state"], _) => {
             Ok(json!({"running": state(app).lock().running, "mods": []}))
         }

@@ -54,8 +54,63 @@ struct Job {
     cancelled: Arc<AtomicBool>,
 }
 
+/// The folders of an install that stopped and left a restore point: the
+/// captured ones, or the active install's folders when a restore point is
+/// pending there.
+fn pending_roots(app: &AppHandle) -> Option<modsync::paths::Roots> {
+    let st = state(app);
+    let pending = |roots: &modsync::paths::Roots| {
+        modsync::recovery::state_dir(roots).join("pending").exists()
+    };
+    if let Some(roots) = st.lock().failed_roots.clone().filter(|r| pending(r)) {
+        return Some(roots);
+    }
+    let store = st.prefs.store().ok()?;
+    let profile = store.load(&store.active_name().ok()??).ok()??;
+    let game = profile.kotor_directory?;
+    modsync::paths::Roots::new(Path::new(&st.mods_dir()), Path::new(&game))
+        .ok()
+        .filter(|r| pending(r))
+}
+
+pub fn recovery_state(app: &AppHandle) -> Reply {
+    Ok(match pending_roots(app) {
+        Some(roots) => {
+            json!({"pending": true, "game_path": roots.game.display().to_string(), "mods_path": roots.mods.display().to_string()})
+        }
+        None => json!({"pending": false}),
+    })
+}
+
+/// Put both folders back to the restore point (`recovery::restore`).
+pub fn restore(app: &AppHandle) -> Reply {
+    let st = state(app);
+    if st.lock().running {
+        return Err(fail(409, "Install already running"));
+    }
+    let roots =
+        pending_roots(app).ok_or_else(|| fail(400, "There is no unfinished install to restore"))?;
+    log(
+        app,
+        "Restoring your game to how it was before the install.",
+        "info",
+    );
+    modsync::recovery::restore(&roots).map_err(fail_any)?;
+    st.lock().failed_roots = None;
+    log(
+        app,
+        "Your game is back to how it was before the install.",
+        "success",
+    );
+    emit(app, json!({"type": "library", "event": "changed"}));
+    Ok(json!({"ok": true}))
+}
+
 pub fn start(app: &AppHandle, r: &Request) -> Reply {
     let st = state(app);
+    if pending_roots(app).is_some() {
+        return Err(fail(409, "restore_pending"));
+    }
     let key = r.b("build_key");
     let selected: Vec<String> = r
         .body
