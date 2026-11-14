@@ -1,5 +1,18 @@
 # Compatibility and proof boundaries
 
+## Mod build catalog - 2026-11-14
+
+`builds::Catalog` lists the KOTOR Community Portal builds (KOTOR 1 and 2, full
+and spoiler-free, read from the portal's Markdown sources) plus build links a
+player adds, kept in `<settings>/builds/custom.json`. A portal page link is
+mapped to its Markdown source. `fetch` downloads with the bounded instruction
+fetcher into `<settings>/builds/cache/<key>.md`, replacing the saved copy only
+after a complete download, and falls back to the saved copy when the download
+fails. The file is then read like any other instruction file; whether a given
+build parses and validates is decided by the existing Markdown loader, not by
+the catalog. `modsync builds list|add|remove|fetch` exposes it. Not covered by
+Rust tests (frozen by AGENTS.md).
+
 ## Finding game installs - 2026-11-14
 
 `game_locator::find_installs` lists KOTOR folders found on this computer: the

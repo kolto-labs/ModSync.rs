@@ -45,6 +45,8 @@ enum Action {
     Easy(easy_cli::EasyArgs),
     /// Manage non-destructive staged deployments and their manifests.
     Deployment(DeploymentArgs),
+    /// List, add, remove and fetch mod builds (community builds and added links).
+    Builds(BuildsArgs),
     /// Manage stored install profiles.
     Profile(profile_cli::ProfileArgs),
     /// Get, set or list settings.json values.
@@ -555,6 +557,42 @@ impl From<PeerModeArg> for modsync::p2p::PeerMode {
             PeerModeArg::Fallback => Self::Fallback,
         }
     }
+}
+#[derive(Args)]
+struct BuildsArgs {
+    /// Settings directory holding builds/ (defaults to the ModSync settings folder).
+    #[arg(long, global = true)]
+    settings_dir: Option<PathBuf>,
+    #[command(subcommand)]
+    action: BuildsAction,
+}
+#[derive(Subcommand)]
+enum BuildsAction {
+    /// List every build as JSON.
+    List,
+    /// Add a build link (an instruction file, or a community portal build page).
+    Add {
+        #[arg(long)]
+        label: String,
+        /// KOTOR1 or KOTOR2.
+        #[arg(long)]
+        game: String,
+        #[arg(long)]
+        url: String,
+    },
+    /// Remove an added build and its saved copy.
+    Remove {
+        #[arg(long)]
+        key: String,
+    },
+    /// Print the path of a build's instruction file, downloading it if needed.
+    Fetch {
+        #[arg(long)]
+        key: String,
+        /// Download the latest version even when a saved copy exists.
+        #[arg(long)]
+        refresh: bool,
+    },
 }
 #[derive(Args)]
 struct DeploymentArgs {
@@ -1645,6 +1683,35 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                 },
             },
         ),
+        Some(Action::Builds(args)) => {
+            let catalog = modsync::builds::Catalog::open(args.settings_dir.as_deref())?;
+            match args.action {
+                BuildsAction::List => {
+                    println!("{}", serde_json::to_string_pretty(&catalog.list()?)?);
+                }
+                BuildsAction::Add { label, game, url } => {
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(&catalog.add(&label, &game, &url)?)?
+                    );
+                }
+                BuildsAction::Remove { key } => {
+                    anyhow::ensure!(
+                        catalog.remove(&key)?,
+                        "There is no added build called {key}"
+                    );
+                }
+                BuildsAction::Fetch { key, refresh } => {
+                    let cancelled = modsync::p2p::stop_signal_flag()?;
+                    let fetched = catalog.fetch(&key, refresh, &cancelled)?;
+                    if let Some(warning) = &fetched.warning {
+                        eprintln!("warning: using the saved copy: {warning}");
+                    }
+                    println!("{}", fetched.path.display());
+                }
+            }
+            Ok(())
+        }
         Some(Action::Deployment(args)) => {
             let print = |value: serde_json::Value| -> Result<()> {
                 println!("{}", serde_json::to_string_pretty(&value)?);

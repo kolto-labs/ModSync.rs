@@ -19,112 +19,45 @@ fn build_json(b: &Build) -> Value {
     json!({"key": b.key, "label": b.label, "game": b.game, "custom": b.custom, "url": b.url})
 }
 
+fn catalog(st: &AppState) -> anyhow::Result<modsync::builds::Catalog> {
+    modsync::builds::Catalog::open(st.prefs.explicit())
+}
+
 fn all(st: &AppState) -> anyhow::Result<Vec<Build>> {
-    Ok(st
-        .lock()
-        .ui
-        .custom_builds
-        .iter()
+    Ok(catalog(st)?
+        .list()?
+        .into_iter()
         .map(|b| Build {
-            key: b.key.clone(),
-            label: b.label.clone(),
-            game: b.game.clone(),
-            url: b.url.clone(),
-            custom: true,
+            key: b.key,
+            label: b.label,
+            game: b.game,
+            url: b.url,
+            custom: b.custom,
         })
         .collect())
 }
 
-fn cache_path(st: &AppState, key: &str) -> anyhow::Result<PathBuf> {
-    Ok(st
-        .prefs
-        .settings_dir()?
-        .join("builds")
-        .join("cache")
-        .join(format!("{key}.md")))
-}
-
 pub fn add(app: &AppHandle, r: &Request) -> Reply {
     let st = state(app);
-    let label = r.b("label").trim().to_owned();
-    let url = r.b("url").trim().to_owned();
-    if !url.starts_with("https://") {
-        return Err(fail(400, "Build links must start with https://"));
-    }
-    let game = if r.b("game") == "KOTOR2" {
-        "KOTOR2"
-    } else {
-        "KOTOR1"
-    };
-    let mut key: String = format!(
-        "custom_{}",
-        label
-            .to_lowercase()
-            .chars()
-            .map(|c| if c.is_ascii_alphanumeric() { c } else { '_' })
-            .collect::<String>()
-    );
-    while st.lock().ui.custom_builds.iter().any(|b| b.key == key) {
-        key.push('_');
-    }
-    let build = crate::prefs::CustomBuild {
-        key: key.clone(),
-        label: if label.is_empty() { url.clone() } else { label },
-        game: game.into(),
-        url,
-    };
-    st.lock().ui.custom_builds.push(build.clone());
-    st.save_ui();
+    let b = catalog(&st)
+        .and_then(|c| c.add(&r.b("label"), &r.b("game"), &r.b("url")))
+        .map_err(|e| fail(400, format!("{e:#}")))?;
     Ok(
-        json!({"ok": true, "build": {"key": build.key, "label": build.label, "game": build.game, "custom": true, "url": build.url}}),
+        json!({"ok": true, "build": {"key": b.key, "label": b.label, "game": b.game, "custom": true, "url": b.url}}),
     )
 }
 
 pub fn delete(app: &AppHandle, key: &str) -> Reply {
     let st = state(app);
-    st.lock().ui.custom_builds.retain(|b| b.key != key);
-    st.save_ui();
-    if let Ok(path) = cache_path(&st, key) {
-        let _ = std::fs::remove_file(path);
-    }
+    catalog(&st)
+        .and_then(|c| c.remove(key))
+        .map_err(|e| fail(400, format!("{e:#}")))?;
     Ok(json!({"ok": true}))
 }
 
-/// The instruction file for a build: the saved copy, or a fresh download.
 fn fetch(st: &AppState, build: &Build, refresh: bool) -> anyhow::Result<(PathBuf, bool)> {
-    let cached = cache_path(st, &build.key)?;
-    if !refresh && cached.is_file() {
-        return Ok((cached, true));
-    }
-    let dir = cached.parent().expect("cache folder");
-    std::fs::create_dir_all(dir)?;
-    let partial = tempfile_dir(dir)?;
-    let download = partial.join("build.md");
-    let result = modsync::protocol::fetch_instruction_with_cancel(
-        &build.url,
-        &download,
-        &AtomicBool::new(false),
-    );
-    let outcome = match result {
-        Ok(()) => {
-            std::fs::rename(&download, &cached)?;
-            Ok((cached, false))
-        }
-        Err(_) if cached.is_file() => Ok((cached, true)),
-        Err(error) => Err(error),
-    };
-    let _ = std::fs::remove_dir_all(&partial);
-    outcome
-}
-
-fn tempfile_dir(dir: &std::path::Path) -> anyhow::Result<PathBuf> {
-    for n in 0..100u32 {
-        let path = dir.join(format!(".build-{}-{n}", std::process::id()));
-        if std::fs::create_dir(&path).is_ok() {
-            return Ok(path);
-        }
-    }
-    anyhow::bail!("Could not create a temporary folder")
+    let fetched = catalog(st)?.fetch(&build.key, refresh, &AtomicBool::new(false))?;
+    Ok((fetched.path, fetched.from_cache))
 }
 
 pub fn list(app: &AppHandle) -> Reply {
