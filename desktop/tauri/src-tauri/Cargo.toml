@@ -1,0 +1,37 @@
+[package]
+name = "modsync-desktop-tauri"
+version = "0.1.0"
+edition = "2024"
+license-file = "../../../LICENSE.txt"
+description = "kotor-mod-manager desktop interface on top of the ModSync engine"
+
+[[bin]]
+name = "modsync-desktop-tauri"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+modsync = { path = "../../..", default-features = false }
+anyhow = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-opener = "2"
+
+[profile.dev]
+debug = 0
+
+[profile.dev.package."sha2:0.10.9"]
+opt-level = 3
+
+[profile.release]
+lto = "thin"
+strip = true
+
+# Same crates.io patches as the engine crate; see ../../../vendor.
+[patch.crates-io]
+serde_json = { path = "../../../vendor/serde_json" }
+unrar_sys = { path = "../../../vendor/unrar_sys" }
