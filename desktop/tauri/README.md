@@ -18,7 +18,8 @@ ModSync engine. It is a separate crate with its own `Cargo.toml` and
 
 - Builds: `builds::Catalog` for the build list (plus instruction files opened
   from the computer), `Guide::load_for_install_preserving_selection` to read a
-  build, `selection` for the chosen mods and their options. Check runs the
+  build (for a community build with steps shipped in `resources/overlays`,
+  `overlays.rs` merges them in with `merge::preview` before drafting), `selection` for the chosen mods and their options. Check runs the
   download (`download_orchestrator`), then works out steps for mods that have
   none from their downloads (`drafts.rs`: `archive_generation::resolved::generate`,
   `draft::review::review_verified_drafts`, which clears a draft only when a

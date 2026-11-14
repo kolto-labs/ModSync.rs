@@ -331,8 +331,12 @@ pub fn load(app: &AppHandle, key: &str, r: &Request) -> Reply {
     let refresh = r.q("refresh") == "true";
     let (path, from_cache) =
         fetch(&st, &build, refresh).map_err(|e| fail(502, format!("{e:#}")))?;
-    let guide = Guide::load_for_install_preserving_selection(&path)
-        .map_err(|e| fail(422, format!("{e:#}")))?;
+    let guide = if build.custom {
+        Guide::load_for_install_preserving_selection(&path)
+    } else {
+        crate::overlays::load(app, &path, key)
+    }
+    .map_err(|e| fail(422, format!("{e:#}")))?;
     let installed: BTreeSet<String> = target_profile(&st, &build.game)
         .ok()
         .and_then(|profile| profile.kotor_directory)

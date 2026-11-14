@@ -8,6 +8,7 @@ mod extras;
 mod importing;
 mod library;
 mod nxm;
+mod overlays;
 mod pipeline;
 mod prefs;
 mod secrets;
