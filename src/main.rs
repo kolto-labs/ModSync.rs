@@ -201,6 +201,22 @@ enum Action {
         #[arg(long)]
         settings_dir: Option<PathBuf>,
     },
+    /// Import a mod archive that is not in a build: put it in the mod folder and write a
+    /// one-mod guide that installs it (install that guide with `install`).
+    ImportArchive {
+        /// A ZIP, 7z or RAR mod archive.
+        archive: PathBuf,
+        /// The mod folder the archive is placed in; an existing different file of the
+        /// same name is never replaced.
+        #[arg(long)]
+        source_dir: PathBuf,
+        /// Where to write the guide.
+        #[arg(long)]
+        output: PathBuf,
+        /// The mod's name; defaults to the archive name.
+        #[arg(long)]
+        name: Option<String>,
+    },
     /// Parse an nxm:// or modsync:// handoff URL without fetching it.
     ProtocolParse { url: String },
     /// Download an HTTP(S) instruction file with the protocol fetcher's SSRF and size guards.
@@ -2205,6 +2221,36 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
         }
         Some(Action::List { input }) => {
             println!("{}", serde_json::to_string_pretty(&Guide::load(&input)?)?);
+            Ok(())
+        }
+        Some(Action::ImportArchive {
+            archive,
+            source_dir,
+            output,
+            name,
+        }) => {
+            let cancelled = modsync::p2p::stop_signal_flag()?;
+            let prepared = modsync::import::prepare(
+                &archive,
+                &source_dir,
+                name.as_deref(),
+                &modsync::archive::Options::default(),
+                &cancelled,
+            )?
+            .context("This archive has no game files or TSLPatcher data; install it by hand")?;
+            prepared.guide.save(&output)?;
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&serde_json::json!({
+                    "archive": prepared.archive,
+                    "copied": prepared.copied,
+                    "sha256": prepared.sha256,
+                    "method": prepared.method,
+                    "name": prepared.guide.components[0].name,
+                    "guid": prepared.guide.components[0].guid,
+                    "guide": output,
+                }))?
+            );
             Ok(())
         }
         Some(Action::ProtocolParse { url }) => {

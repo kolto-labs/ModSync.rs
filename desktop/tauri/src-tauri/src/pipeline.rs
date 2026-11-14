@@ -75,7 +75,7 @@ struct Job {
 /// The folders of an install that stopped and left a restore point: the
 /// captured ones, or the active install's folders when a restore point is
 /// pending there.
-fn pending_roots(app: &AppHandle) -> Option<modsync::paths::Roots> {
+pub(crate) fn pending_roots(app: &AppHandle) -> Option<modsync::paths::Roots> {
     let st = state(app);
     let pending = |roots: &modsync::paths::Roots| {
         modsync::recovery::state_dir(roots).join("pending").exists()
@@ -179,14 +179,7 @@ fn prepare(app: &AppHandle, r: &Request, check_only: bool) -> Result<(Job, Strin
         e["path"] = path.into();
         return Err(e);
     }
-    let mut mods = st.mods_dir();
-    if mods.trim().is_empty() {
-        mods = dirs_home()
-            .join("Downloads")
-            .join("KOTOR_Mods")
-            .display()
-            .to_string();
-    }
+    let mods = mods_folder(&st);
     std::fs::create_dir_all(&mods).map_err(|e| fail(500, e.to_string()))?;
     store.activate(&profile.name).map_err(fail_any)?;
     store
@@ -295,6 +288,19 @@ pub fn start(app: &AppHandle, r: &Request) -> Reply {
     Ok(json!({"ok": true, "total": selected.len(), "game_path": path}))
 }
 
+/// The shared mod folder, or Downloads/KOTOR_Mods when none is set yet.
+pub(crate) fn mods_folder(st: &crate::state::AppState) -> String {
+    let mods = st.mods_dir();
+    if !mods.trim().is_empty() {
+        return mods;
+    }
+    dirs_home()
+        .join("Downloads")
+        .join("KOTOR_Mods")
+        .display()
+        .to_string()
+}
+
 fn dirs_home() -> PathBuf {
     std::env::var_os("USERPROFILE")
         .or_else(|| std::env::var_os("HOME"))
@@ -331,12 +337,12 @@ fn screen_resolution(app: &AppHandle, st: &crate::state::AppState) -> Option<(u3
 }
 
 #[derive(Default)]
-struct Tally {
-    done: usize,
-    manual: usize,
-    errors: usize,
+pub(crate) struct Tally {
+    pub done: usize,
+    pub manual: usize,
+    pub errors: usize,
     /// The engine's validation report, from the check step.
-    report: Option<Value>,
+    pub report: Option<Value>,
 }
 
 fn name_of(guide: &Guide, id: &str) -> String {
@@ -432,32 +438,54 @@ fn run(app: &AppHandle, job: Job, tally: &mut Tally) -> Result<()> {
     if !guide.components.iter().any(|c| c.is_selected) {
         return Ok(());
     }
+    let target = Target {
+        mods,
+        game,
+        case_insensitive,
+        cancelled,
+        paused,
+    };
+    check_and_install(app, &guide, &target, check_only, tally)
+}
+
+/// Where and how a guide installs, and the run's stop and pause flags.
+pub(crate) struct Target {
+    pub mods: PathBuf,
+    pub game: PathBuf,
+    pub case_insensitive: bool,
+    pub cancelled: Arc<AtomicBool>,
+    pub paused: Arc<AtomicBool>,
+}
+
+/// Check `guide` with the engine (changing nothing on disk) and then, unless
+/// `check_only`, install it into the game install's library. Used for builds and
+/// for imported mods.
+pub(crate) fn check_and_install(
+    app: &AppHandle,
+    guide: &Guide,
+    target: &Target,
+    check_only: bool,
+    tally: &mut Tally,
+) -> Result<()> {
+    let Target {
+        mods,
+        game,
+        case_insensitive,
+        cancelled,
+        paused,
+    } = target;
+    let case_insensitive = *case_insensitive;
     // 3. Check, changing nothing on disk.
-    let mut settings = Settings::new(&mods, &game)?;
-    settings.archive = state(app).archive_options();
-    settings.allow_processes = !state(app).lock().ui.block_programs;
-    if let Ok(prefs) = state(app)
-        .prefs
-        .store()
-        .and_then(|s| s.patcher_preferences())
-    {
-        settings.patcher_engine = prefs.engine;
-        settings.patcher = prefs
-            .executable
-            .filter(|p| !p.trim().is_empty())
-            .map(PathBuf::from);
-    }
-    settings.cancelled = cancelled.clone();
-    settings.paused = paused.clone();
+    let settings = rebuild_settings(app, mods, game, cancelled, paused)?;
     let roots = settings.roots.clone();
     let prepared = modsync::phase::prepare_with_roots(
-        &guide,
+        guide,
         modsync::phase::Phase::All,
         modsync::phase::CompletionContext::None,
         None,
         &roots,
         case_insensitive,
-        &cancelled,
+        cancelled,
     )?
     .guide;
     log(app, "Checking the selected mods before installing.", "info");
@@ -509,7 +537,7 @@ fn run(app: &AppHandle, job: Job, tally: &mut Tally) -> Result<()> {
                     "warning",
                 );
                 engine = Engine::new_with_case_insensitive_pathing(
-                    rebuild_settings(app, &mods, &game, &cancelled, &paused)?,
+                    rebuild_settings(app, mods, game, cancelled, paused)?,
                     case_insensitive,
                 )?;
             }

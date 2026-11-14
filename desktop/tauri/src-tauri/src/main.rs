@@ -4,6 +4,7 @@
 mod api;
 mod builds;
 mod extras;
+mod importing;
 mod library;
 mod pipeline;
 mod prefs;

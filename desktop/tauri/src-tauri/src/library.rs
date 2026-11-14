@@ -364,6 +364,17 @@ fn listing(st: &AppState, profile: &str) -> anyhow::Result<Value> {
             false,
         ));
     }
+    // Mods added with Import name their archive instead of a build.
+    let imported = st.lock().ui.imported_mods.clone();
+    for m in &mut mods {
+        let id = m["id"].as_str().unwrap_or_default().to_ascii_lowercase();
+        if let Some(archive) = imported.get(&id) {
+            m["source_type"] = "import".into();
+            m["source_ref"] = archive.clone().into();
+            m["source_exists"] = Path::new(archive).is_file().into();
+            m["build_key"] = Value::Null;
+        }
+    }
     Ok(json!({"game": game, "profile": name, "mods": mods, "mergeable_duplicates": dupes.len()}))
 }
 
@@ -527,10 +538,8 @@ pub fn route(app: &AppHandle, r: &Request, s: &[&str]) -> Reply {
                 json!({"ok": true, "override_removed": before, "modules_removed": 0, "restored": []}),
             )
         }
-        ["api", "library", "import-folder"] | ["api", "library", "import"] => Err(fail(
-            400,
-            "Importing mods from a folder is not supported. Install mods from a build instead.",
-        )),
+        ["api", "library", "import-folder"] if post => crate::importing::import_folder(app, r),
+        ["api", "library", "import"] if post => crate::importing::import_archive(app, r),
         ["api", "library", "bulk", "toggle"] if post => {
             let enable = r.q("action") == "enable";
             let ids: Vec<String> = r
@@ -812,5 +821,14 @@ fn uninstall(st: &AppState, profile: &str, id: &str) -> anyhow::Result<()> {
         manage(&svc, ManagementAction::Uninstall(id.to_owned()))?;
     }
     svc.remove_from_library(id)?;
+    if st
+        .lock()
+        .ui
+        .imported_mods
+        .remove(&id.to_ascii_lowercase())
+        .is_some()
+    {
+        st.save_ui();
+    }
     Ok(())
 }

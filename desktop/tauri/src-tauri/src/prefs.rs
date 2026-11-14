@@ -48,6 +48,8 @@ pub struct UiPrefs {
     pub scratch_dir: String,
     /// Largest unpacked size allowed per archive, in GB; empty for no limit.
     pub max_expanded_gb: String,
+    /// Mods installed with Import, by lowercase id: the archive they came from.
+    pub imported_mods: BTreeMap<String, String>,
 }
 
 pub struct Prefs {

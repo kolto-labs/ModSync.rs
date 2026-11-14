@@ -1,5 +1,22 @@
 # Compatibility and proof boundaries
 
+## Importing a mod archive - 2026-11-14
+
+`import::prepare` takes a ZIP, 7z or RAR archive that is not part of a guide,
+places it in the mod folder and returns a one-mod guide that installs it.
+Placing holds the mod-folder lock (`recovery::ModRootLock`), keeps the name to
+one safe file name, uses an archive already there only when its SHA-256 matches,
+never replaces a different file of the same name, and publishes the copy with
+no-clobber after checking its SHA-256 against the source. The instructions come
+from `archive_generation::generate_from_archive` (loose game files or a
+TSLPatcher tree; with several patcher options the first is chosen). An archive
+with neither returns None (a manual install) and its copy is removed again.
+`import::archives_in` lists the archives directly inside a folder.
+`modsync import-archive ARCHIVE --source-dir MODS --output GUIDE [--name NAME]`
+writes that guide; `install` then validates and installs it as usual. Installer
+programs (`.exe`) are not imported. Not covered by Rust tests (frozen by
+AGENTS.md).
+
 ## Pause and resume - 2026-11-14
 
 `Settings::paused` and `download_orchestrator::RunSettings::paused` are pause

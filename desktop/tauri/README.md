@@ -25,6 +25,8 @@ ModSync engine. It is a separate crate with its own `Cargo.toml` and
   (`with_component_checkpoints`, `with_managed_deployment`). Pause and Resume
   set the run's pause flag (`Settings::paused`, `RunSettings::paused`), which
   holds between downloads and between mods. Restore uses `recovery::restore`.
+  Import folder and dropped archives use `import::prepare` and then the same
+  check and install.
 - Mod details: `mod_info::fetch` and `mod_info::fetch_image` (served through
   the `kmm-image` protocol).
 - Installed mods: `deployment::Service` (`management_status`, `deploy_report`,
