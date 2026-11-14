@@ -1,6 +1,7 @@
 use crate::paths::literal_relative;
 mod timestamps;
 use anyhow::{Result, bail, ensure};
+use file_format::FileFormat;
 use std::{
     collections::BTreeSet,
     fs::File,
@@ -142,44 +143,72 @@ pub fn verify(path: &Path, name: &Path, options: &Options, cancelled: &AtomicBoo
     process(path, name, options, cancelled, false, false).map(|_| ())
 }
 
-/// Content detection is shared by acquisition and archive processing. A recognized
-/// but corrupt archive must fail verification rather than fall back to a loose file.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Format {
+    Zip,
+    Rar,
+    SevenZip,
+    Gzip,
+    Tar,
+    Executable,
+}
+
+fn format_hint(header: &[u8]) -> Option<Format> {
+    // Detect the outer stream first: interior TAR magic can occur in ZIP/SFX data.
+    let prefix = &header[..header.len().min(8)];
+    let format = match FileFormat::from_bytes(prefix) {
+        FileFormat::Zip => Some(Format::Zip),
+        FileFormat::RoshalArchive => Some(Format::Rar),
+        FileFormat::SevenZip => Some(Format::SevenZip),
+        FileFormat::Gzip => Some(Format::Gzip),
+        FileFormat::MsDosExecutable if header.starts_with(b"MZ") => Some(Format::Executable),
+        _ => None,
+    };
+    // Damaged family signatures must reach their reader and fail verification,
+    // rather than become loose files. This also keeps specialized ZIP containers.
+    format.or_else(|| {
+        if header.starts_with(b"PK") {
+            Some(Format::Zip)
+        } else if header.starts_with(b"Rar!\x1a\x07") {
+            Some(Format::Rar)
+        } else if header.starts_with(b"\x1f\x8b") {
+            Some(Format::Gzip)
+        } else if tar_header(header) {
+            Some(Format::Tar)
+        } else {
+            None
+        }
+    })
+}
+
+/// A recognized but corrupt archive must fail its reader rather than fall back
+/// to a loose file. An executable is an archive only with an embedded payload.
 pub(crate) fn is_supported(path: &Path, cancelled: &AtomicBool) -> Result<bool> {
     let mut file = crate::paths::open_regular_read(path)?;
     let mut header = Vec::with_capacity(512);
     (&mut file).take(512).read_to_end(&mut header)?;
-    let header = header.as_slice();
-    if header.starts_with(b"MZ") {
+    let format = format_hint(&header);
+    if format == Some(Format::Executable) {
         file.rewind()?;
         return Ok(find_7z_optional(&mut file, cancelled)?.is_some());
     }
-    Ok(header.starts_with(b"Rar!\x1a\x07")
-        || header.starts_with(b"PK")
-        || header.starts_with(b"7z\xBC\xAF\x27\x1C")
-        || header.starts_with(b"\x1f\x8b")
-        || tar_header(header))
+    Ok(format.is_some())
 }
 
 fn tar_header(bytes: &[u8]) -> bool {
     if bytes.len() != 512 {
         return false;
     }
-    if bytes.iter().all(|byte| *byte == 0) {
+    if FileFormat::from_bytes(bytes) == FileFormat::TapeArchive
+        || bytes.iter().all(|byte| *byte == 0)
+        || bytes.get(257..262) == Some(b"ustar")
+    {
         return true;
     }
-    let header = tar::Header::from_byte_slice(bytes);
-    let sum: u32 = bytes
-        .iter()
-        .enumerate()
-        .map(|(i, byte)| {
-            if (148..156).contains(&i) {
-                u32::from(b' ')
-            } else {
-                u32::from(*byte)
-            }
-        })
-        .sum();
-    bytes.get(257..262) == Some(b"ustar") || header.cksum().is_ok_and(|expected| expected == sum)
+    let mut header = tar::Header::from_byte_slice(bytes).clone();
+    let expected = header.cksum().ok();
+    header.set_cksum();
+    expected.is_some() && expected == header.cksum().ok()
 }
 
 /// Selected loose sources remain one file; archives still pass the full reader.
@@ -413,7 +442,8 @@ fn process(
     (&mut file).take(512).read_to_end(&mut signature)?;
     let signature = signature.as_slice();
     file.rewind()?;
-    if signature.starts_with(b"Rar!\x1a\x07") {
+    let format = format_hint(signature);
+    if format == Some(Format::Rar) {
         let headers = rar_header_inventory(path);
         let mut archive = unrar::Archive::new(path).open_for_processing()?;
         let mut index = 0;
@@ -481,7 +511,7 @@ fn process(
                 archive = entry.test()?;
             }
         }
-    } else if signature.starts_with(b"PK") {
+    } else if format == Some(Format::Zip) {
         let mut zip = zip::ZipArchive::new(file)?;
         ensure!(zip.len() <= 100_000, "Archive has too many entries");
         for n in 0..zip.len() {
@@ -495,8 +525,8 @@ fn process(
                 output.add(&name, mode, modified, &mut entry)?;
             }
         }
-    } else if signature.starts_with(b"7z\xBC\xAF\x27\x1C") || signature.starts_with(b"MZ") {
-        let base = if signature.starts_with(b"MZ") {
+    } else if matches!(format, Some(Format::SevenZip | Format::Executable)) {
+        let base = if format == Some(Format::Executable) {
             find_7z(&mut file, cancelled)?
         } else {
             0
@@ -525,7 +555,7 @@ fn process(
                     .map_err(|e| std::io::Error::other(e.to_string()).into())
             },
         )?;
-    } else if signature.starts_with(b"\x1f\x8b") {
+    } else if format == Some(Format::Gzip) {
         let mut gzip = flate2::read::MultiGzDecoder::new(file);
         let modified = gzip
             .header()
@@ -548,7 +578,7 @@ fn process(
                 .ok_or_else(|| anyhow::anyhow!("GZip needs a filename"))?;
             output.add(name, None, modified, &mut reader)?;
         }
-    } else if tar_header(signature) {
+    } else if format == Some(Format::Tar) {
         read_tar(file, &mut output)?;
     } else {
         bail!(

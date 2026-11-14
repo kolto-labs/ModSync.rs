@@ -9,6 +9,11 @@ the guide excludes; a page whose several files all match warns the user to revie
 the selection. Guide filename rules decide whether a texture is selected.
 
 ZIP, RAR, 7z, TAR and GZip are identified by content and verified before publication.
+`file-format` 0.29.0 identifies the outer format from a bounded prefix, with optional
+readers disabled. Full verification stays in `zip`, `sevenz-rust2`, `unrar`, `tar`
+and `flate2`; TAR checksum calculation uses `tar::Header::set_cksum`. ModSync keeps
+the format allowlist, damaged-family rejection, embedded-7z adapter and install
+safety rules. Interior TAR magic cannot override an outer ZIP or executable.
 A corrupt recognized archive still fails. An ordinary DLL or EXE can be copied as
 one loose file; embedded 7z SFX payloads are decoded without executing the program.
 Hashes, safe filenames, cancellation and no-clobber publication apply to both
@@ -23,11 +28,12 @@ when the guide supplies an executable file action and destination; prose alone
 still does not authorize a guessed Override path. Malak's unwanted texture can
 remain excluded by the guide's filename rules.
 
-Fifty-three isolated production CLI commands covered mixed and loose-only pages,
+Sixty-nine isolated production CLI commands covered mixed and loose-only pages,
 explicit names and exclusions, ambiguity warnings, UTF-8 headers, misleading
 extensions, Copy/Move and wildcard installation, hash failures, size limits,
-unsafe paths and no-clobber conflicts. ZIP/TAR/GZip regression cases included
-empty TARs and a TAR split across gzip members. These are controlled fixtures,
+unsafe paths, cancellation and no-clobber conflicts. Archive regressions included
+real 7z/RAR fixtures, V7 and empty TARs, a TAR split across gzip members, and ZIP/SFX
+payloads containing interior TAR magic. Embedded 7z detection crossed a 64 KiB boundary. These are controlled fixtures,
 not a live CineMalak installation or complete parity proof. Rust tests and custom
 Rust harnesses remain frozen; their source regions are unchanged. Production
 formatting, builds and Clippy with warnings denied pass in both feature modes.
