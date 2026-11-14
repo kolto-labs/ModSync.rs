@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       seed_run_id:
-        description: Reviewed source seed run ID; leave both pins empty for the fixed legacy snapshot
+        description: Reviewed source seed run ID (1-6 packs); leave both pins empty for the fixed legacy snapshot
         type: string
         default: ''
       seed_head_sha:
@@ -99,10 +99,10 @@ jobs:
           if seed_mode:
               expected_packs = sum(item['name'].startswith(core.PACK_PREFIX) for item in pinned)
               manifests = sum(item['name'] == 'mod-archive-manifest-sealed' for item in pinned)
-              if (not 1 <= expected_packs <= 2 or len(seed_attempts) != 1 or manifests > 1
+              if (not 1 <= expected_packs <= 6 or len(seed_attempts) != 1 or manifests > 1
                       or len(pinned) != expected_packs + 1 + manifests
                       or sum(item['name'].startswith(core.INDEX_PREFIX) for item in pinned) != 1):
-                  raise SystemExit('Expected one or two seed packs, one index and at most one sealed manifest from one source attempt')
+                  raise SystemExit('Expected one to six seed packs, one index and at most one sealed manifest from one source attempt')
               for item in pinned:
                   item['source_attempt'] = int(next(iter(seed_attempts)))
           elif len(pinned) != len(expected):
