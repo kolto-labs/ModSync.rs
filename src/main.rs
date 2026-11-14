@@ -2812,14 +2812,27 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             };
             // Execution only: dry-run returned above without network discovery. A
             // discovery error after a signal exits 130, as planning and the run do.
+            // Discovery lists every provider page and rereads every archive already in
+            // the mod folder before the first acquisition event, so it reports progress.
             let plan = finish_acquisition_result(
-                orchestrator::discover_with_loopback_ca(
+                orchestrator::discover_observed(
                     &execution,
                     &plan,
                     &plan_options,
                     &run_settings,
                     &cancelled,
                     loopback_ca.as_ref(),
+                    // Human progress on stderr: stdout keeps the C5 contract of
+                    // acquisition events and one summary.
+                    |progress| {
+                        let what = match progress.stage {
+                            orchestrator::DiscoveryStage::Pages => "Checking download pages",
+                            orchestrator::DiscoveryStage::ExistingFiles => {
+                                "Checking files already in the mods folder"
+                            }
+                        };
+                        eprintln!("{what}: {} of {}", progress.done, progress.total);
+                    },
                 ),
                 &cancelled,
             )?;
